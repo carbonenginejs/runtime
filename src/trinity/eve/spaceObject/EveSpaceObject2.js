@@ -470,6 +470,10 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   // (cpp:3747 takes the world translation out of the STORED transposed matrix).
   // Carbon's paired m_perObjectDataVs/m_perObjectDataPs GPU buffers are the
   // engine's business; Invalidate on these records carries the same signal.
+  /** The ParentData Carbon builds on the stack for the decal pass
+   * (EveSpaceObject2.cpp:1696), held here so the pass does not allocate. */
+  #decalParentData = new IEveSpaceObject2ParentData();
+
   #vsData = RawData.create("EveSpaceObjectVSData");
 
   #psData = RawData.create("EveSpaceObjectPSData");
@@ -1222,6 +1226,18 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     for (const child of this.effectChildren)
     {
       child?.UpdateVisibility(updateContext, this.worldTransform, this.#lodLevelWithChildren);
+    }
+
+    // Carbon cpp:1694-1706: the decals take one ParentData built for the pass,
+    // after the mesh bone palette when the updater has one.
+    if (this.#isMeshVisible)
+    {
+      const parentData = this.GetParentData(this.#decalParentData);
+      for (const decal of this.decals)
+      {
+        if (boneCount) decal.SetBoneMatrix(bones, boneCount);
+        decal.UpdateVisibility(updateContext, parentData);
+      }
     }
 
     if (this.mesh && this.#boundingSphereWorldRadius > 0)

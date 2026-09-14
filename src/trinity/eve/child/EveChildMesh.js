@@ -15,6 +15,7 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
+import { IEveSpaceObject2ParentData } from "../spaceObject/IEveSpaceObject2ParentData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import {
   createChildPerObjectRecords,
@@ -98,6 +99,10 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
   #restPoseBoneTransforms = null;
 
   #parentOverlayEffects = null;
+
+  /** m_parentData (IEveSpaceObject2::ParentData) - refreshed from the space
+   * object parent in UpdateSyncronous and handed to the decals (cpp:1015, 450). */
+  #parentData = new IEveSpaceObject2ParentData();
 
   #overlayAreaBlocks = [ [], [] ];
 
@@ -775,6 +780,9 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     // data by this child's translation, then stamp our own transforms.
     const parent = params?.spaceObjectParent ?? null;
     inheritParentPerObjectData(this.#perObjectData, parent, this.translation);
+    // Carbon cpp:1015: the decals' parent data comes from the space object
+    // parent, then is made relevant to this child below.
+    if (parent) parent.GetParentData(this.#parentData);
     this.#parentOverlayEffects = this.inheritOverlayEffects && Array.isArray(parent?.overlayEffects)
       ? parent.overlayEffects
       : null;
@@ -785,7 +793,14 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
       this.#perObjectData.ps.Set("clipRadius2Sq", [ 0 ]);
       this.#perObjectData.ps.Set("clipSphereFactor", [ 0 ]);
       this.#perObjectData.ps.Set("clipSphereFactor2", [ 0 ]);
+      // cpp:1033-1036: the decals lose the inherited clip sphere too.
+      this.#parentData.clipRadiusSq = 0;
+      this.#parentData.clipRadius2Sq = 0;
+      this.#parentData.clipFactor = 0;
+      this.#parentData.clipFactor2 = 0;
     }
+    // cpp:1044: the decals are placed by this child's world transform.
+    if (parent) mat4.copy(this.#parentData.transform, this.worldTransform);
     stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
 
     this.#activationStrength = Number(params?.activationStrength ?? 1);
@@ -1044,9 +1059,8 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
       {
         // Carbon (cpp:441-446) feeds animated bone matrices to the decal first
         // - skipped until the JS animation seam exists. Carbon passes
-        // &m_parentData (per-object shading struct, GPU seam); the owning
-        // child stands in as the duck-typed parent.
-        decal?.UpdateVisibility(updateContext, this);
+        // &m_parentData (cpp:450), refreshed in UpdateSyncronous.
+        decal?.UpdateVisibility(updateContext, this.#parentData);
       }
     }
 

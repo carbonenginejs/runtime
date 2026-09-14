@@ -5,8 +5,9 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, impl, io, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -435,14 +436,23 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
   }
 
   /** Carbon copies the parent data by value at the two points UpdateVisibility
-   * accepts the decal (cpp:145, cpp:178). shLighting is a borrowed pointer into
-   * the parent's own PS data, so it is carried by reference exactly as Carbon
-   * carries the pointer. */
+   * accepts the decal (cpp:145, cpp:178): `m_parentData = *parentData`. Member
+   * by member is that struct copy - no export, no allocation, on a per-decal
+   * per-frame path. shLighting is a borrowed pointer into the parent's own PS
+   * data, so it is carried by reference exactly as Carbon carries the pointer. */
   #CopyParentData(parentData)
   {
-    CjsSchema.copy(this.#parentData, parentData);
-
-    this.#parentData.shLighting = parentData.shLighting ?? null;
+    const own = this.#parentData;
+    mat4.copy(own.transform, parentData.transform);
+    own.killCount = parentData.killCount;
+    vec4.copy(own.shipData, parentData.shipData);
+    vec3.copy(own.clipSphereCenter, parentData.clipSphereCenter);
+    own.clipRadiusSq = parentData.clipRadiusSq;
+    own.clipRadius2Sq = parentData.clipRadius2Sq;
+    own.clipFactor = parentData.clipFactor;
+    own.clipFactor2 = parentData.clipFactor2;
+    own.shLighting = parentData.shLighting;
+    vec4.copy(own.customData, parentData.customData);
   }
 
   /**
