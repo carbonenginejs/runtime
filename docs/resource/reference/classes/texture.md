@@ -3,7 +3,7 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime/resource` classes under `src/resource/texture`
 Audience: Users, maintainers, and automated readers  
-Summary: Provides one-sentence purpose descriptors for the texture-array aggregation classes in src/resource/texture.
+Summary: Provides one-sentence purpose descriptors for the texture-array aggregation and procedural texture constructor classes in src/resource/texture.
 
 <!-- class:CjsTextureArrayRes -->
 ## `CjsTextureArrayRes`
@@ -24,3 +24,13 @@ Mutable runtime aggregate resource for an ordered texture-array request that coa
 - Source: `src/resource/texture/CjsTextureArrayResParameterProxy.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
+
+<!-- class:SolidColorTextureConstructor -->
+## `SolidColorTextureConstructor`
+
+Carbon's `dynamic:/color` resource constructor, which builds the 1x1 `TriTextureRes` a `dynamic:/color/r,g,b,a` path names and is registered on a manager through `RegisterSolidColorTexture`.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/SolidColorTextureConstructor.js`
+- Visibility: Public
+- Kind: Faithful Carbon port

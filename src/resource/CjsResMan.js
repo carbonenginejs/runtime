@@ -186,6 +186,32 @@ let nextLocalValueIdentity = 1;
  * @typedef {CjsResourceOwnership|CjsResourceReloadCandidate} CjsResourceMutationAuthority
  */
 
+// `dynamic:` protocol (BlueResMan.cpp:219-223): the name is the segment after
+// this prefix, and everything after the following slash is the query.
+const DYNAMIC_RESOURCE_PREFIX = "dynamic:/";
+
+/**
+ * Carbon logs and returns null for an unknown dynamic name or a constructor that
+ * yields nothing (BlueResMan.cpp:225-235). There is no log channel here, and a
+ * null handle breaks every caller that composes on GetResource, so the same
+ * condition is raised, named.
+ *
+ * @param {string} path Normalized dynamic path.
+ * @param {string} name Constructor name.
+ * @param {string} code Error code.
+ * @param {string} message Error message.
+ * @returns {Error}
+ */
+function dynamicResourceError(path, name, code, message)
+{
+  const error = new Error(`CjsResMan ${message} (${path})`);
+  error.code = code;
+  error.path = path;
+  error.name = "CjsResManDynamicResourceError";
+  error.constructorName = name;
+  return error;
+}
+
 export class CjsResMan
 {
 
@@ -251,6 +277,14 @@ export class CjsResMan
   #resourceExtensionRoutes = new WeakMap();
   #resourceHandlerModes = new WeakMap();
   #resourceTypeCandidates = new Map();
+  // BlueResMan::m_dynamicConstructors (BlueResMan.h:154-155).
+  #dynamicConstructors = new Map();
+  #dynamicResources = new WeakSet();
+  // Carbon caches a LoadObject BUILDER and creates a new object per call
+  // (BlueResMan.cpp:653-795). For an OBJECT-mode route that hydrates, the
+  // payload is the decoded plain values - the builder - and this records what
+  // builds from them.
+  #objectBuilders = new WeakMap();
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -1138,6 +1172,43 @@ export class CjsResMan
   }
 
   /**
+   * Registers the constructor that builds `dynamic:/<name>/<query>` resources
+   * (BlueResMan.cpp:296-305). The name is lowercased, as Carbon's is; the
+   * constructor's `GetResource(query)` returns a resource for that query.
+   *
+   * @param {string} name Name following `dynamic:/`.
+   * @param {{GetResource: function(string): object}} constructor Resource constructor.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the name is empty or the constructor has no GetResource.
+   */
+  RegisterResourceConstructor(name, constructor)
+  {
+    const key = String(name ?? "").toLowerCase();
+    if (!key)
+    {
+      throw new TypeError("CjsResMan.RegisterResourceConstructor requires a name.");
+    }
+    if (typeof constructor?.GetResource !== "function")
+    {
+      throw new TypeError(`CjsResMan dynamic resource constructor "${key}" must implement GetResource.`);
+    }
+    this.#dynamicConstructors.set(key, constructor);
+    return this;
+  }
+
+  /**
+   * Removes a dynamic resource constructor (BlueResMan.cpp:312-325).
+   *
+   * @param {string} name Name following `dynamic:/`.
+   * @returns {CjsResMan} This resource manager.
+   */
+  UnregisterResourceConstructor(name)
+  {
+    this.#dynamicConstructors.delete(String(name ?? "").toLowerCase());
+    return this;
+  }
+
+  /**
    * Return registered format facades for one normalized input extension.
    *
    * @param {string} inputType Input extension with or without a leading dot.
@@ -1213,6 +1284,12 @@ export class CjsResMan
       this.#BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive(cacheKey);
       return existing;
+    }
+    // Below the cache lookup, as in BlueResMan::GetResourceHelper, so identical
+    // queries share one resource.
+    if (key.startsWith(DYNAMIC_RESOURCE_PREFIX))
+    {
+      return this.#CreateDynamicResource(key, cacheKey);
     }
     if (!existing && options.reload === true)
     {
@@ -1306,16 +1383,39 @@ export class CjsResMan
     const existing = this.objectOperations.get(resource);
     if (existing?.ownership === ownership)
     {
-      return existing.promise;
+      // Joining an in-flight load shares its promise - unless the route builds
+      // per caller, when the load's own caller receives the instance built at
+      // publication and a joiner gets its own.
+      const route = this.#resourceExtensionRoutes.get(resource);
+      if (!route?.Target && !route?.Identify) return existing.promise;
+      return existing.promise.then(result => this.#objectBuilders.has(resource)
+        ? this.#BuildObject(resource)
+        : result);
     }
 
     if (resource.HasPayload?.())
     {
       resource.KeepPayloadAlive?.();
+      if (this.#objectBuilders.has(resource))
+      {
+        return Promise.resolve().then(() => this.#BuildObject(resource));
+      }
       return Promise.resolve(getPublishedResourceObject(
         resource,
         this.#resourceExtensionRoutes.get(resource) || null,
         this.#resourceHandlerModes.get(resource) || null
+      ));
+    }
+
+    if (this.#dynamicResources.has(resource))
+    {
+      // A dynamic resource is built by its constructor, never read from a
+      // source: without a payload it failed, and there is nothing to fetch.
+      return Promise.reject(resource.error || dynamicResourceError(
+        resource.GetPath(),
+        "",
+        "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
+        "dynamic resource has no payload"
       ));
     }
 
@@ -2084,6 +2184,7 @@ export class CjsResMan
    */
   #HydrateExtensionObject(resource, values, options, resolved)
   {
+    this.#objectBuilders.delete(resource);
     const route = resolved.route;
     if (!route || (!route.Target && !route.Identify)) return values;
 
@@ -2122,11 +2223,41 @@ export class CjsResMan
       }
     }
 
+    const hydrated = this.#HydrateTarget(resource, Target, values, context);
+    // Publication decides whether this route builds per caller: only an
+    // OBJECT-mode handle hands its object out, so only it keeps the builder.
+    this.#objectBuilders.set(resource, { Target, context, values, hydrated });
+    return hydrated;
+  }
+
+  /**
+   * Build one object from decoded values. Every build receives its own
+   * structured copy, so no two callers share a nested array, typed array or
+   * reader carrier however `from` treats its input - Carbon's objects are
+   * likewise independent, each read out of the cached reader's bytes.
+   *
+   * @param {CjsResource} resource Resource whose values are built.
+   * @param {Function} Target Resolved target constructor.
+   * @param {*} values Decoded plain values.
+   * @param {object} context Hydration context captured at publication.
+   * @returns {*} A new hydrated object.
+   */
+  #HydrateTarget(resource, Target, values, context)
+  {
+    let copy;
+    try
+    {
+      copy = structuredClone(values);
+    }
+    catch (error)
+    {
+      throw createExtensionTargetError(resource, "Decoded values could not be copied for a per-caller build.", error);
+    }
     try
     {
       const hydrated = typeof Target.fromYAML === "function"
-        ? Target.fromYAML(values, context)
-        : Target.from(values);
+        ? Target.fromYAML(copy, context)
+        : Target.from(copy);
       if (hydrated && typeof hydrated.then === "function")
       {
         throw new TypeError("Extension target hydration must be synchronous.");
@@ -2137,6 +2268,56 @@ export class CjsResMan
     {
       throw createExtensionTargetError(resource, "Target hydration failed.", error);
     }
+  }
+
+  /**
+   * A fresh object from a resident builder: Carbon's
+   * `builder->CreateObjectWithYield` (BlueResMan.cpp:785).
+   *
+   * @param {CjsResource} resource Resource holding the decoded values as payload.
+   * @returns {*} A new hydrated object.
+   */
+  #BuildObject(resource)
+  {
+    const builder = this.#objectBuilders.get(resource);
+    return this.#HydrateTarget(resource, builder.Target, resource.GetPayload(), builder.context);
+  }
+
+  /**
+   * `dynamic:` branch of BlueResMan::GetResourceHelper (BlueResMan.cpp:219-245).
+   * Inserted not cacheable, Carbon's `CACHING_NOT_ALLOWED`: a dynamic resource is
+   * never admitted to the byte cache.
+   *
+   * @param {string} key Normalized `dynamic:/<name>/<query>` path.
+   * @param {string} cacheKey MotherLode key.
+   * @returns {CjsResource} Canonical dynamic resource.
+   * @throws {Error} If no constructor is registered or it yields no resource.
+   */
+  #CreateDynamicResource(key, cacheKey)
+  {
+    const rest = key.slice(DYNAMIC_RESOURCE_PREFIX.length);
+    const slash = rest.indexOf("/");
+    const name = slash === -1 ? rest : rest.slice(0, slash);
+    const query = slash === -1 ? "" : rest.slice(slash + 1);
+    const constructor = this.#dynamicConstructors.get(name);
+    if (!constructor)
+    {
+      throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_CONSTRUCTOR_MISSING",
+        `no dynamic constructor is registered for "${name}"`);
+    }
+    const resource = constructor.GetResource(query);
+    if (!resource || typeof resource.Initialize !== "function" || typeof resource.SetObjectLoader !== "function")
+    {
+      throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
+        `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
+    }
+    this.#dynamicResources.add(resource);
+    resource.SetObjectLoader(() => this.GetObject(key));
+    const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: false });
+    const canonical = insertion?.resource || resource;
+    this.#BindResourceLifecycle(cacheKey, canonical);
+    this.motherLode.KeepAlive(cacheKey);
+    return canonical;
   }
 
   /**
@@ -2203,12 +2384,24 @@ export class CjsResMan
       resource,
       this.#resourceExtensionRoutes.get(resource) ? this.#resourceHandlerModes.get(resource) : null
     );
-    resource.SetPayload?.(object, options);
+    const builder = this.#objectBuilders.get(resource);
+    const buildsPerCaller = mode === ResourceHandlerMode.OBJECT && builder?.hydrated === object;
+    if (builder && !buildsPerCaller) this.#objectBuilders.delete(resource);
+    // A per-caller route retains the decoded values - the builder - and hands
+    // `object` to this publication's caller only. The values then live under the
+    // payload lease, like any payload.
+    const payload = buildsPerCaller ? builder.values : object;
+    if (buildsPerCaller)
+    {
+      delete builder.values;
+      delete builder.hydrated;
+    }
+    resource.SetPayload?.(payload, options);
     // The two modes differ in one thing only: what `object` names and what the
     // caller is handed back. RESOURCE publishes the stable handle, so both
     // point at the resource; OBJECT publishes the reader outcome.
     const published = mode === ResourceHandlerMode.RESOURCE ? resource : object;
-    resource.object = published;
+    resource.object = buildsPerCaller ? payload : published;
     // PREPARED, not LOADED: `object` is the reader/converter OUTCOME, so the
     // bytes have already been turned into whatever they needed to become.
     // LOADED means raw source data is in hand and still has to be prepared - a

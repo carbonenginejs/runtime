@@ -397,15 +397,25 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
   assert.deepEqual({ ...first }, { value: 1, source: "first" });
   const handler = resMan.GetResource(path);
   assert.equal(handler instanceof CjsLoadingObject, true);
-  assert.equal(handler.GetPayload(), first);
-  assert.equal(await resMan.Fetch(path), first);
+  // Carbon caches the builder, not the object (BlueResMan.cpp:653-795): the
+  // payload is the decoded values, and each Fetch builds its own object.
+  assert.deepEqual(handler.GetPayload(), { value: 1, source: "first" });
+  {
+    const again = await resMan.Fetch(path);
+    assert.notEqual(again, first);
+    assert.deepEqual({ ...again }, { value: 1, source: "first" });
+  }
   assert.equal(reads, 1);
 
   resMan.RegisterExtension("typed", CjsLoadingObject, {
     Format: CjsSecondFormat,
     Target: CjsTarget
   });
-  assert.equal(await resMan.Fetch(path), first);
+  {
+    const again = await resMan.Fetch(path);
+    assert.notEqual(again, first);
+    assert.deepEqual({ ...again }, { value: 1, source: "first" });
+  }
 
   assert.equal(resMan.Delete(path), true);
   const second = await resMan.Fetch(path);

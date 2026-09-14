@@ -181,6 +181,19 @@ detach an `ArrayBuffer`, or retain an independently writable snapshot. The
 consumer should copy only the fields it requires; the resource layer does not
 automatically deep-clone payload or typed-array bundles.
 
+One kind of route is the exception, because it hands out objects rather than
+data. An OBJECT-mode extension route that hydrates a `Target` (or an `Identify`
+result) follows Carbon's `BlueResMan::LoadObject`, which caches a builder and
+creates a new object on every call. Its payload is the decoded plain values,
+and every `GetObject()`, `LoadObject()`, `FetchObject()` and `Ready()` caller
+receives its own object hydrated from a structured copy of them, so no two
+callers share a nested array or typed array. Nothing is re-read. Callers
+joining an in-flight load also receive their own object, so for these routes
+the operation's promise is not shared. Values that cannot be structured-copied
+fail the load with `CJS_RESOURCE_EXTENSION_TARGET_FAILED`. Routes without a
+Target, RESOURCE-mode routes, and `Identify` results of `true` keep the shared
+read-only rule above.
+
 ## Read-cache provenance
 
 Source and parsed-format caches use explicit provenance, separate from

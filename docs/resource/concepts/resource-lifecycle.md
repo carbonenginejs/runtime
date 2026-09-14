@@ -56,8 +56,10 @@ LOADED -> PREPARING -> PREPARED               (engine adapters)
 per source/path and limits active source operations with
 `maxConcurrentLoads`. After bytes arrive, object construction is split into
 separate main-queue items (`reader/format conversion -> publish`). Publication
-moves the resource to `LOADED`, then stops. ResMan never performs backend
-realization or marks the resource `PREPARED`/`GOOD`. See
+moves the resource to `PREPARED`: the published value is already the reader or
+converter outcome, so no CPU preparation remains. ResMan never performs backend
+realization. A route that hydrates a `Target` builds a new object for each
+caller from the retained decoded values, as Carbon's `LoadObject` does. See
 [reference/queues.md](../reference/queues.md) for the queue contract and
 [reference/motherlode-cache.md](../reference/motherlode-cache.md) for
 identity, retention, and release behavior.

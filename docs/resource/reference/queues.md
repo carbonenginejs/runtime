@@ -197,6 +197,28 @@ the same registered constructor.
 `RegisterObjectLoader` remains the direct legacy byte-to-value registration for
 an extension without an explicit route.
 
+## Dynamic resources
+
+A `dynamic:/<name>/<query>` path is built by a registered constructor rather
+than read from a source, as in Carbon's `BlueResMan::GetResourceHelper`.
+`RegisterResourceConstructor(name, constructor)` registers an object whose
+`GetResource(query)` returns a resource; names are lowercased, and
+`UnregisterResourceConstructor(name)` removes one. The lookup sits below the
+MotherLode lookup, so identical queries share one resource, and the resource is
+inserted not cacheable (Carbon's `CACHING_NOT_ALLOWED`). A dynamic resource never
+falls back to a source read. An unknown name raises
+`CJS_RESMAN_DYNAMIC_CONSTRUCTOR_MISSING`, a constructor that returns no resource
+raises `CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE`, and `GetObject()` on a dynamic
+resource without a payload rejects with that resource's error.
+
+`RegisterSolidColorTexture(resMan)` registers Carbon's `color` constructor. It is
+an explicit composition call, like `RegisterShaderResources`, rather than
+Carbon's static registration. `dynamic:/color/r,g,b,a` is a 1x1 `TriTextureRes`
+whose `rgba32float` payload holds the colour quantized through the half-float
+codec, parsed exactly as Carbon's `ParseColor`; a malformed query fails the
+texture with `CJS_TEXTURE_PROCEDURAL_PATH_INVALID`. The WebGPU device does not
+yet upload `rgba32float` payloads, and `dynamic:/gradient_1d/` is not ported.
+
 ## Related documentation
 
 - [Resource lifecycle concepts](../concepts/resource-lifecycle.md)

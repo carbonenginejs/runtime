@@ -1,5 +1,6 @@
 export * from "./CjsTextureArrayRes.js";
 export * from "./CjsTextureArrayResParameterProxy.js";
+export * from "./SolidColorTextureConstructor.js";
 export * from "./Tr2ImageRes.js";
 export * from "./Tr2TextureLodManager.js";
 export * from "./Tr2TextureLodUpdateRequest.js";
@@ -12,3 +13,4 @@ export * from "./Tr2TexturePipelineStepLimitSize.js";
 export * from "./Tr2TexturePipelineStepLoad.js";
 export * from "./Tr2TexturePipelineStepPack.js";
 export * from "./TriTextureRes.js";
+export * from "./solidColorTexture.js";

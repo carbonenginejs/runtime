@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, carbon, impl, io, type } from "#schema";
 import { CjsResource } from "../CjsResource.js";
+import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
 import {
   ResourcePayloadType,
@@ -56,6 +57,47 @@ export class TriTextureRes extends CjsResource
       skipUpdate: true,
       skipEvents: true
     });
+  }
+
+  /**
+   * Carbon's Initialize, with its procedural branch (TriTextureRes.cpp:223-236):
+   * a `dynamic:/color/` path is rasterized here rather than loaded from source.
+   * The `dynamic:/gradient_1d/` branch Carbon checks first is not ported yet.
+   *
+   * @param {string} path Resource path.
+   * @param {string|null} [ext] Extension override.
+   * @param {string} [requirement] Semantic requirement.
+   * @returns {TriTextureRes} This resource.
+   */
+  Initialize(path, ext = null, requirement = "") {
+    super.Initialize(path, ext, requirement);
+    if (IsSolidColorTexturePath(this.path)) this.#RasterizeProceduralTexture(RasterizeSolidColor);
+    return this;
+  }
+
+  /**
+   * `RasterizeProceduralTexture` (TriTextureRes.cpp:181-212). Carbon creates the
+   * GPU texture from the bitmap here; this layer cannot reach a render context,
+   * so it publishes the bitmap as the payload and Trinity makes the texture at
+   * first bind, as it does for every other texture.
+   *
+   * @param {Function} rasterize `(path) => payload | null`.
+   * @returns {void}
+   */
+  #RasterizeProceduralTexture(rasterize) {
+    this.MarkLoading();
+    const payload = rasterize(this.path);
+    if (!payload) {
+      // Carbon: "Failed to parse dynamic:/color/%s texture path", and the
+      // texture is never prepared.
+      const error = new Error(`Failed to parse ${this.path} texture path`);
+      error.code = "CJS_TEXTURE_PROCEDURAL_PATH_INVALID";
+      error.path = this.path;
+      this.SetError(error);
+      return;
+    }
+    this.SetPayload(payload);
+    this.MarkPrepared();
   }
 
   /**
@@ -426,6 +468,7 @@ CjsSchema.define(TriTextureRes, {
     cutoutY: [ type.float32, io.readwrite ]
   },
   methods: {
+    Initialize: [ carbon.method, impl.adapted, impl.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],
     GetMipCount: [ carbon.method, impl.adapted ],
     GetMsaaType: [ carbon.method, impl.adapted ],
     GetMsaaQuality: [ carbon.method, impl.adapted ],
