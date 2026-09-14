@@ -5,6 +5,10 @@ Scope: `@carbonenginejs/runtime/resource/formats/webgl` texture and sampling low
 Audience: Shader translator maintainers and reviewers
 Summary: Defines DXBC texture sampling behavior and WebGL2 target adaptations.
 
+Historical lowering study: the target and register convention below describe
+the studied configuration, not today's full emitter support. Confidence ratings
+and unresolved qualifications are retained; this condensation is not shader validation.
+
 Target: GLSL ES 3.00 (WebGL2), vertex + pixel stages, no SSBO/compute.
 Register storage model: every register is a float `vec4`; typed reads/writes bitcast at
 the use site (`floatBitsToInt`, `floatBitsToUint`, `intBitsToFloat`, `uintBitsToFloat`),
@@ -92,78 +96,56 @@ Ground truth: `toGLSLOperand.cpp:1738-1882` (`ResourceName`, `TextureSamplerName
 
 ## 1. `sample` (3064 occurrences)
 
-**Semantics**: Standard filtered texture sample using the sampler's declared filter/wrap
-state and an implicitly-computed LOD (derivative-based, like a normal pixel-shader texture
-fetch). D3D11 `SAMPLE` opcode: `dest, address, resource, sampler`.
+Filtered sampling with sampler-controlled wrap/filter state and implicit,
+derivative-based LOD. DXBC operands: `dest, address, resource, sampler`.
+`TranslateTextureSample(psInst, TEXSMP_FLAG_NONE)` dispatches at
+`toGLSLInstruction.cpp:3161-3170` into `:1131-1459`:
 
-**GLSL lowering**: `TranslateTextureSample(psInst, TEXSMP_FLAG_NONE)`
-(`toGLSLInstruction.cpp:3161-3170`, dispatch into `toGLSLInstruction.cpp:1131-1459`).
-Template (combined-sampler, ES 3.00, dimension = 2D):
+`dest = texture(<TextureSamplerName>, <coord>)<returnSwizzle>;`
 
-```glsl
-dest = texture(<TextureSamplerName>, <coord>)<returnSwizzle>;
-```
+### Shared sampling machinery
 
-- Function name defaults to `"texture"` (`iHaveOverloadedTexFuncs` is true for every
-  language except `LANG_ES_100`/`LANG_120`, `languages.h:37-44`, so ES 3.00 always uses the
-  overloaded `texture()` builtin, never legacy `texture2D`/`textureCube`/etc.).
-  `funcName`/`offset`/`gradSwizzle`/`ui32NumOffsets` are chosen per resource dimension at
-  `toGLSLInstruction.cpp:1172-1251`.
-- Coordinate build is `TranslateTexCoord(eResDim, psDestAddr)` (`:985-1031`), which selects
-  and expands the address operand's leading components per dimension — see the coordinate
-  table in section "Coordinate component selection" below.
-- If `psInst->bAddressOffset` (immediate texel offset present, see section on
-  `sample_controls` below), `offset = "Offset"` is appended to the function name and an
-  `ivec2`/`ivec3`/int offset literal argument is appended (`:1391-1411`).
-- After the call closes, the **return-channel swizzle** is applied by re-reading the
-  swizzle encoded on the **texture (`t#`) operand itself** (not the destination): DXBC
-  texture instructions carry a component swizzle on the resource operand describing how the
-  hardware's raw fetched RGBA maps onto the instruction's result vector before the
-  destination write mask applies. HLSLcc re-enables the write mask on that operand
-  (`iWriteMaskEnabled = 1`) and calls `TranslateOperandSwizzleWithMask(psContext, psSrcTex,
-  psDest->GetAccessMask(), 0)` (`:1451-1457`) to append e.g. `.yzwx` intersected with the
-  destination's write mask.
-- Saturate (`_sat`) is **not** applied inside `TranslateTextureSample`; it is a uniform
-  post-processing step applied by the general instruction-loop epilogue
-  (`toGLSLInstruction.cpp:4821-4844`): after any instruction with `bSaturate` set, the
-  destination register is re-emitted as `dst = clamp(dst, 0.0, 1.0);` (with an
-  `#ifdef UNITY_ADRENO_ES3` `min(max(x,0.0),1.0)` variant guard). This applies identically
-  to every opcode in this family.
+Variants below inherit this machinery except where their sections name a delta.
 
-**Type rules**: destination type comes from `ShaderInfo::GetTextureDataType(texRegNo)`
-(`ShaderInfo.cpp:10-18`) — `SVT_FLOAT`, `SVT_INT`, or `SVT_UINT` from the reflected
-`RESOURCE_RETURN_TYPE`, or `SVT_FLOAT` if unreflected. `AddAssignToDest`
-(`toGLSLInstruction.cpp:1281`, `:155-171`) wraps the whole call in `floatBitsToInt(...)`/
-`floatBitsToUint(...)`/`intBitsToFloat(...)`/`uintBitsToFloat(...)` only if the destination's
-*declared register type* (from prior data-type analysis) disagrees with the texture's
-return type — since this project stores everything as float vec4 and skips full data-type
-analysis, the safe default is to always treat the texture-op result as float and defer any
-int/uint reinterpretation to the consuming instruction's own bitcast (matches the "bitcast
-at use site" policy stated in the task, and matches `GetSamplerType`'s int/uint sampler
-selection below). Coordinates are read with `TO_AUTO_BITCAST_TO_FLOAT` (`TranslateTexCoord`
-always sets this flag, `:989`) — i.e. address components are reinterpreted as float via
-`intBitsToFloat`/`uintBitsToFloat` if the source register was produced as int/uint.
-The **sampler variant type** (`sampler2D` vs `isampler2D` vs `usampler2D`) is chosen once,
-at declaration time, from the reflected return type via `GetSamplerType`
-(`toGLSLDeclaration.cpp:1388-1551`); if unreflected it falls back to `default: return
-"sampler2D"` (float) at `:1550` and per-dimension `default:` cases, again matching the
-stripped-`RDEF` fallback.
+- ES300 uses overloaded `texture`, not legacy `texture2D`/`textureCube`:
+  `iHaveOverloadedTexFuncs` excludes only `LANG_ES_100`/`LANG_120`
+  (`languages.h:37-44`). Dimension selects `funcName`, `offset`,
+  `gradSwizzle`, `ui32NumOffsets` (`:1172-1251`). The study's
+  cubemap-array qualification remains with its dimension/depth paths.
+- `TranslateTexCoord` (`:985-1031`) selects/expands leading address
+  components; the coordinate table below owns the mapping. It reads
+  `TO_AUTO_BITCAST_TO_FLOAT` (`:989`), including integer-produced registers.
+- `bAddressOffset` adds the `Offset` suffix and literal integer/vector
+  argument (`:1391-1411`); the sample-controls section owns this rule.
+- Result swizzle belongs to the **texture operand**, not the destination.
+  Re-enable its `iWriteMaskEnabled`, then
+  `TranslateOperandSwizzleWithMask(psContext, psSrcTex, psDest->GetAccessMask(), 0)`
+  (`:1451-1457`) intersects that RGBA permutation with the destination mask.
+- `_sat` is applied **after** the sampling function by the general
+  instruction epilogue (`:4821-4844`): `dst = clamp(dst, 0.0, 1.0);`,
+  with the `UNITY_ADRENO_ES3`-guarded `min(max(x,0.0),1.0)` form.
+  This epilogue applies throughout the family, not inside `TranslateTextureSample`.
 
-**Helpers needed**: none beyond the coordinate-assembly and bitcast machinery already
-required by every opcode family (`floatBitsToInt`/`intBitsToFloat`/etc. are native GLSL ES
-3.00 builtins, not custom helpers — `HaveBitEncodingOps` is true for every language except
-`LANG_ES_100`/`LANG_120`, `languages.h:169-180`).
+**Types:** `ShaderInfo::GetTextureDataType(texRegNo)`
+(`ShaderInfo.cpp:10-18`) maps reflected return type to float/int/uint,
+defaulting to `SVT_FLOAT` without RDEF. `AddAssignToDest`
+(`toGLSLInstruction.cpp:1281`, `:155-171`) wraps mismatches between
+texture result and declared destination type using the appropriate bitcast.
+The historical float-register proposal treats results as float storage and
+defers integer reinterpretation to consuming instructions; it is not a new
+qualification of current integer handling.
+
+Sampler type is selected at declaration by `GetSamplerType`
+(`toGLSLDeclaration.cpp:1388-1551`); unreflected fallback is float
+(`sampler2D` at `:1550` and per-dimension defaults). Core bitcast
+builtins require no custom helpers: `HaveBitEncodingOps` excludes only
+`LANG_ES_100`/`LANG_120` (`languages.h:169-180`).
 
 **Edge cases**: Out-of-range coordinates follow the sampler's wrap mode (not a DXBC
 concern — GLSL `texture()` handles it per the WebGL2 sampler state, which is set at the
 JS/WebGL layer, outside this translator's scope). NaN/Inf in coordinates is
 undefined/implementation-defined per GLSL ES spec, same as native GLSL; HLSLcc does not
 special-case it.
-
-**WebGL2 notes**: `texture()` (the "vec form" overloaded builtin) is core GLSL ES 3.00 —
-no extension needed for 1D/2D/3D/Cube/array textures except cubemap arrays (see below).
-Legacy `texture2D`/`textureCube`/etc. names are never emitted because `iHaveOverloadedTexFuncs`
-is true for ES 3.00.
 
 **Confidence**: high — this is the highest-volume opcode in the corpus and the core
 `TranslateTextureSample` path is fully read and directly cited line-by-line.
@@ -310,69 +292,53 @@ occurrence count (153) means it has had less indirect validation than `sample`/`
 
 ## 5. `gather4` (195 occurrences) — and `gather4_po` / `gather4_po_c` / `gather4_c`
 
-**Semantics**: Fetches the same single component (selectable) from the 4 texels used in
-bilinear filtering at the given coordinate, without applying the bilinear weights — one
-`vec4` result where each component is that channel from one of the 4 neighboring texels
-(D3D11 `GATHER4` family). `_PO` variants add a programmable integer texel offset operand;
-`_C` variants add a depth-comparison reference (shadow gather).
+Returns one selected channel from each of four bilinear-neighbor texels as a
+`vec4`, without applying bilinear weights. `_PO` adds a programmable
+integer offset; `_C` adds a comparison reference.
+Dispatch (`toGLSLInstruction.cpp:3121-3160`) combines flags:
 
-**GLSL lowering**: dispatch at `toGLSLInstruction.cpp:3121-3160`:
-- `gather4` -> `TranslateTextureSample(psInst, TEXSMP_FLAG_GATHER)`
-- `gather4_po` -> `TEXSMP_FLAG_GATHER | TEXSMP_FLAG_PARAMOFFSET`
-- `gather4_po_c` -> `TEXSMP_FLAG_GATHER | TEXSMP_FLAG_PARAMOFFSET | TEXSMP_FLAG_DEPTHCOMPARE`
-- `gather4_c` -> `TEXSMP_FLAG_GATHER | TEXSMP_FLAG_DEPTHCOMPARE`
+| Opcode | `TEXSMP_FLAG_*` |
+|---|---|
+| `gather4` | `GATHER` |
+| `gather4_po` | `GATHER \| PARAMOFFSET` |
+| `gather4_po_c` | `GATHER \| PARAMOFFSET \| DEPTHCOMPARE` |
+| `gather4_c` | `GATHER \| DEPTHCOMPARE` |
 
-Inside `TranslateTextureSample`, `funcName` is forced to `"textureGather"`
-(`:1253-1254`). Template:
+`TranslateTextureSample` forces `textureGather` (`:1253-1254`):
 
-```glsl
-dest = textureGather(<TextureSamplerName>, <coord>[, <refZ>][, <offsetVec>][, <component>])<returnSwizzle>;
-```
+`dest = textureGather(<TextureSamplerName>, <coord>[, <refZ>][, <offsetVec>][, <component>])<returnSwizzle>;`
 
-- Depth-compare reference (`gather4_c`/`gather4_po_c`): unlike ordinary depth-compare
-  sampling, the gather forms pass the reference as a **separate trailing argument**, never
-  embedded into the coordinate vector — the code explicitly special-cases
-  `!(ui32Flags & TEXSMP_FLAG_GATHER)` when deciding whether to build the `txVecN` embedded-
-  reference temp (`:1264-1265`, `:1341-1354`), matching real
-  `textureGather(sampler, coord, refZ)` GLSL signature for shadow samplers.
-- Programmable offset (`gather4_po`/`gather4_po_c`): read via
-  `TranslateOperand(psSrcOff, TO_FLAG_INTEGER, mask)` and appended with a leading comma
-  (`:1412-1423`), mask width = `ui32NumOffsets` (1/2/3 per dimension).
-  Immediate (non-programmable) offsets on plain `gather4` follow the same
-  `bAddressOffset`/`iUAddrOffset` path as `sample`.
-- **Gather component selection**: `gather4`/`gather4_po` may carry a 1-component swizzle on
-  the *sampler* (`s#`) operand selecting which of R/G/B/A to gather; if that swizzle is not
-  `X` (red, the GLSL default), the component index is appended as a trailing int argument
-  (`:1432-1447`). Component selection is explicitly **not supported** for the `_C` (depth
-  compare) gather variants — HLSLcc's comment states this outright (`:1442-1445`); shadow
-  gather always returns the comparison result, there is no channel to select.
-- Switch-console-specific `GATHER4_PO` `Offset`-suffix quirk (`:1165-1170`) is not relevant
-  to this WebGL2-only target (`psContext->IsSwitch()` is always false here).
+Shared result-type/swizzle/mask machinery is in §1. Gather-specific arguments:
 
-**Type rules**: destination type same rule as `sample` (reflected return type,
-`SVT_FLOAT` fallback). Offset operand is read with `TO_FLAG_INTEGER` (never bitcast to
-float) since GLSL's `ivec` offset parameters require true integer values, not a
-reinterpreted float register.
+- Comparison reference is **separate**, never embedded in `txVecN`.
+  The temporary condition explicitly excludes `TEXSMP_FLAG_GATHER`
+  (`:1264-1265`, `:1341-1354`).
+- Programmable offsets use `TranslateOperand(psSrcOff, TO_FLAG_INTEGER, mask)`
+  (`:1412-1423`), with `ui32NumOffsets` components (1/2/3).
+  Immediate offsets use the shared `bAddressOffset`/`iUAddrOffset` path.
+  The Switch-only `GATHER4_PO` suffix quirk (`:1165-1170`) is excluded.
+- A one-component **sampler-operand** swizzle selects R/G/B/A; non-X appends
+  a trailing integer channel (`:1432-1447`). This is not result swizzling.
+  Comparison gathers have no selectable channel (`:1442-1445`).
 
-**Helpers needed**: `hlslcc_textureGather4Emulated` (**mandatory for this
-target**). The earlier claim of "zero hits for `HaveGather` outside
-`languages.h`" was false: instruction/declaration/operand lowering does not
-check it, but `toGLSL.cpp`'s `AddVersionDependentCode` (`:163-172`) checks
-`!HaveGather(eLang)` and, for any `gather4*`, calls
-`EnableExtension("GL_ARB_texture_gather")`.
+### Historical ES300 capability gap
 
-`EnableExtension` (`HLSLCrossCompilerContext.cpp:157-167`) emits a guarded
-`#ifdef GL_ARB_texture_gather` / `#extension GL_ARB_texture_gather : enable` /
-`#endif`, not a hard failure on an unknown extension. This desktop-only token
-is never predefined by an ES/WebGL2 preprocessor: the guard emits no extension
-and leaves the instruction's unconditional `funcName = "textureGather"`
-(`toGLSLInstruction.cpp:1253-1254`) unchanged. Unlike the image-atomics case
-at `:154-160`, it has no `isES` branch selecting
-`GL_OES_shader_image_atomic`.
+`HaveGather` (`languages.h:220-227`) accepts `>=LANG_400` or
+`LANG_ES_310`, not ES300. Instruction emission is unconditional, but
+`AddVersionDependentCode` (`toGLSL.cpp:163-172`) tests `!HaveGather`
+and attempts `GL_ARB_texture_gather` for `gather4*`.
+`EnableExtension` (`HLSLCrossCompilerContext.cpp:157-167`) emits
+an `#ifdef`-guarded pragma, not an unknown-extension failure. Under
+ES/WebGL2 that desktop token is not predefined, so the call remains unchanged.
+Unlike image atomics at `:154-160`, there is no `isES` branch choosing
+`GL_OES_shader_image_atomic`. The earlier “no gate” claim was incorrect;
+the attempted gate is ineffective for this target.
 
-Thus HLSLcc attempts a gate, but it does nothing useful on `LANG_ES_300`.
-The JS emitter must supply four-tap emulation: four `textureOffset`/`texture`
-calls at the bilinear-neighbor texel centers, computed from `textureSize`.
+The study requires `hlslcc_textureGather4Emulated` (four
+`textureOffset`/`texture` taps at centers derived from `textureSize`)
+**or explicit translation rejection**, not literal unsupported
+`textureGather`/`textureGatherOffset`. Neither is an ES300 builtin
+or supplied by a WebGL2 extension. Emulation's ordering risk remains below.
 
 **Edge cases**: `textureGather` (where available) requires the four sampled texels to be
 selected by hardware bilinear-neighbor rules that are implementation-defined at exact
@@ -382,18 +348,6 @@ sample point" neighbor-selection rule (typically via `floor(coord*size - 0.5)` a
 consumers (contact-hardening shadows, procedural blending). This emulation is
 **not sourced from HLSLcc** (HLSLcc assumes `textureGather` exists) and is the single
 highest-risk item in this spec.
-
-**WebGL2 notes — critical gap**: `languages.h:220-227` makes
-`HaveGather(eLang)` true only for `eLang >= LANG_400` or `LANG_ES_310`,
-excluding `LANG_ES_300`. `textureGather`/`textureGatherOffset` require
-GLSL ES 3.10 / desktop GLSL 4.00; WebGL2 exposes no extension adding them.
-The ineffective desktop extension attempt is described above, not "no gate".
-
-This spec's emitter must either (a) always emit the
-`hlslcc_textureGather4Emulated` helper instead of raw `textureGather` for this family, or
-(b) detect and reject `gather4*` shaders at translation time with an explicit diagnostic —
-but silently trusting HLSLcc's literal `textureGather(...)` output will break at WebGL2
-shader-compile time.
 
 **Confidence**: low for WebGL2 compilability, high for HLSLcc's literal output
 (fully read C++, including the global extension attempt). The risk is target
@@ -405,90 +359,57 @@ assessment rests solely on the cited C++ reading.
 
 ## 6. `sample_c` (0 occurrences in corpus, spec required for depth paths)
 
-**Semantics**: Depth-comparison ("shadow") sample: fetches from a depth-format resource
-using a comparison sampler, compares the fetched depth against a supplied reference value,
-and returns the hardware's percentage-closer-filtered (PCF) result — a **float in
-`[0.0, 1.0]`**, not a 0/1 boolean and **not** the DXBC ALU integer comparison-mask
-convention. D3D11 `SAMPLE_C`: `dest, address, resource, sampler, referenceValue`, implicit
-(derivative-based) LOD like `sample`.
+Implicit-LOD sampling of a depth-format resource using a comparison sampler:
+`dest, address, resource, sampler, referenceValue`.
+The percentage-closer-filtered (PCF) result is **float in [0,1]**, including
+intermediate linear-filter values, not a Boolean or all-ones comparison mask.
+This also applies to `sample_c_lz` and `gather4_c`. Contrast ALU
+`eq/ne/lt/ge`, `ieq/ige` masks (`0xFFFFFFFF`/`0x00000000`; `AddComparison`,
+`toGLSLInstruction.cpp:173`; `OPCODE_GE`, `:2689-2694`).
+HLSLcc forwards the shadow result without additional masking.
 
-**Important — comparison-mask convention does NOT apply here**: ALU
-`eq`/`ne`/`lt`/`ge`, `ieq`/`ige`, etc. return per-lane
-`0xFFFFFFFF`/`0x00000000` masks (`AddComparison`,
-`toGLSLInstruction.cpp:173`; `OPCODE_GE` comment, `:2689-2694`).
-`sample_c`/`sample_c_lz`/`gather4_c` instead return filtered floats,
-including intermediate PCF values under linear filtering. HLSLcc forwards the
-GLSL shadow-sample result without extra masking, matching D3D11
-`SampleCmp`/`SampleCmpLevelZero` semantics.
+`TranslateTextureSample(..., TEXSMP_FLAG_DEPTHCOMPARE)` dispatches at
+`:3181-3190`; reference is `operands[4 + hasParamOffset]` (`:1143`).
 
-**GLSL lowering**: `TranslateTextureSample(psInst, TEXSMP_FLAG_DEPTHCOMPARE)`
-(`toGLSLInstruction.cpp:3181-3190`). `psSrcRef = operands[4 + hasParamOffset]` (`:1143`).
+- Non-gather, non-`TEXTURECUBEARRAY` calls embed reference in the last
+  coordinate component (`:1264-1277`), e.g.
+  `vec3 txVec<N> = vec3(<coord>, <refZ>);` then
+  `texture(<sampler>, txVec<N>)`. The coordinate table owns
+  `depthCmpCoordType` (`:1176,1191,1206,1217,1228,1235`).
+  The Adreno nonstandard-swizzle workaround motivates this local
+  (`:1269`); `m_NextTexCoordTemp` (`:1267`) keeps names unique per
+  shader phase. It is a per-call temporary, not a shared function.
+- Cube arrays pass reference separately (`:1349-1354`):
+  `texture(samplerCubeArrayShadow, vec4(dir, arrayIdx), refZ)`.
+  Gather's separate-reference rule is in §5.
+- Depth comparison changes sampler **type** and argument shape, not the
+  function name; `texture`/`textureLod`/`textureGrad` follows other flags.
+  Declaration selection uses `ui32IsShadowTex`.
 
-- For every resource dimension **except** `TEXTURECUBEARRAY` and non-gather ops, the
-  reference value is embedded as the **last component of the texture coordinate vector**
-  (this matches core GLSL's shadow-sampler convention, where `sampler2DShadow` takes a
-  `vec3(u, v, refZ)`): HLSLcc builds a temp,
-  ```glsl
-  vec3 txVec<N> = vec3(<coord>, <refZ>);
-  ```
-  (`:1264-1277`; `depthCmpCoordType` is `"vec2"`/`"vec3"`/`"vec4"` per dimension,
-  `:1176,1191,1206,1217,1228,1235`), then samples `texture(<sampler>, txVec<N>)`.
-  The temp exists "as Adrenos hate nonstandard swizzles in the texcoords" (source comment,
-  `:1269`).
-- For `TEXTURECUBEARRAY` (no `depthCmpCoordType` case defined) the reference is passed as a
-  separate trailing argument instead (`:1349-1354`), matching GLSL's
-  `texture(samplerCubeArrayShadow, vec4(dir, arrayIdx), refZ)` signature, which has no room
-  in the coordinate vector for both array index and reference.
-- Function name is plain `funcName` (`"texture"`, or `"textureLod"`/`"textureGrad"` variants
-  per other combined flags) — depth-compare does **not** change the function name, only the
-  sampler *type* (`sampler2DShadow` etc., chosen at declaration time from `ui32IsShadowTex`)
-  and the coordinate/argument shape.
-- `ResourceName`/`TextureSamplerName` calls pass `bZCompare = 1` when
-  `TEXSMP_FLAG_DEPTHCOMPARE` is set (`:1333,1335`). **Correction**: because
-  `HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS` is always set for this fork (see section 0),
-  `useCombinedTextureSamplers` is always true, so the instruction body always takes the
-  `:1335` branch — `TextureSamplerName(..., bZCompare=1)` — never the `:1333` bare-
-  `ResourceName` branch. The declaration that actually matches what the instruction body
-  calls is therefore the **combined**-sampler shadow uniform emitted at
-  `toGLSLDeclaration.cpp:1634-1646` (`uniform <samplerType>Shadow <TextureSamplerName(...,
-  bZCompare=1)>`), **not** `toGLSLDeclaration.cpp:1668-1686` as an earlier draft of this spec
-  claimed — that `1668-1686` block declares the *bare* `ResourceName`-based shadow uniform
-  (`hlslcc_zcmp`-prefixed plain `t#` symbol), which is emitted unconditionally alongside the
-  combined one (regardless of the combine flag) purely for register-identity duplication
-  (the same "declared but not referenced by instruction bodies" pattern section 0 already
-  documents for the non-shadow case) and is never the symbol the instruction body's call
-  resolves to. Concretely, a shader that both plain-samples and depth-compares the same
-  `t#` texture with this fork's always-on combine flag gets **four** declared GLSL sampler
-  uniforms for that texture (combined non-shadow `TEX_with_SMP` name, combined shadow
-  `hlslcc_zcmp...TEX_with_SMP` name, bare non-shadow `t#`/reflected name, bare shadow
-  `hlslcc_zcmp`+`t#`/reflected name — `toGLSLDeclaration.cpp:1632-1686`), of which only the
-  two combined ones are ever referenced by instruction bodies.
+**Names:** under the introduction's **overrideable combined-sampler default**,
+`TextureSamplerName(..., bZCompare=1)` (`:1335`) references the
+combined shadow uniform (`toGLSLDeclaration.cpp:1634-1646`), not the
+bare `ResourceName` shadow declaration (`:1668-1686`). The latter
+remains declared for register identity; §0 owns duplication. A texture used
+for ordinary and comparison sampling has four declarations under that default:
+combined plain/shadow and bare plain/shadow (`:1632-1686`), with the two
+combined symbols used by these sampling calls. Without combination, the
+`ResourceName(..., bZCompare=1)` branch is `:1333`.
 
-**Type rules**: destination is always float (D3D `SampleCmp` result type is float;
-`ui32ReturnType`/`GetTextureDataType` is not consulted for the shadow path's numeric
-result — it stays float because depth formats reflect as float). Reference value:
-`TranslateOperand(psSrcRef, TO_AUTO_BITCAST_TO_FLOAT)` (`:1275,1353`) — always float.
-
-**Helpers needed**: none beyond the `txVecN` embedding pattern (a per-call-site local
-`vec2/vec3/vec4` temp, not a shared function — the JS emitter should replicate this
-inline-temp pattern rather than centralizing it, to match HLSLcc's numbering scheme
-`m_NextTexCoordTemp` used to keep temp names unique per shader phase, `:1267`).
+**Types:** result stays float rather than using `GetTextureDataType` or
+`ui32ReturnType` for a numeric conversion; depth formats reflect float.
+Reference uses `TO_AUTO_BITCAST_TO_FLOAT` (`:1275,1353`).
+2D/2D-array/cube shadow `texture` overloads are the study's ES300 baseline.
+Cube-array support is conditional: `HaveCubemapArray`
+(`languages.h:75-80`) excludes ES300; declaration attempts
+`GL_OES_texture_cube_map_array` and `GL_EXT_texture_cube_map_array`
+(`toGLSLDeclaration.cpp:1608-1619`). Verify availability rather than assume it.
 
 **Edge cases**: see `sample_l`'s 2D-array-shadow `textureLod`-unavailable workaround —
 that workaround is keyed off `TEXSMP_FLAG_DEPTHCOMPARE` and fires for `sample_c` combined
 with an explicit-LOD or LOD-zero flag on a `TEXTURE2DARRAY` resource; plain `sample_c`
 (implicit LOD) does not need it because ordinary `texture(sampler2DArrayShadow, ...)`
 (no explicit LOD) is legal GLSL.
-
-**WebGL2 notes**: `sampler2DShadow`/`sampler2DArrayShadow`/`samplerCubeShadow` and the
-`texture()` shadow-comparison overloads are core GLSL ES 3.00. `samplerCubeArrayShadow`
-requires cubemap-array support, which itself needs `GL_OES_texture_cube_map_array`/
-`GL_EXT_texture_cube_map_array` on ES targets (`HaveCubemapArray` is false for
-`LANG_ES_300`, `languages.h:75-80`; `TranslateResourceTexture` enables both OES and EXT
-extension strings for ES languages when a cubemap array is declared,
-`toGLSLDeclaration.cpp:1608-1619`) — so a `sample_c` against a `TextureCubeArray` shadow
-resource depends on a WebGL2 extension actually being available at runtime, which is not
-guaranteed.
 
 **Confidence**: medium — the lowering path itself is fully and unambiguously read from
 source; the medium (not high) rating is solely because the corpus has 0 real-world
@@ -640,76 +561,51 @@ transcribed from source, and its `SHEX`-fallback path is independently corrobora
 
 ## 9. `resinfo` (247 occurrences)
 
-**Semantics**: Queries a resource's dimensions (width/height/depth-or-array-size) at a
-given mip level, plus the resource's total mip-chain length, with a caller-selectable
-return-type encoding (float / reciprocal-float / uint) — D3D11 `RESINFO`, decoded
-return-type control per `decisions/016...018-dxbc-instruction-controls...md`: bits 11-12 of
-the opcode token, `0` = float, `1` = reciprocal float, `2` = uint
-(`RESINFO_INSTRUCTION_RETURN_{FLOAT,RCPFLOAT,UINT}`).
+Queries dimensions at a mip and total mip count. DXBC return control is
+opcode bits11–12: 0=float, 1=reciprocal float, 2=uint
+(`RESINFO_INSTRUCTION_RETURN_{FLOAT,RCPFLOAT,UINT}`;
+`decisions/016...018-dxbc-instruction-controls...md`, subject to the
+opening missing-evidence caveat).
 
-**GLSL lowering**: dispatch loop iterates the destination write mask, calling
-`GetResInfoData(psInst, swizzledComponentIndex, destElem)` once per live destination
-component (`toGLSLInstruction.cpp:4734-4752`), implementation at `:1033-1129`:
+Dispatch visits each destination-mask component, calling
+`GetResInfoData(psInst, swizzledComponentIndex, destElem)`
+(`toGLSLInstruction.cpp:4734-4752`, implementation `:1033-1129`).
 
-- For `index` (post-swizzle component index) `< 3` — width/height/depth-or-arraysize:
-  ```glsl
-  dest.<comp> = <returnCast>( <maybe 1.0/> textureSize(<tex>[, int(mipOperand)]) [.x|.y|.z] );
-  ```
-  - `dim = GetNumTextureDimensions(eResDim)` (`HLSLccToolkit.cpp:437-458`: 1 for
-    `TEXTURE1D`; 2 for `TEXTURE2D`/`TEXTURE2DMS`/`TEXTURE1DARRAY`/`TEXTURECUBE`; 3 for
-    `TEXTURE3D`/`TEXTURE2DARRAY`/`TEXTURE2DMSARRAY`/`TEXTURECUBEARRAY`).
-  - If the requested `index` exceeds `dim` (e.g. asking for `.z` on a 2D texture), the
-    literal constant `0`/`0.0`/`uint(0)` is emitted instead of calling `textureSize`
-    (`:1064-1067`) — the source comment notes `0u` is mistreated as a const-int by "old
-    ES3.0 Adrenos", hence `uint(0)` is spelled out rather than a bare `0u`.
-  - Return-type wrapping: `RESINFO_INSTRUCTION_RETURN_UINT` → `uvec<dim>(...)` (or
-    `ivec<dim>` if `HaveUnsignedTypes` is false, not applicable to ES 3.00);
-    `RESINFO_INSTRUCTION_RETURN_RCPFLOAT` → `vec<dim>(1.0) / vec<dim>(textureSize(...))`;
-    else → `vec<dim>(textureSize(...))` (`:1070-1080`).
-  - MS resources (`isMS`) and UAVs (`isUAV`) omit the mip-level argument to
-    `textureSize`/`imageSize` entirely (`:1089-1093`; UAV uses `imageSize` instead of
-    `textureSize`, `:1082-1085` — not reachable via the pure `t#` `resinfo` path this family
-    documents, but present in the same function since `resinfo` can also target a UAV).
-- For `index >= 3` (total mip-level count):
-  ```glsl
-  dest.w = <int|uint|float>(textureQueryLevels(<tex>));
-  ```
-  (`:1112-1127`) — **unconditionally emitted with no target-language capability check**
-  (see WebGL2 notes below).
+| Post-swizzle component | Emission |
+|---|---|
+| index <3 | Dimension from `textureSize(tex[, int(mipOperand)])`, then selected component and return conversion. |
+| Missing dimension | Literal `0`/`0.0`/`uint(0)` (`:1064-1067`); old ES3 Adrenos misread bare `0u` as const-int. |
+| index >=3 | `dest.w = <int\|uint\|float>(textureQueryLevels(tex));` (`:1112-1127`). |
 
-**Type rules**: each live destination component is assigned independently via
-`AddOpAssignToDestWithMask(..., eResInfoReturnType == RESINFO_INSTRUCTION_RETURN_UINT ?
-SVT_UINT : SVT_FLOAT, 1, ..., 1 << destElem)` (`:1057`) — i.e. `resinfo`'s destination type
-per-component is uint only for the UINT return-type control, float for both FLOAT and
-RCPFLOAT controls (RCPFLOAT is still a float result, just the reciprocal).
+`GetNumTextureDimensions` (`HLSLccToolkit.cpp:437-458`):
+1D→1; 2D/2DMS/1DArray/Cube→2; 3D/2DArray/2DMSArray/CubeArray→3.
+Conversions (`:1070-1080`): UINT→`uvec<dim>` (`ivec` only
+without unsigned support); RCPFLOAT→`vec<dim>(1.0)/vec<dim>(textureSize(...))`;
+FLOAT→`vec<dim>(textureSize(...))`. MS and UAV omit the mip argument
+(`:1089-1093`); UAV uses `imageSize` (`:1082-1085`), outside the
+pure-`t#` path studied here. `AddOpAssignToDestWithMask` (`:1057`)
+assigns one component with `1 << destElem`: `SVT_UINT` only for UINT,
+otherwise `SVT_FLOAT`, including reciprocal results.
 
-**Helpers needed**: `hlslcc_textureQueryLevels` (**mandatory for the 4th/mip-count
-component on this target** — see WebGL2 notes). No helper needed for the width/height/
-depth components (`textureSize` is fully core).
+### Mip-count gap and global-gate correction
+
+`HaveQueryLevels` (`languages.h:247-254`) requires `>=LANG_430`.
+The instruction calls `textureQueryLevels` without a **local** gate, but
+`AddVersionDependentCode` (`toGLSL.cpp:234-241`) tests
+`!HaveQueryLevels` plus `OPCODE_RESINFO` and attempts
+`GL_ARB_texture_query_levels` / `GL_ARB_shader_image_size`.
+These guarded desktop pragmas are ineffective on ES/WebGL2, as in §5;
+“no gate at all” was too broad.
+
+Only total-mip-count access has this gap: `textureSize` dimensions need no
+helper. With no ES300/WebGL2 equivalent for `textureQueryLevels`, the
+study proposes `hlslcc_textureQueryLevels` backed by a per-texture
+out-of-band mip-count uniform, **or explicit rejection when that component
+is read**. It does not qualify today's implementation by the 247 opcode count.
 
 **Edge cases**: `textureSize` with an out-of-range `lod` argument returns `0` per GLSL ES
 3.00 spec (well-defined). Buffer/`BUFFEX` resources are excluded from the `dim==0` default
 path implicitly by never appearing in the `resinfo`-legal dimension set.
-
-**WebGL2 notes — gap on the mip-count component**:
-`HaveQueryLevels(eLang)` requires `eLang >= LANG_430`
-(`languages.h:247-254`), excluding `LANG_ES_300`.
-`GetResInfoData`'s `index >= 3` branch (`:1112-1127`) calls
-`textureQueryLevels` without a local gate. The earlier "no gate at all"
-claim was too broad: `toGLSL.cpp`'s `AddVersionDependentCode`
-(`:234-241`) checks `!HaveQueryLevels` plus `OPCODE_RESINFO`, then
-attempts `GL_ARB_texture_query_levels` and `GL_ARB_shader_image_size`.
-Like the gather gate, these desktop-only tokens sit behind `EnableExtension`
-`#ifdef` guards that do nothing under ES/WebGL2; the call site is unchanged.
-
-`textureQueryLevels` has neither an ES 3.00 builtin nor a WebGL2 extension
-equivalent. Reading `resinfo`'s fourth (`.w`, total-mip-count) component
-therefore produces non-compiling GLSL. The 247 corpus occurrences make this
-an actionable risk; the first three `textureSize` components have no such gap.
-The emitter must
-substitute `hlslcc_textureQueryLevels` (fallback strategy: accept the mip count as an
-out-of-band uniform per texture, since there is no in-shader WebGL2-legal way to query it;
-or hard-fail translation if this exact component is read).
 
 **Confidence**: high on HLSLcc's literal output, including the global extension
 attempt; the mip-count path remains a WebGL2 compile risk. Corroboration by
@@ -719,34 +615,26 @@ the authority-order correction). Confidence rests on the C++ reading alone.
 ---
 
 ## 10. `deriv_rtx_coarse` (209) and `deriv_rty_coarse` (215)
+
 ### (plus `deriv_rtx`/`deriv_rtx_fine`/`deriv_rty`/`deriv_rty_fine`, same lowering)
 
-**Semantics**: Screen-space partial derivative of the source value with respect to
-window-space X (`rtx`) or Y (`rty`). D3D11 distinguishes `_coarse` (may share a derivative
-across a 2x2 quad, cheaper) from `_fine` (per-pixel) and from the plain (compiler's choice)
-form, but **GLSL only exposes one derivative pair** (`dFdx`/`dFdy`), with precision
-controlled by an optional `GL_OES_standard_derivatives`-style hint, not a distinct
-coarse/fine builtin.
+Window-space X/Y derivatives. D3D's coarse (may share across a 2×2 quad), fine (per-pixel)
+and plain (compiler-chosen) distinction collapses to two ES300 builtins:
 
-**GLSL lowering**: all six coarse/fine/plain DERIV opcodes collapse onto the same two
-`case` blocks (`toGLSLInstruction.cpp:4579-4602`):
-```glsl
-dest = dFdx(src)<destSwizzleSubset>;   // DERIV_RTX_COARSE / DERIV_RTX_FINE / DERIV_RTX
-dest = dFdy(src)<destSwizzleSubset>;   // DERIV_RTY_COARSE / DERIV_RTY_FINE / DERIV_RTY
-```
-via `CallHelper1("dFdx", psInst, 0, 1, 1)` / `CallHelper1("dFdy", psInst, 0, 1, 1)`.
-`CallHelper1` (`:745-762`): destination is assigned `SVT_FLOAT` with the destination's own
-swizzle-element count (`AddAssignToDest(dest, SVT_FLOAT, dstSwizCount, ...)`), the call is
-`name(TranslateOperand(src0, TO_AUTO_BITCAST_TO_FLOAT, destMask))` where `destMask` is the
-destination's own access mask (the 4th `CallHelper1` argument, `paramsShouldFollowWriteMask
-= 1`, restricts the source read to the same components being written).
+`dest = dFdx(src)<destSwizzleSubset>;` — all three RTX forms.
+`dest = dFdy(src)<destSwizzleSubset>;` — all three RTY forms.
 
-**Type rules**: always float in and float out; source is
-`TO_AUTO_BITCAST_TO_FLOAT` (reinterpret as float if the register was produced as int/uint).
-No int/uint derivative form exists in DXBC or GLSL.
+Source: `toGLSLInstruction.cpp:4579-4602`, calling
+`CallHelper1("dFdx"/"dFdy", psInst, 0, 1, 1)` (`:745-762`).
+`AddAssignToDest(dest, SVT_FLOAT, dstSwizCount, ...)` uses the destination
+swizzle count. `paramsShouldFollowWriteMask=1` also limits the source
+read to the destination access mask, through `TO_AUTO_BITCAST_TO_FLOAT`.
+Input/output are float; there is no integer derivative form.
 
-**Helpers needed**: none — `dFdx`/`dFdy` are core GLSL ES 3.00 builtins (fragment-shader
-only).
+No helper or ES100 `GL_OES_standard_derivatives` extension is needed:
+`dFdx`/`dFdy` (and `fwidth`) are fragment-stage ES300 builtins.
+The study notes a derivative-quality hint rather than distinct coarse/fine
+functions; output loses that DXBC distinction, matching the cited HLSLcc path.
 
 **Edge cases**: derivatives are **fragment-shader only** — DXBC guarantees `deriv_*` never
 appears in a vertex shader (no rasterization quad exists there), so no stage guard is
@@ -755,13 +643,6 @@ needed beyond what DXBC itself enforces. Derivatives across non-uniform control 
 HLSLcc adds no special handling; this is an inherent GPU behavior difference the
 translator cannot paper over.
 
-**WebGL2 notes**: `dFdx`/`dFdy` (and `fwidth`) are **core, unconditional** in GLSL ES 3.00
-(unlike GLSL ES 1.00/WebGL1, where they required the `GL_OES_standard_derivatives`
-extension — irrelevant here since target is ES 3.00). The coarse/fine distinction is
-simply lost/unified; there is no GLSL ES 3.00 way to request coarse-only derivatives, so
-`_fine` and `_coarse` and plain forms are indistinguishable in the output, matching
-upstream HLSLcc behavior exactly (not a gap this project introduces).
-
 **Confidence**: high — trivial, fully read, single-line-per-opcode lowering, high corpus
 count (209+215 combined for the `_coarse` variants alone).
 
@@ -769,65 +650,41 @@ count (209+215 combined for the `_coarse` variants alone).
 
 ## 11. `lod` (0 occurrences in corpus, spec required per task)
 
-**Semantics**: Computes the LOD the hardware *would* select for a given sample (both the
-"clamped" and "unclamped" values), without actually sampling — D3D11 `LOD`: result is
-`(ClampedLOD, NonClampedLOD, 0, 0)`. Distinct from every `sample_*` opcode: this one never
-fetches texels.
+DXBC `LOD` returns `(ClampedLOD, NonClampedLOD, 0, 0)` without fetching
+texels. `toGLSLInstruction.cpp:4161-4200` emits:
 
-**GLSL lowering**: `toGLSLInstruction.cpp:4161-4200`.
-```glsl
-dest = textureQueryLod(<tex>, <coord>)<returnSwizzle>;   // core-language name, LANG>=400
-// or
-dest = textureQueryLOD(<tex>, <coord>)<returnSwizzle>;   // extension name, otherwise
-```
-Function-name casing is chosen by `HaveQueryLod(eLang)` (`languages.h:238-245`, true only
-for `eLang >= LANG_400`) — this is the one check in this family that gates a **function
-name** directly inside the instruction-lowering switch itself (`gather4`'s `HaveGather` and
-`resinfo`'s `HaveQueryLevels` are instead checked separately in `toGLSL.cpp`'s
-`AddVersionDependentCode`, purely to attempt an `EnableExtension` pragma — see the
-corrections in those sections above; `lod` gets an analogous, equally ES-3.00-ineffective
-`EnableExtension("GL_ARB_texture_query_lod")` attempt there too, gated on the same
-`!HaveQueryLod` check, at `toGLSL.cpp:226-231`).
+`dest = textureQueryLod(<tex>, <coord>)<returnSwizzle>;` for `LANG>=400`,
+or extension spelling `textureQueryLOD` otherwise.
 
-**Correction — resource-name resolution bypasses the combined-sampler ABI**: unlike every
-other opcode in this family, the texture operand here (`psInst->asOperands[2]`) is emitted
-via a plain `TranslateOperand(&psInst->asOperands[2], TO_FLAG_NONE)` call (`:4185`), which
-for an `OPERAND_TYPE_RESOURCE` operand routes into `toGLSLOperand.cpp:1271-1275`'s
-`case OPERAND_TYPE_RESOURCE: ResourceName(glsl, psContext, RGROUP_TEXTURE,
-psOperand->ui32RegisterNumber, 0);` — the **bare** `ResourceName` path, not
-`TextureSamplerName`. `lod` never touches its sampler operand
-(`psInst->asOperands[3]`) at all. So even though `HLSLCC_FLAG_COMBINE_TEXTURE_SAMPLERS` is
-always on for this fork, `lod` always references the bare, non-combined `t#`/reflected-name
-sampler uniform (the one declared unconditionally at `toGLSLDeclaration.cpp:1659-1666`) —
-a *different* GLSL uniform than the combined `TEX_with_SMP...` name that `sample`/
-`sample_l`/etc. use to read the same DXBC texture register. This is architecturally
-consistent (`textureQueryLod` only needs one sampler object, and a real one is always
-declared), but it means `lod` is the one opcode in this family that does not follow
-section 0's combined-sampler naming rule, which the earlier draft of this section did not
-call out at all. Coordinates use the same `TranslateTexCoord` per-dimension selection as
-`sample` (`:4187-4189`). Return-channel swizzle applied the same way as other texture ops
-(`:4194-4197`).
+`HaveQueryLod` (`languages.h:238-245`) selects the function name
+**inside instruction lowering**, unlike gather/resinfo's separate pragma
+attempts. `AddVersionDependentCode` additionally tries the equally
+ES300-ineffective `GL_ARB_texture_query_lod` extension
+(`toGLSL.cpp:226-231`, gated by `!HaveQueryLod`).
 
-**Type rules**: destination is always `SVT_FLOAT`, 4 components (`AddAssignToDest(dest,
-SVT_FLOAT, 4, ...)`, `:4171`) — DXBC `lod` always produces float regardless of the
-resource's reflected return type (this is a query result, not a texel fetch).
+**Bare-resource exception:** `TranslateOperand(&asOperands[2], TO_FLAG_NONE)`
+(`:4185`) takes `OPERAND_TYPE_RESOURCE` through `ResourceName`
+(`toGLSLOperand.cpp:1271-1275`), never `TextureSamplerName`.
+Sampler operand `asOperands[3]` is unused. Even under the introduction's
+combined-sampler default, `lod` therefore reads the bare `t#`/reflected
+uniform (`toGLSLDeclaration.cpp:1659-1666`), not the paired sampling
+symbol. Preserve this exception to §0; a bare sampler is declared, but it is
+not the same uniform ordinary sampling calls use.
 
-**Helpers needed**: `hlslcc_textureQueryLod` fallback (see WebGL2 notes — `LANG_ES_300`
-falls into the `textureQueryLOD` extension-name branch, but that extension is not part of
-WebGL2's guaranteed baseline).
+Coordinates share `TranslateTexCoord` (`:4187-4189`); result swizzling
+is at `:4194-4197`. `AddAssignToDest(dest, SVT_FLOAT, 4, ...)`
+(`:4171`) always declares a four-component float query result, independent
+of texture return type.
+
+For ES300, `HaveQueryLod` is false: the emitted extension-style name has
+no unextended WebGL2 equivalent or browser core extension supplying it
+(desktop `GL_ARB_texture_query_lod` / `GL_EXT_texture_query_lod` naming).
+The study proposes `hlslcc_textureQueryLod` using a CPU/uniform-supplied
+approximation, or explicit rejection. Zero observed uses makes this low priority,
+not support evidence or permission to emit an un-linkable call.
 
 **Edge cases**: none beyond standard coordinate range handling; no fetch occurs so no
 wrap/border-color interaction applies.
-
-**WebGL2 notes — gap**: `HaveQueryLod(LANG_ES_300)` is false, so HLSLcc emits the
-extension-style name `textureQueryLOD(...)`. That name corresponds to
-`GL_ARB_texture_query_lod` (desktop) / `GL_EXT_texture_query_lod`-equivalent — **not** a
-function that exists in unextended WebGL2/GLSL ES 3.00, and no such extension is part of
-the WebGL2 core extension set exposed by browsers. Since the corpus shows 0 real usages,
-this is a low-priority gap in practice, but the emitter should either detect `lod`
-opcode usage and fail translation explicitly, or provide a CPU-side/uniform-supplied LOD
-approximation, rather than emit a GLSL call that will not link on any real WebGL2
-implementation.
 
 **Confidence**: low — zero corpus occurrences means this reading has no cross-check
 against real Carbon effect output; the source reading itself (line-cited above) is
@@ -901,35 +758,15 @@ plus `toGLSLInstruction.cpp:1161-1170,1391-1423`.
 
 ## Helpers summary
 
-Helpers this family requires the JS emitter to define (native GLSL ES 3.00 builtins used
-directly — `texture`, `textureLod`, `textureGrad`, `texelFetch`, `textureSize`,
-`textureOffset`/`textureLodOffset`/`textureGradOffset`/`texelFetchOffset`, `dFdx`, `dFdy`,
-`floatBitsToInt`/`floatBitsToUint`/`intBitsToFloat`/`uintBitsToFloat` — are **not** listed
-here since they need no custom implementation):
+The opcode sections own these historical proposals and their qualification gates:
 
-1. **`hlslcc_textureGather4Emulated`** — mandatory. `textureGather`/`textureGatherOffset`
-   do not exist in GLSL ES 3.00 (`HaveGather` excludes `LANG_ES_300`,
-   `languages.h:220-227`), yet HLSLcc's GLSL backend emits them unconditionally for
-   `gather4`/`gather4_po`/`gather4_po_c`/`gather4_c`. Must emulate via four texel taps
-   (computed from `textureSize`) replicating D3D `Gather4`'s neighbor-selection order.
-   Needed for both the plain-channel-gather and (separately, since component selection is
-   unsupported there per source) the depth-compare gather variants.
-2. **`hlslcc_textureQueryLevels`** — mandatory for `resinfo`'s 4th (mip-count) destination
-   component only. `textureQueryLevels` requires `LANG >= 430`
-   (`languages.h:247-254`) but `GetResInfoData` calls it with **no gate at all**
-   (`toGLSLInstruction.cpp:1112-1127`). No WebGL2/ES-3.00 extension provides an equivalent;
-   fallback strategy (out-of-band uniform, or explicit translation failure on this specific
-   component) must be decided by the emitter.
-3. **`hlslcc_textureQueryLod`** — needed only if the (zero-occurrence-so-far) `lod` opcode
-   is ever exercised. `HaveQueryLod` correctly excludes `LANG_ES_300`
-   (`languages.h:238-245`), and the resulting `textureQueryLOD(...)` extension name has no
-   WebGL2-guaranteed equivalent either. Lowest priority of the three, but same class of gap.
-4. **Depth-compare inline coordinate temp (`txVec<N>`)** — not a shared function, but a
-   per-call-site codegen pattern (`vecK txVecN = vecK(coord, refZ);`) the emitter must
-   replicate for `sample_c`/`sample_c_lz`/`gather4_po_c` on non-cube-array dimensions,
-   using a monotonically increasing per-phase counter matching HLSLcc's
-   `m_NextTexCoordTemp` (`toGLSLInstruction.cpp:1267`) to keep temp names collision-free.
+- §5: `hlslcc_textureGather4Emulated`, or explicit gather-family rejection.
+- §9: `hlslcc_textureQueryLevels` for mip-count access only, or rejection.
+- §11: `hlslcc_textureQueryLod` approximation or rejection; zero corpus uses.
+- §6: per-call `txVec<N>`, numbered by `m_NextTexCoordTemp`; no shared
+  function. Gather forms never embed the reference in this temporary (§5).
 
-No helper is needed for `sample`, `sample_l`, `sample_b`, `sample_d`, `ld`, or the
-`deriv_rtx*`/`deriv_rty*` family — all of those map directly onto unconditional GLSL ES
-3.00 core builtins.
+This index replaces the old summary's conflicting “no gate at all” resinfo
+claim and its inclusion of `gather4_po_c` in embedded-reference temporaries.
+The corrected opcode descriptions govern; no fresh runtime support is implied.
+Core sampling, derivative and bitcast builtins need no custom implementation.
