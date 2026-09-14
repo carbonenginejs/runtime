@@ -949,21 +949,6 @@
   "Tr2ActionSetExternalControllerVariable": [
     "LinkToDestinationOwner"
   ],
-  "Tr2AsyncSave": [
-    "CleanupAsyncSave",
-    "DoCleanupAsyncSave",
-    "DoExecuteAsyncSave",
-    "DoPrepareAsyncSave",
-    "DoSave",
-    "IsSaveCompleted",
-    "IsSaveSucceeded",
-    "IsSaving",
-    "PrepareSave",
-    "StartAsyncSave",
-    "StaticPrepare",
-    "StaticSave",
-    "WaitForSave"
-  ],
   "Tr2AtlasTexture": [
     "CalcReciprocals",
     "CalcSubTextureWindow",
@@ -1004,12 +989,6 @@
   "Tr2BoneMatrixCurve": [
     "AddKey_",
     "Interpolate"
-  ],
-  "Tr2CmfContents": [
-    "GetData",
-    "GetSection",
-    "GetViewData",
-    "UnloadGpuBuffers"
   ],
   "Tr2ControllerExpression": [
     "CreateParser"
@@ -1064,27 +1043,10 @@
     "PyGetColorForOption",
     "Vertex"
   ],
-  "Tr2Denoiser": [
-    "Apply",
-    "SetRadius"
-  ],
   "Tr2DepthStencil": [
-    "Destroy",
-    "GetFormat",
-    "GetHeight",
-    "GetMipCount",
-    "GetMsaaQuality",
-    "GetMsaaSamples",
-    "GetName",
     "GetSharedHandle",
-    "GetTexture",
-    "GetWidth",
-    "IsReadable",
-    "IsValid",
     "OnPrepareResources",
-    "OnTextureChange",
-    "ReleaseResources",
-    "SetName"
+    "ReleaseResources"
   ],
   "Tr2DirectInstanceData": [
     "DestroyData",
@@ -1571,13 +1533,6 @@
     "OnPrepareResources",
     "ReleaseResources"
   ],
-  "Tr2LoadPrepareFence": [
-    "Cancel",
-    "IsReached",
-    "Put",
-    "StaticResourceLoadFinished",
-    "StaticResourcePrepFinished"
-  ],
   "Tr2MainWindow": [
     "AdjustWindow",
     "CreateOSWindow",
@@ -1935,13 +1890,9 @@
     "DisableFallbackTextureDebugging",
     "DisableResourceLoad",
     "DrawBox",
-    "DrawCameraSpaceScreenQuad",
-    "DrawFullScreenWithShader",
     "DrawLine",
     "DrawOrientedBox",
-    "DrawScreenQuad",
     "DrawSphere",
-    "DrawTexture",
     "EnableFallbackTextureDebugging",
     "EndFrame",
     "EndRenderContext",
@@ -1987,7 +1938,6 @@
     "IsTextureToResize",
     "PopProjection",
     "PopViewTransform",
-    "PrepareDeviceResources",
     "Printf",
     "PrintfImmediate",
     "ProjectWorldToScreen",

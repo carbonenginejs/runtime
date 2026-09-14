@@ -177,7 +177,13 @@ async function ReadJavaScriptClasses(directory)
   for (const file of await GetFiles(directory, ".js"))
   {
     const relativeFile = path.relative(root, file).split(path.sep).join("/");
-    if (relativeFile.startsWith("src/trinity/dropped/")) continue;
+    // EVERY dropped tree, not only trinity's. A dropped class is written so the
+    // decision is checkable, and is deliberately not live - so it owes no method
+    // parity. The old literal "src/trinity/dropped/" path let resource/dropped
+    // classes into the baseline as method debt, and made a dropped MetalWorkQueue
+    // report 101 Metal encoder methods to port. carbon-source-index treats all
+    // dropped trees alike; this matches it.
+    if (relativeFile.split("/").includes("dropped")) continue;
     // ONLY THE BACKEND IS UNGATED. CjsWebgpu* are ours - a WebGPU backend has
     // no Carbon counterpart to be measured against. The AL types beside it do:
     // src/trinityal/*.js and src/trinityal/stub/** are ports of Carbon's Tr2*AL

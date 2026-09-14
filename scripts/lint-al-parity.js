@@ -486,6 +486,11 @@ const parsed = [];
 for (const file of files)
 {
     const relative = path.relative(packageRoot, file).replaceAll("\\", "/");
+    // A dropped class is written so its decision is checkable, and is
+    // deliberately not live: it owes no surface, for the same reason a
+    // `modelledOn` class below is not compared. Without this a dropped
+    // MetalWorkQueue reports all 113 of Metal's command-recorder methods.
+    if (relative.split("/").includes("dropped")) continue;
     if (relative.endsWith("/index.js") || relative.endsWith("/internal.js")) continue;
 
     const code = await readFile(file, "utf8");

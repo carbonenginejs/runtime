@@ -66,11 +66,14 @@ export async function sourceIndex(packageRoot, carbonRoot)
         // the author's, and it is the only thing tying a deliberately renamed
         // port back to its donor - CjsScriptCallback to BlueScriptCallback, or
         // every Tr2*ALStub to the one Tr2*AL name Carbon gives all backends.
-        // `modelledOn:` counts too: it claims correspondence while declining to
-        // replicate the donor's surface, which still answers whether the donor
-        // has a live JS class.
+        // `modelledOn:` deliberately does NOT count. It declares that a class
+        // declines to replicate the donor's surface, so it cannot answer whether
+        // the donor is ported - and counting it hid a real gap: a WebGPU encode
+        // state "modelled on" Tr2RenderContextBase satisfied coverage for a
+        // Trinity base that was never written. A modelled donor is written into
+        // a dropped/ tree like any other, with the reason.
         // Without it a renamed port reads here as a missing one.
-        for (const [ , donor ] of source.matchAll(/\b(?:carbon|modelledOn):\s*"(\w+)"/g))
+        for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g))
         {
             if (!classes.has(donor)) classes.set(donor, []);
             classes.get(donor).push({ file: relative, node: null, declared: true });
@@ -106,7 +109,7 @@ export async function sourceIndex(packageRoot, carbonRoot)
             if (!classes.has(node.id.name)) classes.set(node.id.name, []);
             classes.get(node.id.name).push({ file: relative, node, dropped: true });
         }
-        for (const [ , donor ] of source.matchAll(/\b(?:carbon|modelledOn):\s*"(\w+)"/g))
+        for (const [ , donor ] of source.matchAll(/\bcarbon:\s*"(\w+)"/g))
         {
             if (!classes.has(donor)) classes.set(donor, []);
             classes.get(donor).push({ file: relative, node: null, declared: true, dropped: true });

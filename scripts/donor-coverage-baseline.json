@@ -111,5 +111,6 @@
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingAL::UpscalingInfo": "No exact live class declaration for struct Tr2UpscalingAL::UpscalingInfo (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:91); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingContextAL": "No exact live class declaration for class Tr2UpscalingContextAL (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:166); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingTechniqueAL": "No exact live class declaration for class Tr2UpscalingTechniqueAL (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:131); review missing port or explicit JS equivalent.",
-  "trinity/trinityal/metal/MetalUtils.h#TrinityALImpl::MetalUtils": "No exact live class declaration for class TrinityALImpl::MetalUtils (trinity/trinityal/metal/MetalUtils.h:33); review missing port or explicit JS equivalent."
+  "trinity/trinityal/metal/MetalUtils.h#TrinityALImpl::MetalUtils": "No exact live class declaration for class TrinityALImpl::MetalUtils (trinity/trinityal/metal/MetalUtils.h:33); review missing port or explicit JS equivalent.",
+  "trinity/trinity/Tr2RenderContext.h#Tr2RenderContextBase": "No exact live class declaration for struct Tr2RenderContextBase (trinity/trinity/Tr2RenderContext.h:25); review missing port or explicit JS equivalent."
 }

@@ -7,7 +7,7 @@ Summary: Provides one-sentence purpose descriptors for abstraction-layer donor c
 
 Every class here comes from a backend Carbon compiles instead of ours. That is
 not on its own a reason to ignore one: `MetalWorkQueue` is the declared model
-for `CjsWebgpuWorkQueue`, and of the seven below, five describe behaviour this
+for `CjsWebgpuWorkQueue`, and of the eight below, six describe behaviour this
 package already ports under different names. They are written so the
 correspondence is checkable rather than assumed.
 
@@ -68,6 +68,16 @@ Carbon's deferred render-pass attachment record, whose behaviour this package po
 
 - Export: None
 - Source: `src/trinityal/dropped/MetalRenderPassHint.js`
+- Visibility: Internal
+- Kind: Faithful Carbon port
+
+<!-- class:MetalWorkQueue -->
+## `MetalWorkQueue`
+
+Carbon's Metal command recorder, whose encoder-lifetime half this package ports as `CjsWebgpuWorkQueue` while the pipeline, resource sets and render context's draw verbs take the rest of its surface.
+
+- Export: None
+- Source: `src/trinityal/dropped/MetalWorkQueue.js`
 - Visibility: Internal
 - Kind: Faithful Carbon port
 
