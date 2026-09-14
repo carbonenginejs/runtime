@@ -475,104 +475,61 @@ the consumer-name qualification above.
 
 ## `dcl_input` (11726)
 
-**Semantics**: declares a shader-stage input register (vertex-shader per-vertex
-attribute, or any non-pixel stage's plain input) bound to an input-signature (ISGN)
-row: semantic name/index, component mask, component type (float/sint/uint),
-interpolation mode (non-VS stages).
+Declares a non-pixel stage input register: normally a vertex attribute whose
+ISGN row supplies semantic name/index, component mask/type and, for non-VS
+stages, interpolation. Stock lowering is at `toGLSLDeclaration.cpp:2061-2186`;
+early-outs at `2070-2105` cover pseudo-inputs and already-array-declared
+registers, not ordinary VS attributes.
 
-**GLSL lowering**: `toGLSLDeclaration.cpp:2061-2186`. Several early-outs
-(`2070-2105`) skip declaration for control-flow/thread-ID-style pseudo-inputs and
-already-declared-as-array registers — none apply to plain vertex-shader attributes,
-the dominant case in this corpus. For a normal vertex input:
-1. Name: `GetDeclaredInputName` → `inputPrefix + semanticName + semanticIndex`
-   (`HLSLCrossCompilerContext.cpp:169-211`); for a vertex shader `inputPrefix =
-   "in_"` (`toGLSL.cpp:33`) — i.e. **`in_POSITION0`, `in_NORMAL0`, `in_TEXCOORD3`,
-   `in_BLENDINDICES0`**, etc. This `in_<SEMANTIC><index>` naming is the register-
-   stable vertex-attribute ABI surface Carbon metadata and package/runtime tooling
-   bind against.
-2. Storage qualifier: `"in"` for any target where `InOutSupported` is true
-   (`2121-2127`) — true for `LANG_ES_300` (WebGL2's `in`/`out` keyword model, not the
-   legacy `attribute`/`varying` GLSL ES 1.00 keywords).
-3. Precision: `highp` unless the operand carries a `OPERAND_MIN_PRECISION_*` hint
-   (`2129-2159`) — DXBC minimum-precision annotations are rare in this corpus; default
-   to `highp` for all vertex attributes absent contrary evidence.
-4. Component type/count (`DeclareInput`, `232-390`, using the ISGN row's
-   `eComponentType` and `GetNumberBitsSet(ui32Mask)` for element count, **not** the
-   operand's own write mask) → `float`/`vecN` (`INOUT_COMPONENT_FLOAT32`),
-   `int`/`ivecN` (`SINT32`), or `uint`/`uvecN` (`UINT32`) (`265-291`).
-5. Final text: `in <precision> <type> in_<SEMANTIC><index>;` (`362-388` default
-   branch, non-array case — the common case for VS attributes).
+| Declaration fact | Source and emitted form |
+|---|---|
+| Name | `GetDeclaredInputName`, `HLSLCrossCompilerContext.cpp:169-211`; VS prefix `in_` from `toGLSL.cpp:33`: `in_POSITION0`, `in_NORMAL0`, `in_TEXCOORD3`, `in_BLENDINDICES0`. |
+| Storage | `InOutSupported` selects `in` for ES300 (`2121-2127`), not ES100 `attribute`/`varying`. |
+| Precision | `highp` unless `OPERAND_MIN_PRECISION_*` says otherwise (`2129-2159`); such hints were rare in the studied corpus. |
+| Type/width | `DeclareInput` (`232-390`, especially `265-291`): ISGN `eComponentType` selects `float`/`vecN`, `int`/`ivecN`, or `uint`/`uvecN`; `GetNumberBitsSet(ui32Mask)` sets width, **not the operand write mask**. |
+| Text | `in <precision> <type> in_<SEMANTIC><index>;` (`362-388`, ordinary non-array branch). |
 
-**Attribute naming / BINORMAL→BITANGENT alias (load-bearing for this project)**:
-HLSLcc derives the attribute name purely from the DXBC ISGN semantic string, which
-for EVE's split-tangent-space vertex format is literally `BINORMAL` (`in_BINORMAL0`)
-— but Carbon/Trinity per-vertex-stream metadata for that exact same GR2 mesh channel
-calls it `BITANGENT`
+ISGN types are independent of the opening float-temp-register convention.
+`HandleInputRedirect` (`1689-1806`) stages hull/domain phase inputs in
+`phase{N}_Input...` temporaries; this VS/PS study needs no equivalent helper.
+
+### Metadata-conditioned BINORMAL alias
+
+DXBC names the split-tangent channel `BINORMAL`; Carbon/Trinity GR2 stream
+metadata names the same channel `BITANGENT`
 (`../shaderdiscovery/knowledge/trinity-metadata/shader-discovery-truths.md:126-133`,
 `../shaderdiscovery/knowledge/carbon-metadata-contract/hlslcc-transpile-spike.md:195-201`).
-This is a **naming alias, not a semantic difference** — same vertex buffer channel,
-two different names used by two different authorities. The proven fix is a
-package-time rewrite, *after* HLSLcc emission, not a change to this opcode's GLSL
-lowering itself: `scripts/packageTr2WebglEffect.js` normalizes every
-`in_BINORMAL{n} -> in_BITANGENT{n}` for a vertex shader whose stage contract
-declares a `BITANGENT` pipeline input, so the runtime's metadata-driven attribute
-binder (which looks up attributes by the Carbon name) finds the symbol it expects.
-Validated: `unpackedskinned_quadv5`/`unpackedskinned_quadheatv5` regenerated with no
-`in_BINORMAL*` symbols remaining, still link (336/336, 80/80 WebGL2 programs).
-**This emitter should keep emitting `in_BINORMALn`** (matching HLSLcc/DXBC ISGN
-truth) **and rely on the package-time rewrite step**, not bake a BINORMAL→BITANGENT
-special case into the opcode lowering itself — the alias is a runtime-ABI fact, not a
-DXBC-to-GLSL translation fact.
+This is a naming alias, not a different channel. The studied
+`scripts/packageTr2WebglEffect.js` rewrites `in_BINORMAL{n}` to
+`in_BITANGENT{n}` **after emission**, only when the VS contract declares a
+`BITANGENT` pipeline input. Keep DXBC naming in opcode lowering; the
+metadata-driven binder owns this compatibility requirement.
 
-**Type rules**: component type/count are ISGN facts (declaration-time), independent
-of this project's float-register-file convention for `r#` temps — a vertex attribute
-declared `uvec4` really is a GLSL `uvec4`-typed `in` variable at declaration time (see
-next paragraph for why that is still a problem at the runtime-binding layer).
+Recorded validation: regenerated `unpackedskinned_quadv5` and
+`unpackedskinned_quadheatv5` had no `in_BINORMAL*` left and linked
+336/336 and 80/80 WebGL2 programs.
 
-**Helpers needed**: `HandleInputRedirect` (`toGLSLDeclaration.cpp:1689-1806`) is an
-HLSLcc-internal hull/domain-shader phase-input staging mechanism (`phase{N}_Input...`
-temporaries) — out of scope for this project's vertex/pixel-only target; no
-equivalent helper is needed here.
+### Historical CCPWGL integer-attribute constraint
 
-**Edge cases — the uvec/ivec attribute problem (required deviation, highest-priority
-item in this family)**: stock HLSLcc, run as designed, declares integer-semantic
-vertex inputs with their true GLSL integer vector type, e.g. `in uvec4
-in_BLENDINDICES0;` for a `BLENDINDICES` stream reflected as `UINT32` component type
-(`DeclareInput`, `270-274`). **This project's runtime (ccpwgl) binds all mesh
-attribute channels, including blend indices, as float vertex attributes via
-`gl.vertexAttribPointer` (not `vertexAttribIPointer`)** — a real `uvec4 in_...`
-declaration either fails to link against that float-typed buffer binding, or links
-but silently produces garbage/invisible geometry
-(`028-carbonwebgl-skinned-blend-index-abi-lowering.md`: "Raw Carbon WebGL validation can link
-integer attributes, but ccpwgl runtime binding can still fail or produce invisible
-geometry if the source reaches compile as `uvec4`."). The proven, validated fix
-(`028-...md`; `TRANSPILING-GAPS.md` "Ranked helper action plan" documents the general
-version of this class of bug): **lower every integer-component-type `dcl_input`
-vertex attribute to its float-vector equivalent at declaration time** —
-```glsl
-in vec4 in_BLENDINDICES0;   // not uvec4
-```
-and bitcast at every *use* site instead: any instruction reading `in_BLENDINDICES0`
-as an index wraps it in `floatBitsToUint(in_BLENDINDICES0)` (or, if the actual buffer
-data was uploaded as plain float index values rather than bit-pattern-encoded uints —
-verify per-attribute — a plain `uint(in_BLENDINDICES0.x)` truncating conversion
-instead of a bitcast; the Carbon WebGL lowering evidence describes casting at use sites but
-does not pin down which of these two forms every producer used, see Confidence
-below). This is the **general form** of the family-level "every register is a float
-vec4" convention applied specifically to `dcl_input`: unlike the `r#` temp file
-(where float-only storage is this project's own choice), for vertex attributes it is
-required by a concrete runtime constraint (float-only `vertexAttribPointer` binding),
-proven necessary by regression (skinned geometry disappearing) and proven sufficient
-(336/336 and 240/240 WebGL2 programs pass after the rewrite) in the corpus evidence
-cited above.
+The studied CCPWGL consumer used `vertexAttribPointer` for all mesh
+channels, including blend indices, not `vertexAttribIPointer`.
+`028-carbonwebgl-skinned-blend-index-abi-lowering.md` records that raw
+integer attributes could link yet fail at runtime or produce invisible
+geometry. Stock `DeclareInput` instead emits true `uvec4` for UINT32
+`BLENDINDICES` (`270-274`). The historical proposal lowers integer-component
+vertex declarations to float equivalents; its generalization remains unproven
+per producer. The recorded workaround declares
+`in vec4 in_BLENDINDICES0;` and casts at use sites; the general action plan
+is in `TRANSPILING-GAPS.md`, “Ranked helper action plan”. Recorded
+post-rewrite link counts are 336/336 and 240/240 programs, not proof of every
+attribute producer's encoding.
 
-**WebGL2 notes**: GLSL ES 3.00 does support genuine integer vertex attributes
-(`in uvec4`/`in ivec4` with `vertexAttribIPointer`) — the float-only lowering above is
-not a GLSL-ES-3.00 *language* limitation, it is a **runtime binding-layer**
-limitation specific to this project's current ccpwgl consumer. A future
-CarbonEngineJS-native consumer that binds attributes with `vertexAttribIPointer`
-could use the stock HLSLcc `uvec4`/`ivec4` declarations directly and should not
-inherit this workaround by default.
+The unresolved distinction is `floatBitsToUint(in_BLENDINDICES0)` for
+bit-pattern-encoded uints versus `uint(in_BLENDINDICES0.x)` for plain
+float index values. Verify each uploaded stream before generalizing.
+GLSL ES300 supports genuine integer inputs with `vertexAttribIPointer`:
+this is a CCPWGL binding constraint, **not a language limitation or a default
+requirement for a CarbonEngineJS-native consumer**.
 
 **Confidence: medium** — the *requirement* to avoid integer vertex-attribute types is
 high confidence (proven by a specific regression + fix with before/after link
@@ -586,65 +543,40 @@ generalize cautiously to any other integer-typed vertex semantic found in the co
 
 ## `dcl_input_ps` (6995)
 
-**Semantics**: declares a pixel-shader input register (an interpolated varying from
-the previous stage) bound to an ISGN row, carrying an explicit DXBC interpolation
-mode (`INTERPOLATION_CONSTANT`/`LINEAR`/`LINEAR_CENTROID`/`LINEAR_NOPERSPECTIVE`/etc.)
-that this instruction's own `value.eInterpolation` field encodes (distinct from plain
-`dcl_input`, which has no interpolation-mode payload).
+Declares a pixel input with an ISGN row and explicit
+`value.eInterpolation` payload, unlike plain `dcl_input`.
+`toGLSLDeclaration.cpp:2217-2423` emits
+`<interp>in <precision> <type> vs_<SEMANTIC><index>;` through
+`DeclareInput` (`2418`). Type/width and minimum-precision derivation
+are as in `dcl_input` (precision: `2287-2317`). Storage is `in`
+(`2228-2231`). `GetDeclaredInputName` takes the previous VS's
+`vs_` prefix (`toGLSL.cpp:59-79`), matching its output prefix
+(`toGLSL.cpp:34`).
 
-**GLSL lowering**: `toGLSLDeclaration.cpp:2217-2423`. Name via `GetDeclaredInputName`
-with `inputPrefix = "vs_"` (when the previous stage is a vertex shader, the common
-case for this corpus — `toGLSL.cpp:59-79`) → **`vs_<SEMANTIC><index>`**, matching the
-vertex shader's `outputPrefix = "vs_"` output name exactly (`toGLSL.cpp:34`), which is
-how HLSLcc keeps VS-output/PS-input varying names paired across the two independently
-compiled GLSL stage sources. Storage qualifier `"in"` (`2228-2231`, `InOutSupported`
-true for ES 300). Interpolation qualifier:
-- integer component type (`UINT32`/`SINT32`) forces `flat ` regardless of the DXBC
-  interpolation mode (`2238-2242`) — **GLSL spec requirement**, not a DXBC fact:
-  integer varyings must be flat-interpolated in any GLSL version.
-- otherwise, map `psDecl->value.eInterpolation` (`2245-2284`): `INTERPOLATION_CONSTANT`
-  → `"flat "`; `LINEAR` → `""`; `LINEAR_CENTROID` → `"centroid "`;
-  `LINEAR_NOPERSPECTIVE` → `"noperspective "` **only if** `hasNoPerspective` (true for
-  `eTargetLanguage > LANG_ES_310`, i.e. **false for `LANG_ES_300`** — `2225`,
-  `2263-2265`); `LINEAR_SAMPLE`/`LINEAR_NOPERSPECTIVE_SAMPLE` → `"sample "`/
-  `"noperspective sample "` similarly gated.
-- Precision: same `highp`/`mediump`/`lowp` mapping from `OPERAND_MIN_PRECISION_*` as
-  `dcl_input` (`2287-2317`).
-- Final text: `DeclareInput(...)` (`2418`) → same underlying emitter as `dcl_input`,
-  producing `<interp>in <precision> <type> vs_<SEMANTIC><index>;`.
+Interpolation mapping (`2238-2284`):
 
-**Type rules**: identical component-type derivation to `dcl_input` (ISGN
-`eComponentType` → `float`/`int`/`uint` base, `GetNumberBitsSet(mask)` → vector
-width). The **integer-varying-must-be-flat** rule is a hard GLSL requirement in every
-GLSL version, not a WebGL2-specific quirk — always emit `flat` for integer pixel
-inputs regardless of the source DXBC interpolation mode field.
+| Input | Qualifier |
+|---|---|
+| UINT32/SINT32 | Always `flat`, regardless of DXBC mode (`2238-2242`). |
+| `INTERPOLATION_CONSTANT` | `flat` |
+| `LINEAR` | None |
+| `LINEAR_CENTROID` | `centroid` |
+| `LINEAR_NOPERSPECTIVE` | `noperspective` only with `hasNoPerspective` (`2263-2265`). |
+| `LINEAR_SAMPLE` / `LINEAR_NOPERSPECTIVE_SAMPLE` | `sample` / `noperspective sample`, under the source gates. |
 
-**Helpers needed**: none beyond core-language `flat`/`centroid` qualifiers (both core
-in GLSL ES 3.00).
+The study calls for mirroring `hasNoPerspective`
+(`eTargetLanguage > LANG_ES_310`, `2225`), not removing the gate.
+On ES300, dropping `noperspective` gives perspective-correct interpolation:
+a visible quality difference, not an equivalent interpolation rule. No
+custom helper is needed for the qualifiers.
 
-**Edge cases — framebuffer-fetch special case**: `2319-2416` handles reading back a
-previously-written render target value (`SV_TargetN` bound both as PS input and PS
-output, gated on `EXT_shader_framebuffer_fetch` + `HLSLCC_FLAG_SHADER_FRAMEBUFFER_FETCH`)
-via `#define vs_SV_TargetN gl_LastFragData[N]` or a `layout(location=N) inout`
-declaration. `GL_EXT_shader_framebuffer_fetch` **is not universally available in
-WebGL2** and this project's target is standard WebGL2 fragment shaders reading only
-their own current-fragment inputs — treat this branch as out of scope / not expected
-to trigger in the EVE corpus; if it ever does, it is a target blocker requiring the
-extension's presence to be verified at runtime, not silently assumed.
-
-**WebGL2 notes**: `centroid`/`sample` interpolation qualifiers are core GLSL ES 3.00
-keywords (no extension needed). `noperspective` is **not** — GLSL ES 3.00's spec does
-not include `noperspective` as a keyword at all (it was added later, e.g. via
-`NV_shader_noperspective_interpolation` for ES 3.0/3.1, and core only from ES 3.20);
-WebGL2/ES 3.00 has no standard `noperspective` qualifier. The C++ source's own
-`hasNoPerspective` gate (`eTargetLanguage <= LANG_ES_310 ? 0 : 1`, `2225`) is
-therefore **correct as written, not stale or overly conservative** — it already
-disables `noperspective` for `LANG_ES_300` (and `LANG_ES_310`) and only enables it for
-targets above `LANG_ES_310`. This emitter should simply mirror that gate rather than
-second-guess it: if any EVE pixel shader declares `INTERPOLATION_LINEAR_NOPERSPECTIVE`,
-drop the qualifier for a `LANG_ES_300` target (falls back to perspective-correct
-interpolation, a visible but non-fatal quality difference, vs. a hard compile error
-from an unrecognized qualifier).
+**Framebuffer-fetch blocker:** `2319-2416` handles `SV_TargetN` as
+both input and output using `#define vs_SV_TargetN gl_LastFragData[N]`
+or `layout(location=N) inout`, gated by
+`EXT_shader_framebuffer_fetch` plus
+`HLSLCC_FLAG_SHADER_FRAMEBUFFER_FETCH`. This is outside the study's
+standard WebGL2 target and was not expected in the EVE corpus. If encountered,
+verify the extension at runtime; do not silently assume availability.
 
 **Confidence: high** — the name-prefix pairing and integer-flat rule are high
 confidence (direct source read, universal GLSL requirement); the
@@ -657,98 +589,64 @@ so this is no longer an open question for this opcode.
 
 ## `dcl_output` (15197) — highest-frequency opcode in this family
 
-**Semantics**: declares a vertex/pixel-shader output register (`o#`) bound to an
-OSGN row (semantic name/index, component mask, component type), or (hull-shader
-control-point phase only, not in this project's scope) routed to `gl_Position`.
+Declares an OSGN-bound output register. `toGLSLDeclaration.cpp:2760-2779`
+calls `AddUserOutput` (`594-854`), gated by `OutputNeedsDeclaring`
+(`HLSLCrossCompilerContext.cpp:279-330`). Its `acOutputDeclared`
+bitmask deduplicates repeated partial-mask declarations; only undeclared
+components trigger text. Type/width comes from OSGN
+`eComponentType`/`GetNumberBitsSet(mask)` (`622-655`), not the
+declaration write mask; precision comes from `OPERAND_MIN_PRECISION_*`
+(`657-689`). Declarations have no `_sat`: saturation belongs to
+instructions writing the register.
 
-**GLSL lowering**: `toGLSLDeclaration.cpp:2760-2779` → `AddUserOutput`
-(`594-854`), gated by `OutputNeedsDeclaring` (`HLSLCrossCompilerContext.cpp:279-330`)
-which dedups repeated partial-mask declarations of the same register via an
-`acOutputDeclared` bitmask (a register can legally receive several `dcl_output`
-instructions each covering a different component subset; only undeclared components
-trigger new text).
-- Component type/count: OSGN `eComponentType`/`GetNumberBitsSet(mask)` →
-  `float`/`vecN` (`FLOAT32`), `int`/`ivecN` (`SINT32`), `uint`/`uvecN` (`UINT32`)
-  (`622-655`) — identical derivation pattern to `dcl_input`.
-- Precision: `highp`/`mediump`/`lowp` from `OPERAND_MIN_PRECISION_*` (`657-689`).
-- **Pixel shader** (`691-795`): special output types first —
-  `OPERAND_TYPE_OUTPUT_DEPTH` → plain `gl_FragDepth` (built-in, no declaration
-  needed on GL/ES targets, `701-708`; the `EXT_frag_depth` `#define` shim at `703-706`
-  is `LANG_ES_100`-only, irrelevant for ES 300 where `gl_FragDepth` is core).
-  `OUTPUT_DEPTH_GREATER_EQUAL`/`OUTPUT_DEPTH_LESS_EQUAL` → `GL_ARB_conservative_depth`
-  layout qualifiers (`709-723`) — **desktop-only extension, not available in GLSL ES
-  3.00**; if an EVE pixel shader uses conditional depth output, this project must fall
-  back to plain unconstrained `gl_FragDepth` writes (drop the `depth_greater`/
-  `depth_less` hint — it is a performance hint only, never required for correctness).
-  Otherwise (`725-793`, the common `SV_TargetN` case): name =
-  `outputPrefix("") + semanticName + renderTargetIndex` i.e. plain `SV_TargetN`, and
-  an explicit `layout(location = N) out <precision><type> SV_TargetN;` the first time
-  render target `N` is seen (`748-789`). **Correction to the gating fact**: the
-  `layout(location=N)` here is *not* gated by `HaveInOutLocationQualifier` — that
-  function (`languages.h:102-109`) is `false` for `LANG_ES_300` (only `true` for
-  `>=LANG_410` or `LANG_ES_310`). The actual gate at `752-753` is
-  `HaveInOutLocationQualifier(...) || HaveLimitedInOutLocationQualifier(...)`, and it
-  is `HaveLimitedInOutLocationQualifier` (`languages.h:93-100`, explicitly commented
-  "Only on vertex inputs and pixel outputs") that returns `true` for `LANG_ES_300`,
-  satisfying the `||` and producing the explicit location. Net behavior is unchanged
-  (ES 300 pixel outputs do get `layout(location=N)`), but the responsible function is
-  `HaveLimitedInOutLocationQualifier`, not `HaveInOutLocationQualifier` — worth getting
-  right since the two gates diverge for other declarations in this same family (see
-  `dcl_input`'s vertex-attribute declaration below, which tests
-  `HaveInOutLocationQualifier` alone and therefore does *not* get an explicit location
-  on `LANG_ES_300`). WebGL2 **requires** explicit `layout(location=N)` for any
-  multi-render-target fragment shader (no implicit `gl_FragData[N]` indexing in the
-  ES 3.00 core profile; `WriteToFragData` is true only for legacy/ES 100 targets).
-- **Vertex shader** (`796-846`, the common case here since this project has no
-  geometry/hull/domain stages): name =
-  `outputPrefix("vs_") + semanticName + semanticIndex` → **`vs_<SEMANTIC><index>`**
-  (`804`), matching the pixel shader's `vs_`-prefixed input names described above.
-  Interpolation: integer types forced `flat` (`810-814`), float types resolved from
-  cross-stage dependency data (`GetInterpolationMode`, `815-818`) — in practice this
-  project should resolve interpolation per-varying from the **pixel shader's**
-  `dcl_input_ps` `value.eInterpolation` for the same semantic, since that is the only
-  side that actually encodes an interpolation mode in DXBC (vertex-shader outputs
-  carry no interpolation-mode field of their own). `layout(location=N)` from
-  `GetVaryingLocation` (`821-825`) — WebGL2 requires **matching** explicit varying
-  locations between the two independently compiled VS/PS GLSL programs when using
-  explicit locations, or (simpler, and what this project should default to) omit
-  `layout(location=...)` for varyings entirely and let the GLSL **linker** match by
-  name — WebGL2/GLSL ES 3.00 supports both; matching by name avoids a whole class of
-  location-numbering bugs across independently emitted VS/PS sources and is
-  recommended here. Final text: `<interp>out <precision><type> vs_<SEMANTIC><index>;`
-  (`838`).
-- Early-out: register 0 with legacy `"POS"` semantic name in a vertex shader returns
-  without declaring anything (`619-620`) — that register is expected to be routed to
-  `gl_Position` via a separate `dcl_output_siv` `NAME_POSITION` declaration elsewhere
-  in the same instruction stream (see next section); do not double-declare it.
+### Pixel outputs (691–795)
 
-**Type rules**: identical component-type/count derivation to `dcl_input`/
-`dcl_input_ps` (OSGN-driven, not write-mask-driven). The destination write mask on
-the *declaration* itself only ever narrows which components get declared this pass
-(merged across multiple partial declarations via `acOutputDeclared`); it has no
-`_sat` concept — `saturate` only applies to the *instructions* that write the
-register, never to a `dcl_output` declaration itself.
+- `OPERAND_TYPE_OUTPUT_DEPTH`: builtin `gl_FragDepth` (`701-708`),
+  no declaration. The `EXT_frag_depth` shim (`703-706`) is ES100-only.
+- `OUTPUT_DEPTH_GREATER_EQUAL` / `OUTPUT_DEPTH_LESS_EQUAL`:
+  `GL_ARB_conservative_depth` qualifiers (`709-723`). This study's
+  ES300 policy drops `depth_greater`/`depth_less` hints and writes
+  plain unconstrained `gl_FragDepth`; the desktop extension is not assumed.
+  The study treats this as removing a performance hint, not changing correctness.
+- Ordinary `SV_TargetN` (`725-793`): empty output prefix plus semantic
+  and render-target index. First use of target N emits
+  `layout(location = N) out <precision><type> SV_TargetN;`
+  (`748-789`), including explicit locations for MRT instead of legacy
+  `gl_FragData[N]` (`WriteToFragData` is legacy/ES100-only).
 
-**Helpers needed**: `HandleOutputRedirect` — like `HandleInputRedirect`, this is
-HLSLcc's hull-shader phase-output staging machinery; out of scope for this project's
-vertex/pixel-only target.
+**Location-gate correction:** `752-753` tests
+`HaveInOutLocationQualifier || HaveLimitedInOutLocationQualifier`.
+The former (`languages.h:102-109`, true for `>=LANG_410` or
+`LANG_ES_310`) is false for ES300. The latter
+(`languages.h:93-100`, “Only on vertex inputs and pixel outputs”) supplies
+the true ES300 branch. Plain `dcl_input` tests the former alone and
+therefore does not receive an explicit location there. Do not conflate the gates.
 
-**Edge cases — signature-only vertex outputs**: `023-signature-only-vertex-output-fallback.md`
-documents `starmapnew`/`ubershader3d` variants whose OSGN declares outputs (`o3
--> COLOR2`, `o4 -> TEXCOORD1`, etc. for `starmapnew`; `o2 -> COLOR1`, `o7 ->
-TEXCOORD4` for `ubershader3d`) with **no corresponding bytecode write** anywhere in
-the instruction stream (audited: `references: 0`). GLSL ES 3.00 does not guarantee
-zero-initialization of `out` varyings, and reading an unwritten varying downstream is
-undefined/implementation-defined — this project's proven, adopted policy is to emit
-an explicit deterministic zero-fill in early-main for any declared-but-never-written
-output: `vs_COLOR2 = vec4(0.0);` before the translated instruction stream runs. Treat
-this as expected, not a parser bug, for any output register with zero write
-references.
+### Vertex outputs (796–846)
 
-**WebGL2 notes**: `layout(location=N)` for fragment-shader color outputs is
-mandatory when more than one is declared (no implicit indexing); prefer
-name-based linking (no `layout(location=...)`) for VS→PS varyings specifically,
-per the recommendation above, to avoid cross-stage location-numbering mismatches.
+`vs_<SEMANTIC><index>` (`804`) matches the PS input name.
+Integer outputs are `flat` (`810-814`); floats use cross-stage
+`GetInterpolationMode` (`815-818`). This study recommends resolving
+that mode from the paired PS `dcl_input_ps` because VS outputs encode no
+interpolation payload. This remains a recommendation, qualified below.
+
+`GetVaryingLocation` is at `821-825`; this study recommends omitting
+explicit varying locations and linking by name to avoid VS/PS numbering
+mismatches. If explicit varying locations are used, paired stage locations
+must match. Final text (`838`):
+`<interp>out <precision><type> vs_<SEMANTIC><index>;`.
+VS register 0 with legacy `POS` returns early (`619-620`):
+`dcl_output_siv NAME_POSITION` handles `gl_Position`, so do not
+double-declare it. Hull-only `HandleOutputRedirect` is out of scope,
+as is the hull control-point output case.
+
+**Signature-only outputs:** `023-signature-only-vertex-output-fallback.md`
+records OSGN outputs with zero bytecode write references:
+`starmapnew` (`o3 -> COLOR2`, `o4 -> TEXCOORD1`) and
+`ubershader3d` (`o2 -> COLOR1`, `o7 -> TEXCOORD4`). They are
+expected inputs to the fallback, not parser defects. Since unwritten varyings
+are not guaranteed zero, emit deterministic early-main initialization, e.g.
+`vs_COLOR2 = vec4(0.0);`, before translated instructions.
 
 **Confidence: high** for the SV_Target/varying declaration shape and naming
 convention (heavily used, directly cited, corpus-validated linking counts exist
@@ -832,47 +730,27 @@ VS/PS-only WebGL2 validation runs.
 
 ## `dcl_input_ps_siv` (538)
 
-**Semantics**: declares a pixel-shader input bound to a system-value semantic
-(`SV_Position` as `gl_FragCoord`, or `SV_RenderTargetArrayIndex` as `gl_Layer`).
+Pixel system-value inputs lower at `toGLSLDeclaration.cpp:2188-2207`:
 
-**GLSL lowering**: `toGLSLDeclaration.cpp:2188-2207`:
-- `NAME_POSITION` → `AddBuiltinInput(psDecl, "gl_FragCoord")` (built-in, no
-  declaration text — `gl_FragCoord` is core GLSL ES 3.00), **plus** an early-main
-  statement:
-  ```glsl
-  vec4 hlslcc_FragCoord = vec4(gl_FragCoord.xyz, 1.0/gl_FragCoord.w);
-  ```
-  (`2195`) — every read of the DXBC `SV_Position` pixel-shader input must be
-  redirected to `hlslcc_FragCoord`, **not** raw `gl_FragCoord`: the literal C++
-  text takes `gl_FragCoord.xyz` unchanged but replaces the `.w` component with
-  `1.0/gl_FragCoord.w`, reconciling a difference between what HLSL's
-  `SV_Position.w` and GLSL's `gl_FragCoord.w` each store in the 4th component.
-  Treat `hlslcc_FragCoord` as the mandatory redirect target for any
-  `SV_Position`-as-input read in a pixel shader, not `gl_FragCoord` directly — do
-  not attempt to re-derive or "simplify" the `1.0/gl_FragCoord.w` swap, just
-  reproduce the line as emitted.
-- `NAME_RENDER_TARGET_ARRAY_INDEX` → `gl_Layer` (`2198-2201`) — reading back which
-  array layer/cubemap face the primitive rasterized into; requires geometry-shader
-  layered rendering upstream, out of this project's scope.
-- Anything else → `ASSERT(0)` (`2203-2205`) — DXBC-level invariant, no other system
-  value is legal as a pixel-shader `_siv` input.
+- `NAME_POSITION` calls `AddBuiltinInput(psDecl, "gl_FragCoord")`
+  and emits this **early-main local substitution**, not a callable helper
+  (`2195`):
 
-**Type rules**: `gl_FragCoord`/`hlslcc_FragCoord` is always `vec4`.
+  `vec4 hlslcc_FragCoord = vec4(gl_FragCoord.xyz, 1.0/gl_FragCoord.w);`
 
-**Helpers needed**: the `hlslcc_FragCoord` early-main redirect line above — declare
-it as a **named helper convention** (a fixed early-main statement emitted whenever a
-`dcl_input_ps_siv NAME_POSITION` is seen), not a callable function, since it is a
-local variable substitution rather than a reusable GLSL function.
+  Redirect **every** PS `SV_Position` read to `hlslcc_FragCoord`,
+  not raw `gl_FragCoord`. Preserve xyz and the reciprocal-W expression
+  exactly; it reconciles HLSL/GLSL fourth-component conventions. Both are
+  `vec4`; the GLSL builtin needs no declaration or extension.
+- `NAME_RENDER_TARGET_ARRAY_INDEX` maps to `gl_Layer`
+  (`2198-2201`), requiring upstream layered/geometry rendering outside
+  this study's scope.
+- Other special names reach `ASSERT(0)` (`2203-2205`).
 
-**Edge cases**: `1.0/gl_FragCoord.w` divides by the fragment's window-space `w`
-reciprocal — if `gl_FragCoord.w` is ever exactly `0.0` (a fragment at infinite
-depth/degenerate clip-space w), this produces `inf`; no corpus evidence this occurs
-in practice (fragments with `w=0` do not typically survive clipping), but note it as
-a theoretical NaN/inf source worth being aware of, not one this project needs to
-guard defensively against absent contrary evidence.
-
-**WebGL2 notes**: `gl_FragCoord` is core; no extension needed. `gl_Layer` requires
-geometry-shader support, out of scope for this project.
+**Edge cases**: `1.0/gl_FragCoord.w` can produce infinity at exactly
+zero W. No such corpus case was found; degenerate/infinite-depth fragments
+normally do not survive clipping. Retain this as a theoretical NaN/Inf source,
+not a request for a defensive guard without evidence.
 
 **Confidence: high** for `NAME_POSITION` (directly cited, dominant case — 538
 occurrences is consistent with "most pixel shaders read `SV_Position`"); **low** for
@@ -1016,83 +894,49 @@ exercised meaningfully by this project's corpus.
 
 ## `customdata` (159, encodes an Immediate Constant Buffer)
 
-**Semantics**: DXBC `customdata` with subtype `ICB` (Immediate Constant Buffer) —
-an inline array of literal `vec4`-shaped constant data baked directly into the
-bytecode (as opposed to `dcl_constant_buffer`'s externally-bound `cb#`), addressed
-either directly by a fixed index or dynamically (`x0[aL]`-style) from instructions
-later in the stream.
+`customdata` subtype `ICB` embeds immediate constants in DXBC rather
+than binding an external `cb#`. Each element is four raw dwords, with
+fixed or dynamic indexing (`x0[aL]`-style reads).
 
-**GLSL lowering (non-Vulkan, non-Switch — this project's target)**:
-`toGLSLDeclaration.cpp:3007-3076`. HLSLcc walks `m_ConstantArrayInfo.m_Chunks`
-(pre-computed groupings of same-component-width, contiguously-accessed ICB slices)
-and, per chunk:
-1. Declares an array: `float ImmCB_{phase}_{chunkFirst}_{rebase}[{size}];` (scalar
-   chunk) or `vec{N} ImmCB_{phase}_{chunkFirst}_{rebase}[{size}];` (`N`-wide chunk)
-   (`3017-3020`).
-2. If the target lacks dynamic indexing support, additionally registers a
-   `DeclareDynamicIndexWrapper` (`3022-3029`) — irrelevant here since GLSL ES 3.00
-   (`HaveDynamicIndexing` true for ES 300) supports genuine dynamic array indexing
-   natively; this project should skip the wrapper machinery entirely and always emit
-   a real GLSL array.
-3. Populates each array element in **early-main** (not as a `const` initializer list
-   — note this is a *mutable* global-scope-declared, early-main-assigned array in
-   stock HLSLcc, not a `const` array), one assignment per element per component
-   (`3032-3074`):
-   ```glsl
-   ImmCB_0_0_0[0] = 1.5;
-   ImmCB_0_0_0[1] = uintBitsToFloat(uint(0x7FC00000u));  // NaN literal, bit-pattern form
-   ```
-   Float literals that are themselves NaN/Inf bit patterns
-   (`fpcheck(val[...])`, `3045-3048`, `3067-3070`) are re-encoded as
-   `uintBitsToFloat(uint(0x{hex}u))` rather than a literal `nan`/`inf` token (which
-   GLSL cannot parse directly) — **this bit-pattern-preserving encoding is the
-   correct/required approach for any ICB constant that is NaN or ±Inf, and this
-   project's emitter must replicate it**, since a plain decimal float literal cannot
-   represent those bit patterns exactly and GLSL has no `nan`/`inf` literal syntax.
-4. Vulkan target (`2975-2990`, background only — not this project's target):
-   `const uvec4 ImmCB_{phase}[] = uvec4[{count}](uvec4(0x..., ...), ...);` — a true
-   `const` array of raw-bit `uvec4`s.
-5. Switch target (`2991-3006`, background only): a `const vec4
-   ImmCB_{phase}[]` initialized with a `vec4[{count}]` array constructor whose
-   elements preserve raw bits with `uintBitsToFloat`; this is the
-   shape closest to "a `const vec4 array`" as the family brief describes, and is a
-   **better model for this project's emitter to imitate** than the non-Vulkan/
-   non-Switch mutable-early-main-array path above: declare
-   ```glsl
-   const vec4 ImmCB_{phase}[{count}] = vec4[{count}](
-       vec4(uintBitsToFloat(0x3FC00000u), uintBitsToFloat(0x00000000u), ...),
-       ...
-   );
-   ```
-   at global scope (every raw dword reinterpreted through `uintBitsToFloat`
-   uniformly, whether or not it happens to be a "nice" float, sidestepping the
-   `fpcheck`-conditional branching the CPU-target path uses) — simpler to implement
-   correctly in a from-scratch JS emitter and avoids the early-main mutable-global
-   pattern (which exists in stock HLSLcc mainly to support per-chunk dynamic-array
-   splitting this project doesn't need, since `HaveDynamicIndexing` is true and a
-   single flat `const vec4[]` can be indexed directly).
+### Stock target branches
 
-**Type rules**: every ICB element is exactly 4 raw dwords; **always reinterpret via
-`uintBitsToFloat`** rather than trusting a decimal float re-parse of the DXBC literal
-value, to guarantee exact bit-for-bit reproduction of the original constant
-(including denormals/NaNs/Infs the HLSL compiler folded in). Consumers needing an
-int/uint view of an ICB element bitcast again at the use site
-(`floatBitsToInt`/`floatBitsToUint`) exactly like any other float-register-file read.
+Non-Vulkan/non-Switch (`toGLSLDeclaration.cpp:3007-3076`) walks
+`m_ConstantArrayInfo.m_Chunks`: contiguous slices grouped by component width.
 
-**Helpers needed**: none — `uintBitsToFloat` is core GLSL ES 3.00.
+1. Declare mutable global arrays (`3017-3020`):
+   `float ImmCB_{phase}_{chunkFirst}_{rebase}[{size}];` for scalar chunks,
+   or `vec{N}` for N-wide chunks.
+2. `DeclareDynamicIndexWrapper` (`3022-3029`) is for targets without
+   dynamic indexing. `HaveDynamicIndexing` is true for ES300: use real
+   arrays and direct index expressions, no wrapper.
+3. Assign each element/component in early-main (`3032-3074`), not a
+   `const` initializer. Ordinary literals may be decimal, e.g.
+   `ImmCB_0_0_0[0] = 1.5;`. `fpcheck` (`3045-3048`,
+   `3067-3070`) preserves NaN/Inf as raw-bit expressions such as
+   `ImmCB_0_0_0[1] = uintBitsToFloat(uint(0x7FC00000u));`.
 
-**Edge cases**: NaN/Inf constants are the primary edge case, handled correctly by
-the bit-pattern-preserving encoding above — do not let a JS `JSON.stringify`/decimal
-round-trip of the float value silently normalize a NaN payload or lose an Inf's
-sign bit; carry the raw `uint32` dword through to the emitted GLSL untouched.
-Dynamic indexing of the ICB (`x0[aL]`-style reads) is a plain GLSL array-index
-expression on this project's target (`HaveDynamicIndexing` true for ES 300),
-needing none of stock HLSLcc's non-dynamic-indexing wrapper-function fallback.
+Vulkan (`2975-2990`, background only) instead declares
+`const uvec4 ImmCB_{phase}[] = uvec4[{count}](uvec4(0x..., ...), ...);`.
+Switch (`2991-3006`) uses a global `const vec4` array constructor
+with `uintBitsToFloat`-preserved elements.
 
-**WebGL2 notes**: dynamic (non-constant-expression) array indexing of a global
-array is supported in GLSL ES 3.00's core profile (unlike GLSL ES 1.00, where it was
-restricted) — this project's target does not need the
-`DeclareDynamicIndexWrapper` fallback stock HLSLcc carries for older targets.
+### Proposed ES300 shape — not a validated closure
+
+This study recommends the Switch-like flat array, avoiding mutable early-main
+assignments and chunk splitting when genuine dynamic indexing is available:
+
+```glsl
+const vec4 ImmCB_{phase}[{count}] = vec4[{count}](
+    vec4(uintBitsToFloat(0x3FC00000u), ...), ...);
+```
+
+Carry every raw `uint32` dword unchanged into `uintBitsToFloat`,
+including denormals, NaN payloads and signed infinities; do not round-trip
+through decimal floats or `JSON.stringify`. GLSL has no NaN/Inf literal
+syntax. Integer consumers use `floatBitsToInt`/`floatBitsToUint`
+as in the opening register convention. The bitcast is a core builtin, not a
+custom helper. The proposed `const` initializer still requires the
+actual WebGL2 compile/link validation stated below.
 
 **Confidence: medium** — the NaN/Inf bit-pattern-preserving requirement and the
 "prefer the Switch-shaped `const vec4[]` over the non-Vulkan/non-Switch mutable
