@@ -191,32 +191,25 @@ pixel `usampler2D` data textures (see `DxbcGlslEmitter.js` `dcl_resource_structu
 pixel branch), which compiles but consumes a texture unit each; on real drivers
 the `_depth` quad variants overflow `MAX_TEXTURE_IMAGE_UNITS`(16).
 
-**Superseded (2026-08-02) — the lights fit, and are kept.** The two light
-buffers now lower to a single packed `RGBA32UI` data texture rather than one
-texture each, which frees two units, and the `Detail1/2/3Map` textures merge into
-one array texture, which frees one or two more. Both `.sm_depth` quad variants
-land at or under 16 with lighting intact: `unpackedskinned_quaddetailv5` at 15,
-`unpackedskinned_quadheatdetailv5` at 16. See
-`/docs/contracts/webgl2-texture-budget.md`. Dropping the lights is still
-available as `--stub-light-resources` for isolating a lighting problem, but it is
-no longer the answer to the budget. The paragraph below describes that opt-in
-path and remains accurate.
+**Superseded 2026-08-02 — keep the lights.** The recorded packed `RGBA32UI`
+light texture and merged `Detail1/2/3Map` array put the `.sm_depth` variants
+`unpackedskinned_quaddetailv5` at 15 texture units and
+`unpackedskinned_quadheatdetailv5` at 16, lighting intact. Budget accounting
+belongs to `/docs/contracts/webgl2-texture-budget.md`, not this opcode study.
+`--stub-light-resources` remains an opt-in diagnostic, not the budget solution.
 
-**Earlier resolution (2026-07-08) — stub, not rewrite.** Since Carbon WebGL does not
-support this tiled lighting, the packager can DROP it instead of lowering it. Run
-`packageTr2WebglEffect.js --stub-light-resources`: it resolves the light resource
-names (`LightBuffer`, `LightIndexBuffer`, `LightProfileArray`) to `t#` registers
-from the Carbon `.sm` reflection (RDEF is stripped, so names live only there —
-and the registers vary per permutation, so this is name-driven, not fixed to
-sb11/sb12/s13) and passes them to `emitGlsl` as `stubResourceRegisters`. The
-emitter then drops their decl+binding and lowers reads to `uintBitsToFloat(0u)`
-(structured) / `vec4(0.0)` (sampled) — zeroing the per-tile light count makes the
-light loop dead. The packager also strips those `resource` bindings from the
-manifest JSON (`stripLightResourcesFromManifest`) so the Carbon WebGL runtime does not
-synthesize a texture def (glType 0 → "Invalid shader texture definition") for the
-now-undeclared light buffers. Opt-in, default off; every other package is
-unchanged. A functional light constant-buffer path remains possible but was not
-built.
+**Earlier 2026-07-08 stub path (default off):**
+`packageTr2WebglEffect.js --stub-light-resources` resolves `LightBuffer`,
+`LightIndexBuffer` and `LightProfileArray` from Carbon `.sm` reflection into
+`emitGlsl`'s `stubResourceRegisters`. With RDEF stripped, names exist only in
+that reflection; registers vary per permutation, not fixed sb11/sb12/s13.
+The emitter removes selected declarations/bindings and returns
+`uintBitsToFloat(0u)` for structured reads or `vec4(0.0)` for samples.
+Zero per-tile count kills the light loop. `stripLightResourcesFromManifest`
+removes matching JSON `resource` bindings, avoiding synthesis of an undeclared
+glType-0 texture ("Invalid shader texture definition"). Other packages are
+unchanged. The earlier study recorded a possible, unbuilt light-constant-buffer
+alternative; that historical statement is not current implementation status.
 
 Tested by `test/glsl-emitter.test.js` (synthetic pixel shaders with a structured
 buffer / sampler2DArray: declared by default, dropped + no binding when the
@@ -226,16 +219,9 @@ name→register resolution and `stripLightResourcesFromManifest` manifest filter
 in `scripts/stubLightResources.js`).
 
 ### Type rules
-- Struct index operand: read as int/uint (both flags set in HLSLcc; pick uint by
-  default for ES 3.00).
-- Byte-offset operand: uint unless the operand's own declared type is signed int.
-- Result component type follows the *destination* register's inferred type
-  (float → `uintBitsToFloat`, int → `int(...)`, uint → passthrough), **not** the
-  source resource's declared return type — this is purely dest-driven, matching
-  the "everything is `float vec4`, bitcast at use" register model this project
-  already commits to.
-- This is a data-movement instruction, not a comparison — it does not produce a
-  0xFFFFFFFF/0 mask.
+Section A owns index/offset signedness and destination-driven casts. The source
+resource's declared return type does **not** determine the result type.
+This load moves data; it does not produce a 0xFFFFFFFF/0 comparison mask.
 
 ### Helpers needed
 - `structuredLoadComponent(bufName, structIndex, byteOffset, component, destType)`
@@ -329,21 +315,14 @@ counter if the source operand has more than one swizzle element, else always
   (`OPERAND_4_COMPONENT_MASK_MODE`), not the source operand's own mask.
 
 ### WebGL2 notes
-`store_structured` requires a writable UAV, which in turn requires an SSBO
-(`buffer`, not `readonly buffer`) — completely unavailable in GLSL ES 3.00. No
-package-time rewrite analogous to the `cb3` skinning path exists for writes
-(there is no ccpwgl uniform target that plausibly receives a per-invocation
-compute-style scatter write). **This opcode is out of scope for the WebGL2
-emitter.** The 930 corpus instances should be treated as evidence this opcode
-occurs in DX11 stages that are not shipped to the current WebGL2 vs/ps target
-(the sampled corpus instance is `createhistograms.sm_depth`, tagged
-`stageName: "geometry"` in `dx11-instruction-coverage.json` but much more
-plausibly a mislabeled compute shader given the histogram-building workload
-and its co-occurring `sync`/`dcl_thread_group`-shaped instruction in the same
-file — see the `atomic_iadd` section for the one confirmed **non**-compute
-counterexample in this family, `lensflareoccludert`, which is a pixel shader,
-not compute); the emitter should detect and refuse rather than attempt
-emission.
+The study excludes this writable-UAV/SSBO opcode: detect and refuse it.
+There is no `cb3`-like write rewrite or CCPWGL uniform target for
+per-invocation scatter writes. Of 930 instances, the sampled
+`createhistograms.sm_depth` is tagged `stageName: "geometry"` in
+`dx11-instruction-coverage.json`, but its workload and accompanying
+`sync`/`dcl_thread_group` suggest mislabeled compute. See the atomic
+section for the scanner-label limitation and confirmed pixel counterexample;
+neither establishes a VS/PS `store_structured` path.
 
 ### Confidence
 **Medium** on the HLSLcc reference lowering itself (directly read from source);
@@ -486,22 +465,17 @@ Same swizzle-indirection caveat as `ld_structured` (component addressing follows
 the resource operand's own swizzle if present).
 
 ### WebGL2 notes
-Same SSBO unavailability as `ld_structured` section A/C. No `cb3`-style rewrite
-is known or defined for raw-buffer reads — the `BoneTransforms` rewrite is
-specific to the structured-buffer `t0_buf[idx].value[...]` shape, not the flat
-`t0_buf[...]` raw shape. **Out of scope for the WebGL2 emitter** unless/until a
-specific raw-buffer resource is proven to need a package-time ABI rewrite
-analogous to skinning.
+The study excludes raw-buffer reads absent a proven resource-specific rewrite.
+The retired `BoneTransforms` splice matched `t0_buf[idx].value[...]`,
+not flat `t0_buf[...]`; it cannot be assumed to cover raw buffers.
 
-The corpus table's "vs/ps" stage claim was overreach: the only sampled
-instance in `dx11-instruction-coverage.json`'s `allOpcodeExamples` is
-`graphics\effect.dx11\managed\space\specialfx\particles\gpu\emit.sm_depth`
-tagged `stageName: "geometry"`, paired with the sibling `store_raw` opcode in
-the exact same file/technique (also tagged `"geometry"`) — a GPU particle
-emission pass, which is much more plausibly a compute-style workload than a
-genuine vertex/pixel `ByteAddressBuffer` read. Do not assume `ld_raw` is
-`vs/ps`-reachable without a concrete counter-example (unlike `atomic_iadd`,
-which has one — see that section).
+The earlier VS/PS claim was overreach. The sole sampled
+`dx11-instruction-coverage.json` / `allOpcodeExamples` entry is
+`graphics\effect.dx11\managed\space\specialfx\particles\gpu\emit.sm_depth`,
+paired with `store_raw` in the same file/technique, both tagged
+`stageName: "geometry"`. The particle-emission workload suggests compute,
+not a confirmed VS/PS read. The atomic section owns the scanner caveat and
+its distinct pixel counterexample; do not transfer that evidence to `ld_raw`.
 
 ### Confidence
 **Medium** — HLSLcc source lowering is directly read and clear, but no shipping
@@ -717,20 +691,17 @@ Requires resource-binding reflection (return type, dimension) exactly like
 image-type gap below.
 
 ### WebGL2 notes
-`imageLoad` and image sampler types (`image2D` etc.) are ES 3.10+-only.
-**Fully out of scope for the WebGL2 emitter.** Matches the draft transpiler's
-explicit blocker (`Dx11GlesDraftTranspiler.js:129`) and the
-`TRANSPILING-GAPS.md` UAV decision. With only 18 corpus instances (vs.
-`store_uav_typed`'s 642), this is very likely the read side of a small set of
-compute/UAV effects rather than any vs/ps-reachable code path — but the
-concrete sampled instance (`dx11-instruction-coverage.json`, `allOpcodeExamples`)
-is `graphics\effect.dx11\managed\space\postprocess\measureexposure.sm_depth`
-(a tone-mapping average-luminance compute pass), **not** `lensflareoccludert`.
-`lensflareoccludert` is confirmed by `TRANSPILING-GAPS.md:100-114` to carry
-`dcl_unordered_access_view_typed`/`atomic_iadd` (and per this family's own
-corpus scan, `atomic_iadd` there is a **pixel**-stage instance — see that
-section); do not conflate the two effects or assume `ld_uav_typed`'s
-compute-only reasoning transfers to `atomic_iadd`.
+The study excludes `imageLoad`/image types from ES300, matching
+`Dx11GlesDraftTranspiler.js:129` and the `TRANSPILING-GAPS.md` UAV
+decision. Its 18 instances (versus 642 stores) suggest a small compute/UAV set,
+not a proven VS/PS path. The sampled `dx11-instruction-coverage.json` /
+`allOpcodeExamples` entry is
+`graphics\effect.dx11\managed\space\postprocess\measureexposure.sm_depth`
+(tone-mapping average-luminance compute), **not** `lensflareoccludert`.
+The corpus table and atomic section retain that separate effect's confirmed pixel-stage
+`dcl_unordered_access_view_typed`/`atomic_iadd` evidence
+(`TRANSPILING-GAPS.md:100-114`); do not conflate the effects or transfer
+compute-only reasoning between them.
 
 ### Confidence
 **High** — same corroboration as `store_uav_typed`, corrected to cite the
@@ -787,26 +758,18 @@ below. Non-skinning structured loads are not generally refused: see the
 pixel-stage lowering and packed-light closure above.
 
 **Retired WebGL2 text-rewrite helpers:**
-1. `lowerBoneTransformsToCb3` — package-time text-rewrite pass that removes the
-   HLSLcc `t0` SSBO declaration, grows `cb3.data[]` to at least 200 `vec4`s,
-   strips the native bone-ring-buffer offset add, and rewrites each 4-component
-   `t0_buf[idx].value[...]` row load to `cb3.data[26 + idx*3 + row]` (optionally
-   swizzled). Port of `lowerWebgl2SkinningAbi` +
-   `lowerStructuredBoneLoad` in `scripts/packageTr2WebglEffect.js:826-902`.
-2. `lowerBlendIndicesToFloatAttribute` — package-time rewrite of
-   `uvec4`/`ivec4`/etc. `in_BLENDINDICES<n>` vertex inputs to `vec<N>`, part of
-   the same pass (`packageTr2WebglEffect.js:840-843`).
+`lowerBoneTransformsToCb3` ports `lowerWebgl2SkinningAbi` +
+`lowerStructuredBoneLoad` (`scripts/packageTr2WebglEffect.js:826-902`);
+`lowerBlendIndicesToFloatAttribute` is the same pass's float-input rewrite
+(`packageTr2WebglEffect.js:840-843`). The historical section above owns their
+constraints; the pinned recipe owns the ordered operations, including
+`cb3.data[26 + idx*3 + row]` and optional swizzling. They are not pending helpers.
 
-**Reference-only helpers** (mirror HLSLcc's non-WebGL2 SSBO/UAV/atomic/compute
-lowering, useful for documentation, debugging, and any future non-WebGL2
-backend, but must never be emitted as final WebGL2 output):
-3. `structuredLoadComponent(bufName, structIndex, byteOffset, component, destType)`
-4. `structuredStoreComponent(bufName, structIndex, byteOffset, component, value, srcType)`
-5. `rawLoadComponent(bufName, byteOffset, component, destType)`
-6. `rawStoreComponent(bufName, byteOffset, component, value, srcType)`
-7. `imageLoadTyped(uav, addr, returnType)`
-8. `imageStoreTyped(uav, addr, value, returnType)`
-9. `atomicUavOrTgsmOp(func, dest, addr, src, compare?, returnsPrevious?)`
+**Reference-only helpers:** each opcode's “Helpers needed” subsection owns
+its signature. These describe non-WebGL2 SSBO/UAV/atomic lowering for debugging
+or a possible other backend, not final WebGL2 output: structured load/store,
+raw load/store, typed image load/store and `atomicUavOrTgsmOp` (its
+`compare` and `returnsPrevious` parameters are optional).
 
 **Detection/refusal helpers** (must run before emission; there is no GLSL ES
 3.00 lowering to fall back to):
