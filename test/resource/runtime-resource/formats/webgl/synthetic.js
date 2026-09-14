@@ -925,6 +925,42 @@ export function buildPackedLightDecodeDxbc()
 }
 
 /**
+ * Vertex stage moving an integer-typed input into a temporary before using it
+ * as an integer, the way the haze-set shaders read their box corner index:
+ * `mov r0.x, v0.x`, `utof r0.y, r0.x`, `mov o0, r0.yyyy`. Synthetic; no game
+ * bytes are embedded.
+ * @returns {Uint8Array} Vertex DXBC with a uint32 TEXCOORD7 input.
+ */
+export function buildIntegerInputMoveDxbc()
+{
+    const operand = (type, r, selection, bits) => [2 | (selection << 2) | (bits << 4) | (type << 12) | (1 << 20), r];
+    const words = [versionToken(1, 5, 0), 0];
+    const emit = (op, ...operands) => { const args = operands.flat(); words.push(opcodeToken(op, args.length + 1), ...args); };
+    emit(95, operand(1, 0, 0, 15)); // dcl_input v0
+    emit(103, operand(2, 0, 0, 15), [1]); // dcl_output_siv o0, position
+    emit(104, [1]); // dcl_temps
+    emit(54, operand(0, 0, 0, 1), operand(1, 0, 1, 0x00)); // mov r0.x, v0.xxxx
+    emit(86, operand(0, 0, 0, 2), operand(0, 0, 1, 0x00)); // utof r0.y, r0.xxxx
+    emit(54, operand(2, 0, 0, 15), operand(0, 0, 1, 0x55)); // mov o0, r0.yyyy
+    emit(62);
+    words[1] = words.length;
+    const signature = (name, semanticIndex, systemValue, componentType, mask) =>
+    {
+        const writer = new ByteWriter();
+        writer.u32(1); writer.u32(8);
+        writer.u32(32); writer.u32(semanticIndex); writer.u32(systemValue); writer.u32(componentType); writer.u32(0);
+        writer.u8(mask); writer.u8(mask); writer.u16(0);
+        writer.raw(textEncoder.encode(`${name}\0`));
+        return writer.toBytes();
+    };
+    return buildContainer([
+        { fourCC: "ISGN", payload: signature("TEXCOORD", 7, 0, 1, 15) },
+        { fourCC: "OSGN", payload: signature("SV_Position", 0, 1, 3, 15) },
+        { fourCC: "SHEX", payload: new Uint8Array(new Uint32Array(words).buffer) }
+    ]);
+}
+
+/**
  * Vertex stage decoding a quad corner from SV_VertexID the way the plane-set
  * and sprite-pool shaders do: `and r0.x, v0.x, 3`, `utof r0.x, r0.x`, then
  * write it to the position. Synthetic; no game bytes are embedded.
