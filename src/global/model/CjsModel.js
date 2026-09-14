@@ -641,7 +641,7 @@ export class CjsModel extends CjsEventEmitter
             throw new TypeError("CjsModel.set requires a CjsModel target.");
         }
 
-        if (!values || typeof values !== "object") return false;
+        if (!CjsSchema.assertValues(values, "CjsModel.set")) return false;
 
         if (typeof values._type === "string")
         {
@@ -831,6 +831,9 @@ export class CjsModel extends CjsEventEmitter
      */
     static from(values = {}, options = {})
     {
+        // null still means "no values": a default instance, as before.
+        if (!CjsSchema.assertValues(values, "CjsModel.from")) values = {};
+
         if (isReferenceValue(values))
         {
             throw new TypeError(`${CjsSchema.getClassName(this) || this.name}.from cannot construct from a { _ref } value; references resolve only inside the owning import operation.`);

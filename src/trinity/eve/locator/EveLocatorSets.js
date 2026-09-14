@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, io, type } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
 
@@ -94,7 +94,10 @@ export class EveLocatorSets extends CjsModel
   {
     for (const locator of locators)
     {
-      this.locators.push(Locator.from(locator));
+      // A value copy, live or plain: from() takes values only.
+      const copy = new Locator();
+      CjsSchema.copy(copy, locator);
+      this.locators.push(copy);
     }
   }
 
@@ -142,7 +145,14 @@ export class EveLocatorSets extends CjsModel
   Set(name, locators)
   {
     this.SetName(name);
-    this.locators = locators.map(locator => Locator.from(locator));
+    // A value copy of each locator, live or plain - Carbon copies the vector by
+    // value. from() takes values only, so a live Locator is copied explicitly.
+    this.locators = locators.map(locator =>
+    {
+      const copy = new Locator();
+      CjsSchema.copy(copy, locator);
+      return copy;
+    });
   }
 
   /**

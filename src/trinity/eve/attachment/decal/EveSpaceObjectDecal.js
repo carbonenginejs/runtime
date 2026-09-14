@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, io, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -440,8 +440,7 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
    * carries the pointer. */
   #CopyParentData(parentData)
   {
-    if (this.#parentData.SetValues) this.#parentData.SetValues(parentData);
-    else Object.assign(this.#parentData, parentData);
+    CjsSchema.copy(this.#parentData, parentData);
 
     this.#parentData.shLighting = parentData.shLighting ?? null;
   }

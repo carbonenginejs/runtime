@@ -398,6 +398,54 @@ export class CjsSchema
     }
 
     /**
+     * The top-level values rule for from/set: a plain object, or null for "no
+     * values".
+     *
+     * SetValues and from exist for hydration and dehydration, so what arrives
+     * at the top is data. A live object there is refused rather than read as
+     * a bag: measured before this rule, `X.constructor.from(X)` built a new
+     * object that aliased X's children and flattened its Map-held models.
+     * Child fields are different - a non-plain value there is a reference, and
+     * the field's declared type decides that. The one rule lives here so every
+     * entry point asks the same question in the same place.
+     *
+     * @param {*} values Incoming top-level values.
+     * @param {string} label Entry point named in the error.
+     * @returns {boolean} False for null (nothing to apply), true for a plain bag.
+     * @throws {TypeError} For anything that is not a plain object or null.
+     */
+    static assertValues(values, label)
+    {
+        if (values === null) return false;
+        if (!isPlainObject(values))
+        {
+            throw new TypeError(`${label} requires a plain values object; received ${describeValuesInput(values)}.`);
+        }
+        return true;
+    }
+
+    /**
+     * Copies a source's values into a target - the explicit copy helper.
+     *
+     * The top-level from/set rule refuses a live object as values, so copying
+     * one says so here instead: a plain source already IS values, anything
+     * else is exported first. Both then go through the target's validated
+     * setter, so the target keeps its own identity and in-place buffers. This
+     * is a value copy, not Carbon's Copier: no topology is preserved and
+     * reference fields carry the source's references across as references.
+     *
+     * @param {object} target The object receiving the values.
+     * @param {object} source A live object or a plain values object.
+     * @param {object} [options={}] Population options.
+     * @returns {Set<string>|boolean} Changed fields, or a boolean result.
+     */
+    static copy(target, source, options = {})
+    {
+        const values = isPlainObject(source) ? source : CjsSchema.getValues(source, {}, options);
+        return CjsSchema.setValues(target, values, options);
+    }
+
+    /**
      * Applies a plain value bag to a target through its validated setter.
      *
      * @param {object} target A schema-backed instance.
@@ -407,6 +455,7 @@ export class CjsSchema
      */
     static setValues(target, values = {}, options = {})
     {
+        if (!CjsSchema.assertValues(values, "CjsSchema.setValues")) return false;
         const service = CjsSchema.#valuesService;
         return service
             ? service.setValues(target, values, options)
@@ -458,6 +507,7 @@ export class CjsSchema
      */
     static from(className, values = {}, options = {})
     {
+        if (!CjsSchema.assertValues(values, "CjsSchema.from")) values = {};
         return CjsSchema.#requireValuesService("from").from(className, values, options);
     }
 
@@ -2157,4 +2207,14 @@ function cloneSchemaValue(value)
 function isPlainObject(value)
 {
     return Boolean(value) && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype;
+}
+
+// Names what arrived where a values bag was required, for assertValues' error.
+function describeValuesInput(value)
+{
+    if (value === undefined) return "undefined";
+    if (Array.isArray(value)) return "an array";
+    if (typeof value !== "object") return `a ${typeof value}`;
+    const name = value.constructor?.name;
+    return name ? `an instance of ${name}` : "an object without Object.prototype";
 }
