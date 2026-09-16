@@ -907,7 +907,14 @@ export class CjsModel extends CjsEventEmitter
             return this.from(value || {}, options);
         }
 
-        return this.from(value.GetValues(options), options);
+        // `refs` IS the clone contract, and a caller cannot turn it off
+        // (operator, 2026-09-17): a totally new version of the target, every
+        // object new, internal references intact. Identity is what delivers
+        // that - without `refs` no `_id` is emitted at all, so a child
+        // referenced twice exports as two full copies and rebuilds as two
+        // separate objects, silently. It was the caller's to pass until now,
+        // and none of the three in `src` passed it.
+        return this.from(value.GetValues({ ...options, refs: true }), { ...options, refs: true });
     }
 
 }
