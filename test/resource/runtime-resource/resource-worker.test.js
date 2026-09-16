@@ -37,7 +37,7 @@ test("main-thread resource loader preserves structural source and format contrac
       return { path: pathValue, marker: options.marker };
     }
   };
-  class CjsInlineFormat
+  class TestInlineFormat
   {
     static read(input, options) {
       return { input, options };
@@ -50,7 +50,7 @@ test("main-thread resource loader preserves structural source and format contrac
   );
   assert.deepEqual(
     await loader.ReadFormat(
-      { Format: CjsInlineFormat },
+      { Format: TestInlineFormat },
       new Uint8Array([ 1 ]),
       { emit: "raw" }
     ),
@@ -109,16 +109,16 @@ test("worker loader correlates results and preserves transferable requests", asy
 test("worker loader honors clone-safe format output declarations", () => {
   const worker = new FakeWorker();
   const loader = new CjsResManWorkerLoader({ worker });
-  class CjsRestrictedWorkerFormat
+  class TestRestrictedWorkerFormat
   {
     static worker = {
       module: workerFormatUrl,
-      exportName: "CjsTestWorkerFormat",
+      exportName: "TestWorkerFormat",
       outputTypes: [ "json" ],
       defaultOutput: "json"
     };
   }
-  const descriptor = { Format: CjsRestrictedWorkerFormat };
+  const descriptor = { Format: TestRestrictedWorkerFormat };
 
   assert.equal(loader.CanReadFormat(descriptor, {}), true);
   assert.equal(loader.CanReadFormat(descriptor, { emit: "json" }), true);
@@ -298,7 +298,7 @@ test("worker operation host executes fetch and dynamic format modules", async ()
     CjsResManWorker.Operation.FORMAT_READ,
     {
       module: workerFormatUrl,
-      exportName: "CjsTestWorkerFormat",
+      exportName: "TestWorkerFormat",
       input: bytes,
       options: { emit: "test" },
       context: {
@@ -347,7 +347,7 @@ test("worker entry installs the execute/result message envelope", async () => {
       operation: CjsResManWorker.Operation.FORMAT_READ,
       payload: {
         module: workerFormatUrl,
-        exportName: "CjsTestWorkerFormat",
+        exportName: "TestWorkerFormat",
         input: new Uint8Array([ 9 ]),
         options: { emit: "test" }
       }
@@ -415,7 +415,7 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
       return pendingWorkers;
     }
   };
-  class CjsWorkerQueueFormat
+  class TestWorkerQueueFormat
   {
     static extensions = Object.freeze([ ".workerqueue" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
@@ -425,7 +425,7 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
     source: { Read() { return new Uint8Array([ 8 ]); } },
     workerLoader,
     useWorkerLoading: true
-  }).RegisterFormat(CjsWorkerQueueFormat);
+  }).RegisterFormat(TestWorkerQueueFormat);
 
   const operation = resMan.LoadObject("res:/worker/queue.workerqueue", {
     emit: "raw"
@@ -454,7 +454,7 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
   });
   assert.deepEqual(result.input, new Uint8Array([ 8 ]));
   assert.equal(result.options.emit, "raw");
-  assert.equal(result.format, "CjsWorkerQueueFormat");
+  assert.equal(result.format, "TestWorkerQueueFormat");
   assert.equal(resMan.GetQueueStats(CjsResManQueue.MAIN).pending, 0);
   assert.equal(resMan.GetPendingWorkers(), 0);
   assert.equal(resMan.IsLoading(), false);

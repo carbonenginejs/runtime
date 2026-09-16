@@ -232,7 +232,7 @@ test("runtime-owned Carbon resource classes are canonical CjsResource implementa
 
 test("extension routes disambiguate resource classes sharing one requirement", () =>
 {
-  class CjsGeometryFormat
+  class TestGeometryFormat
   {
     static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }) })
     static read(input) { return input; }
@@ -244,7 +244,7 @@ test("extension routes disambiguate resource classes sharing one requirement", (
   ])
   {
     const resMan = new CjsResMan();
-    resMan.RegisterExtension("gr2", TriGrannyRes, CjsGeometryFormat);
+    resMan.RegisterExtension("gr2", TriGrannyRes, TestGeometryFormat);
     for (const Resource of resourceTypes) resMan.RegisterResourceType(Resource);
 
     assert.equal(
@@ -264,7 +264,7 @@ test("extension routes disambiguate resource classes sharing one requirement", (
 });
 
 test("CjsResMan.Register adds formats and semantic resource types", async () => {
-  class CjsTestFormat
+  class TestFormat
   {
     static extensions = Object.freeze([ ".foo", ".bar" ]);
     static outputs = Object.freeze({ "geometry": Object.freeze({ output: "geometry" }), "cmfJson": Object.freeze({ output: "cmfJson" }) })
@@ -274,14 +274,14 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
   const source = { Read() { return new Uint8Array([ 1 ]); } };
   const resMan = new CjsResMan().Register({
     source,
-    formats: [ CjsTestFormat ],
+    formats: [ TestFormat ],
     resourceTypes: [ TriGrannyRes ]
   });
 
   assert.equal(resMan.source, source);
-  assert.equal(resMan.ResolveFormat("foo", { emit: "geometry" }), CjsTestFormat);
-  assert.equal(resMan.ResolveFormat("bar", { emit: "geometry" }), CjsTestFormat);
-  assert.equal(resMan.ResolveFormat("foo", { emit: "cmfjson" }), CjsTestFormat);
+  assert.equal(resMan.ResolveFormat("foo", { emit: "geometry" }), TestFormat);
+  assert.equal(resMan.ResolveFormat("bar", { emit: "geometry" }), TestFormat);
+  assert.equal(resMan.ResolveFormat("foo", { emit: "cmfjson" }), TestFormat);
   assert.deepEqual(
     await resMan.ReadFormat(resMan.GetFormatDescriptors("foo")[0], 7, { emit: "cmfjson" }),
     { input: 7, emit: "cmfJson" }
@@ -308,8 +308,8 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
     resMan.GetResource("res:/character/value.foo", { requirement: "geometry" }) instanceof TriGrannyRes,
     true
   );
-  assert.equal(resMan.Register({ formats: [ CjsTestFormat ] }), resMan);
-  assert.deepEqual(resMan.GetFormats("foo"), [ CjsTestFormat ]);
+  assert.equal(resMan.Register({ formats: [ TestFormat ] }), resMan);
+  assert.deepEqual(resMan.GetFormats("foo"), [ TestFormat ]);
 
   resMan.RegisterObjectLoader("plain", value => value);
   resMan.GetResource("res:/character/cached.plain", { variant: "cmf" });
@@ -324,8 +324,8 @@ test("CjsResMan.Register adds formats and semantic resource types", async () => 
 
 test("CjsResMan registers immutable extension handlers through every short form", async () =>
 {
-  class CjsRouteResource extends CjsResource {}
-  class CjsRouteFormat
+  class TestRouteResource extends CjsResource {}
+  class TestRouteFormat
   {
     static outputs = Object.freeze({ "payload": Object.freeze({ output: "payload" }) })
     static read(bytes) { return { byte: bytes[0] }; }
@@ -337,49 +337,49 @@ test("CjsResMan registers immutable extension handlers through every short form"
   assert.equal(CjsResource.handlerMode, ResourceHandlerMode.RESOURCE);
   assert.equal(CjsLoadingObject.handlerMode, ResourceHandlerMode.OBJECT);
   assert.equal(new CjsLoadingObject().isResource, false);
-  assert.equal(resMan.RegisterExtension(".RoUtE", CjsRouteResource, CjsRouteFormat), resMan);
+  assert.equal(resMan.RegisterExtension(".RoUtE", TestRouteResource, TestRouteFormat), resMan);
   const shortRoute = resMan.GetExtensionRoute("route");
-  assert.equal(shortRoute.Handler, CjsRouteResource);
-  assert.equal(shortRoute.formats[0].Format, CjsRouteFormat);
+  assert.equal(shortRoute.Handler, TestRouteResource);
+  assert.equal(shortRoute.formats[0].Format, TestRouteFormat);
 
-  resMan.RegisterExtension("route", CjsRouteResource, { Format: CjsRouteFormat });
+  resMan.RegisterExtension("route", TestRouteResource, { Format: TestRouteFormat });
   const longRoute = resMan.GetExtensionRoute(".ROUTE");
   assert.notEqual(longRoute, shortRoute);
-  assert.equal(longRoute.formats[0].Format, CjsRouteFormat);
+  assert.equal(longRoute.formats[0].Format, TestRouteFormat);
 
   const resource = await resMan.Fetch("res:/data/one.route");
-  assert.equal(resource instanceof CjsRouteResource, true);
+  assert.equal(resource instanceof TestRouteResource, true);
   assert.deepEqual(resource.GetPayload(), { byte: 7 });
   assert.equal(await resMan.GetObject("res:/data/one.route"), resource);
 
   assert.throws(
-    () => resMan.RegisterExtension("bad", class {}, CjsRouteFormat),
+    () => resMan.RegisterExtension("bad", class {}, TestRouteFormat),
     /CjsResource-compatible handler/u
   );
   class MissingMode extends CjsResource {}
   MissingMode.handlerMode = "other";
   assert.throws(
-    () => resMan.RegisterExtension("bad", MissingMode, CjsRouteFormat),
+    () => resMan.RegisterExtension("bad", MissingMode, TestRouteFormat),
     /Handler\.handlerMode/u
   );
 });
 
 test("CjsResMan object extension routes hydrate targets and retain captured routes", async () =>
 {
-  class CjsFirstFormat
+  class TestFirstFormat
   {
     static read(bytes) { return { value: bytes[0], source: "first" }; }
   }
-  class CjsSecondFormat
+  class TestSecondFormat
   {
     static read(bytes) { return { value: bytes[0], source: "second" }; }
   }
-  class CjsTarget
+  class TestTarget
   {
     constructor(values) { Object.assign(this, values); }
-    static from(values) { return new CjsTarget(values); }
+    static from(values) { return new TestTarget(values); }
   }
-  class CjsSemanticResource extends CjsResource {}
+  class TestSemanticResource extends CjsResource {}
 
   let reads = 0;
   const path = "res:/data/model.typed";
@@ -387,13 +387,13 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
     source: { Read() { reads += 1; return new Uint8Array([ reads ]); } }
   });
   resMan.RegisterExtension("typed", CjsLoadingObject, {
-    Format: CjsFirstFormat,
-    Target: CjsTarget
+    Format: TestFirstFormat,
+    Target: TestTarget
   });
-  resMan.RegisterResourceType("semantic", CjsSemanticResource);
+  resMan.RegisterResourceType("semantic", TestSemanticResource);
 
   const first = await resMan.Fetch(path);
-  assert.equal(first instanceof CjsTarget, true);
+  assert.equal(first instanceof TestTarget, true);
   assert.deepEqual({ ...first }, { value: 1, source: "first" });
   const handler = resMan.GetResource(path);
   assert.equal(handler instanceof CjsLoadingObject, true);
@@ -408,8 +408,8 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
   assert.equal(reads, 1);
 
   resMan.RegisterExtension("typed", CjsLoadingObject, {
-    Format: CjsSecondFormat,
-    Target: CjsTarget
+    Format: TestSecondFormat,
+    Target: TestTarget
   });
   {
     const again = await resMan.Fetch(path);
@@ -419,14 +419,14 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
 
   assert.equal(resMan.Delete(path), true);
   const second = await resMan.Fetch(path);
-  assert.equal(second instanceof CjsTarget, true);
+  assert.equal(second instanceof TestTarget, true);
   assert.deepEqual({ ...second }, { value: 2, source: "second" });
 
   const semantic = await resMan.Fetch("res:/data/semantic.typed", {
     requirement: "semantic"
   });
-  assert.equal(semantic instanceof CjsSemanticResource, true);
-  assert.equal(semantic.GetPayload() instanceof CjsTarget, true);
+  assert.equal(semantic instanceof TestSemanticResource, true);
+  assert.equal(semantic.GetPayload() instanceof TestTarget, true);
   assert.equal(
     await resMan.GetObject("res:/data/semantic.typed", { requirement: "semantic" }),
     semantic
@@ -434,8 +434,8 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
 
   assert.throws(
     () => resMan.RegisterExtension("invalid", CjsLoadingObject, {
-      Format: CjsFirstFormat,
-      Target: CjsTarget,
+      Format: TestFirstFormat,
+      Target: TestTarget,
       Identify() { return true; }
     }),
     /either Target or Identify/u
@@ -445,19 +445,19 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
 test("CjsResMan ordered extension formats probe once and use only a final fallback", async () =>
 {
   const calls = [];
-  class CjsRejectingFormat
+  class TestRejectingFormat
   {
     static extensions = Object.freeze([ ".legacyprobe" ]);
     static is() { calls.push("probe:reject"); return { supported: "none" }; }
     static read() { calls.push("read:reject"); throw new Error("must not read"); }
   }
-  class CjsAcceptedFormat
+  class TestAcceptedFormat
   {
     static extensions = Object.freeze([ ".legacyprobe" ]);
     static is() { calls.push("probe:accept"); return true; }
     static read() { calls.push("read:accept"); return { accepted: true }; }
   }
-  class CjsFallbackFormat
+  class TestFallbackFormat
   {
     static read() { calls.push("read:fallback"); return { fallback: true }; }
   }
@@ -465,27 +465,27 @@ test("CjsResMan ordered extension formats probe once and use only a final fallba
   const source = { Read() { return new Uint8Array([ 1 ]); } };
   const resMan = new CjsResMan({ source });
   resMan.RegisterExtension("ordered", CjsLoadingObject, [
-    CjsRejectingFormat,
-    CjsAcceptedFormat,
-    CjsFallbackFormat
+    TestRejectingFormat,
+    TestAcceptedFormat,
+    TestFallbackFormat
   ]);
   assert.deepEqual(await resMan.Fetch("res:/data/value.ordered"), { accepted: true });
   assert.deepEqual(calls, [ "probe:reject", "probe:accept", "read:accept" ]);
 
   calls.length = 0;
   const legacy = new CjsResMan()
-    .RegisterFormat(CjsRejectingFormat)
-    .RegisterFormat(CjsAcceptedFormat);
+    .RegisterFormat(TestRejectingFormat)
+    .RegisterFormat(TestAcceptedFormat);
   assert.equal(
     legacy.ResolveFormat("legacyprobe", { bytes: new Uint8Array([ 1 ]) }),
-    CjsAcceptedFormat
+    TestAcceptedFormat
   );
   assert.deepEqual(calls, [ "probe:reject", "probe:accept" ]);
 
   assert.throws(
     () => resMan.RegisterExtension("invalid", CjsLoadingObject, [
-      CjsFallbackFormat,
-      CjsAcceptedFormat
+      TestFallbackFormat,
+      TestAcceptedFormat
     ]),
     /has no support probe and must be last/u
   );
@@ -509,12 +509,12 @@ test("CjsResMan uses Black-first content routing for both red and black suffixes
 test("CjsResMan never falls through after an ordered format is selected", async () =>
 {
   let fallbackReads = 0;
-  class CjsSelectedFormat
+  class TestSelectedFormat
   {
     static is() { return true; }
     static read() { throw new Error("selected reader failure"); }
   }
-  class CjsUnselectedFallback
+  class TestUnselectedFallback
   {
     static read()
     {
@@ -527,8 +527,8 @@ test("CjsResMan never falls through after an ordered format is selected", async 
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   resMan.RegisterExtension("once", CjsLoadingObject, [
-    CjsSelectedFormat,
-    CjsUnselectedFallback
+    TestSelectedFormat,
+    TestUnselectedFallback
   ]);
 
   await assert.rejects(
@@ -540,16 +540,16 @@ test("CjsResMan never falls through after an ordered format is selected", async 
 
 test("CjsResMan Register accepts composed extension route objects", async () =>
 {
-  class CjsValueFormat
+  class TestValueFormat
   {
     static read() { return { type: "known", value: 4 }; }
   }
-  class CjsKnownTarget
+  class TestKnownTarget
   {
     constructor(values) { Object.assign(this, values); }
-    static from(values) { return new CjsKnownTarget(values); }
+    static from(values) { return new TestKnownTarget(values); }
   }
-  class CjsYamlTarget
+  class TestYamlTarget
   {
     static from() { throw new Error("fromYAML must win"); }
     static fromYAML(values, context)
@@ -563,30 +563,30 @@ test("CjsResMan Register accepts composed extension route objects", async () =>
     extensions: {
       shape: {
         Handler: CjsLoadingObject,
-        Format: CjsValueFormat,
+        Format: TestValueFormat,
         Identify(values)
         {
-          return values.type === "known" ? CjsKnownTarget : false;
+          return values.type === "known" ? TestKnownTarget : false;
         }
       }
     }
   });
 
   const known = await resMan.Fetch("res:/data/value.shape");
-  assert.equal(known instanceof CjsKnownTarget, true);
+  assert.equal(known instanceof TestKnownTarget, true);
   assert.equal(known.value, 4);
 
   resMan.RegisterExtension("yamlshape", CjsLoadingObject, {
-    Format: CjsValueFormat,
-    Target: CjsYamlTarget
+    Format: TestValueFormat,
+    Target: TestYamlTarget
   });
   assert.deepEqual(
     await resMan.Fetch("res:/data/value.yamlshape"),
-    { type: "known", value: 4, hydratedBy: "CjsValueFormat" }
+    { type: "known", value: 4, hydratedBy: "TestValueFormat" }
   );
 
   resMan.RegisterExtension("rawshape", CjsLoadingObject, {
-    Format: CjsValueFormat,
+    Format: TestValueFormat,
     Identify() { return true; }
   });
   assert.deepEqual(
@@ -595,7 +595,7 @@ test("CjsResMan Register accepts composed extension route objects", async () =>
   );
 
   resMan.RegisterExtension("unknownshape", CjsLoadingObject, {
-    Format: CjsValueFormat,
+    Format: TestValueFormat,
     Identify() { return false; }
   });
   await assert.rejects(
@@ -611,7 +611,7 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
   let identifyContext = null;
   let sourceUrl = null;
 
-  class CjsContextFormat
+  class TestContextFormat
   {
     static read(_bytes, _options, context)
     {
@@ -636,7 +636,7 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
     extensions: {
       yaml: {
         Handler: CjsLoadingObject,
-        Format: CjsContextFormat,
+        Format: TestContextFormat,
         Identify(values, context)
         {
           assert.deepEqual(values, { type: "context" });
@@ -764,7 +764,7 @@ test("CjsResMan identity is source path plus promised output", () =>
 test("bound resource handles keep their promised output during reconstruction", async () =>
 {
   let reads = 0;
-  class CjsBoundOutputFormat
+  class TestBoundOutputFormat
   {
     static extensions = Object.freeze([ ".boundoutput" ]);
     static outputs = Object.freeze({ "cmf": Object.freeze({ output: "cmf" }), "gr2": Object.freeze({ output: "gr2" }) })
@@ -779,7 +779,7 @@ test("bound resource handles keep their promised output during reconstruction", 
   const path = "res:/ship.boundoutput";
   const resMan = new CjsResMan({
     source: { Read() { return new Uint8Array([ 1 ]); } }
-  }).RegisterFormat(CjsBoundOutputFormat);
+  }).RegisterFormat(TestBoundOutputFormat);
   const resource = resMan.GetResource(path, {
     variant: "cmf",
     emit: "cmf",
@@ -2406,7 +2406,7 @@ test("registered formats and resource readiness share one object operation", asy
     }
   };
 
-  class CjsTestFormat
+  class TestFormat
   {
     static extensions = Object.freeze([ ".one", ".two" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
@@ -2420,14 +2420,14 @@ test("registered formats and resource readiness share one object operation", asy
     }
   }
 
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsTestFormat);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestFormat);
   const resource = resMan.GetResource("res:/data/shared.one", { emit: "raw" });
   const first = resMan.GetObject("res:/data/shared.one", { emit: "raw" });
   const second = resource.GetObject({ emit: "raw" });
   const third = resource.Ready({ emit: "raw" });
 
-  assert.equal(resMan.ResolveFormat("two", { emit: "raw" }), CjsTestFormat);
-  assert.deepEqual(resMan.GetFormats("one"), [ CjsTestFormat ]);
+  assert.equal(resMan.ResolveFormat("two", { emit: "raw" }), TestFormat);
+  assert.deepEqual(resMan.GetFormats("one"), [ TestFormat ]);
   assert.equal(first, second);
   assert.equal(first, third);
   assert.equal(await first, bytes);
@@ -2553,7 +2553,7 @@ test("reload replaces retained source and format results for later reconstructio
     }
   };
 
-  class CjsReloadCacheFormat
+  class TestReloadCacheFormat
   {
     static extensions = Object.freeze([ ".reloadcache" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2566,7 +2566,7 @@ test("reload replaces retained source and format results for later reconstructio
   }
 
   const path = "res:/data/value.reloadcache";
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsReloadCacheFormat);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestReloadCacheFormat);
   const firstObject = await resMan.GetObject(path, {
     emit: "raw",
     sourceRevision: "r1",
@@ -2680,7 +2680,7 @@ test("source revision scopes shared source and parsed format operations", async 
     }
   };
 
-  class CjsRevisionCacheFormat
+  class TestRevisionCacheFormat
   {
     static extensions = Object.freeze([ ".revisioncache" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2693,7 +2693,7 @@ test("source revision scopes shared source and parsed format operations", async 
   }
 
   const path = "res:/data/value.revisioncache";
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsRevisionCacheFormat);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestRevisionCacheFormat);
   const revisionOneA = await resMan.GetObject(path, {
     variant: "revision-one-a",
     requirement: "one-a",
@@ -2731,7 +2731,7 @@ test("format caches isolate source objects and registration descriptors", async 
   const sourceA = { Read() { sourceAReads += 1; return new Uint8Array([ 2 ]); } };
   const sourceB = { Read() { sourceBReads += 1; return new Uint8Array([ 7 ]); } };
 
-  class CjsDescriptorCacheFormat
+  class TestDescriptorCacheFormat
   {
     static extensions = Object.freeze([ ".descriptorcache" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2745,7 +2745,7 @@ test("format caches isolate source objects and registration descriptors", async 
 
   const path = "res:/data/value.descriptorcache";
   const resMan = new CjsResMan({ source: sourceA })
-    .RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 1 });
+    .RegisterFormat(TestDescriptorCacheFormat, { multiplier: 1 });
   const fromA = await resMan.GetObject(path, {
     variant: "source-a",
     source: sourceA,
@@ -2767,7 +2767,7 @@ test("format caches isolate source objects and registration descriptors", async 
   assert.deepEqual(fromA, { value: 2, formatRead: 1 });
   assert.deepEqual(fromB, { value: 7, formatRead: 2 });
 
-  resMan.RegisterFormat(CjsDescriptorCacheFormat, { multiplier: 3 });
+  resMan.RegisterFormat(TestDescriptorCacheFormat, { multiplier: 3 });
   const reregistered = await resMan.GetObject(path, {
     variant: "descriptor-v2",
     source: sourceA,
@@ -2814,7 +2814,7 @@ test("format cache identity distinguishes same-named class constructors", async 
   const ClassA = class SharedName {};
   const ClassB = class SharedName {};
 
-  class CjsClassIdentityFormat
+  class TestClassIdentityFormat
   {
     static extensions = Object.freeze([ ".classidentity" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2827,7 +2827,7 @@ test("format cache identity distinguishes same-named class constructors", async 
   }
 
   const path = "res:/data/classes.classidentity";
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsClassIdentityFormat);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestClassIdentityFormat);
   const first = await resMan.GetObject(path, {
     variant: "class-a",
     requirement: "class-a",
@@ -2859,7 +2859,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
   let formatReads = 0;
   const source = { Read() { sourceReads += 1; return new Uint8Array([ 3 ]); } };
 
-  class CjsNonCanonicalCacheFormat
+  class TestNonCanonicalCacheFormat
   {
     static extensions = Object.freeze([ ".noncanonical" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2873,7 +2873,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
 
   const path = "res:/data/options.noncanonical";
   const formatOptions = { timestamp: new Date(0) };
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsNonCanonicalCacheFormat);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestNonCanonicalCacheFormat);
   const first = await resMan.GetObject(path, {
     variant: "noncanonical-a",
     requirement: "noncanonical-a",
@@ -2905,7 +2905,7 @@ test("registered format defaults are deeply snapshotted", async () =>
     offsets: [ 1, { value: 3 } ]
   };
 
-  class CjsDefaultSnapshotFormat
+  class TestDefaultSnapshotFormat
   {
     static extensions = Object.freeze([ ".defaultsnapshot" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -2921,7 +2921,7 @@ test("registered format defaults are deeply snapshotted", async () =>
   const path = "res:/data/defaults.defaultsnapshot";
   const resMan = new CjsResMan({
     source: { Read() { return new Uint8Array([ 4 ]); } }
-  }).RegisterFormat(CjsDefaultSnapshotFormat, defaults);
+  }).RegisterFormat(TestDefaultSnapshotFormat, defaults);
   defaults.transform.multiplier = 20;
   defaults.offsets[0] = 10;
   defaults.offsets[1].value = 30;
@@ -3001,7 +3001,7 @@ test("late invalidated format settlement cannot displace a newer retained record
   let formatReads = 0;
   const source = { Read() { return new Uint8Array([ 0 ]); } };
 
-  class CjsLateFormatCache
+  class TestLateFormatCache
   {
     static extensions = Object.freeze([ ".lateformat" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }) })
@@ -3019,7 +3019,7 @@ test("late invalidated format settlement cannot displace a newer retained record
     sourceRevision: "same",
     cacheFormat: true
   };
-  const resMan = new CjsResMan({ source }).RegisterFormat(CjsLateFormatCache);
+  const resMan = new CjsResMan({ source }).RegisterFormat(TestLateFormatCache);
   const resource = resMan.GetResource(path, options);
   const descriptor = resMan.ResolveFormatDescriptor("lateformat", options);
   const oldOperation = resMan.ReadFormatOnce(resource, descriptor, new Uint8Array([ 1 ]), options);
@@ -3096,13 +3096,13 @@ test("released resources retain source provenance but not cache policy", async (
 test("semantic resource readiness resolves the resource and retains its plain payload", async () =>
 {
   const bytes = new Uint8Array([ 4, 3, 2, 1 ]);
-  class CjsTestFormat
+  class TestFormat
   {
     static extensions = Object.freeze([ ".semantic" ]);
     static outputs = Object.freeze({ "semantic": Object.freeze({ output: "semantic" }) })
     static read(input) { return { payloadType: "semantic", data: input }; }
   }
-  class CjsTestResource extends CjsResource
+  class TestResource extends CjsResource
   {
     static payload = "semantic";
   }
@@ -3110,8 +3110,8 @@ test("semantic resource readiness resolves the resource and retains its plain pa
   const options = { requirement: "semantic", emit: "semantic" };
   const resMan = new CjsResMan().Register({
     source: { Read() { return bytes; } },
-    formats: [ CjsTestFormat ],
-    resourceTypes: [ CjsTestResource ]
+    formats: [ TestFormat ],
+    resourceTypes: [ TestResource ]
   });
   const resource = resMan.GetResource("res:/data/value.semantic", options);
   const first = resMan.GetObject("res:/data/value.semantic", options);
@@ -3130,7 +3130,7 @@ test("different outcomes use distinct resources while sharing source bytes", asy
 {
   let sourceReads = 0;
   let formatReads = 0;
-  class CjsTestFormat
+  class TestFormat
   {
     static extensions = Object.freeze([ ".test" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
@@ -3151,7 +3151,7 @@ test("different outcomes use distinct resources while sharing source bytes", asy
         return new Uint8Array([ 7 ]);
       }
     }
-  }).RegisterFormat(CjsTestFormat);
+  }).RegisterFormat(TestFormat);
 
   const raw = resMan.GetObject("res:/data/value.test", { emit: "raw" });
   const json = resMan.GetObject("res:/data/value.test", { emit: "json" });

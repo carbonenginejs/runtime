@@ -1,4 +1,4 @@
-export class CjsTestWorkerFormat
+export class TestWorkerFormat
 {
   static async readAsync(input, options = {}, context = null) {
     return {

@@ -131,7 +131,7 @@ test("CjsResMan queues source load, CPU read, and publication separately", async
 
 test("resource variants share one queued source-load slot", async () => {
   let reads = 0;
-  class CjsQueueVariantFormat
+  class TestQueueVariantFormat
   {
     static extensions = Object.freeze([ ".bin" ]);
     static outputs = Object.freeze({ "raw": Object.freeze({ output: "raw" }), "json": Object.freeze({ output: "json" }) })
@@ -150,7 +150,7 @@ test("resource variants share one queued source-load slot", async () => {
         return new Uint8Array([ 7 ]);
       }
     }
-  }).RegisterFormat(CjsQueueVariantFormat);
+  }).RegisterFormat(TestQueueVariantFormat);
 
   const raw = resMan.LoadObject("res:/queue/shared.bin", { emit: "raw" });
   const json = resMan.LoadObject("res:/queue/shared.bin", { emit: "json" });
