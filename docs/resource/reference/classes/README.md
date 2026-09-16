@@ -29,6 +29,8 @@ documentation check against the actual source tree.
   classes in the `src/resource` family tree.
 - [texture.md](texture.md): texture-array aggregation classes under
   `src/resource/texture`.
+- [video.md](video.md): the video player metadata, frame and decoder-boundary
+  classes ported from Carbon's videoplayer module.
 - [formats.md](formats.md): format entry classes and their internal reader
   machinery under `src/resource/formats`.
 - [dropped.md](dropped.md): retained native shapes under `src/resource/dropped` that

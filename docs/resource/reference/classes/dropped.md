@@ -44,3 +44,23 @@ Retained-only reference shape mirroring Carbon's two-queue load/prepare fence he
 - Source: `src/resource/dropped/Tr2LoadPrepareFence.js`
 - Visibility: Internal
 - Kind: Faithful Carbon port
+
+<!-- class:FrameDeleter -->
+## `FrameDeleter`
+
+Carbon's unique_ptr frame deleter, which returns a finished video or audio frame to its pool or deletes it, dropped because JavaScript reclaims frames without that decision.
+
+- Export: None
+- Source: `src/resource/dropped/FrameDeleter.js`
+- Visibility: Internal
+- Kind: Faithful Carbon port
+
+<!-- class:FrameOwner -->
+## `FrameOwner`
+
+Carbon's frame-pool owner interface, whose one ReleaseFrame method gives a frame back to the decoder that made it, dropped because a JavaScript decoder that recycles buffers keeps its own free list.
+
+- Export: None
+- Source: `src/resource/dropped/FrameOwner.js`
+- Visibility: Internal
+- Kind: Faithful Carbon port

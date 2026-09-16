@@ -45,7 +45,14 @@ const verbose = process.argv.includes("--verbose");
 // ported - therefore looks like it declares `memcpy`. Reported as gaps they
 // would be unportable by construction, and baselining them would record a
 // nonsense debt that can never close.
-const C_MEMORY = /^(memcpy|memset|memmove|memcmp)$/;
+const C_MEMORY = /^(memcpy|memset|memmove|memcmp|CCP_MALLOC|CCP_FREE|CCP_NEW)$/;
+
+// Allocation and smart-pointer plumbing, for the same reason. `new`/`delete`
+// are the placement-new and matching delete a frame struct declares so its
+// payload sits in the same allocation (videoplayer/Metadata.h:164-221), and
+// `reset` is std::unique_ptr::reset seen inside an inline body. None is a
+// method a port can own.
+const CPP_ALLOCATION = /^(new|delete|reset)$/;
 
 const NON_METHOD = /^(~|operator\b|EXPOSE_TO_BLUE$|TYPEDEF_|BLUE_|Py__|PyNew$|bool$|void$)/;
 
@@ -73,7 +80,7 @@ for (const [ className, records ] of schema)
   {
     const name = method?.cppName ?? method?.target;
     if (typeof name !== "string" || !name) continue;
-    if (NON_METHOD.test(name) || C_MEMORY.test(name) || name === className) continue;
+    if (NON_METHOD.test(name) || C_MEMORY.test(name) || CPP_ALLOCATION.test(name) || name === className) continue;
     // Schema currently merges the public facade and TrinityALImpl backends.
     // Public include/Tr2ResourceSetAL.h:129-146 has none of these methods:
     // Describe/Destroy belong to backends; StageInput is a nested DX11

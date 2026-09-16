@@ -8,6 +8,7 @@ export * from "./audio/index.js";
 export * from "./geometry/index.js";
 export * from "./shader/index.js";
 export * from "./texture/index.js";
+export * from "./video/index.js";
 export * from "./format/CjsResourceProbe.js";
 export * from "./format/payloadContract.js";
 export * from "./format/CjsFormat.js";
