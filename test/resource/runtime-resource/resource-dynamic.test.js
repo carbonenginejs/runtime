@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { normalizeResourcePath } from "#utils/path";
 import { num } from "../../../src/global/math/num.js";
 import {
   CjsResMan,
@@ -83,8 +84,9 @@ test("dynamic constructor names are lowercased and can be unregistered", () =>
     }
   });
   resMan.GetResource("dynamic:/PROBE/Some/Query");
-  // The path is normalized before the name and query split.
-  assert.deepEqual(built, [ "some/query" ]);
+  // Only the constructor name is lowercased: the query keeps its authored case,
+  // because base64 gradient queries depend on it (BlueFileUtil.cpp:33-59).
+  assert.deepEqual(built, [ "Some/Query" ]);
 
   resMan.UnregisterResourceConstructor("PROBE");
   assert.throws(
@@ -124,4 +126,34 @@ test("a malformed dynamic colour fails without falling back to a source read", a
     error => error.code === "CJS_TEXTURE_PROCEDURAL_PATH_INVALID"
   );
   assert.equal(counter.reads, 0);
+});
+
+test("dynamic paths keep their query, as Carbon's NormalizeResPath does", () =>
+{
+  // Only the name is lowercased; case, `+` and repeated slashes survive.
+  assert.equal(normalizeResourcePath("dynamic:/Color/AbC+dE//fG"), "dynamic:/color/AbC+dE//fG");
+  assert.equal(normalizeResourcePath("dynamic:/GRADIENT_1d/AaBb=="), "dynamic:/gradient_1d/AaBb==");
+  // A backslash AT the separator becomes a slash; the one after `dynamic:` does not.
+  assert.equal(normalizeResourcePath("dynamic:\\Color\\AbC"), "dynamic:\\color/AbC");
+  // No query: the whole path is the name.
+  assert.equal(normalizeResourcePath("dynamic:/COLOR"), "dynamic:/color");
+  // An ordinary resource path is still lowercased and collapsed.
+  assert.equal(normalizeResourcePath("res:/Texture//Ship.DDS"), "res:/texture/ship.dds");
+});
+
+test("a dynamic constructor registered under a backslash path still resolves", () =>
+{
+  const { resMan } = countingManager();
+  const queries = [];
+  resMan.RegisterResourceConstructor("probe", {
+    GetResource(query)
+    {
+      queries.push(query);
+      const resource = new TriTextureRes();
+      resource.Initialize("dynamic:/probe/x");
+      return resource;
+    }
+  });
+  resMan.GetResource("dynamic:\\Probe\\KeepMe");
+  assert.deepEqual(queries, [ "KeepMe" ]);
 });

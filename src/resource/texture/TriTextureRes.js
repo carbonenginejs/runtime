@@ -62,7 +62,9 @@ export class TriTextureRes extends CjsResource
   /**
    * Carbon's Initialize, with its procedural branch (TriTextureRes.cpp:223-236):
    * a `dynamic:/color/` path is rasterized here rather than loaded from source.
-   * The `dynamic:/gradient_1d/` branch Carbon checks first is not ported yet.
+   * The `dynamic:/gradient_1d/` branch Carbon checks first is rasterized by
+   * trinity's GradientTextureConstructor instead: a gradient needs Tr2CurveScalar,
+   * which this layer may not import.
    *
    * @param {string} path Resource path.
    * @param {string|null} [ext] Extension override.

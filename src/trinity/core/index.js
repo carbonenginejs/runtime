@@ -19,6 +19,7 @@ export * from "./device/index.js";
 export * from "./lighting/index.js";
 export * from "./line/index.js";
 export * from "./mesh/index.js";
+export * from "./procedural/index.js";
 export * from "./rawData/index.js";
 export * from "./tool/index.js";
 export * from "./variable/index.js";

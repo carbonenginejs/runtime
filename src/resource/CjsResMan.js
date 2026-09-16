@@ -187,8 +187,22 @@ let nextLocalValueIdentity = 1;
  */
 
 // `dynamic:` protocol (BlueResMan.cpp:219-223): the name is the segment after
-// this prefix, and everything after the following slash is the query.
-const DYNAMIC_RESOURCE_PREFIX = "dynamic:/";
+// this prefix, and everything after the following slash is the query. Carbon
+// accepts both separators after the scheme (BlueFileUtil.cpp:33), and both are
+// nine characters, so the split below is the same either way.
+const DYNAMIC_RESOURCE_PREFIXES = [ "dynamic:/", "dynamic:\\" ];
+const DYNAMIC_PREFIX_LENGTH = 9;
+
+/**
+ * Whether a normalized path names a dynamic resource.
+ *
+ * @param {string} key Normalized resource path.
+ * @returns {boolean}
+ */
+function isDynamicResourcePath(key)
+{
+  return DYNAMIC_RESOURCE_PREFIXES.some(prefix => key.startsWith(prefix));
+}
 
 /**
  * Carbon logs and returns null for an unknown dynamic name or a constructor that
@@ -1287,7 +1301,7 @@ export class CjsResMan
     }
     // Below the cache lookup, as in BlueResMan::GetResourceHelper, so identical
     // queries share one resource.
-    if (key.startsWith(DYNAMIC_RESOURCE_PREFIX))
+    if (isDynamicResourcePath(key))
     {
       return this.#CreateDynamicResource(key, cacheKey);
     }
@@ -2295,7 +2309,7 @@ export class CjsResMan
    */
   #CreateDynamicResource(key, cacheKey)
   {
-    const rest = key.slice(DYNAMIC_RESOURCE_PREFIX.length);
+    const rest = key.slice(DYNAMIC_PREFIX_LENGTH);
     const slash = rest.indexOf("/");
     const name = slash === -1 ? rest : rest.slice(0, slash);
     const query = slash === -1 ? "" : rest.slice(slash + 1);

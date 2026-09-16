@@ -217,7 +217,14 @@ Carbon's static registration. `dynamic:/color/r,g,b,a` is a 1x1 `TriTextureRes`
 whose `rgba32float` payload holds the colour quantized through the half-float
 codec, parsed exactly as Carbon's `ParseColor`; a malformed query fails the
 texture with `CJS_TEXTURE_PROCEDURAL_PATH_INVALID`. The WebGPU device does not
-yet upload `rgba32float` payloads, and `dynamic:/gradient_1d/` is not ported.
+yet upload `rgba32float` payloads.
+
+Carbon's other procedural texture, `dynamic:/gradient_1d/<base64>`, is registered
+by `RegisterGradientTexture(resMan)` from `@carbonenginejs/runtime/trinity/core`.
+It lives in trinity because rasterizing its four scalar curves needs
+`Tr2CurveScalar`, which the resource layer may not import; the path carries a
+base64 header plus curve keys, and an unreadable one fails the texture the same
+way.
 
 ## Related documentation
 

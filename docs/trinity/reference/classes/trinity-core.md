@@ -1630,3 +1630,13 @@ Carbon's EffectKeyGenerator batch sorting policy.
 - Source: `src/trinity/core/batch/TriRenderBatch/EffectKeyGenerator.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:GradientTextureConstructor -->
+## `GradientTextureConstructor`
+
+Carbon's `dynamic:/gradient_1d` resource constructor, which decodes the curve keys a gradient path carries, rasterizes the four scalar curves across the requested width, and publishes the result as the texture's payload.
+
+- Export: @carbonenginejs/runtime/trinity/core
+- Source: `src/trinity/core/procedural/GradientTextureConstructor.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
