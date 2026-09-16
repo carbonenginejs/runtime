@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { CjsSchema } from "../../../src/global/schema/index.js";
 import { normalizeResourcePath } from "#utils/path";
 import { num } from "../../../src/global/math/num.js";
 import {
@@ -59,7 +60,7 @@ test("dynamic:/color resolves through its constructor, shares by query, and neve
   RegisterSolidColorTexture(resMan);
 
   const red = resMan.GetResource("dynamic:/color/1,0,0,1");
-  assert.equal(red instanceof TriTextureRes, true);
+  assert.equal(CjsSchema.cast(red, TriTextureRes), red);
   assert.equal(red.IsGood(), true);
   assert.equal(red.GetPayload().data[0], 1);
   assert.equal(resMan.GetResource("dynamic:/color/1,0,0,1"), red);

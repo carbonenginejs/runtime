@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { CjsSchema } from "../../../src/global/schema/index.js";
 import {
   CjsLoadingObject,
   CjsResMan,
@@ -9,7 +10,7 @@ import {
 // Carbon's LoadObject caches a builder and creates a new object per call
 // (BlueResMan.cpp:653-795). These pin that for routes that hydrate a Target.
 
-class CjsGraphFormat
+class TestGraphFormat
 {
   static read()
   {
@@ -23,10 +24,10 @@ class CjsGraphFormat
 
 // Deliberately aliasing: Object.assign keeps every nested reference, so any
 // independence the tests observe comes from the manager, not from the target.
-class CjsGraph
+class TestGraph
 {
   constructor(values) { Object.assign(this, values); }
-  static from(values) { return new CjsGraph(values); }
+  static from(values) { return new TestGraph(values); }
 }
 
 function graphManager()
@@ -36,8 +37,8 @@ function graphManager()
     source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
   });
   resMan.RegisterExtension("graph", CjsLoadingObject, {
-    Format: CjsGraphFormat,
-    Target: CjsGraph
+    Format: TestGraphFormat,
+    Target: TestGraph
   });
   return { resMan, counter };
 }
@@ -51,14 +52,14 @@ test("each caller receives its own object built from one decode", async () =>
   const second = await resMan.Fetch(path);
   const third = await resMan.LoadObject(path);
 
-  assert.equal(first instanceof CjsGraph, true);
+  assert.equal(CjsSchema.cast(first, TestGraph), first);
   assert.notEqual(first, second);
   assert.notEqual(second, third);
   assert.deepEqual({ ...first }, { ...second });
   // Nothing re-read: the retained values are the builder.
   assert.equal(counter.reads, 1);
 
-  // Independent all the way down, although CjsGraph.from aliases its input.
+  // Independent all the way down, although TestGraph.from aliases its input.
   assert.notEqual(first.list, second.list);
   assert.notEqual(first.typed, second.typed);
   assert.notEqual(first.carrier, second.carrier);
@@ -104,24 +105,24 @@ test("the retained payload is the decoded values, and a released payload rebuild
   const path = "res:/data/lease.graph";
   await resMan.Fetch(path);
   const handle = resMan.GetResource(path);
-  assert.equal(handle.GetPayload() instanceof CjsGraph, false);
+  assert.equal(CjsSchema.cast(handle.GetPayload(), TestGraph), null);
   assert.deepEqual(handle.GetPayload().list, [ 1, 2 ]);
 
   handle.ReleasePayload();
   const rebuilt = await resMan.Fetch(path);
-  assert.equal(rebuilt instanceof CjsGraph, true);
+  assert.equal(CjsSchema.cast(rebuilt, TestGraph), rebuilt);
   assert.equal(counter.reads, 2);
 });
 
 test("RESOURCE-mode routes and routes without a Target keep their shared outcome", async () =>
 {
-  class CjsSemanticResource extends CjsResource {}
+  class TestSemanticResource extends CjsResource {}
   const { resMan } = graphManager();
-  resMan.RegisterResourceType("semantic", CjsSemanticResource);
+  resMan.RegisterResourceType("semantic", TestSemanticResource);
 
   const semantic = await resMan.Fetch("res:/data/semantic.graph", { requirement: "semantic" });
-  assert.equal(semantic instanceof CjsSemanticResource, true);
-  assert.equal(semantic.GetPayload() instanceof CjsGraph, true);
+  assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
+  assert.equal(CjsSchema.cast(semantic.GetPayload(), TestGraph), semantic.GetPayload());
   assert.equal(
     await resMan.GetObject("res:/data/semantic.graph", { requirement: "semantic" }),
     semantic
@@ -130,7 +131,7 @@ test("RESOURCE-mode routes and routes without a Target keep their shared outcome
   // Identify returning true publishes the decoded values themselves: data under
   // the shared read-only payload rule, with no Carbon LoadObject counterpart.
   resMan.RegisterExtension("plain", CjsLoadingObject, {
-    Format: CjsGraphFormat,
+    Format: TestGraphFormat,
     Identify() { return true; }
   });
   const plainA = await resMan.Fetch("res:/data/value.plain");
@@ -140,14 +141,14 @@ test("RESOURCE-mode routes and routes without a Target keep their shared outcome
 
 test("values that cannot be copied fail the load by name", async () =>
 {
-  class CjsFunctionFormat
+  class TestFunctionFormat
   {
     static read() { return { callback() {} }; }
   }
   const resMan = new CjsResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
   resMan.RegisterExtension("fn", CjsLoadingObject, {
-    Format: CjsFunctionFormat,
-    Target: CjsGraph
+    Format: TestFunctionFormat,
+    Target: TestGraph
   });
   await assert.rejects(
     resMan.Fetch("res:/data/value.fn"),

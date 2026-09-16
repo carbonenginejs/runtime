@@ -9,6 +9,7 @@ import {
   RasterizeGradient,
   RegisterGradientTexture
 } from "../../npm/dist/trinity/core/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { CjsResMan, TriTextureRes } from "../../npm/dist/resource/index.js";
 
 // Carbon's wire shape (GradientTexture.cpp:10-23, Tr2CurveScalar.h:54-70):
@@ -112,7 +113,7 @@ test("dynamic:/gradient_1d resolves through the resource manager without a sourc
 
   const path = gradientPath(2, [ rampChannel, emptyChannel, emptyChannel, emptyChannel ]);
   const texture = resMan.GetResource(path);
-  assert.equal(texture instanceof TriTextureRes, true);
+  assert.equal(CjsSchema.cast(texture, TriTextureRes), texture);
   assert.equal(texture.IsGood(), true);
   assert.equal(texture.GetPayload().width, 2);
   assert.equal(texture.width, 2);
