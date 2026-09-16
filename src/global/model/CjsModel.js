@@ -757,25 +757,22 @@ export class CjsModel extends CjsEventEmitter
     /**
      * Copies all exported fields from one model into another.
      *
-     * @param {CjsModel} out
-     * @param {CjsModel} value
+     * Forwards to CjsSchema.copy, which owns the copy rules: the source must
+     * read as the target's declared class, and the values are taken from its
+     * fields rather than exported - GetValues is for JSON and serialization
+     * (operator, 2026-09-16). The two `instanceof CjsModel` gates this used to
+     * carry went with it: the schema answers class questions by declared name,
+     * which also accepts a model registered from a sibling package copy.
+     *
+     * @param {object} out
+     * @param {object} value
      * @param {object} [options={}]
-     * @returns {CjsModel} The target model.
-     * @throws {TypeError} If either argument is not a model.
+     * @returns {object} The target model.
+     * @throws {TypeError} If the source cannot be read as the target's class.
      */
     static copy(out, value, options = {})
     {
-        if (!(out instanceof CjsModel))
-        {
-            throw new TypeError("CjsModel.copy requires a CjsModel target.");
-        }
-
-        if (!(value instanceof CjsModel))
-        {
-            throw new TypeError("CjsModel.copy requires a CjsModel source.");
-        }
-
-        CjsModel.set(out, CjsModel.get(value, {}, options), options);
+        CjsSchema.copy(out, value, options);
         return out;
     }
 

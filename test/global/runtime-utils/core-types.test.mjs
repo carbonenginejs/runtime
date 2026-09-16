@@ -252,7 +252,21 @@ test("CjsModel Copy transfers an instantiated model through SetValues", () => {
     assert.equal(target.Copy(next), target);
     assert.equal(target.name, "next");
     assert.equal(target.count, 8);
-    assert.throws(() => target.Copy({ name: "raw" }), /CjsModel source/);
+
+    // A plain bag IS values, so Copy takes one - the gate is only there to
+    // license reading fields off a live source, and asks by declared name.
+    assert.equal(target.Copy({ name: "raw" }), target);
+    assert.equal(target.name, "raw");
+    assert.throws(() => target.Copy({ _type: "Other", name: "raw" }), /cannot copy Other values into CopyModel/);
+
+    class OtherCopyModel extends CjsModel
+    {
+        name = "";
+    }
+
+    CjsSchema.define(OtherCopyModel, { className: "OtherCopyModel", family: "test" });
+    CjsSchema.defineField(OtherCopyModel, "name", "type", { kind: "string" });
+    assert.throws(() => target.Copy(new OtherCopyModel()), /requires a CopyModel source/);
 });
 
 test("CjsModel settles cascading changes before emitting one modified event", () => {

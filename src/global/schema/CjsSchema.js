@@ -428,21 +428,55 @@ export class CjsSchema
      * Copies a source's values into a target - the explicit copy helper.
      *
      * The top-level from/set rule refuses a live object as values, so copying
-     * one says so here instead: a plain source already IS values, anything
-     * else is exported first. Both then go through the target's validated
-     * setter, so the target keeps its own identity and in-place buffers. This
-     * is a value copy, not Carbon's Copier: no topology is preserved and
+     * one says so here instead. What it does NOT do is export the source
+     * first: GetValues produces data for something outside the object - JSON,
+     * a serializer, a UI - and a copy between two live objects is neither
+     * (operator, 2026-09-16). Exporting allocated a plain array for every
+     * math field, which the setter then read back into the target's existing
+     * buffer and dropped; a Locator copy built three of them and a bag to
+     * carry five numbers home.
+     *
+     * So the bag is built by REFERENCE. The setter coerces a math value into
+     * the target's own array in place, and constructs a fresh one when it
+     * cannot, so a live typed array passed here is read within the call and
+     * never retained. Fields holding anything else are still exported, which
+     * keeps child models, lists and maps copying exactly as they did.
+     *
+     * Reading fields straight off the source is only sound when the two agree
+     * on what the fields mean, hence the gate: a live source must declare the
+     * target's class, and a tagged bag must carry the target's type. Both are
+     * name comparisons through the schema - no constructor identity.
+     *
+     * This is a value copy, not Carbon's Copier: no topology is preserved and
      * reference fields carry the source's references across as references.
      *
      * @param {object} target The object receiving the values.
      * @param {object} source A live object or a plain values object.
      * @param {object} [options={}] Population options.
      * @returns {Set<string>|boolean} Changed fields, or a boolean result.
+     * @throws {TypeError} When the source cannot be read as the target's class.
      */
     static copy(target, source, options = {})
     {
-        const values = isPlainObject(source) ? source : CjsSchema.getValues(source, {}, options);
-        return CjsSchema.setValues(target, values, options);
+        const className = CjsSchema.getClassName(target?.constructor);
+
+        if (isPlainObject(source))
+        {
+            const tag = typeof source._type === "string" ? source._type : null;
+            if (tag && className && tag !== className)
+            {
+                throw new TypeError(`CjsSchema.copy cannot copy ${tag} values into ${className}.`);
+            }
+            return CjsSchema.setValues(target, source, options);
+        }
+
+        if (className && !CjsSchema.isInstanceOf(className, source))
+        {
+            throw new TypeError(
+                `CjsSchema.copy requires a ${className} source; received ${describeValuesInput(source)}.`);
+        }
+
+        return CjsSchema.setValues(target, referenceValuesOf(source, options), options);
     }
 
     /**
@@ -1465,6 +1499,29 @@ function importDeclaredValue(value, field)
 // A declared item type that holds references: a model or objectRef
 // descriptor, or a bare name registered as a class. "string" and "unknown"
 // are not registered, so they stay values.
+/**
+ * A values bag holding the source's own field values, without copying them.
+ *
+ * The copy path's half of CjsSchema.copy. A primitive is its own value and a
+ * typed array is read in place by the setter - coerceCarbonMathInto writes
+ * into the target's array, and createCarbonMathValue builds a new one when it
+ * cannot - so neither needs a copy made here purely to be read back. Anything
+ * else is exported exactly as GetValues would have done it, which is what
+ * keeps child models, lists and maps copying as before.
+ */
+function referenceValuesOf(source, options)
+{
+    const values = {};
+    for (const field of getEffectiveFields(source.constructor))
+    {
+        const value = source[field.name];
+        values[field.name] = value === null || typeof value !== "object" || ArrayBuffer.isView(value)
+            ? value
+            : exportCarbonValue(value, field.type, options);
+    }
+    return values;
+}
+
 function isReferenceType(type)
 {
     if (typeof type === "string") return CjsSchema.GetConstructor(type) !== null;
