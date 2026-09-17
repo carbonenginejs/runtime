@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
+import { BlueListEvent } from "#consts/trinity";
+import { CjsModel } from "#model";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A container of child objects plugged into a socket, forwarding controller events, controller variables and component registration to what it contains. */
@@ -49,30 +51,83 @@ export class EveChildPlug extends EveChildTransform
     return true;
   }
 
-  /** Appends and registers one plugged child. */
+  /**
+   * Carbon OnListModified (EveChildPlug.cpp:44-110), the owner reacting to its
+   * own lists - Carbon installs the plug on its controller list at cpp:19.
+   *
+   * Controllers link and replay the recorded variables on insert, unlink on
+   * remove, unlink every one on unload. Objects go through the shared
+   * child-registration helper and, while this plug is in a registry, register
+   * or unregister as entities.
+   */
   @carbon.method
   @impl.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    const masked = event & BlueListEvent.EVENTMASK;
+    if ((event & BlueListEvent.LOADING) !== 0) return;
+
+    if (list === this.controllers)
+    {
+      if (masked === BlueListEvent.INSERTED && value)
+      {
+        value.Link(this);
+        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable?.(name, variable);
+      }
+      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
+      else if (masked === BlueListEvent.UNLOADSTART)
+      {
+        for (const controller of this.controllers) controller?.Unlink();
+      }
+      return;
+    }
+
+    if (list !== this.objects) return;
+
+    // Carbon's shared HandleChildrenListModified (EveSpaceObjectChild.h:340-367).
+    if (masked === BlueListEvent.INSERTED && value) this.RegisterChild(value);
+    else if (masked === BlueListEvent.REMOVED && value) this.UnregisterChild(value);
+    else if (masked === BlueListEvent.UNLOADSTART)
+    {
+      for (const child of this.objects) this.UnregisterChild(child);
+    }
+
+    if (masked === BlueListEvent.INSERTED && value)
+    {
+      for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable?.(name, variable);
+    }
+
+    if (!this.IsInRegistry?.()) return;
+    const registry = this.GetComponentRegistry();
+    if (!registry) return;
+    if (masked === BlueListEvent.INSERTED) value?.Register?.(registry);
+    else if (masked === BlueListEvent.REMOVED) value?.UnRegister?.(registry);
+    else if (masked === BlueListEvent.UNLOADSTART)
+    {
+      for (const child of this.objects) child?.UnRegister?.(registry);
+    }
+  }
+
+  /**
+   * Appends one plugged child. The registration and the variable replay are the
+   * INSERTED arm's, reached through the managed mutation.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
-    this.objects.push(child);
-    this.RegisterChild(child);
-    for (const [name, value] of this.#controllerVariables)
-    {
-      child.SetControllerVariable(name, value);
-    }
+    CjsModel.addChild(this, "objects", child);
     return child;
   }
 
-  /** Removes and unregisters one plugged child. */
+  /** Removes one plugged child; the unregistration is the REMOVED arm's. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
-    const index = this.objects.indexOf(child);
-    if (index === -1) return false;
-    this.UnregisterChild(child);
-    this.objects.splice(index, 1);
-    return true;
+    return CjsModel.removeChild(this, "objects", child);
   }
 
   /** Propagates the owning space object through the plugged subtree. */
