@@ -100,6 +100,39 @@ its own `@impl.reason` at the site. "An engine owns this" is not one of them.
   do. With the stub backend selected they run headless. Trinity owns the mutable
   `Tr2Effect`/`Tr2Material` facade, parameters, options, and sampler overrides;
   it consumes the resource-owned shader graph.
+
+### What Trinity needs from this layer
+
+One thing: somewhere to ask for a res file. Not an adapter, not an injected
+seam.
+
+Carbon settles this across a repository boundary, which is a stronger test than
+ours. `blue` and `trinity` are separate repositories, and `trinity` takes
+exactly one header from the manager's: `IBlueResMan.h`, through `StdAfx.h:54`.
+It then calls the global `BeResMan` (`IBlueResMan.h:135`) at 94 sites, for
+example `BeResMan->GetResource( profilePath, L"lp", lightProfile )`
+(`EveBannerSet.cpp:63`, `EveHazeSet.cpp:52`, `EvePlaneSet.cpp:40`), and holds
+the result as an ordinary member. No indirection is introduced for the
+crossing.
+
+The resource CLASSES are not what crosses. In Carbon they live with their
+consumer - `TriGeometryRes`, `TriTextureRes`, `Tr2EffectRes` and
+`Tr2LightProfileRes` are all in `trinity/trinity/Resources/`, while `blue` owns
+only the manager and the async base (`BlueResMan`, `BlueAsyncRes`,
+`IBlueResource`). Carbon's audio repository goes further and never involves the
+manager at all, reading its own bytes through a Wwise IO hook.
+
+We arrange this differently: the manager and the resource classes are one layer
+here, below `trinity`. `layers.json` lets `trinity` import `resource`, so a
+Trinity class may hold a `TriGeometryRes` exactly as Carbon's does - these are
+small records, and holding one is not a layering event. `Tr2Mesh` and
+`Tr2TexturedPointLight` already work this way, through `CjsResMan.GetGlobal()`,
+which is the `BeResMan` pattern.
+
+So a Trinity class that needs a resource asks the manager for it. "An adapter
+supplies it" and "the seam is injected" describe neither Carbon nor this
+package, and where they appear they mark work that was never done rather than a
+boundary being kept.
 - The `trinityal/<backend>` layers own backend allocation, replacement, and
   destruction. Preparation is the resource's own, through `OnPrepareResources`;
   the backend supplies the objects it allocates.
