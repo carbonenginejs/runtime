@@ -121,13 +121,19 @@ plan carries the shader's declared type and stops.
 
 ## Frame contract
 
-Core's `CjsFrameDriver` runs Carbon's backend-neutral frame body in order:
-throttle, GPU sync, viewport publication, profiler open, the frame-clock
-publication, the scene bracket, reserved quad indices, render jobs, profiler
-close, scene close, and frame close. It requires the exact Trinity render
-context and render-jobs identities and passes that same bracketed context into
-the jobs. Trinity owns those graph and schedule objects; core owns their frame
-composition.
+Carbon's backend-neutral frame body runs in this order: throttle, GPU sync,
+viewport publication, profiler open, the frame-clock publication, the scene
+bracket, reserved quad indices, render jobs, profiler close, scene close, and
+frame close.
+
+**It is not ported.** Carbon places it on each backend `TriDevice`
+(`TriDevice.cpp:1151-1187` and `:805-843`, with `Tr2Renderer.cpp:1040-1081`), and
+`TriDevice` here carries only present parameters. A previous port, core's
+`CjsFrameDriver`, hoisted the order into composition and took the device-facing
+steps from an injected lifecycle; it was deleted on 2026-09-17 with no caller
+and no lifecycle implementer, being the retired graph/realization split in
+miniature. The order above is recorded here so the donor lines are the thing
+that gets read when it is ported properly, onto the device.
 
 Two parts of that order are load-bearing. The entry and exit are deliberately
 asymmetric: the scene close rewinds the per-object pool before ending the

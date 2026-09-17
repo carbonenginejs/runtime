@@ -9,7 +9,6 @@ Summary: Documents the composition library, service keys, lifecycle, registries,
 
 ```js
 import CjsLibrary, {
-    CjsFrameDriver,
     CjsLibrary as NamedLibrary,
     CjsServiceKey
 } from "@carbonenginejs/runtime/core";
@@ -17,16 +16,6 @@ import CjsLibrary, {
 
 The browser platform classes are also exported from the root, with
 `@carbonenginejs/runtime/core/platform` provided as the focused entry point.
-
-## `CjsFrameDriver`
-
-`new CjsFrameDriver({ renderContext, renderJobs, frameLifecycle })` requires
-exact `Tr2RenderContext` and `Tr2RenderJobs` instances, plus a lifecycle
-supplying the six frame methods.
-`Tick(elapsed, animationTimeScale)` advances the frame clock with Carbon's
-hourly rebase. `Render(realTime, simTime)` executes one requested frame, passes
-the bound context to the jobs, and closes every opened bracket. It does not
-present or own an outer loop.
 
 ## `CjsServiceKey`
 

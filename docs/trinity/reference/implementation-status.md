@@ -190,7 +190,7 @@ parity gate rather than incidental test behavior.
 The architecture owns [mesh draw arguments](../architecture.md#render-batch-contract),
 [frame/tick ordering](../architecture.md#frame-contract), and
 [vertex-declaration matching](../architecture.md#vertex-declaration-matching).
-`CjsFrameDriver` requires exact lifecycle, render-context, and render-job identities.
+Carbon's frame body is unported; see trinity architecture, *Frame contract*.
 Catalog completeness and promotion gates are below.
 
 - Device creation, GPU resources, draw submission, presentation, and

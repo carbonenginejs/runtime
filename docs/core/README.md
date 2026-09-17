@@ -23,8 +23,8 @@ const library = new CjsLibrary({
 
 The package also exposes browser platform and WebGPU adapter snapshots. Those
 probes report capabilities but do not create a `GPUDevice`.
-`CjsFrameDriver` executes one explicitly requested backend-neutral frame against
-exact Trinity context/jobs and a supplied frame lifecycle.
+Carbon's frame body is not ported here; see
+[trinity architecture](../trinity/architecture.md) under *Frame contract*.
 
 ## Where it fits
 

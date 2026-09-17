@@ -39,12 +39,12 @@ Caller-owned services are not disposed; there is no general shutdown protocol.
 
 ## Frame boundary
 
-`CjsFrameDriver` owns the backend-neutral order of one explicitly requested
-frame. Composition supplies exact `Tr2RenderContext` and `Tr2RenderJobs`
-instances once, plus a frame lifecycle, then the hot path calls them directly.
-The lifecycle supplies pacing, GPU synchronization, viewport, profiling, and
-quad-index reservation. Its nominal base, `CjsFrameLifecycle`, was deleted on
-2026-09-17 with no implementer anywhere.
+Carbon's backend-neutral frame body is not ported. It belongs on the backend
+device (`TriDevice.cpp:1151-1187`, `:805-843`), and its order is recorded in
+[trinity architecture](../trinity/architecture.md) under *Frame contract*. Core
+previously hoisted it into composition as `CjsFrameDriver`, driven by an
+injected `CjsFrameLifecycle`; both were deleted on 2026-09-17, having no caller
+and no implementer.
 
 The driver passes its exact bracketed context to `Tr2RenderJobs.Run`. Cleanup
 attempts every opened closer even when jobs or an earlier closer fail.
