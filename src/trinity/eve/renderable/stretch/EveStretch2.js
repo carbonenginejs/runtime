@@ -257,7 +257,7 @@ export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
    * @returns {Array} out
    */
   @carbon.method @impl.adapted
-  @impl.reason("The class is collected as a renderable; GPU batch realization remains runtime-engine work.")
+  @impl.reason("The class is collected as a renderable; GPU batch realization is not ported yet.")
   GetRenderables(out = [])
   {
     if (this.#visible && this.#intensity > 0 && this.#inFrustum) out.push(this);
@@ -294,7 +294,7 @@ export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
    * @returns {Boolean} whether the batch was committed
    */
   @carbon.method @impl.adapted
-  @impl.reason("GPU-free: records Carbon's procedural stretch vertices and shared quad indices for engine realization.")
+  @impl.reason("GPU-free: records Carbon's procedural stretch vertices and shared quad indices and the upload is not ported yet.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !this.quadCount)

@@ -35,7 +35,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The JS node receives the Tr2RenderTarget graph object and a null root timer; engines realize its target and timing handles.")
+  @impl.reason("The JS node receives the Tr2RenderTarget graph object and a null root timer; its target and timing handles are not ported yet.")
   Execute(realTime, simTime, renderContext)
   {
     const target = this.destinationTarget;

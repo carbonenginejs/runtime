@@ -131,7 +131,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
   /** Updates all fog attributes from the scene's nominal component registry. */
   @carbon.method
   @impl.adapted
-  @impl.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage stays engine-owned.")
+  @impl.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage is not ported yet.")
   UpdateFogSettings(registry, updateContext)
   {
     const settings = Array.from(registry.GetComponents(FROXEL_FOG_COMPONENT), component =>
@@ -255,7 +255,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
     this.#sunAngle = angle;
   }
 
-  /** Returns the wrapped 0..1 god-ray noise phase for engine realization. */
+  /** Returns the wrapped 0..1 god-ray noise phase and the upload is not ported yet. */
   @impl.custom
   @impl.reason("Engines need Carbon's private CPU-produced phase without owning or recomputing its update policy.")
   GetGodRayNoiseAnimation()
@@ -276,7 +276,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
 
   /** Returns the scene-produced sun angle used by fog realization. */
   @impl.custom
-  @impl.reason("Carbon stores this as private renderer state; the split engine realization needs an explicit read boundary.")
+  @impl.reason("Carbon stores this as private renderer state; the split needs an explicit read boundary.")
   GetSunAngle()
   {
     return this.#sunAngle;

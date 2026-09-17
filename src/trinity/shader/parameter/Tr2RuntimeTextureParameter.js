@@ -101,7 +101,7 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
   {
 
     // Carbon caches the effect resource type here for later resource-set
-    // binding. Runtime-trinity leaves that realization to engine adapters.
+    // binding. Not ported yet.
   }
 
   /**

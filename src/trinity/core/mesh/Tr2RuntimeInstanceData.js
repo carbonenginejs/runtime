@@ -345,7 +345,7 @@ export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
 
   /**
    * CPU readiness for the nominal ITr2InstanceData contract. Carbon also tests
-   * the realized vertex declaration and GPU buffer; those are engine-owned in
+   * the realized vertex declaration and GPU buffer; those are not ported yet in
    * CarbonEngineJS, so Trinity reports whether a published layout and byte
    * payload are available for realization.
    */

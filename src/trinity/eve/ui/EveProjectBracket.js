@@ -65,7 +65,7 @@ export class EveProjectBracket extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect remains engine-owned and is omitted.")
+  @impl.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
   UpdateValue(_time, renderContext)
   {
     const scratchIndex = this.#scratchDepth++;

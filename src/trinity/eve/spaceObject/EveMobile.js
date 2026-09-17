@@ -44,7 +44,7 @@ export class EveMobile extends EveSpaceObject2
   /** Rebinds the turret sets to their locators after the turret set list changes. */
   @carbon.method
   @impl.adapted
-  @impl.reason("List notifications are represented by a direct browser callback; registry ownership remains runtime-engine work.")
+  @impl.reason("List notifications are represented by a direct browser callback; registry ownership is not ported yet.")
   OnListModified()
   {
     this.RebuildTurretPositions();

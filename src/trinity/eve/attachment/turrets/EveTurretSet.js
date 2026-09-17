@@ -339,7 +339,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
 
   /**
    * m_skeletonBoneIndices - the shader's bone mapping, shared by every turret
-   * of the set. Skeleton realization is engine-owned, so this stays empty until
+   * of the set. Skeleton realization is not ported yet, so this stays empty until
    * one is supplied and the default count applies.
    */
   #skeletonBoneIndices = [];
@@ -372,7 +372,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   /** Carbon method RebuildBoundingSphere (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Geometry resources are duck-typed; the runtime Trinity layer stores their computed sphere without realizing render buffers.")
+  @impl.reason("Geometry resources are duck-typed; the runtime Trinity layer stores their computed sphere without creating render buffers.")
   RebuildBoundingSphere()
   {
     const resource = this.geometryResource;
@@ -416,7 +416,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   /** Carbon method FreezeHighDetailLOD (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The graph freezes its LOD state; geometry realization remains a runtime-engine responsibility.")
+  @impl.reason("The graph freezes its LOD state; geometry creation is not ported yet.")
   FreezeHighDetailLOD()
   {
     this.lodLevel = EveTurretSet.LOD.LOD_DISABLED;
@@ -990,7 +990,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Skeleton realization is engine-owned; portable turret records may consume the same local-target tracking hook.")
+  @impl.reason("Skeleton realization is not ported yet; portable turret records may consume the same local-target tracking hook.")
   UpdateAsyncronous(context, parentData = this.#parentTransform)
   {
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
@@ -1072,7 +1072,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; geometry and batch realization remain runtime-engine work.")
+  @impl.reason("Renderable collection is backend-neutral; geometry and batch realization are not ported yet.")
   GetRenderables(out = [])
   {
     if (!this.display) return out;
@@ -1145,7 +1145,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Instance stream, vertex declaration and realized LOD allocations are engine-owned; Trinity records their canonical geometry source and instance count.")
+  @impl.reason("Instance stream, vertex declaration and realized LOD allocations are not ported yet; Trinity records their canonical geometry source and instance count.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this.geometryResource)
@@ -1231,7 +1231,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    * frustum cull), a pre-existing adaptation. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Instance stream, vertex declaration and realized LOD allocations (cpp:2227-2250) are engine-owned; the batch records the geometry source, turret effect, per-object data and the CPU-known instance count for the engine to realize.")
+  @impl.reason("Instance stream, vertex declaration and LOD allocations (cpp:2227-2250) are not ported; the batch records the geometry source, turret effect, per-object data and the CPU-known instance count meanwhile.")
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.display || !this.visibleCount)
@@ -1265,7 +1265,7 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    * palette's GPU ring-buffer offsets remain engine-supplied. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity fills the CPU-known EveTurretSet VS/PS RawData fields; bone-palette ring offsets and IsGood/GetMeshCount realization gates remain engine-owned, while the CPU gate is geometry presence.")
+  @impl.reason("Trinity fills the CPU-known EveTurretSet VS/PS RawData fields; bone-palette ring offsets and IsGood/GetMeshCount realization gates are not ported yet, while the CPU gate is geometry presence.")
   GetPerObjectData(accumulator = null)
   {
     if (!this.geometryResource || typeof accumulator?.Alloc !== "function")

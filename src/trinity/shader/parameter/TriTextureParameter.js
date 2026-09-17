@@ -336,7 +336,7 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Nothing to do in this GPU-free package - res paths are never resolved to
+   * Not ported yet - res paths are never resolved to
    * texture bytes here; returns true so callers can treat initialization as
    * successful.
    */

@@ -218,7 +218,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
 
   /** Carbon EveSceneStaticParticles::GetBatches (cpp:137-140): the mesh's
    * areas of the requested type with the stamped estimatedSize as the LOD
-   * screen size (engine-resolved at realization in the GPU-free model). */
+   * screen size (resolving it against the real target is not ported yet). */
   @carbon.method
   @impl.adapted
   @impl.reason("The estimatedSize LOD select is engine-resolved at realization; the delegation structure is ported.")
@@ -242,7 +242,7 @@ export class EveSceneStaticParticles extends withITr2Renderable(CjsModel)
    * composition). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; the engine only realizes and binds the packed payload.")
+  @impl.reason("Trinity allocates the catalogued record and encodes world/lastWorld into the canonical stored layout. Both fields are CPU-filled; binding the packed payload is not ported yet.")
   GetPerObjectData(accumulator)
   {
     const data = accumulator?.Alloc?.("EveSceneStaticParticlesPerObjectData");

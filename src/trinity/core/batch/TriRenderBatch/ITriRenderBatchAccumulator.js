@@ -3,7 +3,7 @@
 // Abstract base for render-batch accumulators: shared render-mode / user-data
 // state plus the collect/sort contract. Concrete accumulators
 // (TriRenderBatchAccumulator) implement Commit/Finalize/Get*/TransferFrom. This
-// stays GPU-free; dispatch to the device is the engine adapter's job.
+// collects CPU batch data; dispatch to the device is not ported yet.
 import { RenderingMode } from "#consts/graphics";
 import { impl } from "#schema";
 

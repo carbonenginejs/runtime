@@ -351,7 +351,7 @@ export class Tr2MeshBase extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("GPU-free descriptor batches: geometry buffers and final draw args are resolved by the engine at dispatch")
+  @impl.reason("Emits descriptor batches; resolving geometry buffers and final draw args at dispatch is not ported yet.")
   GetBatches(accumulator, areas, perObjectData, screenSize = Infinity, reverseWinding = false)
   {
     if (this.display === false) return false;
@@ -378,7 +378,7 @@ export class Tr2MeshBase extends CjsModel
 
   // Builds a single GPU-free batch for one mesh area: the area's effect is the
   // material/shader key, and the geometry + area range are recorded as a source
-  // descriptor for the engine to realize. Returns null for a hidden or
+  // descriptor though the draw itself is not ported yet. Returns null for a hidden or
   // material-less area (Carbon returns an invalid batch in those cases).
 
   /**
@@ -389,7 +389,7 @@ export class Tr2MeshBase extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("GPU-free: emits a geometry source descriptor instead of realized Tr2BufferAL allocations")
+  @impl.reason("Emits a geometry source descriptor; creating the Tr2BufferAL allocations Carbon makes here is not ported yet.")
   CreateGeometryBatch(geometry, area, perObjectData, reverseWinding = false, lod = null)
   {
     if (!area || area.GetDisplay() === false) return null;

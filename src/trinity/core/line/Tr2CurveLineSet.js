@@ -365,7 +365,7 @@ export class Tr2CurveLineSet extends withITr2Renderable(CjsModel)
   /** Carbon method SubmitChanges (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Rebuilds Carbon's segment counts and logical bounds from CPU LineData; renderer runtimes realize the vertex stream.")
+  @impl.reason("Rebuilds Carbon's segment counts and logical bounds from CPU LineData; the vertex stream itself is not ported (Carbon builds it in SubmitChanges).")
   SubmitChanges()
   {
     this.currentSubmittedLineCount = 0;
@@ -436,12 +436,15 @@ export class Tr2CurveLineSet extends withITr2Renderable(CjsModel)
     return true;
   }
 
-  /** Physical vertex-stream realization remains an engine obligation. */
+  // NOT PORTED. Carbon builds the vertex stream on this class -
+  // Tr2CurveLineSet::SubmitChanges (cpp:677) tessellates the curves and fills
+  // the buffer itself. Left out under the retired graph/realization split; the
+  // work is pure CPU float maths and belongs here.
   @carbon.method
   @impl.notImplemented
   GetBatches(_accumulator, _batchType, _perObjectData, _reason)
   {
-    throw new Error("Tr2CurveLineSet.GetBatches requires an engine line-stream realization.");
+    throw new Error("Tr2CurveLineSet.GetBatches is not ported yet.");
   }
 
   /** Distance from the transformed local bound to the active view. */

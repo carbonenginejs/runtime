@@ -261,7 +261,7 @@ export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectCh
    * (cpp:272-278), and the hasUpdated stamp (cpp:281). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) remains engine-owned. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
+  @impl.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) is not ported yet. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
   UpdateAsyncronous(_updateContext, params)
   {
     const previousWorldTransform = mat4.create();

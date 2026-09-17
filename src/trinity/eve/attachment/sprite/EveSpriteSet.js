@@ -313,7 +313,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * registration keyed by the effect hash. RegisterEffect is
    * idempotent-by-key, so an effect-option change needs the key refreshed
    * (Rebuild does) and this called again - exactly Carbon's SetShaderOption
-   * flow (cpp:430-438), whose singleton reach is engine-owned here.
+   * flow (cpp:430-438), whose singleton reach is not ported yet here.
    */
   @carbon.method
   @impl.implemented

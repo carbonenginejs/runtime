@@ -376,7 +376,7 @@ export class EveStretch3 extends withIEveSpaceObject2(IEveFiringEffectElement)
    * interpolated position. No GPU work happens here.
    */
   @carbon.method @impl.adapted
-  @impl.reason("Visibility transforms are computed here; renderer-specific LOD realization stays in runtime-engine.")
+  @impl.reason("Visibility transforms are computed here; renderer-specific LOD selection is not ported yet.")
   UpdateVisibility(context, parentTransform = EveStretch3.#identity)
   {
     if (!this.display) return;
@@ -396,7 +396,7 @@ export class EveStretch3 extends withIEveSpaceObject2(IEveFiringEffectElement)
    * @returns {Array} out
    */
   @carbon.method @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; draw-batch construction remains runtime-engine work.")
+  @impl.reason("Renderable collection is backend-neutral; draw-batch construction is not ported yet.")
   GetRenderables(out = [])
   {
     if (this.display) for (const component of this.#components()) collectRenderables(component, out);

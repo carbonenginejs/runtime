@@ -723,7 +723,7 @@ export class EveBoosterSet2 extends EveEntity
    * renderer is engine-side here, so the flag is exposed instead. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is engine-owned.")
+  @impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is not ported yet.")
   GetGlowsVisible()
   {
     return this.#glowsVisible;

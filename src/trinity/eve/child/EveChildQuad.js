@@ -92,7 +92,7 @@ export class EveChildQuad extends withITr2Renderable(EveChildTransform)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2QuadRenderer::Instance() is engine-owned; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")
+  @impl.reason("Tr2QuadRenderer::Instance() is not ported yet; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")
   Initialize()
   {
     if (this.effect)
@@ -137,7 +137,7 @@ export class EveChildQuad extends withITr2Renderable(EveChildTransform)
   /** Registers the effect bucket with a quad renderer (EveChildQuad.cpp:87-93). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The injected renderer owns physical realization; Trinity forwards the required Carbon registration contract directly.")
+  @impl.reason("Submission through Tr2QuadRenderer is not ported yet; Trinity forwards the required Carbon registration contract directly.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (this.effect)
@@ -343,7 +343,7 @@ export class EveChildQuad extends withITr2Renderable(EveChildTransform)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2VertexDefinition is a native layout builder; the same elements are published as a frozen descriptor list for the engine to realize.")
+  @impl.reason("Tr2VertexDefinition is a native layout builder; the same elements are published as a frozen descriptor list though the draw itself is not ported yet.")
   static GetQuadDefinition()
   {
     return EveChildQuad.#quadDefinition;

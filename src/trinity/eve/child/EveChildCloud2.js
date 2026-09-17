@@ -315,7 +315,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
   shadowMapSize = 512;
 
   /** The global "DepthShadowMap" variable handle Carbon registers in the ctor
-   * (cpp:115) - the variable store is engine-owned in JS, so the handle is an
+   * (cpp:115) - the variable store is not ported yet in JS, so the handle is an
    * engine-injected duck. */
   depthShadowMapHandle = null;
 
@@ -352,7 +352,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
    * re-stamped by the volumetric batch path (GetVolumetricBatches cpp:283),
    * deliberately NOT by the reflection path. */
   @impl.adapted
-  @impl.reason("DensityMap texture discovery and empty-lightmap creation (cpp:634-674) are engine-owned resource work - lightmapWidth stays 0 until the engine stamps it, which fail-closes UpdateVolumetricLightmap; the hash invalidation, animation gate and renderedLastFrame contract are ported.")
+  @impl.reason("DensityMap texture discovery and empty-lightmap creation (cpp:634-674) are not ported yet resource work - lightmapWidth stays 0 until the engine stamps it, which fail-closes UpdateVolumetricLightmap; the hash invalidation, animation gate and renderedLastFrame contract are ported.")
   UpdateSyncronous(updateContext, _params)
   {
     if (this.effect)
@@ -626,7 +626,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
    * lightmapDirtyOffset by slices; reaching scaledWidth completes the map
    * (dirty false, offset 0); failure resets the offset and returns false. */
   @impl.adapted
-  @impl.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are engine-owned; the GenerateLightmap dispatch is delegated to a renderContext.RunComputeShader duck and fail-closes to false when absent.")
+  @impl.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch is delegated to a renderContext.RunComputeShader duck and fail-closes to false when absent.")
   UpdateVolumetricLightmap(renderContext)
   {
     if (this.currentQuality < this.minVisibleQuality || !this.hasUpdated)
@@ -733,7 +733,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
    * data (cpp:778-784). Does NOT stamp renderedLastFrame. Returns whether the
    * batch was committed (JS addition). */
   @impl.adapted
-  @impl.reason("The 'Shadow' technique gate applies only when a shader-state interface is realized - in GPU-free collection the engine drops the batch at realization otherwise; NULL_DECLARATION maps to declaration 0.")
+  @impl.reason("The 'Shadow' technique gate applies only when a shader-state interface is present, and the batch is dropped otherwise; NULL_DECLARATION maps to declaration 0.")
   GetVolumetricShadowBatches(batches)
   {
     if (!this.display || !this.effect || !this.castShadows)
@@ -880,7 +880,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
    * m_shadowMapDS with no null guard - safe only via the
    * PrepareCloudShadowMap-first call order (see above). */
   @impl.adapted
-  @impl.reason("The variable store is engine-owned (depthShadowMapHandle is an injected duck); Carbon's unguarded m_shadowMapDS dereference is optional-chained.")
+  @impl.reason("The variable store is not ported yet (depthShadowMapHandle is an injected duck); Carbon's unguarded m_shadowMapDS dereference is optional-chained.")
   SetCloudShadowMapHandle()
   {
     if (this.shadowMapDS?.IsValid?.())
@@ -942,7 +942,7 @@ export class EveChildCloud2 extends withITr2Renderable(EveSpaceObjectChild)
    * members are refreshed by the engine calling PopulatePerObjectData again
    * with its render context at realization (screenSize is stamped for that). */
   @impl.adapted
-  @impl.reason("EveChildCloudPerObjectData's device constant buffers are engine-owned; the record carries the object reference, the collection-time screenSize and the CPU field block.")
+  @impl.reason("EveChildCloudPerObjectData's device constant buffers are not ported yet; the record carries the object reference, the collection-time screenSize and the CPU field block.")
   GetPerObjectData(accumulator = null, screenSize = 1)
   {
     const data = typeof accumulator?.Allocate === "function"

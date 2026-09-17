@@ -171,7 +171,7 @@ export class EveSwarmRenderable extends withITr2Renderable(EveEntity)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors for engine realization.")
+  @impl.reason("The render context supplies Carbon's renderer-global view position; GPU-free mesh batches retain geometry source descriptors and the upload is not ported yet.")
   GetBatches(batches, batchType, perObjectData, _reason, renderContext = null)
   {
     if (!this.mesh)

@@ -1,9 +1,8 @@
 // Source: trinity/trinity/Shader/Utils/Tr2DataTextureManager.h:10-60
 // Hand-maintained from Carbon source.
 //
-// THE DEVICE HALF IS AN ENGINE ADAPTER, NOT WORK FOR THIS CLASS. Carbon
-// derives this from Tr2DeviceResource, which reads as a device class and is
-// misleading: the split in its own header is what matters.
+// THE DEVICE HALF IS NOT PORTED YET. Carbon derives this from
+// Tr2DeviceResource and implements both halves on the class itself.
 //
 // PUBLIC, and portable - this is the part that belongs here:
 //
@@ -12,21 +11,26 @@
 //   SetVariables()      publishes those offsets as shader variables
 //   Update(updateContext)
 //
-// PRIVATE, and device-only - this is the part an engine supplies:
+// PRIVATE, and device-only - this is the part that is missing:
 //
 //   OnPrepareResources()    creates the backing texture
 //   ReleaseResources(s)     releases it
 //
 // So the shape is CjsBatchManager's: a neutral CPU registry that packs blocks,
 // hands back ids and offsets, and publishes them, with the texture creation
-// and upload injected. Implementing OnPrepareResources inside Trinity would
-// put a GPU texture behind a graph class, which is the one thing this package
-// does not do.
+// and upload currently injected.
+//
+// THAT LAST PART IS A GAP, NOT THE DESIGN. This comment used to say that
+// implementing OnPrepareResources here "would put a GPU texture behind a graph
+// class, which is the one thing this package does not do". That was the retired
+// graph/realization split; 75 donor Trinity classes implement
+// OnPrepareResources, EveStarfield (Eve/EveStarfield.cpp:110-172) among them.
+// See /docs/internal/decisions/trinity-gpu-free-means-the-stub.md.
 //
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Packs shader-readable data blocks into a shared texture, whose allocation an engine adapter owns. */
+/** Packs shader-readable data blocks into a shared texture; allocating that texture is not ported yet. */
 @type.define({ className: "Tr2DataTextureManager", family: "shader" })
 export class Tr2DataTextureManager extends CjsModel
 {
@@ -111,8 +115,8 @@ export class Tr2DataTextureManager extends CjsModel
   }
 
   /**
-   * Packs queued blocks by descending priority. The engine reads GetPackedBlocks
-   * and uploads the returned CPU rows into its own texture realization.
+   * Packs queued blocks by descending priority. GetPackedBlocks returns the CPU
+   * rows; uploading them into a texture is not ported yet.
    */
   @carbon.method
   @impl.adapted
@@ -143,16 +147,16 @@ export class Tr2DataTextureManager extends CjsModel
     return this.#packedBlocks;
   }
 
-  /** Borrowed packed CPU descriptor list for an engine texture adapter. */
+  /** Borrowed packed CPU descriptor list, pending the texture upload port. */
   GetPackedBlocks()
   {
     return this.#packedBlocks;
   }
 
   /**
-   * Carbon republishes the realized texture through the global variable store;
-   * the GPU-free runtime has no texture object to publish, so this is the
-   * portable no-op half of that contract.
+   * Carbon republishes the texture through the global variable store. There is
+   * no texture object here to publish because creating it is not ported yet, so
+   * this stays a no-op until it is.
    */
   @carbon.method
   @impl.noop

@@ -90,7 +90,7 @@ export class EveFiringEffectElementContainer extends withIEveSpaceObject2(EveEnt
    * @returns {Array} out
    */
   @carbon.method @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral and leaves batch realization to the engine package.")
+  @impl.reason("Renderable collection is backend-neutral and does not build the batch yet.")
   GetRenderables(out = [])
   {
     if (this.display && this.element) this.element.GetRenderables(out);

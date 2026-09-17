@@ -32,7 +32,7 @@ function updateBoundingSphere(cloud)
 /**
  * Legacy transformable volumetric-cloud child. Trinity owns its authored
  * state, SRT composition, visibility and bounds; GPU tessellation and draw
- * realization remain engine-owned.
+ * realization are not ported yet.
  */
 @type.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
 export class EveChildCloud extends withITr2Renderable(EveSpaceObjectChild)

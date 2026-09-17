@@ -76,7 +76,7 @@ export class Tr2DirectInstanceData extends withITr2InstanceData(CjsModel)
   /**
    * Records the CPU vertex-layout metadata. Carbon computes the stride as
    * max(offset + elementSize); the direct GPU buffer itself is realized by
-   * the engine (GetData/UpdateData/DestroyData are engine-owned).
+   * the engine (GetData/UpdateData/DestroyData are not ported yet).
    */
   @carbon.method
   @impl.adapted

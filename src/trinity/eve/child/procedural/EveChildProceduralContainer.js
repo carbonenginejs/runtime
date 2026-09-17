@@ -54,7 +54,7 @@ export class EveChildProceduralContainer extends withIEveInheritPropertiesOwner(
    * omitted). */
   @carbon.method
   @impl.adapted
-  @impl.reason("ReRegister on display changes is engine-owned (component registry unported); the notify contract is preserved.")
+  @impl.reason("ReRegister on display changes is not ported yet (component registry unported); the notify contract is preserved.")
   OnModified(_value = null)
   {
     return true;
@@ -91,7 +91,7 @@ export class EveChildProceduralContainer extends withIEveInheritPropertiesOwner(
    * (engine-owned, omitted). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Entity Register/UnRegister against the component registry is engine-owned; the variable replay and swap are ported.")
+  @impl.reason("Entity Register/UnRegister against the component registry is not ported yet; the variable replay and swap are ported.")
   ConfigureSelectedObject()
   {
     const child = this.selectionMethod ? this.selectionMethod.GetSelectedChild() : null;

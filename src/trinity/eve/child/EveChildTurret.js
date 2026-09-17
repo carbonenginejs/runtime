@@ -220,7 +220,7 @@ export class EveChildTurret extends EveChildMesh
     super();
     this.#target.SetFadeOnLocatorChange(true);
     // Carbon's ctor also calls PrepareResources(); the browser runtime's
-    // resource lifecycle is engine-owned and has no per-child prepare hook.
+    // resource lifecycle is not ported yet and has no per-child prepare hook.
   }
 
   /** The turret's target tracker (Carbon exposes it as the READ attribute "target"). */
@@ -847,7 +847,7 @@ export class EveChildTurret extends EveChildMesh
    * Wires the firing effect's muzzle bones from the skeleton: bones named
    * GetFiringBoneName() + a two-digit 1-based index, e.g. Pos_Fire01
    * (Carbon cpp:663-696). Carbon also registers the effect with the quad
-   * renderer singleton here; quad registration is engine-owned in the
+   * renderer singleton here; quad registration is not ported yet in the
    * browser runtime and happens through the engine's own registration pass.
    */
   @carbon.method

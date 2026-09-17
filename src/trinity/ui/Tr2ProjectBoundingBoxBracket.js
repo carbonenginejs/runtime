@@ -364,7 +364,7 @@ export class Tr2ProjectBoundingBoxBracket extends CjsModel
     this.isProjectionValid = true;
     this.UpdateBracket();
     // Carbon may print optional debug text here through a process-global debug
-    // renderer. Debug realization is engine-owned and does not change results.
+    // renderer. Debug realization is not ported yet and does not change results.
   }
 
   /** Clips the projected rectangle to the configured screen margin. */

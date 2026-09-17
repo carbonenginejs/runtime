@@ -587,7 +587,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   /** Forwards quad registration to the glow set (Carbon cpp:368-374). */
   @carbon.method
   @impl.adapted
-  @impl.reason("EveSpriteSet's quad-renderer surface is engine-owned and not yet ported; the forward stops at that seam.")
+  @impl.reason("EveSpriteSet's quad-renderer surface is not ported yet and not yet ported; the forward stops at that seam.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     this.glows?.RegisterWithQuadRenderer?.(quadRenderer);
@@ -596,7 +596,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
   /** Forwards glow quads when visible and past flare LOD (Carbon cpp:383-394). */
   @carbon.method
   @impl.adapted
-  @impl.reason("EveSpriteSet.AddBoosterGlowToQuadRenderer is engine-owned and not yet ported; the CPU gating is Carbon's.")
+  @impl.reason("EveSpriteSet.AddBoosterGlowToQuadRenderer is not ported yet and not yet ported; the CPU gating is Carbon's.")
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
     if (!this.glows || !this.#glowsVisible || !this.display) return;
@@ -675,7 +675,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The procedural box vertex buffer, quad-list index buffer and vertex declaration are engine realizations; the batch carries the material, per-object data, draw arguments and the shared buffer name.")
+  @impl.reason("The procedural box vertex buffer, quad-list index buffer and vertex declaration are not ported yets; the batch carries the material, per-object data, draw arguments and the shared buffer name.")
   GetBatches(batches, batchType, perObjectData = null)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;

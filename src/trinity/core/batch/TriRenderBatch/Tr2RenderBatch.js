@@ -95,12 +95,11 @@ export class Tr2RenderBatch
     this.indexBuffer = null;
     this.indexStride = 0;
 
-    // GPU-free adaptation: Carbon's Tr2MeshBase::CreateGeometryBatch bakes
-    // realized buffer allocations and computed draw arguments into the batch
-    // during collection. Trinity instead records a geometry-resource and
-    // area-range descriptor; the engine resolves it to realized allocations
-    // and final draw arguments at dispatch. See the render-batch contract in
-    // docs/architecture.md.
+    // NOT PORTED: Carbon's Tr2MeshBase::CreateGeometryBatch bakes the buffer
+    // allocations and computed draw arguments into the batch during collection.
+    // Here only a geometry-resource and area-range descriptor is recorded, and
+    // resolving it to allocations and final draw arguments is missing. See the
+    // render-batch contract in docs/architecture.md.
     this.geometrySource = null;
 
     this.objectData = null;
@@ -130,15 +129,14 @@ export class Tr2RenderBatch
     this.groupCount = 1;
   }
 
-  // Sets material and derives the shader key from it. In the realized engine the
-  // shader is the material's shader-state interface; in GPU-free collection no
-  // shader is realized yet, so the material (effect) itself stands in as the
-  // shader key. Either way the shader is both the validity key (see IsValid) and
+  // Sets material and derives the shader key from it. Normally the shader is the
+  // material's shader-state interface; before one is resolved the material
+  // (effect) itself stands in as the shader key. Either way the shader is both the validity key (see IsValid) and
   // the primary bin/sort key, so effect-equal batches still group together.
 
   /**
    * Sets the material and derives the shader key from it, falling back to the
-   * material itself when no shader-state interface is realized yet; that key is
+   * material itself when no shader-state interface is resolved yet; that key is
    * both the validity test and the primary bin/sort key, so effect-equal batches
    * still group together.
    */
@@ -200,8 +198,8 @@ export class Tr2RenderBatch
     this.stride[1] = AllocationStride(vertexAllocation2);
   }
 
-  // GPU-free geometry binding: records the resource + mesh/area range for the
-  // engine to resolve into realized buffers and draw arguments at dispatch.
+  // Geometry binding: records the resource + mesh/area range. Resolving it into
+  // buffers and draw arguments at dispatch is not ported yet.
 
   /**
    * GPU-free geometry binding: records the geometry resource plus the mesh and
@@ -355,7 +353,7 @@ export class Tr2RenderBatch
   // allocation for two integers.
   //
   // Carbon gates the BATCH on lod->m_allocationsValid, because in Carbon an
-  // unrealized draw cannot exist. This runtime is GPU-free, so an unrealized
+  // unbuilt draw cannot exist. Here the allocations are not built yet, so an unbuilt
   // LOD is normal and the flags gate the DRAW ARGUMENTS instead: collection
   // still emits the geometry-source descriptor.
   //

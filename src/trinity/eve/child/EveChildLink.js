@@ -107,7 +107,7 @@ export class EveChildLink extends EveChildMesh
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Per-object GPU buffer invalidation (cpp:143-144) is engine-owned; parents and curves are duck-typed and the vs/ps records are the backend-neutral value classes.")
+  @impl.reason("Per-object GPU buffer invalidation (cpp:143-144) is not ported yet; parents and curves are duck-typed and the vs/ps records are the backend-neutral value classes.")
   UpdateAsyncronous(_updateContext, params)
   {
     // Update the special link curves with last frame's strength, then copy

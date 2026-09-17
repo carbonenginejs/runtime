@@ -427,7 +427,7 @@ export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
    * cadence, clamps the elapsed simulation time, and advances CPU particles.
    */
   @impl.adapted
-  @impl.reason("Motion-vector buffer mirroring and sorting hysteresis are engine realization; CPU cadence, timing, transform, and emitter propagation are retained.")
+  @impl.reason("Motion-vector buffer mirroring and sorting hysteresis are not ported yet; CPU cadence, timing, transform, and emitter propagation are retained.")
   Update(globalArguments)
   {
     const argumentsValue = this.#updateArguments;
@@ -466,7 +466,7 @@ export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
 
   /** Returns the borrowed CPU GPU-stream mirror and live instance count. */
   @impl.adapted
-  @impl.reason("The Float32Array stream replaces Carbon's borrowed Tr2BufferAL reference until an engine realizes it.")
+  @impl.reason("The Float32Array stream replaces Carbon's borrowed Tr2BufferAL reference and the upload is not ported yet.")
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
     this.#instanceData.buffer = this.#buffers[0];
@@ -476,7 +476,7 @@ export class Tr2ParticleSystem extends withITr2InstanceData(CjsModel)
     return this.#instanceData;
   }
 
-  /** Returns the normalized GPU element declaration for engine realization. */
+  /** Returns the normalized GPU element declaration and the upload is not ported yet. */
   @impl.adapted
   @impl.reason("The normalized CPU declaration replaces Carbon's engine-owned numeric declaration handle.")
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)

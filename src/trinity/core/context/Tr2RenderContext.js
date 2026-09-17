@@ -279,7 +279,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   // Carbon advances both in TriDevice::Update (cpp:805/:823), which is the
-  // tick, and the tick is engine-owned (see the frame-driver contract in
+  // tick, and the tick is not ported yet (see the frame-driver contract in
   // docs/architecture.md). A driver calls this once per frame BEFORE Render.
   // Trinity never advances the clock itself: it cannot prove a frame boundary.
 

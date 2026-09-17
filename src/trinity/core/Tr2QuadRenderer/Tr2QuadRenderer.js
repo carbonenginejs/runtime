@@ -3,9 +3,15 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 // CPU half implemented 2026-07-23 (batch-plan P5 scene-global quad collector).
 // The generator had flattened the internal EffectRecord/PerThreadData members
-// onto the class; corrected to Carbon's nested shape. GPU realization (quad
-// vertex/index buffers, ring instance buffer upload, vertex-declaration
-// handles) is engine-owned and reads the merged CPU state emitted here.
+// onto the class; corrected to Carbon's nested shape.
+//
+// NOT PORTED, and this is a Trinity class in the donor: UpdateInstanceBuffer
+// (cpp:178), RecreateQuadBuffers (cpp:206) and OnPrepareResources (cpp:278)
+// are all methods of Tr2QuadRenderer itself. They were left out under the
+// retired graph/realization split; five other classes stop forwarding here
+// as a result (EveChildQuad, EveChildTurret, EveSmartLightQuad,
+// EveBoosterSet2, EveChildBoosterSet). See
+// /docs/internal/decisions/trinity-gpu-free-means-the-stub.md.
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
@@ -145,13 +151,13 @@ export class Tr2QuadRenderer extends CjsModel
 
   /**
    * Frame-start CPU work (Carbon cpp:160-166): merge the accumulated
-   * instances. Buffer upload and quad-buffer creation are engine-owned;
+   * instances. Buffer upload and quad-buffer creation are not ported yet;
    * the engine reads GetMergedData()/GetMaxQuadCount() and stamps
    * vertexBufferOffset with the ring allocation.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("UpdateInstanceBuffer/RecreateQuadBuffers/PrepareResources are GPU realization; the merged CPU state is exposed for the engine.")
+  @impl.reason("UpdateInstanceBuffer (cpp:178), RecreateQuadBuffers (cpp:206) and OnPrepareResources (cpp:278) are not ported; all three are methods of this class in Carbon. The merged CPU state is exposed meanwhile.")
   BeginRendering(_renderContext = null)
   {
     const quadCount = this.MergeBuffers();
@@ -176,7 +182,7 @@ export class Tr2QuadRenderer extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Quad and ring buffers become deferred descriptors the engine realizes; Carbon binds live AL buffers here.")
+  @impl.reason("Quad and ring buffers are emitted as deferred descriptors; Carbon binds live AL buffers here, and doing the same is not ported yet.")
   GetBatches(batchType, accumulator)
   {
     let committed = false;

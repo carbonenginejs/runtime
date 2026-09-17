@@ -62,7 +62,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   }
 
   /**
-   * Nothing to do in this GPU-free package - a resource path is never resolved
+   * Not ported yet - a resource path is never resolved
    * to a buffer here; returns true.
    */
   @carbon.method

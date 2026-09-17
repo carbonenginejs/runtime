@@ -5,7 +5,7 @@
 // The generator had flattened the internal EffectRecord/PerThreadData members
 // onto the class; corrected to Carbon's nested shape. GPU realization (quad
 // vertex/index buffers, ring instance buffer upload, vertex-declaration
-// handles) is engine-owned and reads the merged CPU state emitted here.
+// handles) is not ported yet and reads the merged CPU state emitted here.
 
 
 /** One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord). */

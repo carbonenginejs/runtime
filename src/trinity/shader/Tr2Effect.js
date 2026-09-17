@@ -370,11 +370,12 @@ export class Tr2Effect extends Tr2Material
    * That is the shape `Tr2Material`'s readers already expect, so this
    * assembles the existing material models rather than inventing a structure.
    *
-   * Device work is deliberately absent. Carbon creates a constant buffer, a
-   * resource set and sampler-state objects in this same loop; here only the
-   * CPU mirror is allocated, through `Tr2MaterialStageInput`'s own
-   * `AllocateConstants` / `GetSharedConstantBuffer`, which exist for exactly
-   * this reason. An engine realizes the rest from what is recorded.
+   * Device work is NOT PORTED. Carbon creates a constant buffer, a resource set
+   * and sampler-state objects in this same loop; here only the CPU mirror is
+   * allocated, through `Tr2MaterialStageInput`'s own `AllocateConstants` /
+   * `GetSharedConstantBuffer`. The rest is a gap rather than a deliberate
+   * absence - this comment used to say an engine realizes it, which was the
+   * retired graph/realization split.
    *
    * @returns {void}
    */

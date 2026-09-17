@@ -108,7 +108,8 @@ export class Tr2PostProcessRenderer extends CjsModel
   /**
    * Executes the physical post-process chain.
    *
-   * @throws {Error} Until an engine-owned realization contract is installed.
+   * @throws {Error} Not ported yet. Carbon implements this on the class itself;
+   * the retired graph/realization split is why it was left out.
    */
   @carbon.method
   @impl.notImplemented
@@ -124,7 +125,7 @@ export class Tr2PostProcessRenderer extends CjsModel
     _renderContext
   )
   {
-    throw new Error("Tr2PostProcessRenderer.Execute requires an engine-owned post-process realization contract");
+    throw new Error("Tr2PostProcessRenderer.Execute is not ported yet.");
   }
 
   static BloomDebugMode = BloomDebugMode;

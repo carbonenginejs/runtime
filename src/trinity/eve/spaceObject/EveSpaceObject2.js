@@ -1141,7 +1141,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Native impostor, raytracing, and audio-emitter realization remain engine-owned; graph visibility and LOD state are preserved.")
+  @impl.reason("Native impostor, raytracing, and audio-emitter realization are not ported yet; graph visibility and LOD state are preserved.")
   UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2.#identityTransform)
   {
     this.isVisible = false;
@@ -1257,7 +1257,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   /** Collects the hull and explicitly owned Carbon child/decal renderables. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Impostor submission and decal mesh caches are engine-owned; Trinity returns the backend-neutral renderable graph.")
+  @impl.reason("Impostor submission and decal mesh caches are not ported yet; Trinity returns the backend-neutral renderable graph.")
   GetRenderables(out = [])
   {
     if (!this.display || !this.isVisible) return out;
@@ -1525,12 +1525,12 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
 
   /** Carbon GetShadowBatches (EveSpaceObject2.cpp:1143-1184): one batch per
    * cached shared-material OPAQUE area block, using the area's own material.
-   * Carbon bakes realized-LOD draw args; the GPU-free port defers them to the
-   * engine via the geometry source descriptor, so shadowPixelSize travels unused
-   * until engine LOD selection consumes it. */
+   * Carbon bakes LOD draw args at this point; doing the same is not ported, so
+   * they travel as a geometry source descriptor and shadowPixelSize goes unused
+   * until LOD selection is ported. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Realized-LOD draw args are engine-resolved from the geometry source descriptor; primitive-count gating happens at realization.")
+  @impl.reason("LOD draw args are left as a geometry source descriptor and primitive-count gating is not ported yet; Carbon bakes both here.")
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false) return false;
@@ -1564,7 +1564,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
    * else -> TYPE_ALL). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Overlay selection is fully represented in the CPU graph; realized-LOD draw arguments remain engine-owned.")
+  @impl.reason("Overlay selection is fully represented in the CPU graph; realized-LOD draw arguments are not ported yet.")
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
     const impactEffect = this.impactOverlay?.GetArmorDamageShader?.(batchType) ?? null;

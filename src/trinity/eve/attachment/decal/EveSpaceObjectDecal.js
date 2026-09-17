@@ -120,7 +120,7 @@ export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
   #maxBounds = vec3.create();
 
   /** m_instanceData (h:212) - non-null selects the instanced visibility path.
-   * The instance buffer itself is engine-owned; the graph only needs to know
+   * The instance buffer itself is not ported yet; the graph only needs to know
    * whether one is attached. */
   #instanceData = null;
 

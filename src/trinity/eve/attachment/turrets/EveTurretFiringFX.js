@@ -595,7 +595,7 @@ export class EveTurretFiringFX extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; draw realization remains runtime-engine work.")
+  @impl.reason("Renderable collection is backend-neutral; draw realization is not ported yet.")
   GetRenderables(out = [])
   {
     if (!(this.display && this.isFiring)) return out;

@@ -43,8 +43,7 @@ export class Tr2ShaderBuffer extends CjsModel
   }
 
   /**
-   * Always false - binding the buffer to a device is outside this GPU-free
-   * package.
+   * Always false - binding the buffer to a device is not ported yet.
    */
   ApplyBuffer()
   {

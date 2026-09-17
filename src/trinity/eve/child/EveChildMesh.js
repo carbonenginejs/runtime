@@ -733,7 +733,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Audio-geometry registration is engine-owned and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")
+  @impl.reason("Audio-geometry registration is not ported yet and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")
   UpdateSyncronous(updateContext, _params)
   {
     if (this.damageOverlay) this.damageOverlay.UpdateSyncronous(updateContext);
@@ -887,7 +887,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
    * and the attachment/decal visibility fan-out. Carbon recomputes the local
    * mesh bounds here (cpp:380-394) but consumes only the world sphere/box
    * computed in UpdateAsyncronous, so the dead recompute is skipped. The
-   * raytracing branch (cpp:450-462) is engine-owned and omitted.
+   * raytracing branch (cpp:450-462) is not ported yet and omitted.
    * @param {Object} updateContext - frame context (frustum + invLodFactor ducks)
    * @param {Float32Array} _parentTransform
    * @param {Number} parentLod - parent Tr2Lod level
@@ -965,7 +965,7 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is engine-owned; the LOD/screen-size math and the bone-fed attachment pass are ported.")
+  @impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.")
   UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
     this.#isVisible = false;
@@ -1071,12 +1071,12 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
    * Collects this child (and its decals) as renderables (Carbon
    * EveChildMesh::GetRenderables, cpp:571-616): instanced meshes contribute
    * only while the per-instance gate passed; decals ride along through their
-   * duck-typed renderable collectors (mesh cache is engine-owned, passed null
+   * duck-typed renderable collectors (mesh cache is not ported yet, passed null
    * as in EveSpaceObject2.GetRenderables).
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The decal mesh cache is engine-owned (null placeholder); collection structure is ported.")
+  @impl.reason("The decal mesh cache is not ported yet (null placeholder); collection structure is ported.")
   GetRenderables(out = [])
   {
     if (!this.#isVisible)

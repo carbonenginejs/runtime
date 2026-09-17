@@ -197,7 +197,7 @@ export class EveSmartLightQuad extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2QuadRenderer::Instance() is engine-owned; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")
+  @impl.reason("Tr2QuadRenderer::Instance() is not ported yet; Initialize caches the effect key and defers effect registration to RegisterWithQuadRenderer.")
   Initialize()
   {
     if (!this.effect)
@@ -213,7 +213,7 @@ export class EveSmartLightQuad extends EveChildTransform
   /** Registers the effect bucket with a quad renderer (EveSmartLightQuad.cpp:68-71). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The injected renderer owns physical realization; Trinity forwards the required Carbon registration contract directly using EveChildQuad's shared definition.")
+  @impl.reason("Submission through Tr2QuadRenderer is not ported yet; Trinity forwards the required Carbon registration contract directly using EveChildQuad's shared definition.")
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(
@@ -299,7 +299,7 @@ export class EveSmartLightQuad extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The injected renderer owns physical realization; Trinity builds and packs Carbon's logical record before direct submission.")
+  @impl.reason("Submission through Tr2QuadRenderer is not ported yet; Trinity builds and packs Carbon's logical record before direct submission.")
   AddQuadsToQuadRenderer(placements, size, frustum, quadRenderer)
   {
     if (!this.display || !this.effect)

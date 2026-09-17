@@ -208,7 +208,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
    * argument follows the repo's OnModified duck (field name or field value). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Registry re-registration on display/displayFilter changes is engine-owned; the mute fan-out side effect is ported.")
+  @impl.reason("Registry re-registration on display/displayFilter changes is not ported yet; the mute fan-out side effect is ported.")
   OnModified(value = null)
   {
     if (value === "mute" || value === this.mute)

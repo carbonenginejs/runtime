@@ -134,7 +134,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
   return out;
 }
 
-/** Cascaded-shadow split producer; engines realize only its GPU operations. */
+/** Cascaded-shadow split producer. Its GPU operations are not ported yet. */
 @type.define({ className: "Tr2ShadowMap", family: "trinityCore" })
 export class Tr2ShadowMap extends CjsModel
 {

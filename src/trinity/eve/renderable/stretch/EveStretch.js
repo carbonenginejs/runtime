@@ -188,7 +188,7 @@ export class EveStretch extends withIEveTransform(withIEveSpaceObject2(IEveFirin
    * child once the progress curve reaches 1.
    */
   @carbon.method @impl.adapted
-  @impl.reason("The transforms are computed in Trinity, while child render realization remains backend-owned.")
+  @impl.reason("The transforms are computed in Trinity, while child rendering is not ported yet.")
   UpdateVisibility(context, parentTransform = EveStretch.#identity)
   {
     if (!this.display) return;

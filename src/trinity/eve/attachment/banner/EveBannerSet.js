@@ -253,7 +253,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are engine-owned; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
+  @impl.reason("ITr2DebugRenderer2 and Tr2DebugObjectReference are not ported yet; the reference collapses to (owner, index) arguments and the Effect enum to its ordinal.")
   RenderDebugInfo(renderer, parentTransform, bones = null, boneCount = 0)
   {
     if (!renderer) return false;

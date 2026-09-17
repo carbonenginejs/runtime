@@ -146,7 +146,7 @@ export class EveTransform extends withIEveTransform(withIEveSpaceObject2(withITr
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers remain engine-owned.")
+  @impl.reason("Particle updates are forwarded through backend-neutral emitter and system contracts; device particle managers are not ported yet.")
   UpdateAsyncronous(context)
   {
     if (!this.update) return false;

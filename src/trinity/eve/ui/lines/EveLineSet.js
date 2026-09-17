@@ -96,7 +96,7 @@ export class EveLineSet extends withIEveTransform(withIEveSpaceObject2(withITr2R
   /** Carbon method AddLine (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization belongs to an engine package.")
+  @impl.reason("Stores Carbon's pending line data as renderer-neutral JavaScript records; buffer realization is not ported yet.")
   AddLine(position1, color1, position2, color2)
   {
     this.lines.push({
@@ -186,7 +186,7 @@ export class EveLineSet extends withIEveTransform(withIEveSpaceObject2(withITr2R
   /** Carbon method SubmitChanges (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization belongs to an engine package.")
+  @impl.reason("Records submitted counts without creating Carbon's GPU vertex buffer; realization is not ported yet.")
   SubmitChanges()
   {
     this.maxCurrentLineCount = Math.max(this.maxCurrentLineCount, this.lines.length);

@@ -109,13 +109,14 @@ export class Tr2SSAO extends CjsModel
   /**
    * Filters the supplied depth/normal inputs into a physical SSAO texture.
    *
-   * @throws {Error} Until an engine-owned realization contract is installed.
+   * @throws {Error} Not ported yet. Carbon implements this on the class itself;
+   * the retired graph/realization split is why it was left out.
    */
   @carbon.method
   @impl.notImplemented
   Filter(_depthBuffer, _normalBuffer, _gpuResourcePool, _renderContext, _temporal)
   {
-    throw new Error("Tr2SSAO.Filter requires an engine-owned SSAO realization contract");
+    throw new Error("Tr2SSAO.Filter is not ported yet.");
   }
 
   /**

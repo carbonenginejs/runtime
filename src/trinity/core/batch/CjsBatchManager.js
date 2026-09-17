@@ -1,19 +1,28 @@
 // CarbonEngineJS composition class (no Carbon counterpart) - see the
 // render-batch contract in docs/architecture.md.
 //
-// Library-level batch orchestrator: one per backend/CjsLibrary, GPU-free. Owns
-// the producer registry ({ type -> { Build, Realize } } plus scene-global
-// collectors) and the neutral per-frame collection flow:
+// Library-level batch orchestrator: one per backend/CjsLibrary. Owns the
+// producer registry ({ type -> { Build, Realize } } plus scene-global
+// collectors) and the per-frame collection flow:
 //
-//   realize-if-stale -> build data batches -> finalize -> expose accumulators
+//   prepare-if-stale -> build data batches -> finalize -> expose accumulators
 //
-// The engine registers its concrete hooks at composition time (fail-closed via
-// Initialize). Realizers own GPU state and the staleness policy (they consume
-// __state.rebuild tokens and fast-exit when current); Build hooks emit neutral
-// Tr2RenderBatch DATA into the per-TriBatchType accumulators; dispatch of the
-// finalized accumulators is engine work and never lives here. The manager holds
-// a reference DOWN to the engine hooks - it is not a device member, and no GPU
-// handle ever enters this class.
+// The producer registers its concrete hooks at composition time (fail-closed
+// via Initialize); Build hooks emit Tr2RenderBatch DATA into the
+// per-TriBatchType accumulators.
+//
+// THE COMMENTS HERE USED TO SAY that "realizers own GPU state", that dispatch
+// "is engine work and never lives here", and that "no GPU handle ever enters
+// this class". That was the graph/realization split retired by
+// /docs/internal/decisions/trinity-gpu-free-means-the-stub.md - Carbon has no
+// realizer layer, and its own Trinity classes hold their handles and call the
+// AL. The Realize hook is kept as the prepare-if-stale seam, but nothing about
+// it forbids a Trinity class from owning device state.
+//
+// Open, and the reason the hook looks inert: nothing consumes __state.rebuild
+// tokens by name and nothing clears one - the only read in src is
+// HasRebuildWork below, which asks whether the set is non-empty. The producer
+// half of that contract exists; the consuming half was never written.
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TriRenderBatchMap } from "./TriRenderBatchMap.js";
@@ -33,7 +42,7 @@ function fail(message)
 
 /**
  * Owns the per-library render-batch producer and collector registry and drives
- * the GPU-free per-frame flow of realize, build, finalize into one accumulator
+ * the per-frame flow of prepare, build, finalize into one accumulator
  * per batch type.
  */
 export class CjsBatchManager
@@ -71,8 +80,9 @@ export class CjsBatchManager
 
   // Registers producer hooks: [{ type, Build, Realize? }]. Build(renderable,
   // batchMap, perObjectData, reason) emits data batches; Realize(renderable) is
-  // the engine's pull-realization (consumes __state.rebuild tokens, fast-exits
-  // when current). Registration is closed once Initialize has run.
+  // the pull-prepare seam: it is meant to consume __state.rebuild tokens and
+  // fast-exit when current, though nothing consumes them yet (see the head
+  // comment). Registration is closed once Initialize has run.
 
   /**
    * Registers producer hooks given as { type, Build, Realize? } entries,
@@ -149,8 +159,8 @@ export class CjsBatchManager
   // (visibility is a scene concern). Faithful to Carbon's two-phase flow
   // (EveSpaceScene.cpp GetBatchesFromRenderables + PrepareTransparentBatch):
   //
-  // 1. Per renderable: run the engine's Realize hook when its producer
-  //    registered one (the realizer fast-exits when current), obtain per-object
+  // 1. Per renderable: run the Realize hook when its producer registered one
+  //    (it is expected to fast-exit when current), obtain per-object
   //    data once (pool = OPAQUE accumulator), then dispatch the registered Build
   //    hook or fall back to the renderable's GetBatches per NON-TRANSPARENT batch
   //    type. Renderables reporting HasTransparentBatches are gathered with
@@ -164,7 +174,7 @@ export class CjsBatchManager
   // reads a renderer global). Returns the finalized batch map.
 
   /**
-   * Runs the per-frame CPU collection over pre-culled renderables - realize,
+   * Runs the per-frame CPU collection over pre-culled renderables - prepare,
    * per-renderable build into every non-transparent type, then a back-to-front
    * transparent pass, then the scene-global collectors - and returns the
    * finalized batch map.
@@ -285,9 +295,11 @@ export class CjsBatchManager
     return type ? this.#producers.get(type) ?? null : null;
   }
 
-  // True when the object advertises pending scheduled GPU work via the shared
-  // __state.rebuild token set. Realizers use this (plus their own per-token
-  // checks) to fast-exit when current.
+  // True when the object advertises pending scheduled work via the shared
+  // __state.rebuild token set. A producer's Realize hook is meant to use this
+  // (plus its own per-token checks) to fast-exit when current. NOTE: no caller
+  // exists yet, and nothing clears a token, so this can never return false once
+  // any declared field has been written.
 
   /**
    * Whether an object advertises pending scheduled GPU work through its shared
@@ -299,16 +311,15 @@ export class CjsBatchManager
   }
 
   // Owner-propagation convention: child records (mesh areas, set items, effect
-  // children) carry their OWN declared rebuild tokens, and the OWNING realizer
-  // consumes child tokens alongside the owner's - no upward token copying is
+  // children) carry their OWN declared rebuild tokens, and the OWNING consumer
+  // takes child tokens alongside the owner's - no upward token copying is
   // performed.
   // This helper answers "does the owner or any child advertise work"; the
-  // realizer still clears each consumed token where it lives.
+  // consumer still clears each consumed token where it lives.
 
   /**
    * Whether the owner or any listed child advertises rebuild work; child tokens
-   * stay where they live, and the realizer still clears each consumed token
-   * there.
+   * stay where they live, and whatever consumes one clears it there.
    */
   static AnyRebuildWork(object, children = null)
   {
