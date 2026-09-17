@@ -1,8 +1,7 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
-import {
-  CjsPickleProtocol0Reader,
-  PICKLE_PROTOCOL_0_LIMITS
-} from "./core/CjsPickleProtocol0Reader.js";
+import { CjsPickleProtocol0Reader } from "./core/CjsPickleProtocol0Reader.js";
+import { CjsPickleProtocol4Reader } from "./core/CjsPickleProtocol4Reader.js";
+import { PICKLE_LIMITS, normalizeBytes } from "./core/pickleCommon.js";
 
 const OUTPUT_JSON = "json";
 const OUTPUT_PAYLOAD = "payload";
@@ -11,20 +10,41 @@ const OUTPUTS = new Set([ OUTPUT_JSON, OUTPUT_PAYLOAD, OUTPUT_RAW ]);
 const OPTION_NAMES = new Set([ "emit", "limits" ]);
 const DEFAULT_VALUES = {
   emit: OUTPUT_JSON,
-  limits: PICKLE_PROTOCOL_0_LIMITS
+  limits: PICKLE_LIMITS
 };
 
+const PROTO = 0x80;
+
 /**
- * Data-only Python pickle format facade that currently decodes protocol 0 into
- * JSON-compatible values or identity-preserving payload graphs while rejecting
- * callable and object-construction opcodes.
+ * Choose the reader for one input.
+ *
+ * Protocol 0 is printable text and has no header. Every binary protocol opens
+ * with `PROTO`, which is the only opcode the text protocol cannot begin with,
+ * so the first byte separates them without guessing - and the binary reader
+ * then reads the declared version out of that same opcode.
+ *
+ * @param {ArrayBuffer|ArrayBufferView} input Pickle bytes.
+ * @returns {Function} Reader class for the input.
+ */
+function readerFor(input)
+{
+  const bytes = normalizeBytes(input);
+  return bytes.length && bytes[0] === PROTO
+    ? CjsPickleProtocol4Reader
+    : CjsPickleProtocol0Reader;
+}
+
+/**
+ * Data-only Python pickle format facade that decodes the inert subset of
+ * protocols 0 through 4 into JSON-compatible values or identity-preserving
+ * payload graphs while rejecting callable and object-construction opcodes.
  */
 export class CjsPickleFormat extends CjsFormat
 {
   #values = DEFAULT_VALUES;
 
   /**
-   * Create a reusable protocol-0 pickle format profile.
+   * Create a reusable pickle format profile.
    *
    * @param {object} [options] Emit mode and bounded decoder limits.
    */
@@ -132,7 +152,7 @@ export class CjsPickleFormat extends CjsFormat
   }
 
   /**
-   * Decode a JSON-compatible graph through the protocol-0 implementation.
+   * Decode a JSON-compatible graph through the implementation for its protocol.
    *
    * @param {ArrayBuffer|ArrayBufferView} input Pickle bytes.
    * @param {object} [options] Format options.
@@ -141,7 +161,7 @@ export class CjsPickleFormat extends CjsFormat
   static readJSON(input, options = {})
   {
     const values = this.normalizeValues(DEFAULT_VALUES, options);
-    return new CjsPickleProtocol0Reader(input, values).ReadJSON();
+    return new (readerFor(input))(input, values).ReadJSON();
   }
 
   /**
@@ -154,7 +174,7 @@ export class CjsPickleFormat extends CjsFormat
   static readPayload(input, options = {})
   {
     const values = this.normalizeValues(DEFAULT_VALUES, options);
-    return new CjsPickleProtocol0Reader(input, values).Read();
+    return new (readerFor(input))(input, values).Read();
   }
 
   /**
@@ -180,16 +200,15 @@ export class CjsPickleFormat extends CjsFormat
     return CjsPickleProtocol0Reader.ToJSON(value);
   }
 
-  /** Validate protocol-0 structure and return format metadata. */
+  /** Validate pickle structure and return format metadata. */
   static inspect(input, options = {})
   {
     const { source: _source, ...readOptions } = options;
     const value = this.readPayload(input, readOptions);
-    const byteLength = input instanceof ArrayBuffer
-      ? input.byteLength
-      : ArrayBuffer.isView(input) ? input.byteLength : 0;
+    const bytes = normalizeBytes(input);
+    const byteLength = bytes.byteLength;
     return {
-      protocol: 0,
+      protocol: bytes.length && bytes[0] === PROTO ? bytes[1] : 0,
       byteLength,
       rootType: value === null ? "null" : Array.isArray(value) ? "array" : typeof value
     };
@@ -225,7 +244,7 @@ export class CjsPickleFormat extends CjsFormat
       throw new TypeError(`CjsPickleFormat unknown emit value ${JSON.stringify(emit)}.`);
     }
 
-    const baseLimits = base.limits || PICKLE_PROTOCOL_0_LIMITS;
+    const baseLimits = base.limits || PICKLE_LIMITS;
     const optionLimits = options.limits ?? {};
     if (!optionLimits || typeof optionLimits !== "object" || Array.isArray(optionLimits))
     {
@@ -246,7 +265,7 @@ export class CjsPickleFormat extends CjsFormat
     PAYLOAD: OUTPUT_PAYLOAD,
     RAW: OUTPUT_RAW
   });
-  static supportedProtocols = Object.freeze([ 0 ]);
+  static supportedProtocols = Object.freeze([ 0, 1, 2, 3, 4 ]);
   static id = "pickle";
   static extensions = Object.freeze([ ".pickle" ]);
   static mediaTypes = Object.freeze([ "data" ]);

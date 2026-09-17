@@ -27,7 +27,7 @@ test("pickle facade declares protocol 0 and the standard format vocabulary", () 
   ].sort());
   assert.equal(CjsPickleFormat.id, "pickle");
   assert.deepEqual(CjsPickleFormat.extensions, [ ".pickle" ]);
-  assert.deepEqual(CjsPickleFormat.supportedProtocols, [ 0 ]);
+  assert.deepEqual(CjsPickleFormat.supportedProtocols, [ 0, 1, 2, 3, 4 ]);
   assert.equal(typeof CjsPickleFormat.normalizeValues, "function");
   assert.doesNotThrow(() => CjsFormat.validateContract(CjsPickleFormat));
 });
@@ -128,10 +128,18 @@ test("pickle reader rejects executable and unsupported protocol opcodes", () =>
       && error.offset === 0
       && /"os\.system"/u.test(error.message)
   );
+  // A binary protocol declares itself with PROTO, so an opcode outside the data
+  // subset is refused at its own offset rather than at the header. NEWOBJ is the
+  // binary protocols' object construction, which is exactly what stays out.
   assert.throws(
-    () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x02, 0x4e, 0x2e ])),
+    () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x04, 0x81, 0x2e ])),
     error => error.code === "CJS_PICKLE_FORMAT_OPCODE_UNSUPPORTED"
-      && error.offset === 0
+      && error.protocol === 4
+      && error.offset === 2
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(new Uint8Array([ 0x80, 0x05, 0x4e, 0x2e ])),
+    error => error.code === "CJS_PICKLE_FORMAT_PROTOCOL_UNSUPPORTED"
   );
   assert.throws(
     () => CjsPickleFormat.read(bytes("(tI1\na.")),
@@ -340,4 +348,152 @@ test("rebuilt items are budgeted across the whole decode, not per container", ()
   // The outer list holds the pair list, the argument tuple and 100 rebuilds.
   assert.equal(small.length, 102);
   assert.equal(Object.keys(small[small.length - 1]).length, 50);
+});
+
+/**
+ * Assemble one binary-protocol pickle. Numbers are opcode or argument bytes;
+ * a string is its UTF-8 bytes, which is how every length-prefixed value in the
+ * binary protocols spells its payload.
+ */
+function binary(...parts)
+{
+  const chunks = parts.map(part => typeof part === "string" ? bytes(part) : Uint8Array.from([ part ]));
+  const total = chunks.reduce((sum, chunk) => sum + chunk.length, 0);
+  const result = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks)
+  {
+    result.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return result;
+}
+
+test("protocol 4 is chosen by its PROTO header, not by a caller-supplied option", () =>
+{
+  // Protocol 0 has no header and cannot begin with 0x80, so the first byte
+  // separates the two families without guessing.
+  const value = CjsPickleFormat.read(binary(
+    0x80, 0x04,
+    0x7d, 0x94, // EMPTY_DICT, MEMOIZE
+    0x28, // MARK
+    0x8c, 0x04, "name", 0x94,
+    0x8c, 0x05, "Ragna", 0x94,
+    0x4b, 0x07, // BININT1 7
+    0x88, // NEWTRUE
+    0x75, // SETITEMS
+    0x2e
+  ));
+
+  assert.deepEqual(value, { name: "Ragna", 7: true });
+  assert.equal(CjsPickleFormat.inspect(binary(0x80, 0x04, 0x4e, 0x2e)).protocol, 4);
+  assert.equal(CjsPickleFormat.inspect(bytes("N.")).protocol, 0);
+});
+
+test("protocol 4 decodes the tuple-of-language shape CCP localization ships", () =>
+{
+  // The real file is `("en-us", {messageID: (text, None, None)})`, memoized
+  // throughout, in one frame. This is that shape at two entries.
+  const body = binary(
+    0x8c, 0x05, "en-us", 0x94,
+    0x7d, 0x94,
+    0x28,
+    0x4a, 0x01, 0x00, 0x00, 0x00, // BININT 1
+    0x8c, 0x07, "Passive", 0x94, 0x4e, 0x4e, 0x87, 0x94, // TUPLE3, MEMOIZE
+    0x4d, 0x10, 0x27, // BININT2 10000
+    0x8c, 0x06, "Strong", 0x94, 0x4e, 0x4e, 0x87, 0x94,
+    0x75, // SETITEMS
+    0x86, 0x94, // TUPLE2, MEMOIZE
+    0x2e
+  );
+  const frame = new Uint8Array(8);
+  new DataView(frame.buffer).setBigUint64(0, BigInt(body.length), true);
+
+  const decoded = CjsPickleFormat.read(binary(
+    0x80, 0x04, 0x95,
+    ...Array.from(frame),
+    ...Array.from(body)
+  ));
+
+  assert.deepEqual(decoded, [ "en-us", { 1: [ "Passive", null, null ], 10000: [ "Strong", null, null ] } ]);
+});
+
+test("protocol 4 rebuilds only the same closed set of globals", () =>
+{
+  // STACK_GLOBAL is protocol 4's spelling of GLOBAL: the name arrives as two
+  // strings on the stack rather than as two lines. The set it may name is the
+  // one protocol 0 uses, because it is literally the same table.
+  const ordered = CjsPickleFormat.read(binary(
+    0x80, 0x04,
+    0x8c, 0x0b, "collections", 0x94,
+    0x8c, 0x0b, "OrderedDict", 0x94,
+    0x93, 0x94, // STACK_GLOBAL, MEMOIZE
+    0x5d, 0x94, // EMPTY_LIST, MEMOIZE
+    0x28,
+    0x8c, 0x04, "zulu", 0x94, 0x4b, 0x01, 0x86, 0x94,
+    0x8c, 0x05, "alpha", 0x94, 0x4b, 0x02, 0x86, 0x94,
+    0x65, // APPENDS
+    0x85, 0x94, // TUPLE1, MEMOIZE
+    0x52, 0x94, // REDUCE, MEMOIZE
+    0x2e
+  ));
+
+  assert.deepEqual(Object.keys(ordered), [ "zulu", "alpha" ]);
+
+  assert.throws(
+    () => CjsPickleFormat.read(binary(
+      0x80, 0x04,
+      0x8c, 0x02, "os", 0x94,
+      0x8c, 0x06, "system", 0x94,
+      0x93, 0x94,
+      0x29, 0x52, 0x2e
+    )),
+    error => error.code === "CJS_PICKLE_FORMAT_GLOBAL_UNSUPPORTED"
+      && /"os\.system"/u.test(error.message)
+  );
+});
+
+test("protocol 4 bytes decode as bytes, and the JSON emit says so", () =>
+{
+  // Python bytes have no JSON spelling. Inventing one - an array of numbers, a
+  // base64 string - would be indistinguishable in the output from data that
+  // really was that, so the payload carries the bytes and the JSON emit refuses.
+  const source = binary(0x80, 0x04, 0x43, 0x03, 0x01, 0x02, 0x03, 0x2e);
+  const payload = CjsPickleFormat.readPayload(source);
+
+  assert.ok(payload instanceof Uint8Array);
+  assert.deepEqual(Array.from(payload), [ 1, 2, 3 ]);
+  assert.throws(
+    () => CjsPickleFormat.readJSON(source),
+    error => error.code === "CJS_PICKLE_FORMAT_JSON_INVALID"
+  );
+});
+
+test("protocol 4 integers keep protocol 0's safe-integer fallback", () =>
+{
+  // LONG1 is arbitrary width, so the same rule applies as to protocol 0's LONG:
+  // a value outside the safe range becomes its decimal string rather than a
+  // silently rounded number.
+  assert.equal(CjsPickleFormat.read(binary(0x80, 0x04, 0x8a, 0x01, 0xff, 0x2e)), -1);
+  assert.equal(
+    CjsPickleFormat.read(binary(
+      0x80, 0x04, 0x8a, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x40, 0x2e
+    )),
+    "4611686018427387904"
+  );
+  assert.equal(CjsPickleFormat.read(binary(0x80, 0x04, 0x4a, 0xff, 0xff, 0xff, 0xff, 0x2e)), -1);
+});
+
+test("a truncated frame or argument fails at its own offset", () =>
+{
+  assert.throws(
+    () => CjsPickleFormat.read(binary(
+      0x80, 0x04, 0x95, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x4e, 0x2e
+    )),
+    error => error.code === "CJS_PICKLE_FORMAT_EOF" && error.offset === 2
+  );
+  assert.throws(
+    () => CjsPickleFormat.read(binary(0x80, 0x04, 0x8c, 0x09, "short", 0x2e)),
+    error => error.code === "CJS_PICKLE_FORMAT_EOF"
+  );
 });
