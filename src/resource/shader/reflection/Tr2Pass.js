@@ -194,7 +194,7 @@ CjsSchema.define(Tr2Pass, {
     shaderProgram: type.uint32,
     resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
     indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
-    renderStateValues: [ impl.adapted, impl.reason("Carbon interns the state block through Tr2EffectStateManager::RegisterRenderStateSetup (Tr2EffectStateManager.h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). That manager is not ported yet, so the authored state/value pairs are retained here."), type.rawStruct("CjsEffectRenderStateValues") ],
+    renderStateValues: [ impl.adapted, impl.reason("Carbon interns the state block while reading (Tr2EffectStateManager::RegisterRenderStateSetup, .h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). Ours interns at the Trinity boundary, so the authored state/value pairs are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectRenderStateValues") ],
     stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the port retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
     backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains uninterpreted."), type.rawStruct("CjsEffectBackendBlock") ]
   }

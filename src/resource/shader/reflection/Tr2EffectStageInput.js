@@ -500,6 +500,6 @@ CjsSchema.define(Tr2EffectStageInput, {
     constantValuesUnsetOffset: [ impl.custom, impl.reason("A zero-size blob's offset word is passed through rather than interned, and the shipped corpus does not always set it to the null sentinel; the graph retains it so a body re-emits as the file that produced it."), type.uint32 ],
     signature: type.rawStruct("Tr2ShaderSignatureAL"),
     annotation: type.list("Tr2EffectParameterAnnotation"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the program through Tr2EffectStateManager::RegisterShader (Tr2EffectStateManager.h:107) and keeps only the m_shader handle (Tr2EffectDescription.h:183). That manager is not ported yet, so the bytes are retained here."), type.rawStruct("CjsEffectSourceProgram") ]
+    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the program inside Tr2EffectDescription::Read (cpp:587-666) and keeps only the m_shader handle (Tr2EffectDescription.h:183). Ours interns at the Trinity boundary, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectSourceProgram") ]
   }
 });

@@ -186,7 +186,7 @@ CjsSchema.define(Tr2EffectLibrary, {
     globalInput: type.rawStruct("Tr2EffectStageInput"),
     localInput: type.rawStruct("Tr2EffectStageInput"),
     globalResourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the library bytecode through Tr2EffectStateManager::RegisterShaderLibrary (Tr2EffectStateManager.h:115) and keeps only libraryHandle (Tr2EffectDescription.h:217). That manager is not ported yet, so the bytes are retained here."), type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ impl.adapted, impl.reason("Carbon resolves these exports into the interned library handle; without Tr2EffectStateManager the declarative export list is what is kept."), type.rawStruct("CjsEffectLibraryExports") ]
+    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the library bytecode while reading (Tr2EffectStateManager::RegisterShaderLibrary, .h:115) and keeps only libraryHandle. Ours interns at the Trinity boundary instead, because the resource layer may not import Trinity, so the bytes are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectSourceProgram") ],
+    exports: [ impl.adapted, impl.reason("Carbon resolves these exports into the interned library handle while reading; the declarative export list is what survives until interning happens at the Trinity boundary."), type.rawStruct("CjsEffectLibraryExports") ]
   }
 });
