@@ -46,7 +46,6 @@ export class CjsResourceProbe extends CjsModel
   {
     super();
     this.SetValues(normalizeReport(values), {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

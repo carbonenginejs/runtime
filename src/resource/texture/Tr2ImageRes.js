@@ -24,7 +24,6 @@ export class Tr2ImageRes extends CjsResource
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

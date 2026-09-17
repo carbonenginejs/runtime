@@ -53,7 +53,6 @@ export class TriTextureRes extends CjsResource
   constructor(values = null) {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

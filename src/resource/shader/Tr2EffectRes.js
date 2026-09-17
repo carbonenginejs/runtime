@@ -83,7 +83,6 @@ export class Tr2EffectRes extends CjsResource
   {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

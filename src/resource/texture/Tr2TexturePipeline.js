@@ -32,7 +32,6 @@ export class Tr2TexturePipeline extends CjsModel
   {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

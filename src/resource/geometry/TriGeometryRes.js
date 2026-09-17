@@ -55,7 +55,6 @@ export class TriGeometryRes extends CjsResource
   {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });

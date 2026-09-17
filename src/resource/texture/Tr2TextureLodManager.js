@@ -48,7 +48,6 @@ export class Tr2TextureLodManager extends CjsModel
   {
     super();
     this.SetValues(values || {}, {
-      markDirty: false,
       skipUpdate: true,
       skipEvents: true
     });
