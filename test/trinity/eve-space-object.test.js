@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { BlueListEvent } from "../../npm/dist/global/consts/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
   EveEffectRoot2,
@@ -407,7 +408,9 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
     }
   });
   object.AddToEffectChildrenList(futureChild);
-  assert.equal(childWasInserted, false);
+  // Carbon notifies AFTER insertion - IList.h:43 says so in as many words -
+  // so the child is already in the list when it is told.
+  assert.equal(childWasInserted, true);
   assert.equal(object.effectChildren.at(-1), futureChild);
   assert.deepEqual(futureChildCalls, [stored]);
 
@@ -422,7 +425,7 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
     }
   })();
   object.AddLight(futureLight);
-  assert.equal(lightWasInserted, false);
+  assert.equal(lightWasInserted, true, "the light is in the list before it is told");
   assert.equal(object.lights.at(-1), futureLight);
   assert.deepEqual(futureLightCalls, [stored]);
 
@@ -1259,4 +1262,71 @@ test("merged damage locators resolve against the owning child's skeleton, not th
   assertVecNear(bind, [ 6, 0, 0 ]);
   assert.equal(object.GetDamageLocatorBindPosition(9, bind), false);
   assertVecNear(bind, [ 0, 0, 0 ]);
+});
+
+// Carbon installs EveSpaceObject2 on six of its own lists (cpp:217-222) and the
+// lists notify it (cpp:291-469). We had no OnListModified at all, so two
+// behaviours were simply absent: the LightOwner component never followed the
+// list edges, and decal priorities were never renumbered.
+
+test("the LightOwner component follows the light list's edges", () =>
+{
+  const object = new EveSpaceObject2();
+  const calls = [];
+  const registry = {
+    RegisterComponent(type, owner) { calls.push([ "register", type, owner ]); },
+    UnRegisterComponent(type, owner) { calls.push([ "unregister", type, owner ]); }
+  };
+  object.GetComponentRegistry = () => registry;
+
+  object.AddLight({});
+  assert.equal(calls.length, 1, "the first light did not register the component");
+  assert.equal(calls[0][0], "register");
+  assert.equal(calls[0][2], object);
+
+  // Control: a second light is not a second registration.
+  const second = {};
+  object.AddLight(second);
+  assert.equal(calls.length, 1, "a later light registered again");
+
+  // Control: removing one of two is not the last one.
+  object.RemoveLight?.(second);
+  if (object.lights.length === 2) object.lights.pop();
+
+  object.ClearLights();
+  assert.equal(calls.at(-1)[0], "unregister", "clearing the lights left the component registered");
+  assert.deepEqual(object.lights, []);
+});
+
+test("decal priority is its index, renumbered on every structural change", () =>
+{
+  const object = new EveSpaceObject2();
+  const makeDecal = name => ({ name, priority: null, SetPriority(value) { this.priority = value; } });
+  const first = makeDecal("first");
+  const second = makeDecal("second");
+  const third = makeDecal("third");
+
+  object.decals.push(first, second, third);
+
+  // An insert at the front renumbers everything from that position.
+  object.OnListModified(BlueListEvent.INSERTED, 0, 0, first, object.decals);
+  assert.deepEqual([ first.priority, second.priority, third.priority ], [ 0, 1, 2 ]);
+
+  // A swap renumbers exactly the two positions (cpp:455-459).
+  first.priority = null;
+  third.priority = null;
+  object.OnListModified(BlueListEvent.SWAPPED, 0, 2, null, object.decals);
+  assert.deepEqual([ first.priority, third.priority ], [ 0, 2 ]);
+
+  // A move renumbers the span between the two, inclusive (cpp:460-467).
+  first.priority = null;
+  second.priority = null;
+  third.priority = null;
+  object.OnListModified(BlueListEvent.MOVED, 2, 0, null, object.decals);
+  assert.deepEqual([ first.priority, second.priority, third.priority ], [ 0, 1, 2 ]);
+
+  // Negative control: a list this object does not own is not renumbered.
+  first.priority = null;
+  object.OnListModified(BlueListEvent.INSERTED, 0, 0, null, [ first ]);
+  assert.equal(first.priority, null);
 });

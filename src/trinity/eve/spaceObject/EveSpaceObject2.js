@@ -15,6 +15,8 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { CjsModel } from "#model";
+import { BlueListEvent } from "#consts/trinity";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -565,12 +567,8 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.adapted
   AddController(controller)
   {
-    this.controllers.push(controller);
-    if (!controller?.IsLinked())
-    {
-      controller?.Link(this);
-    }
-    EveSpaceObject2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
+    // The link and the variable replay are the INSERTED arm's (cpp:297-311).
+    CjsModel.addChild(this, "controllers", controller);
     return controller;
   }
 
@@ -638,6 +636,134 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   }
 
   /**
+   * Carbon OnListModified (EveSpaceObject2.cpp:291-469), the owner reacting to
+   * its own lists. Carbon installs itself on six of them at cpp:217-222 and the
+   * lists notify it; a JavaScript array has no notify slot, so the managed child
+   * mutation drives the same call.
+   *
+   * Controllers link and replay the recorded variables on insert, unlink on
+   * remove, and unlink every one on unload. Effect children take ownership,
+   * replay variables and register with the component registry; removal
+   * unregisters and clears ownership. Overlay effects replay variables only.
+   * Inherited properties reach a newly inserted child or light. The LightOwner
+   * component follows the list edges: registered on the first light, dropped on
+   * the last removal or an unload. Decals renumber their priorities, which is
+   * the one arm needing SWAPPED and MOVED.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, key = 0, key2 = 0, value = null, list = null)
+  {
+    const masked = event & BlueListEvent.EVENTMASK;
+    const loading = (event & BlueListEvent.LOADING) !== 0;
+
+    if (list === this.controllers && !loading)
+    {
+      if (masked === BlueListEvent.INSERTED && value)
+      {
+        value.Link(this);
+        EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
+      }
+      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
+      else if (masked === BlueListEvent.UNLOADSTART)
+      {
+        for (const controller of this.controllers) controller?.Unlink();
+      }
+    }
+    else if (list === this.effectChildren && !loading)
+    {
+      const registry = this.IsInRegistry?.() ? this.GetComponentRegistry() : null;
+      if (masked === BlueListEvent.INSERTED)
+      {
+        value?.SetOwner(this);
+        EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+        if (registry) value?.Register?.(registry);
+      }
+      else if (masked === BlueListEvent.REMOVED)
+      {
+        if (registry) value?.UnRegister?.(registry);
+        value?.SetOwner(null);
+      }
+      else if (masked === BlueListEvent.UNLOADSTART)
+      {
+        for (const child of this.effectChildren)
+        {
+          if (registry) child?.UnRegister?.(registry);
+          child?.SetOwner(null);
+        }
+      }
+    }
+    else if (list === this.overlayEffects && !loading && masked === BlueListEvent.INSERTED)
+    {
+      EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+    }
+
+    // Independent of the LOADING guard above: inherited properties reach a
+    // child or light however it arrived (cpp:389-411).
+    if (masked === BlueListEvent.INSERTED && this.inheritProperties
+      && (list === this.effectChildren || list === this.lights)
+      && value instanceof IEveInheritPropertiesOwner)
+    {
+      value.SetInheritProperties(this.inheritProperties.GetProperties());
+    }
+
+    if (list === this.lights) this.#OnLightListModified(masked);
+    if (list === this.decals) this.#OnDecalListModified(masked, key, key2);
+  }
+
+  /**
+   * Carbon cpp:413-431: the LightOwner component follows the list EDGES - the
+   * first light registers it, the last removal or an unload drops it. The same
+   * size rule RegisterComponents applies at registration time.
+   */
+  #OnLightListModified(masked)
+  {
+    const registry = this.GetComponentRegistry();
+    if (!registry) return;
+    if (masked === BlueListEvent.UNLOADSTART || (masked === BlueListEvent.REMOVED && !this.lights.length))
+    {
+      registry.UnRegisterComponent(EveComponentType.LightOwner, this);
+    }
+    else if (masked === BlueListEvent.INSERTED && this.lights.length === 1)
+    {
+      registry.RegisterComponent(EveComponentType.LightOwner, this);
+    }
+  }
+
+  /**
+   * Carbon cpp:433-468: a decal's priority IS its index, so every structural
+   * change renumbers from the affected position. The append special case is
+   * Carbon's own comment - "in case someone calls the append function of
+   * bluelist from python" - and it renumbers the last entry alone.
+   */
+  #OnDecalListModified(masked, key, key2)
+  {
+    const decals = this.decals;
+    if (masked === BlueListEvent.INSERTED && key === decals.length)
+    {
+      decals[decals.length - 1]?.SetPriority(decals.length - 1);
+      return;
+    }
+    if (masked === BlueListEvent.INSERTED || masked === BlueListEvent.REMOVED)
+    {
+      for (let index = key; index < decals.length; index++) decals[index]?.SetPriority(index);
+      return;
+    }
+    if (masked === BlueListEvent.SWAPPED)
+    {
+      decals[key]?.SetPriority(key);
+      decals[key2]?.SetPriority(key2);
+      return;
+    }
+    if (masked === BlueListEvent.MOVED)
+    {
+      const low = Math.min(key, key2);
+      const high = Math.max(key, key2);
+      for (let index = low; index <= high && index < decals.length; index++) decals[index]?.SetPriority(index);
+    }
+  }
+
+  /**
    * Appends an effect child, first giving it the hull's inherited properties and
    * then replaying the current controller variables onto it, so a late addition
    * starts in the same state as the rest.
@@ -646,14 +772,10 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.adapted
   AddToEffectChildrenList(child)
   {
-    if (this.inheritProperties)
-    {
-      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(this.inheritProperties.GetProperties());
-    }
-    child.SetOwner(this);
-    this.effectChildren.push(child);
+    // The ownership, the inherited properties and the variable replay are the
+    // INSERTED arm's (cpp:322-342), reached through the managed mutation.
+    CjsModel.addChild(this, "effectChildren", child);
     this.InvalidateMergedLocators("structure");
-    EveSpaceObject2.#ApplyControllerVariables(child, this.#controllerVariables, "SetControllerVariable");
     return child;
   }
 
@@ -662,11 +784,9 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.implemented
   AddLight(light)
   {
-    if (this.inheritProperties)
-    {
-      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(this.inheritProperties.GetProperties());
-    }
-    this.lights.push(light);
+    // The inherited properties and the LightOwner registration on the FIRST
+    // light are the hook's (cpp:402-431).
+    CjsModel.addChild(this, "lights", light);
   }
 
   /**
@@ -677,7 +797,9 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.implemented
   ClearLights()
   {
-    this.lights.length = 0;
+    // UNLOADSTART, which is what drops the LightOwner component registration
+    // (cpp:413-421). Emptying the array by hand left it registered.
+    CjsModel.clearChildren(this, "lights");
   }
 
   /**
@@ -688,13 +810,9 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.implemented
   RemoveFromEffectChildrenList(child)
   {
-    const index = this.effectChildren.indexOf(child);
-    if (index === -1)
-    {
-      return false;
-    }
-    this.effectChildren.splice(index, 1);
-    child.SetOwner(null);
+    // The unregister and the cleared ownership are the REMOVED arm's
+    // (cpp:343-353).
+    if (!CjsModel.removeChild(this, "effectChildren", child)) return false;
     this.InvalidateMergedLocators("structure");
     return true;
   }
