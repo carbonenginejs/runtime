@@ -127,3 +127,35 @@ test("registry edges: children register when the root is registered; lights togg
   root.OnListModified(BELIST_REMOVED, 0, 0, dropped, root.lights);
   assert.equal(registryCalls.length, 0);
 });
+
+// The tests above drive OnListModified directly, which proves the hook's logic
+// and nothing about whether anything reaches it. In Carbon the LIST reaches it:
+// m_controllers.SetNotify(this) (EveEffectRoot2.cpp:42) means every insertion
+// and removal notifies the owner. A JavaScript array has no notify slot, so the
+// owner drives it through the managed child mutation instead - and until
+// 2026-09-17 AddController/RemoveController did the link and unlink inline and
+// the hook was unreachable from them.
+
+test("AddController and RemoveController reach the hook rather than working around it", () =>
+{
+  const root = new EveEffectRoot2();
+  root.SetControllerVariable("Speed", 0.5);
+  const controller = makeController();
+
+  assert.equal(root.AddController(controller), controller);
+  assert.deepEqual(root.controllers, [ controller ]);
+  assert.deepEqual(controller.calls, [
+    [ "Link", root ],
+    [ "SetVariable", "Speed", 0.5 ]
+  ], "the INSERTED arm did not run");
+
+  controller.calls.length = 0;
+  assert.equal(root.RemoveController(controller), true);
+  assert.deepEqual(root.controllers, []);
+  assert.deepEqual(controller.calls, [ [ "Unlink" ] ], "the REMOVED arm did not run");
+
+  // Negative control: removing something absent notifies nobody.
+  const stranger = makeController();
+  assert.equal(root.RemoveController(stranger), false);
+  assert.deepEqual(stranger.calls, []);
+});

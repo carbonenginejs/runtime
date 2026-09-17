@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
+import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { box3 } from "#math/box3";
@@ -179,29 +180,31 @@ export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(Eve
     return true;
   }
 
-  /** Adds and initializes a controller through Carbon's list-notify behavior. */
+  /**
+   * Adds a controller. The linking and variable replay are NOT done here:
+   * Carbon's list notifies its owner and OnListModified's INSERTED arm does
+   * them (EveEffectRoot2.cpp:94-102), which is what the managed child
+   * mutation reproduces.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Plain JavaScript arrays have no Blue IList notifications, so insertion behavior is explicit.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
   AddController(controller)
   {
-    this.controllers.push(controller);
-    if (!controller?.IsLinked()) controller?.Link(this);
-    EveEffectRoot2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
+    CjsModel.addChild(this, "controllers", controller);
     return controller;
   }
 
-  /** Removes and unlinks a controller through Carbon's list-notify behavior. */
+  /**
+   * Removes a controller. The unlink is OnListModified's REMOVED arm
+   * (EveEffectRoot2.cpp:104-109), not this method's business.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Plain JavaScript arrays have no Blue IList notifications, so removal behavior is explicit.")
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
   RemoveController(controller)
   {
-    const index = this.controllers.indexOf(controller);
-    if (index === -1) return false;
-    this.controllers.splice(index, 1);
-    controller?.Unlink();
-    return true;
+    return CjsModel.removeChild(this, "controllers", controller);
   }
 
   /** Evaluates root curves and updates children that require synchronous placement. */
