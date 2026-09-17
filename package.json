@@ -284,7 +284,7 @@
   ],
   "scripts": {
     "build:npm": "node scripts/build-npm.js && rollup -c",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:instanceof && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:layers": "node scripts/lint-layering.js",
@@ -317,7 +317,8 @@
     "test:webgpu": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js",
     "test:webgpu:required": "npm run build:npm && npm run build:webgpu:harness && node scripts/trinityal/webgpu/run-webgpu-harness.js --required",
     "test": "npm run check && npm run proof:sof:decorators && npm run proof:audio:decorators && npm run proof:character:decorators && node --test",
-    "lint:al-contract": "node scripts/lint-al-contract.js"
+    "lint:al-contract": "node scripts/lint-al-contract.js",
+    "lint:instanceof": "node scripts/lint-instanceof.js"
   },
   "engines": {
     "node": ">=18"
