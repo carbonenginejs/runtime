@@ -85,8 +85,36 @@ function withoutComments(source)
     return source.replace(BLOCK_COMMENT, "").replace(LINE_COMMENT, "");
 }
 
+// THE SECOND SHAPE, and the one a platform exemption hides. A guard that
+// NEGATES an instanceof and then bails - `if (!(states instanceof Map)) return;`
+// - is the same hedge whatever the type on the right. `states` came from our
+// own code; if it is not a Map that is a bug, and returning silently means the
+// bug reads as a legitimate absence. The codebase mostly agrees already: 67
+// such guards THROW, which is the diagnostic the rule asks for, against 37 that
+// return. Only the silent ones are counted.
+const NEGATED_GUARD = /!\s*\(\s*[\w.$]+\s+instanceof\s+[\w$]+/u;
+
+function silentBails(code)
+{
+    const lines = code.split(/\r?\n/u);
+    let found = 0;
+
+    for (let index = 0; index < lines.length; index++)
+    {
+        if (!NEGATED_GUARD.test(lines[index])) continue;
+
+        // The guard and the two lines after it: enough for `{` then the body.
+        const window = lines.slice(index, index + 3).join(" ");
+        if (/\bthrow\b/u.test(window)) continue;
+        if (/\breturn\b|\bcontinue\b/u.test(window)) found++;
+    }
+
+    return found;
+}
+
 const counts = {};
 const sites = {};
+const bails = {};
 
 for (const file of await sourceFiles(sourceRoot))
 {
@@ -99,11 +127,15 @@ for (const file of await sourceFiles(sourceRoot))
         if (!PLATFORM.has(match[1])) owned.push(match[1]);
     }
 
+    const bailed = silentBails(code);
+
     if (owned.length)
     {
         counts[relativeFile] = owned.length;
         sites[relativeFile] = owned;
     }
+
+    if (bailed) bails[relativeFile] = bailed;
 }
 
 if (process.argv.includes("--list"))
@@ -145,10 +177,19 @@ if (problems.length)
     process.exit(1);
 }
 
+const bailTotal = Object.values(bails).reduce((sum, found) => sum + found, 0);
 const total = Object.values(counts).reduce((sum, found) => sum + found, 0);
 const gains = Object.entries(baseline).filter(([ file, allowed ]) => (counts[file] ?? 0) < allowed);
 
 console.log(`instanceof against our own classes: ${total} in ${Object.keys(counts).length} files, none above baseline.`);
+
+if (bailTotal)
+{
+    console.log(
+        `Silent instanceof guards: ${bailTotal} in ${Object.keys(bails).length} files - `
+        + "a negated instanceof that returns instead of throwing hides the defect, whatever the type."
+    );
+}
 
 if (gains.length)
 {
