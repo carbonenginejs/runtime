@@ -1533,16 +1533,64 @@ export class EveChildMesh extends withITr2Renderable(EveChildTransform)
     return this;
   }
 
+  /**
+   * Carbon OnModified (EveChildMesh.cpp:197-216): three independent tests, not
+   * a chain - a mesh change satisfies the first two, and the third only runs
+   * for a child that owns locator sets.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon identifies the changed member by Be::Var pointer and is notified per member; the settle here reports a whole write, so each test reads the changed names a caller supplied (options.property/properties) and every test applies when it supplied none.")
+  OnModified(options = {})
+  {
+    const changed = EveChildMesh.#changedNames(options);
+    const touched = (...names) => changed === null || names.some(name => changed.has(name));
+
+    if (touched("reflectionMode", "display", "mesh", "castShadow"))
+    {
+      this.ReRegister();
+    }
+    if (touched("mesh", "animationUpdater"))
+    {
+      this.InitializeAnimation();
+    }
+    if (this.ownedLocatorSets.length && touched("scaling", "rotation", "translation", "localTransform"))
+    {
+      this.InvalidateOwnerMergedLocators("partMoved");
+    }
+    return true;
+  }
+
+  /** The field names a caller named, or null when the write did not say. */
+  static #changedNames(options)
+  {
+    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
+    if (named === null || named === undefined) return null;
+    if (typeof named === "string") return new Set([ named ]);
+    return named instanceof Set ? named : new Set(named);
+  }
+
+  /**
+   * Carbon InvalidateOwnerMergedLocators (EveChildMesh.cpp:1330-1336): tell the
+   * owner its merged locator sets are stale, and why.
+   */
+  @carbon.method
+  @impl.implemented
+  InvalidateOwnerMergedLocators(reason = "structure")
+  {
+    this.GetOwner()?.InvalidateMergedLocators(reason);
+  }
+
   /** Invalidates merged locators on both the old and new owner. */
   @carbon.method
   @impl.implemented
   SetOwner(owner)
   {
     if (this.GetOwner() === owner) return;
-    const oldOwner = this.GetOwner();
-    if (oldOwner) oldOwner.InvalidateMergedLocators("structure");
+    // Carbon cpp:1894-1896: the same helper on both sides of the move.
+    this.InvalidateOwnerMergedLocators("structure");
     super.SetOwner(owner);
-    if (owner) owner.InvalidateMergedLocators("structure");
+    this.InvalidateOwnerMergedLocators("structure");
   }
 
   /** Contributes child-owned locator sets with the child-to-object transform. */

@@ -485,3 +485,66 @@ test("EveChildMesh passes Carbon's LOD screen size and mirrored-winding flag", (
   assert.equal(seen.at(-1).screenSize, 256,
     "shadow batches use the caller's shadow pixel size, not the child's own");
 });
+
+// Carbon EveChildMesh::OnModified (cpp:197-216) is three independent tests, and
+// none of them existed here - the class had no OnModified at all, so a display,
+// mesh or shadow edit never re-registered its components and a transform edit
+// never told the owner its merged locators were stale.
+
+test("EveChildMesh acts on what changed, the way Carbon's three tests do", () =>
+{
+  const child = new EveChildMesh();
+  const calls = [];
+  child.ReRegister = () => calls.push("reregister");
+  child.InitializeAnimation = () => calls.push("animation");
+
+  const owner = { reasons: [], InvalidateMergedLocators(reason) { this.reasons.push(reason); } };
+  child.GetOwner = () => owner;
+
+  // First test: reflectionMode, display, mesh or castShadow re-register.
+  child.OnModified({ property: "display" });
+  assert.deepEqual(calls, [ "reregister" ]);
+
+  // Second: mesh or animationUpdater re-initialize the animation. A mesh edit
+  // satisfies BOTH tests, which is why the donor uses ifs rather than a chain.
+  calls.length = 0;
+  child.OnModified({ property: "mesh" });
+  assert.deepEqual(calls, [ "reregister", "animation" ]);
+
+  calls.length = 0;
+  child.OnModified({ property: "animationUpdater" });
+  assert.deepEqual(calls, [ "animation" ], "an updater edit must not re-register");
+
+  // Third: a transform edit invalidates the owner's merged locators, but ONLY
+  // for a child that owns locator sets.
+  calls.length = 0;
+  child.OnModified({ property: "translation" });
+  assert.deepEqual(calls, [], "a transform edit must not re-register");
+  assert.deepEqual(owner.reasons, [], "a child owning no locator sets must not invalidate");
+
+  child.ownedLocatorSets = [ { name: "locators" } ];
+  child.OnModified({ property: "translation" });
+  assert.deepEqual(owner.reasons, [ "partMoved" ], "Carbon passes PartMoved, not StructureChanged");
+
+  // A write that names nothing applies every test, since the settle reports a
+  // whole write rather than one member.
+  calls.length = 0;
+  owner.reasons.length = 0;
+  child.OnModified();
+  assert.deepEqual(calls, [ "reregister", "animation" ]);
+  assert.deepEqual(owner.reasons, [ "partMoved" ]);
+});
+
+test("EveChildMesh tells its owner through Carbon's own helper", () =>
+{
+  const child = new EveChildMesh();
+  const owner = { reasons: [], InvalidateMergedLocators(reason) { this.reasons.push(reason); } };
+  child.GetOwner = () => owner;
+
+  child.InvalidateOwnerMergedLocators("structure");
+  assert.deepEqual(owner.reasons, [ "structure" ]);
+
+  // Negative control: no owner is not an error (cpp:2085-2091 guards on it).
+  child.GetOwner = () => null;
+  assert.doesNotThrow(() => child.InvalidateOwnerMergedLocators("partMoved"));
+});
