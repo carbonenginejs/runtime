@@ -274,6 +274,76 @@ export class CjsResMan
     return CjsResMan.#global;
   }
 
+  // Carbon asks the FILE SYSTEM whether a res file is there -
+  // BePaths->FileExistsLocally, synchronous, used to choose between authored
+  // paths before requesting anything. Tr2Mesh picks a _lowdetail sibling that
+  // way (Tr2Mesh.cpp:113-127), and SOF's texture resPathInsert selection needs
+  // the same answer. A browser has no file system to ask, so the answer comes
+  // from a res file index: the list of paths that COULD be fetched.
+  //
+  // Null is the honest default - with no index installed nothing can be said to
+  // exist, and every caller must behave as it does today, requesting the path
+  // it was authored with.
+  static #resourceExistsResolver = null;
+
+  /**
+   * Installs the synchronous res-file existence oracle.
+   *
+   * @param {((path: string) => boolean)|Iterable<string>|Set<string>|Map<string, *>|null} index
+   *   A predicate, or any membership collection of res paths (compared
+   *   case-insensitively, as Carbon's file system does).
+   * @returns {void}
+   */
+  static SetResourceExistsResolver(index = null)
+  {
+    if (index === null || index === undefined)
+    {
+      CjsResMan.#resourceExistsResolver = null;
+      return;
+    }
+    if (typeof index === "function")
+    {
+      CjsResMan.#resourceExistsResolver = path => Boolean(index(path));
+      return;
+    }
+    if (index instanceof Set || index instanceof Map)
+    {
+      CjsResMan.#resourceExistsResolver = path => index.has(path);
+      return;
+    }
+    if (typeof index[Symbol.iterator] === "function")
+    {
+      const names = new Set(Array.from(index, name => String(name ?? "").toLowerCase()));
+      CjsResMan.#resourceExistsResolver = path => names.has(String(path ?? "").toLowerCase());
+      return;
+    }
+    throw new TypeError(
+      "CjsResMan.SetResourceExistsResolver expects a predicate, an iterable of paths, a Set, a Map, or null."
+    );
+  }
+
+  /** Whether an existence oracle is installed at all. */
+  static HasResourceExistsResolver()
+  {
+    return CjsResMan.#resourceExistsResolver !== null;
+  }
+
+  /**
+   * Whether a res file could be fetched, per the installed index.
+   *
+   * Returns false with no index installed, which is what keeps a caller on the
+   * path it was authored with rather than guessing a sibling exists.
+   *
+   * @param {string} path Res path to test.
+   * @returns {boolean} True only when an index says the file is there.
+   */
+  static ResourceExists(path)
+  {
+    const resolver = CjsResMan.#resourceExistsResolver;
+    if (!resolver || !path) return false;
+    return Boolean(resolver(path));
+  }
+
   #autoPurgePolicy = null;
   #activeResourceOperations = 0;
   #invalidResourceOwnership = new WeakSet();

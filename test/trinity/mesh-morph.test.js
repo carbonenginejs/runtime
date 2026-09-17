@@ -178,3 +178,66 @@ test("a mesh res path loads its geometry through the resource manager", async ()
     CjsResMan.SetGlobal(previous ?? null);
   }
 });
+
+// Carbon cpp:113-127: when the authored file is not on disk but a
+// <base>_lowdetail<ext> sibling is, the low-detail mesh is taken to render with
+// now and the authored one is requested behind it. BePaths->FileExistsLocally
+// is the file system; here the res file index answers the same question.
+
+test("a missing mesh falls back to its _lowdetail sibling when the index has one", async () =>
+{
+  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
+  const previousManager = CjsResMan.GetGlobal();
+  const requested = [];
+  const manager = new CjsResMan();
+  // The authored mesh is still LOADING - it records its completion listener
+  // instead of calling back - so the stand-in has something to stand in for.
+  // A resource with no lifecycle at all counts as already complete, which is
+  // Carbon's AddNotifyTarget rule (BlueAsyncRes.cpp:274-276).
+  let finishAuthored = null;
+  manager.GetResource = path =>
+  {
+    requested.push(path);
+    const resource = CreateGeometry([ "Smile" ]);
+    if (path.includes("_lowdetail")) return resource;
+    resource.OnCompleted = listener => { finishAuthored = listener; };
+    resource.OffEvent = () => {};
+    return resource;
+  };
+
+  CjsResMan.SetGlobal(manager);
+  CjsResMan.SetResourceExistsResolver([ "res:/hull_lowdetail.gr2" ]);
+  try
+  {
+    const mesh = new Tr2Mesh();
+    mesh.SetMeshResPath("res:/hull.gr2");
+
+    assert.deepEqual(requested, [ "res:/hull_lowdetail.gr2", "res:/hull.gr2" ],
+      "the low-detail sibling is taken first, the authored path behind it");
+    assert.notEqual(mesh.lowResGeometry, null, "no low-detail stand-in was bound");
+
+    // The authored resource finishing retires the stand-in (cpp:192-195).
+    assert.equal(typeof finishAuthored, "function", "the mesh never subscribed to the authored load");
+    finishAuthored("completed", mesh.geometry);
+    assert.equal(mesh.lowResGeometry, null, "the stand-in outlived the authored mesh");
+
+    // Negative control: when the index says the authored file IS there, no
+    // sibling is looked for at all.
+    requested.length = 0;
+    CjsResMan.SetResourceExistsResolver([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]);
+    new Tr2Mesh().SetMeshResPath("res:/present.gr2");
+    assert.deepEqual(requested, [ "res:/present.gr2" ]);
+
+    // Second control: with no index installed nothing is presumed to exist, so
+    // the authored path is requested alone.
+    requested.length = 0;
+    CjsResMan.SetResourceExistsResolver(null);
+    new Tr2Mesh().SetMeshResPath("res:/hull.gr2");
+    assert.deepEqual(requested, [ "res:/hull.gr2" ]);
+  }
+  finally
+  {
+    CjsResMan.SetResourceExistsResolver(null);
+    CjsResMan.SetGlobal(previousManager ?? null);
+  }
+});

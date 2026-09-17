@@ -38,6 +38,11 @@ export class Tr2Mesh extends Tr2MeshBase
   @type.objectRef("TriGeometryRes")
   geometry = null;
 
+  /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */
+  @io.read
+  @type.objectRef("TriGeometryRes")
+  lowResGeometry = null;
+
   /**
    * True while the bound geometry resource is still loading; false when no
    * resource is bound.
@@ -65,18 +70,42 @@ export class Tr2Mesh extends Tr2MeshBase
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon probes for a _lowdetail sibling with BePaths->FileExistsLocally (cpp:113-127), a synchronous local-disk existence test with no browser equivalent; the low-res path and its load fence are therefore unported and the main resource is always requested.")
+  @impl.reason("Carbon's load fence (m_loadFence.Put) is unported; there is no prepare-phase fence here, so both requests are simply issued.")
   InitializeGeometryResource()
   {
     const manager = CjsResMan.GetGlobal();
     if (!manager || !this.geometryResPath)
     {
+      this.SetLowResGeometryRes(null);
       this.SetGeometryRes(null);
       return;
     }
-    this.SetGeometryRes(manager.GetResource(this.geometryResPath, {
-      requirement: ResourceRequirement.GEOMETRY
-    }));
+
+    const request = path => manager.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
+
+    // Carbon cpp:113-127: when the authored file is NOT there but a
+    // <base>_lowdetail<ext> sibling is, take the low-detail one to render with
+    // now and request the authored one behind it. BePaths->FileExistsLocally
+    // asks the file system; here the same question goes to the res file index
+    // through CjsResMan.ResourceExists, which answers false when no index is
+    // installed - so an uninstalled index leaves the authored path alone.
+    let lowRes = null;
+    if (CjsResMan.HasResourceExistsResolver() && !CjsResMan.ResourceExists(this.geometryResPath))
+    {
+      const lowResPath = Tr2Mesh.#lowDetailPath(this.geometryResPath);
+      if (lowResPath && CjsResMan.ResourceExists(lowResPath)) lowRes = request(lowResPath);
+    }
+
+    this.SetLowResGeometryRes(lowRes);
+    this.SetGeometryRes(request(this.geometryResPath));
+  }
+
+  /** Carbon cpp:115-118: the sibling path, inserting _lowdetail before the extension. */
+  static #lowDetailPath(path)
+  {
+    const dot = String(path).lastIndexOf(".");
+    if (dot === -1) return null;
+    return `${path.slice(0, dot)}_lowdetail${path.slice(dot)}`;
   }
 
   /**
@@ -169,11 +198,43 @@ export class Tr2Mesh extends Tr2MeshBase
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so Carbon's CacheBounds call has nothing to refresh; the low-res resource is unported with InitializeGeometryResource's local-file probe.")
+  @impl.reason("Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so Carbon's CacheBounds call has nothing to refresh.")
   RebuildCachedData(resource)
   {
-    if (resource !== this.geometry) return;
-    this.InitializeMorphTargets();
+    // Two ifs, not an else: a low-detail resource finishing rebuilds the
+    // targets and keeps its place; the authored one finishing also retires it.
+    if (resource === this.geometry || resource === this.lowResGeometry)
+    {
+      this.InitializeMorphTargets();
+    }
+    if (resource === this.geometry)
+    {
+      this.SetLowResGeometryRes(null);
+    }
+  }
+
+  /**
+   * Carbon SetLowResGeometryRes (cpp:76-90): the same detach/bind/attach as
+   * SetGeometryRes, for the stand-in shown while the authored mesh loads.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon's IBlueAsyncResNotifyTarget pair becomes the resource's own completion event, as in SetGeometryRes.")
+  SetLowResGeometryRes(resource)
+  {
+    const next = resource ?? null;
+    const previous = this.lowResGeometry;
+    if (previous === next) return;
+
+    if (previous && typeof previous.OffEvent === "function")
+    {
+      previous.OffEvent("completed", this.#geometryCompleted, this);
+    }
+
+    this.lowResGeometry = next;
+    if (!next) return;
+    if (typeof next.OnCompleted === "function") next.OnCompleted(this.#geometryCompleted, this);
+    else this.RebuildCachedData(next);
   }
 
   /**
