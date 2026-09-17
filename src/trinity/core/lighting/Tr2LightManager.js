@@ -150,9 +150,6 @@ export class Tr2LightManager extends CjsModel
     qualityUsedByAtlas: ShadowQuality.SHADOW_DISABLED
   };
 
-  // Non-Carbon: the frame clock the packed sets read for curve sampling.
-  #animationTime = 0;
-
   // Non-Carbon: profile-object -> slice index, assigned on first sight. The
   // slot registry is description-side (Carbon assigns slices through the
   // manager-owned Tr2TextureArray, cpp:682-686, whose realization is AL).
@@ -693,25 +690,12 @@ export class Tr2LightManager extends CjsModel
     return this.#shadowCastingLights;
   }
 
-  /**
-   * Non-Carbon: the frame clock the packed light sets sample their curves
-   * with. Carbon's sets read the renderer's clock; the GPU-free runtime
-   * threads it through the manager the sets already hold.
-   */
-  @impl.custom
-  @impl.reason("Non-Carbon seam: the packed sets need the frame time for curve sampling and the manager is the one object every GetLights implementation already receives.")
-  GetAnimationTime()
-  {
-    return this.#animationTime;
-  }
-
-  /** Sets the frame clock GetAnimationTime reports. */
-  @impl.custom
-  @impl.reason("Setter half of the non-Carbon frame-clock seam.")
-  SetAnimationTime(seconds)
-  {
-    this.#animationTime = Number(seconds) || 0;
-  }
+  // The frame clock used to be threaded through here, as a non-Carbon seam:
+  // the packed sets needed it for curve sampling and the manager was the one
+  // object every GetLights implementation already received. Carbon's sets read
+  // the renderer's clock, which is `gTriDev->GetAnimationTime()`, and they do
+  // that here now. Nothing in src ever called the setter, so the five readers
+  // had been sampling a constant zero.
 
   /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
   @impl.custom

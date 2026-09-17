@@ -9,6 +9,7 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Fade, Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
+import { gTriDev } from "#trinity/core";
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -351,7 +352,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Fade(fadeType, ...) (cpp:558-564); point conversion on the bone matrix. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the texture average colors and profile packing follow the adapted ducks above.")
+  @impl.reason("the texture average colors and profile packing follow the adapted ducks above.")
   GetLights(lightManager)
   {
     const features = EvePlaneSet.#features;
@@ -362,7 +363,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     {
       this.GetAverageColor(averageColor);
     }
-    const time = lightManager?.GetAnimationTime() ?? 0;
+    const time = gTriDev.device.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EvePlaneSet.#lightRecord;
     const dataCopy = EvePlaneSet.#lightDataScratch;

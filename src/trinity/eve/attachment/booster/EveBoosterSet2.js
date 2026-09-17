@@ -10,6 +10,7 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
+import { gTriDev } from "#trinity/core";
 import {
   AddBoosterLights,
   CreateBoosterFlares,
@@ -774,7 +775,7 @@ export class EveBoosterSet2 extends EveEntity
    * FLAG_DEFAULT - manager-side). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")
+  @impl.reason("the g_lightNoise table is module state filled with Math.random (Carbon fills it with rand()/RAND_MAX - random either way).")
   GetLights(lightManager)
   {
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0)
@@ -786,7 +787,7 @@ export class EveBoosterSet2 extends EveEntity
       return;
     }
 
-    const time = lightManager.GetAnimationTime() ?? 0;
+    const time = gTriDev.device.GetAnimationTime();
     // Carbon EveBoosterSet2.cpp:1186: radii deliberately UNSCALED here (the
     // child booster set pre-multiplies by its parent scale; this class does
     // not - do not unify).

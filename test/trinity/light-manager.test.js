@@ -174,12 +174,15 @@ test("the packed buffer carries the contract layout, including biased profile sl
   assert.equal(bits[11], 0, "shadow union dead under the shipping pin");
 });
 
-test("the frame clock seam and Clear behave", () =>
+test("Clear drops records, not frustum state", () =>
 {
+  // This test also covered a frame-clock seam on the manager -
+  // GetAnimationTime/SetAnimationTime, marked non-Carbon at its own site. The
+  // clock lives on TriDevice, where Carbon keeps it, and the packed sets read
+  // it through gTriDev as Tr2Renderer::GetAnimationTime does. Nothing in src
+  // ever called the setter, so the five readers had been sampling a constant
+  // zero; the seam is gone rather than rehomed.
   const manager = new Tr2LightManager();
-  assert.equal(manager.GetAnimationTime(), 0);
-  manager.SetAnimationTime(2.5);
-  assert.equal(manager.GetAnimationTime(), 2.5);
 
   const record = CreateLightRecord();
   record.flags = FLAGS.DEFAULT;
@@ -188,5 +191,4 @@ test("the frame clock seam and Clear behave", () =>
   manager.AddLight(record);
   manager.Clear();
   assert.equal(manager.GetLightData().length, 0);
-  assert.equal(manager.GetAnimationTime(), 2.5, "Clear drops records, not the clock or frustum state");
 });

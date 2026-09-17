@@ -266,6 +266,77 @@ export class TriDevice extends CjsModel
     return elapsed;
   }
 
+  // Source: trinity/trinity/TriDevice.cpp:805-833
+  //
+  // The clock half of Carbon's tick. The rest of TriDevice::Tick - the crash
+  // key, the scheduled event, Update, HandleRenderTick, the main-thread action
+  // queue and the resource-pool sweep - is not ported, and this does not
+  // pretend otherwise.
+  //
+  // Carbon keeps the frame counter in a file-scope `g_currentFrameCounter`
+  // rather than on the device, and reads it back through
+  // Tr2Renderer::GetCurrentFrameCounter. It is a device member here because
+  // `gTriDev` is how everything reaches the device anyway, and a second
+  // module-scope counter would be a second thing to keep in step.
+
+  /** `g_currentFrameCounter` - the frame the device is on. */
+  frameCounter = 0;
+
+  /** m_simTime, the simulation clock the animation delta is taken from. */
+  simTime = 0;
+
+  /** m_realTime. */
+  realTime = 0;
+
+  /** The animation time before the current tick, for the render-time vector. */
+  previousAnimationTime = 0;
+
+  /** `Tr2Renderer::GetCurrentFrameCounter` reads this through gTriDev. */
+  @carbon.method
+  @impl.implemented
+  GetCurrentFrameCounter()
+  {
+    return this.frameCounter;
+  }
+
+  /**
+   * `TriDevice::Tick`'s clock half: advance the frame counter and the
+   * animation time by the simulation delta.
+   *
+   * Carbon clamps the delta to one second, so a stall does not jump every
+   * animation forward, and recenters the clock hourly.
+   *
+   * @param {number} realTime Real clock, in seconds.
+   * @param {number} simTime Simulation clock, in seconds.
+   * @returns {TriDevice} This device.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The clock half only. Carbon's Tick also sets a crash key, schedules the next event, and runs Update, HandleRenderTick, the main-thread actions and the resource-pool sweep; none of those are ported.")
+  Tick(realTime = 0, simTime = 0)
+  {
+    this.frameCounter++;
+
+    let delta = Number(simTime) - this.simTime;
+    if (!(delta > 0)) delta = 0;
+    if (delta > 1) delta = 1;
+
+    this.previousAnimationTime = this.animationTime;
+    this.animationTime += delta * this.animationTimeScale;
+
+    // cpp:823-826. Carbon also rebases every animation player and Granny
+    // control clock by the same amount here; neither is ported, so a clock
+    // that runs past an hour will step those consumers.
+    if (this.animationTime > TriDevice.ANIMATION_TIME_MAX)
+    {
+      this.animationTime -= TriDevice.ANIMATION_TIME_MAX;
+    }
+
+    this.simTime = Number(simTime) || 0;
+    this.realTime = Number(realTime) || 0;
+    return this;
+  }
+
   /** Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @carbon.method
   @impl.notImplemented

@@ -6,3 +6,4 @@ export * from "./Tr2RenderTarget.js";
 export * from "./Tr2GpuBuffer.js";
 export * from "./Tr2RingBuffer/index.js";
 export * from "./Tr2RuntimeGpuBuffer.js";
+export * from "./gTriDev.js";

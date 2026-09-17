@@ -13,6 +13,7 @@ import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { withITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { gTriDev } from "#trinity/core";
 import {
   AddBoosterLights,
   CHILD_BOOSTER_BOX_BUFFER_NAME,
@@ -630,7 +631,7 @@ export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
       lightFlickerAmplitude: this.lightFlickerAmplitude,
       lightFlickerFrequency: this.lightFlickerFrequency
     };
-    const time = lightManager.GetAnimationTime() ?? 0;
+    const time = gTriDev.device.GetAnimationTime();
     AddBoosterLights(
       lightManager, this.#singleBoosters, this.#parentTransform,
       this.thrust, this.warpIntensity, params, time);

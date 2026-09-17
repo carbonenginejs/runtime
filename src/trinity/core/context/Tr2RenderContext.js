@@ -38,6 +38,7 @@ import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
 import { Tr2PerObjectData } from "../rawData/perObjectData/Tr2PerObjectData.js";
 import { CjsDirectTrinityStepExecutor } from "./CjsDirectTrinityStepExecutor.js";
 import { CjsTrinityStepExecutor } from "./CjsTrinityStepExecutor.js";
+import { gTriDev } from "../device/gTriDev.js";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -147,11 +148,11 @@ export class Tr2RenderContext extends CjsModel
   // lets BeginFrame stay zero-argument as Carbon declares it, and matches the
   // frameIndex an EveSpaceScene driver already documents as coming from
   // GetCurrentFrameCounter. Trinity does not advance them: a driver does.
-  #frameCounter = 0;
 
-  #animationTime = 0;
 
-  #previousAnimationTime = 0;
+
+
+
 
   #debugRenderer = null;
 
@@ -264,35 +265,42 @@ export class Tr2RenderContext extends CjsModel
     return this.#stepExecutor.EndBatch(owner, this);
   }
 
-  // Carbon Tr2Renderer::GetCurrentFrameCounter (Tr2Renderer.cpp:1088-1091).
+  // The clock is the DEVICE's, and was kept here as a stand-in while the tick
+  // was unported. Carbon reads both through gTriDev - GetCurrentFrameCounter
+  // is g_currentFrameCounter (Tr2Renderer.cpp:1088-1091) and GetAnimationTime
+  // is gTriDev->GetAnimationTime() - so these forward rather than hold.
 
   /** The frame the render path is currently working on. */
   GetCurrentFrameCounter()
   {
-    return this.#frameCounter;
+    return gTriDev.device.GetCurrentFrameCounter();
   }
 
   /** The animation clock the render path publishes, in seconds. */
   GetAnimationTime()
   {
-    return this.#animationTime;
+    return gTriDev.device.GetAnimationTime();
   }
 
-  // Carbon advances both in TriDevice::Update (cpp:805/:823), which is the
-  // tick, and the tick is not ported yet (see the frame-driver contract in
-  // docs/architecture.md). A driver calls this once per frame BEFORE Render.
-  // Trinity never advances the clock itself: it cannot prove a frame boundary.
-
   /**
-   * Advances the frame clock: increments the frame counter and records the new
-   * animation time, keeping the previous one for the render-time vector.
-   * Returns this for chaining.
+   * Advances the frame clock.
+   *
+   * Carbon advances it in `TriDevice::Tick` (cpp:805-823), which is where it
+   * lives now, so this forwards. It takes an animation TIME rather than a
+   * simulation delta, because that is what its callers have; a caller with a
+   * simulation clock should tick the device directly.
+   *
+   * @param {number} [animationTime] Absolute animation time, in seconds.
+   * @returns {Tr2RenderContext} This context.
    */
-  AdvanceFrame(animationTime = this.#animationTime)
+  @impl.custom
+  @impl.reason("Carbon has no such method: TriDevice::Tick advances the clock from a simulation delta. This exists for callers holding an absolute animation time, and sets it on the device rather than keeping a second copy.")
+  AdvanceFrame(animationTime = gTriDev.device.GetAnimationTime())
   {
-    this.#frameCounter++;
-    this.#previousAnimationTime = this.#animationTime;
-    this.#animationTime = Number(animationTime) || 0;
+    const device = gTriDev.device;
+    device.frameCounter++;
+    device.previousAnimationTime = device.animationTime;
+    device.animationTime = Number(animationTime) || 0;
     return this;
   }
 
@@ -309,12 +317,12 @@ export class Tr2RenderContext extends CjsModel
    */
   BeginFrame()
   {
-    const animationTime = this.#animationTime;
+    const animationTime = gTriDev.device.GetAnimationTime();
     const time = [
       animationTime,
       animationTime - Math.floor(animationTime),
-      this.#frameCounter,
-      this.#previousAnimationTime
+      gTriDev.device.GetCurrentFrameCounter(),
+      gTriDev.device.previousAnimationTime
     ];
 
     Tr2VariableStore.GlobalStore().RegisterVariable("Time", time);

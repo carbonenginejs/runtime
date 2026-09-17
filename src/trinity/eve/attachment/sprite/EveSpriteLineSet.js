@@ -10,6 +10,7 @@ import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { gTriDev } from "#trinity/core";
 
 
 /**
@@ -216,13 +217,13 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * gates. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); profile-index packing is by-reference per lightConversion.js.")
+  @impl.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteLineSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const time = lightManager?.GetAnimationTime() ?? 0;
+    const time = gTriDev.device.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveSpriteLineSet.#lightRecord;
 

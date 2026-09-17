@@ -16,6 +16,7 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { gTriDev } from "#trinity/core";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
 // position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,
@@ -524,13 +525,13 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
    * recorded). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Tr2Renderer::GetAnimationTime relocates onto the light-manager duck (GetAnimationTime, default 0); profile-index packing is by-reference per lightConversion.js.")
+  @impl.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
     const features = EveSpriteSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const time = lightManager?.GetAnimationTime() ?? 0;
+    const time = gTriDev.device.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveSpriteSet.#lightRecord;
 
