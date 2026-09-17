@@ -548,3 +548,73 @@ test("EveChildMesh tells its owner through Carbon's own helper", () =>
   child.GetOwner = () => null;
   assert.doesNotThrow(() => child.InvalidateOwnerMergedLocators("partMoved"));
 });
+
+// Carbon installs EveChildContainer on four of its lists (cpp:42-45) and they
+// notify it (cpp:113-215). We had no OnListModified, so entity registration
+// never happened for objects OR attachments, and controllers linked inline.
+
+test("EveChildContainer registers what it holds, once it is in a registry", () =>
+{
+  const container = new EveChildContainer();
+  const calls = [];
+  const registry = { name: "registry" };
+  container.GetComponentRegistry = () => registry;
+
+  const makeEntity = name => ({
+    name,
+    Register(r) { calls.push([ "Register", name, r ]); },
+    UnRegister(r) { calls.push([ "UnRegister", name, r ]); },
+    SetControllerVariable() {},
+    // RegisterChild reaches for the child surface (EveSpaceObjectChild.js:217).
+    parent: null,
+    SetParent(p) { this.parent = p; },
+    GetParent() { return this.parent; },
+    SetOwner() {},
+    SetPartTag() {}
+  });
+
+  // Negative control first: OUT of a registry, nothing registers (cpp:148).
+  container.IsInRegistry = () => false;
+  container.AddToEffectChildrenList(makeEntity("early"));
+  container.AddAttachment(makeEntity("earlyAttachment"));
+  assert.deepEqual(calls, [], "registered while out of a registry");
+
+  container.IsInRegistry = () => true;
+  const child = makeEntity("child");
+  const attachment = makeEntity("attachment");
+
+  container.AddToEffectChildrenList(child);
+  container.AddAttachment(attachment);
+  assert.deepEqual(calls, [
+    [ "Register", "child", registry ],
+    [ "Register", "attachment", registry ]
+  ], "an inserted object and attachment both register");
+
+  calls.length = 0;
+  assert.equal(container.RemoveFromEffectChildrenList(child), true);
+  assert.deepEqual(calls, [ [ "UnRegister", "child", registry ] ]);
+
+  // Control: removing something absent notifies nobody.
+  calls.length = 0;
+  assert.equal(container.RemoveFromEffectChildrenList(makeEntity("stranger")), false);
+  assert.deepEqual(calls, []);
+});
+
+test("EveChildContainer links a controller through the hook, not inline", () =>
+{
+  const container = new EveChildContainer();
+  container.SetControllerVariable("Speed", 2);
+
+  const calls = [];
+  const controller = {
+    Link(owner) { calls.push([ "Link", owner ]); },
+    Unlink() { calls.push([ "Unlink" ]); },
+    SetVariable(name, value) { calls.push([ "SetVariable", name, value ]); }
+  };
+
+  container.AddController(controller);
+  assert.deepEqual(calls, [
+    [ "Link", container ],
+    [ "SetVariable", "Speed", 2 ]
+  ]);
+});

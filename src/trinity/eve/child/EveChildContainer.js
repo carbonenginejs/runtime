@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
+import { BlueListEvent } from "#consts/trinity";
+import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { quat } from "#math/quat";
@@ -352,12 +354,8 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
   @impl.adapted
   AddController(controller)
   {
-    this.controllers.push(controller);
-    controller?.Link(this);
-    for (const [name, value] of this.#controllerVariables)
-    {
-      controller?.SetVariable(name, value);
-    }
+    // The link and the variable replay are the INSERTED arm (cpp:119-128).
+    CjsModel.addChild(this, "controllers", controller);
   }
 
   /**
@@ -450,35 +448,103 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
   }
 
   /**
-   * Appends a child and replays every controller variable set so far onto it,
-   * then returns that same child.
+   * Carbon OnListModified (EveChildContainer.cpp:113-215), the owner reacting
+   * to its own lists. Carbon installs itself on four of them at cpp:42-45.
+   *
+   * Controllers link and replay the recorded variables on insert, unlink on
+   * remove, unlink every one on unload. Objects go through the shared
+   * child-registration helper AND, when this container is in a registry,
+   * register or unregister as entities; attachments do the entity half only.
+   * A newly inserted object also receives the inherited properties.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    const masked = event & BlueListEvent.EVENTMASK;
+    const loading = (event & BlueListEvent.LOADING) !== 0;
+
+    if (list === this.controllers && !loading)
+    {
+      if (masked === BlueListEvent.INSERTED && value)
+      {
+        value.Link(this);
+        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable?.(name, variable);
+      }
+      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
+      else if (masked === BlueListEvent.UNLOADSTART)
+      {
+        for (const controller of this.controllers) controller?.Unlink();
+      }
+    }
+    else if (list === this.objects && !loading)
+    {
+      // Carbon's shared HandleChildrenListModified (EveSpaceObjectChild.h:340-367).
+      if (masked === BlueListEvent.INSERTED && value) this.RegisterChild(value);
+      else if (masked === BlueListEvent.REMOVED && value) this.UnregisterChild(value);
+      else if (masked === BlueListEvent.UNLOADSTART)
+      {
+        for (const child of this.objects) this.UnregisterChild(child);
+      }
+
+      if (masked === BlueListEvent.INSERTED && value)
+      {
+        for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable?.(name, variable);
+      }
+
+      this.#NotifyEntityRegistration(masked, value, this.objects);
+    }
+
+    if (list === this.attachments && !loading)
+    {
+      this.#NotifyEntityRegistration(masked, value, this.attachments);
+    }
+
+    if (list === this.objects && masked === BlueListEvent.INSERTED && this.inheritProperties
+      && value instanceof IEveInheritPropertiesOwner)
+    {
+      value.SetInheritProperties(this.inheritProperties.GetProperties());
+    }
+  }
+
+  /**
+   * Carbon cpp:148-177 and cpp:180-210, identical for objects and attachments:
+   * entity registration only matters while this container is itself registered.
+   */
+  #NotifyEntityRegistration(masked, value, members)
+  {
+    if (!this.IsInRegistry?.()) return;
+    const registry = this.GetComponentRegistry();
+    if (!registry) return;
+
+    if (masked === BlueListEvent.INSERTED) value?.Register?.(registry);
+    else if (masked === BlueListEvent.REMOVED) value?.UnRegister?.(registry);
+    else if (masked === BlueListEvent.UNLOADSTART)
+    {
+      for (const member of members) member?.UnRegister?.(registry);
+    }
+  }
+
+  /**
+   * Appends a child. The registration, the variable replay and the inherited
+   * properties are the INSERTED arm's, reached through the managed mutation.
    */
   @carbon.method
   @impl.adapted
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
   AddToEffectChildrenList(child)
   {
-    this.objects.push(child);
-    this.RegisterChild(child);
-    for (const [name, value] of this.#controllerVariables)
-    {
-      child?.SetControllerVariable(name, value);
-    }
+    CjsModel.addChild(this, "objects", child);
     return child;
   }
 
-  /** Removes a child by identity and reports whether it was present. */
+  /** Removes a child by identity; the unregistration is the REMOVED arm's. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.removeChild rather than the list driving it.")
   RemoveFromEffectChildrenList(child)
   {
-    const index = this.objects.indexOf(child);
-    if (index !== -1)
-    {
-      this.UnregisterChild(child);
-      this.objects.splice(index, 1);
-      return true;
-    }
-    return false;
+    return CjsModel.removeChild(this, "objects", child);
   }
 
   /**
@@ -531,7 +597,8 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
   @impl.implemented
   AddAttachment(attachment)
   {
-    this.attachments.push(attachment);
+    // Registering the attachment as an entity is the hook (cpp:180-210).
+    CjsModel.addChild(this, "attachments", attachment);
   }
 
   /**
