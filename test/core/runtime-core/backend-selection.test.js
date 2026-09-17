@@ -3,7 +3,6 @@ import test from "node:test";
 import {
     CjsBackendPreference,
     CjsBackendRejection,
-    CjsLibrary,
     SelectBackend,
     Tr2PlatformInfo
 } from "../../../npm/dist/core/index.js";
@@ -218,52 +217,10 @@ test("SelectBackend trusts an unprobed backend only after its nominal proof", as
     );
 });
 
-test("CjsLibrary probes, records capabilities, and commits one backend", async () =>
-{
-    const library = new CjsLibrary();
-    const selection = await library.SelectBackendAsync({
-        gpu: null,
-        context: fakeWebGL2(),
-        candidates: [ candidate("webgl") ]
-    });
-
-    assert.equal(selection.effective, "webgl");
-    assert.equal(library.GetCapability("webgl2"), true, "the probe result is recorded, not just consulted");
-    assert.equal(library.GetCapability("backend"), "webgl");
-    assert.equal(library.GetBackendSelection(), selection);
-
-    library.Shutdown();
-    assert.equal(library.GetBackendSelection(), null);
-    assert.equal(library.HasCapability("backend"), false);
-});
-
-test("CjsLibrary selects against registered capabilities when told not to probe", async () =>
-{
-    const library = new CjsLibrary();
-    library.RegisterCapabilities(capabilities({ webgl2: true }));
-
-    const selection = await library.SelectBackendAsync({
-        probe: false,
-        candidates: [ candidate("webgl") ]
-    });
-    assert.equal(selection.effective, "webgl");
-});
-
-test("CjsLibrary selects a backend as part of initialization", async () =>
-{
-    const library = new CjsLibrary();
-    await library.InitializeAsync({
-        capabilities: capabilities({ webgpu: true }),
-        backend: { probe: false, candidates: [ candidate("webgpu") ] }
-    });
-
-    assert.equal(library.GetValues().initialized, true);
-    assert.equal(library.GetCapability("backend"), "webgpu");
-
-    const untouched = new CjsLibrary();
-    await untouched.InitializeAsync({});
-    assert.equal(untouched.GetBackendSelection(), null);
-});
+// Three tests stood here covering CjsLibrary's wiring of backend selection -
+// capability recording, commit, and clearing on shutdown. CjsLibrary was
+// emptied on 2026-09-17 and that wiring is being rebuilt, so they went with it.
+// SelectBackend itself is unaffected and keeps its coverage above.
 
 function fakeWebGL2()
 {

@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    CjsLibrary,
     PlatformStaticCap,
     Tr2DisplayMode,
     Tr2PlatformInfo,
@@ -44,12 +43,6 @@ test("Tr2PlatformInfo reports observed browser WebGPU capabilities", async () =>
     assert.equal(platform.GetStaticCap(PlatformStaticCap.TEXTURE_ARRAYS), true);
     assert.equal(platform.GetStaticCap(PlatformStaticCap.MSAA_SAMPLE), true);
     assert.equal(platform.GetStaticCap(PlatformStaticCap.TAA), true);
-
-    const library = new CjsLibrary();
-    platform.RegisterCapabilities(library);
-    assert.equal(library.GetCapability("webgpu"), true);
-    assert.equal(library.GetCapability("compute"), true);
-    assert.equal(library.GetCapability("nonSynchronizedLocks"), false);
 });
 
 test("Tr2PlatformInfo leaves unavailable browser capabilities false", async () =>

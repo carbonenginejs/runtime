@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
-    CjsLibrary,
     CjsWebGLProbe,
     PlatformStaticCap,
     ResolveDeviceRequirements,
@@ -155,11 +154,6 @@ test("Tr2PlatformInfo describes exactly one backend's capabilities", async () =>
     assert.equal(both.backend, Tr2PlatformInfo.Backend.WEBGPU);
     assert.equal(both.GetStaticCap(PlatformStaticCap.COMPUTE), true);
     assert.equal(both.GetCapabilities().webgl2, true, "the other backend is still reported as present");
-
-    const library = new CjsLibrary();
-    webgl.RegisterCapabilities(library);
-    assert.equal(library.GetCapability("webgl2"), true);
-    assert.equal(library.GetCapability("backend"), "webgl");
 });
 
 test("ResolveRequiredLimits asks only for what is above the default", () =>
