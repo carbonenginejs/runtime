@@ -284,7 +284,7 @@
   ],
   "scripts": {
     "build:npm": "node scripts/build-npm.js && rollup -c",
-    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run lint:docs",
+    "lint": "npm run lint:layers && npm run lint:source && npm run lint:optional-calls && npm run lint:carbon-methods && npm run lint:class-shape && npm run lint:class-file-naming && npm run lint:donor-coverage && npm run lint:enum-parity && npm run lint:struct-defaults && npm run lint:al-parity && npm run lint:al-contract && npm run lint:trinity && npm run audit:trinity:parity && npm run lint:docs",
     "lint:carbon-methods": "node scripts/trinity/lint-native-method-parity.js",
     "lint:optional-calls": "node scripts/lint-optional-calls.js",
     "lint:layers": "node scripts/lint-layering.js",

@@ -52,6 +52,7 @@ for (const entry of promoted)
   {
     const methodName = method.blueName ?? method.target;
     if (!methodName || seen.has(methodName)) continue;
+    if (!IsPortableMember(entry.className, methodName)) continue;
     seen.add(methodName);
     const actualMethod = actualMethods.get(methodName);
     if (actualMethod?.hasCarbon) continue;
@@ -108,19 +109,63 @@ if (options.json)
 }
 else
 {
-  PrintReport(result);
+  PrintReport(result, options.list === true);
 }
 
-if (
-  omissions.length ||
-  unexposed.length ||
-  missingClasses.length ||
-  missingSchemas.length ||
-  ambiguousSchemas.length ||
-  unresolvedBases.size
-)
+// The ratchet. 790 omissions existed the day the audit was corrected, and a red
+// gate nobody can turn green gets disabled rather than fixed - so they are
+// frozen here and only NEW ones fail.
+//
+// `--update` is the ONLY path that writes anything, it writes ONLY this one
+// JSON file, and it deletes nothing. It exists to bank a fix, and must never be
+// run to silence a fresh finding.
+const baselineFile = path.join(root, "scripts", "trinity-parity-baseline.json");
+const findings = [
+  ...omissions.map(item => `omitted ${item.className}.${item.method}`),
+  ...unexposed.map(item => `unexposed ${item.className}.${item.method}`),
+  ...missingClasses.map(item => `missing-class ${item.className}`),
+  ...missingSchemas.map(item => `missing-schema ${item.className}`),
+  ...ambiguousSchemas.map(item => `ambiguous-schema ${item.className}`),
+  ...[ ...unresolvedBases.values() ].map(item => `unresolved-base ${item.className}`)
+].sort();
+
+if (process.argv.includes("--update"))
 {
+  await fs.writeFile(
+    baselineFile,
+    `${JSON.stringify({ recorded: new Date().toISOString().slice(0, 10), findings }, null, 2)}
+`
+  );
+  console.log(`
+Recorded ${findings.length} baselined parity finding(s).`);
+  process.exit(0);
+}
+
+let baseline = new Set();
+try { baseline = new Set(JSON.parse(await fs.readFile(baselineFile, "utf8")).findings); }
+catch { baseline = new Set(); }
+
+const fresh = findings.filter(finding => !baseline.has(finding));
+const closed = [ ...baseline ].filter(finding => !findings.includes(finding));
+
+if (fresh.length > 0)
+{
+  console.error("");
+  for (const finding of fresh) console.error(`  ${finding}`);
+  console.error(`
+${fresh.length} NEW Trinity parity finding(s). Port the member, or record the`);
+  console.error("divergence at its own site with the reason it must differ.");
   process.exitCode = 1;
+}
+else
+{
+  console.log(`
+Parity ratchet OK: ${findings.length} known finding(s) held at the baseline.`);
+  if (closed.length > 0)
+  {
+    console.log(`${closed.length} baselined finding(s) are now closed. Bank them:`);
+    console.log("  node scripts/trinity/audit_public_method_parity.js --update");
+  }
 }
 
 /** @param {string[]} args */
@@ -131,6 +176,8 @@ function ParseOptions(args)
   {
     const arg = args[i];
     if (arg === "--json") parsed.json = true;
+    else if (arg === "--update") parsed.update = true;
+    else if (arg === "--list") parsed.list = true;
     else if (arg === "--schema-root")
     {
       const value = args[++i];
@@ -171,7 +218,7 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       const methods = new Map();
       for (const member of declaration.body.body)
       {
-        if (member.type !== "ClassMethod" || member.static || member.kind === "constructor") continue;
+        if (member.type !== "ClassMethod" || member.kind === "constructor") continue;
         const name = GetMemberName(member);
         if (name) methods.set(name, { hasCarbon: HasDecorator(member, "carbon", "method") });
       }
@@ -238,11 +285,21 @@ async function ReadSchemaClasses(directory)
     const name = path.basename(file);
     if (name === "index.json" || name === "enums.json") continue;
     const doc = JSON.parse(await fs.readFile(file, "utf8"));
-    if (!doc.blueClass || !Array.isArray(doc.methods)) continue;
+    if (!doc.blueClass) continue;
+    // Carbon's `methods` is the BLUE-EXPOSED surface, and for a class Blue never
+    // exposed it is empty - Tr2Renderer has 90 members and `methods: []`.
+    // Comparing against that reports parity for anything native, which is how
+    // six frame statics went missing unnoticed. `nativeMethods` is the C++
+    // surface and is what a port is judged against.
+    const native = Array.isArray(doc.nativeMethods)
+      ? doc.nativeMethods.map(entry => ({ target: entry.cppName, blueName: null, declaredOn: entry.declaredOn }))
+      : [];
+    const merged = [ ...(Array.isArray(doc.methods) ? doc.methods : []), ...native ];
+    if (!merged.length) continue;
     const record = {
       family: doc.family ?? null,
       file: path.relative(directory, file).replaceAll(path.sep, "/"),
-      methods: doc.methods,
+      methods: merged,
       sourceRefs: doc.sourceRefs ?? {}
     };
     const entries = records.get(doc.blueClass) ?? [];
@@ -347,8 +404,22 @@ function RelativePath(file)
   return path.relative(root, file).replaceAll(path.sep, "/");
 }
 
-/** @param {object} audit */
-function PrintReport(audit)
+
+// A C++ declaration list carries members that are not methods anyone ports:
+// the constructor and destructor, the EXPOSE_TO_BLUE macro, and operators.
+// They are excluded so the ratchet counts work rather than noise.
+function IsPortableMember(className, methodName)
+{
+  if (!methodName) return false;
+  if (methodName === className) return false;
+  if (methodName.startsWith("~")) return false;
+  if (methodName.startsWith("operator")) return false;
+  if (methodName === methodName.toUpperCase() && /[A-Z]/u.test(methodName)) return false;
+  return true;
+}
+
+/** @param {object} audit @param {boolean} listItems */
+function PrintReport(audit, listItems)
 {
   const summary = audit.summary;
   console.log("# runtime-trinity public-method parity audit");
@@ -362,6 +433,7 @@ function PrintReport(audit)
   console.log(`- Missing JavaScript classes: ${summary.missingClasses}.`);
   console.log(`- Missing or ambiguous schemas: ${summary.missingSchemas + summary.ambiguousSchemas}.`);
   console.log(`- Unresolved non-CjsModel base classes: ${summary.unresolvedBases}.`);
+  if (!listItems) return;
   if (audit.omissions.length)
   {
     console.log();
