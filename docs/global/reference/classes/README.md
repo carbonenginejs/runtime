@@ -45,6 +45,46 @@ Dependency-free contract for one node in a Trinity render graph.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:IBlueResMan -->
+## `IBlueResMan`
+
+The resource manager as its consumers see it: the eighteen verbs Carbon publishes, behind which any implementation may sit.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueResMan.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IBlueResManNotifications -->
+## `IBlueResManNotifications`
+
+Optional per-call notice of whether a resource request was answered from the cache or newly created, with doing nothing as the declared default.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueResManNotifications.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IBlueDynamicResourceConstructor -->
+## `IBlueDynamicResourceConstructor`
+
+The factory a subsystem registers with the manager so a `dynamic:/<name>` path can be built without the manager knowing what it builds.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueDynamicResourceConstructor.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IBluePaths -->
+## `IBluePaths`
+
+Search paths, resolution, directory contents, existence and streams, kept a separate service from the resource manager as Carbon keeps them.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBluePaths.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:CjsScriptCallback -->
 ## `CjsScriptCallback`
 

@@ -1,0 +1,41 @@
+// Source: blue/include/IBlueResMan.h:135, blue/include/IBluePaths.h:49
+//
+// Carbon's process-wide Blue facilities, which it declares as externs beside
+// the interfaces they point at:
+//
+//     extern BLUEIMPORT IBlueResMan* BeResMan;
+//     extern BLUEIMPORT IBluePaths*  BePaths;
+//
+// `Be` is Blue, so `BeResMan` is `blue.resMan` with the prefix spelled out.
+//
+// WHY A HOLDER RATHER THAN EXPORTED SERVICES. Reach a service THROUGH `blue`
+// and never capture it: `blue.resMan.GetResource(...)`, not
+// `const resMan = blue.resMan` at module scope. The holder owns the reference,
+// so whatever sits behind it can be replaced at any time - a stub, a recording
+// manager, one with a different cache - without anyone's cooperation. ccpwgl
+// had this right on `tw2` and lost it by re-exporting `resMan` and `device` as
+// module bindings, after which 120 files held the implementation directly:
+// that one shortcut fixed the instance count at one AND gave away the
+// swappability the arrangement existed to provide.
+//
+// WHY IT IMPORTS NOTHING BUT ITS OWN INTERFACES. A holder that constructs
+// nothing has no dependency on what it holds, so every layer may read it
+// without the import cycle ccpwgl pays for (`global` imports the root, the
+// root constructs the services, the services import `global`). Composition
+// fills the slots from above.
+//
+// The slots are never empty. Each starts as its interface, whose methods
+// throw, so a call before composition says so at the call site instead of
+// failing later on a null. One CarbonEngineJS per page; see
+// /docs/internal/decisions/composition-root-is-the-wrapper.md.
+import { IBlueResMan } from "./IBlueResMan.js";
+import { IBluePaths } from "./IBluePaths.js";
+
+/** Carbon's process-wide Blue facilities: `blue.resMan` is `BeResMan`, `blue.paths` is `BePaths`. */
+export const blue = {
+  /** `BeResMan` (IBlueResMan.h:135) - the resource manager every consumer asks. */
+  resMan: new IBlueResMan(),
+
+  /** `BePaths` (IBluePaths.h:49) - search paths, resolution, existence and streams. */
+  paths: new IBluePaths()
+};

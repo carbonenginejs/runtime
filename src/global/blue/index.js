@@ -2,3 +2,8 @@
 // subsystem rather than to one.
 
 export * from "./CjsScriptCallback.js";
+export * from "./IBlueDynamicResourceConstructor.js";
+export * from "./IBlueResMan.js";
+export * from "./IBlueResManNotifications.js";
+export * from "./IBluePaths.js";
+export * from "./blue.js";
