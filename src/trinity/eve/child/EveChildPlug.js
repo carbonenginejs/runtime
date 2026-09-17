@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -104,15 +104,21 @@ export class EveChildPlug extends EveChildTransform
     // Carbon casts to EveEntityPtr before registering (cpp:82-96).
     if (masked === BlueListEvent.INSERTED)
     {
-      if (value instanceof EveEntity) value.Register(registry);
+      const entity = CjsSchema.cast(value, EveEntity);
+      if (entity) entity.Register(registry);
     }
     else if (masked === BlueListEvent.REMOVED)
     {
-      if (value instanceof EveEntity) value.UnRegister(registry);
+      const entity = CjsSchema.cast(value, EveEntity);
+      if (entity) entity.UnRegister(registry);
     }
     else if (masked === BlueListEvent.UNLOADSTART)
     {
-      for (const child of this.objects) if (child instanceof EveEntity) child.UnRegister(registry);
+      for (const child of this.objects)
+      {
+        const entity = CjsSchema.cast(child, EveEntity);
+        if (entity) entity.UnRegister(registry);
+      }
     }
   }
 

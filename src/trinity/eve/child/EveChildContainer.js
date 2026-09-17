@@ -11,7 +11,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -521,15 +521,21 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
     // Carbon casts to EveEntityPtr before registering (cpp:152-176).
     if (masked === BlueListEvent.INSERTED)
     {
-      if (value instanceof EveEntity) value.Register(registry);
+      const entity = CjsSchema.cast(value, EveEntity);
+      if (entity) entity.Register(registry);
     }
     else if (masked === BlueListEvent.REMOVED)
     {
-      if (value instanceof EveEntity) value.UnRegister(registry);
+      const entity = CjsSchema.cast(value, EveEntity);
+      if (entity) entity.UnRegister(registry);
     }
     else if (masked === BlueListEvent.UNLOADSTART)
     {
-      for (const member of members) if (member instanceof EveEntity) member.UnRegister(registry);
+      for (const member of members)
+      {
+        const entity = CjsSchema.cast(member, EveEntity);
+        if (entity) entity.UnRegister(registry);
+      }
     }
   }
 

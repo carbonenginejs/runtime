@@ -678,18 +678,21 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
         value.SetOwner(this);
         EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
         // Carbon casts to EveEntityPtr before registering (cpp:333-341).
-        if (registry && value instanceof EveEntity) value.Register(registry);
+        const inserted = registry ? CjsSchema.cast(value, EveEntity) : null;
+        if (inserted) inserted.Register(registry);
       }
       else if (masked === BlueListEvent.REMOVED)
       {
-        if (registry && value instanceof EveEntity) value.UnRegister(registry);
+        const removed = registry ? CjsSchema.cast(value, EveEntity) : null;
+        if (removed) removed.UnRegister(registry);
         value.SetOwner(null);
       }
       else if (masked === BlueListEvent.UNLOADSTART)
       {
         for (const child of this.effectChildren)
         {
-          if (registry && child instanceof EveEntity) child.UnRegister(registry);
+          const entity = registry ? CjsSchema.cast(child, EveEntity) : null;
+          if (entity) entity.UnRegister(registry);
           child.SetOwner(null);
         }
       }

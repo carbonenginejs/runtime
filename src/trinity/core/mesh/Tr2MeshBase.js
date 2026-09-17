@@ -5,7 +5,7 @@ import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -240,16 +240,16 @@ export class Tr2MeshBase extends CjsModel
     switch (event & BlueListEvent.EVENTMASK)
     {
       case BlueListEvent.INSERTED:
-        if (value instanceof Tr2MeshArea) value.AddOwnerMesh(this);
+        CjsSchema.cast(value, Tr2MeshArea)?.AddOwnerMesh(this);
         break;
       case BlueListEvent.REMOVED:
-        if (value instanceof Tr2MeshArea) value.RemoveOwnerMesh(this);
+        CjsSchema.cast(value, Tr2MeshArea)?.RemoveOwnerMesh(this);
         break;
       case BlueListEvent.LOADFINISHED:
-        for (const area of list) if (area instanceof Tr2MeshArea) area.AddOwnerMesh(this);
+        for (const area of list) CjsSchema.cast(area, Tr2MeshArea)?.AddOwnerMesh(this);
         break;
       case BlueListEvent.UNLOADSTART:
-        for (const area of list) if (area instanceof Tr2MeshArea) area.RemoveOwnerMesh(this);
+        for (const area of list) CjsSchema.cast(area, Tr2MeshArea)?.RemoveOwnerMesh(this);
         break;
       default:
         break;
