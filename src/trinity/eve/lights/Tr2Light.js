@@ -4,6 +4,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, type } from "#schema";
+import { CjsResMan, ResourceRequirement } from "#resource";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -268,16 +269,54 @@ export class Tr2Light extends CjsModel
     return out;
   }
 
+  /** Carbon Initialize (Tr2Light.cpp:165-174): resolve the authored profile path. */
+  @carbon.method
+  @impl.implemented
+  Initialize()
+  {
+    this.#ResolveLightProfile();
+    return true;
+  }
+
   /**
-   * Reports the light ready; resolving the light profile is left to the
-   * resource/runtime adapter, so this always succeeds.
+   * Carbon OnModified (Tr2Light.cpp:177-189): a lightProfilePath change
+   * re-resolves the profile.
    */
   @carbon.method
   @impl.adapted
-  Initialize()
+  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the path is re-resolved whenever a caller names it or names nothing. Re-resolving an unchanged path is idempotent through the manager cache.")
+  OnModified(options = {})
   {
-    // Light-profile resolution is supplied by the resource/runtime adapter.
+    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
+    if (named !== null && named !== undefined)
+    {
+      const names = typeof named === "string" ? [ named ] : named;
+      let touched = false;
+      for (const name of names) if (name === "lightProfilePath") touched = true;
+      if (!touched) return true;
+    }
+    this.#ResolveLightProfile();
     return true;
+  }
+
+  /**
+   * Carbon's shared body for both call sites: an empty path clears the
+   * profile, otherwise the manager supplies it - `BeResMan->GetResource(
+   * m_lightProfilePath, L"lp", profile )`, where the extension is its own
+   * argument and the requested TYPE is deduced from the destination.
+   */
+  #ResolveLightProfile()
+  {
+    const manager = CjsResMan.GetGlobal();
+    if (!manager || !this.lightProfilePath)
+    {
+      this.lightProfile = null;
+      return;
+    }
+    this.lightProfile = manager.GetResource(this.lightProfilePath, {
+      ext: "lp",
+      requirement: ResourceRequirement.LIGHT_PROFILE
+    });
   }
 
   /**

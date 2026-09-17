@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
+import { CjsResMan, ResourceRequirement } from "#resource";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { color } from "#math/color";
@@ -258,34 +259,48 @@ export class EveSmartLightPointLight extends EveEntity
     }
   }
 
-  /**
-   * Carbon resolves the light profile through BeResMan
-   * (EveSmartLightPointLight.cpp:18-27); profile resolution belongs to the
-   * resource adapter in CarbonEngineJS.
-   */
+  /** Carbon Initialize (EveSmartLightPointLight.cpp:18-27): resolve the profile. */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Light-profile resolution (BeResMan lp resource) is supplied by the resource/runtime adapter; Trinity keeps only the typed path/reference.")
+  @impl.implemented
   Initialize()
   {
-    this.#lastAppliedProfilePath = this.lightProfilePath;
+    this.#ResolveLightProfile();
     return true;
   }
 
   /**
+   * Carbon's body for both call sites: an empty path clears the profile,
+   * otherwise the manager supplies it - `BeResMan->GetResource(
+   * m_lightProfilePath, L"lp", profile )`, the extension being its own
+   * argument and the requested type deduced from the destination.
+   */
+  #ResolveLightProfile()
+  {
+    this.#lastAppliedProfilePath = this.lightProfilePath;
+    const manager = CjsResMan.GetGlobal();
+    if (!manager || !this.lightProfilePath)
+    {
+      this.lightProfile = null;
+      return;
+    }
+    this.lightProfile = manager.GetResource(this.lightProfilePath, {
+      ext: "lp",
+      requirement: ResourceRequirement.LIGHT_PROFILE
+    });
+  }
+
+  /**
    * A lightProfilePath edit re-resolves the profile
-   * (EveSmartLightPointLight.cpp:29-41); the stale reference is dropped so the
-   * resource adapter re-resolves it.
+   * (EveSmartLightPointLight.cpp:29-41).
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The settle hook receives no changed-property list, and profile resolution belongs to the resource adapter; a detected path edit only invalidates the cached reference.")
+  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the path is compared against the one last resolved.")
   OnModified(_options = {})
   {
     if (this.lightProfilePath !== this.#lastAppliedProfilePath)
     {
-      this.#lastAppliedProfilePath = this.lightProfilePath;
-      this.lightProfile = null;
+      this.#ResolveLightProfile();
     }
     return true;
   }
