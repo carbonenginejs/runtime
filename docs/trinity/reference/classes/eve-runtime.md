@@ -313,7 +313,7 @@ Persistent modular-space-object state stored as an effect child.
 Builds and publishes the canonical CPU instance stream from a placement distribution.
 
 It applies Carbon's billboard constraints and computes visibility and bounds;
-engines own physical instance-buffer realization.
+physical instance-buffer work is not ported yet.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
 - Source: `src/trinity/eve/child/EveChildInstanceMeshRenderer.js`

@@ -38,7 +38,7 @@ Dependency-free engine lifecycle required to execute one runtime frame.
 <!-- class:CjsInstancedMeshManager -->
 ## `CjsInstancedMeshManager`
 
-Dependency-free contract through which Trinity registers CPU instancing data with an engine-owned realization and receives opaque handles that Trinity never inspects or mutates.
+Dependency-free contract for registering CPU instancing data; the manager behind it is not ported and receives opaque handles that Trinity never inspects or mutates.
 
 - Export: `@carbonenginejs/runtime/contracts`
 - Source: `src/global/contracts/CjsInstancedMeshManager.js`

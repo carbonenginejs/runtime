@@ -72,8 +72,8 @@ output buffers universally optional.
 
 - Generated wildcard subpaths are intake surfaces and can change when a class
   is promoted to its maintained family.
-- A graph class describing a device or buffer does not expose a live backend
-  object.
+- A class describing a device or buffer may hold and forward to its AL object,
+  as Carbon does; with the stub attached that costs no GPU.
 - Resource and engine capabilities are supplied by their owning packages.
 - Explicit implementation gaps remain visible rather than receiving guessed
   behavior.

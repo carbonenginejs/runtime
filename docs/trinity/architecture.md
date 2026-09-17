@@ -3,7 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime/trinity`
 Audience: Runtime authors, engine authors, and maintainers
-Summary: Defines Trinity graph ownership and the boundary between portable state and backend realization.
+Summary: Defines Trinity graph ownership and which Carbon device behaviour is ported.
 
 ## Purpose
 
@@ -98,7 +98,7 @@ AL binding and draw calls. There is no `GetIntents`/`TakeIntents` history to
 replay. Real backend handles do not belong in persisted fields.
 
 The [WebGPU AL draw path](../trinityal/webgpu/architecture.md#current-al-draw-path)
-documents pipeline resolution, first-use resource realization and frame submission.
+documents pipeline resolution, first-use resource preparation and frame submission.
 
 ## Vertex-declaration matching
 
@@ -157,17 +157,17 @@ A mesh batch leaves collection with its draw arguments already computed, as
 Carbon computes them. The mesh path resolves the LOD for the caller's screen
 size, and `Tr2RenderBatch.resolveDrawArguments` turns that LOD's geometry data
 into an index count, start index, and base vertex. Two of those inputs are
-suballocation bases that only a realizing engine knows; they read off the
-geometry resource's allocations and default to zero, which is the correct
-answer for an engine that gives each mesh its own buffers instead of pooling
+suballocation bases known only once the resource's allocations exist; they read
+off the geometry resource's allocations and default to zero, which is the
+correct answer when each mesh has its own buffers instead of pooling
 them. No GPU handle crosses the boundary — the batch asks an allocation for two
 integers. A batch whose draw arguments are filled after collection has already
 missed `Finalize`, which sorts and stamps group runs.
 
-`CjsBatchManager` is the current GPU-free orchestrator. It registers producer
+`CjsBatchManager` is the current batch orchestrator. It registers producer
 types and scene-global collectors before `Initialize`, verifies required
 producer types, creates one map of accumulators, and clears it for each
-collection. For each pre-culled renderable it invokes an injected `Realize`
+collection. For each pre-culled renderable it invokes a registered `Realize`
 hook before `Build`, or falls back to the renderable's `GetBatches`. It then
 collects transparent work back-to-front, invokes global collectors, and calls
 `Finalize` before returning the map.
@@ -180,10 +180,10 @@ their existing model ancestry remains intact. The batch map, batch manager,
 and `ReflectionRenderable` component registration call or validate that owned
 contract directly; they do not capability-probe required methods.
 
-Backend realization, finalized-batch dispatch, pass policy, production
-composition, and concrete global collectors remain engine or application
-work. Rebuild tokens stay on the object or child that declared them; a realizer
-consumes the tokens for work it successfully completes.
+Backend submission of the finalized batches, pass policy, production
+composition, and concrete global collectors are not ported yet. Rebuild tokens
+stay on the object or child that declared them, and whatever consumes a token
+clears it only for work it successfully completes - nothing consumes them today.
 
 ### Instance-stream contract
 
@@ -192,9 +192,8 @@ Trinity's CPU object graph and engine-owned physical instancing. Trinity calls
 the required methods directly, registers terminal `RawData` rather than a
 duck-typed provider, and retains only opaque handles for later update/removal.
 The child retains the issuing manager independently; it never reads or repairs
-handle fields, so frozen objects and primitive handles are valid. Each
-supporting engine must extend the contract and realize those handles; Trinity
-does not own the GPU manager.
+handle fields, so frozen objects and primitive handles are valid. The instancing manager behind those handles is not ported; Carbon's scene owns
+it directly.
 
 `EveChildInstanceMeshRenderer` and `Tr2RuntimeInstanceData` own the logical
 current/previous transforms, bone index, 100-byte record packing, bounds, and
@@ -207,7 +206,7 @@ The canonical declaration uses stream-one `TEXCOORD8` through `TEXCOORD14`.
 Carbon's renderer currently declares indices 0 through 6, which overlap mesh
 semantics and do not match the measured shader inputs; engines consume the
 canonical declaration and bytes without renumbering them. Physical instance
-buffers and readiness remain engine realization.
+buffers and readiness are not ported yet.
 
 Smart-light faction palettes have two owned representations: Carbon-compatible
 indexed arrays and SOF named-field models exposing static `Types` plus
@@ -289,8 +288,8 @@ classes. Trinity owns their authored settings, enum vocabulary, and portable
 quality controls. `Tr2SSAO.Filter` and `Tr2PostProcessRenderer.Execute` retain
 their exact Carbon-shaped signatures as explicit throwing obligations because
 they allocate temporary textures, dispatch compute work, and perform physical
-render passes. A later engine contract must realize those calls without moving
-the quality/settings policy out of Trinity.
+render passes. Carbon implements them on these classes; porting them must not
+move the quality/settings policy elsewhere.
 
 ### Curve-line boundary
 
@@ -322,9 +321,9 @@ destructor. The JavaScript graph has no destruction hook, so the overlay and
 its authored effects currently share one graph lifetime; an eventual nominal
 graph-lifecycle contract must own explicit detachment.
 
-Physical line vertex streams, declarations, and draw submission remain an
-explicit `Tr2CurveLineSet.GetBatches` engine obligation. The base throws until
-that realization exists; visibility and constant production do not silently
+Physical line vertex streams, declarations, and draw submission are not ported;
+Carbon builds them in `Tr2CurveLineSet::SubmitChanges` (cpp:677). The base
+throws until they exist, so visibility and constant production do not silently
 pretend the line stream is drawable.
 
 ### Constant-data ownership
@@ -411,9 +410,9 @@ pipeline threads whichever shape it receives without inspecting it.
 
 `Tr2PostProcess2` and `Tr2PostProcessAttributes` own device-free activation,
 quality gates, lookup-table ordering, volume blending, and authored effect
-records. Engines independently realize temporary textures, exposure state,
-history, compute or fragment passes, readback, and loss recovery while
-preserving observable graph order.
+records. Temporary textures, exposure state, history, compute or fragment passes,
+readback and loss recovery are not ported; Carbon performs them here, in
+observable graph order.
 
 ## Constraints
 

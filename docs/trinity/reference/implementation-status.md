@@ -52,8 +52,8 @@ now call both emitters and systems directly.
 `ITr2InstanceData` likewise separates the provider contract from its returned
 instance-data packet. `Tr2RuntimeInstanceData` and `Tr2ParticleSystem` now
 publish their ready CPU buffers, normalized layouts, counts, and bounds through
-that contract; `Tr2DirectInstanceData` deliberately inherits the throwing
-buffer/readiness methods until an engine supplies its physical realization.
+that contract; `Tr2DirectInstanceData` inherits the throwing buffer/readiness
+methods, and the buffer work behind them is not ported yet.
 
 Required interface operations are not counted as implementation gaps. Their
 canonical root carries `@impl.abstract` and throws; a subclass that does not
@@ -108,11 +108,11 @@ implemented in maintained source:
   edit-session state is private rather than schema data.
 - `EveChildCloud` now inherits the maintained `EveSpaceObjectChild` contract
   and owns its CPU SRT composition, world bounds, visibility gate, and exposed
-  transform/sphere queries; its GPU cloud realization remains engine-owned.
+  transform/sphere queries; its GPU cloud work is not ported yet.
 - `CjsInstancedMeshManager` is the dependency-free CPU registration contract.
   Trinity calls it directly, registers terminal `RawData`, and retains the
-  issuing manager separately from opaque handles; production engine
-  realization remains open in the supporting engines.
+  issuing manager separately from opaque handles; the manager behind those
+  handles is not ported.
 - `ITr2BoundingBox` is a dependency-free global contract. Effect roots,
   transforms, planets, root transforms, and space objects inherit its abstract
   methods through dependency-safe contract mixins and override the Carbon

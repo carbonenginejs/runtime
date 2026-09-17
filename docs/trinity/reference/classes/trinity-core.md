@@ -3,7 +3,7 @@
 Status: Evolving
 Scope: `@carbonenginejs/runtime/trinity/core`, `@carbonenginejs/runtime/trinity/shader`, `@carbonenginejs/runtime/trinity/ui`
 Audience: Engine authors and integrators
-Summary: Catalogs GPU-free constant data, shader and material facades, and device-presentation records an engine realizes from the Trinity graph.
+Summary: Catalogs constant data, shader and material facades, and device-presentation records.
 
 <!-- class:Tr2Denoiser -->
 ## `Tr2Denoiser`
@@ -199,7 +199,7 @@ Copies one attribute of a source object onto an attribute of a destination objec
 <!-- class:CjsBatchManager -->
 ## `CjsBatchManager`
 
-Owns the per-library render-batch producer and collector registry and drives the GPU-free per-frame flow of realize, build, finalize into one accumulator per batch type.
+Owns the per-library render-batch producer and collector registry and drives the per-frame flow of prepare, build, finalize into one accumulator per batch type.
 
 - Export: @carbonenginejs/runtime/trinity/core
 - Source: src/trinity/core/batch/CjsBatchManager.js

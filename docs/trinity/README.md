@@ -23,12 +23,12 @@ Use `@carbonenginejs/runtime/trinity` when code needs to:
 
 - hydrate or serialize Trinity and Eve graph objects;
 - update curves, controllers, cameras, scene objects, or effects on the CPU;
-- collect render batches and render-job intents for an engine to realize;
+- collect render batches and render-job intents;
 - inspect schema-decorated fields and enum choices; or
 - build a headless tool that must not depend on WebGL or WebGPU.
 
-Use an engine package when code needs device creation, shader realization,
-resource uploads, draw submission, presentation, or device-loss recovery.
+Backend implementations live in `src/trinityal`. The stub is one of them, which
+is what lets this package run with no GPU attached.
 
 ## Where it fits
 
@@ -48,8 +48,8 @@ schema and generated-class input, not a runtime dependency.
 `Tr2EffectRes`, canonical `Tr2Shader`/reflection records, portable hydration,
 permutation selection, and shader caching. Trinity owns the mutable
 `Tr2Effect`/`Tr2Material` facade, parameters, authored options, sampler
-overrides, and graph behavior. Engine packages own live backend objects and
-realize the combined renderer-neutral graph.
+overrides, and graph behavior. Backend layers implement the AL these
+classes call; attaching the stub is what makes a GPU-free run possible.
 
 Character GState behavior belongs to `@carbonenginejs/runtime/character`.
 Applications or `@carbonenginejs/runtime/core` compose these domains.
