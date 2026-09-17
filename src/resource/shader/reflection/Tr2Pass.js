@@ -8,7 +8,7 @@ import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 import { recordBytes, toRecordBlob } from "./carbonRecordFields.js";
 
-/** Reflected effect pass; backend program and state handles remain engine-owned. */
+/** Reflected effect pass; Carbon's interned program and state handles are kept as authored data. */
 export class Tr2Pass extends CjsModel
 {
 
@@ -194,8 +194,8 @@ CjsSchema.define(Tr2Pass, {
     shaderProgram: type.uint32,
     resourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
     indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
-    renderStateValues: [ impl.adapted, impl.reason("Carbon stores a renderer-owned render-state handle; the device-free graph retains the authored state/value pairs until an engine realizes them."), type.rawStruct("CjsEffectRenderStateValues") ],
-    stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the device-free graph retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains uninterpreted for an engine to realize."), type.rawStruct("CjsEffectBackendBlock") ]
+    renderStateValues: [ impl.adapted, impl.reason("Carbon interns the state block through Tr2EffectStateManager::RegisterRenderStateSetup (Tr2EffectStateManager.h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). That manager is not ported yet, so the authored state/value pairs are retained here."), type.rawStruct("CjsEffectRenderStateValues") ],
+    stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the port retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
+    backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains uninterpreted."), type.rawStruct("CjsEffectBackendBlock") ]
   }
 });

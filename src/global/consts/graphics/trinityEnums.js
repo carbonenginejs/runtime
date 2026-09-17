@@ -85,3 +85,13 @@ export const TriExtrapolation = Object.freeze({
     TRIEXT_GRADIENT: 2,
     TRIEXT_CYCLE: 3
 });
+
+/** Storage classes a device resource may be released from, Tr2DeviceResource.h:9-15.
+ * A release takes a mask: VIDEOMEMORY for a device reset, MANAGEDMEMORY for
+ * device-memory resources, ALL for teardown. Unscoped Carbon enum, so the
+ * members carry their full names and their bit values. */
+export const TriStorage = Object.freeze({
+    TRISTORAGE_VIDEOMEMORY: 1 << 0,
+    TRISTORAGE_MANAGEDMEMORY: 1 << 1,
+    TRISTORAGE_ALL: (1 << 2) - 1
+});

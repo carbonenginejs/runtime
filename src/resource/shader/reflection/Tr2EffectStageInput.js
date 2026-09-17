@@ -488,7 +488,7 @@ CjsSchema.define(Tr2EffectStageInput, {
   className: "Tr2EffectStageInput",
   family: "shader",
   fields: {
-    stageType: [ impl.adapted, impl.reason("The source format identifies stage inputs by array index; the device-free graph retains the index explicitly for serialization and engine adapters."), type.int32 ],
+    stageType: [ impl.adapted, impl.reason("The source format identifies stage inputs by array index; the index is retained explicitly so a body re-emits as the file that produced it."), type.int32 ],
     exists: type.boolean,
     resources: type.map("Tr2EffectResource"),
     uavs: type.map("Tr2EffectResource"),
@@ -500,6 +500,6 @@ CjsSchema.define(Tr2EffectStageInput, {
     constantValuesUnsetOffset: [ impl.custom, impl.reason("A zero-size blob's offset word is passed through rather than interned, and the shipped corpus does not always set it to the null sentinel; the graph retains it so a body re-emits as the file that produced it."), type.uint32 ],
     signature: type.rawStruct("Tr2ShaderSignatureAL"),
     annotation: type.list("Tr2EffectParameterAnnotation"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon replaces source program data with renderer handles while reading; the device-free resource graph must retain the portable source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram") ]
+    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the program through Tr2EffectStateManager::RegisterShader (Tr2EffectStateManager.h:107) and keeps only the m_shader handle (Tr2EffectDescription.h:183). That manager is not ported yet, so the bytes are retained here."), type.rawStruct("CjsEffectSourceProgram") ]
   }
 });

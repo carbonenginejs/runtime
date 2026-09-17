@@ -3,37 +3,41 @@
 Status: Evolving  
 Scope: `@carbonenginejs/runtime/resource`
 Audience: Users and integrators  
-Summary: Defines the GPU-free boundary this package owns and how engine and runtime packages relate to it.
+Summary: Defines the resource lifecycle this package owns and how it reaches the graphics abstraction layer.
 
-## The GPU-free split
+## The resource lifecycle
 
-The `resource` layer owns the GPU-free half of the Carbon resource lifecycle:
-
-```text
-EMPTY -> REQUESTED/LOADING -> LOADED
-```
-
-Engine adapters own device realization:
+The `resource` layer owns the whole Carbon resource lifecycle, load and
+prepare both:
 
 ```text
-LOADED -> PREPARING -> PREPARED
+EMPTY -> REQUESTED/LOADING -> LOADED -> PREPARING -> PREPARED
 ```
+
+Carbon does the same. A resource prepares itself: `BlueAsyncRes` carries the
+`m_isPrepared` flag (`blue/include/BlueAsyncRes.h:87-166`) and the concrete
+resource implements `OnPrepareResources` (`TriTextureRes.h:124`,
+`TriGeometryRes.h:353`, `Tr2EffectRes.h:53`). There is no layer between the
+resource and the device in Carbon, and there is none here.
 
 The package selects and runs registered readers, hydrates or returns the
 promised CPU outcome, and stores lifecycle state, cache entries, and loaded
 payloads. For compiled effects it independently validates complete permutation
 topology and the Carbon v15 container records it read itself, selects a
-permutation, and hydrates a canonical device-free `Tr2Shader` graph. It never
-creates WebGL/WebGPU textures, buffers, shader modules, pipelines, or bind
-groups, and it never inspects backend capability.
-A realization failure destroys its candidate and returns the resource to
+permutation, and hydrates a canonical `Tr2Shader` graph.
+A prepare failure destroys its candidate and returns the resource to
 `LOADED` without discarding the valid CPU payload.
 
-This deliberately differs from Carbon and ccpwgl, whose resource classes live
-inside an engine that can prepare GPU objects directly. Keeping the
-format/resource layer reusable means stopping before GPU work; see
-[resource lifecycle concepts](concepts/resource-lifecycle.md) for the
-historical mapping.
+GPU work goes through the abstraction layer in `src/trinityal`, exactly as
+Carbon's resources call its AL. Headlessness is what the stub backend is for:
+running without a device means selecting the stub, never hollowing a resource
+class out. A resource method left empty so that something else can do its work
+is a gap to be closed, not a boundary.
+
+The divergences that remain are the ones the browser forces: adapter
+acquisition, `mapAsync`, shader-module and pipeline creation, `fetch`, and
+image and video decode are asynchronous where Carbon's are not. Each carries
+its own `@impl.reason` at the site. "An engine owns this" is not one of them.
 
 ## What the package owns
 
@@ -77,11 +81,13 @@ historical mapping.
 
 ## What the package does not own
 
-- WebGL/WebGPU realization, allocations, upload accounting, device budgets,
-  capability limits, and device-loss recovery (engine packages).
+- Backend allocation, upload accounting, device budgets, capability limits,
+  and device-loss recovery. These belong to the abstraction layer in
+  `src/trinityal/<backend>`, which resource classes call; Carbon's resources
+  call its AL the same way.
 - Shader binary decoding, backend translation, and package serialization live
   in the explicit `@carbonenginejs/runtime/resource/formats/{hlsl,dxbc,webgl,webgpu}` subpaths.
-  Backend shader objects remain in engine packages.
+  Backend shader objects are allocated by the abstraction layer.
 - AudioBuffer construction, playback, or audio manager behavior.
 - Audio-library document construction, enrichment, media-ID interpretation,
   and delivery-route selection.
@@ -90,12 +96,13 @@ historical mapping.
 
 - The `core` layer may configure and expose a `CjsResMan`, but does not own its
   implementation.
-- The `trinity` and `sof` layers may request GPU-free objects and
-  resources without selecting an engine. Trinity owns the mutable
+- The `trinity` and `sof` layers may request resources directly, as Carbon's
+  do. With the stub backend selected they run headless. Trinity owns the mutable
   `Tr2Effect`/`Tr2Material` facade, parameters, options, and sampler overrides;
   it consumes the resource-owned shader graph.
-- The `trinityal/webgpu` layer and any future WebGL engine layer consume loaded resources and own
-  all backend allocations, preparation, replacement, and destruction.
+- The `trinityal/<backend>` layers own backend allocation, replacement, and
+  destruction. Preparation is the resource's own, through `OnPrepareResources`;
+  the backend supplies the objects it allocates.
 
 Concrete formats require [explicit imports and registration](formats/README.md).
 [Worker-safe formats](reference/workers.md) also declare their exact module;

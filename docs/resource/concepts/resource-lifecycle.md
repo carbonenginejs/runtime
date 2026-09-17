@@ -28,21 +28,26 @@ Additional terminal or cleanup states include `ERROR`, `UNLOADED`, and
 - The concrete resource calls `OnPrepared()` after prepare work succeeds.
 
 Some ccpwgl concrete `Prepare()` implementations also create WebGL objects.
-That is a historical engine/runtime coupling, not the boundary CarbonEngineJS
-keeps; see [architecture](../architecture.md).
+Carbon's do the same, through `OnPrepareResources` (`TriTextureRes.h:124`,
+`TriGeometryRes.h:353`, `Tr2EffectRes.h:53`), and so may ours; see
+[architecture](../architecture.md).
 
 ## CarbonEngineJS states
 
 ```text
-EMPTY -> REQUESTED/LOADING -> LOADED          (resource layer)
-LOADED -> PREPARING -> PREPARED               (engine adapters)
+EMPTY -> REQUESTED/LOADING -> LOADED -> PREPARING -> PREPARED
 ```
+
+The whole line belongs to the resource layer. Backend allocation inside
+`PREPARING` is delegated to the abstraction layer, as Carbon delegates it to
+its own AL.
 
 - `EMPTY`: resource identity exists, but no payload has been read.
 - `REQUESTED`: the resource is waiting on a queued or shared source load.
 - `LOADING`: source bytes are available and CPU reader/format work is active.
 - `LOADED`: CPU payload or hydrated object graph exists.
-- `PREPARING`: an engine adapter is realizing backend-owned resources.
+- `PREPARING`: the resource is preparing itself, allocating whatever backend
+  objects it needs through the abstraction layer.
 - `PREPARED`: preparation completed successfully and the resource is usable.
 - `FAILED`: CPU loading, conversion, validation, or publication failed before
   a valid payload was published.
@@ -57,8 +62,7 @@ per source/path and limits active source operations with
 `maxConcurrentLoads`. After bytes arrive, object construction is split into
 separate main-queue items (`reader/format conversion -> publish`). Publication
 moves the resource to `PREPARED`: the published value is already the reader or
-converter outcome, so no CPU preparation remains. ResMan never performs backend
-realization. A route that hydrates a `Target` builds a new object for each
+converter outcome, so no CPU preparation remains. A route that hydrates a `Target` builds a new object for each
 caller from the retained decoded values, as Carbon's `LoadObject` does. See
 [reference/queues.md](../reference/queues.md) for the queue contract and
 [reference/motherlode-cache.md](../reference/motherlode-cache.md) for
@@ -164,14 +168,14 @@ Application / runtime object
              the built CjsResource/object
 ```
 
-Device realization is a separate continuation selected outside ResMan. It can
-run again after adapter eviction or device loss while the CPU payload remains
+Preparation is a separate phase from loading, as it is in Carbon, and it can
+run again after eviction or device loss while the CPU payload remains
 resident:
 
 ```text
 CjsResource LOADED
         |
-        | selected engine adapter
+        | OnPrepareResources
         v
 PREPARING
         |

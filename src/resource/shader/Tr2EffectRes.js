@@ -454,9 +454,9 @@ CjsSchema.define(Tr2EffectRes, {
   className: "Tr2EffectRes",
   family: "resources",
   methods: {
-    GetShader: [ carbon.method, impl.adapted, impl.reason("Carbon reads the selected body from the compiled effect bytes and registers renderer handles; CarbonEngineJS reads the same bytes and stops at the device-free graph, leaving GPU realization to the engine.") ],
+    GetShader: [ carbon.method, impl.adapted, impl.reason("Carbon reads the selected body and interns its handles through Tr2EffectStateManager (Tr2EffectStateManager.h:107-118); that manager is not ported yet, so this returns the hydrated shader graph instead of a handle.") ],
     GetShaderByIndex: [ impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.") ],
     GetPermutationDescription: [ carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.") ],
-    ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Backend resources are engine-owned; the resource-side release clears only hydrated device-free shader graphs.") ]
+    ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Clears the hydrated shader graphs only. Carbon also does SetGood(false), SetPrepared(false), CancelPendingLoad() and NotifyReleaseCachedData(), and takes a TriStorage mask; not ported yet, Tr2EffectRes.cpp:328-341.") ]
   }
 });

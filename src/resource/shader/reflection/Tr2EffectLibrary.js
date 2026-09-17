@@ -186,7 +186,7 @@ CjsSchema.define(Tr2EffectLibrary, {
     globalInput: type.rawStruct("Tr2EffectStageInput"),
     localInput: type.rawStruct("Tr2EffectStageInput"),
     globalResourceSetDesc: type.rawStruct("Tr2ResourceSetDescriptionAL"),
-    sourceProgram: [ impl.adapted, impl.reason("Carbon registers the library with the renderer while reading; the device-free graph retains the source program for later engine realization."), type.rawStruct("CjsEffectSourceProgram") ],
-    exports: [ impl.adapted, impl.reason("Carbon resolves these exports into a renderer library handle; the device-free graph keeps the declarative export list."), type.rawStruct("CjsEffectLibraryExports") ]
+    sourceProgram: [ impl.adapted, impl.reason("Carbon interns the library bytecode through Tr2EffectStateManager::RegisterShaderLibrary (Tr2EffectStateManager.h:115) and keeps only libraryHandle (Tr2EffectDescription.h:217). That manager is not ported yet, so the bytes are retained here."), type.rawStruct("CjsEffectSourceProgram") ],
+    exports: [ impl.adapted, impl.reason("Carbon resolves these exports into the interned library handle; without Tr2EffectStateManager the declarative export list is what is kept."), type.rawStruct("CjsEffectLibraryExports") ]
   }
 });

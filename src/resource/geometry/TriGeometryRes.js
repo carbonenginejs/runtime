@@ -10,6 +10,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsResource } from "../CjsResource.js";
+import { TriStorage } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import {
   assertResourcePayloadArray,
@@ -32,8 +33,8 @@ const edgeAC = [ 0, 0, 0 ];
 
 /**
  * Resource record that owns geometry payload facts (meshes, optional
- * skeletons and animations) and LOD-force metadata, while engine packages
- * decide device buffers, vertex declarations, and draw-time state.
+ * skeletons and animations) and LOD-force metadata. Device buffers and vertex
+ * declarations are allocated through the abstraction layer.
  *
  * Geometry inspection composes the generic math supplied by the runtime global layer
  * with resource-specific payload traversal.
@@ -92,6 +93,21 @@ export class TriGeometryRes extends CjsResource
     super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
+  }
+
+  /**
+   * Release the geometry payload, and with it anything derived from it.
+   *
+   * Carbon has no payload-only release: cpp:496-509 drops the meshes and the
+   * raycast geometry together. A manager-driven release here must do the same,
+   * or the raycaster keeps answering from meshes that are gone.
+   *
+   * @returns {TriGeometryRes} This resource.
+   */
+  ReleasePayload()
+  {
+    this.DestroyRayCaster();
+    return super.ReleasePayload();
   }
 
   /**
@@ -490,7 +506,46 @@ export class TriGeometryRes extends CjsResource
   /** Reports whether the current raycast preparation session failed. */
   HasRayCasterPreparationFailed()
   {
+    // cpp:1597-1603. A release destroys the derived geometry without touching
+    // the session count, so an open session with nothing under it IS the
+    // failure - Carbon's own comment there reads "ReleaseResources destroyed
+    // our bvh :(".
+    if (this.#raycastUsers > 0 && !this.#raycastGeometry) return true;
     return this.#raycastPreparationFailed;
+  }
+
+  /**
+   * Drop the derived raycast geometry, whether or not sessions are open.
+   *
+   * cpp:1560-1567. Carbon ignores the session count here; an open session
+   * discovers the loss through HasRayCasterPreparationFailed.
+   *
+   * @returns {TriGeometryRes} This resource.
+   */
+  DestroyRayCaster()
+  {
+    this.#raycastGeometry = null;
+    this.#raycastPreparationFailed = false;
+    return this;
+  }
+
+  /**
+   * Release this resource's CPU geometry for the requested storage classes.
+   *
+   * cpp:496-509. Carbon also calls CancelPendingLoad, which belongs to the
+   * manager here, and SetGood(false)/SetPrepared(false), which this port
+   * expresses as the single UNLOADED state.
+   *
+   * @param {number} [storage=TriStorage.TRISTORAGE_ALL] Carbon's TriStorage mask.
+   * @returns {TriGeometryRes} This resource.
+   */
+  ReleaseResources(storage = TriStorage.TRISTORAGE_ALL)
+  {
+    if (!(storage & TriStorage.TRISTORAGE_MANAGEDMEMORY)) return this;
+    this.DestroyRayCaster();
+    this.ReleasePayload();
+    this.SetState(CjsResource.State.UNLOADED);
+    return this;
   }
 
   /** Public Carbon query; requires a matching active raycast session. */
@@ -1221,6 +1276,9 @@ CjsSchema.define(TriGeometryRes, {
     ResetRayCaster: [ carbon.method, impl.adapted ],
     IsRayCasterReady: [ carbon.method, impl.adapted ],
     HasRayCasterPreparationFailed: [ carbon.method, impl.adapted ],
+    DestroyRayCaster: [ carbon.method, impl.adapted ],
+    ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Carbon's CancelPendingLoad half is manager-owned here, and its SetGood(false)/SetPrepared(false) pair is one UNLOADED state.") ],
+    ReleasePayload: [ impl.custom, impl.reason("No Carbon counterpart: Carbon releases geometry only through ReleaseResources. The override exists so a manager-driven payload release cannot leave a raycaster built from the freed meshes behind.") ],
     GetIntersectionPoints: [ carbon.method, impl.adapted ],
     GetMeshVertexElements: [ carbon.method, impl.adapted ],
     SaveMesh: [ carbon.method, impl.notSupported ]
