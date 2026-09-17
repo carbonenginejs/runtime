@@ -20,91 +20,39 @@
  * the WebGL2 sampler-unit limit of 16.
  */
 
-/** Resource names that make up the family, in layer order. */
-const DETAIL_PARAMETERS = Object.freeze([ "Detail1Map", "Detail2Map", "Detail3Map" ]);
+import {
+    TEXTURE_ARRAY_FAMILIES,
+    recogniseTextureArrayFamily,
+    textureArrayTransformFor
+} from "./textureArrayFamilies.js";
 
-/** Carbon's resource type code for a 2D texture. */
-const CARBON_TEXTURE_2D = 2;
+/**
+ * The detail family's own row of the table.
+ *
+ * This module predates the table and is the documented entry point for the
+ * detail maps specifically - the contract, the WebGPU plan builder and the
+ * container's transform family all name it. It now delegates rather than
+ * carrying a second copy of the rules, because two implementations of
+ * "which registers take part" is exactly the drift the recogniser exists to
+ * prevent.
+ */
+const DETAIL_DEFINITION = TEXTURE_ARRAY_FAMILIES
+    .find((definition) => definition.family === "detail-map-array");
 
 /** The merged array's name, and the transform family it belongs to. */
-export const DETAIL_MAP_ARRAY_NAME = "DetailArrayMap";
-export const DETAIL_MAP_ARRAY_FAMILY = "detail-map-array";
+export const DETAIL_MAP_ARRAY_NAME = DETAIL_DEFINITION.outputName;
+export const DETAIL_MAP_ARRAY_FAMILY = DETAIL_DEFINITION.family;
 
 /**
  * Recognises the detail-map family in one stage's reflected resources.
  *
- * Requires the maps to be contiguous from `Detail1Map` with no gap, in one
- * register space, at strictly ascending registers, and each an ordinary
- * single-element 2D texture declared linear. Anything else returns null: a
- * partial or unusual family is not merged, because guessing produces a shader
- * that links and samples the wrong thing.
- *
- * `isSRGB` must be present and false rather than merely not true. Carbon's
- * reader always sets it, so an absent flag means the caller is passing
- * something other than resource reflection, and the layers of one array texture
- * cannot disagree about whether sampling decodes sRGB.
- *
- * @param {Array<object>} resources Reflected resources, each carrying
- *   `registerIndex`, `name`, `type`, `isSRGB`, and optionally `registerSpace`
- *   and `arrayElements`. `parameter` is accepted in place of `name`.
+ * @param {Array<object>} resources Reflected resources.
  * @param {object} [options] Recognition options.
- * @param {number} [options.registerSpace] Default register space.
  * @returns {object|null} Frozen plan, or null when the family is absent or unusable.
  */
 export function recogniseDetailMapFamily(resources, options = {})
 {
-    const registerSpace = options.registerSpace ?? 0;
-    const byParameter = new Map();
-
-    for (const resource of resources ?? [])
-    {
-        const value = resource?.toJSON?.() ?? resource;
-        const name = value?.name ?? value?.parameter;
-        if (typeof name !== "string" || !DETAIL_PARAMETERS.includes(name)) continue;
-
-        // A duplicate name means the reflection is not what this recogniser
-        // assumes, so it declines rather than picking one.
-        if (byParameter.has(name)) return null;
-        byParameter.set(name, { registerIndex: value.registerIndex, value });
-    }
-
-    if (byParameter.size < 2) return null;
-
-    // Contiguous from Detail1Map: {1,2} and {1,2,3} merge, {1,3} does not.
-    const parameters = DETAIL_PARAMETERS.slice(0, byParameter.size);
-    if (parameters.some((parameter) => !byParameter.has(parameter))) return null;
-
-    const layers = [];
-    for (const [ layer, parameter ] of parameters.entries())
-    {
-        const { registerIndex, value } = byParameter.get(parameter);
-
-        if (!Number.isInteger(registerIndex) || registerIndex < 0
-            || value.type !== CARBON_TEXTURE_2D
-            || (value.arrayElements ?? 1) !== 1
-            || value.isSRGB !== false)
-        {
-            return null;
-        }
-
-        const space = value.registerSpace ?? registerSpace;
-
-        // One array texture occupies one binding, so the layers cannot come
-        // from different register spaces.
-        if (layer > 0 && space !== layers[layer - 1].registerSpace) return null;
-        if (layer > 0 && registerIndex <= layers[layer - 1].registerIndex) return null;
-
-        layers.push({ parameter, layer, registerIndex, registerSpace: space });
-    }
-
-    return {
-        family: DETAIL_MAP_ARRAY_FAMILY,
-        outputName: DETAIL_MAP_ARRAY_NAME,
-        registerSpace,
-        layerCount: layers.length,
-        layers: layers.map((entry) => entry),
-        registers: layers.map((entry) => entry.registerIndex)
-    };
+    return recogniseTextureArrayFamily(DETAIL_DEFINITION, resources, options);
 }
 
 /**
@@ -116,16 +64,7 @@ export function recogniseDetailMapFamily(resources, options = {})
  */
 export function detailMapTransformFor(plan, layoutKey)
 {
-    return {
-        id: `${layoutKey}:${DETAIL_MAP_ARRAY_FAMILY}:sampled-resource:${plan.registerSpace}:${plan.registers[0]}`,
-        family: DETAIL_MAP_ARRAY_FAMILY,
-        layoutKey,
-        inputs: plan.layers.map((entry) => ({
-            registerSpace: entry.registerSpace,
-            registerIndex: entry.registerIndex,
-            parameter: entry.parameter
-        }))
-    };
+    return textureArrayTransformFor(plan, layoutKey);
 }
 
 export default recogniseDetailMapFamily;

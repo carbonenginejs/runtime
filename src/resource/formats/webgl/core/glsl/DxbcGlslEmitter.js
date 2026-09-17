@@ -2,7 +2,6 @@ import CjsDxbcFormat from "../../../dxbc/index.js";
 import { WebglReadError } from "../errors.js";
 import { DxbcGlslOperandFormatter } from "./DxbcGlslOperandFormatter.js";
 import { DxbcGlslHelperRegistry } from "./DxbcGlslHelpers.js";
-import { DETAIL_MAP_ARRAY_NAME } from "../../../hlsl/core/detailMapFamily.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 
@@ -64,7 +63,6 @@ const NON_COMPARISON_TEXTURE_OPCODES = new Set([
  * second place for the next rename to miss, which is exactly what the writer's
  * `outputName` comment warns about. Only the GLSL sampler prefix is local.
  */
-const DETAIL_MAP_ARRAY_SYMBOL = `s${DETAIL_MAP_ARRAY_NAME}`;
 
 const COORD_MASK_BY_DIMENSION = {
     2: "x",
@@ -140,6 +138,11 @@ export class DxbcGlslEmitter
             // into one array binding frees two texture units on shaders that
             // sit exactly on WebGL2's 16-unit limit.
             detailMapArrayRegisters: [],
+            // Every family to merge, as { family, outputName, registers } in
+            // layer order. The key above is the detail family's older spelling
+            // and is still honoured; this one carries the rest - Frontier's
+            // roughness, atlas and dirt families among them.
+            textureArrayFamilies: [],
             // Which end of the source clip range is NEAR, and therefore which
             // form the depth-range fixup takes.
             //
@@ -467,11 +470,10 @@ export class DxbcGlslEmitter
             neutralResources: new Set(this.profile.neutralResourceRegisters || []),
             // Resource register -> array layer for the merged detail maps, and
             // whether the one shared array declaration has been emitted yet.
-            detailMapArrayLayers: new Map(
-                (this.profile.detailMapArrayRegisters || [])
-                    .map((register, layer) => [ register, layer ])
-            ),
-            detailMapArrayDeclared: false,
+            // Resource register -> the array it was merged into and its layer
+            // within it, and which array declarations have been emitted.
+            textureArrayLayers: this._textureArrayLayerMap(),
+            declaredTextureArrays: new Set(),
             inputMasks: new Map(),
             outputMasks: new Map(),
             bindings: [],
@@ -1510,9 +1512,9 @@ export class DxbcGlslEmitter
                         }
                     );
                 }
-                if (state.detailMapArrayLayers.has(register))
+                if (state.textureArrayLayers.has(register))
                 {
-                    this._declareDetailArrayMap(state, register, declaration, comparisonSamplers);
+                    this._declareTextureArrayMap(state, register, declaration, comparisonSamplers);
                     break;
                 }
 
@@ -2553,7 +2555,7 @@ export class DxbcGlslEmitter
     }
 
     /**
-     * Declares the merged detail-map array, once, on the first member seen.
+     * Declares one merged array, once per family, on its first member seen.
      *
      * Each member keeps its own entry in `resourceNames` pointing at the shared
      * array, so every existing reference site resolves to it without knowing a
@@ -2567,9 +2569,9 @@ export class DxbcGlslEmitter
      * @param {Set<number>|null} comparisonSamplers Comparison samplers, when any.
      * @private
      */
-    _declareDetailArrayMap(state, register, declaration, comparisonSamplers)
+    _declareTextureArrayMap(state, register, declaration, comparisonSamplers)
     {
-        // A comparison-sampled or non-2D detail map is not the family the
+        // A comparison-sampled or non-2D member is not the family the
         // recogniser promised, so refuse rather than emit a wrong declaration.
         if (comparisonSamplers || declaration.resourceDimension !== 3)
         {
@@ -2583,33 +2585,73 @@ export class DxbcGlslEmitter
             );
         }
 
-        state.resourceDimensions.set(register, declaration.resourceDimension);
-        state.resourceNames.set(register, DETAIL_MAP_ARRAY_SYMBOL);
+        const merged = state.textureArrayLayers.get(register);
+        const symbol = merged.symbol;
+        const members = [ ...state.textureArrayLayers ]
+            .filter(([ , entry ]) => entry.symbol === symbol)
+            .map(([ memberRegister ]) => memberRegister);
 
-        if (state.detailMapArrayDeclared) return;
-        state.detailMapArrayDeclared = true;
+        state.resourceDimensions.set(register, declaration.resourceDimension);
+        state.resourceNames.set(register, symbol);
+
+        if (state.declaredTextureArrays.has(symbol)) return;
+        state.declaredTextureArrays.add(symbol);
 
         // One GL uniform now stands for every merged layer, so it can carry only
         // one sampler state. Union the layers' pairings: if they disagree the
         // merge itself was invalid, and the packaging layer is where that is
         // detectable, because only it holds the sampler values to compare.
-        const merged = new Set();
-        for (const layerRegister of state.detailMapArrayLayers.keys())
+        const pairings = new Set();
+        for (const layerRegister of members)
         {
-            for (const sampler of state.pairedSamplers.get(layerRegister) ?? []) merged.add(sampler);
+            for (const sampler of state.pairedSamplers.get(layerRegister) ?? []) pairings.add(sampler);
         }
 
-        state.declarationLines.push(`uniform mediump sampler2DArray ${DETAIL_MAP_ARRAY_SYMBOL};`);
+        state.declarationLines.push(`uniform mediump sampler2DArray ${symbol};`);
         state.bindings.push({
             kind: "resource",
             registerIndex: register,
-            name: DETAIL_MAP_ARRAY_SYMBOL,
+            name: symbol,
             samplerType: "sampler2DArray",
             dimensionName: "texture2darray",
-            arrayLayerCount: state.detailMapArrayLayers.size,
-            mergedFrom: [ ...state.detailMapArrayLayers.keys() ],
-            ...(merged.size ? { pairedSamplerRegisters: [ ...merged ].sort((a, b) => a - b) } : {})
+            arrayLayerCount: members.length,
+            mergedFrom: members,
+            mergedFamily: merged.family,
+            ...(pairings.size ? { pairedSamplerRegisters: [ ...pairings ].sort((a, b) => a - b) } : {})
         });
+    }
+
+    /**
+     * Builds the register -> merged array map from the profile.
+     *
+     * Two spellings, one meaning: `detailMapArrayRegisters` is the detail
+     * family's original key, and `textureArrayFamilies` carries any family
+     * including that one. A caller may pass either.
+     *
+     * @returns {Map<number, object>} register -> { symbol, layer, family }
+     * @private
+     */
+    _textureArrayLayerMap()
+    {
+        const map = new Map();
+        const families = [
+            ...(this.profile.detailMapArrayRegisters?.length
+                ? [ { family: "detail-map-array", outputName: "DetailArrayMap", registers: this.profile.detailMapArrayRegisters } ]
+                : []),
+            ...(this.profile.textureArrayFamilies || [])
+        ];
+
+        for (const entry of families)
+        {
+            const symbol = `s${entry.outputName}`;
+
+            for (const [ layer, register ] of (entry.registers || []).entries())
+            {
+                map.set(register, { symbol, layer, family: entry.family, outputName: entry.outputName });
+            }
+        }
+
+        return map;
     }
 
     /**
@@ -2620,10 +2662,11 @@ export class DxbcGlslEmitter
      * @returns {number|null} Layer index, or null when the register was not merged.
      * @private
      */
-    _detailMapArrayLayer(state, texOperand)
+    _textureArrayLayer(state, texOperand)
     {
-        const layer = state.detailMapArrayLayers.get(texOperand.registerIndex);
-        return layer === undefined ? null : layer;
+        const merged = state.textureArrayLayers.get(texOperand.registerIndex);
+
+        return merged === undefined ? null : merged.layer;
     }
 
     /**
@@ -2641,11 +2684,11 @@ export class DxbcGlslEmitter
      */
     _rejectDetailArrayMapUse(state, instruction, texOperand)
     {
-        if (!state.detailMapArrayLayers.has(texOperand.registerIndex)) return;
+        if (!state.textureArrayLayers.has(texOperand.registerIndex)) return;
 
         throw new WebglReadError(
-            `Detail map merged into an array is used by ${instruction.opcodeName}, `
-            + "which this emitter cannot redirect at an array layer",
+            `${state.textureArrayLayers.get(texOperand.registerIndex).outputName} layer is used by `
+            + `${instruction.opcodeName}, which this emitter cannot redirect at an array layer`,
             {
                 source: state.sourceName,
                 register: texOperand.registerIndex,
@@ -2771,13 +2814,13 @@ export class DxbcGlslEmitter
         }
         const dimension = this._resourceDimension(state, instruction, texOperand);
         const coordMask = COORD_MASK_BY_DIMENSION[dimension];
-        const detailLayer = this._detailMapArrayLayer(state, texOperand);
+        const arrayLayer = this._textureArrayLayer(state, texOperand);
         const baseCoord = this._vecArg(state, coordOperand, coordMask);
         // A merged detail map keeps its 2D coordinate and gains the layer as a
         // literal third component; the register it came from is the layer.
-        const coord = detailLayer === null
+        const coord = arrayLayer === null
             ? baseCoord
-            : `vec3(${baseCoord}, ${detailLayer}.0)`;
+            : `vec3(${baseCoord}, ${arrayLayer}.0)`;
         const texName = state.formatter.registerReference(texOperand);
         const returnSwizzle = [ ...mask ]
             .map((component) => texOperand.swizzle ? texOperand.swizzle["xyzw".indexOf(component)] : component)
@@ -3498,13 +3541,13 @@ DxbcGlslEmitter.prototype._gather4 = function _gather4(state, instruction)
     // A merged detail map is declared 2D but sampled through an array, so the
     // array helper and the layered coordinate are selected by the merge rather
     // than by the declared dimension.
-    const detailLayer = this._detailMapArrayLayer(state, texOperand);
-    const asArray = dimension === 8 || detailLayer !== null;
+    const arrayLayer = this._textureArrayLayer(state, texOperand);
+    const asArray = dimension === 8 || arrayLayer !== null;
     const helper = this.helpers.require(
         asArray ? "hlslcc_textureGather4ArrayEmulated" : "hlslcc_textureGather4Emulated"
     );
     const baseCoord = this._vecArg(state, coordOperand, dimension === 8 ? "xyz" : "xy");
-    const coord = detailLayer === null ? baseCoord : `vec3(${baseCoord}, ${detailLayer}.0)`;
+    const coord = arrayLayer === null ? baseCoord : `vec3(${baseCoord}, ${arrayLayer}.0)`;
     const texName = state.formatter.registerReference(texOperand);
     const channelLetter = this._gather4Channel(samplerOperand);
     const channelIndex = "xyzw".indexOf(channelLetter);

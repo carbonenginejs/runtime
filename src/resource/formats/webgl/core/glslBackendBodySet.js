@@ -1,4 +1,4 @@
-import { detailMapTransformFor } from "../../hlsl/core/detailMapFamily.js";
+import { textureArrayTransformFor } from "../../hlsl/core/textureArrayFamilies.js";
 import { localLightProfileNeutralTransformFor } from "../../hlsl/core/localLightFamily.js";
 
 /**
@@ -182,10 +182,10 @@ export function buildGlslBackendBodySet(input)
             // transform section says how to build the array the GLSL samples.
             // Built here rather than at translation time because the transform's
             // identity includes the pass key, which the translator does not know.
-            if (shader.detailMapArray && !entry.hasDetailMapTransform)
+            if (shader.textureArrays?.length && !entry.hasTextureArrayTransforms)
             {
-                entry.hasDetailMapTransform = true;
-                entry.transforms.push(detailMapTransformFor(shader.detailMapArray, key));
+                entry.hasTextureArrayTransforms = true;
+                for (const plan of shader.textureArrays) entry.transforms.push(textureArrayTransformFor(plan, key));
             }
 
             // Same reasoning, different statement: this one records that the

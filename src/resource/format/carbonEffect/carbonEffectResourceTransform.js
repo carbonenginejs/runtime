@@ -1,5 +1,6 @@
 import { CjsFormatWriteError, CjsFormatReadError } from "../CjsFormatError.js";
 import { DETAIL_MAP_ARRAY_NAME } from "../../formats/hlsl/core/detailMapFamily.js";
+import { TEXTURE_ARRAY_FAMILIES } from "../../formats/hlsl/core/textureArrayFamilies.js";
 
 /**
  * The resource-transform section, shared by every backend's per-pass block.
@@ -25,7 +26,17 @@ import { DETAIL_MAP_ARRAY_NAME } from "../../formats/hlsl/core/detailMapFamily.j
  */
 export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
     "detail-map-array",
-    "local-light-profile-neutral"
+    "local-light-profile-neutral",
+    // APPENDED, never inserted: a family's position in this list is the value
+    // written into the section, so reordering would silently reinterpret every
+    // container already on disk.
+    //
+    // These three are Frontier's, and they are the same transform as the detail
+    // maps under different names - see TEXTURE_ARRAY_FAMILIES, which owns the
+    // members and their layer order.
+    "roughness-map-array",
+    "atlas-map-array",
+    "dirt-map-array"
 ]);
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
@@ -73,6 +84,13 @@ export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
  * its entry here would silently inherit another family's constants.
  */
 const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
+    ...Object.fromEntries(TEXTURE_ARRAY_FAMILIES.map((definition) => [
+        definition.family,
+        // Every array family restores the same constants; only the output name
+        // differs, and that is read from the family table rather than restated,
+        // for the reason the detail defaults give.
+        Object.freeze({ ...DETAIL_MAP_ARRAY_DEFAULTS, outputName: definition.outputName })
+    ])),
     "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
     "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
 });

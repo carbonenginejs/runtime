@@ -11,7 +11,7 @@ import {
 import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
 import { inspectRasterCompleteness } from "./glslEffectCompleteness.js";
-import { recogniseDetailMapFamily } from "../../hlsl/core/detailMapFamily.js";
+import { recogniseTextureArrayFamilies } from "../../hlsl/core/textureArrayFamilies.js";
 import {
     recogniseLocalLightFamily,
     stripLocalLightBindings
@@ -146,7 +146,7 @@ export function buildEffectPackage(input, options = {})
                 shaderSize: stage.bytecode.shaderSize,
                 stringTableOffset: stage.bytecode.stringTableOffset,
                 bytes: stage.bytecode.bytes,
-                detailMapArray: stage.detailMapArray,
+                textureArrays: stage.textureArrays,
                 emulatedAddressing: stage.emulatedAddressing,
                 localLights: stage.localLights,
                 contracts: [ {
@@ -599,7 +599,7 @@ function collectStages(effectDescription, selection)
                     // Recognised from reflection here, applied by the emitter.
                     // The recogniser is shared with WebGPU so both backends
                     // merge exactly the same registers.
-                    detailMapArray: recogniseDetailMapFamily(mapToJson(stageInput.resources)),
+                    textureArrays: recogniseTextureArrayFamilies(mapToJson(stageInput.resources)),
                     // Recognised from reflection here, mapped onto resources by
                     // the emitter, which is the only thing that knows from the
                     // DXBC which resource each sampler serves.
@@ -764,8 +764,14 @@ function translateStages(shaderMap, stageMap, values)
                 ...values.emitterOptions,
                 source: `${values.source}#${record.firstStageKey}`,
                 ...(pairVaryings?.length ? { pairVaryings } : {}),
-                ...(record.detailMapArray
-                    ? { detailMapArrayRegisters: record.detailMapArray.registers }
+                ...(record.textureArrays?.length
+                    ? {
+                        textureArrayFamilies: record.textureArrays.map((plan) => ({
+                            family: plan.family,
+                            outputName: plan.outputName,
+                            registers: plan.registers
+                        }))
+                    }
                     : {}),
                 ...(record.emulatedAddressing
                     ? { emulatedAddressing: record.emulatedAddressing }

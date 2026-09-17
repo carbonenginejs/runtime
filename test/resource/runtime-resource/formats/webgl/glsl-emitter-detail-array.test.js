@@ -61,6 +61,9 @@ test("the array binding reports its layers and where they came from", () =>
         dimensionName: "texture2darray",
         arrayLayerCount: 3,
         mergedFrom: [ 3, 4, 5 ],
+        // Which family produced the array, so a consumer can build it without
+        // re-recognising the names. Additive: every other field is unchanged.
+        mergedFamily: "detail-map-array",
         // The merged layers all sample through one sampler, so the single
         // uniform standing for them can carry its state unambiguously.
         pairedSamplerRegisters: [ 0 ]
