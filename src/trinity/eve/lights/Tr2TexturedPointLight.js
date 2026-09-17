@@ -5,7 +5,8 @@
 // flat fields inherited from Tr2PointLight, verified against
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
 import { carbon, impl, io, type } from "#schema";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { color } from "#math/color";
 import { Tr2Light } from "./Tr2Light.js";
 import { Tr2PointLight } from "./Tr2PointLight.js";
@@ -53,8 +54,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon Initialize (cpp:16-23): fetch the texture when a path is
    * authored, then the point-light base. The reach is the process-wide
-   * manager read at call time (the BeResMan pattern, CjsResMan.GetGlobal);
-   * with none installed a hand-composing caller assigns `texture` itself.
+   * manager read at call time, which is what BeResMan is (blue.resMan).
    */
   @carbon.method
   @impl.implemented
@@ -90,9 +90,8 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   SetTexturePath(path)
   {
     this.texture = null;
-    const resourceManager = CjsResMan.GetGlobal();
-    if (!resourceManager || !path) return;
-    this.texture = resourceManager.GetResource(path, {
+    if (!path) return;
+    this.texture = blue.resMan.GetResource(path, {
       requirement: ResourceRequirement.TEXTURE
     });
   }

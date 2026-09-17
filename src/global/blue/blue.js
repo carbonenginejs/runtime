@@ -29,13 +29,18 @@
 // failing later on a null. One CarbonEngineJS per page; see
 // /docs/internal/decisions/composition-root-is-the-wrapper.md.
 import { IBlueResMan } from "./IBlueResMan.js";
-import { IBluePaths } from "./IBluePaths.js";
+import { CjsBluePaths } from "./CjsBluePaths.js";
 
 /** Carbon's process-wide Blue facilities: `blue.resMan` is `BeResMan`, `blue.paths` is `BePaths`. */
 export const blue = {
   /** `BeResMan` (IBlueResMan.h:135) - the resource manager every consumer asks. */
   resMan: new IBlueResMan(),
 
+  // Paths differs from the manager: an uncomposed one can still answer its
+  // main question truthfully - no, that file is not here - which is what
+  // Carbon returns for a file absent from the local machine, and what every
+  // caller is already written for. The verbs it cannot answer without a real
+  // file system stay refused. See CjsBluePaths.
   /** `BePaths` (IBluePaths.h:49) - search paths, resolution, existence and streams. */
-  paths: new IBluePaths()
+  paths: new CjsBluePaths()
 };

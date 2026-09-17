@@ -4,7 +4,8 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, type } from "#schema";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -322,13 +323,12 @@ export class Tr2Light extends CjsModel
     // light every submission pass, so the profile was nulled per light per
     // frame whenever no manager was installed.
     this.#resolvedProfilePath = this.lightProfilePath;
-    const manager = CjsResMan.GetGlobal();
-    if (!manager || !this.lightProfilePath)
+    if (!this.lightProfilePath)
     {
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = manager.GetResource(this.lightProfilePath, {
+    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });

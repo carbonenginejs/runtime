@@ -2,7 +2,8 @@
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { carbon, impl, io, type } from "#schema";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -77,27 +78,28 @@ export class Tr2Mesh extends Tr2MeshBase
   InitializeGeometryResource()
   {
     this.#resolvedPath = this.geometryResPath;
-    const manager = CjsResMan.GetGlobal();
-    if (!manager || !this.geometryResPath)
+    if (!this.geometryResPath)
     {
+      // Carbon requests the empty path anyway and gets nothing back
+      // (cpp:131-133); short-circuiting reaches the same two nulls without
+      // asking the manager for "".
       this.SetLowResGeometryRes(null);
       this.SetGeometryRes(null);
       return;
     }
 
-    const request = path => manager.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
+    const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.GEOMETRY });
 
     // Carbon cpp:113-127: when the authored file is NOT there but a
     // <base>_lowdetail<ext> sibling is, take the low-detail one to render with
-    // now and request the authored one behind it. BePaths->FileExistsLocally
-    // asks the file system; here the same question goes to the res file index
-    // through CjsResMan.ResourceExists, which answers false when no index is
-    // installed - so an uninstalled index leaves the authored path alone.
+    // now and request the authored one behind it. The same question, to the
+    // same service Carbon asks - BePaths->FileExistsLocally is
+    // blue.paths.FileExistsLocally.
     let lowRes = null;
-    if (CjsResMan.HasResourceExistsResolver() && !CjsResMan.ResourceExists(this.geometryResPath))
+    if (!blue.paths.FileExistsLocally(this.geometryResPath))
     {
       const lowResPath = Tr2Mesh.#lowDetailPath(this.geometryResPath);
-      if (lowResPath && CjsResMan.ResourceExists(lowResPath)) lowRes = request(lowResPath);
+      if (lowResPath && blue.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
     }
 
     this.SetLowResGeometryRes(lowRes);

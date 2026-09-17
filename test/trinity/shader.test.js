@@ -1,3 +1,14 @@
+import { composeStubResMan } from "../support/stubResMan.js";
+
+// blue.resMan throws until something composes a manager, so a test that
+// builds an object with a res path composes one. It answers null, which is
+// what these tests already asserted - previously by accident, because
+// nothing in src ever filled the old static slot.
+//
+// Import declarations are hoisted, so this runs after every import above
+// has been evaluated, whatever order it is written in.
+composeStubResMan();
+
 import test from "node:test";
 import { readFile, readdir } from "node:fs/promises";
 import { Tr2VariableStore, Tr2Effect, Tr2EffectConstant, Tr2EffectDefine, Tr2EffectDescription, Tr2EffectLibrary, Tr2EffectLibraryParameters, Tr2EffectParameterAnnotation, Tr2EffectParam, Tr2EffectPassParameters, Tr2EffectResource, Tr2EffectStageInput, Tr2EffectTechnique, Tr2FloatParameter, Tr2GeometryBufferParameter, Tr2Material, Tr2MaterialStageInput, Tr2Matrix4Parameter, Tr2Pass, Tr2RuntimeTextureParameter, Tr2SamplerOverride, Tr2SamplerSetup, Tr2Shader, Tr2ShaderBuffer, Tr2TextureAnimationParameter, Tr2Vector2Parameter, Tr2Vector3Parameter, Tr2Vector4Parameter, TriFloatArrayParameter, TriTextureParameter, TriTransformParameter, TriVariableParameter, TriVector4 } from "../../npm/dist/trinity/index.js";

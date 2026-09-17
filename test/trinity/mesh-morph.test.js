@@ -143,15 +143,13 @@ test("morph preparation rejects invalid values, duplicate names, and unsupported
 
 test("a mesh res path loads its geometry through the resource manager", async () =>
 {
-  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
-  const previous = CjsResMan.GetGlobal();
+  const { blue } = await import("../../npm/dist/global/blue/index.js");
+  const { composeStubResMan } = await import("../support/stubResMan.js");
+  const previous = blue.resMan;
   const requested = [];
   const geometry = CreateGeometry([ "Smile" ]);
-  // SetGlobal takes a real manager, so the spy goes on the instance.
-  const manager = new CjsResMan();
-  manager.GetResource = (path, options) => { requested.push([ path, options?.requirement ]); return geometry; };
-
-  CjsResMan.SetGlobal(manager);
+  // The slot names the contract, not CjsResMan, so the spy IS the manager.
+  composeStubResMan((path, options) => { requested.push([ path, options?.requirement ]); return geometry; });
   try
   {
     const mesh = new Tr2Mesh();
@@ -175,7 +173,7 @@ test("a mesh res path loads its geometry through the resource manager", async ()
   }
   finally
   {
-    CjsResMan.SetGlobal(previous ?? null);
+    blue.resMan = previous;
   }
 });
 
@@ -186,16 +184,16 @@ test("a mesh res path loads its geometry through the resource manager", async ()
 
 test("a missing mesh falls back to its _lowdetail sibling when the index has one", async () =>
 {
-  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
-  const previousManager = CjsResMan.GetGlobal();
+  const { blue } = await import("../../npm/dist/global/blue/index.js");
+  const { composeStubResMan } = await import("../support/stubResMan.js");
+  const previousManager = blue.resMan;
   const requested = [];
-  const manager = new CjsResMan();
   // The authored mesh is still LOADING - it records its completion listener
   // instead of calling back - so the stand-in has something to stand in for.
   // A resource with no lifecycle at all counts as already complete, which is
   // Carbon's AddNotifyTarget rule (BlueAsyncRes.cpp:274-276).
   let finishAuthored = null;
-  manager.GetResource = path =>
+  const answer = path =>
   {
     requested.push(path);
     const resource = CreateGeometry([ "Smile" ]);
@@ -205,8 +203,8 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     return resource;
   };
 
-  CjsResMan.SetGlobal(manager);
-  CjsResMan.SetResourceExistsResolver([ "res:/hull_lowdetail.gr2" ]);
+  composeStubResMan(answer);
+  blue.paths.SetResourceFileIndex([ "res:/hull_lowdetail.gr2" ]);
   try
   {
     const mesh = new Tr2Mesh();
@@ -224,21 +222,21 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     // Negative control: when the index says the authored file IS there, no
     // sibling is looked for at all.
     requested.length = 0;
-    CjsResMan.SetResourceExistsResolver([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]);
+    blue.paths.SetResourceFileIndex([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]);
     new Tr2Mesh().SetMeshResPath("res:/present.gr2");
     assert.deepEqual(requested, [ "res:/present.gr2" ]);
 
     // Second control: with no index installed nothing is presumed to exist, so
     // the authored path is requested alone.
     requested.length = 0;
-    CjsResMan.SetResourceExistsResolver(null);
+    blue.paths.SetResourceFileIndex(null);
     new Tr2Mesh().SetMeshResPath("res:/hull.gr2");
     assert.deepEqual(requested, [ "res:/hull.gr2" ]);
   }
   finally
   {
-    CjsResMan.SetResourceExistsResolver(null);
-    CjsResMan.SetGlobal(previousManager ?? null);
+    blue.paths.SetResourceFileIndex(null);
+    blue.resMan = previousManager;
   }
 });
 
@@ -250,10 +248,15 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
 
 test("a write that names nothing does not throw away the geometry", async () =>
 {
-  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
   const { Tr2MeshArea } = await import("../../npm/dist/trinity/index.js");
-  const previous = CjsResMan.GetGlobal();
-  CjsResMan.SetGlobal(null);
+  const { composeStubResMan } = await import("../support/stubResMan.js");
+
+  // This used to install a NULL manager, so an unwanted refetch showed up as
+  // the geometry being cleared. That proved the guard held only while
+  // acquisition was impossible. A composed manager that answers is the
+  // stronger claim: the geometry survives because nothing refetched, not
+  // because a refetch could not have succeeded.
+  const stub = composeStubResMan();
   try
   {
     const mesh = new Tr2Mesh();
@@ -269,14 +272,17 @@ test("a write that names nothing does not throw away the geometry", async () =>
     mesh.OnModified();
     assert.equal(mesh.GetGeometryResource(), geometry, "a bare settle cleared the geometry");
 
-    // Positive control: a path that HAS moved is still refetched - and with no
-    // manager installed that legitimately clears the resource.
+    assert.deepEqual(stub.requests, [], "nothing should have been asked of the manager");
+
+    // Positive control: a path that HAS moved is refetched, and the manager
+    // answers, so the mesh takes what it was handed.
     mesh.geometryResPath = "res:/changed.gr2";
     mesh.OnModified();
-    assert.equal(mesh.GetGeometryResource(), null, "a moved path was not acted on");
+    assert.equal(stub.requests.at(-1)?.path, "res:/changed.gr2", "a moved path was not acted on");
+    assert.notEqual(mesh.GetGeometryResource(), geometry, "the moved path kept the old geometry");
   }
   finally
   {
-    CjsResMan.SetGlobal(previous ?? null);
+    stub.restore();
   }
 });

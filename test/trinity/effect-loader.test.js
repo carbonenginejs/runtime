@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsResMan } from "../../npm/dist/resource/CjsResMan.js";
+import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";
 import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
 import { SetEffectPathDefaults } from "../../npm/dist/global/utils/effectPath.js";
@@ -19,14 +21,14 @@ function withGlobalManager(run)
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
   const resourceManager = RegisterShaderResources(new CjsResMan({ source }));
-  CjsResMan.SetGlobal(resourceManager);
+  blue.resMan = resourceManager;
   try
   {
     return run(resourceManager);
   }
   finally
   {
-    CjsResMan.SetGlobal(null);
+    blue.resMan = new IBlueResMan();
     SetEffectPathDefaults(null);
   }
 }
@@ -111,21 +113,29 @@ test("an unresolvable path acquires nothing rather than throwing", () =>
   });
 });
 
-test("with no manager installed the effect stays hand-composable", () =>
+test("a hand-assigned resource is not replaced, and is not fetched for", () =>
 {
-  // The path every existing test takes: assign the resource yourself. Nothing
-  // should reach for a global that was never installed.
-  CjsResMan.SetGlobal(null);
+  // This test used to prove that an effect with NO manager installed resolved
+  // its path and left effectResource null. That only held because the old
+  // global slot was never filled, so the acquisition silently did not happen -
+  // it was asserting the port was broken.
+  //
+  // The intent it was reaching for is real and survives: a caller who assigns
+  // the resource owns it, and Tr2Effect must not go looking. So assign one,
+  // leave the manager uncomposed, and let the throw prove nothing asked.
+  blue.resMan = new IBlueResMan();
   SetEffectPathDefaults({ platformName: "webgpu" });
 
   try
   {
     const effect = new Tr2Effect();
+    const mine = new Tr2EffectRes();
+    effect.effectResource = mine;
     effect.effectFilePath = "res:/graphics/effect/ship/main.fx";
     effect.Initialize();
 
     assert.equal(effect.actualEffectFilePath, "res:/graphics/effect.webgpu/ship/main.sm_depth");
-    assert.equal(effect.effectResource, null);
+    assert.equal(effect.effectResource, mine, "the caller's resource is kept");
   }
   finally
   {
@@ -149,10 +159,29 @@ test("a hand-assigned resource is never replaced", () =>
   });
 });
 
-test("SetGlobal refuses anything that is not a manager", () =>
+test("the slot names the contract, not the implementation", () =>
 {
-  assert.throws(() => CjsResMan.SetGlobal({ GetResource() {} }), /expects a CjsResMan or null/);
-  assert.equal(CjsResMan.GetGlobal(), null);
+  // This replaces a test that asserted SetGlobal refused anything that was not
+  // a CjsResMan. That check was the problem: it nailed every consumer to one
+  // concrete class, so no stub, recording or alternative manager could be
+  // installed without subclassing the real one. blue.resMan is typed by what
+  // it must answer, which is the whole point of naming the contract.
+  class MinimalResMan extends IBlueResMan
+  {
+    GetResource() { return null; }
+  }
+  // Registered, because the refusal names the class that failed the contract
+  // and an unregistered one answers with its nearest registered ancestor.
+  CjsSchema.define(MinimalResMan, { className: "MinimalResMan", fields: {} });
+
+  const previous = blue.resMan;
+  blue.resMan = new MinimalResMan();
+  try
+  {
+    assert.equal(blue.resMan.GetResource("res:/x"), null);
+    assert.throws(() => blue.resMan.LoadObject("res:/x.red"), /does not implement IBlueResMan\.LoadObject/u);
+  }
+  finally { blue.resMan = previous; }
 });
 
 test("container bytes handed to SetPayload load through DoLoad", () =>

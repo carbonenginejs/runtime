@@ -6,7 +6,8 @@
 // 2026-09-06 (docs/research/ratchet-three-method-tier-2026-09-06.md).
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 
 /** Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite. */
 @type.define({ className: "Tr2Sprite2dPickingMask", family: "sprite2d", purpose: "Defines channel, threshold, edge, and texture-mask constraints used when hit-testing a 2D sprite." })
@@ -64,9 +65,8 @@ export class Tr2Sprite2dPickingMask extends CjsModel
   /**
    * Carbon SetMaskPath (cpp:23-31): guard the redundant set, clear the mask
    * and refetch it through the process-wide manager (BeResMan's L"raw"
-   * image fetch is the IMAGE requirement here, the CjsResMan.GetGlobal
-   * pattern Tr2TexturedPointLight established); with no manager installed a
-   * hand-composing caller assigns `mask` itself.
+   * image fetch is the IMAGE requirement here, through blue.resMan as
+   * Tr2TexturedPointLight does).
    */
   @carbon.method
   @impl.implemented
@@ -75,9 +75,8 @@ export class Tr2Sprite2dPickingMask extends CjsModel
     if (this.maskPath === path) return;
     this.maskPath = String(path ?? "");
     this.mask = null;
-    const resourceManager = CjsResMan.GetGlobal();
-    if (!resourceManager || !this.maskPath) return;
-    this.mask = resourceManager.GetResource(this.maskPath, {
+    if (!this.maskPath) return;
+    this.mask = blue.resMan.GetResource(this.maskPath, {
       requirement: ResourceRequirement.IMAGE
     });
   }

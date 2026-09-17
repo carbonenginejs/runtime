@@ -162,9 +162,13 @@ test("the element handle class is exported for AL-side consumers", () =>
 test("a per-frame brightness write does not throw away a light's profile", async () =>
 {
   const { Tr2Light } = await import("../../npm/dist/trinity/index.js");
-  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
-  const previous = CjsResMan.GetGlobal();
-  CjsResMan.SetGlobal(null);
+  const { composeStubResMan } = await import("../support/stubResMan.js");
+
+  // This used to install a NULL manager, so an unwanted re-resolve showed up
+  // as the profile being cleared - which proved the guard held only while
+  // resolving was impossible. A composed manager that answers is the stronger
+  // claim: the profile survives because nothing re-resolved.
+  const stub = composeStubResMan();
   try
   {
     const light = new Tr2Light();
@@ -178,14 +182,17 @@ test("a per-frame brightness write does not throw away a light's profile", async
     light.OnModified();
     assert.equal(light.lightProfile, profile, "a bare settle cleared the profile");
 
-    // Positive control: a path that HAS moved is still resolved, and with no
-    // manager installed that legitimately clears it.
+    assert.deepEqual(stub.requests, [], "nothing should have been asked of the manager");
+
+    // Positive control: a path that HAS moved is resolved, and the manager
+    // answers, so the light takes what it was handed.
     light.lightProfilePath = "res:/light/moved.lp";
     light.OnModified();
-    assert.equal(light.lightProfile, null, "a moved path was not acted on");
+    assert.equal(stub.requests.at(-1)?.path, "res:/light/moved.lp", "a moved path was not acted on");
+    assert.notEqual(light.lightProfile, profile, "the moved path kept the old profile");
   }
   finally
   {
-    CjsResMan.SetGlobal(previous ?? null);
+    stub.restore();
   }
 });

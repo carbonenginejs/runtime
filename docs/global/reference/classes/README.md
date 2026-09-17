@@ -75,6 +75,16 @@ The factory a subsystem registers with the manager so a `dynamic:/<name>` path c
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:CjsBluePaths -->
+## `CjsBluePaths`
+
+The paths service a browser can answer: res-file-index existence, with the verbs needing a real file system still refused.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsBluePaths.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:IBluePaths -->
 ## `IBluePaths`
 

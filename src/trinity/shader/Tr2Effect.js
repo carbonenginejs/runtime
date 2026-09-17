@@ -12,7 +12,8 @@ import { ShaderStageType, Tr2EffectConstant, Tr2EffectRes, Tr2Shader } from "#re
 import { Tr2EffectParam } from "./material/Tr2EffectParam.js";
 import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
@@ -683,13 +684,11 @@ export class Tr2Effect extends Tr2Material
    */
   #AcquireEffectResource()
   {
-    const resourceManager = CjsResMan.GetGlobal();
-
-    if (!resourceManager || !this.actualEffectFilePath) return;
+    if (!this.actualEffectFilePath) return;
     // A caller that assigned a resource by hand owns it; do not replace it.
     if (this.effectResource !== null) return;
 
-    const resource = resourceManager.GetResource(this.actualEffectFilePath, {
+    const resource = blue.resMan.GetResource(this.actualEffectFilePath, {
       requirement: ResourceRequirement.SHADER
     });
 

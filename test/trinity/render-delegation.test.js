@@ -1,3 +1,14 @@
+import { composeStubResMan } from "../support/stubResMan.js";
+
+// blue.resMan throws until something composes a manager, so a test that
+// builds an object with a res path composes one. It answers null, which is
+// what these tests already asserted - previously by accident, because
+// nothing in src ever filled the old static slot.
+//
+// Import declarations are hoisted, so this runs after every import above
+// has been evaluated, whatever order it is written in.
+composeStubResMan();
+
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 

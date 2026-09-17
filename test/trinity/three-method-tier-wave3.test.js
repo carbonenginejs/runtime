@@ -1,3 +1,14 @@
+import { composeStubResMan } from "../support/stubResMan.js";
+
+// blue.resMan throws until something composes a manager, so a test that
+// builds an object with a res path composes one. It answers null, which is
+// what these tests already asserted - previously by accident, because
+// nothing in src ever filled the old static slot.
+//
+// Import declarations are hoisted, so this runs after every import above
+// has been evaluated, whatever order it is written in.
+const stub = composeStubResMan();
+
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -30,20 +41,29 @@ function maskDuck()
   };
 }
 
-test("Tr2Sprite2dPickingMask paths: guard, clear, and no-manager fetch (cpp:18-31)", () =>
+test("Tr2Sprite2dPickingMask paths: guard, clear, and fetch (cpp:18-31)", () =>
 {
+  // The clear-then-fetch used to be observable as the mask ending up NULL,
+  // because no manager was installed and the fetch silently did not happen.
+  // With a composed manager the fetch completes, so the clear is observed by
+  // the mask no longer being the one that was there - and the fetch by the
+  // manager having been asked.
   const mask = new Tr2Sprite2dPickingMask();
   assert.equal(mask.GetMaskPath(), "");
 
-  mask.mask = maskDuck();
+  const before = maskDuck();
+  mask.mask = before;
   mask.SetMaskPath("res:/ui/mask.tga");
   assert.equal(mask.GetMaskPath(), "res:/ui/mask.tga");
-  assert.equal(mask.mask, null, "a path change clears the mask before refetching");
+  assert.notEqual(mask.mask, before, "a path change did not clear the mask before refetching");
+  assert.equal(stub.requests.at(-1)?.path, "res:/ui/mask.tga", "the new path was not requested");
 
+  const asked = stub.requests.length;
   const marker = maskDuck();
   mask.mask = marker;
   mask.SetMaskPath("res:/ui/mask.tga");
   assert.equal(mask.mask, marker, "a redundant set is guarded and keeps the mask");
+  assert.equal(stub.requests.length, asked, "a redundant set still asked the manager");
 });
 
 test("Tr2Sprite2dPickingMask.SampleMask: Carbon's 9-slice inverse mapping and threshold (cpp:33-107)", () =>

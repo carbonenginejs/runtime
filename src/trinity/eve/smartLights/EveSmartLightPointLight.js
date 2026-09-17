@@ -1,7 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, io, type } from "#schema";
-import { CjsResMan, ResourceRequirement } from "#resource";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
 import { color } from "#math/color";
@@ -277,13 +278,12 @@ export class EveSmartLightPointLight extends EveEntity
   #ResolveLightProfile()
   {
     this.#lastAppliedProfilePath = this.lightProfilePath;
-    const manager = CjsResMan.GetGlobal();
-    if (!manager || !this.lightProfilePath)
+    if (!this.lightProfilePath)
     {
       this.lightProfile = null;
       return;
     }
-    this.lightProfile = manager.GetResource(this.lightProfilePath, {
+    this.lightProfile = blue.resMan.GetResource(this.lightProfilePath, {
       ext: "lp",
       requirement: ResourceRequirement.LIGHT_PROFILE
     });

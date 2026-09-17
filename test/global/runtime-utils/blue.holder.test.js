@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue, BlueResManQueue, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue, CjsBluePaths, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 
 test("the slots are filled before anything can read them", () =>
@@ -11,15 +11,27 @@ test("the slots are filled before anything can read them", () =>
   // capture, which is what lets a consumer write blue.resMan.GetResource(...)
   // without a guard.
   assert.equal(blue.resMan instanceof IBlueResMan, true);
+  assert.equal(blue.paths instanceof CjsBluePaths, true);
   assert.equal(blue.paths instanceof IBluePaths, true);
 });
 
-test("asking an uncomposed service says so at the call site", () =>
+test("asking an uncomposed manager says so at the call site", () =>
 {
   assert.throws(() => blue.resMan.GetResource("res:/model/ship.gr2"),
     /^Error: IBlueResMan\.GetResource must be implemented\.$/u);
-  assert.throws(() => blue.paths.FileExistsLocally("res:/model/ship.gr2"),
-    /^Error: IBluePaths\.FileExistsLocally must be implemented\.$/u);
+});
+
+test("an uncomposed paths service answers rather than refusing", () =>
+{
+  // The two differ on purpose. An uncomposed manager cannot answer "fetch me
+  // this" at all. An uncomposed paths service CAN answer "is it here": no -
+  // which is what Carbon returns for a file absent from the local machine, and
+  // what Tr2Mesh's low-detail probe is already written for.
+  assert.equal(blue.paths.FileExistsLocally("res:/model/ship.gr2"), false);
+
+  // What it genuinely cannot do without a file system is still refused.
+  assert.throws(() => blue.paths.GetDirectoryContents("res:/model/"),
+    /^Error: CjsBluePaths does not implement IBluePaths\.GetDirectoryContents\.$/u);
 });
 
 test("an implementation is installed into the holder, never captured from it", () =>
