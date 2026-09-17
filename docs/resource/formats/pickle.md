@@ -1,13 +1,16 @@
-# Data-only pickle protocol 0
+# Data-only pickle
 
 Status: Experimental
 Scope: `@carbonenginejs/runtime/resource/formats/pickle`
 Audience: Resource integrators handling inert legacy data caches
-Summary: Defines safe protocol-0 pickle decoding without Python object reconstruction.
+Summary: Defines safe pickle decoding, protocols 0 through 4, without Python object reconstruction.
 
 ## Boundary
 
-`CjsPickleFormat` reads `.pickle` bytes through an internal protocol-0 reader.
+`CjsPickleFormat` reads `.pickle` bytes through one of two internal readers,
+chosen from the bytes themselves. Protocol 0 is printable text with no header;
+every binary protocol opens with `PROTO`, which the text protocol cannot begin
+with, so the first byte decides and the caller passes nothing.
 It is a data decoder, not a general Python unpickler. It never imports a
 module, resolves a global, calls a reducer, follows a persistent ID, or
 constructs a Python object. Every executable, object-bearing, newer-protocol,
@@ -44,12 +47,32 @@ rather than per container, and a global may only ever be consumed by a `REDUCE` 
 appending one to a list or leaving it as the result is refused, because it would
 reach the caller as an empty object indistinguishable from an empty dictionary.
 
-The initial reader accepts the protocol-0 scalar, string, list, tuple,
-dictionary, memo, append, and set-item operations required by inert data
-graphs. Lists and tuples become JavaScript arrays. Integers outside the safe
-JavaScript range become lossless decimal strings. Dictionary keys must be
-strings or safe integers; collisions introduced by JSON key normalization are
-rejected.
+Both readers accept the scalar, string, list, tuple, dictionary, memo, append,
+and set-item operations required by inert data graphs. Lists and tuples become
+JavaScript arrays. Integers outside the safe JavaScript range become lossless
+decimal strings. Dictionary keys must be strings or safe integers; collisions
+introduced by JSON key normalization are rejected.
+
+## Two readers, one set of rules
+
+The binary protocols differ from the text one in how a value is written down,
+not in what a decoded value is allowed to be. So the limits, the memo, the
+container bookkeeping, the dictionary-key rules, the JSON boundary and the
+closed set above live in a shared module and the readers own only their opcode
+spellings. Duplicating the refusal rules per protocol was the alternative, and a
+second reader that refuses slightly less is indistinguishable from one that
+refuses correctly until the day it matters.
+
+Two decoded shapes exist only in the binary protocols, because the text protocol
+has no way to write them:
+
+- `BINBYTES` produces a `Uint8Array`. Bytes have no JSON spelling, and inventing
+  one - an array of numbers, a base64 string - would be indistinguishable in the
+  output from data that really was that. The `payload` emit carries it; the
+  `json` emit refuses it.
+- `BINSTRING` produces latin-1 text, matching protocol 0's `STRING`. It is
+  Python 2's `str`, a byte string with no declared encoding, and latin-1 is the
+  mapping that loses nothing.
 
 ## Outputs
 
@@ -65,11 +88,14 @@ const values = CjsPickleFormat.read(bytes);
 const exactGraph = CjsPickleFormat.read(bytes, { emit: "payload" });
 ```
 
-`CjsPickleFormat.supportedProtocols` currently contains only protocol `0`.
-The public format name follows the `.pickle` extension so future protocol
-dispatch can be added without changing resource registration. Unsupported
-protocols continue to fail closed until their data-only semantics are
-implemented and tested.
+`CjsPickleFormat.supportedProtocols` contains `0` through `4`. The public format
+name follows the `.pickle` extension, and dispatch happens inside the format, so
+a caller registering it never chooses a protocol. A `PROTO` opcode declaring a
+protocol above 4 fails closed, as does any opcode outside the data subset,
+at its own byte offset.
+
+Protocol 4 is not academic: EVE Frontier's localisation containers ship in it,
+and no type in that client could be named without it.
 
 ## Resource registration
 
