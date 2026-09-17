@@ -1,5 +1,7 @@
 import { FNV1_INITIAL, hashFnv1Floats, hashFnv1Identity, hashFnv1String } from "../../../global/utils/hash.js";
+import { CjsSchema } from "#schema";
 import { CjsModel } from "#model";
+import { ITriEffectParameter, withITriEffectParameter } from "./ITriEffectParameter.js";
 import { Tr2Shader } from "#resource/shader";
 
 
@@ -17,7 +19,7 @@ function requireShaderOrNull(shader)
  * Shared base for the shader parameter models: destination-reroute plumbing,
  * effect-reflection lookups and Carbon's FNV1 content hashing.
  */
-export class CjsParameter extends CjsModel
+export class CjsParameter extends withITriEffectParameter(CjsModel)
 {
 
   /**
@@ -157,7 +159,12 @@ export class CjsParameter extends CjsModel
    */
   static getNamedValue(value)
   {
-    return value?.GetParameterName?.() ?? value?.getParameterName?.() ?? value?.name ?? "";
+    // Two shapes reach here and the contract tells them apart: a parameter
+    // answers GetParameterName, a constant struct carries a name field. The
+    // three-way hedge this replaces asked the same question three ways.
+    const parameter = CjsSchema.cast(value, ITriEffectParameter);
+    if (parameter) return parameter.GetParameterName();
+    return value?.name ?? "";
   }
 
   /**

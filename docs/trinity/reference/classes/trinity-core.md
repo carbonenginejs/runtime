@@ -1312,6 +1312,26 @@ Three-component float value for a named shader constant, with sRGB gamma handlin
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITriEffectParameter -->
+## `ITriEffectParameter`
+
+Contract every shader parameter carries: its authored name, its effect-handle rebuild and its content hash, plus the dirty-notification flag Carbon defaults rather than leaves pure.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/ITriEffectParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITriEffectResourceParameter -->
+## `ITriEffectResourceParameter`
+
+Contract for a shader parameter that holds a resource, told when it joins or leaves a material. Derives from `ITriEffectParameter`; both hooks are empty by default, as in Carbon.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/ITriEffectResourceParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2Vector4Parameter -->
 ## `Tr2Vector4Parameter`
 

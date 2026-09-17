@@ -18,6 +18,7 @@ import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from 
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
+import { ITriEffectResourceParameter } from "./parameter/ITriEffectResourceParameter.js";
 import { Tr2RuntimeTextureParameter } from "./parameter/Tr2RuntimeTextureParameter.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
 import { Tr2Vector3Parameter } from "./parameter/Tr2Vector3Parameter.js";
@@ -355,7 +356,11 @@ export class Tr2Effect extends Tr2Material
   {
     for (const resource of this.resources)
     {
-      resource?.OnAddedToMaterial?.(this);
+      // Carbon's list is typed PITriEffectResourceParameterVector, so it calls
+      // straight through (Tr2Effect.cpp:378-381); ours accepts any parameter
+      // via AddResource, so the cast stands in for the C++ type.
+      const asResource = CjsSchema.cast(resource, ITriEffectResourceParameter);
+      if (asResource) asResource.OnAddedToMaterial(this);
     }
     this.actualEffectFilePath = this.effectFilePath ? Tr2Effect.convertEffectPath(this.effectFilePath) : "";
     this.#AcquireEffectResource();
@@ -713,17 +718,18 @@ export class Tr2Effect extends Tr2Material
    */
   OnListModified(event, _key, _key2, value)
   {
-    if (value?.SetDestination && String(event).includes("REMOVED"))
+    // Tr2Effect.cpp:905-928 asks the value what it is rather than what it
+    // answers to: ITriReroutable for the destination clear, then
+    // ITriEffectResourceParameter for the material hooks.
+    const resource = CjsSchema.cast(value, ITriEffectResourceParameter);
+    if (String(event).includes("REMOVED"))
     {
-      value.SetDestination(null, 0);
+      if (value?.SetDestination) value.SetDestination(null, 0);
+      if (resource) resource.OnRemovedFromMaterial(this);
     }
-    if (value?.OnRemovedFromMaterial && String(event).includes("REMOVED"))
+    if (resource && String(event).includes("INSERTED"))
     {
-      value.OnRemovedFromMaterial(this);
-    }
-    if (value?.OnAddedToMaterial && String(event).includes("INSERTED"))
-    {
-      value.OnAddedToMaterial(this);
+      resource.OnAddedToMaterial(this);
     }
     this.RebuildCachedDataInternal();
   }
@@ -841,7 +847,10 @@ export class Tr2Effect extends Tr2Material
   AddResource(parameter)
   {
     this.resources.push(parameter);
-    parameter?.OnAddedToMaterial?.(this);
+    // Carbon appends to the notifying list and the INSERTED event does this
+    // (Tr2Effect.cpp:444, 922-925); a plain push has no event, so we call it.
+    const resource = CjsSchema.cast(parameter, ITriEffectResourceParameter);
+    if (resource) resource.OnAddedToMaterial(this);
     this.RebuildCachedDataInternal();
     return true;
   }
@@ -857,8 +866,8 @@ export class Tr2Effect extends Tr2Material
       return false;
     }
     const parameter = new TriTextureParameter();
-    parameter.SetParameterName?.(name);
-    parameter.SetResourcePath?.(resourcePath);
+    parameter.SetParameterName(name);
+    parameter.SetResourcePath(resourcePath);
     return this.AddResource(parameter);
   }
 
@@ -1251,7 +1260,8 @@ export class Tr2Effect extends Tr2Material
     }
     if (list === this.resources)
     {
-      existing?.OnRemovedFromMaterial?.(this);
+      const resource = CjsSchema.cast(existing, ITriEffectResourceParameter);
+      if (resource) resource.OnRemovedFromMaterial(this);
     }
     list.splice(list.indexOf(existing), 1);
     return true;
@@ -1280,19 +1290,20 @@ export class Tr2Effect extends Tr2Material
     {
       throw new TypeError(`Tr2Effect.SetParameters cannot infer a parameter type for "${name}".`);
     }
-    if (created instanceof TriTextureParameter)
+    if (CjsSchema.cast(created, TriTextureParameter))
     {
       const existingResource = CjsParameter.findByName(this.resources, name);
       if (existingResource)
       {
-        existingResource?.OnRemovedFromMaterial?.(this);
+        const resource = CjsSchema.cast(existingResource, ITriEffectResourceParameter);
+        if (resource) resource.OnRemovedFromMaterial(this);
         this.resources[this.resources.indexOf(existingResource)] = created;
       }
       else
       {
         this.resources.push(created);
       }
-      created?.OnAddedToMaterial?.(this);
+      created.OnAddedToMaterial(this);
       return true;
     }
     if (existing)
@@ -1317,29 +1328,20 @@ export class Tr2Effect extends Tr2Material
     {
       throw new TypeError(`Tr2Effect.SetTextures requires res path strings for "${name}".`);
     }
-    const existing = CjsParameter.findByName(this.resources, name);
-    if (existing)
+    // Tr2Effect.cpp:2257-2268 casts, and a resource that is not a texture
+    // parameter falls through to AddResourceTexture2D, which refuses a name
+    // already taken - so a non-texture resource of that name is a no-op.
+    const texture = CjsSchema.cast(this.GetResourceByName(name), TriTextureParameter);
+    if (texture)
     {
-      if (existing.resourcePath === value)
+      if (texture.resourcePath === value)
       {
         return false;
       }
-      if (existing.SetResourcePath)
-      {
-        existing.SetResourcePath(value);
-      }
-      else
-      {
-        existing.resourcePath = value;
-      }
+      texture.SetResourcePath(value);
       return true;
     }
-    const parameter = new TriTextureParameter();
-    parameter.SetParameterName?.(name);
-    parameter.SetResourcePath?.(value);
-    this.resources.push(parameter);
-    parameter?.OnAddedToMaterial?.(this);
-    return true;
+    return this.AddResourceTexture2D(name, value);
   }
 
   /**
@@ -1424,7 +1426,8 @@ export class Tr2Effect extends Tr2Material
   {
     for (const resource of this.resources)
     {
-      resource?.OnRemovedFromMaterial?.(this);
+      const asResource = CjsSchema.cast(resource, ITriEffectResourceParameter);
+      if (asResource) asResource.OnRemovedFromMaterial(this);
     }
     this.resources = [];
     this.RebuildCachedDataInternal();
@@ -1700,7 +1703,7 @@ export class Tr2Effect extends Tr2Material
     if (Tr2Effect.isTextureResource(resource))
     {
       const parameter = new TriTextureParameter();
-      parameter.SetParameterName?.(resource.name ?? "");
+      parameter.SetParameterName(resource.name ?? "");
       return parameter;
     }
     const parameter = new Tr2GeometryBufferParameter();

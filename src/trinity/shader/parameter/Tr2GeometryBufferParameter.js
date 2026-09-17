@@ -3,10 +3,11 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
+import { withITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 /** Carries a named shader-buffer path for host resolution or a caller-owned GPU buffer reference. */
 @type.define({ className: "Tr2GeometryBufferParameter", family: "shader" })
-export class Tr2GeometryBufferParameter extends CjsParameter
+export class Tr2GeometryBufferParameter extends withITriEffectResourceParameter(CjsParameter)
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
