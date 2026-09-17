@@ -1,7 +1,6 @@
 ﻿import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsFrameLifecycle } from "../../npm/dist/global/contracts/index.js";
 import { CjsFrameDriver } from "../../npm/dist/core/index.js";
 import * as trinityCore from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContext, Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
@@ -9,11 +8,13 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2RenderJobs, TriRenderJob } from "../../npm/dist/trinity/renderJob/index.js";
 
 
-class RecordingLifecycle extends CjsFrameLifecycle
+// CjsFrameLifecycle was deleted on 2026-09-17: it had no implementer anywhere,
+// which is the bar the extensions register sets for a nominal base. The driver
+// takes whatever it is given and calls the six methods, so this records them.
+class RecordingLifecycle
 {
     constructor(order, viewport = { width: 800, height: 600 })
     {
-        super();
         this.order = order;
         this.viewport = viewport;
         this.profileCloseError = null;
@@ -132,22 +133,6 @@ function makeDriver()
     renderContext.GetTriPoolAllocator();
     return { driver, renderContext, renderJobs, frameLifecycle, order };
 }
-
-test("CjsFrameLifecycle requires every engine-owned frame method", () =>
-{
-    const lifecycle = new CjsFrameLifecycle();
-    for (const [ name, args ] of [
-        [ "Throttle", [] ],
-        [ "SyncToGpu", [] ],
-        [ "GetViewport", [] ],
-        [ "BeginProfileFrame", [ 1 ] ],
-        [ "EndProfileFrame", [] ],
-        [ "ReserveQuadListIndexBuffer", [ 0 ] ]
-    ])
-    {
-        assert.throws(() => lifecycle[name](...args), new RegExp(`CjsFrameLifecycle\\.${name}`));
-    }
-});
 
 test("Render runs Carbon's complete neutral frame order", () =>
 {
@@ -274,9 +259,8 @@ test("the animation clock rebases hourly rather than growing without bound", () 
     assert.equal(driver.Tick(2), 1);
 });
 
-test("the driver and lifecycle export only from their owning package surfaces", () =>
+test("the driver exports only from its owning package surface", () =>
 {
     assert.equal(typeof CjsFrameDriver, "function");
-    assert.equal(typeof CjsFrameLifecycle, "function");
     assert.equal("CjsFrameDriver" in trinityCore, false);
 });

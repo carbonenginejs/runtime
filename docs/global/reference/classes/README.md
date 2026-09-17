@@ -25,16 +25,6 @@ Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsFrameLifecycle -->
-## `CjsFrameLifecycle`
-
-Dependency-free engine lifecycle required to execute one runtime frame.
-
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/CjsFrameLifecycle.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:ITr2BoundingBox -->
 ## `ITr2BoundingBox`
 

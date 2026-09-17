@@ -40,10 +40,11 @@ Caller-owned services are not disposed; there is no general shutdown protocol.
 ## Frame boundary
 
 `CjsFrameDriver` owns the backend-neutral order of one explicitly requested
-frame. Composition requires exact `Tr2RenderContext`, `Tr2RenderJobs`, and
-`CjsFrameLifecycle` instances once, then the hot path calls them directly.
+frame. Composition supplies exact `Tr2RenderContext` and `Tr2RenderJobs`
+instances once, plus a frame lifecycle, then the hot path calls them directly.
 The lifecycle supplies pacing, GPU synchronization, viewport, profiling, and
-quad-index reservation; its base methods throw until an engine overrides them.
+quad-index reservation. Its nominal base, `CjsFrameLifecycle`, was deleted on
+2026-09-17 with no implementer anywhere.
 
 The driver passes its exact bracketed context to `Tr2RenderJobs.Run`. Cleanup
 attempts every opened closer even when jobs or an earlier closer fail.

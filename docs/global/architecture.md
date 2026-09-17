@@ -86,9 +86,7 @@ calls required methods directly; repeated structural probes are not a contract.
 `CjsBackendCandidate` exposes only backend proof and is not a device or RHI
 superclass. `CjsConstantPayload` exposes terminal bytes and their dirty
 lifecycle; layout, packing, transpose, allocation, upload, and binding stay in
-their owning layers. `CjsFrameLifecycle` exposes only the required engine-facing
-steps within one requested frame; presentation and the outer tick stay with the
-engine.
+their owning layers.
 
 ## Ownership elsewhere
 

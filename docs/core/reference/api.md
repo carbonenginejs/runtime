@@ -21,7 +21,8 @@ The browser platform classes are also exported from the root, with
 ## `CjsFrameDriver`
 
 `new CjsFrameDriver({ renderContext, renderJobs, frameLifecycle })` requires
-exact `Tr2RenderContext`, `Tr2RenderJobs`, and `CjsFrameLifecycle` instances.
+exact `Tr2RenderContext` and `Tr2RenderJobs` instances, plus a lifecycle
+supplying the six frame methods.
 `Tick(elapsed, animationTimeScale)` advances the frame clock with Carbon's
 hourly rebase. `Render(realTime, simTime)` executes one requested frame, passes
 the bound context to the jobs, and closes every opened bracket. It does not
