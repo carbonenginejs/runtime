@@ -45,7 +45,6 @@
   "src/trinity/core/rawData/perObjectData/Tr2PerObjectData.js": 1,
   "src/trinity/core/rawData/RawData.js": 1,
   "src/trinity/curves/curve/TriEventCurve.js": 1,
-  "src/trinity/eve/attachment/turrets/EveTurretSet.js": 1,
   "src/trinity/eve/child/behaviors/BehaviorGroup.js": 1,
   "src/trinity/eve/child/EveChildContainer.js": 3,
   "src/trinity/eve/child/procedural/EveChildProceduralContainer.js": 1,

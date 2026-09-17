@@ -901,9 +901,11 @@ function cloneJson(value)
 
 function mapToJson(map)
 {
+    // The caller always passes a Map; an empty one is the ordinary case and
+    // needs no guard. Anything else is a defect in the caller.
     if (!(map instanceof Map))
     {
-        return [];
+        throw new TypeError("effectPackage.mapToJson expects a Map.");
     }
 
     return Array.from(map.entries()).map(([ registerIndex, value ]) => ({

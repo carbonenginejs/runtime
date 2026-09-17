@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
@@ -500,7 +500,13 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
 
     for (const parameter of effect.parameters)
     {
-      if (!(parameter instanceof Tr2Vector4Parameter))
+      // Picking the vec4 entries out of a mixed parameter list. This names a
+      // LEAF CLASS because the family has no declared contract to ask for:
+      // Carbon derives it from ITriEffectParameter and ITriReroutable
+      // (Tr2Vector4Parameter.h:13-16) and our port put the shared behaviour on
+      // an invented CjsParameter instead. See
+      // .agents/parameter-family-missing-contracts.md.
+      if (!CjsSchema.cast(parameter, Tr2Vector4Parameter))
       {
         continue;
       }
