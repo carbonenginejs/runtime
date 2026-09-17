@@ -475,7 +475,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
       else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
       else if (masked === BlueListEvent.UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink();
+        for (const controller of this.controllers) controller.Unlink();
       }
     }
     else if (list === this.objects && !loading)

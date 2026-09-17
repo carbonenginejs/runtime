@@ -547,7 +547,7 @@ export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(Eve
           if (value) value.Unlink();
           break;
         case BELIST_UNLOADSTART:
-          for (const controller of this.controllers) controller?.Unlink();
+          for (const controller of this.controllers) controller.Unlink();
           break;
         default:
           break;

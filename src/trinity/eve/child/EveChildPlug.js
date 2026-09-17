@@ -78,7 +78,7 @@ export class EveChildPlug extends EveChildTransform
       else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
       else if (masked === BlueListEvent.UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink();
+        for (const controller of this.controllers) controller.Unlink();
       }
       return;
     }

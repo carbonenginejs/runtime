@@ -667,7 +667,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
       else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
       else if (masked === BlueListEvent.UNLOADSTART)
       {
-        for (const controller of this.controllers) controller?.Unlink();
+        for (const controller of this.controllers) controller.Unlink();
       }
     }
     else if (list === this.effectChildren && !loading)
@@ -675,7 +675,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
       const registry = this.IsInRegistry() ? this.GetComponentRegistry() : null;
       if (masked === BlueListEvent.INSERTED)
       {
-        value?.SetOwner(this);
+        value.SetOwner(this);
         EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
         // Carbon casts to EveEntityPtr before registering (cpp:333-341).
         if (registry && value instanceof EveEntity) value.Register(registry);
@@ -683,14 +683,14 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
       else if (masked === BlueListEvent.REMOVED)
       {
         if (registry && value instanceof EveEntity) value.UnRegister(registry);
-        value?.SetOwner(null);
+        value.SetOwner(null);
       }
       else if (masked === BlueListEvent.UNLOADSTART)
       {
         for (const child of this.effectChildren)
         {
           if (registry && child instanceof EveEntity) child.UnRegister(registry);
-          child?.SetOwner(null);
+          child.SetOwner(null);
         }
       }
     }
