@@ -241,3 +241,42 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     CjsResMan.SetGlobal(previousManager ?? null);
   }
 });
+
+// Regression, runtime 88c9cd1e. Carbon's OnModified is called once per changed
+// MEMBER; ours is called once per WRITE, and a write that names no fields used
+// to run every arm - including the geometry refetch, which with no manager
+// installed cleared the mesh. Routing AddArea through the managed mutation made
+// that happen on an unrelated change.
+
+test("a write that names nothing does not throw away the geometry", async () =>
+{
+  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
+  const { Tr2MeshArea } = await import("../../npm/dist/trinity/index.js");
+  const previous = CjsResMan.GetGlobal();
+  CjsResMan.SetGlobal(null);
+  try
+  {
+    const mesh = new Tr2Mesh();
+    const geometry = CreateGeometry([ "Smile" ]);
+    mesh.PySetGeometryRes(geometry);
+    assert.equal(mesh.GetGeometryResource(), geometry);
+
+    // An unrelated structural change: adding an area settles the mesh.
+    mesh.AddArea(0, new Tr2MeshArea());
+    assert.equal(mesh.GetGeometryResource(), geometry, "an unrelated write cleared the geometry");
+
+    // A bare settle must not either.
+    mesh.OnModified();
+    assert.equal(mesh.GetGeometryResource(), geometry, "a bare settle cleared the geometry");
+
+    // Positive control: a path that HAS moved is still refetched - and with no
+    // manager installed that legitimately clears the resource.
+    mesh.geometryResPath = "res:/changed.gr2";
+    mesh.OnModified();
+    assert.equal(mesh.GetGeometryResource(), null, "a moved path was not acted on");
+  }
+  finally
+  {
+    CjsResMan.SetGlobal(previous ?? null);
+  }
+});
