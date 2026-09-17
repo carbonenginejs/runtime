@@ -587,7 +587,7 @@ test("creates, removes, deletes, and clears records through observable library m
 
     for (const eventName of [ "recordadded", "recordremoved", "recorddeleted", "documentcleared" ])
     {
-        library.OnEvent(eventName, (_owner, payload) => events.push([ eventName, payload ]));
+        library.OnEvent(eventName, (_name, _owner, payload) => events.push([ eventName, payload ]));
     }
 
     const created = library.Create("characterResources", {
@@ -667,7 +667,7 @@ test("inspects extension-neutral resource data through one resident resource-man
     };
 
     library.SetResourceManager(resMan);
-    library.OnEvent("recordadded", (_owner, payload) => events.push(payload));
+    library.OnEvent("recordadded", (_name, _owner, payload) => events.push(payload));
     const [ first, second ] = await Promise.all([
         library.InspectResourceForData("RES:/Character/Pants.DDS"),
         library.InspectResourceForData("res:/character/pants.png")

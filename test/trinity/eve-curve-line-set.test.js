@@ -42,7 +42,7 @@ test("EveCurveLineSet is a maintained Tr2CurveLineSet with Carbon graph defaults
   assert.equal(lines.HasTransparentBatches(), true);
   assert.equal(new core.Tr2CurveLineSet().GetPerObjectData({}), null,
     "the base intentionally supplies no constants");
-  assert.throws(() => lines.GetBatches(), /engine line-stream realization/u);
+  assert.throws(() => lines.GetBatches(), /Tr2CurveLineSet.GetBatches is not ported yet/u);
 });
 
 

@@ -113,7 +113,7 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
   };
   variable.SetDirtyMask(dirty, 0x10n);
   const events = [];
-  variable.OnEvent("modified", (_model, payload) => events.push(payload));
+  variable.OnEvent("modified", (_name, _model, payload) => events.push(payload));
   assertEquals(variable.SetValue(7.25), true);
   dirty.value = 0n;
   assertEquals(variable.SetValue(7.25), true);
@@ -146,7 +146,7 @@ test("Tr2BindingPoint settles direct and swizzled writes through CjsModel", () =
   target.value = 1;
   target.vector = new Float32Array([1, 2, 3]);
   const events = [];
-  target.OnEvent("modified", (_model, payload) => events.push(payload));
+  target.OnEvent("modified", (_name, _model, payload) => events.push(payload));
 
   const scalar = new Tr2BindingPoint();
   assertEquals(scalar.SetDestination(target, "value"), true);
@@ -169,7 +169,7 @@ test("Tr2BindingPoint settles direct and swizzled writes through CjsModel", () =
   const alwaysTarget = new Tr2ControllerFloatVariable();
   alwaysTarget.value = 3;
   const alwaysEvents = [];
-  alwaysTarget.OnEvent("modified", (_model, payload) => alwaysEvents.push(payload));
+  alwaysTarget.OnEvent("modified", (_name, _model, payload) => alwaysEvents.push(payload));
   const alwaysBinding = new Tr2BindingPoint();
   assertEquals(alwaysBinding.SetDestination(alwaysTarget, "value"), true);
   assertEquals(alwaysBinding.SetValue(3), true);

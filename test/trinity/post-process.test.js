@@ -232,7 +232,7 @@ test("maintained SSAO owns Carbon quality state and leaves filtering explicit", 
   assertEquals(CjsSchema.getMethod(Tr2SSAO, "Enable")?.impl?.status, "implemented");
   assertEquals(CjsSchema.getMethod(Tr2SSAO, "SetQuality")?.impl?.status, "implemented");
   assertEquals(CjsSchema.getMethod(Tr2SSAO, "Filter")?.impl?.status, "notImplemented");
-  nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /engine-owned SSAO realization/u);
+  nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /Tr2SSAO.Filter is not ported yet/u);
 });
 
 test("maintained post-process renderer owns quality while execution stays explicit", () =>
@@ -248,6 +248,6 @@ test("maintained post-process renderer owns quality while execution stays explic
   assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "notImplemented");
   nodeAssert.throws(
     () => renderer.Execute(null, null, null, null, null, null, null, null, null),
-    /engine-owned post-process realization/u
+    /Tr2PostProcessRenderer.Execute is not ported yet/u
   );
 });

@@ -113,7 +113,7 @@ test("keeps resolution and realization as injected character seams", async () =>
         }
     });
     const events = [];
-    character.OnEvent("appearancechanged", value => events.push(value));
+    character.OnEvent("appearancechanged", (_name, value) => events.push(value));
 
     assert.strictEqual(character.SelectPaperdoll("3000001"), plan);
     assert.deepEqual(events, [{ type: "appearancechanged", source: character, revision: 1 }]);

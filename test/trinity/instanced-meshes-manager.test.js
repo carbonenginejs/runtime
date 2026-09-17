@@ -6,7 +6,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { CjsInstancedMeshManager } from "../../npm/dist/global/contracts/index.js";
 import {
   EveChildInstancedMeshes,
   EveCustomMask,
@@ -27,11 +26,10 @@ function assertClose(actual, expected, message, epsilon = EPSILON)
   );
 }
 
-class TestInstancedMeshManager extends CjsInstancedMeshManager
+class TestInstancedMeshManager
 {
   constructor()
   {
-    super();
     this.calls = {
       perObject: [], spheres: [], groups: [], updatedSpheres: [],
       removedGroups: [], removedSpheres: [], removedPerObject: []
@@ -249,7 +247,7 @@ test("Manager switch tears everything down through the old handles (cpp:478-481,
 
 test("Manager handles are opaque and may use zero-valued primitive identities", () =>
 {
-  class PrimitiveHandleManager extends CjsInstancedMeshManager
+  class PrimitiveHandleManager
   {
     nextHandle = 0;
 
@@ -305,11 +303,4 @@ test("instanced per-object custom masks retain their terminal GPU orientation", 
     Array.from(manager.calls.perObject[0].data.GetTransposedIndex("customMaskMatrix", 0)),
     Array.from(parentVs.GetTransposedIndex("customMaskMatrix", 0)),
     "the cross-layout copy does not transpose an already-transposed matrix twice");
-});
-
-test("instanced manager base methods fail loudly until an engine implements them", () =>
-{
-  const manager = new CjsInstancedMeshManager();
-  assert.throws(() => manager.AddPerObjectData({}), /must be implemented/);
-  assert.throws(() => manager.RemoveMeshGroup({}), /must be implemented/);
 });

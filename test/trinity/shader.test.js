@@ -302,7 +302,7 @@ test("io.always preserves repeated effect-path updates", () =>
     initializeCount++;
     return initialize();
   };
-  effect.OnEvent("modified", (_subject, data) => events.push(data));
+  effect.OnEvent("modified", (_name, _subject, data) => events.push(data));
 
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
@@ -732,7 +732,7 @@ test("TriTextureParameter stays graph-owned and backend-free", () =>
 {
   const parameter = new TriTextureParameter();
   const modified = [];
-  parameter.OnEvent("modified", (_target, payload) => modified.push(payload));
+  parameter.OnEvent("modified", (_name, _target, payload) => modified.push(payload));
   parameter.name = "DiffuseMap";
   parameter.SetResourcePath("res:/texture/diffuse.dds");
   assertEquals(parameter.resourcePath, "res:/texture/diffuse.dds");

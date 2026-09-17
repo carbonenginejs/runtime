@@ -139,7 +139,7 @@ test("leaf authored curve setters emit exact settled changes", () =>
 {
   const curve = new Tr2CurveScalar();
   const events = [];
-  curve.OnEvent("modified", (_model, payload) => events.push(payload));
+  curve.OnEvent("modified", (_name, _model, payload) => events.push(payload));
 
   assertEquals(curve.SetName("throttle"), true);
   assertEquals(curve.SetName("throttle"), false);
@@ -163,7 +163,7 @@ test("expression and seed setters settle derived state before events", () =>
   const source = {};
   const scalar = new Tr2CurveScalarExpression();
   const scalarEvents = [];
-  scalar.OnEvent("modified", (_model, payload) =>
+  scalar.OnEvent("modified", (_name, _model, payload) =>
   {
     assertAlmostEquals(scalar.GetValue(0), 3);
     scalarEvents.push(payload);
@@ -175,7 +175,7 @@ test("expression and seed setters settle derived state before events", () =>
 
   const vector = new Tr2CurveVector3Expression();
   const vectorEvents = [];
-  vector.OnEvent("modified", (_model, payload) => vectorEvents.push(payload));
+  vector.OnEvent("modified", (_name, _model, payload) => vectorEvents.push(payload));
   assertEquals(vector.SetExpressionX("4", { source }), true);
   assertEquals(vector.SetExpressionX("4", { source }), false);
   assertEquals(vectorEvents.length, 1);
@@ -183,7 +183,7 @@ test("expression and seed setters settle derived state before events", () =>
 
   const rotation = new Tr2CurveRandomAxisRotation();
   const rotationEvents = [];
-  rotation.OnEvent("modified", (_model, payload) => rotationEvents.push(payload));
+  rotation.OnEvent("modified", (_name, _model, payload) => rotationEvents.push(payload));
   assertEquals(rotation.SetSeed(7, { source }), true);
   assertEquals(rotation.SetSeed(7, { source }), false);
   assertEquals(rotationEvents.length, 1);
