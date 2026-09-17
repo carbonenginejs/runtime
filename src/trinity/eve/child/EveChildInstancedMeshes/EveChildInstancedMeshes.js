@@ -1181,7 +1181,7 @@ export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectCh
    * meshIndex<<16 decode). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The manager is an injected CjsInstancedMeshManager implementation returning opaque handles (out-params become returns); Carbon's combinedVertexDeclaration gate (cpp:499, a D3D declaration handle rebuilt in RebuildCachedData cpp:435-457) reduces to geometry presence + IsGood, and the declaration argument is passed as 0 for the engine to rebuild; GetRawRoot() becomes the object itself as picking owner.")
+  @impl.reason("The manager is duck-typed and returns opaque handles (out-params become returns) - Carbon EveInstancedMeshManager is not ported (quarantined in src/trinity/dropped); Carbon's combinedVertexDeclaration gate (cpp:499, a D3D declaration handle rebuilt in RebuildCachedData cpp:435-457) reduces to geometry presence + IsGood, and the declaration argument is passed as 0 for the engine to rebuild; GetRawRoot() becomes the object itself as picking owner.")
   AddMeshesToManager(manager)
   {
     if (!this.hasUpdated)

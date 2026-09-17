@@ -185,15 +185,15 @@ composition, and concrete global collectors are not ported yet. Rebuild tokens
 stay on the object or child that declared them, and whatever consumes a token
 clears it only for work it successfully completes - nothing consumes them today.
 
-### Instance-stream contract
+### Instance stream
 
-`CjsInstancedMeshManager` is the dependency-free registration boundary between
-Trinity's CPU object graph and engine-owned physical instancing. Trinity calls
-the required methods directly, registers terminal `RawData` rather than a
-duck-typed provider, and retains only opaque handles for later update/removal.
-The child retains the issuing manager independently; it never reads or repairs
-handle fields, so frozen objects and primitive handles are valid. The instancing manager behind those handles is not ported; Carbon's scene owns
-it directly.
+`EveChildInstancedMeshes.AddMeshesToManager` registers terminal `RawData` with a
+mesh manager and keeps only opaque handles for later update/removal; it never
+reads or repairs handle fields, so frozen objects and primitive handles are
+valid. THE MANAGER ITSELF IS NOT PORTED: Carbon's scene owns
+`EveInstancedMeshManager` directly (quarantined in `src/trinity/dropped`), and
+the `CjsInstancedMeshManager` contract that stood in for it has been removed -
+nothing implemented it.
 
 `EveChildInstanceMeshRenderer` and `Tr2RuntimeInstanceData` own the logical
 current/previous transforms, bone index, 100-byte record packing, bounds, and
