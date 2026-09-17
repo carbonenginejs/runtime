@@ -4,10 +4,7 @@
 //
 // Carbon's swap chain HOLDS its AL object (`m_swapChain`) and forwards to it:
 // `Present` is `m_swapChain.Present(...)`, and `GetWidth`/`GetHeight` ask the
-// AL rather than reporting stored numbers. This class did none of that until
-// 2026-09-09 - it was four decorated fields and a `CreateForWindow` that threw,
-// because a since-retired rule said Trinity could hold no live device state.
-// See /docs/internal/decisions/trinity-gpu-free-means-the-stub.md.
+// AL rather than reporting stored numbers. This class does the same.
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { Succeeded } from "../../../trinityal/ALResult.js";

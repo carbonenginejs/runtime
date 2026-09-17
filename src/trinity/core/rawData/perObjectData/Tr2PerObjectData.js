@@ -4,15 +4,12 @@
 // the picking / object id) and is the value a renderable's GetPerObjectData
 // returns and a batch references via SetPerObjectData.
 //
-// THIS HEAD COMMENT USED TO SAY the upload path was "engine-owned and
-// intentionally not modelled here; the engine reads the canonical
-// CjsConstantPayload at dispatch". That was the engine-means-`trinityal/webgpu`
-// misreading: Carbon's SetPerObjectDataToDevice calls FillAndSetConstants,
-// which lives in Tr2RenderUtils.h - Trinity. The upload is here now and it
-// writes a Tr2ConstantBufferAL through the abstraction layer.
+// The upload lives here, as it does in Carbon: SetPerObjectDataToDevice calls
+// FillAndSetConstants (Tr2RenderUtils.h), and this writes a Tr2ConstantBufferAL
+// through the abstraction layer.
 //
-// ApplyConstantBuffers, the indirect-draw sibling, is still unported: it takes
-// a Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
+// ApplyConstantBuffers, the indirect-draw sibling, is unported: it takes a
+// Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
 import { CjsConstantPayload } from "#contracts";
 import { CjsSchema, carbon, impl } from "#schema";
