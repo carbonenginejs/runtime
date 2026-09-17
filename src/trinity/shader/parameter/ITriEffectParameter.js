@@ -13,7 +13,8 @@
 // "ITriEffectParameter" )` (Tr2MaterialParameterStore.js:30, Carbon's
 // `PITriEffectParameterDict`) and that name resolved to null.
 //
-// Carbon derives this from ITr2EffectValue, which is unported; the three
+// Carbon derives this from ITr2EffectValue, whose module here carries only its
+// ResourceFlags word - the interface itself has no members we need. The three
 // methods below are ITriEffectParameter's own. `SupportsDirtyNotification` is
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
