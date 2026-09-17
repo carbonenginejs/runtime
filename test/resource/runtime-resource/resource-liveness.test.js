@@ -181,13 +181,16 @@ test("OnCompleted fires for both outcomes and lets the handler branch", () =>
   const good = new CjsResource();
   const bad = new CjsResource();
 
-  good.OnCompleted(res => seen.push(res.IsPrepared()));
-  bad.OnCompleted(res => seen.push(res.IsPrepared()));
+  // Name first, then the resource - the same arguments a dispatched listener
+  // gets, so an already-completed resource is indistinguishable from a pending
+  // one at the call site.
+  good.OnCompleted((name, res) => seen.push([ name, res.IsPrepared() ]));
+  bad.OnCompleted((name, res) => seen.push([ name, res.IsPrepared() ]));
 
   good.MarkPrepared();
   bad.SetError(new Error("nope"));
 
-  assert.deepEqual(seen, [ true, false ]);
+  assert.deepEqual(seen, [ [ "completed", true ], [ "completed", false ] ]);
 });
 
 

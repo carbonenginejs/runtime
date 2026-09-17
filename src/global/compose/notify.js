@@ -93,6 +93,15 @@ function OffEvent(eventName = "*", listener = null, source = ANY_SOURCE)
 /**
  * Emits a lowercased exact event name to all currently registered records.
  *
+ * THE LISTENER RECEIVES THE EVENT NAME AS ITS FIRST ARGUMENT, before the
+ * emitted arguments. Carbon does the same in both notify hooks - INotify
+ * OnModified is handed the member that changed, and IListNotify
+ * OnListModified takes the BLUELISTEVENT code as argument one - so the
+ * observer is always told WHAT happened and decides for itself. Without it a
+ * listener registered for two events cannot tell them apart, and ccpwgl keeps
+ * a closure per event name for exactly that reason; the missing name is a bug
+ * in the emitter this one descends from (operator, 2026-09-17).
+ *
  * @param {string} eventName
  * @param {...*} args
  * @returns {object} This emitter.
@@ -115,7 +124,7 @@ function EmitEvent(eventName, ...args)
         {
             if (!records.has(record)) continue;
             if (record.once) RemoveEventRecord(record);
-            record.listener.call(record.source, ...args);
+            record.listener.call(record.source, name, ...args);
         }
     }
     catch (err)

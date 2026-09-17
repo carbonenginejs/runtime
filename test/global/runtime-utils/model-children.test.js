@@ -89,7 +89,7 @@ test("CjsModel child factories hydrate, append, notify, flag, and settle", () =>
 
     assert.equal(typeof CjsModel.addChild, "function");
     assert.equal(parent.addChild, undefined);
-    parent.OnEvent("childadded", (_owner, payload) => events.push(payload));
+    parent.OnEvent("childadded", (_name, _owner, payload) => events.push(payload));
 
     const child = parent.CreateChild({ name: "first" });
 
@@ -124,8 +124,8 @@ test("CjsModel remove detaches without deleting and delete uses explicit teardow
 
     assert.strictEqual(parent.AddChild(first, { skipEvents: true }), first);
     parent.AddChild(second, { skipEvents: true });
-    parent.OnEvent("childremoved", (_owner, payload) => events.push([ "removed", payload.child ]));
-    parent.OnEvent("childdeleted", (_owner, payload) => events.push([ "deleted", payload.child ]));
+    parent.OnEvent("childremoved", (_name, _owner, payload) => events.push([ "removed", payload.child ]));
+    parent.OnEvent("childdeleted", (_name, _owner, payload) => events.push([ "deleted", payload.child ]));
 
     assert.equal(parent.RemoveChild(first), true);
     assert.equal(parent.RemoveChild(first), false);

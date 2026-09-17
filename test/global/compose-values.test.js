@@ -268,10 +268,10 @@ test("nothing is emitted without a listener, and the payload carries the fields"
   thing.SetValues({ n: 1 });
   assert.deepEqual(heard, [], "no listener, no emit");
 
-  const listener = (obj, detail) => heard.push({ same: obj === thing, fields: [ ...detail.changedFields ] });
+  const listener = (name, obj, detail) => heard.push({ name, same: obj === thing, fields: [ ...detail.changedFields ] });
   thing.OnEvent("modified", listener);
   thing.SetValues({ n: 2 });
-  assert.deepEqual(heard, [ { same: true, fields: [ "n" ] } ]);
+  assert.deepEqual(heard, [ { name: "modified", same: true, fields: [ "n" ] } ]);
 
   thing.OffEvent("modified", listener);
   heard.length = 0;

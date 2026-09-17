@@ -332,7 +332,10 @@ export class CjsResource
     }
     if (this.HasCompleted())
     {
-      listener(this);
+      // The immediate path must match a dispatched call exactly, or an already-
+      // completed resource hands its listener a different argument list than a
+      // pending one does.
+      listener.call(source, "completed", this);
       return this;
     }
     return this.OnEvent("completed", listener, source);

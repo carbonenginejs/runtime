@@ -280,7 +280,7 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     const model = new SettledModel();
     const source = {};
     const events = [];
-    model.OnEvent("modified", (target, payload) => events.push([target, payload]));
+    model.OnEvent("modified", (name, target, payload) => events.push([name, target, payload]));
 
     const changed = model.SetValues({ name: "ship", width: 3 }, { source });
 
@@ -290,8 +290,9 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     // finds everything settled.
     assert.deepEqual(model.calls, [source, source]);
     assert.equal(events.length, 1);
-    assert.equal(events[0][0], model);
-    assert.equal(events[0][1].source, source);
+    assert.equal(events[0][0], "modified", "the listener is told which event fired");
+    assert.equal(events[0][1], model);
+    assert.equal(events[0][2].source, source);
     assert.equal(model.__state.dirty, false);
 });
 
@@ -313,7 +314,7 @@ test("io.always treats equivalent writes as updates", () => {
     const model = new AlwaysModel();
     model.value = 4;
     const events = [];
-    model.OnEvent("modified", (_subject, data) => events.push(data));
+    model.OnEvent("modified", (_name, _subject, data) => events.push(data));
 
     assert.deepEqual(model.SetValues({ value: 4 }), new Set(["value"]));
     assert.equal(model.hookRuns, 1);
@@ -387,7 +388,7 @@ test("CjsModel supports binding-style direct mutations and retains failed update
     const model = new BoundModel();
     const binding = {};
     let event = null;
-    model.OnEvent("modified", (target, payload) => event = payload);
+    model.OnEvent("modified", (_name, target, payload) => event = payload);
     model.value = 4;
     assert.equal(model.UpdateValues({ property: "value", source: binding }), true);
     assert.equal(event.source, binding);
@@ -527,10 +528,10 @@ test("CjsEventEmitter normalizes names and supports external method sources", ()
     const target = new CjsEventEmitter();
     const values = [];
 
-    function onLoaded(value)
+    function onLoaded(name, value)
     {
         this.count++;
-        values.push([this, value]);
+        values.push([this, name, value]);
     }
 
     assert.deepEqual(Object.getOwnPropertyNames(target), []);
@@ -543,14 +544,14 @@ test("CjsEventEmitter normalizes names and supports external method sources", ()
 
     target.EmitEvent("LOADED", 3);
 
-    assert.deepEqual(values, [[source, 3]]);
+    assert.deepEqual(values, [[source, "loaded", 3]], "the emitted name arrives normalized");
     assert.equal(source.count, 1);
     assert.equal(target.GetEventListenerCount("loaded"), 1);
 
     target.OffEvent("LoAdEd", onLoaded, source);
     target.EmitEvent("loaded", 4);
 
-    assert.deepEqual(values, [[source, 3]]);
+    assert.deepEqual(values, [[source, "loaded", 3]]);
     assert.equal(target.HasListener("loaded"), false);
     assert.equal(Object.hasOwn(target.__state, "events"), false);
 });
@@ -579,9 +580,9 @@ test("CjsEventEmitter removes one source across every event name", () => {
     const secondSource = {};
     const seen = [];
 
-    function listener(value)
+    function listener(name, value)
     {
-        seen.push([this, value]);
+        seen.push([this, name, value]);
     }
 
     emitter
@@ -598,7 +599,7 @@ test("CjsEventEmitter removes one source across every event name", () => {
     emitter.EmitEvent("loaded", 1);
     emitter.EmitEvent("changed", 2);
 
-    assert.deepEqual(seen, [[secondSource, 1]]);
+    assert.deepEqual(seen, [[secondSource, "loaded", 1]]);
     assert.equal(emitter.GetEventListenerCount(), 1);
 });
 

@@ -57,9 +57,9 @@ test("CjsEventEmitter supports direct source subscriptions", () => {
   const source = { count: 0 };
   const seen = [];
 
-  function listener(value) {
+  function listener(name, value) {
     this.count += value;
-    seen.push(value);
+    seen.push([ name, value ]);
   }
 
   assert.equal(Object.prototype.hasOwnProperty.call(emitter, "__state"), false);
@@ -71,14 +71,14 @@ test("CjsEventEmitter supports direct source subscriptions", () => {
 
   emitter.EmitEvent("LOADED", 2);
 
-  assert.deepEqual(seen, [2]);
+  assert.deepEqual(seen, [ [ "loaded", 2 ] ]);
   assert.equal(source.count, 2);
 
   emitter.OffEvent("LoAdEd", listener, source);
   assert.equal(Object.prototype.hasOwnProperty.call(emitter.__state, "events"), false);
   emitter.EmitEvent("loaded", 2);
 
-  assert.deepEqual(seen, [2]);
+  assert.deepEqual(seen, [ [ "loaded", 2 ] ]);
   assert.equal(emitter.HasListener("loaded"), false);
 });
 
@@ -106,10 +106,10 @@ test("CjsEventEmitter clears event groups and supports AddEvents once suffix", (
   const source = { value: 3 };
 
   assert.equal(emitter.AddEvents({
-    changed(value) {
+    changed(name, value) {
       values.push(value);
     },
-    "changed.once": [function(value) {
+    "changed.once": [function(name, value) {
       values.push(value + this.value);
     }, source]
   }), emitter);
@@ -132,11 +132,11 @@ test("CjsEventEmitter independently removes external listener sources", () => {
   const shipValues = [];
   const sceneValues = [];
 
-  function onShipLoaded(value) {
+  function onShipLoaded(name, value) {
     shipValues.push(value);
   }
 
-  function onSceneLoaded(value) {
+  function onSceneLoaded(name, value) {
     sceneValues.push(value);
   }
 
@@ -678,7 +678,7 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
 test("CjsResource exposes Carbon-style lifecycle methods and schema", () => {
   const resource = new CjsResource().Initialize("res:/Texture/Ship.DDS");
   const states = [];
-  resource.OnEvent("statechange", (changed, state, previous) => {
+  resource.OnEvent("statechange", (_name, changed, state, previous) => {
     assert.equal(changed, resource);
     states.push([ state, previous ]);
   });
@@ -1731,7 +1731,7 @@ test("CjsTextureArrayResParameterProxy exposes source attachment and same-source
   const proxy = textureArray.GetLayerParameter(0);
   const source = { path: "res:/resolved-lod.dds" };
   const changes = [];
-  proxy.OnEvent("changed", (...args) => changes.push(args));
+  proxy.OnEvent("changed", (_name, ...args) => changes.push(args));
 
   assert.equal(proxy.SetSourceResource(source), true);
   assert.equal(proxy.GetResourcePath(), "res:/authored.dds");
@@ -1803,7 +1803,7 @@ test("CjsTextureArrayRes atomically publishes adapters across reentrant invalida
   const candidate = { id: "first" };
   let observed = false;
 
-  textureArray.OnEvent("revisionprepared", (resource, revision, adapterKey, allocation) =>
+  textureArray.OnEvent("revisionprepared", (_name, resource, revision, adapterKey, allocation) =>
   {
     assert.equal(resource.GetAdapterResource(adapterKey), candidate);
     assert.equal(resource.GetPreparedRevision(), revision);
