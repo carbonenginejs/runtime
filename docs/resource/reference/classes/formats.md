@@ -637,6 +637,28 @@ Exposes the verified inline modern cFSD layout for factions records through `get
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsFsd64SchemaFrontierGraphicIds -->
+## `CjsFsd64SchemaFrontierGraphicIds`
+
+Exposes the verified inline modern cFSD layout for EVE Frontier's graphic ids records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
+- Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaFrontierGraphicIds.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+- Notes: A separate pinned layout, not a version of `CjsFsd64SchemaGraphicIds`: the record is 168 bytes rather than 160 and carries a presence word the EVE one does not have.
+
+<!-- class:CjsFsd64SchemaFrontierTypes -->
+## `CjsFsd64SchemaFrontierTypes`
+
+Exposes the verified inline modern cFSD layout for EVE Frontier's types records through `getFsdSchema()`.
+
+- Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
+- Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaFrontierTypes.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+- Notes: A separate pinned layout, not a version of `CjsFsd64SchemaTypes`: the record is 136 bytes rather than 152, and it carries `tags` while dropping the fields Frontier has no use for.
+
 <!-- class:CjsFsd64SchemaGraphicIds -->
 ## `CjsFsd64SchemaGraphicIds`
 
@@ -1401,6 +1423,17 @@ Construction-bound decoder for the inert data subset of Python pickle protocol 0
 - Source: `src/resource/formats/pickle/core/CjsPickleProtocol0Reader.js`
 - Visibility: Internal
 - Kind: Internal implementation class
+
+<!-- class:CjsPickleProtocol4Reader -->
+## `CjsPickleProtocol4Reader`
+
+Construction-bound decoder for the inert data subset of Python pickle's binary protocols, 1 through 4.
+
+- Export: `None`
+- Source: `src/resource/formats/pickle/core/CjsPickleProtocol4Reader.js`
+- Visibility: Internal
+- Kind: Internal implementation class
+- Notes: Shares every refusal rule with `CjsPickleProtocol0Reader` through `pickleCommon`, and owns only how the binary protocols spell their opcodes.
 
 ### png
 

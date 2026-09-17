@@ -178,6 +178,8 @@ export class CjsFsd64SchemaFrontierTypes extends CjsFsd64SchemaReader
                 {
                     "name": "nameID",
                     "type": "UINT_32",
+                    "sourceName": "typeNameID",
+                    "renamed": true,
                     "offset": 116
                 },
                 {
