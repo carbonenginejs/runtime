@@ -153,3 +153,39 @@ test("the element handle class is exported for AL-side consumers", () =>
 {
     assert.equal(typeof Tr2TextureArrayElement, "function");
 });
+
+// Regression: EveChildMesh.GetLights calls SetBrightnessMultiplier on every
+// light every submission pass, and that is a SetValues which names no field.
+// Before the guard, the settle re-resolved the profile each time and nulled it
+// whenever no resource manager was installed - once per light per frame.
+
+test("a per-frame brightness write does not throw away a light's profile", async () =>
+{
+  const { Tr2Light } = await import("../../npm/dist/trinity/index.js");
+  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
+  const previous = CjsResMan.GetGlobal();
+  CjsResMan.SetGlobal(null);
+  try
+  {
+    const light = new Tr2Light();
+    const profile = { name: "profile" };
+    light.lightProfile = profile;
+
+    light.SetBrightnessMultiplier(0.5);
+    assert.equal(light.lightProfile, profile, "a brightness write cleared the profile");
+
+    light.SetBrightnessMultiplier(0.25);
+    light.OnModified();
+    assert.equal(light.lightProfile, profile, "a bare settle cleared the profile");
+
+    // Positive control: a path that HAS moved is still resolved, and with no
+    // manager installed that legitimately clears it.
+    light.lightProfilePath = "res:/light/moved.lp";
+    light.OnModified();
+    assert.equal(light.lightProfile, null, "a moved path was not acted on");
+  }
+  finally
+  {
+    CjsResMan.SetGlobal(previous ?? null);
+  }
+});

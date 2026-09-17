@@ -56,6 +56,9 @@ export class Tr2Light extends CjsModel
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
+  /** The path the bound profile was resolved from; see #ResolveLightProfile. */
+  #resolvedProfilePath = "";
+
   @type.string
   lightProfilePath = "";
 
@@ -295,6 +298,12 @@ export class Tr2Light extends CjsModel
       for (const name of names) if (name === "lightProfilePath") touched = true;
       if (!touched) return true;
     }
+    else if (this.lightProfilePath === this.#resolvedProfilePath)
+    {
+      // A write that named nothing: only a path that has actually moved since
+      // it was last resolved is worth re-resolving.
+      return true;
+    }
     this.#ResolveLightProfile();
     return true;
   }
@@ -307,6 +316,12 @@ export class Tr2Light extends CjsModel
    */
   #ResolveLightProfile()
   {
+    // Stamped FIRST, before the manager check, so the no-manager case records
+    // the attempt too. Without it a write that named nothing re-resolved every
+    // time - and EveChildMesh.GetLights calls SetBrightnessMultiplier on every
+    // light every submission pass, so the profile was nulled per light per
+    // frame whenever no manager was installed.
+    this.#resolvedProfilePath = this.lightProfilePath;
     const manager = CjsResMan.GetGlobal();
     if (!manager || !this.lightProfilePath)
     {

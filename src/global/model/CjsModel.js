@@ -745,7 +745,14 @@ export class CjsModel extends CjsEventEmitter
         }
         else if (changed.size && options.skipUpdate !== true && !out.__state.updating)
         {
-            out.UpdateValues(options);
+            // The changed names ride through to OnModified. The write knows them
+            // and used to drop them, which left every hook guessing: a class whose
+            // OnModified dispatches per member had to run every arm on every
+            // write. The compose transport has always passed them
+            // (compose/values.js), and the decision page rules the options-bag
+            // form additive - a positional name would flip three `!propertyName`
+            // gates, which is why it is not done that way.
+            out.UpdateValues({ ...options, changedFields: changed });
         }
 
         return options.returnBoolean === true ? changed.size > 0 : changed.size ? changed : false;
