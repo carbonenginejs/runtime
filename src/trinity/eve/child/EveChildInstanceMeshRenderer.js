@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
@@ -191,7 +191,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     if (shadowFrustum.IsVisible(cameraFrustum, WORLD_SPHERE))
     {
       let sphere = WORLD_SPHERE;
-      if (this.mesh instanceof Tr2InstancedMesh)
+      if (CjsSchema.cast(this.mesh, Tr2InstancedMesh))
       {
         if (!mat4.invert(INVERSE_WORLD, this.worldTransform)) mat4.identity(INVERSE_WORLD);
         vec3.transformMat4(LOCAL_EYE, shadowFrustum.GetEyePos(), INVERSE_WORLD);
@@ -252,7 +252,10 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     const updateCount = this._lastEntityCount !== entityCount;
     this._lastEntityCount = entityCount;
 
-    if (!(this.mesh instanceof Tr2InstancedMesh))
+    // Carbon caches the downcast - m_instancedMesh = BlueCastPtr(m_mesh),
+    // EveChildMesh.cpp:203 - and skips when it is null. The skip is the donor
+    // behaviour, not a hedge: a non-instanced mesh has no instances to place.
+    if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
     {
       return;
     }
@@ -304,7 +307,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @impl.reason("The engine realizes the bound Tr2RuntimeInstanceData; Trinity owns its canonical transform layout and bytes.")
   ConfigureInstanceData()
   {
-    if (!(this.mesh instanceof Tr2InstancedMesh))
+    if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
     {
       return null;
     }
@@ -518,13 +521,13 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @impl.reason("Tr2RuntimeInstanceData owns the canonical CPU transform packing while engines own physical instance-buffer realization.")
   UpdateInstanceData(instances)
   {
-    if (!(this.mesh instanceof Tr2InstancedMesh))
+    if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
     {
       return false;
     }
 
     let resource = this.mesh.GetInstanceGeometryResource();
-    if (!(resource instanceof Tr2RuntimeInstanceData))
+    if (!CjsSchema.cast(resource, Tr2RuntimeInstanceData))
     {
       resource = this.ConfigureInstanceData();
     }

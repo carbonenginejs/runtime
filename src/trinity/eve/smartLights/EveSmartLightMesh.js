@@ -5,7 +5,7 @@ import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, io, type, CjsSchema } from "#schema";
 import { EveChildMesh } from "../child/EveChildMesh.js";
 import { EveChildInstanceMeshRenderer } from "../child/EveChildInstanceMeshRenderer.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
@@ -213,7 +213,9 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 
     this.SetMeshColorParameter(color);
 
-    if (!(this.mesh instanceof Tr2InstancedMesh))
+    // Carbon caches the downcast (m_instancedMesh) and skips a non-instanced
+    // mesh; the skip is the donor behaviour.
+    if (!CjsSchema.cast(this.mesh, Tr2InstancedMesh))
     {
       return;
     }

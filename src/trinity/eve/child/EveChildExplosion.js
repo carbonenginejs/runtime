@@ -354,11 +354,15 @@ export class EveChildExplosion extends EveChildContainer
    */
   static updateEmitter(dest, transform)
   {
-    if (!(dest instanceof Tr2SphereShapeAttributeGenerator)) return;
+    // Carbon casts and skips - BlueCastPtr to Tr2SphereShapeAttributeGeneratorPtr,
+    // EveChildExplosion.cpp:438 - because the copier hands this every member of
+    // the cloned graph, not only the emitters.
+    const generator = CjsSchema.cast(dest, Tr2SphereShapeAttributeGenerator);
+    if (!generator) return;
 
     const position = vec3.create();
     const rotation = quat.create();
-    dest.GetTransform(position, rotation);
+    generator.GetTransform(position, rotation);
 
     const conjugate = quat.conjugate(quat.create(), transform.rotation);
     const pure = quat.set(quat.create(), position[0], position[1], position[2], 0);
@@ -371,7 +375,7 @@ export class EveChildExplosion extends EveChildContainer
     //           = rotation * transform.rotation in Hamilton order.
     quat.multiply(rotation, rotation, transform.rotation);
 
-    dest.SetTransform(vec3.add(position, position, transform.position), rotation);
+    generator.SetTransform(vec3.add(position, position, transform.position), rotation);
   }
 
   /**
