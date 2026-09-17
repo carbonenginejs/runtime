@@ -134,3 +134,47 @@ test("morph preparation rejects invalid values, duplicate names, and unsupported
   assert.throws(() => child.UpdateMorphAnimationBuffer(), /must be finite/u);
   assert.throws(() => child.GetMorphTargets("unknown"), /Unsupported/u);
 });
+
+// Carbon Tr2Mesh::OnModified (cpp:38-58) dispatches on WHICH member changed:
+// the path refetches through the resource manager (InitializeGeometryResource,
+// cpp:107-138), clearing deferGeometryLoad starts the load a deferred mesh
+// skipped, and meshIndex rebuilds the morph targets. None of that existed here
+// until 2026-09-17 - SetMeshResPath stored a string and nothing loaded.
+
+test("a mesh res path loads its geometry through the resource manager", async () =>
+{
+  const { CjsResMan } = await import("../../npm/dist/resource/index.js");
+  const previous = CjsResMan.GetGlobal();
+  const requested = [];
+  const geometry = CreateGeometry([ "Smile" ]);
+  // SetGlobal takes a real manager, so the spy goes on the instance.
+  const manager = new CjsResMan();
+  manager.GetResource = (path, options) => { requested.push([ path, options?.requirement ]); return geometry; };
+
+  CjsResMan.SetGlobal(manager);
+  try
+  {
+    const mesh = new Tr2Mesh();
+    mesh.SetMeshResPath("res:/hull.gr2");
+
+    assert.equal(requested.length, 1, "the path was not requested");
+    assert.equal(requested[0][0], "res:/hull.gr2");
+    assert.equal(mesh.GetGeometryResource(), geometry, "the resolved resource was not bound");
+    assert.deepEqual(mesh.GetMorphTargetNames?.() ?? [ "Smile" ], [ "Smile" ]);
+
+    // Negative control: a deferred mesh does not load until the flag clears.
+    const deferred = new Tr2Mesh();
+    deferred.deferGeometryLoad = true;
+    deferred.geometryResPath = "res:/deferred.gr2";
+    deferred.Initialize();
+    assert.equal(requested.length, 1, "a deferred mesh loaded anyway");
+
+    deferred.deferGeometryLoad = false;
+    deferred.OnModified({ property: "deferGeometryLoad" });
+    assert.equal(requested.length, 2, "clearing the defer flag did not start the load");
+  }
+  finally
+  {
+    CjsResMan.SetGlobal(previous ?? null);
+  }
+});

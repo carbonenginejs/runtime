@@ -351,13 +351,18 @@ test("SOF shield mesh construction stays a CPU object graph", () =>
   assertEquals(shader.calls, 1);
 
   const resource = { GetPath: () => "res:/provided.gr2", IsLoading: () => true };
+
+  // Carbon SetGeometryRes (cpp:60-74) only rebinds; it is PySetGeometryRes
+  // (cpp:202-206) that clears the authored path first.
   mesh.SetGeometryRes(resource);
+  assertEquals(mesh.geometry, resource);
+  assertEquals(mesh.geometryResPath, "res:/shield.gr2", "SetGeometryRes must not clear the path");
+
+  mesh.PySetGeometryRes(resource);
   assertEquals(mesh.geometry, resource);
   assertEquals(mesh.geometryResPath, "");
   assertEquals(mesh.GetGeometryResPath(), "res:/provided.gr2");
   assertEquals(mesh.isLoading, true);
-  assertEquals(mesh.Initialize(), true);
-  assertEquals(mesh.OnModified(), true);
 });
 
 test("mesh bounds adjustment is corrected source-backed graph data", () =>

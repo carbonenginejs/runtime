@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
 import { carbon, impl, io, type } from "#schema";
+import { CjsResMan, ResourceRequirement } from "#resource";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
 import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 
@@ -46,59 +47,145 @@ export class Tr2Mesh extends Tr2MeshBase
     return this.geometry?.IsLoading?.() ?? false;
   }
 
-  /** Rebuilds the morph-target state once a geometry resource is present. */
+  /** Carbon Initialize (cpp:28-36): load the geometry unless the load is deferred. */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Initialize()
   {
-    if (this.GetGeometryResource())
+    if (!this.deferGeometryLoad)
     {
-      this.InitializeMorphTargets();
+      this.InitializeGeometryResource();
     }
     return true;
   }
 
   /**
-   * Rebuilds the morph-target state after a field change when a geometry
-   * resource is present.
+   * Carbon InitializeGeometryResource (cpp:107-138): fetch the authored path
+   * through the resource manager and bind the result.
    */
   @carbon.method
   @impl.adapted
-  OnModified()
+  @impl.reason("Carbon probes for a _lowdetail sibling with BePaths->FileExistsLocally (cpp:113-127), a synchronous local-disk existence test with no browser equivalent; the low-res path and its load fence are therefore unported and the main resource is always requested.")
+  InitializeGeometryResource()
   {
-    if (this.GetGeometryResource())
+    const manager = CjsResMan.GetGlobal();
+    if (!manager || !this.geometryResPath)
+    {
+      this.SetGeometryRes(null);
+      return;
+    }
+    this.SetGeometryRes(manager.GetResource(this.geometryResPath, {
+      requirement: ResourceRequirement.GEOMETRY
+    }));
+  }
+
+  /**
+   * Carbon OnModified (cpp:38-58): three arms, dispatched on which member
+   * changed - the path refetches, clearing the defer flag starts the load a
+   * deferred mesh skipped, and the mesh index rebuilds the morph targets.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon identifies the changed member by Be::Var pointer and runs exactly one arm because it is notified per member. The settle here reports a whole write, so the arms are independent ifs over the changed names when a caller supplies them (options.property/properties), and all three run when it does not.")
+  OnModified(options = {})
+  {
+    const changed = Tr2Mesh.#changedNames(options);
+    const touched = name => changed === null || changed.has(name);
+
+    if (touched("geometryResPath"))
+    {
+      this.InitializeGeometryResource();
+    }
+    if (touched("deferGeometryLoad") && !this.deferGeometryLoad && !this.geometry)
+    {
+      this.InitializeGeometryResource();
+    }
+    if (touched("meshIndex"))
     {
       this.InitializeMorphTargets();
     }
     return true;
   }
 
+  /** The field names a caller named, or null when the write did not say. */
+  static #changedNames(options)
+  {
+    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
+    if (named === null || named === undefined) return null;
+    if (typeof named === "string") return new Set([ named ]);
+    return named instanceof Set ? named : new Set(named);
+  }
+
   /**
-   * Sets the geometry resource path to load from; the currently bound resource
-   * is left in place until the load resolves.
+   * Carbon SetMeshResPath (cpp:99-105): assign, then fire the notification by
+   * hand - "this will automatically be triggered when set through python".
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   SetMeshResPath(path)
   {
     this.geometryResPath = String(path ?? "");
+    this.OnModified({ property: "geometryResPath" });
   }
 
   /**
-   * Binds an already-resolved geometry resource, clears the authored path and
-   * rebuilds morph targets; the geometry rebuild token is added explicitly
-   * because direct mutation bypasses SetValues.
+   * Carbon SetGeometryRes (cpp:60-74): detach from the old resource, bind the
+   * new one, attach to it. Carbon's attachment is AddNotifyTarget, whose
+   * contract is that an already-prepared resource calls back immediately
+   * (BlueAsyncRes.cpp:274-276); OnCompleted has the same rule, so a resource
+   * that is already good rebuilds here rather than on a later frame.
    */
   @carbon.method
   @impl.adapted
+  @impl.reason("Carbon's IBlueAsyncResNotifyTarget pair becomes the resource's own completion event; a caller-supplied object with no lifecycle (tests, hand-composed graphs) is treated as already complete.")
   SetGeometryRes(resource)
   {
-    this.geometryResPath = "";
-    this.geometry = resource ?? null;
+    const next = resource ?? null;
+    const previous = this.geometry;
+    if (previous === next) return;
+
+    if (previous && typeof previous.OffEvent === "function")
+    {
+      previous.OffEvent("completed", this.#geometryCompleted, this);
+    }
+
+    this.geometry = next;
     // Direct mutation bypasses SetValues, so schedule the declared consequence
     // explicitly; maintained class code may add declared rebuild tokens.
     this.__state.rebuild.add("geometry");
+
+    if (!next) return;
+    if (typeof next.OnCompleted === "function") next.OnCompleted(this.#geometryCompleted, this);
+    else this.RebuildCachedData(next);
+  }
+
+  /** Bound to this mesh so the resource can be unsubscribed by identity. */
+  #geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometry);
+
+  /**
+   * Carbon RebuildCachedData (cpp:185-196): the notify target's rebuild half -
+   * re-cache the bounds and the morph targets when the resource that finished
+   * is one of ours, and drop the low-detail stand-in once the real one arrives.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Bounds are computed on demand by Tr2MeshBase.GetBounds rather than cached, so Carbon's CacheBounds call has nothing to refresh; the low-res resource is unported with InitializeGeometryResource's local-file probe.")
+  RebuildCachedData(resource)
+  {
+    if (resource !== this.geometry) return;
     this.InitializeMorphTargets();
+  }
+
+  /**
+   * Carbon PySetGeometryRes (cpp:202-206): binding a resource by hand clears
+   * the authored path first, so the next notification does not refetch it.
+   */
+  @carbon.method
+  @impl.implemented
+  PySetGeometryRes(resource)
+  {
+    this.SetMeshResPath("");
+    this.SetGeometryRes(resource);
   }
 
   /** The bound geometry resource, or null until the resource layer supplies one. */
