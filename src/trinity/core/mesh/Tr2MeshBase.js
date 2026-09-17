@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2MeshBase.h
 // Source: trinity/trinity/Tr2MeshBase.cpp
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
+import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
@@ -229,24 +230,37 @@ export class Tr2MeshBase extends CjsModel
   @impl.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    if (!Array.isArray(list)) return;
+    // Which list, not merely whether it is one: a mesh has other array fields,
+    // and Carbon reaches this only from the ten it installed itself on
+    // (cpp:31-40).
+    if (!this.#IsAreaList(list)) return;
+
+    // Carbon's arms are guarded by BlueCastPtr to Tr2MeshAreaPtr - a real cast,
+    // so a non-area entry is skipped rather than assumed to answer.
     switch (event & BlueListEvent.EVENTMASK)
     {
       case BlueListEvent.INSERTED:
-        value?.AddOwnerMesh?.(this);
+        if (value instanceof Tr2MeshArea) value.AddOwnerMesh(this);
         break;
       case BlueListEvent.REMOVED:
-        value?.RemoveOwnerMesh?.(this);
+        if (value instanceof Tr2MeshArea) value.RemoveOwnerMesh(this);
         break;
       case BlueListEvent.LOADFINISHED:
-        for (const area of list) area?.AddOwnerMesh?.(this);
+        for (const area of list) if (area instanceof Tr2MeshArea) area.AddOwnerMesh(this);
         break;
       case BlueListEvent.UNLOADSTART:
-        for (const area of list) area?.RemoveOwnerMesh?.(this);
+        for (const area of list) if (area instanceof Tr2MeshArea) area.RemoveOwnerMesh(this);
         break;
       default:
         break;
     }
+  }
+
+  /** Whether a list is one of the ten area lists this mesh observes. */
+  #IsAreaList(list)
+  {
+    if (!Array.isArray(list)) return false;
+    return Tr2MeshBase.#areaProperties.some(property => this[property] === list);
   }
 
   /**

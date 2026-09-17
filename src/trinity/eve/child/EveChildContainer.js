@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
+import { EveEntity } from "../EveEntity.js";
 import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
@@ -469,7 +470,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
       if (masked === BlueListEvent.INSERTED && value)
       {
         value.Link(this);
-        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable?.(name, variable);
+        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
       }
       else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
       else if (masked === BlueListEvent.UNLOADSTART)
@@ -489,7 +490,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
 
       if (masked === BlueListEvent.INSERTED && value)
       {
-        for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable?.(name, variable);
+        for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
       }
 
       this.#NotifyEntityRegistration(masked, value, this.objects);
@@ -513,15 +514,22 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
    */
   #NotifyEntityRegistration(masked, value, members)
   {
-    if (!this.IsInRegistry?.()) return;
+    if (!this.IsInRegistry()) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
 
-    if (masked === BlueListEvent.INSERTED) value?.Register?.(registry);
-    else if (masked === BlueListEvent.REMOVED) value?.UnRegister?.(registry);
+    // Carbon casts to EveEntityPtr before registering (cpp:152-176).
+    if (masked === BlueListEvent.INSERTED)
+    {
+      if (value instanceof EveEntity) value.Register(registry);
+    }
+    else if (masked === BlueListEvent.REMOVED)
+    {
+      if (value instanceof EveEntity) value.UnRegister(registry);
+    }
     else if (masked === BlueListEvent.UNLOADSTART)
     {
-      for (const member of members) member?.UnRegister?.(registry);
+      for (const member of members) if (member instanceof EveEntity) member.UnRegister(registry);
     }
   }
 

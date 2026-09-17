@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import { EveEntity } from "../EveEntity.js";
 import { carbon, impl, io, type } from "#schema";
 import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
@@ -72,7 +73,7 @@ export class EveChildPlug extends EveChildTransform
       if (masked === BlueListEvent.INSERTED && value)
       {
         value.Link(this);
-        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable?.(name, variable);
+        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
       }
       else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
       else if (masked === BlueListEvent.UNLOADSTART)
@@ -94,17 +95,24 @@ export class EveChildPlug extends EveChildTransform
 
     if (masked === BlueListEvent.INSERTED && value)
     {
-      for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable?.(name, variable);
+      for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
     }
 
-    if (!this.IsInRegistry?.()) return;
+    if (!this.IsInRegistry()) return;
     const registry = this.GetComponentRegistry();
     if (!registry) return;
-    if (masked === BlueListEvent.INSERTED) value?.Register?.(registry);
-    else if (masked === BlueListEvent.REMOVED) value?.UnRegister?.(registry);
+    // Carbon casts to EveEntityPtr before registering (cpp:82-96).
+    if (masked === BlueListEvent.INSERTED)
+    {
+      if (value instanceof EveEntity) value.Register(registry);
+    }
+    else if (masked === BlueListEvent.REMOVED)
+    {
+      if (value instanceof EveEntity) value.UnRegister(registry);
+    }
     else if (masked === BlueListEvent.UNLOADSTART)
     {
-      for (const child of this.objects) child?.UnRegister?.(registry);
+      for (const child of this.objects) if (child instanceof EveEntity) child.UnRegister(registry);
     }
   }
 

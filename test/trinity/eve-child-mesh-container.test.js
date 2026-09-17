@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
+  EveEntity,
   EveChildContainer,
   EveChildEffectPropagator,
   EveChildExplosion,
@@ -560,7 +561,9 @@ test("EveChildContainer registers what it holds, once it is in a registry", () =
   const registry = { name: "registry" };
   container.GetComponentRegistry = () => registry;
 
-  const makeEntity = name => ({
+  // Carbon casts to EveEntityPtr before registering, so the fixtures must BE
+  // entities - a plain object is correctly skipped by that cast.
+  const makeEntity = name => Object.assign(new EveEntity(), {
     name,
     Register(r) { calls.push([ "Register", name, r ]); },
     UnRegister(r) { calls.push([ "UnRegister", name, r ]); },

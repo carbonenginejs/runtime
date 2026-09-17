@@ -324,6 +324,9 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
   @type.boolean
   projectileMissBehaviour = false;
 
+  /** Values the OnModified chain compares against; null until first snapshot. */
+  #lastNotified = null;
+
   #turrets = [];
 
   #parentTransform = mat4.create();
@@ -759,14 +762,99 @@ export class EveTurretSet extends withITr2Renderable(EveEntity)
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Resource loading and GPU preparation are engine responsibilities; Trinity initializes the target and owned behavior graph.")
+  @impl.reason("InitializeGeometryResource and the granny skeleton load are not ported; Carbon calls them from here (cpp:146-165).")
   Initialize()
   {
     this.target ??= new EveTurretTarget();
-    this.target.SetBehaviour?.(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
+    this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
     this.firingEffect?.Initialize();
     this.#ambientEffect()?.Initialize();
+    this.#SnapshotNotified();
     return true;
+  }
+
+  /**
+   * Carbon OnModified (EveTurretSet.cpp:167-201). FIVE arms, and they are an
+   * `else if` CHAIN: Carbon is notified once per changed member, so exactly one
+   * arm runs per notification.
+   *
+   * Our settle reports a whole write instead, so the chain is evaluated against
+   * the values last seen rather than against a Be::Var pointer - one arm per
+   * settle, in the donor's order. Every arm stays present even where its body
+   * is unported, because removing one would let a change fall through to the
+   * next arm and run work the donor would not have run.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the chain compares each watched member against the value last seen.")
+  OnModified(_options = {})
+  {
+    if (this.#lastNotified === null)
+    {
+      this.#SnapshotNotified();
+      return true;
+    }
+
+    const moved = name => this.#lastNotified.get(name) !== this[name];
+
+    try
+    {
+      if (moved("display"))
+      {
+        this.ReRegister();
+      }
+      else if (moved("geometryResPath"))
+      {
+        this.ReRegister();
+        // Carbon reloads here (cpp:177, "new gr2 file specified -> reload!").
+        // InitializeGeometryResource is unported: it asks BeResMan for the
+        // geometry and re-attaches the notify target (cpp:252-290).
+      }
+      else if (moved("ambientEffectEditingMode"))
+      {
+        // Carbon re-sets the ambient effect to itself, which re-runs
+        // InitializeAmbientEffect (cpp:181, cpp:3554-3565). Unported: the
+        // generated distributed container it builds does not exist here.
+      }
+      else if (moved("laserMissBehaviour") || moved("projectileMissBehaviour")
+        || moved("impactSize") || moved("impactBehaviour"))
+      {
+        this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
+      }
+      else if (moved("useDynamicBounds"))
+      {
+        // Carbon rebuilds the per-bone bounds (cpp:187-200), taking the CMF
+        // branch whenever the geometry is absent, unloaded or CMF - which is
+        // always, for us. InitializeDynamicBounds is unported, and porting it
+        // alone buys nothing until GetDynamicBounds and GetLocalBoundingBox
+        // land with it.
+      }
+    }
+    finally
+    {
+      this.#SnapshotNotified();
+    }
+
+    return true;
+  }
+
+  /** The members OnModified's chain tests, in the donor's order. */
+  static #notifiedMembers = Object.freeze([
+    "display",
+    "geometryResPath",
+    "ambientEffectEditingMode",
+    "laserMissBehaviour",
+    "projectileMissBehaviour",
+    "impactSize",
+    "impactBehaviour",
+    "useDynamicBounds"
+  ]);
+
+  /** Records what the chain compares against on the next settle. */
+  #SnapshotNotified()
+  {
+    this.#lastNotified ??= new Map();
+    for (const name of EveTurretSet.#notifiedMembers) this.#lastNotified.set(name, this[name]);
   }
 
   /** Attaches the firing effect and initializes it immediately. */
