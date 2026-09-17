@@ -12,6 +12,9 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "Tr2MeshArea", family: "trinityCore" })
 export class Tr2MeshArea extends CjsModel
 {
+  // m_ownerMeshes (std::vector<Tr2MeshBase*>)
+  #ownerMeshes = [];
+
   @io.persist
   @type.string
   name = "";
@@ -345,5 +348,37 @@ export class Tr2MeshArea extends CjsModel
     this.generateDepthArea = other.GetGenerateDepthArea();
     this.alphaCutout = other.IsAlphaCutout();
     return this;
+  }
+
+  /**
+   * Carbon AddOwnerMesh (Tr2MeshArea.cpp:201-204): the mesh that took this area
+   * records itself here. NOTHING IN THE DONOR READS m_ownerMeshes - the pair
+   * writes it and no code in the tree consumes it - so this is ported for shape
+   * rather than for a consumer.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon holds raw Tr2MeshBase* here, which do not keep the mesh alive; a JavaScript reference does. With no reader in the donor that retention is the only observable difference, and it is recorded rather than worked around.")
+  AddOwnerMesh(mesh)
+  {
+    if (mesh) this.#ownerMeshes.push(mesh);
+  }
+
+  /** Carbon RemoveOwnerMesh (Tr2MeshArea.cpp:206-218): swap-with-back removal. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon CCP_ASSERTs when the mesh is absent, which is a debug-build check; here it throws, since unregistering from an area a mesh never took is a caller defect either way.")
+  RemoveOwnerMesh(mesh)
+  {
+    const index = this.#ownerMeshes.indexOf(mesh);
+    if (index === -1) throw new Error("Tr2MeshArea.RemoveOwnerMesh: that mesh does not own this area.");
+    this.#ownerMeshes[index] = this.#ownerMeshes[this.#ownerMeshes.length - 1];
+    this.#ownerMeshes.pop();
+  }
+
+  /** The meshes that have taken this area. */
+  GetOwnerMeshes()
+  {
+    return this.#ownerMeshes;
   }
 }

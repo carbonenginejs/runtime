@@ -14,6 +14,9 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 @type.define({ className: "Tr2Mesh", family: "trinityCore" })
 export class Tr2Mesh extends Tr2MeshBase
 {
+  /** The path the bound geometry was resolved from, so a whole-write settle does not refetch. */
+  #resolvedPath = "";
+
   #bakedMorphTargets = [];
 
   #morphAnimations = new Map();
@@ -73,6 +76,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.reason("Carbon's load fence (m_loadFence.Put) is unported; there is no prepare-phase fence here, so both requests are simply issued.")
   InitializeGeometryResource()
   {
+    this.#resolvedPath = this.geometryResPath;
     const manager = CjsResMan.GetGlobal();
     if (!manager || !this.geometryResPath)
     {
@@ -121,7 +125,12 @@ export class Tr2Mesh extends Tr2MeshBase
     const changed = Tr2Mesh.#changedNames(options);
     const touched = name => changed === null || changed.has(name);
 
-    if (touched("geometryResPath"))
+    // Carbon compares Be::Var pointers and so refetches ONLY when the path
+    // member is the one that changed. A settle reporting a whole write would
+    // otherwise refetch on any edit - and clear the geometry when no manager is
+    // installed - so an unnamed write refetches only a path that has actually
+    // moved since it was last resolved.
+    if (touched("geometryResPath") && (changed !== null || this.geometryResPath !== this.#resolvedPath))
     {
       this.InitializeGeometryResource();
     }

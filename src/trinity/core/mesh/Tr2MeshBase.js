@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Tr2MeshBase.h
 // Source: trinity/trinity/Tr2MeshBase.cpp
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
+import { BlueListEvent } from "#consts/trinity";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
@@ -218,17 +219,63 @@ export class Tr2MeshBase extends CjsModel
   }
 
   /**
+   * Carbon OnListModified (Tr2MeshBase.cpp:76-118), one behaviour across all
+   * ten area lists it installs itself on (cpp:31-40): an area records the mesh
+   * that took it, and forgets it when removed. LOADFINISHED and UNLOADSTART do
+   * the same for every area at once, which is what a read and a teardown
+   * produce.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    if (!Array.isArray(list)) return;
+    switch (event & BlueListEvent.EVENTMASK)
+    {
+      case BlueListEvent.INSERTED:
+        value?.AddOwnerMesh?.(this);
+        break;
+      case BlueListEvent.REMOVED:
+        value?.RemoveOwnerMesh?.(this);
+        break;
+      case BlueListEvent.LOADFINISHED:
+        for (const area of list) area?.AddOwnerMesh?.(this);
+        break;
+      case BlueListEvent.UNLOADSTART:
+        for (const area of list) area?.RemoveOwnerMesh?.(this);
+        break;
+      default:
+        break;
+    }
+  }
+
+  /**
    * Appends an area to the list for a batch type; returns false when that type
-   * has no list.
+   * has no list. The area's record of this mesh is the INSERTED arm's.
    */
   @carbon.method
   @impl.adapted
+  @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
   AddArea(areaType, area)
   {
-    const areas = this.GetAreas(areaType);
-    if (!areas) return false;
-    areas.push(area);
+    const property = Number.isInteger(areaType) ? Tr2MeshBase.#areaProperties[areaType] : null;
+    if (!property) return false;
+    CjsModel.addChild(this, property, area);
     return true;
+  }
+
+  /**
+   * Removes an area from the list for a batch type; the area forgets this mesh
+   * in the REMOVED arm.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon removes through the Blue list, which notifies; here the owner drives the same notification through CjsModel.removeChild.")
+  RemoveArea(areaType, area)
+  {
+    const property = Number.isInteger(areaType) ? Tr2MeshBase.#areaProperties[areaType] : null;
+    if (!property) return false;
+    return CjsModel.removeChild(this, property, area);
   }
 
   /**
