@@ -27,6 +27,8 @@ export * from "./CjsFsd64SchemaDynamicItemAttributes.js";
 export * from "./CjsFsd64SchemaEpicArcs.js";
 export * from "./CjsFsd64SchemaExpertSystems.js";
 export * from "./CjsFsd64SchemaFactions.js";
+export * from "./CjsFsd64SchemaFrontierGraphicIds.js";
+export * from "./CjsFsd64SchemaFrontierTypes.js";
 export * from "./CjsFsd64SchemaGraphicIds.js";
 export * from "./CjsFsd64SchemaGraphicMaterialSets.js";
 export * from "./CjsFsd64SchemaGroups.js";
