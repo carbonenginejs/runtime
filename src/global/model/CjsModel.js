@@ -1,6 +1,7 @@
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
+import { BlueListEvent } from "../consts/trinity.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
@@ -33,11 +34,7 @@ export function isModelInstance(value)
 
 const MAX_UPDATE_PASSES = 32;
 const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
-const CHILD_LIST_EVENT = {
-    UNLOAD_START: 0x07,
-    INSERTED: 0x08,
-    REMOVED: 0x09
-};
+
 
 /**
  * Shared base for schema-backed CarbonEngineJS runtime classes.
@@ -192,7 +189,7 @@ export class CjsModel extends CjsEventEmitter
         const index = collection.length;
         collection.push(child);
         recordChildMutation(target, field, options);
-        notifyListModified(target, CHILD_LIST_EVENT.INSERTED, index, 0, child, collection);
+        notifyListModified(target, BlueListEvent.INSERTED, index, 0, child, collection);
 
         const payload = createChildEventPayload(target, field.name, child, index, options);
         invokeChildCallback(options.onAdded, target, payload, "onAdded");
@@ -221,7 +218,7 @@ export class CjsModel extends CjsEventEmitter
 
         collection.splice(index, 1);
         recordChildMutation(target, field, options);
-        notifyListModified(target, CHILD_LIST_EVENT.REMOVED, index, 0, child, collection);
+        notifyListModified(target, BlueListEvent.REMOVED, index, 0, child, collection);
 
         const payload = createChildEventPayload(target, field.name, child, index, options);
         invokeChildCallback(options.onRemoved, target, payload, "onRemoved");
@@ -294,7 +291,7 @@ export class CjsModel extends CjsEventEmitter
         assertChildCallback(options.onCleared, "onCleared");
 
         recordChildMutation(target, field, options);
-        notifyListModified(target, CHILD_LIST_EVENT.UNLOAD_START, 0, 0, null, collection);
+        notifyListModified(target, BlueListEvent.UNLOADSTART, 0, 0, null, collection);
         collection.length = 0;
 
         const payload = {

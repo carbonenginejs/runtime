@@ -1,12 +1,18 @@
 // Source: blueexposure/include/IList.h
+import { BlueListEvent } from "#consts/trinity";
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 
-export const BELIST_INSERTED = 0x08;
-export const BELIST_REMOVED = 0x09;
-export const BELIST_EVENTMASK = 0x0f;
-export const BELIST_UNLOADSTART = 0x07;
-export const BELIST_LOADFINISHED = 0x06;
-export const BELIST_LOADING = 0x10;
+// One vocabulary, defined in global/consts/trinity.js. These names are the
+// donor's own spelling and stay as the import surface for controller code.
+export const BELIST_INSERTED = BlueListEvent.INSERTED;
+export const BELIST_REMOVED = BlueListEvent.REMOVED;
+export const BELIST_SWAPPED = BlueListEvent.SWAPPED;
+export const BELIST_MOVED = BlueListEvent.MOVED;
+export const BELIST_EVENTMASK = BlueListEvent.EVENTMASK;
+export const BELIST_UNLOADSTART = BlueListEvent.UNLOADSTART;
+export const BELIST_LOADFINISHED = BlueListEvent.LOADFINISHED;
+export const BELIST_LOADING = BlueListEvent.LOADING;
+export const BELIST_UNLOADING = BlueListEvent.UNLOADING;
 export const TR2_DIRTY_ALL = (1n << 64n) - 1n;
 
 /**
