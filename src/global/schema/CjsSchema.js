@@ -6,6 +6,7 @@ import {
     exportCarbonValue,
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
+import { composeAbstractDecorator } from "../compose/abstract.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { cast, composeInterfaceDecorator } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
@@ -678,6 +679,7 @@ export class CjsSchema
     // INSTALLS (design record, direction item 11). All three are live; the
     // migration of existing classes onto them is separate work.
     static compose = Object.freeze({
+        abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
         interface: Contract => composeInterfaceDecorator(
             Contract,
