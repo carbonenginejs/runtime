@@ -11,18 +11,11 @@
 // via Initialize); Build hooks emit Tr2RenderBatch DATA into the
 // per-TriBatchType accumulators.
 //
-// THE COMMENTS HERE USED TO SAY that "realizers own GPU state", that dispatch
-// "is engine work and never lives here", and that "no GPU handle ever enters
-// this class". That was the graph/realization split retired by
-// /docs/internal/decisions/trinity-gpu-free-means-the-stub.md - Carbon has no
-// realizer layer, and its own Trinity classes hold their handles and call the
-// AL. The Realize hook is kept as the prepare-if-stale seam, but nothing about
-// it forbids a Trinity class from owning device state.
-//
-// Open, and the reason the hook looks inert: nothing consumes __state.rebuild
-// tokens by name and nothing clears one - the only read in src is
-// HasRebuildWork below, which asks whether the set is non-empty. The producer
-// half of that contract exists; the consuming half was never written.
+// The Realize hook is the prepare-if-stale seam. It is currently inert:
+// nothing consumes __state.rebuild tokens by name and nothing clears one, so
+// HasRebuildWork below - the only read in src - can never return false once any
+// declared field has been written. The producer half of that contract exists;
+// the consuming half is unwritten.
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TriRenderBatchMap } from "./TriRenderBatchMap.js";

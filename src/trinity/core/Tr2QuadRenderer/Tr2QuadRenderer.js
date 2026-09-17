@@ -5,13 +5,10 @@
 // The generator had flattened the internal EffectRecord/PerThreadData members
 // onto the class; corrected to Carbon's nested shape.
 //
-// NOT PORTED, and this is a Trinity class in the donor: UpdateInstanceBuffer
-// (cpp:178), RecreateQuadBuffers (cpp:206) and OnPrepareResources (cpp:278)
-// are all methods of Tr2QuadRenderer itself. They were left out under the
-// retired graph/realization split; five other classes stop forwarding here
-// as a result (EveChildQuad, EveChildTurret, EveSmartLightQuad,
-// EveBoosterSet2, EveChildBoosterSet). See
-// /docs/internal/decisions/trinity-gpu-free-means-the-stub.md.
+// NOT PORTED: UpdateInstanceBuffer (cpp:178), RecreateQuadBuffers (cpp:206)
+// and OnPrepareResources (cpp:278) are all methods of this class in Carbon.
+// Five classes stop forwarding here because of it - EveChildQuad,
+// EveChildTurret, EveSmartLightQuad, EveBoosterSet2, EveChildBoosterSet.
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";

@@ -108,8 +108,7 @@ export class Tr2PostProcessRenderer extends CjsModel
   /**
    * Executes the physical post-process chain.
    *
-   * @throws {Error} Not ported yet. Carbon implements this on the class itself;
-   * the retired graph/realization split is why it was left out.
+   * @throws {Error} Not ported yet; Carbon implements this on the class itself.
    */
   @carbon.method
   @impl.notImplemented

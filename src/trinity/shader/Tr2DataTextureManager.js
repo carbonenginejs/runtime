@@ -18,14 +18,9 @@
 //
 // So the shape is CjsBatchManager's: a neutral CPU registry that packs blocks,
 // hands back ids and offsets, and publishes them, with the texture creation
-// and upload currently injected.
-//
-// THAT LAST PART IS A GAP, NOT THE DESIGN. This comment used to say that
-// implementing OnPrepareResources here "would put a GPU texture behind a graph
-// class, which is the one thing this package does not do". That was the retired
-// graph/realization split; 75 donor Trinity classes implement
-// OnPrepareResources, EveStarfield (Eve/EveStarfield.cpp:110-172) among them.
-// See /docs/internal/decisions/trinity-gpu-free-means-the-stub.md.
+// and upload currently injected - a gap, not a boundary. 75 donor Trinity
+// classes implement OnPrepareResources themselves, EveStarfield
+// (Eve/EveStarfield.cpp:110-172) among them.
 //
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";

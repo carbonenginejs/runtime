@@ -373,9 +373,7 @@ export class Tr2Effect extends Tr2Material
    * Device work is NOT PORTED. Carbon creates a constant buffer, a resource set
    * and sampler-state objects in this same loop; here only the CPU mirror is
    * allocated, through `Tr2MaterialStageInput`'s own `AllocateConstants` /
-   * `GetSharedConstantBuffer`. The rest is a gap rather than a deliberate
-   * absence - this comment used to say an engine realizes it, which was the
-   * retired graph/realization split.
+   * `GetSharedConstantBuffer`. The rest is unported.
    *
    * @returns {void}
    */

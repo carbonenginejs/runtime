@@ -4,8 +4,8 @@ import { CjsSchema, impl } from "../schema/index.js";
 /**
  * Dependency-free contract for an instanced-mesh manager. Trinity owns the
  * registration data; the GPU buffers, culling allocations and draw submission
- * behind this interface are not ported yet - Carbon has no such seam, and this
- * contract exists because of the retired graph/realization split.
+ * behind this interface are not ported yet. Carbon has no such seam: its scene
+ * owns the instancing manager directly.
  */
 export class CjsInstancedMeshManager
 {

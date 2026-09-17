@@ -109,8 +109,7 @@ export class Tr2SSAO extends CjsModel
   /**
    * Filters the supplied depth/normal inputs into a physical SSAO texture.
    *
-   * @throws {Error} Not ported yet. Carbon implements this on the class itself;
-   * the retired graph/realization split is why it was left out.
+   * @throws {Error} Not ported yet; Carbon implements this on the class itself.
    */
   @carbon.method
   @impl.notImplemented
