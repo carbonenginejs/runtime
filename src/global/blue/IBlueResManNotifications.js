@@ -1,7 +1,7 @@
 // Source: blue/include/IBlueResMan.h:20-34
 //
 // Optional callbacks a caller may pass to GetResource to learn which of the two
-// things happened. Carbon's comment is the contract: "All callbacks are
+// things happened. Carbon's comment states the rule: "All callbacks are
 // guaranteed to be made during the (blocking) call to GetResource on the main
 // thread, so temporary lifetime objects that implement the callbacks are
 // valid."

@@ -47,7 +47,7 @@ test("an implementation is installed into the holder, never captured from it", (
   // Registered because every class is, and because the name is what the
   // refusal below reports. An unregistered implementation currently answers
   // with its nearest registered ancestor - CjsSchema.getClassName walks the
-  // prototype chain - so it would name the contract instead of itself.
+  // prototype chain - so it would name the interface instead of itself.
   CjsSchema.define(RecordingResMan, { className: "RecordingResMan", fields: {} });
 
   const previous = blue.resMan;
@@ -57,7 +57,7 @@ test("an implementation is installed into the holder, never captured from it", (
     assert.deepEqual(blue.resMan.GetResource("res:/texture/a.dds"), { path: "res:/texture/a.dds" });
     assert.deepEqual(blue.resMan.asked, [ "res:/texture/a.dds" ]);
     // Only what it overrode answers; the rest still refuses, naming the class
-    // that failed to honour the contract rather than the contract's file.
+    // that failed to honour the interface rather than the interface's file.
     assert.throws(() => blue.resMan.LoadObject("res:/x.red"),
       /^Error: RecordingResMan does not implement IBlueResMan\.LoadObject\.$/u);
   }
@@ -76,7 +76,7 @@ test("both interfaces publish the verb list Carbon publishes", () =>
   // The point of the split: CjsResMan has 68 public methods, and these are the
   // ones a consumer is entitled to. Adding to this list means Carbon added to
   // IBlueResMan.
-  const names = Contract => Object.getOwnPropertyNames(Contract.prototype)
+  const names = Interface => Object.getOwnPropertyNames(Interface.prototype)
     .filter(name => name !== "constructor").sort();
 
   assert.deepEqual(names(IBlueResMan), [

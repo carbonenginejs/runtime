@@ -8,7 +8,7 @@
 // That split is the point. `CjsResMan` has 68 public methods - configuration,
 // queue driving, diagnostics and internals alongside the verbs a caller
 // actually uses - and publishing all of it to everybody is why nothing can
-// tell which methods are the contract. Eighteen are.
+// tell which methods are the interface. Eighteen are.
 //
 // The `W` variants collapse: they are Carbon's wide-character twins, and
 // JavaScript strings carry no such distinction.

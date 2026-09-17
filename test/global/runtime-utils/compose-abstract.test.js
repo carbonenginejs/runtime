@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsSchema, compose, impl } from "../../../npm/dist/global/schema/index.js";
 
-function contract()
+function probeInterface()
 {
   class IProbe
   {
@@ -16,19 +16,19 @@ function contract()
   return IProbe;
 }
 
-test("an unimplemented method throws, naming the contract", () =>
+test("an unimplemented method throws, naming the interface", () =>
 {
-  const IProbe = contract();
+  const IProbe = probeInterface();
   assert.throws(() => new IProbe().GetData(), /^Error: IProbe\.GetData must be implemented\.$/u);
   assert.throws(() => new IProbe().Run(), /^Error: IProbe\.Run must be implemented\.$/u);
 });
 
 test("an implementer that misses one is named as the one that failed", () =>
 {
-  // Two names answer two questions: what the contract is, and who did not
+  // Two names answer two questions: what the interface is, and who did not
   // honour it. One name would point at the interface file, which is never the
   // file to change.
-  const IProbe = contract();
+  const IProbe = probeInterface();
   class RealProbe extends IProbe
   {
     GetData() { return 42; }
@@ -43,7 +43,7 @@ test("the decorator installs while impl.abstract still describes", () =>
 {
   // compose INSTALLS, impl DESCRIBES, and both are applied. The schema keeps
   // reporting the method as abstract after the body is installed.
-  const IProbe = contract();
+  const IProbe = probeInterface();
   assert.equal(CjsSchema.getMethod(IProbe, "Run")?.impl?.abstract, true);
 });
 
