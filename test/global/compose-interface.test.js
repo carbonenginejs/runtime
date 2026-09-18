@@ -148,17 +148,17 @@ test("installed methods are reported to the decoration hook, and only those", ()
 
 test("the decorator refuses a non-class", () =>
 {
-  assert.throws(() => CjsSchema.compose.interface(null), TypeError);
-  assert.throws(() => CjsSchema.compose.interface({}), TypeError);
+  assert.throws(() => CjsSchema.carbon.inherit(null), TypeError);
+  assert.throws(() => CjsSchema.carbon.inherit({}), TypeError);
 
-  const decorate = CjsSchema.compose.interface(Contract);
+  const decorate = CjsSchema.carbon.inherit(Contract);
   assert.throws(() => decorate(() => {}, { kind: "method" }), TypeError);
 });
 
 test("through the namespace, installed members carry impl.abstract", () =>
 {
   class Thing extends Base {}
-  CjsSchema.compose.interface(Contract)(Thing, { kind: "class" });
+  CjsSchema.carbon.inherit(Contract)(Thing, { kind: "class" });
 
   assert.equal(new Thing().Ping(), "contract-ping");
 
@@ -251,4 +251,35 @@ test("composedContracts reports what was declared, inherited included", () =>
   assert.deepEqual([ ...composedContracts(Parent) ], [ Contract ]);
   assert.deepEqual([ ...composedContracts(Child) ], [ Contract, Other ]);
   assert.deepEqual([ ...composedContracts(Base) ], []);
+});
+
+test("a declared base records its own bases, as dynamic_cast walks them", () =>
+{
+  // Carbon names one base and means the chain: something deriving from
+  // ITriEffectTextureParameter casts to ITriEffectResourceParameter and to
+  // ITriEffectParameter as well, and Tr2Effect.cpp does exactly that at
+  // :914-925 and :1930. Recording only the leaf left a class holding every
+  // inherited member while answering null when asked about any but the last.
+  class IBase { Alpha() {} }
+  class IMid extends IBase { Beta() {} }
+  class ILeaf extends IMid { Gamma() {} }
+  class Impl {}
+
+  CjsSchema.carbon.inherit(ILeaf)(Impl, { kind: "class" });
+
+  const impl = new Impl();
+
+  assert.equal(typeof impl.Alpha, "function", "members already came from the whole chain");
+  assert.equal(typeof impl.Beta, "function");
+  assert.equal(typeof impl.Gamma, "function");
+
+  assert.equal(CjsSchema.cast(impl, ILeaf), impl);
+  assert.equal(CjsSchema.cast(impl, IMid), impl, "the middle base answers");
+  assert.equal(CjsSchema.cast(impl, IBase), impl, "and so does the root");
+
+  assert.deepEqual([ ...composedContracts(Impl) ], [ ILeaf, IMid, IBase ]);
+
+  // The walk stops before Object, so an unrelated class is still refused.
+  class Unrelated {}
+  assert.equal(CjsSchema.cast(impl, Unrelated), null);
 });

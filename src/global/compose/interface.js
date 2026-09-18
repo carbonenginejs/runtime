@@ -12,7 +12,7 @@
 // A class takes its PRIMARY Carbon base with ordinary `extends`, and declares
 // each ADDITIONAL base with this decorator:
 //
-//   @compose.interface(Tr2RenderContextAL)
+//   @carbon.inherit(Tr2RenderContextAL)
 //   class Tr2RenderContext extends Tr2RenderContextBase { }
 //
 // which reads as Carbon's own base list. Measured 2026-09-07: of 75 tower
@@ -60,7 +60,21 @@ export function composedContracts(Constructor)
 
 
 /**
- * Records a contract against a class, copying an inherited record first.
+ * Records a contract and ITS OWN BASES against a class, copying an inherited
+ * record first.
+ *
+ * THE WHOLE CHAIN, NOT THE NAMED BASE ALONE, because `cast` ports
+ * `dynamic_cast` and C++ walks the base chain: something deriving from
+ * `ITriEffectTextureParameter` casts to `ITriEffectResourceParameter` and to
+ * `ITriEffectParameter` too, and Carbon does exactly that at different sites
+ * (`Tr2Effect.cpp:914-925`, `:1930`). `CollectMembers` already walks the chain
+ * for members, so recording only the leaf made a class that HAD every
+ * inherited member answer null when asked about any of them but the last -
+ * silently, which is the failure mode that matters.
+ *
+ * Declaring each level at the call site would also work and is rejected: the
+ * donor names one base and means the chain, so a base list that had to spell
+ * out its own ancestors would stop matching the header it is transcribed from.
  *
  * @param {Function} Constructor
  * @param {Function} Contract
@@ -75,7 +89,14 @@ function RecordContract(Constructor, Contract)
         });
     }
 
-    Constructor[COMPOSED].add(Contract);
+    for (
+        let base = Contract;
+        typeof base === "function" && base.prototype && base !== Object;
+        base = Object.getPrototypeOf(base)
+    )
+    {
+        Constructor[COMPOSED].add(base);
+    }
 }
 
 
@@ -134,11 +155,11 @@ export function installInterface(Constructor, Contract, onInstalled = null)
 {
     if (typeof Constructor !== "function")
     {
-        throw new TypeError("compose.interface requires a class constructor.");
+        throw new TypeError("carbon.inherit requires a class constructor.");
     }
     if (typeof Contract !== "function" || !Contract.prototype)
     {
-        throw new TypeError("compose.interface requires a contract class.");
+        throw new TypeError("carbon.inherit requires a base class.");
     }
 
     const installed = [];
@@ -220,30 +241,141 @@ export function cast(value, Contract)
 
 
 /**
- * The `@compose.interface(X)` class decorator.
+ * The `@carbon.inherit(X, Y, ...)` class decorator.
  *
- * Takes the additional base and returns the decorator, so the declaration
- * reads as Carbon's base list rather than as a wrapper call.
+ * Takes the additional bases and returns the decorator, so the declaration
+ * reads as Carbon's base list rather than as a wrapper call. Several at once
+ * because Carbon declares several at once - `TriDevice` has three
+ * (`TriDevice.h:33-36`) - and one decorator per base would read as three
+ * unrelated facts rather than one base list.
  *
- * @param {Function} Contract The additional base to declare.
- * @param {Function} [onInstalled] Schema decoration hook, injected by the
- *   caller that owns the namespace.
+ * ORDER IS CARBON'S BASE ORDER AND IT MATTERS. Installation is if-absent, so
+ * the first base declaring a member is the one that supplies it, exactly as
+ * C++ resolves an unqualified name against the base list left to right.
+ *
+ * INHERITING IS NOT MAPPING, and `@carbon.mapInterface` below is the other
+ * half. This one is Carbon's base list: it decides which members a class has
+ * and what `dynamic_cast` accepts. Mapping is the separate `_Blue.cpp`
+ * exposure that `BlueCastPtr` reads, and it decides real behaviour - see that
+ * decorator for the case that proves the two cannot be collapsed.
+ *
+ * @param {...Function} Contracts The additional bases, in Carbon's order. The
+ *   schema injects its decoration hook as the last argument.
  * @returns {Function} A stage-3 class decorator.
  */
-export function composeInterfaceDecorator(Contract, onInstalled = null)
+export function carbonInheritDecorator(Contracts, onInstalled = null)
 {
-    if (typeof Contract !== "function" || !Contract.prototype)
+    const bases = Array.isArray(Contracts) ? Contracts : [ Contracts ];
+
+    if (!bases.length)
     {
-        throw new TypeError("compose.interface requires a contract class.");
+        throw new TypeError("carbon.inherit requires at least one base class.");
+    }
+
+    for (const Contract of bases)
+    {
+        if (typeof Contract !== "function" || !Contract.prototype)
+        {
+            throw new TypeError("carbon.inherit requires a base class.");
+        }
     }
 
     return function (value, context)
     {
         if (context && typeof context === "object" && context.kind !== "class")
         {
-            throw new TypeError("compose.interface only supports classes.");
+            throw new TypeError("carbon.inherit only supports classes.");
         }
 
-        installInterface(value, Contract, onInstalled);
+        for (const Contract of bases) installInterface(value, Contract, onInstalled);
+    };
+}
+
+
+/**
+ * The classes `_Blue.cpp` maps for a given class, held on the CONSTRUCTOR.
+ *
+ * Separate from the composed-base record above because the two answer
+ * different questions - see `carbonMapInterfaceDecorator`.
+ */
+const MAPPED = Symbol.for("carbonenginejs.carbon.mappedInterfaces");
+
+
+/**
+ * Every interface Carbon's exposure layer maps onto a class, inherited ones
+ * included.
+ *
+ * @param {Function} Constructor The class to ask about.
+ * @returns {Set<Function>} Empty when nothing is mapped. Do not mutate.
+ */
+export function mappedInterfaces(Constructor)
+{
+    return (typeof Constructor === "function" && Constructor[MAPPED]) || new Set();
+}
+
+
+/**
+ * The `@carbon.mapInterface(X, Y, ...)` class decorator: Carbon's
+ * `MAP_INTERFACE` entries, from the class's `EXPOSURE_BEGIN` block.
+ *
+ * WHY THIS IS NOT THE SAME FACT AS THE BASE LIST, with the case that settles
+ * it. `MAP_INTERFACE` pushes an `InterfaceEntry` of IID and offset onto
+ * `s_interfaces` (`BlueExposureMacros.h:171-175`) - a QueryInterface table -
+ * and `BlueCastPtr` reads that table. It is NOT script-only; `blue/src` uses
+ * it throughout. The black-file reader branches on it:
+ *
+ *     IInitializePtr init( BlueCastPtr( instance ) );
+ *     if( !init ) { notify = BlueCastPtr( instance ); }
+ *                                       // BlackReader.cpp:410-421
+ *
+ * A class that MAPS `IInitialize` is hydrated by reading every member and
+ * then calling `Initialize()` once, with NO per-property notification. One
+ * that does not map it gets `OnModified` per property instead. Inheriting
+ * `IInitialize` does not put it in that table, so a class can implement
+ * `Initialize` and still take the notify branch - which is why method
+ * presence is the wrong test and this record is the right one.
+ *
+ * IT DESCRIBES AND DOES NOT INSTALL. Nothing is added to the prototype, and
+ * `cast` deliberately does not read it: `cast` ports `dynamic_cast`, which
+ * answers to the base list. A consumer wanting Carbon's exposure semantics
+ * asks `mappedInterfaces` explicitly, so the two casts can never be confused
+ * for one another.
+ *
+ * @param {...Function} Interfaces The mapped interfaces, as `_Blue.cpp` lists
+ *   them.
+ * @returns {Function} A stage-3 class decorator.
+ */
+export function carbonMapInterfaceDecorator(Interfaces)
+{
+    const mapped = Array.isArray(Interfaces) ? Interfaces : [ Interfaces ];
+
+    if (!mapped.length)
+    {
+        throw new TypeError("carbon.mapInterface requires at least one interface class.");
+    }
+
+    for (const Interface of mapped)
+    {
+        if (typeof Interface !== "function" || !Interface.prototype)
+        {
+            throw new TypeError("carbon.mapInterface requires an interface class.");
+        }
+    }
+
+    return function (value, context)
+    {
+        if (context && typeof context === "object" && context.kind !== "class")
+        {
+            throw new TypeError("carbon.mapInterface only supports classes.");
+        }
+
+        // Copied before adding, for the reason the composed record is: a
+        // subclass declaring its own mapping must never reach back into its
+        // parent's.
+        const inherited = value[MAPPED];
+        const own = new Set(inherited ?? []);
+        for (const Interface of mapped) own.add(Interface);
+
+        Object.defineProperty(value, MAPPED, { value: own, configurable: true });
     };
 }

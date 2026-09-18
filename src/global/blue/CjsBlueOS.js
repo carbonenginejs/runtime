@@ -29,7 +29,9 @@
 // be expensive to undo.
 import { CjsSchema, impl } from "#schema";
 import { BeInfo } from "./BeInfo.js";
+import { IBlueEvents } from "./IBlueEvents.js";
 import { IBlueOS } from "./IBlueOS.js";
+import { ISimTimeRebaseNotify } from "./ISimTimeRebaseNotify.js";
 
 /** 100ns ticks between the FILETIME epoch (1601-01-01) and the Unix epoch. */
 const FILETIME_EPOCH_OFFSET = 116444736000000000;
@@ -208,9 +210,15 @@ export class CjsBlueOS extends IBlueOS
    */
   RegisterForTicks(cb, cookie = null)
   {
-    if (typeof cb?.OnTick !== "function")
+    // AN IDENTITY CHECK, NOT A NAME PROBE. Carbon's signature is
+    // `RegisterForTicks( IBlueEvents* cb, void* cookie )`, so the type system
+    // refuses anything else before the call is made; `CjsSchema.cast` is that
+    // refusal here. A registrant declares `IBlueEvents` with
+    // `@carbon.inherit`, as `TriDevice` does, and an object that merely
+    // happens to own an `OnTick` is not one.
+    if (!CjsSchema.cast(cb, IBlueEvents))
     {
-      throw new TypeError("CjsBlueOS.RegisterForTicks expects an IBlueEvents with an OnTick.");
+      throw new TypeError("CjsBlueOS.RegisterForTicks expects an IBlueEvents.");
     }
     if (!this.#tickers.some(entry => entry.cb === cb && entry.cookie === cookie))
     {
@@ -253,7 +261,7 @@ export class CjsBlueOS extends IBlueOS
    */
   RegisterForSimTimeRebase(cb)
   {
-    if (typeof cb?.OnSimClockRebase !== "function")
+    if (!CjsSchema.cast(cb, ISimTimeRebaseNotify))
     {
       throw new TypeError("CjsBlueOS.RegisterForSimTimeRebase expects an ISimTimeRebaseNotify.");
     }

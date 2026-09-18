@@ -9,7 +9,7 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
-import { blue } from "#blue";
+import { blue, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorage } from "#consts/graphics";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { TriViewport } from "../view/TriViewport.js";
@@ -19,18 +19,29 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @type.define({ className: "TriDevice", family: "trinityCore" })
-// THIS CLASS IMPLEMENTS IBlueEvents AND DELIBERATELY DOES NOT DECLARE IT.
-// Carbon's TriDevice inherits it (`TriDevice.h:154-159`, under an
-// `// IBlueEvents` banner) so `BeOS->RegisterForTicks` will take the device -
-// but `IBlueEvents` is a plain `struct`, not a `BLUE_INTERFACE`, and
-// `TriDevice_Blue.cpp` maps only `ITriDevice`. Across all 596 mapped Carbon
-// classes, NOTHING maps `IBlueEvents`. So it is an implementation base, never
-// castable, and `@compose.interface` - which ports `MAP_INTERFACE` - would
-// assert a cast Carbon does not offer. Implementing `OnTick` is the whole of
-// the obligation; `blue.os` checks for the method, as Carbon's registration
-// checks for the type.
+// CARBON'S BASE LIST, AND IT HAS THREE ENTRIES (`TriDevice.h:33-36`):
 //
-// `ITriDevice`, the one interface Carbon DOES map here, is in `trinity/dropped`.
+//     BLUE_CLASS( TriDevice ) : public ITriDevice, public IBlueEvents,
+//                               public ISimTimeRebaseNotify
+//
+// All three arrive through `@carbon.inherit` rather than one of them taking
+// the `extends` slot, and that is deliberate rather than forced: a base list
+// reads as a base list, and which member happens to be the JS prototype parent
+// is an implementation detail that should not change when `CjsModel` is
+// removed. That is what makes the device acceptable to
+// `BeOS->RegisterForTicks` and to the sim-clock rebase, and what makes
+// `CjsSchema.cast(device, IBlueEvents)` answer - the port of `dynamic_cast`,
+// which in C++ answers to the base list and needs no exposure entry.
+//
+// THIS IS NOT THE SAME QUESTION AS `MAP_INTERFACE`. `TriDevice_Blue.cpp` maps
+// only `ITriDevice`, and nothing in Carbon maps `IBlueEvents` at all - but
+// that governs `BlueCastPtr`, not `dynamic_cast`, and inheriting really does
+// make a C++ base castable. An earlier revision of this file removed the
+// declaration on the strength of the mapping, which was the wrong test.
+//
+// `ITriDevice` is not declared here because it is still in `trinity/dropped`;
+// it is the one entry this class's `@carbon.mapInterface` will carry.
+@carbon.inherit(IBlueEvents, ISimTimeRebaseNotify)
 export class TriDevice extends CjsModel
 {
 

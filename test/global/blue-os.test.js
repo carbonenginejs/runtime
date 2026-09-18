@@ -4,8 +4,18 @@ import test from "node:test";
 // Everything comes from the built package, and deliberately from ONE copy of
 // it: `blue` is a holder, so a test reaching it through two module instances
 // would register a device on one holder and pump the other.
-import { BeInfo, blue, CjsBlueOS, IBlueOS } from "../../npm/dist/global/blue/index.js";
+import { BeInfo, blue, CjsBlueOS, IBlueEvents, IBlueOS, ISimTimeRebaseNotify } from "../../npm/dist/global/blue/index.js";
 import { gTriDev, Tr2Renderer, TriDevice } from "../../npm/dist/trinity/index.js";
+
+
+// A registrant has to BE an IBlueEvents, not merely own an OnTick - Carbon's
+// RegisterForTicks takes `IBlueEvents*` and the type system refuses anything
+// else, so the test builds real ones rather than duck-typed stand-ins.
+class TestTicker extends IBlueEvents
+{
+  constructor(onTick) { super(); this.onTick = onTick; }
+  OnTick(realTime, simTime, cookie) { return this.onTick(realTime, simTime, cookie); }
+}
 
 
 test("blue.os starts filled and answers its clock before anything composes it", () =>
@@ -47,7 +57,7 @@ test("the pump drives a registrant and stops when it unregisters", () =>
 {
   const os = new CjsBlueOS();
   const seen = [];
-  const ticker = { OnTick: (realTime, simTime, cookie) => seen.push([ realTime, simTime, cookie ]) };
+  const ticker = new TestTicker((realTime, simTime, cookie) => seen.push([ realTime, simTime, cookie ]));
 
   os.RegisterForTicks(ticker, "Trinity");
   assert.equal(os.IsRegisteredForTicks(ticker), true);
@@ -72,7 +82,7 @@ test("the cookie is part of the registration, as it is in Carbon's signature", (
 {
   const os = new CjsBlueOS();
   let ticks = 0;
-  const ticker = { OnTick: () => ticks++ };
+  const ticker = new TestTicker(() => ticks++);
 
   os.RegisterForTicks(ticker, "Trinity");
   os.UnregisterForTicks(ticker, "Something else");
@@ -87,8 +97,8 @@ test("a registrant that throws does not rob the others of their tick", () =>
   const os = new CjsBlueOS();
   let reached = false;
 
-  os.RegisterForTicks({ OnTick: () => { throw new Error("first"); } }, null);
-  os.RegisterForTicks({ OnTick: () => { reached = true; } }, null);
+  os.RegisterForTicks(new TestTicker(() => { throw new Error("first"); }), null);
+  os.RegisterForTicks(new TestTicker(() => { reached = true; }), null);
 
   assert.throws(() => os.PumpOS(), /first/u, "the first failure is rethrown");
   assert.equal(reached, true, "and the second registrant still ticked");
@@ -99,13 +109,11 @@ test("a registrant may unregister from inside its own tick", () =>
 {
   const os = new CjsBlueOS();
   let ticks = 0;
-  const ticker = {
-    OnTick: () =>
-    {
-      ticks++;
-      os.UnregisterForTicks(ticker, null);
-    }
-  };
+  const ticker = new TestTicker(() =>
+  {
+    ticks++;
+    os.UnregisterForTicks(ticker, null);
+  });
 
   os.RegisterForTicks(ticker, null);
   os.PumpOS();
@@ -119,6 +127,10 @@ test("registering something without an OnTick is refused at the door", () =>
 {
   const os = new CjsBlueOS();
   assert.throws(() => os.RegisterForTicks({}), /IBlueEvents/u);
+
+  // The point of the identity check: owning the method is not being the
+  // interface, which is exactly what Carbon's signature enforces.
+  assert.throws(() => os.RegisterForTicks({ OnTick() {} }), /IBlueEvents/u);
   assert.throws(() => os.RegisterForSimTimeRebase({}), /ISimTimeRebaseNotify/u);
 });
 

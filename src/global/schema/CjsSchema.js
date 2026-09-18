@@ -8,7 +8,7 @@ import {
 } from "./types/carbonTypes.js";
 import { composeAbstractDecorator } from "../compose/abstract.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
-import { cast, composeInterfaceDecorator } from "../compose/interface.js";
+import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
 
 
@@ -681,9 +681,6 @@ export class CjsSchema
     static compose = Object.freeze({
         abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
-        interface: Contract => composeInterfaceDecorator(
-            Contract,
-            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract)),
         values: composeValuesDecorator(CjsSchema.#statelessTransport)
     });
 
@@ -712,6 +709,14 @@ export class CjsSchema
     });
 
     static carbon = Object.freeze({
+        // Carbon's base list and Carbon's exposure table: two different facts,
+        // two decorators, both factual and so both here rather than in
+        // `compose`. See compose/interface.js for the black-reader branch that
+        // proves they cannot be collapsed into one.
+        inherit: (...Bases) => carbonInheritDecorator(
+            Bases,
+            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract)),
+        mapInterface: (...Interfaces) => carbonMapInterfaceDecorator(Interfaces),
         method: methodDecorator("carbon", { method: true }),
         renamed: originalName => {
             if (typeof originalName !== "string" || !originalName.trim())
