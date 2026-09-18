@@ -1,5 +1,15 @@
 // Ports of Carbon's blueexposure layer: facilities Blue provides to every
 // subsystem rather than to one.
+//
+// NO DECORATOR SYNTAX IN THIS FOLDER. package.json maps BOTH `#blue` and the
+// public `./blue` export to this file in `src`, not to the build, so
+// `@carbonenginejs/runtime/blue` is raw source - and the tests that import it
+// that way cannot parse an `@`. A decorator here fails as
+// `SyntaxError: Invalid or unexpected token` in a test that looks unrelated.
+// Use `CjsSchema.define` and `CjsSchema.decorateMethod` at the foot of the
+// file, as every class here does. This is a packaging constraint, not a
+// preference, and it does not contradict the decorator direction in
+// /docs/internal/decisions/cjsmodel-composition-decorators.md.
 
 export * from "./CjsScriptCallback.js";
 export * from "./IBlueDynamicResourceConstructor.js";
