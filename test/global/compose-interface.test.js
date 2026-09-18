@@ -283,3 +283,30 @@ test("a declared base records its own bases, as dynamic_cast walks them", () =>
   class Unrelated {}
   assert.equal(CjsSchema.cast(impl, Unrelated), null);
 });
+
+test("a CONCRETE ancestor is recorded too, because Carbon really derives that way", () =>
+{
+  // Six live interfaces extend a concrete Carbon class rather than another
+  // interface: IEveSpaceObjectAttachment, IEveSpaceObjectChild and
+  // IEveFiringEffectElement extend EveEntity, ITr2FroxelFogSettings and
+  // IEveLineSetPath extend EveChildTransform, and
+  // IEveSmartLightGroupAttributeModifier extends
+  // EveSmartLightBaseAttributeModifier. Those are faithful - the donor derives
+  // them that way and `dynamic_cast<EveEntity*>` really succeeds - so the chain
+  // walk must NOT stop at the first non-interface. Restricting it to interfaces
+  // would be the opposite bug to the one the walk fixed, and just as quiet.
+  class ConcreteBase { Heavy() {} }
+  class IFace extends ConcreteBase { Verb() {} }
+  class Impl {}
+
+  CjsSchema.carbon.inherit(IFace)(Impl, { kind: "class" });
+
+  const impl = new Impl();
+  assert.equal(typeof impl.Heavy, "function", "the concrete base's members arrive");
+  assert.equal(typeof impl.Verb, "function");
+
+  assert.equal(CjsSchema.cast(impl, IFace), impl);
+  assert.equal(CjsSchema.cast(impl, ConcreteBase), impl, "and it is castable to the concrete base");
+
+  assert.deepEqual([ ...composedContracts(Impl) ], [ IFace, ConcreteBase ]);
+});
