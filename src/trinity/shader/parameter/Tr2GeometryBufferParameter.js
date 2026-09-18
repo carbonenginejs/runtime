@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 

@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 

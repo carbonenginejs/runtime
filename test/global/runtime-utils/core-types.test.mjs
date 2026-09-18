@@ -1967,9 +1967,13 @@ test("records carbon.contextual tier provenance", () => {
         {}
     }
     CjsSchema.define(ZeroArgContextual, { className: "ZeroArgContextual", family: "test" });
+    // ARITY, not naming: a method taking nothing cannot have been given a
+    // context, and `fn.length` survives minification where parameter NAMES do
+    // not. The name check above is skipped once a build has renamed them, so
+    // this case must be caught by the half that always holds (5b23597c).
     assert.throws(
         () => CjsSchema.decorateMethod(ZeroArgContextual, "Tick", CjsSchema.carbon.contextual(["camera"])),
-        /context-first/
+        /must take a context as its first parameter/
     );
 });
 

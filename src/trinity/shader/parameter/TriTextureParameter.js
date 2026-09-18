@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
 import { carbon, impl, io, type } from "#schema";
-import { CjsModel } from "#model";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
