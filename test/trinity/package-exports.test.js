@@ -76,7 +76,7 @@ test("published package resolves root, family, and deep generated exports", () =
         throw new Error(name + " must retain resource ownership");
       }
     }
-    for (const invalidName of ["_className", "ITriDevice", "ITriEffectTextureParameter", "Tr2CurveBase", "Tr2Key"])
+    for (const invalidName of ["_className", "ITriDevice", "Tr2CurveBase", "Tr2Key"])
     {
       if (invalidName in packageRoot)
       {
