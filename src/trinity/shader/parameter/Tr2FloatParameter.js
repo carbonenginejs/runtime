@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.cpp
+import { withITriReroutable } from "../../core/ITriReroutable.js";
 import { carbon, impl, io, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
@@ -9,7 +10,7 @@ import { CjsParameter } from "./CjsParameter.js";
  * an external scalar destination.
  */
 @type.define({className: "Tr2FloatParameter", family: "shader"})
-export class Tr2FloatParameter extends CjsParameter
+export class Tr2FloatParameter extends withITriReroutable(CjsParameter)
 {
   @io.persistOnly
   @type.float32

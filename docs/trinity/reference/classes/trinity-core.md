@@ -55,6 +55,16 @@ Tr2BindingVector3 (trinityCore) - generated from schema shapeHash a8ef1406....
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ITriReroutable -->
+## `ITriReroutable`
+
+A value whose storage can be pointed somewhere else, telling its bindings when it moves. Five pure methods; Carbon casts to it, and the five parameter classes that map it are the five that implement it.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/ITriReroutable.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:ITr2Renderable -->
 ## `ITr2Renderable`
 

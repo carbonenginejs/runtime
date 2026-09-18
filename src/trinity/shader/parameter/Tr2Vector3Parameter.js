@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector3Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Vector3Parameter.cpp
+import { withITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type } from "#schema";
@@ -14,7 +15,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
   className: "Tr2Vector3Parameter",
   family: "shader"
 })
-export class Tr2Vector3Parameter extends CjsVectorParameter
+export class Tr2Vector3Parameter extends withITriReroutable(CjsVectorParameter)
 {
 
   @io.persistOnly

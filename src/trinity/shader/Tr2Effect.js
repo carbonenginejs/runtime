@@ -19,6 +19,7 @@ import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { ITriEffectResourceParameter } from "./parameter/ITriEffectResourceParameter.js";
+import { ITriReroutable } from "../core/ITriReroutable.js";
 import { Tr2RuntimeTextureParameter } from "./parameter/Tr2RuntimeTextureParameter.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
 import { Tr2Vector3Parameter } from "./parameter/Tr2Vector3Parameter.js";
@@ -723,7 +724,8 @@ export class Tr2Effect extends Tr2Material
     const resource = CjsSchema.cast(value, ITriEffectResourceParameter);
     if (String(event).includes("REMOVED"))
     {
-      if (value?.SetDestination) value.SetDestination(null, 0);
+      const reroutable = CjsSchema.cast(value, ITriReroutable);
+      if (reroutable) reroutable.SetDestination(null, 0);
       if (resource) resource.OnRemovedFromMaterial(this);
     }
     if (resource && String(event).includes("INSERTED"))
@@ -845,11 +847,20 @@ export class Tr2Effect extends Tr2Material
    */
   AddResource(parameter)
   {
-    this.resources.push(parameter);
-    // Carbon appends to the notifying list and the INSERTED event does this
-    // (Tr2Effect.cpp:444, 922-925); a plain push has no event, so we call it.
+    // Carbon's signature takes ITriEffectParameter* (h:84) but appends to a
+    // list typed to resource parameters, so a non-resource parameter cannot
+    // reach the list at all. Refuse it at the door rather than pushing first
+    // and attaching after: a failed attach used to leave the parameter in the
+    // list permanently unhooked, which is a half-state, not a failure.
     const resource = CjsSchema.cast(parameter, ITriEffectResourceParameter);
-    if (resource) resource.OnAddedToMaterial(this);
+    if (!resource)
+    {
+      throw new TypeError("Tr2Effect.AddResource requires an ITriEffectResourceParameter.");
+    }
+    this.resources.push(parameter);
+    // The push fires no list event, so this stands in for the INSERTED arm
+    // that would have run (Tr2Effect.cpp:922-925).
+    resource.OnAddedToMaterial(this);
     this.RebuildCachedDataInternal();
     return true;
   }
