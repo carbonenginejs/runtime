@@ -19,26 +19,11 @@
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../../controllers/ITr2Controller/index.js";
-
-
-const ITRI_EFFECT_PARAMETER = Symbol.for("carbonenginejs.interface.ITriEffectParameter");
-
-// Pure in the donor - an implementor must supply them.
-const PARAMETER_ABSTRACTS = [ "GetParameterName", "RebuildEffectHandles", "GetHashValue" ];
-
-// Every member the contract carries. Adopt fills only what a class does not
-// already have, so a parameter keeps its own and inherits the defaulted one.
-const PARAMETER_MEMBERS = [ ...PARAMETER_ABSTRACTS, "SupportsDirtyNotification" ];
 
 
 /** Contract for a shader parameter: its name, its effect handles and its content hash. */
 export class ITriEffectParameter
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITRI_EFFECT_PARAMETER] === true;
-  }
 
   /** The authored parameter name the effect binds by. */
   GetParameterName()
@@ -71,21 +56,4 @@ export class ITriEffectParameter
 }
 
 
-DefineInterface(ITriEffectParameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
 CjsSchema.define(ITriEffectParameter, { className: "ITriEffectParameter" });
-
-
-/**
- * Adds the ITriEffectParameter contract without replacing an existing base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITriEffectParameter(Base)
-{
-  const Parameter = Adopt(Base, ITriEffectParameter, PARAMETER_MEMBERS);
-
-  DefineInterface(Parameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
-
-  return Parameter;
-}

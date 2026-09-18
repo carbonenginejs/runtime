@@ -12,23 +12,12 @@
 // src/trinity/dropped.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../../controllers/ITr2Controller/index.js";
-import { ITriEffectParameter, withITriEffectParameter } from "./ITriEffectParameter.js";
-
-
-const ITRI_EFFECT_RESOURCE_PARAMETER = Symbol.for("carbonenginejs.interface.ITriEffectResourceParameter");
-
-// Both are DEFAULTED in the donor, so neither is abstract here.
-const RESOURCE_PARAMETER_MEMBERS = [ "OnAddedToMaterial", "OnRemovedFromMaterial" ];
+import { ITriEffectParameter } from "./ITriEffectParameter.js";
 
 
 /** Contract for a parameter holding a resource, notified as it joins or leaves a material. */
 export class ITriEffectResourceParameter extends ITriEffectParameter
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITRI_EFFECT_RESOURCE_PARAMETER] === true;
-  }
 
   /** The parameter joined a material. Empty by default, as in the donor. */
   OnAddedToMaterial(_material)
@@ -42,24 +31,4 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
 }
 
 
-DefineInterface(ITriEffectResourceParameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
 CjsSchema.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });
-
-
-/**
- * Adds the ITriEffectResourceParameter contract without replacing an existing
- * base. The donor derives this interface FROM ITriEffectParameter, so a class
- * taking this takes both brands - `Tr2Effect` casts to either one and must find
- * a resource parameter under both.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying both contracts.
- */
-export function withITriEffectResourceParameter(Base)
-{
-  const Parameter = Adopt(withITriEffectParameter(Base), ITriEffectResourceParameter, RESOURCE_PARAMETER_MEMBERS);
-
-  DefineInterface(Parameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
-
-  return Parameter;
-}

@@ -3,12 +3,13 @@
 import { carbon, impl, io, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
-import { withITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 
 /** Exposes one named channel of a texture animation as a shader resource and invalidates attached materials as it changes. */
 @type.define({ className: "Tr2TextureAnimationParameter", family: "shader" })
-export class Tr2TextureAnimationParameter extends withITriEffectResourceParameter(CjsParameter)
+@carbon.inherit(ITriEffectResourceParameter)
+export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */

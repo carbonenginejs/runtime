@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
 import { carbon, impl, io, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
-import { withITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 
 /**
@@ -14,7 +14,8 @@ import { withITriEffectResourceParameter } from "./ITriEffectResourceParameter.j
   className: "Tr2RuntimeTextureParameter",
   family: "shader"
 })
-export class Tr2RuntimeTextureParameter extends withITriEffectResourceParameter(CjsParameter)
+@carbon.inherit(ITriEffectResourceParameter)
+export class Tr2RuntimeTextureParameter extends CjsParameter
 {
   @io.notify
   @io.persist

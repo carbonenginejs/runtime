@@ -22,14 +22,7 @@
 // Carbon's spelling of "Loding" is kept. It is the donor's method name.
 
 import { carbon, CjsSchema, impl } from "#schema";
-import { Adopt, DefineInterface } from "../../controllers/ITr2Controller/index.js";
-import { ITriEffectResourceParameter, withITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
-
-
-const ITRI_EFFECT_TEXTURE_PARAMETER = Symbol.for("carbonenginejs.interface.ITriEffectTextureParameter");
-
-// All three are pure in the donor.
-const TEXTURE_PARAMETER_ABSTRACTS = [ "UsedWithScreenSize", "EnableTextureLoding", "DisableTextureLoding" ];
+import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
 
 /** A resource parameter whose texture takes part in screen-size LOD selection. */
@@ -42,10 +35,6 @@ export class ITriEffectTextureParameter extends ITriEffectResourceParameter
    */
   static UV_SET_MAX_COUNT = 8;
 
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITRI_EFFECT_TEXTURE_PARAMETER] === true;
-  }
 
   /** Reports the on-screen size this texture is drawn at, and returns the LOD that demands. */
   @carbon.method
@@ -73,22 +62,4 @@ export class ITriEffectTextureParameter extends ITriEffectResourceParameter
 }
 
 
-// Empty lists: the decorators above already carry the abstract marking.
-DefineInterface(ITriEffectTextureParameter, ITRI_EFFECT_TEXTURE_PARAMETER, [], []);
 CjsSchema.define(ITriEffectTextureParameter, { className: "ITriEffectTextureParameter" });
-
-
-/**
- * Adds this interface, and the two it derives from, without replacing a base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying all three.
- */
-export function withITriEffectTextureParameter(Base)
-{
-  const Parameter = Adopt(withITriEffectResourceParameter(Base), ITriEffectTextureParameter, TEXTURE_PARAMETER_ABSTRACTS);
-
-  DefineInterface(Parameter, ITRI_EFFECT_TEXTURE_PARAMETER, [], []);
-
-  return Parameter;
-}

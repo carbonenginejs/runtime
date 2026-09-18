@@ -15,24 +15,11 @@
 // did so before the interface existed.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
-
-
-const ITRI_REROUTABLE = Symbol.for("carbonenginejs.interface.ITriReroutable");
-
-// All five are pure in the donor.
-const REROUTABLE_ABSTRACTS = [
-  "SetDestination", "GetDestination", "RegisterBinding", "UnregisterBinding", "IsRerouted"
-];
 
 
 /** A value whose storage can be pointed elsewhere, notifying its bindings. */
 export class ITriReroutable
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITRI_REROUTABLE] === true;
-  }
 
   /** Points this value's storage at `dest`, or back at its own with null. */
   SetDestination(_dest, _size)
@@ -70,21 +57,4 @@ export class ITriReroutable
 }
 
 
-DefineInterface(ITriReroutable, ITRI_REROUTABLE, [], REROUTABLE_ABSTRACTS);
 CjsSchema.define(ITriReroutable, { className: "ITriReroutable" });
-
-
-/**
- * Adds the ITriReroutable interface without replacing an existing base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying it.
- */
-export function withITriReroutable(Base)
-{
-  const Reroutable = Adopt(Base, ITriReroutable, REROUTABLE_ABSTRACTS);
-
-  DefineInterface(Reroutable, ITRI_REROUTABLE, [], REROUTABLE_ABSTRACTS);
-
-  return Reroutable;
-}

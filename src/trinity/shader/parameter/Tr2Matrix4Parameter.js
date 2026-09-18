@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2Matrix4Parameter.cpp
-import { withITriReroutable } from "../../core/ITriReroutable.js";
+import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
 import { CjsVectorParameter } from "./CjsVectorParameter.js";
@@ -14,7 +14,8 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
   className: "Tr2Matrix4Parameter",
   family: "shader"
 })
-export class Tr2Matrix4Parameter extends withITriReroutable(CjsVectorParameter)
+@carbon.inherit(ITriReroutable)
+export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
   @io.persistOnly
   @type.mat4
