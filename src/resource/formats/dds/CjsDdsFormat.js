@@ -2,6 +2,8 @@ import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
+    canDecodeDdsBlockFormat,
+    decodeDdsSlice,
     OUTPUT_IMAGE,
     OUTPUT_JSON,
     OUTPUT_RAW,
@@ -188,6 +190,52 @@ export class CjsDdsFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
+    /**
+     * Decodes one block-compressed 2D slice to RGBA8.
+     *
+     * The whole-file readers answer "give me this image"; a volume texture asks
+     * a different question - "give me slice 7 of mip 2" - and no amount of
+     * reading a file down to one subresource expresses it. This is that seam,
+     * and it exists because WebGL cannot take the block data as it is:
+     * `EXT_texture_compression_bptc` grants `compressedTexImage2D` only, so a
+     * BC7 volume has to be decoded on the CPU and uploaded with `texImage3D`.
+     * Carbon does not do this - it hands D3D11 the blocks verbatim, volumes
+     * included (`trinity/trinity/Tr2ImageIOHelpers.cpp:48-88`) - so this is a
+     * platform-forced divergence rather than a design choice.
+     *
+     * @param {Uint8Array} bytes - the slice's block data, and nothing else
+     * @param {Object} values
+     * @param {String} values.pixelFormat - e.g. "bc7-rgba-unorm"
+     * @param {Number} values.width
+     * @param {Number} values.height
+     * @param {Number} [values.rowPitch] - bytes per block row; derived when absent
+     * @returns {Uint8Array} width * height * 4, row-major, top-left origin
+     */
+    static decodeBlockSlice(bytes, values = {})
+    {
+        const { pixelFormat, width, height } = values;
+
+        if (!canDecodeDdsBlockFormat(pixelFormat))
+        {
+            throw new Error(`CjsDdsFormat.decodeBlockSlice: "${pixelFormat}" is not a block-compressed format`);
+        }
+
+        const blockBytes = /^bc(1|4)/u.test(pixelFormat) ? 8 : 16;
+        const rowPitch = values.rowPitch ?? Math.max(1, Math.ceil(width / 4)) * blockBytes;
+
+        return decodeDdsSlice(bytes, { width, height, pixelFormat }, { rowPitch });
+    }
+
+    /**
+     * Whether `decodeBlockSlice` can decode a pixel format
+     * @param {String} pixelFormat
+     * @returns {Boolean}
+     */
+    static canDecodeBlockSlice(pixelFormat)
+    {
+        return canDecodeDdsBlockFormat(pixelFormat);
+    }
+
     static Output = Object.freeze({
         IMAGE: OUTPUT_IMAGE,
         TEXTURE: OUTPUT_TEXTURE,

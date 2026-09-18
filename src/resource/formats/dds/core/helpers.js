@@ -417,6 +417,21 @@ function readDdsTexture(bytes, metadata)
     };
 }
 
+/**
+ * Block formats one slice can be decoded from, by pixel format alone.
+ *
+ * Narrower than `canDecodeDdsToRgba`, which answers for a whole file and
+ * includes the uncompressed formats. A caller holding one slice of a volume has
+ * no file to ask about, only a format name.
+ *
+ * @param {String} pixelFormat
+ * @returns {Boolean}
+ */
+export function canDecodeDdsBlockFormat(pixelFormat)
+{
+    return /^bc[1-7]/u.test(String(pixelFormat ?? ""));
+}
+
 function canDecodeDdsToRgba(metadata)
 {
     return [
@@ -518,7 +533,7 @@ function readDdsToRgba(bytes, metadata)
 }
 
 /** Decodes one 2D slice of a DDS subresource to RGBA, whatever its block format. */
-function decodeDdsSlice(source, metadata, subresource)
+export function decodeDdsSlice(source, metadata, subresource)
 {
     const { width, height } = metadata;
     const pitch = subresource.rowPitch;
