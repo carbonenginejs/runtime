@@ -23,6 +23,8 @@ import {
   Tr2MeshArea,
   Tr2PerObjectData,
   Tr2RenderContext,
+  Tr2RenderContext_GetMainThreadRenderContext,
+  Tr2Renderer,
   TriRenderBatchAccumulator
 } from "../../npm/dist/trinity/index.js";
 
@@ -332,7 +334,9 @@ test("end-to-end: a real Tr2RenderContext supplies the pool with no engine setup
   const transform = new EveTransform();
   transform.mesh = meshWithOpaqueArea({ id: "fx" });
 
-  const renderContext = new Tr2RenderContext();
+  // The ambient context, because Tr2Renderer.EndRenderContext acts on that one
+  // - as Carbon's does, through USE_MAIN_THREAD_RENDER_CONTEXT.
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
   const store = renderContext.GetTriPoolAllocator();
   assert.ok(store.Has("EveBasicPerObjectData"),
     "the catalogued Carbon structs are registered without an engine registering them");
@@ -345,7 +349,7 @@ test("end-to-end: a real Tr2RenderContext supplies the pool with no engine setup
   assert.ok(batch.objectData instanceof RawData, "leased from the context's own pool");
 
   const world = batch.objectData.GetTransposed("world");
-  renderContext.EndRenderContext();
+  Tr2Renderer.EndRenderContext();
   const reused = store.Allocate("EveBasicPerObjectData");
   assert.equal(reused.GetData().byteOffset, batch.objectData.GetData().byteOffset,
     "EndRenderContext rewinds the arena, so the next frame re-leases the same slot");

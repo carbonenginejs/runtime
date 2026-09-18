@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets } from "../../npm/dist/trinity/core/index.js";
+import { gTriDev, TriDevice, Tr2Renderer, Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 const STRIDE = 16;
@@ -188,22 +188,24 @@ test("a new ring seeds its fence from the context rather than assuming frame zer
 
 test("the device's frame clock is not Trinity's", () =>
 {
-  // Two clocks on purpose: Trinity counts frames the render path has BEGUN,
-  // the device counts frames it has FINISHED, and a ring fences on the gap.
+  // Two clocks on purpose: Trinity counts frames the render path has BEGUN
+  // (the device advances that counter in its tick, and Tr2Renderer reads it),
+  // the backend counts frames it has FINISHED, and a ring fences on the gap.
   const context = new Tr2RenderContext();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
   context.SetRenderContextAL(al);
 
-  context.AdvanceFrame(1.5);
-  context.AdvanceFrame(2.5);
+  gTriDev.device = new TriDevice();
+  gTriDev.device.Tick(15000000, 15000000);
+  gTriDev.device.Tick(25000000, 25000000);
 
-  assert.equal(context.GetCurrentFrameCounter(), 2, "Trinity began two frames");
+  assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "Trinity began two frames");
   assert.equal(context.GetRenderedFrameNumber(), 0, "the device has finished none of them");
 
   al.Present();
 
   assert.equal(context.GetRenderedFrameNumber(), 1);
-  assert.equal(context.GetCurrentFrameCounter(), 2, "and Trinity's clock did not move");
+  assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "and Trinity's clock did not move");
 });

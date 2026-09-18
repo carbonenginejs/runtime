@@ -28,19 +28,12 @@ export class CjsTrinityStepExecutor
     throw new Error("CjsTrinityStepExecutor.EndStep must be implemented by a concrete executor.");
   }
 
-  /** Opens a scene bracket for the supplied render context. */
-  @impl.abstract
-  BeginScene(_context)
-  {
-    throw new Error("CjsTrinityStepExecutor.BeginScene must be implemented by a concrete executor.");
-  }
-
-  /** Closes a scene bracket for the supplied render context. */
-  @impl.abstract
-  EndScene(_context)
-  {
-    throw new Error("CjsTrinityStepExecutor.EndScene must be implemented by a concrete executor.");
-  }
+  // THERE WAS A SCENE BRACKET HERE, AND IT IS GONE (2026-09-18). BeginScene
+  // and EndScene are the BACKEND's, inherited by Carbon's render context from
+  // the abstraction layer (Tr2RenderContextDx11.h:67-68); the context's own
+  // pair now forwards there, which is what Tr2Renderer::BeginRenderContext
+  // calls. The executor's copies were the retired intent-recording mechanism's
+  // and no longer had a caller - the direct executor's were empty bodies.
 
   /** Opens a render-target and depth-stencil batch bracket. */
   @impl.abstract

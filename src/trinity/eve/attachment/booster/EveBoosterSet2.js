@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveBoosterSet2_Blue.cpp
 import { mat4 } from "#math/mat4";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,7 +11,6 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { gTriDev } from "#trinity/core";
 import {
   AddBoosterLights,
   CreateBoosterFlares,
@@ -787,7 +787,7 @@ export class EveBoosterSet2 extends EveEntity
       return;
     }
 
-    const time = gTriDev.device.GetAnimationTime();
+    const time = Tr2Renderer.GetAnimationTime();
     // Carbon EveBoosterSet2.cpp:1186: radii deliberately UNSCALED here (the
     // child booster set pre-multiplies by its parent scale; this class does
     // not - do not unify).

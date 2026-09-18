@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { box3 } from "#math/box3";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
@@ -9,7 +10,6 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Fade, Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
-import { gTriDev } from "#trinity/core";
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -363,7 +363,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     {
       this.GetAverageColor(averageColor);
     }
-    const time = gTriDev.device.GetAnimationTime();
+    const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EvePlaneSet.#lightRecord;
     const dataCopy = EvePlaneSet.#lightDataScratch;

@@ -14,15 +14,36 @@
 // without anyone's cooperation, and there is never a null for a caller to
 // guard against.
 //
-// The slot starts filled, unlike `blue.resMan`, because a device with no
+// The slot is never empty, unlike `blue.resMan`, because a device with no
 // backend is a real and useful thing here - its clock reads zero until
 // something ticks it, which is what every present caller already defaults to.
 // A device that cannot answer is a different problem from a manager that was
 // never composed.
+//
+// IT FILLS ON FIRST READ RATHER THAN AT EVALUATION, and that is not a
+// preference. `TriDevice.Render` calls the `Tr2Renderer` frame statics, which
+// reach the ambient render context, which reaches this holder - so constructing
+// the device while this module is evaluating would construct it from inside
+// TriDevice.js's own evaluation, where the class binding is still in its
+// temporal dead zone. Carbon has the same cycle and no such problem, because
+// its `gTriDev` starts NULL and is filled by the first device constructed
+// (`TriDevice.h:356-365`). Reaching through the holder is what makes a lazy
+// slot indistinguishable from an eager one at every call site.
 import { TriDevice } from "./TriDevice.js";
+
+let s_device = null;
 
 /** Carbon's `gTriDev`: the process-wide device, and with it the frame clock. */
 export const gTriDev = {
   /** The device every consumer reads, replaceable by composition. */
-  device: new TriDevice()
+  get device()
+  {
+    if (!s_device) s_device = new TriDevice();
+    return s_device;
+  },
+
+  set device(device)
+  {
+    s_device = device ?? null;
+  }
 };

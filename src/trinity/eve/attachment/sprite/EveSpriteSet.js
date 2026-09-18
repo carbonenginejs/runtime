@@ -1,6 +1,7 @@
 ﻿// Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { box3 } from "#math/box3";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -16,7 +17,6 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 import { TriBatchType } from "#consts/graphics";
 import { num } from "#math/num";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
-import { gTriDev } from "#trinity/core";
 
 // Carbon PoolVertex (EveSpriteSet.h:56-70): 32 bytes -
 // position float3 @0; TEXCOORD0 half4 @12 = activation, blinkPhase,
@@ -531,7 +531,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     const features = EveSpriteSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const time = gTriDev.device.GetAnimationTime();
+    const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveSpriteSet.#lightRecord;
 

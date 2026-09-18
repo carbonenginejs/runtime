@@ -128,11 +128,11 @@ export class Tr2Material extends CjsModel
     // pass description with sampler states at effect load through the
     // main-thread context (Tr2EffectDescription.cpp:436, :639-650) and applies
     // overrides per rebuild (Tr2Effect.cpp:623-662). Ours has no process-wide
-    // device context - `Tr2RenderContext.GetDefault()` exists, but nothing
-    // installs a backend on it - so seeding there made every sampler state the
-    // stub's, which a WebGPU resource set cannot bind and replaced with its
-    // dummy. A fresh pass (no set yet) is seeded here, by the context that will
-    // build its resource set, of that backend's kind.
+    // device context - `Tr2RenderContext_GetMainThreadRenderContext()`
+    // exists, but nothing installs a backend on it - so seeding there made
+    // every sampler state the stub's, which a WebGPU resource set cannot bind
+    // and replaced with its dummy. A fresh pass (no set yet) is seeded here,
+    // by the context that will build its resource set, of that backend's kind.
     if (pass.resourceSet === null) this.SeedSamplers(techniqueIndex, passIndex, pass, renderContext);
 
     let mask = this.shader.GetShaderTypeMask(techniqueIndex);

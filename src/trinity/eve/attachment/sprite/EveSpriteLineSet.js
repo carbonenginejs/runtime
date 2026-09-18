@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.h
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteLineSet.cpp
 import { box3 } from "#math/box3";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { carbon, impl, io, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
@@ -10,7 +11,6 @@ import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
-import { gTriDev } from "#trinity/core";
 
 
 /**
@@ -223,7 +223,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     const features = EveSpriteLineSet.#features;
     features.parentBrightness = this.#activationStrength;
     features.parentScale = 1;
-    const time = gTriDev.device.GetAnimationTime();
+    const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
     const record = EveSpriteLineSet.#lightRecord;
 

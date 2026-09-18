@@ -53,9 +53,7 @@ class RecordingExecutor extends CjsTrinityStepExecutor
   BeginStep(...args) { this.events.push([ "BeginStep", ...args ]); }
   ExecuteStep(...args) { this.events.push([ "ExecuteStep", ...args ]); return 0; }
   EndStep(...args) { this.events.push([ "EndStep", ...args ]); }
-  BeginScene(...args) { this.events.push([ "BeginScene", ...args ]); }
-  EndScene(...args) { this.events.push([ "EndScene", ...args ]); }
-  BeginBatch(...args) { this.events.push([ "BeginBatch", ...args ]); }
+   BeginBatch(...args) { this.events.push([ "BeginBatch", ...args ]); }
   EndBatch(...args) { this.events.push([ "EndBatch", ...args ]); }
 }
 
@@ -74,7 +72,7 @@ test("Trinity nominal bases fail loudly until extended", () =>
 
   const executor = new CjsTrinityStepExecutor();
   for (const method of [
-    "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "EndScene", "BeginBatch", "EndBatch"
+    "BeginStep", "ExecuteStep", "EndStep", "BeginBatch", "EndBatch"
   ])
   {
     assert.throws(() => executor[method](), new RegExp(method, "u"));
@@ -89,7 +87,7 @@ test("required Trinity root methods carry abstract implementation metadata", () 
   for (const [ Constructor, methods ] of [
     [ CjsTrinityBatchResolver, [ "ResolveMaterial", "ResolveGeometry", "ResolveBindings" ] ],
     [ CjsTrinityBatchDispatcher, [ "PrepareBatchMap", "EncodeBatchType", "DestroyBatchMap" ] ],
-    [ CjsTrinityStepExecutor, [ "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "EndScene", "BeginBatch", "EndBatch" ] ],
+    [ CjsTrinityStepExecutor, [ "BeginStep", "ExecuteStep", "EndStep", "BeginBatch", "EndBatch" ] ],
     [ ITriRenderBatchAccumulator, [ "Clear", "Commit", "GetGdprBatches", "GetBatches", "Finalize", "GetBatchCount", "IsChainedByEffect", "TransferFrom" ] ],
     [ TriRenderStep, [ "Execute" ] ],
     [ Tr2Transform, [ "GetPerObjectData" ] ],
@@ -148,7 +146,7 @@ test("Tr2RenderContext installs one nominal executor and restores direct executi
   const context = new Tr2RenderContext();
   assert.throws(
     () => context.SetStepExecutor({
-      BeginStep() {}, ExecuteStep() {}, EndStep() {}, BeginScene() {}, EndScene() {},
+      BeginStep() {}, ExecuteStep() {}, EndStep() {},
       BeginBatch() {}, EndBatch() {}
     }),
     /CjsTrinityStepExecutor/u
@@ -161,13 +159,10 @@ test("Tr2RenderContext installs one nominal executor and restores direct executi
   context.BeginStep(step, 1, 2, null);
   context.ExecuteStep(step, 1, 2, null);
   context.EndStep(step, 1, 2, null);
-  context.BeginRenderContext();
   context.BeginBatch({});
   context.EndBatch({});
-  context.SetTriPoolAllocator({ Clear: () => events.push([ "Clear" ]) });
-  context.EndRenderContext();
   assert.deepEqual(events.map(([ name ]) => name), [
-    "BeginStep", "ExecuteStep", "EndStep", "BeginScene", "BeginBatch", "EndBatch", "Clear", "EndScene"
+    "BeginStep", "ExecuteStep", "EndStep", "BeginBatch", "EndBatch"
   ]);
 
   context.SetStepExecutor(null);

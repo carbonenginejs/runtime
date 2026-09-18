@@ -4,22 +4,26 @@
 // The renderer-wide facade: the constant-buffer register map, the frame clock,
 // and the projection and view state every pass reads.
 //
-// ONE DELIBERATE DEPARTURE, DECIDED BY THE OPERATOR ON 2026-09-05. Carbon's
-// `Tr2Renderer` is entirely STATIC - a process-wide singleton. Ours is an
-// instance the composition root creates and hands out. Two reasons, and the
-// second is the one that matters:
+// HALF STATIC, HALF NOT, AND THE SPLIT IS DATED. Carbon's `Tr2Renderer` is
+// entirely static - 106 of 106 members - and a process-wide singleton.
 //
-// - a page is unlikely to want two backends at once, so the singleton is not
-//   buying much;
-// - but this runtime already supports more than one library instance with its
-//   own resource manager, and a static renderer would silently make the second
-//   one share the first one's frame clock and projection. That is a bug nobody
-//   would look for.
+// On 2026-09-05 the operator decided ours would be an instance instead. The
+// reason that carried the decision was that this runtime supported more than
+// one library instance, each with its own resource manager, and a static
+// renderer would silently make the second one share the first one's frame
+// clock and projection.
 //
-// The composition root creating one is not the same as the composition root
-// BECOMING a renderer, which `runtime/docs/core/roadmap.md` rules out: this
-// class holds GPU-free state and the library composes it, exactly as it
-// composes a resource manager it does not implement.
+// THAT PREMISE IS GONE. The composition-root decision of 2026-09-17 closed the
+// door on multiple instances: there is one CarbonEngineJS per page, examined
+// properly and shut deliberately. So on 2026-09-18 the six frame members
+// Carbon's `TriDevice::Render` calls went back to being static, which is what
+// let the frame body be ported at all - a static reaching the ambient render
+// context is the whole mechanism.
+//
+// The rest of the class is still instance members: the register map below, the
+// blitter, the projection and view state. That is not a second decision, it is
+// unfinished work, and it is recorded in the wrong-shape register in
+// `docs/projects/port-fidelity-burn-down.md`.
 //
 // WHY THE REGISTER MAP IS HERE AND NOT IN AN ENGINE. Carbon keeps these six
 // numbers as `Tr2Renderer` statics (`Tr2Renderer.cpp:38-43`), because they are
@@ -30,6 +34,9 @@
 import { carbon, impl, type } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
+import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
+import { gTriDev } from "./device/gTriDev.js";
 
 
 /** perFrameVS, owned by the scene. */
@@ -356,6 +363,205 @@ export class Tr2Renderer
       ? this.#blitter.Draw(renderContext, options.material, texture, { tlTexCoord, brTexCoord })
       : this.#blitter.DrawTexture(renderContext, texture, { tlTexCoord, brTexCoord }, options.filter);
   }
+
+  // ------------------------------------------------------------------------
+  // THE FRAME STATICS. Source: Tr2Renderer.h:125-133, Tr2Renderer.cpp:1040-1091
+  // and :1229-1271.
+  //
+  // These six are static in Carbon and static here, and they are the ones
+  // `TriDevice::Render` calls. They reach the ambient main-thread render
+  // context exactly as Carbon's do, through the macro
+  // `USE_MAIN_THREAD_RENDER_CONTEXT`; the JS equivalent is the free function
+  // that macro wraps.
+  //
+  // FIVE OF THEM WERE INSTANCE METHODS ON `Tr2RenderContext`, which in Carbon
+  // has none of them. That happened because ambient reach was unavailable
+  // while the retired graph/realization split was in force, so a static had
+  // nothing to act on and the behaviour migrated to the instance that did.
+  // ------------------------------------------------------------------------
+
+  /**
+   * The animation clock, in seconds (`Tr2Renderer.cpp:1030-1033`).
+   *
+   * Carbon's body is one line - `gTriDev->GetAnimationTime()` - and so is
+   * this. The clock itself is `TriDevice::m_animationTime`, advanced by the
+   * tick; nothing here holds a copy.
+   *
+   * @returns {number} Seconds since the clock was last recentred.
+   */
+  @carbon.method
+  @impl.implemented
+  static GetAnimationTime()
+  {
+    return gTriDev.device.GetAnimationTime();
+  }
+
+  /**
+   * Seconds elapsed on the animation clock since `startTime`
+   * (`Tr2Renderer.cpp:1035-1038`), correct across the hourly recentre.
+   *
+   * @param {number} startTime An earlier reading of the animation clock.
+   * @returns {number} The elapsed seconds.
+   */
+  @carbon.method
+  @impl.implemented
+  static GetAnimationTimeElapsed(startTime)
+  {
+    return gTriDev.device.GetAnimationTimeElapsed(startTime);
+  }
+
+  /**
+   * Publishes the per-frame "Time" vector every shader reads.
+   *
+   * x is the animation time, y its fractional part - a free 0..1 sawtooth -
+   * z the frame counter, and w the PREVIOUS frame's animation time, which is
+   * what lets a shader compute its own delta. Carbon registers the variable
+   * once (`Tr2Renderer.cpp:330`) and assigns it here (`:1040-1051`); w comes
+   * from the variable's own prior value, not from a second clock.
+   *
+   * @returns {number[]} The published vector.
+   */
+  @carbon.method
+  @impl.implemented
+  static BeginFrame()
+  {
+    const variable = Tr2Renderer.#RenderTimeVariable();
+    const previous = variable?.GetValue() ?? [ 0, 0, 0, 0 ];
+
+    const animationTime = gTriDev.device.GetAnimationTime();
+    const time = [
+      animationTime,
+      animationTime - Math.floor(animationTime),
+      Number(Tr2Renderer.GetCurrentFrameCounter()),
+      previous[0] ?? 0
+    ];
+
+    variable?.SetValue(time);
+    return time;
+  }
+
+  /**
+   * Ends the frame, clearing the debug drawing accumulated during it.
+   *
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon clears two of its own statics, s_debugTextRenderer and s_debugLineSet (Tr2Renderer.cpp:1053-1064). Neither type is ported; the installed debug renderer on the ambient context is the only thing here that accumulates per-frame debug drawing, so it is what gets cleared.")
+  static EndFrame()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    // `SetDebugRenderer` takes whatever a render job hands it, and Carbon's own
+    // type is not ported, so this is a foreign object. Asked explicitly rather
+    // than hedged, because the question really is "does this thing clear".
+    const debugRenderer = renderContext.GetDebugRenderer();
+    if (typeof debugRenderer?.Clear === "function") debugRenderer.Clear();
+  }
+
+  /**
+   * Opens the scene on the ambient render context (`Tr2Renderer.cpp:1066-1070`).
+   *
+   * @returns {*} Whatever the backend's BeginScene returns.
+   */
+  @carbon.method
+  @impl.implemented
+  static BeginRenderContext()
+  {
+    return Tr2RenderContext_GetMainThreadRenderContext().BeginScene();
+  }
+
+  /**
+   * Clears the transient pool, then closes the scene (`Tr2Renderer.cpp:1072-1081`).
+   *
+   * The clear happens BEFORE EndScene, so every payload leased during the
+   * frame dies at one point.
+   *
+   * @returns {*} Whatever the backend's EndScene returns.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon's pool allocator is a Tr2Renderer static (s_poolAllocator); ours is per render context, so this clears the ambient context's. Moving the pool is open work - it has three call sites that read it off a context they were handed.")
+  static EndRenderContext()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    renderContext.GetTriPoolAllocator()?.Clear();
+    return renderContext.EndScene();
+  }
+
+  /**
+   * The frame the render path is currently working on.
+   *
+   * Carbon reads `g_currentFrameCounter`, which lives in `TriDevice.cpp:143`
+   * and is advanced by the tick at `:805` - so the counter is the device's and
+   * this only reads it (`Tr2Renderer.cpp:1088-1091`).
+   *
+   * @returns {number} The frame number.
+   */
+  @carbon.method
+  @impl.implemented
+  static GetCurrentFrameCounter()
+  {
+    return gTriDev.device.GetCurrentFrameCounter();
+  }
+
+  /**
+   * Grows the shared quad-list index buffer to hold `numOfQuads` quads.
+   *
+   * @param {number} [numOfQuads] Quads the caller needs indices for.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The early-outs are ported because TriDevice::Render calls this with zero every frame, and Carbon returns immediately for that. Actually growing the buffer needs CreateIndexBuffer and a Tr2SuballocatedBuffer allocation, neither of which is reachable yet, so it refuses rather than pretending. Carbon's IsResourceCreationAllowed guard has no counterpart here either.")
+  static ReserveQuadListIndexBuffer(numOfQuads = 0)
+  {
+    let requested = Math.max(Number(numOfQuads) || 0, 0);
+
+    if (requested <= Tr2Renderer.#quadListSize && Tr2Renderer.#quadListIndexBuffer) return;
+
+    requested = Math.max(requested, Tr2Renderer.#quadListSize);
+    if (requested === 0) return;
+
+    throw new Error(
+      "Tr2Renderer.ReserveQuadListIndexBuffer cannot grow the quad-list index buffer: " +
+      "index-buffer creation through Tr2SuballocatedBuffer is not implemented in CarbonEngineJS."
+    );
+  }
+
+  /**
+   * The shared quad-list index buffer allocation (`Tr2Renderer.cpp:1267-1270`).
+   *
+   * @returns {object|null} The allocation, or null while none has been made.
+   */
+  @carbon.method
+  @impl.implemented
+  static GetQuadListIndexBuffer()
+  {
+    return Tr2Renderer.#quadListIndexBuffer;
+  }
+
+  /** Carbon s_quadListSize. */
+  static #quadListSize = 0;
+
+  /** Carbon s_quadListIndexBuffer. */
+  static #quadListIndexBuffer = null;
+
+  /**
+   * Carbon's `s_renderTimeVar`, registered once and assigned every frame.
+   *
+   * @returns {object|null} The "Time" variable on the global store.
+   */
+  static #RenderTimeVariable()
+  {
+    if (!Tr2Renderer.#renderTimeVar)
+    {
+      Tr2Renderer.#renderTimeVar = Tr2VariableStore.GlobalStore().RegisterVariable("Time", [ 0, 0, 0, 0 ]);
+    }
+    return Tr2Renderer.#renderTimeVar;
+  }
+
+  static #renderTimeVar = null;
 
   /** Carbon's `Tr2RenderContextEnum::PIXEL_SHADER`, the one stage that differs. */
   static PIXEL_SHADER = 1;

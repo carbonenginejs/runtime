@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { Tr2RenderContext } from "../core/context/Tr2RenderContext.js";
+import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
 
@@ -38,7 +38,7 @@ export class Tr2RenderJobs extends CjsModel
   @impl.adapted
   Run(realTime, simTime, executor = null)
   {
-    const context = executor ?? Tr2RenderContext.GetDefault();
+    const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();
     if (!(context instanceof Tr2RenderContext))
     {
       throw new TypeError("Tr2RenderJobs.Run expects a Tr2RenderContext.");
@@ -87,7 +87,7 @@ export class Tr2RenderJobs extends CjsModel
   @impl.adapted
   RunUpdate(realTime, simTime, executor = null)
   {
-    const context = executor ?? Tr2RenderContext.GetDefault();
+    const context = executor ?? Tr2RenderContext_GetMainThreadRenderContext();
     if (!(context instanceof Tr2RenderContext))
     {
       throw new TypeError("Tr2RenderJobs.RunUpdate expects a Tr2RenderContext.");

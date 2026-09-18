@@ -1,5 +1,5 @@
 {
-  "recorded": "2026-09-17",
+  "recorded": "2026-09-18",
   "findings": [
     "missing-class DecalPSPerObjectData",
     "missing-class DecalVSPerObjectData",
@@ -653,7 +653,6 @@
     "omitted Tr2ProjectBoundingBoxBracket.PublishProjection",
     "omitted Tr2ProjectBoundingBoxBracket.SetFullViewportProjection",
     "omitted Tr2RenderContext.BeginParallelEncoding",
-    "omitted Tr2RenderContext.DestroyMainThreadRenderContext",
     "omitted Tr2RenderContext.EndParallelEncoding",
     "omitted Tr2RenderContext.Fork",
     "omitted Tr2RenderContext.Join",
@@ -787,7 +786,6 @@
     "omitted TriDevice.SetTextureLoadDisabled",
     "omitted TriDevice.SetThrottling",
     "omitted TriDevice.ShouldSkipFrame",
-    "omitted TriDevice.Throttle",
     "omitted TriDevice.UnregisterResource",
     "omitted TriDevice.Update",
     "omitted TriObserverLocal.GetDebugOptions",

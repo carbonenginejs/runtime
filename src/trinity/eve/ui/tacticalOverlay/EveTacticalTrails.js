@@ -7,7 +7,7 @@ import { CjsModel } from "#model";
 import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
-import { Tr2RenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Failed } from "../../../../trinityal/ALResult.js";
@@ -135,11 +135,11 @@ export class EveTacticalTrails extends withIEveSpaceObject2(withITr2Renderable(C
    * context stands in, overridable for a caller that owns one.
    *
    * @param {number} now Seconds, on the same clock as the samples' times.
-   * @param {object} [renderContext] Defaults to Tr2RenderContext.GetDefault().
+   * @param {object} [renderContext] Defaults to Tr2RenderContext_GetMainThreadRenderContext().
    */
   @carbon.method
   @impl.implemented
-  UpdateGraphicsState(now, renderContext = Tr2RenderContext.GetDefault())
+  UpdateGraphicsState(now, renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     this.segments = this.trackedObjects.reduce(
       (sum, object) => sum + Math.max(object.positions?.length ?? 0, 1) - 1, 0);

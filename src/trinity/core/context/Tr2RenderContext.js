@@ -26,7 +26,7 @@
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
-import { impl, type } from "#schema";
+import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -140,19 +140,10 @@ export class Tr2RenderContext extends CjsModel
   // chunks once it exists.
   #poolAllocator = null;
 
-  // The frame clock, relocated here with the other Tr2Renderer statics. Carbon
-  // keeps the counter as a file-scope global in TriDevice.cpp:143 and the
-  // animation time as a TriDevice member; both are ADVANCED by the tick
-  // (TriDevice::Update, cpp:805/:823) and only READ by the render path
-  // (Tr2Renderer::GetCurrentFrameCounter, cpp:1090). Holding them here is what
-  // lets BeginFrame stay zero-argument as Carbon declares it, and matches the
-  // frameIndex an EveSpaceScene driver already documents as coming from
-  // GetCurrentFrameCounter. Trinity does not advance them: a driver does.
-
-
-
-
-
+  // THE FRAME CLOCK IS NOT HERE. It was, as a stand-in while the tick was
+  // unported; the tick landed on TriDevice (2026-09-18) and the readers moved
+  // to Tr2Renderer's statics with it, which is where Carbon declares them
+  // (Tr2Renderer.h:125-133).
 
   #debugRenderer = null;
 
@@ -265,102 +256,32 @@ export class Tr2RenderContext extends CjsModel
     return this.#stepExecutor.EndBatch(owner, this);
   }
 
-  // The clock is the DEVICE's, and was kept here as a stand-in while the tick
-  // was unported. Carbon reads both through gTriDev - GetCurrentFrameCounter
-  // is g_currentFrameCounter (Tr2Renderer.cpp:1088-1091) and GetAnimationTime
-  // is gTriDev->GetAnimationTime() - so these forward rather than hold.
-
-  /** The frame the render path is currently working on. */
-  GetCurrentFrameCounter()
-  {
-    return gTriDev.device.GetCurrentFrameCounter();
-  }
-
-  /** The animation clock the render path publishes, in seconds. */
-  GetAnimationTime()
-  {
-    return gTriDev.device.GetAnimationTime();
-  }
+  // Carbon's context INHERITS BeginScene/EndScene from the abstraction layer
+  // (`Tr2RenderContextDx11.h:67-68`, and the same pair on dx12, metal and the
+  // stub), and `Tr2Renderer::BeginRenderContext` is a one-line forward to them
+  // (`Tr2Renderer.cpp:1066-1081`). The frame bracket therefore belongs to the
+  // backend, not to a step executor: the AL stub's own comment already says so,
+  // and the WebGPU backend opens its command encoder in BeginScene and submits
+  // in EndScene.
 
   /**
-   * Advances the frame clock.
+   * Opens the backend's scene for this frame.
    *
-   * Carbon advances it in `TriDevice::Tick` (cpp:805-823), which is where it
-   * lives now, so this forwards. It takes an animation TIME rather than a
-   * simulation delta, because that is what its callers have; a caller with a
-   * simulation clock should tick the device directly.
+   * @returns {*} Whatever the backend returns; the stub returns true.
+   */
+  BeginScene()
+  {
+    return this.#requireAL("BeginScene").BeginScene();
+  }
+
+  /**
+   * Closes the backend's scene, submitting whatever it recorded.
    *
-   * @param {number} [animationTime] Absolute animation time, in seconds.
-   * @returns {Tr2RenderContext} This context.
+   * @returns {*} Whatever the backend returns; WebGPU's returns a promise.
    */
-  @impl.custom
-  @impl.reason("Carbon has no such method: TriDevice::Tick advances the clock from a simulation delta. This exists for callers holding an absolute animation time, and sets it on the device rather than keeping a second copy.")
-  AdvanceFrame(animationTime = gTriDev.device.GetAnimationTime())
+  EndScene()
   {
-    const device = gTriDev.device;
-    device.frameCounter++;
-    device.previousAnimationTime = device.animationTime;
-    device.animationTime = Number(animationTime) || 0;
-    return this;
-  }
-
-  // Carbon Tr2Renderer::BeginFrame (Tr2Renderer.cpp:1040-1051): publishes the
-  // "Time" vector every consumer reads - x is the animation time, y its
-  // fractional part (a free 0..1 sawtooth for shaders), z the frame counter,
-  // and w the PREVIOUS frame's animation time, which is what makes a shader
-  // able to compute its own delta. Carbon registers this on the global store
-  // (cpp:329), and Tr2VariableStore.GlobalStore() is the same root here.
-
-  /**
-   * Publishes the per-frame "Time" vector into the global variable store, as
-   * Carbon does at the start of every frame; returns the published vector.
-   */
-  BeginFrame()
-  {
-    const animationTime = gTriDev.device.GetAnimationTime();
-    const time = [
-      animationTime,
-      animationTime - Math.floor(animationTime),
-      gTriDev.device.GetCurrentFrameCounter(),
-      gTriDev.device.previousAnimationTime
-    ];
-
-    Tr2VariableStore.GlobalStore().RegisterVariable("Time", time);
-    return time;
-  }
-
-  // Carbon Tr2Renderer::EndFrame (Tr2Renderer.cpp:1053-1064) clears the debug
-  // text renderer and the debug line set, both Tr2Renderer statics. Only the
-  // debug renderer has a counterpart here (SetDebugRenderer); Carbon's global
-  // debug line set has no Trinity surface, so nothing stands in for it.
-
-  /**
-   * Ends the frame, clearing the installed debug renderer; returns this for
-   * chaining.
-   */
-  EndFrame()
-  {
-    // `SetDebugRenderer` takes whatever a render job hands it, and Carbon's
-    // own type (`Tr2DebugTextRenderer`) is not ported, so this is a foreign
-    // object. Asked explicitly rather than hedged, because the question really
-    // is "does this thing clear" and not "is one of our classes incomplete".
-    if (typeof this.#debugRenderer?.Clear === "function") this.#debugRenderer.Clear();
-
-    return this;
-  }
-
-  // Carbon Tr2Renderer::BeginRenderContext (Tr2Renderer.cpp:1066-1070) forwards
-  // to the backend context's BeginScene. The GPU-free context records the
-  // intent; an installed executor performs it.
-
-  /**
-   * Opens the scene for this frame, recording the intent and delegating to an
-   * installed executor's BeginScene; returns this for chaining.
-   */
-  BeginRenderContext()
-  {
-    this.#stepExecutor.BeginScene(this);
-    return this;
+    return this.#requireAL("EndScene").EndScene();
   }
 
   // Carbon: Tr2Renderer::GetPoolAllocator (Tr2Renderer.cpp:1083). The store
@@ -390,30 +311,6 @@ export class Tr2RenderContext extends CjsModel
   SetTriPoolAllocator(allocator)
   {
     this.#poolAllocator = allocator ?? null;
-    return this;
-  }
-
-  // Carbon clears the pool in Tr2Renderer::EndRenderContext (cpp:1072-1081),
-  // BEFORE EndScene, so every transient payload leased during the frame dies at
-  // one point. The frame driver calls this; nothing else may. EndScene is the
-  // required final operation even when resetting the transient pool throws.
-
-  /**
-   * Clears the per-object pool arena at the end of a frame, freeing every
-   * transient payload leased during it (Carbon calls TriPoolAllocator::Clear
-   * here, Tr2Renderer.cpp:1072-1081); a context that never leased one does
-   * nothing.
-   */
-  EndRenderContext()
-  {
-    try
-    {
-      this.#poolAllocator?.Clear();
-    }
-    finally
-    {
-      this.#stepExecutor.EndScene(this);
-    }
     return this;
   }
 
@@ -499,10 +396,10 @@ export class Tr2RenderContext extends CjsModel
     return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget, Number(slice) >>> 0);
   }
 
-  // THE BACKEND'S FRAME CLOCK, WHICH IS NOT THE ONE ABOVE. `AdvanceFrame` and
-  // `GetCurrentFrameCounter` are Trinity's - frames the render path has begun,
-  // driven by the frame driver. These two are the DEVICE's, and the gap between
-  // them is what a ring buffer fences against: rows recorded for a frame cannot
+  // THE BACKEND'S FRAME CLOCK, WHICH IS NOT TRINITY'S.
+  // `Tr2Renderer.GetCurrentFrameCounter` counts frames the render path has
+  // begun. These two count frames the BACKEND has recorded and retired, and the
+  // gap between them is what a ring buffer fences against: rows recorded for a frame cannot
   // be reused until the device reports that frame finished. Carbon keeps them
   // per backend (`Tr2PrimaryRenderContextDx11.h:46-47`), so they are the
   // abstraction layer's to answer and this only forwards.
@@ -851,7 +748,7 @@ export class Tr2RenderContext extends CjsModel
    * context; equal descriptions are one state. Created at effect load
    * (`Tr2EffectDescription.cpp:436`) and for sampler overrides
    * (`Tr2Effect.cpp:690`), both through the main-thread context, which is
-   * `GetDefault()` here.
+   * `Tr2RenderContext_GetMainThreadRenderContext()` here.
    *
    * @param {object} description A `Tr2SamplerDescription`.
    * @returns {object|null} A `Tr2SamplerStateAL`, shared, or null.
@@ -1489,6 +1386,20 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * The debug renderer installed on this context, or null.
+   *
+   * Carbon has no getter because its equivalent is a `Tr2Renderer` static the
+   * clearing code reads directly; ours lives here, so `Tr2Renderer.EndFrame`
+   * needs a way to reach it.
+   *
+   * @returns {object|null} The installed debug renderer.
+   */
+  GetDebugRenderer()
+  {
+    return this.#debugRenderer;
+  }
+
+  /**
    * Ends the frame at the device level.
    *
    * THIS IS NOT THE SWAP CHAIN'S PRESENT. Carbon has two, and they are reached
@@ -1876,12 +1787,16 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * The process-wide fallback context, constructed once when the class is
-   * defined, for callers with no context of their own.
+   * Releases the main-thread render context, as Carbon does
+   * (`Tr2RenderContext.cpp:310-318`). The next reach for it builds a new one.
+   *
+   * @returns {void}
    */
-  static GetDefault()
+  @carbon.method
+  @impl.implemented
+  static DestroyMainThreadRenderContext()
   {
-    return Tr2RenderContext.#defaultContext;
+    s_mainThreadRenderContext = null;
   }
 
   /**
@@ -1936,6 +1851,41 @@ export class Tr2RenderContext extends CjsModel
     }
     return false;
   }
+}
 
-  static #defaultContext = new Tr2RenderContext();
+
+// Source: trinity/trinity/Tr2RenderContext.cpp:300-329
+//
+// Carbon's file-scope `s_mainThreadRenderContext`, and the free function that
+// fills it on first reach. This is the ambient render context: the one a
+// caller with no context of its own gets, and the one every `Tr2Renderer`
+// static acts on.
+//
+// IT REPLACES AN INVENTED NAME. This was `Tr2RenderContext_GetMainThreadRenderContext()`, an
+// eagerly-constructed static field - the right mechanism under a name Carbon
+// does not use, which is exactly the failure agent-rules rule 3 describes. The
+// creation is lazy here because Carbon's is, and because a context built while
+// this module is still evaluating is a context built before anything could
+// have composed a backend onto it.
+let s_mainThreadRenderContext = null;
+
+/**
+ * The main-thread render context, created on first reach.
+ *
+ * Carbon guards this with a macro (`USE_MAIN_THREAD_RENDER_CONTEXT`) whose
+ * whole purpose is to make the site visible, and its header says why: if you
+ * are tempted to call this, first make sure no context is available higher up
+ * the callstack, and pass that one down instead. The same applies here. The
+ * legitimate callers are the `Tr2Renderer` frame statics and `TriDevice`,
+ * because Carbon's are the same ones.
+ *
+ * @returns {Tr2RenderContext} The process-wide context, never null.
+ */
+export function Tr2RenderContext_GetMainThreadRenderContext()
+{
+  if (!s_mainThreadRenderContext)
+  {
+    s_mainThreadRenderContext = new Tr2RenderContext();
+  }
+  return s_mainThreadRenderContext;
 }

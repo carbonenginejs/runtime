@@ -9,6 +9,8 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @type.define({ className: "TriDevice", family: "trinityCore" })
@@ -369,13 +371,95 @@ export class TriDevice extends CjsModel
     throw new Error("TriDevice.RefreshDeviceResources is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method Render -> PyRender (MAP_METHOD_AND_WRAP). */
+  /**
+   * The backend-neutral frame body (`TriDevice.cpp:1151-1187`).
+   *
+   * THE ORDER IS THE CONTRACT, and two parts of it are load bearing:
+   *
+   * - the bracket is ASYMMETRIC. `EndRenderContext` rewinds the per-object
+   *   pool before ending the scene, so every transient payload leased during
+   *   the frame dies inside the bracket that leased it;
+   * - PRESENTATION IS NOT HERE. The previous frame is presented at the top of
+   *   the NEXT tick, which is what overlaps CPU and GPU work.
+   *
+   * TWO CARBON STEPS ARE MISSING, and they are absent rather than reworked.
+   * `Tr2SyncToGpu::GetInstance().Tick()` has no port at all, and
+   * `Tr2GpuProfiler` exists only as a generated shell with fields and no
+   * `BeginFrame`/`EndFrame`. Both are named here so the gap is visible at the
+   * site that needs them, rather than being discovered as a silent omission.
+   *
+   * @returns {boolean} True, as Carbon's does.
+   */
   @carbon.method
-  @impl.notImplemented
-  Render(...args)
+  @impl.adapted
+  @impl.reason("Tr2SyncToGpu is unported and Tr2GpuProfiler is a fields-only shell, so their two calls are absent from the body. Everything else is Carbon's order verbatim.")
+  Render()
   {
-    throw new Error("TriDevice.Render is not implemented in CarbonEngineJS.");
+    this.Throttle();
+
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    // Tr2SyncToGpu::GetInstance().Tick() belongs here - unported.
+
+    if (this.viewport) renderContext.SetViewport(this.viewport);
+
+    // Tr2GpuProfiler::GetProfiler().BeginFrame(Tr2Renderer.GetCurrentFrameCounter()) belongs here - unported.
+
+    Tr2Renderer.BeginFrame();
+    Tr2Renderer.BeginRenderContext();
+    Tr2Renderer.ReserveQuadListIndexBuffer(0);
+
+    this.#renderJobs?.Run(this.realTime, this.simTime);
+
+    // Tr2GpuProfiler::GetProfiler().EndFrame() belongs here - unported.
+
+    Tr2Renderer.EndRenderContext();
+    Tr2Renderer.EndFrame();
+
+    return true;
   }
+
+  /**
+   * Sleeps the frame when the window is out of focus, hidden, or the machine
+   * is thermally throttled (`TriDevice.cpp:1227-1260`).
+   *
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.notSupported
+  @impl.reason("Carbon throttles by blocking the render thread with CcpThreadSleep and by shrinking the TBB thread pool. A browser has neither: blocking the main thread is what a frame budget is trying to avoid, and requestAnimationFrame already stops delivering frames to a hidden document, which is the case this exists for. Kept as a call site so the frame body is Carbon's order and a host that CAN throttle has somewhere to do it.")
+  Throttle()
+  {
+  }
+
+  /**
+   * The render jobs the frame body runs (`TriDevice.cpp:1119-1122`).
+   *
+   * @param {object|null} renderJobs A `Tr2RenderJobs`, or null to detach.
+   * @returns {TriDevice} This device.
+   */
+  @carbon.method
+  @impl.implemented
+  SetRenderJobs(renderJobs)
+  {
+    this.#renderJobs = renderJobs ?? null;
+    return this;
+  }
+
+  /**
+   * The render jobs installed on this device, or null.
+   *
+   * @returns {object|null} The installed `Tr2RenderJobs`.
+   */
+  @impl.custom
+  @impl.reason("Carbon's m_renderJobs is a member the frame body reads directly; a private field needs an accessor for anyone else to see what is installed.")
+  GetRenderJobs()
+  {
+    return this.#renderJobs;
+  }
+
+  /** Carbon m_renderJobs (TriDevice.h:311). */
+  #renderJobs = null;
 
   /** Carbon method GetRenderingPlatformID (MAP_METHOD_AND_WRAP). */
   @carbon.method
@@ -415,14 +499,6 @@ export class TriDevice extends CjsModel
   DoesD3DDeviceExist(...args)
   {
     throw new Error("TriDevice.DoesD3DDeviceExist is not implemented in CarbonEngineJS.");
-  }
-
-  /** Carbon method SetRenderJobs (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.notImplemented
-  SetRenderJobs(...args)
-  {
-    throw new Error("TriDevice.SetRenderJobs is not implemented in CarbonEngineJS.");
   }
 
   /** Carbon method SetUpscaling (MAP_METHOD_AND_WRAP). */

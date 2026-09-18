@@ -25,16 +25,6 @@ export class CjsDirectTrinityStepExecutor extends CjsTrinityStepExecutor
     return step.EndExecute(context);
   }
 
-  /** Opens a GPU-free scene bracket. */
-  BeginScene(_context)
-  {
-  }
-
-  /** Closes a GPU-free scene bracket. */
-  EndScene(_context)
-  {
-  }
-
   /** Pushes the default render-target and depth-stencil batch state. */
   BeginBatch(_owner, context)
   {

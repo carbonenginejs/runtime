@@ -126,25 +126,31 @@ viewport publication, profiler open, the frame-clock publication, the scene
 bracket, reserved quad indices, render jobs, profiler close, scene close, and
 frame close.
 
-**It is not ported.** Carbon places it on each backend `TriDevice`
-(`TriDevice.cpp:1151-1187` and `:805-843`, with `Tr2Renderer.cpp:1040-1081`), and
-`TriDevice` here carries only present parameters. A previous port, core's
-`CjsFrameDriver`, hoisted the order into composition and took the device-facing
-steps from an injected lifecycle; it was deleted on 2026-09-17 with no caller
-and no lifecycle implementer, being the retired graph/realization split in
-miniature. The order above is recorded here so the donor lines are the thing
-that gets read when it is ported properly, onto the device.
+**It is `TriDevice.Render`** (`TriDevice.cpp:1151-1187`), and the steps it calls
+are `Tr2Renderer`'s frame statics (`Tr2Renderer.h:125-133`), which reach the
+ambient main-thread render context exactly as Carbon's do. An earlier port,
+core's `CjsFrameDriver`, hoisted the same order into composition and took the
+device-facing steps from an injected lifecycle; it was deleted on 2026-09-17
+with no caller and no lifecycle implementer, being the retired
+graph/realization split in miniature.
 
-Two parts of that order are load-bearing. The entry and exit are deliberately
+Two Carbon steps are absent rather than reworked, and the body names both at
+the site: `Tr2SyncToGpu` has no port, and `Tr2GpuProfiler` is a generated shell
+with fields and no `BeginFrame`/`EndFrame`.
+
+Two parts of the order are load-bearing. The entry and exit are deliberately
 asymmetric: the scene close rewinds the per-object pool before ending the
 scene, so every transient payload dies inside the bracket that leased it.
 And presentation is not part of a frame — the previous frame is presented at the
 top of the next tick, before the frame body, which is what overlaps CPU and GPU
 work. The tick belongs to an engine, as it does in Carbon's per-backend device.
 
-`Tr2RenderContext` carries the frame clock, because the frame counter and
-animation time are read by the render path and advanced by the tick. Trinity
-does not advance them; core's driver does.
+The frame clock is the device's. `TriDevice::Tick` advances the frame counter
+and the animation time; `Tr2Renderer.GetCurrentFrameCounter` and
+`Tr2Renderer.GetAnimationTime` read them back through `gTriDev`, holding no
+copy. `Tr2RenderContext` carried both as a stand-in until 2026-09-18 and no
+longer does — its own `GetRecordingFrameNumber`/`GetRenderedFrameNumber` are
+the BACKEND's counters, which is a different question.
 
 ## Render-batch contract
 

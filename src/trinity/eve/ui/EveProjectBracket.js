@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Eve/UI/EveProjectBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { CjsModel } from "#model";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { carbon, impl, io, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -91,7 +92,14 @@ export class EveProjectBracket extends CjsModel
 
     if (this.trackBall)
     {
-      this.trackBall.GetValueAt(renderContext.GetAnimationTime(), position);
+      // CARBON READS A DIFFERENT CLOCK HERE: `BeOS->GetCurrentFrameTime()`
+      // (`EveProjectBracket.cpp:72`), the OS frame time, not the animation
+      // time. `BeOS` is unported, and the animation clock is the only
+      // per-frame time this runtime has, so it stands in. The two differ
+      // whenever the animation clock is scaled or recentred - recorded rather
+      // than hidden, because a track ball sampled on the wrong clock drifts
+      // instead of failing.
+      this.trackBall.GetValueAt(Tr2Renderer.GetAnimationTime(), position);
       vec3.scale(position, position, this.ballTrackingScaling);
     }
     else if (this.trackTransform)
