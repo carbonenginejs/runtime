@@ -39,7 +39,10 @@ export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
     "dirt-map-array",
     // Last in the lowering order, so it appears only in a container nothing
     // above it could bring under the unit budget. Both games reach it.
-    "pmdg-map-array"
+    //
+    // A PACKING family, not an array: its members are channels of one texel.
+    // The wire enum does not care, but a reader keying on the name does.
+    "pmdg-channel-pack"
 ]);
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
@@ -86,6 +89,28 @@ export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
  * The reader restores these rather than storing them, so a family that omitted
  * its entry here would silently inherit another family's constants.
  */
+/**
+ * Constants a `pmdg-channel-pack` transform restores rather than storing.
+ *
+ * A packing family produces one plain 2D texture whose channels are its
+ * members, so its view dimension and kind differ from every array family - and
+ * a consumer that treated it as an array would bind a stack of four textures
+ * where one was meant.
+ *
+ * `missingLayer: "reject"` for the same reason the arrays use it: a member that
+ * cannot be resolved leaves a channel carrying another map's data, which reads
+ * as a plausible image rather than an absence.
+ */
+const PMDG_CHANNEL_PACK_DEFAULTS = Object.freeze({
+    version: 1,
+    kind: "texture-2d-packed",
+    stage: "fragment",
+    representation: "rgba8",
+    missingLayer: "reject",
+    viewDimension: "2d",
+    outputName: "PmdgMap"
+});
+
 const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
     ...Object.fromEntries(TEXTURE_ARRAY_FAMILIES.map((definition) => [
         definition.family,
@@ -95,6 +120,7 @@ const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
         Object.freeze({ ...DETAIL_MAP_ARRAY_DEFAULTS, outputName: definition.outputName })
     ])),
     "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
+    "pmdg-channel-pack": PMDG_CHANNEL_PACK_DEFAULTS,
     "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
 });
 

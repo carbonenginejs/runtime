@@ -829,6 +829,7 @@ function translateStages(shaderMap, stageMap, values)
                 ...(selected.length
                     ? {
                         textureArrayFamilies: selected.map((plan) => ({
+                            kind: plan.kind,
                             family: plan.family,
                             outputName: plan.outputName,
                             registers: plan.registers

@@ -33,39 +33,53 @@
  * A row here does not mean "always merge". The families are tried in table
  * order and only as many as the unit budget requires; a stage that already fits
  * merges nothing and keeps its own samplers. That is cheaper at runtime - every
- * array that is never built is an aggregate that never has to be composed - and
- * it is what makes the merge invisible to a consumer, because a permutation
- * that drops below the budget simply stops merging.
+ * aggregate that is never built is one that never has to be composed - and it
+ * is what makes the merge invisible to a consumer, because a permutation that
+ * drops below the budget simply stops merging.
  *
- * ## Why PMDG is an ordinary row and not a per-target exception
+ * ## Two kinds of merge, and the difference is what the data IS
  *
- * `PaintMaskMap`, `MaterialMap`, `DirtMap` and `GlowMap` were one packed texture
- * until CCP unpacked them. A row for them was written, removed on a standing
- * "never on EVE" ruling, and restored when that ruling was shown to collapse
- * into the ordering (operator, 2026-09-18).
+ * - `array` - the same kind of data in several images, told apart by layer.
+ *   The detail maps are this: three images sampled at the same coordinate but
+ *   at different scales, which is why each carries its own `LodUvScale`
+ *   annotation. They cannot share a texel.
  *
- * The collapse: a per-target list can only change the outcome in the case where
- * the ordering already reached this row - that is, where the stage did NOT fit
- * without it. Withholding the row there does not save anything; it produces a
- * program that exceeds the unit limit and does not link. The guard can only
- * fire where firing is the wrong thing to do.
+ * - `pack` - different kinds of SCALAR data at one coordinate, each read for a
+ *   single channel. Four of those are one RGBA texture, read once. An array
+ *   would also cost one unit, but it would cost four fetches to read four
+ *   scalars and a `sampler2DArray` for data that was never layered.
  *
- * And EVE does reach it. `quadheatdetailv5` and its three prefix forms are 17
- * emitted samplers on `.sm_depth` at build 3503375, the only EVE containers over
- * 16, and PPT-enabled bodies carry two pattern masks on top of that. CCP met the
- * same wall: the shader exists in the dx11 tree and is absent from gles2,
- * skipped because it could not be lowered.
+ * Measured on Frontier's `pbr/shipquadmaterial`, thirteen samplers each
+ * contribute exactly one scalar - the four roughness maps, the dirt pair, the
+ * atlas trio, grunge, gradient and curvature. The storage is not
+ * single-channel; the CONSUMPTION is, so the packing happens on our side.
+ * `/docs/research/frontier-shader-budget.md`.
+ *
+ * ## PMDG is a packing family because it always was one texture
+ *
+ * `PaintMaskMap`, `MaterialMap`, `DirtMap` and `GlowMap` were one texture until
+ * CCP separated them - the acronym is that texture's channel order. Merging
+ * them is not an invention, it is undoing the split, and the form it undoes to
+ * is the original: one RGBA texture, one fetch, four scalars.
+ *
+ * A row for them was written as an array, removed on a standing "never on EVE"
+ * ruling, restored when that ruling was shown to collapse into the ordering,
+ * and is now a packing row because the array shape was wrong (operator,
+ * 2026-09-18).
+ *
+ * The ruling collapsed because a per-target list can only change the outcome
+ * where the ordering already reached this row - that is, where the stage did
+ * NOT fit without it. Withholding it there produces a program over the unit
+ * limit rather than a saving. EVE does reach it: `quadheatdetailv5` and its
+ * three prefix forms are 17 emitted samplers on `.sm_depth` at build 3503375,
+ * the only EVE containers over 16. CCP met the same wall - that shader is in
+ * the dx11 tree and absent from gles2, skipped because it could not be lowered.
  *
  * So there is no per-game family list. There is one ordered list and a budget.
  *
- * One hazard survives the collapse, because it is about the layers rather than
- * the selection: an array needs its layers to agree on format and mip count, and
- * these do not always - EVE's `gb1_t1` PaintMask carries 12 mips against its
- * siblings' 11, and Frontier's DirtMap is DX10 against ATI1 siblings. That is
- * resolved by converting in the background, not by declining to merge; see
- * `/docs/contracts/texture-array-realization.md`.
- *
  * Numbers for both games: `/docs/contracts/quad-family-texture-budget.md`.
+ * What happens when the sources disagree on shape or format:
+ * `/docs/contracts/texture-array-realization.md`.
  */
 
 /** Carbon's resource type code for a 2D texture. */
@@ -83,24 +97,28 @@ const CARBON_TEXTURE_2D = 2;
  */
 export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     Object.freeze({
+        kind: "array",
         family: "detail-map-array",
         outputName: "DetailArrayMap",
         parameters: Object.freeze([ "Detail1Map", "Detail2Map", "Detail3Map" ]),
         minimum: 2
     }),
     Object.freeze({
+        kind: "array",
         family: "roughness-map-array",
         outputName: "RoughnessArrayMap",
         parameters: Object.freeze([ "Roughness1Map", "Roughness2Map", "Roughness3Map", "Roughness4Map" ]),
         minimum: 2
     }),
     Object.freeze({
+        kind: "array",
         family: "atlas-map-array",
         outputName: "AtlasArrayMap",
         parameters: Object.freeze([ "AtlasAOMap", "AtlasPaintMap", "AtlasCurvatureMap" ]),
         minimum: 2
     }),
     Object.freeze({
+        kind: "array",
         family: "dirt-map-array",
         outputName: "DirtArrayMap",
         parameters: Object.freeze([ "DirtMap1", "DirtMap2" ]),
@@ -109,11 +127,14 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     // Last, so it is reached only by a stage that nothing above it could bring
     // under the budget. On EVE that is `quadheatdetailv5` alone.
     Object.freeze({
-        family: "pmdg-map-array",
-        outputName: "PmdgArrayMap",
-        // Layer order follows the registers, which are t4, t8, t9, t10 on both
-        // games and in that order: the recogniser requires ascending registers
-        // in parameter order, so the acronym's own order does not recognise.
+        kind: "pack",
+        family: "pmdg-channel-pack",
+        outputName: "PmdgMap",
+        // Channel order follows the REGISTERS - t4, t8, t9, t10 on both games,
+        // in that order - rather than the acronym, because the recogniser
+        // requires ascending registers in parameter order. Which scalar lands
+        // in which channel does not matter as long as the emitter and whatever
+        // builds the texture read it from here, and they both do.
         parameters: Object.freeze([ "GlowMap", "DirtMap", "MaterialMap", "PaintMaskMap" ]),
         minimum: 2
     })
@@ -189,6 +210,7 @@ export function recogniseTextureArrayFamily(definition, resources, options = {})
     }
 
     return Object.freeze({
+        kind: definition.kind ?? "array",
         family: definition.family,
         outputName: definition.outputName,
         registerSpace,

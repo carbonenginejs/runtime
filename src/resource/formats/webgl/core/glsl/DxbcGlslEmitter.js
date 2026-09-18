@@ -2607,14 +2607,22 @@ export class DxbcGlslEmitter
             for (const sampler of state.pairedSamplers.get(layerRegister) ?? []) pairings.add(sampler);
         }
 
-        state.declarationLines.push(`uniform mediump sampler2DArray ${symbol};`);
+        // A packing family stays a plain 2D texture - its members are channels
+        // of one texel, not layers of one stack - so the declaration, the
+        // sampler type and the coordinate all stay 2D.
+        const packing = merged.kind === "pack";
+        const samplerTypeName = packing ? "sampler2D" : "sampler2DArray";
+
+        state.declarationLines.push(`uniform mediump ${samplerTypeName} ${symbol};`);
         state.bindings.push({
             kind: "resource",
             registerIndex: register,
             name: symbol,
-            samplerType: "sampler2DArray",
-            dimensionName: "texture2darray",
-            arrayLayerCount: members.length,
+            samplerType: samplerTypeName,
+            dimensionName: packing ? "texture2d" : "texture2darray",
+            ...(packing
+                ? { packedChannelCount: members.length }
+                : { arrayLayerCount: members.length }),
             mergedFrom: members,
             mergedFamily: merged.family,
             ...(pairings.size ? { pairedSamplerRegisters: [ ...pairings ].sort((a, b) => a - b) } : {})
@@ -2644,10 +2652,21 @@ export class DxbcGlslEmitter
         for (const entry of families)
         {
             const symbol = `s${entry.outputName}`;
+            const kind = entry.kind ?? "array";
 
             for (const [ layer, register ] of (entry.registers || []).entries())
             {
-                map.set(register, { symbol, layer, family: entry.family, outputName: entry.outputName });
+                map.set(register, {
+                    symbol,
+                    layer,
+                    kind,
+                    // For a packing family the member's position IS its channel.
+                    // Nothing else decides it, which is why the family table's
+                    // parameter order is the one authority for both ends.
+                    channel: kind === "pack" ? "xyzw"[layer] : null,
+                    family: entry.family,
+                    outputName: entry.outputName
+                });
             }
         }
 
@@ -2666,7 +2685,29 @@ export class DxbcGlslEmitter
     {
         const merged = state.textureArrayLayers.get(texOperand.registerIndex);
 
-        return merged === undefined ? null : merged.layer;
+        // A packed member has no layer: its coordinate is unchanged and the
+        // redirect happens on the RESULT, in `_mergedChannel`.
+        return merged === undefined || merged.kind === "pack" ? null : merged.layer;
+    }
+
+    /**
+     * Returns the packed channel a texture operand reads, when it was packed.
+     *
+     * The member's whole sampled value becomes that one channel broadcast, which
+     * is faithful precisely because the premise of a packing family is that the
+     * map is consumed for a single scalar. A member read for more than that is
+     * not a packing candidate and the family table is where that is decided.
+     *
+     * @param {object} state Mutable emission state.
+     * @param {object} texOperand Texture resource operand.
+     * @returns {string|null} Channel letter, or null when not packed.
+     * @private
+     */
+    _mergedChannel(state, texOperand)
+    {
+        const merged = state.textureArrayLayers.get(texOperand.registerIndex);
+
+        return merged === undefined || merged.kind !== "pack" ? null : merged.channel;
     }
 
     /**
@@ -2890,6 +2931,15 @@ export class DxbcGlslEmitter
             call = `texture(${texName}, ${coord})`;
         }
         call = this._applyEmulatedAddressing(state, instruction, call, coord, coordMask);
+
+        // A packed member's texel carries three other maps' scalars in its other
+        // channels, so the value has to be reduced to its own before the
+        // instruction's swizzle runs - otherwise a read of .y would silently
+        // return a neighbouring map.
+        const packedChannel = this._mergedChannel(state, texOperand);
+
+        if (packedChannel !== null) call = `vec4((${call}).${packedChannel})`;
+
         this._assign(state, instruction, `${call}.${returnSwizzle}`, { saturate: instruction.saturate });
     }
 
@@ -3541,6 +3591,22 @@ DxbcGlslEmitter.prototype._gather4 = function _gather4(state, instruction)
     // A merged detail map is declared 2D but sampled through an array, so the
     // array helper and the layered coordinate are selected by the merge rather
     // than by the declared dimension.
+    // Gather returns four neighbouring texels of ONE channel; for a packed
+    // member that channel is the pack's, not the map's, and no swizzle after
+    // the fact recovers it. Refuse rather than emit something plausible.
+    if (this._mergedChannel(state, texOperand) !== null)
+    {
+        throw new WebglReadError(
+            `${state.textureArrayLayers.get(texOperand.registerIndex).outputName} channel is used by `
+            + `${instruction.opcodeName}, which this emitter cannot redirect at a packed channel`,
+            {
+                source: state.sourceName,
+                register: texOperand.registerIndex,
+                opcodeName: instruction.opcodeName
+            }
+        );
+    }
+
     const arrayLayer = this._textureArrayLayer(state, texOperand);
     const asArray = dimension === 8 || arrayLayer !== null;
     const helper = this.helpers.require(
