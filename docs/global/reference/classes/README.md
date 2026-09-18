@@ -145,6 +145,16 @@ The half of `BeOS` a browser can answer honestly: the clock, the frame-time cach
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CcpDateTime -->
+## `CcpDateTime`
+
+A Blue timestamp broken into UTC calendar fields, laid out as Win32 SYSTEMTIME so that `dayOfWeek` sits between `month` and `day` and is output only.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CcpDateTime.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:BeInfo -->
 ## `BeInfo`
 

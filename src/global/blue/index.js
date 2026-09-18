@@ -20,6 +20,8 @@ export * from "./ICatchupTicks.js";
 export * from "./ISimTimeRebaseNotify.js";
 export * from "./IBlueOS.js";
 export * from "./CjsBlueOS.js";
+export * from "./CcpDateTime.js";
+export * from "./CcpTime.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
 export * from "./IInitialize.js";

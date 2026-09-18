@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.h
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
 import { vec3 } from "#math/vec3";
+import { blue, TimeAsDouble } from "#blue";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 
@@ -93,11 +94,10 @@ export class Tr2DistanceTracker extends CjsModel
    * Refreshes the value after a notified source/target modification.
    */
   @carbon.method
-  @impl.adapted
-  OnModified(options = {})
+  @impl.implemented
+  OnModified(_value = null)
   {
-    const time = Number(options?.time ?? 0);
-    this.UpdateValue(time);
+    this.UpdateValue(TimeAsDouble(blue.os.GetCurrentFrameTime()));
     return true;
   }
 }

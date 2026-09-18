@@ -173,6 +173,9 @@
     "src/character/trinity/trinityCore/ITr2SkinnedObject.js": [
       "ITr2SkinnedObject"
     ],
+    "src/global/blue/CcpTime.js": [
+      "CcpTime"
+    ],
     "src/resource/formats/hlsl/core/HlslBinaryUtils.js": [
       "HlslBinaryUtils"
     ],
