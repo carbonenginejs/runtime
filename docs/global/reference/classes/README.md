@@ -65,6 +65,16 @@ Optional per-call notice of whether a resource request was answered from the cac
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:INotify -->
+## `INotify`
+
+Carbon's single-method hook, called when something outside the object edits a member the class flagged for notification. One implementor per class; it is not the event emitter, and a reader calls it or `IInitialize` but never both.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/INotify.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:IBlueDynamicResourceConstructor -->
 ## `IBlueDynamicResourceConstructor`
 
