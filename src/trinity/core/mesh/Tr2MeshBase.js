@@ -5,7 +5,7 @@ import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { carbon, CjsSchema, edit, impl, invalidation, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -27,73 +27,73 @@ export class Tr2MeshBase extends CjsModel
   @type.boolean
   display = true;
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.notify
   @edit.persist
   @type.int32
   meshIndex = 0;
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   opaqueAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   decalAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   depthAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   transparentAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   additiveAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   pickableAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   mirrorAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   decalNormalAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   depthNormalAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   opaquePrepassAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   decalPrepassAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   geometryEraserAreas = [];
 
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @edit.persist
   @type.list("Tr2MeshArea")
   distortionAreas = [];
@@ -101,7 +101,7 @@ export class Tr2MeshBase extends CjsModel
   // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue, so
   // this list is typed without being read or persisted: the type declaration is
   // what makes its areas reachable to graph traversal, independent of edit.
-  @edit.rebuild("batches")
+  @invalidation.rebuild("batches")
   @type.list("Tr2MeshArea")
   flareAreas = [];
 

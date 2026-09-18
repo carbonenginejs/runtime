@@ -6,7 +6,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
@@ -34,7 +34,7 @@ export class EveBoosterSet2 extends EveEntity
   flareLodEnabled = true;
 
   /** m_staticTrailLength (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("staticTrailOffsets")
+  @invalidation.flag("staticTrailOffsets")
   @edit.notify
   @edit.persist
   @type.float32
@@ -111,28 +111,28 @@ export class EveBoosterSet2 extends EveEntity
   alwaysOnIntensity = 1;
 
   /** m_warpGlowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.color
   warpGlowColor = vec4.create();
 
   /** m_glowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.color
   glowColor = vec4.create();
 
   /** m_haloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.color
   haloColor = vec4.create();
 
   /** m_warpHaloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.color
@@ -144,7 +144,7 @@ export class EveBoosterSet2 extends EveEntity
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -160,28 +160,28 @@ export class EveBoosterSet2 extends EveEntity
   maxVel = 250;
 
   /** m_glowScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.float32
   glowScale = 1;
 
   /** m_symHaloScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.float32
   symHaloScale = 1;
 
   /** m_haloScaleX (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.float32
   haloScaleX = 1;
 
   /** m_haloScaleY (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.flag("flares")
+  @invalidation.flag("flares")
   @edit.notify
   @edit.persist
   @type.float32
@@ -237,8 +237,8 @@ export class EveBoosterSet2 extends EveEntity
   @type.objectRef("EveTrailsSet")
   trails = null;
 
-  @edit.flag("items")
-  @edit.rebuild("packedGeometry")
+  @invalidation.flag("items")
+  @invalidation.rebuild("packedGeometry")
   @edit.notify
   @edit.persist
   @type.list("EveBoosterSet2Item")

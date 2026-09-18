@@ -10,11 +10,11 @@ import { RUNTIME_STATE_PROTOTYPE } from "../compose/runtimeState.js";
  *   (direct writes, Object.assign, reader adapters) owes a `MarkDirty()`
  *   or an explicit `UpdateValues()` ("I made changes, apply please").
  * - `flags` holds lazy invalidations ("bounds is stale"). Written at
- *   mutation time from `@edit.flag` field metadata or by class code; cleared
+ *   mutation time from `@invalidation.flag` field metadata or by class code; cleared
  *   ONLY by the getter that recomputes the derived value. Never
  *   auto-cleared - deferring until needed is their whole point.
  * - `rebuild` holds scheduled work requirements ("vertices need
- *   rebuilding"). Written at mutation time from `@edit.rebuild` field
+ *   rebuilding"). Written at mutation time from `@invalidation.rebuild` field
  *   metadata or by class code; cleared ONLY by the specific work method
  *   that succeeds (e.g. RebuildVertices), typically driven from Update /
  *   per-frame passes. Never auto-cleared.

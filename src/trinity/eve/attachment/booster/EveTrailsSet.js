@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveTrailsSet.cpp
 import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 
 
 /**
@@ -24,13 +24,13 @@ export class EveTrailsSet extends CjsModel
   fadeSpeed = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @edit.rebuild("geometry")
+  @invalidation.rebuild("geometry")
   @edit.notify
   @edit.persist
   @type.string

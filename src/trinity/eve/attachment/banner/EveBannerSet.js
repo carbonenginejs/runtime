@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
@@ -30,7 +30,7 @@ import {
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.list("EveBannerItem")
   banners = [];
@@ -39,7 +39,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;

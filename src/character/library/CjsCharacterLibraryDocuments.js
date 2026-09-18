@@ -1,4 +1,4 @@
-import { CjsSchema, edit, type } from "#schema";
+import { CjsSchema, edit, invalidation, type } from "#schema";
 import { CjsModel } from "#model";
 import "../model/index.js";
 
@@ -85,102 +85,102 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     }
 
     @edit.readwrite
-    @edit.flag("index:ancestries")
+    @invalidation.flag("index:ancestries")
     @type.list("CjsCharacterAncestry")
     ancestries = [];
 
     @edit.readwrite
-    @edit.flag("index:archetypes")
+    @invalidation.flag("index:archetypes")
     @type.list("CjsCharacterArchetype")
     archetypes = [];
 
     @edit.readwrite
-    @edit.flag("index:bloodlines")
+    @invalidation.flag("index:bloodlines")
     @type.list("CjsCharacterBloodline")
     bloodlines = [];
 
     @edit.readwrite
-    @edit.flag("index:characterAvatarBehaviors")
+    @invalidation.flag("index:characterAvatarBehaviors")
     @type.list("CjsCharacterAvatarBehavior")
     characterAvatarBehaviors = [];
 
     @edit.readwrite
-    @edit.flag("index:characterColorLocations")
+    @invalidation.flag("index:characterColorLocations")
     @type.list("CjsCharacterColorLocation")
     characterColorLocations = [];
 
     @edit.readwrite
-    @edit.flag("index:characterColorNames")
+    @invalidation.flag("index:characterColorNames")
     @type.list("CjsCharacterColorName")
     characterColorNames = [];
 
     @edit.readwrite
-    @edit.flag("index:characterModifierLocations")
+    @invalidation.flag("index:characterModifierLocations")
     @type.list("CjsCharacterModifierLocation")
     characterModifierLocations = [];
 
     @edit.readwrite
-    @edit.flag("index:characterPortraitResources")
+    @invalidation.flag("index:characterPortraitResources")
     @type.list("CjsCharacterPortraitResource")
     characterPortraitResources = [];
 
     @edit.readwrite
-    @edit.flag("index:characterResources")
+    @invalidation.flag("index:characterResources")
     @type.list("CjsCharacterResource")
     characterResources = [];
 
     @edit.readwrite
-    @edit.flag("index:characterSculptingLocations")
+    @invalidation.flag("index:characterSculptingLocations")
     @type.list("CjsCharacterSculptingLocation")
     characterSculptingLocations = [];
 
     @edit.readwrite
-    @edit.flag("index:paperdolls")
+    @invalidation.flag("index:paperdolls")
     @type.list("CjsCharacterPaperdoll")
     paperdolls = [];
 
     @edit.readwrite
-    @edit.flag("index:races")
+    @invalidation.flag("index:races")
     @type.list("CjsCharacterRace")
     races = [];
 
     @edit.readwrite
-    @edit.flag("index:characterDefinitions")
+    @invalidation.flag("index:characterDefinitions")
     @type.list("CjsCharacterDefinition")
     characterDefinitions = [];
 
     @edit.readwrite
-    @edit.flag("index:characterPartTypes")
+    @invalidation.flag("index:characterPartTypes")
     @type.list("CjsCharacterPartType")
     characterPartTypes = [];
 
     @edit.readwrite
-    @edit.flag("index:characterPartSources")
+    @invalidation.flag("index:characterPartSources")
     @type.list("CjsCharacterPartSource")
     characterPartSources = [];
 
     @edit.readwrite
-    @edit.flag("index:characterPartMetadata")
+    @invalidation.flag("index:characterPartMetadata")
     @type.list("CjsCharacterPartMetadata")
     characterPartMetadata = [];
 
     @edit.readwrite
-    @edit.flag("index:characterMaterialProfiles")
+    @invalidation.flag("index:characterMaterialProfiles")
     @type.list("CjsCharacterMaterialProfile")
     characterMaterialProfiles = [];
 
     @edit.readwrite
-    @edit.flag("index:characterProjectionProfiles")
+    @invalidation.flag("index:characterProjectionProfiles")
     @type.list("CjsCharacterProjectionProfile")
     characterProjectionProfiles = [];
 
     @edit.readwrite
-    @edit.flag("index:characterRecipeProfiles")
+    @invalidation.flag("index:characterRecipeProfiles")
     @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
 
     @edit.readwrite
-    @edit.flag("index:characterTextureMetadata")
+    @invalidation.flag("index:characterTextureMetadata")
     @type.list("CjsCharacterTextureMetadata")
     characterTextureMetadata = [];
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
@@ -11,7 +11,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
-  @edit.flag("resource")
+  @invalidation.flag("resource")
   @edit.notify
   @edit.persist
   @type.string

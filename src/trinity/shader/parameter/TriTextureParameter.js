@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -19,7 +19,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @carbon.inherit(ITriEffectTextureParameter)
 export class TriTextureParameter extends CjsParameter
 {
-  @edit.flag("resource")
+  @invalidation.flag("resource")
   @edit.notify
   @edit.persist
   @type.path
@@ -45,7 +45,7 @@ export class TriTextureParameter extends CjsParameter
   @type.boolean
   usedByCurrentEffect = false;
 
-  @edit.flag("effectHandles")
+  @invalidation.flag("effectHandles")
   @edit.notify
   @edit.persist
   @type.string

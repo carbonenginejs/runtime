@@ -17,10 +17,8 @@ CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "tes
 CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
 CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
-CjsSchema.defineField(ChildModel, "deleteRequested", "edit", {
-    persist: true,
-    rebuild: [ "delete" ]
-});
+CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
+CjsSchema.defineField(ChildModel, "deleteRequested", "invalidation", { rebuild: [ "delete" ] });
 
 class ParentModel extends CjsModel
 {
@@ -76,9 +74,9 @@ CjsSchema.defineField(ParentModel, "children", "type", {
     kind: "list",
     itemType: "ChildMutationTestChild"
 });
-CjsSchema.defineField(ParentModel, "children", "edit", {
-    persist: true,
-    ownership: "owned",
+CjsSchema.defineField(ParentModel, "children", "edit", { persist: true });
+CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
+CjsSchema.defineField(ParentModel, "children", "invalidation", {
     flag: [ "bounds" ],
     rebuild: [ "children" ]
 });

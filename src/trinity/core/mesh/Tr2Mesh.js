@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
@@ -22,7 +22,7 @@ export class Tr2Mesh extends Tr2MeshBase
 
   #morphAnimations = new Map();
 
-  @edit.rebuild("geometry")
+  @invalidation.rebuild("geometry")
   @edit.notify
   @edit.persist
   @type.string
@@ -37,7 +37,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @type.boolean
   deferGeometryLoad = false;
 
-  @edit.rebuild("geometry")
+  @invalidation.rebuild("geometry")
   @edit.read
   @type.objectRef("TriGeometryRes")
   geometry = null;

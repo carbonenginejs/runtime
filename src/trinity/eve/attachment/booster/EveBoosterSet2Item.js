@@ -12,7 +12,7 @@
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { edit, type } from "#schema";
+import { edit, invalidation, type } from "#schema";
 
 /**
  * One authored booster placement: its local transform, functionality inputs,
@@ -21,32 +21,32 @@ import { edit, type } from "#schema";
 @type.define({ className: "EveBoosterSet2Item", family: "eve/attachment/boosters" })
 export class EveBoosterSet2Item extends CjsModel
 {
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.mat4
   transform = mat4.create();
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec4
   functionality = vec4.fromValues(0, 1, 1, 1);
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   hasTrail = true;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.uint32
   atlasIndex0 = 0;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.uint32
   atlasIndex1 = 0;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   lightScale = 1;

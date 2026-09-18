@@ -929,7 +929,9 @@ export const carbon = CjsSchema.carbon;
 export { CjsSchema };
 export const impl = CjsSchema.impl;
 export const edit = CjsSchema.edit;
+export const invalidation = CjsSchema.invalidation;
 export const jessica = CjsSchema.jessica;
+export const lifecycle = CjsSchema.lifecycle;
 export const schema = CjsSchema;
 export const type = CjsSchema.type;
 
@@ -1207,15 +1209,16 @@ function settleChildMutation(target, field, options)
     if (!target.__state.updating) target.UpdateValues(options);
 }
 
-// Adds one field's declared @edit.flag / @edit.rebuild tokens to their stores.
-// Duplicate adds are no-ops (Sets). Nothing in the model layer ever clears
-// these stores - getters clear flags, work methods clear rebuild tokens.
+// Adds one field's declared @invalidation.flag / @invalidation.rebuild tokens
+// to their stores. Duplicate adds are no-ops (Sets). Nothing in the model layer
+// ever clears these stores - getters clear flags, work methods clear rebuild
+// tokens. GOING AWAY with the namespace; see CjsSchema.invalidation.
 function addDeclaredFieldTokens(target, field)
 {
-    const edit = field?.edit;
-    if (!edit) return;
-    if (edit.flag) for (const token of edit.flag) target.__state.flags.add(token);
-    if (edit.rebuild) for (const token of edit.rebuild) target.__state.rebuild.add(token);
+    const invalidation = field?.invalidation;
+    if (!invalidation) return;
+    if (invalidation.flag) for (const token of invalidation.flag) target.__state.flags.add(token);
+    if (invalidation.rebuild) for (const token of invalidation.rebuild) target.__state.rebuild.add(token);
 }
 
 // Construction / broad invalidation: every declared token applies.

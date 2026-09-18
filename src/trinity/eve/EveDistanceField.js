@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -63,13 +63,13 @@ export class EveDistanceField extends CjsModel
   @type.float32
   distance = -1;
 
-  @edit.flag("distanceCurve")
+  @invalidation.flag("distanceCurve")
   @edit.notify
   @edit.readwrite
   @type.float32
   minDistance = 0;
 
-  @edit.flag("distanceCurve")
+  @invalidation.flag("distanceCurve")
   @edit.notify
   @edit.readwrite
   @type.float32

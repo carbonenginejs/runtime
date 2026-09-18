@@ -279,7 +279,7 @@ test("schema decorators: sampler fields rebuild bindings, const parameters persi
   for (const field of ["filter", "mipFilter", "lodBias", "maxMipLevel", "maxAnisotropy"])
   {
     const meta = CjsSchema.getField(Tr2SamplerOverride, field);
-    assert.ok(meta?.edit?.rebuild?.includes("bindings"), `${field} carries the bindings consequence`);
+    assert.ok(meta?.invalidation?.rebuild?.includes("bindings"), `${field} carries the bindings consequence`);
   }
   assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "name")?.edit?.persist, true);
   assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "value")?.edit?.persist, true);

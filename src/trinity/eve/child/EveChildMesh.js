@@ -7,7 +7,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -263,7 +263,7 @@ export class EveChildMesh extends EveChildTransform
   @type.enum("Origin")
   origin = 0;
 
-  @edit.rebuild("instanceBuffer")
+  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.array("mat4")
   instanceTransforms = [];

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
-import { edit, type } from "#schema";
+import { lifecycle, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -13,7 +13,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
 @type.define({ className: "EveHazeSetLight", family: "eve/attachment/haze" })
 export class EveHazeSetLight extends CjsModel
 {
-  @edit.owned
+  @lifecycle.owned
   @type.struct("CjsLightData")
   lightData = new CjsLightData();
 

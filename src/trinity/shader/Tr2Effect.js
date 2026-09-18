@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { carbon, CjsSchema, edit, impl, invalidation, type } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -83,14 +83,14 @@ export class Tr2Effect extends Tr2Material
 
   /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
-  @edit.rebuild("pipeline")
+  @invalidation.rebuild("pipeline")
   @edit.always
   @edit.persist
   @type.string
   effectFilePath = "";
 
   /** m_options (PTr2ShaderOptionStructureList) [READ, PERSIST] */
-  @edit.rebuild("pipeline")
+  @invalidation.rebuild("pipeline")
   @edit.persist
   @type.list("Tr2ShaderOption")
   options = [];
@@ -101,19 +101,19 @@ export class Tr2Effect extends Tr2Material
   name = "";
 
   /** m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST] */
-  @edit.rebuild("bindings")
+  @invalidation.rebuild("bindings")
   @edit.persist
   @type.list("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
-  @edit.rebuild("bindings")
+  @invalidation.rebuild("bindings")
   @edit.persist
   @type.list("ITriEffectParameter")
   parameters = [];
 
   /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
-  @edit.rebuild("bindings")
+  @invalidation.rebuild("bindings")
   @edit.persist
   @type.list("ITriEffectResourceParameter")
   resources = [];
@@ -129,7 +129,7 @@ export class Tr2Effect extends Tr2Material
   actualEffectFilePath = "";
 
   /** m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST] */
-  @edit.rebuild("bindings")
+  @invalidation.rebuild("bindings")
   @edit.persist
   @type.list("Tr2SamplerOverride")
   samplerOverrides = [];

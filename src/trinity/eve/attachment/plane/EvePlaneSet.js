@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -28,7 +28,7 @@ const WHITE = new Float32Array([1, 1, 1, 1]);
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.notify
   @edit.persist
   @type.uint8
@@ -38,12 +38,12 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.boolean
   hideOnLowQuality = false;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   skinned = false;
@@ -56,7 +56,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.list("EvePlaneSetItem")
   planes = [];

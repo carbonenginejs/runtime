@@ -446,9 +446,11 @@ test("from initializes owned children last-to-first before their parent", () => 
     CjsSchema.defineField(ChildModel, "name", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(RootModel, { className: "RootModel" });
     CjsSchema.defineField(RootModel, "children", "type", { kind: "array", itemType: { kind: "model", className: "ChildModel" } });
-    CjsSchema.defineField(RootModel, "children", "edit", { read: true, write: true, persist: true, ownership: "owned" });
+    CjsSchema.defineField(RootModel, "children", "edit", { read: true, write: true, persist: true });
+    CjsSchema.defineField(RootModel, "children", "lifecycle", { ownership: "owned" });
     CjsSchema.defineField(RootModel, "reference", "type", { kind: "object", className: "ChildModel" });
-    CjsSchema.defineField(RootModel, "reference", "edit", { read: true, write: true, persist: true, ownership: "reference" });
+    CjsSchema.defineField(RootModel, "reference", "edit", { read: true, write: true, persist: true });
+    CjsSchema.defineField(RootModel, "reference", "lifecycle", { ownership: "reference" });
 
     const reference = new ChildModel();
     reference.name = "reference";
@@ -495,9 +497,11 @@ test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel extends CjsModel {}
     CjsSchema.define(GraphModel, { className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array" });
-    CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true, ownership: "owned" });
+    CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
+    CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
     CjsSchema.defineField(GraphModel, "peer", "type", { kind: "object" });
-    CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true, ownership: "reference" });
+    CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
+    CjsSchema.defineField(GraphModel, "peer", "lifecycle", { ownership: "reference" });
 
     const root = new GraphModel();
     const branch = new GraphModel();
@@ -1266,7 +1270,8 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     CjsSchema.define(SchemaNode, { className: "SchemaNode", family: "test" });
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
-    CjsSchema.defineField(SchemaNode, "position", "edit", { notify: true, flag: ["placement"] });
+    CjsSchema.defineField(SchemaNode, "position", "edit", { notify: true });
+    CjsSchema.defineField(SchemaNode, "position", "invalidation", { flag: ["placement"] });
     CjsSchema.defineField(SchemaNode, "child", "type", { kind: "struct", className: "SchemaChild" });
     CjsSchema.defineField(SchemaNode, "children", "type", {
         kind: "array",
@@ -2023,7 +2028,8 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
 
     CjsSchema.define(PlacedModel, { className: "PlacedModel", family: "test" });
     CjsSchema.defineField(PlacedModel, "position", "type", { kind: "number" });
-    CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true, flag: ["placement"] });
+    CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true });
+    CjsSchema.defineField(PlacedModel, "position", "invalidation", { flag: ["placement"] });
 
     // Construction: the hook runs (skipEvents visible), events stay silent,
     // and every declared token is present - a new object owes everything.
@@ -2039,7 +2045,7 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
     assert.equal(model.modifiedEvents, 1, "post-construction mutation emits normally");
 });
 
-test("edit.rebuild unions changed fields' tokens into __state.rebuild before OnModified", () => {
+test("invalidation.rebuild unions changed fields' tokens into __state.rebuild before OnModified", () => {
     class RebuiltModel extends CjsModel
     {
         seenAtHookTime = null;
@@ -2054,7 +2060,8 @@ test("edit.rebuild unions changed fields' tokens into __state.rebuild before OnM
 
     CjsSchema.define(RebuiltModel, { className: "RebuiltModel", family: "test" });
     CjsSchema.defineField(RebuiltModel, "radius", "type", { kind: "number" });
-    CjsSchema.defineField(RebuiltModel, "radius", "edit", { persist: true, rebuild: ["geometry", "bounds"] });
+    CjsSchema.defineField(RebuiltModel, "radius", "edit", { persist: true });
+    CjsSchema.defineField(RebuiltModel, "radius", "invalidation", { rebuild: ["geometry", "bounds"] });
     CjsSchema.defineField(RebuiltModel, "label", "type", { kind: "string" });
     CjsSchema.defineField(RebuiltModel, "label", "edit", { persist: true });
 
@@ -2074,8 +2081,8 @@ test("edit.rebuild unions changed fields' tokens into __state.rebuild before OnM
     // The decorator form produces the same metadata shape.
     class DecoratedModel extends CjsModel {}
     CjsSchema.define(DecoratedModel, { className: "DecoratedRebuildModel", family: "test" });
-    CjsSchema.decorateField?.(DecoratedModel, "radius", CjsSchema.edit.rebuild("geometry"));
-    const viaHelper = CjsSchema.edit.rebuild("geometry", "bounds");
+    CjsSchema.decorateField?.(DecoratedModel, "radius", CjsSchema.invalidation.rebuild("geometry"));
+    const viaHelper = CjsSchema.invalidation.rebuild("geometry", "bounds");
     assert.equal(typeof viaHelper, "function");
 });
 

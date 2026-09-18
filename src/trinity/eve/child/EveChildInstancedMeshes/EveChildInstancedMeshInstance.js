@@ -9,7 +9,7 @@
 // coverage baseline is next free to edit.
 import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
-import { edit, type } from "#schema";
+import { edit, invalidation, type } from "#schema";
 
 
 /**
@@ -19,12 +19,12 @@ import { edit, type } from "#schema";
 @type.define({ className: "EveChildInstancedMeshInstance", family: "eve/child" })
 export class EveChildInstancedMeshInstance extends CjsModel
 {
-  @edit.rebuild("instanceBuffer")
+  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.mat4
   transform = mat4.create();
 
-  @edit.rebuild("instanceBuffer")
+  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.uint32
   sphereIndex = 0;

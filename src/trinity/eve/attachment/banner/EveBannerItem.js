@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, edit, impl, invalidation, type } from "#schema";
 
 
 // Carbon persists banners as a raw structure list (BLUE_DECLARE_STRUCTURE_LIST
@@ -20,32 +20,32 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "EveBannerItem", family: "eve/attachment/banners" })
 export class EveBannerItem extends CjsModel
 {
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.int32
   bone = -1;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   angleX = 0;
 
-  @edit.rebuild("packedGeometry")
+  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   angleY = 0;
