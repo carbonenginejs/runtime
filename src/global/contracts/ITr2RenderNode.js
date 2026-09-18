@@ -2,7 +2,7 @@
 import { CjsSchema, impl } from "../schema/index.js";
 
 
-const ITR2_RENDER_NODE = Symbol.for("carbonenginejs.contract.ITr2RenderNode");
+const ITR2_RENDER_NODE = Symbol.for("carbonenginejs.interface.ITr2RenderNode");
 
 
 /** Dependency-free contract for one node in a Trinity render graph. */

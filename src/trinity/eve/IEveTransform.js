@@ -12,10 +12,10 @@
 // until the implementors' own Update surfaces are reconciled.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
 
 
-const IEVE_TRANSFORM = Symbol.for("carbonenginejs.contract.IEveTransform");
+const IEVE_TRANSFORM = Symbol.for("carbonenginejs.interface.IEveTransform");
 
 const TRANSFORM_ABSTRACTS = [
   "UpdateVisibility", "GetRenderables", "GetBoundingSphere", "GetLODLevel"
@@ -75,7 +75,7 @@ export class IEveTransform
 }
 
 
-Brand(IEveTransform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
+DefineInterface(IEveTransform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
 CjsSchema.define(IEveTransform, { className: "IEveTransform" });
 
 
@@ -89,7 +89,7 @@ export function withIEveTransform(Base)
 {
   const Transform = Adopt(Base, IEveTransform, TRANSFORM_ABSTRACTS);
 
-  Brand(Transform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
+  DefineInterface(Transform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
 
   return Transform;
 }

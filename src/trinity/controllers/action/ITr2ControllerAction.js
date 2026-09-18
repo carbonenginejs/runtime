@@ -14,10 +14,10 @@
 // contract yet). They are unrelated to the instance surface.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, Brand } from "../ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../ITr2Controller/index.js";
 
 
-const ITR2_CONTROLLER_ACTION = Symbol.for("carbonenginejs.contract.ITr2ControllerAction");
+const ITR2_CONTROLLER_ACTION = Symbol.for("carbonenginejs.interface.ITr2ControllerAction");
 
 const ACTION_NOOPS = [ "Link", "Unlink", "Start", "Stop", "RebaseSimTime" ];
 const ACTION_DEFAULTS = [ "CanTransition" ];
@@ -207,7 +207,7 @@ export class ITr2ControllerAction
 }
 
 
-Brand(ITr2ControllerAction, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
+DefineInterface(ITr2ControllerAction, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
 for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, impl.implemented);
 CjsSchema.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });
 
@@ -227,7 +227,7 @@ export function withITr2ControllerAction(Base)
 {
   const Action = Adopt(Base, ITr2ControllerAction, [ ...ACTION_NOOPS, ...ACTION_DEFAULTS ]);
 
-  Brand(Action, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
+  DefineInterface(Action, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
   for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(Action, name, impl.implemented);
 
   return Action;

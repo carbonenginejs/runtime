@@ -7,10 +7,10 @@
 // write `updateable.Update?.()` never needed the hedge.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
 
 
-const ITR2_UPDATEABLE = Symbol.for("carbonenginejs.contract.ITr2Updateable");
+const ITR2_UPDATEABLE = Symbol.for("carbonenginejs.interface.ITr2Updateable");
 
 const UPDATEABLE_ABSTRACTS = [ "Update" ];
 
@@ -39,7 +39,7 @@ export class ITr2Updateable
 }
 
 
-Brand(ITr2Updateable, ITR2_UPDATEABLE, [], UPDATEABLE_ABSTRACTS);
+DefineInterface(ITr2Updateable, ITR2_UPDATEABLE, [], UPDATEABLE_ABSTRACTS);
 CjsSchema.define(ITr2Updateable, { className: "ITr2Updateable" });
 
 
@@ -53,7 +53,7 @@ export function withITr2Updateable(Base)
 {
   const Updateable = Adopt(Base, ITr2Updateable, UPDATEABLE_ABSTRACTS);
 
-  Brand(Updateable, ITR2_UPDATEABLE, [], UPDATEABLE_ABSTRACTS);
+  DefineInterface(Updateable, ITR2_UPDATEABLE, [], UPDATEABLE_ABSTRACTS);
 
   return Updateable;
 }

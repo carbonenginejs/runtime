@@ -1,7 +1,7 @@
 import { CjsSchema, impl } from "../schema/index.js";
 
 
-const ITR2_BOUNDING_BOX = Symbol.for("carbonenginejs.contract.ITr2BoundingBox");
+const ITR2_BOUNDING_BOX = Symbol.for("carbonenginejs.interface.ITr2BoundingBox");
 
 
 /**

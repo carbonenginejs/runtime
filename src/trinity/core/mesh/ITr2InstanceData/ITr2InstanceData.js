@@ -3,7 +3,7 @@ import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 
-const ITR2_INSTANCE_DATA = Symbol.for("carbonenginejs.contract.ITr2InstanceData");
+const ITR2_INSTANCE_DATA = Symbol.for("carbonenginejs.interface.ITr2InstanceData");
 
 
 /** Contract for a provider of instance-stream data and layout metadata. */

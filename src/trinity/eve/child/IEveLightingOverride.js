@@ -2,7 +2,7 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const IEVE_LIGHTING_OVERRIDE = Symbol.for("carbonenginejs.contract.IEveLightingOverride");
+const IEVE_LIGHTING_OVERRIDE = Symbol.for("carbonenginejs.interface.IEveLightingOverride");
 
 
 /** Contract for an EVE entity that contributes a weighted lighting override. */

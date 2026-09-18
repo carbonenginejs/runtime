@@ -17,11 +17,11 @@
 //   forwarding surface, probed with `typeof`, and a stub would flip the probe.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
 import { vec3 } from "#math/vec3";
 
 
-const IEVE_SPACE_OBJECT_2 = Symbol.for("carbonenginejs.contract.IEveSpaceObject2");
+const IEVE_SPACE_OBJECT_2 = Symbol.for("carbonenginejs.interface.IEveSpaceObject2");
 
 const SPACE_OBJECT_ABSTRACTS = [
   "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables",
@@ -229,7 +229,7 @@ export class IEveSpaceObject2
 }
 
 
-Brand(IEveSpaceObject2, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
+DefineInterface(IEveSpaceObject2, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
 for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, impl.implemented);
 CjsSchema.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });
 
@@ -248,7 +248,7 @@ export function withIEveSpaceObject2(Base)
     [ ...SPACE_OBJECT_ABSTRACTS, ...SPACE_OBJECT_NOOPS, ...SPACE_OBJECT_DEFAULTS ]
   );
 
-  Brand(SpaceObject, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
+  DefineInterface(SpaceObject, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
   for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(SpaceObject, name, impl.implemented);
 
   return SpaceObject;

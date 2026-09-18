@@ -21,7 +21,7 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_AUD_EMITTER = Symbol.for("carbonenginejs.contract.ITr2AudEmitter");
+const ITR2_AUD_EMITTER = Symbol.for("carbonenginejs.interface.ITr2AudEmitter");
 
 const EMITTER_METHODS = [
   "Initialize", "SetPosition", "SetName", "SetPrefix", "SendEvent", "SetSwitch",

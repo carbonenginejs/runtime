@@ -2,7 +2,7 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_GENERIC_EMITTER = Symbol.for("carbonenginejs.contract.ITr2GenericEmitter");
+const ITR2_GENERIC_EMITTER = Symbol.for("carbonenginejs.interface.ITr2GenericEmitter");
 
 
 /** Contract shared by CPU and GPU particle emitters. */

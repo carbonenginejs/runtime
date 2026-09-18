@@ -12,11 +12,11 @@
 // src/trinity/dropped.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../../controllers/ITr2Controller/index.js";
 import { ITriEffectParameter, withITriEffectParameter } from "./ITriEffectParameter.js";
 
 
-const ITRI_EFFECT_RESOURCE_PARAMETER = Symbol.for("carbonenginejs.contract.ITriEffectResourceParameter");
+const ITRI_EFFECT_RESOURCE_PARAMETER = Symbol.for("carbonenginejs.interface.ITriEffectResourceParameter");
 
 // Both are DEFAULTED in the donor, so neither is abstract here.
 const RESOURCE_PARAMETER_MEMBERS = [ "OnAddedToMaterial", "OnRemovedFromMaterial" ];
@@ -42,7 +42,7 @@ export class ITriEffectResourceParameter extends ITriEffectParameter
 }
 
 
-Brand(ITriEffectResourceParameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
+DefineInterface(ITriEffectResourceParameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
 CjsSchema.define(ITriEffectResourceParameter, { className: "ITriEffectResourceParameter" });
 
 
@@ -59,7 +59,7 @@ export function withITriEffectResourceParameter(Base)
 {
   const Parameter = Adopt(withITriEffectParameter(Base), ITriEffectResourceParameter, RESOURCE_PARAMETER_MEMBERS);
 
-  Brand(Parameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
+  DefineInterface(Parameter, ITRI_EFFECT_RESOURCE_PARAMETER, RESOURCE_PARAMETER_MEMBERS, []);
 
   return Parameter;
 }

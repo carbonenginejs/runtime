@@ -8,10 +8,10 @@
 // hedged: the hedge was emulating the empty bodies one call site at a time.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../ITr2Controller/index.js";
 
 
-const ITR2_STATE_MACHINE_STATE_FINALIZER = Symbol.for("carbonenginejs.contract.ITr2StateMachineStateFinalizer");
+const ITR2_STATE_MACHINE_STATE_FINALIZER = Symbol.for("carbonenginejs.interface.ITr2StateMachineStateFinalizer");
 
 const FINALIZER_NOOPS = [ "Link", "Unlink" ];
 const FINALIZER_ABSTRACTS = [ "CanTransition" ];
@@ -55,7 +55,7 @@ export class ITr2StateMachineStateFinalizer
 }
 
 
-Brand(ITr2StateMachineStateFinalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
+DefineInterface(ITr2StateMachineStateFinalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
 CjsSchema.define(ITr2StateMachineStateFinalizer, { className: "ITr2StateMachineStateFinalizer" });
 
 
@@ -70,7 +70,7 @@ export function withITr2StateMachineStateFinalizer(Base)
 {
   const Finalizer = Adopt(Base, ITr2StateMachineStateFinalizer, [ ...FINALIZER_NOOPS, ...FINALIZER_ABSTRACTS ]);
 
-  Brand(Finalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
+  DefineInterface(Finalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
 
   return Finalizer;
 }

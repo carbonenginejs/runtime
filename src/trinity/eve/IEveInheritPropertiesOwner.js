@@ -13,10 +13,10 @@
 // exactly as BehaviorGroup.SetPlayFXBehavior ports its dynamic_cast.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
 
 
-const IEVE_INHERIT_PROPERTIES_OWNER = Symbol.for("carbonenginejs.contract.IEveInheritPropertiesOwner");
+const IEVE_INHERIT_PROPERTIES_OWNER = Symbol.for("carbonenginejs.interface.IEveInheritPropertiesOwner");
 
 const OWNER_ABSTRACTS = [ "SetInheritProperties" ];
 
@@ -44,7 +44,7 @@ export class IEveInheritPropertiesOwner
 }
 
 
-Brand(IEveInheritPropertiesOwner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
+DefineInterface(IEveInheritPropertiesOwner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
 CjsSchema.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });
 
 
@@ -59,7 +59,7 @@ export function withIEveInheritPropertiesOwner(Base)
 {
   const Owner = Adopt(Base, IEveInheritPropertiesOwner, OWNER_ABSTRACTS);
 
-  Brand(Owner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
+  DefineInterface(Owner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
 
   return Owner;
 }

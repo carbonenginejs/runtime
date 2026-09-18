@@ -4,7 +4,7 @@ import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 
-const ITR2_IMPOSTOR_SOURCE = Symbol.for("carbonenginejs.contract.ITr2ImpostorSource");
+const ITR2_IMPOSTOR_SOURCE = Symbol.for("carbonenginejs.interface.ITr2ImpostorSource");
 
 
 /** Contract for an object that can be captured into an impostor atlas. */

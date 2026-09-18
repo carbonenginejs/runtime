@@ -19,10 +19,10 @@
 // the one Carbon DEFAULTS rather than leaving pure, so it defaults here too.
 
 import { CjsSchema } from "#schema";
-import { Adopt, Brand } from "../../controllers/ITr2Controller/index.js";
+import { Adopt, DefineInterface } from "../../controllers/ITr2Controller/index.js";
 
 
-const ITRI_EFFECT_PARAMETER = Symbol.for("carbonenginejs.contract.ITriEffectParameter");
+const ITRI_EFFECT_PARAMETER = Symbol.for("carbonenginejs.interface.ITriEffectParameter");
 
 // Pure in the donor - an implementor must supply them.
 const PARAMETER_ABSTRACTS = [ "GetParameterName", "RebuildEffectHandles", "GetHashValue" ];
@@ -71,7 +71,7 @@ export class ITriEffectParameter
 }
 
 
-Brand(ITriEffectParameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
+DefineInterface(ITriEffectParameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
 CjsSchema.define(ITriEffectParameter, { className: "ITriEffectParameter" });
 
 
@@ -85,7 +85,7 @@ export function withITriEffectParameter(Base)
 {
   const Parameter = Adopt(Base, ITriEffectParameter, PARAMETER_MEMBERS);
 
-  Brand(Parameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
+  DefineInterface(Parameter, ITRI_EFFECT_PARAMETER, [], PARAMETER_ABSTRACTS);
 
   return Parameter;
 }

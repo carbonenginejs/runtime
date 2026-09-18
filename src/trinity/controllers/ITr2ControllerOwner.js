@@ -30,7 +30,7 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_CONTROLLER_OWNER = Symbol.for("carbonenginejs.contract.ITr2ControllerOwner");
+const ITR2_CONTROLLER_OWNER = Symbol.for("carbonenginejs.interface.ITr2ControllerOwner");
 
 
 /** Contract for an object that owns controllers and answers their variables. */

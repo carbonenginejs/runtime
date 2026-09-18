@@ -2,7 +2,7 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_RENDERABLE = Symbol.for("carbonenginejs.contract.ITr2Renderable");
+const ITR2_RENDERABLE = Symbol.for("carbonenginejs.interface.ITr2Renderable");
 
 
 /**

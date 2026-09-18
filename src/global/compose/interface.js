@@ -44,7 +44,7 @@ const OBJECT_MEMBERS = new Set(Object.getOwnPropertyNames(Object.prototype));
  * subclass that IS decorated copies the inherited set before adding to it, so
  * declaring a contract on a subclass never reaches back into its parent.
  */
-const COMPOSED = Symbol.for("carbonenginejs.compose.contracts");
+const COMPOSED = Symbol.for("carbonenginejs.compose.interfaces");
 
 
 /**

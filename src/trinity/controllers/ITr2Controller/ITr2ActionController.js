@@ -29,9 +29,9 @@
 // object root, which a garbage-collected runtime has no use for.
 
 import { CjsSchema } from "#schema";
-import { ITr2Controller, Brand, ITR2_CONTROLLER, Adopt, CONTROLLER_NOOPS } from "./ITr2Controller.js";
+import { ITr2Controller, DefineInterface, ITR2_CONTROLLER, Adopt, CONTROLLER_NOOPS } from "./ITr2Controller.js";
 
-const ITR2_ACTION_CONTROLLER = Symbol.for("carbonenginejs.contract.ITr2ActionController");
+const ITR2_ACTION_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2ActionController");
 
 /** Contract for a controller that also drives controller actions. */
 export class ITr2ActionController extends ITr2Controller
@@ -162,7 +162,7 @@ const ACTION_ABSTRACTS = [
   "EnsureTempArenaSize", "GetTempArena"
 ];
 
-Brand(ITr2ActionController, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
+DefineInterface(ITr2ActionController, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
 
 Object.defineProperty(ITr2ActionController.prototype, ITR2_CONTROLLER, { value: true });
 
@@ -182,8 +182,8 @@ export function withITr2ActionController(Base)
     ACTION_ABSTRACTS
   );
 
-  Brand(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
-  Brand(Controller, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
+  DefineInterface(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
+  DefineInterface(Controller, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
 
   return Controller;
 }

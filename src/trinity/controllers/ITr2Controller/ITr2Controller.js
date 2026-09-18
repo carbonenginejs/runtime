@@ -31,7 +31,7 @@
 import { CjsSchema, impl } from "#schema";
 import { UnlinkReason } from "../enums.js";
 
-export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.contract.ITr2Controller");
+export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controller");
 
 /** Contract for an object that controls another between Start and Stop. */
 export class ITr2Controller
@@ -118,26 +118,29 @@ export class ITr2Controller
 export const CONTROLLER_NOOPS = [ "Link", "Unlink", "Start", "Stop", "Update", "SetVariable", "HandleEvent" ];
 
 /**
- * Marks a class as carrying a contract, and records each method's provenance.
+ * Declares that a constructor implements an interface, and records each
+ * method's provenance.
  *
- * Shared by every ported Carbon interface in this folder - `ITr2Controller`,
- * `ITr2ControllerAction`, `ITr2StateMachineStateFinalizer` - so the brand and
- * the noop/abstract bookkeeping are written once.
+ * Two things happen. The symbol goes on the prototype, so every instance
+ * answers it and `CjsSchema.cast` can tell; and each named method is decorated
+ * with whether Carbon left it empty or pure. Shared by every ported Carbon
+ * interface in this folder - `ITr2Controller`, `ITr2ControllerAction`,
+ * `ITr2StateMachineStateFinalizer` - so the bookkeeping is written once.
  *
- * @param {Function} target The contract or adopted class.
- * @param {symbol} symbol The contract's brand symbol.
+ * @param {Function} Constructor The interface, or a class adopting it.
+ * @param {symbol} symbol The interface's symbol, shared via `Symbol.for`.
  * @param {string[]} noops Methods Carbon gives an empty body.
  * @param {string[]} abstracts Methods Carbon makes pure virtual.
  */
-export function Brand(target, symbol, noops, abstracts)
+export function DefineInterface(Constructor, symbol, noops, abstracts)
 {
-  Object.defineProperty(target.prototype, symbol, { value: true });
+  Object.defineProperty(Constructor.prototype, symbol, { value: true });
 
-  for (const name of noops) CjsSchema.decorateMethod(target, name, impl.noop);
-  for (const name of abstracts) CjsSchema.decorateMethod(target, name, impl.abstract);
+  for (const name of noops) CjsSchema.decorateMethod(Constructor, name, impl.noop);
+  for (const name of abstracts) CjsSchema.decorateMethod(Constructor, name, impl.abstract);
 }
 
-Brand(ITr2Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
+DefineInterface(ITr2Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
 
 CjsSchema.define(ITr2Controller, { className: "ITr2Controller" });
 
@@ -156,7 +159,7 @@ export function withITr2Controller(Base)
 {
   const Controller = Adopt(Base, ITr2Controller, [ ...CONTROLLER_NOOPS, "IsLinked" ]);
 
-  Brand(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
+  DefineInterface(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
 
   return Controller;
 }
