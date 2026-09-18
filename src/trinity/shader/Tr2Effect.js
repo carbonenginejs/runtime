@@ -356,11 +356,10 @@ export class Tr2Effect extends Tr2Material
   {
     for (const resource of this.resources)
     {
-      // Carbon's list is typed PITriEffectResourceParameterVector, so it calls
-      // straight through (Tr2Effect.cpp:378-381); ours accepts any parameter
-      // via AddResource, so the cast stands in for the C++ type.
-      const asResource = CjsSchema.cast(resource, ITriEffectResourceParameter);
-      if (asResource) asResource.OnAddedToMaterial(this);
+      // Tr2Effect.cpp:378-381 calls straight through the typed list. A cast
+      // here would have no else branch, which makes it a hedge: an entry
+      // lacking the hook would silently do nothing instead of saying so.
+      resource.OnAddedToMaterial(this);
     }
     this.actualEffectFilePath = this.effectFilePath ? Tr2Effect.convertEffectPath(this.effectFilePath) : "";
     this.#AcquireEffectResource();
@@ -1260,8 +1259,7 @@ export class Tr2Effect extends Tr2Material
     }
     if (list === this.resources)
     {
-      const resource = CjsSchema.cast(existing, ITriEffectResourceParameter);
-      if (resource) resource.OnRemovedFromMaterial(this);
+      existing.OnRemovedFromMaterial(this);
     }
     list.splice(list.indexOf(existing), 1);
     return true;
@@ -1295,8 +1293,7 @@ export class Tr2Effect extends Tr2Material
       const existingResource = CjsParameter.findByName(this.resources, name);
       if (existingResource)
       {
-        const resource = CjsSchema.cast(existingResource, ITriEffectResourceParameter);
-        if (resource) resource.OnRemovedFromMaterial(this);
+        existingResource.OnRemovedFromMaterial(this);
         this.resources[this.resources.indexOf(existingResource)] = created;
       }
       else
@@ -1426,8 +1423,8 @@ export class Tr2Effect extends Tr2Material
   {
     for (const resource of this.resources)
     {
-      const asResource = CjsSchema.cast(resource, ITriEffectResourceParameter);
-      if (asResource) asResource.OnRemovedFromMaterial(this);
+      // Tr2Effect.cpp:270-273 calls through the typed list, as above.
+      resource.OnRemovedFromMaterial(this);
     }
     this.resources = [];
     this.RebuildCachedDataInternal();
