@@ -1318,15 +1318,52 @@ function hiddenInheritedFieldsDecorator(fieldNames)
 
 const CONTEXT_FIRST_PARAMETER = /^\(?\s*_?(context|updateContext)\b/;
 
+/**
+ * Whether a function's source still carries the names it was written with.
+ *
+ * A minifier renames parameters to one or two characters, so `(context)`
+ * arrives as `(t)` and any assertion about the NAME becomes an assertion about
+ * the build. There is no way to tell a minified name from a wrongly chosen one
+ * by inspection, so the only sound thing is to stop asking once the names are
+ * gone - which a parameter list of nothing but short identifiers says plainly.
+ *
+ * @param {string} parameterList Source from the opening parenthesis.
+ * @returns {boolean} True when at least one parameter kept a real name.
+ */
+function hasReadableParameterNames(parameterList)
+{
+    const close = parameterList.indexOf(")");
+    const declared = close === -1 ? parameterList : parameterList.slice(0, close);
+
+    return /[A-Za-z_$][\w$]{2,}/u.test(declared);
+}
+
 function assertContextFirstMethod(fn, methodName)
 {
     if (typeof fn !== "function")
     {
         return;
     }
+
     const source = String(fn);
     const parameterList = source.slice(source.indexOf("("));
-    if (fn.length < 1 || !CONTEXT_FIRST_PARAMETER.test(parameterList))
+
+    // Arity is the contract and holds in any build: a contextual method that
+    // takes nothing cannot have been given a context.
+    if (fn.length < 1)
+    {
+        throw new TypeError(
+            `CjsSchema.carbon.contextual method "${String(methodName)}" must take a context as its first parameter.`
+        );
+    }
+
+    // The NAME is an authoring convention, and it is only checkable while the
+    // names exist. Asserting it against a minified bundle threw on every
+    // contextual method in the shipped build and took the engine down at load
+    // - the failure is the assertion's, not the code's.
+    if (!hasReadableParameterNames(parameterList)) return;
+
+    if (!CONTEXT_FIRST_PARAMETER.test(parameterList))
     {
         throw new TypeError(
             `CjsSchema.carbon.contextual method "${String(methodName)}" must be context-first ` +
