@@ -42,7 +42,11 @@ export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
     //
     // A PACKING family, not an array: its members are channels of one texel.
     // The wire enum does not care, but a reader keying on the name does.
-    "pmdg-channel-pack"
+    "pmdg-channel-pack",
+    // Frontier's pbr material tree. Same kind, different maps.
+    "ambient-occlusion-channel-pack",
+    "curvature-channel-pack",
+    "noise-channel-pack"
 ]);
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
@@ -101,14 +105,21 @@ export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
  * cannot be resolved leaves a channel carrying another map's data, which reads
  * as a plausible image rather than an absence.
  */
-const PMDG_CHANNEL_PACK_DEFAULTS = Object.freeze({
+const CHANNEL_PACK_DEFAULTS = Object.freeze({
     version: 1,
     kind: "texture-2d-packed",
     stage: "fragment",
     representation: "rgba8",
     missingLayer: "reject",
-    viewDimension: "2d",
-    outputName: "PmdgMap"
+    viewDimension: "2d"
+});
+
+/** Packing families, and the output name each restores. */
+const CHANNEL_PACK_FAMILIES = Object.freeze({
+    "pmdg-channel-pack": "PmdgMap",
+    "ambient-occlusion-channel-pack": "AmbientOcclusionMap",
+    "curvature-channel-pack": "CurvatureMap",
+    "noise-channel-pack": "NoiseArrayMap"
 });
 
 const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
@@ -120,7 +131,10 @@ const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
         Object.freeze({ ...DETAIL_MAP_ARRAY_DEFAULTS, outputName: definition.outputName })
     ])),
     "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
-    "pmdg-channel-pack": PMDG_CHANNEL_PACK_DEFAULTS,
+    ...Object.fromEntries(Object.entries(CHANNEL_PACK_FAMILIES).map(([ family, outputName ]) => [
+        family,
+        Object.freeze({ ...CHANNEL_PACK_DEFAULTS, outputName })
+    ])),
     "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
 });
 

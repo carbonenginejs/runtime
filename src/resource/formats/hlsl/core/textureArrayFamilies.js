@@ -124,6 +124,40 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
         parameters: Object.freeze([ "DirtMap1", "DirtMap2" ]),
         minimum: 2
     }),
+    // Frontier's pbr material tree, which the quad sweep missed entirely and
+    // which is where the structure and asteroid shaders were failing to link.
+    //
+    // Grouped by WHAT THE MAP IS, not by "any four scalars that happen to sit
+    // together" (operator, 2026-09-18). A family is one kind of map, numbered;
+    // that is what every row above already is, and a pack of unrelated scalars
+    // would be a different idea wearing the same mechanism.
+    //
+    // Each read is a single channel, measured from the emitted GLSL rather than
+    // assumed - `.x` for every member of all three.
+    Object.freeze({
+        kind: "pack",
+        family: "ambient-occlusion-channel-pack",
+        outputName: "AmbientOcclusionMap",
+        parameters: Object.freeze([ "AmbientOcclusion1Map", "AmbientOcclusion2Map" ]),
+        minimum: 2
+    }),
+    Object.freeze({
+        kind: "pack",
+        family: "curvature-channel-pack",
+        outputName: "CurvatureMap",
+        parameters: Object.freeze([ "Curvature1Map", "Curvature2Map" ]),
+        minimum: 2
+    }),
+    // The numbered series only. `NoiseMap` is a separate map that happens to be
+    // scalar too, and folding it in here would be grouping by storage rather
+    // than by what the map is. It is one more unit if one is ever needed.
+    Object.freeze({
+        kind: "pack",
+        family: "noise-channel-pack",
+        outputName: "NoiseArrayMap",
+        parameters: Object.freeze([ "Noise1Map", "Noise2Map", "Noise3Map" ]),
+        minimum: 2
+    }),
     // Last, so it is reached only by a stage that nothing above it could bring
     // under the budget. On EVE that is `quadheatdetailv5` alone.
     Object.freeze({
