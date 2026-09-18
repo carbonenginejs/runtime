@@ -1332,6 +1332,16 @@ Contract for a shader parameter that holds a resource, told when it joins or lea
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITriEffectTextureParameter -->
+## `ITriEffectTextureParameter`
+
+A resource parameter whose texture takes part in screen-size LOD selection, and the interface `TriTextureParameter` actually derives from. Carries Carbon's `UV_SET_MAX_COUNT` and its spelling of `Loding`.
+
+- Export: `@carbonenginejs/runtime/trinity/shader`
+- Source: `src/trinity/shader/parameter/ITriEffectTextureParameter.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2Vector4Parameter -->
 ## `Tr2Vector4Parameter`
 

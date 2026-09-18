@@ -22,7 +22,6 @@ Every quarantined file has an explicit disposition:
 | `EveSpherePinIndexTree.js` | Native spherical geometry index with private pointer-backed `Face`/`TreeNode` storage; it is not Blue-exposed or serialized. | Engine/resource-side spatial index built from decoded geometry when sphere-pin picking needs it. |
 | `ITriColor.js` | Pure interface for the retired Blue/Python color wrapper; it has no independent graph state. | `@carbonenginejs/runtime/vec4` and schema `color` fields. |
 | `ITriDevice.js` | Pure device interface; the emitted `adapter` member was nested creation data, not interface state. | Maintained `TriDevice` graph. Its device methods are not ported yet. |
-| `ITriEffectTextureParameter.js` | Pure interface; the emitted `UV_SET_MAX_COUNT` is a static constant, not instance state. | Concrete maintained texture-parameter graph classes. |
 | `ITriMatrix.js` | Pure interface for the Blue/Python matrix wrapper; it has no independent graph state. | `@carbonenginejs/runtime/math/mat4`; the concrete `TriMatrix` quarantine is owned by `src/character`. |
 | `ITriQuaternion.js` | Pure interface for the retired Blue/Python quaternion wrapper. | `@carbonenginejs/runtime/math/quat` and schema `quat` fields. |
 | `ITriVector.js` | Pure interface for the retired Blue/Python vector wrapper. | `@carbonenginejs/runtime/math/vec3` and schema vector fields. |
@@ -48,9 +47,17 @@ Every quarantined file has an explicit disposition:
 The 2026-07-19 generated-source placement audit added four groups that the
 scanner had incorrectly promoted to constructible `CjsModel` classes:
 
-- Pure interfaces `ITriDevice` and `ITriEffectTextureParameter`. Their emitted
-  fields came from a nested declaration or a static constant, not interface
-  instance state.
+- The pure interface `ITriDevice`. Its emitted fields came from a nested
+  declaration, not interface instance state.
+
+  `ITriEffectTextureParameter` was grouped here for the same reason and has
+  been REVIVED (2026-09-18): the emitted shell was wrong, but the interface is
+  used. `TriTextureParameter_Blue.cpp:17` maps it, so Carbon casts to it;
+  `Tr2Material` declares a list of it; and `TriTextureParameter` implements
+  all three of its methods. It now lives at
+  `src/trinity/shader/parameter/ITriEffectTextureParameter.js`, hand-written
+  against the donor rather than emitted. The disposition had judged the emitted
+  shell, not the interface - worth remembering for the rest of this file.
 - Generic C++ templates `Tr2CurveBase` and `Tr2Key`. Runtime curve classes own
   their concrete storage and behavior; these template shells are not Blue
   graph objects.

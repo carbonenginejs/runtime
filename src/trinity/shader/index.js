@@ -31,6 +31,7 @@ export * from "./parameter/Tr2Vector2Parameter.js";
 export * from "./parameter/Tr2Vector3Parameter.js";
 export * from "./parameter/ITriEffectParameter.js";
 export * from "./parameter/ITriEffectResourceParameter.js";
+export * from "./parameter/ITriEffectTextureParameter.js";
 export * from "./parameter/Tr2Vector4Parameter.js";
 export * from "./parameter/TriFloatArrayParameter.js";
 export * from "./parameter/TriTextureParameter.js";

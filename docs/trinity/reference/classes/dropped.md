@@ -72,15 +72,6 @@ Retains the native device interface identity while maintained graph state and in
 - Visibility: Internal
 - Kind: Carbon dropped
 
-<!-- class:ITriEffectTextureParameter -->
-## `ITriEffectTextureParameter`
-
-Retains the pure texture-parameter interface identity superseded by maintained concrete texture-parameter graph classes.
-
-- Source: `src/trinity/dropped/ITriEffectTextureParameter.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
 <!-- class:ITriMatrix -->
 ## `ITriMatrix`
 

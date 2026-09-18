@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
-import { withITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { withITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 
@@ -17,7 +17,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
   className: "TriTextureParameter",
   family: "shader"
 })
-export class TriTextureParameter extends withITriEffectResourceParameter(CjsParameter)
+export class TriTextureParameter extends withITriEffectTextureParameter(CjsParameter)
 {
   @io.flag("resource")
   @io.notify
