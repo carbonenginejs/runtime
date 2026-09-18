@@ -2,18 +2,19 @@
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "#schema";
-import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
-import { withIEveTransform } from "../../IEveTransform.js";
+import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
+import { IEveTransform } from "../../IEveTransform.js";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2PerObjectDataStandard } from "../../../core/rawData/perObjectData/Tr2PerObjectDataStandard.js";
 
 /** Stores editable tactical line records before renderer submission. */
 @type.define({ className: "EveLineSet", family: "eve/ui" })
-export class EveLineSet extends withIEveTransform(withIEveSpaceObject2(withITr2Renderable(CjsModel)))
+@carbon.inherit(ITr2Renderable, IEveSpaceObject2, IEveTransform)
+export class EveLineSet extends CjsModel
 {
 
   /** Carbon's pending CPU line records. */

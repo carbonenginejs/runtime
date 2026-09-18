@@ -8,22 +8,11 @@
 // hedged: the hedge was emulating the empty bodies one call site at a time.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../ITr2Controller/index.js";
-
-
-const ITR2_STATE_MACHINE_STATE_FINALIZER = Symbol.for("carbonenginejs.interface.ITr2StateMachineStateFinalizer");
-
-const FINALIZER_NOOPS = [ "Link", "Unlink" ];
-const FINALIZER_ABSTRACTS = [ "CanTransition" ];
 
 
 /** Contract for an object that holds a state machine in its current state. */
 export class ITr2StateMachineStateFinalizer
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_STATE_MACHINE_STATE_FINALIZER] === true;
-  }
 
   /**
    * Attaches this finalizer to the controller whose state it gates.
@@ -55,22 +44,4 @@ export class ITr2StateMachineStateFinalizer
 }
 
 
-DefineInterface(ITr2StateMachineStateFinalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
 CjsSchema.define(ITr2StateMachineStateFinalizer, { className: "ITr2StateMachineStateFinalizer" });
-
-
-/**
- * Adds the ITr2StateMachineStateFinalizer contract without replacing an
- * existing model base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITr2StateMachineStateFinalizer(Base)
-{
-  const Finalizer = Adopt(Base, ITr2StateMachineStateFinalizer, [ ...FINALIZER_NOOPS, ...FINALIZER_ABSTRACTS ]);
-
-  DefineInterface(Finalizer, ITR2_STATE_MACHINE_STATE_FINALIZER, FINALIZER_NOOPS, FINALIZER_ABSTRACTS);
-
-  return Finalizer;
-}

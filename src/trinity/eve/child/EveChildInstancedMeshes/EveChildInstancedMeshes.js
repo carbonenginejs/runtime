@@ -13,7 +13,7 @@ import {
   CollectInstancedOverlayAreaBlocks,
   EmitOverlayBatches
 } from "../../overlays/overlayBatches.js";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 import { EveChildInstancedMesh } from "./EveChildInstancedMesh.js";
@@ -39,7 +39,8 @@ const OVERLAY_CLIP_SCRATCH = vec3.create();
  * world cull bounds.
  */
 @type.define({ className: "EveChildInstancedMeshes", family: "eve/child" })
-export class EveChildInstancedMeshes extends withITr2Renderable(EveSpaceObjectChild)
+@carbon.inherit(ITr2Renderable)
+export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
   @io.persist
   @type.string

@@ -4,7 +4,7 @@ import { vec3 } from "#math/vec3";
 import { carbon, io, type } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 
 /**
@@ -12,7 +12,8 @@ import { withITr2Renderable } from "../../core/ITr2Renderable.js";
  * are drawn with, used for the ribbon rings of UI overlays.
  */
 @type.define({ className: "EveEllipseSet", family: "eve/ui" })
-export class EveEllipseSet extends withITr2Renderable(EveChildTransform)
+@carbon.inherit(ITr2Renderable)
+export class EveEllipseSet extends EveChildTransform
 {
   #geometryDirty = true;
 

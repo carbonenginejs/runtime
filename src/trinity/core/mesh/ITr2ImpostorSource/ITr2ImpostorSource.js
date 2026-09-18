@@ -4,16 +4,9 @@ import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 
-const ITR2_IMPOSTOR_SOURCE = Symbol.for("carbonenginejs.interface.ITr2ImpostorSource");
-
-
 /** Contract for an object that can be captured into an impostor atlas. */
 export class ITr2ImpostorSource
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_IMPOSTOR_SOURCE] === true;
-  }
 
   /** Writes the source's current local-to-world transform into `out`. */
   GetLocalToWorldTransform(_out)
@@ -46,7 +39,6 @@ export class ITr2ImpostorSource
   }
 }
 
-Object.defineProperty(ITr2ImpostorSource.prototype, ITR2_IMPOSTOR_SOURCE, { value: true });
 for (const method of [
   "GetLocalToWorldTransform",
   "GetImpostorBatches",
@@ -58,49 +50,3 @@ for (const method of [
   CjsSchema.decorateMethod(ITr2ImpostorSource, method, impl.abstract);
 }
 CjsSchema.define(ITr2ImpostorSource, { className: "ITr2ImpostorSource" });
-
-
-/** Adds the ITr2ImpostorSource contract without replacing an existing base. */
-export function withITr2ImpostorSource(Base)
-{
-  const Provider = class extends Base
-  {
-    GetLocalToWorldTransform(out)
-    {
-      return ITr2ImpostorSource.prototype.GetLocalToWorldTransform.call(this, out);
-    }
-
-    GetImpostorBatches(frustum, batches)
-    {
-      return ITr2ImpostorSource.prototype.GetImpostorBatches.call(this, frustum, batches);
-    }
-
-    GetRenderPriority(oldHash, newHash)
-    {
-      return ITr2ImpostorSource.prototype.GetRenderPriority.call(this, oldHash, newHash);
-    }
-
-    GetImpostorBoundingSphere(out)
-    {
-      return ITr2ImpostorSource.prototype.GetImpostorBoundingSphere.call(this, out);
-    }
-
-    GetLastImpostorBoundingSphere(out)
-    {
-      return ITr2ImpostorSource.prototype.GetLastImpostorBoundingSphere.call(this, out);
-    }
-  };
-
-  Object.defineProperty(Provider.prototype, ITR2_IMPOSTOR_SOURCE, { value: true });
-  for (const method of [
-    "GetLocalToWorldTransform",
-    "GetImpostorBatches",
-    "GetRenderPriority",
-    "GetImpostorBoundingSphere",
-    "GetLastImpostorBoundingSphere"
-  ])
-  {
-    CjsSchema.decorateMethod(Provider, method, impl.abstract);
-  }
-  return Provider;
-}

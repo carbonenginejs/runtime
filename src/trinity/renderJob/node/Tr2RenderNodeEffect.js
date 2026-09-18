@@ -3,11 +3,12 @@
 import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
-import { withITr2RenderNode } from "#contracts/ITr2RenderNode";
+import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @type.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
-export class Tr2RenderNodeEffect extends withITr2RenderNode(CjsModel)
+@carbon.inherit(ITr2RenderNode)
+export class Tr2RenderNodeEffect extends CjsModel
 {
 
   /** Carbon's grouped source/parameter bindings. */

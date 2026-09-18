@@ -2,9 +2,9 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
 import { CjsSchema, carbon, impl, io, type } from "#schema";
-import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
-import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { withITr2BoundingBox } from "#contracts";
+import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { ITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -35,7 +35,7 @@ import { EveCollectAreas } from "../child/EveSpaceObjectChild.js";
 import { EveGetLocatorPose, EveLocatorSets } from "../locator/EveLocatorSets.js";
 import { Locator } from "../locator/Locator.js";
 import { TriPerlinCurve } from "../../curves/curve/TriPerlinCurve.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 
 // Static scratch for the sorted-transparent area pass (allocation rules: hot
@@ -55,7 +55,8 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpaceObject2(withITr2Renderable(withITr2BoundingBox(EveEntity))))
+@carbon.inherit(ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, IEveInheritPropertiesOwner)
+export class EveSpaceObject2 extends EveEntity
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
@@ -608,11 +609,11 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     const properties = this.inheritProperties.GetProperties();
     for (const child of this.effectChildren)
     {
-      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(properties);
+      if (CjsSchema.cast(child, IEveInheritPropertiesOwner)) child.SetInheritProperties(properties);
     }
     for (const light of this.lights)
     {
-      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(properties);
+      if (CjsSchema.cast(light, IEveInheritPropertiesOwner)) light.SetInheritProperties(properties);
     }
   }
 
@@ -706,7 +707,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     // child or light however it arrived (cpp:389-411).
     if (masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
       && (list === this.effectChildren || list === this.lights)
-      && value instanceof IEveInheritPropertiesOwner)
+      && CjsSchema.cast(value, IEveInheritPropertiesOwner))
     {
       value.SetInheritProperties(this.inheritProperties.GetProperties());
     }

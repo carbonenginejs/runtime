@@ -9,7 +9,7 @@ import { quat } from "#math/quat";
 import { carbon, impl, io, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
-import { withITr2Renderable } from "./ITr2Renderable.js";
+import { ITr2Renderable } from "./ITr2Renderable.js";
 
 
 // Carbon uses row vectors. A single matrix has the same flat bytes as our
@@ -126,7 +126,8 @@ function carbonLookAt(out, eye, target, up, forward, right, realUp)
 
 /** Common transform, curve, mesh, sorting, and camera-modifier behavior. */
 @type.define({ className: "Tr2Transform", family: "trinityCore" })
-export class Tr2Transform extends withITr2Renderable(CjsModel)
+@carbon.inherit(ITr2Renderable)
+export class Tr2Transform extends CjsModel
 {
 
   /** Advances authored curve sets while update is enabled. */

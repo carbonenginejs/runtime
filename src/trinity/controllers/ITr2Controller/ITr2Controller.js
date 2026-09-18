@@ -36,10 +36,6 @@ export const ITR2_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2Controll
 /** Contract for an object that controls another between Start and Stop. */
 export class ITr2Controller
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_CONTROLLER] === true;
-  }
 
   /**
    * Attaches this controller to its owner.
@@ -115,54 +111,9 @@ export class ITr2Controller
   }
 }
 
-export const CONTROLLER_NOOPS = [ "Link", "Unlink", "Start", "Stop", "Update", "SetVariable", "HandleEvent" ];
-
-/**
- * Declares that a constructor implements an interface, and records each
- * method's provenance.
- *
- * Two things happen. The symbol goes on the prototype, so every instance
- * answers it and `CjsSchema.cast` can tell; and each named method is decorated
- * with whether Carbon left it empty or pure. Shared by every ported Carbon
- * interface in this folder - `ITr2Controller`, `ITr2ControllerAction`,
- * `ITr2StateMachineStateFinalizer` - so the bookkeeping is written once.
- *
- * @param {Function} Constructor The interface, or a class adopting it.
- * @param {symbol} symbol The interface's symbol, shared via `Symbol.for`.
- * @param {string[]} noops Methods Carbon gives an empty body.
- * @param {string[]} abstracts Methods Carbon makes pure virtual.
- */
-export function DefineInterface(Constructor, symbol, noops, abstracts)
-{
-  Object.defineProperty(Constructor.prototype, symbol, { value: true });
-
-  for (const name of noops) CjsSchema.decorateMethod(Constructor, name, impl.noop);
-  for (const name of abstracts) CjsSchema.decorateMethod(Constructor, name, impl.abstract);
-}
-
-DefineInterface(ITr2Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
 
 CjsSchema.define(ITr2Controller, { className: "ITr2Controller" });
 
-/**
- * Adds the ITr2Controller contract without replacing an existing model base.
- *
- * A controller class already extends something - CjsModel, EveThrottleable -
- * so the contract arrives as a mixin rather than as a root. The subclass
- * overrides what it cares about and inherits Carbon's empty body for the rest,
- * which is the whole point: the caller no longer has to ask.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITr2Controller(Base)
-{
-  const Controller = Adopt(Base, ITr2Controller, [ ...CONTROLLER_NOOPS, "IsLinked" ]);
-
-  DefineInterface(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
-
-  return Controller;
-}
 
 /**
  * Subclasses `Base`, filling in only the contract methods it does not already

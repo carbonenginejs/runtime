@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
-import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
+import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { IEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -11,7 +11,8 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 
 /** EveChildProceduralContainer (eve/child/procedural) - generated from schema shapeHash 91d6cbc5.... */
 @type.define({ className: "EveChildProceduralContainer", family: "eve/child/procedural" })
-export class EveChildProceduralContainer extends withIEveInheritPropertiesOwner(EveChildTransform)
+@carbon.inherit(IEveInheritPropertiesOwner)
+export class EveChildProceduralContainer extends EveChildTransform
 {
 
   #proceduralContainerVariables = new Map();
@@ -376,7 +377,7 @@ export class EveChildProceduralContainer extends withIEveInheritPropertiesOwner(
   @impl.implemented
   SetInheritProperties(colorSet)
   {
-    if (this.selectedObject instanceof IEveInheritPropertiesOwner) this.selectedObject.SetInheritProperties(colorSet);
+    if (CjsSchema.cast(this.selectedObject, IEveInheritPropertiesOwner)) this.selectedObject.SetInheritProperties(colorSet);
   }
 
   /** Carbon EveChildProceduralContainer::RegisterComponents (cpp:322-333):

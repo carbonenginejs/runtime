@@ -30,16 +30,9 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_CONTROLLER_OWNER = Symbol.for("carbonenginejs.interface.ITr2ControllerOwner");
-
-
 /** Contract for an object that owns controllers and answers their variables. */
 export class ITr2ControllerOwner
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_CONTROLLER_OWNER] === true;
-  }
 
   /**
    * Sets one named controller variable on every controller this object owns.
@@ -108,43 +101,7 @@ const OWNER_METHODS = [
   "StartControllers", "GetBindingRoots", "AddController"
 ];
 
-Object.defineProperty(ITr2ControllerOwner.prototype, ITR2_CONTROLLER_OWNER, { value: true });
 
 for (const name of OWNER_METHODS) CjsSchema.decorateMethod(ITr2ControllerOwner, name, impl.noop);
 
 CjsSchema.define(ITr2ControllerOwner, { className: "ITr2ControllerOwner" });
-
-
-/**
- * Adds the ITr2ControllerOwner contract without replacing an existing base.
- *
- * Fills in only what the class does not already implement, so an owner that has
- * real controllers keeps its own behaviour and one that has none stops needing
- * to be asked whether it can be told.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITr2ControllerOwner(Base)
-{
-  const Owner = class extends Base
-  {
-  };
-
-  for (const name of OWNER_METHODS)
-  {
-    if (name in Owner.prototype) continue;
-
-    Object.defineProperty(Owner.prototype, name, {
-      value: ITr2ControllerOwner.prototype[name],
-      writable: true,
-      configurable: true
-    });
-  }
-
-  Object.defineProperty(Owner.prototype, ITR2_CONTROLLER_OWNER, { value: true });
-
-  for (const name of OWNER_METHODS) CjsSchema.decorateMethod(Owner, name, impl.noop);
-
-  return Owner;
-}

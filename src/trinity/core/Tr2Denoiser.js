@@ -28,9 +28,8 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
-import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
-import { Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment } from "../../trinityal/Tr2RenderPassAL/Tr2ColorAttachment.js";
 
 /** Carbon's four effect paths (`Tr2Denoiser.cpp:19-28`). */

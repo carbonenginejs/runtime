@@ -1,9 +1,8 @@
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
-import { CjsSchema } from "#schema";
+import { CjsSchema, impl } from "#schema";
 import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
-import { impl } from "#schema";
 import { ALResult } from "../ALResult.js";
 
 /**

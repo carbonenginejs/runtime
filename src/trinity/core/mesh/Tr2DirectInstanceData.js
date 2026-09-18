@@ -4,7 +4,7 @@
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2InstanceData } from "./ITr2InstanceData/index.js";
+import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
 
 
 /**
@@ -12,7 +12,8 @@ import { withITr2InstanceData } from "./ITr2InstanceData/index.js";
  * CPU-side layout metadata, stride, instance count and bounds.
  */
 @type.define({ className: "Tr2DirectInstanceData", family: "trinityCore" })
-export class Tr2DirectInstanceData extends withITr2InstanceData(CjsModel)
+@carbon.inherit(ITr2InstanceData)
+export class Tr2DirectInstanceData extends CjsModel
 {
 
   /** m_aabb.m_max (Vector3) [READ] */

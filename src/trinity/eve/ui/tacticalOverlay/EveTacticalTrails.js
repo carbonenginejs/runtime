@@ -2,9 +2,9 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, io, type } from "#schema";
-import { withIEveSpaceObject2 } from "../../IEveSpaceObject2.js";
+import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
@@ -71,7 +71,8 @@ function WriteLineVerticesToBuffer(pos1, time1, pos2, time2, pos3, floats, base)
 
 /** Tracks tactical trail objects without requiring a graphics device. */
 @type.define({ className: "EveTacticalTrails", family: "eve/ui" })
-export class EveTacticalTrails extends withIEveSpaceObject2(withITr2Renderable(CjsModel))
+@carbon.inherit(ITr2Renderable, IEveSpaceObject2)
+export class EveTacticalTrails extends CjsModel
 {
   /** m_vertexDeclHandle - interned once, -1 (UNINITIALIZED) until it is. */
   #vertexDeclHandle = -1;

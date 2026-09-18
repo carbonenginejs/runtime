@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
 import { CjsModel } from "#model";
-import { withITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, io, type } from "#schema";
 
 
@@ -13,7 +13,8 @@ import { carbon, impl, io, type } from "#schema";
   className: "Tr2ActionCallback",
   family: "controllers"
 })
-export class Tr2ActionCallback extends withITr2ControllerAction(CjsModel)
+@carbon.inherit(ITr2ControllerAction)
+export class Tr2ActionCallback extends CjsModel
 {
   @io.persist
   @type.string

@@ -1,7 +1,6 @@
-import { destroyAdapterValue } from "../CjsResource.js";
+import { destroyAdapterValue, CjsResource } from "../CjsResource.js";
 import { CjsSchema } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
-import { CjsResource } from "../CjsResource.js";
 import { CjsTextureArrayResParameterProxy } from "./CjsTextureArrayResParameterProxy.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
 

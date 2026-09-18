@@ -71,12 +71,10 @@
 //   hatches. Ours are `GetWebgpu` and `GetWorkQueue` - Carbon names these per
 //   backend too, so a WebGPU spelling is the faithful thing, not a divergence.
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, impl } from "#schema";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { impl } from "#schema";
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan } from "#trinityal";
-import { ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
+import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";

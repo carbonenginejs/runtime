@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveTriggerVolume.cpp
 // Source: trinity/trinity/Eve/EveTriggerVolume_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { withIEveSpaceObject2 } from "./IEveSpaceObject2.js";
+import { IEveSpaceObject2 } from "./IEveSpaceObject2.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -30,7 +30,8 @@ const SPHERE_RADIUS_EPSILON = 1e-4;
  * evaluation runs in UpdateSyncronous.
  */
 @type.define({ className: "EveTriggerVolume", family: "eve" })
-export class EveTriggerVolume extends withIEveSpaceObject2(CjsModel)
+@carbon.inherit(IEveSpaceObject2)
+export class EveTriggerVolume extends CjsModel
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */

@@ -6,7 +6,7 @@ import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
+import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
 /**
@@ -15,7 +15,8 @@ import { withITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
  * turbulence and gravity terms the simulation applies.
  */
 @type.define({ className: "Tr2GpuSharedEmitter", family: "particle" })
-export class Tr2GpuSharedEmitter extends withITr2GenericEmitter(CjsModel)
+@carbon.inherit(ITr2GenericEmitter)
+export class Tr2GpuSharedEmitter extends CjsModel
 {
   @io.persist
   @type.string

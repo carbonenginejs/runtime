@@ -224,7 +224,12 @@ async function ReadJavaScriptClasses(directory, includeDropped = false)
       }
       const localBase = GetSuperClassName(declaration.superClass);
       const baseClass = localBase ? imports.get(localBase) ?? localBase : null;
-      const record = { className, baseClass, methods, file: relativeFile };
+      // Carbon declares several bases; JavaScript spends its one `extends` slot
+      // on the model, so the rest arrive through `@carbon.inherit`. They are
+      // bases, so they carry members, and an audit that reads only `extends`
+      // reports every one of those members missing.
+      const inherits = ReadInheritedBases(declaration, imports);
+      const record = { className, baseClass, inherits, methods, file: relativeFile };
       const existing = records.get(className);
       if (!existing || existing.file.startsWith("src/trinity/generated/")) records.set(className, record);
     }
@@ -319,10 +324,51 @@ function SelectSchemaClass(candidates, runtimeFamily)
 }
 
 /** @param {object} record @param {Map} classes @param {Map} unresolvedBases */
+/**
+ * The additional bases a class declares with `@carbon.inherit(A, B)`.
+ *
+ * @param {object} declaration The class declaration node.
+ * @param {Map<string,string>} imports Local name to imported name.
+ * @returns {string[]} Base names, resolved through the import map.
+ */
+function ReadInheritedBases(declaration, imports)
+{
+  const names = [];
+  for (const decorator of declaration.decorators ?? [])
+  {
+    const call = decorator.expression;
+    if (call?.type !== "CallExpression") continue;
+    const callee = call.callee;
+    if (callee?.type !== "MemberExpression") continue;
+    if (callee.object?.name !== "carbon" || callee.property?.name !== "inherit") continue;
+    for (const argument of call.arguments)
+    {
+      if (argument?.type !== "Identifier") continue;
+      names.push(imports.get(argument.name) ?? argument.name);
+    }
+  }
+  return names;
+}
+
 function CollectMethods(record, classes, unresolvedBases)
 {
   const methods = new Map(record.methods);
   const visited = new Set([record.className]);
+
+  // Declared bases first: their members are installed if-absent, so the class's
+  // own always win, exactly as `carbon.inherit` resolves them.
+  for (const name of record.inherits ?? [])
+  {
+    if (visited.has(name)) continue;
+    visited.add(name);
+    const declared = classes.get(name);
+    if (!declared) continue;
+    for (const [ method, metadata ] of CollectMethods(declared, classes, unresolvedBases))
+    {
+      if (!methods.has(method)) methods.set(method, metadata);
+    }
+  }
+
   let current = record;
   while (current.baseClass && !visited.has(current.baseClass))
   {

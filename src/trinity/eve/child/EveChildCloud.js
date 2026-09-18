@@ -6,7 +6,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 
 const LOCAL_MIN = vec3.fromValues(-0.5, -0.5, -0.5);
@@ -35,7 +35,8 @@ function updateBoundingSphere(cloud)
  * realization are not ported yet.
  */
 @type.define({ className: "EveChildCloud", family: "eve/child", purpose: "Describes a transformable volumetric cloud child, including its effect, editable volume, tessellation, LOD, and bounds state." })
-export class EveChildCloud extends withITr2Renderable(EveSpaceObjectChild)
+@carbon.inherit(ITr2Renderable)
+export class EveChildCloud extends EveSpaceObjectChild
 {
   @io.persist
   @type.float32

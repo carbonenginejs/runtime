@@ -3,8 +3,8 @@
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2FactionLight.json (tools-core schema build).
-import { impl, io, type } from "#schema";
-import { withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
+import { carbon, impl, io, type } from "#schema";
+import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -13,7 +13,8 @@ import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js"
 
 /** A light whose colour is derived from a faction palette entry blended by a saturation factor, in addition to its own authored light attributes. */
 @type.define({ className: "Tr2FactionLight", family: "eve/lights" })
-export class Tr2FactionLight extends withIEveInheritPropertiesOwner(Tr2Light)
+@carbon.inherit(IEveInheritPropertiesOwner)
+export class Tr2FactionLight extends Tr2Light
 {
 
   #parentColorSet = null;

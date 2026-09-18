@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
-import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
@@ -14,7 +14,8 @@ import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2Controller
   className: "Tr2ActionAnimateCurveSet",
   family: "controllers"
 })
-export class Tr2ActionAnimateCurveSet extends withITr2ControllerAction(CjsModel)
+@carbon.inherit(ITr2ControllerAction)
+export class Tr2ActionAnimateCurveSet extends CjsModel
 {
   @io.persist
   @type.objectRef("TriCurveSet")

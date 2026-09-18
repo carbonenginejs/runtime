@@ -21,8 +21,6 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_AUD_EMITTER = Symbol.for("carbonenginejs.interface.ITr2AudEmitter");
-
 const EMITTER_METHODS = [
   "Initialize", "SetPosition", "SetName", "SetPrefix", "SendEvent", "SetSwitch",
   "SetRTPC", "SetAttenuationScalingFactor", "GetName", "SetVisibility", "Mute",
@@ -33,10 +31,6 @@ const EMITTER_METHODS = [
 /** Contract for an audio emitter the runtime can position, name and drive. */
 export class ITr2AudEmitter
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_AUD_EMITTER] === true;
-  }
 
   /**
    * Prepares the emitter with its name, event prefix and initial position.
@@ -177,41 +171,5 @@ export class ITr2AudEmitter
 }
 
 
-Object.defineProperty(ITr2AudEmitter.prototype, ITR2_AUD_EMITTER, { value: true });
 for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(ITr2AudEmitter, name, impl.abstract);
 CjsSchema.define(ITr2AudEmitter, { className: "ITr2AudEmitter", family: "trinityAudioApi" });
-
-
-/**
- * Adds the ITr2AudEmitter contract without replacing an existing model base.
- *
- * A contract method is copied onto the subclass ONLY where nothing in the
- * base chain already answers it - AudGameObjResource implements most of the
- * surface below the mixin, and a copied throwing body would shadow those
- * working implementations.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITr2AudEmitter(Base)
-{
-  const Emitter = class extends Base
-  {
-  };
-
-  for (const name of EMITTER_METHODS)
-  {
-    if (name in Emitter.prototype) continue;
-
-    Object.defineProperty(Emitter.prototype, name, {
-      value: ITr2AudEmitter.prototype[name],
-      writable: true,
-      configurable: true
-    });
-  }
-
-  Object.defineProperty(Emitter.prototype, ITR2_AUD_EMITTER, { value: true });
-  for (const name of EMITTER_METHODS) CjsSchema.decorateMethod(Emitter, name, impl.abstract);
-
-  return Emitter;
-}

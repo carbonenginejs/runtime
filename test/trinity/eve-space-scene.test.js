@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { withITr2ControllerOwner } from "../../npm/dist/trinity/controllers/ITr2ControllerOwner.js";
+import { ITr2ControllerOwner } from "../../npm/dist/trinity/controllers/ITr2ControllerOwner.js";
 import {
   EveChildMesh,
   EveChildModifierCameraOrientedRotationConstrained,
@@ -13,6 +13,22 @@ import {
   EveSpaceScene,
   Tr2RenderContext
 } from "../../npm/dist/trinity/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+
+// Test fixture standing in for `@carbon.inherit(X)` as a base-class
+// expression, because these files are plain scripts and carry no decorators.
+// Identical semantics: the interface's members install if-absent onto an
+// intermediate class, so a subclass's own always win.
+function WithInterfaces(Base, ...Interfaces)
+{
+  const Composed = class extends Base {};
+  CjsSchema.carbon.inherit(...Interfaces)(Composed);
+  return Composed;
+}
+
+// Test fixture standing in for `@carbon.inherit(X)` as a base-class
+// expression, because these files are plain scripts and carry no decorators.
+// Identical semantics: the interface's members install if-absent onto an
 
 
 const EPSILON = 1e-4;
@@ -260,7 +276,7 @@ test("object-level curve sets and overlays receive the context time as both cloc
   // implements ITr2ControllerOwner, and EveSpaceObject2.SetControllerVariable
   // calls straight through to every overlay (cpp:4263). This was a bare literal
   // with Update alone, which only worked while the call site was hedged.
-  class OverlayFake extends withITr2ControllerOwner(Object)
+  class OverlayFake extends WithInterfaces(Object, ITr2ControllerOwner)
   {
     Update(realTime, simTime)
     {

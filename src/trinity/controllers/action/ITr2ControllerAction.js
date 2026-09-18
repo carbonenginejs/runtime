@@ -14,22 +14,14 @@
 // contract yet). They are unrelated to the instance surface.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, DefineInterface } from "../ITr2Controller/index.js";
 
 
-const ITR2_CONTROLLER_ACTION = Symbol.for("carbonenginejs.interface.ITr2ControllerAction");
-
-const ACTION_NOOPS = [ "Link", "Unlink", "Start", "Stop", "RebaseSimTime" ];
 const ACTION_DEFAULTS = [ "CanTransition" ];
 
 
 /** Contract for an action a controller drives between Start and Stop. */
 export class ITr2ControllerAction
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_CONTROLLER_ACTION] === true;
-  }
 
   /**
    * Attaches this action to the controller that will drive it.
@@ -207,28 +199,5 @@ export class ITr2ControllerAction
 }
 
 
-DefineInterface(ITr2ControllerAction, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
 for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(ITr2ControllerAction, name, impl.implemented);
 CjsSchema.define(ITr2ControllerAction, { className: "ITr2ControllerAction" });
-
-
-/**
- * Adds the ITr2ControllerAction contract without replacing an existing model
- * base.
- *
- * Every concrete action extends CjsModel, so the contract arrives as a mixin:
- * the action overrides the verbs it cares about and inherits Carbon's empty
- * body for the rest, and the owner of an `actions` list no longer has to ask.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withITr2ControllerAction(Base)
-{
-  const Action = Adopt(Base, ITr2ControllerAction, [ ...ACTION_NOOPS, ...ACTION_DEFAULTS ]);
-
-  DefineInterface(Action, ITR2_CONTROLLER_ACTION, ACTION_NOOPS, []);
-  for (const name of ACTION_DEFAULTS) CjsSchema.decorateMethod(Action, name, impl.implemented);
-
-  return Action;
-}

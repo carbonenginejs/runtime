@@ -10,7 +10,7 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
 
 
@@ -20,7 +20,8 @@ import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2Generic
  * of hosting child objects.
  */
 @type.define({ className: "EveStretch2", family: "eve/renderable/stretch" })
-export class EveStretch2 extends withITr2Renderable(IEveFiringEffectElement)
+@carbon.inherit(ITr2Renderable)
+export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
 

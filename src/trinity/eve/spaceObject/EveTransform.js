@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
 import { mat4 } from "#math/mat4";
-import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { withIEveTransform } from "../IEveTransform.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { IEveTransform } from "../IEveTransform.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -13,7 +13,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
-import { withITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#contracts";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
@@ -26,7 +26,8 @@ const INVERSE_PATCH_SCRATCH = mat4.create();
  * with its own frustum and LOD visibility pass.
  */
 @type.define({ className: "EveTransform", family: "eve/spaceObject" })
-export class EveTransform extends withIEveTransform(withIEveSpaceObject2(withITr2BoundingBox(Tr2Transform)))
+@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2, IEveTransform)
+export class EveTransform extends Tr2Transform
 {
 
   /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */

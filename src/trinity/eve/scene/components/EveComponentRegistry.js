@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveComponentRegistry.h
 // Source: trinity/trinity/Eve/EveComponentRegistry.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, type } from "#schema";
+import { CjsSchema, carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveComponentCollection } from "./EveComponentCollection.js";
 import { EveComponentRequiredMethods, EveComponentType } from "../../EveComponentTypes.js";
@@ -135,7 +135,7 @@ export class EveComponentRegistry extends CjsModel
   {
     if (componentName === EveComponentType.ReflectionRenderable)
     {
-      if (!(entity instanceof ITr2Renderable))
+      if (!CjsSchema.cast(entity, ITr2Renderable))
       {
         throw new TypeError(
           `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2Renderable.`);
@@ -143,7 +143,7 @@ export class EveComponentRegistry extends CjsModel
     }
     else if (componentName === EveComponentType.FroxelFogSettings)
     {
-      if (!(entity instanceof ITr2FroxelFogSettings))
+      if (!CjsSchema.cast(entity, ITr2FroxelFogSettings))
       {
         throw new TypeError(
           `EveComponentRegistry.RegisterComponent("${componentName}") expects an ITr2FroxelFogSettings.`);

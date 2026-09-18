@@ -9,7 +9,7 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { createChildPerObjectRecords, stampChildTransforms } from "../../perObjectData/childPerObjectRecords.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 // Packed (x, y, z, radius) cull-sphere scratch for IsCastingShadow.
 const SPHERE_SCRATCH = vec4.create();
@@ -19,7 +19,8 @@ const TRANSPARENT_CENTER = vec3.create();
 
 /** Runtime implementation of Carbon's swarm renderable component. */
 @type.define({ className: "EveSwarmRenderable", family: "eve/spaceObject/swarm" })
-export class EveSwarmRenderable extends withITr2Renderable(EveEntity)
+@carbon.inherit(ITr2Renderable)
+export class EveSwarmRenderable extends EveEntity
 {
 
   /** m_mesh (Tr2MeshBasePtr) */

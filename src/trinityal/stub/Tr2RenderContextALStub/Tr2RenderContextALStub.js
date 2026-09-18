@@ -28,9 +28,8 @@
 // `Tr2StreamlineAL`, none of which the stub implements.
 
 
-import { CjsSchema } from "#schema";
+import { CjsSchema, impl } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { impl } from "#schema";
 import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../../global/consts/renderContext/index.js";

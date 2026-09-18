@@ -10,7 +10,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry } from "./decalIndices.js";
 
 
@@ -20,7 +20,8 @@ import { BuildDecalGeometry, BuildStaticDecalGeometry } from "./decalIndices.js"
  * visibility ramp.
  */
 @type.define({ className: "EveSpaceObjectDecal", family: "eve/attachment/decal" })
-export class EveSpaceObjectDecal extends withITr2Renderable(CjsModel)
+@carbon.inherit(ITr2Renderable)
+export class EveSpaceObjectDecal extends CjsModel
 {
   /**
    * Establishes Carbon's opaque decal batch type after schema initialization,

@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { withITr2Controller } from "./ITr2Controller/index.js";
+import { ITr2Controller } from "./ITr2Controller/index.js";
 
 
 /**
@@ -14,7 +14,8 @@ import { withITr2Controller } from "./ITr2Controller/index.js";
   className: "Tr2ControllerReference",
   family: "controllers"
 })
-export class Tr2ControllerReference extends withITr2Controller(CjsModel)
+@carbon.inherit(ITr2Controller)
+export class Tr2ControllerReference extends CjsModel
 {
   static #resourceResolver = null;
 

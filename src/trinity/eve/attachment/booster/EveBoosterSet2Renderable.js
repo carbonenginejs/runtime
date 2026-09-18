@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 
 /**
@@ -16,7 +16,8 @@ import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
  * five-point trail spline and its LOD flags.
  */
 @type.define({ className: "EveBoosterSet2Renderable", family: "eve/attachment/boosters" })
-export class EveBoosterSet2Renderable extends withITr2Renderable(CjsModel)
+@carbon.inherit(ITr2Renderable)
+export class EveBoosterSet2Renderable extends CjsModel
 {
 
   /** m_trailIntensity (float) [READ] */

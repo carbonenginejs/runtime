@@ -5,7 +5,7 @@ import { EveEntity } from "../EveEntity.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
-import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
+import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -25,7 +25,7 @@ import {
   inheritParentPerObjectData,
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -38,7 +38,8 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
-export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Renderable(EveChildTransform))
+@carbon.inherit(ITr2Renderable, IEveInheritPropertiesOwner)
+export class EveChildContainer extends EveChildTransform
 {
   @io.notify
   @io.persist
@@ -502,7 +503,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
     }
 
     if (list === this.objects && masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
-      && value instanceof IEveInheritPropertiesOwner)
+      && CjsSchema.cast(value, IEveInheritPropertiesOwner))
     {
       value.SetInheritProperties(this.inheritProperties.GetProperties());
     }
@@ -1383,11 +1384,11 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
 
     for (const child of this.objects)
     {
-      if (child instanceof IEveInheritPropertiesOwner) child.SetInheritProperties(colorSet);
+      if (CjsSchema.cast(child, IEveInheritPropertiesOwner)) child.SetInheritProperties(colorSet);
     }
     for (const light of this.lights)
     {
-      if (light instanceof IEveInheritPropertiesOwner) light.SetInheritProperties(colorSet);
+      if (CjsSchema.cast(light, IEveInheritPropertiesOwner)) light.SetInheritProperties(colorSet);
     }
   }
 

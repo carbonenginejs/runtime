@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerTimeSeconds } from "../contracts.js";
-import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
 /**
@@ -15,7 +15,8 @@ import { ITr2ControllerAction, withITr2ControllerAction } from "./ITr2Controller
   className: "Tr2ActionPlayCurveSet",
   family: "controllers"
 })
-export class Tr2ActionPlayCurveSet extends withITr2ControllerAction(CjsModel)
+@carbon.inherit(ITr2ControllerAction)
+export class Tr2ActionPlayCurveSet extends CjsModel
 {
   @io.persist
   @type.string

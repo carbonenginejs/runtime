@@ -13,21 +13,11 @@
 // exactly as BehaviorGroup.SetPlayFXBehavior ports its dynamic_cast.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
-
-
-const IEVE_INHERIT_PROPERTIES_OWNER = Symbol.for("carbonenginejs.interface.IEveInheritPropertiesOwner");
-
-const OWNER_ABSTRACTS = [ "SetInheritProperties" ];
 
 
 /** Contract for an object that accepts inherited faction colour properties. */
 export class IEveInheritPropertiesOwner
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[IEVE_INHERIT_PROPERTIES_OWNER] === true;
-  }
 
   /**
    * Receives the owner's inherited colour set.
@@ -44,22 +34,4 @@ export class IEveInheritPropertiesOwner
 }
 
 
-DefineInterface(IEveInheritPropertiesOwner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
 CjsSchema.define(IEveInheritPropertiesOwner, { className: "IEveInheritPropertiesOwner" });
-
-
-/**
- * Adds the IEveInheritPropertiesOwner contract without replacing an existing
- * model base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withIEveInheritPropertiesOwner(Base)
-{
-  const Owner = Adopt(Base, IEveInheritPropertiesOwner, OWNER_ABSTRACTS);
-
-  DefineInterface(Owner, IEVE_INHERIT_PROPERTIES_OWNER, [], OWNER_ABSTRACTS);
-
-  return Owner;
-}

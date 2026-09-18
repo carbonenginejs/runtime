@@ -17,31 +17,15 @@
 //   forwarding surface, probed with `typeof`, and a stub would flip the probe.
 
 import { CjsSchema, impl } from "#schema";
-import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
 import { vec3 } from "#math/vec3";
 
 
-const IEVE_SPACE_OBJECT_2 = Symbol.for("carbonenginejs.interface.IEveSpaceObject2");
-
-const SPACE_OBJECT_ABSTRACTS = [
-  "UpdateSyncronous", "UpdateAsyncronous", "UpdateVisibility", "GetRenderables",
-  "GetBoundingSphere", "UpdateModelCenterWorldPosition", "GetModelCenterWorldPosition",
-  "GetLocalBoundingBox", "GetLocalToWorldTransform"
-];
-const SPACE_OBJECT_NOOPS = [
-  "RegisterWithQuadRenderer", "AddQuadsToQuadRenderer", "GetPerObjectStructs",
-  "SetProceduralContainerVariable", "GetParentData", "InvalidateMergedLocators"
-];
 const SPACE_OBJECT_DEFAULTS = [ "GetWorldVelocity", "IsPickable", "IsAudioOccluder" ];
 
 
 /** Contract for a top-level object an EveSpaceScene drives each frame. */
 export class IEveSpaceObject2
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[IEVE_SPACE_OBJECT_2] === true;
-  }
 
   /**
    * Runs the frame work that must happen on the sim thread, in order.
@@ -229,27 +213,5 @@ export class IEveSpaceObject2
 }
 
 
-DefineInterface(IEveSpaceObject2, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
 for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(IEveSpaceObject2, name, impl.implemented);
 CjsSchema.define(IEveSpaceObject2, { className: "IEveSpaceObject2" });
-
-
-/**
- * Adds the IEveSpaceObject2 contract without replacing an existing model base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withIEveSpaceObject2(Base)
-{
-  const SpaceObject = Adopt(
-    Base,
-    IEveSpaceObject2,
-    [ ...SPACE_OBJECT_ABSTRACTS, ...SPACE_OBJECT_NOOPS, ...SPACE_OBJECT_DEFAULTS ]
-  );
-
-  DefineInterface(SpaceObject, IEVE_SPACE_OBJECT_2, SPACE_OBJECT_NOOPS, SPACE_OBJECT_ABSTRACTS);
-  for (const name of SPACE_OBJECT_DEFAULTS) CjsSchema.decorateMethod(SpaceObject, name, impl.implemented);
-
-  return SpaceObject;
-}

@@ -3,16 +3,9 @@ import { CjsModel } from "#model";
 import { CjsSchema, impl, type } from "#schema";
 
 
-const ITR2_INSTANCE_DATA = Symbol.for("carbonenginejs.interface.ITr2InstanceData");
-
-
 /** Contract for a provider of instance-stream data and layout metadata. */
 export class ITr2InstanceData
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_INSTANCE_DATA] === true;
-  }
 
   /** Whether the provider's instance stream is ready for batch collection. */
   IsInstanceDataReady()
@@ -39,7 +32,6 @@ export class ITr2InstanceData
   }
 }
 
-Object.defineProperty(ITr2InstanceData.prototype, ITR2_INSTANCE_DATA, { value: true });
 for (const method of [
   "IsInstanceDataReady",
   "GetInstanceData",
@@ -50,43 +42,3 @@ for (const method of [
   CjsSchema.decorateMethod(ITr2InstanceData, method, impl.abstract);
 }
 CjsSchema.define(ITr2InstanceData, { className: "ITr2InstanceData" });
-
-
-/** Adds the ITr2InstanceData contract without replacing an existing base. */
-export function withITr2InstanceData(Base)
-{
-  const Provider = class extends Base
-  {
-    IsInstanceDataReady()
-    {
-      return ITr2InstanceData.prototype.IsInstanceDataReady.call(this);
-    }
-
-    GetInstanceData(bufferIndex, screenSize)
-    {
-      return ITr2InstanceData.prototype.GetInstanceData.call(this, bufferIndex, screenSize);
-    }
-
-    GetInstanceBufferVertexDeclaration(bufferIndex)
-    {
-      return ITr2InstanceData.prototype.GetInstanceBufferVertexDeclaration.call(this, bufferIndex);
-    }
-
-    GetInstanceBufferBoundingBox(bufferIndex)
-    {
-      return ITr2InstanceData.prototype.GetInstanceBufferBoundingBox.call(this, bufferIndex);
-    }
-  };
-
-  Object.defineProperty(Provider.prototype, ITR2_INSTANCE_DATA, { value: true });
-  for (const method of [
-    "IsInstanceDataReady",
-    "GetInstanceData",
-    "GetInstanceBufferVertexDeclaration",
-    "GetInstanceBufferBoundingBox"
-  ])
-  {
-    CjsSchema.decorateMethod(Provider, method, impl.abstract);
-  }
-  return Provider;
-}

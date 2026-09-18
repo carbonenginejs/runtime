@@ -19,9 +19,24 @@ import {
   TriObserverLocal
 } from "../../npm/dist/trinity/index.js";
 import { EveChildInheritProperties } from "../../npm/dist/trinity/eve/child/EveChildInheritProperties.js";
-import { withITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js";
-import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
+import { ITr2Controller } from "../../npm/dist/trinity/controllers/ITr2Controller/ITr2Controller.js";
+import { IEveInheritPropertiesOwner } from "../../npm/dist/trinity/eve/IEveInheritPropertiesOwner.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
+
+// Test fixture standing in for `@carbon.inherit(X)` as a base-class
+// expression, because these files are plain scripts and carry no decorators.
+// Identical semantics: the interface's members install if-absent onto an
+// intermediate class, so a subclass's own always win.
+function WithInterfaces(Base, ...Interfaces)
+{
+  const Composed = class extends Base {};
+  CjsSchema.carbon.inherit(...Interfaces)(Composed);
+  return Composed;
+}
+
+// Test fixture standing in for `@carbon.inherit(X)` as a base-class
+// expression, because these files are plain scripts and carry no decorators.
+// Identical semantics: the interface's members install if-absent onto an
 
 
 const assertVecNear = (actual, expected, epsilon = 1e-6) =>
@@ -400,7 +415,7 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 
   let childWasInserted = null;
   const futureChildCalls = [];
-  const futureChild = Object.assign(new (withIEveInheritPropertiesOwner(EveSpaceObjectChild))(), {
+  const futureChild = Object.assign(new (WithInterfaces(EveSpaceObjectChild, IEveInheritPropertiesOwner))(), {
     SetInheritProperties(properties)
     {
       childWasInserted = object.effectChildren.includes(futureChild);
@@ -694,7 +709,7 @@ test("EveSpaceObject2 drives observers, controller frequency, mute, and emitter 
   // every call site read `controller?.SetVariable?.()`. The contract supplies
   // Carbon's empty bodies for the verbs this fake does not care about, which is
   // exactly what those hedges were emulating one call site at a time.
-  class FrequencyController extends withITr2Controller(Object)
+  class FrequencyController extends WithInterfaces(Object, ITr2Controller)
   {
     IsLinked()
     {

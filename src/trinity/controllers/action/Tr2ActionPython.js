@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.cpp
 import { CjsModel } from "#model";
-import { withITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, io, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 
@@ -15,7 +15,8 @@ import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from ".
   className: "Tr2ActionPython",
   family: "controllers"
 })
-export class Tr2ActionPython extends withITr2ControllerAction(CjsModel)
+@carbon.inherit(ITr2ControllerAction)
+export class Tr2ActionPython extends CjsModel
 {
   static #factory = null;
 

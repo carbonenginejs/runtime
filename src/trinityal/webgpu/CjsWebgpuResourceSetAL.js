@@ -22,8 +22,7 @@
 // views (`Tr2ResourceSetALDx12.cpp:145-146`). A WebGPU bind group with a hole
 // is a validation error, so the same substitution happens here.
 //
-import { CjsSchema } from "#schema";
-import { impl } from "#schema";
+import { CjsSchema, impl } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 

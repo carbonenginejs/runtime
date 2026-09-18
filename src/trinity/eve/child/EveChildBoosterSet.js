@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
 import {
   AddBoosterLights,
@@ -50,7 +50,8 @@ const SPHERE_SCRATCH = vec4.create();
  * invalid offset (EveChildBoosterSet.cpp:478).
  */
 @type.define({ className: "EveChildBoosterSet", family: "eve/child" })
-export class EveChildBoosterSet extends withITr2Renderable(EveSpaceObjectChild)
+@carbon.inherit(ITr2Renderable)
+export class EveChildBoosterSet extends EveSpaceObjectChild
 {
 
   static DEFAULT_DRIVE_NAME = "ThrustMain";

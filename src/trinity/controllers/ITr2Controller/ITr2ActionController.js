@@ -29,17 +29,11 @@
 // object root, which a garbage-collected runtime has no use for.
 
 import { CjsSchema } from "#schema";
-import { ITr2Controller, DefineInterface, ITR2_CONTROLLER, Adopt, CONTROLLER_NOOPS } from "./ITr2Controller.js";
-
-const ITR2_ACTION_CONTROLLER = Symbol.for("carbonenginejs.interface.ITr2ActionController");
+import { ITr2Controller } from "./ITr2Controller.js";
 
 /** Contract for a controller that also drives controller actions. */
 export class ITr2ActionController extends ITr2Controller
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_ACTION_CONTROLLER] === true;
-  }
 
   /**
    * The object this controller was linked to.
@@ -156,34 +150,6 @@ export class ITr2ActionController extends ITr2Controller
   }
 }
 
-const ACTION_ABSTRACTS = [
-  "GetOwner", "Callback", "RegisterUpdateable", "UnRegisterUpdateable", "GetBindingPathRoots",
-  "GetFloatVariableByName", "GetExpressionTermInfo", "GetVariableView", "GetVariableBuffer",
-  "EnsureTempArenaSize", "GetTempArena"
-];
 
-DefineInterface(ITr2ActionController, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
-
-Object.defineProperty(ITr2ActionController.prototype, ITR2_CONTROLLER, { value: true });
 
 CjsSchema.define(ITr2ActionController, { className: "ITr2ActionController" });
-
-/**
- * Adds the ITr2ActionController contract, and ITr2Controller with it.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying both contracts.
- */
-export function withITr2ActionController(Base)
-{
-  const Controller = Adopt(
-    Adopt(Base, ITr2Controller, [ ...CONTROLLER_NOOPS, "IsLinked" ]),
-    ITr2ActionController,
-    ACTION_ABSTRACTS
-  );
-
-  DefineInterface(Controller, ITR2_CONTROLLER, CONTROLLER_NOOPS, [ "IsLinked" ]);
-  DefineInterface(Controller, ITR2_ACTION_CONTROLLER, [], ACTION_ABSTRACTS);
-
-  return Controller;
-}

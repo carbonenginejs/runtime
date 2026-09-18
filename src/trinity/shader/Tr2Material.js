@@ -3,13 +3,12 @@
 import { type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2Shader } from "#resource/shader";
-import { ShaderType } from "#consts/render-context";
+import { ShaderType, CompareFunc } from "#consts/render-context";
 import { FNV1_INITIAL, hashFnv1Floats } from "../../global/utils/hash.js";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2ConstantUsageAL } from "../../trinityal/index.js";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { EFFECT_CONSTANTS } from "../core/Tr2Renderer.js";
-import { CompareFunc } from "#consts/render-context";
 import { SAMPLER_LOD_UNBOUNDED } from "../../trinityal/Tr2HalHelperStructures/Tr2SamplerDescription.js";
 
 

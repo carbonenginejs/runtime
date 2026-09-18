@@ -15,7 +15,7 @@ import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
-import { withITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -35,7 +35,8 @@ function BoundingSphereTransform(transform, sphere)
 
 /** Owns a hull's instanced turrets and drives their aiming, animation, firing, visibility, batches, shadows, and per-object data. */
 @type.define({ className: "EveTurretSet", family: "eve/attachment/turrets" })
-export class EveTurretSet extends withITr2Renderable(EveEntity)
+@carbon.inherit(ITr2Renderable)
+export class EveTurretSet extends EveEntity
 {
 
   /** m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM] */

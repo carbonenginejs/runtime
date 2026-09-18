@@ -9,13 +9,14 @@ import { vec4 } from "#math/vec4";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 /** A child that hosts particle systems and emitters, driving their transforms, LOD-based particle budgets, and per-frame visibility and render submission. */
 @type.define({ className: "EveChildParticleSystem", family: "eve/child" })
-export class EveChildParticleSystem extends withITr2Renderable(EveChildTransform)
+@carbon.inherit(ITr2Renderable)
+export class EveChildParticleSystem extends EveChildTransform
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */

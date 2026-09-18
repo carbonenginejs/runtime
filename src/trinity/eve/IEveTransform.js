@@ -12,23 +12,11 @@
 // until the implementors' own Update surfaces are reconciled.
 
 import { CjsSchema } from "#schema";
-import { Adopt, DefineInterface } from "../controllers/ITr2Controller/index.js";
-
-
-const IEVE_TRANSFORM = Symbol.for("carbonenginejs.interface.IEveTransform");
-
-const TRANSFORM_ABSTRACTS = [
-  "UpdateVisibility", "GetRenderables", "GetBoundingSphere", "GetLODLevel"
-];
 
 
 /** Contract for a child entry a space object drives and renders. */
 export class IEveTransform
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[IEVE_TRANSFORM] === true;
-  }
 
   /**
    * Decides frame visibility against the frustum.
@@ -75,21 +63,4 @@ export class IEveTransform
 }
 
 
-DefineInterface(IEveTransform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
 CjsSchema.define(IEveTransform, { className: "IEveTransform" });
-
-
-/**
- * Adds the IEveTransform contract without replacing an existing model base.
- *
- * @param {Function} Base The class to extend.
- * @returns {Function} A subclass carrying the contract.
- */
-export function withIEveTransform(Base)
-{
-  const Transform = Adopt(Base, IEveTransform, TRANSFORM_ABSTRACTS);
-
-  DefineInterface(Transform, IEVE_TRANSFORM, [], TRANSFORM_ABSTRACTS);
-
-  return Transform;
-}

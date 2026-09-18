@@ -256,12 +256,34 @@ async function ReadJavaScriptClasses(directory)
         if (renamed) methods.add(renamed);
       }
       const { baseClass, contracts } = SuperInfo(declaration.superClass);
+      // The mixin tower this used to read is gone: additional bases now arrive
+      // through `@carbon.inherit(A, B)`, which states the same Carbon fact.
+      contracts.push(...InheritedBases(declaration));
       const record = { className, baseClass, contracts, methods, file: relativeFile };
       const existing = records.get(className);
       if (!existing || existing.file.includes("/generated/")) records.set(className, record);
     }
   }
   return records;
+}
+
+/** Additional base names declared by `@carbon.inherit(A, B)`. */
+function InheritedBases(declaration)
+{
+  const names = [];
+  for (const decorator of declaration.decorators ?? [])
+  {
+    const call = decorator.expression;
+    if (call?.type !== "CallExpression") continue;
+    const callee = call.callee;
+    if (callee?.type !== "MemberExpression") continue;
+    if (callee.object?.name !== "carbon" || callee.property?.name !== "inherit") continue;
+    for (const argument of call.arguments)
+    {
+      if (argument?.type === "Identifier") names.push(argument.name);
+    }
+  }
+  return names;
 }
 
 /** Base name plus contract names from mixin wrappers: withX(withY(Base)). */

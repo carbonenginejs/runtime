@@ -6,7 +6,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
-import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2InstanceData/index.js";
+import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
 
 
 /**
@@ -15,7 +15,8 @@ import { ITr2InstanceDataInstanceData, withITr2InstanceData } from "./ITr2Instan
  * particle system on demand.
  */
 @type.define({ className: "Tr2RuntimeInstanceData", family: "trinityCore" })
-export class Tr2RuntimeInstanceData extends withITr2InstanceData(CjsModel)
+@carbon.inherit(ITr2InstanceData)
+export class Tr2RuntimeInstanceData extends CjsModel
 {
   @io.persist
   @type.string

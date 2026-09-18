@@ -3,17 +3,27 @@ import test from "node:test";
 
 import {
   ITr2ActionController,
-  ITr2Controller,
-  withITr2ActionController,
-  withITr2Controller
+  ITr2Controller
 } from "../../npm/dist/trinity/controllers/index.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+
+// Test fixture standing in for `@carbon.inherit(X)` as a base-class
+// expression, because these files are plain scripts and carry no decorators.
+// Identical semantics: the interface's members install if-absent onto an
+// intermediate class, so a subclass's own always win.
+function WithInterfaces(Base, ...Interfaces)
+{
+  const Composed = class extends Base {};
+  CjsSchema.carbon.inherit(...Interfaces)(Composed);
+  return Composed;
+}
 
 test("the seven defaulted verbs do nothing, which is Carbon's behaviour", () =>
 {
   // Only IsLinked is pure virtual in ITr2Controller.h. Link, Unlink, Start,
   // Stop, Update, SetVariable and HandleEvent have EMPTY BODIES. That is what
   // 235 call sites were emulating one `?.` at a time.
-  class Silent extends withITr2Controller(Object)
+  class Silent extends WithInterfaces(Object, ITr2Controller)
   {
     IsLinked()
     {
@@ -37,14 +47,14 @@ test("the one method with no sensible default refuses to guess", () =>
   // Answering false would let an owner skip a linked controller; answering true
   // would let it drive an unlinked one. Carbon makes it pure virtual for that
   // reason, so an implementor that forgets it must find out.
-  class Forgetful extends withITr2Controller(Object) {}
+  class Forgetful extends WithInterfaces(Object, ITr2Controller) {}
 
   assert.throws(() => new Forgetful().IsLinked(), /IsLinked must be implemented/);
 });
 
 test("a class keeps its own implementation, the contract only fills gaps", () =>
 {
-  class Real extends withITr2Controller(Object)
+  class Real extends WithInterfaces(Object, ITr2Controller)
   {
     constructor()
     {
@@ -76,7 +86,7 @@ test("the contract is nominal, so an object literal is not a controller", () =>
   // This is the point. A bare `{ Update() {} }` reads as a controller to a
   // `?.Update?.()` call site and is not one, which is how a fake in a test
   // keeps a guard alive in production code.
-  class Real extends withITr2Controller(Object)
+  class Real extends WithInterfaces(Object, ITr2Controller)
   {
     IsLinked()
     {
@@ -84,10 +94,10 @@ test("the contract is nominal, so an object literal is not a controller", () =>
     }
   }
 
-  assert.equal(new Real() instanceof ITr2Controller, true);
-  assert.equal({ Update() {} } instanceof ITr2Controller, false);
-  assert.equal(null instanceof ITr2Controller, false);
-  assert.equal(undefined instanceof ITr2Controller, false);
+  assert.equal(CjsSchema.cast(new Real(), ITr2Controller) !== null, true);
+  assert.equal(CjsSchema.cast({ Update() {} }, ITr2Controller) !== null, false);
+  assert.equal(CjsSchema.cast(null, ITr2Controller) !== null, false);
+  assert.equal(CjsSchema.cast(undefined, ITr2Controller) !== null, false);
 });
 
 test("an action controller is also a controller, and the reverse is not true", () =>
@@ -95,7 +105,7 @@ test("an action controller is also a controller, and the reverse is not true", (
   // Carbon's ITr2ActionController extends ITr2Controller in the same header.
   // Tr2ControllerReference implements only the first eight methods, so a
   // caller must be able to tell the two apart.
-  class Action extends withITr2ActionController(Object)
+  class Action extends WithInterfaces(Object, ITr2ActionController)
   {
     IsLinked()
     {
@@ -103,7 +113,7 @@ test("an action controller is also a controller, and the reverse is not true", (
     }
   }
 
-  class Plain extends withITr2Controller(Object)
+  class Plain extends WithInterfaces(Object, ITr2Controller)
   {
     IsLinked()
     {
@@ -111,17 +121,17 @@ test("an action controller is also a controller, and the reverse is not true", (
     }
   }
 
-  assert.equal(new Action() instanceof ITr2Controller, true);
-  assert.equal(new Action() instanceof ITr2ActionController, true);
-  assert.equal(new Plain() instanceof ITr2Controller, true);
-  assert.equal(new Plain() instanceof ITr2ActionController, false);
+  assert.equal(CjsSchema.cast(new Action(), ITr2Controller) !== null, true);
+  assert.equal(CjsSchema.cast(new Action(), ITr2ActionController) !== null, true);
+  assert.equal(CjsSchema.cast(new Plain(), ITr2Controller) !== null, true);
+  assert.equal(CjsSchema.cast(new Plain(), ITr2ActionController) !== null, false);
 });
 
 test("the eleven action verbs have no defaults and say so", () =>
 {
   // All eleven are pure virtual in Carbon. There is nothing harmless for
   // GetVariableBuffer to return.
-  class Action extends withITr2ActionController(Object) {}
+  class Action extends WithInterfaces(Object, ITr2ActionController) {}
 
   const controller = new Action();
 

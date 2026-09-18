@@ -3,14 +3,14 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
-import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { box3 } from "#math/box3";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, io, type } from "#schema";
-import { withITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -31,7 +31,8 @@ import {
  * attached to a hull.
  */
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-export class EveEffectRoot2 extends withIEveSpaceObject2(withITr2BoundingBox(EveEntity))
+@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2)
+export class EveEffectRoot2 extends EveEntity
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */

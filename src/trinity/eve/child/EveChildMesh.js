@@ -31,7 +31,7 @@ import {
   EmitDamageOverlayBatches,
   EmitOverlayBatches
 } from "../overlays/overlayBatches.js";
-import { withITr2Renderable } from "../../core/ITr2Renderable.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
 // Module scratch for the hot per-frame visibility/shadow paths (allocation
 // rules: copy-into, never allocate per call; child updates run sequentially so
@@ -54,7 +54,8 @@ const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
  * state.
  */
 @type.define({ className: "EveChildMesh", family: "eve/child" })
-export class EveChildMesh extends withITr2Renderable(EveChildTransform)
+@carbon.inherit(ITr2Renderable)
+export class EveChildMesh extends EveChildTransform
 {
   #isMorphsBaked = false;
 

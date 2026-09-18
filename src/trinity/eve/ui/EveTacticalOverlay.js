@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; quad instance policy is portable CPU work.
 import { mat4 } from "#math/mat4";
-import { withIEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 import { carbon, impl, io, type } from "#schema";
 import { vec3 } from "#math/vec3";
@@ -91,7 +91,8 @@ function getSubdivisionCount(pixelSize, low, medium, high, updateContext)
 
 /** Produces tactical anchor, range, and velocity quad-instance records. */
 @type.define({ className: "EveTacticalOverlay", family: "eve/ui" })
-export class EveTacticalOverlay extends withIEveSpaceObject2(CjsModel)
+@carbon.inherit(IEveSpaceObject2)
+export class EveTacticalOverlay extends CjsModel
 {
   /** Initializes the effect-local variable-store records. */
   constructor()

@@ -2,16 +2,9 @@
 import { CjsSchema, impl } from "#schema";
 
 
-const ITR2_GENERIC_EMITTER = Symbol.for("carbonenginejs.interface.ITr2GenericEmitter");
-
-
 /** Contract shared by CPU and GPU particle emitters. */
 export class ITr2GenericEmitter
 {
-  static [Symbol.hasInstance](value)
-  {
-    return value !== null && value !== undefined && value[ITR2_GENERIC_EMITTER] === true;
-  }
 
   /** Updates emitter state for one frame. */
   Update(_arguments)
@@ -32,39 +25,8 @@ export class ITr2GenericEmitter
   }
 }
 
-Object.defineProperty(ITr2GenericEmitter.prototype, ITR2_GENERIC_EMITTER, { value: true });
 for (const method of ["Update", "SpawnParticles", "SetThreadSafeFlag"])
 {
   CjsSchema.decorateMethod(ITr2GenericEmitter, method, impl.abstract);
 }
 CjsSchema.define(ITr2GenericEmitter, { className: "ITr2GenericEmitter" });
-
-
-/** Adds the ITr2GenericEmitter contract without replacing an existing base. */
-export function withITr2GenericEmitter(Base)
-{
-  const Emitter = class extends Base
-  {
-    Update(argumentsValue)
-    {
-      return ITr2GenericEmitter.prototype.Update.call(this, argumentsValue);
-    }
-
-    SpawnParticles(...args)
-    {
-      return ITr2GenericEmitter.prototype.SpawnParticles.call(this, ...args);
-    }
-
-    SetThreadSafeFlag()
-    {
-      return ITr2GenericEmitter.prototype.SetThreadSafeFlag.call(this);
-    }
-  };
-
-  Object.defineProperty(Emitter.prototype, ITR2_GENERIC_EMITTER, { value: true });
-  for (const method of ["Update", "SpawnParticles", "SetThreadSafeFlag"])
-  {
-    CjsSchema.decorateMethod(Emitter, method, impl.abstract);
-  }
-  return Emitter;
-}

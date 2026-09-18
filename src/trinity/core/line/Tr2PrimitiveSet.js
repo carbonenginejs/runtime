@@ -4,11 +4,12 @@ import { carbon, impl, io, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
-import { withITr2Renderable } from "../ITr2Renderable.js";
+import { ITr2Renderable } from "../ITr2Renderable.js";
 
 /** A drawable set of primitives with a world transform, sort value and bounding sphere. */
 @type.define({ className: "Tr2PrimitiveSet", family: "trinityCore" })
-export class Tr2PrimitiveSet extends withITr2Renderable(CjsModel)
+@carbon.inherit(ITr2Renderable)
+export class Tr2PrimitiveSet extends CjsModel
 {
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */

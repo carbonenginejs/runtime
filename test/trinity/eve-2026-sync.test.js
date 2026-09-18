@@ -599,9 +599,9 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
 
   const min = vec3.create();
   const max = vec3.create();
-  assert.equal(new EveEntity() instanceof ITr2BoundingBox, false);
+  assert.equal(CjsSchema.cast(new EveEntity(), ITr2BoundingBox) !== null, false);
   const effect = new EveEffectRoot2();
-  assert.equal(effect instanceof ITr2BoundingBox, true);
+  assert.equal(CjsSchema.cast(effect, ITr2BoundingBox) !== null, true);
   vec3.set(effect.boundingSphereCenter, 1, 2, 3);
   effect.boundingSphereRadius = 2;
   vec3.set(effect.translation, 10, 0, 0);
@@ -615,7 +615,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assert.equal(effect.IsBoundingBoxReady(), true);
 
   const transform = new EveTransform();
-  assert.equal(transform instanceof ITr2BoundingBox, true);
+  assert.equal(CjsSchema.cast(transform, ITr2BoundingBox) !== null, true);
   vec3.set(transform.overrideBoundsMin, -1, -2, -3);
   vec3.set(transform.overrideBoundsMax, 1, 2, 3);
   vec3.set(transform.translation, 5, 6, 7);
@@ -643,7 +643,7 @@ test("Carbon bounding-box providers publish local, world, mesh, and planet bound
   assertVectorClose(max, [ rotatedRadius, rotatedRadius, rotatedRadius ], "rotating mesh maximum");
 
   const planet = new EvePlanet();
-  assert.equal(planet instanceof ITr2BoundingBox, true);
+  assert.equal(CjsSchema.cast(planet, ITr2BoundingBox) !== null, true);
   planet.radius = 2000000;
   planet.translationCurve = {
     Update(_time, out)

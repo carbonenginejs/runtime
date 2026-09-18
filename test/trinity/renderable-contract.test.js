@@ -35,13 +35,13 @@ test("ITr2Renderable publishes Carbon's default and throwing required surface", 
 
 test("only Carbon renderable providers inherit the nominal identity", () =>
 {
-  assert.equal(new EveEntity() instanceof ITr2Renderable, false);
-  assert.equal(new Tr2Transform() instanceof ITr2Renderable, true);
-  assert.equal(new EveSpaceObject2() instanceof ITr2Renderable, true);
-  assert.equal(new EveChildCloud() instanceof ITr2Renderable, true);
-  assert.equal(new Tr2InteriorPlaceable() instanceof ITr2Renderable, true);
-  assert.equal(new Tr2SkinnedObject() instanceof ITr2Renderable, true);
-  assert.equal({ GetBatches() {} } instanceof ITr2Renderable, false);
+  assert.equal(CjsSchema.cast(new EveEntity(), ITr2Renderable) !== null, false);
+  assert.equal(CjsSchema.cast(new Tr2Transform(), ITr2Renderable) !== null, true);
+  assert.equal(CjsSchema.cast(new EveSpaceObject2(), ITr2Renderable) !== null, true);
+  assert.equal(CjsSchema.cast(new EveChildCloud(), ITr2Renderable) !== null, true);
+  assert.equal(CjsSchema.cast(new Tr2InteriorPlaceable(), ITr2Renderable) !== null, true);
+  assert.equal(CjsSchema.cast(new Tr2SkinnedObject(), ITr2Renderable) !== null, true);
+  assert.equal(CjsSchema.cast({ GetBatches() {} }, ITr2Renderable) !== null, false);
 });
 
 test("batch collection calls the owned renderable contract directly", () =>

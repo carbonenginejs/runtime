@@ -4,7 +4,7 @@ import { carbon, impl, io, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
-import { withITr2ActionController } from "./ITr2Controller/index.js";
+import { ITr2ActionController } from "./ITr2Controller/index.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 
 
@@ -16,7 +16,8 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
   className: "Tr2Controller",
   family: "controllers"
 })
-export class Tr2Controller extends withITr2ActionController(EveThrottleable)
+@carbon.inherit(ITr2ActionController)
+export class Tr2Controller extends EveThrottleable
 {
   @io.persist
   @type.list("Tr2StateMachine")
