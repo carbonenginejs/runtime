@@ -310,3 +310,47 @@ test("a CONCRETE ancestor is recorded too, because Carbon really derives that wa
 
   assert.deepEqual([ ...composedContracts(Impl) ], [ IFace, ConcreteBase ]);
 });
+
+test("an installed member keeps what the interface declared about it", () =>
+{
+  // Carbon's interfaces are not uniform: IBlueResManNotifications declares
+  // both callbacks with an EMPTY BODY (IBlueResMan.h:28,31) while other
+  // interfaces leave methods pure virtual. Marking every installed member
+  // impl.abstract on its consumer writes "Carbon leaves this unimplemented"
+  // onto methods Carbon implements - a false entry in the divergence ledger,
+  // and across the controller tower that would have been ~43 classes at once.
+  class IThing { Noopy() {} Pure() {} Reasoned() {} Undeclared() {} }
+  CjsSchema.decorateMethod(IThing, "Noopy", CjsSchema.impl.noop);
+  CjsSchema.decorateMethod(IThing, "Pure", CjsSchema.impl.abstract);
+  CjsSchema.decorateMethod(IThing, "Reasoned", CjsSchema.impl.adapted);
+  CjsSchema.decorateMethod(IThing, "Reasoned", CjsSchema.impl.reason("the donor defaults it"));
+
+  class Impl {}
+  CjsSchema.carbon.inherit(IThing)(Impl, { kind: "class" });
+
+  assert.equal(CjsSchema.getMethod(Impl, "Noopy").impl.status, "noop");
+  assert.equal(CjsSchema.getMethod(Impl, "Pure").impl.status, "abstract");
+  assert.equal(CjsSchema.getMethod(Impl, "Reasoned").impl.status, "adapted");
+  assert.equal(CjsSchema.getMethod(Impl, "Reasoned").impl.reason, "the donor defaults it",
+    "a reason the interface wrote travels with the marking, or the consumer cannot be reviewed");
+
+  // Only the fallback, for a member the interface said nothing about.
+  assert.equal(CjsSchema.getMethod(Impl, "Undeclared").impl.status, "abstract");
+});
+
+
+test("a declaration on an ANCESTOR of the named base is carried too", () =>
+{
+  // CollectMembers walks the chain, so an installed member may have been
+  // declared further up than the base named at the call site. Looking only at
+  // that base would silently fall back to abstract for exactly those.
+  class IRoot { FromRoot() {} }
+  CjsSchema.decorateMethod(IRoot, "FromRoot", CjsSchema.impl.noop);
+  class ILeaf extends IRoot { Own() {} }
+
+  class Impl {}
+  CjsSchema.carbon.inherit(ILeaf)(Impl, { kind: "class" });
+
+  assert.equal(CjsSchema.getMethod(Impl, "FromRoot").impl.status, "noop");
+  assert.equal(CjsSchema.getMethod(Impl, "Own").impl.status, "abstract");
+});

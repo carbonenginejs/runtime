@@ -139,16 +139,20 @@ function CollectMembers(Contract)
  * decorator can be applied to a class that already satisfies part of its
  * contract.
  *
- * Members arriving from the contract are reported to `onInstalled`, which the
- * schema uses to decorate them `impl.abstract` - matching what the mixin
- * towers decorated them with, so an unimplemented contract member throws where
- * it is called rather than returning undefined.
+ * Members arriving from the contract are reported to `onInstalled` ALONG WITH
+ * THE CONTRACT THEY CAME FROM, so the schema can carry across what the
+ * interface already declared about each one. That matters because Carbon's
+ * interfaces are not uniform: some methods are pure virtual and some have an
+ * empty body, and marking the second kind `impl.abstract` on every consumer
+ * would write "Carbon leaves this unimplemented" onto methods Carbon in fact
+ * implements - a false entry in the divergence ledger, which is the one thing
+ * `@impl` exists to keep honest.
  *
  * @param {Function} Constructor The class receiving the contract.
  * @param {Function} Contract The additional base.
- * @param {Function} [onInstalled] Called as `(Constructor, methodName)` for
- *   each method actually installed. Injected rather than imported; see the
- *   note at the top of this file.
+ * @param {Function} [onInstalled] Called as
+ *   `(Constructor, methodName, Contract)` for each method actually installed.
+ *   Injected rather than imported; see the note at the top of this file.
  * @returns {Function} The same constructor.
  */
 export function installInterface(Constructor, Contract, onInstalled = null)
@@ -180,7 +184,7 @@ export function installInterface(Constructor, Contract, onInstalled = null)
 
     if (typeof onInstalled === "function")
     {
-        for (const name of installed) onInstalled(Constructor, name);
+        for (const name of installed) onInstalled(Constructor, name, Contract);
     }
 
     return Constructor;

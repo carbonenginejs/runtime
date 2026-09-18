@@ -708,6 +708,51 @@ export class CjsSchema
         reason: text => memberDecorator("impl", { reason: String(text) })
     });
 
+    /**
+     * What an installed interface member should be marked as on its consumer.
+     *
+     * CARBON'S INTERFACES ARE NOT UNIFORM, and that is the whole reason this
+     * exists. Some methods are pure virtual, and a consumer inheriting one
+     * without implementing it is genuinely unimplemented. Others are declared
+     * with an EMPTY BODY on purpose, so an implementer overrides only the half
+     * it cares about - `IBlueResManNotifications` has both callbacks empty in
+     * the donor. Marking that second kind `impl.abstract` on every consumer
+     * writes a divergence that does not exist, onto dozens of classes at once.
+     *
+     * So the interface's own declaration is carried across, and
+     * `impl.abstract` is only the fallback for a member the interface said
+     * nothing about. The chain is walked because `CollectMembers` does: a
+     * member may be declared on an ancestor of the contract named here.
+     *
+     * @param {Function} Contract The interface the member was installed from.
+     * @param {String} name The member.
+     * @returns {Array<Function>} Decorators for `decorateMethod`.
+     */
+    static #inheritedImplDecorators(Contract, name)
+    {
+        let declared = null;
+        for (
+            let base = Contract;
+            typeof base === "function" && base.prototype && base !== Object;
+            base = Object.getPrototypeOf(base)
+        )
+        {
+            declared = CjsSchema.getMethod(base, name)?.impl ?? null;
+            if (declared) break;
+        }
+
+        const status = declared?.status;
+        const decorator = status ? CjsSchema.impl[status] : null;
+        const decorators = [ typeof decorator === "function" ? decorator : CjsSchema.impl.abstract ];
+
+        // A reason the interface wrote belongs to the member wherever it lands;
+        // a consumer left holding the marking without it could not be reviewed.
+        if (declared?.reason) decorators.push(CjsSchema.impl.reason(declared.reason));
+        if (declared?.note) decorators.push(CjsSchema.impl.note(declared.note));
+
+        return decorators;
+    }
+
     static carbon = Object.freeze({
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
@@ -715,7 +760,8 @@ export class CjsSchema
         // proves they cannot be collapsed into one.
         inherit: (...Bases) => carbonInheritDecorator(
             Bases,
-            (Constructor, name) => CjsSchema.decorateMethod(Constructor, name, CjsSchema.impl.abstract)),
+            (Constructor, name, Contract) => CjsSchema.decorateMethod(
+                Constructor, name, ...CjsSchema.#inheritedImplDecorators(Contract, name))),
         mapInterface: (...Interfaces) => carbonMapInterfaceDecorator(Interfaces),
         method: methodDecorator("carbon", { method: true }),
         renamed: originalName => {
