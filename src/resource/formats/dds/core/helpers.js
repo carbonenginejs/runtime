@@ -320,7 +320,7 @@ function inspectDDS(bytes)
     const hasDx10 = fourCc === "DX10" && bytes.byteLength >= 148;
     const dxgiFormat = hasDx10 ? readU32LE(bytes, 128) : 0;
     const resourceDimension = hasDx10 ? readU32LE(bytes, 132) : 0;
-    const arraySize = hasDx10 ? readU32LE(bytes, 140) : 1;
+    const declaredArraySize = hasDx10 ? readU32LE(bytes, 140) : 1;
     const dataOffset = hasDx10 ? 148 : 128;
     const pixelFormat = getDdsPixelFormat({ pfFlags, fourCc, fourCcCode, rgbBitCount, rBitMask, gBitMask, bBitMask, aBitMask, dxgiFormat });
     const width = readU32LE(bytes, 16);
@@ -328,16 +328,49 @@ function inspectDDS(bytes)
     const depth = readU32LE(bytes, 24);
     const mipCount = Math.max(readU32LE(bytes, 28), 1);
     const dataBytes = Math.max(bytes.byteLength - dataOffset, 0);
-    const expectedDataBytes = pixelFormat ? getDdsExpectedDataBytes({
+    const expectedFor = (count) => (pixelFormat ? getDdsExpectedDataBytes({
         pixelFormat,
         width,
         height,
         depth,
         mipCount,
-        arraySize,
+        arraySize: count,
         isCube,
         isVolume
-    }) : null;
+    }) : null);
+
+    // A CUBE'S ARRAY SIZE IS AMBIGUOUS, and the file's own length settles it.
+    //
+    // The DX10 spec counts CUBES in that field, so 6 means six cubes - thirty
+    // six surfaces. Frontier's `hydrogen_alpha_nebula_cube_refl.dds` writes 6
+    // meaning six FACES, and the spec reading made this reader expect exactly
+    // six times the data the file holds and reject it as truncated.
+    //
+    // Carbon does not disambiguate because it cannot express a cube array at
+    // all: `CopyHeaderValuesToMembers` passes no array size for a cube
+    // (`imageio/Tr2DdsHandler.cpp:445-447`) and `BitmapDimensions` forces
+    // `m_arraySize( type == TEX_TYPE_CUBE ? 6 : 1 )`
+    // (`imageio/include/BitmapDimensions.h:122`). Reading it the donor's way
+    // would fix this file and silently drop every genuine cube array, which
+    // this reader does support and is tested for.
+    //
+    // So neither reading is assumed. The declared count is kept when the data
+    // is there for it, and dropped to one cube only when it is not AND one cube
+    // accounts for the file exactly. A non-conformant writer is detectable; a
+    // guess is not.
+    let arraySize = declaredArraySize;
+    let expectedDataBytes = expectedFor(arraySize);
+
+    if (isCube && declaredArraySize > 1 && expectedDataBytes !== null && dataBytes < expectedDataBytes)
+    {
+        const single = expectedFor(1);
+
+        if (single !== null && dataBytes === single)
+        {
+            arraySize = 1;
+            expectedDataBytes = single;
+        }
+    }
 
     return {
         sourceFormat: "dds",
