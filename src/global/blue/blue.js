@@ -1,10 +1,12 @@
-// Source: blue/include/IBlueResMan.h:135, blue/include/IBluePaths.h:49
+// Source: blue/include/IBlueResMan.h:135, blue/include/IBluePaths.h:49,
+//   blue/include/IBlueOS.h:226
 //
 // Carbon's process-wide Blue facilities, which it declares as externs beside
 // the interfaces they point at:
 //
 //     extern BLUEIMPORT IBlueResMan* BeResMan;
 //     extern BLUEIMPORT IBluePaths*  BePaths;
+//     extern BLUEIMPORT IBlueOS*     BeOS;
 //
 // `Be` is Blue, so `BeResMan` is `blue.resMan` with the prefix spelled out.
 //
@@ -30,8 +32,9 @@
 // /docs/internal/decisions/composition-root-is-the-wrapper.md.
 import { IBlueResMan } from "./IBlueResMan.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
+import { CjsBlueOS } from "./CjsBlueOS.js";
 
-/** Carbon's process-wide Blue facilities: `blue.resMan` is `BeResMan`, `blue.paths` is `BePaths`. */
+/** Carbon's process-wide Blue facilities: `blue.resMan`, `blue.paths` and `blue.os`. */
 export const blue = {
   /** `BeResMan` (IBlueResMan.h:135) - the resource manager every consumer asks. */
   resMan: new IBlueResMan(),
@@ -42,5 +45,12 @@ export const blue = {
   // caller is already written for. The verbs it cannot answer without a real
   // file system stay refused. See CjsBluePaths.
   /** `BePaths` (IBluePaths.h:49) - search paths, resolution, existence and streams. */
-  paths: new CjsBluePaths()
+  paths: new CjsBluePaths(),
+
+  // The OS is the ROOT CLOCK, and the reason this slot matters beyond time:
+  // its pump is what calls TriDevice.OnTick, which advances the animation
+  // clock the whole render path reads. Composed like the others, and answering
+  // truthfully before anything composes it - see CjsBlueOS.
+  /** `BeOS` (IBlueOS.h:226) - the clock, the pump, and the tick registry. */
+  os: new CjsBlueOS()
 };

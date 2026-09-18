@@ -760,7 +760,6 @@
     "omitted TriDevice.GetThrottling",
     "omitted TriDevice.HandleRenderTick",
     "omitted TriDevice.InitD3DDevice",
-    "omitted TriDevice.InvalidateAndUnregisterForTicks",
     "omitted TriDevice.IsDeviceLost",
     "omitted TriDevice.LogAllLiveResources",
     "omitted TriDevice.OnSimClockRebase",

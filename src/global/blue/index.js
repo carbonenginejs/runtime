@@ -3,6 +3,13 @@
 
 export * from "./CjsScriptCallback.js";
 export * from "./IBlueDynamicResourceConstructor.js";
+export * from "./BeInfo.js";
+export * from "./IBlueEvents.js";
+export * from "./IVariableTicker.js";
+export * from "./ICatchupTicks.js";
+export * from "./ISimTimeRebaseNotify.js";
+export * from "./IBlueOS.js";
+export * from "./CjsBlueOS.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
 export * from "./IInitialize.js";

@@ -9,11 +9,24 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
+import { blue } from "#blue";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @type.define({ className: "TriDevice", family: "trinityCore" })
+// THIS CLASS IMPLEMENTS IBlueEvents AND DELIBERATELY DOES NOT DECLARE IT.
+// Carbon's TriDevice inherits it (`TriDevice.h:154-159`, under an
+// `// IBlueEvents` banner) so `BeOS->RegisterForTicks` will take the device -
+// but `IBlueEvents` is a plain `struct`, not a `BLUE_INTERFACE`, and
+// `TriDevice_Blue.cpp` maps only `ITriDevice`. Across all 596 mapped Carbon
+// classes, NOTHING maps `IBlueEvents`. So it is an implementation base, never
+// castable, and `@compose.interface` - which ports `MAP_INTERFACE` - would
+// assert a cast Carbon does not offer. Implementing `OnTick` is the whole of
+// the obligation; `blue.os` checks for the method, as Carbon's registration
+// checks for the type.
+//
+// `ITriDevice`, the one interface Carbon DOES map here, is in `trinity/dropped`.
 export class TriDevice extends CjsModel
 {
 
@@ -268,9 +281,9 @@ export class TriDevice extends CjsModel
     return elapsed;
   }
 
-  // Source: trinity/trinity/TriDevice.cpp:805-833
+  // Source: trinity/trinity/TriDevice.cpp:697,805-833
   //
-  // The clock half of Carbon's tick. The rest of TriDevice::Tick - the crash
+  // The clock half of Carbon's tick. The rest of TriDevice::OnTick - the crash
   // key, the scheduled event, Update, HandleRenderTick, the main-thread action
   // queue and the resource-pool sweep - is not ported, and this does not
   // pretend otherwise.
@@ -302,29 +315,43 @@ export class TriDevice extends CjsModel
   }
 
   /**
-   * `TriDevice::Tick`'s clock half: advance the frame counter and the
-   * animation time by the simulation delta.
+   * Blue's tick: advance the frame counter and the animation time by the
+   * simulation delta (`TriDevice::OnTick`, `TriDevice.cpp:697,805-833`).
    *
-   * Carbon clamps the delta to one second, so a stall does not jump every
-   * animation forward, and recenters the clock hourly.
+   * THIS IS A CALLBACK, not a method a caller invokes directly. Carbon
+   * declares it under an `// IBlueEvents` banner (`TriDevice.h:154-159`) and
+   * the device hands ITSELF to `BeOS->RegisterForTicks( this, TRINITY )`
+   * (`TriDevice.cpp:310`), so the pump calls it. `blue.os` is that pump here.
    *
-   * @param {number} realTime Real clock, in seconds.
-   * @param {number} simTime Simulation clock, in seconds.
+   * BOTH TIMES ARE `Be::Time` - 100-nanosecond ticks since the client started,
+   * not seconds. Carbon divides the delta by 10,000,000 to get the seconds the
+   * animation clock advances by, and so does this. The clamp is to one second,
+   * so a stall does not jump every animation forward, and the clock recentres
+   * hourly.
+   *
+   * @param {number} realTime Time since the client started, in 100ns ticks.
+   * @param {number} simTime The same, slowed under load to manage it.
+   * @param {*} [_cookie] The cookie this device registered with; unread.
    * @returns {TriDevice} This device.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The clock half only. Carbon's Tick also sets a crash key, schedules the next event, and runs Update, HandleRenderTick, the main-thread actions and the resource-pool sweep; none of those are ported.")
-  Tick(realTime = 0, simTime = 0)
+  @impl.reason("The clock half only. Carbon's OnTick also sets a crash key, schedules the next event, and runs Update, HandleRenderTick, the main-thread actions and the resource-pool sweep; none of those are ported. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
+  OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
 
     let delta = Number(simTime) - this.simTime;
     if (!(delta > 0)) delta = 0;
-    if (delta > 1) delta = 1;
+
+    // cpp:817-822. Be::Time is 100ns ticks, so the seconds delta is the tick
+    // delta over ten million; the clamp is applied to the SECONDS value, as
+    // Carbon applies it to fDelta rather than to delta.
+    let deltaSeconds = delta / 10000000;
+    if (deltaSeconds > 1) deltaSeconds = 1;
 
     this.previousAnimationTime = this.animationTime;
-    this.animationTime += delta * this.animationTimeScale;
+    this.animationTime += deltaSeconds * this.animationTimeScale;
 
     // cpp:823-826. Carbon also rebases every animation player and Granny
     // control clock by the same amount here; neither is ported, so a clock
@@ -338,6 +365,34 @@ export class TriDevice extends CjsModel
     this.realTime = Number(realTime) || 0;
     return this;
   }
+
+  /**
+   * Stops this device being ticked (`TriDevice.cpp:687-691`).
+   *
+   * Carbon's body is `BeOS->UnregisterForTicks( this, TRINITY )` preceded by
+   * invalidating the device's resources; only the unregistration is ported,
+   * because the resource invalidation it pairs with is not.
+   *
+   * WHERE IS THE REGISTRATION? Carbon registers from `CreateSimpleDevice`
+   * (`cpp:310`), once a real D3D device exists, and again from
+   * `SetPresentation` (`cpp:678`). Neither is ported, so there is no faithful
+   * place to put the call and none has been invented: a host registers the
+   * device with `blue.os.RegisterForTicks(device, TriDevice.TICK_COOKIE)`
+   * until device creation lands.
+   *
+   * @returns {TriDevice} This device.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon also invalidates the device's resources here, which is unported; this is the unregistration alone.")
+  InvalidateAndUnregisterForTicks()
+  {
+    blue.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
+    return this;
+  }
+
+  /** Carbon's tick cookie, the string "Trinity" (`TriDevice.cpp:148`). */
+  static TICK_COOKIE = "Trinity";
 
   /** Carbon method CreateUpscalingContext (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
   @carbon.method

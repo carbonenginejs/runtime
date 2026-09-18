@@ -198,8 +198,8 @@ test("the device's frame clock is not Trinity's", () =>
   context.SetRenderContextAL(al);
 
   gTriDev.device = new TriDevice();
-  gTriDev.device.Tick(15000000, 15000000);
-  gTriDev.device.Tick(25000000, 25000000);
+  gTriDev.device.OnTick(15000000, 15000000);
+  gTriDev.device.OnTick(25000000, 25000000);
 
   assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "Trinity began two frames");
   assert.equal(context.GetRenderedFrameNumber(), 0, "the device has finished none of them");

@@ -125,6 +125,76 @@ Search paths, resolution, directory contents, existence and streams, kept a sepa
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:IBlueOS -->
+## `IBlueOS`
+
+The operating system as its consumers see it: the root clock, the pump that ticks every registrant, error reporting and process control. The error, startup-argument and process-control verbs are declared and refused.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueOS.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:CjsBlueOS -->
+## `CjsBlueOS`
+
+The half of `BeOS` a browser can answer honestly: the clock, the frame-time cache and the tick registry that drives `TriDevice.OnTick`.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsBlueOS.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:BeInfo -->
+## `BeInfo`
+
+Blue's clocks, framerate state and pump counters in one record, as `GetInfo` returns it. Only the time and pump fields are filled here.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/BeInfo.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IBlueEvents -->
+## `IBlueEvents`
+
+The fixed-rate tick callback. A class implements `OnTick` and hands itself to `RegisterForTicks`; Carbon maps this on nothing, so it is an implementation base and never a cast.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueEvents.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:IVariableTicker -->
+## `IVariableTicker`
+
+The variable-rate tick callback, told how much time passed rather than what time it is.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IVariableTicker.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:ICatchupTicks -->
+## `ICatchupTicks`
+
+A variable-rate ticker that is also told when every tick for its system in this frame has completed.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/ICatchupTicks.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:ISimTimeRebaseNotify -->
+## `ISimTimeRebaseNotify`
+
+Told when the simulation clock is MOVED rather than slowed, so anything holding a simulation timestamp can rebase it.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/ISimTimeRebaseNotify.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:CjsScriptCallback -->
 ## `CjsScriptCallback`
 

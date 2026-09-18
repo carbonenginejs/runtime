@@ -1,4 +1,5 @@
 // Source: blueexposure/include/IList.h:38-53
+// Source: blue/include/IBlueOS.h:48-53
 
 /**
  * `BLUELISTEVENT` - what happened to a Blue list.
@@ -38,4 +39,33 @@ export const BLUELISTEVENT = Object.freeze({
     BELIST_LOADING: 0x10,
     BELIST_UNLOADING: 0x20,
     BELIST_FLAGMASK: 0xf0
+});
+
+
+/**
+ * `BLUEERROR` - the sentinel values `BeOS->SetError` accepts in place of an
+ * HRESULT.
+ *
+ * Three of the four are COMMANDS rather than errors: clear the log, flush it,
+ * or go and read the platform's own last error. Only `BEDEF` means "an error
+ * with nothing more specific to say".
+ *
+ * THE VOCABULARY IS PORTED, THE MECHANISM IS NOT. `IBlueOS.SetError` refuses
+ * here - error reporting is a real operating-system service with no consumer
+ * in this runtime - but a shared enum belongs in `global/consts` whether or
+ * not the verb that takes it is implemented, and declaring it is what makes
+ * the refusal reviewable rather than a blank.
+ *
+ * NEGATIVE ON PURPOSE. They share the space with HRESULT values, which is why
+ * they are small negatives Carbon's error codes cannot collide with.
+ */
+export const BLUEERROR = Object.freeze({
+    /** Clears the error log. */
+    BECLEAR: 0,
+    /** No particular error value; the default. */
+    BEDEF: -1,
+    /** Go and call the platform's GetLastError. */
+    BE32: -2,
+    /** Flush the error log to the logger, then clear it. */
+    BEFLUSH: -3
 });
