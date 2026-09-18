@@ -27,6 +27,40 @@
  * fails closed on anything it cannot redirect.
  */
 
+/**
+ * ## PMDG is a per-target family, and it is not in this table
+ *
+ * `GlowMap`, `MaterialMap`, `PaintMaskMap` and `DirtMap` were one packed texture
+ * until CCP unpacked them, and they are the obvious next family. A row for them
+ * was written here and removed, because a row here applies to every target that
+ * translates a shader carrying those names - and this one must not.
+ *
+ * **It never goes on EVE** (operator, 2026-09-18, standing). EVE's quad family
+ * is cleared by the light lowering alone, so merging there buys nothing and
+ * spends the live game's working hulls to do it.
+ *
+ * **EVE Frontier cannot do without it.** Measured at build 3512930 on
+ * `.sm_depth`, maxima across all bodies so `SOPPT_ENABLED` is included: the
+ * light lowering leaves the worst case at 18-19, and only PMDG brings the family
+ * under 16. That is the opposite of EVE, which is the whole reason this cannot
+ * be one rule.
+ *
+ * So the selection is a property of the TARGET, not of the shader, and it
+ * arrives the way the other translation decisions do - the emitter takes the
+ * family list as a profile key rather than importing this table. A game's
+ * profile names what it may merge; this file only says what each family IS.
+ *
+ * Two hazards make the EVE half of that boundary load-bearing rather than
+ * tidiness. An array needs its layers to agree on format and mip count, and
+ * these do not always: EVE's `gb1_t1` PaintMask carries 12 mips against its
+ * siblings' 11, and Frontier's DirtMap is DX10 against ATI1 siblings. A rejected
+ * aggregate binds the 1x1 fallback, which blanks the map rather than failing
+ * loudly.
+ *
+ * Numbers, both games, and the substitution of `quadheatdetailv5` by
+ * `quadheatv5`: `/docs/contracts/quad-family-texture-budget.md`.
+ */
+
 /** Carbon's resource type code for a 2D texture. */
 const CARBON_TEXTURE_2D = 2;
 
