@@ -65,6 +65,16 @@ Optional per-call notice of whether a resource request was answered from the cac
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:IInitialize -->
+## `IInitialize`
+
+Carbon's once-per-object hook, called after a read has written every member. A class implementing it is asking to be told once at the end instead of once per member, and readers suppress `INotify` for it entirely.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IInitialize.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:INotify -->
 ## `INotify`
 
