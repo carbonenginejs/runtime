@@ -1,7 +1,7 @@
 // Source: audio/src/AudEventCurve.h + AudEventCurve.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEventCurve.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { TriExtrapolation } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
@@ -13,48 +13,48 @@ export class AudEventCurve extends CjsModel
 {
 
   /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
   extrapolation = 0;
 
   /** m_time (double) [READ] */
-  @io.read
+  @edit.read
   @type.float64
   time = 0;
 
   /** m_length (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   length = 0;
 
   /** m_localTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   localTime = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   value = "";
 
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriObserverLocal")
   sourceTriObserver = null;
 
   /** m_keys (PAudEventKeyVector) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("AudEventKey")
   keys = [];
 
   /** m_audioEmitter (AudEmitterPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("AudEmitter")
   audioEmitter = null;
 

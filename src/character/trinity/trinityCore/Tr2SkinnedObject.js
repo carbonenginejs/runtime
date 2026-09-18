@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2SkinnedObject.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -32,109 +32,109 @@ export class Tr2SkinnedObject extends CjsModel
   #rigBinding = new CjsCharacterRigBinding();
 
   /** m_skinningMatrixFrameDelay (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   frameDelay = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_maxBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   explicitMaxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   explicitMinBounds = vec3.create();
 
   /** m_updatePeriod (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   updatePeriod = 0;
 
   /** m_transform (PTriMatrix) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriMatrix")
   transform = null;
 
   /** m_visualModel (Tr2SkinnedModelPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
   /** m_lod.m_highDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.unknown
   highDetailModel = null;
 
   /** m_lod.m_lowDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.unknown
   lowDetailModel = null;
 
   /** m_lod.m_mediumDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.unknown
   mediumDetailModel = null;
 
   /** m_lod.GetCurrentLod() (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   currentLod = -1;
 
   /** m_numRenderRigBones (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   renderRigBoneCount = 0;
 
   /** m_skinningMatrixCount (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   skinningMatrixCount = 0;
 
   /** m_useDynamicBounds (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   useDynamicBounds = true;
 
   /** m_useExplicitBounds (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   useExplicitBounds = false;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 

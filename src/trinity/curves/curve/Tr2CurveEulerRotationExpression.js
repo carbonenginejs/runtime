@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotationExpression.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -16,43 +16,43 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 })
 export class Tr2CurveEulerRotationExpression extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionYaw = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionPitch = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionRoll = "";
 
-  @io.read
+  @edit.read
   @type.quat
   currentValue = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   input1 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input2 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input3 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input4 = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("ITriScalarFunction")
   inputs = [];
 

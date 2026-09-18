@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -16,23 +16,23 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionOverlay extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.path
   path = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   overlayName = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   targetAnotherOwner = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   addOnStart = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   removeOnStop = true;
 

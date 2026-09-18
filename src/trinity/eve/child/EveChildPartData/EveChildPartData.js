@@ -1,7 +1,7 @@
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.h
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData.cpp
 // Carbon source: trinity/trinity/Eve/SpaceObject/Children/EveChildPartData_Blue.cpp
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
 
@@ -17,15 +17,15 @@ import { EveChildPartDataPartData } from "./EveChildPartDataPartData.js";
 @type.define({ className: "EveChildPartData", family: "eve/child" })
 export class EveChildPartData extends EveSpaceObjectChild
 {
-  @io.persist
+  @edit.persist
   @type.string
   faction = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   race = "";
 
-  @io.persist
+  @edit.persist
   @type.list("EveChildPartData.PartData")
   parts = [];
 

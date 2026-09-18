@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataParameter } from "../shared/EveSOFDataParameter.js";
 import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
@@ -11,22 +11,22 @@ export class EveSOFDataRaceDamage extends CjsModel
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataParameter")
   armorImpactParameters = [];
 
   /** m_armorImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataTexture")
   armorImpactTextures = [];
 
   /** m_shieldImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataParameter")
   shieldImpactParameters = [];
 
   /** m_shieldImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataTexture")
   shieldImpactTextures = [];
 

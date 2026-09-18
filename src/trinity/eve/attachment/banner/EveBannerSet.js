@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
@@ -30,39 +30,39 @@ import {
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.list("EveBannerItem")
   banners = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isPickable = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.int32
   key = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("EveBannerLight")
   lights = [];
 
   // SOF-authored primary banner texture parameter; persisted so the values
   // interchange reproduces Carbon's hidden banner binding.
-  @io.persist
+  @edit.persist
   @type.objectRef("TriTextureParameter")
   primaryTextureParameter = null;
 

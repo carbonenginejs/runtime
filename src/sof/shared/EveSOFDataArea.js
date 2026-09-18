@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
@@ -40,52 +40,52 @@ export class EveSOFDataArea extends CjsModel
   });
 
   /** m_materials[TYPE_PRIMARY] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Primary = null;
 
   /** m_materials[TYPE_GLASS] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Glass = null;
 
   /** m_materials[TYPE_SAILS] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Sails = null;
 
   /** m_materials[TYPE_REACTOR] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Reactor = null;
 
   /** m_materials[TYPE_DARKHULL] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Darkhull = null;
 
   /** m_materials[TYPE_ROCK] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Rock = null;
 
   /** m_materials[TYPE_MONUMENT] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Monument = null;
 
   /** m_materials[TYPE_ORNAMENT] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Ornament = null;
 
   /** m_materials[TYPE_SIMPLEPRIMARY] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   SimplePrimary = null;
 
   /** m_materials[TYPE_TURRET] (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   Turret = null;
 

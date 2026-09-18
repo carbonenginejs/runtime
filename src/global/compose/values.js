@@ -60,10 +60,10 @@ const MAX_UPDATE_PASSES = 32;
  */
 export function isWritableField(field)
 {
-    const io = field?.io;
-    if (!io) return true;
-    if (io.write || io.persist || io.persistOnly) return true;
-    if (io.read && !io.write) return false;
+    const edit = field?.edit;
+    if (!edit) return true;
+    if (edit.write || edit.persist || edit.persistOnly) return true;
+    if (edit.read && !edit.write) return false;
     return true;
 }
 
@@ -98,7 +98,7 @@ export function createValuesTransport(services)
     {
         for (const field of GetFields(target.constructor))
         {
-            if (options.persistOnly && !(field.io?.persist || field.io?.persistOnly)) continue;
+            if (options.persistOnly && !(field.edit?.persist || field.edit?.persistOnly)) continue;
             out[field.name] = Export(target[field.name], field, options);
         }
         return out;
@@ -131,12 +131,12 @@ export function createValuesTransport(services)
             const coerced = CoerceInto(current, incoming, field);
             if (coerced !== null)
             {
-                if (coerced || field.io?.always === true) changed.add(field.name);
+                if (coerced || field.edit?.always === true) changed.add(field.name);
                 continue;
             }
 
             const next = Import(incoming, field, options);
-            if (field.io?.always === true || !IsEquivalent(current, next))
+            if (field.edit?.always === true || !IsEquivalent(current, next))
             {
                 target[field.name] = next;
                 changed.add(field.name);

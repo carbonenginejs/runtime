@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
@@ -19,27 +19,27 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 @carbon.inherit(ITr2ActionController)
 export class Tr2Controller extends EveThrottleable
 {
-  @io.persist
+  @edit.persist
   @type.list("Tr2StateMachine")
   stateMachines = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ControllerFloatVariable")
   variables = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ControllerEventHandler")
   eventHandlers = [];
 
-  @io.read
+  @edit.read
   @type.boolean
   isPlaying = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isShared = false;
 

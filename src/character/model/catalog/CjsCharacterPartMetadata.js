@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored metadata associated with one character part source. */
@@ -6,67 +6,67 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterPartMetadata extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     alternativeTextureSourcePath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     forcesLooseTop = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     hidesBootShin = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     lod1Replacement = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     lod2Replacement = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     numColorAreas = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     dependentModifiers = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     occludesModifiers = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterModifierReference")
     dependencies = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterModifierReference")
     occlusions = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     soundTag = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     swapTops = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     swapBottom = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     swapSocks = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     wap = null;
 

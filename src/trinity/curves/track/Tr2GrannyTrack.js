@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyTrack.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 
 
@@ -16,30 +16,30 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 })
 export class Tr2GrannyTrack extends CjsModel
 {
-  @io.persist
-  @io.notify
+  @edit.persist
+  @edit.notify
   @type.path
   grannyResPath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = false;
 
-  @io.read
+  @edit.read
   @type.float32
   duration = 0;
 
-  @io.read
+  @edit.read
   @type.objectRef("TriGrannyRes")
   grannyRes = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   group = "";
 

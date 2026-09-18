@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3Expression.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
@@ -16,43 +16,43 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 })
 export class Tr2CurveVector3Expression extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionX = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionY = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expressionZ = "";
 
-  @io.read
+  @edit.read
   @type.vec3
   currentValue = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   input1 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input2 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input3 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input4 = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("ITriScalarFunction")
   inputs = [];
 

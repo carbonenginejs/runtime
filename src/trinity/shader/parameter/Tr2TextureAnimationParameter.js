@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2TextureAnimationParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
@@ -13,18 +13,18 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 {
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   channel = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

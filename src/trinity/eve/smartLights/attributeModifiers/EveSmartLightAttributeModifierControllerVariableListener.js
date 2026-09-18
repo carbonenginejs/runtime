@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierControllerVariableListener.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 
 /** EveSmartLightAttributeModifierControllerVariableListener (eve/smartLights/attributeModifiers) - generated from schema shapeHash 8438774e.... */
@@ -9,24 +9,24 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   invertReceivedValue = false;
 
   /** m_defaultValue (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   defaultValue = 0;
 

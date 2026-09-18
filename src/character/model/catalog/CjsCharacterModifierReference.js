@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Additive typed projection beside one losslessly retained authored modifier string. */
@@ -6,24 +6,24 @@ import { CjsModel } from "#model";
 export class CjsCharacterModifierReference extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     authoredValue = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     modifierPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterPartSource")
     partSource = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterModifierLocation")
     modifierLocation = null;
 
     /** Effective weight for a proved weighted logical modifier; otherwise null. */
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = null;
 

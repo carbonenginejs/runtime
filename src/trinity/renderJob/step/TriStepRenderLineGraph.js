@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderLineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a set of line graphs with a shared scale and legend. */
@@ -9,37 +9,37 @@ export class TriStepRenderLineGraph extends TriRenderStep
 {
 
   /** m_lineGraphs (PTr2LineGraphVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2LineGraph")
   lineGraphs = [];
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
   /** m_legendScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   legendScale = 1;
 
   /** m_autoScale (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   autoScale = true;
 
   /** m_showLegend (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   showLegend = true;
 
   /** m_maxLegend (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxLegend = 1000000000000;
 
   /** m_scaleChangeCallback (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   scaleChangeCallback = null;
 

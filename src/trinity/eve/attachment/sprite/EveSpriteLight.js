@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpriteSet.cpp
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 
 
@@ -14,7 +14,7 @@ import { CjsLightData } from "../../lights/CjsLightData.js";
 @type.define({ className: "EveSpriteLight", family: "eve/attachment/sprites" })
 export class EveSpriteLight extends CjsModel
 {
-  @io.owned
+  @edit.owned
   @type.struct("CjsLightData")
   lightData = new CjsLightData();
 

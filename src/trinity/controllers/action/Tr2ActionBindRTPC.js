@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -18,20 +18,20 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionBindRTPC extends CjsModel
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   value = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   emitter = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   rtpcName = "";
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriScalarFunction")
   curve = null;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierLifeTimeOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
 
@@ -14,27 +14,27 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   #currentCascadingOffset = 0;
 
   /** m_minOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minOffset = 0;
 
   /** m_maxOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxOffset = 0;
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_cascadingLifetimeOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   cascadingLifetimeOffset = 0;
 
   /** m_normalizeOffsets (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   normalizeOffsets = false;
 

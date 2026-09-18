@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One authored character recipe selection and its material values. */
@@ -6,43 +6,43 @@ import { CjsModel } from "#model";
 export class CjsCharacterRecipeEntry extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     category = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     path = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = 1;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorVariation = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     colors = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     specularColors = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     pattern = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     patternColors = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     patternTransform = [ 0, 0, 1, 1 ];
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     patternRotation = 0;
 

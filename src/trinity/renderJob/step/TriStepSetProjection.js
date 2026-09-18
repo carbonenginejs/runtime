@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.h
 // Source: trinity/trinity/RenderJob/TriStepSetProjection.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { TriProjection } from "../../core/view/TriProjection.js";
 import { TriRenderJob } from "../TriRenderJob.js";
@@ -13,7 +13,7 @@ export class TriStepSetProjection extends TriRenderStep
 {
   #transform = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("TriProjection")
   projection = null;
 

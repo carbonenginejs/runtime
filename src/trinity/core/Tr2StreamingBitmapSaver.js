@@ -12,7 +12,7 @@
 // behaviour: the pre-check never fails and the REAL format gate is
 // SaveHeader's switch, whose default returns SAVE_NOT_SUPPORTED. This port
 // keeps that net behaviour: no pre-check, the header switch rejects.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
@@ -28,23 +28,23 @@ export class Tr2StreamingBitmapSaver extends CjsModel
 
   /** m_currentOffset (uint32_t) [READ] - rows are written bottom-up, so it
    *  starts at the height. */
-  @io.read
+  @edit.read
   @type.uint32
   currentOffset = 0;
 
   /** m_height (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   height = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("PixelFormat")
   format = 0;
 
   /** m_width (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   width = 0;
 

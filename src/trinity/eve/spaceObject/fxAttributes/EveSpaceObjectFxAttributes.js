@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveSpaceObjectFxAttributes.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -77,57 +77,57 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
   #initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_activationStrength (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   activationStrength = 1;
 
   /** m_activeTurretCount (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   activeTurretCount = 0;
 
   /** m_distanceToChildParent (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   childParent = 0;
 
   /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
   /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.create();
 
   /** m_killCount (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   killCount = 0;
 
   /** m_distanceToShip (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   ship = 0;
 
   /** m_boundingSphereRadius (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_parentWorldRotation (Quaternion) [READ] */
-  @io.read
+  @edit.read
   @type.quat
   parentWorldRotation = quat.fromValues(0, 0, 0, 0);
 
   /** m_parentWorldTranslation (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   parentWorldTranslation = vec3.create();
 

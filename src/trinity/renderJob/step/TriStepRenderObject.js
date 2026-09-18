@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderObject.h
 //   trinity/trinity/RenderJob/TriStepRenderObject.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { TriRenderBatchMap } from "../../core/batch/TriRenderBatchMap.js";
 import { TriRenderStep } from "./TriRenderStep.js";
@@ -28,32 +28,32 @@ export class TriStepRenderObject extends TriRenderStep
 {
 
   /** m_effectOverride (Tr2MaterialPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Material")
   effectOverride = null;
 
   /** m_typeEnabled[3] (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   renderAdditive = true;
 
   /** m_typeEnabled[1] (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   renderDecal = true;
 
   /** m_typeEnabled[0] (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   renderOpaque = true;
 
   /** m_typeEnabled[2] (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   renderTransparent = true;
 
   /** m_renderable (ITr2RenderablePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2Renderable")
   renderable = null;
 

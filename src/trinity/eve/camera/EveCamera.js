@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveCamera.h
 //   trinity/trinity/Eve/EveCamera.cpp
 //   trinity/trinity/Eve/EveCamera_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { mat4 } from "#math/mat4";
@@ -177,205 +177,205 @@ export class EveCamera extends CjsModel
   #zoomTime = 0;
 
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBlueEventListener")
   errorHandler = null;
 
   /** m_noiseScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseScale = 1;
 
   /** m_audio2Listener (IBluePlacementObserverPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBluePlacementObserver")
   audio2Listener = null;
 
   /** m_noise (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   noise = false;
 
   /** m_projectionCenterOffset (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   centerOffset = 0;
 
   /** m_pitch (float) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   pitch = 0;
 
   /** m_yaw (float) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   yaw = 0;
 
   /** m_extraParentTranslation (Vector3) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   extraTranslation = vec3.create();
 
   /** m_idleSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   idleSpeed = 0.8;
 
   /** m_noiseDamp (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseDamp = 1.1;
 
   /** m_pos (Vector3) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   pos = vec3.create();
 
   /** m_intr (Vector3) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   intr = vec3.create();
 
   /** m_viewVec (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   viewVec = vec3.create();
 
   /** m_rightVec (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   rightVec = vec3.create();
 
   /** m_upVec (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   upVec = vec3.create();
 
   /** m_rotationAroundParent (Quaternion) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.quat
   rotationAroundParent = quat.create();
 
   /** m_interestTranslationCurve (ITriVectorFunctionPtr) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   interest = null;
 
   /** m_rotationOfInterest (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.quat
   rotationOfInterest = quat.create();
 
   /** m_fieldOfView (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fieldOfView = Math.PI / 2;
 
   /** m_frontClip (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   frontClip = 10;
 
   /** m_backClip (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   backClip = 10000000;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   friction = 7;
 
   /** m_noiseCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriScalarFunction")
   noiseCurve = null;
 
   /** m_noiseScaleCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriScalarFunction")
   noiseScaleCurve = null;
 
   /** m_noiseDampCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriScalarFunction")
   noiseDampCurve = null;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxSpeed = 0.05;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_zoomCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriScalarFunction")
   zoomCurve = createDefaultZoomCurve();
 
   /** Blue exposes m_translationFromParent.z, not the native Vector3. */
-  @io.persist
+  @edit.persist
   @type.float32
   translationFromParent = 20;
 
   /** m_minPitch (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minPitch = -1.4;
 
   /** m_maxPitch (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxPitch = 1.4;
 
   /** m_minYaw (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minYaw = 0;
 
   /** m_maxYaw (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxYaw = 0;
 
   /** m_parentTranslationCurve (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   parent = null;
 
   /** m_idleScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   idleScale = 2;
 
   /** m_alignment (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   alignment = vec3.fromValues(0, 1, 0);
 
   /** m_useExtraParentTranslation (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   useExtraTranslation = false;
 
   /** m_projectionMatrix (TriProjectionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriProjection")
   projectionMatrix = new TriProjection();
 
   /** m_viewMatrix (TriViewPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriView")
   viewMatrix = new TriView();
 
   /** m_idleMove (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   idleMove = false;
 

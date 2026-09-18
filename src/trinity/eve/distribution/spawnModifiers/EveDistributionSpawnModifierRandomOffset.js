@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomOffset.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
@@ -13,22 +13,22 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
   #timeSeed = Date.now() >>> 0;
 
   /** m_minOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   minOffset = vec3.create();
 
   /** m_maxOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   maxOffset = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformOffset (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   uniformOffset = false;
 

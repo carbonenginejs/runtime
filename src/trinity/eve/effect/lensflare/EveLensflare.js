@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveLensflare.h
 // Source: trinity/trinity/Eve/EveLensflare.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -16,92 +16,92 @@ export class EveLensflare extends CjsModel
   #controllerVariables = new Map();
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   translationCurve = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Mesh")
   mesh = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_backgroundOccluders (PEveOccluderVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveOccluder")
   backgroundOccluders = [];
 
   /** m_occluders (PEveOccluderVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveOccluder")
   occluders = [];
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_distanceToEdgeCurves (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   distanceToEdgeCurves = [];
 
   /** m_distanceToCenterCurves (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   distanceToCenterCurves = [];
 
   /** m_radialAngleCurves (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   radialAngleCurves = [];
 
   /** m_xDistanceToCenter (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   xDistanceToCenter = [];
 
   /** m_yDistanceToCenter (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   yDistanceToCenter = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_bindings (PITr2ValueBindingVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2ValueBinding")
   bindings = [];
 
   /** m_cameraFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   cameraFactor = 20;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_flares (PEveTransformVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveTransform")
   flares = [];
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 

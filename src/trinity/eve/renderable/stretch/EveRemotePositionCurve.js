@@ -3,7 +3,7 @@
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,31 +16,31 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class EveRemotePositionCurve extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.float32
   delayTime = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   value = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   offsetDir2 = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   startPositionCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   offsetDir1 = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   sweepTime = 1;
 

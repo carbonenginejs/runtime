@@ -4,7 +4,7 @@ import { normalizeResourcePath } from "#utils/path";
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.cpp
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF_Blue.cpp
 import { CjsModel } from "#model";
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -272,21 +272,21 @@ const SOF_INSTANCE_LAYOUT = Object.freeze([
 export class EveSOF extends CjsModel
 {
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   allowFileCaching = true;
 
   // Carbon registers this as the global TRI setting "alphaCutoutShadowsEnabled"
   // (EveSOF.cpp:61-62, default false); decal (alpha-cutout) areas take their
   // castsShadows state from it. Injected here per builder instead of a global.
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   alphaCutoutShadowsEnabled = false;
 
   // Carbon registers this as the global TRI setting "volumetricTrailPath"
   // (EveSOF.cpp:64-65, default empty); the booster trail set takes its mesh
   // resource path from it. Injected here per builder instead of a global.
-  @io.readwrite
+  @edit.readwrite
   @type.string
   volumetricTrailPath = "";
 
@@ -294,15 +294,15 @@ export class EveSOF extends CjsModel
   // phase-offsetting noise flicker by when the object was built. Injected
   // here per builder (default 0 keeps builds deterministic); the engine
   // passes its clock when it wants Carbon's de-synced flicker.
-  @io.readwrite
+  @edit.readwrite
   @type.float64
   buildTime = 0;
 
-  @io.read
+  @edit.read
   @type.objectRef("EveSOFDataMgr")
   dataMgr = new EveSOFDataMgr();
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   editorMode = false;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2RandomDirectionAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { bindParticleElement } from "../element/particleElementBinding.js";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
@@ -13,18 +13,18 @@ export class Tr2RandomDirectionAttributeGenerator extends ITr2AttributeGenerator
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   customName = "";
 
   /** m_valid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   valid = false;
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Appearance contribution separating selection ownership from the asset that supplies it. */
@@ -6,20 +6,20 @@ import { CjsModel } from "#model";
 export class CjsCharacterAppearanceLayer extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

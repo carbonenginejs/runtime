@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo.cpp
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 const TermType = Object.freeze({
@@ -22,20 +22,20 @@ const TermType = Object.freeze({
 })
 export class Tr2ExpressionTermInfo extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("TermType")
   type = TermType.VARIABLE;
 
-  @io.readwrite
+  @edit.readwrite
   @type.string
   category = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.string
   description = "";
 

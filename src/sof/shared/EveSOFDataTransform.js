@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -12,22 +12,22 @@ export class EveSOFDataTransform extends CjsModel
 {
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 

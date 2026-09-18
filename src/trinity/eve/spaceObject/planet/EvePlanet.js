@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EvePlanet.h
 // Source: trinity/trinity/Eve/EvePlanet.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -15,32 +15,32 @@ export class EvePlanet extends EveEffectRoot2
   #renderScale = 1000000;
 
   /** m_zOnlyModel (EveChildMeshPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveChildMesh")
   zOnlyModel = null;
 
   /** m_emissiveColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   emissiveColor = vec4.create();
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 2;
 
   /** m_albedoColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   albedoColor = vec4.create();
 
   /** m_estimatedPixelDiameter (float) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 1;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriVariable.h
 // Source: trinity/trinity/TriVariable.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
@@ -17,12 +17,12 @@ import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 })
 export class TriVariable extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.string
   name = "";
 
   /** m_type (TriVariableContentType). */
-  @io.read
+  @edit.read
   @type.int32
   contentType = TriVariableContentType.TRIVARIABLE_INVALID;
 

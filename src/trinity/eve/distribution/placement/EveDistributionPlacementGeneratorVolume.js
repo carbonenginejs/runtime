@@ -2,7 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
@@ -19,25 +19,25 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   #subscribedVolume = null;
 
   /** m_numGenerated (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   numGenerated = 10;
 
   /** m_hollowVolume (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   hollowVolume = false;
 
   /** m_falloffFactor (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   falloffFactor = 1.5;
 
   /** m_volume (IEveVolumePtr) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("IEveVolume")
   volume = null;
 

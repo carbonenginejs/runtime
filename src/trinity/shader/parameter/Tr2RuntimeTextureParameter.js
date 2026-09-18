@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter.cpp
 // Source: trinity/trinity/Shader/Parameter/Tr2RuntimeTextureParameter_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
@@ -17,16 +17,16 @@ import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 @carbon.inherit(ITriEffectResourceParameter)
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("ITr2TextureProvider")
   texture = null;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.uint32
   uavMipLevel = 0;
 

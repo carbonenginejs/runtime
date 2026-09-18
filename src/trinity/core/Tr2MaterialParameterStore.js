@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2MaterialParameterStore.h
 // Source: trinity/trinity/Tr2MaterialParameterStore.cpp
 // Source: trinity/trinity/Tr2MaterialParameterStore_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32c2.... */
@@ -10,23 +10,23 @@ export class Tr2MaterialParameterStore extends CjsModel
 {
 
   /** m_parentStore (Tr2MaterialParameterStorePtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2MaterialParameterStore")
   parent = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_parentPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.path
   parentPath = "";
 
   /** m_parameters (PITriEffectParameterDict) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.map("ITriEffectParameter")
   parameters = new Map();
 

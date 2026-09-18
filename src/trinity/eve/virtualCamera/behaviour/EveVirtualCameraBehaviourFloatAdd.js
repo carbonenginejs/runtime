@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourFloatBase.js";
 
 
@@ -14,11 +14,11 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
 })
 export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviourFloatBase
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   scaleCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   value = 0;
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SplineTunnelGroup.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -29,39 +29,39 @@ export class SplineTunnelGroup extends CjsModel
   tunnels = [];
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_curveSets (PTr2CurveVector3Vector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("Tr2CurveVector3")
   curveSets = [];
 
   /** m_numBreakPoints (int32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   breakPoints = 2;
 
   /** m_tunnelWidth (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   tunnelWidth = 15;
 
   /** m_entrancePullSize (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   entrancePullSize = 50;
 
   /** m_entrySize (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   entrySize = 20;
 

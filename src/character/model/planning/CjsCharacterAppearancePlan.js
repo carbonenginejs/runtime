@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import "./CjsCharacterAppearanceBinding.js";
 import "./CjsCharacterAppearanceColorSelection.js";
@@ -285,59 +285,59 @@ export class CjsCharacterAppearancePlan extends CjsModel
         return CjsModel.deleteChild(this, "diagnostics", value, options);
     }
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     schema = "carbonenginejs.characterAppearancePlan";
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     schemaVersion = 4;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceBuild = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterOrigin")
     origins = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterAppearanceSelection")
     selections = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterAppearanceColorSelection")
     colorSelections = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterResolvedPart")
     parts = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterAppearanceLayer")
     layers = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterTextureAsset")
     textures = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterCoverage")
     coverages = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterMorphTargetWeight")
     morphTargets = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterCompositionTarget")
     targets = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterAppearanceBinding")
     bindings = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterAppearanceDiagnostic")
     diagnostics = [];
 

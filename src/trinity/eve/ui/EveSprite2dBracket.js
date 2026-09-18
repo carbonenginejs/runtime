@@ -3,7 +3,7 @@
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -13,19 +13,19 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EveSprite2dBracket", family: "eve/ui" })
 export class EveSprite2dBracket extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2AtlasTexture")
   icon = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   translation = vec2.create();
 

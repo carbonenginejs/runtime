@@ -1,7 +1,7 @@
 // Source: audio/src/AudioCurveSetDriver.h + AudioCurveSetDriver.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudioCurveSetDriver.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -11,22 +11,22 @@ export class AudioCurveSetDriver extends CjsModel
 {
 
   /** m_fallbackCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriScalarFunction")
   fallbackCurve = null;
 
   /** m_name (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_audioParameterValue (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   audioParameterValue = 0;
 
   /** m_audioParameterName (std::wstring) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   audioParameterName = "";
 

@@ -4,7 +4,7 @@
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
 // 2026-09-06 (docs/research/ratchet-three-method-tier-2026-09-06.md).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
@@ -15,42 +15,42 @@ export class Tr2Sprite2dPickingMask extends CjsModel
 {
 
   /** m_channel (uint32_t) [READWRITE, ENUM] - Carbon's BGRA chooser: 0=B, 2=R, 3=A. */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   channel = 3;
 
   /** m_threshold (float) [READWRITE] - the sampled channel must EXCEED it, 0..1. */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   threshold = 0;
 
   /** m_mask (Tr2ImageResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2ImageRes")
   mask = null;
 
   /** m_maskPath (std::wstring), the Blue property pair's backing string. */
-  @io.readwrite
+  @edit.readwrite
   @type.string
   maskPath = "";
 
   /** m_bottomEdge (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   bottomEdge = 0;
 
   /** m_leftEdge (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   leftEdge = 0;
 
   /** m_rightEdge (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   rightEdge = 0;
 
   /** m_topEdge (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   topEdge = 0;
 

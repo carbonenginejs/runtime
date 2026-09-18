@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -52,39 +52,39 @@ const SPRITE_QUAD_COUNT = 2;
 @type.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.list("EveSpotlightSetItem")
   spotlightItems = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   coneEffect = null;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   glowEffect = null;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.boolean
   skinned = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   intensity = 1;
 
-  @io.persist
+  @edit.persist
   @type.list("EveSpotlightLight")
   lights = [];
 

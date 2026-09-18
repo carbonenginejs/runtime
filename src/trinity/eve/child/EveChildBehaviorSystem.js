@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
@@ -20,24 +20,24 @@ export class EveChildBehaviorSystem extends EveChildTransform
 {
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_behaviorGroups (PBehaviorGroupVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("BehaviorGroup")
   behaviorGroups = [];
 
   /** m_instanceCount (unsigned) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   instanceCount = 1;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 

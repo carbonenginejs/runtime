@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRunJob.h
 // Source: trinity/trinity/RenderJob/TriStepRunJob.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -9,7 +9,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @type.define({ className: "TriStepRunJob", family: "renderJob" })
 export class TriStepRunJob extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("TriRenderJob")
   job = null;
 

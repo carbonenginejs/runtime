@@ -6,7 +6,7 @@ import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 /**
  * One authored spotlight: its bone attachment, placement matrix, the separate
@@ -16,35 +16,35 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
 export class EveSpotlightSetItem extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = 0;
 
-  @io.persist
+  @edit.persist
   @type.color
   coneColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.color
   flareColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.color
   spriteColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.mat4
   transform = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   spriteScale = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   boosterGainInfluence = false;
 

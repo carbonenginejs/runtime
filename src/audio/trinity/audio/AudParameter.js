@@ -1,7 +1,7 @@
 // Source: audio/src/AudParameter.h + AudParameter.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudParameter.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
@@ -11,13 +11,13 @@ export class AudParameter extends CjsModel
 {
 
   /** m_name (std::wstring) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.string
   name = "";
 
   /** m_value (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   value = 0;
 

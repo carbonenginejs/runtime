@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BackAndForth.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { LocatorType } from "./enums.js";
 import { quat } from "#math/quat";
@@ -23,71 +23,71 @@ export class BackAndForth extends CjsModel
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveLocatorSets")
   locatorSet = [];
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   arrivedRadius = 50;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distFromOrigin = 20;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   slowDownRadius = 200;
 
   /** m_backAndForthWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   backAndForthWeight = 100;
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveSpaceObject2")
   parent = null;
 
   /** m_seconds (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   secondsToTurn = 0.25;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   locatorSetName = "damage";
 

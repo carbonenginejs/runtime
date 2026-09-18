@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -18,60 +18,60 @@ import { TriCurveSet } from "../curves/TriCurveSet.js";
 })
 export class EveDistanceField extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.vec3
   dimensions = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   midpoint = vec3.create();
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   distanceThreshold = 3;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxXZRatio = 1.5;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   minYRatio = 0.2;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   timeAdjustmentSecondsIn = 0.25;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   timeAdjustmentSecondsOut = 2;
 
-  @io.notify
-  @io.read
+  @edit.notify
+  @edit.read
   @type.list("ITriVectorFunction")
   objects = [];
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriView")
   cameraView = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriCurveSet")
   curveSet = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   distance = -1;
 
-  @io.flag("distanceCurve")
-  @io.notify
-  @io.readwrite
+  @edit.flag("distanceCurve")
+  @edit.notify
+  @edit.readwrite
   @type.float32
   minDistance = 0;
 
-  @io.flag("distanceCurve")
-  @io.notify
-  @io.readwrite
+  @edit.flag("distanceCurve")
+  @edit.notify
+  @edit.readwrite
   @type.float32
   maxDistance = 75000;
 

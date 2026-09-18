@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { Tr2GrannyAnimation } from "../../core/animation/Tr2GrannyAnimation.js";
 import { SendEventToAudEmitter } from "../../core/variable/TriObserverLocal.js";
@@ -49,96 +49,96 @@ export class EveChildTurret extends EveChildMesh
 {
 
   /** Indicates if the turret is active; runtime toggle, not persisted. */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   isOnline = true;
 
   /** How much tracking is currently applied; runtime-derived. */
-  @io.read
+  @edit.read
   @type.float32
   trackingInfluence = 0;
 
   /** How long tracking takes to fade in - and its influence ceiling. */
-  @io.persist
+  @edit.persist
   @type.float32
   maxTrackingTime = 1;
 
   /** State of the turret (persisted but not editable). */
-  @io.read
-  @io.persist
+  @edit.read
+  @edit.persist
   @type.int32
   state = EveTurretSet.State.STATE_IDLE;
 
   // The eleven flat sysbone tunables Carbon re-exposes from the embedded
   // EveTurretAiming (EveChildTurret_Blue.cpp:25-35); same names and defaults
   // as EveTurretSet. Offsets are authored in degrees.
-  @io.persist
+  @edit.persist
   @type.float32
   sysBoneHeight = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchFactor = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchMin = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchMax = 90;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch01Factor = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch01Offset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch02Factor = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch02Offset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch03Factor = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch03Offset = 0;
 
   /** If greater than one, firing cycles through this many muzzle groups. */
-  @io.persist
+  @edit.persist
   @type.uint32
   maxCyclingFirePos = 1;
 
   /** The number of muzzles in one cycle group, usually one. */
-  @io.persist
+  @edit.persist
   @type.uint32
   cyclingFireGroupCount = 1;
 
   /** Current muzzle id due to cycling; runtime-derived. */
-  @io.read
+  @edit.read
   @type.uint32
   currentCyclingFiresPos = 0;
 
   /** The module for the firing effect of this turret. */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveTurretFiringFX")
   firingEffect = null;
 
   /** A res path to the redfile containing the primary firing effect. */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   firingEffectResPath = "";
 
@@ -152,35 +152,35 @@ export class EveChildTurret extends EveChildMesh
   resourceLoader = null;
 
   /** Size of impacts; no impact when 0 or less. */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   impactSize = 0;
 
   /** What the impacts should hit (an ImpactBehaviour value). */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ImpactBehaviour")
   impactBehaviour = EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR;
 
   /** The observer for turret movement sounds; positioned automatically. */
-  @io.persist
+  @edit.persist
   @type.objectRef("TriObserverLocal")
   turretMovementObserver = null;
 
   /** Whether mechanical movement sounds play when events are authored. */
-  @io.persist
+  @edit.persist
   @type.boolean
   playMovementSound = true;
 
   /** Audio event for mechanical noise when moving from idle to targeting. */
-  @io.persist
+  @edit.persist
   @type.string
   idleToTargetingMovementAudioEvent = "";
 
   /** Audio event for mechanical noise when moving from targeting to idle. */
-  @io.persist
+  @edit.persist
   @type.string
   targetingToIdleMovementAudioEvent = "";
 

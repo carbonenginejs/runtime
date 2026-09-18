@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBulletStorm.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -28,67 +28,67 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   worldTransform = mat4.create();
 
   /** m_targetObjects (PIEveSpaceObject2Vector) [READ, NOTIFY] */
-  @io.notify
-  @io.read
+  @edit.notify
+  @edit.read
   @type.list("IEveSpaceObject2")
   targetObjects = [];
 
   /** m_objectCount (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   objectCount = 0;
 
   /** m_clipSphere (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   clipSphere = 1;
 
   /** m_sourceRadius (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   sourceRadius = 0;
 
   /** m_sourceObject (EveSpaceObject2Ptr) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("EveSpaceObject2")
   sourceObject = null;
 
   /** m_multiplier (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   multiplier = 1;
 
   /** m_speed (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   speed = 1000;
 
   /** m_sourceLocatorSet (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   sourceLocatorSet = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_range (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   range = 1000;
 
   /** m_display (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 

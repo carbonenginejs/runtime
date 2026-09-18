@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
@@ -10,32 +10,32 @@ export class EveSOFDataBoosterShape extends CjsModel
 {
 
   /** m_noiseFunction (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseFunction = 0;
 
   /** m_noiseSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseSpeed = 0;
 
   /** m_noiseAmplitureStart (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   noiseAmplitureStart = vec4.create();
 
   /** m_noiseAmplitureEnd (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   noiseAmplitureEnd = vec4.create();
 
   /** m_noiseFrequency (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   noiseFrequency = vec4.create();
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.create();
 

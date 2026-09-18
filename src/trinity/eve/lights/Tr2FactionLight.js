@@ -3,7 +3,7 @@
 // Flattened LightData surface (2026-07-23 decision): the m_lightData.* Blue
 // attributes are real decorated fields here, verified against
 // lights/Tr2FactionLight.json (tools-core schema build).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { color } from "#math/color";
 import { quat } from "#math/quat";
@@ -23,117 +23,117 @@ export class Tr2FactionLight extends Tr2Light
   #selectedFactionColor = color.createLinear();
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("PerLightShadowSetting")
   castsShadows = 0;
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint16
   flags = 1;
 
   /** m_lightData.position (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_lightData.radius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 0;
 
   /** m_lightData.innerRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   innerRadius = 0;
 
   /** m_lightData.innerAngle (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   innerAngle = 0;
 
   /** m_lightData.outerAngle (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   outerAngle = 0;
 
   /** m_lightData.color (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color = color.createLinear();
 
   /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseAmplitude = 0;
 
   /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseFrequency = 1;
 
   /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   noiseOctaves = 1;
 
   /** m_lightData.isVolumetric (bool) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   isVolumetric = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_selectedColor (int) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_saturation (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   saturation = 1;
 
   /** m_isSpotlight (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   isSpotlight = false;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   lightProfilePath = "";
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 

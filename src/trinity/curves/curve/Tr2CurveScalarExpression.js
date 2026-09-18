@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.h
 // Source: trinity/trinity/Curves/Tr2CurveScalarExpression.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 
 
@@ -16,37 +16,37 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 })
 export class Tr2CurveScalarExpression extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expression = "";
 
-  @io.read
+  @edit.read
   @type.float32
   currentValue = 0;
 
   #program = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input1 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input2 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input3 = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   input4 = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("ITriScalarFunction")
   inputs = [];
 

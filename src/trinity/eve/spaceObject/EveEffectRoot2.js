@@ -9,7 +9,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2BoundingBox } from "#contracts";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -36,127 +36,127 @@ export class EveEffectRoot2 extends EveEntity
 {
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
   /** m_estimatedSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedSize = 0;
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_HIGH;
 
   /** m_mute (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   mute = false;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_dynamicLODSelection (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   dynamicLOD = false;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_effectDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   duration = -1;
 
   /** m_secondaryLightingEmissiveColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   secondaryLightingEmissiveColor = vec4.create();
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_secondaryLightingSphereRadiusLocal (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   secondaryLightingSphereRadius = 0.5;
 
   /** m_boundingSphere.xyz, exposed by Carbon's MAPFLOATARRAYSIZE Blue mapping. */
   @impl.adapted
   @impl.reason("The schema scanner omits MAPFLOATARRAYSIZE; Carbon exposes the three persisted center components separately from radius.")
-  @io.persist
+  @edit.persist
   @type.vec3
   boundingSphereCenter = vec3.create();
 
   /** m_boundingSphere.w (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 

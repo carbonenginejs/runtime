@@ -2,7 +2,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -15,24 +15,24 @@ import { io, type } from "#schema";
 })
 export class Locator extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.quat
   direction = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** Carbon modular-object ownership tag for this locator record. */
-  @io.persist
+  @edit.persist
   @type.uint32
   partTag = 0;
 }

@@ -3,7 +3,7 @@
 import { num } from "#math/num";
 import { quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,23 +17,23 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2QuaternionLerpCurve extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.float64
   start = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   length = 0;
 
-  @io.persist
+  @edit.persist
   @type.quat
   value = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   startCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   endCurve = null;
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Reference to one logical channel of a resolved character texture. */
@@ -6,11 +6,11 @@ import { CjsModel } from "#model";
 export class CjsCharacterTextureChannel extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterTextureAsset")
     texture = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     channel = "a";
 

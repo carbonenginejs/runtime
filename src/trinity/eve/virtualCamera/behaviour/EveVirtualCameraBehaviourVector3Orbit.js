@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviourVector3Base.js";
 
 
@@ -16,32 +16,32 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   orbitCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   distanceScalarCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   end = 180;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   proportional = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   world = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   start = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   distance = 1;
 

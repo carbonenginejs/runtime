@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -21,35 +21,35 @@ const CLAMP_MIN = vec4.create();
 })
 export class Tr2CurveColor extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   srgbOutput = false;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeOffset = 0;
 
-  @io.read
+  @edit.read
   @type.color
   currentValue = color.createLinear();
 

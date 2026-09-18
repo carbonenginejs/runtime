@@ -1,5 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
-import { CjsSchema, io, type } from "#schema";
+import { CjsSchema, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { CjsCharacterTextureMetadata } from "../model/catalog/CjsCharacterTextureMetadata.js";
@@ -15,35 +15,35 @@ export class CjsCharacterLibrary extends CjsModel
 
     #resourceManager = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     schemaVersion = 10;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceTarget = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceGame = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceProvider = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceBuild = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     generatedAt = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 

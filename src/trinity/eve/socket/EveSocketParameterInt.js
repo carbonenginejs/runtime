@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named 32-bit integer socket value to external parameters, capturing and restoring each binding's previous value. */
@@ -9,7 +9,7 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
 {
 
   /** m_value (int32_t) */
-  @io.persist
+  @edit.persist
   @type.int32
   value = 0;
 

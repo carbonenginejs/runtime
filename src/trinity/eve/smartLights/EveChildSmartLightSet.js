@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveChildSmartLightSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -21,22 +21,22 @@ export class EveChildSmartLightSet extends EveChildTransform
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_distribution (IEveDistributionMethodPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IEveDistributionMethod")
   distribution = null;
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSmartLightGroup")
   lightGroups = [];
 

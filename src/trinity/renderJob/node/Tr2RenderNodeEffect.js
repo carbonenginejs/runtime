@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2RenderNodeEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
@@ -16,23 +16,23 @@ export class Tr2RenderNodeEffect extends CjsModel
   sources = [];
 
   /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("RenderingMode")
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_viewport (TriViewportPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriViewport")
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2RenderNode")
   inputNodes = [];
 

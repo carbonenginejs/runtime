@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -31,58 +31,58 @@ export class EveTransform extends Tr2Transform
 {
 
   /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2MeshBase")
   meshLod = null;
 
   /** m_children (PIEveTransformVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveTransform")
   children = [];
 
   /** m_overrideBoundsMin (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   overrideBoundsMin = vec3.create();
 
   /** m_overrideBoundsMax (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   overrideBoundsMax = vec3.create();
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
   /** m_hideOnLowQuality (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   hideOnLowQuality = false;
 
   /** m_visibilityThreshold (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   visibilityThreshold = 2;
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
   /** m_useLodLevel (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useLodLevel = true;
 

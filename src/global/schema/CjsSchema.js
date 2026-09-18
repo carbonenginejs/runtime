@@ -654,28 +654,28 @@ export class CjsSchema
         hideInherited: fieldNames => hiddenInheritedFieldsDecorator(normalizeHiddenInheritedFields(fieldNames))
     });
 
-    static io = Object.freeze({
-        always: fieldDecorator("io", { always: true }),
-        notify: fieldDecorator("io", { notify: true }),
-        owned: fieldDecorator("io", { ownership: "owned" }),
-        persist: fieldDecorator("io", { read: true, write: true, persist: true }),
-        persistOnly: fieldDecorator("io", { persist: true, persistOnly: true }),
-        read: fieldDecorator("io", { read: true }),
-        readwrite: fieldDecorator("io", { read: true, write: true }),
-        reference: fieldDecorator("io", { ownership: "reference" }),
+    static edit = Object.freeze({
+        always: fieldDecorator("edit", { always: true }),
+        notify: fieldDecorator("edit", { notify: true }),
+        owned: fieldDecorator("edit", { ownership: "owned" }),
+        persist: fieldDecorator("edit", { read: true, write: true, persist: true }),
+        persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true }),
+        read: fieldDecorator("edit", { read: true }),
+        readwrite: fieldDecorator("edit", { read: true, write: true }),
+        reference: fieldDecorator("edit", { ownership: "reference" }),
         // Declares the lazy-invalidation token(s) a change to this field
         // implies ("bounds is stale"). Added to __state.flags at write time;
         // cleared ONLY by the getter that recomputes the derived value.
-        flag: (...tokens) => fieldDecorator("io", { flag: tokens.flat().map(String) }),
+        flag: (...tokens) => fieldDecorator("edit", { flag: tokens.flat().map(String) }),
         // Declares the rebuild requirement token(s) a change to this field
         // implies ("vertices need rebuilding"). Added to __state.rebuild at
         // write time; cleared ONLY by the specific work method that succeeds
         // (typically driven from Update / per-frame passes).
-        rebuild: (...tokens) => fieldDecorator("io", { rebuild: tokens.flat().map(String) }),
-        write: fieldDecorator("io", { write: true })
+        rebuild: (...tokens) => fieldDecorator("edit", { rebuild: tokens.flat().map(String) }),
+        write: fieldDecorator("edit", { write: true })
     });
 
-    // Composition decorators: type/io/carbon/impl/jessica DESCRIBE, compose
+    // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
     // INSTALLS (design record, direction item 11). All three are live; the
     // migration of existing classes onto them is separate work.
     static compose = Object.freeze({
@@ -1771,7 +1771,7 @@ function addSchemaBuckets(schema)
             continue;
         }
 
-        entry.owned = field.io?.ownership === "owned";
+        entry.owned = field.edit?.ownership === "owned";
         children.push(entry);
     }
 

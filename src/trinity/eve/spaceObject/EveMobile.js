@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 
@@ -15,12 +15,12 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 @type.define({ className: "EveMobile", family: "eve/spaceObject" })
 export class EveMobile extends EveSpaceObject2
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("EveTurretSet")
   turretSets = [];
 
-  @io.read
+  @edit.read
   @type.uint32
   ActiveTurretCount = 0;
 

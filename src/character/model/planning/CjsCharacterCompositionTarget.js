@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Logical output texture and its authoritative ordered composition passes. */
@@ -6,27 +6,27 @@ import { CjsModel } from "#model";
 export class CjsCharacterCompositionTarget extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     scope = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     region = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     output = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec2
     size = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterCompositionPass")
     passes = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightSpotLight.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightSpotLight_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; the renderer obligation remains explicit.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2Light } from "../lights/Tr2Light.js";
 import { EveSmartLightPointLight } from "./EveSmartLightPointLight.js";
 
@@ -12,12 +12,12 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
 {
 
   /** m_lightGroupData.innerAngle (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   innerAngle = 0;
 
   /** m_lightGroupData.outerAngle (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   outerAngle = 0;
 

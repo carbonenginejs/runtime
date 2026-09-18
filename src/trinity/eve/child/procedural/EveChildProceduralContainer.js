@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -18,27 +18,27 @@ export class EveChildProceduralContainer extends EveChildTransform
   #proceduralContainerVariables = new Map();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_selectedObject (IEveSpaceObjectChildPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("IEveSpaceObjectChild")
   selectedObject = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_selectionMethod (IEveProceduralSelectionMethodPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IEveProceduralSelectionMethod")
   selectionMethod = null;
 

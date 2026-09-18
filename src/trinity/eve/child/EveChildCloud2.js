@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -110,134 +110,134 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ReflectionMode")
   reflectionMode = 0;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2VolumerticQuality")
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sortingModifier = 0;
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2TextureAnimation")
   animation = null;
 
   /** m_shadowMapDS (Tr2DepthStencilPtr) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("Tr2DepthStencil")
   shadowMapDS = null;
 
   /** m_lightMap (Tr2TextureReferencePtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2TextureReference")
   lightmap = null;
 
   /** m_lightmapSizeScale (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   lightmapSizeScale = 0;
 
   /** m_lights (PTr2LightVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.create();
 
   /** m_reflectionEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   reflectionEffect = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_noiseTextureSize (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   noiseTextureSize = 0;
 
   /** m_mapOffsets[0] (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   mapOffset0 = vec3.create();
 
   /** m_mapOffsets[1] (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   mapOffset1 = vec3.create();
 
   /** m_mapOffsets[2] (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   mapOffset2 = vec3.create();
 
   /** m_castShadows (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   castShadows = false;
 
   /** m_receiveShadows (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   receiveShadows = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_mapTiling[1] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   detailTiling1 = vec3.create();
 
   /** m_mapTiling[2] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   detailTiling2 = vec3.create();
 
   /** m_mapTiling[0] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   textureTiling = vec3.create();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = false;
 

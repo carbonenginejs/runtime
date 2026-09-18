@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetUpscalingContextID.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that selects which upscaling context subsequent work resolves against. */
@@ -9,7 +9,7 @@ export class TriStepSetUpscalingContextID extends TriRenderStep
 {
 
   /** m_upscalingContextID (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   upscalingContextID = 0xffffffff;
 

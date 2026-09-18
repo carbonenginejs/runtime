@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 import { Tr2Lod } from "./EveLODHelper.js";
@@ -25,112 +25,112 @@ const IMPACT_SHIELD_FADEOUT = 1.5;
 @type.define({ className: "EveImpactOverlay", family: "eve/overlays/impact" })
 export class EveImpactOverlay extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.uint32
   seed = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.read
+  @edit.read
   @type.objectRef("EveDamageOverlay")
   damageOverlay = new EveDamageOverlay();
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("ImpactConfiguration")
   configuration = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   impactDataNextIdx = 1;
 
-  @io.read
+  @edit.read
   @type.uint64
   armorImpactGoalCount = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   armorImpactParentSize = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   shieldImpactColorFade = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   shieldImpactParentSize = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   shieldIsEllipsoid = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugForceSpawnDebris = false;
 
-  @io.read
+  @edit.read
   @type.float32
   renderPriority = 0;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
-  @io.read
+  @edit.read
   @type.int32
   dataTextureBlockID = -1;
 
-  @io.read
+  @edit.read
   @type.uint32
   maxShieldImpacts = 8;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   overallShieldImpact = -1;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   shieldHardening = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   shieldBoosting = new Tr2ScalarFader();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   armorDamageShader = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   hullDamageFactor = 0;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;
 

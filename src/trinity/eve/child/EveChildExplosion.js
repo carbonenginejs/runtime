@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -34,102 +34,102 @@ export class EveChildExplosion extends EveChildContainer
   globalExplosionInstances = [];
 
   /** m_globalExplosionContainer (EveChildContainerPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("EveChildContainer")
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   localScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosionScaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   globalScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   globalExplosions = [];
 
   /** m_localExplosionIntervalFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   localExplosionIntervalFactor = 1;
 
   /** m_localExplosionDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   localExplosionDelay = 0;
 
   /** m_globalExplosionDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   globalExplosionDelay = 0;
 
   /** m_totalDuration (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   totalDuration = 0;
 
   /** m_globalDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   globalDuration = 0;
 
   /** m_isPlaying (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isPlaying = false;
 
   /** m_localExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   localExplosions = [];
 
   /** m_localExplosionInterval (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   localExplosionInterval = 1;
 
   /** m_globalExplosionTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   globalExplosionTime = 0;
 
   /** m_wreckSwitchTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   wreckSwitchTime = 0;
 
   /** m_wreckSwitchOffsetFromGlobalStart (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   wreckSwitchOffsetFromGlobalStart = 0;
 
   /** m_playTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   playTime = 0;
 
   /** m_localDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   localDuration = 0;
 
@@ -308,7 +308,7 @@ export class EveChildExplosion extends EveChildContainer
       const fields = CjsSchema.getSchema(node.constructor)?.fields ?? [];
       for (const field of fields)
       {
-        if (!field.io?.persist) continue;
+        if (!field.edit?.persist) continue;
         const kind = field.type?.kind;
         const value = node[field.name];
         if ((kind === "model" || kind === "objectRef") && value)
@@ -407,7 +407,7 @@ export class EveChildExplosion extends EveChildContainer
 
     for (const field of CjsSchema.getSchema(source.constructor).fields)
     {
-      if (!field.io?.persist) continue;
+      if (!field.edit?.persist) continue;
       const kind = field.type?.kind;
       const value = source[field.name];
       if (value === undefined) continue;

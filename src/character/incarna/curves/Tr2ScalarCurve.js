@@ -1,7 +1,7 @@
 // Adapted from CCPWGL Tw2ScalarCurve2 (MIT, Copyright (c) 2020
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ScalarCurve
 // Black records.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { IncarnaScalarCurveInterpolation } from "./enums.js";
 import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
@@ -16,56 +16,56 @@ import { Tr2ScalarKey } from "./Tr2ScalarKey.js";
 export class Tr2ScalarCurve extends CjsModel
 {
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   reversed = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeScale = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   startValue = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   currentValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   endValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   startTangent = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   endTangent = 0;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Interpolation")
   interpolation = IncarnaScalarCurveInterpolation.LINEAR;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ScalarKey")
   keys = [];
 
-  @io.persist
+  @edit.persist
   @type.float32
   length = 0;
 

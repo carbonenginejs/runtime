@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerControllerTrigger.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Gates a nested set of distribution spawners from a named controller variable. */
@@ -9,32 +9,32 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   invertTrigger = false;
 
   /** m_isActive (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isActive = false;
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveDistributionSpawner")
   spawners = [];
 
   /** m_restartOnReceivingValue (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   restartOnReceivingValue = false;
 

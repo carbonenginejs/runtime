@@ -5,7 +5,7 @@
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
@@ -447,115 +447,115 @@ export class EveTacticalOverlay extends CjsModel
   }
 
   /** m_trackObjects (PEveTacticalOverlayTrackObjectVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("EveTacticalOverlayTrackObject")
   trackObjects = [];
 
   /** m_totalSegmentsLast (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   totalSegmentsLast = 0;
 
   /** m_requestedSegmentsLast (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   requestedSegmentsLast = 0;
 
   /** m_anchorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   anchorEffect = null;
 
   /** m_connectorEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   connectorEffect = null;
 
   /** m_velocityEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   velocityEffect = null;
 
   /** m_ranges.x (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   activeRange = 200000;
 
   /** m_ranges.y (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   rangeFadeLength = 50000;
 
   /** m_ranges.z (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   rangeMultiplier = 1;
 
   /** m_ranges.w (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sourceRadius = 50;
 
   /** m_interestRange (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   interestRange = 0;
 
   /** m_outsideInterestIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   outsideInterestIntensity = 0.35;
 
   /** m_minRadiusForRange (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minRadiusForRange = 150;
 
   /** m_connectorSegmentsLow (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   segmentsLow = 2;
 
   /** m_connectorSegmentsMedium (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   segmentsMedium = 5;
 
   /** m_connectorSegmentsHigh (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   segmentsHigh = 9;
 
   /** m_targetSegmentCount (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   targetMaxSegments = 25000;
 
   /** m_arcSegmentMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   arcSegmentMultiplier = 1;
 
   /** m_segmentCountMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   segmentCountMultiplier = 2;
 
   /** m_positionCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
   /** m_rootPosition (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   worldPosition = vec3.create();
 
   /** m_interestObject (EveTacticalOverlayTrackObjectPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("EveTacticalOverlayTrackObject")
   interestObject = null;
 

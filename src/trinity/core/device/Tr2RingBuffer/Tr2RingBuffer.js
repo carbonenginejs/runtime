@@ -40,7 +40,7 @@
 //   session and is not in a browser tab, so the consumed prefix is erased in
 //   both cases. The tail it computes is identical either way.
 
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
@@ -71,27 +71,27 @@ export class Tr2RingBuffer extends CjsModel
   static #instances = new Map();
 
   /** m_name */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_stride - bytes per element; every upload must match it. */
-  @io.persist
+  @edit.persist
   @type.uint32
   stride = 0;
 
   /** m_size - capacity in ELEMENTS, not bytes. */
-  @io.read
+  @edit.read
   @type.uint32
   size = 0;
 
   /** m_head - where the next upload lands, in elements. */
-  @io.read
+  @edit.read
   @type.uint32
   head = 0;
 
   /** m_tail - the oldest element the GPU may still be reading. */
-  @io.read
+  @edit.read
   @type.uint32
   tail = 0;
 

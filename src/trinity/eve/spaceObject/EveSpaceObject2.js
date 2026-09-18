@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#contracts";
@@ -60,243 +60,243 @@ export class EveSpaceObject2 extends EveEntity
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ReflectionMode")
   reflectionMode = 3;
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
   /** m_children (PIEveTransformVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveTransform")
   children = [];
 
   /** m_name (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
   /** m_mute (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   mute = false;
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_customMasks (PEveCustomMaskVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveCustomMask")
   customMasks = [];
 
   /** m_overlayEffects (PEveMeshOverlayEffectVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
   /** m_positionDelta (Tr2BindingVector3Ptr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2BindingVector3")
   positionDelta = null;
 
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("Tr2Lod")
   lodLevel = -1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_isPickable (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   isPickable = true;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedPixelDiameter = 0;
 
   /** m_estimatedPixelDiameterWithChildren (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedPixelDiameterWithChildren = 0;
 
   /** m_generatedShapeEllipsoidCenter (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   generatedShapeEllipsoidCenter = vec3.create();
 
   /** m_generatedShapeEllipsoidRadius (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
   /** m_animationUpdater (Tr2GrannyAnimationPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2GrannyAnimation")
   animationUpdater = null;
 
   /** m_dna (std::string) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   dna = "";
 
   /** m_castShadow (bool) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   castShadow = false;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isAnimated = false;
 
   /** m_dynamicBoundingSphereEnabled (bool) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   dynamicBoundingSphereEnabled = false;
 
   /** m_attachments (PIEveSpaceObjectAttachmentVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
   /** m_decals (PEveSpaceObjectDecalVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
   /** m_lights (PTr2LightVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_locators (PEveLocator2Vector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveLocator2")
   locators = [];
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
   /** m_impactOverlay (EveImpactOverlayPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveImpactOverlay")
   impactOverlay = null;
 
   /** m_clipSphereCenter (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   clipSphereCenter = vec3.create();
 
   /** m_clipSphereFactor2 (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   clipSphereFactor2 = 0;
 
   /** m_clipSphereFactor (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   clipSphereFactor = 0;
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
   /** m_worldPosition (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   worldPosition = vec3.create();
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_worldRotation (Quaternion) [READ] */
-  @io.read
+  @edit.read
   @type.quat
   worldRotation = quat.create();
 
   /** m_modelScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   modelScale = 1;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveLocatorSets")
   locatorSets = [];
 
   /** m_activationStrength (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   activationStrength = 1;
 
   /** m_albedoColor (Color) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.color
   albedoColor = color.createLinear();
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_secondaryLightingSphereRadius (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   secondaryLightingSphereRadius = 0;
 
   /** m_boundingSphereCenter (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   boundingSphereCenter = vec3.create();
 
   /** m_dirtLevel (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   dirtLevel = 0;
 
   /** m_psData.customData (Vector4) [READWRITE] - script/SOF-driven custom shader data. */
-  @io.readwrite
+  @edit.readwrite
   @type.vec4
   customShaderData = vec4.create();
 
@@ -305,72 +305,72 @@ export class EveSpaceObject2 extends EveEntity
    * .y activation strength, .z dirt level, .w bounding-sphere radius
    * (PrepareShaderData, cpp:734-744). .x is authored elsewhere and left alone.
    */
-  @io.read
+  @edit.read
   @type.vec4
   spaceObjectShipData = vec4.create();
 
   /** m_lastDamageLocatorHit (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   lastDamageLocatorHit = -1;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   damageLocatorAutoFilterEnabled = false;
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   boundingSphereRadius = -1;
 
   /** m_boundingSphereWorldCenter (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   modelWorldPosition = vec3.create();
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   shapeEllipsoidCenter = vec3.create();
 
   /** m_shapeEllipsoidRadius (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   shapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   translationCurve = null;
 
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
-  @io.read
+  @edit.read
   @type.mat4
   inverseWorldTransform = mat4.create();
 
-  @io.read
+  @edit.read
   @type.mat4
   lastWorldTransform = mat4.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   worldVelocity = vec3.create();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2AudGeometry")
   audioGeometry = null;
 
@@ -3897,4 +3897,4 @@ export class EveSpaceObject2 extends EveEntity
 
 }
 
-CjsSchema.decorateField(EveSpaceObject2, "meshLod", io.persist, type.objectRef("Tr2MeshBase"));
+CjsSchema.decorateField(EveSpaceObject2, "meshLod", edit.persist, type.objectRef("Tr2MeshBase"));

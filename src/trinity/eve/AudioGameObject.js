@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 
 
 /**
@@ -20,40 +20,40 @@ export class AudioGameObject extends CjsModel
 {
   #worldTransform = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITr2AudEmitter")
   audioEmitter = null;
 
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   mute = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 

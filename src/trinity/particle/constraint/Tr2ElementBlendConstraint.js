@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ElementBlendConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec4 } from "#math/vec4";
 import { Tr2ParticleElementDeclaration } from "../element/Tr2ParticleElementDeclaration.js";
@@ -13,28 +13,28 @@ export class Tr2ElementBlendConstraint extends ITr2GenericParticleConstraint
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   customName = "";
 
   /** m_value (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   value = vec4.create();
 
   /** m_originalFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   originalFactor = 1;
 
   /** m_isValid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Plan-local source-version contributor with optional exact configuration and geometry choices. */
@@ -6,31 +6,31 @@ import { CjsModel } from "#model";
 export class CjsCharacterResolvedPart extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     configurationPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     geometryPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     texturePaths = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     requestedLod = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     resolvedLod = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     modelFamily = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

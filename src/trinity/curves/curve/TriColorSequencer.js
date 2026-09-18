@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriSequencer.cpp
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriOperator } from "#consts/graphics";
 
 
@@ -14,24 +14,24 @@ import { TriOperator } from "#consts/graphics";
 @type.define({ className: "TriColorSequencer", family: "curves" })
 export class TriColorSequencer extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TRIOPERATOR")
   operator = TriOperator.TRIOP_MULTIPLY;
 
-  @io.persist
+  @edit.persist
   @type.color
   value = vec4.create();
 
-  @io.persist
+  @edit.persist
   @type.float64
   start = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("ITriColorFunction")
   functions = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

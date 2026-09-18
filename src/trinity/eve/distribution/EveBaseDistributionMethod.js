@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/EveBaseDistributionMethod.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionMethod } from "./IEveDistributionMethod.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -26,52 +26,52 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   #resetTransformOnUpdate = false;
 
   /** m_distributionModifiers (PIEveDistributionModifierVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveDistributionModifier")
   lifetimeModifiers = [];
 
   /** m_locationsCanReTrigger (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   locationsCanReTrigger = true;
 
   /** m_timeOutOnTriggering (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   timeOutOnTriggering = 2;
 
   /** m_uniqueIDCounter (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   entitiesSpawned = 0;
 
   /** m_numFreePlacements (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   freePlacements = 0;
 
   /** m_playtimeMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   playtimeMultiplier = 1;
 
   /** m_placementGenerators (PIEveDistributionPlacementGeneratorsVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveDistributionPlacementGenerators")
   placementGenerators = [];
 
   /** m_placementData (PPlacementDataWithIdentifierStructureList) [READ] */
-  @io.read
+  @edit.read
   @type.list("PlacementDataWithIdentifier")
   placementData = [];
 
   /** m_distributionSpawnModifiers (PIEveDistributionSpawnModifierVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveDistributionSpawnModifier")
   spawnModifiers = [];
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveDistributionSpawner")
   spawnTriggers = [];
 

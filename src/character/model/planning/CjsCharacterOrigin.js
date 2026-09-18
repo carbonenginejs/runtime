@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Provenance record classifying one appearance-plan fact or decision. */
@@ -6,27 +6,27 @@ import { CjsModel } from "#model";
 export class CjsCharacterOrigin extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     kind = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     document = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     recordID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     jsonPointer = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     resourcePath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     rule = null;
 

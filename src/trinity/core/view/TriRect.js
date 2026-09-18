@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriRect.cpp
 // Source: trinity/trinity/TriRect_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /** An integer screen rectangle given by its left, top, right and bottom edges. */
@@ -12,19 +12,19 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class TriRect extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   left = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   top = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   right = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   bottom = 0;
 

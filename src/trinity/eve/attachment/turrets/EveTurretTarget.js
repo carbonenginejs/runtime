@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretTarget.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
 
 
@@ -14,12 +14,12 @@ import { ImpactConfiguration } from "../../../generated/include/enums.js";
 @type.define({ className: "EveTurretTarget", family: "eve/attachment/turrets" })
 export class EveTurretTarget extends CjsModel
 {
-  @io.read @type.vec3 targetPosition = vec3.create();
-  @io.read @type.int32 @type.enum("ImpactBehaviour") behaviour = 0;
-  @io.read @type.float32 positionOldInfluence = -1;
-  @io.read @type.vec3 position = vec3.create();
-  @io.read @type.vec3 positionOld = vec3.create();
-  @io.read @type.int32 locator = -1;
+  @edit.read @type.vec3 targetPosition = vec3.create();
+  @edit.read @type.int32 @type.enum("ImpactBehaviour") behaviour = 0;
+  @edit.read @type.float32 positionOldInfluence = -1;
+  @edit.read @type.vec3 position = vec3.create();
+  @edit.read @type.vec3 positionOld = vec3.create();
+  @edit.read @type.int32 locator = -1;
 
   #targetable = null;
   #worldPositionObject = null;

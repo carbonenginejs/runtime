@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierCameraDependency.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { vec3 } from "#math/vec3";
 
@@ -10,87 +10,87 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
 {
 
   /** m_minimumDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minimumDistance = 1000;
 
   /** m_maximumDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maximumDistance = 10000;
 
   /** m_lookAtVisionCone (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lookAtVisionCone = 30;
 
   /** m_useCameraDistance (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useCameraDistance = false;
 
   /** m_inverselookAtFormula (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   inverselookAtFormula = false;
 
   /** m_useCameraLookAt (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useCameraLookAt = false;
 
   /** m_inverseDistanceFormula (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   inverseDistanceFormula = false;
 
   /** m_useCameraPlacement (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useCameraPlacement = false;
 
   /** m_inversePlacementFormula (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   inversePlacementFormula = false;
 
   /** m_angleOverwrite (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   angleOverwrite = vec3.create();
 
   /** m_positionOverwrite (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   positionOverwrite = vec3.create();
 
   /** m_lookAtIntencity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lookAtIntensity = 1;
 
   /** m_placementIntencity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   placementIntensity = 1;
 
   /** m_overwriteDirection (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   overwriteObjectDirection = false;
 
   /** m_overwritePosition (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   overwritePosition = false;
 
   /** m_maximumActivation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maximumActivation = 1;
 
   /** m_minimumActivation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minimumActivation = 0;
 

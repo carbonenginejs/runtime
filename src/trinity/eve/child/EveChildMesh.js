@@ -7,7 +7,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -111,11 +111,11 @@ export class EveChildMesh extends EveChildTransform
 
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
-  @io.persist
+  @edit.persist
   @type.list("EveLocatorSets")
   ownedLocatorSets = [];
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   armorDamageShader = null;
 
@@ -141,146 +141,146 @@ export class EveChildMesh extends EveChildTransform
     return this.#activationStrength;
   }
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ReflectionMode")
   reflectionMode = 3;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   inheritOverlayEffects = true;
 
-  @io.persist
+  @edit.persist
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
-  @io.persist
+  @edit.persist
   @type.objectRef("EveDamageOverlay")
   damageOverlay = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   castShadow = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.mat4
   localTransform = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
-  @io.persist
+  @edit.persist
   @type.boolean
   staticTransform = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("Tr2GrannyAnimation")
   animationUpdater = null;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2Lod")
   lowestLodVisible = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sortValueOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sortValueScale = 1;
 
-  @io.read
+  @edit.read
   @type.float32
   currentScreenSize = -1;
 
-  @io.read
+  @edit.read
   @type.float32
   currentInstanceScreenSize = -1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useSRT = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   updateAnimation = true;
 
   // SOF-authored placement/instance values; persisted so the values
   // interchange reproduces Carbon's hidden child placement state.
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Origin")
   origin = 0;
 
-  @io.rebuild("instanceBuffer")
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.persist
   @type.array("mat4")
   instanceTransforms = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   sofDna = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   sofParentHullName = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   sofLocatorSetName = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   sofLocatorIndex = "";
 

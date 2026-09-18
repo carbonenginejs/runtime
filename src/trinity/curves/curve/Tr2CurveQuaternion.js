@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation } from "../enums.js";
 import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 
@@ -17,27 +17,27 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 })
 export class Tr2CurveQuaternion extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.array({
     kind: "struct",
     className: "Tr2CurveQuaternionKey"
   })
   keys = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.quat
   currentValue = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;

@@ -5,7 +5,7 @@ import { Tr2MeshArea } from "./Tr2MeshArea.js";
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock, TriRenderBatchAreaBlocksWithSharedMaterial } from "../batch/TriRenderBatch/index.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
@@ -19,104 +19,104 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 @type.define({ className: "Tr2MeshBase", family: "trinityCore" })
 export class Tr2MeshBase extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.rebuild("batches")
-  @io.notify
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.notify
+  @edit.persist
   @type.int32
   meshIndex = 0;
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   opaqueAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   decalAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   depthAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   transparentAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   additiveAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   pickableAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   mirrorAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   decalNormalAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   depthNormalAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   opaquePrepassAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   decalPrepassAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   geometryEraserAreas = [];
 
-  @io.rebuild("batches")
-  @io.persist
+  @edit.rebuild("batches")
+  @edit.persist
   @type.list("Tr2MeshArea")
   distortionAreas = [];
 
   // Carbon routes TRIBATCHTYPE_FLARE but does not expose this list to Blue, so
   // this list is typed without being read or persisted: the type declaration is
-  // what makes its areas reachable to graph traversal, independent of io.
-  @io.rebuild("batches")
+  // what makes its areas reachable to graph traversal, independent of edit.
+  @edit.rebuild("batches")
   @type.list("Tr2MeshArea")
   flareAreas = [];
 
-  @io.read
-  @io.persist
+  @edit.read
+  @edit.persist
   @type.float32
   maxVertexScale = 1;
 
-  @io.read
-  @io.persist
+  @edit.read
+  @edit.persist
   @type.float32
   maxVertexDisplacement = 0;
 
-  @io.read
-  @io.persist
+  @edit.read
+  @edit.persist
   @type.boolean
   rotatesVertices = false;
 

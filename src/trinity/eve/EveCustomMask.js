@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -18,35 +18,35 @@ export class EveCustomMask extends CjsModel
 {
   static CUSTOM_MASK_COUNT = 2;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   clampU = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   clampV = false;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.uint8
   materialIndex = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isMirrored = false;
 
-  @io.persist
+  @edit.persist
   @type.vec4
   targetMaterials = vec4.fromValues(1, 1, 1, 1);
 

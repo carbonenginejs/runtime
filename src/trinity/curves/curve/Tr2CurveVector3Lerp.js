@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3Lerp.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 
 
@@ -17,28 +17,28 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 })
 export class Tr2CurveVector3Lerp extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   initialValue = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   currentValue = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   curveStartTime = 1;
 
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   @type.enum("Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;
 

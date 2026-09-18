@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleAttractorForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,11 +16,11 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   magnitude = 1;
 

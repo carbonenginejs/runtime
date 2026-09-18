@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomRotation.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -14,22 +14,22 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   #timeSeed = Date.now() >>> 0;
 
   /** m_minRotation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   minRotation = vec3.create();
 
   /** m_maxRotation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   maxRotation = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_overrideRotation (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   overrideRotation = false;
 

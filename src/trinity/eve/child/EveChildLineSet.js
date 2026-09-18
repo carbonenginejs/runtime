@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -13,80 +13,80 @@ export class EveChildLineSet extends EveChildTransform
 {
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveCurveLineSet")
   lineSet = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = -1;
 
   /** m_brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_baseColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   baseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_animColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   additiveBatches = false;
 
   /** m_scrollSpeed (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   scrollSpeed = 0;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveLineSetPath")
   lines = [];
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_currentScreenSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   currentScreenSize = 1;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Mesh")
   mesh = null;
 

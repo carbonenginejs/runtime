@@ -413,6 +413,6 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
   }
   assert.equal(CjsSchema.getMethod(Tr2DynamicBinding, "Link")?.impl?.status, "adapted");
   assert.equal(CjsSchema.getMethod(EveMultiEffect, "UpdateAsyncronous")?.impl?.status, "noop");
-  assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.io?.persistOnly, true);
+  assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.edit?.persistOnly, true);
   assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.type?.kind, "model");
 });

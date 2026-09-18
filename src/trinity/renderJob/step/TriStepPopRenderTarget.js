@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepPopRenderTarget.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -12,7 +12,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @type.define({ className: "TriStepPopRenderTarget", family: "renderJob" })
 export class TriStepPopRenderTarget extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   slot = 0;
 

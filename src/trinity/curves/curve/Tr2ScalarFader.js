@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Fader/Tr2ScalarFader.cpp
 import { num } from "#math/num";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 const TRI_PI = Math.PI;
@@ -18,15 +18,15 @@ const TRI_PI = Math.PI;
 })
 export class Tr2ScalarFader extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   value = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   fading = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   fadeTime = -1;
 

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EvePlaneSet.cpp
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsLightData } from "../../lights/CjsLightData.js";
 import { FadeType } from "../EveSpaceObjectAttachmentUtils.js";
 
@@ -23,7 +23,7 @@ export class EvePlaneLight extends CjsModel
   static FT_FADEOUT = 3;
   static FT_FADEINOUT = 4;
 
-  @io.owned
+  @edit.owned
   @type.struct("CjsLightData")
   lightData = new CjsLightData();
 

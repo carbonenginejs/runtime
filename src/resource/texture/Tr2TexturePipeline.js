@@ -5,7 +5,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import {
   executeTexturePipeline,
@@ -65,8 +65,8 @@ export class Tr2TexturePipeline extends CjsModel
 CjsSchema.define(Tr2TexturePipeline, {
   className: "Tr2TexturePipeline", family: "resources",
   fields: {
-    pipelineType: [ io.persist, type.string ],
-    steps: [ io.persist, type.list("ITr2TexturePipelineStep") ]
+    pipelineType: [ edit.persist, type.string ],
+    steps: [ edit.persist, type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
     Execute: [ carbon.method, impl.adapted, impl.reason("Carbon fills an ImageIO::HostBitmap through blocking file reads; JavaScript resolves inputs asynchronously and returns the runtime resource layer's plain CPU payload.") ],

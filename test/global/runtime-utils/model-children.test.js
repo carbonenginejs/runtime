@@ -15,9 +15,9 @@ class ChildModel extends CjsModel
 
 CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "test" });
 CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
-CjsSchema.defineField(ChildModel, "name", "io", { persist: true });
+CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
-CjsSchema.defineField(ChildModel, "deleteRequested", "io", {
+CjsSchema.defineField(ChildModel, "deleteRequested", "edit", {
     persist: true,
     rebuild: [ "delete" ]
 });
@@ -76,7 +76,7 @@ CjsSchema.defineField(ParentModel, "children", "type", {
     kind: "list",
     itemType: "ChildMutationTestChild"
 });
-CjsSchema.defineField(ParentModel, "children", "io", {
+CjsSchema.defineField(ParentModel, "children", "edit", {
     persist: true,
     ownership: "owned",
     flag: [ "bounds" ],

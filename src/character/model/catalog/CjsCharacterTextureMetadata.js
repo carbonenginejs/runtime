@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Inspected source-image facts and normalized character-atlas placement. */
@@ -6,83 +6,83 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourcePath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sourceFormat = "png";
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     width = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     height = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     offsetXRaw = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     offsetYRaw = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     offsetUnit = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     physicalPixelDimensionsXRaw = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     physicalPixelDimensionsYRaw = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint32
     physicalPixelDimensionsUnit = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     offsetX = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     offsetY = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     extentX = 1;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     extentY = 1;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     hasOffsetMetadata = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     hasPhysicalPixelDimensionsMetadata = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     hasPlacementMetadata = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     placementEncoding = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     placementPolicy = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     placementStatus = null;
 

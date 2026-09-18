@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlacement.js";
 
 /** EveSOFDataHullExtensionBucket (eve) - generated from schema shapeHash af31c426.... */
@@ -26,17 +26,17 @@ export class EveSOFDataHullExtensionBucket extends EveSOFDataHullExtensionPlacem
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_placements (PEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataHullExtensionPlacement")
   placements = [];
 

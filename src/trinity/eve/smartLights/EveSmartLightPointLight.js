@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightPointLight.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { EveEntity } from "../EveEntity.js";
@@ -23,53 +23,53 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
 export class EveSmartLightPointLight extends EveEntity
 {
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint16
   flags = 1;
 
   /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   innerRadius = 0;
 
   /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_lightGroupData.radius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 0;
 
   /** m_lightProfile (Tr2LightProfileResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   lightProfilePath = "";
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_staticOffsetRotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   staticOffsetRotation = quat.create();
 
@@ -78,23 +78,23 @@ export class EveSmartLightPointLight extends EveEntity
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @io.persist
+  @edit.persist
   @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @io.persist
+  @edit.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @io.persist
+  @edit.persist
   @type.color
   customColor = color.createLinear();
 

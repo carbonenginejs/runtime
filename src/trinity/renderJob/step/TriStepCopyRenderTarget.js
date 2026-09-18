@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.h
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget.cpp
 // Source: trinity/trinity/RenderJob/TriStepCopyRenderTarget_Blue.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -13,23 +13,23 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepCopyRenderTarget", family: "renderJob" })
 export class TriStepCopyRenderTarget extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RenderTarget")
   Destination = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriTextureRes")
   destinationTexture = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RenderTarget")
   Source = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriViewport")
   sourceViewport = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriViewport")
   destinationViewport = null;
 

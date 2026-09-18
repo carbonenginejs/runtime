@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ManipulationTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -20,32 +20,32 @@ export class Tr2ManipulationTool extends CjsModel
   moveCallback = null;
 
   /** m_captured (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   captured = false;
 
   /** m_primitives (PTr2PrimitiveSetVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2PrimitiveSet")
   primitives = [];
 
   /** m_pythonUserData (PyObject*) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("PyObject")
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.mat4
   localTransform = mat4.create();
 
   /** m_pivot (Vector3) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   pivot = vec3.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 

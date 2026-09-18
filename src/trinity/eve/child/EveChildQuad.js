@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
@@ -16,47 +16,47 @@ export class EveChildQuad extends EveChildTransform
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
   /** m_brightness (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_viewRotation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   viewRotation = 0;
 
   /** m_currentScreenSize (mutable float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   currentScreenSize = -1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_editMode (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   editMode = false;
 

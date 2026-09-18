@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveLineSetPath } from "./IEveLineSetPath.js";
 
 
@@ -22,22 +22,22 @@ export class EveLineChildContainer extends IEveLineSetPath
   #regenerate = false;
 
   /** m_isVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isVisible = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveLineSetPath")
   lines = [];
 

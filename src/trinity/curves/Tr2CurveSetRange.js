@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet.h
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -14,19 +14,19 @@ import { io, type } from "#schema";
 })
 export class Tr2CurveSetRange extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   startTime = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   endTime = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   looped = false;
 }

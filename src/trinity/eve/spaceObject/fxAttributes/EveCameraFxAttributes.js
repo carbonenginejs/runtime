@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.h
 //   trinity/trinity/Eve/SpaceObject/Utils/fxAttributes/EveCameraFxAttributes.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveFxAttribute } from "./IEveFxAttribute.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -20,32 +20,32 @@ export class EveCameraFxAttributes extends IEveFxAttribute
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_lookAngleToObject (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   lookAngleToObject = 0;
 
   /** m_objectRotation (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   objectRotation = vec3.create();
 
   /** m_rotationWithChildTransform (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   rotationWithChildTransform = vec3.create();
 
   /** m_cameraRotation (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   cameraRotation = vec3.create();
 
   /** m_distanceToCamera (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   distanceToCamera = 0;
 

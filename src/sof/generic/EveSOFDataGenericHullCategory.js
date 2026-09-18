@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ReflectionMode } from "#consts/graphics";
 
@@ -10,13 +10,13 @@ export class EveSOFDataGenericHullCategory extends CjsModel
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;
 
   /** m_categoryName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

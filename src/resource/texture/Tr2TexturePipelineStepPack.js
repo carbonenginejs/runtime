@@ -14,7 +14,7 @@
 // actually takes the four-source default - the JS form packs R8 correctly
 // and that divergence is deliberate; and the source byte offset clamps to
 // min(pixelStride-1, SwapRedBlue(channel)) (cpp:156).
-import { CjsSchema, impl, io, type } from "#schema";
+import { CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { packBitmap } from "./texturePipelineBehavior.js";
 
@@ -73,11 +73,11 @@ export class Tr2TexturePipelineStepPack extends CjsModel
 CjsSchema.define(Tr2TexturePipelineStepPack, {
   className: "Tr2TexturePipelineStepPack", family: "resources",
   fields: {
-    format: [ io.persist, type.int32, type.enum("PixelFormat") ],
-    a: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
-    b: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
-    g: [ io.persist, type.objectRef("Tr2TexturePackChannel") ],
-    r: [ io.persist, type.objectRef("Tr2TexturePackChannel") ]
+    format: [ edit.persist, type.int32, type.enum("PixelFormat") ],
+    a: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
+    b: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
+    g: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ],
+    r: [ edit.persist, type.objectRef("Tr2TexturePackChannel") ]
   },
   methods: {
     GetResourceDependencies: impl.implemented,

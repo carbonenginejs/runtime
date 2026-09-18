@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Serializable diagnostic emitted while resolving a character appearance plan. */
@@ -6,19 +6,19 @@ import { CjsModel } from "#model";
 export class CjsCharacterAppearanceDiagnostic extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     code = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     message = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     severity = "warning";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

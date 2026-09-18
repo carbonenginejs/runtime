@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "../contracts.js";
 
@@ -17,20 +17,20 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerTimeSec
 })
 export class Tr2StateMachine extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.list("Tr2StateMachineState")
   states = [];
 
-  @io.read
+  @edit.read
   @type.objectRef("Tr2StateMachineState")
   currentState = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("Tr2StateMachineState")
   startState = null;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

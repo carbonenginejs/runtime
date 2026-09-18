@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,15 +17,15 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class EveChildModifierSRT extends IEveChildTransformModifier
 {
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 

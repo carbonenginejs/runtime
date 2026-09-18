@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, io, type } from "#schema";
+import { carbon, edit, type } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -17,32 +17,32 @@ export class EveEllipseSet extends EveChildTransform
 {
   #geometryDirty = true;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   ribbonSegmentCount = 128;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   enablePicking = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   depthOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("EveEllipseDefinition")
   ellipses = [];
 
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 

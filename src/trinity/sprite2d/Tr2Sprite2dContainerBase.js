@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dContainer_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable child ownership is maintained here.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
 const BELIST_UNLOADSTART = 0x07;
@@ -58,18 +58,18 @@ export class Tr2Sprite2dContainerBase extends Tr2SpriteObjectBase
   }
 
   /** m_background (PITr2SpriteObjectVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("ITr2SpriteObject")
   background = [];
 
   /** m_children (PITr2SpriteObjectVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("ITr2SpriteObject")
   children = [];
 
   /** m_opacity (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   opacity = 1;
 

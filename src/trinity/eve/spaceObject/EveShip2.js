@@ -3,7 +3,7 @@
 // Hand-maintained after promotion from generated schema intake.
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveMobile } from "./EveMobile.js";
 import { TriFloat } from "../../core/variable/TriFloat.js";
 
@@ -13,27 +13,27 @@ export class EveShip2 extends EveMobile
 {
 
   /** m_boosters (EveBoosterSet2Ptr) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("EveBoosterSet2")
   boosters = null;
 
   /** m_displayKillCounterValue (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   displayKillCounterValue = 0;
 
   /** m_maxSpeed (float) [READWRITE] - the maximum speed of the ship. */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxSpeed = 0;
 
   /** m_speed (TriFloatPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriFloat")
   speed = null;
 
   /** audioSpeedParameter (MAP_PROPERTY) - root audio value holder. */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IRoot")
   audioSpeedParameter = null;
 

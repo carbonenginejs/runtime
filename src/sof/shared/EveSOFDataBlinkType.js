@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataBlinkType (eve) - generated from schema shapeHash db502493.... */
@@ -9,22 +9,22 @@ export class EveSOFDataBlinkType extends CjsModel
 {
 
   /** m_blinkType[TYPE_BLINK] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Blink = null;
 
   /** m_blinkType[TYPE_FADE_IN] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeIn = null;
 
   /** m_blinkType[TYPE_FADE_OUT] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeOut = null;
 
   /** m_blinkType[TYPE_CYCLE] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Cycle = null;
 

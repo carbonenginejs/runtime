@@ -1,7 +1,7 @@
 // Source: audio/src/AudUIPlayer.h + AudUIPlayer.cpp
 // Hand-owned since 2026-07-23 (behavior port); the generator skips this file.
 // Verify against audio/AudUIPlayer.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { AudEmitter } from "./AudEmitter.js";
 
 export const UI_GAME_OBJ_ID = 2;
@@ -14,7 +14,7 @@ export class AudUIPlayer extends AudEmitter
 {
 
   /** m_callback (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   eventSenderCallback = null;
 

@@ -21,7 +21,7 @@ class Observed extends CjsModel
 
 CjsSchema.define(Observed, { className: "ObjectRefTestObserved", family: "test" });
 CjsSchema.defineField(Observed, "name", "type", { kind: "string" });
-CjsSchema.defineField(Observed, "name", "io", { persist: true });
+CjsSchema.defineField(Observed, "name", "edit", { persist: true });
 
 class Observer extends CjsModel
 {
@@ -32,13 +32,13 @@ class Observer extends CjsModel
 
 CjsSchema.define(Observer, { className: "ObjectRefTestObserver", family: "test" });
 CjsSchema.defineField(Observer, "name", "type", { kind: "string" });
-CjsSchema.defineField(Observer, "name", "io", { persist: true });
+CjsSchema.defineField(Observer, "name", "edit", { persist: true });
 // The declared type names an interface on purpose: no registry resolves it.
 CjsSchema.defineField(Observer, "observer", "type", {
     kind: "objectRef",
     className: "IObjectRefTestInterface"
 });
-CjsSchema.defineField(Observer, "observer", "io", { persist: true });
+CjsSchema.defineField(Observer, "observer", "edit", { persist: true });
 
 test("SetValues aliases a live model in an objectRef field rather than copying it", () =>
 {

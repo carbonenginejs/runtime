@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.h
 // Source: trinity/trinity/RenderJob/TriStepSetStandardRenderStates.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
@@ -32,7 +32,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   static RM_PREPASS_COLOR = 13;
   static RM_COUNT = 14;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2GStateAnimation.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Character GState animation record for an external state-machine adapter. */
@@ -8,47 +8,47 @@ export class Tr2GStateAnimation extends CjsModel
 {
 
   /** m_resPath (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   resPath_ = "";
 
   /** m_gStateResPath (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   gStateResPath_ = "";
 
   /** m_model (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   model_ = "";
 
   /** m_gStateParameterList (PTr2GStateParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2GStateParameter")
   parameters = [];
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   animationEnabled = true;
 
   /** m_debugRenderJointNames (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugRenderJointNames = false;
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugRenderSkeleton = false;
 

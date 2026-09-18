@@ -3,7 +3,7 @@
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,35 +17,35 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2CurveColorMixer extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.color
   convertedLinearValue = color.createLinear();
 
-  @io.persist
+  @edit.persist
   @type.color
   color1 = color.createLinear();
 
-  @io.persist
+  @edit.persist
   @type.color
   color2 = color.createLinear();
 
-  @io.read
+  @edit.read
   @type.color
   currentValue = color.createLinear();
 
-  @io.persist
+  @edit.persist
   @type.float32
   lerpValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   saturation = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   brightness = 1;
 

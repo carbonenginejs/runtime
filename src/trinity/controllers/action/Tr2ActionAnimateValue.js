@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -19,32 +19,32 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionAnimateValue extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriScalarFunction")
   curve = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   attribute = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("IRoot")
   destination = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   delayBinding = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   path = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   value = "Curve(StateTime())";
 

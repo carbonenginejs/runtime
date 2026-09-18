@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataAreaMaterial (eve) - generated from schema shapeHash 19be099b.... */
@@ -17,28 +17,28 @@ export class EveSOFDataAreaMaterial extends CjsModel
   });
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ColorType")
   colorType = 12;
 
   /** m_material[MATERIAL1] (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   material1 = "";
 
   /** m_material[MATERIAL2] (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   material2 = "";
 
   /** m_material[MATERIAL3] (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   material3 = "";
 
   /** m_material[MATERIAL4] (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   material4 = "";
 

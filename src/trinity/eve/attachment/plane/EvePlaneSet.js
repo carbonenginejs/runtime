@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -28,58 +28,58 @@ const WHITE = new Float32Array([1, 1, 1, 1]);
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.notify
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.notify
+  @edit.persist
   @type.uint8
   pickBufferID = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   hideOnLowQuality = false;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.boolean
   skinned = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.list("EvePlaneSetItem")
   planes = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EvePlaneLight")
   lights = [];
 
   // SOF-authored shared texture parameters; persisted so the values
   // interchange reproduces Carbon's hidden plane-set bindings.
-  @io.persist
+  @edit.persist
   @type.objectRef("TriTextureParameter")
   imageMapParameter = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("TriTextureParameter")
   layerMap1Parameter = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("TriTextureParameter")
   layerMap2Parameter = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("TriTextureParameter")
   maskMapParameter = null;
   #rebuildRevision = 0;

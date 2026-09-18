@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Lossless JSON value decoded from one indexed character definition file. */
@@ -6,15 +6,15 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterDefinition extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     extension = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.unknown
     values = null;
 

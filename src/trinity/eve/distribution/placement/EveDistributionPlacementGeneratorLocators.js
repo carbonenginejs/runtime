@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionPlacementGenerators/EveDistributionPlacementGeneratorLocators.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionPlacementGenerators } from "./IEveDistributionPlacementGenerators.js";
 import { InitialPlacement } from "../attributeModifiers/InitialPlacement.js";
 import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.js";
@@ -13,7 +13,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   #requestRegeneration = false;
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Locator")
   locators = [];
 

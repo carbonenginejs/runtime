@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/Renderable/EveSceneStaticParticles.h
 //   trinity/trinity/Eve/Renderable/EveSceneStaticParticles.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -58,42 +58,42 @@ export class EveSceneStaticParticles extends CjsModel
   boundingSphere = new Float32Array(4);
 
   /** m_clusterParticleDensityAdjust (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   clusterParticleDensityAdjust = 1;
 
   /** m_estimatedSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedSize = 0;
 
   /** m_clusterParticleDensity (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   clusterParticleDensity = 100;
 
   /** m_maxSize (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxSize = 200;
 
   /** m_minSize (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   minSize = 5;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2InstancedMesh")
   mesh = null;
 
   /** m_maxParticleCount (size_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint64
   maxParticleCount = 100000;
 
   /** m_visible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   visible = false;
 

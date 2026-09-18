@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";
 import { ITr2ActionController } from "../ITr2Controller/index.js";
@@ -20,35 +20,35 @@ import { UnlinkReason } from "../enums.js";
 @carbon.inherit(ITr2ActionController)
 export class Tr2TimelineController extends EveThrottleable
 {
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("ITr2ControllerAction")
   actions = [];
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("Tr2TimelineEntry")
   entries = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ControllerFloatVariable")
   variables = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ControllerEventHandler")
   eventHandlers = [];
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeScale = 1;
 
-  @io.read
+  @edit.read
   @type.boolean
   isPlaying = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   isPaused = false;
 

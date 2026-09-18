@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerTriggerSnake.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Triggers a timed chain of nearby free placements, walking forward from each previously reached destination. */
@@ -20,32 +20,32 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   #travelDurationToNextPoint = 1;
 
   /** m_minTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minBaseTimeBetweenTriggers = 1;
 
   /** m_maxTimeBetweenTriggers (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxBaseTimeBetweenTriggers = 1;
 
   /** m_travelProgress (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   travelProgress = 1;
 
   /** m_numDestinationsReached (int32_t) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   destinationsReached = 0;
 
   /** m_totalDestinations (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   totalDestinations = 5;
 
   /** m_distanceToTravelTimeMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distanceToTravelTimeMultiplier = 0;
 

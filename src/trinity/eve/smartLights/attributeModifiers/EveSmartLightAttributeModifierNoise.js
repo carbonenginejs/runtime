@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierNoise.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { carbonPerlin1D } from "#math/noise";
 
@@ -10,17 +10,17 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
 {
 
   /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseAmplitude = 0;
 
   /** m_noiseFrequency (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseFrequency = 1;
 
   /** m_noiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   noiseOctaves = 1;
 

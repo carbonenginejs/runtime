@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveLocator2.cpp
 import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -15,11 +15,11 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class EveLocator2 extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.mat4
   transform = mat4.create();
 

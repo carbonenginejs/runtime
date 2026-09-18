@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.h
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
@@ -40,8 +40,8 @@ export class EveTurretSet extends EveEntity
 {
 
   /** m_impactBehaviour (ImpactBehaviour::Type - enum ImpactBehaviour) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ImpactBehaviour")
   impactBehaviour = 0;
@@ -51,277 +51,277 @@ export class EveTurretSet extends EveEntity
   firingEffect = null;
 
   /** m_ambientEffect (IEveSpaceObjectChildPtr) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("IEveSpaceObjectChild")
   ambientEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_firingEffectResPath (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   firingEffectResPath = "";
 
   /** m_chooseRandomLocator (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   chooseRandomLocator = true;
 
   /** m_boundingSphere (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   boundingSphere = vec4.create();
 
   /** m_randomizeExplosionRotation (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   randomizeExplosionRotation = true;
 
   /** m_lodLevel (LOD - enum LOD) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("LOD")
   lodLevel = 0;
 
   /** m_currentCyclingFiresPos (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   currentCyclingFiresPos = 0;
 
   /** m_useRandomFiringDelay (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useRandomFiringDelay = true;
 
   /** m_bottomClipHeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   bottomClipHeight = 0;
 
   /** m_geometryResource (TriGeometryResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriGeometryRes")
   geometryResource = null;
 
   /** m_maxTrackingTime (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxTrackingTime = 1;
 
   /** m_visibleCount (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   visibleCount = 0;
 
   /** m_trackingInfluence (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   trackingInfluence = 0;
 
   /** m_swarmID (unsigned int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   swarmID = 0;
 
   /** m_maxCyclingFirePos (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   maxCyclingFirePos = 1;
 
   /** m_playMovementSound (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   playMovementSound = true;
 
   /** m_isOnline (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   isOnline = true;
 
   /** m_target (EveTurretTargetPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("EveTurretTarget")
   target = new EveTurretTarget();
 
   /** m_locatorName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   locatorName = "";
 
   /** m_sysBonePitchFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchFactor = 1;
 
   /** m_sysBonePitchMax (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchMax = 90;
 
   /** m_sysBonePitchMin (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchMin = 0;
 
   /** m_sysBonePitchOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitchOffset = 0;
 
   /** m_sysBonePitch01Factor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch01Factor = 1;
 
   /** m_sysBonePitch01Offset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch01Offset = 0;
 
   /** m_sysBonePitch02Factor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch02Factor = 1;
 
   /** m_sysBonePitch02Offset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch02Offset = 0;
 
   /** m_sysBonePitch03Factor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch03Factor = 1;
 
   /** m_sysBonePitch03Offset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBonePitch03Offset = 0;
 
   /** m_updatePitchPose (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   updatePitchPose = false;
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   geometryResPath = "";
 
   /** m_impactSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   impactSize = 0;
 
   /** m_state (State - enum State) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("State")
   state = 2;
 
   /** m_sysBoneHeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sysBoneHeight = 1;
 
   /** m_randomFiringDelay (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   randomFiringDelay = 0;
 
   /** m_turretEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   turretEffect = null;
 
   /** m_idleToTargetingMovementAudioEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   idleToTargetingMovementAudioEvent = "";
 
   /** m_targetingToIdleMovementAudioEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   targetingToIdleMovementAudioEvent = "";
 
   /** m_generatedDistributedAmbientEffect (EveChildInstanceContainerPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("EveChildInstanceContainer")
   generatedDistributedAmbientEffect = null;
 
   /** m_cyclingFireGroupCount (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   cyclingFireGroupCount = 1;
 
   /** m_turretMovementObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriObserverLocal")
   turretMovementObserver = null;
 
   /** m_slotNumber (int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   slotNumber = -1;
 
   /** m_ambientEffectEditingMode (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   ambientEffectEditingMode = false;
 
   /** m_displayEffects (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   displayEffects = true;
 
   /** m_display (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
   /** m_useDynamicBounds (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   useDynamicBounds = false;
 
   /** m_estimatedPixelDiameter (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   estimatedPixelDiameter = -1;
 
   /** m_lowLodFiringEffectScale (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   lowLodFiringEffectScale = vec3.fromValues(1, 1, 1);
 
   /** m_lowLodFiringEffectTranslation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   lowLodFiringEffectTranslation = vec3.create();
 
   /** m_lowLodFiringEffectRotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   lowLodFiringEffectRotation = quat.create();
 
   /** m_useLowLodFiringTransform (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useLowLodFiringTransform = false;
 
   /** m_laserMissBehaviour (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   laserMissBehaviour = false;
 
   /** m_projectileMissBehaviour (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   projectileMissBehaviour = false;
 

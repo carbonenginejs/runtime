@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,19 +17,19 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2TranslationAdapter extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.vec3
   value = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotationOffset = quat.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   currentValue = vec3.create();
 

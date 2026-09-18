@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPFadeEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPFadeEffect.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
@@ -10,12 +10,12 @@ export class Tr2PPFadeEffect extends Tr2PPEffect
 {
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.create();
 
   /** m_intensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   intensity = 0;
 

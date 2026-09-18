@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector2.cpp
 import { vec2 } from "#math/vec2";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -17,19 +17,19 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 })
 export class Tr2CurveVector2 extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
-  @io.read
+  @edit.read
   @type.vec2
   currentValue = vec2.create();
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraSystem.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveVirtualCamera } from "./EveVirtualCamera.js";
 import { EveVirtualCameraTransitionCut } from "./transition/EveVirtualCameraTransitionCut.js";
 import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTransitionLerp.js";
@@ -17,19 +17,19 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
 })
 export class EveVirtualCameraSystem extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("EveVirtualCamera")
   externalCamera = null;
 
-  @io.persist
+  @edit.persist
   @type.list("EveVirtualCamera")
   cameras = [];
 
-  @io.persist
+  @edit.persist
   @type.objectRef("EveVirtualCamera")
   mainCamera = null;
 
-  @io.read
+  @edit.read
   @type.objectRef("EveVirtualCameraTransitionBase")
   transition = null;
 

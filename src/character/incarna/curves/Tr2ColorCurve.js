@@ -1,7 +1,7 @@
 // Adapted from CCPWGL Tw2ColorCurve2 (MIT, Copyright (c) 2020
 // ccpgames rawrafox cppctamber) and corroborated by historical Tr2ColorCurve
 // Black records.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { IncarnaColorCurveInterpolation } from "./enums.js";
@@ -17,56 +17,56 @@ import { Tr2ColorKey } from "./Tr2ColorKey.js";
 export class Tr2ColorCurve extends CjsModel
 {
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   reversed = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeScale = 1;
 
-  @io.persist
+  @edit.persist
   @type.color
   startValue = vec4.fromValues(0, 0, 0, 1);
 
-  @io.readwrite
+  @edit.readwrite
   @type.color
   currentValue = vec4.fromValues(0, 0, 0, 1);
 
-  @io.persist
+  @edit.persist
   @type.color
   endValue = vec4.fromValues(0, 0, 0, 1);
 
-  @io.persist
+  @edit.persist
   @type.vec4
   startTangent = vec4.create();
 
-  @io.persist
+  @edit.persist
   @type.vec4
   endTangent = vec4.create();
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Interpolation")
   interpolation = IncarnaColorCurveInterpolation.LINEAR;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ColorKey")
   keys = [];
 
-  @io.persist
+  @edit.persist
   @type.float32
   length = 0;
 

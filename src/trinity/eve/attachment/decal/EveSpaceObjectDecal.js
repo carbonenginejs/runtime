@@ -7,7 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -35,51 +35,51 @@ export class EveSpaceObjectDecal extends CjsModel
     this.batchType = 1;
   }
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("TriBatchType")
   batchType = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.int32
   parentBoneIndex = -1;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   decalEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.array("unknown")
   staticIndexBuffers = [];
 

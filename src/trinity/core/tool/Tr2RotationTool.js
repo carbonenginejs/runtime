@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2RotationTool.h
 // Source: trinity/trinity/Tr2RotationTool.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -22,12 +22,12 @@ export class Tr2RotationTool extends Tr2ManipulationTool
 {
 
   /** m_precision (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   precision = 1;
 
   /** m_rotation (Quaternion) [READ] */
-  @io.read
+  @edit.read
   @type.quat
   rotation = quat.create();
 
@@ -35,7 +35,7 @@ export class Tr2RotationTool extends Tr2ManipulationTool
    *  primitive whose scale is the arcball radius. Carbon builds it in
    *  GenLineSets, which is not ported; a host supplies it (or any
    *  { scale } duck) before Hemisphere is useful. */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2LineSet")
   wwLine = null;
 

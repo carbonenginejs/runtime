@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2BoundingLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2LineSet } from "./Tr2LineSet.js";
 import { vec3 } from "#math/vec3";
 
@@ -10,14 +10,14 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 {
 
   /** m_maxBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   maxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   minBounds = vec3.create();
 

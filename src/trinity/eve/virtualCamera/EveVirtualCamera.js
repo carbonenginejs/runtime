@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 const SCRUB_INCREMENT_DT = 1 / 60;
@@ -22,83 +22,83 @@ const SCRUB_MAX_ITERATIONS = 20;
 })
 export class EveVirtualCamera extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.vec3
   position = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   pointOfInterestAnchorCenter = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   positionAnchorCenter = vec3.create();
 
-  @io.read
+  @edit.read
   @type.list("IEveSpaceObject2")
   pointOfInterestAnchors = [];
 
-  @io.read
+  @edit.read
   @type.list("IEveSpaceObject2")
   positionAnchors = [];
 
-  @io.read
+  @edit.read
   @type.float32
   localElapsedTime = 0;
 
-  @io.read
+  @edit.read
   @type.vec3
   pointOfInterest = vec3.create();
 
-  @io.read
+  @edit.read
   @type.float32
   pointOfInterestAnchorRadius = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   positionAnchorRadius = 0;
 
-  @io.read
+  @edit.read
   @type.vec3
   positionAnchorForwardDirection = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   pointOfInterestAnchorForwardDirection = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.list("EveVirtualCameraBehaviourFloatBase")
   fovBehaviours = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EveVirtualCameraBehaviourVector3Base")
   pointOfInterestBehaviours = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EveVirtualCameraBehaviourVector3Base")
   positionBehaviours = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EveVirtualCameraBehaviourFloatBase")
   rollBehaviours = [];
 
-  @io.read
+  @edit.read
   @type.float32
   roll = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   fov = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   animationTimelineLength = 10;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "Virtual Camera";
 
-  @io.read
+  @edit.read
   @type.boolean
   running = false;
 

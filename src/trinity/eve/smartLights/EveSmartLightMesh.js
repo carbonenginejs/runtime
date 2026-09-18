@@ -5,7 +5,7 @@ import { color } from "#math/color";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildMesh } from "../child/EveChildMesh.js";
 import { EveChildInstanceMeshRenderer } from "../child/EveChildInstanceMeshRenderer.js";
 import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
@@ -25,7 +25,7 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
   className: "EveSmartLightMesh",
   family: "eve/smartLights",
   fields: {
-    castShadows: [ type.boolean, io.persist ]
+    castShadows: [ type.boolean, edit.persist ]
   }
 })
 @type.hideInherited([
@@ -34,26 +34,26 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
 ])
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
-  @io.persist
+  @edit.persist
   @type.string
   shaderParamColorName = "";
 
   // Flattened EveSmartLightBaseGroup secondary base.
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   factionColor = -1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useFactionColor = false;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
-  @io.persist
+  @edit.persist
   @type.color
   customColor = color.createLinear();
 

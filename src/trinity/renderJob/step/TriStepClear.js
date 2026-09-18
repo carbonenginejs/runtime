@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/TriStepClear.cpp
 // Source: trinity/trinity/RenderJob/TriStepClear_Blue.cpp
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -14,27 +14,27 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepClear", family: "renderJob" })
 export class TriStepClear extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(0, 0, 0, 1);
 
-  @io.persist
+  @edit.persist
   @type.float32
   depth = 1;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   stencil = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isColorCleared = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isDepthCleared = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isStencilCleared = false;
 

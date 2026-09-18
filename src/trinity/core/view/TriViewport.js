@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriViewport.h
 // Source: trinity/trinity/TriViewport_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -14,27 +14,27 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class TriViewport extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   x = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   y = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   width = 1;
 
-  @io.persist
+  @edit.persist
   @type.int32
   height = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   minZ = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxZ = 1;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { IEveSOFDataHullExtensionPlacement } from "./IEveSOFDataHullExtensionPlacement.js";
 import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { EveSOFDataHullExtensionPlacementDistributionPlacement } from "./EveSOFDataHullExtensionPlacementDistributionPlacement.js";
@@ -12,57 +12,57 @@ export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPl
 {
 
   /** m_distributionConditions (PIEveSOFDataHullExtensionPlacementDistributionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSOFDataHullExtensionPlacementDistribution")
   distributionConditions = [];
 
   /** m_extendsBoundingSphere (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   extendsBoundingSphere = true;
 
   /** m_extendsShieldEllipsoid (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   extendsShieldEllipsoid = true;
 
   /** m_isShared (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isShared = false;
 
   /** m_isInstanced (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isInstanced = true;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_distribution (EveSOFDataHullExtensionPlacementDistributionPlacementPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataHullExtensionPlacementDistributionPlacement")
   distribution = new EveSOFDataHullExtensionPlacementDistributionPlacement();
 
   /** m_descriptor (EveSOFDNADescriptorPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDNADescriptor")
   descriptor = new EveSOFDNADescriptor();
 
   /** m_locatorSetName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   locatorSetName = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_offset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   offset = vec3.create();
 

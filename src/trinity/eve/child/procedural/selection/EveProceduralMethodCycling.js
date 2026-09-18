@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCycling.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -20,27 +20,27 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   #startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveProceduralMethodCyclingParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_startTimeOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   startTimeOffset = 0;
 
   /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   randomizeOrder = false;
 
   /** m_selectedChildIndex (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   selectedChild = -1;
 

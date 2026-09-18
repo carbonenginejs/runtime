@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dPolygon_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dTriangle } from "./Tr2Sprite2dTriangle.js";
 import { Tr2Sprite2dVertex } from "./Tr2Sprite2dVertex.js";
@@ -16,12 +16,12 @@ export class Tr2Sprite2dPolygon extends Tr2TexturedSpriteObject
 {
 
   /** m_triangles (PTr2Sprite2dTriangleVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2Sprite2dTriangle")
   triangles = [];
 
   /** m_vertices (PTr2Sprite2dVertexVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2Sprite2dVertex")
   vertices = [];
 

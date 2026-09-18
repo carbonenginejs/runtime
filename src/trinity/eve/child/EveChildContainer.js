@@ -11,7 +11,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -41,118 +41,118 @@ const ZERO_VEC3 = vec3.create();
 @carbon.inherit(ITr2Renderable, IEveInheritPropertiesOwner)
 export class EveChildContainer extends EveChildTransform
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("DisplayQualityModifier")
   displayFilter = 5;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   objects = [];
 
-  @io.persist
+  @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   mute = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.mat4
   localTransform = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.boolean
   staticTransform = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   alwaysOn = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   updateOnDisplay = true;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
-  @io.persist
+  @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
-  @io.persist
+  @edit.persist
   @type.list("IEveFxAttribute")
   fxAttributes = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
-  @io.persist
+  @edit.persist
   @type.objectRef("EveChildInheritProperties")
   inheritProperties = null;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useSRT = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useStaticRotation = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useStaticScale = false;
 
   // SOF-authored placement values; persisted so the values interchange
   // reproduces Carbon's hidden container placement state.
-  @io.persist
+  @edit.persist
   @type.objectRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Origin")
   origin = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isPlacementRoot = false;
 

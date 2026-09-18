@@ -6,7 +6,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
@@ -28,219 +28,219 @@ export class EveBoosterSet2 extends EveEntity
 {
 
   /** m_flareLodEnabled (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   flareLodEnabled = true;
 
   /** m_staticTrailLength (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("staticTrailOffsets")
-  @io.notify
-  @io.persist
+  @edit.flag("staticTrailOffsets")
+  @edit.notify
+  @edit.persist
   @type.float32
   staticTrailLength = 0;
 
   /** m_trailsStaticOffsets[0] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   trailsStaticOffsets0 = vec3.create();
 
   /** m_trailsStaticOffsets[1] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   trailsStaticOffsets1 = vec3.create();
 
   /** m_trailsStaticOffsets[2] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   trailsStaticOffsets2 = vec3.create();
 
   /** m_trailsStaticOffsets[3] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   trailsStaticOffsets3 = vec3.create();
 
   /** m_trailsStaticOffsets[4] (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   trailsStaticOffsets4 = vec3.create();
 
   /** m_lightOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightOffset = 0;
 
   /** m_lightFlickerAmplitude (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightFlickerAmplitude = 0;
 
   /** m_lightFlickerFrequency (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightFlickerFrequency = 0;
 
   /** m_lightRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightRadius = 0;
 
   /** m_lightColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   lightColor = vec4.create();
 
   /** m_lightWarpRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightWarpRadius = 0;
 
   /** m_lightWarpColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   lightWarpColor = vec4.create();
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_alwaysOnIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   alwaysOnIntensity = 1;
 
   /** m_warpGlowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.color
   warpGlowColor = vec4.create();
 
   /** m_glowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.color
   glowColor = vec4.create();
 
   /** m_haloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.color
   haloColor = vec4.create();
 
   /** m_warpHaloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.color
   warpHaloColor = vec4.create();
 
   /** m_effectFar (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_boosterRenderables (PEveBoosterSet2RenderableVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("EveBoosterSet2Renderable")
   instances = [];
 
   /** m_maxVel (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxVel = 250;
 
   /** m_glowScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.float32
   glowScale = 1;
 
   /** m_symHaloScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.float32
   symHaloScale = 1;
 
   /** m_haloScaleX (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.float32
   haloScaleX = 1;
 
   /** m_haloScaleY (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.flag("flares")
-  @io.notify
-  @io.persist
+  @edit.flag("flares")
+  @edit.notify
+  @edit.persist
   @type.float32
   haloScaleY = 1;
 
   /** m_trailsSmoothing (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   trailsSmoothing = 10;
 
   /** m_glows (EveSpriteSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSpriteSet")
   glows = null;
 
   /** m_maxSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   maxSize = 0;
 
   /** m_boosterBoundingSphere.xyz (Vector4) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   boosterBoundingSphereCenter = vec3.create();
 
   /** m_boosterBoundingSphere.w (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   boosterBoundingSphereRadius = 0;
 
   /** m_warpIntensity (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   warpIntensity = 0;
 
   /** m_physicsUpdate (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   physicsUpdate = true;
 
   /** m_destinyUpdate (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   destinyUpdate = true;
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_trails (EveTrailsSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveTrailsSet")
   trails = null;
 
-  @io.flag("items")
-  @io.rebuild("packedGeometry")
-  @io.notify
-  @io.persist
+  @edit.flag("items")
+  @edit.rebuild("packedGeometry")
+  @edit.notify
+  @edit.persist
   @type.list("EveBoosterSet2Item")
   items = [];
 

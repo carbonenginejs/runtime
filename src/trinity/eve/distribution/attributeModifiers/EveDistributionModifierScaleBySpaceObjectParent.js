@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierScaleBySpaceObjectParent.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
@@ -11,17 +11,17 @@ export class EveDistributionModifierScaleBySpaceObjectParent extends IEveDistrib
 {
 
   /** m_scaleFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   scaleFactor = 1;
 
   /** m_authoredForBoundingRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   authoredForBoundingRadius = 1000;
 
   /** m_scaleCurve (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   scaleCurve = null;
 

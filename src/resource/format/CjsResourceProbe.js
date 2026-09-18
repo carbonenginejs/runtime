@@ -1,5 +1,5 @@
 import { CjsModel } from "#model";
-import { CjsSchema, io, type } from "#schema";
+import { CjsSchema, edit, type } from "#schema";
 
 /**
  * Persistable resource-layer view of a format support report.
@@ -128,19 +128,19 @@ export default CjsResourceProbe;
 CjsSchema.define(CjsResourceProbe, {
   className: "CjsResourceProbe", family: "resource",
   fields: {
-    format: [ io.persist, type.string ],
-    source: [ io.persist, type.string ],
-    recognized: [ io.persist, type.boolean ],
-    output: [ io.persist, type.string ],
-    supported: [ io.persist, type.boolean ],
-    verified: [ io.persist, type.boolean ],
-    preferredOutput: [ io.persist, type.string ],
-    reason: [ io.persist, type.string ],
-    metadata: [ io.persist, type.unknown ],
-    capability: [ io.persist, type.unknown ],
-    outputs: [ io.persist, type.list("unknown") ],
-    warnings: [ io.persist, type.list("string") ],
-    errors: [ io.persist, type.list("string") ],
-    error: [ io.persist, type.unknown ]
+    format: [ edit.persist, type.string ],
+    source: [ edit.persist, type.string ],
+    recognized: [ edit.persist, type.boolean ],
+    output: [ edit.persist, type.string ],
+    supported: [ edit.persist, type.boolean ],
+    verified: [ edit.persist, type.boolean ],
+    preferredOutput: [ edit.persist, type.string ],
+    reason: [ edit.persist, type.string ],
+    metadata: [ edit.persist, type.unknown ],
+    capability: [ edit.persist, type.unknown ],
+    outputs: [ edit.persist, type.list("unknown") ],
+    warnings: [ edit.persist, type.list("string") ],
+    errors: [ edit.persist, type.list("string") ],
+    error: [ edit.persist, type.unknown ]
   }
 });

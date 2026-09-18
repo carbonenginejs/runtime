@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateCurveSet.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -17,12 +17,12 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionAnimateCurveSet extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("TriCurveSet")
   curveSet = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   value = "StateTime()";
 

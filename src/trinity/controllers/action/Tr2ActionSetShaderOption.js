@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -16,11 +16,11 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSetShaderOption extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   key = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   value = "";
 

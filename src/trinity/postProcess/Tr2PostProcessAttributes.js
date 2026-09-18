@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
 import { Tr2PPColorCorrectionEffect } from "./effect/Tr2PPColorCorrectionEffect.js";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
@@ -27,461 +27,461 @@ import { AttributeType, Priority } from "../generated/postProcess/enums.js";
 export class Tr2PostProcessAttributes extends CjsModel
 {
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Priority")
   priority = Tr2PostProcessAttributes.MEDIUM_PRIORITY;
 
-  @io.read
+  @edit.read
   @type.float32
   intensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   signalLossIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   signalLossIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomBrightnessEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomBrightness = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomLuminanceThresholdEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomLuminanceThreshold = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomLuminanceScaleEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomLuminanceScale = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomSizeScaleEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomSizeScale = 4;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomDirectionalWeightEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomDirectionalWeight = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize1Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize1 = 0.3;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize2Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize2 = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize3Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize3 = 2;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize4Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize4 = 10;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize5Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize5 = 30;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepSize6Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   bloomStepSize6 = 64;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint1Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint1 = vec4.fromValues(0.3465, 0.3465, 0.3465, 0.3465);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint2Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint2 = vec4.fromValues(0.138, 0.138, 0.138, 0.138);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint3Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint3 = vec4.fromValues(0.1176, 0.1176, 0.1176, 0.1176);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint4Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint4 = vec4.fromValues(0.066, 0.066, 0.066, 0.066);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint5Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint5 = vec4.fromValues(0.066, 0.066, 0.066, 0.066);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bloomStepTint6Enabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   bloomStepTint6 = vec4.fromValues(0.061, 0.061, 0.061, 0.061);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   grimeIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   grimeIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   grimePathEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   grimePath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   exposureAdjustmentEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   exposureAdjustment = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainSizeEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainSize = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainDensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainDensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainContrastEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainContrast = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainBrightnessModifierEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainBrightnessModifier = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainColoredEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainColored = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   filmGrainColorAmountEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   filmGrainColorAmount = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   saturationEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   saturation = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   fadeIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   fadeIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   fadeColorEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   fadeColor = vec4.fromValues(0, 0, 0, 1);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   lutIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   lutIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   lutPathEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   lutPath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   vignetteIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteOpacityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   vignetteOpacity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteColorEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   vignetteColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteDetail1SizeEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec2
   vignetteDetail1Size = vec2.fromValues(16, 16);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteDetail1ScrollEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec2
   vignetteDetail1Scroll = vec2.create();
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteDetail2SizeEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec2
   vignetteDetail2Size = vec2.fromValues(16, 16);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteDetail2ScrollEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec2
   vignetteDetail2Scroll = vec2.create();
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteShapePathEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   vignetteShapePath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteDetailPathEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   vignetteDetailPath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteSineFrequencyEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   vignetteSineFrequency = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteMinSineFrequencyEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   vignetteMinSineFrequency = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   vignetteMaxSineFrequencyEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   vignetteMaxSineFrequency = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   depthOfFieldScaleEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   depthOfFieldScale = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   depthOfFieldFocalDistanceEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   depthOfFieldFocalDistance = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   depthOfFieldFocalLengthEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   depthOfFieldFocalLength = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   depthOfFieldShapeEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Shape")
   depthOfFieldShape = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   whiteTemperatureEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   whiteTemperature = 6500;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   whiteTintEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   whiteTint = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   colorSaturationEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   colorSaturation = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   colorContrastEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   colorContrast = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   colorGammaEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   colorGamma = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   colorGainEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   colorGain = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   colorOffsetEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   colorOffset = vec3.create();
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriLineSet } from "../../core/line/TriLineSet.js";
 import { vec3 } from "#math/vec3";
@@ -20,7 +20,7 @@ export class TriStepRenderDebug extends TriRenderStep
   text3d = [];
 
   /** m_autoClear (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   autoClear = true;
 

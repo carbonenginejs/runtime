@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 //   SOF_PARAM_DECLARE( EveSOFDataParameterVector2, ... ) - Carbon declares the six typed
 //   parameters through one macro beside their base.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
@@ -10,7 +10,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterVector2", family: "eve" })
 export class EveSOFDataParameterVector2 extends EveSOFDataParameter
 {
-  @io.persist
+  @edit.persist
   @type.vec2
   value = vec2.create();
 

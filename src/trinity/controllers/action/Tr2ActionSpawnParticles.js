@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmitter/index.js";
 
 
@@ -17,11 +17,11 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSpawnParticles extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2DynamicEmitter")
   emitter = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   rate = 1;
 

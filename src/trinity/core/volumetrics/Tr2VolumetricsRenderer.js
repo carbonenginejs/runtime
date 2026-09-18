@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2VolumetricsRenderer.h
 // Source: trinity/trinity/Tr2VolumetricsRenderer.cpp
 // Source: trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -24,88 +24,88 @@ const FOG_COLOR_SCRATCH = vec3.create();
 @type.define({ className: "Tr2VolumetricsRenderer", family: "trinityCore" })
 export class Tr2VolumetricsRenderer extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;
 
-  @io.read
+  @edit.read
   @type.objectRef("Tr2TextureReference")
   mieEnvironmentMap = new Tr2TextureReference();
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   blur = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   logBlending = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   gameBackClip = 1e6;
 
-  @io.read
+  @edit.read
   @type.float32
   backgroundVisibility = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   thickness = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   environmentDirectionality = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   lightDirectionality = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @io.read
+  @edit.read
   @type.vec3
   fogNoiseMovementSpeed = vec3.create();
 
-  @io.read
+  @edit.read
   @type.color
   fogColor = vec4.create();
 
-  @io.read
+  @edit.read
   @type.float32
   godRayNoiseFrequency = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   fogNoiseFrequency = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   godRayNoiseIntensity = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   fogNoiseIntensity = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float64
   logBlendingSmoothness = 4;
 
-  @io.read
+  @edit.read
   @type.float32
   environmentIntensity = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   castShadows = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   receiveShadows = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   scaleFactor = 0.7;
 

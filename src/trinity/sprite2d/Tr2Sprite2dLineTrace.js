@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace.h
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dLineTrace_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable value helpers are maintained here.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2TexturedSpriteObject } from "../generated/sprite2d/Tr2TexturedSpriteObject.js";
 import { Tr2Sprite2dLineTraceVertex } from "./Tr2Sprite2dLineTraceVertex.js";
 import { vec2 } from "#math/vec2";
@@ -13,50 +13,50 @@ export class Tr2Sprite2dLineTrace extends Tr2TexturedSpriteObject
 {
 
   /** m_cornerType (int) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   cornerType = 0;
 
   /** m_isLoop (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   isLoop = false;
 
   /** m_textureOffset (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   textureOffset = 0;
 
   /** m_end (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   end = 1;
 
   /** m_start (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   start = 0;
 
   /** m_vertices (PTr2Sprite2dLineTraceVertexVector) [READ, NOTIFY] */
-  @io.notify
-  @io.read
+  @edit.notify
+  @edit.read
   @type.list("Tr2Sprite2dLineTraceVertex")
   vertices = [];
 
   /** m_lineWidth (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   lineWidth = 1;
 
   /** m_textureWidth (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   textureWidth = 1;
 

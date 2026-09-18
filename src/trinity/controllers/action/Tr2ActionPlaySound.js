@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlaySound.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -16,19 +16,19 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionPlaySound extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   emitter = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   event = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   target = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   bypassPrefix = false;
 

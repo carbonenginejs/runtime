@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepPushDepthStencil.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { TriRenderJob } from "../TriRenderJob.js";
 
@@ -12,11 +12,11 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @type.define({ className: "TriStepPushDepthStencil", family: "renderJob" })
 export class TriStepPushDepthStencil extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   pushCurrent = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2DepthStencil")
   depthStencil = null;
 

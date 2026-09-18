@@ -27,7 +27,7 @@ function declare(fields, { compose = true } = {})
   for (const [ name, spec ] of Object.entries(fields))
   {
     CjsSchema.defineField(Fixture, name, "type", spec.type);
-    if (spec.io) CjsSchema.defineField(Fixture, name, "io", spec.io);
+    if (spec.edit) CjsSchema.defineField(Fixture, name, "edit", spec.edit);
   }
 
   if (compose) CjsSchema.compose.values(Fixture, { kind: "class" });
@@ -70,8 +70,8 @@ test("returnBoolean gives Carbon's did-it-change answer", () =>
 test("a read-only field is refused, a persisted one is not", () =>
 {
   const Fixture = declare({
-    derived: { type: { kind: "string" }, io: { read: true }, initial: "computed" },
-    stored: { type: { kind: "string" }, io: { read: true, persist: true }, initial: "" }
+    derived: { type: { kind: "string" }, edit: { read: true }, initial: "computed" },
+    stored: { type: { kind: "string" }, edit: { read: true, persist: true }, initial: "" }
   });
   const thing = new Fixture();
 
@@ -83,12 +83,12 @@ test("a read-only field is refused, a persisted one is not", () =>
 
 test("isWritableField matches the model path's rule exactly", () =>
 {
-  assert.equal(isWritableField({ }), true, "no io metadata is writable");
-  assert.equal(isWritableField({ io: { write: true } }), true);
-  assert.equal(isWritableField({ io: { persist: true } }), true);
-  assert.equal(isWritableField({ io: { persistOnly: true } }), true);
-  assert.equal(isWritableField({ io: { read: true } }), false);
-  assert.equal(isWritableField({ io: { read: true, write: true } }), true);
+  assert.equal(isWritableField({ }), true, "no edit metadata is writable");
+  assert.equal(isWritableField({ edit: { write: true } }), true);
+  assert.equal(isWritableField({ edit: { persist: true } }), true);
+  assert.equal(isWritableField({ edit: { persistOnly: true } }), true);
+  assert.equal(isWritableField({ edit: { read: true } }), false);
+  assert.equal(isWritableField({ edit: { read: true, write: true } }), true);
 });
 
 test("a math field is coerced IN PLACE, keeping its identity", () =>
@@ -130,7 +130,7 @@ test("a field absent from the bag is left alone", () =>
 test("persistOnly filters the export", () =>
 {
   const Fixture = declare({
-    stored: { type: { kind: "string" }, io: { persist: true }, initial: "a" },
+    stored: { type: { kind: "string" }, edit: { persist: true }, initial: "a" },
     transient: { type: { kind: "string" }, initial: "b" }
   });
   const thing = new Fixture();

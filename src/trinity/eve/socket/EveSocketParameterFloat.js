@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /** Binds a named float socket value to external parameters, capturing and restoring each binding's previous value. */
@@ -9,7 +9,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
 {
 
   /** m_value (float) */
-  @io.persist
+  @edit.persist
   @type.float32
   value = 0;
 

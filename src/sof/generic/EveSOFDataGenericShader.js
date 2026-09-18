@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataGenericShader (eve) - generated from schema shapeHash 54379592.... */
@@ -9,32 +9,32 @@ export class EveSOFDataGenericShader extends CjsModel
 {
 
   /** m_parameters (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataGenericString")
   parameters = [];
 
   /** m_defaultParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataParameter")
   defaultParameters = [];
 
   /** m_defaultTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /** m_transparencyTextureName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   transparencyTextureName = "";
 
   /** m_doGenerateDepthArea (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   doGenerateDepthArea = true;
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   shader = "";
 

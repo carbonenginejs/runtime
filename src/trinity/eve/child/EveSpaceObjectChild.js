@@ -1,4 +1,4 @@
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 
@@ -37,11 +37,11 @@ export function EveCollectAreas(type, mesh, areaPool)
 @type.define({ className: "EveSpaceObjectChild", family: "eve/child" })
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.uint32
   partTag = 0;
 

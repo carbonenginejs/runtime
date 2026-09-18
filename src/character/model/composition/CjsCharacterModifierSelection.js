@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One authored paper-doll resource selection at a resolved modifier location. */
@@ -6,15 +6,15 @@ import { CjsModel } from "#model";
 export class CjsCharacterModifierSelection extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterResource")
     paperdollResourceID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     paperdollResourceVariation = 0;
 

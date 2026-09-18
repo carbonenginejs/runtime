@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/CollisionAvoidance.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
@@ -20,24 +20,24 @@ export class CollisionAvoidance extends CjsModel
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_collisionAvoidanceScalar (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   avoidanceScalar = 12;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 

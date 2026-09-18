@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2DistanceTracker.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,41 +16,41 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2DistanceTracker extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.float32
   value = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   signedDistance = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   distanceToClosest = true;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   direction = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   sourceObject = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("ITriVectorFunction")
   targetObject = null;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   sourcePosition = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   targetPosition = vec3.create();
 

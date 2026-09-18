@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ShadowMap.h
 //   trinity/trinity/Tr2ShadowMap.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -137,100 +137,100 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 @type.define({ className: "Tr2ShadowMap", family: "trinityCore" })
 export class Tr2ShadowMap extends CjsModel
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ShadowSplitMode")
   shadowSplitMode = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Denoiser")
   denoiser = new Tr2Denoiser();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   cascadeEffect = createShadowEffect();
 
-  @io.notify
-  @io.read
+  @edit.notify
+  @edit.read
   @type.uint32
   splitCount = SHADOW_FRUSTUM_COUNT;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   debugColorSplit = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr15 = STATIC_SPLITS[15];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr8 = STATIC_SPLITS[8];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr6 = STATIC_SPLITS[6];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr5 = STATIC_SPLITS[5];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr14 = STATIC_SPLITS[14];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr10 = STATIC_SPLITS[10];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr13 = STATIC_SPLITS[13];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr4 = STATIC_SPLITS[4];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr3 = STATIC_SPLITS[3];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr7 = STATIC_SPLITS[7];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr1 = STATIC_SPLITS[1];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr9 = STATIC_SPLITS[9];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr0 = STATIC_SPLITS[0];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr11 = STATIC_SPLITS[11];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr12 = STATIC_SPLITS[12];
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   SplitNr2 = STATIC_SPLITS[2];
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   disableShimmer = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   size = 2048;
 

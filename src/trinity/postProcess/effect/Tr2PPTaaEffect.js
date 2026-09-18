@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTaaEffect.cpp
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Debug } from "../../generated/postProcess/enums.js";
 
@@ -13,17 +13,17 @@ import { Debug } from "../../generated/postProcess/enums.js";
 export class Tr2PPTaaEffect extends Tr2PPEffect
 {
 
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("Debug")
   debug = Tr2PPTaaEffect.TAA_DEBUG_OFF;
 
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("Quality")
   quality = Tr2PPTaaEffect.TAA_HIGH;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   earlyOutThreshold = 0.001;
 

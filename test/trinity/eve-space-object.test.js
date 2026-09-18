@@ -546,7 +546,7 @@ test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
   object.SetMesh(mesh);
   assert.equal(object.GetMesh(), mesh);
   assert.equal(object.meshLod, mesh);
-  assert.equal(CjsSchema.getField(EveSpaceObject2, "meshLod")?.io?.persist, true);
+  assert.equal(CjsSchema.getField(EveSpaceObject2, "meshLod")?.edit?.persist, true);
   assert.equal(CjsSchema.getDefaults(EveSpaceObject2).meshLod, null);
   object.meshLod = null;
   assert.equal(object.mesh, null);

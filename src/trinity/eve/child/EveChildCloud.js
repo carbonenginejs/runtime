@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 
@@ -38,52 +38,52 @@ function updateBoundingSphere(cloud)
 @carbon.inherit(ITr2Renderable)
 export class EveChildCloud extends EveSpaceObjectChild
 {
-  @io.persist
+  @edit.persist
   @type.float32
   sortingModifier = 1;
 
-  @io.read
+  @edit.read
   @type.uint64
   currentLod = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   preTesselationLevel = 32;
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.model("Tr2Material")
   effect = null;
 
-  @io.persist
+  @edit.persist
   @type.model("EveCloudEditableVolume")
   volume = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   cellScreenSize = 0.3;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.read
+  @edit.read
   @type.vec4
   boundingSphere = vec4.create();
 

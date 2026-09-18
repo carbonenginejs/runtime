@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
 /** EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings (eve) - generated from schema shapeHash 2142ba6f.... */
@@ -9,13 +9,13 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
 {
 
   /** m_displayFilter (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("DisplayQualityModifier")
   displayFilter = 5;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

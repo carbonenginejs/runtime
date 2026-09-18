@@ -2,7 +2,7 @@ import { ResourceRequirement } from "../ResourceRequirement.js";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { box3 } from "#math/box3";
 import { triangleNormalTo } from "#math/mesh";
 import { ray3 } from "#math/ray3";
@@ -1249,9 +1249,9 @@ CjsSchema.define(TriGeometryRes, {
   className: "TriGeometryRes",
   family: "resources",
   fields: {
-    forceLod: [ type.boolean, io.readwrite ],
-    forcedLodIndex: [ type.int32, io.readwrite ],
-    name: [ type.string, io.readwrite ]
+    forceLod: [ type.boolean, edit.readwrite ],
+    forcedLodIndex: [ type.int32, edit.readwrite ],
+    name: [ type.string, edit.readwrite ]
   },
   methods: {
     GetMeshCount: [ carbon.method, impl.adapted ],

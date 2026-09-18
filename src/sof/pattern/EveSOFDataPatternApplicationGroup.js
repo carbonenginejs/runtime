@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataPatternApplicationGroup (eve) - generated from schema shapeHash 4e2e103e.... */
@@ -9,22 +9,22 @@ export class EveSOFDataPatternApplicationGroup extends CjsModel
 {
 
   /** m_layer1Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternLayerProperties")
   layer1Properties = null;
 
   /** m_layer2Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternLayerProperties")
   layer2Properties = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataPatternPerHull")
   projections = [];
 

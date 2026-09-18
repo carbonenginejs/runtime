@@ -4,7 +4,7 @@
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { CjsModel } from "#model";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { Vec3TransformByViewport } from "../../core/view/TriViewport.js";
@@ -239,127 +239,127 @@ export class EveProjectBracket extends CjsModel
   }
 
   /** m_marginLeft (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   marginLeft = 0;
 
   /** m_marginRight (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   marginRight = 0;
 
   /** m_marginTop (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   marginTop = 0;
 
   /** m_marginBottom (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   marginBottom = 0;
 
   /** m_ballTrackingScaling (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   ballTrackingScaling = 1;
 
   /** m_bracketUpdateCallback (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   bracketUpdateCallback = null;
 
   /** m_displayChangeCallback (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   displayChangeCallback = null;
 
   /** m_minDispRange (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   minDispRange = 0;
 
   /** m_maxDispRange (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxDispRange = FLOAT32_MAX;
 
   /** m_trackBall (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   trackBall = null;
 
   /** m_cameraDistance (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   cameraDistance = 0;
 
   /** m_trackPosition (Vector3) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   trackPosition = vec3.create();
 
   /** m_isInFront (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isInFront = true;
 
   /** m_offsetX (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   offsetX = 0;
 
   /** m_integerCoordinates (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   integerCoordinates = true;
 
   /** m_name (std::wstring) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.string
   name = "";
 
   /** m_parent (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Sprite2dContainer")
   parent = null;
 
   /** m_dock (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   dock = false;
 
   /** m_projectedPosition (Vector2) [READ] */
-  @io.read
+  @edit.read
   @type.vec2
   projectedPosition = vec2.create();
 
   /** m_rawProjectedPosition (Vector2) [READ] */
-  @io.read
+  @edit.read
   @type.vec2
   rawProjectedPosition = vec2.create();
 
   /** m_trackTransform (IWorldPositionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IWorldPosition")
   trackTransform = null;
 
   /** m_bracket (Tr2Sprite2dContainerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Sprite2dContainer")
   bracket = null;
 
   /** m_bracketIcon (EveSprite2dBracketPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("EveSprite2dBracket")
   bracketIcon = null;
 
   /** m_offsetY (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   offsetY = 0;
 
   /** m_isVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isVisible = true;
 

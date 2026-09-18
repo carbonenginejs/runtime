@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored character color, pattern, and specular profile. */
@@ -6,31 +6,31 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     colors = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     pattern = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     patternColors = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     patternTransform = [ 0, 0, 1, 1 ];
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     patternRotation = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterColorValue")
     specularColors = [];
 

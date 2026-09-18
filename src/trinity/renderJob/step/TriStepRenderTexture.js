@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderTexture.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 
@@ -10,37 +10,37 @@ export class TriStepRenderTexture extends TriRenderStep
 {
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_failClearColor (unsigned) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   failClearColor = 0;
 
   /** m_textureSize (Vector2) [READ] */
-  @io.read
+  @edit.read
   @type.vec2
   textureSize = vec2.create();
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   tlTexCoord = vec2.create();
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2TextureProvider")
   depthStencil = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2TextureProvider")
   renderTarget = null;
 
   /** m_texture (ITr2TextureProviderPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2TextureProvider")
   texture = null;
 

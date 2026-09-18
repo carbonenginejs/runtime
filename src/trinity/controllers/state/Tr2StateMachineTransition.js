@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 
 
@@ -15,13 +15,13 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
 })
 export class Tr2StateMachineTransition extends CjsModel
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   condition = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 

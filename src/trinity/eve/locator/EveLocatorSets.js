@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Locator } from "./Locator.js";
 
@@ -58,11 +58,11 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
 })
 export class EveLocatorSets extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.list("Locator")
   locators = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

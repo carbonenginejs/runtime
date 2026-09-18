@@ -47,7 +47,7 @@ test("Create makes a sampleable surface and republishes the read projection", ()
   // Carbon's GetMipCount is a literal 1 (cpp:164-167).
   assert.equal(ds.GetMipCount(), 1);
 
-  // The @io.read properties are the Blue projection of those accessors, and
+  // The @edit.read properties are the Blue projection of those accessors, and
   // must not drift from them.
   assert.equal(ds.width, 512);
   assert.equal(ds.height, 256);

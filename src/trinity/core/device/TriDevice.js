@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import {
@@ -58,163 +58,163 @@ export class TriDevice extends CjsModel
   static ApplicationActivation = Object.freeze({ APP_ACTIVATED: 0, APP_DEACTIVATED: 1 });
 
   /** mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("PresentInterval")
   presentationInterval = 1;
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("SwapEffect")
   swapEffect = 0;
 
   /** m_throttlingState (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   throttlingState = 0;
 
   /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("DeviceType")
   deviceType = 0;
 
   /** m_allowThrottling (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   allowThrottling = true;
 
   /** m_onDeviceRemoved (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   onDeviceRemoved = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_supportedUpscalingTechniques (PTr2UpscalingTechniqueInfoStructureList) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2UpscalingTechniqueInfo")
   supportedUpscalingTechniques = [];
 
   /** mViewport (PTriViewport) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("TriViewport")
   viewport = null;
 
   /** mDisplayMode.width (Tr2DisplayModeInfo) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   adapterWidth = 0;
 
   /** mDisplayMode.height (Tr2DisplayModeInfo) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   adapterHeight = 0;
 
   /** mDisplayMode.refreshRateDenominator (Tr2DisplayModeInfo) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   adapterRefreshRate = 0;
 
   /** mAdapter (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   adapter = 0;
 
   /** mWidth (int32_t) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   width = 0;
 
   /** mHeight (int32_t) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   height = 0;
 
   /** mPresentParam.msaaType (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   multiSampleType = 0;
 
   /** mPresentParam.msaaQuality (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   multiSampleQuality = 0;
 
   /** m_scene (ITr2ScenePtr) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("ITr2Scene")
   scene = null;
 
   /** mBackBufferCount (int) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   backBufferCount = 1;
 
   /** mTickInterval (int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   tickInterval = 0;
 
   /** m_mipLevelSkipCount (unsigned int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   mipLevelSkipCount = 0;
 
   /** m_animationTimeScale (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   animationTimeScale = 1;
 
   /** m_animationTime (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   animationTime = 0;
 
   /** m_upscalingSetting (Tr2UpscalingAL::Setting) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   @type.enum("UpscalingSetting")
   upscalingSetting = 1;
 
   /** m_upscalingTechnique (Tr2UpscalingAL::Technique) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   @type.enum("UpscalingTechnique")
   upscalingTechnique = 0;
 
   /** m_upscalingWithFrameGeneration (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   frameGeneration = false;
 
   /** Get/SetGeometryLoadDisabled (MAP_PROPERTY) - disables external geometry loads for batch processing. */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   disableGeometryLoad = false;
 
   /** Get/SetTextureLoadDisabled (MAP_PROPERTY) - disables external texture loads for batch processing. */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   disableTextureLoad = false;
 
   /** Get/SetAsyncLoadDisabled (MAP_PROPERTY) - makes resource loads synchronous. */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   disableAsyncLoad = false;
 
   /** Get/SetMinimumModelLOD (MAP_PROPERTY) - prevents the first N model LODs from loading; 0 disables. */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   minimumModelLOD = 0;
 

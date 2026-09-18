@@ -279,10 +279,10 @@ test("schema decorators: sampler fields rebuild bindings, const parameters persi
   for (const field of ["filter", "mipFilter", "lodBias", "maxMipLevel", "maxAnisotropy"])
   {
     const meta = CjsSchema.getField(Tr2SamplerOverride, field);
-    assert.ok(meta?.io?.rebuild?.includes("bindings"), `${field} carries the bindings consequence`);
+    assert.ok(meta?.edit?.rebuild?.includes("bindings"), `${field} carries the bindings consequence`);
   }
-  assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "name")?.io?.persist, true);
-  assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "value")?.io?.persist, true);
+  assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "name")?.edit?.persist, true);
+  assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "value")?.edit?.persist, true);
 });
 
 test("Eve particle force aliases hydrate as their Tr2 bases", () =>

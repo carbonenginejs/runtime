@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 
 
@@ -18,50 +18,50 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 })
 export class Tr2ObjectFollowCurveKey extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("IRoot")
   object = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   time = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   leftTangent = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   rightTangent = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   rotatedLeftTangent = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   rotatedRightTangent = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   offsetLocatorName = "";
 
-  @io.persist
+  @edit.persist
   @type.vec3
   offset = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;

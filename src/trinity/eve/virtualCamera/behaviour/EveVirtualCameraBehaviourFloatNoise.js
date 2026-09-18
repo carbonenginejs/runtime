@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -19,19 +19,19 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
 {
   static #nextPhase = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   octaves = 8;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.float32
   magnitude = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   perlineScale = 1;
 

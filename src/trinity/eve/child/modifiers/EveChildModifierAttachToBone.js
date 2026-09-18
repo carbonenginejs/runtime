@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierAttachToBone_Blue.cpp
 import { mat4 } from "#math/mat4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -12,7 +12,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @type.define({ className: "EveChildModifierAttachToBone", family: "eve/child/modifiers" })
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = -1;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyEventTrack.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -15,7 +15,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 })
 export class Tr2GrannyEventTrack extends Tr2GrannyTrack
 {
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBlueEventListener")
   eventListener = null;
 

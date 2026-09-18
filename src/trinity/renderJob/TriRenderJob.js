@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriRenderJob.h
 // Source: trinity/trinity/RenderJob/TriRenderJob.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderStep } from "./step/TriRenderStep.js";
 import { TriRenderJobStatus } from "../generated/renderJob/enums.js";
@@ -23,24 +23,24 @@ export class TriRenderJob extends CjsModel
 
   static StepResult = TriRenderStep.Result;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   stackGuard = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.list("TriRenderStep")
   steps = [];
 

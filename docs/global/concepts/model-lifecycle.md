@@ -61,8 +61,8 @@ declared item type before adding it.
 A collection mutation follows the same state rules as `SetValues`:
 
 - it marks the parent dirty unless `markDirty: false`;
-- it adds that collection field's declared `@io.flag(...)` and
-  `@io.rebuild(...)` tokens unless `notify: false`;
+- it adds that collection field's declared `@edit.flag(...)` and
+  `@edit.rebuild(...)` tokens unless `notify: false`;
 - it settles the parent unless `skipUpdate: true`; and
 - it suppresses child and modified events when `skipEvents: true`.
 

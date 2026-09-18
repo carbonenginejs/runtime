@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataHullBannerSet (eve) - generated from schema shapeHash a31a1da4.... */
@@ -9,12 +9,12 @@ export class EveSOFDataHullBannerSet extends CjsModel
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_banners (PEveSOFDataHullBannerSetItemVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataHullBannerSetItem")
   banners = [];
 

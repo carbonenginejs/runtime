@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/Tr2MaterialRes.h
 // Schema: format-carbon resources/Tr2MaterialRes.json; maintained by the runtime resource layer.
-import { CjsSchema, io, type } from "#schema";
+import { CjsSchema, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -30,7 +30,7 @@ CjsSchema.define(Tr2MaterialRes, {
   className: "Tr2MaterialRes",
   family: "resources",
   fields: {
-    meshes: [ io.persist, type.objectRef("Tr2MaterialMeshDict") ],
-    name: [ io.persist, type.string ]
+    meshes: [ edit.persist, type.objectRef("Tr2MaterialMeshDict") ],
+    name: [ edit.persist, type.string ]
   }
 });

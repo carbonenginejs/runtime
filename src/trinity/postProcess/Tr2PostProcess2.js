@@ -1,7 +1,7 @@
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.h
 // Source: trinity/trinity/PostProcess/Tr2PostProcess2.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2PPDepthOfFieldEffect } from "./effect/Tr2PPDepthOfFieldEffect.js";
 import { Quality } from "../generated/postProcess/enums.js";
 
@@ -18,67 +18,67 @@ export class Tr2PostProcess2 extends CjsModel
   // Carbon exposes this as a registered engine setting. Keeping it static makes
   // the graph deterministic while allowing a concrete backend to configure it.
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPSignalLossEffect")
   signalLoss = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPGodRaysEffect")
   godRays = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPBloomEffect")
   bloom = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPDynamicExposureEffect")
   dynamicExposure = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPFilmGrainEffect")
   filmGrain = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPDesaturateEffect")
   desaturate = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPFadeEffect")
   fade = null;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2PPLutEffect")
   luts = [];
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPLutEffect")
   lut = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPVignetteEffect")
   vignette = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPFogEffect")
   fog = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPDepthOfFieldEffect")
   depthOfField = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2PPTaaEffect")
   taa = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPTonemappingEffect")
   tonemapping = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPColorCorrectionEffect")
   colorCorrection = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2PPGenericEffect")
   genericEffect = null;
 

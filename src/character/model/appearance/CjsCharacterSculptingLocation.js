@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored sculpt-control location naming its weight category and prefix. */
@@ -6,11 +6,11 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterSculptingLocation extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     weightKeyCategory = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     weightKeyPrefix = "";
 

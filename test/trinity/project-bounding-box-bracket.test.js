@@ -55,8 +55,8 @@ test("Tr2ProjectBoundingBoxBracket is maintained with the rewritten Carbon defau
   assert.equal(bracket.coversViewport, false);
   for (const field of [ "isProjectionValid", "containsCamera", "extendsOffscreen", "coversViewport" ])
   {
-    assert.equal(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.read, true);
-    assert.equal(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.write, undefined);
+    assert.equal(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.edit?.read, true);
+    assert.equal(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.edit?.write, undefined);
   }
   assert.equal(
     existsSync(new URL("../../src/trinity/generated/trinityCore/Tr2ProjectBoundingBoxBracket.js", import.meta.url)),

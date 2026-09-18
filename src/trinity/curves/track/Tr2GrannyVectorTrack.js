@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.h
 // Source: trinity/trinity/Curves/Tr2GrannyVectorTrack.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -15,7 +15,7 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 })
 export class Tr2GrannyVectorTrack extends Tr2GrannyTrack
 {
-  @io.read
+  @edit.read
   @type.float32
   value = 0;
 

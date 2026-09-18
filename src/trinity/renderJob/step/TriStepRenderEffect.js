@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderEffect.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { AdjustTextureCoordsToViewport } from "../../core/Tr2RenderUtils.js";
@@ -11,22 +11,22 @@ export class TriStepRenderEffect extends TriRenderStep
 {
 
   /** m_shaderBuffer (Tr2ShaderBufferPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ShaderBuffer")
   shaderBuffer = null;
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   effect = null;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   tlTexCoord = vec2.create();
 

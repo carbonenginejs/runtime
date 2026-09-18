@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -19,54 +19,54 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionPlayMeshAnimation extends CjsModel
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("DestinationType")
   destinationType = DestinationType.OWNER;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
-  @io.persist
+  @edit.persist
   @type.string
   mask = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   animation = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   speed = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   delay = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("IRoot")
   destination = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   delayBinding = false;
 
-  @io.persist
+  @edit.persist
   @type.int32
   loops = -1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   path = "";
 

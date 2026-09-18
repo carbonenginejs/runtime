@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveLineSet.h
 // Source: trinity/trinity/Eve/UI/EveLineSet.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
 import { CjsModel } from "#model";
@@ -28,38 +28,38 @@ export class EveLineSet extends CjsModel
   currentSubmittedLineCount = 0;
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_isRenderedAsTransparent (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   renderTransparent = false;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 

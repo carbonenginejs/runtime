@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ShLightingManager.h
 // Source: trinity/trinity/Tr2ShLightingManager.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
@@ -88,23 +88,23 @@ export class Tr2ShLightingManager extends CjsModel
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2PointLight")
   lights = [];
 
   /** m_primaryIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   primaryIntensity = 1;
 
   /** m_secondaryIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   secondaryIntensity = 1;
 

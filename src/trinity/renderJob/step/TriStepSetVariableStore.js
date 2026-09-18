@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetVariableStore.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 
@@ -10,11 +10,11 @@ export class TriStepSetVariableStore extends TriRenderStep
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   variableName = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("TriVariableValue")
   value = null;
 

@@ -392,7 +392,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   assert(!controller.IsLinked());
   assertEquals(CjsSchema.getField(Tr2Controller, "stateMachines")?.type.kind, "list");
   assertEquals(CjsSchema.getField(Tr2Controller, "isPlaying")?.type.kind, "boolean");
-  assertEquals(CjsSchema.getField(Tr2Controller, "updateThrottle")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2Controller, "updateThrottle")?.edit?.persist, true);
   const defaults = CjsSchema.getDefaults(Tr2Controller);
   assertEquals(defaults.currentUpdateFrequency, 10);
   assertEquals(defaults.updateThrottle, true);

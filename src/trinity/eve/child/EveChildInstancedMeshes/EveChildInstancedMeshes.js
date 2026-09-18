@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveComponentType, ShouldReflect } from "../../EveComponentTypes.js";
 import { EveSpaceObjectChild } from "../EveSpaceObjectChild.js";
 import { RawData } from "../../../core/rawData/RawData.js";
@@ -42,19 +42,19 @@ const OVERLAY_CLIP_SCRATCH = vec3.create();
 @carbon.inherit(ITr2Renderable)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
-  @io.read
+  @edit.read
   @type.boolean
   hasUpdated = false;
 
-  @io.persist
+  @edit.persist
   @type.list("EveChildInstancedMesh")
   meshes = [];
 

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,24 +16,24 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class EveSphereVolume extends IEveVolume
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.flag("radius")
-  @io.notify
-  @io.persist
+  @edit.flag("radius")
+  @edit.notify
+  @edit.persist
   @type.float32
   radius = 1;
 
-  @io.flag("innerRadius")
-  @io.notify
-  @io.persist
+  @edit.flag("innerRadius")
+  @edit.notify
+  @edit.persist
   @type.float32
   innerRadius = 1;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

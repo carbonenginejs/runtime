@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
@@ -11,29 +11,29 @@ export class EveSOFDataRace extends CjsModel
 {
 
   /** m_hullPrimaryHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ColorType")
   hullPrimaryHeatColorType = 16;
 
   /** m_hullReactorHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ColorType")
   hullReactorHeatColorType = 14;
 
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataBooster")
   booster = null;
 
   /** m_damage (EveSOFDataRaceDamagePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataRaceDamage")
   damage = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

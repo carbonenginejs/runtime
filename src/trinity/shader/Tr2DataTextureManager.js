@@ -22,7 +22,7 @@
 // classes implement OnPrepareResources themselves, EveStarfield
 // (Eve/EveStarfield.cpp:110-172) among them.
 //
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Packs shader-readable data blocks into a shared texture; allocating that texture is not ported yet. */
@@ -31,32 +31,32 @@ export class Tr2DataTextureManager extends CjsModel
 {
 
   /** m_textureWidth (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   textureWidth = 256;
 
   /** m_textureHeight (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   textureHeight = 4;
 
   /** m_blockDataNextIdx (int32_t) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   blockDataNextIdx = 1;
 
   /** m_maxBlockCount (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   maxBlockCount = 0;
 
   /** m_maxPixelCount (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   maxPixelCount = 0;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTransformParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -13,38 +13,38 @@ export class TriTransformParameter extends CjsParameter
 {
 
   /** m_transformBase (TRITRANSFORMBASE - enum TRITRANSFORMBASE) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TRITRANSFORMBASE")
   transformBase = 0;
 
   /** m_rotationCenter (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   rotationCenter = vec3.create();
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_worldTransform (Matrix) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.mat4
   worldTransform = mat4.create();
 

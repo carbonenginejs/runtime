@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/FollowASpline.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
@@ -33,39 +33,39 @@ export class FollowASpline extends CjsModel
   shouldReassignTunnelIDs = true;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_smoothPullFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   smoothPullFactor = 0.8;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 600;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_cornerSmoothener (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   cornerSmoothener = 0.8;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SeekTarget.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
@@ -23,78 +23,78 @@ export class SeekTarget extends CjsModel
   #sortedLocators = false;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 1200;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distFromOrigin = 10;
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   arrivedRadius = 10;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   slowDownRadius = 33;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   firstSpawnAtRandomPlaces = false;
 
   /** m_onFirstDroneArrivedCallback (BlueScriptCallback) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   onFirstDroneArrivedCallback = null;
 
   /** m_totalRepairTime (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   totalRepairTime = -1;
 
   /** m_seconds (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   secondsToTurn = 0.35;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   locatorSetName = "damage";
 
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveLocatorSets")
   locatorSet = null;
 
   /** m_exit (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   exit = false;
 
   /** m_repair (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   repair = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 

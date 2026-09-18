@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
 import { CjsModel } from "#model";
 import { isArrayLike } from "#utils/is";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { ResetBehavior } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -20,16 +20,16 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionResetClipSphereCenter extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
-  @io.persist
+  @edit.persist
   @type.int32
   locatorIndex = -1;
 
-  @io.persist
+  @edit.persist
   @type.string
   locatorSetName = "";
 

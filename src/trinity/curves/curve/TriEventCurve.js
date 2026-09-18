@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriEventCurve.h
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriExtrapolation } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 
@@ -63,36 +63,36 @@ export class TriEventCurve extends CjsModel
     this.#postUpdateCallbacks.length = 0;
   }
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
   extrapolation = TriExtrapolation.TRIEXT_NONE;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBlueEventListener")
   eventListener = null;
 
-  @io.read
+  @edit.read
   @type.float64
   time = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   length = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   localTime = 0;
 
-  @io.persist
+  @edit.persist
   @type.string
   value = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("TriEventKey")
   keys = [];
 

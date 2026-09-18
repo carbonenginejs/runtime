@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 import { EveMissileWarhead } from "./EveMissileWarhead.js";
@@ -18,11 +18,11 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
 @type.define({ className: "EveMissile", family: "eve/spaceObject" })
 export class EveMissile extends EveSpaceObject2
 {
-  @io.persist @type.list("EveMissileWarhead") warheads = [];
-  @io.readwrite @type.boolean updateWarheads = true;
-  @io.readwrite @type.objectRef("ITriTargetable") target = null;
-  @io.readwrite @type.float32 targetRadius = 0;
-  @io.readwrite @type.rawStruct("BlueScriptCallback") explosionCallback = null;
+  @edit.persist @type.list("EveMissileWarhead") warheads = [];
+  @edit.readwrite @type.boolean updateWarheads = true;
+  @edit.readwrite @type.objectRef("ITriTargetable") target = null;
+  @edit.readwrite @type.float32 targetRadius = 0;
+  @edit.readwrite @type.rawStruct("BlueScriptCallback") explosionCallback = null;
 
   #inheritedStartVelocity = vec3.create();
   #inheritedVelocity = vec3.create();

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2BoneMatrixCurve.h
 import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -14,11 +14,11 @@ import { io, type } from "#schema";
 })
 export class Tr2MatrixKey extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.float32
   time = 0;
 
-  @io.persist
+  @edit.persist
   @type.mat4
   value = mat4.create();
 

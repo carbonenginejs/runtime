@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,64 +16,64 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EvePlaneSetItem", family: "eve/attachment/planes" })
 export class EvePlaneSetItem extends CjsModel
 {
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec4
   layer1Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec4
   layer2Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec4
   layer1Scroll = vec4.create();
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec4
   layer2Scroll = vec4.create();
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.uint32
   maskAtlasID = 0;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.int32
   boneIndex = 0;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   // Carbon omits this SOF-authored value from Blue serialization, but it is
   // part of the editable plane description and must survive values exchange.
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);
 

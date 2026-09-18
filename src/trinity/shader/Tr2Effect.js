@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -82,55 +82,55 @@ export class Tr2Effect extends Tr2Material
 {
 
   /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.rebuild("pipeline")
-  @io.always
-  @io.persist
+  @edit.notify
+  @edit.rebuild("pipeline")
+  @edit.always
+  @edit.persist
   @type.string
   effectFilePath = "";
 
   /** m_options (PTr2ShaderOptionStructureList) [READ, PERSIST] */
-  @io.rebuild("pipeline")
-  @io.persist
+  @edit.rebuild("pipeline")
+  @edit.persist
   @type.list("Tr2ShaderOption")
   options = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST] */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.list("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.list("ITriEffectParameter")
   parameters = [];
 
   /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.list("ITriEffectResourceParameter")
   resources = [];
 
   /** m_effectResource (Tr2EffectResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2EffectRes")
   effectResource = null;
 
   /** m_actualEffectFilePath (std::string) [READ] */
-  @io.read
+  @edit.read
   @type.string
   actualEffectFilePath = "";
 
   /** m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST] */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.list("Tr2SamplerOverride")
   samplerOverrides = [];
 

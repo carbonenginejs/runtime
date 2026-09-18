@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject.cpp
 // Source: trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable sprite state is maintained here.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 
@@ -169,57 +169,57 @@ export class Tr2SpriteObjectBase extends CjsModel
   }
 
   /** m_display (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
   /** m_pickState (Tr2SpriteObjectPickState - enum Tr2SpriteObjectPickState) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;
 
   /** m_isDirty (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   isDirty = true;
 
   /** m_displayHeight (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   displayHeight = 0;
 
   /** m_pickingMask (Tr2Sprite2dPickingMaskPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Sprite2dPickingMask")
   pickingMask = null;
 
   /** m_name (std::wstring) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.string
   name = "";
 
   /** m_auxMouseover (ITr2SpriteObject*) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("ITr2SpriteObject")
   auxMouseover = null;
 
   /** m_displayWidth (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   displayWidth = 0;
 
   /** m_translation.x (Vector2) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   displayX = 0;
 
   /** m_translation.y (Vector2) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   displayY = 0;
 

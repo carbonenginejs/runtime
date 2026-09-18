@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriFloatArrayParameter.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
 
@@ -11,21 +11,21 @@ import { CjsParameter } from "./CjsParameter.js";
 })
 export class TriFloatArrayParameter extends CjsParameter
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("TriVector4")
   value = [];
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentEffect = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 

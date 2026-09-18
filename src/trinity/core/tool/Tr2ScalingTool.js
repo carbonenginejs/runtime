@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2ScalingTool.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ManipulationTool } from "./Tr2ManipulationTool.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -19,7 +19,7 @@ export class Tr2ScalingTool extends Tr2ManipulationTool
 {
 
   /** m_scale (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 

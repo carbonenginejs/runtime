@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -17,12 +17,12 @@ import { CjsModel } from "#model";
 export class CjsExternalRef extends CjsModel
 {
 
-  @io.persist
+  @edit.persist
   @type.string
   resPath = "";
 
   /** Carbon interface name the loaded root must implement (load-time gate). */
-  @io.persist
+  @edit.persist
   @type.string
   expects = "";
 

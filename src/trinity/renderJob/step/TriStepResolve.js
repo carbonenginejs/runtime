@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepResolve.h
 // Source: trinity/trinity/RenderJob/TriStepResolve.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -12,15 +12,15 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepResolve", family: "renderJob" })
 export class TriStepResolve extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   generateMipmap = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RenderTarget")
   source = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RenderTarget")
   destination = null;
 

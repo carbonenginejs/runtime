@@ -180,7 +180,7 @@ Before accepting behavioral cleanup, compare Carbon and JavaScript traces for:
 8. output values and timing across representative update sequences.
 
 Generic binding destinations suppress equal-value writes unless the field is
-marked `@io.always`. Controller float variables deliberately carry that marker
+marked `@edit.always`. Controller float variables deliberately carry that marker
 so equal writes still reach their destination and dirty mask. Initialization
 is silent, and the masks remain frame-consumed; those semantics are part of the
 parity gate rather than incidental test behavior.

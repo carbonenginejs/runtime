@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2IntSkinnedObject.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2SkinnedObject } from "../trinityCore/Tr2SkinnedObject.js";
 
 /**
@@ -11,17 +11,17 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
 {
 
   /** m_boundingSphere[3] (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2VariableStore")
   variableStore = null;
 

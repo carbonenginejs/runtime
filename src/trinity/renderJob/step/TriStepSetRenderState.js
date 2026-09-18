@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState.cpp
 // Source: trinity/trinity/RenderJob/TriStepSetRenderState_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderState } from "#consts/render-context";
@@ -13,12 +13,12 @@ import { RenderState } from "#consts/render-context";
 @type.define({ className: "TriStepSetRenderState", family: "renderJob" })
 export class TriStepSetRenderState extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("RenderState")
   state = 0;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   value = 0;
 

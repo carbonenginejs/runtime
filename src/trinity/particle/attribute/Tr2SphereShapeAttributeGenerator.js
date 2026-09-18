@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2SphereShapeAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -17,77 +17,77 @@ export class Tr2SphereShapeAttributeGenerator extends ITr2AttributeGenerator
   #velocityElement = null;
 
   /** m_minPhi (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minPhi = 0;
 
   /** m_maxPhi (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxPhi = 360;
 
   /** m_minTheta (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minTheta = 0;
 
   /** m_maxTheta (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxTheta = 360;
 
   /** m_distributionExponent (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distributionExponent = 1;
 
   /** m_controlPosition (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   controlPosition = true;
 
   /** m_controlVelocity (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   controlVelocity = true;
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_parentVelocityFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   parentVelocityFactor = 1;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxSpeed = 0;
 
   /** m_minSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minSpeed = 0;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxRadius = 0;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minRadius = 0;
 
   /** m_valid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   valid = false;
 

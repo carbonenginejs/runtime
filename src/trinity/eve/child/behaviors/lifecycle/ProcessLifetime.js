@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ProcessLifetime.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -35,52 +35,52 @@ export class ProcessLifetime extends CjsModel
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_respawnAgentsOnDeath (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   respawnAgentsOnDeath = true;
 
   /** m_firstAgentLifetime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   firstAgentLifetime = 0;
 
   /** m_returningAge (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   returningAge = -1;
 
   /** m_wanderAmount (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   wanderAmount = 0.3;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   firstSpawnAtRandomPlaces = true;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 900;
 
   /** m_exit (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   exit = false;
 

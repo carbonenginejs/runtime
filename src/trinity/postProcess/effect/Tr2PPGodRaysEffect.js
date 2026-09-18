@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPGodRaysEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPGodRaysEffect.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec4 } from "#math/vec4";
 
@@ -10,17 +10,17 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {
 
   /** m_godRayColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   godRayColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_intensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   intensity = 0;
 
   /** m_noiseTexturePath (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   noiseTexturePath = "res:/Texture/Global/noise.dds";
 

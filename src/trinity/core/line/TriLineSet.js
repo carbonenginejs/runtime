@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -24,12 +24,12 @@ export class TriLineSet extends CjsModel
   vertices = [];
 
   /** m_zEnable (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   zEnable = true;
 
   /** m_transform (Matrix) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.mat4
   transform = mat4.create();
 

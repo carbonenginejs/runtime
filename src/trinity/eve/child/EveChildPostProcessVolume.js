@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPostProcessVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -14,32 +14,32 @@ export class EveChildPostProcessVolume extends EveChildTransform
 {
 
   /** m_volumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   volumes = [];
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_boundingSphere.center (CcpMath::Sphere) [READ] */
-  @io.read
+  @edit.read
   @type.rawStruct("CcpMath::Sphere")
   boundingSphereCenter = null;
 
   /** m_boundingSphere.radius (CcpMath::Sphere) [READ] */
-  @io.read
+  @edit.read
   @type.rawStruct("CcpMath::Sphere")
   boundingSphereRadius = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2PostProcessAttributes")
   postProcessAttributes = null;
 

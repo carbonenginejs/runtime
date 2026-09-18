@@ -3,7 +3,7 @@
 import { random } from "#math/random";
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,19 +17,19 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2CurveRandomAxisRotation extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.quat
   currentValue = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   period = 1;
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.uint32
   seed = 0;
 

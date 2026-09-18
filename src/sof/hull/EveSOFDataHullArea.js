@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Carbon-authored hull mesh-area record. */
@@ -9,43 +9,43 @@ export class EveSOFDataHullArea extends CjsModel
 {
 
   /** m_areaType (EveSOFDataArea::AreaType - enum AreaType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("AreaType")
   areaType = 0;
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_index (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   index = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   count = 1;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   shader = "";
 
   /** m_blockedMaterials (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   blockedMaterials = 0;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataHullChildSet (eve) - generated from schema shapeHash 7e44fd77.... */
@@ -9,12 +9,12 @@ export class EveSOFDataHullChildSet extends CjsModel
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullChildSetItemVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataHullChildSetItem")
   items = [];
 

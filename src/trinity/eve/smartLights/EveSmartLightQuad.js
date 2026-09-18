@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/EveSmartLightQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveChildQuad } from "../../eve/child/EveChildQuad.js";
 import { resolveGroupColor } from "../../eve/smartLights/EveSmartLightBaseGroup.js";
@@ -20,43 +20,43 @@ export class EveSmartLightQuad extends EveChildTransform
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_brightness (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_staticQuadScale (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   staticQuadScale = vec3.fromValues(1, 1, 1);
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_editMode (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   editMode = false;
 
   /** m_softQuad (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   softQuad = false;
 
@@ -65,23 +65,23 @@ export class EveSmartLightQuad extends EveChildTransform
   // this class carries these fields).
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] (EveSmartLightBaseGroup.h:31) */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:32) */
-  @io.persist
+  @edit.persist
   @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] (EveSmartLightBaseGroup.h:29) */
-  @io.persist
+  @edit.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] (EveSmartLightBaseGroup.h:30) */
-  @io.persist
+  @edit.persist
   @type.color
   customColor = color.createLinear();
 

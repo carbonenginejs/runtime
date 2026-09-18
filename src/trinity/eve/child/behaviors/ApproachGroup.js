@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/ApproachGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
@@ -16,28 +16,28 @@ export class ApproachGroup extends CjsModel
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 60;
 
   /** m_visionRange (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   visionRange = 150;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   framesBetweenUpdates = 83;
 

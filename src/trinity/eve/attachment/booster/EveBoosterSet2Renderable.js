@@ -6,7 +6,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 
 
@@ -21,42 +21,42 @@ export class EveBoosterSet2Renderable extends CjsModel
 {
 
   /** m_trailIntensity (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   trailIntensity = 0;
 
   /** m_trailsTotalLength (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   trailsTotalLength = 0;
 
   /** m_isVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isVisible = false;
 
   /** m_trailsVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   trailsVisible = false;
 
   /** m_boostersVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   boostersVisible = false;
 
   /** m_trailsTimeDelta (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   trailsTimeDelta = 1;
 
   /** m_boosterHighLod (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   boosterHighLod = false;
 
   /** m_trailsBoundsMax (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   trailsBoundsMax = vec3.fromValues(
     -EveBoosterSet2Renderable.#floatMax,
@@ -65,7 +65,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   );
 
   /** m_trailsBoundsMin (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   trailsBoundsMin = vec3.fromValues(
     EveBoosterSet2Renderable.#floatMax,
@@ -74,17 +74,17 @@ export class EveBoosterSet2Renderable extends CjsModel
   );
 
   /** m_overallIntensity (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   overallIntensity = 0;
 
   /** m_parentRotation (Quaternion) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.quat
   parentRotation = quat.create();
 
   /** m_parentSpeed (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   parentSpeed = 0;
 

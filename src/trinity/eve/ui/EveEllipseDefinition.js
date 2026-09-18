@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/UI/EveEllipseDefinition.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -14,28 +14,28 @@ export class EveEllipseDefinition extends CjsModel
 {
   #dirtyFlag = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   center = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   rotationDegrees = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   semiMajor = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   semiMinor = 1;
 

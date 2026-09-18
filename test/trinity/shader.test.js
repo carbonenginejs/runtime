@@ -302,7 +302,7 @@ test("Tr2Effect populates and prunes shader parameters from reflection data", ()
   effect.PruneParameters();
   assertEquals(effect.FindParameterByName("Tint"), null);
 });
-test("io.always preserves repeated effect-path updates", () =>
+test("edit.always preserves repeated effect-path updates", () =>
 {
   const effect = new Tr2Effect();
   const events = [];
@@ -319,7 +319,7 @@ test("io.always preserves repeated effect-path updates", () =>
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
   assertEquals(initializeCount, 2);
   assertEquals(events.length, 2);
-  assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.io?.always, true);
+  assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.always, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
   class TestEffectRes extends ResourceShader.Tr2EffectRes
   {

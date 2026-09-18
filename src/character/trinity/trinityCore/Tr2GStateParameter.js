@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2GStateParameter.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Named, node-scoped scalar value for a character GState animation. */
@@ -8,17 +8,17 @@ export class Tr2GStateParameter extends CjsModel
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   value = 0;
 
   /** m_nodeName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   nodename = "";
 

@@ -82,7 +82,7 @@ export function capture() {
       fields: schema.fields.map(field => ({
         name: field.name,
         type: field.type,
-        persist: field.io?.persist === true,
+        persist: field.edit?.persist === true,
         value: value[field.name]
       }))
     }]);

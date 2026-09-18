@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
@@ -18,11 +18,11 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
 @carbon.inherit(ITr2InstanceData)
 export class Tr2RuntimeInstanceData extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2ParticleSystem")
   particleSystem = null;
 
@@ -32,33 +32,33 @@ export class Tr2RuntimeInstanceData extends CjsModel
   // The JS port persists the whole quintet so instance data authored in JS can
   // round-trip without Carbon's Python/CMF side channels. Carbon-authored
   // .black files never populate these fields.
-  @io.flag("cpuData")
-  @io.rebuild("instanceBuffer")
-  @io.notify
-  @io.persist
+  @edit.flag("cpuData")
+  @edit.rebuild("instanceBuffer")
+  @edit.notify
+  @edit.persist
   @type.array("unknown")
   layout = [];
 
-  @io.flag("cpuData")
-  @io.rebuild("instanceBuffer")
-  @io.notify
-  @io.persist
+  @edit.flag("cpuData")
+  @edit.rebuild("instanceBuffer")
+  @edit.notify
+  @edit.persist
   @type.array("unknown")
   rows = [];
 
-  @io.persist
+  @edit.persist
   @type.boolean
   explicitBoundingBox = false;
 
-  @io.read
+  @edit.read
   @type.uint32
   count = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   aabbMin = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   aabbMax = vec3.create();
 

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2InstancedMesh.cpp
 // Source: trinity/trinity/Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 
 
@@ -13,37 +13,37 @@ import { Tr2Mesh } from "./Tr2Mesh.js";
 @type.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
 export class Tr2InstancedMesh extends Tr2Mesh
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("BoundsMethod")
   boundsMethod = 0;
 
-  @io.rebuild("instanceBuffer")
-  @io.notify
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.notify
+  @edit.persist
   @type.string
   instanceGeometryResPath = "";
 
-  @io.persist
+  @edit.persist
   @type.vec3
   maxBounds = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxInstanceSize = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   minBounds = vec3.create();
 
-  @io.rebuild("instanceBuffer")
-  @io.persistOnly
+  @edit.rebuild("instanceBuffer")
+  @edit.persistOnly
   @type.objectRef("ITr2InstanceData")
   instanceGeometryResource = null;
 
-  @io.rebuild("instanceBuffer")
-  @io.notify
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.notify
+  @edit.persist
   @type.int32
   instanceMeshIndex = 0;
 

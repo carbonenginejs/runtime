@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataFaction (eve) - generated from schema shapeHash 1e118b8a.... */
@@ -9,92 +9,92 @@ export class EveSOFDataFaction extends CjsModel
 {
 
   /** m_areaTypes (EveSOFDataAreaPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataArea")
   areaTypes = null;
 
   /** m_colorSet (EveSOFDataFactionColorSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataFactionColorSet")
   colorSet = null;
 
   /** m_logoSet (EveSOFDataLogoSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataLogoSet")
   logoSet = null;
 
   /** m_description (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   description = "";
 
   /** m_children (PEveSOFDataFactionChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataFactionChild")
   children = [];
 
   /** m_planeSets (PEveSOFDataFactionPlaneSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataFactionPlaneSet")
   planeSets = [];
 
   /** m_spotlightSets (PEveSOFDataFactionSpotlightSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataFactionSpotlightSet")
   spotlightSets = [];
 
   /** m_visibilityGroupSet (EveSOFDataFactionVisibilityGroupSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataFactionVisibilityGroupSet")
   visibilityGroupSet = null;
 
   /** m_resPathInsert (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   resPathInsert = "";
 
   /** m_materialUsageMtl1 (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   materialUsageMtl1 = 0;
 
   /** m_materialUsageMtl2 (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   materialUsageMtl2 = 1;
 
   /** m_materialUsageMtl3 (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   materialUsageMtl3 = 2;
 
   /** m_materialUsageMtl4 (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   materialUsageMtl4 = 3;
 
   /** m_defaultPattern (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternLayer")
   defaultPattern = null;
 
   /** m_defaultPatternLayer1MaterialName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   defaultPatternLayer1MaterialName = "";
 
   /** m_defaultPatternLayer2MaterialName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   defaultPatternLayer2MaterialName = "";
 
   /** m_defaultPatternName (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   defaultPatternName = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ConsecutiveIntegerAttributeGenerator.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2AttributeGenerator } from "./ITr2AttributeGenerator.js";
 import { vec4 } from "#math/vec4";
 import { bindParticleElement } from "../element/particleElementBinding.js";
@@ -16,28 +16,28 @@ export class Tr2ConsecutiveIntegerAttributeGenerator extends ITr2AttributeGenera
   #element = null;
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Type")
   elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   customName = "";
 
   /** m_maxRange (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   maxRange = vec4.create();
 
   /** m_minRange (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   minRange = vec4.create();
 
   /** m_valid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   valid = false;
 

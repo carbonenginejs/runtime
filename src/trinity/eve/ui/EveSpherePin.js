@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveSpherePin.h
 // Source: trinity/trinity/Eve/UI/EveSpherePin.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
 import { CjsModel } from "#model";
@@ -18,117 +18,117 @@ export class EveSpherePin extends CjsModel
 {
 
   /** m_primitiveCount (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   primitiveCount = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_enablePicking (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enablePicking = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_pinColor (Color) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sortValueMultiplier = 1;
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   centerNormal = vec3.fromValues(0, 0, 1);
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinRadius = 0.2;
 
   /** m_pinEffectResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   pinEffectResPath = "";
 
   /** m_geomResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   geometryResPath = "";
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinAlphaThreshold = 0;
 
   /** m_uvAtlasScaleOffset (Vector4) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   uvAtlasScaleOffset = vec4.fromValues(1, 1, 0, 0);
 
   /** m_pinEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   pinEffect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2Effect")
   pickEffect = null;
 

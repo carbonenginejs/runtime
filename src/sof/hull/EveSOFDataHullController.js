@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataHullController (eve) - generated from schema shapeHash ef1e599d.... */
@@ -9,12 +9,12 @@ export class EveSOFDataHullController extends CjsModel
 {
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   buildFilter = 0xffffffff;
 
   /** m_path (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   path = "";
 

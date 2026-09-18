@@ -6,7 +6,7 @@
 // additions are the per-frame update driver ported from Carbon
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -126,86 +126,86 @@ export class EveSpaceScene extends CjsModel
 {
 
   /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   envMap1ResPath = "";
 
   /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   envMap2ResPath = "";
 
   /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   envMap3ResPath = "";
 
   /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   lowQualityNebulaResPath = "";
 
   /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   lowQualityNebulaMixResPath = "";
 
   /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   envMapResPath = "";
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   fogColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_sunData.DirWorld (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   sunDirection = vec3.fromValues(0, -1, 0);
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   ambientColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("Tr2ShLightingManager")
   shLightingManager = null;
 
   /** m_combinedPostProcessAttributes (Tr2PostProcessAttributesPtr) [READ] -
    * default-constructed like Carbon's ctor CreateInstance (cpp:297); refreshed
    * by UpdatePostProcessAttributes' re-export at MEDIUM_PRIORITY (cpp:407). */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2PostProcessAttributes")
   combinedPostProcessAttributes = new Tr2PostProcessAttributes();
 
   /** m_dataTextureMgr (Tr2DataTextureManagerPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2DataTextureManager")
   dataTextureMgr = null;
 
   /** m_dynamicObjectReflectionEnabled (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   dynamicObjectReflectionEnabled = true;
 
   /** m_componentRegistry (EveComponentRegistryPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("EveComponentRegistry")
   componentRegistry = new EveComponentRegistry();
 
@@ -221,248 +221,248 @@ export class EveSpaceScene extends CjsModel
   postProcessDebug = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_defaultDiffuseRoughness (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   defaultDiffuseRoughness = 1;
 
   /** m_fogStart (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fogStart = 0;
 
   /** m_fogEnd (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fogEnd = 0;
 
   /** m_reflectionIntensity (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   reflectionIntensity = 1;
 
   /** m_distanceFields (PEveDistanceFieldVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("EveDistanceField")
   distanceFields = [];
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   backgroundEffect = null;
 
   /** m_backgroundReflectionIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   backgroundReflectionIntensity = 1;
 
   /** m_nebulaIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   nebulaIntensity = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_backgroundRenderingEnabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   backgroundRenderingEnabled = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_impostorManager (Tr2ImpostorManagerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ImpostorManager")
   impostorManager = null;
 
   /** m_lensflares (PEveLensflareVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveLensflare")
   lensflares = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_fogMax (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fogMax = 0;
 
   /** m_staticParticles (PEveSceneStaticParticlesVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("EveSceneStaticParticles")
   staticParticles = [];
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2DebugRenderer")
   debugRenderer = null;
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObject2")
   objects = [];
 
   /** m_uiObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObject2")
   uiObjects = [];
 
   /** m_backgroundObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObject2")
   backgroundObjects = [];
 
   /** m_planets (PEvePlanetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EvePlanet")
   planets = [];
 
   /** m_rtManager (Tr2RaytracingManagerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RaytracingManager")
   raytracingManager = null;
 
   /** m_reflectionBackLightingColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   reflectionBackLightingColor = vec4.fromValues(2, 2, 2, 2);
 
   /** m_reflectionBackLightingContrast (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   reflectionBackLightingContrast = 8;
 
   /** m_reflectionProbe (Tr2ReflectionProbePtr) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("Tr2ReflectionProbe")
   reflectionProbe = null;
 
   /** m_volumetricsRenderer (Tr2VolumetricsRendererPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2VolumetricsRenderer")
   volumetricsRenderer = new Tr2VolumetricsRenderer();
 
   /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveStarfield")
   starfield = null;
 
   /** m_planetScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   planetScale = 1000000;
 
   /** m_planetCameraScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   planetCameraScale = 1000000;
 
   /** m_sssss (Tr2SSSSSPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2SSSSS")
   subSurfaceScattering = null;
 
   /** m_shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   @type.enum("ShadowQuality")
   shadowQualitySetting = 3;
 
   /** m_sunColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   sunDiffuseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_sunColorWithDynamicLights (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   sunDiffuseColorWithDynamicLights = vec4.fromValues(1, 1, 1, 1);
 
   /** m_envMapRotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   envMapRotation = quat.create();
 
   /** m_ballpark (IEveBallparkPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IEveBallpark")
   ballpark = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_sunBall (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   sunBall = null;
 
   /** m_sceneDefaultPostProcess (Tr2PostProcess2Ptr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2PostProcess2")
   postprocess = null;
 
   /** m_virtualCameraSystem (EveVirtualCameraSystemPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveVirtualCameraSystem")
   virtualCameraSystem = null;
 
   /** m_warpTunnel (IEveSpaceObject2Ptr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IEveSpaceObject2")
   warpTunnel = null;
 
   /** m_perFrameDebug (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   perFrameDebug = 0;
 
   /** m_cascadedShadowMap (Tr2ShadowMapPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2ShadowMap")
   cascadedShadowMap = null;
 
   /** m_updateTime (Be::Time) [READ] */
-  @io.read
+  @edit.read
   @type.float64
   updateTime = 0;
 
   /** m_useSunColorWithDynamicLights (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useSunDiffuseColorWithDynamicLights = false;
 
   /** m_envMap1 (ITr2TextureProviderPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("ITr2TextureProvider")
   envMap1 = null;
 
   /** m_envMap2 (ITr2TextureProviderPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("ITr2TextureProvider")
   envMap2 = null;
 
   /** m_envMap3 (ITr2TextureProviderPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("ITr2TextureProvider")
   envMap3 = null;
 

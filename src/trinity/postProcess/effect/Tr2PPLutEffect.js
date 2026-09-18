@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPLutEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPLutEffect.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries a color lookup texture and influence for post-process grading. */
@@ -9,12 +9,12 @@ export class Tr2PPLutEffect extends Tr2PPEffect
 {
 
   /** m_influence (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   influence = 0;
 
   /** m_path (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   path = "res:/dx9/scene/postprocess/LUTdefault.dds";
 

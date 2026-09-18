@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/SpawnDrones.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,59 +14,59 @@ export class SpawnDrones extends CjsModel
 {
 
   /** m_gridSpacing (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   gridSpacing = vec3.create();
 
   /** m_gridFullnessFactor (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   gridFullnessFactor = 1;
 
   /** m_regenerateDrones (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   regenerateDrones = true;
 
   /** m_count (int) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   count = 1;
 
   /** m_seconds (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   seconds = -1;
 
   /** m_addOnGrid (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   addOnGrid = false;
 
   /** m_addByCount (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   addByCount = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_time (float) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   time = 0;
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   spawnPosition = vec3.create();
 
   /** m_gridInfo (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   gridInfo = vec4.fromValues(1, 1, 1, 10);
 

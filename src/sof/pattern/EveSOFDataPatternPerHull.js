@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataPatternTransform } from "./EveSOFDataPatternTransform.js";
 
@@ -10,17 +10,17 @@ export class EveSOFDataPatternPerHull extends CjsModel
 {
 
   /** m_transformLayer1 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternTransform")
   transformLayer1 = null;
 
   /** m_transformLayer2 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternTransform")
   transformLayer2 = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

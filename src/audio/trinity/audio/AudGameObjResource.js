@@ -8,7 +8,7 @@
 // Wake/Cull no-op. The realization layer later supplies `manager` (enabled
 // state, bank statuses, prioritization) and `backend` (Wwise-shaped calls)
 // via the statics at the bottom.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -46,86 +46,86 @@ export class AudGameObjResource extends CjsModel
 {
 
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   eventPrefix = "";
 
   /** m_additionalCullingWeight (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   additionalCullingWeight = 0;
 
   /** m_ID (AkGameObjectID) [READ] */
-  @io.read
+  @edit.read
   @type.rawStruct("AkGameObjectID")
   ID = null;
 
   /** m_parameters (PAudParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("AudParameter")
   parameters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
   /** m_playingVitalSound (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   playingVitalSound = false;
 
   /** m_playing2DSound (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   playing2DSound = false;
 
   /** m_listenerInRange (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   listenerInRange = false;
 
   /** m_isUsed (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isUsed = false;
 
   /** m_eventName (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   eventName = "";
 
   /** m_cumulativeWeight (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   cumulativeWeight = 0;
 
   /** m_distanceSqFromListener (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   distanceFromListener = 0;
 
   /** m_scalingFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   scalingFactor = 1;
 
   /** m_isVisible (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isVisible = false;
 
   /** m_forceCullingState (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   forceCullingState = false;
 
   /** m_position (Vector3) [AUTHORED] */
   @impl.adapted
   @impl.reason("Carbon routes this through Initialize(name, prefix, position) outside Blue serialization; CarbonEngineJS persists it for values interchange; OnModified derives placement from it.")
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 

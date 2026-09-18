@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroupBooster.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -17,147 +17,147 @@ export class BehaviorGroupBooster extends CjsModel
 {
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_boosterOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   boosterOffset = vec3.create();
 
   /** m_atlasIndex0 (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   atlasIndex0 = 0;
 
   /** m_atlasIndex1 (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   atlasIndex1 = 0;
 
   /** m_boosterEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   boosterEffect = null;
 
   /** m_flareCount (unsigned int) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   flareCount = 0;
 
   /** m_displayAmbientFlare (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   displayAmbientFlare = true;
 
   /** m_displayBoosters (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   displayBoosters = true;
 
   /** m_displayHazeFlare (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   displayHazeFlare = true;
 
   /** m_ambientFlareBrightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   ambientFlareBrightness = 0;
 
   /** m_haloFlareBrightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   haloFlareBrightness = 0;
 
   /** m_ambientFlareColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   ambientFlareColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_haloFlareColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   haloFlareColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_lightColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   lightColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_ambientFlareEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   ambientFlareEffect = null;
 
   /** m_haloFlareEffect (Tr2EffectPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Effect")
   haloFlareEffect = null;
 
   /** m_ambientFlareNoiseAmplitude (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   ambientFlareNoiseAmplitude = 0.2;
 
   /** m_haloFlareNoiseAmplitude (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   haloFlareNoiseAmplitude = 0.2;
 
   /** m_ambientFlareNoiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   ambientFlareNoiseOctaves = 1;
 
   /** m_haloFlareNoiseOctaves (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   haloFlareNoiseOctaves = 1;
 
   /** m_ambientFlareNoiseSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   ambientFlareNoiseSpeed = 1;
 
   /** m_haloFlareNoiseSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   haloFlareNoiseSpeed = 1;
 
   /** m_ambientFlareOffset (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   ambientFlareOffset = vec3.create();
 
   /** m_haloFlareOffset (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   haloFlareOffset = vec3.create();
 
   /** m_lightRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lightRadius = 3.5;
 
   /** m_ambientFlareScale (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   ambientFlareScale = vec3.fromValues(1, 1, 1);
 
   /** m_haloFlareScale (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   haloFlareScale = vec3.fromValues(1, 1, 1);
 

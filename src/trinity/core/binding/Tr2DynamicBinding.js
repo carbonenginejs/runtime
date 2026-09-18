@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2DynamicBinding.h
 // Source: trinity/trinity/Tr2DynamicBinding.cpp
 // Source: trinity/trinity/Tr2DynamicBinding_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { TriValueBinding } from "./TriValueBinding.js";
 
@@ -26,56 +26,56 @@ export class Tr2DynamicBinding extends CjsModel
 
   #sourceRef = null;
 
-  @io.persist
+  @edit.persist
   @type.int32
   bindingDelay = 0;
 
-  @io.read
+  @edit.read
   @type.objectRef("IRoot")
   destination = null;
 
-  @io.read
+  @edit.read
   @type.boolean
   isDestinationValid = false;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   destinationObjectAttribute = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   destinationObjectPath = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   sourceObjectAttribute = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   sourceObjectPath = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   scale = 1;
 
-  @io.read
+  @edit.read
   @type.objectRef("IRoot")
   source = null;
 
-  @io.read
+  @edit.read
   @type.boolean
   isSourceValid = false;
 
-  @io.read
+  @edit.read
   @type.objectRef("TriValueBinding")
   binding = null;
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored appearance-color name and hair-color classification. */
@@ -6,11 +6,11 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterColorName extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorName = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     hairColor = 0;
 

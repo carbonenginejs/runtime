@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Include/TriMatrix.h
 // Maintained but intentionally unexported until the row-major Blue wrapper has
 // an explicit conversion contract with column-major runtime math matrices.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -12,82 +12,82 @@ export class TriMatrix extends CjsModel
 {
 
   /** _11 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _11 = null;
 
   /** _12 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _12 = null;
 
   /** _13 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _13 = null;
 
   /** _14 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _14 = null;
 
   /** _21 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _21 = null;
 
   /** _22 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _22 = null;
 
   /** _23 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _23 = null;
 
   /** _24 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _24 = null;
 
   /** _31 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _31 = null;
 
   /** _32 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _32 = null;
 
   /** _33 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _33 = null;
 
   /** _34 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _34 = null;
 
   /** _41 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _41 = null;
 
   /** _42 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _42 = null;
 
   /** _43 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _43 = null;
 
   /** _44 (unknown) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.unknown
   _44 = null;
 

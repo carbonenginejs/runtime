@@ -5,7 +5,7 @@ import { copyArrayLike } from "#utils";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -19,15 +19,15 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2CurveConstant extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.vec4
   value = vec4.create();
 
-  @io.read
+  @edit.read
   @type.vec4
   currentValue = this.value;
 

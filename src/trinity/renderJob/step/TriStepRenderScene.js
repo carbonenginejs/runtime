@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that renders one scene at its point in the job order. */
@@ -9,7 +9,7 @@ export class TriStepRenderScene extends TriRenderStep
 {
 
   /** m_scene (ITr2ScenePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2Scene")
   scene = null;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2VectorFunctionModifier.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -14,27 +14,27 @@ export class Tr2VectorFunctionModifier extends CjsModel
 {
 
   /** m_useViewSpace (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   useViewSpace = false;
 
   /** m_clientBall (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   clientBall = null;
 
   /** m_offsetPosition (Vector3) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   offsetPosition = vec3.create();
 
   /** m_scaleModifier (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   scaleModifier = 1;
 
   /** m_useSystemCoordinates (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   useSystemCoordinates = false;
 

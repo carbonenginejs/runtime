@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dRenderJob_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; all portable behavior is implemented here.
 import { vec2 } from "#math/vec2";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
 import { Tr2SpriteObjectBase } from "./Tr2SpriteObjectBase.js";
 
@@ -68,7 +68,7 @@ export class Tr2Sprite2dRenderJob extends Tr2SpriteObjectBase
   }
 
   /** m_renderJob (TriRenderJobPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("TriRenderJob")
   renderJob = null;
 

@@ -1,7 +1,7 @@
 // Source: audio/src/Components/StretchAudio.h + StretchAudio.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/StretchAudio.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
@@ -13,37 +13,37 @@ export class StretchAudio extends IStretchAudio
 {
 
   /** m_stretchEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("AudEmitter")
   sourceEmitter = null;
 
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   stretchEvent = "";
 
   /** m_shotMissedEvent (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   shotMissedEvent = "";
 

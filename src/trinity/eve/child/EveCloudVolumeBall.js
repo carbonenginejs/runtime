@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveCloudVolumeBall.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -11,32 +11,32 @@ export class EveCloudVolumeBall extends CjsModel
 {
 
   /** m_ballData.m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_ballData.m_radius (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   radius = 0;
 
   /** m_ballData.m_opacity (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   opacity = 0;
 
   /** m_ballData.m_falloff (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   falloff = 1;
 
   /** m_ballData.m_selfIllumination (Color) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   selfIllumination = vec4.create();
 

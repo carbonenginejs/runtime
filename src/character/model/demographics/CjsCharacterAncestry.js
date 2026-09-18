@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Character-creation ancestry record linked to its owning bloodline. */
@@ -6,43 +6,43 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterAncestry extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     shortDescription = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterBloodline")
     bloodlineID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     charisma = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     descriptionID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     iconID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     intelligence = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     memory = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     nameID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     perception = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     willpower = 0;
 

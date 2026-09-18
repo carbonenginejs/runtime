@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetView.h
 // Source: trinity/trinity/RenderJob/TriStepSetView.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -12,11 +12,11 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepSetView", family: "renderJob" })
 export class TriStepSetView extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("TriView")
   view = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("EveCamera")
   camera = null;
 

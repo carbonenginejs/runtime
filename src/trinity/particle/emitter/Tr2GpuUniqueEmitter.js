@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter.cpp
 // Source: trinity/trinity/Particle/Tr2GpuUniqueEmitter_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 
 
@@ -13,17 +13,17 @@ import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 @type.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
-  @io.persist
+  @edit.persist
   @type.boolean
   scaledByParent = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   attractorPosition = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   attractorStrength = 0;
 }

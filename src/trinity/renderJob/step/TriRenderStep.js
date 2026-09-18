@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/TriRenderStep.h
 // Source: trinity/trinity/RenderJob/TriRenderStep.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -23,11 +23,11 @@ export class TriRenderStep extends CjsModel
   static RS_IN_PROGRESS = 2;
   static RS_TERMINATE = 3;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   enabled = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

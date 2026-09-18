@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveEulerRotation.cpp
 import { fromYawPitchRoll, quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 
@@ -17,23 +17,23 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 })
 export class Tr2CurveEulerRotation extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   roll = new Tr2CurveScalar();
 
-  @io.read
+  @edit.read
   @type.quat
   currentValue = quat.create();
 

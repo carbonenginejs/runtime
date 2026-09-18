@@ -5,7 +5,7 @@
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
 
@@ -18,134 +18,134 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 @carbon.inherit(ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   continuousEmitter = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   rate = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   emissionDensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxEmissionDensity = 10000;
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxDisplacement = 1000;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   direction = vec3.fromValues(0, 1, 0);
 
-  @io.persist
+  @edit.persist
   @type.float32
   angle = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   innerAngle = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   inheritVelocity = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   minSpeed = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxSpeed = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   minLifeTime = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   maxLifeTime = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   sizes = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   sizeVariance = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color0 = color.createLinear();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color1 = color.createLinear();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color2 = color.createLinear();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color3 = color.createLinear();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   textureIndex = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   colorMidpoint = 0.5;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   velocityStretchRotation = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   drag = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   turbulenceAmplitude = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   turbulenceFrequency = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   gravity = 0;
 

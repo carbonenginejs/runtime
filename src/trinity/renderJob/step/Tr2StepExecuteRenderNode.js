@@ -2,7 +2,7 @@
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode.cpp
 // Source: trinity/trinity/RenderJob/Tr2StepExecuteRenderNode_Blue.cpp
 // Promoted from generated source to supply TriRenderStep.Execute.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 
@@ -15,17 +15,17 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
 {
 
   /** m_destinationTarget (Tr2RenderTargetPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2RenderTarget")
   destinationTarget = null;
 
   /** m_clearTargetOnFailure (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   clearTargetOnFailure = true;
 
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2RenderNode")
   node = null;
 

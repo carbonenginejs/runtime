@@ -3,7 +3,7 @@
 // Source: trinity/trinity/TriProjection_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -44,7 +44,7 @@ export class TriProjection extends CjsModel
 
   customTransform = mat4.create();
 
-  @io.read
+  @edit.read
   @type.mat4
   transform = mat4.create();
 

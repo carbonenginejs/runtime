@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.h
 // Source: trinity/trinity/Controllers/Tr2ControllerFloatVariable.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Type } from "../enums.js";
 
 
@@ -16,26 +16,26 @@ import { Type } from "../enums.js";
 })
 export class Tr2ControllerFloatVariable extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Type")
   variableType = Type.FLOAT;
 
-  @io.persist
+  @edit.persist
   @type.string
   enumValues = "";
 
-  @io.notify
-  @io.always
-  @io.readwrite
+  @edit.notify
+  @edit.always
+  @edit.readwrite
   @type.float32
   value = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   defaultValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

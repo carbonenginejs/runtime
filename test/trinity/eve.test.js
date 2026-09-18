@@ -301,9 +301,9 @@ test("EveSpaceObjectDecal keeps Carbon graph state and private SOF indices CPU-o
   assertEquals(decal.batchType, 1);
   assertEquals(decal.parentBoneIndex, -1);
   assertEquals(decal.display, true);
-  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "batchType")?.io?.read, true);
-  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "display")?.io?.write, true);
-  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "display")?.io?.persist, undefined);
+  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "batchType")?.edit?.read, true);
+  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "display")?.edit?.write, true);
+  assertEquals(CjsSchema.getField(EveSpaceObjectDecal, "display")?.edit?.persist, undefined);
 
   const position = [1, 2, 3];
   const scaling = [2, 3, 4];
@@ -396,9 +396,9 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   assertEquals(CjsSchema.getField(EveBannerSet, "banners")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EveBannerSet, "lights")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.type.kind, "objectRef");
-  assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(EveBannerSet, "primaryTextureParameter")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(EveBannerItem, "reference")?.type.kind, "int32");
-  assertEquals(CjsSchema.getField(EveBannerItem, "reference")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(EveBannerItem, "reference")?.edit?.persist, true);
 
   source.bone = 3;
   source.position.set([1, 2, 3]);
@@ -444,7 +444,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertVec4(item.layer1Transform, [1, 1, 0, 0]);
   assertVec4(item.blinkData, [1, 0, 1, 0]);
   assertEquals(CjsSchema.getField(EvePlaneSetItem, "blinkData")?.type.kind, "vec4");
-  assertEquals(CjsSchema.getField(EvePlaneSetItem, "blinkData")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(EvePlaneSetItem, "blinkData")?.edit?.persist, true);
   item.blinkData.set([0.25, 0.5, 0.75, 1]);
   const restoredItem = EvePlaneSetItem.from(item.GetValues({ persistOnly: true }));
   assertVec4(restoredItem.blinkData, [0.25, 0.5, 0.75, 1]);
@@ -475,7 +475,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertEquals(CjsSchema.getField(EvePlaneLight, "lightProfilePath")?.type.kind, "string");
   assertEquals(CjsSchema.getField(EvePlaneSet, "lights")?.type.kind, "list");
   assertEquals(CjsSchema.getField(EvePlaneSet, "imageMapParameter")?.type.kind, "objectRef");
-  assertEquals(CjsSchema.getField(EvePlaneSet, "maskMapParameter")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(EvePlaneSet, "maskMapParameter")?.edit?.persist, true);
   assertEquals(set.Initialize(), true);
 });
 
@@ -648,12 +648,12 @@ test("Tr2Light subclasses preserve Carbon graph defaults without resource realiz
   assertEquals(point.lightData.brightness, 2.5);
   // The flat fields carry the Carbon Blue persistence flags: this is what
   // fixes the light round-trip asymmetry (CARBON-PARITY-REVIEW §3.2).
-  assertEquals(CjsSchema.getField(Tr2PointLight, "position")?.io?.persist, true);
-  assertEquals(CjsSchema.getField(Tr2PointLight, "brightness")?.io?.persist, true);
-  assertEquals(CjsSchema.getField(Tr2SpotLight, "outerAngle")?.io?.persist, true);
-  assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texturePath")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2PointLight, "position")?.edit?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2PointLight, "brightness")?.edit?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2SpotLight, "outerAngle")?.edit?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texturePath")?.edit?.persist, true);
   assertEquals(CjsSchema.getField(Tr2Light, "lightData"), null, "the separate node is a compat view, not a schema field");
-  assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texture")?.io?.read, true);
+  assertEquals(CjsSchema.getField(Tr2TexturedPointLight, "texture")?.edit?.read, true);
 
   const lightDataIdentity = point.lightData;
   const positionIdentity = point.position;
@@ -1257,7 +1257,7 @@ test("EveCircle generates Carbon half-step circle points and line descriptions",
   assertEquals(circle.completeness, 1);
   assertEquals(circle.display, true);
   assertEquals(circle.isVisible, true);
-  assertEquals(CjsSchema.getField(EveCircle, "translation")?.io?.notify, true);
+  assertEquals(CjsSchema.getField(EveCircle, "translation")?.edit?.notify, true);
 
   circle.circleRadius = 2;
   circle.numSegments = 4;
@@ -1372,7 +1372,7 @@ test("EveBezierCurve generates Carbon quadratic points and terminal edge", () =>
   assertEquals(CjsSchema.GetConstructor("EveBezierCurve"), EveBezierCurve);
   assertEquals(curve.segments, 24);
   assertEquals(curve.scaleSegmentsByCompleteness, true);
-  assertEquals(CjsSchema.getField(EveBezierCurve, "translation")?.io?.notify, true);
+  assertEquals(CjsSchema.getField(EveBezierCurve, "translation")?.edit?.notify, true);
 
   curve.point1 = vec3.fromValues(0, 0, 0);
   curve.bezierPoint = vec3.fromValues(1, 2, 0);

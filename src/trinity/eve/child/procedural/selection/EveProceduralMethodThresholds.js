@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodThresholds.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 // Carbon BELIST_LOADING (blueexposure IList.h:50): list events raised while a
@@ -22,33 +22,33 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   #selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodThresholdParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveProceduralMethodThresholdParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_thresholdAttribute (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   thresholdAttribute = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   selectedChild = -1;
 
   /** m_seed (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   seed_temp = -1;
 

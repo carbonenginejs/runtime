@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.h
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveThrottleable.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
 
 
@@ -15,19 +15,19 @@ import { CjsEveThrottleableState } from "./CjsEveThrottleableState.js";
 })
 export class EveThrottleable extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.float32
   currentUpdateFrequency = 10;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   updateThrottle = true;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   maxUpdateFrequency = 20;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   minUpdateFrequency = 2;
 

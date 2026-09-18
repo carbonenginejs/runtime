@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -10,26 +10,26 @@ export class TriVariableParameter extends CjsParameter
 {
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @io.flag("effectHandles")
-  @io.notify
-  @io.persist
+  @edit.flag("effectHandles")
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
   /** m_isUsedByEffect (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentTechnique = false;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentEffect = false;
 
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @io.flag("variable")
-  @io.notify
-  @io.persist
+  @edit.flag("variable")
+  @edit.notify
+  @edit.persist
   @type.string
   variableName = "";
 

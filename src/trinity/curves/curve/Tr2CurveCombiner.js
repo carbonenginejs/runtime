@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveCombiner.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -15,18 +15,18 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2CurveCombiner extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.array({
     kind: "objectRef",
     className: "ITriVectorFunction"
   })
   curves = [];
 
-  @io.read
+  @edit.read
   @type.vec3
   currentValue = vec3.create();
 

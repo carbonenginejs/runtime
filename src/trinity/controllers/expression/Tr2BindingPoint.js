@@ -3,7 +3,7 @@
 import { copyArrayLike, fillArrayLike } from "#utils";
 import { isArrayLike } from "#utils/is";
 import { CjsModel } from "#model";
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 
 
 const SWIZZLE_OFFSETS = {
@@ -28,18 +28,18 @@ const SWIZZLE_OFFSETS = {
 })
 export class Tr2BindingPoint extends CjsModel
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   path = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("IRoot")
   object = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   attribute = "";
 
@@ -120,7 +120,7 @@ export class Tr2BindingPoint extends CjsModel
       return false;
     }
     const current = this.#target[this.#attributeName];
-    const always = CjsSchema.getField(this.#target.constructor, this.#attributeName)?.io?.always === true;
+    const always = CjsSchema.getField(this.#target.constructor, this.#attributeName)?.edit?.always === true;
     let changed = false;
     if (this.entryOffset === -1)
     {

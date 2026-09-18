@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2SkinnedModel.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
 
@@ -24,24 +24,24 @@ export class Tr2SkinnedModel extends Tr2Model
   #skeletonResource = null;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   geometryResPath = "";
 
   /** m_geometryRes (TriGeometryResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriGeometryRes")
   geometryRes = null;
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   skeletonName = "";
 
   /** m_skinScale (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   skinScale = vec3.fromValues(1, 1, 1);
 

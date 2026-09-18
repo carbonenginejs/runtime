@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2LineGraph.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
@@ -16,12 +16,12 @@ export class Tr2LineGraph extends CjsModel
   #markers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 

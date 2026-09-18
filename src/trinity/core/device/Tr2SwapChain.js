@@ -5,7 +5,7 @@
 // Carbon's swap chain HOLDS its AL object (`m_swapChain`) and forwards to it:
 // `Present` is `m_swapChain.Present(...)`, and `GetWidth`/`GetHeight` ask the
 // AL rather than reporting stored numbers. This class does the same.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Succeeded } from "../../../trinityal/ALResult.js";
 import { Tr2SwapChainALStub } from "../../../trinityal/stub/Tr2SwapChainALStub.js";
@@ -16,12 +16,12 @@ export class Tr2SwapChain extends CjsModel
 {
 
   /** m_depthStencil (Tr2DepthStencilPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2DepthStencil")
   depthStencilBuffer = null;
 
   /** m_backBuffer (Tr2RenderTargetPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2RenderTarget")
   backBuffer = null;
 
@@ -33,14 +33,14 @@ export class Tr2SwapChain extends CjsModel
    * class alone would make its schema shape disagree with the emitter. It is a
    * MIRROR of the AL, refreshed when the AL is created or released.
    */
-  @io.read
+  @edit.read
   @type.int32
   @impl.adapted
   @impl.reason("Carbon exposes width as MAP_PROPERTY_READONLY over GetWidth with no backing member; the field mirrors the AL to keep the emitted schema shape.")
   width = 0;
 
   /** MAP_PROPERTY_READONLY "height" -> GetHeight; see `width`. */
-  @io.read
+  @edit.read
   @type.int32
   @impl.adapted
   @impl.reason("Carbon exposes height as MAP_PROPERTY_READONLY over GetHeight with no backing member; the field mirrors the AL to keep the emitted schema shape.")

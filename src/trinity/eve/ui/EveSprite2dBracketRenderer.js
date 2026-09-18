@@ -3,7 +3,7 @@
 // Source: trinity/trinity/EveSprite2dBracketRenderer_Blue.cpp
 // Promoted from generated source: Carbon derives this class from
 // Tr2SpriteObject, so a CjsModel root silently discarded its sprite contract.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2SpriteObject } from "../../generated/sprite2d/Tr2SpriteObject.js";
 
 
@@ -16,12 +16,12 @@ export class EveSprite2dBracketRenderer extends Tr2SpriteObject
 {
 
   /** m_iconAtlas (Tr2AtlasTexturePtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2AtlasTexture")
   iconAtlas = null;
 
   /** m_brackets (PEveSprite2dBracketVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("EveSprite2dBracket")
   brackets = [];
 

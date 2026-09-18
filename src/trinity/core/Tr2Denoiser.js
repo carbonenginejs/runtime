@@ -23,7 +23,7 @@
 // the constructor only names them. Until a resource manager resolves those
 // paths the passes run and draw nothing, which is the same state every other
 // effect-driven path in this runtime is in.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -70,38 +70,38 @@ export class Tr2Denoiser extends CjsModel
 {
 
   /** m_bypass (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   bypass = false;
 
   /** m_depthWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   depthWeight = 100;
 
   /** m_normalWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   normalWeight = 1.5;
 
   /** m_planeWeight (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   planeWeight = 0;
 
   /** m_radius (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   radius = 5;
 
   /** m_stepSize (uint32_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.uint32
   stepSize = 1;
 

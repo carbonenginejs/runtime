@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierColor.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSmartLightGroupAttributeModifier } from "./IEveSmartLightGroupAttributeModifier.js";
 import { color } from "#math/color";
 import { resolveFactionColor } from "../../resolveFactionColor.js";
@@ -11,33 +11,33 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
 {
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_blendValue (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   blendValue = 1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useFactionColor = false;
 
   /** m_blendColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   brightnessMultiplier = 1;
 
   /** m_saturationMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   saturationMultiplier = 1;
 

@@ -1,5 +1,5 @@
 // Historical Incarna hydration contract reviewed from complete Black records.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -13,12 +13,12 @@ export class Tr2InteriorCell extends CjsModel
 {
 
   /** Persisted unbounded-cell flag observed in reviewed historical records. */
-  @io.persist
+  @edit.persist
   @type.boolean
   isUnbounded = false;
 
   /** Optional spherical-harmonic probe resource path. */
-  @io.persist
+  @edit.persist
   @type.string
   shProbeResPath = "";
 

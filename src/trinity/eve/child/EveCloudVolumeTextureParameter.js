@@ -7,7 +7,7 @@
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the
 // engine lane.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsParameter } from "../../shader/parameter/CjsParameter.js";
 
@@ -17,17 +17,17 @@ export class EveCloudVolumeTextureParameter extends CjsModel
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveCloudEditableVolume")
   volume = null;
 
   /** m_isUsedByEffect (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isUsedByEffect = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

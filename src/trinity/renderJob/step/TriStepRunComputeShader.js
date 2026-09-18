@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRunComputeShader.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that dispatches a compute shader over its configured group dimensions. */
@@ -9,32 +9,32 @@ export class TriStepRunComputeShader extends TriRenderStep
 {
 
   /** m_groupDimX (unsigned) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   groupDimX = 1;
 
   /** m_groupDimY (unsigned) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   groupDimY = 1;
 
   /** m_groupDimZ (unsigned) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   groupDimZ = 1;
 
   /** m_effect (Tr2MaterialPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Material")
   effect = null;
 
   /** m_indirectionBuffer (ITr2GpuBufferPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2GpuBuffer")
   indirectionBuffer = null;
 
   /** m_offsetForArgs (uint32_t) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   offsetForArgs = 0;
 

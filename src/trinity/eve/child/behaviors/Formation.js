@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/Formation.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -34,38 +34,38 @@ export class Formation extends CjsModel
 {
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 300;
 
   /** m_inFormation (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   inFormation = false;
 
   /** m_maxFormationVelocityScaler (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxFormationVelocityScaler = 0.85;
 
   /** m_stubbornness (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   stubbornness = 3;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   framesBetweenUpdates = 15;
 

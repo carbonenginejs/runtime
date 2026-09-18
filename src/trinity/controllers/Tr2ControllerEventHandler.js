@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.h
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.js";
 
 
@@ -15,11 +15,11 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.j
 })
 export class Tr2ControllerEventHandler extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.list("ITr2ControllerAction")
   actions = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

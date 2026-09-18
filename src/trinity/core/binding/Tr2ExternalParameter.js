@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2ExternalParameter.h
 // Source: trinity/trinity/Tr2ExternalParameter.cpp
 // Source: trinity/trinity/Tr2ExternalParameter_Blue.cpp
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { TriValueBinding } from "./TriValueBinding.js";
 
@@ -22,24 +22,24 @@ export class Tr2ExternalParameter extends CjsModel
   #destinationType = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_destinationObject (IRootPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("IRoot")
   destinationObject = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   destinationAttribute = "";
 
   /** m_valid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   valid = false;
 

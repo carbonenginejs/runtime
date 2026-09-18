@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
@@ -22,28 +22,28 @@ export class Tr2Mesh extends Tr2MeshBase
 
   #morphAnimations = new Map();
 
-  @io.rebuild("geometry")
-  @io.notify
-  @io.persist
+  @edit.rebuild("geometry")
+  @edit.notify
+  @edit.persist
   @type.string
   geometryResPath = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("Tr2SerializedMorphAnimation")
   serializedMorphAnimations = [];
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   deferGeometryLoad = false;
 
-  @io.rebuild("geometry")
-  @io.read
+  @edit.rebuild("geometry")
+  @edit.read
   @type.objectRef("TriGeometryRes")
   geometry = null;
 
   /** m_lowResGeometryResource: the stand-in rendered while the authored mesh loads. */
-  @io.read
+  @edit.read
   @type.objectRef("TriGeometryRes")
   lowResGeometry = null;
 

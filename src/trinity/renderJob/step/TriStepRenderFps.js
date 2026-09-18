@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderFps.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A step that averages the frame rate over a quarter second and reports it as text with a threshold colour. */
@@ -9,22 +9,22 @@ export class TriStepRenderFps extends TriRenderStep
 {
 
   /** m_alignBottom (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   alignBottom = true;
 
   /** m_alignRight (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   alignRight = true;
 
   /** m_displayX (int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   displayX = 0;
 
   /** m_displayY (int) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   displayY = 0;
 

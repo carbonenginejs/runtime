@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/TransformModifiers/EveChildModifierBillboard3D_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js";
 
@@ -15,7 +15,7 @@ import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js"
 @type.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
-  @io.persist
+  @edit.persist
   @type.boolean
   fixed = false;
 

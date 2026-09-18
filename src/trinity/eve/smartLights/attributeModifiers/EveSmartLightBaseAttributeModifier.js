@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightBaseAttributeModifier.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { LifeTimeFormulas } from "./enums.js";
 
@@ -10,69 +10,69 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
 {
 
   /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("LifeTimeFormulas")
   lifeTimeFormula = 0;
 
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2CurveScalar")
   activationOverLifetime = null;
 
   /** m_activationValue (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   activationValue = 1;
 
   /** m_playTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   playTime = 0;
 
   /** m_crossFadeDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   crossFadeDuration = 1;
 
   /** m_crossFadeIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   crossFadeIntensity = 1;
 
   /** m_perInstanceOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   perInstanceOffset = 0;
 
   /** m_activationStrength (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   attributeMultiplier = 1;
 
   /** m_startsActive (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   startsActive = true;
 
   /** m_restartPlayTimeWhenInactive (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   restartPlayTimeWhenInactive = true;
 
   /** m_finalActivationStrength (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   finalAttributeMultiplier = 1;
 
   /** m_active (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   active = true;
 
   /** m_delayedActivation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   delayedActivation = 0;
 

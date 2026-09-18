@@ -4,7 +4,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -17,31 +17,31 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class EveBoxVolume extends IEveVolume
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   scaling = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   innerScaling = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugShowIntersection = false;
 

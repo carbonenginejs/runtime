@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -20,34 +20,34 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 @type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.boolean
   skinned = false;
 
-  @io.read
+  @edit.read
   @type.uint32
   effectHash = 0;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.list("EveSpriteLight")
   lights = [];
 

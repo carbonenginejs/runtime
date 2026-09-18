@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleDirectForce_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /** Constant particle force vector, applied identically to every particle. */
@@ -13,7 +13,7 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2ParticleDirectForce extends ITr2ParticleForce
 {
-  @io.persist
+  @edit.persist
   @type.vec3
   force = vec3.fromValues(1, 1, 1);
 

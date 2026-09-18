@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderSceneDebug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that draws a scene through its debug representation rather than its normal path. */
@@ -9,7 +9,7 @@ export class TriStepRenderSceneDebug extends TriRenderStep
 {
 
   /** m_scene (ITr2ScenePtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2Scene")
   scene = null;
 

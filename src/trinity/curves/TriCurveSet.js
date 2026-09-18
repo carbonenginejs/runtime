@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet.h
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -15,48 +15,48 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class TriCurveSet extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.boolean
   useRealTime = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   playOnLoad = true;
 
-  @io.persist
+  @edit.persist
   @type.list("ITr2ValueBinding")
   bindings = [];
 
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   curves = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2CurveSetRange")
   ranges = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   useSimTimeRebase = false;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ICurveSetDriver")
   driver = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float64
   scaledTime = 0;
 
-  @io.read
+  @edit.read
   @type.boolean
   isPlaying = false;
 

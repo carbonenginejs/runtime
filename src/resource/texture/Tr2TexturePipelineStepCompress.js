@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepCompress.json; maintained by the runtime resource layer.
-import { CjsSchema, io, type } from "#schema";
+import { CjsSchema, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Tr2TexturePipelineStepCompress (resources) - maintained from schema shapeHash 4d367f1c.... */
@@ -24,9 +24,9 @@ export class Tr2TexturePipelineStepCompress extends CjsModel
 CjsSchema.define(Tr2TexturePipelineStepCompress, {
   className: "Tr2TexturePipelineStepCompress", family: "resources",
   fields: {
-    format: [ io.persist, type.int32, type.enum("PixelFormat") ],
-    b: [ io.persist, type.float32 ],
-    g: [ io.persist, type.float32 ],
-    r: [ io.persist, type.float32 ]
+    format: [ edit.persist, type.int32, type.enum("PixelFormat") ],
+    b: [ edit.persist, type.float32 ],
+    g: [ edit.persist, type.float32 ],
+    r: [ edit.persist, type.float32 ]
   }
 });

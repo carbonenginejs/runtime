@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.h
 // Source: trinity/trinity/Eve/UI/EveTacticalTrails.cpp
 // Hand-maintained after promotion from generated schema intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -91,22 +91,22 @@ export class EveTacticalTrails extends CjsModel
   trackedObjects = [];
 
   /** m_segmentCount (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   segments = 0;
 
   /** m_egoBall (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fadeOutTime = 5;
 

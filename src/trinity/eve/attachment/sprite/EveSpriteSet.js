@@ -5,7 +5,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
@@ -49,36 +49,36 @@ function colorByte(value)
 @type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.notify
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.notify
+  @edit.persist
   @type.list("EveSpriteSetItem")
   sprites = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.rebuild("packedGeometry")
-  @io.notify
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.notify
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.boolean
   skinned = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   intensity = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.list("EveSpriteLight")
   lights = [];
 

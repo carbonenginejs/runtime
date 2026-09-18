@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.h
 // Source: trinity/trinity/RenderJob/TriStepSetViewport.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -12,7 +12,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepSetViewport", family: "renderJob" })
 export class TriStepSetViewport extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("TriViewport")
   viewport = null;
 

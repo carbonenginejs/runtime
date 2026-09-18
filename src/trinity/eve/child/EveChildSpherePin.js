@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -47,37 +47,37 @@ export class EveChildSpherePin extends EveChildMesh
   }
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   centerNormal = vec3.create();
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinRadius = 0;
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   pinAlphaThreshold = 0;
 
@@ -129,5 +129,5 @@ export class EveChildSpherePin extends EveChildMesh
 
 }
 
-CjsSchema.decorateField(EveChildSpherePin, "pinColor", io.notify, io.persist, type.color);
-CjsSchema.decorateField(EveChildSpherePin, "color", io.notify, io.persist, type.color);
+CjsSchema.decorateField(EveChildSpherePin, "pinColor", edit.notify, edit.persist, type.color);
+CjsSchema.decorateField(EveChildSpherePin, "color", edit.notify, edit.persist, type.color);

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.h
 // Source: trinity/trinity/RenderJob/TriStepGenerateMipMaps.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -9,7 +9,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepGenerateMipMaps", family: "renderJob" })
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2RenderTarget")
   renderTarget = null;
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsResource } from "../CjsResource.js";
 import { validateRgbaPayload } from "../format/payloadContract.js";
 import { validateResourcePayload } from "../resourceBoundary.js";
@@ -149,8 +149,8 @@ CjsSchema.define(Tr2ImageRes, {
   className: "Tr2ImageRes",
   family: "resources",
   fields: {
-    width: [ type.uint32, io.persist ],
-    height: [ type.uint32, io.persist ]
+    width: [ type.uint32, edit.persist ],
+    height: [ type.uint32, edit.persist ]
   },
   methods: {
     GetWidth: [ carbon.method, impl.adapted ],

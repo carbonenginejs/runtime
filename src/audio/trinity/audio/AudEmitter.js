@@ -1,7 +1,7 @@
 // Source: audio/src/AudEmitter.h + AudEmitter.cpp
 // Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
 // Verify against audio/AudEmitter.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -14,48 +14,48 @@ export class AudEmitter extends AudGameObjResource
 {
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** Effective front vector sent to the audio backend [READ]. */
-  @io.read
+  @edit.read
   @type.vec3
   front = vec3.fromValues(0, 0, 1);
 
   /** Effective top vector sent to the audio backend [READ]. */
-  @io.read
+  @edit.read
   @type.vec3
   top = vec3.fromValues(0, 1, 0);
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   normalizeAttenuationScaling = false;
 
   /** m_visualizationRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   visualizationRadius = 0;
 
   /** m_maxNormalizedValue (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxNormalizedValue = 9000;
 
   /** m_maxNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxNormalizedScalingFactor = 3.5;
 
   /** m_minNormalizedValue (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minNormalizedValue = 30;
 
   /** m_minNormalizedScalingFactor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minNormalizedScalingFactor = 0.4;
 

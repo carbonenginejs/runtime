@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataTexture (eve) - generated from schema shapeHash b8067c29.... */
@@ -9,12 +9,12 @@ export class EveSOFDataTexture extends CjsModel
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   resFilePath = "";
 

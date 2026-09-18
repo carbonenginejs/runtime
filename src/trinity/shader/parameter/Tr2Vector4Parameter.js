@@ -3,7 +3,7 @@
 import { ITriReroutable } from "../../core/ITriReroutable.js";
 import { num } from "#math/num";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsVectorParameter } from "./CjsVectorParameter.js";
 
 
@@ -18,24 +18,24 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @carbon.inherit(ITriReroutable)
 export class Tr2Vector4Parameter extends CjsVectorParameter
 {
-  @io.persistOnly
+  @edit.persistOnly
   @type.vec4
   value = vec4.fromValues(1, 1, 1, 1);
 
-  @io.read
+  @edit.read
   @type.boolean
   isSrgb = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentEffect = false;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 

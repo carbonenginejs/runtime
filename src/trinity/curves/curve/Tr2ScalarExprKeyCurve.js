@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 import { num } from "#math/num";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 
@@ -18,35 +18,35 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 })
 export class Tr2ScalarExprKeyCurve extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.uint32
   interpolation = Tr2CurveInterpolation.LINEAR;
 
-  @io.read
+  @edit.read
   @type.float32
   currentValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   reversed = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeScale = 1;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2ScalarExprKey")
   keys = [];
 

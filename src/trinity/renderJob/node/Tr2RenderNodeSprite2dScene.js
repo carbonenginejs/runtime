@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2RenderNodeSprite2dScene.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
 
@@ -11,12 +11,12 @@ export class Tr2RenderNodeSprite2dScene extends CjsModel
 {
 
   /** m_scene (Tr2Sprite2dScenePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Sprite2dScene")
   scene = null;
 
   /** m_background (ITr2RenderNodePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2RenderNode")
   background = null;
 

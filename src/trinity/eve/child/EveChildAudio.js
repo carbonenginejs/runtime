@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 
@@ -14,17 +14,17 @@ import { EveChildTransform } from "./EveChildTransform.js";
 @type.define({ className: "EveChildAudio", family: "eve/child" })
 export class EveChildAudio extends EveChildTransform
 {
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "EveChildAudio";
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   mute = false;
 
-  @io.persist
+  @edit.persist
   @type.model("ITr2AudEmitter")
   audioEmitter = null;
 

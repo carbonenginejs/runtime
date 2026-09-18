@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored character projection profile with external texture references. */
@@ -6,103 +6,103 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterProjectionProfile extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     label = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     mode = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     angleRotation = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     aspectRatio = 1;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     azimuth = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     texturePath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     maskPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     headEnabled = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     bodyEnabled = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     flipX = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     flipY = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     height = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     incline = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     layer = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.boolean
     maskPathEnabled = false;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec2
     offset = [ 0, 0 ];
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     pitch = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     planarBeta = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     planarScale = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec3
     position = [ 0, 0, 0 ];
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     radius = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     roll = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     scale = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     yaw = 0;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSwarm.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveShip2 } from "../EveShip2.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -32,143 +32,143 @@ export class EveSwarm extends EveShip2
   squadBoundsMax = vec3.create();
 
   /** m_behavior.m_weightFormation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightFormation = 1;
 
   /** m_behavior.m_weightCohesion (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightCohesion = 0.1;
 
   /** m_behavior.m_weightSeparation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightSeparation = 0.1;
 
   /** m_behavior.m_weightWander (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightWander = 0.33;
 
   /** m_behavior.m_weightAnchor (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightAnchor = 0.5;
 
   /** m_behavior.m_anchorRadius0 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   anchorRadius0 = 75;
 
   /** m_behavior.m_anchorRadius1 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   anchorRadius1 = 250;
 
   /** m_behavior.m_weightDecelerate (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightDeceleration = 0.1;
 
   /** m_behavior.m_maxDeceleration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxDeceleration = 200;
 
   /** m_behavior.m_separationDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   separationDistance = 250;
 
   /** m_behavior.m_formationDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   formationDistance = 50;
 
   /** m_behavior.m_wanderFluctuation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   wanderFluctuation = 0.05;
 
   /** m_behavior.m_wanderDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   wanderDistance = 100;
 
   /** m_behavior.m_wanderRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   wanderRadius = 80;
 
   /** m_debugShowForces (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   debugShowForces = false;
 
   /** m_count (int32_t) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   count = 1;
 
   /** m_swarmingEnabled (bool) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   swarmingEnabled = false;
 
   /** m_behavior.m_mass (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   mass = 1;
 
   /** m_behavior.m_speedMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   speedMultiplier = 1.1;
 
   /** m_behavior.m_speedMinimum (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   speedMinimum = 10;
 
   /** m_behavior.m_maxDistance0 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxDistance0 = 500;
 
   /** m_behavior.m_maxDistance1 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxDistance1 = 125;
 
   /** m_behavior.m_maxTime (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxTime = 0.2;
 
   /** m_behavior.m_agility (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   agility = 2;
 
   /** m_behavior.m_speed0 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   speed0 = 700;
 
   /** m_behavior.m_speed1 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   speed1 = 1000;
 
   /** m_behavior.m_timeMultiplier (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   timeMultiplier = 1;
 
   /** m_behavior.m_weightAlign (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   weightAlign = 50;
 

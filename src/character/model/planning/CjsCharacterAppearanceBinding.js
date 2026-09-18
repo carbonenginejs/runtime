@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Final consumer/sampler binding to a resolved texture or composition target. */
@@ -6,27 +6,27 @@ import { CjsModel } from "#model";
 export class CjsCharacterAppearanceBinding extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     consumerID = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sampler = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.unknown
     source = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     sampleBounds = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterBindingAlpha")
     alpha = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

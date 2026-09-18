@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Named logical input to one character texture-composition pass. */
@@ -6,19 +6,19 @@ import { CjsModel } from "#model";
 export class CjsCharacterCompositionInput extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     role = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterTextureAsset")
     texture = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     sampleBounds = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.unknown
     value = null;
 

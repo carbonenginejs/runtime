@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform.cpp
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dTransform_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; portable point transforms are maintained here.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2Sprite2dContainerBase } from "./Tr2Sprite2dContainerBase.js";
 import { vec2 } from "#math/vec2";
 
@@ -12,32 +12,32 @@ export class Tr2Sprite2dTransform extends Tr2Sprite2dContainerBase
 {
 
   /** m_rotationCenter (Vector2) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.vec2
   rotationCenter = vec2.create();
 
   /** m_scalingCenter (Vector2) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.vec2
   scalingCenter = vec2.create();
 
   /** m_rotation (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   rotation = 0;
 
   /** m_scale (Vector2) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.vec2
   scale = vec2.fromValues(1, 1);
 
   /** m_scalingRotation (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   scalingRotation = 0;
 

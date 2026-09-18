@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionAttributeModifiers/EveDistributionModifierProcessLifetime.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionModifier } from "./IEveDistributionModifier.js";
 import { DistributionEntityLifeTimeEvent } from "./enums.js";
 
@@ -10,13 +10,13 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
 {
 
   /** m_killEvent (DistributionEntityLifeTimeEvent - enum DistributionEntityLifeTimeEvent) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("DistributionEntityLifeTimeEvent")
   killEvent = 1;
 
   /** m_lifetimeDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lifetimeDuration = -1;
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Hand-authored following the eve/socket generated pattern (SOCKET_PARAM_DECLARE macro family).
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSocketParameterBindingBase } from "./EveSocketParameterBindingBase.js";
 
 /**
@@ -14,7 +14,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 
   /** m_value (Color) */
-  @io.persist
+  @edit.persist
   @type.vec4
   value = vec4.create();
 

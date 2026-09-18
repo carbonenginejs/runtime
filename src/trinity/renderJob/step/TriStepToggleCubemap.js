@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepToggleCubemap.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that turns a scene cubemap display on or off. */
@@ -12,7 +12,7 @@ export class TriStepToggleCubemap extends TriRenderStep
   #scene = null;
 
   /** m_showCubemap (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   m_showCubemap = true;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPSignalLossEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPSignalLossEffect.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 /** Carries the strength of a display-gated post-process signal-loss effect. */
@@ -9,7 +9,7 @@ export class Tr2PPSignalLossEffect extends Tr2PPEffect
 {
 
   /** m_strength (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   strength = 0;
 

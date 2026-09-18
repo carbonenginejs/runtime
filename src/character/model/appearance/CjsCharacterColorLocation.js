@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Authored color-control location and its supported scalar controls. */
@@ -6,15 +6,15 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterColorLocation extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorKey = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     hasGloss = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     hasWeight = 0;
 

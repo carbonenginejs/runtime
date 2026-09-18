@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { isArrayLike } from "#utils/is";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2MatrixKey } from "../key/Tr2MatrixKey.js";
 
 
@@ -25,43 +25,43 @@ export class Tr2BoneMatrixCurve extends CjsModel
 
   static #keyInterpolations = new WeakMap();
 
-  @io.read
+  @edit.read
   @type.mat4
   currentValue = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   length = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   cycle = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   reversed = false;
 
-  @io.persist
+  @edit.persist
   @type.mat4
   startValue = mat4.create();
 
-  @io.persist
+  @edit.persist
   @type.mat4
   endValue = mat4.create();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2SkinnedObject")
   skinnedObject = null;
 
-  @io.persist
+  @edit.persist
   @type.mat4
   transform = mat4.create();
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.list("Tr2MatrixKey")
   keys = [];
 

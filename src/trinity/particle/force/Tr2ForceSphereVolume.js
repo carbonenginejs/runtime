@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ForceSphereVolume.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { vec3 } from "#math/vec3";
 
@@ -14,22 +14,22 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   #contribution = vec3.create();
 
   /** m_exponent (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   exponent = 1;
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 1;
 

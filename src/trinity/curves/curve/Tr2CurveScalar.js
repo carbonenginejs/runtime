@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { num } from "#math/num";
 import { Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalarKey } from "../key/Tr2CurveScalarKey.js";
@@ -156,35 +156,35 @@ export class Tr2CurveScalar extends CjsModel
     return fracPart * length + first;
   }
 
-  @io.persist
+  @edit.persist
   @type.array({
     kind: "struct",
     className: "Tr2CurveScalarKey"
   })
   keys = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   timeScale = 1;
 
-  @io.read
+  @edit.read
   @type.float32
   currentValue = 0;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;

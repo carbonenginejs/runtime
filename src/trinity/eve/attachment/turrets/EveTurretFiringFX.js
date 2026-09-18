@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.h
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX.cpp
 // Source: trinity/trinity/Eve/Turret/EveTurretFiringFX_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -14,159 +14,159 @@ export class EveTurretFiringFX extends EveEntity
 {
 
   /** m_startCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriCurveSet")
   startCurveSet = null;
 
   /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriCurveSet")
   stopCurveSet = null;
 
   /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveFiringEffectElement")
   stretch = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_firingPeakTime (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingPeakTime = 0;
 
   /** m_perMuzzleData[0].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay1 = 0;
 
   /** m_perMuzzleData[9].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay10 = 0;
 
   /** m_perMuzzleData[10].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay11 = 0;
 
   /** m_perMuzzleData[11].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay12 = 0;
 
   /** m_perMuzzleData[1].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay2 = 0;
 
   /** m_perMuzzleData[2].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay3 = 0;
 
   /** m_perMuzzleData[3].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay4 = 0;
 
   /** m_perMuzzleData[4].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay5 = 0;
 
   /** m_perMuzzleData[5].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay6 = 0;
 
   /** m_perMuzzleData[6].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay7 = 0;
 
   /** m_perMuzzleData[7].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay8 = 0;
 
   /** m_perMuzzleData[8].constantDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   firingDelay9 = 0;
 
   /** m_endPosition (Vector3) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   endPosition = vec3.create();
 
   /** m_firingDuration (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   firingDuration = 1000;
 
   /** m_isFiring (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isFiring = false;
 
   /** m_destinationObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriObserverLocal")
   destinationObserver = null;
 
   /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("TriObserverLocal")
   sourceObserver = null;
 
   /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   firingDurationOverride = -1;
 
   /** m_useMuzzleTransform (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useMuzzleTransform = false;
 
   /** m_isLoopFiring (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isLoopFiring = false;
 
   /** m_boneName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   boneName = "Pos_Fire";
 
   /** m_display (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   display = true;
 
   /** m_scaleEffectTarget (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   scaleEffectTarget = false;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minRadius = 30;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxRadius = 3000;
 
   /** m_minScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScale = 1;
 
@@ -610,7 +610,7 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /** m_maxScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxScale = 10;
 

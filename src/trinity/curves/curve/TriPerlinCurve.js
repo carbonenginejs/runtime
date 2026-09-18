@@ -2,7 +2,7 @@
 // Source: trinity/trinity/TriSequencer.cpp
 // Source: trinity/trinity/TriMath.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { carbonPerlin1D } from "#math/noise";
 
 
@@ -22,35 +22,35 @@ export class TriPerlinCurve extends CjsModel
 
   static #triRandState = 1234;
 
-  @io.persist
+  @edit.persist
   @type.float32
   alpha = 1.1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   beta = 2;
 
-  @io.persist
+  @edit.persist
   @type.int32
   N = 3;
 
-  @io.persist
+  @edit.persist
   @type.float32
   value = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   offset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   speed = 1;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

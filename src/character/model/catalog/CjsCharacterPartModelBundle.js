@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One producer-verified atomic configuration/geometry relationship. */
@@ -6,27 +6,27 @@ import { CjsModel } from "#model";
 export class CjsCharacterPartModelBundle extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     configurationPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     geometryPath = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.int32
     lod = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     lodOrigin = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     modelFamily = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     modelFamilyOrigin = null;
 

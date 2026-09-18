@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -46,101 +46,101 @@ export class Tr2ParticleSystem extends CjsModel
   #gpuDeclaration = Object.freeze([]);
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ParticleElementDeclaration")
   elements = [];
 
   /** m_isValid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_constraints (PITr2GenericParticleConstraintVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2GenericParticleConstraint")
   constraints = [];
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_emissionOnDeathEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("ITr2GenericEmitter")
   emitParticleOnDeathEmitter = null;
 
   /** m_emissionWhileAliveEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("ITr2GenericEmitter")
   emitParticleDuringLifeEmitter = null;
 
   /** m_applyForce (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   applyForce = true;
 
   /** m_applyAging (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   applyAging = true;
 
   /** m_isGlobal (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isGlobal = false;
 
   /** m_updateSimulation (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   updateSimulation = true;
 
   /** m_requiresSorting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   requiresSorting = false;
 
   /** m_AabbMax (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   aabbMax = vec3.create();
 
   /** m_AabbMin (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   aabbMin = vec3.create();
 
   /** m_peakAliveCount (unsigned) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   peakAliveCount = 0;
 
   /** m_useSimTimeRebase (bool) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   useSimTimeRebase = false;
 
   /** m_maxParticleCount (unsigned) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.uint32
   maxParticleCount = 0;
 
   /** m_aliveCount (unsigned) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   aliveCount = 0;
 
   /** m_originalMaxParticles (unsigned) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   originalMaxParticles = 0;
 

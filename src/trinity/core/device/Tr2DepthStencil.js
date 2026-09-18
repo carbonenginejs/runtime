@@ -14,14 +14,14 @@
 // holds is a Tr2TextureAL, which is backend-agnostic and is exactly what Carbon
 // holds too.)
 //
-// The `@io.read` properties below are that READ projection, refreshed wherever
+// The `@edit.read` properties below are that READ projection, refreshed wherever
 // the texture changes - Create and Destroy are the only two places, which is
 // what keeps them from drifting.
 //
 // THE RENDER CONTEXT IS A PARAMETER. Carbon reaches the main-thread context
 // through USE_MAIN_THREAD_RENDER_CONTEXT(), a global we deliberately do not
 // have; the same reason Tr2Blitter takes one.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BitmapDimensions } from "../../../trinityal/Tr2BitmapDimensions.js";
@@ -33,40 +33,40 @@ export class Tr2DepthStencil extends CjsModel
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.uint32
   width = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   height = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   multiSampleType = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   multiSampleQuality = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   mipCount = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("DepthStencilFormat")
   format = 7;
 
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   isReadable = false;
 

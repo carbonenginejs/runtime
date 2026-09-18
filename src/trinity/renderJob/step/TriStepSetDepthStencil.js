@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.h
 // Source: trinity/trinity/RenderJob/TriStepSetDepthStencil.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -12,7 +12,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepSetDepthStencil", family: "renderJob" })
 export class TriStepSetDepthStencil extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2DepthStencil")
   depthStencil = null;
 

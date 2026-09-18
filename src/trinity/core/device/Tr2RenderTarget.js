@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { PixelFormat, TextureType } from "#consts/render-context";
 
@@ -12,49 +12,49 @@ export class Tr2RenderTarget extends CjsModel
 {
 
   /** m_name (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.uint32
   width = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   height = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   arraySize = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   mipCount = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   multiSampleType = 0;
 
-  @io.read
+  @edit.read
   @type.uint32
   multiSampleQuality = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("PixelFormat")
   format = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("TextureType")
   type = 6;
 
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   isReadable = false;
 

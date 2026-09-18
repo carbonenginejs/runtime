@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTonemappingEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPTonemappingEffect.cpp
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
@@ -12,68 +12,68 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 export class Tr2PPTonemappingEffect extends Tr2PPEffect
 {
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Method")
   method = Tr2PPTonemappingEffect.Aces;
 
-  @io.persist
+  @edit.persist
   @type.float32
   toe = 0.55;
 
-  @io.persist
+  @edit.persist
   @type.float32
   shoulder = 0.26;
 
-  @io.persist
+  @edit.persist
   @type.float32
   blackClip = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   whiteClip = 0.04;
 
-  @io.persist
+  @edit.persist
   @type.float32
   blueCorrection = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   slope = 0.88;
 
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   useSweeteners = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   shoulderStrength = 0.125;
 
-  @io.persist
+  @edit.persist
   @type.float32
   linearStrength = 0.25;
 
-  @io.persist
+  @edit.persist
   @type.float32
   linearAngle = 0.1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   toeStrength = 0.15;
 
-  @io.persist
+  @edit.persist
   @type.float32
   toeNumerator = 0.021;
 
-  @io.persist
+  @edit.persist
   @type.float32
   toeDenominator = 0.3;
 
-  @io.persist
+  @edit.persist
   @type.float32
   whiteScale = 2.5;
 

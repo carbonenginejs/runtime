@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** One published character type definition folded into the combined catalog. */
@@ -6,39 +6,39 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterPartType extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     sourcePaths = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sex = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     partPath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     resourceVersion = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorVariant = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     bloodlineIDs = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterPartSource")
     partSource = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterPartSource")
     partSources = [];
 

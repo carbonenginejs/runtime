@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSphere.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import {
   bindParticleElement,
@@ -32,77 +32,77 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   #velocityElement = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2InstancedMesh")
   mesh = null;
 
   /** m_useSpaceObjectData (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useSpaceObjectData = true;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxSpeed = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 500;
 
   /** m_egoSpeed (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   egoSpeed = 0;
 
   /** m_positionShiftDecreaseSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   positionShiftDecreaseSpeed = 1000;
 
   /** m_positionShiftIncreaseSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   positionShiftIncreaseSpeed = 1000;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_movementScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   movementScale = 1;
 
   /** m_positionShiftNormalized (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   positionShift = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_positionShiftMin (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   positionShiftMin = 100;
 
   /** m_positionShiftMax (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   positionShiftMax = 0;
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** One logical character source with its exact authored resource folders and candidates. */
@@ -6,27 +6,27 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterPartSource extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     sourcePaths = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sex = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     partPath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterPartSourceVersion")
     versions = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterPartMetadata")
     metadata = null;
 

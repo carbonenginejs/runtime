@@ -2,7 +2,7 @@ import { finiteNumberOr } from "#utils/validation";
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.h
 // Source: trinity/trinity/Curves/Tr2ScalarExprKeyCurve.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { noise } from "#math/noise";
 import { CjsControllerExpressionProgram } from "../../controllers/expression/CjsControllerExpressionProgram.js";
 import { Tr2CurveInterpolation } from "../enums.js";
@@ -19,90 +19,90 @@ import { Tr2CurveInterpolation } from "../enums.js";
 })
 export class Tr2ScalarExprKey extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.uint32
   @type.enum("Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   input1 = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   input2 = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   input3 = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   input4 = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   time = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   value = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   left = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.expression
   leftTangentExpression = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.expression
   rightTangentExpression = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.expression
   timeExpression = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.expression
   valueExpression = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   randomMax = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   randomMin = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   randomConstant = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   right = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   prevKeyTime = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   prevKeyValue = 0;
 

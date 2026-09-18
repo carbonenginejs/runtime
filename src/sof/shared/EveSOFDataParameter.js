@@ -9,7 +9,7 @@
 // can carry these node types. Bool/Int/Float broadcast the scalar to all four
 // components; Vector2 zero-pads z and w; Vector3 zero-pads w (0, not 1);
 // Color passes through unchanged.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
@@ -19,12 +19,12 @@ export class EveSOFDataParameter extends CjsModel
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_value (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   value = vec4.create();
 

@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.h
 // Source: trinity/trinity/Shader/Parameter/Tr2FloatParameter.cpp
 import { ITriReroutable } from "../../core/ITriReroutable.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 
 
@@ -13,16 +13,16 @@ import { CjsParameter } from "./CjsParameter.js";
 @carbon.inherit(ITriReroutable)
 export class Tr2FloatParameter extends CjsParameter
 {
-  @io.persistOnly
+  @edit.persistOnly
   @type.float32
   value = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentEffect = false;
 

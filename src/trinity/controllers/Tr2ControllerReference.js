@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.h
 // Source: trinity/trinity/Controllers/Tr2ControllerReference.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { ITr2Controller } from "./ITr2Controller/index.js";
 
@@ -44,12 +44,12 @@ export class Tr2ControllerReference extends CjsModel
     return resolved && typeof resolved === "object" ? resolved : null;
   }
 
-  @io.read
+  @edit.read
   @type.objectRef("ITr2Controller")
   controller = null;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.path
   path = "";
 

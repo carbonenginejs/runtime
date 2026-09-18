@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 
@@ -20,14 +20,14 @@ export class Tr2ConstantEffectParameter extends CjsModel
 {
 
   /** name (BlueSharedString) - persisted via the constParameters structure list. */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.string
   name = "";
 
   /** value (Vector4) - persisted via the constParameters structure list. */
-  @io.rebuild("bindings")
-  @io.persist
+  @edit.rebuild("bindings")
+  @edit.persist
   @type.vec4
   value = vec4.create();
 

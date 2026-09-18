@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
@@ -10,7 +10,7 @@ export class EveSOFDataLogo extends CjsModel
 {
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataTexture")
   textures = [];
 

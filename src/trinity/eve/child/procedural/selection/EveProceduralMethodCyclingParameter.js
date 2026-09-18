@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodCyclingParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 
@@ -15,28 +15,28 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
   #hasLoaded = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("EveChildRef")
   child = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_playDuration (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   playDuration = 1;
 
   /** m_reloadRequired (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   reloadRequired = false;
 
   /** m_restartRequired (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   restartRequired = true;
 

@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Tr2Model.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Named character model record grouping its Trinity mesh objects. */
@@ -8,12 +8,12 @@ export class Tr2Model extends CjsModel
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2Mesh")
   meshes = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

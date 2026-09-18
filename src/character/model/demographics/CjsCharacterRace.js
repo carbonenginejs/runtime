@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Character-creation race record with authored localization and starting-skill identities. */
@@ -6,23 +6,23 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterRace extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.map("int32")
     skills = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     descriptionID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     iconID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     nameID = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     shipTypeID = null;
 

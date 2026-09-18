@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 
 /** A child that lazily resolves and owns a referenced space-object-child resource by path, forwarding controller and registration calls to it. */
@@ -13,29 +13,29 @@ export class EveChildRef extends EveChildTransform
   resourceLoader = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_loadChildAutomatically (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   loadChildAutomatically = true;
 
   /** m_resPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   resPath = "";
 
   /** m_child (IEveSpaceObjectChildPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("IEveSpaceObjectChild")
   child = null;
 

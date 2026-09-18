@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurve.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -17,15 +17,15 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 })
 export class Tr2FollowCurve extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.vec3
   currentValue = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.list("ITr2FollowCurveKey")
   keys = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

@@ -7,7 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 const WORLD_CENTER_SCRATCH = vec3.create();
 const TRACKED_POSITION_SCRATCH = vec3.create();
@@ -35,37 +35,37 @@ export class EveTriggerVolume extends CjsModel
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** The volumes defining the trigger region. */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   volumes = [];
 
   /** Volumes subtracted from the trigger region. */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** Volume intensity (0..1) at which the tracked position counts as inside. */
-  @io.persist
+  @edit.persist
   @type.float32
   enterThreshold = 0.5;
 
   /** External parameters exposing per-placement values, e.g. for dungeon asset manipulations. */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_ballPosition: vector function slot placing the trigger volume. */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
-  @io.persist
+  @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
@@ -78,12 +78,12 @@ export class EveTriggerVolume extends CjsModel
   trackedPositionCurve = null;
 
   /** Whether the tracked position is currently inside the trigger region. */
-  @io.read
+  @edit.read
   @type.boolean
   isInside = false;
 
   /** m_currentIntensity: most recent evaluated volume intensity of the tracked position. */
-  @io.read
+  @edit.read
   @type.float32
   intensity = 0;
 

@@ -4,7 +4,7 @@
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
@@ -23,72 +23,72 @@ const IMPACT_ARMOR_SIZE_MAX = 10;
 @type.define({ className: "EveDamageOverlay", family: "eve/overlays/impact" })
 export class EveDamageOverlay extends CjsModel
 {
-  @io.read
+  @edit.read
   @type.int32
   impactDataNextIdx = 1;
 
-  @io.read
+  @edit.read
   @type.uint64
   armorImpactGoalCount = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   armorImpactParentSize = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   renderPriority = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   armorDamageShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   seed = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   armorImpactLifeTime = 10;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugForceSpawnDebris = false;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   armorRepairing = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   armorHardening = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   hullDamageFactor = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("ImpactConfiguration")
   configuration = ImpactConfiguration.IMPACT_INVALID;
 
-  @io.readwrite
+  @edit.readwrite
   @type.uint32
   damageLocatorCount = 0;
 
-  @io.read
+  @edit.read
   @type.int32
   dataTextureBlockID = -1;
 
-  @io.persist
+  @edit.persist
   @type.model("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 

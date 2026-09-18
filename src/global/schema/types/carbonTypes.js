@@ -626,7 +626,7 @@ function createCarbonTypedArrayValue(descriptor, value)
 {
     // `null`/`undefined` never arrive: normalizeCarbonValue answers both before
     // the switch, and the declared default for these fields IS null - both
-    // production declarations are `@io.persistOnly ... = null`, absent until
+    // production declarations are `@edit.persistOnly ... = null`, absent until
     // data arrives. Nothing here should invent an empty array over that.
     const storage = typedArrayStorageFor(descriptor);
     if (!storage) return cloneCarbonValue(value);

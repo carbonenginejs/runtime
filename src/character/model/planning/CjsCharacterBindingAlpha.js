@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Logical alpha policy for one final character texture binding. */
@@ -6,11 +6,11 @@ import { CjsModel } from "#model";
 export class CjsCharacterBindingAlpha extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     mode = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterCoverage")
     coverage = null;
 

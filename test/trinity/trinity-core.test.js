@@ -77,8 +77,8 @@ test("generated Trinity value records use source-backed types, defaults, and acc
   assertEquals(bracket.coversViewport, false);
   for (const field of ["isProjectionValid", "containsCamera", "extendsOffscreen", "coversViewport"])
   {
-    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.read, true);
-    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.io?.write, undefined);
+    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.edit?.read, true);
+    assertEquals(CjsSchema.getField(Tr2ProjectBoundingBoxBracket, field)?.edit?.write, undefined);
   }
 });
 
@@ -350,8 +350,8 @@ test("SOF shield mesh construction stays a CPU object graph", () =>
   assertEquals(area.GetCount(), 7);
   assertEquals(area.GetIndex(), 2);
   assertEquals(area.count, 7);
-  assertEquals(CjsSchema.getField(Tr2MeshArea, "effect")?.io?.persist, true);
-  assertEquals(CjsSchema.getField(Tr2MeshArea, "display")?.io?.persist, undefined);
+  assertEquals(CjsSchema.getField(Tr2MeshArea, "effect")?.edit?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2MeshArea, "display")?.edit?.persist, undefined);
 
   const mesh = new Tr2Mesh();
   mesh.SetMeshResPath("res:/shield.gr2");
@@ -404,7 +404,7 @@ test("instanced meshes retain the Tr2Mesh CPU graph and distinct resource paths"
   assertEquals(mesh.instanceMeshIndex, 0);
   assertEquals(mesh.maxInstanceSize, 0);
   assertEquals(CjsSchema.getField(Tr2InstancedMesh, "geometryResPath")?.type.kind, "string");
-  assertEquals(CjsSchema.getField(Tr2InstancedMesh, "instanceGeometryResource")?.io?.persistOnly, true);
+  assertEquals(CjsSchema.getField(Tr2InstancedMesh, "instanceGeometryResource")?.edit?.persistOnly, true);
 
   mesh.SetMeshResPath("res:/mesh/base.gr2");
   mesh.SetInstanceMeshResPath("res:/mesh/instances.gr2");
@@ -676,9 +676,9 @@ test("TriObserverLocal maintains Carbon placement and mute state without creatin
   assertEquals(observer.GetMute(), true);
   assertEquals(observer.SetMute(false), true);
   assertEquals(calls.slice(1).map(call => call[0]).join(","), "mute,unmute");
-  assertEquals(CjsSchema.getField(TriObserverLocal, "observer")?.io?.persist, true);
-  assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.io?.write, true);
-  assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.io?.persist, undefined);
+  assertEquals(CjsSchema.getField(TriObserverLocal, "observer")?.edit?.persist, true);
+  assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.edit?.write, true);
+  assertEquals(CjsSchema.getField(TriObserverLocal, "mute")?.edit?.persist, undefined);
   assertEquals(CjsSchema.getDefaults(TriObserverLocal).mute, false);
 });
 
@@ -703,7 +703,7 @@ test("TriProjection exposes its source-backed schema and identity default", () =
   const projection = new TriProjection();
   assertEquals(CjsSchema.GetConstructor("TriProjection"), TriProjection);
   assertEquals(CjsSchema.getField(TriProjection, "transform")?.type.kind, "mat4");
-  assertEquals(CjsSchema.getField(TriProjection, "transform")?.io?.read, true);
+  assertEquals(CjsSchema.getField(TriProjection, "transform")?.edit?.read, true);
   for (const privateField of [
     "projectionType",
     "fov",

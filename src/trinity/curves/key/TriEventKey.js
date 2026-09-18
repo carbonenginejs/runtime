@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/TriEventKey.h
 // Source: trinity/trinity/Curves/TriEventKey.cpp
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -14,19 +14,19 @@ import { io, type } from "#schema";
 })
 export class TriEventKey extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("PyObject")
   callable = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("PyObject")
   callableArgs = null;
 
-  @io.persist
+  @edit.persist
   @type.string
   value = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   time = 0;
 }

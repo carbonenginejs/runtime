@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildPlug.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -14,28 +14,28 @@ export class EveChildPlug extends EveChildTransform
   #controllerVariables = new Map();
 
   /** m_objects (PIEveSpaceObjectChildVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveSpaceObjectChild")
   objects = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 

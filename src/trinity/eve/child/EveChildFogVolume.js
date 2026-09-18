@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2FroxelFogSettings } from "./ITr2FroxelFogSettings.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
@@ -55,116 +55,116 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   #froxelFogSettings = createFroxelFogSettings();
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Priority")
   priority = 2;
 
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   volumes = [];
 
-  @io.read
+  @edit.read
   @type.vec3
   boundingSphereCenter = vec3.create();
 
-  @io.read
+  @edit.read
   @type.float32
   boundingSphereRadius = 0;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   intensity = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   thickness = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   thicknessEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightDirectionality = 0.5;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   lightDirectionalityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   environmentIntensity = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   environmentIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   environmentDirectionality = 0.75;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   environmentDirectionalityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.boolean
   fogColorEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   backgroundVisibility = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   backgroundVisibilityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   godRayNoiseIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   godRayNoiseIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   godRayNoiseFrequency = 15;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   godRayNoiseFrequencyEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   godRayNoiseAnimationSpeed = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   godRayNoiseAnimationSpeedEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   fogNoiseIntensity = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   fogNoiseIntensityEnabled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   fogNoiseFrequency = 15;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   fogNoiseFrequencyEnabled = false;
 

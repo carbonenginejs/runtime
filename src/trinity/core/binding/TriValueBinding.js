@@ -1,7 +1,7 @@
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
-import { carbon, CjsSchema, impl, io, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
@@ -37,59 +37,59 @@ export class TriValueBinding extends CjsModel
   #reroutedDestination = null;
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   destinationAttribute = "";
 
   /** m_sourceAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   sourceAttribute = "";
 
   /** Carbon's persisted-only destination endpoint storage. */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("IRoot")
   destinationObject = null;
 
   /** m_isEnabled (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   isEnabled = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** Carbon's persisted-only source endpoint storage. */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("IRoot")
   sourceObject = null;
 
   /** m_offset (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   offset = vec4.create();
 
   /** m_copyValueCallable (BlueScriptCallback) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.rawStruct("BlueScriptCallback")
   copyValueCallable = null;
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
   /** m_isWeak (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isWeak = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 
@@ -146,7 +146,7 @@ export class TriValueBinding extends CjsModel
     this.#sourceOffset = source.offset;
     this.#destinationOffset = destination.offset;
     this.#copyPlan = copyPlan;
-    this.#notifyDestination = destinationField ? destinationField.io?.notify === true : true;
+    this.#notifyDestination = destinationField ? destinationField.edit?.notify === true : true;
     this.isValid = true;
 
     if (

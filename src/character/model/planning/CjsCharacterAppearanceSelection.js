@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Plan-local resolved character choice with explicit selection-group ownership. */
@@ -6,11 +6,11 @@ import { CjsModel } from "#model";
 export class CjsCharacterAppearanceSelection extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     groupID = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

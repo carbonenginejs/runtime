@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";
 import { vec3 } from "#math/vec3";
@@ -11,17 +11,17 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
 {
 
   /** m_expression (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.expression
   expression = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "bucket";
 
   /** m_inputs (PITriScalarFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriScalarFunction")
   expressionInputs = [];
 

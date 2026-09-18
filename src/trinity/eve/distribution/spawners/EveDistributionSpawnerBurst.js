@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerBurst.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns a configured fraction of the free distribution placements in one delayed burst. */
@@ -11,17 +11,17 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   #localTimer = 0;
 
   /** m_completeness (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   completeness = 1;
 
   /** m_additionalTriggersPerBurst (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   additionalTriggersPerBurst = 0;
 
   /** m_delayBeforeInitialBurst (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   delayBeforeInitialBurst = 0;
 

@@ -8,7 +8,7 @@ import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
@@ -131,12 +131,12 @@ export class Tr2GrannyAnimation extends CjsModel
   #secondaryResources = new Map();
 
   /** m_resPath (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   resPath_ = "";
 
   /** m_model (std::string) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.string
   model_ = "";
 
@@ -171,32 +171,32 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** m_grannyRes (TriGrannyResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriGrannyRes")
   grannyRes = null;
 
   /** m_eventListener (IBlueEventListenerPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IBlueEventListener")
   eventListener = null;
 
   /** m_animationEnabled (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   animationEnabled = true;
 
   /** m_debugRenderJointNames (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugRenderJointNames = false;
 
   /** m_debugRenderSkeleton (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugRenderSkeleton = false;
 
   /** m_boneOffset (PGrannyBoneOffset) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("GrannyBoneOffset")
   boneOffset = new GrannyBoneOffset();
 

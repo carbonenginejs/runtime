@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
 
 
@@ -15,21 +15,21 @@ import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch
 @type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
 export class EveLocalPositionCurve extends CjsModel
 {
-  @io.persist @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
-  @io.readwrite @type.float32 impactSize = 1;
-  @io.persist @type.float32 offset = 0;
-  @io.persist @type.vec3 positionOffset = vec3.create();
-  @io.persist @type.model("ITriVectorFunction") parentPositionCurve = null;
-  @io.persist @type.model("ITriVectorFunction") alignPositionCurve = null;
-  @io.persist @type.vec3 value = vec3.create();
-  @io.persist @type.vec3 boundingSize = vec3.create();
-  @io.readwrite @type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
-  @io.readwrite @type.objectRef("IEveSpaceObject2") parent = null;
-  @io.readwrite @type.objectRef("EveTurretSet") turretSetObject = null;
-  @io.readwrite @type.int32 muzzleIndex = 0;
-  @io.read @type.int32 damageLocatorIndex = -1;
-  @io.readwrite @type.int32 locatorIndex = -1;
-  @io.readwrite @type.string locatorSetName = "";
+  @edit.persist @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
+  @edit.readwrite @type.float32 impactSize = 1;
+  @edit.persist @type.float32 offset = 0;
+  @edit.persist @type.vec3 positionOffset = vec3.create();
+  @edit.persist @type.model("ITriVectorFunction") parentPositionCurve = null;
+  @edit.persist @type.model("ITriVectorFunction") alignPositionCurve = null;
+  @edit.persist @type.vec3 value = vec3.create();
+  @edit.persist @type.vec3 boundingSize = vec3.create();
+  @edit.readwrite @type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
+  @edit.readwrite @type.objectRef("IEveSpaceObject2") parent = null;
+  @edit.readwrite @type.objectRef("EveTurretSet") turretSetObject = null;
+  @edit.readwrite @type.int32 muzzleIndex = 0;
+  @edit.read @type.int32 damageLocatorIndex = -1;
+  @edit.readwrite @type.int32 locatorIndex = -1;
+  @edit.readwrite @type.string locatorSetName = "";
 
   #impactEffectIndex = -1;
 

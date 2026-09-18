@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
@@ -10,12 +10,12 @@ export class EveSOFDataHullLocator extends CjsModel
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.mat4
   transform = mat4.create();
 

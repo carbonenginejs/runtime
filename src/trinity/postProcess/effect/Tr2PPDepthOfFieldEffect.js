@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 
 
@@ -13,32 +13,32 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
 
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   cocScale = 1;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   useTAAFriendlyBokeh = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   focalLength = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   foregroundBlurNeeded = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   focalDistance = 0;
 

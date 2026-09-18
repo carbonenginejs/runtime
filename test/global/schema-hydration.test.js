@@ -26,7 +26,7 @@ function declareBaseless()
   CjsSchema.define(Fixture, { className });
   CjsSchema.defineField(Fixture, "position", "type", { kind: "vec3" });
   CjsSchema.defineField(Fixture, "derived", "type", { kind: "string" });
-  CjsSchema.defineField(Fixture, "derived", "io", { read: true });
+  CjsSchema.defineField(Fixture, "derived", "edit", { read: true });
   return Fixture;
 }
 

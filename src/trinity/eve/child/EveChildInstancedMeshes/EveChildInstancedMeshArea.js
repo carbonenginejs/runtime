@@ -4,7 +4,7 @@
 //   EveChildInstancedMesh type. It does not; renaming is blocked because SOF
 //   writes this className into DNA documents as a string.
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -15,39 +15,39 @@ import { io, type } from "#schema";
 @type.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
 export class EveChildInstancedMeshArea extends CjsModel
 {
-  @io.rebuild("instanceBuffer")
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.rebuild("instanceBuffer")
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.persist
   @type.uint32
   batchType = 0;
 
-  @io.rebuild("instanceBuffer")
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.persist
   @type.uint32
   areaIndex = 0;
 
-  @io.rebuild("instanceBuffer")
-  @io.persist
+  @edit.rebuild("instanceBuffer")
+  @edit.persist
   @type.uint32
   areaCount = 1;
 
   /** Carbon MeshArea::alphaCutout (h:78) - one-sided cutout areas are ignored
    * for backface classification when raycasting occluders. */
-  @io.persist
+  @edit.persist
   @type.boolean
   alphaCutout = false;
 
   /** Carbon MeshArea::reversed (h:79) - winding-reversed areas flip the
    * backface test during occluder raycasts. */
-  @io.persist
+  @edit.persist
   @type.boolean
   reversed = false;
 
-  @io.read
+  @edit.read
   @type.uint64
   effectHash = 0;
 

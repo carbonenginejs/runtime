@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Audio/Tr2AudioStretchBase.h
 // Promoted from generated output 2026-07-18; now hand-owned by the audio
 // layer. Verify against trinityAudio/Tr2AudioStretchBase.json.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudEmitter } from "../audio/AudEmitter.js";
 import { AudGameObjResource } from "../audio/AudGameObjResource.js";
@@ -13,17 +13,17 @@ export class Tr2AudioStretchBase extends CjsModel
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2AudEmitter")
   sourceEmitter = null;
 

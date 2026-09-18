@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/UI/EveTacticalOverlay_Blue.cpp
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 /**
  * One object tracked by the tactical overlay, sampling a translation curve for
@@ -13,23 +13,23 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EveTacticalOverlayTrackObject", family: "eve/ui" })
 export class EveTacticalOverlayTrackObject extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 0;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   isAggressive = false;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   showVelocity = true;
 

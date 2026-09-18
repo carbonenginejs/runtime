@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2PyValueBinding.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2PyValueBinding.json.).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Tr2PyValueBinding (trinityCore) - generated from schema shapeHash 435f9fdc.... */
@@ -9,36 +9,36 @@ export class Tr2PyValueBinding extends CjsModel
 {
 
   /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   destinationAttribute = "";
 
   /** m_sourceAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   sourceAttribute = "";
 
   /** m_destinationObject (PyObject*) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("PyObject")
   destinationObject = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_sourceObject (PyObject*) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("PyObject")
   sourceObject = null;
 
   /** m_isValid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 

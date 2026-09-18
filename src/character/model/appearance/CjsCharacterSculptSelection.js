@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One authored three-axis paper-doll sculpt selection. */
@@ -6,19 +6,19 @@ import { CjsModel } from "#model";
 export class CjsCharacterSculptSelection extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weightForwardBack = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weightLeftRight = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weightUpDown = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterSculptingLocation")
     sculptLocationID = null;
 

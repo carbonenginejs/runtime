@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/InclusionVolume.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { ProcessPriority } from "./enums.js";
@@ -22,29 +22,29 @@ export class InclusionVolume extends CjsModel
   static ProcessPriority = ProcessPriority;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** m_inclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   inclusionVolumes = [];
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   behaviorWeight = 60;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   framesBetweenUpdates = 11;
 

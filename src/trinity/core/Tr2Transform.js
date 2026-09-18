@@ -6,7 +6,7 @@ import { TriBatchType } from "#consts/graphics";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { Tr2TransformModifier } from "../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "./ITr2Renderable.js";
@@ -462,18 +462,18 @@ export class Tr2Transform extends CjsModel
   }
 
   /** m_modifier (Tr2TransformModifier - enum Tr2TransformModifier) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2TransformModifier")
   modifier = Tr2TransformModifier.TR2TM_NONE;
 
   /** m_localTransform (Matrix) [READ] */
-  @io.read
+  @edit.read
   @type.mat4
   localTransform = mat4.create();
 
   /** m_worldTransform (Matrix) [READ] */
-  @io.read
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 
@@ -481,62 +481,62 @@ export class Tr2Transform extends CjsModel
   lastWorldTransform = mat4.create();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_distanceBasedScaleArg1 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distanceBasedScaleArg1 = 0.2;
 
   /** m_distanceBasedScaleArg2 (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   distanceBasedScaleArg2 = 0.63;
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2MeshBase")
   mesh = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_useDistanceBasedScale (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useDistanceBasedScale = false;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_sortValueMultiplier (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   sortValueMultiplier = 1;
 

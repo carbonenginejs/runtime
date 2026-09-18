@@ -1,6 +1,6 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPColorCorrectionEffect.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema postProcess/Tr2PPColorCorrectionEffect.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { vec3 } from "#math/vec3";
 
@@ -10,37 +10,37 @@ export class Tr2PPColorCorrectionEffect extends Tr2PPEffect
 {
 
   /** m_whiteTint (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   whiteTint = 0;
 
   /** m_colorSaturation (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   colorSaturation = 1;
 
   /** m_colorContrast (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   colorContrast = 1;
 
   /** m_colorGamma (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   colorGamma = 1;
 
   /** m_colorGain (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   colorGain = vec3.fromValues(1, 1, 1);
 
   /** m_colorOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   colorOffset = vec3.create();
 
   /** m_whiteTemperature (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   whiteTemperature = 6500;
 

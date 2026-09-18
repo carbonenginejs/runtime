@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2ParticleForce } from "./ITr2ParticleForce.js";
 import { noise } from "#math/noise";
 import { vec3 } from "#math/vec3";
@@ -14,22 +14,22 @@ export class Tr2ParticleTurbulenceForce extends ITr2ParticleForce
   #time = 0;
 
   /** m_amplitude (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   amplitude = vec3.fromValues(1, 1, 1);
 
   /** m_frequency (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   frequency = vec4.fromValues(1, 1, 1, 1);
 
   /** m_noiseLevel (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   noiseLevel = 3;
 
   /** m_noiseRatio (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   noiseRatio = 0.5;
 

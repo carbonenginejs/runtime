@@ -1,7 +1,7 @@
 // Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.h
 // Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer.cpp
 // Carbon source: trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 
@@ -12,80 +12,80 @@ import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
 @type.define({ className: "Tr2PostProcessRenderer", family: "postProcess" })
 export class Tr2PostProcessRenderer extends CjsModel
 {
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   @type.enum("BloomDebugMode")
   bloomDebugMode = BloomDebugMode.BLOOM_DEBUG_NONE;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   @type.enum("Quality")
   quality = Quality.HIGH;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   dynamicExposureToTextureShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   bloomHighPassFilter = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   bloomDebugShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   depthOfFieldBokehBlurShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   depthOfFieldBokehFillShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   dynamicExposureCreateHistogramShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   depthOfFieldCoCShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   fogColorEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   fogCompositeEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   godrayEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   dynamicExposureMeasureExposureShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   dynamicExposureMergeHistogramShader = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   signalLossEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   taaEffect = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Effect")
   tonemappingEffect = null;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   useNewBloom = false;
 

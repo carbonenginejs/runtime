@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Named avatar-behavior resource record with its authored gender selector. */
@@ -6,15 +6,15 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterAvatarBehavior extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     name = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     resPathList = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     resGender = 0;
 

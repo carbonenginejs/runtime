@@ -4,7 +4,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 
 /**
@@ -15,7 +15,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @type.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   dest = null;
 

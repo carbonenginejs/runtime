@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One ordered logical operation in a character texture-composition target. */
@@ -6,39 +6,39 @@ import { CjsModel } from "#model";
 export class CjsCharacterCompositionPass extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterAppearanceLayer")
     layer = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     op = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterCompositionInput")
     inputs = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterCoverage")
     coverage = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     destination = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     blend = "replace";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     write = "rgba";
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     strength = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

@@ -4,7 +4,7 @@
 // Flattened LightData surface (2026-07-23 decision): texturePath joins the
 // flat fields inherited from Tr2PointLight, verified against
 // lights/Tr2TexturedPointLight.json (tools-core schema build).
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { color } from "#math/color";
@@ -24,13 +24,13 @@ export class Tr2TexturedPointLight extends Tr2PointLight
     "texturePath"
   ];
 
-  @io.read
+  @edit.read
   @type.objectRef("TriTextureRes")
   texture = null;
 
   /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   texturePath = "";
 

@@ -72,7 +72,7 @@ export const PER_OBJECT_PS = 4;
  * base were expensive, nobody would need telling.
  *
  * A model is an object that arrives from a `.red`/`.black` values graph. This
- * one is composed at runtime by the library, carries no `@io` field, and is
+ * one is composed at runtime by the library, carries no `@edit` field, and is
  * named as a type by nothing, so a hydration identity describes something that
  * can never happen. The same goes for the abstraction layer and the resource
  * and GPU classes - none of them is ever part of a serialized object. The AL

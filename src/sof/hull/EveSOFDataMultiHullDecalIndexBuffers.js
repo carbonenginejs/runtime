@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataMultiHullDecalIndexBuffers (eve) - generated from schema shapeHash 6887aa5b.... */
@@ -9,12 +9,12 @@ export class EveSOFDataMultiHullDecalIndexBuffers extends CjsModel
 {
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_combinedGeometryResPath (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   combinedGeometryResPath = "";
 

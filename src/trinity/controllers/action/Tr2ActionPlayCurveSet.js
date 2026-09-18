@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { GetControllerTimeSeconds } from "../contracts.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -18,15 +18,15 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionPlayCurveSet extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   curveSetName = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   rangeName = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   syncToRange = false;
 

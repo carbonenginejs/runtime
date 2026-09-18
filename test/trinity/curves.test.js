@@ -517,8 +517,8 @@ test("expression curves expose Carbon term metadata and current-time inputs", ()
   assert(scalarTerms.some(term => term.name === "fractal"));
   assert(scalarTerms.some(term => term.name === "randhash"));
   assert(scalarTerms.some(term => term.name === "pi2"));
-  assertEquals(CjsSchema.getField(Tr2CurveScalarExpression, "expression")?.io?.persistOnly, true);
-  assertEquals(CjsSchema.getField(Tr2CurveScalarExpression, "input1")?.io?.persist, true);
+  assertEquals(CjsSchema.getField(Tr2CurveScalarExpression, "expression")?.edit?.persistOnly, true);
+  assertEquals(CjsSchema.getField(Tr2CurveScalarExpression, "input1")?.edit?.persist, true);
   for (const Class of [Tr2CurveScalarExpression, Tr2CurveVector3Expression, Tr2CurveEulerRotationExpression])
   {
     for (const field of ["input1", "input2", "input3", "input4"])

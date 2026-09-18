@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2GrannyTransformTrack.cpp
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 
@@ -18,19 +18,19 @@ import { Tr2GrannyTrack } from "./Tr2GrannyTrack.js";
 })
 export class Tr2GrannyTransformTrack extends Tr2GrannyTrack
 {
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   compressCurves = false;
 
-  @io.read
+  @edit.read
   @type.quat
   rotation = quat.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   translation = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   scale = vec3.create();
 

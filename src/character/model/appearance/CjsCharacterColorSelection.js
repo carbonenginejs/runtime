@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One authored paper-doll color selection with resolved catalog references. */
@@ -6,23 +6,23 @@ import { CjsModel } from "#model";
 export class CjsCharacterColorSelection extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     gloss = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterColorLocation")
     colorID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterColorName")
     colorNameA = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterColorName")
     colorNameBC = null;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderAtlas.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
@@ -11,47 +11,47 @@ export class TriStepRenderAtlas extends TriRenderStep
 {
 
   /** m_focus (Tr2AtlasTexture*) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2AtlasTexture")
   focus = null;
 
   /** m_atlas (Tr2TextureAtlas*) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2TextureAtlas")
   atlas = null;
 
   /** m_focusColour (Vector4) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec4
   focusColour = vec4.fromValues(1, 0, 1, 1);
 
   /** m_borderColour (Vector4) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec4
   borderColour = vec4.fromValues(1, 1, 0, 1);
 
   /** m_freeColour (Vector4) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec4
   freeColour = vec4.fromValues(0, 0.5, 0, 1);
 
   /** m_brTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   brTexCoord = vec2.fromValues(1, 1);
 
   /** m_showFree (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   showFree = false;
 
   /** m_showUsed (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   showUsed = true;
 
   /** m_tlTexCoord (Vector2) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.vec2
   tlTexCoord = vec2.create();
 

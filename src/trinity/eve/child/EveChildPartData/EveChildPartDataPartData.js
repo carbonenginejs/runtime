@@ -4,7 +4,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -16,24 +16,24 @@ import { io, type } from "#schema";
 @type.define({ className: "EveChildPartData.PartData", family: "eve/child" })
 export class EveChildPartDataPartData extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.uint32
   partId = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** Packed CcpMath::Sphere: xyz center and w radius. */
-  @io.persist
+  @edit.persist
   @type.vec4
   boundingSphere = vec4.create();
 }

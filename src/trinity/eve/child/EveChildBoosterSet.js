@@ -9,7 +9,7 @@ import { mat4 } from "#math/mat4";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -60,113 +60,113 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   static DEFAULT_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** The biggest booster size of this set; runtime-derived. */
-  @io.read
+  @edit.read
   @type.float32
   maxSize = 0;
 
   /** The warp factor of the ship; runtime toggle, not persisted. */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   warpIntensity = 0;
 
   /** The thrust of the ship; runtime toggle, not persisted. */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   thrust = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   glowScale = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   glowColor = vec4.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   symHaloScale = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   haloScaleX = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   haloScaleY = 1;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   haloColor = vec4.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   warpGlowColor = vec4.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   warpHaloColor = vec4.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightOffset = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightFlickerAmplitude = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightFlickerFrequency = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightRadius = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec4
   lightColor = vec4.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   lightWarpRadius = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec4
   lightWarpColor = vec4.create();
 
   /** Controller name the booster observes for the thrust value. */
-  @io.persist
+  @edit.persist
   @type.string
   driveName = EveChildBoosterSet.DEFAULT_DRIVE_NAME;
 
   /** When false the flares draw even at booster-LOD distances. */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   flareLodEnabled = true;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSpriteSet")
   glows = null;
 
@@ -175,7 +175,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    * Add() calls and never persists them; CarbonEngineJS delivers built
    * objects as documents, so the items persist and Initialize replays them.
    */
-  @io.persist
+  @edit.persist
   @type.list("EveBoosterSet2Item")
   items = [];
 

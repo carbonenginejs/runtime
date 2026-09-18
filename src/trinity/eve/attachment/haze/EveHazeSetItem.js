@@ -7,7 +7,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 /**
  * One authored haze volume: its bone attachment, placement, colour and the
@@ -16,31 +16,31 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EveHazeSetItem", family: "eve/attachment/haze" })
 export class EveHazeSetItem extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = 0;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec4
   hazeData = vec4.fromValues(4, 0.2, 2, 0);
 

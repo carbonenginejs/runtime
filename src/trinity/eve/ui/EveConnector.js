@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/UI/EveConnector.cpp
 // Source: trinity/trinity/Eve/UI/EveConnector_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; this is portable CPU graph policy.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -64,73 +64,73 @@ export class EveConnector extends CjsModel
 {
 
   /** m_type (ConnectorType - enum ConnectorType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("ConnectorType")
   type = ConnectorType.PointToPoint;
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
 
   /** m_width (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lineWidth = 1;
 
   /** m_animationColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   animationColor = vec4.fromValues(1, 0, 0, 1);
 
   /** m_animationScale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   animationScale = 1;
 
   /** m_animationSpeed (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   animationSpeed = 0;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   isAnimated = false;
 
   /** m_autoScaleAnimation (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   autoScaleAnimation = false;
 
   /** m_destPosition (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   destPosition = vec3.create();
 
   /** m_sourcePosition (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   sourcePosition = vec3.create();
 
   /** m_destObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   destObject = null;
 
   /** m_sourceObject (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITriVectorFunction")
   sourceObject = null;
 
   /** m_normal (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
   /** m_length (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   length = 0;
 

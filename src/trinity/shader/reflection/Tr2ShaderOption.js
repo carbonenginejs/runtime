@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Shader/Tr2EffectDescription.h
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /**
@@ -13,14 +13,14 @@ export class Tr2ShaderOption extends CjsModel
 {
 
   /** name (BlueSharedString) */
-  @io.rebuild("pipeline")
-  @io.persist
+  @edit.rebuild("pipeline")
+  @edit.persist
   @type.string
   name = "";
 
   /** value (BlueSharedString) */
-  @io.rebuild("pipeline")
-  @io.persist
+  @edit.rebuild("pipeline")
+  @edit.persist
   @type.string
   value = "";
 

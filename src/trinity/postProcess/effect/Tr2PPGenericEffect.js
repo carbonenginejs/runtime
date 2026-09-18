@@ -1,5 +1,5 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPGenericEffect.h
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
 import { Quality } from "../../generated/postProcess/enums.js";
 
@@ -11,12 +11,12 @@ import { Quality } from "../../generated/postProcess/enums.js";
 @type.define({ className: "Tr2PPGenericEffect", family: "postProcess" })
 export class Tr2PPGenericEffect extends Tr2PPEffect
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Quality")
   quality = 1;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawnModifiers/EveDistributionSpawnModifierRandomScale.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawnModifier } from "./IEveDistributionSpawnModifier.js";
 import { vec3 } from "#math/vec3";
 import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRandom.js";
@@ -13,27 +13,27 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   #timeSeed = Date.now() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   minScale = vec3.fromValues(1, 1, 1);
 
   /** m_maxScale (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   maxScale = vec3.fromValues(1, 1, 1);
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformScale (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   uniformScale = false;
 
   /** m_overrideScale (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   overrideScale = false;
 

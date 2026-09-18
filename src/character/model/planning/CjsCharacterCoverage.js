@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Reusable appearance coverage expression shared across logical composition passes. */
@@ -6,23 +6,23 @@ import { CjsModel } from "#model";
 export class CjsCharacterCoverage extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     region = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterTextureChannel")
     source = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterTextureChannel")
     subtract = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     combine = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

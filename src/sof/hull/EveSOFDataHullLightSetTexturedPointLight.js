@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 
 /** EveSOFDataHullLightSetTexturedPointLight (eve) - generated from schema shapeHash daa6d349.... */
@@ -14,7 +14,7 @@ export class EveSOFDataHullLightSetTexturedPointLight extends EveSOFDataHullLigh
 {
 
   /** m_data.texturePath (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   texturePath = "";
 

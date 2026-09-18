@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveMultiEffect.h
 // Source: trinity/trinity/Eve/EveMultiEffect.cpp
 // Source: trinity/trinity/Eve/EveMultiEffect_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
 import {
@@ -23,32 +23,32 @@ export class EveMultiEffect extends CjsModel
 {
 
   /** m_bindings (PTr2DynamicBindingVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2DynamicBinding")
   bindings = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_parameters (PEveMultiEffectParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveMultiEffectParameter")
   parameters = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

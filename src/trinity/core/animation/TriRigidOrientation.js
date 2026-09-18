@@ -1,6 +1,6 @@
 // Source: trinity/trinity/TriRigidOrientation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -11,32 +11,32 @@ export class TriRigidOrientation extends CjsModel
 {
 
   /** mDrag (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   drag = 1;
 
   /** mStart (Be::Time) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float64
   start = 0;
 
   /** mI (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   I = 1;
 
   /** mStates (PTriTorqueVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriTorque")
   states = [];
 
   /** mValue (Quaternion) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.quat
   value = quat.create();
 
   /** mName (std::wstring) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

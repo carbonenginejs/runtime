@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One exact renderer-neutral morph-target request in an appearance plan. */
@@ -6,23 +6,23 @@ import { CjsModel } from "#model";
 export class CjsCharacterMorphTargetWeight extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     modifierPath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     targetName = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterAppearanceSelection")
     owner = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

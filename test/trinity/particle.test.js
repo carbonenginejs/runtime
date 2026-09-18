@@ -126,7 +126,7 @@ test("GPU emitter graph descriptors preserve Carbon CPU types and defaults", () 
 
   const unique = new Tr2GpuUniqueEmitter();
   const strength = CjsSchema.getField(Tr2GpuUniqueEmitter, "attractorStrength");
-  if (strength?.type?.kind !== "float32" || !strength?.io?.persist || !strength?.io?.notify)
+  if (strength?.type?.kind !== "float32" || !strength?.edit?.persist || !strength?.edit?.notify)
   {
     throw new Error("unique emitter attractorStrength metadata is incomplete");
   }

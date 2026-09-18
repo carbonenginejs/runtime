@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2StaticEmitter.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 
@@ -17,29 +17,29 @@ export class Tr2StaticEmitter extends CjsModel
   hasSpawnedParticles = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_geometryResource (TriGrannyResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriGrannyRes")
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   meshIndex = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   geometryResourcePath = "";
 

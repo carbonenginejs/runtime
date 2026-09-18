@@ -3,7 +3,7 @@
 // Source: trinity/trinity/TriObserverLocal_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -13,23 +13,23 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "TriObserverLocal", family: "trinityCore" })
 export class TriObserverLocal extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   front = vec3.fromValues(0, 0, 1);
 
-  @io.persist
+  @edit.persist
   @type.objectRef("IBluePlacementObserver")
   observer = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   mute = false;
 

@@ -6,7 +6,7 @@
 // init, RenderAudio, and device concerns route through the backend seam
 // (AudGameObjResource.backend); state, bank tracking, deferred-event flush,
 // monitored-parameter refcounts, and prioritization wiring are pure logic.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { AudGeometry } from "./AudGeometry.js";
@@ -30,24 +30,24 @@ export class AudManager extends CjsModel
 {
 
   /** m_log (IAudActionLogPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("IAudActionLog")
   log = null;
 
   /** m_audioCullingEnabled (mutable bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   audioCullingEnabled = true;
 
   /** m_spatialAudioEnabled (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   spatialAudioEnabled = true;
 
   /** m_settings (AudSettingsPtr) [AUTHORED] */
   @impl.adapted
   @impl.reason("Carbon supplies this via UpdateSettings() outside Blue serialization; CarbonEngineJS persists it for values interchange.")
-  @io.persist
+  @edit.persist
   @type.model("AudSettings")
   settings = null;
 

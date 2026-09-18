@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
 
@@ -10,28 +10,28 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
 {
 
   /** m_eventFilter (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   eventFilter = 0xffffffff;
 
   /** m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("FilterType")
   filterType = 1;
 
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2VisibilityResults")
   inputResults = null;
 
   /** m_objects (PIRootVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IRoot")
   objects = [];
 
   /** m_outputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2VisibilityResults")
   outputResults = null;
 

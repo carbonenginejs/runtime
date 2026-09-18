@@ -263,7 +263,7 @@ test("EveSpaceObjectChild owns Carbon's child identity and hierarchy state", () 
   assert.equal(parent.GetBoundingSphere(null, null), false);
   assert.equal(parent.IsAlwaysOn(), false);
   assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.type?.kind, "uint32");
-  assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.io?.read, true);
+  assert.equal(CjsSchema.getField(EveSpaceObjectChild, "partTag")?.edit?.read, true);
   assert.equal(CjsSchema.getField(Locator, "partTag")?.type?.kind, "uint32");
   assert.equal(Locator.from({ partTag: 29 }).partTag, 29);
 

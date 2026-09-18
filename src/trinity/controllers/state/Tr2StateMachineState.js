@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "../contracts.js";
 
@@ -17,20 +17,20 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from
 })
 export class Tr2StateMachineState extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.list("ITr2ControllerAction")
   actions = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2StateMachineTransition")
   transitions = [];
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

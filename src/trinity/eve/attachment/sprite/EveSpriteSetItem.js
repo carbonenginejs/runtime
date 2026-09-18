@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { box3 } from "#math/box3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 /**
  * One authored sprite: its bone attachment, position, blink timing, scale range,
@@ -14,46 +14,46 @@ import { carbon, impl, io, type } from "#schema";
 @type.define({ className: "EveSpriteSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteSetItem extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   blinkRate = 0.1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   blinkPhase = 0;
 
-  @io.persist
+  @edit.persist
   @type.float32
   minScale = 1;
 
-  @io.persist
+  @edit.persist
   @type.float32
   maxScale = 10;
 
-  @io.persist
+  @edit.persist
   @type.float32
   falloff = 0;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.color
   warpColor = vec4.fromValues(1, 1, 1, 1);
 
-  @io.persist
+  @edit.persist
   @type.int32
   boneIndex = 0;
 

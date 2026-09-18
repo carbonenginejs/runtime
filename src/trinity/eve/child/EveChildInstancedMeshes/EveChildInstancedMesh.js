@@ -3,7 +3,7 @@
 //   under a name that drops the donor's plural. See EveChildInstancedMeshArea.js.
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
 
@@ -16,52 +16,52 @@ import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.j
 @type.define({ className: "EveChildInstancedMesh", family: "eve/child" })
 export class EveChildInstancedMesh extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   geometryPath = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   castsShadow = false;
 
-  @io.persist
+  @edit.persist
   @type.int32
   reflectionMode = 3;
 
-  @io.persist
+  @edit.persist
   @type.uint32
   meshIndex = 0;
 
-  @io.persist
+  @edit.persist
   @type.list("EveChildInstancedMeshArea")
   areas = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EveChildInstancedMeshInstance")
   instances = [];
 
   /** Carbon's one-to-one modular ownership tag array for instances. */
-  @io.persist
+  @edit.persist
   @type.array("uint32")
   partTags = [];
 
-  @io.persist
+  @edit.persist
   @type.string
   sofHullName = "";
 
-  @io.persist
+  @edit.persist
   @type.string
   sofLocatorSetName = "";
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   inheritOverlayEffects = true;
 
-  @io.persist
+  @edit.persist
   @type.list("EveMeshOverlayEffect")
   ownOverlayEffects = [];
 

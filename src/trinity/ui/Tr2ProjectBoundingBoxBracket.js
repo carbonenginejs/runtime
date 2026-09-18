@@ -5,7 +5,7 @@
 import { mat4 } from "#math/mat4";
 import { ITr2BoundingBox } from "#contracts";
 import { CjsModel } from "#model";
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 
 
 const CLIP_EPSILON = 1e-5;
@@ -387,83 +387,83 @@ export class Tr2ProjectBoundingBoxBracket extends CjsModel
     return true;
   }
 
-  @io.read
+  @edit.read
   @type.float32
   cameraDistance = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   projectedHeight = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   screenMargin = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   integerCoordinates = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxProjectedHeight = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   maxProjectedWidth = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   minProjectedHeight = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   minProjectedWidth = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.string
   name = "";
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef(BOUNDING_BOX_TYPE)
   object = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Sprite2dContainer")
   parent = null;
 
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2Sprite2dContainer")
   bracket = null;
 
-  @io.read
+  @edit.read
   @type.boolean
   isProjectionValid = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   containsCamera = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   coversViewport = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   extendsOffscreen = false;
 
-  @io.read
+  @edit.read
   @type.float32
   projectedWidth = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   projectedX = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   projectedY = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   projectedZ = 0;
 }

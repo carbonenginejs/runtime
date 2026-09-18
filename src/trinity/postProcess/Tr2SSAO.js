@@ -1,7 +1,7 @@
 // Carbon source: trinity/trinity/Tr2SSAO.h
 // Carbon source: trinity/trinity/Tr2SSAO.cpp
 // Carbon source: trinity/trinity/Tr2SSAO_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { SSAOQuality } from "../generated/trinityCore/enums.js";
 
@@ -15,77 +15,77 @@ import { SSAOQuality } from "../generated/trinityCore/enums.js";
 @type.define({ className: "Tr2SSAO", family: "trinityCore" })
 export class Tr2SSAO extends CjsModel
 {
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   @type.enum("SSAOQuality")
   quality = SSAOQuality.HIGHEST;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   cortaoBentNormal = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   zoomLevel = 5;
 
-  @io.persist
+  @edit.persist
   @type.float32
   shadowClamp = 0.98;
 
-  @io.persist
+  @edit.persist
   @type.float32
   shadowPower = 2.6;
 
-  @io.persist
+  @edit.persist
   @type.float32
   shadowMultiplier = 1;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   cortaoBlur = true;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   cortaoEnabled = true;
 
-  @io.persist
+  @edit.persist
   @type.float32
   sharpness = 0.5;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   enabled = true;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   cortaoMipBias = -4;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   cortaoMaxBlockerSearchRadius = 0.25;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   cortaoRadius = 1e10;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   cortaoStrength = 1;
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   downsampled = false;
 
-  @io.persist
+  @edit.persist
   @type.float32
   radius = 6;
 

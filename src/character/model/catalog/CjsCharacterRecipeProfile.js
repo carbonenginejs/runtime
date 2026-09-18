@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** One authored character recipe folded into the combined catalog. */
@@ -6,15 +6,15 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterRecipeProfile extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     sourcePath = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     sex = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterRecipeEntry")
     entries = [];
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodAttributeMap.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 
 /** EveProceduralMethodAttributeMap (eve/child/procedural/selection) - generated from schema shapeHash 691cb5f9.... */
@@ -11,28 +11,28 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   #selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodAttributeMapParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveProceduralMethodAttributeMapParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_mappedAttribute (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   thresholdAttribute = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   selectedChild = -1;
 
   /** m_seed (BlueSharedString) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.string
   seed_temp = "";
 

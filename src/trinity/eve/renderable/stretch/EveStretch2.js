@@ -4,7 +4,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
@@ -25,19 +25,19 @@ export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
 
-  @io.persist @type.string name = "";
-  @io.persist @type.model("TriCurveSet") loop = null;
-  @io.persist @type.model("TriCurveSet") start = null;
-  @io.persist @type.model("TriCurveSet") end = null;
-  @io.persist @type.model("Tr2Effect") effect = null;
-  @io.persist @type.model("Tr2GpuSharedEmitter") destinationEmitter = null;
-  @io.persist @type.model("Tr2GpuSharedEmitter") sourceEmitter = null;
-  @io.notify @io.persist @type.uint32 quadCount = 0;
-  @io.persist @type.model("TriObserverLocal") destinationObserver = null;
-  @io.persist @type.model("TriObserverLocal") sourceObserver = null;
-  @io.persist @type.model("Tr2PointLight") destinationLight = null;
-  @io.persist @type.model("Tr2PointLight") sourceLight = null;
-  @io.persist @type.float32 boundingRadius = 100;
+  @edit.persist @type.string name = "";
+  @edit.persist @type.model("TriCurveSet") loop = null;
+  @edit.persist @type.model("TriCurveSet") start = null;
+  @edit.persist @type.model("TriCurveSet") end = null;
+  @edit.persist @type.model("Tr2Effect") effect = null;
+  @edit.persist @type.model("Tr2GpuSharedEmitter") destinationEmitter = null;
+  @edit.persist @type.model("Tr2GpuSharedEmitter") sourceEmitter = null;
+  @edit.notify @edit.persist @type.uint32 quadCount = 0;
+  @edit.persist @type.model("TriObserverLocal") destinationObserver = null;
+  @edit.persist @type.model("TriObserverLocal") sourceObserver = null;
+  @edit.persist @type.model("Tr2PointLight") destinationLight = null;
+  @edit.persist @type.model("Tr2PointLight") sourceLight = null;
+  @edit.persist @type.float32 boundingRadius = 100;
 
   #source = vec3.create();
   #destination = vec3.create();

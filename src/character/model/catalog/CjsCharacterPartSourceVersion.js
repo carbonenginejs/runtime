@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One self-contained resource-version inventory with effective metadata and exact candidates. */
@@ -6,27 +6,27 @@ import { CjsModel } from "#model";
 export class CjsCharacterPartSourceVersion extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     resourceVersion = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterPartMetadata")
     metadata = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     configurationCandidates = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     geometryCandidates = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("CjsCharacterPartModelBundle")
     modelBundles = [];
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     textureCandidates = [];
 

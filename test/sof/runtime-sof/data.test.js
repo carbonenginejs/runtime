@@ -495,14 +495,14 @@ test("SOF attachment records and runtime-only Carbon helpers are fully promoted"
   {
     assert.ok(condition instanceof IEveSOFDataHullExtensionPlacementDistribution);
     assert.equal(condition.name, "");
-    assert.equal(CjsSchema.getField(condition.constructor, "name").io.persist, true);
+    assert.equal(CjsSchema.getField(condition.constructor, "name").edit.persist, true);
   }
   // Carbon derives DistributionPlacement directly from IRoot with its own
   // m_name (EveSOFData.h:1999-2021) - it is not a distribution condition.
   const placementRecord = new EveSOFDataHullExtensionPlacementDistributionPlacement();
   assert.equal(placementRecord instanceof IEveSOFDataHullExtensionPlacementDistribution, false);
   assert.equal(placementRecord.name, "");
-  assert.equal(CjsSchema.getField(placementRecord.constructor, "name").io.persist, true);
+  assert.equal(CjsSchema.getField(placementRecord.constructor, "name").edit.persist, true);
 
   const bucket = new EveSOFDataHullExtensionBucket();
   const nextBucket = new EveSOFDataHullExtensionBucket();

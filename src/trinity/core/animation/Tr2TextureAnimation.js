@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
@@ -11,38 +11,38 @@ export class Tr2TextureAnimation extends CjsModel
   #channels = new Map();
 
   /** m_fps (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   fps = 1;
 
   /** m_frame (uint32_t) [READ] */
-  @io.read
+  @edit.read
   @type.uint32
   frame = 0;
 
   /** m_time (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   time = 0;
 
   /** m_paused (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   paused = false;
 
   /** m_updateOnlyWhenRendered (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   updateOnlyWhenRendered = true;
 
   /** m_filename (std::wstring) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   resPath = "";
 
   /** m_looped (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   looped = true;
 

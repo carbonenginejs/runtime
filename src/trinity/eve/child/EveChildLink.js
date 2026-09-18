@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLink.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -17,42 +17,42 @@ export class EveChildLink extends EveChildMesh
 {
 
   /** m_linkStrengthCurves (PITriFunctionVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITriFunction")
   linkStrengthCurves = [];
 
   /** m_linkStrengthBindings (PITr2ValueBindingVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2ValueBinding")
   linkStrengthBindings = [];
 
   /** m_linkBarrier (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   linkBarrier = 1;
 
   /** m_currentDistance (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   currentDistance = 0;
 
   /** m_currentDirection (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   currentDirection = vec3.fromValues(0, 0, 1);
 
   /** m_target (ITriVectorFunctionPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITriVectorFunction")
   target = null;
 
   /** m_linkStrength (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   linkStrength = 0;
 
   /** m_targetRadius (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   targetRadius = 0.5;
 

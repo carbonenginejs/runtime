@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
@@ -10,12 +10,12 @@ export class EveSOFDataHullExtensionPlacementDistributionParentMatch extends IEv
 {
 
   /** m_parentDescriptor (EveSOFDNADescriptorPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDNADescriptor")
   parentDescriptor = new EveSOFDNADescriptor();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 

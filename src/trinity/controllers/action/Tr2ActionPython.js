@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.cpp
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
 
 
@@ -72,17 +72,17 @@ export class Tr2ActionPython extends CjsModel
     return null;
   }
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   module = "";
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   className = "";
 
-  @io.persistOnly
+  @edit.persistOnly
   @type.typedArray("Uint8Array")
   state = new Uint8Array(0);
 

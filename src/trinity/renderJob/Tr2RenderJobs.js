@@ -1,7 +1,7 @@
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.h
 // Source: trinity/trinity/RenderJob/Tr2RenderJobs.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2RenderContext, Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriRenderJob } from "./TriRenderJob.js";
 
@@ -13,19 +13,19 @@ import { TriRenderJob } from "./TriRenderJob.js";
 @type.define({ className: "Tr2RenderJobs", family: "renderJob" })
 export class Tr2RenderJobs extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.list("TriRenderJob")
   recurring = [];
 
-  @io.persist
+  @edit.persist
   @type.list("TriRenderJob")
   once = [];
 
-  @io.persist
+  @edit.persist
   @type.list("TriRenderJob")
   chained = [];
 
-  @io.persist
+  @edit.persist
   @type.list("TriRenderJob")
   updateRecurring = [];
 

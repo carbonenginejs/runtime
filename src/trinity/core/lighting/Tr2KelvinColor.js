@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2KelvinColor.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
@@ -11,18 +11,18 @@ export class Tr2KelvinColor extends CjsModel
 {
 
   /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2StandardIlluminant")
   whiteBalance = 2;
 
   /** m_temperature (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   temperature = 5500;
 
   /** m_tint (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   tint = 0.5;
 

@@ -7,7 +7,7 @@ import { EveShip2, EveUpdateContext } from "../../npm/dist/trinity/index.js";
 test("EveShip2 derives speed and drives boosters from the position curve", () =>
 {
   const ship = new EveShip2();
-  assert.equal(CjsSchema.getField(EveShip2, "audioSpeedParameter")?.io?.write, true);
+  assert.equal(CjsSchema.getField(EveShip2, "audioSpeedParameter")?.edit?.write, true);
   assert.equal(CjsSchema.getDefaults(EveShip2).audioSpeedParameter, null);
   ship.update = true;
   ship.maxSpeed = 100;

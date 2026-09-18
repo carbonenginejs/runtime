@@ -47,7 +47,7 @@ test("EveHazeSet exposes authored haze and light state as persisted graph fields
   assert.deepEqual(set.lights, []);
   for (const name of ["effect", "display", "name", "hazes", "lights"])
   {
-    assert.equal(CjsSchema.getField(EveHazeSet, name)?.io.persist, true, name);
+    assert.equal(CjsSchema.getField(EveHazeSet, name)?.edit.persist, true, name);
   }
   assert.equal(CjsSchema.getField(EveHazeSet, "lights")?.type.itemType, "EveHazeSetLight");
   assert.equal(CjsSchema.getField(EveHazeSet, "rebuildRevision"), null);

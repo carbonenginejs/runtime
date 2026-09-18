@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Utils/EveDistributionMethods/DistributionSpawners/EveDistributionSpawnerInterval.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 
 /** Spawns distribution entities at configurable, optionally randomized intervals for a bounded or unlimited repeat count. */
@@ -13,27 +13,27 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   #numTriggered = 0;
 
   /** m_delayBetweenRepeats (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   delayBetweenRepeats = 1;
 
   /** m_numberOfTriggers (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   numberOfRepeats = 0;
 
   /** m_useRandomStartOffset (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useRandomStartOffset = true;
 
   /** m_maxRandomizedIntervalDelta (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxRandomizedIntervalDelta = 0;
 
   /** m_delayBeforeInitialSpawn (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   delayBeforeInitialSpawn = 0;
 

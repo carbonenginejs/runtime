@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorScene.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
@@ -14,127 +14,127 @@ export class Tr2InteriorScene extends CjsModel
 {
 
   /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   backgroundCubemapPath = "";
 
   /** m_visualizeMethod (VisualizeMethod - enum VisualizeMethod) [READWRITE, ENUM, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   @type.enum("VisualizeMethod")
   visualizeMethod = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_renderShadows (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   renderShadows = true;
 
   /** m_debugRenderShadowMaps (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   debugRenderShadowMaps = false;
 
   /** m_shadowCount (int) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   shadowCount = 4;
 
   /** m_minFogDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minFogDistance = 0;
 
   /** m_maxFogDistance (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxFogDistance = 1000;
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_dynamics (PITr2InteriorDynamicVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("ITr2InteriorDynamic")
   dynamics = [];
 
   /** m_lights (PITr2InteriorLightVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("ITr2InteriorLight")
   lights = [];
 
   /** m_maxFogAmount (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxFogAmount = 0;
 
   /** m_debugRenderer (Tr2DebugRendererPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("Tr2DebugRenderer")
   debugRenderer = null;
 
   /** m_visibilityResults (Tr2VisibilityResultsPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2VisibilityResults")
   visibilityResults = null;
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   ambientColor = vec4.create();
 
   /** m_optimizeShadows (bool) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   optimizeShadows = true;
 
   /** m_shadowSize (int) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.int32
   shadowSize = 1024;
 
   /** m_lightRenderTargets (PTr2RenderTargetVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("Tr2RenderTarget")
   lightRenderTargets = [];
 
   /** m_sunDiffuseColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   sunDiffuseColor = color.createLinear();
 
   /** m_sunDirection (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   sunDirection = vec3.fromValues(0, 0, 1);
 
   /** m_sunSpecularColor (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   sunSpecularColor = vec4.fromValues(0.8, 0.8, 0.8, 1);
 
   /** m_backgroundCubeMapRes (TriTextureResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("TriTextureRes")
   backgroundCubemapRes = null;
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2Effect")
   backgroundEffect = null;
 

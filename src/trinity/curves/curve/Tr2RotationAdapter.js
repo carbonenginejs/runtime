@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2RotationAdapter.cpp
 import { quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,15 +16,15 @@ import { carbon, impl, io, type } from "#schema";
 })
 export class Tr2RotationAdapter extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.quat
   value = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   curve = null;
 
-  @io.read
+  @edit.read
   @type.quat
   currentValue = quat.create();
 

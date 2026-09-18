@@ -1,5 +1,5 @@
 // Source: trinity/trinity/RenderJob/TriStepEnableWireframeMode.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 
@@ -8,7 +8,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepEnableWireframeMode", family: "renderJob" })
 export class TriStepEnableWireframeMode extends TriRenderStep
 {
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   enableWireframe = false;
 

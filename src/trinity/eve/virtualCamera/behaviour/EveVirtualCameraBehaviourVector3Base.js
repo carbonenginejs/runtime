@@ -3,7 +3,7 @@
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 
@@ -18,12 +18,12 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 })
 export class EveVirtualCameraBehaviourVector3Base extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.boolean
   active = true;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 

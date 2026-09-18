@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
 /** Transparent activity-archetype record retained by the character source document. */
@@ -6,19 +6,19 @@ import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 export class CjsCharacterArchetype extends CjsCharacterRecord
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.list("string")
     contentTags = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     location = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     descriptionID = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     titleID = null;
 

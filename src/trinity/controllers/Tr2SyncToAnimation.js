@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFinalizer.js";
 
@@ -17,7 +17,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
 @carbon.inherit(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   mask = "";
 

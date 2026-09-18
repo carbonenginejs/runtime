@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One authored RGBA character color value. */
@@ -6,7 +6,7 @@ import { CjsModel } from "#model";
 export class CjsCharacterColorValue extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     value = [ 0, 0, 0, 1 ];
 

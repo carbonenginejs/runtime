@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.h
 //   trinity/trinity/Eve/SpaceObject/Children/Behaviors/BehaviorGroup.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -81,99 +81,99 @@ export class BehaviorGroup extends EveEntity
   #groupIndex = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_maxVelocity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   maxVelocity = 100;
 
   /** m_scale (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   scale = 1;
 
   /** m_blendScreenSizeMax (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   blendScreenSizeMax = 15;
 
   /** m_blendScreenSizeMin (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   blendScreenSizeMin = 5;
 
   /** m_currentScreenSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   currentScreenSize = 0;
 
   /** m_renderThreshold (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   renderThreshold = 1;
 
   /** m_debugIntensity (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   debugIntensity = 0;
 
   /** m_debugLodLevel (float) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.float32
   debugLodLevel = 0;
 
   /** m_actualCount (int32_t) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   actualCount = 0;
 
   /** m_count (int32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.int32
   count = 0;
 
   /** m_booster (BehaviorGroupBoosterPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("BehaviorGroupBooster")
   boosters = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.model("Tr2Mesh")
   mesh = null;
 
   /** m_behaviorGroupName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   boundingSphereRadius = 5;
 
   /** m_debugMode (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   debugMode = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   update = true;
 
   /** m_behaviors (PIBehaviorVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IBehavior")
   behaviors = [];
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   spawnPosition = vec3.create();
 

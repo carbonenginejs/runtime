@@ -6,7 +6,7 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, io, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
@@ -83,24 +83,24 @@ const INSTANCE_SPHERE = vec4.create();
 ])
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;
 
-  @io.persist
+  @edit.persist
   @type.quat
   staticOffsetRotation = quat.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.model("IEveDistributionMethod")
   distribution = null;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   staticOffsetScale = vec3.fromValues(1, 1, 1);
 

@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveMultiEffectParameter.cpp
 // Source: trinity/trinity/Eve/EveMultiEffectParameter_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveEffectRoot2 } from "../../spaceObject/EveEffectRoot2.js";
 import { EveSpaceObject2 } from "../../spaceObject/EveSpaceObject2.js";
 import { ParameterType } from "../../../generated/eve/enums.js";
@@ -14,17 +14,17 @@ import { ParameterType } from "../../../generated/eve/enums.js";
 @type.define({ className: "EveMultiEffectParameter", family: "eve/effect" })
 export class EveMultiEffectParameter extends CjsModel
 {
-  @io.readwrite
+  @edit.readwrite
   @type.int32
   @type.enum("ParameterType")
   type = 3;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.objectRef("IRoot")
   object = null;
 

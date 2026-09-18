@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** Resolved texture asset with independent decoded placement and semantic role. */
@@ -6,35 +6,35 @@ import { CjsModel } from "#model";
 export class CjsCharacterTextureAsset extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.path
     uri = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     role = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     region = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     quality = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec2
     imageSize = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec2
     atlasSize = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.vec4
     atlasRect = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

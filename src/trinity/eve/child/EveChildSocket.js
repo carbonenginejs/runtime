@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveSocketParameterString } from "../socket/EveSocketParameterString.js";
 
@@ -14,30 +14,30 @@ export class EveChildSocket extends EveChildTransform
   resourceLoader = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_parameters (PIEveSocketParameterVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("IEveSocketParameter")
   parameters = [];
 
   /** m_plugResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   resPath = "";
 
   /** m_plug (EveChildPlugPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("EveChildPlug")
   plug = null;
 

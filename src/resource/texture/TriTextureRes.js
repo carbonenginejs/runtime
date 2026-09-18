@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes.h
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
-import { CjsSchema, carbon, impl, io, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsResource } from "../CjsResource.js";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
@@ -448,25 +448,25 @@ CjsSchema.define(TriTextureRes, {
   className: "TriTextureRes",
   family: "resources",
   fields: {
-    format: [ type.unknown, io.read ],
-    type: [ type.unknown, io.persist ],
-    averageColor: [ type.color, io.read ],
-    depth: [ type.uint32, io.read ],
-    cutoutHeight: [ type.float32, io.readwrite ],
-    height: [ type.uint32, io.read ],
-    lodEnabled: [ type.boolean, io.read ],
-    hadLodRequests: [ type.boolean, io.read ],
-    cpuMip: [ type.uint32, io.read ],
-    gpuMip: [ type.uint32, io.read ],
-    wrappedRenderTarget: [ type.unknown, io.read ],
-    originalResolution: [ type.uint32, io.read ],
-    originalMemoryUsage: [ type.uint64, io.read ],
-    name: [ type.string, io.readwrite ],
-    arraySize: [ type.uint32, io.read ],
-    cutoutWidth: [ type.float32, io.readwrite ],
-    width: [ type.uint32, io.read ],
-    cutoutX: [ type.float32, io.readwrite ],
-    cutoutY: [ type.float32, io.readwrite ]
+    format: [ type.unknown, edit.read ],
+    type: [ type.unknown, edit.persist ],
+    averageColor: [ type.color, edit.read ],
+    depth: [ type.uint32, edit.read ],
+    cutoutHeight: [ type.float32, edit.readwrite ],
+    height: [ type.uint32, edit.read ],
+    lodEnabled: [ type.boolean, edit.read ],
+    hadLodRequests: [ type.boolean, edit.read ],
+    cpuMip: [ type.uint32, edit.read ],
+    gpuMip: [ type.uint32, edit.read ],
+    wrappedRenderTarget: [ type.unknown, edit.read ],
+    originalResolution: [ type.uint32, edit.read ],
+    originalMemoryUsage: [ type.uint64, edit.read ],
+    name: [ type.string, edit.readwrite ],
+    arraySize: [ type.uint32, edit.read ],
+    cutoutWidth: [ type.float32, edit.readwrite ],
+    width: [ type.uint32, edit.read ],
+    cutoutX: [ type.float32, edit.readwrite ],
+    cutoutY: [ type.float32, edit.readwrite ]
   },
   methods: {
     Initialize: [ carbon.method, impl.adapted, impl.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],

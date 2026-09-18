@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepSetDebugRenderer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that installs the debug renderer subsequent debug drawing routes through. */
@@ -9,7 +9,7 @@ export class TriStepSetDebugRenderer extends TriRenderStep
 {
 
   /** m_debugRenderer (ITr2DebugRendererPtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2DebugRenderer")
   renderer = null;
 

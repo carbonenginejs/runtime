@@ -3,7 +3,7 @@
 //   trinity/trinity/Tr2DirectInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ITr2InstanceData } from "./ITr2InstanceData/index.js";
 
 
@@ -17,17 +17,17 @@ export class Tr2DirectInstanceData extends CjsModel
 {
 
   /** m_aabb.m_max (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   aabbMax = vec3.create();
 
   /** m_aabb.m_min (Vector3) [READ] */
-  @io.read
+  @edit.read
   @type.vec3
   aabbMin = vec3.create();
 
   /** GetCount (MAP_PROPERTY_READONLY "count") - number of instances. */
-  @io.read
+  @edit.read
   @type.uint32
   count = 0;
 

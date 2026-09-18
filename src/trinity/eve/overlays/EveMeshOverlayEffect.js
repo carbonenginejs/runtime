@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/EveMeshOverlayEffect_Blue.cpp
 import { CjsModel } from "#model";
 import { TriBatchType } from "#consts/graphics";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import {
   BELIST_EVENTMASK,
   BELIST_INSERTED,
@@ -20,43 +20,43 @@ import {
 @type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
 export class EveMeshOverlayEffect extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
-  @io.persist
+  @edit.persist
   @type.model("TriCurveSet")
   curveSet = null;
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Effect")
   additiveEffects = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Effect")
   decalEffects = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Effect")
   distortionEffects = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Effect")
   opaqueEffects = [];
 
-  @io.persist
+  @edit.persist
   @type.list("Tr2Effect")
   transparentEffects = [];
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   update = true;
 
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 

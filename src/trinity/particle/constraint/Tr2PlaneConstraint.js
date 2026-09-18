@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, io, type } from "#schema";
+import { impl, edit, type } from "#schema";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -20,58 +20,58 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   #radiusElement = null;
 
   /** m_affectPosition (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   affectPosition = true;
 
   /** m_affectVelocity (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   affectVelocity = true;
 
   /** m_plane (Vector4) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec4
   plane = vec4.fromValues(0, 1, 0, 0);
 
   /** m_elasticity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   elasticity = 1;
 
   /** m_friction (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   friction = 1;
 
   /** m_isValid (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isValid = false;
 
   /** m_onCollisionEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2GenericEmitter")
   onCollisionEmitters = [];
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_particleRadiusComponent (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   particleRadiusComponent = "";
 
   /** m_reflectionNoise (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   reflectionNoise = 0;
 
   /** m_particleRadiusCoefficient (Vector4) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec4
   particleRadiusCoefficient = vec4.fromValues(1, 0, 0, 0);
 

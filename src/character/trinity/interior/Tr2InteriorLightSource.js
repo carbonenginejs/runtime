@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Interior/Tr2InteriorLightSource.h
 //   trinity/trinity/Interior/Tr2InteriorLightSource.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
@@ -16,73 +16,73 @@ export class Tr2InteriorLightSource extends CjsModel
 {
 
   /** m_coneDirection (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   coneDirection = vec3.fromValues(0, -1, 0);
 
   /** m_coneAlphaInner (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   coneAlphaInner = 180;
 
   /** m_coneAlphaOuter (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   coneAlphaOuter = 180;
 
   /** m_specularIntensity (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   specularIntensity = 1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_primaryLighting (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   primaryLighting = true;
 
   /** m_falloff (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   falloff = 1;
 
   /** m_kelvinColor (Tr2KelvinColorPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2KelvinColor")
   kelvinColor = null;
 
   /** m_radius (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   radius = 1;
 
   /** m_position (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_color (Color) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_useKelvinColor (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useKelvinColor = false;
 

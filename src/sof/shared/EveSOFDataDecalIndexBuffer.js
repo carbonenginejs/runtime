@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataDecalIndexBuffer (eve) - generated from schema shapeHash 0c215c06.... */
@@ -9,7 +9,7 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
 {
 
   /** indexBuffer (typedArray) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.typedArray("Uint32Array")
   indexBuffer = new Uint32Array(0);
 

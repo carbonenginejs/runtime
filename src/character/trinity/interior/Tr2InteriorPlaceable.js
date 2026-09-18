@@ -1,5 +1,5 @@
 // Source: trinity/trinity/Interior/Tr2InteriorPlaceable.h
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
@@ -11,55 +11,55 @@ export class Tr2InteriorPlaceable extends CjsModel
 {
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   placeableResPath = "";
 
   /** m_transform (PTriMatrix) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.objectRef("TriMatrix")
   transform = null;
 
   /** m_placeableRes (WodPlaceableResPtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("WodPlaceableRes")
   placeableRes = null;
 
   /** m_display (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   display = true;
 
   /** m_boundingSphere[3] (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   depthOffset = 0;
 
   /** m_variableStore (Tr2VariableStorePtr) [READ] */
-  @io.read
+  @edit.read
   @type.objectRef("Tr2VariableStore")
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_probeOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   probeOffset = vec3.create();
 
   /** m_isUniqueInstance (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   isUnique = false;
 

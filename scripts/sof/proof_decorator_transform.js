@@ -53,7 +53,7 @@ function fieldRecord(Constructor, instance, fieldName) {
   return {
     name: fieldName,
     type: field?.type || null,
-    io: field?.io || null,
+    edit: field?.edit || null,
     schema: field?.schema || null,
     value: valueOf(instance[fieldName]),
   };

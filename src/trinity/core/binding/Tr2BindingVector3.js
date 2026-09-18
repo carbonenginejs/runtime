@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2BindingVector3.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema trinityCore/Tr2BindingVector3.json.).
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
@@ -10,7 +10,7 @@ export class Tr2BindingVector3 extends CjsModel
 {
 
   /** m_value (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   value = vec3.create();
 

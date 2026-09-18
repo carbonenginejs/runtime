@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -18,25 +18,25 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   display = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.rebuild("packedGeometry")
-  @io.persist
+  @edit.rebuild("packedGeometry")
+  @edit.persist
   @type.list("EveHazeSetItem")
   hazes = [];
 
-  @io.persist
+  @edit.persist
   @type.list("EveHazeSetLight")
   lights = [];
 

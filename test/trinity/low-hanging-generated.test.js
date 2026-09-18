@@ -1322,8 +1322,8 @@ test("Carbon light accessors remain backed by one shared CjsLightData", () =>
   assert.equal(smartSpot.lightData.constructor.name, "CjsLightData");
   assert.equal(smartSpot.lightData.innerAngle, 20);
   assert.equal(Object.hasOwn(smartSpot, "innerAngle"), true);
-  assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "innerAngle")?.io?.persist, true);
-  assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "brightness")?.io?.persist, true);
+  assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "innerAngle")?.edit?.persist, true);
+  assert.equal(CjsSchema.getField(EveSmartLightSpotLight, "brightness")?.edit?.persist, true);
 });
 
 test("behavior groups maintain portable DroneAgent counts and spawn positions", () =>

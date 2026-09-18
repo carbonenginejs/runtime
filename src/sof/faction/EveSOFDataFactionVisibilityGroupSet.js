@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** EveSOFDataFactionVisibilityGroupSet (eve) - generated from schema shapeHash da3a6331.... */
@@ -9,7 +9,7 @@ export class EveSOFDataFactionVisibilityGroupSet extends CjsModel
 {
 
   /** m_visibilityGroups (PEveSOFDataGenericStringVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataGenericString")
   visibilityGroups = [];
 

@@ -1,4 +1,4 @@
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
 /** One plan-local authored paper-doll colour selection. */
@@ -6,35 +6,35 @@ import { CjsModel } from "#model";
 export class CjsCharacterAppearanceColorSelection extends CjsModel
 {
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorKey = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorNameA = "";
 
-    @io.readwrite
+    @edit.readwrite
     @type.string
     colorNameBC = null;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     gloss = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.float64
     weight = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     hasGloss = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.uint8
     hasWeight = 0;
 
-    @io.readwrite
+    @edit.readwrite
     @type.model("CjsCharacterOrigin")
     origin = null;
 

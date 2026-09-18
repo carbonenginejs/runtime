@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -25,60 +25,60 @@ export class EveChildInstanceContainer extends EveChildTransform
   #worldVelocity = vec3.create();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_transforms (PEveChildInstanceTransformStructureList) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveChildInstanceTransform")
   transforms = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveChildInheritProperties")
   inheritProperties = null;
 
   /** m_reset (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   reset = true;
 
   /** m_instances (PIEveSpaceObjectChildVector) [READ] */
-  @io.read
+  @edit.read
   @type.list("IEveSpaceObjectChild")
   instances = [];
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   locatorSet = "";
 
   /** m_source (IEveSpaceObjectChildPtr) [PERSISTONLY] */
-  @io.persistOnly
+  @edit.persistOnly
   @type.model("IEveSpaceObjectChild")
   source = null;
 
   /** m_origin (Origin - enum Origin) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   @type.enum("Origin")
   origin = 0;

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { io, type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataPatternLayer } from "./EveSOFDataPatternLayer.js";
 import { EveSOFDataPatternPerHull } from "./EveSOFDataPatternPerHull.js";
@@ -12,32 +12,32 @@ export class EveSOFDataPattern extends CjsModel
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataPatternPerHull")
   projections = [];
 
   /** m_applicationGroups (PEveSOFDataPatternApplicationGroupVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveSOFDataPatternApplicationGroup")
   applicationGroups = [];
 
   /** m_layer1 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternLayer")
   layer1 = null;
 
   /** m_layer2 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.objectRef("EveSOFDataPatternLayer")
   layer2 = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_sof6 (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   sof6 = false;
 

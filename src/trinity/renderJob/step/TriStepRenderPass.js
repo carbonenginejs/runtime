@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepRenderPass.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { PassType } from "../../generated/include/enums.js";
 
@@ -10,13 +10,13 @@ export class TriStepRenderPass extends TriRenderStep
 {
 
   /** m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM] */
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("PassType")
   passType = 0;
 
   /** m_scene (ITr2MultiPassScenePtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("ITr2MultiPassScene")
   scene = null;
 

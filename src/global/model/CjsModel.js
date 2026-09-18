@@ -687,7 +687,7 @@ export class CjsModel extends CjsEventEmitter
 
                     if (structChanged !== null)
                     {
-                        didChange = field.io?.always === true || structChanged;
+                        didChange = field.edit?.always === true || structChanged;
                     }
                     else
                     {
@@ -701,12 +701,12 @@ export class CjsModel extends CjsEventEmitter
 
                         if (mathChanged !== null)
                         {
-                            didChange = field.io?.always === true || mathChanged;
+                            didChange = field.edit?.always === true || mathChanged;
                         }
                         else
                         {
                             const newValue = importSourceValue(incoming, field, importOptions);
-                            didChange = field.io?.always === true || !areEquivalentSourceValues(oldValue, newValue);
+                            didChange = field.edit?.always === true || !areEquivalentSourceValues(oldValue, newValue);
                             if (didChange) out[field.name] = newValue;
                         }
                     }
@@ -928,7 +928,7 @@ CjsSchema.define(CjsModel, { className: "CjsModel" });
 export const carbon = CjsSchema.carbon;
 export { CjsSchema };
 export const impl = CjsSchema.impl;
-export const io = CjsSchema.io;
+export const edit = CjsSchema.edit;
 export const jessica = CjsSchema.jessica;
 export const schema = CjsSchema;
 export const type = CjsSchema.type;
@@ -1074,10 +1074,10 @@ function schemaFieldToModelField(field)
 
 function isWritableModelField(field)
 {
-    const io = field?.io;
-    if (!io) return true;
-    if (io.write || io.persist || io.persistOnly) return true;
-    if (io.read && !io.write) return false;
+    const edit = field?.edit;
+    if (!edit) return true;
+    if (edit.write || edit.persist || edit.persistOnly) return true;
+    if (edit.read && !edit.write) return false;
     return true;
 }
 
@@ -1207,15 +1207,15 @@ function settleChildMutation(target, field, options)
     if (!target.__state.updating) target.UpdateValues(options);
 }
 
-// Adds one field's declared @io.flag / @io.rebuild tokens to their stores.
+// Adds one field's declared @edit.flag / @edit.rebuild tokens to their stores.
 // Duplicate adds are no-ops (Sets). Nothing in the model layer ever clears
 // these stores - getters clear flags, work methods clear rebuild tokens.
 function addDeclaredFieldTokens(target, field)
 {
-    const io = field?.io;
-    if (!io) return;
-    if (io.flag) for (const token of io.flag) target.__state.flags.add(token);
-    if (io.rebuild) for (const token of io.rebuild) target.__state.rebuild.add(token);
+    const edit = field?.edit;
+    if (!edit) return;
+    if (edit.flag) for (const token of edit.flag) target.__state.flags.add(token);
+    if (edit.rebuild) for (const token of edit.rebuild) target.__state.rebuild.add(token);
 }
 
 // Construction / broad invalidation: every declared token applies.
@@ -1398,8 +1398,8 @@ function exportEnumFieldValue(value, spec, Constructor, options)
 
 function isPersistedModelField(field)
 {
-    const io = field?.io;
-    return !!(io && (io.persist || io.persistOnly));
+    const edit = field?.edit;
+    return !!(edit && (edit.persist || edit.persistOnly));
 }
 
 function declaredExportClassName(fieldType)
@@ -1923,7 +1923,7 @@ function applyIncomingReference(out, field, incoming, options)
         return true;
     }
 
-    if (field.io?.always !== true && Object.is(out[fieldName], resolved)) return false;
+    if (field.edit?.always !== true && Object.is(out[fieldName], resolved)) return false;
     out[fieldName] = resolved;
     return true;
 }

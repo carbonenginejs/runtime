@@ -59,13 +59,13 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
     CjsSchema.defineField(
         SchemaDefaultCaptureProbe,
         "ID",
-        "io",
+        "edit",
         { read: true }
     );
     CjsSchema.defineField(
         SchemaDefaultCaptureProbe,
         "optional",
-        "io",
+        "edit",
         { read: true }
     );
 

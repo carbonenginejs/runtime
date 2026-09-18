@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -19,51 +19,51 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @carbon.inherit(ITriEffectTextureParameter)
 export class TriTextureParameter extends CjsParameter
 {
-  @io.flag("resource")
-  @io.notify
-  @io.persist
+  @edit.flag("resource")
+  @edit.notify
+  @edit.persist
   @type.path
   resourcePath = "";
 
-  @io.persist
+  @edit.persist
   @type.uint32
   uavMipLevel = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   positionScale = 0;
 
-  @io.read
+  @edit.read
   @type.objectRef("ITr2TextureProvider")
   resource = null;
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentTechnique = false;
 
-  @io.read
+  @edit.read
   @type.boolean
   usedByCurrentEffect = false;
 
-  @io.flag("effectHandles")
-  @io.notify
-  @io.persist
+  @edit.flag("effectHandles")
+  @edit.notify
+  @edit.persist
   @type.string
   name = "";
 
-  @io.read
+  @edit.read
   @type.float32
   uvDensityScale0 = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   uvDensityScale1 = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   uvDensityScale2 = 0;
 
-  @io.read
+  @edit.read
   @type.float32
   uvDensityScale3 = 0;
 

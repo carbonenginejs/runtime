@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
@@ -20,75 +20,75 @@ export class EveChildParticleSystem extends EveChildTransform
 {
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("ReflectionMode")
   reflectionMode = 3;
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2InstancedMesh")
   mesh = null;
 
   /** m_lodClampLow (uint32_t) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.uint32
   lodClampLow = 5;
 
   /** m_lodSphereRadius (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lodSphereRadius = 0;
 
   /** m_useDynamicLod (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   useDynamicLod = false;
 
   /** m_lodFactorLow (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lodFactorLow = 0.125;
 
   /** m_lodFactorMedium (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   lodFactorMedium = 0.25;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   minScreenSize = 0;
 
   /** m_currentScreenSize (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   currentScreenSize = -1;
 

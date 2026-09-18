@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -56,144 +56,144 @@ export class EveChildEffectPropagator extends EveChildContainer
 {
 
   /** m_type (PropagationType - enum PropagationType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("PropagationType")
   propagationType = 0;
 
   /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int32
   @type.enum("TriggerType")
   triggerMethood = 0;
 
   /** m_stopAfterNumTriggers (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   stopAfterNumTriggers = -1;
 
   /** m_randScaleMin (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   randScaleMin = 1;
 
   /** m_randScaleMax (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   randScaleMax = 1;
 
   /** m_triggerSphereOffset (Vector3) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.vec3
   triggerSphereOffset = vec3.create();
 
   /** m_effect (EveChildInstanceContainerPtr) [PERSISTONLY, NOTIFY] */
-  @io.notify
-  @io.persistOnly
+  @edit.notify
+  @edit.persistOnly
   @type.model("EveChildInstanceContainer")
   effect = null;
 
   /** m_stopToClearDelay (float) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.float32
   stopToClearDelay = 0;
 
   /** m_rndClosenessPreference (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   ClosenessPreference = 0.25;
 
   /** m_effectScaling (Vector3) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.vec3
   effectScaling = vec3.fromValues(1, 1, 1);
 
   /** m_effectDuration (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   durationPerEffect = 3;
 
   /** m_isPlaying (bool) [READ] */
-  @io.read
+  @edit.read
   @type.boolean
   isPlaying = false;
 
   /** m_localLocators (EveLocatorSetsPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("EveLocatorSets")
   localLocators = null;
 
   /** m_triggerSphereRadiusCurve (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.model("Tr2CurveScalar")
   triggerSphereRadiusCurve = null;
 
   /** m_triggerSphereScalarMulti (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   triggerSphereScalarMulti = 1;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.string
   locatorSetName = "";
 
   /** m_completeness (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   completeness = 1;
 
   /** m_replayAfterDelay (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   replayAfterDelay = false;
 
   /** m_trigger (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   trigger = false;
 
   /** m_rndMinRangeThreshold (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   minRangeThreshold = 0;
 
   /** m_playTime (float) [READ] */
-  @io.read
+  @edit.read
   @type.float32
   playTime = 0;
 
   /** m_rndRange (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   range = 500;
 
   /** m_numTriggers (int64_t) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.int64
   numTriggers = 10;
 
   /** m_frequency (float) [READWRITE, PERSIST, NOTIFY] */
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   frequency = 1;
 
   /** m_skipCleanup (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   skipCleanup = false;
 

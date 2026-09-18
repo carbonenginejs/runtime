@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/UI/EveUiObject.h
 // Source: trinity/trinity/Eve/UI/EveUiObject.cpp
 // Source: trinity/trinity/Eve/UI/EveUiObject_Blue.cpp
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
 import { TriBatchType } from "#consts/graphics";
 
@@ -11,7 +11,7 @@ export class EveUiObject extends EveSpaceObject2
 {
 
   /** m_usePerspectiveScale (bool) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.boolean
   usePerspectiveScale = true;
 

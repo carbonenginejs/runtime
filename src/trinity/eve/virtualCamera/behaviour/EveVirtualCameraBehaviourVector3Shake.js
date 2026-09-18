@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraBehaviour.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 import { TriPerlinCurve } from "../../../curves/curve/TriPerlinCurve.js";
@@ -20,23 +20,23 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 {
   static #nextPhase = 0;
 
-  @io.persist
+  @edit.persist
   @type.int32
   octaves = 8;
 
-  @io.persist
+  @edit.persist
   @type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   magnitude = vec3.fromValues(1, 0.6, 0.2);
 
-  @io.persist
+  @edit.persist
   @type.float32
   perlineScale = 1;
 
-  @io.persist
+  @edit.persist
   @type.boolean
   scaleByView = true;
 

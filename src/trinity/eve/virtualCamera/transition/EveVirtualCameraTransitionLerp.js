@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.h
 // Source: trinity/trinity/Eve/VirtualCamera/EveVirtualCameraTransition.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveScalar } from "../../../curves/curve/Tr2CurveScalar.js";
 import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase.js";
 
@@ -16,7 +16,7 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
 })
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
-  @io.persist
+  @edit.persist
   @type.float32
   tansitionTime = 1;
 

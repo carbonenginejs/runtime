@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2FollowCurveKey.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 
 
@@ -17,62 +17,62 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 })
 export class Tr2CameraFollowCurveKey extends CjsModel
 {
-  @io.persist
+  @edit.persist
   @type.int32
   @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
-  @io.notify
-  @io.persist
+  @edit.notify
+  @edit.persist
   @type.float32
   fovMultiplication = 0.5;
 
-  @io.persist
+  @edit.persist
   @type.vec3
   offset = vec3.create();
 
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.boolean
   enabled = true;
 
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
-  @io.persist
+  @edit.persist
   @type.float32
   angleZero = Math.PI / 2;
 
-  @io.persist
+  @edit.persist
   @type.float32
   angle = 0;
 
-  @io.readwrite
+  @edit.readwrite
   @type.vec3
   objectBounds = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   leftTangent = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   boxPosition = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.vec3
   rightTangent = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   rotatedLeftTangent = vec3.create();
 
-  @io.read
+  @edit.read
   @type.vec3
   rotatedRightTangent = vec3.create();
 
-  @io.persist
+  @edit.persist
   @type.float32
   time = 0;
 

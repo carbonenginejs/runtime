@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SocketParameters/EveSocketParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { Tr2ExternalParameter } from "../../core/binding/Tr2ExternalParameter.js";
 import { IEveSocketParameter } from "./IEveSocketParameter.js";
 
@@ -10,12 +10,12 @@ export class EveSocketParameterString extends IEveSocketParameter
 {
 
   /** m_name (std::string) */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_value (std::string) */
-  @io.persist
+  @edit.persist
   @type.string
   value = "";
 

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepUpdate.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A render step that ticks one updateable object with the frame times. */
@@ -9,7 +9,7 @@ export class TriStepUpdate extends TriRenderStep
 {
 
   /** m_object (ITr2UpdateablePtr) [READWRITE] */
-  @io.readwrite
+  @edit.readwrite
   @type.objectRef("ITr2Updateable")
   object = null;
 

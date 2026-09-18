@@ -1,6 +1,6 @@
 // Source: trinity/trinity/RenderJob/TriStepTestBlocking.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 
 /** A test step that reports itself in progress until its flag is cleared, so a job's resume path can be exercised. */
@@ -9,7 +9,7 @@ export class TriStepTestBlocking extends TriRenderStep
 {
 
   /** m_inProgress (bool) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.boolean
   inProgress = true;
 

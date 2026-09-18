@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/SelectionMethods/EveProceduralMethodRandom.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, impl, io, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.js";
 import { createMinStdRandom } from "../../../CjsDistributionRandom.js";
 
@@ -20,38 +20,38 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   #parameterMapping = [];
 
   /** m_parameters (PEveProceduralMethodRandomParameterVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("EveProceduralMethodRandomParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   name = "";
 
   /** m_totalWeight (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   totalWeight = 0;
 
   /** m_seedName (BlueSharedString) [READWRITE, PERSIST] */
-  @io.persist
+  @edit.persist
   @type.string
   seedName = "";
 
   /** m_selectedChildIndex (int) [READ] */
-  @io.read
+  @edit.read
   @type.int32
   selectedChild = -1;
 
   /** m_seed (float) [READWRITE, NOTIFY] */
-  @io.notify
-  @io.readwrite
+  @edit.notify
+  @edit.readwrite
   @type.float32
   seed_temp = -1;
 
