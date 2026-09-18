@@ -116,10 +116,10 @@ const CHANNEL_PACK_DEFAULTS = Object.freeze({
 
 /** Packing families, and the output name each restores. */
 const CHANNEL_PACK_FAMILIES = Object.freeze({
-    "pmdg-channel-pack": "PmdgMap",
-    "ambient-occlusion-channel-pack": "AmbientOcclusionMap",
-    "curvature-channel-pack": "CurvatureMap",
-    "noise-channel-pack": "NoiseArrayMap"
+    "pmdg-channel-pack": "PmdgPackMap",
+    "ambient-occlusion-channel-pack": "AmbientOcclusionPackMap",
+    "curvature-channel-pack": "CurvaturePackMap",
+    "noise-channel-pack": "NoisePackMap"
 });
 
 const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({

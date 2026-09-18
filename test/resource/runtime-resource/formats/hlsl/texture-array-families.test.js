@@ -196,7 +196,16 @@ test("every declared family is well formed", () =>
     {
         assert.ok(definition.parameters.length >= definition.minimum, definition.family);
         assert.equal(new Set(definition.parameters).size, definition.parameters.length, definition.family);
-        assert.match(definition.outputName, /ArrayMap$/u, definition.family);
+        // The name has to say the shape. An array's output is an array and
+        // ends `ArrayMap`; a pack's is one texture whose channels are its
+        // members and ends `PackMap`. A pack called `SomethingMap` would also
+        // be free to collide with a real parameter of that name, which is how
+        // `NoiseArrayMap` was caught shadowing the asteroid shader's `NoiseMap`.
+        assert.match(
+            definition.outputName,
+            (definition.kind ?? "array") === "pack" ? /PackMap$/u : /ArrayMap$/u,
+            definition.family
+        );
     }
 
     assert.equal(

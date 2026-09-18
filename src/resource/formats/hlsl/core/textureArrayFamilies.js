@@ -45,7 +45,10 @@
  *   annotation. They cannot share a texel.
  *
  * - `pack` - different kinds of SCALAR data at one coordinate, each read for a
- *   single channel. Four of those are one RGBA texture, read once. An array
+ *   single channel. Its output name ends `PackMap` where an array's ends
+ *   `ArrayMap`, so the name never claims a shape the texture does not have -
+ *   and so a pack can never take the name of a map the shader already has, the
+ *   way a `NoiseMap` pack would have shadowed the asteroid shader's own. Four of those are one RGBA texture, read once. An array
  *   would also cost one unit, but it would cost four fetches to read four
  *   scalars and a `sampler2DArray` for data that was never layered.
  *
@@ -137,14 +140,14 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     Object.freeze({
         kind: "pack",
         family: "ambient-occlusion-channel-pack",
-        outputName: "AmbientOcclusionMap",
+        outputName: "AmbientOcclusionPackMap",
         parameters: Object.freeze([ "AmbientOcclusion1Map", "AmbientOcclusion2Map" ]),
         minimum: 2
     }),
     Object.freeze({
         kind: "pack",
         family: "curvature-channel-pack",
-        outputName: "CurvatureMap",
+        outputName: "CurvaturePackMap",
         parameters: Object.freeze([ "Curvature1Map", "Curvature2Map" ]),
         minimum: 2
     }),
@@ -154,7 +157,7 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     Object.freeze({
         kind: "pack",
         family: "noise-channel-pack",
-        outputName: "NoiseArrayMap",
+        outputName: "NoisePackMap",
         parameters: Object.freeze([ "Noise1Map", "Noise2Map", "Noise3Map" ]),
         minimum: 2
     }),
@@ -163,7 +166,7 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     Object.freeze({
         kind: "pack",
         family: "pmdg-channel-pack",
-        outputName: "PmdgMap",
+        outputName: "PmdgPackMap",
         // Channel order follows the REGISTERS - t4, t8, t9, t10 on both games,
         // in that order - rather than the acronym, because the recogniser
         // requires ascending registers in parameter order. Which scalar lands
