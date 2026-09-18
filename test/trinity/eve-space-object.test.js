@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
-import { BlueListEvent } from "../../npm/dist/global/consts/index.js";
+import { BLUELISTEVENT } from "../../npm/dist/global/consts/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import {
   EveEffectRoot2,
@@ -1309,24 +1309,24 @@ test("decal priority is its index, renumbered on every structural change", () =>
   object.decals.push(first, second, third);
 
   // An insert at the front renumbers everything from that position.
-  object.OnListModified(BlueListEvent.INSERTED, 0, 0, first, object.decals);
+  object.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, first, object.decals);
   assert.deepEqual([ first.priority, second.priority, third.priority ], [ 0, 1, 2 ]);
 
   // A swap renumbers exactly the two positions (cpp:455-459).
   first.priority = null;
   third.priority = null;
-  object.OnListModified(BlueListEvent.SWAPPED, 0, 2, null, object.decals);
+  object.OnListModified(BLUELISTEVENT.BELIST_SWAPPED, 0, 2, null, object.decals);
   assert.deepEqual([ first.priority, third.priority ], [ 0, 2 ]);
 
   // A move renumbers the span between the two, inclusive (cpp:460-467).
   first.priority = null;
   second.priority = null;
   third.priority = null;
-  object.OnListModified(BlueListEvent.MOVED, 2, 0, null, object.decals);
+  object.OnListModified(BLUELISTEVENT.BELIST_MOVED, 2, 0, null, object.decals);
   assert.deepEqual([ first.priority, second.priority, third.priority ], [ 0, 1, 2 ]);
 
   // Negative control: a list this object does not own is not renumbered.
   first.priority = null;
-  object.OnListModified(BlueListEvent.INSERTED, 0, 0, null, [ first ]);
+  object.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, null, [ first ]);
   assert.equal(first.priority, null);
 });

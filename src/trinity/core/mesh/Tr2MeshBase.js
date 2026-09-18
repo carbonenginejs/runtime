@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2MeshBase.cpp
 // Source: trinity/trinity/Tr2MeshBase_Blue.cpp
 import { Tr2MeshArea } from "./Tr2MeshArea.js";
-import { BlueListEvent } from "#consts/trinity";
+import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, io, type, CjsSchema } from "#schema";
@@ -237,18 +237,18 @@ export class Tr2MeshBase extends CjsModel
 
     // Carbon's arms are guarded by BlueCastPtr to Tr2MeshAreaPtr - a real cast,
     // so a non-area entry is skipped rather than assumed to answer.
-    switch (event & BlueListEvent.EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BlueListEvent.INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         CjsSchema.cast(value, Tr2MeshArea)?.AddOwnerMesh(this);
         break;
-      case BlueListEvent.REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         CjsSchema.cast(value, Tr2MeshArea)?.RemoveOwnerMesh(this);
         break;
-      case BlueListEvent.LOADFINISHED:
+      case BLUELISTEVENT.BELIST_LOADFINISHED:
         for (const area of list) CjsSchema.cast(area, Tr2MeshArea)?.AddOwnerMesh(this);
         break;
-      case BlueListEvent.UNLOADSTART:
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
         for (const area of list) CjsSchema.cast(area, Tr2MeshArea)?.RemoveOwnerMesh(this);
         break;
       default:

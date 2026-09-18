@@ -75,6 +75,16 @@ Carbon's once-per-object hook, called after a read has written every member. A c
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:IListNotify -->
+## `IListNotify`
+
+The single observer a Blue list notifies, and the owner of the `BLUELISTEVENT` vocabulary. Every event fires after the mutation, and load and unload OR a flag on top, so mask before comparing.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IListNotify.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:INotify -->
 ## `INotify`
 

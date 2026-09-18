@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { EveEntity } from "../EveEntity.js";
 import { carbon, impl, io, type, CjsSchema } from "#schema";
-import { BlueListEvent } from "#consts/trinity";
+import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { EveChildTransform } from "./EveChildTransform.js";
 
@@ -65,18 +65,18 @@ export class EveChildPlug extends EveChildTransform
   @impl.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    const masked = event & BlueListEvent.EVENTMASK;
-    if ((event & BlueListEvent.LOADING) !== 0) return;
+    const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if ((event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
 
     if (list === this.controllers)
     {
-      if (masked === BlueListEvent.INSERTED && value)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
         for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
       }
-      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
-      else if (masked === BlueListEvent.UNLOADSTART)
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller.Unlink();
       }
@@ -86,14 +86,14 @@ export class EveChildPlug extends EveChildTransform
     if (list !== this.objects) return;
 
     // Carbon's shared HandleChildrenListModified (EveSpaceObjectChild.h:340-367).
-    if (masked === BlueListEvent.INSERTED && value) this.RegisterChild(value);
-    else if (masked === BlueListEvent.REMOVED && value) this.UnregisterChild(value);
-    else if (masked === BlueListEvent.UNLOADSTART)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED && value) this.RegisterChild(value);
+    else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) this.UnregisterChild(value);
+    else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
     {
       for (const child of this.objects) this.UnregisterChild(child);
     }
 
-    if (masked === BlueListEvent.INSERTED && value)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
     {
       for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
     }
@@ -102,17 +102,17 @@ export class EveChildPlug extends EveChildTransform
     const registry = this.GetComponentRegistry();
     if (!registry) return;
     // Carbon casts to EveEntityPtr before registering (cpp:82-96).
-    if (masked === BlueListEvent.INSERTED)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED)
     {
       const entity = CjsSchema.cast(value, EveEntity);
       if (entity) entity.Register(registry);
     }
-    else if (masked === BlueListEvent.REMOVED)
+    else if (masked === BLUELISTEVENT.BELIST_REMOVED)
     {
       const entity = CjsSchema.cast(value, EveEntity);
       if (entity) entity.UnRegister(registry);
     }
-    else if (masked === BlueListEvent.UNLOADSTART)
+    else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
     {
       for (const child of this.objects)
       {

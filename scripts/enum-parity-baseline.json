@@ -3,7 +3,6 @@
   "audio/src/AudManager.h#AudioState": "no JavaScript vocabulary for enum AudioState (audio/src/AudManager.h:34); port it to its owning class, its family module, or global/consts.",
   "audio/src/AudManager.h#SoundBankStatus": "no JavaScript vocabulary for enum SoundBankStatus (audio/src/AudManager.h:25); port it to its owning class, its family module, or global/consts.",
   "blueexposure/include/BlueScriptCallback.h#BlueScriptCallbackStatus::Status": "enum BlueScriptCallbackStatus::Status (blueexposure/include/BlueScriptCallback.h:29) has no attributable vocabulary: 1 share its name but none cites this header. Cite the donor in the file that ports it.",
-  "blueexposure/include/IList.h#BLUELISTEVENT": "no JavaScript vocabulary for enum BLUELISTEVENT (blueexposure/include/IList.h:38); port it to its owning class, its family module, or global/consts.",
   "blueexposure/include/IList.h#LISTOPS": "no JavaScript vocabulary for enum LISTOPS (blueexposure/include/IList.h:16); port it to its owning class, its family module, or global/consts.",
   "trinity/shadercompiler/EffectData.h#AnnotationType": "no JavaScript vocabulary for enum AnnotationType (trinity/shadercompiler/EffectData.h:35); port it to its owning class, its family module, or global/consts.",
   "trinity/shadercompiler/EffectData.h#ConstantType": "no JavaScript vocabulary for enum ConstantType (trinity/shadercompiler/EffectData.h:24); port it to its owning class, its family module, or global/consts.",

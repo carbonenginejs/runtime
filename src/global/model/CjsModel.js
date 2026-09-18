@@ -1,7 +1,7 @@
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
-import { BlueListEvent } from "../consts/trinity.js";
+import { BLUELISTEVENT } from "../consts/blue.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
@@ -189,7 +189,7 @@ export class CjsModel extends CjsEventEmitter
         const index = collection.length;
         collection.push(child);
         recordChildMutation(target, field, options);
-        notifyListModified(target, BlueListEvent.INSERTED, index, 0, child, collection);
+        notifyListModified(target, BLUELISTEVENT.BELIST_INSERTED, index, 0, child, collection);
 
         const payload = createChildEventPayload(target, field.name, child, index, options);
         invokeChildCallback(options.onAdded, target, payload, "onAdded");
@@ -218,7 +218,7 @@ export class CjsModel extends CjsEventEmitter
 
         collection.splice(index, 1);
         recordChildMutation(target, field, options);
-        notifyListModified(target, BlueListEvent.REMOVED, index, 0, child, collection);
+        notifyListModified(target, BLUELISTEVENT.BELIST_REMOVED, index, 0, child, collection);
 
         const payload = createChildEventPayload(target, field.name, child, index, options);
         invokeChildCallback(options.onRemoved, target, payload, "onRemoved");
@@ -291,7 +291,7 @@ export class CjsModel extends CjsEventEmitter
         assertChildCallback(options.onCleared, "onCleared");
 
         recordChildMutation(target, field, options);
-        notifyListModified(target, BlueListEvent.UNLOADSTART, 0, 0, null, collection);
+        notifyListModified(target, BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, collection);
         collection.length = 0;
 
         const payload = {

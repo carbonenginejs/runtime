@@ -6,6 +6,7 @@ export * from "./IBlueDynamicResourceConstructor.js";
 export * from "./IBlueResMan.js";
 export * from "./IBlueResManNotifications.js";
 export * from "./IInitialize.js";
+export * from "./IListNotify.js";
 export * from "./INotify.js";
 export * from "./CjsBluePaths.js";
 export * from "./IBluePaths.js";

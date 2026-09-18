@@ -4,7 +4,6 @@
   "blue/include/BitPacker.h#BitPacker": "No exact live class declaration for class BitPacker (blue/include/BitPacker.h:109); review missing port or explicit JS equivalent.",
   "blue/include/BitPacker.h#BitPackerCore": "No exact live class declaration for class BitPackerCore (blue/include/BitPacker.h:37); review missing port or explicit JS equivalent.",
   "blue/include/BitPacker.h#BitPackerManaged": "No exact live class declaration for class BitPackerManaged (blue/include/BitPacker.h:118); review missing port or explicit JS equivalent.",
-  "blueexposure/include/IList.h#IListNotify": "No exact live class declaration for interface IListNotify (blueexposure/include/IList.h:57); review missing port or explicit JS equivalent.",
   "blueexposure/include/IList.h#ListInfo": "No exact live class declaration for struct ListInfo (blueexposure/include/IList.h:29); review missing port or explicit JS equivalent.",
   "math/include/Color.h#Color": "No exact live class declaration for struct Color (math/include/Color.h:7); review missing port or explicit JS equivalent.",
   "parser/include/ccpparser.h#CcpParser::Observer": "No exact live class declaration for struct CcpParser::Observer (parser/include/ccpparser.h:13); review missing port or explicit JS equivalent.",
@@ -88,6 +87,7 @@
   "trinity/trinity/Tr2MeshArea.h#Tr2MeshAreaItem": "No exact live class declaration for struct Tr2MeshAreaItem (trinity/trinity/Tr2MeshArea.h:114); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2PerObjectData.h#Tr2PerAreaDataSkinned": "No exact live class declaration for class Tr2PerAreaDataSkinned (trinity/trinity/Tr2PerObjectData.h:152); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2PerObjectData.h#Tr2PerObjectDataSkinned": "No exact live class declaration for class Tr2PerObjectDataSkinned (trinity/trinity/Tr2PerObjectData.h:100); review missing port or explicit JS equivalent.",
+  "trinity/trinity/Tr2RenderContext.h#Tr2RenderContextBase": "No exact live class declaration for struct Tr2RenderContextBase (trinity/trinity/Tr2RenderContext.h:25); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2RenderUtils.h#Tr2ScreenVertex": "No exact live class declaration for struct Tr2ScreenVertex (trinity/trinity/Tr2RenderUtils.h:13); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2RingBuffer.h#Tr2ChildBoosterInstanceData": "No exact live class declaration for struct Tr2ChildBoosterInstanceData (trinity/trinity/Tr2RingBuffer.h:19); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2RingBuffer.h#Tr2MorphTargetAnimationData": "No exact live class declaration for struct Tr2MorphTargetAnimationData (trinity/trinity/Tr2RingBuffer.h:10); review missing port or explicit JS equivalent.",
@@ -111,6 +111,5 @@
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingAL::UpscalingInfo": "No exact live class declaration for struct Tr2UpscalingAL::UpscalingInfo (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:91); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingContextAL": "No exact live class declaration for class Tr2UpscalingContextAL (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:166); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h#Tr2UpscalingTechniqueAL": "No exact live class declaration for class Tr2UpscalingTechniqueAL (trinity/trinityal/include/upscaling/Tr2UpscalingAL.h:131); review missing port or explicit JS equivalent.",
-  "trinity/trinityal/metal/MetalUtils.h#TrinityALImpl::MetalUtils": "No exact live class declaration for class TrinityALImpl::MetalUtils (trinity/trinityal/metal/MetalUtils.h:33); review missing port or explicit JS equivalent.",
-  "trinity/trinity/Tr2RenderContext.h#Tr2RenderContextBase": "No exact live class declaration for struct Tr2RenderContextBase (trinity/trinity/Tr2RenderContext.h:25); review missing port or explicit JS equivalent."
+  "trinity/trinityal/metal/MetalUtils.h#TrinityALImpl::MetalUtils": "No exact live class declaration for class TrinityALImpl::MetalUtils (trinity/trinityal/metal/MetalUtils.h:33); review missing port or explicit JS equivalent."
 }

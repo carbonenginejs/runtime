@@ -184,6 +184,7 @@
     "#utils/resfile": "./src/global/utils/resFile.js",
     "#utils/*": "./src/global/utils/*.js",
     "#consts": "./src/global/consts/index.js",
+    "#consts/blue": "./src/global/consts/blue.js",
     "#consts/media": "./src/global/consts/media/index.js",
     "#consts/graphics": "./src/global/consts/graphics/index.js",
     "#consts/render-context": "./src/global/consts/renderContext/index.js",

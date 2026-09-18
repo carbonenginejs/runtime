@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { EveEntity } from "../EveEntity.js";
-import { BlueListEvent } from "#consts/trinity";
+import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { IEveInheritPropertiesOwner, withIEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -462,18 +462,18 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
   @impl.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    const masked = event & BlueListEvent.EVENTMASK;
-    const loading = (event & BlueListEvent.LOADING) !== 0;
+    const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    const loading = (event & BLUELISTEVENT.BELIST_LOADING) !== 0;
 
     if (list === this.controllers && !loading)
     {
-      if (masked === BlueListEvent.INSERTED && value)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
         for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
       }
-      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
-      else if (masked === BlueListEvent.UNLOADSTART)
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller.Unlink();
       }
@@ -481,14 +481,14 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
     else if (list === this.objects && !loading)
     {
       // Carbon's shared HandleChildrenListModified (EveSpaceObjectChild.h:340-367).
-      if (masked === BlueListEvent.INSERTED && value) this.RegisterChild(value);
-      else if (masked === BlueListEvent.REMOVED && value) this.UnregisterChild(value);
-      else if (masked === BlueListEvent.UNLOADSTART)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED && value) this.RegisterChild(value);
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) this.UnregisterChild(value);
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const child of this.objects) this.UnregisterChild(child);
       }
 
-      if (masked === BlueListEvent.INSERTED && value)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
       }
@@ -501,7 +501,7 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
       this.#NotifyEntityRegistration(masked, value, this.attachments);
     }
 
-    if (list === this.objects && masked === BlueListEvent.INSERTED && this.inheritProperties
+    if (list === this.objects && masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
       && value instanceof IEveInheritPropertiesOwner)
     {
       value.SetInheritProperties(this.inheritProperties.GetProperties());
@@ -519,17 +519,17 @@ export class EveChildContainer extends withIEveInheritPropertiesOwner(withITr2Re
     if (!registry) return;
 
     // Carbon casts to EveEntityPtr before registering (cpp:152-176).
-    if (masked === BlueListEvent.INSERTED)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED)
     {
       const entity = CjsSchema.cast(value, EveEntity);
       if (entity) entity.Register(registry);
     }
-    else if (masked === BlueListEvent.REMOVED)
+    else if (masked === BLUELISTEVENT.BELIST_REMOVED)
     {
       const entity = CjsSchema.cast(value, EveEntity);
       if (entity) entity.UnRegister(registry);
     }
-    else if (masked === BlueListEvent.UNLOADSTART)
+    else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
     {
       for (const member of members)
       {

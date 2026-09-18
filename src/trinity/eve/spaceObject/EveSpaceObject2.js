@@ -16,7 +16,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { BlueListEvent } from "#consts/trinity";
+import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -654,18 +654,18 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   @impl.implemented
   OnListModified(event, key = 0, key2 = 0, value = null, list = null)
   {
-    const masked = event & BlueListEvent.EVENTMASK;
-    const loading = (event & BlueListEvent.LOADING) !== 0;
+    const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    const loading = (event & BLUELISTEVENT.BELIST_LOADING) !== 0;
 
     if (list === this.controllers && !loading)
     {
-      if (masked === BlueListEvent.INSERTED && value)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
         EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
       }
-      else if (masked === BlueListEvent.REMOVED && value) value.Unlink();
-      else if (masked === BlueListEvent.UNLOADSTART)
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller.Unlink();
       }
@@ -673,7 +673,7 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
     else if (list === this.effectChildren && !loading)
     {
       const registry = this.IsInRegistry() ? this.GetComponentRegistry() : null;
-      if (masked === BlueListEvent.INSERTED)
+      if (masked === BLUELISTEVENT.BELIST_INSERTED)
       {
         value.SetOwner(this);
         EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
@@ -681,13 +681,13 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
         const inserted = registry ? CjsSchema.cast(value, EveEntity) : null;
         if (inserted) inserted.Register(registry);
       }
-      else if (masked === BlueListEvent.REMOVED)
+      else if (masked === BLUELISTEVENT.BELIST_REMOVED)
       {
         const removed = registry ? CjsSchema.cast(value, EveEntity) : null;
         if (removed) removed.UnRegister(registry);
         value.SetOwner(null);
       }
-      else if (masked === BlueListEvent.UNLOADSTART)
+      else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const child of this.effectChildren)
         {
@@ -697,14 +697,14 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
         }
       }
     }
-    else if (list === this.overlayEffects && !loading && masked === BlueListEvent.INSERTED)
+    else if (list === this.overlayEffects && !loading && masked === BLUELISTEVENT.BELIST_INSERTED)
     {
       EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
     }
 
     // Independent of the LOADING guard above: inherited properties reach a
     // child or light however it arrived (cpp:389-411).
-    if (masked === BlueListEvent.INSERTED && this.inheritProperties
+    if (masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
       && (list === this.effectChildren || list === this.lights)
       && value instanceof IEveInheritPropertiesOwner)
     {
@@ -724,11 +724,11 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   {
     const registry = this.GetComponentRegistry();
     if (!registry) return;
-    if (masked === BlueListEvent.UNLOADSTART || (masked === BlueListEvent.REMOVED && !this.lights.length))
+    if (masked === BLUELISTEVENT.BELIST_UNLOADSTART || (masked === BLUELISTEVENT.BELIST_REMOVED && !this.lights.length))
     {
       registry.UnRegisterComponent(EveComponentType.LightOwner, this);
     }
-    else if (masked === BlueListEvent.INSERTED && this.lights.length === 1)
+    else if (masked === BLUELISTEVENT.BELIST_INSERTED && this.lights.length === 1)
     {
       registry.RegisterComponent(EveComponentType.LightOwner, this);
     }
@@ -743,23 +743,23 @@ export class EveSpaceObject2 extends withIEveInheritPropertiesOwner(withIEveSpac
   #OnDecalListModified(masked, key, key2)
   {
     const decals = this.decals;
-    if (masked === BlueListEvent.INSERTED && key === decals.length)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED && key === decals.length)
     {
       decals[decals.length - 1]?.SetPriority(decals.length - 1);
       return;
     }
-    if (masked === BlueListEvent.INSERTED || masked === BlueListEvent.REMOVED)
+    if (masked === BLUELISTEVENT.BELIST_INSERTED || masked === BLUELISTEVENT.BELIST_REMOVED)
     {
       for (let index = key; index < decals.length; index++) decals[index]?.SetPriority(index);
       return;
     }
-    if (masked === BlueListEvent.SWAPPED)
+    if (masked === BLUELISTEVENT.BELIST_SWAPPED)
     {
       decals[key]?.SetPriority(key);
       decals[key2]?.SetPriority(key2);
       return;
     }
-    if (masked === BlueListEvent.MOVED)
+    if (masked === BLUELISTEVENT.BELIST_MOVED)
     {
       const low = Math.min(key, key2);
       const high = Math.max(key, key2);
