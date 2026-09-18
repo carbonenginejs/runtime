@@ -36,7 +36,10 @@ export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
     // members and their layer order.
     "roughness-map-array",
     "atlas-map-array",
-    "dirt-map-array"
+    "dirt-map-array",
+    // Last in the lowering order, so it appears only in a container nothing
+    // above it could bring under the unit budget. Both games reach it.
+    "pmdg-map-array"
 ]);
 
 /** Constants a `detail-map-array` transform restores rather than storing. */

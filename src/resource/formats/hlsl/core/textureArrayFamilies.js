@@ -28,37 +28,44 @@
  */
 
 /**
- * ## PMDG is a per-target family, and it is not in this table
+ * ## Lowering is ordered, and it stops as soon as the program fits
  *
- * `GlowMap`, `MaterialMap`, `PaintMaskMap` and `DirtMap` were one packed texture
- * until CCP unpacked them, and they are the obvious next family. A row for them
- * was written here and removed, because a row here applies to every target that
- * translates a shader carrying those names - and this one must not.
+ * A row here does not mean "always merge". The families are tried in table
+ * order and only as many as the unit budget requires; a stage that already fits
+ * merges nothing and keeps its own samplers. That is cheaper at runtime - every
+ * array that is never built is an aggregate that never has to be composed - and
+ * it is what makes the merge invisible to a consumer, because a permutation
+ * that drops below the budget simply stops merging.
  *
- * **It never goes on EVE** (operator, 2026-09-18, standing). EVE's quad family
- * is cleared by the light lowering alone, so merging there buys nothing and
- * spends the live game's working hulls to do it.
+ * ## Why PMDG is an ordinary row and not a per-target exception
  *
- * **EVE Frontier cannot do without it.** Measured at build 3512930 on
- * `.sm_depth`, maxima across all bodies so `SOPPT_ENABLED` is included: the
- * light lowering leaves the worst case at 18-19, and only PMDG brings the family
- * under 16. That is the opposite of EVE, which is the whole reason this cannot
- * be one rule.
+ * `PaintMaskMap`, `MaterialMap`, `DirtMap` and `GlowMap` were one packed texture
+ * until CCP unpacked them. A row for them was written, removed on a standing
+ * "never on EVE" ruling, and restored when that ruling was shown to collapse
+ * into the ordering (operator, 2026-09-18).
  *
- * So the selection is a property of the TARGET, not of the shader, and it
- * arrives the way the other translation decisions do - the emitter takes the
- * family list as a profile key rather than importing this table. A game's
- * profile names what it may merge; this file only says what each family IS.
+ * The collapse: a per-target list can only change the outcome in the case where
+ * the ordering already reached this row - that is, where the stage did NOT fit
+ * without it. Withholding the row there does not save anything; it produces a
+ * program that exceeds the unit limit and does not link. The guard can only
+ * fire where firing is the wrong thing to do.
  *
- * Two hazards make the EVE half of that boundary load-bearing rather than
- * tidiness. An array needs its layers to agree on format and mip count, and
- * these do not always: EVE's `gb1_t1` PaintMask carries 12 mips against its
- * siblings' 11, and Frontier's DirtMap is DX10 against ATI1 siblings. A rejected
- * aggregate binds the 1x1 fallback, which blanks the map rather than failing
- * loudly.
+ * And EVE does reach it. `quadheatdetailv5` and its three prefix forms are 17
+ * emitted samplers on `.sm_depth` at build 3503375, the only EVE containers over
+ * 16, and PPT-enabled bodies carry two pattern masks on top of that. CCP met the
+ * same wall: the shader exists in the dx11 tree and is absent from gles2,
+ * skipped because it could not be lowered.
  *
- * Numbers, both games, and the substitution of `quadheatdetailv5` by
- * `quadheatv5`: `/docs/contracts/quad-family-texture-budget.md`.
+ * So there is no per-game family list. There is one ordered list and a budget.
+ *
+ * One hazard survives the collapse, because it is about the layers rather than
+ * the selection: an array needs its layers to agree on format and mip count, and
+ * these do not always - EVE's `gb1_t1` PaintMask carries 12 mips against its
+ * siblings' 11, and Frontier's DirtMap is DX10 against ATI1 siblings. That is
+ * resolved by converting in the background, not by declining to merge; see
+ * `/docs/contracts/texture-array-realization.md`.
+ *
+ * Numbers for both games: `/docs/contracts/quad-family-texture-budget.md`.
  */
 
 /** Carbon's resource type code for a 2D texture. */
@@ -97,6 +104,17 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
         family: "dirt-map-array",
         outputName: "DirtArrayMap",
         parameters: Object.freeze([ "DirtMap1", "DirtMap2" ]),
+        minimum: 2
+    }),
+    // Last, so it is reached only by a stage that nothing above it could bring
+    // under the budget. On EVE that is `quadheatdetailv5` alone.
+    Object.freeze({
+        family: "pmdg-map-array",
+        outputName: "PmdgArrayMap",
+        // Layer order follows the registers, which are t4, t8, t9, t10 on both
+        // games and in that order: the recogniser requires ascending registers
+        // in parameter order, so the acronym's own order does not recognise.
+        parameters: Object.freeze([ "GlowMap", "DirtMap", "MaterialMap", "PaintMaskMap" ]),
         minimum: 2
     })
 ]);

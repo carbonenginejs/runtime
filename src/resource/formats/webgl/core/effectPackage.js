@@ -405,8 +405,70 @@ function normalizeOptions(input, options)
         // real loss only once profile indices are written.
         // Revisit when a profile index is actually written to those bits.
         lightProfile: normalizeLightProfileMode(options.lightProfile),
+        // Fragment texture units a translated program may occupy. Lowering is
+        // ordered and stops at the first selection that fits, so this is what
+        // decides how much merging happens rather than the family table. 16 is
+        // WebGL2's guaranteed minimum and ANGLE's D3D11 figure; a caller that
+        // knows its device reports more can raise it, and null merges every
+        // recognised family unconditionally.
+        textureUnitBudget: normalizeTextureUnitBudget(options.textureUnitBudget),
         emitterOptions: { ...(options.emitterOptions ?? {}) }
     };
+}
+
+/** WebGL2's guaranteed fragment texture units, and ANGLE's D3D11 figure. */
+const DEFAULT_TEXTURE_UNIT_BUDGET = 16;
+
+function normalizeTextureUnitBudget(value)
+{
+    if (value === undefined) return DEFAULT_TEXTURE_UNIT_BUDGET;
+    if (value === null) return null;
+
+    if (!Number.isInteger(value) || value < 1)
+    {
+        throw new Error(`Carbon WebGL textureUnitBudget must be a positive integer or null; got ${value}`);
+    }
+
+    return value;
+}
+
+/** Counts the sampler uniforms a translated stage declares. */
+function countTextureUnits(source)
+{
+    return (String(source ?? "").match(/^\s*uniform\s+(?:\w+\s+)?u?sampler\w+\s+\w+\s*;/gmu) ?? []).length;
+}
+
+/**
+ * Emits a stage with as few texture-array merges as the budget allows.
+ *
+ * The families are tried in table order and the walk stops at the first
+ * selection that fits, so a stage already under the budget merges nothing. Each
+ * step costs one more emit, which is build-time work traded for one fewer array
+ * texture to compose at runtime.
+ *
+ * When nothing fits, the fully merged emit is returned rather than an error:
+ * the caller's own unit audit reports the overflow with the whole program in
+ * hand, and failing here would lose the best available result.
+ *
+ * @param {Function} emit Emits one stage for a selection of family plans.
+ * @param {Array<object>} plans Recognised family plans, in table order.
+ * @param {number|null} budget Units the program may occupy, or null for all.
+ * @returns {{ result: object, textureArrays: Array<object> }} Emit and its selection.
+ */
+function lowerToTextureBudget(emit, plans, budget)
+{
+    if (budget === null || !plans.length) return { result: emit(plans), textureArrays: plans };
+
+    let selected = [];
+    let result = emit(selected);
+
+    while (countTextureUnits(result.source) > budget && selected.length < plans.length)
+    {
+        selected = plans.slice(0, selected.length + 1);
+        result = emit(selected);
+    }
+
+    return { result, textureArrays: selected };
 }
 
 function normalizeOptionalString(value, name)
@@ -760,13 +822,13 @@ function translateStages(shaderMap, stageMap, values)
             // identity includes the pass key, which is not known here.
             if (profileNeutral) record.lightProfileNeutral = record.localLights;
 
-            const result = emitGlslWithOptions(record.bytes, {
+            const emitWithFamilies = (selected) => emitGlslWithOptions(record.bytes, {
                 ...values.emitterOptions,
                 source: `${values.source}#${record.firstStageKey}`,
                 ...(pairVaryings?.length ? { pairVaryings } : {}),
-                ...(record.textureArrays?.length
+                ...(selected.length
                     ? {
-                        textureArrayFamilies: record.textureArrays.map((plan) => ({
+                        textureArrayFamilies: selected.map((plan) => ({
                             family: plan.family,
                             outputName: plan.outputName,
                             registers: plan.registers
@@ -779,6 +841,22 @@ function translateStages(shaderMap, stageMap, values)
                 ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {}),
                 ...(profileNeutral ?? {})
             });
+
+            // The recognised set is kept apart from the selected one because a
+            // record can be emitted twice - once plainly, once with paired
+            // varyings - and the second pass must lower from everything the
+            // reflection offered, not from what the first pass settled on.
+            record.recognisedTextureArrays ??= record.textureArrays ?? [];
+
+            const { result, textureArrays } = lowerToTextureBudget(
+                emitWithFamilies,
+                record.recognisedTextureArrays,
+                values.textureUnitBudget
+            );
+
+            // The emitted set, not the recognised set: the container's resource
+            // transforms must describe the arrays this program actually samples.
+            record.textureArrays = textureArrays;
             const stageInterface = normalizeBitangentStageInterface(
                 result,
                 record
