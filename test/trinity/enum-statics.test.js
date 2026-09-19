@@ -1,17 +1,18 @@
 // Enum drift check: every @type.enum("X") field must resolve its member map
-// through the owning class's PascalCase static `Constructor.X` (own or
-// inherited). Known deferred gaps are allowlisted below; growing that list is
-// a regression, shrinking it should update the list.
+// through Blue for qualified names or the owning class static (own or
+// inherited) for legacy short names. Known deferred gaps are allowlisted below;
+// growing that list is a regression, shrinking it should update the list.
 import test from "node:test";
+import assert from "node:assert/strict";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
 
-// All @type.enum fields now resolve a class-static member map: trinity-owned
-// enums inline, global graphics/device/render-context vocabulary aliased from
-// #global. The allowlist is intentionally empty.
+// All enum fields resolve through the registry or existing class statics.
+// The allowlist is intentionally empty.
 const KNOWN_GAPS = new Set([]);
 
-test("every @type.enum field resolves a class-static member map or is a known gap", () =>
+test("every @type.enum field resolves a registered or class-static member map", () =>
 {
   const seen = new Set();
   const gaps = [];
@@ -37,7 +38,8 @@ test("every @type.enum field resolves a class-static member map or is a known ga
       const enumType = field?.enum?.enumType;
       if (!enumType) continue;
       enumFields++;
-      const members = Ctor[enumType];
+      const members = enumType.includes(".") ? blue.enums.GetEnum(enumType) : Ctor[enumType];
+      assert.equal(field.enum.members, members, `${name}.${field.name} resolved enum identity`);
       if (!members || typeof members !== "object")
       {
         gaps.push(`${name}.${field.name} -> ${enumType}`);
@@ -49,7 +51,7 @@ test("every @type.enum field resolves a class-static member map or is a known ga
   const resolvedFromAllowlist = [...KNOWN_GAPS].filter(gap => !gaps.includes(gap));
   if (unexpected.length)
   {
-    throw new Error(`new enum static gaps:\n${unexpected.join("\n")}`);
+    throw new Error(`new enum resolution gaps:\n${unexpected.join("\n")}`);
   }
   if (resolvedFromAllowlist.length)
   {

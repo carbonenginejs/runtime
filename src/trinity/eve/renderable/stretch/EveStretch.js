@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.h
 // Source: trinity/trinity/Eve/Renderable/Stretch/EveStretch.cpp
+import "../../../../global/blue/registerTrinityEnums.js";
 import { Tr2Lod } from "#consts/trinity";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { IEveTransform } from "../../IEveTransform.js";
@@ -40,7 +41,10 @@ export class EveStretch extends IEveFiringEffectElement
   @edit.persist @type.model("ITriVectorFunction") source = null;
   @edit.persist @type.model("ITriVectorFunction") dest = null;
   @edit.persist @type.model("IStretchAudio") stretchAudio = null;
-  @edit.read @type.int32 @type.enum("Tr2Lod") lodLevel = 0;
+  @edit.read
+  @type.int32
+  @type.enum("trinity.Tr2Lod")
+  lodLevel = 0;
   @edit.persist @type.model("ITriScalarFunction") progressCurve = null;
   @edit.persist @type.model("TriCurveSet") moveCompletion = null;
   @edit.persist @type.list("TriCurveSet") curveSets = [];

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
+import "../../../global/blue/registerTrinityEnums.js";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -48,7 +49,7 @@ export class EveEffectRoot2 extends EveEntity
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @edit.read
   @type.int32
-  @type.enum("Tr2Lod")
+  @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_HIGH;
 
   /** m_mute (bool) [READWRITE, NOTIFY] */

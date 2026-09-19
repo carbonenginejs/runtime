@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
+import "../../../global/blue/registerTrinityEnums.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
@@ -148,7 +149,7 @@ export class EveChildMesh extends EveChildTransform
   @edit.notify
   @edit.persist
   @type.int32
-  @type.enum("ReflectionMode")
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   @edit.persist
@@ -233,7 +234,7 @@ export class EveChildMesh extends EveChildTransform
 
   @edit.persist
   @type.int32
-  @type.enum("Tr2Lod")
+  @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   @edit.persist

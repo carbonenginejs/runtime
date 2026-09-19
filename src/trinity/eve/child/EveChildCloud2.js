@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import "../../../global/blue/registerTrinityEnums.js";
 import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
@@ -113,7 +114,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @edit.notify
   @edit.persist
   @type.int32
-  @type.enum("ReflectionMode")
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 0;
 
   /** m_minVisibleQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, PERSIST, ENUM] */

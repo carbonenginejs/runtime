@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import "../../../global/blue/registerTrinityEnums.js";
 import { carbon, impl, edit, type } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
@@ -23,7 +24,7 @@ export class EveChildParticleSystem extends EveChildTransform
   @edit.notify
   @edit.persist
   @type.int32
-  @type.enum("ReflectionMode")
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */

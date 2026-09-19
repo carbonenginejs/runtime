@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
+import "../../../global/blue/registerTrinityEnums.js";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";
@@ -63,7 +64,7 @@ export class EveTransform extends Tr2Transform
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @edit.read
   @type.int32
-  @type.enum("Tr2Lod")
+  @type.enum("trinity.Tr2Lod")
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
   /** m_hideOnLowQuality (bool) [READWRITE, PERSIST] */

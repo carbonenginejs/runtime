@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
+import "../../../global/blue/registerTrinityEnums.js";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -63,7 +64,7 @@ export class EveSpaceObject2 extends EveEntity
   @edit.notify
   @edit.persist
   @type.int32
-  @type.enum("ReflectionMode")
+  @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
@@ -111,7 +112,7 @@ export class EveSpaceObject2 extends EveEntity
   /** m_lodLevel (Tr2Lod - enum Tr2Lod) [READ] */
   @edit.read
   @type.int32
-  @type.enum("Tr2Lod")
+  @type.enum("trinity.Tr2Lod")
   lodLevel = -1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */

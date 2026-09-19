@@ -77,6 +77,7 @@ statics. Those statics can alias the registered object. `CjsSchema.defineEnum`,
 All 16 SOF-owned enum types in the field inventory now use this path across
 28 fields. The four additional SOF fields using shared ReflectionMode/Tr2Lod
 constants now use `trinity.EntityComponents.ReflectionMode` and `trinity.Tr2Lod`.
+Nine Trinity reflection/LOD fields also use these shared registrations.
 Consumers explicitly import the shared registration module; constants remain
 dependency-free and importing Blue alone does not register these domain types. Independently declared banner Usage, pattern
 ProjectionType and DisplayQualityModifier types have separate registry identities,

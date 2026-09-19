@@ -228,3 +228,41 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
     assert.equal(services.enums.GetEnumInfo("trinity.Tr2Lod").chooser, undefined);
     assert.equal(services.enums.GetEnumInfo("trinity.Tr2Lod").exposedName, undefined);
 });
+
+
+test("Trinity shares SOF's registered reflection and LOD objects", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const cases = [
+        ["child/EveChildCloud2", "reflectionMode", "ReflectionMode"],
+        ["child/EveChildMesh", "reflectionMode", "ReflectionMode"],
+        ["child/EveChildMesh", "lowestLodVisible", "Tr2Lod"],
+        ["child/EveChildParticleSystem", "reflectionMode", "ReflectionMode"],
+        ["renderable/stretch/EveStretch", "lodLevel", "Tr2Lod"],
+        ["spaceObject/EveEffectRoot2", "lodLevel", "Tr2Lod"],
+        ["spaceObject/EveSpaceObject2", "reflectionMode", "ReflectionMode"],
+        ["spaceObject/EveSpaceObject2", "lodLevel", "Tr2Lod"],
+        ["spaceObject/EveTransform", "lodLevel", "Tr2Lod"]
+    ];
+    for (const [path, member, staticName] of cases)
+    {
+        const name = path.split("/").at(-1);
+        const { [name]: Constructor } = await import(`../../npm/dist/trinity/eve/${path}.js`);
+        const field = schema.getField(Constructor, member);
+        const identity = staticName === "Tr2Lod" ? "trinity.Tr2Lod" : "trinity.EntityComponents.ReflectionMode";
+        assert.equal(field.enum.identity, identity);
+        assert.equal(field.enum.members, Constructor[staticName]);
+        assert.equal(field.enum.members, services.enums.GetEnum(identity));
+        if (staticName === "ReflectionMode")
+        {
+            assert.equal(field.enum.chooser, services.enums.GetEnumInfo(identity).chooser);
+            assert.equal(services.enums.GetNameFromValue(identity, 3), "Never");
+        }
+        else
+        {
+            assert.equal(field.enum.members.TR2_LOD_UNSPECIFIED, -1);
+            assert.equal(field.enum.chooser, undefined);
+        }
+    }
+});
