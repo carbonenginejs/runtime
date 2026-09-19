@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import "../../global/blue/registerTrinityEnums.js";
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2Lod } from "#consts/trinity";
@@ -26,7 +27,7 @@ export class EveSOFDataHullChild extends CjsModel
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST] */
   @edit.persist
   @type.int32
-  @type.enum("Tr2Lod")
+  @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */

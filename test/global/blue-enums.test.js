@@ -194,3 +194,37 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
     assert.throws(() => services.enums.GetNameFromValue("trinity.EveSOFDataHullBanner.Usage", 24), RangeError);
     assert.equal(services.enums.GetNameFromValue("trinity.EveSOFDataPatternLayer.ProjectionType", 1), "Clamp");
 });
+
+
+test("shared SOF enum fields resolve through Blue with native reflection labels and signed LOD values", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const cases = [
+        ["generic", "EveSOFDataGenericHullCategory", "reflectionMode", "ReflectionMode", "trinity.EntityComponents.ReflectionMode"],
+        ["hull", "EveSOFDataHullChild", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"],
+        ["hull", "EveSOFDataHullChildSetItem", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"],
+        ["shared", "EveSOFDataInstancedMesh", "lowestLodVisible", "Tr2Lod", "trinity.Tr2Lod"]
+    ];
+    for (const [folder, name, member, staticName, identity] of cases)
+    {
+        const { [name]: Constructor } = await import(`../../npm/dist/sof/${folder}/${name}.js`);
+        const field = schema.getField(Constructor, member);
+        assert.equal(field.enum.identity, identity);
+        assert.equal(field.enum.members, services.enums.GetEnum(identity));
+        assert.equal(field.enum.members, Constructor[staticName]);
+        const instance = new Constructor();
+        const key = staticName === "Tr2Lod" ? "TR2_LOD_UNSPECIFIED" : "REFLECT_HIGH";
+        instance.SetValues({ [member]: key });
+        assert.equal(instance[member], staticName === "Tr2Lod" ? -1 : 0);
+        assert.equal(instance.GetValues({ enumFormat: "names" })[member], key);
+    }
+    const reflection = "trinity.EntityComponents.ReflectionMode";
+    assert.deepEqual(services.enums.GetEnumInfo(reflection).chooser.map(entry => entry.name),
+        ["Never", "LowMediumAndHigh", "MediumAndHigh", "High"]);
+    assert.equal(services.enums.GetNameFromValue(reflection, 0), "High");
+    assert.equal(services.enums.GetEnumInfo(reflection).exposedName, "ReflectionModeType");
+    assert.equal(services.enums.GetNameFromValue("trinity.Tr2Lod", -1), "TR2_LOD_UNSPECIFIED");
+    assert.equal(services.enums.GetEnumInfo("trinity.Tr2Lod").chooser, undefined);
+    assert.equal(services.enums.GetEnumInfo("trinity.Tr2Lod").exposedName, undefined);
+});

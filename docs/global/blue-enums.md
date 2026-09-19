@@ -75,8 +75,10 @@ Existing short-name annotations continue to resolve declaring/inherited class
 statics. Those statics can alias the registered object. `CjsSchema.defineEnum`,
 `getEnum` and `getEnumName` use the same registry; no second enum table exists.
 All 16 SOF-owned enum types in the field inventory now use this path across
-28 fields. The four SOF fields using shared ReflectionMode/Tr2Lod constants
-retain short-name resolution. Independently declared banner Usage, pattern
+28 fields. The four additional SOF fields using shared ReflectionMode/Tr2Lod
+constants now use `trinity.EntityComponents.ReflectionMode` and `trinity.Tr2Lod`.
+Consumers explicitly import the shared registration module; constants remain
+dependency-free and importing Blue alone does not register these domain types. Independently declared banner Usage, pattern
 ProjectionType and DisplayQualityModifier types have separate registry identities,
 including where Carbon reuses a chooser between types. Schema metadata keeps
 the native identifier map in `enum.members` and exposes the separate ordered
