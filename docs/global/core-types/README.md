@@ -26,7 +26,7 @@ package; no published installation command is supported yet.
 - `hydration`: adapter seam for construction, value application, and finalize
   behavior.
 - `schema`: decorators, class/field/method metadata, the direct
-  name-to-constructor map, enum registration, Carbon-method provenance, and
+  name-to-constructor map, an enum facade backed by Blue, Carbon-method provenance, and
   component metadata helpers.
 - `types`: Carbon type descriptors, defaults, coercion, cloning, and export
   helpers.
@@ -327,8 +327,9 @@ removal/deletion and nested-context responsibilities.
 
 ### Enum-backed fields
 
-Enum metadata resolves lazily from the concrete model constructor's PascalCase
-static. Normal inherited-static lookup is supported.
+Qualified enum names resolve through Blue's registry. Legacy short names resolve
+lazily from the model constructor's PascalCase static, including inherited
+statics. Both paths expose the same member object used by values transport.
 
 Imports accept:
 
@@ -346,8 +347,9 @@ Exports select one of:
 When multiple names share one numeric value, name export uses the first
 declared key. Schema export includes resolved enum identity and members.
 
-A missing or unresolved enum static passes through without enum validation;
-strict missing-static enforcement is not provided by this version.
+A missing qualified registration throws; failed resolution is not cached, so
+registration can occur before retrying. A missing legacy enum static still passes
+through without enum validation.
 
 ### Hide inherited schema fields
 
