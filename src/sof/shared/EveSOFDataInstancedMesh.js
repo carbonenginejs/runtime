@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { Tr2Lod } from "#consts/trinity";
 
@@ -14,7 +15,7 @@ export class EveSOFDataInstancedMesh extends CjsModel
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("DisplayQualityModifier")
+  @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;
 
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
@@ -58,3 +59,18 @@ export class EveSOFDataInstancedMesh extends CjsModel
   });
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+blue.enums.RegisterEnum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier", EveSOFDataInstancedMesh.DisplayQualityModifier, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 137,
+  exposedName: "DisplayModifierChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue2.cpp:52",
+  chooser: [
+    { name: "None_", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },
+    { name: "Medium_and_High", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_HIGHMID, description: "Visible for users with shader settings on Medium or High" },
+    { name: "Low_and_Medium", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_LOWMID, description: "Visible for users with shader settings on Low or Medium" },
+    { name: "High", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_HIGH, description: "Only visible for users with shader settings on High" },
+    { name: "Medium", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_MED, description: "Only visible for users with shader settings on Medium" },
+    { name: "Low", value: EveSOFDataInstancedMesh.DisplayQualityModifier.SHADER_LOW, description: "Only visible for users with shader settings on Low" }
+  ]
+});

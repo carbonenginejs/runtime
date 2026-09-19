@@ -33,9 +33,12 @@
 import { IBlueResMan } from "./IBlueResMan.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { blueEnums } from "./enums/CjsBlueEnumRegistry.js";
 
 /** Carbon's process-wide Blue facilities: `blue.resMan`, `blue.paths` and `blue.os`. */
 export const blue = {
+  /** EnumRegistration and BlueEnum responsibilities combined for JavaScript. */
+  enums: blueEnums,
   /** `BeResMan` (IBlueResMan.h:135) - the resource manager every consumer asks. */
   resMan: new IBlueResMan(),
 

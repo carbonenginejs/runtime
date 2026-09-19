@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { blue, EnumRegistrationType } from "#blue";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnknown.js";
@@ -351,3 +352,56 @@ export class EveSOFDataFactionColorSet extends CjsModel
   ]);
 
 }
+
+// Native chooser labels and descriptions are distinct from C++ member names.
+blue.enums.RegisterEnum("trinity.SOFDataFactionColorChooser.ColorType", EveSOFDataFactionColorSet.ColorType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 177,
+  exposedName: "EveSOFDataFactionColorSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:10",
+  chooser: [
+    { name: "Primary", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY, description: "Primary Color" },
+    { name: "Secondary", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY, description: "Secondary Color" },
+    { name: "Tertiary", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY, description: "Tertiary Color" },
+    { name: "Black", value: EveSOFDataFactionColorSet.ColorType.TYPE_BLACK, description: "Black Color" },
+    { name: "White", value: EveSOFDataFactionColorSet.ColorType.TYPE_WHITE, description: "White" },
+    { name: "Yellow", value: EveSOFDataFactionColorSet.ColorType.TYPE_YELLOW, description: "Yellow" },
+    { name: "Orange", value: EveSOFDataFactionColorSet.ColorType.TYPE_ORANGE, description: "Orange" },
+    { name: "Red", value: EveSOFDataFactionColorSet.ColorType.TYPE_RED, description: "Red" },
+    { name: "Blue", value: EveSOFDataFactionColorSet.ColorType.TYPE_BLUE, description: "Blue" },
+    { name: "Green", value: EveSOFDataFactionColorSet.ColorType.TYPE_GREEN, description: "Green" },
+    { name: "Cyan", value: EveSOFDataFactionColorSet.ColorType.TYPE_CYAN, description: "Cyan" },
+    { name: "Fire", value: EveSOFDataFactionColorSet.ColorType.TYPE_FIRE, description: "Fire" },
+    { name: "Hull", value: EveSOFDataFactionColorSet.ColorType.TYPE_HULL, description: "Material Hullarea Glow" },
+    { name: "Glass", value: EveSOFDataFactionColorSet.ColorType.TYPE_GLASS, description: "Material Glassarea Glow" },
+    { name: "Reactor", value: EveSOFDataFactionColorSet.ColorType.TYPE_REACTOR, description: "Material Reactorarea Glow" },
+    { name: "Darkhull", value: EveSOFDataFactionColorSet.ColorType.TYPE_DARKHULL, description: "Material Darkhull Glow" },
+    { name: "Booster", value: EveSOFDataFactionColorSet.ColorType.TYPE_BOOSTER, description: "Material Hullarea Heat Shimmer Glow" },
+    { name: "Killmark", value: EveSOFDataFactionColorSet.ColorType.TYPE_KILLMARK, description: "Killmark glow color" },
+    { name: "PrimaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_LIGHT, description: "Primary light color" },
+    { name: "SecondaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_LIGHT, description: "Secondary light color" },
+    { name: "TertiaryLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_LIGHT, description: "Tertiary light color" },
+    { name: "WhiteLight", value: EveSOFDataFactionColorSet.ColorType.TYPE_WHITE_LIGHT, description: "White light color" },
+    { name: "PrimaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_HOLOGRAM, description: "Primary Hologram" },
+    { name: "SecondaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_HOLOGRAM, description: "Secondary Hologram color" },
+    { name: "TertiaryHologram", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_HOLOGRAM, description: "Tertiary Hologram color" },
+    { name: "State0", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_0, description: "State 0 color" },
+    { name: "State1", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_1, description: "State 1 color" },
+    { name: "State2", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_2, description: "State 2 color" },
+    { name: "State3", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_3, description: "State 3 color" },
+    { name: "StateVulnerable", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_VULNERABLE, description: "State Vulnerable color" },
+    { name: "StateInvulnerable", value: EveSOFDataFactionColorSet.ColorType.TYPE_STATE_INVULNERABLE, description: "State Invulnerable color" },
+    { name: "PrimaryForcefield", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_FORCEFIELD, description: "Primary Forcefield color" },
+    { name: "SecondaryForcefield", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_FORCEFIELD, description: "Secondary Forcefield color" },
+    { name: "PrimaryBanner", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_BANNER, description: "Primary Banner color" },
+    { name: "PrimaryFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_FX, description: "Primary Fx color" },
+    { name: "SecondaryFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_FX, description: "Secondary Fx color" },
+    { name: "PrimarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_SPOTLIGHT, description: "Primary spotlight color" },
+    { name: "SecondarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_SECONDARY_SPOTLIGHT, description: "Secondary spotlight color" },
+    { name: "TertiarySpotlight", value: EveSOFDataFactionColorSet.ColorType.TYPE_TERTIARY_SPOTLIGHT, description: "Tertiary spotlight color" },
+    { name: "PrimaryBillboard", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_BILLBOARD, description: "Primary Billboard color" },
+    { name: "PrimaryWarpFx", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_WARP_FX, description: "Primary Warp FX color" },
+    { name: "PrimaryAttackFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_ATTACK_FX, description: "Primary Attack FX color" },
+    { name: "PrimarySiegeFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_SIEGE_FX, description: "Primary Siege FX color" },
+    { name: "PrimaryDockedFX", value: EveSOFDataFactionColorSet.ColorType.TYPE_PRIMARY_DOCKED_FX, description: "Primary Docked FX color" }
+  ]
+});

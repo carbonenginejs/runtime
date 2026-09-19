@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
@@ -30,19 +31,19 @@ export class EveSOFDataHullDecalSetItem extends CjsModel
   /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("LogoType")
+  @type.enum("trinity.EveSOFDataLogoSet.LogoType")
   logoType = 0;
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("Usage")
+  @type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
   usage = 0;
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ColorType")
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   glowColorType = 0;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
@@ -96,3 +97,19 @@ export class EveSOFDataHullDecalSetItem extends CjsModel
   meshIndex = -1;
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+blue.enums.RegisterEnum("trinity.EveSOFDataHullDecalSetItem.Usage", EveSOFDataHullDecalSetItem.Usage, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1350,
+  exposedName: "DecalUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1027",
+  chooser: [
+    { name: "Standard", value: EveSOFDataHullDecalSetItem.Usage.USAGE_STANDARD, description: "Standard decal" },
+    { name: "KillCounter", value: EveSOFDataHullDecalSetItem.Usage.USAGE_KILLCOUNTER, description: "The killcounter decal" },
+    { name: "Hole", value: EveSOFDataHullDecalSetItem.Usage.USAGE_HOLE, description: "Hole decal" },
+    { name: "Cylindrical", value: EveSOFDataHullDecalSetItem.Usage.USAGE_CYLINDRICAL, description: "Cylindrical decal" },
+    { name: "GlowCylindrical", value: EveSOFDataHullDecalSetItem.Usage.USAGE_GLOWCYLINDRICAL, description: "Glow cylindrical decal" },
+    { name: "Glow", value: EveSOFDataHullDecalSetItem.Usage.USAGE_GLOWSTANDARD, description: "Glow decal" },
+    { name: "Logo", value: EveSOFDataHullDecalSetItem.Usage.USAGE_LOGO, description: "Logo decal" }
+  ]
+});

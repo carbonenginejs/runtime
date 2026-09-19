@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -43,7 +44,7 @@ export class EveSOFDataHullBanner extends CjsModel
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("Usage")
+  @type.enum("trinity.EveSOFDataHullBanner.Usage")
   usage = 3;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
@@ -374,3 +375,37 @@ export class EveSOFDataHullBanner extends CjsModel
   }
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+// Native chooser quirk: HorizontalBanner's description says "Vertical banner".
+blue.enums.RegisterEnum("trinity.EveSOFDataHullBanner.Usage", EveSOFDataHullBanner.Usage, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 990,
+  exposedName: "HullBannerUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:554",
+  chooser: [
+    { name: "AllianceLogo", value: EveSOFDataHullBanner.Usage.ALLIANCE_LOGO, description: "Alliance logo" },
+    { name: "CorpLogo", value: EveSOFDataHullBanner.Usage.CORP_LOGO, description: "Corporation logo" },
+    { name: "CeoPortrait", value: EveSOFDataHullBanner.Usage.CEO_PORTRAIT, description: "Ceo portrait" },
+    { name: "VerticalBanner", value: EveSOFDataHullBanner.Usage.VERTICAL_BANNER, description: "Vertical banner" },
+    { name: "HorizontalBanner", value: EveSOFDataHullBanner.Usage.HORIZONTAL_BANNER, description: "Vertical banner" },
+    { name: "TargetSystemAllianceLogo", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_ALLIANCE_LOGO, description: "Target system alliance logo (gates)" },
+    { name: "TargetSystemVerticalBanner", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_VERTICAL_BANNER, description: "Target system vertical banner (gates)" },
+    { name: "TargetSystemHorizontalBanner", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_HORIZONTAL_BANNER, description: "Target system horizontal banner (gates)" },
+    { name: "TargetSystemInfo0", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_INFO_0, description: "Target system information (gates)" },
+    { name: "TargetSystemInfo1", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_INFO_1, description: "Target system information (gates)" },
+    { name: "TargetSystemInfo2", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_INFO_2, description: "Target system information (gates)" },
+    { name: "TargetSystemInfo3", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_INFO_3, description: "Target system information (gates)" },
+    { name: "TargetSystemInfo4", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_INFO_4, description: "Target system information (gates)" },
+    { name: "TargetSystemStatus", value: EveSOFDataHullBanner.Usage.TARGET_SYSTEM_STATUS, description: "Target system status (gates)" },
+    { name: "CurrentSystemAllianceLogo", value: EveSOFDataHullBanner.Usage.CURRENT_SYSTEM_ALLIANCE_LOGO, description: "Current system alliance logo (gates)" },
+    { name: "CurrentSystemVerticalBanner", value: EveSOFDataHullBanner.Usage.CURRENT_SYSTEM_VERTICAL_BANNER, description: "Current system vertical banner (gates)" },
+    { name: "CurrentSystemHorizontalBanner", value: EveSOFDataHullBanner.Usage.CURRENT_SYSTEM_HORIZONTAL_BANNER, description: "Current system horizontal banner (gates)" },
+    { name: "PublicityPoster", value: EveSOFDataHullBanner.Usage.PUBLICITY_POSTER, description: "Publicity structure poster" },
+    { name: "PublicityPortrait", value: EveSOFDataHullBanner.Usage.PUBLICITY_PORTRAIT, description: "Publicity structure portrait" },
+    { name: "RecruitmentInformation0", value: EveSOFDataHullBanner.Usage.RECRUITMENT_INFORMATION_0, description: "Publicity structure recruitment information" },
+    { name: "RecruitmentInformation1", value: EveSOFDataHullBanner.Usage.RECRUITMENT_INFORMATION_1, description: "Publicity structure recruitment information" },
+    { name: "RecruitmentInformation2", value: EveSOFDataHullBanner.Usage.RECRUITMENT_INFORMATION_2, description: "Publicity structure recruitment information" },
+    { name: "RecruitmentInformation3", value: EveSOFDataHullBanner.Usage.RECRUITMENT_INFORMATION_3, description: "Publicity structure recruitment information" },
+    { name: "RecruitmentInformation4", value: EveSOFDataHullBanner.Usage.RECRUITMENT_INFORMATION_4, description: "Publicity structure recruitment information" }
+  ]
+});

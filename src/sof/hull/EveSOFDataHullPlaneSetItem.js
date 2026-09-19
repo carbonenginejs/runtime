@@ -20,13 +20,13 @@ export class EveSOFDataHullPlaneSetItem extends CjsModel
   /** m_blinkMode (int32_t) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("BlinkType")
+  @type.enum("trinity.EveSOFDataBlinkType.BlinkType")
   blinkMode = 0;
 
   /** m_colorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ColorType")
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 0;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */

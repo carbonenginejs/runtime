@@ -15,7 +15,7 @@ export class EveSOFDataHullLightSetItem extends CjsModel
   /** m_data.lightColor (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ColorType")
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   lightColor = 0;
 
   /** m_data.flags (uint16_t) [READWRITE, PERSIST] */

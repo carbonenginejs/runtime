@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime` class exports
 Audience: Runtime authors and integrators
 Summary: Catalogs maintained named classes in the consolidated runtime foundation.
 
+<!-- class:CjsBlueEnumRegistry -->
+## `CjsBlueEnumRegistry`
+
+Combines Carbon enum registration and BlueEnum lookup in a dependency-free registry.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/enums/CjsBlueEnumRegistry.js`
+- Visibility: Public
+- Kind: Adapted Carbon port
+
 <!-- class:CjsBackendCandidate -->
 ## `CjsBackendCandidate`
 

@@ -10,6 +10,7 @@ import { composeAbstractDecorator } from "../compose/abstract.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
+import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -24,8 +25,6 @@ const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
 const CONSTRUCTOR_BY_NAME = new Map();
-const ENUM_SCHEMA_BY_NAME = new Map();
-const ENUM_SCHEMA_BY_OBJECT = new WeakMap();
 const STAGE3_FIELD_METADATA = Symbol("carbonenginejs.schema.stage3Fields");
 
 // Declared here rather than beside describeDecorator: the CjsSchema class body
@@ -163,7 +162,8 @@ export class CjsSchema
     /** Returns resolved schema metadata for a named field. */
     static getField(Constructor, fieldName)
     {
-        return getEffectiveFields(Constructor).find(field => field.name === fieldName) || null;
+        const field = getEffectiveFields(Constructor).find(field => field.name === fieldName);
+        return field ? enrichEnumField(field, Constructor) : null;
     }
 
     /**
@@ -517,21 +517,15 @@ export class CjsSchema
     {
         if (typeof values === "string") return values;
         return values && typeof values === "object"
-            ? ENUM_SCHEMA_BY_OBJECT.get(values)?.name || values[CJS_ENUM_NAME] || values.Source?.name || values.name || null
+            ? blueEnums.GetEnumName(values) || blueEnums.GetEnumName(values.Type) || values[CJS_ENUM_NAME] || values.Source?.name || values.name || null
             : null;
     }
 
     /** Returns registered enum metadata by name or enum object. */
     static getEnum(values)
     {
-        // An explicitly registered object keeps its own metadata even when a
-        // later registration replaces the lookup for the same exposed name.
-        if (values && typeof values === "object" && ENUM_SCHEMA_BY_OBJECT.has(values))
-        {
-            return ENUM_SCHEMA_BY_OBJECT.get(values);
-        }
         const name = CjsSchema.getEnumName(values);
-        return name ? ENUM_SCHEMA_BY_NAME.get(name) || null : null;
+        return name && blueEnums.HasEnum(name) ? blueEnums.GetEnumInfo(name) : null;
     }
 
     /**
@@ -2102,16 +2096,7 @@ function registerClassMetadata(Constructor, schema)
 function defineEnumMetadata(values, schema)
 {
     if (!values || typeof values !== "object" || !schema?.name) return;
-
-    ENUM_SCHEMA_BY_NAME.set(schema.name, schema);
-    ENUM_SCHEMA_BY_OBJECT.set(values, schema);
-
-    if (Object.isExtensible(values) && !Object.prototype.hasOwnProperty.call(values, CJS_ENUM_NAME))
-    {
-        Object.defineProperty(values, CJS_ENUM_NAME, {
-            value: schema.name
-        });
-    }
+    blueEnums.RegisterEnum(schema.name, schema.type, schema);
 }
 
 function normalizeEnumSchema(values, definition)
@@ -2129,6 +2114,10 @@ function normalizeEnumSchema(values, definition)
     if (definition.source) result.source = definition.source;
     if (definition.family) result.family = definition.family;
     if (definition.line !== undefined && definition.line !== null) result.line = definition.line;
+    if (definition.exposure !== undefined) result.exposure = definition.exposure;
+    if (definition.exposedName !== undefined) result.exposedName = definition.exposedName;
+    if (definition.chooserSource !== undefined) result.chooserSource = definition.chooserSource;
+    if (definition.chooser !== undefined) result.chooser = definition.chooser;
 
     return result;
 }
@@ -2274,6 +2263,14 @@ function enrichEnumField(exported, Constructor)
 {
     const enumType = exported?.enum?.enumType;
     if (!enumType) return exported;
+    if (enumType.includes("."))
+    {
+        const info = blueEnums.GetEnumInfo(enumType);
+        return { ...exported, enum: {
+            ...exported.enum, identity: info.name, members: info.type,
+            ...(info.chooser === undefined ? {} : { chooser: info.chooser })
+        } };
+    }
     const members = Constructor?.[enumType];
     if (!members || typeof members !== "object") return exported;
 
@@ -2342,3 +2339,18 @@ function describeValuesInput(value)
     const name = value.constructor?.name;
     return name ? `an instance of ${name}` : "an object without Object.prototype";
 }
+
+// Install provenance here, after the schema exists. The registry core cannot
+// import schema: both Blue and schema need its storage during module loading.
+CjsSchema.define(CjsBlueEnumRegistry, {
+    className: "CjsBlueEnumRegistry",
+    modelledOn: "BlueRegistration",
+    family: "blue",
+    fields: {},
+    methods: Object.fromEntries([
+        "RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName",
+        "GetNameFromValue", "GetNameFromBitmask"
+    ].map(name => [name, [CjsSchema.impl.adapted, CjsSchema.impl.reason(
+        "Combines BlueRegistration enum storage, EnumRegistration/EnumTypeRegistration and PyBlueEnumObject exposure; JS module execution replaces static registrars, qualified names replace module tables, and JS errors replace Python exceptions."
+    )]]))
+});

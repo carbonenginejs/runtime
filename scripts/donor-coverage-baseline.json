@@ -1,4 +1,10 @@
 {
+  "blueexposure/include/BlueRegistration.h#BlueRegistration": "Only enum storage is absorbed by CjsBlueEnumRegistry; non-enum registration remains outside this port.",
+  "blueexposure/include/BlueRegistration.h#ClassRegistrar": "Newly inventoried by the enum registry's header citation; class registration is outside the enum port.",
+  "blueexposure/include/BlueRegistration.h#ThunkerRegistrar": "Newly inventoried by the enum registry's header citation; thunker registration is outside the enum port.",
+  "blueexposure/include/BlueRegistration.h#FunctionRegistrar": "Newly inventoried by the enum registry's header citation; function registration is outside the enum port.",
+  "blueexposure/include/BlueRegistration.h#ModuleObjectRegistrar": "Newly inventoried by the enum registry's header citation; module-object registration is outside the enum port.",
+  "blueexposure/include/BlueRegistration.h#ExceptionRegistrar": "Newly inventoried by the enum registry's header citation; exception registration is outside the enum port.",
   "audio/src/AudManager.h#MonitoredParameterInfo": "No exact live class declaration for struct MonitoredParameterInfo (audio/src/AudManager.h:49); review missing port or explicit JS equivalent.",
   "audio/src/AudManager.h#SoundBankInfo": "No exact live class declaration for struct SoundBankInfo (audio/src/AudManager.h:41); review missing port or explicit JS equivalent.",
   "blue/include/BitPacker.h#BitPacker": "No exact live class declaration for class BitPacker (blue/include/BitPacker.h:109); review missing port or explicit JS equivalent.",

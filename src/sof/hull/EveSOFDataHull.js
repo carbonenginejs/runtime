@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -35,13 +36,13 @@ export class EveSOFDataHull extends CjsModel
   /** m_buildClass (BuildClass - enum BuildClass) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("BuildClass")
+  @type.enum("trinity.EveSOFDataHull.BuildClass")
   buildClass = 0;
 
   /** m_impactEffectType (ImpactEffectType - enum ImpactEffectType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ImpactEffectType")
+  @type.enum("trinity.EveSOFDataHull.ImpactEffectType")
   impactEffectType = 0;
 
   /** m_banners (PEveSOFDataHullBannerVector) [READ, PERSIST] */
@@ -235,3 +236,29 @@ export class EveSOFDataHull extends CjsModel
   castShadow = true;
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+blue.enums.RegisterEnum("trinity.EveSOFDataHull.BuildClass", EveSOFDataHull.BuildClass, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1536,
+  exposedName: "BuildClass", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:936",
+  chooser: [
+    { name: "EveShip2", value: EveSOFDataHull.BuildClass.BUILDCLASS_SHIP, description: "Build an EveShip2" },
+    { name: "EveMobile", value: EveSOFDataHull.BuildClass.BUILDCLASS_MOBILE, description: "Build an EveMobile" },
+    { name: "EveStation2", value: EveSOFDataHull.BuildClass.BUILDCLASS_STATIONARY, description: "Build an EveStation2" },
+    { name: "EveSwarm", value: EveSOFDataHull.BuildClass.BUILDCLASS_SWARM, description: "Build an EveSwarm" },
+    { name: "Extension", value: EveSOFDataHull.BuildClass.BUILDCLASS_EXTENSION, description: "Build an EveEffectRoot with a child" }
+  ]
+});
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+blue.enums.RegisterEnum("trinity.EveSOFDataHull.ImpactEffectType", EveSOFDataHull.ImpactEffectType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 1548,
+  exposedName: "ImpactEffectType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:946",
+  chooser: [
+    { name: "Nothing", value: EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_NONE, description: "No impact effects" },
+    { name: "Ellipsoid", value: EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_ELLIPSOID, description: "Use ellipsoid for shield" },
+    { name: "Hull", value: EveSOFDataHull.ImpactEffectType.IMPACTEFFECT_HULL, description: "Use ellipsoid for hull" }
+  ]
+});

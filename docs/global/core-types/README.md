@@ -62,6 +62,10 @@ does not replace the mutation code responsible for invalidating those members.
 
 ## Blue edit flags
 
+Named enum registration and qualified `type.enum` lookup are documented in
+[Blue enum registry](../blue-enums.md). Short-name class-static lookup remains
+available during migration.
+
 The `edit` namespace describes Blue's access, persistence and editor flags.
 Flags combine independently; persistence does not imply script access.
 

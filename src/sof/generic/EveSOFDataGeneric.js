@@ -19,7 +19,7 @@ export class EveSOFDataGeneric extends CjsModel
   /** m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("AreaType")
+  @type.enum("trinity.EveSOFDataArea.AreaType")
   turretAreaType = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_STANDARD] (float) [READWRITE, PERSIST] */

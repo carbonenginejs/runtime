@@ -16,13 +16,13 @@ export class EveSOFDataRace extends CjsModel
   /** m_hullPrimaryHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ColorType")
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullPrimaryHeatColorType = 16;
 
   /** m_hullReactorHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ColorType")
+  @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   hullReactorHeatColorType = 14;
 
   /** m_booster (EveSOFDataBoosterPtr) [READWRITE, PERSIST] */

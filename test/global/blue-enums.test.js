@@ -1,0 +1,196 @@
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { blue, CjsBlueEnumRegistry, EnumRegistrationType } from "#blue";
+import { CjsSchema } from "#schema";
+import { CjsModel } from "#model";
+
+test("Blue enum names preserve Carbon chooser order, aliases and partial masks", () =>
+{
+    const registry = new CjsBlueEnumRegistry();
+    const values = { ZERO: 0, A: 1, ALSO_A: 1, B: 2, AB: 3, SIGN: -2147483648, ALL: -1 };
+    assert.equal(registry.RegisterEnum("test.Flags", values), values);
+    assert.equal(registry.GetEnum("test.Flags"), values);
+    assert.ok(Object.isFrozen(values));
+    assert.equal(registry.GetNameFromValue("test.Flags", 1), "A | ALSO_A");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 1), "A");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 3), "AB");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 7), "A | ALSO_A | B | AB");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 5), "A | ALSO_A");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 0), "ZERO");
+    assert.equal(registry.GetNameFromValue("test.Flags", 0x80000000), "SIGN");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 0x80000001), "A | ALSO_A | SIGN");
+    assert.equal(registry.GetNameFromBitmask("test.Flags", 0xffffffff), "ALL");
+    assert.throws(() => registry.GetNameFromBitmask("test.Flags", 8), RangeError);
+    assert.throws(() => registry.GetNameFromValue("test.Flags", 8), RangeError);
+    registry.RegisterEnum("test.NoZero", { A: 1 });
+    assert.throws(() => registry.GetNameFromBitmask("test.NoZero", 0), RangeError);
+    assert.throws(() => registry.GetEnum("missing"), ReferenceError);
+    for (const invalid of [1.5, "1", 1n, NaN, Infinity, 4294967296, -2147483649])
+    {
+        assert.throws(() => registry.GetNameFromValue("test.Flags", invalid), TypeError);
+        assert.throws(() => registry.GetNameFromBitmask("test.Flags", invalid), TypeError);
+    }
+});
+
+test("enum registration is atomic, idempotent and preserves immutable descriptions", () =>
+{
+    const registry = new CjsBlueEnumRegistry();
+    const values = { A: 1, B: 1 };
+    const definition = { members: [{ name: "B", value: 1, description: "Second spelling" }], source: "example.h", family: "test", line: 9, exposure: 3 };
+    registry.RegisterEnum("test.Order", values, definition);
+    assert.equal(registry.RegisterEnum("test.Order", values, definition), values);
+    definition.members[0].description = "changed outside registry";
+    assert.equal(registry.GetNameFromValue("test.Order", 1), "B | A");
+    const info = registry.GetEnumInfo("test.Order");
+    assert.equal(info.members[0].description, "Second spelling");
+    assert.equal(info.source, "example.h");
+    assert.equal(info.exposure, 3);
+    assert.throws(() => { info.members[0].name = "BROKEN"; }, TypeError);
+    assert.throws(() => registry.RegisterEnum("test.Order", values, definition), /conflicts/);
+    const other = { A: 1 };
+    assert.throws(() => registry.RegisterEnum("test.Order", other), /conflicts/);
+    assert.equal(Object.isFrozen(other), false);
+    assert.equal(registry.GetEnumName(other), null);
+    assert.throws(() => registry.RegisterEnum("test.Other", values), /canonical name/);
+    for (const invalid of [{ 0: "A" }, { A: 1.1 }, { get A() { throw new Error("must not execute"); } }])
+    {
+        assert.throws(() => registry.RegisterEnum("test.Bad", invalid), TypeError);
+        assert.equal(registry.HasEnum("test.Bad"), false);
+        assert.equal(Object.isFrozen(invalid), false);
+    }
+    const untouched = { A: 1 };
+    assert.throws(() => registry.RegisterEnum("test.Bad", untouched, { members: [{ name: "A", value: 2 }] }), TypeError);
+    assert.equal(Object.isFrozen(untouched), false);
+});
+
+test("native choosers preserve exposed names, selected aliases and omitted sentinels", () =>
+{
+    const registry = new CjsBlueEnumRegistry();
+    const values = { TYPE_FIRST: 1, TYPE_MAX: 2, TYPE_NO_OVERWRITE: 2 };
+    const chooser = [
+        { name: "First", value: 1, description: "First choice" },
+        { name: "NoOverwrite", value: 2, description: "Keep existing" }
+    ];
+    registry.RegisterEnum("test.Chooser", values, { chooser, exposedName: "NativeChooser", chooserSource: "example.cpp:1" });
+    assert.equal(registry.GetEnum("test.Chooser"), values);
+    assert.equal(registry.GetNameFromValue("test.Chooser", 2), "NoOverwrite");
+    assert.equal(registry.GetNameFromBitmask("test.Chooser", 3), "First | NoOverwrite");
+    chooser[0].name = "Mutated";
+    assert.equal(registry.GetEnumInfo("test.Chooser").chooser[0].name, "First");
+    assert.equal(registry.GetEnumInfo("test.Chooser").members.length, 3);
+    registry.RegisterEnum("test.Omitted", { A: 1, MAX: 2 }, { chooser: [{ name: "First", value: 1 }] });
+    assert.throws(() => registry.GetNameFromValue("test.Omitted", 2), RangeError);
+    registry.RegisterEnum("test.Empty", { A: 1 }, { chooser: [] });
+    assert.throws(() => registry.GetNameFromValue("test.Empty", 1), RangeError);
+    const invalid = { A: 1 };
+    assert.throws(() => registry.RegisterEnum("test.InvalidChooser", invalid, { chooser: [{ name: "NoValue", value: 2 }] }), TypeError);
+    assert.equal(Object.isFrozen(invalid), false);
+    assert.equal(registry.HasEnum("test.InvalidChooser"), false);
+});
+
+test("Blue and schema share registration and resolve qualified fields after registration", () =>
+{
+    assert.equal(EnumRegistrationType.ENUM_REG_VALUES_ON_MODULE, 1);
+    assert.equal(EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE, 2);
+    assert.equal(CjsSchema.getSchema(CjsBlueEnumRegistry).modelledOn, "BlueRegistration");
+    for (const name of ["RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName", "GetNameFromValue", "GetNameFromBitmask"])
+    {
+        assert.ok(CjsSchema.getMethod(CjsBlueEnumRegistry, name).impl);
+    }
+    class Host extends CjsModel { mode = 1; }
+    CjsSchema.define(Host, { className: "RegistryEnumHost", fields: {
+        mode: [CjsSchema.type.int32, CjsSchema.type.enum("test.LateEnum"), CjsSchema.edit.persist]
+    } });
+    assert.throws(() => CjsSchema.getSchema(Host), ReferenceError);
+    const values = blue.enums.RegisterEnum("test.LateEnum", { FIRST: 1, SECOND: 2 });
+    assert.equal(CjsSchema.getEnum(values), blue.enums.GetEnumInfo("test.LateEnum"));
+    assert.equal(CjsSchema.getEnumName(values), "test.LateEnum");
+    assert.equal(CjsSchema.getField(Host, "mode").enum.members, values);
+    assert.equal(CjsSchema.getSchema(Host).fields[0].enum.identity, "test.LateEnum");
+    const host = new Host();
+    host.SetValues({ mode: "SECOND" });
+    assert.equal(host.mode, 2);
+    assert.equal(host.GetValues({ enumFormat: "names" }).mode, "SECOND");
+    class Derived extends Host {}
+    assert.equal(CjsSchema.getSchema(Derived).fields[0].enum.members, values);
+    class Legacy extends CjsModel { static Choice = values; }
+    CjsSchema.define(Legacy, { className: "LegacyEnumHost", fields: { mode: [CjsSchema.type.int32, CjsSchema.type.enum("Choice")] } });
+    class LegacyChild extends Legacy {}
+    assert.equal(CjsSchema.getSchema(LegacyChild).fields[0].enum.identity, "LegacyEnumHost.Choice");
+    const facadeValues = { VALUE: 3 };
+    CjsSchema.defineEnum(facadeValues, { name: "test.Facade" });
+    assert.equal(blue.enums.GetEnum("test.Facade"), facadeValues);
+    const wrapper = { Type: { VALUE: 4 } };
+    CjsSchema.defineEnum(wrapper, { name: "test.Wrapped" });
+    assert.equal(CjsSchema.getEnum(wrapper), blue.enums.GetEnumInfo("test.Wrapped"));
+});
+
+test("the SOF blink enum uses one native-owned object through Blue and its static", async () =>
+{
+    const { EveSOFDataBlinkType } = await import("../../npm/dist/sof/shared/EveSOFDataBlinkType.js");
+    const { EveSOFDataHullPlaneSetItem } = await import("../../npm/dist/sof/hull/EveSOFDataHullPlaneSetItem.js");
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const field = schema.getSchema(EveSOFDataHullPlaneSetItem).fields.find(value => value.enum?.enumType === "trinity.EveSOFDataBlinkType.BlinkType");
+    assert.ok(field);
+    assert.equal(field.enum.members, EveSOFDataBlinkType.BlinkType);
+    assert.equal(services.enums.GetEnum(field.enum.identity), EveSOFDataBlinkType.BlinkType);
+    assert.equal(services.enums.GetNameFromValue(field.enum.identity, 1), "Blink");
+    assert.equal(field.enum.chooser[1].description, "Regular blink");
+    assert.equal(services.enums.GetEnumInfo(field.enum.identity).exposedName, "EveSOFDataBlinkType");
+});
+
+test("SOF-owned enum fields resolve native choosers without merging independent types", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const cases = [
+        ["hull", "EveSOFDataHull", "BuildClass", "buildClass", 5],
+        ["hull", "EveSOFDataHull", "ImpactEffectType", "impactEffectType", 3],
+        ["hull", "EveSOFDataHullBanner", "Usage", "usage", 24],
+        ["hull", "EveSOFDataHullBannerSetItem", "Usage", "usage", 24],
+        ["hull", "EveSOFDataHullDecalSetItem", "Usage", "usage", 7],
+        ["hull", "EveSOFDataHullHazeSet", "HazeType", "hazeType", 2],
+        ["hull", "EveSOFDataHullPlaneSet", "Usage", "usage", 4],
+        ["pattern", "EveSOFDataPatternLayer", "ProjectionType", "projectionTypeU", 3],
+        ["pattern", "EveSOFDataPatternLayer", "ProjectionType", "projectionTypeV", 3],
+        ["pattern", "EveSOFDataPatternLayer", "MaterialSource", "materialSource", 6],
+        ["pattern", "EveSOFDataPatternLayerProperties", "ProjectionType", "projectionTypeU", 3],
+        ["pattern", "EveSOFDataPatternLayerProperties", "ProjectionType", "projectionTypeV", 3],
+        ["shared", "EveSOFDataInstancedMesh", "DisplayQualityModifier", "displayModifier", 6],
+        ["layout", "EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings", "DisplayQualityModifier", "displayFilter", 6]
+    ];
+    for (const [folder, name, enumName, member, count] of cases)
+    {
+        const { [name]: Constructor } = await import(`../../npm/dist/sof/${folder}/${name}.js`);
+        const instance = new Constructor();
+        const field = schema.getField(Constructor, member);
+        const identity = `trinity.${name}.${enumName}`;
+        assert.equal(field.enum.identity, identity);
+        assert.equal(field.enum.members, Constructor[enumName]);
+        const info = services.enums.GetEnumInfo(identity);
+        assert.equal(field.enum.chooser, info.chooser);
+        assert.equal(info.chooser.length, count);
+        // Named values transport remains based on native identifiers, not UI labels.
+        const key = Object.keys(Constructor[enumName])[0];
+        instance.SetValues({ [member]: key });
+        assert.equal(instance[member], Constructor[enumName][key]);
+    }
+    for (const [first, second] of [
+        ["EveSOFDataHullBanner.Usage", "EveSOFDataHullBannerSetItem.Usage"],
+        ["EveSOFDataPatternLayer.ProjectionType", "EveSOFDataPatternLayerProperties.ProjectionType"]
+    ])
+    {
+        const a = services.enums.GetEnum(`trinity.${first}`);
+        const b = services.enums.GetEnum(`trinity.${second}`);
+        assert.deepEqual(a, b);
+        assert.notEqual(a, b);
+    }
+    const display = "trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier";
+    assert.equal(services.enums.GetEnum(display).ONLY_REFLECTIONS, 6);
+    assert.throws(() => services.enums.GetNameFromValue(display, 6), RangeError);
+    assert.equal(services.enums.GetEnumInfo(display).exposedName, undefined);
+    assert.throws(() => services.enums.GetNameFromValue("trinity.EveSOFDataHull.BuildClass", 5), RangeError);
+    assert.throws(() => services.enums.GetNameFromValue("trinity.EveSOFDataHullBanner.Usage", 24), RangeError);
+    assert.equal(services.enums.GetNameFromValue("trinity.EveSOFDataPatternLayer.ProjectionType", 1), "Clamp");
+});

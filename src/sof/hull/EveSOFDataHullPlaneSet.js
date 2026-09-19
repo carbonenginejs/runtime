@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 
@@ -12,7 +13,7 @@ export class EveSOFDataHullPlaneSet extends CjsModel
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("Usage")
+  @type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
   usage = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
@@ -68,3 +69,16 @@ export class EveSOFDataHullPlaneSet extends CjsModel
   });
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+blue.enums.RegisterEnum("trinity.EveSOFDataHullPlaneSet.Usage", EveSOFDataHullPlaneSet.Usage, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 711,
+  exposedName: "HullPlanesetUsage", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:375",
+  chooser: [
+    { name: "Standard", value: EveSOFDataHullPlaneSet.Usage.USAGE_STANDARD, description: "Standard planeset" },
+    { name: "SpaceVideo", value: EveSOFDataHullPlaneSet.Usage.USAGE_SPACE_VIDEO, description: "Space Video planeset" },
+    { name: "HangarVideo", value: EveSOFDataHullPlaneSet.Usage.USAGE_HANGAR_VIDEO, description: "Hangar Video planeset" },
+    { name: "Haze", value: EveSOFDataHullPlaneSet.Usage.USAGE_HAZE, description: "Fake haze planeset" }
+  ]
+});

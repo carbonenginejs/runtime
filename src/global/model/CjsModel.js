@@ -1241,6 +1241,12 @@ function resolveEnumStaticForField(Constructor, field)
 {
     const name = field?.enum?.enumType;
     if (!name) return null;
+    if (name.includes("."))
+    {
+        const info = CjsSchema.getEnum(name);
+        if (!info) throw new ReferenceError(`Enum is not registered: ${name}`);
+        return { name, members: info.type };
+    }
     const members = Constructor?.[name];
     if (!members || typeof members !== "object") return null;
     return { name, members };
@@ -1264,6 +1270,7 @@ function enumMemberName(members, value)
 
 function enumIdentity(Constructor, name)
 {
+    if (name.includes(".")) return name;
     let current = Constructor;
     while (typeof current === "function")
     {

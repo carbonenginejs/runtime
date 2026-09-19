@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
+import { blue } from "#blue";
 import { CjsModel } from "#model";
 
 /** EveSOFDataPatternLayerProperties (eve) - generated from schema shapeHash 3f25edf9.... */
@@ -31,13 +32,13 @@ export class EveSOFDataPatternLayerProperties extends CjsModel
   /** m_projectionTypeU (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ProjectionType")
+  @type.enum("trinity.EveSOFDataPatternLayerProperties.ProjectionType")
   projectionTypeU = 0;
 
   /** m_projectionTypeV (ProjectionType - enum ProjectionType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("ProjectionType")
+  @type.enum("trinity.EveSOFDataPatternLayerProperties.ProjectionType")
   projectionTypeV = 0;
 
   /** m_applicableAreas[EveSOFDataArea::AreaType::TYPE_PRIMARY] (bool) [READWRITE, PERSIST] */
@@ -116,3 +117,15 @@ export class EveSOFDataPatternLayerProperties extends CjsModel
   }
 
 }
+
+// Native chooser labels and selection; the enum object retains all C++ members.
+// Carbon reuses this chooser but declares this enum type independently.
+blue.enums.RegisterEnum("trinity.EveSOFDataPatternLayerProperties.ProjectionType", EveSOFDataPatternLayerProperties.ProjectionType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 500,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:1152",
+  chooser: [
+    { name: "Repeat", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_REPEAT, description: "Repeat pattern texture projection" },
+    { name: "Clamp", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_CLAMP, description: "Clamp the projection" },
+    { name: "Border", value: EveSOFDataPatternLayerProperties.ProjectionType.PROJECTION_BORDER, description: "Border the projection" }
+  ]
+});

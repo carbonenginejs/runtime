@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { blue, EnumRegistrationType } from "#blue";
 import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 import { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
 import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
@@ -84,3 +85,17 @@ export class EveSOFDataLogoSet extends CjsModel
   }
 
 }
+
+// Native chooser labels and descriptions are distinct from C++ member names.
+blue.enums.RegisterEnum("trinity.EveSOFDataLogoSet.LogoType", EveSOFDataLogoSet.LogoType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 271,
+  exposedName: "EveSOFDataLogoSetType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:60",
+  chooser: [
+    { name: "Primary", value: EveSOFDataLogoSet.LogoType.TYPE_PRIMARY, description: "Primary Logo" },
+    { name: "Secondary", value: EveSOFDataLogoSet.LogoType.TYPE_SECONDARY, description: "Secondary Logo" },
+    { name: "Tertiary", value: EveSOFDataLogoSet.LogoType.TYPE_TERTIARY, description: "Tertiary Logo" },
+    { name: "Marking_01", value: EveSOFDataLogoSet.LogoType.TYPE_MARKING_01, description: "Marking 01 Logo" },
+    { name: "Marking_02", value: EveSOFDataLogoSet.LogoType.TYPE_MARKING_02, description: "Marking 02 Logo" }
+  ]
+});

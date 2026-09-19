@@ -5,6 +5,36 @@ Scope: `@carbonenginejs/runtime` global classes under `src/global/dropped`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for donor classes that are written but deliberately not live, each carrying the reason it was dropped.
 
+<!-- class:EnumRegistration -->
+## `EnumRegistration`
+
+Records the enum template registration responsibilities absorbed by CjsBlueEnumRegistry.
+
+- Export: None
+- Source: `src/global/dropped/EnumRegistration.js`
+- Visibility: Internal
+- Kind: Dropped Carbon helper
+
+<!-- class:EnumTypeRegistration -->
+## `EnumTypeRegistration`
+
+Records the static enum registrar absorbed by CjsBlueEnumRegistry.RegisterEnum.
+
+- Export: None
+- Source: `src/global/dropped/EnumTypeRegistration.js`
+- Visibility: Internal
+- Kind: Dropped Carbon helper
+
+<!-- class:PyBlueEnumObject -->
+## `PyBlueEnumObject`
+
+Records the Python BlueEnum wrapper absorbed by CjsBlueEnumRegistry and plain enum objects.
+
+- Export: None
+- Source: `src/global/dropped/PyBlueEnumObject.js`
+- Visibility: Internal
+- Kind: Dropped Carbon helper
+
 <!-- class:BlueResManRegistrar -->
 ## `BlueResManRegistrar`
 

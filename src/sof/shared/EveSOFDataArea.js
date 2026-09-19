@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { blue, EnumRegistrationType } from "#blue";
 import { ErrSOFAreaTypeNotFound } from "./ErrSOFAreaTypeNotFound.js";
 
 /** Carbon area-material slots in canonical AreaType order. */
@@ -117,3 +118,24 @@ export class EveSOFDataArea extends CjsModel
   }
 
 }
+
+// Native chooser labels and descriptions are distinct from C++ member names.
+blue.enums.RegisterEnum("trinity.EveSOFDataArea.AreaType", EveSOFDataArea.AreaType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 363,
+  exposedName: "EveSOFDataAreaType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:113",
+  chooser: [
+    { name: "Primary", value: EveSOFDataArea.AreaType.TYPE_PRIMARY, description: "Primary Area Type" },
+    { name: "Glass", value: EveSOFDataArea.AreaType.TYPE_GLASS, description: "Area Type Glass" },
+    { name: "Sails", value: EveSOFDataArea.AreaType.TYPE_SAILS, description: "Area Type Sails" },
+    { name: "Reactor", value: EveSOFDataArea.AreaType.TYPE_REACTOR, description: "Area Type Reactor" },
+    { name: "Darkhull", value: EveSOFDataArea.AreaType.TYPE_DARKHULL, description: "Area Type Dark Hull" },
+    { name: "Wreck", value: EveSOFDataArea.AreaType.TYPE_WRECK, description: "Area Type Generic Wreck" },
+    { name: "Rock", value: EveSOFDataArea.AreaType.TYPE_ROCK, description: "Area Type Rock" },
+    { name: "Monument", value: EveSOFDataArea.AreaType.TYPE_MONUMENT, description: "Area Type Monument" },
+    { name: "Ornament", value: EveSOFDataArea.AreaType.TYPE_ORNAMENT, description: "Area Type Ornament" },
+    { name: "SimplePrimary", value: EveSOFDataArea.AreaType.TYPE_SIMPLEPRIMARY, description: "Simple Primary Area Type" },
+    { name: "Turret", value: EveSOFDataArea.AreaType.TYPE_TURRET, description: "Area Type Turrets" },
+    { name: "NoOverwrite", value: EveSOFDataArea.AreaType.TYPE_NO_OVERWRITE, description: "Area Type No Overwrite" }
+  ]
+});

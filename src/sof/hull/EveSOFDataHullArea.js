@@ -14,7 +14,7 @@ export class EveSOFDataHullArea extends CjsModel
   /** m_areaType (EveSOFDataArea::AreaType - enum AreaType) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("AreaType")
+  @type.enum("trinity.EveSOFDataArea.AreaType")
   areaType = 0;
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */

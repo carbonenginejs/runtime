@@ -69,6 +69,7 @@
     },
     "global/schema": {
       "mayImport": [
+        "global/blue/enums",
         "global/compose",
         "global/utils",
         "global/math",
@@ -93,8 +94,13 @@
         "methods carry @impl.abstract as well as their throwing body."
       ]
     },
+    "global/blue/enums": {
+      "mayImport": [],
+      "why": ["Dependency-free enum storage shared by schema and Blue; never imports either facade."]
+    },
     "global/blue": {
       "mayImport": [
+        "global/blue/enums",
         "global/schema"
       ],
       "why": [

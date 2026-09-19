@@ -686,16 +686,16 @@ test("registers classes, structs, schema metadata, and enums", () => {
     assert.equal(structs.Has("LegacyStruct"), true);
 });
 
-test("enum object lookup preserves identity when an exposed name is reused", () => {
+test("enum registration rejects a conflicting name without changing its object identity", () => {
     const first = Object.freeze({ FIRST: 1 });
     const second = Object.freeze({ SECOND: 2 });
     CjsSchema.defineEnum(first, { name: "EnumIdentityCollision", members: [{ name: "FIRST", value: 1 }] });
     const firstMetadata = CjsSchema.getEnum(first);
-    CjsSchema.defineEnum(second, { name: "EnumIdentityCollision", members: [{ name: "SECOND", value: 2 }] });
+    assert.throws(() => CjsSchema.defineEnum(second, { name: "EnumIdentityCollision", members: [{ name: "SECOND", value: 2 }] }), /conflicts/);
 
     assert.equal(CjsSchema.getEnum(first), firstMetadata);
-    assert.notEqual(CjsSchema.getEnum(first), CjsSchema.getEnum(second));
-    assert.equal(CjsSchema.getEnum("EnumIdentityCollision"), CjsSchema.getEnum(second));
+    assert.equal(CjsSchema.getEnum(second), null);
+    assert.equal(CjsSchema.getEnum("EnumIdentityCollision"), firstMetadata);
 });
 
 test("schema.hideInherited removes inherited fields only from the schema surface", () => {

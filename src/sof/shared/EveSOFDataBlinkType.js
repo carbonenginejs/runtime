@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** EveSOFDataBlinkType (eve) - generated from schema shapeHash db502493.... */
 @type.define({ className: "EveSOFDataBlinkType", family: "eve" })
@@ -62,3 +63,17 @@ export class EveSOFDataBlinkType extends CjsModel
   ]);
 
 }
+
+// Native chooser labels and descriptions are distinct from C++ member names.
+blue.enums.RegisterEnum("trinity.EveSOFDataBlinkType.BlinkType", EveSOFDataBlinkType.BlinkType, {
+  source: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData.h", family: "eve", line: 312,
+  exposedName: "EveSOFDataBlinkType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObjectFactory/EveSOFData_Blue.cpp:70",
+  chooser: [
+    { name: "Static", value: EveSOFDataBlinkType.BlinkType.TYPE_STATIC, description: "Static, no blinking" },
+    { name: "Blink", value: EveSOFDataBlinkType.BlinkType.TYPE_BLINK, description: "Regular blink" },
+    { name: "FadeIn", value: EveSOFDataBlinkType.BlinkType.TYPE_FADE_IN, description: "Fade in" },
+    { name: "FadeOut", value: EveSOFDataBlinkType.BlinkType.TYPE_FADE_OUT, description: "Fade out" },
+    { name: "Cycle", value: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE, description: "Cycle (fade in/out)" }
+  ]
+});

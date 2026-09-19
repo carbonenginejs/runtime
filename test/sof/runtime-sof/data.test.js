@@ -120,6 +120,7 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
 });
 
 test("SOF enum fields expose their shared chooser values through schema metadata", async () => {
+  const { blue } = await import("../../../npm/dist/global/blue/index.js");
   const { Tr2Lod } = await import("../../../npm/dist/global/consts/trinity.js");
   const { ReflectionMode } = await import("../../../npm/dist/global/consts/graphics/index.js");
   const cases = [
@@ -149,7 +150,17 @@ test("SOF enum fields expose their shared chooser values through schema metadata
     new Constructor();
     const field = CjsSchema.getSchema(Constructor).fields.find(value => value.name === fieldName);
     assert.deepEqual(field.enum.members, members, `${name}.${fieldName} exposes its chooser`);
+    const registered = blue.enums.GetEnumName(members);
+    if (registered)
+    {
+      assert.equal(field.enum.identity, registered, `${name}.${fieldName} uses its native owner's registration`);
+      assert.equal(field.enum.chooser, blue.enums.GetEnumInfo(registered).chooser);
+    }
   }
+  assert.equal(blue.enums.GetEnumName(EveSOFDataFactionColorSet.ColorType), "trinity.SOFDataFactionColorChooser.ColorType");
+  assert.equal(blue.enums.GetNameFromValue("trinity.EveSOFDataArea.AreaType", 11), "NoOverwrite");
+  assert.equal(blue.enums.GetEnumInfo("trinity.SOFDataFactionColorChooser.ColorType").chooser.length, 44);
+  assert.throws(() => blue.enums.GetNameFromValue("trinity.EveSOFDataLogoSet.LogoType", 5), RangeError);
 });
 
 test("EveSOFDataTexture: faithful defaults + schema registration", () => {
@@ -554,7 +565,7 @@ test("SOF attachment records and runtime-only Carbon helpers are fully promoted"
   const plane = new EveSOFDataHullPlaneSetItem();
   assert.equal(plane.dutyCycle, 1);
   assert.equal(CjsSchema.getField(EveSOFDataHullPlaneSetItem, "dutyCycle"), null);
-  assert.equal(CjsSchema.getField(EveSOFDataHullPlaneSetItem, "blinkMode").enum.enumType, "BlinkType");
+  assert.equal(CjsSchema.getField(EveSOFDataHullPlaneSetItem, "blinkMode").enum.enumType, "trinity.EveSOFDataBlinkType.BlinkType");
   assert.deepEqual([...plane.color], [1, 1, 1, 1]);
 
   const decal = new EveSOFDataHullDecalSetItem();

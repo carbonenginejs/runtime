@@ -30,3 +30,4 @@ export * from "./INotify.js";
 export * from "./CjsBluePaths.js";
 export * from "./IBluePaths.js";
 export * from "./blue.js";
+export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
