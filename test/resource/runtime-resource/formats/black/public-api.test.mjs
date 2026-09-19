@@ -1,7 +1,31 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 
 import CjsBlackFormat, { CjsBlackFormat as NamedCjsBlackFormat } from "../../../../../npm/dist/resource/formats/black/index.js";
+
+// The dated schema files are snapshots; tools-core's `--black-module` points
+// blackDefinitions.js at the newest one. These tests follow whichever it is.
+const SCHEMA_DIR = new URL("../../../../../src/resource/formats/black/core/", import.meta.url);
+
+function newestSchemaFile()
+{
+    return fs.readdirSync(SCHEMA_DIR)
+        .filter(name => /^black-schema-v\d+-\d{4}-\d{2}-\d{2}\.json$/.test(name))
+        .sort()
+        .pop();
+}
+
+function newestSchema()
+{
+    return JSON.parse(fs.readFileSync(new URL(newestSchemaFile(), SCHEMA_DIR), "utf8"));
+}
+
+test("blackDefinitions.js imports the newest dated schema", () =>
+{
+    const source = fs.readFileSync(new URL("blackDefinitions.js", SCHEMA_DIR), "utf8");
+    assert.match(source, new RegExp(`"\\./${newestSchemaFile().replace(/\./g, "\\.")}"`));
+});
 
 class Root {}
 class ObjectNode {}
@@ -65,9 +89,9 @@ test("published schema subpaths import generated Black definitions", async () =>
     assert.equal(new CjsBlackFormat().GetValues().schema, canonical.default);
     assert.equal(canonical.schema, "carbonenginejs.blackDefinitions");
     assert.equal(canonical.version, 1);
-    assert.equal(canonical.generatedAt, "2026-07-23T12:50:12.522Z");
+    assert.equal(canonical.generatedAt, newestSchema().generatedAt);
     assert.equal(version.default.formatId, "black");
-    assert.equal(version.default.generatedAt, "2026-07-23T12:50:12.522Z");
+    assert.equal(version.default.generatedAt, newestSchema().generatedAt);
     assert.equal(version.default.version, 1);
     assert.equal(schema.default.EveSOFDataHull.boundingSphere, "vector4");
     assert.deepEqual(schema.default.EveSOFDataHull.buildClass, { type: "enum", enum: "BuildClass" });
