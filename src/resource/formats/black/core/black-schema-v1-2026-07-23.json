@@ -5807,94 +5807,27 @@
       "maxDisplacement": "float",
       "position": "vector3",
       "direction": "vector3",
-      "angle": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "innerAngle": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "radius": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
+      "angle": "float",
+      "innerAngle": "float",
+      "radius": "float",
       "inheritVelocity": "float",
-      "minSpeed": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "maxSpeed": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "minLifeTime": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "maxLifeTime": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "sizes": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "sizeVariance": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "color0": {
-        "type": "enum",
-        "token": "0",
-        "enum": "EmitterParams"
-      },
-      "color1": {
-        "type": "enum",
-        "index": 1,
-        "token": "1",
-        "enum": "EmitterParams"
-      },
-      "color2": {
-        "type": "enum",
-        "index": 2,
-        "token": "2",
-        "enum": "EmitterParams"
-      },
-      "color3": {
-        "type": "enum",
-        "index": 3,
-        "token": "3",
-        "enum": "EmitterParams"
-      },
-      "textureIndex": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "colorMidpoint": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "velocityStretchRotation": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "drag": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "turbulenceAmplitude": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "turbulenceFrequency": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "gravity": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      }
+      "minSpeed": "float",
+      "maxSpeed": "float",
+      "minLifeTime": "float",
+      "maxLifeTime": "float",
+      "sizes": "vector3",
+      "sizeVariance": "float",
+      "color0": "color",
+      "color1": "color",
+      "color2": "color",
+      "color3": "color",
+      "textureIndex": "uint",
+      "colorMidpoint": "float",
+      "velocityStretchRotation": "float",
+      "drag": "float",
+      "turbulenceAmplitude": "float",
+      "turbulenceFrequency": "uint",
+      "gravity": "float"
     },
     "Tr2GpuStructuredBuffer": {
       "count": "uint",
@@ -5910,100 +5843,30 @@
       "maxDisplacement": "float",
       "position": "vector3",
       "direction": "vector3",
-      "angle": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "innerAngle": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "radius": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
+      "angle": "float",
+      "innerAngle": "float",
+      "radius": "float",
       "inheritVelocity": "float",
-      "minSpeed": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "maxSpeed": {
-        "type": "enum",
-        "enum": "Emitter"
-      },
-      "minLifeTime": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "maxLifeTime": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "sizes": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "sizeVariance": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "color0": {
-        "type": "enum",
-        "token": "0",
-        "enum": "EmitterParams"
-      },
-      "color1": {
-        "type": "enum",
-        "index": 1,
-        "token": "1",
-        "enum": "EmitterParams"
-      },
-      "color2": {
-        "type": "enum",
-        "index": 2,
-        "token": "2",
-        "enum": "EmitterParams"
-      },
-      "color3": {
-        "type": "enum",
-        "index": 3,
-        "token": "3",
-        "enum": "EmitterParams"
-      },
-      "textureIndex": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "colorMidpoint": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "velocityStretchRotation": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "drag": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "turbulenceAmplitude": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "turbulenceFrequency": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
-      "gravity": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      },
+      "minSpeed": "float",
+      "maxSpeed": "float",
+      "minLifeTime": "float",
+      "maxLifeTime": "float",
+      "sizes": "vector3",
+      "sizeVariance": "float",
+      "color0": "color",
+      "color1": "color",
+      "color2": "color",
+      "color3": "color",
+      "textureIndex": "uint",
+      "colorMidpoint": "float",
+      "velocityStretchRotation": "float",
+      "drag": "float",
+      "turbulenceAmplitude": "float",
+      "turbulenceFrequency": "uint",
+      "gravity": "float",
       "scaledByParent": "boolean",
       "attractorPosition": "vector3",
-      "attractorStrength": {
-        "type": "enum",
-        "enum": "EmitterParams"
-      }
+      "attractorStrength": "float"
     },
     "Tr2GrannyAnimation": {
       "resPath_": "path",
