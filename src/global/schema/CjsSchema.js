@@ -666,6 +666,7 @@ export class CjsSchema
     // what it holds - only PERSIST and RPERSIST are I/O, NOTIFY is wiring,
     // HIDDEN and FLAGS are editor hints, READ and WRITE are access control.
     static edit = Object.freeze({
+        none: fieldDecorator("edit", {}),
         // MODMASK 0x00F
         read: fieldDecorator("edit", { read: true }),
         write: fieldDecorator("edit", { write: true }),
@@ -674,10 +675,13 @@ export class CjsSchema
         hidden: fieldDecorator("edit", { hidden: true }),
 
         // SERMASK 0x0F0
-        persist: fieldDecorator("edit", { read: true, write: true, persist: true }),
+        persist: fieldDecorator("edit", { persist: true }),
         // RPERSIST 0x020 - "like PERSIST but only unserialize (read only)":
         // the value loads from a document and is never written back out.
-        rpersist: fieldDecorator("edit", { read: true, rpersist: true }),
+        rpersist: fieldDecorator("edit", { rpersist: true }),
+
+        flags: fieldDecorator("edit", { flags: true }),
+        enum: fieldDecorator("edit", { enum: true }),
 
         // PERSISTONLY = HIDDEN | PERSIST, for hidden attributes.
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
@@ -1623,6 +1627,12 @@ function getEffectiveFields(Constructor)
         }
     }
 
+    // Enum chooser metadata carries the same ENUM fact as Blue's flag.
+    // Keep it visible under edit for comparisons without duplicating annotations.
+    for (const field of ordered)
+    {
+        if (field.enum) field.edit = { ...field.edit, enum: true };
+    }
     return ordered.filter(field => !hidden.has(field.name));
 }
 

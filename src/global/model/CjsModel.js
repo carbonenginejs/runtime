@@ -1,7 +1,7 @@
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
-import { queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
+import { isExportableField, isWritableField, queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
 import { BLUELISTEVENT } from "../consts/blue.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
@@ -575,6 +575,7 @@ export class CjsModel extends CjsEventEmitter
         {
             for (const field of getModelFields(value))
             {
+                if (!isExportableField(field, options)) continue;
                 out[field.name] = exportSourceValue(value[field.name], options);
             }
 
@@ -1040,11 +1041,7 @@ function schemaFieldToModelField(field)
 
 function isWritableModelField(field)
 {
-    const edit = field?.edit;
-    if (!edit) return true;
-    if (edit.write || edit.persist || edit.persistOnly) return true;
-    if (edit.read && !edit.write) return false;
-    return true;
+    return isWritableField(field);
 }
 
 function findIncomingKey(values, field)
@@ -1342,11 +1339,7 @@ function exportEnumFieldValue(value, spec, Constructor, options)
     return [memberName, enumIdentity(Constructor, spec.name)];
 }
 
-function isPersistedModelField(field)
-{
-    const edit = field?.edit;
-    return !!(edit && (edit.persist || edit.persistOnly));
-}
+
 
 function declaredExportClassName(fieldType)
 {
@@ -1398,7 +1391,7 @@ function createExportContext(root, options)
             if (count > 1) return;
             for (const field of getModelFields(value))
             {
-                if (options.persistOnly && !isPersistedModelField(field)) continue;
+                if (!isExportableField(field, options)) continue;
                 walk(value[field.name]);
             }
         })(root);
@@ -1444,7 +1437,7 @@ function exportModelInto(model, out, declaredClassName, options, context)
     const enumMode = options.enumFormat && options.enumFormat !== "values";
     for (const field of fields)
     {
-        if (options.persistOnly && !isPersistedModelField(field)) continue;
+        if (!isExportableField(field, options)) continue;
         if (enumMode)
         {
             const spec = resolveEnumStaticForField(model.constructor, field);

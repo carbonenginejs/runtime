@@ -123,11 +123,10 @@ export function settleModifiedMembers(target)
 /**
  * Whether a declared field accepts an incoming value.
  *
- * Carbon's deserializer semantics, and deliberately identical to the model
- * path's rule: PERSIST or WRITE is writable, and the only refusal is read-only
- * WITHOUT persist - runtime-derived state the wire should never carry and
- * Initialize recomputes. There is no caller-side capability to relax this,
- * because a field Carbon persists is already writable here.
+ * The JS values import accepts WRITE, PERSIST and RPERSIST independently.
+ * RPERSIST follows BlueTypes' load-only contract, including where the donor's
+ * DictReader currently checks only PERSIST. This is a serialization service,
+ * not BluePyWrap property access; unflagged declared fields retain JS support.
  *
  * @param {object} field
  * @returns {Boolean}
@@ -136,11 +135,25 @@ export function isWritableField(field)
 {
     const edit = field?.edit;
     if (!edit) return true;
-    if (edit.write || edit.persist || edit.persistOnly) return true;
+    if (edit.write || edit.persist || edit.rpersist || edit.persistOnly) return true;
     if (edit.read && !edit.write) return false;
     return true;
 }
 
+
+/**
+ * Selects persisted output by PERSIST, not RPERSIST.
+ * The unrestricted JS values view retains all declared fields.
+ * @param {object} field Declared field metadata.
+ * @param {object} options Values export options.
+ * @returns {boolean} Whether this field belongs in the exported values.
+ */
+export function isExportableField(field, options = {})
+{
+    const edit = field?.edit;
+    const persist = edit?.persist || edit?.persistOnly;
+    return !options.persistOnly || !!persist;
+}
 
 /**
  * Builds the state-free transport over a set of schema services.
@@ -172,7 +185,7 @@ export function createValuesTransport(services)
     {
         for (const field of GetFields(target.constructor))
         {
-            if (options.persistOnly && !(field.edit?.persist || field.edit?.persistOnly)) continue;
+            if (!isExportableField(field, options)) continue;
             out[field.name] = Export(target[field.name], field, options);
         }
         return out;

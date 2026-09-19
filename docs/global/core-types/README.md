@@ -60,6 +60,42 @@ method annotations are available through `CjsSchema.getMethod`. Use variadic
 member names, not an array plus an immediate/deferred flag. This annotation
 does not replace the mutation code responsible for invalidating those members.
 
+## Blue edit flags
+
+The `edit` namespace describes Blue's access, persistence and editor flags.
+Flags combine independently; persistence does not imply script access.
+
+| Blue flag | Value | Decorator |
+|---|---:|---|
+| NONE | `0x000` | `edit.none` |
+| READ | `0x001` | `edit.read` |
+| WRITE | `0x002` | `edit.write` |
+| READWRITE | `0x003` | `edit.readwrite` |
+| NOTIFY | `0x004` | `edit.notify` |
+| HIDDEN | `0x008` | `edit.hidden` |
+| PERSIST | `0x010` | `edit.persist` |
+| RPERSIST | `0x020` | `edit.rpersist` |
+| FLAGS | `0x100` | `edit.flags` |
+| ENUM | `0x200` | `edit.enum` |
+| PERSISTONLY | `0x018` | `edit.persistOnly` |
+
+`type.enum(...)` retains chooser metadata and exposes `edit.enum: true` in the
+resolved schema, so existing enum declarations need no duplicate annotation.
+`edit.flags` describes a bitmask; it does not supply a chooser or an editor.
+Blue's MODMASK, SERMASK and EDMASK are masks over these bits, and EDIT_FORCELONG
+is an enum-width sentinel; they are not decorators applied to fields.
+
+Values import accepts WRITE, PERSIST or RPERSIST even when READ is present.
+RPERSIST follows the declared load-only flag contract; some native reader
+implementations do not honor it, so this is an explicit JS transport choice.
+Persisted output (`GetValues({ persistOnly: true })`) selects PERSIST, including
+PERSISTONLY. RPERSIST alone is omitted; PERSIST combined with RPERSIST still
+exports. The existing unfiltered values view retains all declared fields.
+
+These services perform values interchange, not BluePyWrap property access.
+Unflagged declared fields remain supported, and the unfiltered values view does
+not enforce script READ permissions. Direct JS field access is not intercepted.
+
 ## Member notifications
 
 `@edit.notify` requests `OnModified(propertyName)` after an accepted values write,
