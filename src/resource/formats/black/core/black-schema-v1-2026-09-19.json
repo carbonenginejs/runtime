@@ -1,7 +1,7 @@
 {
   "schema": "carbonenginejs.blackDefinitions",
   "version": 1,
-  "generatedAt": "2026-09-19T12:28:35.593Z",
+  "generatedAt": "2026-09-19T13:07:56.862Z",
   "enums": {
     "AmdExtD3DStructType": {
       "AmdExtD3DStructUnknown": 0,
@@ -6272,9 +6272,47 @@
     "Tr2Effect": {
       "name": "string",
       "effectFilePath": "path",
-      "options": "structList",
+      "options": {
+        "type": "structList",
+        "cppType": "PTr2ShaderOptionStructureList",
+        "structure": {
+          "name": "Tr2ShaderOption",
+          "size": 16,
+          "members": [
+            {
+              "name": "name",
+              "offset": 0,
+              "type": "string"
+            },
+            {
+              "name": "value",
+              "offset": 8,
+              "type": "string"
+            }
+          ]
+        }
+      },
       "parameters": "array",
-      "constParameters": "structList",
+      "constParameters": {
+        "type": "structList",
+        "cppType": "PTr2ConstantEffectParameterStructureList",
+        "structure": {
+          "name": "Tr2ConstantEffectParameter",
+          "size": 24,
+          "members": [
+            {
+              "name": "name",
+              "offset": 0,
+              "type": "string"
+            },
+            {
+              "name": "value",
+              "offset": 8,
+              "type": "vector4"
+            }
+          ]
+        }
+      },
       "resources": "array",
       "samplerOverrides": "structList"
     },
