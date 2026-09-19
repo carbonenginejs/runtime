@@ -652,7 +652,11 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   GetCompleteShaderPath(path)
   {
-    return `${this.GetAreaShaderLocationResPath()}/${this.GetShaderPrefix(this.IsHullAnimated())}${path}`;
+    // Carbon's StringInsertStubAfter inserts after the LAST slash, including
+    // shader suffixes that contain subdirectories (quad/quadv5.fx).
+    const shaderPath = `/${path}`,
+        index = shaderPath.lastIndexOf("/") + 1;
+    return `${this.GetAreaShaderLocationResPath()}${shaderPath.slice(0, index)}${this.GetShaderPrefix(this.IsHullAnimated())}${shaderPath.slice(index)}`;
   }
 
   /**

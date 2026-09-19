@@ -112,6 +112,29 @@ function createManager()
   return manager;
 }
 
+test("EveSOFDNA inserts animation prefixes at the shader filename", () => {
+  const dna = new EveSOFDNA();
+  dna.genericData = {
+    areaShaderLocation: "res:/graphics/effect/managed/space/spaceobject/v5",
+    shaderPrefix: "static_",
+    shaderPrefixAnimated: "skinned_",
+  };
+  for (const [ animated, prefix ] of [[ false, "static_" ], [ true, "skinned_" ]])
+  {
+    dna.isSkinned = animated;
+    for (const [ suffix, expected ] of [
+      [ "quad.fx", `${prefix}quad.fx` ],
+      [ "quad/quadv5.fx", `quad/${prefix}quadv5.fx` ],
+      [ "pbr/structurematerial/structure.fx", `pbr/structurematerial/${prefix}structure.fx` ],
+    ])
+    {
+      assert.equal(dna.GetCompleteShaderPath(suffix), `${dna.genericData.areaShaderLocation}/${expected}`);
+    }
+  }
+  dna.genericData.shaderPrefixAnimated = "";
+  assert.equal(dna.GetCompleteShaderPath("quad/quadv5.fx"), `${dna.genericData.areaShaderLocation}/quad/quadv5.fx`);
+});
+
 test("EveSOFDataMgr indexes every top-level SOF catalog", () => {
   const emptyManager = new EveSOFDataMgr();
   assert.equal(emptyManager.HasGenericData(), false);
