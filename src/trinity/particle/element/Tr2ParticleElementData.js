@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementData.json).
 import { type } from "#schema";
+import { blue } from "#blue";
 import { CjsModel } from "#model";
 
 /** Tr2ParticleElementData (particle) - generated from schema shapeHash ca640653.... */
@@ -18,7 +19,7 @@ export class Tr2ParticleElementData extends CjsModel
 
   /** m_bufferType (BufferType - enum BufferType) */
   @type.int32
-  @type.enum("BufferType")
+  @type.enum("trinity.Tr2ParticleElementData.BufferType")
   bufferType = 0;
 
   /** m_offset (unsigned) */
@@ -47,3 +48,9 @@ export class Tr2ParticleElementData extends CjsModel
   });
 
 }
+
+
+// This native enum has no Blue chooser or enum exposure registration.
+blue.enums.RegisterEnum("trinity.Tr2ParticleElementData.BufferType", Tr2ParticleElementData.BufferType, {
+  source: "trinity/trinity/Particle/Tr2ParticleElementDeclaration.h", family: "particle", line: 62
+});

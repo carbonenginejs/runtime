@@ -266,3 +266,43 @@ test("Trinity shares SOF's registered reflection and LOD objects", async () =>
         }
     }
 });
+
+
+test("particle enum consumers share the native owner and chooser", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    const { Tr2ParticleElementDeclarationName: Name } = await import("../../npm/dist/trinity/particle/element/Tr2ParticleElementDeclarationName.js");
+    const identity = "trinity.Tr2ParticleElementDeclarationName.Type";
+    assert.equal(services.enums.GetEnum(identity), Name.Type);
+    assert.deepEqual(Name.Type, { LIFETIME: 0, POSITION: 1, VELOCITY: 2, MASS: 3, CUSTOM: 4 });
+    const info = services.enums.GetEnumInfo(identity);
+    assert.equal(info.exposedName, "PARTICLE_ELEMENT_TYPE");
+    assert.deepEqual(info.chooser.map(entry => entry.name), Object.keys(Name.Type));
+    assert.equal(info.chooser[0].description, "Particle life time (2D float)");
+    const cases = [
+        ["element/Tr2ParticleElementDeclarationName", "type"],
+        ["element/Tr2ParticleElementDeclaration", "elementType"],
+        ["constraint/Tr2ElementBlendConstraint", "elementType"],
+        ["attribute/Tr2ConsecutiveIntegerAttributeGenerator", "elementType"],
+        ["attribute/Tr2RandomDirectionAttributeGenerator", "elementType"],
+        ["attribute/Tr2RandomIntegerAttributeGenerator", "elementType"],
+        ["attribute/Tr2RandomUniformAttributeGenerator", "elementType"]
+    ];
+    for (const [path, member] of cases)
+    {
+        const name = path.split("/").at(-1);
+        const { [name]: Constructor } = await import(`../../npm/dist/trinity/particle/${path}.js`);
+        const field = schema.getField(Constructor, member);
+        assert.equal(field.enum.identity, identity);
+        assert.equal(field.enum.members, Name.Type);
+        assert.equal(Constructor.Type, Name.Type);
+        assert.equal(field.enum.chooser, info.chooser);
+    }
+    const { Tr2ParticleElementData: Data } = await import("../../npm/dist/trinity/particle/element/Tr2ParticleElementData.js");
+    const buffers = "trinity.Tr2ParticleElementData.BufferType";
+    assert.deepEqual(Data.BufferType, { GPU: 0, CPU: 1, COUNT: 2 });
+    assert.equal(schema.getField(Data, "bufferType").enum.members, services.enums.GetEnum(buffers));
+    assert.equal(services.enums.GetEnumInfo(buffers).chooser, undefined);
+    assert.equal(services.enums.GetEnumInfo(buffers).exposedName, undefined);
+});

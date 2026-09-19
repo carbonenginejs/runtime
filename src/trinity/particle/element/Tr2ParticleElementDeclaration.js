@@ -2,6 +2,7 @@
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
 /** Tr2ParticleElementDeclaration (particle) - generated from schema shapeHash 272e6639.... */
 @type.define({ className: "Tr2ParticleElementDeclaration", family: "particle" })
@@ -11,7 +12,7 @@ export class Tr2ParticleElementDeclaration extends CjsModel
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
   @edit.persist
   @type.int32
-  @type.enum("Type")
+  @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = 4;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
@@ -62,12 +63,6 @@ export class Tr2ParticleElementDeclaration extends CjsModel
       : Object.keys(Tr2ParticleElementDeclaration.Type).find(name => Tr2ParticleElementDeclaration.Type[name] === this.elementType) ?? "";
   }
 
-  static Type = Object.freeze({
-    LIFETIME: 0,
-    POSITION: 1,
-    VELOCITY: 2,
-    MASS: 3,
-    CUSTOM: 4,
-  });
+  static Type = Tr2ParticleElementDeclarationName.Type;
 
 }

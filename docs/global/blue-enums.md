@@ -78,6 +78,9 @@ All 16 SOF-owned enum types in the field inventory now use this path across
 28 fields. The four additional SOF fields using shared ReflectionMode/Tr2Lod
 constants now use `trinity.EntityComponents.ReflectionMode` and `trinity.Tr2Lod`.
 Nine Trinity reflection/LOD fields also use these shared registrations.
+Eight particle fields use `trinity.Tr2ParticleElementDeclarationName.Type`
+and `trinity.Tr2ParticleElementData.BufferType`. DeclarationName owns Type;
+its declaration and generator consumers reference the same enum object.
 Consumers explicitly import the shared registration module; constants remain
 dependency-free and importing Blue alone does not register these domain types. Independently declared banner Usage, pattern
 ProjectionType and DisplayQualityModifier types have separate registry identities,
