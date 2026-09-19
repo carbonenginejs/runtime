@@ -10,6 +10,9 @@ import {
   Tr2GpuSharedEmitter,
   Tr2GpuUniqueEmitter,
   Tr2ParticleAttractorForce,
+  Tr2ParticleElementData,
+  Tr2ParticleElementDeclaration,
+  Tr2ParticleSystem,
   Tr2ParticleDirectForce,
   Tr2ParticleDragForce,
   Tr2ParticleFluidDragForce,
@@ -205,4 +208,47 @@ test("GPU emitter Setup projects CPU descriptors onto its authored model fields"
   emitter.Enable(false);
   if (emitter.IsEnabled()) throw new Error("emitter should be disabled");
   if (!emitter.Initialize() || !emitter.OnModified()) throw new Error("CPU graph lifecycle should succeed");
+});
+
+
+test("particle Invalid returns independent native sentinel descriptors", () =>
+{
+  const first = Tr2ParticleElementData.Invalid();
+  const second = Tr2ParticleElementData.Invalid();
+  assert.notEqual(first, second);
+  assert.equal(first.dimension, 0);
+  assert.equal(first.usageIndex, 0);
+  assert.equal(first.offset, 0);
+  assert.equal(first.bufferType, Tr2ParticleElementData.BufferType.COUNT);
+  first.offset = 7;
+  assert.equal(second.offset, 0);
+  assert.equal(Object.hasOwn(first, "none"), false);
+  assert.equal(CjsSchema.getSchema(Tr2ParticleElementData).fields.some(field => field.name === "none"), false);
+});
+
+test("particle GetSize preserves custom dimensions through CPU buffer layout", () =>
+{
+  const declaration = new Tr2ParticleElementDeclaration();
+  for (const [elementType, size] of [[0, 2], [1, 3], [2, 3], [3, 1]])
+  {
+    declaration.elementType = elementType;
+    declaration.dimension = 8;
+    assert.equal(declaration.GetSize(), size);
+  }
+  declaration.elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
+  declaration.customName = "wide";
+  declaration.usedByGPU = false;
+  for (const dimension of [0, 8])
+  {
+    declaration.dimension = dimension;
+    assert.equal(declaration.GetSize(), dimension);
+    const system = new Tr2ParticleSystem();
+    system.maxParticleCount = 2;
+    system.elements.push(declaration);
+    assert.equal(system.UpdateElementDeclaration(), true);
+    const element = system.GetElement("wide");
+    assert.equal(element.dimension, dimension);
+    assert.equal(element.instanceStride, dimension);
+    if (dimension) assert.equal(element.buffer.length, 2 * dimension);
+  }
 });

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementDeclaration.json.).
-import { edit, type } from "#schema";
+import { carbon, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2ParticleElementDeclarationName } from "./Tr2ParticleElementDeclarationName.js";
 
@@ -35,22 +35,18 @@ export class Tr2ParticleElementDeclaration extends CjsModel
   @type.uint32
   usageIndex = 0;
 
-  /** Returns Carbon's fixed dimensions for built-in particle semantics. */
-  GetDimension()
+  /** Returns the native semantic size or the authored custom dimension. */
+  @carbon.method
+  GetSize()
   {
-    switch (this.elementType)
+    if (this.elementType === Tr2ParticleElementDeclarationName.Type.CUSTOM)
     {
-      case Tr2ParticleElementDeclaration.Type.LIFETIME:
-        return 2;
-      case Tr2ParticleElementDeclaration.Type.POSITION:
-      case Tr2ParticleElementDeclaration.Type.VELOCITY:
-        return 3;
-      case Tr2ParticleElementDeclaration.Type.MASS:
-        return 1;
-      default:
-        return Math.max(1, Math.min(4, Math.trunc(this.dimension) || 1));
+      return this.dimension;
     }
+    return Tr2ParticleElementDeclaration.#sizes[this.elementType];
   }
+
+  static #sizes = Object.freeze([2, 3, 3, 1]);
 
   /**
    * Returns the authored custom name for CUSTOM elements, and the semantic's

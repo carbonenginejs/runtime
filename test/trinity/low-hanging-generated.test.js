@@ -982,15 +982,15 @@ test("particle declarations restore Carbon nested semantic properties", () =>
 {
   const declaration = new Tr2ParticleElementDeclaration();
   assert.equal(declaration.elementType, Tr2ParticleElementDeclaration.Type.CUSTOM);
-  assert.equal(declaration.GetDimension(), 1);
+  assert.equal(declaration.GetSize(), 1);
   declaration.elementType = Tr2ParticleElementDeclaration.Type.POSITION;
   declaration.dimension = 1;
-  assert.equal(declaration.GetDimension(), 3);
+  assert.equal(declaration.GetSize(), 3);
   assert.equal(declaration.GetName(), "POSITION");
   declaration.elementType = Tr2ParticleElementDeclaration.Type.CUSTOM;
   declaration.customName = "temperature";
   declaration.dimension = 8;
-  assert.equal(declaration.GetDimension(), 4);
+  assert.equal(declaration.GetSize(), 8);
   assert.equal(declaration.GetName(), "temperature");
   assert.equal(CjsSchema.getField(Tr2ParticleElementDeclaration, "elementType")?.type.kind, "int32");
   assert.equal(CjsSchema.getField(Tr2ParticleElementDeclaration, "customName")?.type.kind, "string");

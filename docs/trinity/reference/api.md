@@ -85,3 +85,15 @@ output buffers universally optional.
 - [Eve runtime behavior](../concepts/eve-runtime-behavior.md)
 - [Generated-class lifecycle](../concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](implementation-status.md)
+
+
+## Particle element descriptors
+
+`Tr2ParticleElementDeclaration.GetSize()` returns the fixed semantic dimensions
+(2 for lifetime, 3 for position/velocity, 1 for mass), or the authored `dimension`
+for custom elements. Custom dimensions are not clamped; particle buffer layout
+uses this method directly.
+
+`Tr2ParticleElementData.Invalid()` returns a new descriptor with dimension,
+usage index and offset zero, and `bufferType` set to `BufferType.COUNT`.
+The local `none` variable in Carbon's factory is not a descriptor property.

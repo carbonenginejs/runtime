@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Particle/Tr2ParticleElementDeclaration.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema particle/Tr2ParticleElementData.json).
-import { type } from "#schema";
+import { carbon, type } from "#schema";
 import { blue } from "#blue";
 import { CjsModel } from "#model";
 
@@ -26,9 +26,17 @@ export class Tr2ParticleElementData extends CjsModel
   @type.uint32
   offset = 0;
 
-  /** none (Tr2ParticleElementData) */
-  @type.rawStruct("Tr2ParticleElementData")
-  none = null;
+  /** Creates Carbon's invalid element descriptor with the COUNT buffer sentinel. */
+  @carbon.method
+  static Invalid()
+  {
+    const none = new Tr2ParticleElementData();
+    none.dimension = 0;
+    none.usageIndex = 0;
+    none.bufferType = Tr2ParticleElementData.BufferType.COUNT;
+    none.offset = 0;
+    return none;
+  }
 
   /**
    * Which of a particle system's two buffers an element lives in.

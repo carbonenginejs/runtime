@@ -276,7 +276,7 @@ export class Tr2ParticleSystem extends CjsModel
         gpuUsages.add(usageIndex);
       }
       const bufferIndex = source?.usedByGPU ? 0 : 1;
-      const dimension = source?.GetDimension?.() ?? Math.max(1, Math.min(4, Math.trunc(Number(source?.dimension)) || 1));
+      const dimension = source.GetSize();
       const element = {
         key,
         elementType,
