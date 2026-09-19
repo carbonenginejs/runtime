@@ -291,6 +291,7 @@ export class CjsBlackPropertyReaders
     {
         return CjsBlackPropertyReaders.readStructureList(reader, {
             cppType: black.cppType,
+            structure: black.structure,
             elementType: {
                 kind: CARBON_TYPE.RAW_STRUCT,
                 cppType: black.cppType
@@ -481,6 +482,33 @@ export class CjsBlackPropertyReaders
     {
         const count = reader.ReadI32();
         const structureSize = reader.ReadU16();
+        // Source: blue/src/BlackReader.cpp ReadStructureList/PatchStringsInStructureList.
+        // JS projects declared members instead of patching native pointers in-place.
+        // Tr2Effect.h's Tr2ConstantEffectParameter has a shared string at 0 and vec4 at 8.
+        const structure = descriptor.structure;
+        if (structure)
+        {
+            if (count < 0 || structureSize !== structure.size)
+            {
+                throw new RangeError(`Incompatible Black structure ${structure.name}: ${count} x ${structureSize}`);
+            }
+            const records = reader.ReadBinaryReader(count * structureSize);
+            const result = [];
+            for (let index = 0; index < count; index++)
+            {
+                const record = records.ReadBinaryReader(structureSize);
+                const value = {};
+                for (const member of structure.members)
+                {
+                    record.offset = member.offset;
+                    value[member.name] = CjsBlackPropertyReaders.readValue(record, {
+                        jsType: { kind: member.type }
+                    });
+                }
+                result.push(value);
+            }
+            return result;
+        }
         const bytes = reader.ReadBytes(count * structureSize);
         return {
             $type: "black.structureList",

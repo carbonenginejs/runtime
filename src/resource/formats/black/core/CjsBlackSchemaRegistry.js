@@ -392,7 +392,8 @@ export class CjsBlackSchemaRegistry
             case "structList":
                 return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "array" }, {
                     container: "list",
-                    cppType: spec.cppType || "StructureList"
+                    cppType: spec.cppType || "StructureList",
+                    structure: spec.structure
                 });
             case "binaryBlock":
                 return CjsBlackSchemaRegistry.compactBlackType("BINARYBLOCK", { kind: "typedArray" });
