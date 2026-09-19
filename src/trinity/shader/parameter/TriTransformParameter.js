@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsParameter } from "./CjsParameter.js";
-import { TriTransformBase } from "#consts/graphics";
+import { TRITRANSFORMBASE } from "#consts/graphics";
 
 /** Composes authored translation, rotation, scale, and transform-base state into the matrix uploaded to a shader constant. */
 @type.define({ className: "TriTransformParameter", family: "shader" })
@@ -117,6 +117,6 @@ export class TriTransformParameter extends CjsParameter
     }
   }
 
-  static TRITRANSFORMBASE = TriTransformBase;
+  static TRITRANSFORMBASE = TRITRANSFORMBASE;
 
 }

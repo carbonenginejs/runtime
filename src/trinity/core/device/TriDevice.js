@@ -10,7 +10,7 @@ import {
   screenToProjection
 } from "../view/pickRay.js";
 import { blue, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
-import { TriStorage } from "#consts/graphics";
+import { TriStorageFlags } from "#consts/graphics";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { TriViewport } from "../view/TriViewport.js";
 import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
@@ -544,7 +544,7 @@ export class TriDevice extends CjsModel
   {
     if (this.DeviceExists())
     {
-      this.ReleaseDeviceResources(TriStorage.TRISTORAGE_ALL);
+      this.ReleaseDeviceResources(TriStorageFlags.TRISTORAGE_ALL);
       Tr2RenderContext.DestroyMainThreadRenderContext();
     }
     return this;
@@ -560,7 +560,7 @@ export class TriDevice extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("Carbon guards against a resource unregistering itself mid-iteration with an s_resourcesToBeRemoved set and an s_iteratingForRelease flag; iterating over a copy of the registry answers the same problem without two statics to keep in step. Carbon also logs a warning for a null entry, which this registry cannot hold because RegisterResource refuses it at the door.")
-  ReleaseDeviceResources(storage = TriStorage.TRISTORAGE_ALL)
+  ReleaseDeviceResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
     for (const resource of [ ...TriDevice.#resourcesRegistered ])
     {

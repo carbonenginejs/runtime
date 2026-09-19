@@ -3,7 +3,7 @@
 // Verify against audio/AudEventCurve.json.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { TriExtrapolation } from "#consts/graphics";
+import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudEventKey } from "../../generated/audio/AudEventKey.js";
 
@@ -265,7 +265,7 @@ export class AudEventCurve extends CjsModel
       this.#currentKeyIndex = 0;
     }
 
-    if (this.extrapolation === TriExtrapolation.TRIEXT_CYCLE)
+    if (this.extrapolation === TRIEXTRAPOLATION.TRIEXT_CYCLE)
     {
       const localNow = this.time % this.length;
       if (localNow < this.localTime)
@@ -312,8 +312,8 @@ export class AudEventCurve extends CjsModel
   // Carbon enum TRIEXTRAPOLATION (blue/include/ITriConstants.h:33) - shared
   // vocabulary owned by the global foundation; aliased as a class static per the org
   // enum rule so @type.enum("TRIEXTRAPOLATION") resolves and users address
-  // AudEventCurve.TRIEXTRAPOLATION.TRIEXT_CYCLE (TriOperator pattern).
-  static TRIEXTRAPOLATION = TriExtrapolation;
+  // AudEventCurve.TRIEXTRAPOLATION.TRIEXT_CYCLE (TRIOPERATOR pattern).
+  static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
 
 }
 

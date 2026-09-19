@@ -1,5 +1,5 @@
 ﻿import test from "node:test";
-import { TriExtrapolation } from "../../npm/dist/global/consts/graphics/index.js";
+import { TRIEXTRAPOLATION } from "../../npm/dist/global/consts/graphics/index.js";
 import { CjsGrannyCurves, Tr2BoneMatrixCurve, Tr2CameraFollowCurveKey, Tr2CurveColor, Tr2CurveColorMixer, Tr2CurveCombiner, Tr2CurveConstant, Tr2CurveEulerRotation, Tr2CurveEulerRotationExpression, Tr2CurveExtrapolation, Tr2CurveInterpolation, Tr2CurveQuaternion, Tr2CurveQuaternionKey, Tr2CurveRandomAxisRotation, Tr2CurveScalar, Tr2CurveScalarExpression, Tr2CurveScalarKey, Tr2CurveSetRange, Tr2CurveVector2, Tr2CurveVector3, Tr2CurveVector3Expression, Tr2CurveVector3Lerp, Tr2CurveVector3LerpKeyInterpolation, Tr2DistanceTracker, Tr2FollowCurve, Tr2FollowCurveKeyInterpolation, Tr2GrannyEventTrack, Tr2GrannyTrack, Tr2GrannyTransformTrack, Tr2GrannyVectorTrack, Tr2MatrixKey, Tr2ObjectFollowCurveKey, Tr2ObjectFollowCurveKeyRotationSetting, Tr2QuaternionLerpCurve, Tr2RotationAdapter, Tr2ScalarExprKey, Tr2ScalarExprKeyCurve, Tr2ScalarFader, Tr2TranslationAdapter, TriColorSequencer, TriCurveSet, TriEventCurve, TriPerlinCurve, TriVectorSequencer } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
@@ -1310,7 +1310,7 @@ test("TriEventCurve sorts keys, fires forward events, and cycles", () =>
   cycling.eventListener = {
     HandleEvent: value => cycleEvents.push(value)
   };
-  cycling.extrapolation = TriExtrapolation.TRIEXT_CYCLE;
+  cycling.extrapolation = TRIEXTRAPOLATION.TRIEXT_CYCLE;
   cycling.AddKey(0.5, "half");
   cycling.AddKey(2, "end");
   cycling.UpdateValue(0.5);

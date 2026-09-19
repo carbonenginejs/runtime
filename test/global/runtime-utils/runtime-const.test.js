@@ -9,7 +9,7 @@ import {
     RenderingMode,
     TextureDimension,
     TriBatchType,
-    TriExtrapolation,
+    TRIEXTRAPOLATION,
     dxgiToPixelFormat,
     getPixelFormatBlockHeight,
     getPixelFormatBlockWidth,
@@ -39,7 +39,7 @@ test("exports shared Trinity enum vocabulary", () =>
     assert.equal(RenderingMode.RM_PREPASS_COLOR, 13);
     assert.equal(RenderingMode.RM_COUNT, 14);
     assert.equal(ReflectionMode.REFLECT_NEVER, 3);
-    assert.deepEqual(TriExtrapolation, {
+    assert.deepEqual(TRIEXTRAPOLATION, {
         TRIEXT_NONE: 0,
         TRIEXT_CONSTANT: 1,
         TRIEXT_GRADIENT: 2,

@@ -3,7 +3,7 @@
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { TriOperator } from "#consts/graphics";
+import { TRIOPERATOR } from "#consts/graphics";
 
 
 /**
@@ -17,7 +17,7 @@ export class TriVectorSequencer extends CjsModel
   @edit.persist
   @type.int32
   @type.enum("TRIOPERATOR")
-  operator = TriOperator.TRIOP_MULTIPLY;
+  operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   @edit.persist
   @type.vec3
@@ -68,8 +68,8 @@ export class TriVectorSequencer extends CjsModel
   @impl.implemented
   GetValueAt(time, out)
   {
-    if (this.operator === TriOperator.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out);
-    if (this.operator === TriOperator.TRIOP_ADD) return this.GetValueAtAdd(time, out);
+    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY) return this.GetValueAtMult(time, out);
+    if (this.operator === TRIOPERATOR.TRIOP_ADD) return this.GetValueAtAdd(time, out);
     return this.GetValueAtAverage(time, out);
   }
 
@@ -168,6 +168,6 @@ export class TriVectorSequencer extends CjsModel
     return out;
   }
 
-  static TRIOPERATOR = TriOperator;
+  static TRIOPERATOR = TRIOPERATOR;
 
 }

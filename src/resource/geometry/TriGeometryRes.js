@@ -10,7 +10,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsResource } from "../CjsResource.js";
-import { TriStorage } from "#consts/graphics";
+import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import {
   assertResourcePayloadArray,
@@ -536,12 +536,12 @@ export class TriGeometryRes extends CjsResource
    * manager here, and SetGood(false)/SetPrepared(false), which this port
    * expresses as the single UNLOADED state.
    *
-   * @param {number} [storage=TriStorage.TRISTORAGE_ALL] Carbon's TriStorage mask.
+   * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
    * @returns {TriGeometryRes} This resource.
    */
-  ReleaseResources(storage = TriStorage.TRISTORAGE_ALL)
+  ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
-    if (!(storage & TriStorage.TRISTORAGE_MANAGEDMEMORY)) return this;
+    if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return this;
     this.DestroyRayCaster();
     this.ReleasePayload();
     this.SetState(CjsResource.State.UNLOADED);

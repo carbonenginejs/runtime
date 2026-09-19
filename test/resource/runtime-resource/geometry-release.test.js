@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { TriStorage } from "../../../src/global/consts/graphics/index.js";
+import { TriStorageFlags } from "../../../src/global/consts/graphics/index.js";
 import { CjsResource } from "../../../src/resource/CjsResource.js";
 import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
 
@@ -60,7 +60,7 @@ test("ReleaseResources honours Carbon's storage mask", () =>
 {
   // cpp:496-509 gates the whole body on TRISTORAGE_MANAGEDMEMORY.
   const kept = loadedGeometry();
-  kept.ReleaseResources(TriStorage.TRISTORAGE_VIDEOMEMORY);
+  kept.ReleaseResources(TriStorageFlags.TRISTORAGE_VIDEOMEMORY);
   assert.equal(kept.HasPayload(), true);
   assert.equal(kept.IsPrepared(), true);
 

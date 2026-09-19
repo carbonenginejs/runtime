@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/TriEventCurve.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { TriExtrapolation } from "#consts/graphics";
+import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
 
 
@@ -66,7 +66,7 @@ export class TriEventCurve extends CjsModel
   @edit.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
-  extrapolation = TriExtrapolation.TRIEXT_NONE;
+  extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
   @edit.persist
   @type.string
@@ -116,7 +116,7 @@ export class TriEventCurve extends CjsModel
       this.#currentKeyIndex = 0;
       return;
     }
-    if (this.extrapolation === TriExtrapolation.TRIEXT_CYCLE)
+    if (this.extrapolation === TRIEXTRAPOLATION.TRIEXT_CYCLE)
     {
       const localNow = this.time % this.length;
       if (localNow < this.localTime)
@@ -342,6 +342,6 @@ export class TriEventCurve extends CjsModel
     return Array.isArray(args) ? args : [args];
   }
 
-  static TRIEXTRAPOLATION = TriExtrapolation;
+  static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
 
 }

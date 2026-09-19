@@ -48,14 +48,14 @@ export const ReflectionMode = Object.freeze({
 });
 
 /** Trinity graph value-combination operator from blue/include/ITriConstants.h. */
-export const TriOperator = Object.freeze({
+export const TRIOPERATOR = Object.freeze({
     TRIOP_MULTIPLY: 0,
     TRIOP_ADD: 1,
     TRIOP_AVERAGE: 2
 });
 
 /** Trinity transform-parameter base frame from blue/include/ITriConstants.h. */
-export const TriTransformBase = Object.freeze({
+export const TRITRANSFORMBASE = Object.freeze({
     TRITB_OBJECT: 0,
     TRITB_CAMERA_ROTATION: 1,
     TRITB_CAMERA_TRANSLATION: 2,
@@ -78,19 +78,21 @@ export const TriTransformBase = Object.freeze({
 
 // Carbon TRIEXTRAPOLATION (blue/include/ITriConstants.h:33) - curve
 // extrapolation modes, shared by trinity curves (TriEventCurve) and audio
-// (AudEventCurve). Class statics alias this export (TriOperator pattern).
-export const TriExtrapolation = Object.freeze({
+// (AudEventCurve). Class statics alias this export (TRIOPERATOR pattern).
+export const TRIEXTRAPOLATION = Object.freeze({
     TRIEXT_NONE: 0,
     TRIEXT_CONSTANT: 1,
     TRIEXT_GRADIENT: 2,
     TRIEXT_CYCLE: 3
 });
 
-/** Storage classes a device resource may be released from, Tr2DeviceResource.h:9-15.
+/** Storage classes a device resource may be released from, Tr2DeviceResource.h:7-15.
  * A release takes a mask: VIDEOMEMORY for a device reset, MANAGEDMEMORY for
  * device-memory resources, ALL for teardown. Unscoped Carbon enum, so the
- * members carry their full names and their bit values. */
-export const TriStorage = Object.freeze({
+ * members carry their full names and their bit values. The mask parameter's
+ * own type is Carbon's `typedef unsigned int TriStorage`; the enum is
+ * `TriStorageFlags`. */
+export const TriStorageFlags = Object.freeze({
     TRISTORAGE_VIDEOMEMORY: 1 << 0,
     TRISTORAGE_MANAGEDMEMORY: 1 << 1,
     TRISTORAGE_ALL: (1 << 2) - 1

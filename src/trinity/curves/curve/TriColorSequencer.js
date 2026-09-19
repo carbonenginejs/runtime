@@ -3,7 +3,7 @@
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { TriOperator } from "#consts/graphics";
+import { TRIOPERATOR } from "#consts/graphics";
 
 
 /**
@@ -17,7 +17,7 @@ export class TriColorSequencer extends CjsModel
   @edit.persist
   @type.int32
   @type.enum("TRIOPERATOR")
-  operator = TriOperator.TRIOP_MULTIPLY;
+  operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   @edit.persist
   @type.color
@@ -65,7 +65,7 @@ export class TriColorSequencer extends CjsModel
   @impl.adapted
   GetValueAt(time, out)
   {
-    if (this.operator === TriOperator.TRIOP_MULTIPLY)
+    if (this.operator === TRIOPERATOR.TRIOP_MULTIPLY)
     {
       vec4.set(out, 1, 1, 1, 1);
       for (const curve of this.functions)
@@ -106,6 +106,6 @@ export class TriColorSequencer extends CjsModel
     return maxDuration;
   }
 
-  static TRIOPERATOR = TriOperator;
+  static TRIOPERATOR = TRIOPERATOR;
 
 }
