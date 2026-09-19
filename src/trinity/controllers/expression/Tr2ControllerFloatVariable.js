@@ -26,7 +26,6 @@ export class Tr2ControllerFloatVariable extends CjsModel
   enumValues = "";
 
   @edit.notify
-  @edit.always
   @edit.readwrite
   @type.float32
   value = 0;

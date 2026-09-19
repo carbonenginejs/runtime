@@ -15,8 +15,8 @@
 // call itself, and a class wrapping it would carry no information.
 //
 // The REGISTRATION survives and is not dropped - it is
-// `RegisterResourceConstructor` on the manager, which the gradient and colour
-// textures already use to bind themselves to a `dynamic:/<name>`.
+// `RegisterExtension` on the manager. `RegisterResourceConstructor` is a
+// separate registry, used by gradient and colour textures for `dynamic:/<name>`.
 import { CjsSchema } from "#schema";
 
 /** Carbon's file-extension registrar; dropped because a module body registers directly. */

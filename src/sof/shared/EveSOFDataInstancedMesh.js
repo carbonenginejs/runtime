@@ -2,11 +2,14 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2Lod } from "#consts/trinity";
 
 /** EveSOFDataInstancedMesh (eve) - generated from schema shapeHash 24b147a0.... */
 @type.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
 export class EveSOFDataInstancedMesh extends CjsModel
 {
+  static Tr2Lod = Tr2Lod;
+
 
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
   @edit.persist

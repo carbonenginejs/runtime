@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Eve/UI/EveEllipseSet.h
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, edit, type } from "#schema";
+import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { BLUELISTEVENT } from "#consts/blue";
+import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
 import { EveEllipseDefinition } from "./EveEllipseDefinition.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -13,6 +15,7 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
  */
 @type.define({ className: "EveEllipseSet", family: "eve/ui" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IListNotify)
 export class EveEllipseSet extends EveChildTransform
 {
   #geometryDirty = true;
@@ -113,6 +116,42 @@ export class EveEllipseSet extends EveChildTransform
     return true;
   }
 
+  /** Binds or releases definition callbacks after a list mutation. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JavaScript represents the owner's dirty-flag pointer with a callback; list event ordering follows Carbon.")
+  @impl.invalidates("#geometryDirty")
+  OnListModified(event, _key, _key2, value, list)
+  {
+    // Source: Eve/UI/EveEllipseSet.cpp:139-175. Loading suppresses per-item
+    // binding, but every notification still invalidates geometry below.
+    if (list === this.ellipses && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
+    {
+      switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+      {
+        case BLUELISTEVENT.BELIST_INSERTED:
+        {
+          const ellipse = CjsSchema.cast(value, EveEllipseDefinition);
+          if (ellipse) this.#BindEllipse(ellipse);
+          break;
+        }
+        case BLUELISTEVENT.BELIST_REMOVED:
+        {
+          const ellipse = CjsSchema.cast(value, EveEllipseDefinition);
+          if (ellipse) ellipse.SetDirtyFlag(null);
+          break;
+        }
+        case BLUELISTEVENT.BELIST_LOADFINISHED:
+          for (const ellipse of this.ellipses) this.#BindEllipse(ellipse);
+          break;
+        case BLUELISTEVENT.BELIST_UNLOADSTART:
+          for (const ellipse of this.ellipses) ellipse.SetDirtyFlag(null);
+          break;
+      }
+    }
+    this.#MarkGeometryDirty();
+  }
+
   /**
    * Flags the ribbon geometry as stale so it is regenerated before the next
    * draw.
@@ -128,6 +167,6 @@ export class EveEllipseSet extends EveChildTransform
    */
   #BindEllipse(ellipse)
   {
-    ellipse?.SetDirtyFlag?.(() => this.#MarkGeometryDirty());
+    ellipse.SetDirtyFlag(() => this.#MarkGeometryDirty());
   }
 }

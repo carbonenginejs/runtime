@@ -270,27 +270,27 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.reason("Field matching follows the repo OnModified duck and DisableEditMode is duck-typed on the staged instance container.")
   OnModified(value = null)
   {
-    if (value === "effect" || (value && value === this.effect))
+    if (value === "effect")
     {
       this.effect?.DisableEditMode?.(true);
     }
 
-    if (value === "completeness" || value === this.completeness)
+    if (value === "completeness")
     {
       this.completeness = Math.min(1, Math.max(0, this.completeness));
     }
 
-    if (value === "randScaleMin" || value === this.randScaleMin)
+    if (value === "randScaleMin")
     {
       this.randScaleMin = Math.min(this.randScaleMax, Math.max(0, this.randScaleMin));
     }
 
-    if (value === "randScaleMax" || value === this.randScaleMax)
+    if (value === "randScaleMax")
     {
       this.randScaleMax = Math.max(this.randScaleMax, this.randScaleMin);
     }
 
-    if (value === "frequency" || value === this.frequency)
+    if (value === "frequency")
     {
       if (this.frequency !== 0)
       {

@@ -98,7 +98,6 @@ export class EveSmartLightQuad extends EveChildTransform
   #activationStrength = 1;
 
   /** Last softQuad value the settle hook applied (JS-only change detection). */
-  #lastAppliedSoftQuad = false;
 
   /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
   @carbon.method
@@ -179,14 +178,10 @@ export class EveSmartLightQuad extends EveChildTransform
   /** softQuad edits swap the flare-quad effect path (EveSmartLightQuad.cpp:36-54). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The settle hook receives no changed-property list; the softQuad edit is detected by comparing the cached last-applied value.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.softQuad !== this.#lastAppliedSoftQuad)
-    {
-      this.#lastAppliedSoftQuad = this.softQuad;
-      this.#ApplyEffectPath();
-    }
+    if (propertyName === "softQuad") this.#ApplyEffectPath();
     return true;
   }
 
@@ -206,7 +201,6 @@ export class EveSmartLightQuad extends EveChildTransform
       this.#ApplyEffectPath();
     }
     this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
-    this.#lastAppliedSoftQuad = this.softQuad;
     return true;
   }
 

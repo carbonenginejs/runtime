@@ -20,7 +20,6 @@ export class Tr2DynamicBinding extends CjsModel
 
   #destinationRef = null;
 
-  #lastLinkSignature = "";
 
   #owner = null;
 
@@ -81,7 +80,7 @@ export class Tr2DynamicBinding extends CjsModel
 
   /**
    * Redefines the read-only source and destination fields as getters over the
-   * weakly held endpoint references, and records the initial link signature.
+   * weakly held endpoint references.
    */
   constructor()
   {
@@ -96,7 +95,6 @@ export class Tr2DynamicBinding extends CjsModel
       enumerable: true,
       get: () => this.#destinationRef?.deref?.() ?? null
     });
-    this.#lastLinkSignature = this.#GetLinkSignature();
   }
 
   /**
@@ -115,7 +113,6 @@ export class Tr2DynamicBinding extends CjsModel
     {
       this.#currentFrameTime = Number(currentFrameTime);
     }
-    this.#lastLinkSignature = this.#GetLinkSignature();
     if (!this.#owner)
     {
       return false;
@@ -227,25 +224,15 @@ export class Tr2DynamicBinding extends CjsModel
   }
 
   /**
-   * Relinks when any of Carbon's five notify fields (both paths, both attributes
-   * and the scale) changed; without an owner it only unlinks and records the new
-   * signature.
+   * Relinks on notification when an owner is present; otherwise unlinks.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Compares only Carbon's five NOTIFY fields because CjsModel's cooperative settle hook does not receive a Be::Var pointer.")
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    const signature = this.#GetLinkSignature();
-    if (signature !== this.#lastLinkSignature)
-    {
-      if (this.#owner) this.Link(this.#currentFrameTime);
-      else
-      {
-        this.Unlink();
-        this.#lastLinkSignature = signature;
-      }
-    }
+    if (this.#owner) this.Link(this.#currentFrameTime);
+    else this.Unlink();
     return true;
   }
 
@@ -253,16 +240,7 @@ export class Tr2DynamicBinding extends CjsModel
    * A JSON digest of the five link-defining fields, compared to detect that a
    * relink is required.
    */
-  #GetLinkSignature()
-  {
-    return JSON.stringify([
-      this.destinationObjectPath,
-      this.destinationObjectAttribute,
-      this.sourceObjectPath,
-      this.sourceObjectAttribute,
-      this.scale
-    ]);
-  }
+
 
   /**
    * Looks a named root up in the owner's parameter map, which may be a Map or a

@@ -43,8 +43,82 @@
 import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
 
 
-/** Carbon's own guard against a settle that will not converge. */
+/** Bound for the JS values transport's cooperative settle. */
 const MAX_UPDATE_PASSES = 32;
+
+/** Records a member before a deferred or reentrant values update returns. */
+export function queueModifiedMember(target, propertyName)
+{
+    const state = ensureRuntimeState(target);
+    (state.pendingModified ??= new Set()).add(propertyName);
+}
+
+/**
+ * JS values batching over Carbon's single-member INotify hook. The queue is
+ * transport state, not class invalidation state. Callers apply their own
+ * NOTIFY gate before recording a member. A null member preserves the existing
+ * explicit, unnamed UpdateValues contract pending its separate policy review.
+ */
+export function settleModifiedMembers(target)
+{
+    const state = ensureRuntimeState(target);
+    if (state.updating) return true;
+    state.updating = true;
+    try
+    {
+        for (let pass = 0; ; pass++)
+        {
+            if (pass >= MAX_UPDATE_PASSES)
+            {
+                throw new Error(`${target.constructor.name} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
+            }
+            const pending = state.pendingModified ?? new Set();
+            state.pendingModified = new Set();
+            state.dirty = false;
+            const members = Array.from(pending);
+            for (let index = 0; index < members.length; index++)
+            {
+                let accepted;
+                try
+                {
+                    accepted = typeof target.OnModified !== "function"
+                        || target.OnModified(members[index]) !== false;
+                }
+                catch (error)
+                {
+                    restore(index);
+                    throw error;
+                }
+                if (!accepted)
+                {
+                    restore(index);
+                    state.dirty = true;
+                    return false;
+                }
+            }
+            if (!state.pendingModified.size) break;
+
+            function restore(index)
+            {
+                const remaining = new Set();
+                for (; index < members.length; index++) remaining.add(members[index]);
+                for (const member of state.pendingModified) remaining.add(member);
+                state.pendingModified = remaining;
+            }
+        }
+        state.dirty = false;
+        return true;
+    }
+    catch (error)
+    {
+        state.dirty = true;
+        throw error;
+    }
+    finally
+    {
+        state.updating = false;
+    }
+}
 
 /**
  * Whether a declared field accepts an incoming value.
@@ -117,6 +191,7 @@ export function createValuesTransport(services)
     function setValues(target, values = {}, options = {})
     {
         const changed = new Set();
+        let notifyRequested = false;
 
         for (const field of GetFields(target.constructor))
         {
@@ -131,39 +206,44 @@ export function createValuesTransport(services)
             const coerced = CoerceInto(current, incoming, field);
             if (coerced !== null)
             {
-                if (coerced || field.edit?.always === true) changed.add(field.name);
+                recordWrite(field, coerced);
                 continue;
             }
 
             const next = Import(incoming, field, options);
-            if (field.edit?.always === true || !IsEquivalent(current, next))
-            {
-                target[field.name] = next;
-                changed.add(field.name);
-            }
+            const didChange = !IsEquivalent(current, next);
+            target[field.name] = next;
+            recordWrite(field, didChange);
         }
 
-        // Nothing moved, so nothing is dirty and no state is created. This is
-        // what makes the slot free for an object that is only ever read.
-        if (changed.size && options.markDirty !== false)
+        // Settle actual changes or explicitly requested equal-write notifications.
+        if ((changed.size || notifyRequested) && options.markDirty !== false)
         {
-            ensureRuntimeState(target).dirty = true;
-
             if (options.skipUpdate !== true) updateValues(target, options, changed);
+        }
+
+        // Preserve each successful mutation if a later import or setter throws.
+        function recordWrite(field, didChange)
+        {
+            if (didChange) changed.add(field.name);
+            if (options.markDirty !== false)
+            {
+                if (didChange) ensureRuntimeState(target).dirty = true;
+                // BluePyWrap writes first, then tests NOTIFY without equality.
+                if (options.notify !== false && field.edit?.notify)
+                {
+                    queueModifiedMember(target, field.name);
+                    ensureRuntimeState(target).dirty = true;
+                    notifyRequested = true;
+                }
+            }
         }
 
         return options.returnBoolean === true ? changed.size > 0 : changed;
     }
 
     /**
-     * Carbon's INotify settle: run OnModified until nothing re-dirties.
-     *
-     * The changed field names ride through on the options bag. That is
-     * ADDITIVE and verified safe: all 34 overrides carrying a positional
-     * parameter receive the options OBJECT today, so gates comparing it to a
-     * field name are false now and stay false. Passing a name POSITIONALLY
-     * would instead flip the three `!propertyName || ...` arms from never
-     * firing to always firing, which is why it is not done that way.
+     * Settles queued single-member notifications and emits once after success.
      *
      * @param {object} target
      * @param {object} options
@@ -173,6 +253,18 @@ export function createValuesTransport(services)
     function updateValues(target, options, changedFields)
     {
         const state = ensureRuntimeState(target);
+        const properties = options.property ?? options.properties;
+        if (properties != null)
+        {
+            for (const name of typeof properties === "string" ? [properties] : properties)
+            {
+                queueModifiedMember(target, name);
+            }
+        }
+        else if (changedFields == null && (state.updating || !state.pendingModified?.size))
+        {
+            queueModifiedMember(target, null);
+        }
         if (state.updating) return true;
 
         // INotify is OPTIONAL, in Carbon as here: an object that does not
@@ -182,43 +274,13 @@ export function createValuesTransport(services)
         const hook = target.OnModified;
         if (typeof hook !== "function")
         {
+            state.pendingModified?.clear();
             state.dirty = false;
             return true;
         }
 
         const source = options.source ?? target;
-        state.updating = true;
-
-        try
-        {
-            for (let pass = 0; ; pass++)
-            {
-                if (pass >= MAX_UPDATE_PASSES)
-                {
-                    throw new Error(
-                        `${target.constructor?.name ?? "value"} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
-                }
-
-                state.dirty = false;
-
-                if (hook.call(target, { ...options, source, changedFields }) === false)
-                {
-                    state.dirty = true;
-                    return false;
-                }
-
-                if (!state.dirty) break;
-            }
-        }
-        catch (error)
-        {
-            state.dirty = true;
-            throw error;
-        }
-        finally
-        {
-            state.updating = false;
-        }
+        if (!settleModifiedMembers(target)) return false;
 
         // `HasListener` lives on the state slot itself, so it exists whatever
         // decorators the class took, and answers false when no emitter was
@@ -265,7 +327,13 @@ export function composeValuesDecorator(transport)
         OnModified() { return true; },
 
         IsDirty() { return getRuntimeState(this)?.dirty === true; },
-        MarkDirty() { ensureRuntimeState(this).dirty = true; return this; },
+        MarkDirty()
+        {
+            const state = ensureRuntimeState(this);
+            state.dirty = true;
+            if (state.updating) queueModifiedMember(this, null);
+            return this;
+        },
         ClearDirty() { const state = getRuntimeState(this); if (state) state.dirty = false; return this; }
     };
 

@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -9,6 +10,8 @@ import { vec3 } from "#math/vec3";
 @type.define({ className: "EveSOFDataHullChildSetItem", family: "eve" })
 export class EveSOFDataHullChildSetItem extends CjsModel
 {
+  static Tr2Lod = Tr2Lod;
+
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
   @edit.persist

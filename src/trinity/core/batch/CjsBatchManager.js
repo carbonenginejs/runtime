@@ -11,11 +11,8 @@
 // via Initialize); Build hooks emit Tr2RenderBatch DATA into the
 // per-TriBatchType accumulators.
 //
-// The Realize hook is the prepare-if-stale seam. It is currently inert:
-// nothing consumes __state.rebuild tokens by name and nothing clears one, so
-// HasRebuildWork below - the only read in src - can never return false once any
-// declared field has been written. The producer half of that contract exists;
-// the consuming half is unwritten.
+// Realize is an optional producer-owned preparation hook. Each producer owns
+// its actual resource/geometry lifecycle; there is no shared rebuild token bus.
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
 import { TriRenderBatchMap } from "./TriRenderBatchMap.js";
@@ -73,9 +70,7 @@ export class CjsBatchManager
 
   // Registers producer hooks: [{ type, Build, Realize? }]. Build(renderable,
   // batchMap, perObjectData, reason) emits data batches; Realize(renderable) is
-  // the pull-prepare seam: it is meant to consume __state.rebuild tokens and
-  // fast-exit when current, though nothing consumes them yet (see the head
-  // comment). Registration is closed once Initialize has run.
+  // producer-owned preparation seam. Registration closes at Initialize.
 
   /**
    * Registers producer hooks given as { type, Build, Realize? } entries,
@@ -288,40 +283,4 @@ export class CjsBatchManager
     return type ? this.#producers.get(type) ?? null : null;
   }
 
-  // True when the object advertises pending scheduled work via the shared
-  // __state.rebuild token set. A producer's Realize hook is meant to use this
-  // (plus its own per-token checks) to fast-exit when current. NOTE: no caller
-  // exists yet, and nothing clears a token, so this can never return false once
-  // any declared field has been written.
-
-  /**
-   * Whether an object advertises pending scheduled GPU work through its shared
-   * __state.rebuild token set.
-   */
-  static HasRebuildWork(object)
-  {
-    return (object?.__state?.rebuild?.size ?? 0) > 0;
-  }
-
-  // Owner-propagation convention: child records (mesh areas, set items, effect
-  // children) carry their OWN declared rebuild tokens, and the OWNING consumer
-  // takes child tokens alongside the owner's - no upward token copying is
-  // performed.
-  // This helper answers "does the owner or any child advertise work"; the
-  // consumer still clears each consumed token where it lives.
-
-  /**
-   * Whether the owner or any listed child advertises rebuild work; child tokens
-   * stay where they live, and whatever consumes one clears it there.
-   */
-  static AnyRebuildWork(object, children = null)
-  {
-    if (CjsBatchManager.HasRebuildWork(object)) return true;
-    if (!children) return false;
-    for (const child of children)
-    {
-      if (CjsBatchManager.HasRebuildWork(child)) return true;
-    }
-    return false;
-  }
 }

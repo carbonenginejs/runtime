@@ -87,9 +87,10 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.#invalidateResourceSets();
+    if (propertyName === "texture") this.#invalidateResourceSets();
     return true;
   }
 

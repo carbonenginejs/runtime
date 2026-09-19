@@ -52,6 +52,7 @@ export class Tr2PerObjectDataStandard extends Tr2PerObjectDataPSBuffer
     return [ this.vs, this.ps ];
   }
 
+  /** Allocates vertex and pixel object data and checks their stage budgets. */
   static alloc(accumulator, vsStruct, psStruct)
   {
     const data = super.alloc(accumulator, psStruct);

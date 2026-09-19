@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/EveDistanceField.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../curves/enums.js";
 import { Tr2CurveScalar } from "../curves/curve/Tr2CurveScalar.js";
 import { TriCurveSet } from "../curves/TriCurveSet.js";
@@ -63,13 +63,11 @@ export class EveDistanceField extends CjsModel
   @type.float32
   distance = -1;
 
-  @invalidation.flag("distanceCurve")
   @edit.notify
   @edit.readwrite
   @type.float32
   minDistance = 0;
 
-  @invalidation.flag("distanceCurve")
   @edit.notify
   @edit.readwrite
   @type.float32
@@ -109,6 +107,7 @@ export class EveDistanceField extends CjsModel
    */
   @carbon.method
   @impl.implemented
+  @impl.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
     this.#isDynamic = true;
@@ -180,9 +179,11 @@ export class EveDistanceField extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS identifies the changed distance member by its exposed property name.")
+  @impl.invalidates("#updateDistanceCurve")
+  OnModified(propertyName)
   {
-    if (this.__state.flags.delete("distanceCurve"))
+    if (propertyName === "minDistance" || propertyName === "maxDistance")
     {
       this.#updateDistanceCurve = true;
     }
@@ -196,6 +197,7 @@ export class EveDistanceField extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = this.objects)
   {
     if (list !== this.objects)
@@ -244,6 +246,8 @@ export class EveDistanceField extends CjsModel
    */
   #updateDistanceCurveSize()
   {
+    // Carbon retains the resize request until the curve exists.
+    if (!this.#distanceCurve) return;
     const keys = this.#distanceCurve?.GetKeys?.() ?? [];
     if (keys.length === 2)
     {

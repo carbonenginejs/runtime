@@ -50,13 +50,13 @@ export class EveProceduralMethodThresholdParameter extends CjsModel
   @impl.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "threshold" || value === this.threshold)
+    if (value === "threshold")
     {
       this.threshold = Math.max(this.threshold, 0);
       this.#modified = true;
     }
 
-    if (value === "child" || (value && value === this.child))
+    if (value === "child")
     {
       if (this.child)
       {

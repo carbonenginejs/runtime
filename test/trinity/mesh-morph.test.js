@@ -14,6 +14,7 @@ function CreateGeometry(names, baked = names.map(() => false))
 
   return {
     lod,
+    IsGood() { return true; },
     GetPayload()
     {
       return { meshes: [ { lods: [ lod ] } ] };
@@ -168,7 +169,7 @@ test("a mesh res path loads its geometry through the resource manager", async ()
     assert.equal(requested.length, 1, "a deferred mesh loaded anyway");
 
     deferred.deferGeometryLoad = false;
-    deferred.OnModified({ property: "deferGeometryLoad" });
+    deferred.OnModified("deferGeometryLoad");
     assert.equal(requested.length, 2, "clearing the defer flag did not start the load");
   }
   finally
@@ -198,7 +199,9 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     requested.push(path);
     const resource = CreateGeometry([ "Smile" ]);
     if (path.includes("_lowdetail")) return resource;
-    resource.OnCompleted = listener => { finishAuthored = listener; };
+    let good = false;
+    resource.IsGood = () => good;
+    resource.OnCompleted = listener => { finishAuthored = (...args) => { good = true; listener(...args); }; };
     resource.OffEvent = () => {};
     return resource;
   };
@@ -213,6 +216,8 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     assert.deepEqual(requested, [ "res:/hull_lowdetail.gr2", "res:/hull.gr2" ],
       "the low-detail sibling is taken first, the authored path behind it");
     assert.notEqual(mesh.lowResGeometry, null, "no low-detail stand-in was bound");
+
+    assert.equal(mesh.GetGeometryResource(), mesh.lowResGeometry);
 
     // The authored resource finishing retires the stand-in (cpp:192-195).
     assert.equal(typeof finishAuthored, "function", "the mesh never subscribed to the authored load");
@@ -277,7 +282,7 @@ test("a write that names nothing does not throw away the geometry", async () =>
     // Positive control: a path that HAS moved is refetched, and the manager
     // answers, so the mesh takes what it was handed.
     mesh.geometryResPath = "res:/changed.gr2";
-    mesh.OnModified();
+    mesh.OnModified("geometryResPath");
     assert.equal(stub.requests.at(-1)?.path, "res:/changed.gr2", "a moved path was not acted on");
     assert.notEqual(mesh.GetGeometryResource(), geometry, "the moved path kept the old geometry");
   }

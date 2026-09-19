@@ -8,6 +8,7 @@
 // Wake/Cull no-op. The realization layer later supplies `manager` (enabled
 // state, bank statuses, prioritization) and `backend` (Wwise-shaped calls)
 // via the statics at the bottom.
+import { BLUELISTEVENT } from "#consts/blue";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
@@ -124,7 +125,7 @@ export class AudGameObjResource extends CjsModel
 
   /** m_position (Vector3) [AUTHORED] */
   @impl.adapted
-  @impl.reason("Carbon routes this through Initialize(name, prefix, position) outside Blue serialization; CarbonEngineJS persists it for values interchange; OnModified derives placement from it.")
+  @impl.reason("Carbon routes this through Initialize(name, prefix, position) outside Blue serialization; CarbonEngineJS persists it for values interchange.")
   @edit.persist
   @type.vec3
   position = vec3.create();
@@ -177,9 +178,7 @@ export class AudGameObjResource extends CjsModel
 
   #normalizedRotation = quat.create();
 
-  #appliedRotation = quat.create();
 
-  #settledEventName = "";
 
   // Mirrors Carbon's two ctors: default generates an entity id; the protected
   // (AkGameObjectID) variant takes a fixed id (AudListener passes 4) so the
@@ -217,7 +216,6 @@ export class AudGameObjResource extends CjsModel
         this.#hasReceivedPosition = true;
       }
     }
-    this.#settledEventName = String(this.eventName ?? "");
     this.RegisterWwiseObject();
     this.SetPlacementFromParent([0, 0, 1], [0, 1, 0], this.position);
     if (this.eventName)
@@ -670,10 +668,6 @@ export class AudGameObjResource extends CjsModel
     {
       vec3.copy(this.top, this.#effectiveTop);
     }
-    if (this.rotation)
-    {
-      quat.copy(this.#appliedRotation, this.rotation);
-    }
     if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
     {
       AudGameObjResource.backend?.SetPosition?.(
@@ -753,7 +747,6 @@ export class AudGameObjResource extends CjsModel
   {
     const changed = this.eventName !== eventName;
     this.eventName = String(eventName ?? "");
-    this.#settledEventName = this.eventName;
     if (changed)
     {
       this.PostEvent(this.eventName);
@@ -1047,39 +1040,32 @@ export class AudGameObjResource extends CjsModel
 
   /** Values settle hook: refresh notified event-name and rotation consequences. */
   @impl.adapted
-  @impl.reason("CjsModel hooks are broad-safe rather than field-addressed, so cached values detect Carbon's m_eventName and m_authoredRotation notifications.")
-  OnModified(options = {})
+  @impl.reason("JS identifies Carbon's member address by its exposed name; playback remains on the injected audio backend.")
+  OnModified(propertyName)
   {
-    for (const parameter of this.parameters)
-    {
-      parameter?.SetGameObjectID?.(this.ID);
-    }
-    if (this.rotation && !quat.exactEquals(this.rotation, this.#appliedRotation))
+    if (propertyName === "rotation")
     {
       this.RefreshPlacementFromRotation();
+      return true;
     }
-    const eventName = String(this.eventName ?? "");
-    if (eventName !== this.#settledEventName)
+    if (propertyName === "eventName")
     {
-      this.#settledEventName = eventName;
       this.StopAll();
-      if (eventName)
-      {
-        this.PostEvent(eventName);
-      }
+      if (this.eventName) this.PostEvent(this.eventName);
     }
-    return super.OnModified(options);
+    return true;
   }
 
-  /** Carbon INotifyList method OnListModified: bind inserted parameters to this game-object id. */
+  /** Binds only a newly inserted, non-loading parameter to this object. */
   @carbon.method
   @impl.adapted
-  @impl.reason("CarbonEngineJS receives cooperative list notifications rather than Blue IList event flags; an inserted AudParameter is bound directly.")
-  OnListModified(_event, _key, _key2, value, list = this.parameters)
+  @impl.reason("Carbon friendship assigning AudParameter::m_ID uses the class-owned SetGameObjectID seam.")
+  OnListModified(event, _key, _key2, value, list = this.parameters)
   {
-    if (list === this.parameters && value)
+    if (!(event & BLUELISTEVENT.BELIST_LOADING) && list === this.parameters
+      && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED)
     {
-      value.SetGameObjectID?.(this.ID);
+      value.SetGameObjectID(this.ID);
     }
   }
 

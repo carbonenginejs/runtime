@@ -50,13 +50,13 @@ export class EveProceduralMethodRandomParameter extends CjsModel
   @impl.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "weighting" || value === this.weighting)
+    if (value === "weighting")
     {
       this.weighting = Math.max(this.weighting, 1);
       this.#modified = true;
     }
 
-    if (value === "child" || (value && value === this.child))
+    if (value === "child")
     {
       if (this.child)
       {

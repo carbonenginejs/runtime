@@ -43,7 +43,7 @@ export class EveProceduralMethodAttributeMapParameter extends CjsModel
   @impl.reason("The Be::Var notification identity is represented by either the field name or assigned value.")
   OnModified(value = null)
   {
-    if (value === "child" || (value && value === this.child))
+    if (value === "child")
     {
       if (this.child)
       {

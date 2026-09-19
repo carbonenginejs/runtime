@@ -117,7 +117,6 @@ export class EveSmartLightPointLight extends EveEntity
   #distribution = null;
 
   /** Last lightProfilePath the settle hook applied (JS-only change detection). */
-  #lastAppliedProfilePath = "";
 
   // Compat view over the flattened m_lightGroupData fields (2026-07-23
   // flatten decision); light-manager records and the pre-flatten hydration
@@ -277,7 +276,6 @@ export class EveSmartLightPointLight extends EveEntity
    */
   #ResolveLightProfile()
   {
-    this.#lastAppliedProfilePath = this.lightProfilePath;
     if (!this.lightProfilePath)
     {
       this.lightProfile = null;
@@ -295,13 +293,10 @@ export class EveSmartLightPointLight extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the path is compared against the one last resolved.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.lightProfilePath !== this.#lastAppliedProfilePath)
-    {
-      this.#ResolveLightProfile();
-    }
+    if (propertyName === "lightProfilePath") this.#ResolveLightProfile();
     return true;
   }
 

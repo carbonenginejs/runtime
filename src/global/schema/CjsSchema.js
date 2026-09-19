@@ -524,6 +524,12 @@ export class CjsSchema
     /** Returns registered enum metadata by name or enum object. */
     static getEnum(values)
     {
+        // An explicitly registered object keeps its own metadata even when a
+        // later registration replaces the lookup for the same exposed name.
+        if (values && typeof values === "object" && ENUM_SCHEMA_BY_OBJECT.has(values))
+        {
+            return ENUM_SCHEMA_BY_OBJECT.get(values);
+        }
         const name = CjsSchema.getEnumName(values);
         return name ? ENUM_SCHEMA_BY_NAME.get(name) || null : null;
     }
@@ -676,19 +682,7 @@ export class CjsSchema
         // PERSISTONLY = HIDDEN | PERSIST, for hidden attributes.
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
 
-        // ALWAYS is NOT one of Carbon's ten members, so the name is an
-        // invention wearing this namespace - the same shape of collision as
-        // the old `@io.flag` against Carbon's real FLAGS. The BEHAVIOUR is the
-        // donor's at both its sites: Carbon compares in the binding layer
-        // (`TriValueBinding`'s copy funcs hold `if (src != dst)`), never at a
-        // notify-flagged member's own write, so `Tr2Effect::SetEffectPathName`
-        // (`Tr2Effect.cpp:412-416`) and `Tr2ControllerFloatVariable::SetValue`
-        // (`:46-57`) both fire on an equal write. It stays here, spelled
-        // wrongly, until the INotify repair - which decides what "notify
-        // fires" means - and is then renamed and narrowed in one change. Our
-        // lever is the generic didChange, which is broader than the donor's
-        // "this member's notify does not gate on equality".
-        always: fieldDecorator("edit", { always: true })
+
     });
 
     // Not EDITFLAGS and not type: WHO runs a child's construction, and later
@@ -700,31 +694,6 @@ export class CjsSchema
     static lifecycle = Object.freeze({
         owned: fieldDecorator("lifecycle", { ownership: "owned" }),
         reference: fieldDecorator("lifecycle", { ownership: "reference" })
-    });
-
-    // GOING AWAY. Neither token is a Carbon concept, and `@io.flag` used to
-    // collide with Carbon's real FLAGS (0x100, "value is a flag or mask"), a
-    // different thing entirely. Operator ruling 2026-09-18: dirty state is the
-    // province of the class - Carbon has ~30 ad hoc per-class m_isDirty
-    // latches and no generic token bus, and our own tree already agrees, 22
-    // class-local #dirty latches against 6 call sites for the generic triple.
-    //
-    // They stay defined only because 15 classes still READ the tokens they
-    // declare, and deleting a declaration there breaks the read SILENTLY - the
-    // rebuild simply never fires. Those 15 lose them one at a time, in the same
-    // commit that restores each class's OnModified(propertyName), so a
-    // regression has one candidate cause rather than two. The 18 files that
-    // declared without reading are already done.
-    static invalidation = Object.freeze({
-        // The lazy-invalidation token(s) a change to this field implies
-        // ("bounds is stale"). Added to __state.flags at write time; cleared
-        // ONLY by the getter that recomputes the derived value.
-        flag: (...tokens) => fieldDecorator("invalidation", { flag: tokens.flat().map(String) }),
-        // The rebuild requirement token(s) a change to this field implies
-        // ("vertices need rebuilding"). Added to __state.rebuild at write time;
-        // cleared ONLY by the specific work method that succeeds (typically
-        // driven from Update / per-frame passes).
-        rebuild: (...tokens) => fieldDecorator("invalidation", { rebuild: tokens.flat().map(String) })
     });
 
     // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
@@ -756,6 +725,9 @@ export class CjsSchema
         noop: memberDecorator("impl", { noop: true, status: "noop" }),
         notImplemented: memberDecorator("impl", { notImplemented: true, status: "notImplemented" }),
         notSupported: memberDecorator("impl", { notSupported: true, status: "notSupported" }),
+        // Audit-only: names the state members invalidated by this field/method.
+        // The owning class retains all dirty-state, rebuild and timing behavior.
+        invalidates: (...members) => memberDecorator("impl", { invalidates: members }),
         note: text => memberDecorator("impl", { note: String(text) }),
         reason: text => memberDecorator("impl", { reason: String(text) })
     });

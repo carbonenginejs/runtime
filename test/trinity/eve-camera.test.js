@@ -130,7 +130,7 @@ test("EveCamera derives notified orbit rotation and edge-triggers invalid-state 
   const camera = new EveCamera();
   const authored = quat.fromYawPitchRoll(quat.create(), 0.7, -0.35, 0);
   quat.copy(camera.rotationAroundParent, authored);
-  assert.equal(camera.UpdateValues({ skipEvents: true }), true);
+  assert.equal(camera.UpdateValues({ property: "rotationAroundParent", skipEvents: true }), true);
   camera.frontClip = 1;
   camera.translationFromParent = 5;
   camera.Update(0, 1, 0);
@@ -160,7 +160,7 @@ test("EveCamera notifications preserve active spring targets", () =>
   camera.OrbitParent(1, 0);
 
   quat.copy(camera.rotationAroundParent, quat.fromYawPitchRoll(quat.create(), 0.2, 0, 0));
-  camera.UpdateValues({ skipEvents: true });
+  camera.UpdateValues({ properties: ["rotationAroundParent"], skipEvents: true });
   camera.Update(1, 1, 1);
 
   assert.ok(Math.abs(camera.yaw - 0.06875) < 1e-5);

@@ -28,20 +28,21 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   /** Carbon IInitialize hook populates the owner's LOD proxies. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Settles the owner through its cooperative proxy-identity synchronization hook.")
+  @impl.reason("JS exposes the native protected LOD member as lod; the owner model accessors alias its proxy storage.")
   Initialize()
   {
-    this.OnModified();
+    this.lod.PopulateLods();
     return true;
   }
 
   /** Carbon INotify hook delegates to Tr2SkinnedObject and accepts all changes. */
   @carbon.method
   @impl.adapted
-  @impl.reason("The cooperative JS mutation hook receives an options bag rather than a Be::Var field handle.")
-  OnModified(options = {})
+  @impl.reason("Exposed owner *DetailModel names map to the native LOD helper proxy members.")
+  OnModified(propertyName)
   {
-    super.OnModified(options);
+    if (super.OnModified(propertyName)) return true;
+    this.lod.OnModified(propertyName);
     return true;
   }
 

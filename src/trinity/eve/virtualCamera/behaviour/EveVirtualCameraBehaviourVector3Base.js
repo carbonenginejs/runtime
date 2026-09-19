@@ -52,9 +52,10 @@ export class EveVirtualCameraBehaviourVector3Base extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.SetName(this.name);
+    if (propertyName === "name") this.SetName(this.name);
     return true;
   }
 

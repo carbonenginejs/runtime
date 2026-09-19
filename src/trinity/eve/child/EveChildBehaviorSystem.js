@@ -84,7 +84,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @impl.reason("Component-registry re-registration is limited to an optional duck-typed call, matching the repo's registry seam.")
   OnModified(value = null)
   {
-    if (value === "display" || (value !== null && value === this.display))
+    if (value === "display")
     {
       this.ReRegister?.();
     }

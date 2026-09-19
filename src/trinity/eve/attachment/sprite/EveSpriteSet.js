@@ -5,7 +5,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveSpriteSetItem } from "./EveSpriteSetItem.js";
@@ -49,7 +49,7 @@ function colorByte(value)
 @type.define({ className: "EveSpriteSet", family: "eve/attachment/sprites" })
 export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.notify
   @edit.persist
   @type.list("EveSpriteSetItem")
@@ -59,13 +59,11 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.notify
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   skinned = false;
@@ -258,7 +256,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   Rebuild()
   {
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
 
     // Carbon Rebuild (cpp:300-343): refresh the effect key, pack every
     // authored sprite into the persistent PoolVertex buffer, mirror the

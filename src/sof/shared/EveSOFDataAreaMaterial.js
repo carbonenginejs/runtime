@@ -2,11 +2,14 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 
 /** EveSOFDataAreaMaterial (eve) - generated from schema shapeHash 19be099b.... */
 @type.define({ className: "EveSOFDataAreaMaterial", family: "eve" })
 export class EveSOFDataAreaMaterial extends CjsModel
 {
+  static ColorType = EveSOFDataFactionColorSet.ColorType;
+
 
   static MaterialType = Object.freeze({
     MATERIAL1: 0,

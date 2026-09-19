@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
@@ -9,6 +10,8 @@ import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 @type.define({ className: "EveSOFDataRace", family: "eve" })
 export class EveSOFDataRace extends CjsModel
 {
+  static ColorType = EveSOFDataFactionColorSet.ColorType;
+
 
   /** m_hullPrimaryHeatColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist

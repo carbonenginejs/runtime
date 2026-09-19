@@ -43,7 +43,7 @@ test("EveMultiEffectParameter validates Carbon parameter types and owner notific
   assert.equal(parameter.IsValid(), true);
   assert.equal(parameter.GetParameterObject(), parameter.object);
   assert.equal(parameter.GetName(), "Target");
-  assert.equal(parameter.OnModified(), true);
+  assert.equal(parameter.OnModified("object"), true);
   assert.equal(rebinds, 1);
 
   parameter.type = EveMultiEffectParameter.ParameterType.TYPE_UNDEFINED;

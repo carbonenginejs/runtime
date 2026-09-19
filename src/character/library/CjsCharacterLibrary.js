@@ -218,9 +218,9 @@ export class CjsCharacterLibrary extends CjsModel
                 indexes.set(name, CreateDocumentIndex(
                     name,
                     this.GetDocument(name),
-                    CjsCharacterLibraryDocuments.getDocumentType(name)
+                    CjsCharacterLibraryDocuments.getDocumentType(name),
+                    this.documents.GetDocumentRevision(name)
                 ));
-                this.documents.__state.flags.delete(GetDocumentIndexFlag(name));
             }
 
             this.#documentIndexes = indexes;
@@ -237,10 +237,10 @@ export class CjsCharacterLibrary extends CjsModel
         const entry = CreateDocumentIndex(
             key,
             this.GetDocument(key),
-            CjsCharacterLibraryDocuments.getDocumentType(key)
+            CjsCharacterLibraryDocuments.getDocumentType(key),
+                this.documents.GetDocumentRevision(key)
         );
         this.#documentIndexes.set(key, entry);
-        this.documents.__state.flags.delete(GetDocumentIndexFlag(key));
         return this;
     }
 
@@ -263,19 +263,16 @@ export class CjsCharacterLibrary extends CjsModel
 
         const identity = NormalizeLookupRecordID(recordID);
 
-        if (this.documents.__state.flags.delete(GetDocumentIndexFlag(key)))
-        {
-            this.#documentIndexes.delete(key);
-        }
-
         let entry = this.#documentIndexes.get(key);
 
-        if (!entry || entry.document !== document || entry.length !== document.length)
+        if (!entry || entry.document !== document || entry.length !== document.length
+            || entry.revision !== this.documents.GetDocumentRevision(key))
         {
             entry = CreateDocumentIndex(
                 key,
                 document,
-                CjsCharacterLibraryDocuments.getDocumentType(key)
+                CjsCharacterLibraryDocuments.getDocumentType(key),
+                this.documents.GetDocumentRevision(key)
             );
             this.#documentIndexes.set(key, entry);
         }
@@ -292,7 +289,8 @@ export class CjsCharacterLibrary extends CjsModel
             entry = CreateDocumentIndex(
                 key,
                 document,
-                CjsCharacterLibraryDocuments.getDocumentType(key)
+                CjsCharacterLibraryDocuments.getDocumentType(key),
+                this.documents.GetDocumentRevision(key)
             );
             entry.misses.add(identity);
             this.#documentIndexes.set(key, entry);
@@ -386,11 +384,6 @@ function ThrowDuplicateRecord(documentName, recordID)
     );
 }
 
-function GetDocumentIndexFlag(documentName)
-{
-    return `index:${documentName}`;
-}
-
 function EmitRecordEvent(library, eventName, documentName, record, options, extra = {})
 {
     if (options.skipEvents === true || library.__state.suppressEvents !== 0) return;
@@ -402,7 +395,7 @@ function EmitRecordEvent(library, eventName, documentName, record, options, extr
     });
 }
 
-function CreateDocumentIndex(name, document, typeName)
+function CreateDocumentIndex(name, document, typeName, revision)
 {
     const records = new Map();
     const Constructor = CjsSchema.GetConstructor(typeName);
@@ -431,6 +424,7 @@ function CreateDocumentIndex(name, document, typeName)
     return {
         document,
         length: document.length,
+        revision,
         misses: new Set(),
         records
     };

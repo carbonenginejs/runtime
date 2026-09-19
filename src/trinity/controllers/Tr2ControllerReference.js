@@ -55,7 +55,6 @@ export class Tr2ControllerReference extends CjsModel
 
   #owner = null;
 
-  #resolvedPath = "";
 
   /**
    * Initializes the referenced controller when it is already assigned.
@@ -69,22 +68,18 @@ export class Tr2ControllerReference extends CjsModel
   }
 
   /**
-   * Handles path changes. Broad-safe: compares the authored path with the
-   * path the current controller was resolved from, so unrelated settles keep
-   * a resolved or directly attached controller.
+   * Handles the authored path notification by resolving and linking the controller.
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    if (this.path !== this.#resolvedPath)
+    if (propertyName === "path")
     {
       this.controller = null;
       this.ResolveController();
-    }
-    if (this.controller && this.#owner)
-    {
-      this.controller.Link(this.#owner);
+      if (this.controller && this.#owner) this.controller.Link(this.#owner);
     }
     return true;
   }
@@ -183,12 +178,10 @@ export class Tr2ControllerReference extends CjsModel
 
   /**
    * Resolves `controller` from the authored path through the registered resource
-   * resolver, recording the path it resolved from so OnModified can tell a real
-   * path change from an unrelated settle.
+   * resolver.
    */
   ResolveController()
   {
-    this.#resolvedPath = this.path;
     if (!this.path)
     {
       this.controller = null;

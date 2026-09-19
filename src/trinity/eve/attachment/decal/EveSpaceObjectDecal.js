@@ -7,7 +7,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -67,7 +67,6 @@ export class EveSpaceObjectDecal extends CjsModel
   @type.int32
   parentBoneIndex = -1;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   decalEffect = null;
@@ -78,7 +77,7 @@ export class EveSpaceObjectDecal extends CjsModel
 
   // SOF-authored per-LOD triangle indices; persisted so the values
   // interchange reproduces Carbon's hidden decal geometry selection.
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.array("unknown")
   staticIndexBuffers = [];
@@ -158,9 +157,15 @@ export class EveSpaceObjectDecal extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS identifies placement members by their exposed names; dynamic geometry remains a class-owned cache.")
+  @impl.invalidates("#decalGeometry")
+  OnModified(propertyName)
   {
-    this.#updateDecalMatrix();
+    if (propertyName === "position" || propertyName === "rotation" || propertyName === "scaling")
+    {
+      this.#updateDecalMatrix();
+      if (!this.HasStaticIndexBuffers()) this.#decalGeometry = null;
+    }
     return true;
   }
 

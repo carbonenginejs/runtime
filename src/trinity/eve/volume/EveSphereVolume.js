@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Eve/Volume/EveSphereVolume_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { IEveVolume } from "./IEveVolume.js";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 
 
 /**
@@ -21,13 +21,11 @@ export class EveSphereVolume extends IEveVolume
   @type.vec3
   position = vec3.create();
 
-  @invalidation.flag("radius")
   @edit.notify
   @edit.persist
   @type.float32
   radius = 1;
 
-  @invalidation.flag("innerRadius")
   @edit.notify
   @edit.persist
   @type.float32
@@ -149,14 +147,14 @@ export class EveSphereVolume extends IEveVolume
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS identifies the changed radius member by its exposed property name; callbacks remain class-owned.")
+  OnModified(propertyName)
   {
-    const flags = this.__state.flags;
-    if (flags.delete("innerRadius") && this.innerRadius > this.radius)
+    if (propertyName === "innerRadius" && this.innerRadius > this.radius)
     {
       this.radius = this.innerRadius;
     }
-    if (flags.delete("radius"))
+    if (propertyName === "radius")
     {
       this.radius = Math.max(0, this.radius);
       if (this.innerRadius > this.radius)

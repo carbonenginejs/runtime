@@ -6,7 +6,7 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
@@ -34,7 +34,7 @@ export class EveBoosterSet2 extends EveEntity
   flareLodEnabled = true;
 
   /** m_staticTrailLength (float) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("staticTrailOffsets")
+
   @edit.notify
   @edit.persist
   @type.float32
@@ -111,28 +111,28 @@ export class EveBoosterSet2 extends EveEntity
   alwaysOnIntensity = 1;
 
   /** m_warpGlowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.color
   warpGlowColor = vec4.create();
 
   /** m_glowColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.color
   glowColor = vec4.create();
 
   /** m_haloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.color
   haloColor = vec4.create();
 
   /** m_warpHaloColor (Color) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.color
@@ -144,7 +144,7 @@ export class EveBoosterSet2 extends EveEntity
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -160,28 +160,28 @@ export class EveBoosterSet2 extends EveEntity
   maxVel = 250;
 
   /** m_glowScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.float32
   glowScale = 1;
 
   /** m_symHaloScale (float) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.float32
   symHaloScale = 1;
 
   /** m_haloScaleX (float) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.float32
   haloScaleX = 1;
 
   /** m_haloScaleY (float) [READWRITE, PERSIST, NOTIFY] */
-  @invalidation.flag("flares")
+
   @edit.notify
   @edit.persist
   @type.float32
@@ -237,8 +237,7 @@ export class EveBoosterSet2 extends EveEntity
   @type.objectRef("EveTrailsSet")
   trails = null;
 
-  @invalidation.flag("items")
-  @invalidation.rebuild("packedGeometry")
+
   @edit.notify
   @edit.persist
   @type.list("EveBoosterSet2Item")
@@ -269,31 +268,34 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /**
-   * Applies whichever of the items, staticTrailOffsets and flares rebuild flags
-   * a property change raised, rebuilding only what that flag covers, and bumps
-   * the revision.
+   * Applies the changed member's native flare/trail consequence, plus the
+   * persisted JS items adaptation, and advances the CPU revision.
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Member names replace native addresses; persisted JS items rebuild Add-derived data and retain the existing CPU revision.")
+  @impl.invalidates("#revision")
+  OnModified(propertyName)
   {
-    const flags = this.__state.flags;
-    if (flags.has("items"))
+    if (propertyName === "items") EveBoosterSet2.#RebuildItems(this);
+    if (this.glows)
     {
-      EveBoosterSet2.#RebuildItems(this);
-    }
-    if (flags.has("staticTrailOffsets"))
-    {
-      EveBoosterSet2.#UpdateStaticTrailOffsets(this);
-    }
-    if (flags.delete("flares") && this.glows)
-    {
-      this.glows.Clear();
-      for (const booster of this.#singleBoosters)
+      if (propertyName === "glowScale" || propertyName === "haloScaleX"
+        || propertyName === "haloScaleY" || propertyName === "symHaloScale"
+        || propertyName === "glowColor" || propertyName === "warpGlowColor"
+        || propertyName === "haloColor" || propertyName === "warpHaloColor")
       {
-        CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
+        this.glows.Clear();
+        for (const booster of this.#singleBoosters)
+        {
+          CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
+        }
+        this.glows.Rebuild();
       }
-      this.glows.Rebuild?.();
+      else if (propertyName === "staticTrailLength")
+      {
+        EveBoosterSet2.#UpdateStaticTrailOffsets(this);
+      }
     }
     this.#revision++;
     return true;
@@ -448,7 +450,7 @@ export class EveBoosterSet2 extends EveEntity
 
   /**
    * Discards the derived state and re-derives it from every authored item, then
-   * clears both the items and flares rebuild flags.
+   * replaces the derived booster placements and flares.
    */
   static #RebuildItems(owner)
   {
@@ -457,8 +459,6 @@ export class EveBoosterSet2 extends EveEntity
     {
       EveBoosterSet2.#AddRuntimeItem(owner, item);
     }
-    owner.__state.flags.delete("items");
-    owner.__state.flags.delete("flares");
   }
 
   /**
@@ -620,7 +620,7 @@ export class EveBoosterSet2 extends EveEntity
    * origin. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Set-level aggregate with no Carbon counterpart; sph3.union replaces a hand-rolled merge.")
+  @impl.reason("Carbon EveBoosterSet2.cpp:1115–1124 aggregates renderable spheres; JS writes the result to the caller's output array.")
   GetBoundingSphere(out)
   {
     sph3.empty(out);
@@ -863,7 +863,6 @@ export class EveBoosterSet2 extends EveEntity
    */
   static #UpdateStaticTrailOffsets(owner)
   {
-    owner.__state.flags.delete("staticTrailOffsets");
     const step = owner.staticTrailLength / 4;
     const offsets = [
       owner.trailsStaticOffsets0,

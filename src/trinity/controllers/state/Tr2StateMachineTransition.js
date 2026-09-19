@@ -71,14 +71,20 @@ export class Tr2StateMachineTransition extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    this.#destination = this.#resolveDestination();
-    this.#program = null;
-    this.#programSource = null;
-    this.#variableNames = [];
-    this.#functionNames = [];
-    this.#source?.UpdateVariableMask?.();
+    if (!this.#source) return true;
+    if (propertyName === "condition")
+    {
+      this.#program = null;
+      this.#programSource = null;
+      this.#variableNames = [];
+      this.#functionNames = [];
+      this.Compile();
+      this.#source.UpdateVariableMask();
+    }
+    else if (propertyName === "destinationName") this.#destination = this.#resolveDestination();
     return true;
   }
 

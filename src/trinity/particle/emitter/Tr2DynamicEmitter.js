@@ -138,7 +138,7 @@ export class Tr2DynamicEmitter extends CjsModel
    */
   OnModified(propertyName)
   {
-    if (!propertyName || propertyName === "particleSystem")
+    if (propertyName === "particleSystem")
     {
       this.Rebind();
       if (this.#isThreadSafe && this.particleSystem)

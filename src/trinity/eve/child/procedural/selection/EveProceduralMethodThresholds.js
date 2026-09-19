@@ -69,7 +69,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   @impl.reason("Field matching follows the repo OnModified duck.")
   OnModified(value = null)
   {
-    if (value === "seed_temp" || value === this.seed_temp)
+    if (value === "seed_temp")
     {
       this.SelectParameter();
     }

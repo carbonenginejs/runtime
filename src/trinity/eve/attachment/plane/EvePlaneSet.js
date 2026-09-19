@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -28,7 +28,16 @@ const WHITE = new Float32Array([1, 1, 1, 1]);
 @type.define({ className: "EvePlaneSet", family: "eve/attachment/planes" })
 export class EvePlaneSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+  /** Carbon EvePlaneSet.cpp:116: only the pick buffer change rebuilds. */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  OnModified(propertyName)
+  {
+    if (propertyName === "pickBufferID") this.Rebuild();
+    return true;
+  }
+
   @edit.notify
   @edit.persist
   @type.uint8
@@ -38,12 +47,10 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.boolean
   hideOnLowQuality = false;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   skinned = false;
@@ -56,7 +63,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.list("EvePlaneSetItem")
   planes = [];
@@ -106,7 +112,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     // Packed vertices, bounds caches and quad registration are reconciled by
     // the renderer adapter from this authored graph.
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
     // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
     // filter: a fully transparent plane contributes NO bounds at all.
     CreateItemSetBoundingBoxes(

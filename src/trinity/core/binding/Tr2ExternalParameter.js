@@ -391,7 +391,7 @@ export class Tr2ExternalParameter extends CjsModel
   {
     if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
     else if (typeof object.OnValueChanged === "function") object.OnValueChanged(name, object[name], source);
-    else object.OnModified?.({ property: name, source });
+    else object.OnModified?.(name);
   }
 
 }

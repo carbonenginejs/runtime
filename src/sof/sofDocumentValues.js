@@ -12,6 +12,7 @@
 // appear in either JSON output shape.
 export const VALUES_LITERAL_DOLLAR_REF = Symbol("values-literal-dollar-ref");
 
+/** Tests whether a value is an object with a nonempty model type tag. */
 export function IsModelValuesRoot(value)
 {
   return Boolean(value)
@@ -22,6 +23,7 @@ export function IsModelValuesRoot(value)
     && value._type.length > 0;
 }
 
+/** Tests whether a value is an object with a model reference tag. */
 export function IsModelValuesReference(value)
 {
   return Boolean(value)
@@ -30,6 +32,10 @@ export function IsModelValuesReference(value)
     && Object.hasOwn(value, "_ref");
 }
 
+/**
+ * Recursively remaps imported document references through the supplied reference
+ * table.
+ */
 export function remapImportedValue(value, refs)
 {
   if (Array.isArray(value)) return value.map(item => remapImportedValue(item, refs));

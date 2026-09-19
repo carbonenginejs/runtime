@@ -191,39 +191,36 @@ test("a write marks dirty and the settle clears it", () =>
   assert.equal(thing.IsDirty(), true, "skipUpdate leaves it dirty for a later settle");
 });
 
-test("OnModified receives the changed field names, additively", () =>
+test("OnModified receives the changed notified field names individually", () =>
 {
   const seen = [];
   const Fixture = declare({
-    n: { type: { kind: "int32" }, initial: 0 },
-    name: { type: { kind: "string" }, initial: "" }
+    n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } },
+    name: { type: { kind: "string" }, initial: "", edit: { notify: true } }
   });
-  Fixture.prototype.OnModified = function (options)
+  Fixture.prototype.OnModified = function (propertyName)
   {
-    seen.push({ fields: [ ...options.changedFields ], source: options.source === this });
+    seen.push(propertyName);
     return true;
   };
 
   new Fixture().SetValues({ n: 1, name: "x" });
-  assert.deepEqual(seen, [ { fields: [ "n", "name" ], source: true } ]);
+  assert.deepEqual(seen, [ "n", "name" ]);
 });
 
-test("a positional OnModified override still sees the options object", () =>
+test("a positional OnModified override receives member identity", () =>
 {
-  // The 34 overrides carrying a positional parameter get the bag, so gates
-  // comparing it to a field name are false now and stay false.
   let received;
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
   Fixture.prototype.OnModified = function (value) { received = value; return true; };
 
   new Fixture().SetValues({ n: 1 });
-  assert.equal(typeof received, "object");
-  assert.equal(received === "n", false, "a field-name gate does not fire");
+  assert.equal(received, "n");
 });
 
 test("OnModified returning false leaves the target dirty", () =>
 {
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
   Fixture.prototype.OnModified = function () { return false; };
 
   const thing = new Fixture();
@@ -233,27 +230,29 @@ test("OnModified returning false leaves the target dirty", () =>
 
 test("a settle that never converges throws rather than spinning", () =>
 {
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
-  Fixture.prototype.OnModified = function () { this.MarkDirty(); return true; };
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
+  Fixture.prototype.OnModified = function () { this.SetValues({ n: this.n + 1 }); return true; };
 
   assert.throws(() => new Fixture().SetValues({ n: 1 }), /settle passes/);
 });
 
 test("the settle is re-entrant-safe", () =>
 {
+  let calls = 0;
   let depth = 0;
   let max = 0;
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
   Fixture.prototype.OnModified = function ()
   {
     depth += 1;
     max = Math.max(max, depth);
-    if (depth < 3) this.UpdateValues({});
+    if (++calls === 1) this.UpdateValues({ property: "n" });
     depth -= 1;
     return true;
   };
 
   new Fixture().SetValues({ n: 1 });
+  assert.equal(calls, 2);
   assert.equal(max, 1, "a nested UpdateValues returns instead of recursing");
 });
 
@@ -291,7 +290,7 @@ test("values without notify never calls EmitEvent", () =>
 test("skipEvents suppresses the emit but not the settle", () =>
 {
   const settled = [];
-  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0 } });
+  const Fixture = declare({ n: { type: { kind: "int32" }, initial: 0, edit: { notify: true } } });
   CjsSchema.compose.notify(Fixture, { kind: "class" });
   Fixture.prototype.OnModified = function () { settled.push(1); return true; };
 

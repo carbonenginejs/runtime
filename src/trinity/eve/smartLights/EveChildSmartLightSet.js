@@ -142,10 +142,10 @@ export class EveChildSmartLightSet extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon re-registers on m_display/m_distribution Var edits; JS forwards every OnModified to the EveEntity ReRegister lifecycle on the flattened EveChildTransform base.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.ReRegister();
+    if (propertyName === "display" || propertyName === "distribution") this.ReRegister();
     return true;
   }
 

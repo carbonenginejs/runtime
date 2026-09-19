@@ -144,9 +144,7 @@ export class EveCamera extends CjsModel
 
   #idleTheta = 0;
 
-  #lastInterest = null;
 
-  #lastRotationAroundParent = quat.create();
 
   #maxNoise = 80;
 
@@ -680,7 +678,6 @@ export class EveCamera extends CjsModel
     this.#CapPitchAndYaw();
 
     fromYawPitchRoll(this.rotationAroundParent, this.yaw, this.pitch, 0);
-    quat.copy(this.#lastRotationAroundParent, this.rotationAroundParent);
     vec3.set(CAMERA_TRANSLATION, 0, 0, this.translationFromParent);
     vec3.transformQuat(CAMERA_POSITION, CAMERA_TRANSLATION, this.rotationAroundParent);
     vec3.add(CAMERA_POSITION, CAMERA_POSITION, parentPosition);
@@ -849,18 +846,17 @@ export class EveCamera extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Caches the last notified values because CjsModel's cooperative notification hook does not receive Carbon's Be::Var pointer.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (!quat.exactEquals(this.rotationAroundParent, this.#lastRotationAroundParent))
+    if (propertyName === "rotationAroundParent")
     {
       quaternionToYawPitchRoll(CAMERA_YAW_PITCH_ROLL, this.rotationAroundParent);
       this.yaw = CAMERA_YAW_PITCH_ROLL[0];
       this.pitch = CAMERA_YAW_PITCH_ROLL[1];
-      quat.copy(this.#lastRotationAroundParent, this.rotationAroundParent);
     }
 
-    if (this.interest !== this.#lastInterest)
+    else if (propertyName === "interest")
     {
       this.#trackInterest = !!this.interest && this.interest !== this.parent;
       if (!this.#trackInterest)
@@ -868,7 +864,6 @@ export class EveCamera extends CjsModel
         this.#yawIntSpeed = 0;
         this.#pitchIntSpeed = 0;
       }
-      this.#lastInterest = this.interest;
     }
     return true;
   }

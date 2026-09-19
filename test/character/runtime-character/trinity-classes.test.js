@@ -223,9 +223,9 @@ test("native skinned-object LOD helper preserves proxy fallback and lifecycle ru
   assert.deepEqual(residentMedium.builderObjects, [ changedModel ]);
 });
 
-test("Tr2SkinnedObject delegates LOD as one whole-model identity", () =>
+test("Tr2IntSkinnedObject delegates LOD as one whole-model identity", () =>
 {
-  const object = new Tr2SkinnedObject();
+  const object = new Tr2IntSkinnedObject();
   const high = new FakeLodProxy("high");
   const medium = new FakeLodProxy("medium");
   const low = new FakeLodProxy("low");
@@ -273,15 +273,15 @@ test("Tr2SkinnedModel selects exact resource skeletons and resets bindings", () 
 
   model.geometryRes = geometryRes;
   model.skeletonName = "Hero";
-  model.UpdateValues();
+  model.UpdateValues({ property: "skeletonName" });
   assert.equal(model.GetSkeleton(), skeletons[1]);
 
   model.skeletonName = "hero";
-  model.UpdateValues();
+  model.UpdateValues({ property: "skeletonName" });
   assert.equal(model.GetSkeleton(), null, "native skeleton selection is case-sensitive");
 
   model.skeletonName = "Other";
-  model.UpdateValues();
+  model.UpdateValues({ property: "skeletonName" });
   assert.equal(model.GetSkeleton(), skeletons[0]);
   model.ReleaseCachedData(geometryRes);
   assert.equal(model.GetSkeleton(), null);
@@ -367,7 +367,7 @@ test("Tr2SkinnedObject rebuilds immediate CPU rig mappings and skinning palettes
       return true;
     }
   } ];
-  model.UpdateValues();
+  model.UpdateValues({ property: "skeletonName" });
 
   const object = new Tr2SkinnedObject();
   const animationBoneNames = [ "Root", "Head" ];
@@ -429,10 +429,11 @@ test("whole-model LOD swaps rebuild valid rig mappings but ignore missing skelet
     GetSkeletonData: () => skeleton
   };
   model.skeletonName = "Hero";
-  model.UpdateValues();
+  model.UpdateValues({ property: "skeletonName" });
 
   const object = new Tr2SkinnedObject();
   object.highDetailModel = new FakeLodProxy("high", { model });
+  object.lod.PopulateLods();
   object.SetLOD({});
   assert.equal(object.currentLod, 0);
   assert.equal(object.GetSkeletonTag(), 1);
@@ -440,6 +441,7 @@ test("whole-model LOD swaps rebuild valid rig mappings but ignore missing skelet
 
   const missing = new Tr2SkinnedObject();
   missing.highDetailModel = new FakeLodProxy("high", { model: new Tr2SkinnedModel() });
+  missing.lod.PopulateLods();
   missing.SetLOD({});
   assert.equal(missing.currentLod, 0);
   assert.equal(missing.GetSkeletonTag(), 0);
@@ -568,4 +570,23 @@ test("current Carbon TriMatrix source lives under src/character/trinity but stay
   assert.equal(CjsSchema.GetConstructor("TriMatrix"), null);
   assert.equal(CjsSchema.getField(Tr2InteriorPlaceable, "transform")?.type?.className, "TriMatrix");
   assert.equal(CjsSchema.getField(Tr2SkinnedObject, "transform")?.type?.className, "TriMatrix");
+});
+
+
+test("batched model and LOD proxy replacements share native helper storage", () =>
+{
+  const object = new Tr2IntSkinnedObject();
+  const previous = new FakeLodProxy("previous");
+  object.highDetailModel = previous;
+  object.Initialize();
+  object.SetLOD({});
+  const replacement = new FakeLodProxy("replacement");
+  const model = new Tr2SkinnedModel();
+  object.visualModel = model;
+  object.highDetailModel = replacement;
+  object.UpdateValues({ properties: ["visualModel", "highDetailModel"] });
+  assert.equal(object.lod.highDetailProxy, replacement);
+  assert.deepEqual(replacement.builderObjects, [model]);
+  assert.deepEqual(previous.builderObjects, []);
+  assert.equal(object.currentLod, object.GetCurrentLod());
 });

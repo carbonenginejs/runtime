@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Tr2Mesh.h
 // Source: trinity/trinity/Tr2Mesh.cpp
 // Source: trinity/trinity/Tr2Mesh_Blue.cpp
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { Tr2MeshBase } from "./Tr2MeshBase.js";
@@ -15,14 +15,10 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 @type.define({ className: "Tr2Mesh", family: "trinityCore" })
 export class Tr2Mesh extends Tr2MeshBase
 {
-  /** The path the bound geometry was resolved from, so a whole-write settle does not refetch. */
-  #resolvedPath = "";
-
   #bakedMorphTargets = [];
 
   #morphAnimations = new Map();
 
-  @invalidation.rebuild("geometry")
   @edit.notify
   @edit.persist
   @type.string
@@ -37,7 +33,6 @@ export class Tr2Mesh extends Tr2MeshBase
   @type.boolean
   deferGeometryLoad = false;
 
-  @invalidation.rebuild("geometry")
   @edit.read
   @type.objectRef("TriGeometryRes")
   geometry = null;
@@ -77,7 +72,6 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.reason("Carbon's load fence (m_loadFence.Put) is unported; there is no prepare-phase fence here, so both requests are simply issued.")
   InitializeGeometryResource()
   {
-    this.#resolvedPath = this.geometryResPath;
     if (!this.geometryResPath)
     {
       // Carbon requests the empty path anyway and gets nothing back
@@ -121,39 +115,22 @@ export class Tr2Mesh extends Tr2MeshBase
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon identifies the changed member by Be::Var pointer and runs exactly one arm because it is notified per member. The settle here reports a whole write, so the arms are independent ifs over the changed names when a caller supplies them (options.property/properties), and all three run when it does not.")
-  OnModified(options = {})
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  OnModified(propertyName)
   {
-    const changed = Tr2Mesh.#changedNames(options);
-    const touched = name => changed === null || changed.has(name);
-
-    // Carbon compares Be::Var pointers and so refetches ONLY when the path
-    // member is the one that changed. A settle reporting a whole write would
-    // otherwise refetch on any edit - and clear the geometry when no manager is
-    // installed - so an unnamed write refetches only a path that has actually
-    // moved since it was last resolved.
-    if (touched("geometryResPath") && (changed !== null || this.geometryResPath !== this.#resolvedPath))
+    if (propertyName === "geometryResPath")
     {
       this.InitializeGeometryResource();
     }
-    if (touched("deferGeometryLoad") && !this.deferGeometryLoad && !this.geometry)
+    else if (propertyName === "deferGeometryLoad")
     {
-      this.InitializeGeometryResource();
+      if (!this.deferGeometryLoad && !this.geometry) this.Initialize();
     }
-    if (touched("meshIndex"))
+    else if (propertyName === "meshIndex")
     {
       this.InitializeMorphTargets();
     }
     return true;
-  }
-
-  /** The field names a caller named, or null when the write did not say. */
-  static #changedNames(options)
-  {
-    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
-    if (named === null || named === undefined) return null;
-    if (typeof named === "string") return new Set([ named ]);
-    return named instanceof Set ? named : new Set(named);
   }
 
   /**
@@ -165,7 +142,7 @@ export class Tr2Mesh extends Tr2MeshBase
   SetMeshResPath(path)
   {
     this.geometryResPath = String(path ?? "");
-    this.OnModified({ property: "geometryResPath" });
+    this.OnModified("geometryResPath");
   }
 
   /**
@@ -192,7 +169,7 @@ export class Tr2Mesh extends Tr2MeshBase
     this.geometry = next;
     // Direct mutation bypasses SetValues, so schedule the declared consequence
     // explicitly; maintained class code may add declared rebuild tokens.
-    this.__state.rebuild.add("geometry");
+
 
     if (!next) return;
     if (typeof next.OnCompleted === "function") next.OnCompleted(this.#geometryCompleted, this);
@@ -260,12 +237,21 @@ export class Tr2Mesh extends Tr2MeshBase
     this.SetGeometryRes(resource);
   }
 
-  /** The bound geometry resource, or null until the resource layer supplies one. */
+  /** Uses the low-detail stand-in until the primary resource is good. */
   @carbon.method
   @impl.adapted
   GetGeometryResource()
   {
-    return this.geometry;
+    if (!this.lowResGeometry || this.geometry?.IsGood()) return this.geometry;
+    return this.lowResGeometry;
+  }
+
+  /** Returns the authored geometry resource path. */
+  @carbon.method
+  @impl.implemented
+  GetMeshResPath()
+  {
+    return this.geometryResPath;
   }
 
   /**

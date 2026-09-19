@@ -32,9 +32,9 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   OnModified(value)
   {
-    if (value === this.highDetailProxy
-      || value === this.mediumDetailProxy
-      || value === this.lowDetailProxy)
+    if (value === "highDetailModel"
+      || value === "mediumDetailModel"
+      || value === "lowDetailModel")
     {
       this.PopulateLods();
     }

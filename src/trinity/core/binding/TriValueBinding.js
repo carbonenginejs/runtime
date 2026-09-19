@@ -10,7 +10,13 @@ import { vec4 } from "#math/vec4";
  * object, applying a scale and per-component offset through a type-checked copy
  * plan built when the endpoints resolve.
  */
-@type.define({ className: "TriValueBinding", family: "trinityCore" })
+@type.define({
+  className: "TriValueBinding", family: "trinityCore",
+  fields: {
+    sourceObject: [type.model("IRoot"), edit.persistOnly],
+    destinationObject: [type.model("IRoot"), edit.persistOnly]
+  }
+})
 export class TriValueBinding extends CjsModel
 {
 
@@ -48,10 +54,25 @@ export class TriValueBinding extends CjsModel
   @type.string
   sourceAttribute = "";
 
-  /** Carbon's persisted-only destination endpoint storage. */
-  @edit.persistOnly
-  @type.model("IRoot")
-  destinationObject = null;
+  #destinationObject = null;
+
+  // Carbon exposes persisted storage and a script MAP_PROPERTY under this
+  // name. JS uses one accessor for both, so hydration also invokes the setter.
+
+  /**
+   * Reads the current destination endpoint, resolving a weak reference when
+   * used.
+   */
+  get destinationObject()
+  {
+    return this.GetCurrentDestinationObject();
+  }
+
+  /** Replaces the destination endpoint through its binding setter. */
+  set destinationObject(value)
+  {
+    this.SetDestinationObject(value);
+  }
 
   /** m_isEnabled (bool) [READWRITE] */
   @edit.readwrite
@@ -63,10 +84,22 @@ export class TriValueBinding extends CjsModel
   @type.string
   name = "";
 
-  /** Carbon's persisted-only source endpoint storage. */
-  @edit.persistOnly
-  @type.model("IRoot")
-  sourceObject = null;
+  #sourceObject = null;
+
+  // Carbon exposes persisted storage and a script MAP_PROPERTY under this
+  // name. JS uses one accessor for both, so hydration also invokes the setter.
+
+  /** Reads the current source endpoint, resolving a weak reference when used. */
+  get sourceObject()
+  {
+    return this.GetCurrentSourceObject();
+  }
+
+  /** Replaces the source endpoint through its binding setter. */
+  set sourceObject(value)
+  {
+    this.SetSourceObject(value);
+  }
 
   /** m_offset (Vector4) [READWRITE, PERSIST] */
   @edit.persist
@@ -253,7 +286,7 @@ export class TriValueBinding extends CjsModel
     this.isWeak = false;
     this.#sourceObjectWeak = null;
     this.sourceAttribute = String(sourceAttribute ?? "");
-    this.sourceObject = sourceObject ?? null;
+    this.#sourceObject = sourceObject ?? null;
     this.isValid = false;
   }
 
@@ -271,7 +304,7 @@ export class TriValueBinding extends CjsModel
     this.isWeak = false;
     this.#destinationObjectWeak = null;
     this.destinationAttribute = String(destinationAttribute ?? "");
-    this.destinationObject = destinationObject ?? null;
+    this.#destinationObject = destinationObject ?? null;
     this.isValid = false;
   }
 
@@ -304,8 +337,8 @@ export class TriValueBinding extends CjsModel
       return false;
     }
     this.isWeak = true;
-    this.sourceObject = null;
-    this.destinationObject = null;
+    this.#sourceObject = null;
+    this.#destinationObject = null;
     this.#sourceObjectWeak = source && typeof WeakRef === "function" ? new WeakRef(source) : { deref: () => source };
     this.#destinationObjectWeak = destination && typeof WeakRef === "function" ? new WeakRef(destination) : { deref: () => destination };
     this.sourceAttribute = String(sourceAttribute ?? "");
@@ -332,7 +365,7 @@ export class TriValueBinding extends CjsModel
   @impl.implemented
   GetCurrentSourceObject()
   {
-    return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this.sourceObject;
+    return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this.#sourceObject;
   }
 
   /**
@@ -343,7 +376,7 @@ export class TriValueBinding extends CjsModel
   @impl.implemented
   GetCurrentDestinationObject()
   {
-    return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this.destinationObject;
+    return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this.#destinationObject;
   }
 
   /** Carbon's second name for GetCurrentSourceObject. */
@@ -370,7 +403,7 @@ export class TriValueBinding extends CjsModel
     }
     else
     {
-      this.sourceObject = sourceObject ?? null;
+      this.#sourceObject = sourceObject ?? null;
     }
     this.Initialize();
   }
@@ -401,7 +434,7 @@ export class TriValueBinding extends CjsModel
     }
     else
     {
-      this.destinationObject = destinationObject ?? null;
+      this.#destinationObject = destinationObject ?? null;
     }
     this.Initialize();
   }
@@ -774,7 +807,7 @@ export class TriValueBinding extends CjsModel
   {
     if (typeof object.UpdateValues === "function") object.UpdateValues({ property: name, source });
     else if (typeof object.OnValueChanged === "function") object.OnValueChanged(name, object[name], source);
-    else object.OnModified?.({ property: name, source });
+    else object.OnModified?.(name);
   }
 
   /** Whether the value is an array or a typed-array view. */

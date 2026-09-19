@@ -116,7 +116,7 @@ test("Tr2ControllerFloatVariable writes destinations and dirty masks", () =>
   variable.OnEvent("modified", (_name, _model, payload) => events.push(payload));
   assertEquals(variable.SetValue(7.25), true);
   dirty.value = 0n;
-  assertEquals(variable.SetValue(7.25), true);
+  assertEquals(variable.SetValue(7.25), false);
   assertAlmostEquals(destination[1], 7.25);
   assertEquals(dirty.value, 0x10n);
   assertEquals(events.length, 2);
@@ -162,9 +162,10 @@ test("Tr2BindingPoint settles direct and swizzled writes through CjsModel", () =
   const vector = new Tr2BindingPoint();
   assertEquals(vector.SetDestination(target, "vector"), true);
   assertEquals(vector.GetValue(), 1);
-  assertEquals(events.length, 2);
+  assertEquals(events.length, 3);
   assertEquals(events[0].source, scalar);
-  assertEquals(events[1].source, swizzle);
+  assertEquals(events[1].source, scalar);
+  assertEquals(events[2].source, swizzle);
 
   const alwaysTarget = new Tr2ControllerFloatVariable();
   alwaysTarget.value = 3;
@@ -172,7 +173,7 @@ test("Tr2BindingPoint settles direct and swizzled writes through CjsModel", () =
   alwaysTarget.OnEvent("modified", (_name, _model, payload) => alwaysEvents.push(payload));
   const alwaysBinding = new Tr2BindingPoint();
   assertEquals(alwaysBinding.SetDestination(alwaysTarget, "value"), true);
-  assertEquals(alwaysBinding.SetValue(3), true);
+  assertEquals(alwaysBinding.SetValue(3), false);
   assertEquals(alwaysEvents.length, 1);
   assertEquals(alwaysEvents[0].source, alwaysBinding);
 });
@@ -1288,7 +1289,7 @@ test("Tr2ActionSetValue leaves destination unchanged on failed eval", () =>
   action.Start(controller);
   assertEquals(destination.value, 5);
   action.value = "0";
-  action.UpdateValues();
+  action.UpdateValues({ property: "value" });
   action.Start(controller);
   assertEquals(destination.value, 0);
   action.Unlink();
@@ -1809,7 +1810,7 @@ test("controller actions match Carbon reset and attenuation edge cases", () =>
   external.Start(externalController);
   assertEquals(order.join(","), "start,target:7");
   external.destinationOwner = "";
-  external.UpdateValues();
+  external.UpdateValues({ property: "destinationOwner" });
   assert(!external.IsDestinationValid());
 });
 function makeAction(name, events, expectedController)
@@ -1915,3 +1916,18 @@ function makeOverlayOwner(events, animated)
     }
   };
 }
+
+
+test("equal controller writes still publish the native value and dirty mask", () =>
+{
+  const variable = new Tr2ControllerFloatVariable();
+  variable.value = 4;
+  const destination = new Float32Array(1);
+  const mask = { value: 0n };
+  variable.SetDestinationBuffer(destination);
+  variable.SetDirtyMask(mask, 8n);
+  destination[0] = -1;
+  assertEquals(variable.SetValues({ value: 4 }, { returnBoolean: true }), false);
+  assertEquals(destination[0], 4);
+  assertEquals(mask.value, 8n);
+});

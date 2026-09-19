@@ -162,7 +162,7 @@ test("EveTacticalOverlay owns one initialized variable store and direct update o
 
   const replacementEvents = [];
   overlay.anchorEffect = makeEffect("replacement", 8, replacementEvents);
-  overlay.OnModified();
+  overlay.OnModified("anchorEffect");
   assert.deepEqual(replacementEvents.map(([, action ]) => action), [ "start", "store", "end" ]);
 
   overlay.translationCurve = {};

@@ -11,16 +11,21 @@ import { ITr2Renderable } from "../../../trinity/core/ITr2Renderable.js";
  * Skinned character object managing whole-model LOD selection and an immediate
  * CPU skinning palette.
  */
-@type.define({ className: "Tr2SkinnedObject", family: "trinityCore" })
+@type.define({
+  className: "Tr2SkinnedObject",
+  family: "trinityCore",
+  fields: {
+    highDetailModel: [type.unknown, edit.notify, edit.persist],
+    mediumDetailModel: [type.unknown, edit.notify, edit.persist],
+    lowDetailModel: [type.unknown, edit.notify, edit.persist],
+    currentLod: [type.int32, edit.read]
+  }
+})
 @carbon.inherit(ITr2Renderable)
 export class Tr2SkinnedObject extends CjsModel
 {
 
-  #lod = new Tr2SkinnedObjectLod();
-  #highDetailProxy = undefined;
-  #mediumDetailProxy = undefined;
-  #lowDetailProxy = undefined;
-  #visualModel = undefined;
+  lod = new Tr2SkinnedObjectLod();
   #lastUpdateTime = 0;
 
   #skeletonTag = 0;
@@ -84,28 +89,56 @@ export class Tr2SkinnedObject extends CjsModel
   @type.model("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
 
-  /** m_lod.m_highDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.persist
-  @type.unknown
-  highDetailModel = null;
+  // Carbon maps this exposed field directly into m_lod storage. Accessors
+  // preserve that alias before any member notification in a batch is settled.
 
-  /** m_lod.m_lowDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.persist
-  @type.unknown
-  lowDetailModel = null;
+  /** Reads the high-detail proxy stored by the native LOD helper. */
+  get highDetailModel()
+  {
+    return this.lod.highDetailProxy;
+  }
 
-  /** m_lod.m_mediumDetailProxy (Tr2SkinnedObjectLod) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
-  @edit.persist
-  @type.unknown
-  mediumDetailModel = null;
+  /** Replaces the high-detail proxy stored by the native LOD helper. */
+  set highDetailModel(value)
+  {
+    this.lod.highDetailProxy = value;
+  }
+
+  // Carbon maps this exposed field directly into m_lod storage. Accessors
+  // preserve that alias before any member notification in a batch is settled.
+
+  /** Reads the low-detail proxy stored by the native LOD helper. */
+  get lowDetailModel()
+  {
+    return this.lod.lowDetailProxy;
+  }
+
+  /** Replaces the low-detail proxy stored by the native LOD helper. */
+  set lowDetailModel(value)
+  {
+    this.lod.lowDetailProxy = value;
+  }
+
+  // Carbon maps this exposed field directly into m_lod storage. Accessors
+  // preserve that alias before any member notification in a batch is settled.
+
+  /** Reads the medium-detail proxy stored by the native LOD helper. */
+  get mediumDetailModel()
+  {
+    return this.lod.mediumDetailProxy;
+  }
+
+  /** Replaces the medium-detail proxy stored by the native LOD helper. */
+  set mediumDetailModel(value)
+  {
+    this.lod.mediumDetailProxy = value;
+  }
 
   /** m_lod.GetCurrentLod() (int) [READ] */
-  @edit.read
-  @type.int32
-  currentLod = -1;
+  get currentLod()
+  {
+    return this.lod.GetCurrentLod();
+  }
 
   /** m_numRenderRigBones (unsigned int) [READ] */
   @edit.read
@@ -141,19 +174,15 @@ export class Tr2SkinnedObject extends CjsModel
   /** Carbon INotify hook: retains active model changes in the selected proxy. */
   @carbon.method
   @impl.adapted
-  @impl.reason("The cooperative JS mutation hook compares cached proxy/model identities instead of receiving Be::Var field handles.")
-  OnModified(_options = {})
+  @impl.reason("JS passes the exposed member name instead of Carbon's field address; the boolean reports whether the base handled it.")
+  OnModified(propertyName)
   {
-    this.#SyncLodProxies();
-
-    if (this.#visualModel !== this.visualModel)
+    if (propertyName === "visualModel")
     {
-      this.#lod.OnModelChanged(this.visualModel);
-      this.#visualModel = this.visualModel;
+      this.lod.OnModelChanged(this.visualModel);
+      return true;
     }
-
-    this.currentLod = this.#lod.GetCurrentLod();
-    return true;
+    return false;
   }
 
   /** Carbon method GetCurrentLod. */
@@ -161,7 +190,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.implemented
   GetCurrentLod()
   {
-    return this.#lod.GetCurrentLod();
+    return this.lod.GetCurrentLod();
   }
 
   /** Carbon method SetHighDetailModel. */
@@ -170,8 +199,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetHighDetailModel(model)
   {
-    this.#SyncLodProxies();
-    this.#lod.SetHighDetailModel(model);
+    this.lod.SetHighDetailModel(model);
   }
 
   /** Carbon method SetMediumDetailModel. */
@@ -180,8 +208,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetMediumDetailModel(model)
   {
-    this.#SyncLodProxies();
-    this.#lod.SetMediumDetailModel(model);
+    this.lod.SetMediumDetailModel(model);
   }
 
   /** Carbon method SetLowDetailModel. */
@@ -190,8 +217,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.reason("Proxy construction belongs to the outer runtime adapter; this delegates to an already supplied proxy.")
   SetLowDetailModel(model)
   {
-    this.#SyncLodProxies();
-    this.#lod.SetLowDetailModel(model);
+    this.lod.SetLowDetailModel(model);
   }
 
   /** Carbon's base bounds implementation is deliberately an inline false stub. */
@@ -221,7 +247,6 @@ export class Tr2SkinnedObject extends CjsModel
       return;
     }
 
-    this.#SyncLodProxies();
     const boundingSphere = vec4.create();
     if (this.GetBoundingSphere(boundingSphere)
       && frustum.IsSphereVisible(boundingSphere, true))
@@ -233,43 +258,17 @@ export class Tr2SkinnedObject extends CjsModel
       }
     }
 
-    const model = this.#lod.SetLOD(frustum, this.estimatedPixelDiameter);
-    this.currentLod = this.#lod.GetCurrentLod();
+    const model = this.lod.SetLOD(frustum, this.estimatedPixelDiameter);
 
     if (model && model !== this.visualModel)
     {
       this.visualModel = model;
-      this.#visualModel = model;
       this.skinningMatrixCount = 0;
       if (typeof this.UpdateBones === "function")
       {
         this.UpdateBones(this.#lastUpdateTime, null);
       }
     }
-  }
-
-  /**
-   * Copies changed public proxy references into the native LOD helper and
-   * repopulates its selection state.
-   */
-  #SyncLodProxies()
-  {
-    const changed = this.#highDetailProxy !== this.highDetailModel
-      || this.#mediumDetailProxy !== this.mediumDetailModel
-      || this.#lowDetailProxy !== this.lowDetailModel;
-
-    if (!changed)
-    {
-      return;
-    }
-
-    this.#lod.highDetailProxy = this.highDetailModel;
-    this.#lod.mediumDetailProxy = this.mediumDetailModel;
-    this.#lod.lowDetailProxy = this.lowDetailModel;
-    this.#highDetailProxy = this.highDetailModel;
-    this.#mediumDetailProxy = this.mediumDetailModel;
-    this.#lowDetailProxy = this.lowDetailModel;
-    this.#lod.PopulateLods();
   }
 
   /** Carbon method GetBoundingBoxInLocalSpace (MAP_METHOD_AND_WRAP). */

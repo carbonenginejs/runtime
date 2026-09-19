@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Tr2Effect.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, CjsSchema, edit, impl, invalidation, type } from "#schema";
+import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "#trinityal";
 import { Tr2Material } from "./Tr2Material.js";
 import { vec4 } from "#math/vec4";
@@ -14,6 +14,7 @@ import { Tr2EffectPassParameters } from "./material/Tr2EffectPassParameters.js";
 import { Tr2EffectTechniqueInputs } from "./material/Tr2EffectTechniqueInputs.js";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
+import { BLUELISTEVENT } from "#consts/blue";
 import { GetEffectPathDefaults, NormalizeResourcePath, ResolveEffectPath } from "#utils/effectPath";
 import { Tr2EffectStateManager } from "./Tr2EffectStateManager.js";
 import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
@@ -83,14 +84,13 @@ export class Tr2Effect extends Tr2Material
 
   /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
-  @invalidation.rebuild("pipeline")
-  @edit.always
+
   @edit.persist
   @type.string
   effectFilePath = "";
 
   /** m_options (PTr2ShaderOptionStructureList) [READ, PERSIST] */
-  @invalidation.rebuild("pipeline")
+
   @edit.persist
   @type.list("Tr2ShaderOption")
   options = [];
@@ -101,19 +101,19 @@ export class Tr2Effect extends Tr2Material
   name = "";
 
   /** m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST] */
-  @invalidation.rebuild("bindings")
+
   @edit.persist
   @type.list("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
-  @invalidation.rebuild("bindings")
+
   @edit.persist
   @type.list("ITriEffectParameter")
   parameters = [];
 
   /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
-  @invalidation.rebuild("bindings")
+
   @edit.persist
   @type.list("ITriEffectResourceParameter")
   resources = [];
@@ -129,7 +129,7 @@ export class Tr2Effect extends Tr2Material
   actualEffectFilePath = "";
 
   /** m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST] */
-  @invalidation.rebuild("bindings")
+
   @edit.persist
   @type.list("Tr2SamplerOverride")
   samplerOverrides = [];
@@ -716,23 +716,31 @@ export class Tr2Effect extends Tr2Material
    * destination cleared and is detached from the material, an inserted one is
    * attached, and cached data is rebuilt either way.
    */
+  @carbon.method
+  @impl.implemented
   OnListModified(event, _key, _key2, value)
   {
+    if (event & BLUELISTEVENT.BELIST_LOADING) return;
+    const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
     // Tr2Effect.cpp:905-928 asks the value what it is rather than what it
     // answers to: ITriReroutable for the destination clear, then
     // ITriEffectResourceParameter for the material hooks.
     const resource = CjsSchema.cast(value, ITriEffectResourceParameter);
-    if (String(event).includes("REMOVED"))
+    if (kind === BLUELISTEVENT.BELIST_REMOVED)
     {
       const reroutable = CjsSchema.cast(value, ITriReroutable);
       if (reroutable) reroutable.SetDestination(null, 0);
       if (resource) resource.OnRemovedFromMaterial(this);
     }
-    if (resource && String(event).includes("INSERTED"))
+    if (resource && kind === BLUELISTEVENT.BELIST_INSERTED)
     {
       resource.OnAddedToMaterial(this);
     }
-    this.RebuildCachedDataInternal();
+    if (kind === BLUELISTEVENT.BELIST_REMOVED || kind === BLUELISTEVENT.BELIST_INSERTED
+      || kind === BLUELISTEVENT.BELIST_SWAPPED || kind === BLUELISTEVENT.BELIST_MOVED)
+    {
+      this.RebuildCachedDataInternal();
+    }
   }
 
   /**
@@ -809,8 +817,8 @@ export class Tr2Effect extends Tr2Material
   }
 
   /**
-   * Sets the authored effect path through SetValues so the pipeline rebuild flag
-   * fires; returns whether anything changed.
+   * Sets the authored effect path through values transport. Equal writes still
+   * initialize; the return value reports whether the path changed.
    */
   SetEffectPathName(path)
   {

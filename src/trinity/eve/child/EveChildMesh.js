@@ -7,7 +7,10 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { BLUELISTEVENT } from "#consts/blue";
+import { IListNotify } from "#blue";
+import { EveEntity } from "../EveEntity.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -55,6 +58,7 @@ const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
  */
 @type.define({ className: "EveChildMesh", family: "eve/child" })
 @carbon.inherit(ITr2Renderable)
+@carbon.inherit(IListNotify)
 export class EveChildMesh extends EveChildTransform
 {
   #isMorphsBaked = false;
@@ -186,18 +190,22 @@ export class EveChildMesh extends EveChildTransform
   @type.string
   name = "";
 
+  @edit.notify
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.notify
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
+  @edit.notify
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.notify
   @edit.persist
   @type.mat4
   localTransform = mat4.create();
@@ -263,7 +271,6 @@ export class EveChildMesh extends EveChildTransform
   @type.enum("Origin")
   origin = 0;
 
-  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.array("mat4")
   instanceTransforms = [];
@@ -300,7 +307,73 @@ export class EveChildMesh extends EveChildTransform
     // cpp:84 - bind the updater to this mesh's geometry.
     this.InitializeAnimation();
 
+    for (let index = 0; index < this.decals.length; index++) this.decals[index].SetPriority(index);
+
     return true;
+  }
+
+  /** Carbon owner-list consequences (EveChildMesh.cpp:103–194). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JS arrays use the shared list mutation entry points; component interface IDs use the existing EveComponentType map.")
+  OnListModified(event, key, key2, value, list)
+  {
+    const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (list === this.decals)
+    {
+      if (kind === BLUELISTEVENT.BELIST_INSERTED || kind === BLUELISTEVENT.BELIST_REMOVED)
+      {
+        // Carbon quirk: Blue append may report size rather than size - 1.
+        // EveChildMesh.cpp:107–111 retains that off-by-one workaround.
+        const first = kind === BLUELISTEVENT.BELIST_INSERTED && key === this.decals.length ? key - 1 : key;
+        for (let index = first; index < this.decals.length; index++) this.decals[index].SetPriority(index);
+      }
+      else if (kind === BLUELISTEVENT.BELIST_SWAPPED)
+      {
+        this.decals[key].SetPriority(key);
+        this.decals[key2].SetPriority(key2);
+      }
+      else if (kind === BLUELISTEVENT.BELIST_MOVED)
+      {
+        for (let index = Math.min(key, key2); index <= Math.max(key, key2); index++) this.decals[index].SetPriority(index);
+      }
+    }
+    if (list === this.lights)
+    {
+      const registry = this.GetComponentRegistry();
+      if (registry)
+      {
+        if (kind === BLUELISTEVENT.BELIST_UNLOADSTART || (kind === BLUELISTEVENT.BELIST_REMOVED && !this.lights.length))
+        {
+          registry.UnRegisterComponent(EveComponentType.LightOwner, this);
+        }
+        else if (kind === BLUELISTEVENT.BELIST_INSERTED && this.lights.length === 1)
+        {
+          registry.RegisterComponent(EveComponentType.LightOwner, this);
+        }
+      }
+    }
+    if (list === this.attachments && !(event & BLUELISTEVENT.BELIST_LOADING) && this.IsInRegistry())
+    {
+      const registry = this.GetComponentRegistry();
+      if (kind === BLUELISTEVENT.BELIST_INSERTED || kind === BLUELISTEVENT.BELIST_REMOVED)
+      {
+        const entity = CjsSchema.cast(value, EveEntity);
+        if (entity)
+        {
+          if (kind === BLUELISTEVENT.BELIST_INSERTED) entity.Register(registry);
+          else entity.UnRegister(registry);
+        }
+      }
+      else if (kind === BLUELISTEVENT.BELIST_UNLOADSTART)
+      {
+        for (const attachment of this.attachments)
+        {
+          const entity = CjsSchema.cast(attachment, EveEntity);
+          if (entity) entity.UnRegister(registry);
+        }
+      }
+    }
   }
 
   /**
@@ -1541,34 +1614,25 @@ export class EveChildMesh extends EveChildTransform
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon identifies the changed member by Be::Var pointer and is notified per member; the settle here reports a whole write, so each test reads the changed names a caller supplied (options.property/properties) and every test applies when it supplied none.")
-  OnModified(options = {})
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name; the instanced-mesh cast is performed where that interface is used.")
+  OnModified(propertyName)
   {
-    const changed = EveChildMesh.#changedNames(options);
-    const touched = (...names) => changed === null || names.some(name => changed.has(name));
-
-    if (touched("reflectionMode", "display", "mesh", "castShadow"))
+    if (propertyName === "reflectionMode" || propertyName === "display"
+      || propertyName === "mesh" || propertyName === "castShadow")
     {
       this.ReRegister();
     }
-    if (touched("mesh", "animationUpdater"))
+    if (propertyName === "mesh" || propertyName === "animationUpdater")
     {
       this.InitializeAnimation();
     }
-    if (this.ownedLocatorSets.length && touched("scaling", "rotation", "translation", "localTransform"))
+    if (this.ownedLocatorSets.length && (propertyName === "scaling"
+      || propertyName === "rotation" || propertyName === "translation"
+      || propertyName === "localTransform"))
     {
       this.InvalidateOwnerMergedLocators("partMoved");
     }
     return true;
-  }
-
-  /** The field names a caller named, or null when the write did not say. */
-  static #changedNames(options)
-  {
-    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
-    if (named === null || named === undefined) return null;
-    if (typeof named === "string") return new Set([ named ]);
-    return named instanceof Set ? named : new Set(named);
   }
 
   /**

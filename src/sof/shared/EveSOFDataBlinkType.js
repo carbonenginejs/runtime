@@ -35,12 +35,22 @@ export class EveSOFDataBlinkType extends CjsModel
     return property ? this[property] ?? null : null;
   }
 
+  // Source: EveSOFData.h, EveSOFDataBlinkType::BlinkType. Keep the donor
+  // spelling for schema choosers; Type below is the existing JS compatibility map.
+  static BlinkType = Object.freeze({
+    TYPE_STATIC: 0,
+    TYPE_BLINK: 1,
+    TYPE_FADE_IN: 2,
+    TYPE_FADE_OUT: 3,
+    TYPE_CYCLE: 4
+  });
+
   static Type = Object.freeze({
-    STATIC: 0,
-    BLINK: 1,
-    FADE_IN: 2,
-    FADE_OUT: 3,
-    CYCLE: 4
+    STATIC: EveSOFDataBlinkType.BlinkType.TYPE_STATIC,
+    BLINK: EveSOFDataBlinkType.BlinkType.TYPE_BLINK,
+    FADE_IN: EveSOFDataBlinkType.BlinkType.TYPE_FADE_IN,
+    FADE_OUT: EveSOFDataBlinkType.BlinkType.TYPE_FADE_OUT,
+    CYCLE: EveSOFDataBlinkType.BlinkType.TYPE_CYCLE
   });
 
   static Types = Object.freeze([

@@ -94,10 +94,10 @@ export class EveMultiEffectParameter extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The runtime settle hook receives the completed model update rather than Carbon's Be::Var pointer; object is the only notifying field.")
-  OnModified()
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.#owner?.Rebind?.();
+    if (propertyName === "object" && this.#owner) this.#owner.Rebind();
     return true;
   }
 

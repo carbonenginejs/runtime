@@ -4,6 +4,7 @@
 // pure garbage for a value that is read immediately and never retained.
 const scratch = new DataView(new ArrayBuffer(4));
 
+/** Returns a zero-copy Uint8Array view over supported byte input. */
 export function asUint8Array(value, label = "value")
 {
     if (value instanceof Uint8Array)

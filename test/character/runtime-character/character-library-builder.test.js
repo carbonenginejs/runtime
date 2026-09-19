@@ -599,7 +599,6 @@ test("creates, removes, deletes, and clears records through observable library m
 
     assert.ok(created instanceof CjsCharacterResource);
     assert.strictEqual(library.Get("characterResources", 22), created);
-    assert.equal(library.documents.__state.flags.has("index:characterResources"), false);
     assert.equal(events[0][0], "recordadded");
     assert.equal(events[0][1].documentName, "characterResources");
     assert.strictEqual(events[0][1].record, created);
@@ -1251,3 +1250,27 @@ function CreateDocuments()
         }
     };
 }
+
+
+test("document mutations invalidate cached hits and misses at unchanged length", () =>
+{
+    const library = CjsCharacterLibrary.from(CjsCharacterLibraryBuilder.build(CreateDocuments()));
+    const documents = library.documents;
+    const list = documents.characterResources;
+    const length = list.length;
+    const previous = library.Get("characterResources", 21);
+    assert.ok(previous);
+    assert.equal(library.Get("characterResources", 9999), null);
+    const revision = documents.GetDocumentRevision("characterResources");
+    const otherRevision = documents.GetDocumentRevision("races");
+    documents.Remove("characterResources", previous, { skipUpdate: true });
+    const replacement = documents.Create("characterResources", {
+        recordID: "9999", resPath: "res:/replacement", typeID: "9002", resGender: 1
+    }, { skipUpdate: true });
+    assert.equal(documents.characterResources, list);
+    assert.equal(list.length, length);
+    assert.ok(documents.GetDocumentRevision("characterResources") > revision);
+    assert.equal(documents.GetDocumentRevision("races"), otherRevision);
+    assert.equal(library.Get("characterResources", 21), null);
+    assert.equal(library.Get("characterResources", 9999), replacement);
+});

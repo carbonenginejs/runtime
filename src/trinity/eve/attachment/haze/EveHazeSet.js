@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveHazeSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveHazeSetLight } from "./EveHazeSetLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -18,7 +18,7 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 @type.define({ className: "EveHazeSet", family: "eve/attachment/haze" })
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -31,7 +31,6 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.list("EveHazeSetItem")
   hazes = [];
@@ -87,7 +86,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
     // backend-neutral runtime keeps the authored graph and invalidates the
     // renderer-facing revision without allocating device resources.
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
     // Carbon rebuilds the item-set bounds here too (cpp:247), passing
     // skinned=TRUE unconditionally: a haze set has no skinned flag, so every
     // bone-indexed haze gets its own box.

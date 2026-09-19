@@ -129,11 +129,12 @@ export class EveCircle extends IEveLineSetPath
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.completeness = Math.min(2, Math.max(0, this.completeness));
-    this.numSegments = Math.min(128, Math.max(1, this.numSegments));
-    this.startPoint %= 1;
+    if (propertyName === "completeness") this.completeness = Math.min(2, Math.max(0, this.completeness));
+    if (propertyName === "numSegments") this.numSegments = Math.min(128, Math.max(1, this.numSegments));
+    if (propertyName === "startPoint") this.startPoint %= 1;
     this.#regeneratePoints = true;
     return true;
   }

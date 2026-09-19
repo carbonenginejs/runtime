@@ -226,6 +226,12 @@ function dynamicResourceError(path, name, code, message)
   return error;
 }
 
+/**
+ * GPU-free resource manager that resolves paths through registered sources and
+ * formats, publishes canonical resources into a `CjsMotherLode` registry under
+ * exact-owner generation guards, and drives the main/background work queues,
+ * read-operation caching, reload staging, and automatic purge policy.
+ */
 export class CjsResMan
 {
 

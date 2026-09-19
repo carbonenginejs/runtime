@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/Tr2GeometryBufferParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 
@@ -11,7 +11,7 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 {
 
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
-  @invalidation.flag("resource")
+
   @edit.notify
   @edit.persist
   @type.string
@@ -79,10 +79,12 @@ export class Tr2GeometryBufferParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS releases its provider reference instead of unlocking a native smart pointer; Initialize resource acquisition remains an explicit port gap.")
+  OnModified(propertyName)
   {
-    if (this.__state.flags.delete("resource"))
+    if (propertyName === "resourcePath")
     {
+      this.gpuBuffer = null;
       this.Initialize();
       this.RebuildEffectHandles(this.cachedEffect);
     }

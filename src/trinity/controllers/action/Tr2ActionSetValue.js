@@ -115,12 +115,18 @@ export class Tr2ActionSetValue extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    this.#expression.program = null;
-    if (this.#controller && !this.HasDelayedBinding())
+    if (!this.#controller) return true;
+    if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
     {
-      this.LinkDestination(this.#controller);
+      if (!this.HasDelayedBinding()) this.LinkDestination(this.#controller);
+    }
+    else if (propertyName === "value")
+    {
+      this.#expression.program = null;
+      this.CompileExpression();
     }
     return true;
   }

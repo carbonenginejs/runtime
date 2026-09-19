@@ -207,15 +207,18 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /** Carbon EveChildContainer::OnModified (cpp:76-88): display/displayFilter
-   * changes re-register with the scene component registry (engine-owned,
-   * omitted); a mute change fans out to children and observers. The value
-   * argument follows the repo's OnModified duck (field name or field value). */
+   * changes re-register with the scene component registry; a mute notification
+   * fans out to children and observers. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Registry re-registration on display/displayFilter changes is not ported yet; the mute fan-out side effect is ported.")
+  @impl.reason("Uses the exposed property name for native address comparisons and the runtime scene registry adapter.")
   OnModified(value = null)
   {
-    if (value === "mute" || value === this.mute)
+    if (value === "display" || value === "displayFilter")
+    {
+      this.ReRegister();
+    }
+    else if (value === "mute")
     {
       this.MuteChildren();
     }
@@ -506,6 +509,26 @@ export class EveChildContainer extends EveChildTransform
       && CjsSchema.cast(value, IEveInheritPropertiesOwner))
     {
       value.SetInheritProperties(this.inheritProperties.GetProperties());
+    }
+    if (list === this.lights && masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
+      && CjsSchema.cast(value, IEveInheritPropertiesOwner))
+    {
+      value.SetInheritProperties(this.inheritProperties.GetProperties());
+    }
+    if (list === this.lights)
+    {
+      const registry = this.GetComponentRegistry();
+      if (registry)
+      {
+        if (masked === BLUELISTEVENT.BELIST_UNLOADSTART || (masked === BLUELISTEVENT.BELIST_REMOVED && !this.lights.length))
+        {
+          registry.UnRegisterComponent(EveComponentType.LightOwner, this);
+        }
+        else if (masked === BLUELISTEVENT.BELIST_INSERTED && this.lights.length === 1)
+        {
+          registry.RegisterComponent(EveComponentType.LightOwner, this);
+        }
+      }
     }
   }
 

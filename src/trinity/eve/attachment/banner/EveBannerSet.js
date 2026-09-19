@@ -5,7 +5,8 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
+import { BLUELISTEVENT } from "#consts/blue";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
@@ -30,7 +31,7 @@ import {
 @type.define({ className: "EveBannerSet", family: "eve/attachment/banners" })
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.list("EveBannerItem")
   banners = [];
@@ -39,7 +40,6 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -98,7 +98,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     // Physical geometry, buffers and batches are backend work; the bounds are
     // not. Carbon rebuilds both together (cpp:397-431).
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
 
     box3.empty(this.#staticBounds);
     this.#boneBounds.length = 0;
@@ -404,7 +404,32 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   {
     const copy = EveBannerSet.#copyBanner(banner);
     this.banners.push(copy);
+    this.OnStructureListModified();
     return copy;
+  }
+
+  /** Carbon structure-list observer, EveBannerSet.cpp:357–360. */
+  @carbon.method
+  @impl.implemented
+  OnStructureListModified()
+  {
+    this.Rebuild();
+  }
+
+  /** Refreshes derived banner bounds after supported list mutations. */
+  @impl.custom
+  @impl.reason("JS represents the native structure list as an array; child mutations forward to its native owner callback. Unload arrives before array clearing, so it clears the derived bounds directly.")
+  OnListModified(event, _key, _key2, _value, list)
+  {
+    if (list !== this.banners) return;
+    if ((event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_UNLOADSTART)
+    {
+      box3.empty(this.#staticBounds);
+      this.#boneBounds.length = 0;
+      this.#maxBannerRadius = 0;
+      this.#rebuildRevision++;
+    }
+    else this.OnStructureListModified();
   }
 
   /**

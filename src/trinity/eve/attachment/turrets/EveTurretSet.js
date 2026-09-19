@@ -326,7 +326,6 @@ export class EveTurretSet extends EveEntity
   projectileMissBehaviour = false;
 
   /** Values the OnModified chain compares against; null until first snapshot. */
-  #lastNotified = null;
 
   #turrets = [];
 
@@ -776,7 +775,6 @@ export class EveTurretSet extends EveEntity
     this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
     this.firingEffect?.Initialize();
     this.#ambientEffect()?.Initialize();
-    this.#SnapshotNotified();
     return true;
   }
 
@@ -793,75 +791,40 @@ export class EveTurretSet extends EveEntity
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the chain compares each watched member against the value last seen.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.#lastNotified === null)
+    if (propertyName === "display")
     {
-      this.#SnapshotNotified();
-      return true;
+      this.ReRegister();
     }
-
-    const moved = name => this.#lastNotified.get(name) !== this[name];
-
-    try
+    else if (propertyName === "geometryResPath")
     {
-      if (moved("display"))
-      {
-        this.ReRegister();
-      }
-      else if (moved("geometryResPath"))
-      {
-        this.ReRegister();
-        // Carbon reloads here (cpp:177, "new gr2 file specified -> reload!").
-        // InitializeGeometryResource is unported: it asks BeResMan for the
-        // geometry and re-attaches the notify target (cpp:252-290).
-      }
-      else if (moved("ambientEffectEditingMode"))
-      {
-        // Carbon re-sets the ambient effect to itself, which re-runs
-        // InitializeAmbientEffect (cpp:181, cpp:3554-3565). Unported: the
-        // generated distributed container it builds does not exist here.
-      }
-      else if (moved("laserMissBehaviour") || moved("projectileMissBehaviour")
-        || moved("impactSize") || moved("impactBehaviour"))
-      {
-        this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
-      }
-      else if (moved("useDynamicBounds"))
-      {
-        // Carbon rebuilds the per-bone bounds (cpp:187-200), taking the CMF
-        // branch whenever the geometry is absent, unloaded or CMF - which is
-        // always, for us. InitializeDynamicBounds is unported, and porting it
-        // alone buys nothing until GetDynamicBounds and GetLocalBoundingBox
-        // land with it.
-      }
+      this.ReRegister();
+      // Carbon reloads here (cpp:177, "new gr2 file specified -> reload!").
+      // InitializeGeometryResource is unported: it asks BeResMan for the
+      // geometry and re-attaches the notify target (cpp:252-290).
     }
-    finally
+    else if (propertyName === "ambientEffectEditingMode")
     {
-      this.#SnapshotNotified();
+      // Carbon re-sets the ambient effect to itself, which re-runs
+      // InitializeAmbientEffect (cpp:181, cpp:3554-3565). Unported: the
+      // generated distributed container it builds does not exist here.
     }
-
+    else if (propertyName === "laserMissBehaviour" || propertyName === "projectileMissBehaviour"
+      || propertyName === "impactSize" || propertyName === "impactBehaviour")
+    {
+      this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
+    }
+    else if (propertyName === "useDynamicBounds")
+    {
+      // Carbon rebuilds the per-bone bounds (cpp:187-200), taking the CMF
+      // branch whenever the geometry is absent, unloaded or CMF - which is
+      // always, for us. InitializeDynamicBounds is unported, and porting it
+      // alone buys nothing until GetDynamicBounds and GetLocalBoundingBox
+      // land with it.
+    }
     return true;
-  }
-
-  /** The members OnModified's chain tests, in the donor's order. */
-  static #notifiedMembers = Object.freeze([
-    "display",
-    "geometryResPath",
-    "ambientEffectEditingMode",
-    "laserMissBehaviour",
-    "projectileMissBehaviour",
-    "impactSize",
-    "impactBehaviour",
-    "useDynamicBounds"
-  ]);
-
-  /** Records what the chain compares against on the next settle. */
-  #SnapshotNotified()
-  {
-    this.#lastNotified ??= new Map();
-    for (const name of EveTurretSet.#notifiedMembers) this.#lastNotified.set(name, this[name]);
   }
 
   /** Attaches the firing effect and initializes it immediately. */

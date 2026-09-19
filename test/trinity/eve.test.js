@@ -9,6 +9,8 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
+import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -60,6 +62,37 @@ test("ellipse definitions keep Carbon defaults and dirty their owning set", () =
   assertEquals(set.ellipses[0].center[2], 3);
   assertEquals(set.ellipses[0].planeNormal[2], 1);
   set.ClearEllipses();
+  assertEquals(set.ellipses.length, 0);
+});
+
+test("ellipse list mutations bind and release owner callbacks with Carbon event ordering", () =>
+{
+  class TrackedEllipse extends EveEllipseDefinition
+  {
+    bindings = [];
+    SetDirtyFlag(callback)
+    {
+      this.bindings.push(callback);
+      super.SetDirtyFlag(callback);
+    }
+  }
+  const set = new EveEllipseSet();
+  const ellipse = new TrackedEllipse();
+  const options = { skipUpdate: true, skipEvents: true };
+  CjsModel.addChild(set, "ellipses", ellipse, options);
+  assertEquals(typeof ellipse.bindings[0], "function");
+  CjsModel.removeChild(set, "ellipses", ellipse, options);
+  assertEquals(ellipse.bindings[1], null);
+
+  set.ellipses.push(ellipse);
+  set.OnListModified(BLUELISTEVENT.BELIST_INSERTED | BLUELISTEVENT.BELIST_LOADING, 0, 0, ellipse, set.ellipses);
+  set.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, ellipse, []);
+  set.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, {}, set.ellipses);
+  assertEquals(ellipse.bindings.length, 2);
+  set.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, null, set.ellipses);
+  assertEquals(typeof ellipse.bindings[2], "function");
+  CjsModel.clearChildren(set, "ellipses", options);
+  assertEquals(ellipse.bindings[3], null);
   assertEquals(set.ellipses.length, 0);
 });
 

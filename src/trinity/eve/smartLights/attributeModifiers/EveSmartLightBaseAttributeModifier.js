@@ -77,7 +77,6 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   delayedActivation = 0;
 
   // Carbon-protected crossfade state (EveSmartLightBaseAttributeModifier.h:47-60).
-  // isChangingActivation and lastAppliedActive stay plain runtime fields because
   // subclasses write them (EveSmartLightAttributeModifierBucket::SetActive);
   // the rest is private.
 
@@ -85,7 +84,6 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   isChangingActivation = false;
 
   /** Last `active` value applied by an edit path (JS-only change detection for the settle hook). */
-  lastAppliedActive = true;
 
   /** m_activationValuePreMapped (float) - linear crossfade position before intensity mapping (h:57). */
   #activationValuePreMapped = 1;
@@ -105,7 +103,6 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
     this.isChangingActivation = this.active && !this.startsActive;
     this.#activationValuePreMapped = this.isChangingActivation ? 0 : (this.active ? 1 : 0);
     this.MapActivationValue();
-    this.lastAppliedActive = this.active;
     return true;
   }
 
@@ -115,12 +112,11 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The settle hook receives no changed-property list; the active edit is detected by comparing the cached last-applied value.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.active !== this.lastAppliedActive)
+    if (propertyName === "active")
     {
-      this.lastAppliedActive = this.active;
       this.isChangingActivation = true;
       if (this.crossFadeIntensity > 0)
       {
@@ -145,7 +141,6 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
     }
 
     this.active = active;
-    this.lastAppliedActive = this.active;
     if (this.restartPlayTimeWhenInactive && !this.active)
     {
       this.playTime = 0;

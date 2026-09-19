@@ -66,6 +66,7 @@ export class CjsBlueOS extends IBlueOS
   /** Registrants of `RegisterForSimTimeRebase`. */
   #rebaseListeners = [];
 
+  /** Anchors the monotonic clock to the current UTC wallclock. */
   constructor()
   {
     super();

@@ -82,11 +82,11 @@ export class EveChildAudio extends EveChildTransform
    */
   OnModified(value = null)
   {
-    if (value === "mute" || value === this.mute)
+    if (value === "mute")
     {
       this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
-    if (value === "name" || value === this.name)
+    else if (value === "name")
     {
       this.SetEmitterName(this.name || "audio_object");
     }

@@ -109,6 +109,7 @@ export class Tr2BindingPoint extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.reason("JS returns whether a value changed; like the donor, successful writes notify regardless of equality through the existing JS notification adapter.")
   SetValue(value, roots = null, owner = null)
   {
     if (!this.IsValid())
@@ -120,7 +121,6 @@ export class Tr2BindingPoint extends CjsModel
       return false;
     }
     const current = this.#target[this.#attributeName];
-    const always = CjsSchema.getField(this.#target.constructor, this.#attributeName)?.edit?.always === true;
     let changed = false;
     if (this.entryOffset === -1)
     {
@@ -144,7 +144,7 @@ export class Tr2BindingPoint extends CjsModel
       }
       else
       {
-        if (always || !Object.is(current, value))
+        if (!Object.is(current, value))
         {
           this.#target[this.#attributeName] = value;
           changed = true;
@@ -154,7 +154,7 @@ export class Tr2BindingPoint extends CjsModel
     else if (isArrayLike(current))
     {
       const next = Number(value);
-      if (always || !Object.is(current[this.entryOffset], next))
+      if (!Object.is(current[this.entryOffset], next))
       {
         current[this.entryOffset] = next;
         changed = true;
@@ -164,14 +164,7 @@ export class Tr2BindingPoint extends CjsModel
     {
       return false;
     }
-    if (always)
-    {
-      changed = true;
-    }
-    if (changed)
-    {
-      Tr2BindingPoint.#notifyValueChanged(this.#target, this.#attributeName, value, this);
-    }
+    Tr2BindingPoint.#notifyValueChanged(this.#target, this.#attributeName, value, this);
     return changed;
   }
 
@@ -437,7 +430,7 @@ export class Tr2BindingPoint extends CjsModel
     }
     else if (Tr2BindingPoint.#hasFunction(target, "OnModified"))
     {
-      target.OnModified({ property: attribute, source });
+      target.OnModified(attribute);
     }
     else if (Tr2BindingPoint.#isObjectRecord(target._dirty))
     {

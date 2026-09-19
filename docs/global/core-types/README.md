@@ -36,6 +36,41 @@ package; no published installation command is supported yet.
 Generated enums and generated class catalogs should live in schema or generated
 runtime packages, not in this foundational package.
 
+## Invalidation audit metadata
+
+`@impl.invalidates(...members)` records the actual state members that a field
+or method invalidates. It is descriptive metadata only: it does not set dirty
+flags, wrap methods, rebuild objects, schedule work, or emit events. The owning
+class implements those behaviors and their timing.
+
+```js
+import { impl } from "@carbonenginejs/runtime/schema";
+
+class Example
+{
+  @impl.invalidates("boundsDirty")
+  position = [0, 0, 0];
+
+  boundsDirty = false;
+}
+```
+
+The names are available as `CjsSchema.getField(Example, "position").impl.invalidates`;
+method annotations are available through `CjsSchema.getMethod`. Use variadic
+member names, not an array plus an immediate/deferred flag. This annotation
+does not replace the mutation code responsible for invalidating those members.
+
+## Member notifications
+
+`@edit.notify` requests `OnModified(propertyName)` after an accepted values write,
+including an equal write, matching Blue's mapped-member write behavior. Equality
+only controls the changed-value result. `notify: false` and `markDirty: false`
+suppress transport notifications; `skipUpdate: true` defers and coalesces them.
+
+There is no `edit.always` or `impl.notifyOnEqual`. Implementation annotations
+are not switches for values transport. Class setters retain their own native
+responsibilities; caller-specific binding gates remain separate from this rule.
+
 ## Hydration contract
 
 Hydration runs `construct`, `applyValues`, then post-graph `finalize`.

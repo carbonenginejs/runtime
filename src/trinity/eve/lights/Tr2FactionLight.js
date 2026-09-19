@@ -202,7 +202,7 @@ export class Tr2FactionLight extends Tr2Light
     {
       this.SetLightColorFromFactionColor();
     }
-    return true;
+    return super.OnModified(propertyName);
   }
 
   static LightDataFields = [

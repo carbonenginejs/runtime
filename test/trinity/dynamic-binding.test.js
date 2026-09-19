@@ -416,3 +416,38 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
   assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.edit?.persistOnly, true);
   assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.type?.kind, "model");
 });
+
+
+test("TriValueBinding endpoint-only values edits rebuild and detach reroutes", () =>
+{
+  const source = new Tr2FloatParameter();
+  source.SetValue(7);
+  const oldTarget = new Tr2FloatParameter();
+  const nextTarget = new Tr2FloatParameter();
+  const binding = new TriValueBinding();
+  assert.equal(binding.sourceObject, null);
+  assert.equal(binding.destinationObject, null);
+  binding.SetSource("value", source);
+  binding.SetDestination("value", oldTarget);
+  binding.CopyValue();
+  assert.equal(oldTarget.GetValue(), 7);
+  binding.SetValues({ destinationObject: nextTarget });
+  const storage = new Float32Array(1);
+  nextTarget.SetDestination(storage, 4);
+  source.SetValue(9);
+  binding.CopyValue();
+  assert.equal(storage[0], 9);
+  assert.equal(oldTarget.GetValue(), 7);
+  oldTarget.SetDestination(new Float32Array(1), 4);
+  source.SetValue(11);
+  binding.CopyValue();
+  assert.equal(storage[0], 11);
+
+  const replacement = new Tr2FloatParameter();
+  replacement.SetValue(13);
+  binding.CreateWeakBinding(source, "value", nextTarget, "value");
+  binding.sourceObject = replacement;
+  assert.equal(binding.isWeak, true);
+  binding.CopyValue();
+  assert.equal(storage[0], 13);
+});

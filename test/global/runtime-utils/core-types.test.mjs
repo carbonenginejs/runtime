@@ -44,14 +44,8 @@ test("CjsModelState is the flat per-model runtime state", () => {
     state.ClearDirty();
     assert.equal(state.IsDirty(), false);
 
-    // flags/rebuild are consumer-cleared Sets; nothing generic manages them.
-    state.flags.add("bounds").add("bounds");
-    state.rebuild.add("vertices");
-    assert.deepEqual(state.flags, new Set(["bounds"]));
-    assert.deepEqual(state.rebuild, new Set(["vertices"]));
-    state.MarkDirty().ClearDirty();
-    assert.equal(state.flags.size, 1);
-    assert.equal(state.rebuild.size, 1);
+    assert.equal("flags" in state, false);
+    assert.equal("rebuild" in state, false);
 });
 
 test("CjsModel keeps model state in one non-enumerable container", () => {
@@ -60,8 +54,8 @@ test("CjsModel keeps model state in one non-enumerable container", () => {
     assert.equal(Object.keys(model).includes("__state"), false);
     assert.equal(model.__state instanceof CjsModelState, true);
     assert.equal(model.__state.dirty, false);
-    assert.equal(model.__state.flags instanceof Set, true);
-    assert.equal(model.__state.rebuild instanceof Set, true);
+    assert.equal("flags" in model.__state, false);
+    assert.equal("rebuild" in model.__state, false);
     assert.equal(model.__state.updating, false);
     assert.equal(model.__state.suppressEvents, 0);
     assert.equal(getLifecycleState(model), null);
@@ -77,11 +71,8 @@ test("CjsModel keeps model state in one non-enumerable container", () => {
     model.ClearDirty();
     assert.equal(model.IsDirty(), false);
 
-    model.__state.rebuild.add("bounds");
     assert.equal(model.IsDirty(), false);
-    assert.equal(model.__state.rebuild.has("bounds"), true);
     model.ClearDirty();
-    assert.equal(model.__state.rebuild.has("bounds"), true);
 
     const lifecycle = initializeLifecycleState(model);
     assert.equal(model.__state.lifecycle, lifecycle);
@@ -176,11 +167,13 @@ test("CjsModel Merge deep-merges raw value bags and updates once", () => {
         name = "";
         count = 0;
         settings = null;
-        updates = 0;
+        members = [];
+        observed = [];
 
-        OnModified()
+        OnModified(member)
         {
-            this.updates++;
+            this.members.push(member);
+            this.observed.push([this.name, this.count, this.settings.left, this.settings.right]);
             return true;
         }
     }
@@ -213,10 +206,11 @@ test("CjsModel Merge deep-merges raw value bags and updates once", () => {
     assert.equal(target.settings instanceof MergeSettings, true);
     assert.deepEqual(target.settings.GetValues(), { left: 4, right: 8 });
     assert.equal(Object.hasOwn(target, "ignored"), false);
-    assert.equal(target.updates, 1, "merged sources settle once");
+    assert.deepEqual(target.members, ["name", "count", "settings"]);
+    assert.deepEqual(target.observed, Array(3).fill(["last", 2, 4, 8]));
     assert.deepEqual(target.Merge([{ count: 3 }]), new Set(["count"]));
     assert.equal(target.count, 3);
-    assert.equal(target.updates, 2);
+    assert.deepEqual(target.members, ["name", "count", "settings", "count"]);
     assert.throws(() => target.Merge({ count: 4 }), /array of value sources/);
 });
 
@@ -260,13 +254,12 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     {
         calls = [];
 
-        // Broad-safe hook: consults own state, no changed-property list.
-        OnModified(options)
+        OnModified(member)
         {
-            this.calls.push(options.source);
-            if (this.area !== this.width * 2)
+            this.calls.push(member);
+            if (member === "width")
             {
-                this.SetValues({ area: this.width * 2 }, { source: options.source });
+                this.SetValues({ area: this.width * 2 });
             }
             return true;
         }
@@ -277,6 +270,8 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     CjsSchema.defineField(SettledModel, "width", "type", { kind: "number" });
     CjsSchema.defineField(SettledModel, "area", "type", { kind: "number" });
 
+    CjsSchema.defineField(SettledModel, "width", "edit", { notify: true });
+    CjsSchema.defineField(SettledModel, "area", "edit", { notify: true });
     const model = new SettledModel();
     const source = {};
     const events = [];
@@ -288,7 +283,7 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     assert.equal(model.area, 6);
     // Two passes: the first derives area (marking dirty again), the second
     // finds everything settled.
-    assert.deepEqual(model.calls, [source, source]);
+    assert.deepEqual(model.calls, ["width", "area"]);
     assert.equal(events.length, 1);
     assert.equal(events[0][0], "modified", "the listener is told which event fired");
     assert.equal(events[0][1], model);
@@ -296,7 +291,7 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
     assert.equal(model.__state.dirty, false);
 });
 
-test("edit.always treats equivalent writes as updates", () => {
+test("edit.notify notifies an equal write without reporting a changed value", () => {
     class AlwaysModel extends CjsModel
     {
         hookRuns = 0;
@@ -310,16 +305,17 @@ test("edit.always treats equivalent writes as updates", () => {
 
     CjsSchema.define(AlwaysModel, { className: "AlwaysModel" });
     CjsSchema.defineField(AlwaysModel, "value", "type", { kind: "float32" });
-    CjsSchema.defineField(AlwaysModel, "value", "edit", { write: true, always: true });
+    CjsSchema.defineField(AlwaysModel, "value", "edit", { write: true, notify: true });
     const model = new AlwaysModel();
     model.value = 4;
     const events = [];
     model.OnEvent("modified", (_name, _subject, data) => events.push(data));
 
-    assert.deepEqual(model.SetValues({ value: 4 }), new Set(["value"]));
+    assert.equal(model.SetValues({ value: 4 }), false);
     assert.equal(model.hookRuns, 1);
     assert.equal(events.length, 1);
-    assert.equal(CjsSchema.edit.always !== undefined, true);
+    assert.equal(CjsSchema.edit.always, undefined);
+    assert.equal(CjsSchema.impl.notifyOnEqual, undefined);
 });
 
 test("from returns an initialized clean round-trippable graph", () => {
@@ -338,7 +334,6 @@ test("from returns an initialized clean round-trippable graph", () => {
             this.initializeCount = (this.initializeCount || 0) + 1;
             this.EmitEvent("initializing", this);
             this.SetValues({ output: this.input * 2 });
-            this.__state.rebuild.add("geometry");
             return true;
         }
     }
@@ -355,7 +350,6 @@ test("from returns an initialized clean round-trippable graph", () => {
     assert.equal(ready.initializeCount, 1);
     assert.equal(ready.eventCount, 0);
     assert.equal(ready.__state.dirty, false);
-    assert.equal(ready.__state.rebuild.has("geometry"), true);
 
     const graph = ready.GetValues();
     const copy = ReadyModel.from(graph);
@@ -363,7 +357,6 @@ test("from returns an initialized clean round-trippable graph", () => {
     assert.equal(copy.initializeCount, 1);
     assert.equal(copy.eventCount, 0);
     assert.equal(copy.__state.dirty, false);
-    assert.equal(copy.__state.rebuild.has("geometry"), true);
 
     const clone = ready.Clone();
     assert.deepEqual(clone.GetValues(), graph);
@@ -401,24 +394,7 @@ test("CjsModel supports binding-style direct mutations and retains failed update
     assert.equal(event, null);
 });
 
-test("flags and rebuild state are independent from ordinary dirty processing", () => {
-    const model = new CjsModel();
-    model.MarkDirty();
-    model.__state.flags.add("bounds");
-    model.__state.rebuild.add("geometry");
-    model.UpdateValues({ skipEvents: true });
-    assert.equal(model.__state.dirty, false);
-    assert.equal(model.__state.flags.has("bounds"), true, "settle never clears flags");
-    assert.equal(model.__state.rebuild.has("geometry"), true, "settle never clears rebuild");
-    model.ClearDirty();
-    assert.equal(model.__state.flags.has("bounds"), true);
-    assert.equal(model.__state.rebuild.has("geometry"), true);
-    // Consumers clear their own token when they do the work.
-    model.__state.flags.delete("bounds");
-    model.__state.rebuild.delete("geometry");
-    assert.equal(model.__state.flags.size, 0);
-    assert.equal(model.__state.rebuild.size, 0);
-});
+
 
 test("from initializes owned children last-to-first before their parent", () => {
     const order = [];
@@ -708,6 +684,18 @@ test("registers classes, structs, schema metadata, and enums", () => {
     );
     assert.equal(registry.GetConstructor("LegacyDemoNode"), DemoNode);
     assert.equal(structs.Has("LegacyStruct"), true);
+});
+
+test("enum object lookup preserves identity when an exposed name is reused", () => {
+    const first = Object.freeze({ FIRST: 1 });
+    const second = Object.freeze({ SECOND: 2 });
+    CjsSchema.defineEnum(first, { name: "EnumIdentityCollision", members: [{ name: "FIRST", value: 1 }] });
+    const firstMetadata = CjsSchema.getEnum(first);
+    CjsSchema.defineEnum(second, { name: "EnumIdentityCollision", members: [{ name: "SECOND", value: 2 }] });
+
+    assert.equal(CjsSchema.getEnum(first), firstMetadata);
+    assert.notEqual(CjsSchema.getEnum(first), CjsSchema.getEnum(second));
+    assert.equal(CjsSchema.getEnum("EnumIdentityCollision"), CjsSchema.getEnum(second));
 });
 
 test("schema.hideInherited removes inherited fields only from the schema surface", () => {
@@ -1271,7 +1259,6 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(SchemaNode, "position", "edit", { notify: true });
-    CjsSchema.defineField(SchemaNode, "position", "invalidation", { flag: ["placement"] });
     CjsSchema.defineField(SchemaNode, "child", "type", { kind: "struct", className: "SchemaChild" });
     CjsSchema.defineField(SchemaNode, "children", "type", {
         kind: "array",
@@ -1312,24 +1299,19 @@ test("uses schema metadata as the default CjsModel value shape", () => {
 
     const source = {};
     node.ClearDirty();
-    node.__state.flags.clear();
     node.SetValues({ position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
-    assert.deepEqual(node.__state.flags, new Set(["placement"]), "write-time declared token");
 
     node.ClearDirty();
     node.SetValues({ position: [4, 5, 6] }, { source, skipEvents: true, skipUpdate: true });
-    assert.equal(node.IsDirty(), false, "equivalent values record nothing");
+    assert.equal(node.IsDirty(), true, "an accepted notified write owes settlement even when equal");
 
-    node.__state.flags.clear();
     node.SetValues({ position: [7, 8, 9] }, { notify: false, source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
-    assert.equal(node.__state.flags.size, 0, "notify: false suppresses declared token adds");
 
     node.ClearDirty();
     node.SetValues({ name: "renamed" }, { source, skipEvents: true, skipUpdate: true });
     assert.equal(node.__state.dirty, true);
-    assert.equal(node.__state.flags.size, 0, "undeclared fields add no tokens");
 });
 
 test("hydrates canonical model fields and lists without constructing raw objects", () => {
@@ -2009,13 +1991,13 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
     class PlacedModel extends CjsModel
     {
         hookRuns = 0;
-        hookSkipEvents = null;
+        receivedMembers = [];
         modifiedEvents = 0;
 
-        OnModified(options = {})
+        OnModified(member)
         {
             this.hookRuns++;
-            this.hookSkipEvents = options.skipEvents === true;
+            this.receivedMembers.push(member);
             return true;
         }
 
@@ -2028,16 +2010,13 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
 
     CjsSchema.define(PlacedModel, { className: "PlacedModel", family: "test" });
     CjsSchema.defineField(PlacedModel, "position", "type", { kind: "number" });
-    CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true });
-    CjsSchema.defineField(PlacedModel, "position", "invalidation", { flag: ["placement"] });
+    CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true, notify: true });
 
-    // Construction: the hook runs (skipEvents visible), events stay silent,
-    // and every declared token is present - a new object owes everything.
+    // Construction dispatches notified members with events suppressed.
     const model = PlacedModel.from({ position: 5 });
     assert.equal(model.hookRuns >= 1, true, "hook ran during construction");
-    assert.equal(model.hookSkipEvents, true, "hook sees skipEvents during construction");
+    assert.deepEqual(model.receivedMembers, ["position"]);
     assert.equal(model.modifiedEvents, 0, "no modified event during construction");
-    assert.equal(model.__state.flags.has("placement"), true, "declared tokens present after construction");
     assert.equal(model.__state.dirty, false, "from returns a settled graph");
 
     // Ordinary mutation afterwards: hook AND event both fire.
@@ -2045,46 +2024,7 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
     assert.equal(model.modifiedEvents, 1, "post-construction mutation emits normally");
 });
 
-test("invalidation.rebuild unions changed fields' tokens into __state.rebuild before OnModified", () => {
-    class RebuiltModel extends CjsModel
-    {
-        seenAtHookTime = null;
 
-        OnModified(properties)
-        {
-            // Tokens must already be present when the hook runs.
-            this.seenAtHookTime = new Set(this.__state.rebuild);
-            return true;
-        }
-    }
-
-    CjsSchema.define(RebuiltModel, { className: "RebuiltModel", family: "test" });
-    CjsSchema.defineField(RebuiltModel, "radius", "type", { kind: "number" });
-    CjsSchema.defineField(RebuiltModel, "radius", "edit", { persist: true });
-    CjsSchema.defineField(RebuiltModel, "radius", "invalidation", { rebuild: ["geometry", "bounds"] });
-    CjsSchema.defineField(RebuiltModel, "label", "type", { kind: "string" });
-    CjsSchema.defineField(RebuiltModel, "label", "edit", { persist: true });
-
-    // Hydration carries tokens too (from() settles through the pipeline).
-    const model = RebuiltModel.from({ radius: 4 });
-    assert.deepEqual(model.seenAtHookTime, new Set(["geometry", "bounds"]));
-
-    // Per-frame consumer clears; a token-less change adds nothing.
-    model.__state.rebuild.clear();
-    model.SetValues({ label: "x" });
-    assert.equal(model.__state.rebuild.size, 0);
-
-    // A declared field change repopulates.
-    model.SetValues({ radius: 9 });
-    assert.deepEqual(model.__state.rebuild, new Set(["geometry", "bounds"]));
-
-    // The decorator form produces the same metadata shape.
-    class DecoratedModel extends CjsModel {}
-    CjsSchema.define(DecoratedModel, { className: "DecoratedRebuildModel", family: "test" });
-    CjsSchema.decorateField?.(DecoratedModel, "radius", CjsSchema.invalidation.rebuild("geometry"));
-    const viaHelper = CjsSchema.invalidation.rebuild("geometry", "bounds");
-    assert.equal(typeof viaHelper, "function");
-});
 
 test("type.enum and type.hideInherited are the same decorators as their schema.* spellings", () => {
     const { CjsSchema } = schema;

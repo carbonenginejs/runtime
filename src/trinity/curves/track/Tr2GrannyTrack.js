@@ -59,9 +59,16 @@ export class Tr2GrannyTrack extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    this.SetGrannyResource();
+    if (propertyName === "grannyResPath") this.SetGrannyResource();
+    else if (propertyName === "name" || propertyName === "group")
+    {
+      this.ResetTracks();
+      this.duration = 0;
+      this.SetCurves();
+    }
     return true;
   }
 
@@ -74,6 +81,7 @@ export class Tr2GrannyTrack extends CjsModel
   {
     this.ResetTracks();
     this.duration = 0;
+    this.grannyRes = null;
     if (this.grannyResPath)
     {
       this.grannyRes = CjsGrannyCurves.resolveResource(this.grannyResPath);

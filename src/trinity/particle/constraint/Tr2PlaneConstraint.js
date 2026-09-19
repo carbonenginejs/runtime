@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Particle/Tr2PlaneConstraint.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { impl, edit, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { BLUELISTEVENT } from "#consts/blue";
+import { ITr2GenericEmitter } from "../ITr2GenericEmitter/ITr2GenericEmitter.js";
 import { ITr2GenericParticleConstraint } from "./ITr2GenericParticleConstraint.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -95,11 +97,25 @@ export class Tr2PlaneConstraint extends ITr2GenericParticleConstraint
   @impl.implemented
   OnModified(propertyName)
   {
-    if (!propertyName || propertyName === "plane")
+    if (propertyName === "plane")
     {
       this.#normalizePlane();
     }
     return true;
+  }
+
+  /** Disables multithreaded updates on emitters inserted outside loading. */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key, _key2, value, list)
+  {
+    if (!(event & BLUELISTEVENT.BELIST_LOADING)
+      && (event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_INSERTED
+      && list === this.onCollisionEmitters && value)
+    {
+      const emitter = CjsSchema.cast(value, ITr2GenericEmitter);
+      if (emitter) emitter.SetThreadSafeFlag();
+    }
   }
 
   /**

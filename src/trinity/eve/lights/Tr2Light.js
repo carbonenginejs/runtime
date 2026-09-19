@@ -57,9 +57,6 @@ export class Tr2Light extends CjsModel
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
-  /** The path the bound profile was resolved from; see #ResolveLightProfile. */
-  #resolvedProfilePath = "";
-
   @type.string
   lightProfilePath = "";
 
@@ -101,10 +98,11 @@ export class Tr2Light extends CjsModel
 
   /** Applies a whole LightData bag onto the flattened light fields. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   SetLightData(lightData)
   {
-    return this.SetValues({ lightData });
+    return this.SetValues({ lightData }, { markDirty: false, skipEvents: true });
   }
 
   /**
@@ -115,15 +113,16 @@ export class Tr2Light extends CjsModel
   @impl.implemented
   SetBrightnessMultiplier(multiplier)
   {
-    this.SetValues({ brightnessMultiplier: Number(multiplier) });
+    this.brightnessMultiplier = Number(multiplier);
   }
 
   /** Sets the light colour, returning whether the value actually changed. */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  @impl.reason("Uses JS values coercion for the flattened light data without invoking notification or event transport.")
   ChangeLightColor(color)
   {
-    return this.SetValues({ color }, { returnBoolean: true });
+    return this.SetValues({ color }, { returnBoolean: true, markDirty: false, skipEvents: true });
   }
 
   /**
@@ -288,24 +287,10 @@ export class Tr2Light extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon identifies the changed member by Be::Var pointer; the settle here reports a whole write, so the path is re-resolved whenever a caller names it or names nothing. Re-resolving an unchanged path is idempotent through the manager cache.")
-  OnModified(options = {})
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  OnModified(propertyName)
   {
-    const named = options?.changedFields ?? options?.properties ?? options?.property ?? null;
-    if (named !== null && named !== undefined)
-    {
-      const names = typeof named === "string" ? [ named ] : named;
-      let touched = false;
-      for (const name of names) if (name === "lightProfilePath") touched = true;
-      if (!touched) return true;
-    }
-    else if (this.lightProfilePath === this.#resolvedProfilePath)
-    {
-      // A write that named nothing: only a path that has actually moved since
-      // it was last resolved is worth re-resolving.
-      return true;
-    }
-    this.#ResolveLightProfile();
+    if (propertyName === "lightProfilePath") this.#ResolveLightProfile();
     return true;
   }
 
@@ -317,12 +302,6 @@ export class Tr2Light extends CjsModel
    */
   #ResolveLightProfile()
   {
-    // Stamped FIRST, before the manager check, so the no-manager case records
-    // the attempt too. Without it a write that named nothing re-resolved every
-    // time - and EveChildMesh.GetLights calls SetBrightnessMultiplier on every
-    // light every submission pass, so the profile was nulled per light per
-    // frame whenever no manager was installed.
-    this.#resolvedProfilePath = this.lightProfilePath;
     if (!this.lightProfilePath)
     {
       this.lightProfile = null;

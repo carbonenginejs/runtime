@@ -2,6 +2,7 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 import { EveSOFDataGenericShader } from "./EveSOFDataGenericShader.js";
 import { ErrSOFAreaShaderNotFound } from "./ErrSOFAreaShaderNotFound.js";
 import { ErrSOFDecalShaderNotFound } from "./ErrSOFDecalShaderNotFound.js";
@@ -12,6 +13,8 @@ import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPref
 @type.define({ className: "EveSOFDataGeneric", family: "eve" })
 export class EveSOFDataGeneric extends CjsModel
 {
+  static AreaType = EveSOFDataArea.AreaType;
+
 
   /** m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM] */
   @edit.persist

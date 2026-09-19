@@ -2,12 +2,15 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { vec3 } from "#math/vec3";
 
 /** EveSOFDataHullLightSetItem (eve) - generated from schema shapeHash 81e9a739.... */
 @type.define({ className: "EveSOFDataHullLightSetItem", family: "eve" })
 export class EveSOFDataHullLightSetItem extends CjsModel
 {
+  static ColorType = EveSOFDataFactionColorSet.ColorType;
+
 
   /** m_data.lightColor (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
   @edit.persist

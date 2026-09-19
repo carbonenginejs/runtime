@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpotlightSet.cpp
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpotlightLight } from "./EveSpotlightLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -52,7 +52,7 @@ const SPRITE_QUAD_COUNT = 2;
 @type.define({ className: "EveSpotlightSet", family: "eve/attachment/spotlights" })
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.list("EveSpotlightSetItem")
   spotlightItems = [];
@@ -65,17 +65,14 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @type.boolean
   display = true;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   coneEffect = null;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   glowEffect = null;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   skinned = false;
@@ -113,7 +110,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
     // Packed cone/glow vertices, bounds caches, effect hashes and quad
     // registration are reconciled by the concrete renderer adapter.
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
     // Carbon rebuilds the item-set bounds at the tail of the same pack (cpp:311).
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
   }

@@ -57,30 +57,7 @@ function meshWithOpaqueArea(effect = {})
   return mesh;
 }
 
-test("Tr2Mesh declares geometry/batches rebuild tokens", () =>
-{
-  const mesh = Tr2Mesh.from({});
-  assert.ok(mesh.__state.rebuild.has("geometry"), "construction arms the geometry token");
-  assert.ok(mesh.__state.rebuild.has("batches"), "inherited Tr2MeshBase fields arm the batches token");
 
-  // Consumer clears; a declared-field CHANGE re-adds, an equal write does not.
-  mesh.__state.rebuild.clear();
-  mesh.SetValues({ meshIndex: 3 });
-  assert.ok(mesh.__state.rebuild.has("batches"));
-  assert.equal(mesh.__state.rebuild.has("geometry"), false);
-
-  mesh.__state.rebuild.clear();
-  mesh.SetValues({ meshIndex: 3 });
-  assert.equal(mesh.__state.rebuild.size, 0, "equal-value write adds nothing");
-
-  mesh.SetValues({ geometryResPath: "res:/geometry.gr2" });
-  assert.ok(mesh.__state.rebuild.has("geometry"));
-
-  // The direct-mutation setter schedules the same consequence explicitly.
-  mesh.__state.rebuild.clear();
-  mesh.SetGeometryRes({ GetPath() { return "res:/other.gr2"; } });
-  assert.ok(mesh.__state.rebuild.has("geometry"));
-});
 
 test("EveTransform.GetBatches delegates to mesh.GetBatches via GetAreas, gated on display", () =>
 {

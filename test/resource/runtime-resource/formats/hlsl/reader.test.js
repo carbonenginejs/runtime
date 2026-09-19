@@ -7,6 +7,16 @@ import { HlslEffectBindingManifest } from "../../../../../src/resource/formats/h
 import { HlslRenderContextEnum } from "../../../../../src/resource/formats/hlsl/core/tr2/HlslRenderContextEnum.js";
 import { emitEffectMetadata } from "../../../../../src/resource/formats/hlsl/core/metadata.js";
 import { buildEffectBytes } from "./synthetic.js";
+import { HlslEffectConstant } from "../../../../../src/resource/formats/hlsl/core/tr2/shader/HlslEffectConstant.js";
+import { HlslEffectParameterAnnotation } from "../../../../../src/resource/formats/hlsl/core/tr2/shader/HlslEffectParameterAnnotation.js";
+
+test("standalone HLSL vocabularies match semantic reflection enum values", async () =>
+{
+    const { Tr2EffectConstant } = await import("../../../../../npm/dist/resource/shader/reflection/Tr2EffectConstant.js");
+    const { Tr2EffectParameterAnnotation } = await import("../../../../../npm/dist/resource/shader/reflection/Tr2EffectParameterAnnotation.js");
+    assert.deepEqual(HlslEffectConstant.Type, Tr2EffectConstant.Type);
+    assert.deepEqual(HlslEffectParameterAnnotation.Type, Tr2EffectParameterAnnotation.Type);
+});
 
 test("static read and instance Read share one code path", () =>
 {

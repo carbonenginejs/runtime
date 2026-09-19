@@ -117,7 +117,7 @@ export class Tr2StaticEmitter extends CjsModel
   @impl.reason("Geometry reloads are host-owned; only Carbon's particle-system thread-safe propagation applies on the CPU side.")
   OnModified(propertyName)
   {
-    if ((!propertyName || propertyName === "particleSystem") && this.#isThreadSafe && this.particleSystem)
+    if ((propertyName === "particleSystem") && this.#isThreadSafe && this.particleSystem)
     {
       this.particleSystem.SetThreadSafeFlag();
     }

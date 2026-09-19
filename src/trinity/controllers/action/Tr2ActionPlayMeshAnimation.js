@@ -82,7 +82,7 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
   Link(controller)
   {
     this.#controller = controller;
-    if (!this.delayBinding)
+    if (!this.HasDelayedBinding())
     {
       this.LinkDestination(controller);
     }
@@ -188,9 +188,12 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    if (this.#controller && !this.delayBinding)
+    if (this.#controller && !this.HasDelayedBinding()
+      && (propertyName === "destinationType" || propertyName === "path" || propertyName === "attribute"
+        || propertyName === "destination" || propertyName === "delayBinding"))
     {
       this.LinkDestination(this.#controller);
     }
@@ -217,11 +220,19 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
     {
       return ITr2ControllerAction.getOwner(controller);
     }
-    if (!this.#resolvedDestination || this.delayBinding)
+    if (!this.#resolvedDestination || this.HasDelayedBinding())
     {
       return this.LinkDestination(controller);
     }
     return this.#resolvedDestination;
+  }
+
+  /** Reports whether a nonempty binding path defers destination resolution. */
+  @carbon.method
+  @impl.implemented
+  HasDelayedBinding()
+  {
+    return this.delayBinding && this.path.length !== 0;
   }
 
   /**

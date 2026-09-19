@@ -96,17 +96,18 @@ scene/resource graphs alive. The contract is therefore:
 
 Multiple listeners on the same event are allowed because each event bucket is
 a set of records. A raw `CjsEventEmitter` does not gain model-owned `dirty`
-or `rebuild` state. The target is "easy to debug, hard to leak": clear
+state. The target is "easy to debug, hard to leak": clear
 ownership of who subscribed, who unsubscribes, and which cleanup phase clears
 remaining listeners.
 
 ## Relationship to model dirty state
 
-`CjsModel`'s `MarkDirty` and `ClearDirty` concern model invalidation. `SetValues()` marks dirty
-only when field values change. Plain `MarkDirty()` requests broad invalidation,
-not rebuilding; deferred rebuild reasons use the independent
-`model.__state.rebuild` set. Resource lifecycle events remain separate,
-owned by resources and ResMan.
+`CjsModel`'s `MarkDirty` and `ClearDirty` concern values-transport settlement.
+Changed notified members are queued by `SetValues`; each class owns its actual
+rebuild actions, dirty latches and clearing rules. There is no generic
+`model.__state.rebuild` set. Resource lifecycle events remain separate, owned
+by resources and ResMan. See [model lifecycle](../../global/concepts/model-lifecycle.md)
+for the current batching and explicit-update compatibility behavior.
 
 ## Related documentation
 

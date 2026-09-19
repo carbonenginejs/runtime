@@ -109,33 +109,18 @@ export class EveTacticalOverlay extends CjsModel
     this.#SetVariableStore(this.anchorEffect);
     this.#SetVariableStore(this.connectorEffect);
     this.#SetVariableStore(this.velocityEffect);
-    this.#lastAnchorEffect = this.anchorEffect;
-    this.#lastConnectorEffect = this.connectorEffect;
-    this.#lastVelocityEffect = this.velocityEffect;
     return true;
   }
 
   /** Reattaches only effect references that changed since the prior settle. */
   @carbon.method
   @impl.adapted
-  @impl.reason("CjsModel supplies a broad settle hook rather than Carbon's Be::Var identity; cached effect references preserve the same targeted consequence.")
-  OnModified(_options)
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.anchorEffect !== this.#lastAnchorEffect)
-    {
-      this.#SetVariableStore(this.anchorEffect);
-      this.#lastAnchorEffect = this.anchorEffect;
-    }
-    if (this.connectorEffect !== this.#lastConnectorEffect)
-    {
-      this.#SetVariableStore(this.connectorEffect);
-      this.#lastConnectorEffect = this.connectorEffect;
-    }
-    if (this.velocityEffect !== this.#lastVelocityEffect)
-    {
-      this.#SetVariableStore(this.velocityEffect);
-      this.#lastVelocityEffect = this.velocityEffect;
-    }
+    if (propertyName === "anchorEffect") this.#SetVariableStore(this.anchorEffect);
+    else if (propertyName === "connectorEffect") this.#SetVariableStore(this.connectorEffect);
+    else if (propertyName === "velocityEffect") this.#SetVariableStore(this.velocityEffect);
     return true;
   }
 
@@ -576,7 +561,4 @@ export class EveTacticalOverlay extends CjsModel
   #anchorEffectKey = null;
   #connectorEffectKey = null;
   #velocityEffectKey = null;
-  #lastAnchorEffect = null;
-  #lastConnectorEffect = null;
-  #lastVelocityEffect = null;
 }

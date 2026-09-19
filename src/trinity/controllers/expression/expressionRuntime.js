@@ -18,6 +18,10 @@ export const CONSTANTS = {
   _e: Math.E
 };
 
+/**
+ * Splits an expression into positioned tokens and rejects unsupported
+ * characters.
+ */
 export function Tokenize(source)
 {
   const tokens = [];
@@ -102,6 +106,8 @@ export function Tokenize(source)
   });
   return tokens;
 }
+
+/** Finds the end of a decimal literal, leaving an incomplete exponent unconsumed. */
 export function ReadNumber(source, index)
 {
   let i = index;
@@ -137,6 +143,8 @@ export function ReadNumber(source, index)
   }
   return i;
 }
+
+/** Decodes a quoted literal and its escapes, rejecting an unterminated string. */
 export function ReadString(source, index)
 {
   const quote = source[index];
@@ -182,6 +190,8 @@ export function ReadString(source, index)
     position: index
   });
 }
+
+/** Evaluates an expression tree node against the supplied runtime context. */
 export function EvaluateNode(node, context, program)
 {
   switch (node.type)
@@ -200,6 +210,8 @@ export function EvaluateNode(node, context, program)
       return EvaluateCall(node, context, program);
   }
 }
+
+/** Applies numeric signs or logical negation using expression coercion rules. */
 export function EvaluateUnary(operator, value)
 {
   switch (operator)
@@ -214,6 +226,11 @@ export function EvaluateUnary(operator, value)
       return 0;
   }
 }
+
+/**
+ * Evaluates binary operations with short-circuit logic and zero-divisor
+ * handling.
+ */
 export function EvaluateBinary(operator, leftNode, rightNode, context, program)
 {
   if (operator === "&&")
@@ -259,6 +276,11 @@ export function EvaluateBinary(operator, leftNode, rightNode, context, program)
       return 0;
   }
 }
+
+/**
+ * Evaluates call arguments and invokes a registered function, rejecting unknown
+ * names.
+ */
 export function EvaluateCall(node, context, program)
 {
   const fn = GetFunction(node.name, program.options);
@@ -272,6 +294,11 @@ export function EvaluateCall(node, context, program)
   const args = node.args.map(arg => EvaluateNode(arg, context, program));
   return fn(context || {}, ...args);
 }
+
+/**
+ * Resolves constants, supplied variables, controller values, or context
+ * properties, defaulting to zero.
+ */
 export function ResolveIdentifier(name, context = {})
 {
   if (name in CONSTANTS)
@@ -300,6 +327,8 @@ export function ResolveIdentifier(name, context = {})
   }
   return 0;
 }
+
+/** Resolves a function override before consulting the built-in function table. */
 export function GetFunction(name, options = {})
 {
   if (options.functions?.[name])
@@ -308,6 +337,8 @@ export function GetFunction(name, options = {})
   }
   return DEFAULT_FUNCTIONS[name] || null;
 }
+
+/** Checks whether a function is declared safe for constant evaluation. */
 export function IsFunctionPure(name, options = {})
 {
   if (options.functions?.[name])
@@ -390,6 +421,8 @@ export const DEFAULT_FUNCTIONS = {
   ServerTimeEqual: (ctx, year, month, day, hour, minute, second) => ServerTimeComparison(ctx, [year, month, day, hour, minute, second], 0),
   DaysSinceServerTime: (ctx, year, month, day) => DaysSinceServerTime(ctx, year, month, day)
 };
+
+/** Reads the expression source's stored random value, defaulting to zero. */
 export function GetRandomConstant(context)
 {
   const source = context.curve ?? context.self ?? context.expression;
@@ -403,6 +436,11 @@ export function GetRandomConstant(context)
   }
   return 0;
 }
+
+/**
+ * Reads an indexed input through its source adapter, time sampler, or current
+ * value.
+ */
 export function GetInputValue(context, index, time)
 {
   const source = context.curve ?? context.self ?? context.expression ?? context;
@@ -430,10 +468,17 @@ export function GetInputValue(context, index, time)
   }
   return ToNumber(input);
 }
+
+/** Converts an input index by adding one half and truncating toward zero. */
 export function RoundInputIndex(index)
 {
   return Math.trunc(ToNumber(index) + 0.5);
 }
+
+/**
+ * Queries an owner's named range or curve-set duration before trying a context
+ * callback.
+ */
 export function GetCurveSetTime(context, name)
 {
   const owner = context.owner;
@@ -451,6 +496,11 @@ export function GetCurveSetTime(context, name)
   }
   return CallContextFunction(context, "CurveSetTime", name);
 }
+
+/**
+ * Reads an external variable from the context map or owner, applying the
+ * supplied fallback.
+ */
 export function GetExternalControllerVariable(context, name, fallback)
 {
   if (HasProperty(context, "externalControllerVariables") && context.externalControllerVariables && typeof context.externalControllerVariables === "object" && Object.prototype.hasOwnProperty.call(context.externalControllerVariables, String(name)))
@@ -464,6 +514,11 @@ export function GetExternalControllerVariable(context, name, fallback)
   }
   return ToNumber(fallback);
 }
+
+/**
+ * Adds a random integer offset below the truncated positive span to the supplied
+ * minimum.
+ */
 export function RandomInteger(min, max)
 {
   const minValue = ToNumber(min);
@@ -474,6 +529,11 @@ export function RandomInteger(min, max)
   }
   return minValue + Math.floor(Math.random() * span);
 }
+
+/**
+ * Reads a calendar component through an override or the server date's local-time
+ * accessors.
+ */
 export function GetServerDatePart(context, part)
 {
   const override = TryCallContextFunction(context, `Server${Capitalize(part)}`);
@@ -500,6 +560,8 @@ export function GetServerDatePart(context, part)
       return date.getSeconds();
   }
 }
+
+/** Returns server seconds modulo the absolute period, or zero for a zero period. */
 export function GetServerTimePhase(context, period)
 {
   const value = Math.abs(ToNumber(period));
@@ -509,6 +571,11 @@ export function GetServerTimePhase(context, period)
   }
   return GetServerTimeSeconds(context) % value;
 }
+
+/**
+ * Compares selected calendar components in order, treating minus one as a
+ * wildcard and equality as success.
+ */
 export function ServerTimeComparison(context, values, mode)
 {
   const parts = [GetServerDatePart(context, "year"), GetServerDatePart(context, "month"), GetServerDatePart(context, "day"), GetServerDatePart(context, "hour"), GetServerDatePart(context, "minute"), GetServerDatePart(context, "second")];
@@ -538,6 +605,11 @@ export function ServerTimeComparison(context, values, mode)
   }
   return 1;
 }
+
+/**
+ * Computes a calendar-day difference using current components for wildcards and
+ * returns Number.MIN_VALUE for invalid dates.
+ */
 export function DaysSinceServerTime(context, year, month, day)
 {
   const currentYear = GetServerDatePart(context, "year");
@@ -554,6 +626,11 @@ export function DaysSinceServerTime(context, year, month, day)
   }
   return (current - target) / (60 * 60 * 24 * 1000);
 }
+
+/**
+ * Converts supplied server time into a Date, falling back to the current local
+ * clock.
+ */
 export function GetServerDate(context)
 {
   const value = GetServerTimeValue(context);
@@ -567,6 +644,11 @@ export function GetServerDate(context)
   }
   return new Date();
 }
+
+/**
+ * Converts supplied server time into epoch seconds, falling back to the current
+ * local clock.
+ */
 export function GetServerTimeSeconds(context)
 {
   const value = GetServerTimeValue(context);
@@ -580,6 +662,11 @@ export function GetServerTimeSeconds(context)
   }
   return Date.now() / 1000;
 }
+
+/**
+ * Finds a Date or numeric timestamp in the context, its callback table, or its
+ * owner.
+ */
 export function GetServerTimeValue(context)
 {
   if (HasProperty(context, "serverTime"))
@@ -608,6 +695,11 @@ export function GetServerTimeValue(context)
   }
   return null;
 }
+
+/**
+ * Uses magnitude thresholds to interpret a timestamp as ticks, seconds, or
+ * milliseconds.
+ */
 export function NormalizeServerTimeMilliseconds(value)
 {
   if (Math.abs(value) > 1e14)
@@ -620,11 +712,21 @@ export function NormalizeServerTimeMilliseconds(value)
   }
   return value;
 }
+
+/**
+ * Invokes a numeric context callback or returns the supplied fallback when none
+ * exists.
+ */
 export function CallContextFunction(context, name, arg, fallback = 0)
 {
   const value = TryCallContextFunction(context, name, arg);
   return value === null ? fallback : value;
 }
+
+/**
+ * Tries the context callback table before the owner and returns null when
+ * neither supplies the function.
+ */
 export function TryCallContextFunction(context, name, arg)
 {
   if (HasProperty(context, "functions") && context.functions && typeof context.functions === "object" && HasFunction(context.functions, name))
@@ -637,6 +739,8 @@ export function TryCallContextFunction(context, name, arg)
   }
   return null;
 }
+
+/** Rounds to the nearest integer, choosing the even integer for exact ties. */
 export function RoundHalfToEven(value)
 {
   const floor = Math.floor(value);
@@ -651,6 +755,8 @@ export function RoundHalfToEven(value)
   }
   return floor % 2 === 0 ? floor : floor + 1;
 }
+
+/** Adds values after applying the expression evaluator's numeric coercion. */
 export function SumValues(values)
 {
   let total = 0;
@@ -660,11 +766,21 @@ export function SumValues(values)
   }
   return total;
 }
+
+/**
+ * Maps a numeric input deterministically into the interval from zero inclusive
+ * to one exclusive.
+ */
 export function Hash01(value)
 {
   const x = Math.sin(value * 12.9898 + 78.233) * 43758.5453;
   return x - Math.floor(x);
 }
+
+/**
+ * Converts booleans and missing values to expression numbers while preserving
+ * other values.
+ */
 export function NormalizeValue(value)
 {
   if (value === true)
@@ -681,6 +797,11 @@ export function NormalizeValue(value)
   }
   return value;
 }
+
+/**
+ * Coerces an expression value to a finite number or returns the supplied
+ * fallback.
+ */
 export function ToNumber(value, fallback = 0)
 {
   value = NormalizeValue(value);
@@ -688,10 +809,14 @@ export function ToNumber(value, fallback = 0)
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
 }
+
+/** Uppercases the first character while preserving the rest of the string. */
 export function Capitalize(value)
 {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
+
+/** Treats nonempty strings and nonzero coerced numbers as true. */
 export function ToBoolean(value)
 {
   if (typeof value === "string")
@@ -700,22 +825,32 @@ export function ToBoolean(value)
   }
   return ToNumber(value) !== 0;
 }
+
+/** Recognizes an ASCII decimal digit. */
 export function IsDigit(c)
 {
   return !!c && c >= "0" && c <= "9";
 }
+
+/** Recognizes an ASCII letter or underscore that can begin an identifier. */
 export function IsIdentifierStart(c)
 {
   return !!c && /[A-Za-z_]/.test(c);
 }
+
+/** Recognizes an ASCII letter, digit, or underscore within an identifier. */
 export function IsIdentifierPart(c)
 {
   return !!c && /[A-Za-z0-9_]/.test(c);
 }
+
+/** Checks for an own or inherited property on a non-null object. */
 export function HasProperty(value, key)
 {
   return !!value && typeof value === "object" && key in value;
 }
+
+/** Checks whether an object's own or inherited property is callable. */
 export function HasFunction(value, key)
 {
   return HasProperty(value, key) && typeof value[key] === "function";

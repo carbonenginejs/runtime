@@ -222,11 +222,3 @@ test("Collect clears prior frame state and finalizes", () =>
   const second = manager.Collect([ renderable ]);
   assert.equal(second.GetBatchCount(), 1, "previous frame was cleared, not accumulated");
 });
-
-test("HasRebuildWork reads the shared __state.rebuild token set", () =>
-{
-  assert.equal(CjsBatchManager.HasRebuildWork(null), false);
-  assert.equal(CjsBatchManager.HasRebuildWork({}), false);
-  assert.equal(CjsBatchManager.HasRebuildWork({ __state: { rebuild: new Set() } }), false);
-  assert.equal(CjsBatchManager.HasRebuildWork({ __state: { rebuild: new Set([ "instanceBuffer" ]) } }), true);
-});

@@ -153,12 +153,18 @@ export class Tr2ActionAnimateValue extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    this.#runtime.program = null;
-    if (this.#runtime.controller && !this.HasDelayedBinding())
+    if (!this.#runtime.controller) return true;
+    if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
     {
-      this.LinkDestination(this.#runtime.controller);
+      if (!this.HasDelayedBinding()) this.LinkDestination(this.#runtime.controller);
+    }
+    else if (propertyName === "value")
+    {
+      this.#runtime.program = null;
+      this.CompileExpression();
     }
     return true;
   }

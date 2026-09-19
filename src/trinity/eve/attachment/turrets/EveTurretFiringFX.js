@@ -217,9 +217,14 @@ export class EveTurretFiringFX extends EveEntity
    */
   @carbon.method
   @impl.implemented
-  OnModified()
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.firingDuration = this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.GetCurveDuration();
+    if (propertyName === "firingDurationOverride")
+    {
+      this.firingDuration = this.firingDurationOverride >= 0 ? this.firingDurationOverride : this.GetCurveDuration();
+    }
+    if (propertyName === "display") this.ReRegister();
     return true;
   }
 

@@ -117,11 +117,11 @@ export class AudioGameObject extends CjsModel
   /** Applies a changed mute flag or name to the emitter after a model update. */
   OnModified(value = null)
   {
-    if (value === "mute" || value === this.mute)
+    if (value === "mute")
     {
       this.audioEmitter?.[this.mute ? "Mute" : "Unmute"]();
     }
-    if (value === "name" || value === this.name)
+    else if (value === "name")
     {
       this.SetEmitterName(this.name || "audio_object");
     }

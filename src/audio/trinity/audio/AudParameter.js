@@ -23,7 +23,6 @@ export class AudParameter extends CjsModel
 
   #gameObjID = 0;
 
-  #settledValue = 0;
 
   /**
    * Carbon's parent-list callback assigns the private game-object id when this
@@ -39,22 +38,15 @@ export class AudParameter extends CjsModel
   /** Carbon INotify consequence: only a value change pushes the object RTPC. */
   @carbon.method
   @impl.adapted
-  @impl.reason("CjsModel hooks are property-agnostic, so a cached value reproduces Carbon's m_value-only notification branch.")
-  OnModified(options = {})
+  @impl.reason("JS uses the exposed member name and the injected audio manager/backend instead of native field addresses and Wwise globals.")
+  OnModified(propertyName)
   {
-    const next = Number(this.value);
-    const changed = !Object.is(next, this.#settledValue);
-    this.#settledValue = next;
-    if (changed && this.#gameObjID && AudGameObjResource.manager?.enabled)
+    if (propertyName === "value" && this.#gameObjID && AudGameObjResource.manager?.enabled)
     {
-      AudGameObjResource.backend?.SetRTPCValue?.(this.name, next, this.#gameObjID);
-      AudGameObjResource.manager.LogSetRTPC?.(
-        this.#gameObjID,
-        this.name,
-        next,
-      );
+      AudGameObjResource.backend?.SetRTPCValue?.(this.name, this.value, this.#gameObjID);
+      AudGameObjResource.manager.LogSetRTPC?.(this.#gameObjID, this.name, this.value);
     }
-    return super.OnModified(options);
+    return true;
   }
 
 }

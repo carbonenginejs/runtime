@@ -135,11 +135,12 @@ export class EveBezierCurve extends IEveLineSetPath
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.completeness = Math.min(2, Math.max(0, this.completeness));
-    this.segments = Math.min(128, Math.max(1, this.segments));
-    this.segmentOffset = Math.min(1, Math.max(0, this.segmentOffset));
+    if (propertyName === "completeness") this.completeness = Math.min(2, Math.max(0, this.completeness));
+    if (propertyName === "segments") this.segments = Math.min(128, Math.max(1, this.segments));
+    if (propertyName === "segmentOffset") this.segmentOffset = Math.min(1, Math.max(0, this.segmentOffset));
     this.#regeneratePoints = true;
     return true;
   }

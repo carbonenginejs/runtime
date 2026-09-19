@@ -302,7 +302,7 @@ test("Tr2Effect populates and prunes shader parameters from reflection data", ()
   effect.PruneParameters();
   assertEquals(effect.FindParameterByName("Tint"), null);
 });
-test("edit.always preserves repeated effect-path updates", () =>
+test("equal effect-path writes still initialize without reporting a changed path", () =>
 {
   const effect = new Tr2Effect();
   const events = [];
@@ -316,10 +316,10 @@ test("edit.always preserves repeated effect-path updates", () =>
   effect.OnEvent("modified", (_name, _subject, data) => events.push(data));
 
   assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
-  assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), true);
+  assertEquals(effect.SetEffectPathName("res:/effect/test.sm_hi"), false);
   assertEquals(initializeCount, 2);
   assertEquals(events.length, 2);
-  assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.always, true);
+  assertEquals(CjsSchema.getField(Tr2Effect, "effectFilePath")?.edit?.notify, true);
   effect.effectFilePath = "res:\\effect\\Ship\\main.sm_hi";
   class TestEffectRes extends ResourceShader.Tr2EffectRes
   {
@@ -505,7 +505,7 @@ test("promoted shader resource parameters stay graph-only", () =>
       invalidations.push("invalidate");
     }
   });
-  textureAnimation.OnModified();
+  textureAnimation.OnModified("animation");
   assertEquals(invalidations.join(","), "invalidate");
 });
 test("promoted variable, transform, and shader buffer classes expose graph behavior", () =>
@@ -555,7 +555,7 @@ test("promoted variable, transform, and shader buffer classes expose graph behav
     return rebuildEffectHandles(...args);
   };
   variable.UpdateValues({ properties: ["name", "variableName"], skipEvents: true });
-  assertEquals(modifiedOrder.join(","), "variableName,name");
+  assertEquals(modifiedOrder.join(","), "name,variableName");
   const shader = new Tr2Shader();
   shader.effect.techniques = [Object.assign(new Tr2EffectTechnique(), {
     passes: [Object.assign(new Tr2Pass(), {
@@ -636,7 +636,7 @@ test("shader Tr2RuntimeTextureParameter stays graph-only", () =>
   parameter.SetTextureProvider({
     label: "replacement"
   });
-  parameter.OnModified();
+  parameter.OnModified("texture");
   assertEquals(invalidations.join(","), "invalidate,invalidate");
   parameter.OnRemovedFromMaterial(material);
   parameter.SetTextureProvider(texture);

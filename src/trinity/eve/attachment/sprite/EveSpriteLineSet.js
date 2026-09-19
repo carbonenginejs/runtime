@@ -3,7 +3,7 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveSpriteLight } from "./EveSpriteLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -20,12 +20,11 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 @type.define({ className: "EveSpriteLineSet", family: "eve/attachment/sprites" })
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   skinned = false;
@@ -34,7 +33,6 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.uint32
   effectHash = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -74,7 +72,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
     // Position expansion is available on each item, but packed quad data,
     // effect hashes, bounds caches and registration belong to the adapter.
     this.#rebuildRevision++;
-    this.__state.rebuild.add("packedGeometry");
+
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
   }
 

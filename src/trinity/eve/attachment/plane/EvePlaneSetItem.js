@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 
 
 /**
@@ -16,37 +16,31 @@ import { carbon, edit, impl, invalidation, type } from "#schema";
 @type.define({ className: "EvePlaneSetItem", family: "eve/attachment/planes" })
 export class EvePlaneSetItem extends CjsModel
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec4
   layer1Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec4
   layer2Transform = vec4.fromValues(1, 1, 0, 0);
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec4
   layer1Scroll = vec4.create();
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec4
   layer2Scroll = vec4.create();
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
@@ -55,24 +49,21 @@ export class EvePlaneSetItem extends CjsModel
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.uint32
   maskAtlasID = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.int32
   boneIndex = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   // Carbon omits this SOF-authored value from Blue serialization, but it is
   // part of the editable plane description and must survive values exchange.
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.vec4
   blinkData = vec4.fromValues(1, 0, 1, 0);

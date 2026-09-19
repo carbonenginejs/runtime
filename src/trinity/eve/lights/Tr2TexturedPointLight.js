@@ -68,16 +68,15 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   }
 
   /**
-   * Carbon OnModified (cpp:42-49): a texturePath change refetches; the
-   * settled-state notification compares against the resolved resource's
-   * identity rather than Be::Var pointers.
+   * Carbon OnModified (cpp:42–49): texture changes refetch, then forward base.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("CjsModel notifications expose settled state rather than Be::Var identity; the path is refetched whenever notified, which is idempotent for an unchanged path via the manager cache.")
-  OnModified()
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  OnModified(propertyName)
   {
-    this.SetTexturePath(this.texturePath);
+    if (propertyName === "texturePath") this.SetTexturePath(this.texturePath);
+    return super.OnModified(propertyName);
   }
 
   /**

@@ -59,7 +59,11 @@ export class EveStretch2 extends IEveFiringEffectElement
   @impl.reason("GPU buffer preparation belongs to runtime-engine; initialization validates the graph-owned quad count.")
   Initialize()
   {
-    return this.OnModified();
+    if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
+    {
+      throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
+    }
+    return true;
   }
 
   /**
@@ -68,9 +72,9 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
   @carbon.method @impl.adapted
   @impl.reason("Carbon rebuilds procedural GPU buffers here; the runtime Trinity layer only enforces the authored 128-quad contract.")
-  OnModified()
+  OnModified(propertyName)
   {
-    if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
+    if (propertyName === "quadCount" && this.quadCount > EveStretch2.MAX_QUAD_COUNT)
     {
       throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
     }

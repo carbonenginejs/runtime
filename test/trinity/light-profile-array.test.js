@@ -187,7 +187,7 @@ test("a per-frame brightness write does not throw away a light's profile", async
     // Positive control: a path that HAS moved is resolved, and the manager
     // answers, so the light takes what it was handed.
     light.lightProfilePath = "res:/light/moved.lp";
-    light.OnModified();
+    light.OnModified("lightProfilePath");
     assert.equal(stub.requests.at(-1)?.path, "res:/light/moved.lp", "a moved path was not acted on");
     assert.notEqual(light.lightProfile, profile, "the moved path kept the old profile");
   }

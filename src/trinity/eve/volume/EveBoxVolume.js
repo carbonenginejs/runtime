@@ -219,9 +219,10 @@ export class EveBoxVolume extends IEveVolume
    */
   @carbon.method
   @impl.adapted
-  OnModified()
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    this.Setup();
+    if (["position", "scaling", "rotation", "innerScaling"].includes(propertyName)) this.Setup();
     for (const callback of this.#callbacks.values())
     {
       callback?.();

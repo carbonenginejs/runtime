@@ -10,39 +10,38 @@ Summary: Defines the current dirty-settlement, traversal, initialization, resour
 Every `CjsModel` owns one non-enumerable `__state` value. Its ordinary
 `CjsModelState` contains:
 
-- `dirty`, the one generic “a settle is owed” marker;
-- `flags`, lazy invalidations cleared by the consumer that recomputes them;
-- `rebuild`, a `Set` of work requirements cleared by the work method that succeeds;
+- `dirty`, the marker that a values settle is owed;
 - `updating`, the settle re-entrancy guard; and
 - `suppressEvents`, the counted construction/teardown event gate.
 
-The event emitter adds `__state.events` only while listeners exist. Flags and
-rebuild requirements are deliberately separate from `dirty`: neither makes
-`IsDirty()` true, and a successful settle does not clear either set.
+The event emitter adds `__state.events` only while listeners exist. Values
+transport lazily adds `pendingModified`, a set of member identities awaiting
+notification. This queue does not replace class-owned dirty latches, masks,
+immediate rebuilds or resource protocols. Generic flag/rebuild tokens are removed.
 
 ## Cooperative dirty settlement
 
-`SetValues` marks the model dirty only when at least one field changes and
-`markDirty !== false`. Schema-declared flag and rebuild consequences add tokens
-to their respective sets; they do not independently mark the model dirty. Code
-that mutates fields directly must call `MarkDirty()` or explicitly call
-`UpdateValues()` to say “apply these changes.”
+`SetValues` records each successful changed field before proceeding to the next
+assignment. Unless `markDirty: false`, it marks transport state dirty and queues
+fields carrying effective `edit.notify` metadata, unless `notify: false`.
+`skipUpdate: true` defers settlement without losing those member names.
 
-`UpdateValues()` always runs at least one `OnModified()` pass. It clears
-`dirty` before each pass and repeats when the hook dirties the model again.
-The model must settle within 32 passes.
+Settlement calls `OnModified(propertyName)` once for each queued identity.
+Reentrant writes form another round; repeated names coalesce within a pending
+round. A rejected or throwing hook retains its member and the remaining work,
+without replaying already accepted members. The JS transport limits settlement
+to 32 rounds and remains dirty on failure. The hook receives no options bag.
 
-- Returning `false` from `OnModified()` rejects the settle and retains
-  `dirty`.
-- Throwing or exceeding the pass limit also retains `dirty`.
-- A successful settle emits one final `modified` event with `{ source }`
-  unless events are suppressed.
+Explicit named `UpdateValues` calls queue the supplied names. An explicit
+unnamed call with no pending members retains the existing `OnModified(null)`
+compatibility behavior. Direct mutation completion and outward event policy
+remain under review; null is not a wildcard requirement for class hooks.
 
-The pipeline cannot promise a changed-property list to `OnModified()` or to
-the ordinary settled event. Callers that need changed names use the
-`SetValues` return value. A direct `SetValues(..., { markDirty: false })` path
-may emit an immediate payload containing `properties`; that is not the normal
-settled-event shape.
+A completed model settle emits one final `modified` event with `{ source }`
+unless suppressed. Composition retains its existing `{ source, changedFields }`
+payload. Rejected/throwing settles do not emit completion. `SetValues` returns
+the changed names; model `markDirty: false` retains its existing immediate-event
+path. These differences are compatibility, not a new unified UI contract.
 
 ## Schema-backed child collections
 
@@ -61,8 +60,8 @@ declared item type before adding it.
 A collection mutation follows the same state rules as `SetValues`:
 
 - it marks the parent dirty unless `markDirty: false`;
-- it adds that collection field's declared `@edit.flag(...)` and
-  `@edit.rebuild(...)` tokens unless `notify: false`;
+- it queues the collection member when its effective `edit.notify` allows it
+  and `notify` is not false;
 - it settles the parent unless `skipUpdate: true`; and
 - it suppresses child and modified events when `skipEvents: true`.
 
@@ -78,14 +77,10 @@ explicit domain-owned `delete` callback; it never guesses a generic `Destroy`
 operation. JavaScript lifetime management remains ordinary garbage collection
 when no teardown callback is supplied.
 
-Child-owned flags and rebuild tokens are deliberately not interpreted by these
-helpers. A child property may declare a token such as a deferred deletion
-request, but the current runtime context decides whether and when to consume
-it and which named parent method to call. That context must retain the exact
-relationship it owns: the same child may be reached through multiple parents,
-properties, or nested contexts, and graph traversal does not make those
-contexts interchangeable. No global deletion queue or child-management
-decorator is implied.
+Class-specific child lifecycle and rebuild responsibilities stay with their
+owners. Helpers do not invent child-to-parent dirty propagation or a global
+deletion queue. Callers must retain the exact relationship they own when a
+child is shared between parents or properties.
 
 ## Initialization
 
@@ -94,7 +89,7 @@ initializes models created by the operation. Each initialization walk follows
 owned children in post-order:
 
 1. suppress events for the model;
-2. add every declared flag/rebuild consequence and mark it dirty;
+2. mark transport state dirty;
 3. call an optional `Initialize()` with no arguments;
 4. settle anything still dirty with events suppressed; and
 5. release the event gate.

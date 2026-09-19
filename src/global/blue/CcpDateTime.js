@@ -22,6 +22,7 @@
  */
 export class CcpDateTime
 {
+  /** Initializes each calendar component to zero. */
   constructor()
   {
     /** Full year, e.g. 2026. Not offset from 1900, unlike the `tm` it is built from. */

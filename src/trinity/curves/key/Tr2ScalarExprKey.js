@@ -122,9 +122,14 @@ export class Tr2ScalarExprKey extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Re-evaluates all expressions with the retained previous-key context; the JS evaluator compiles on evaluation instead of retaining native compiled expression objects.")
+  OnModified(propertyName)
   {
-    this.ReEvaluate(null);
+    const variables = this.#expressionVariables();
+    this.time = this.Evaluate(this.timeExpression, Number(this.time), variables);
+    this.value = this.Evaluate(this.valueExpression, Number(this.value), variables);
+    this.left = this.Evaluate(this.leftTangentExpression, this.left, variables);
+    this.right = this.Evaluate(this.rightTangentExpression, this.right, variables);
     return true;
   }
 

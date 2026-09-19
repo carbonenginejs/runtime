@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { box3 } from "#math/box3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 
 
 /**
@@ -15,7 +15,7 @@ import { carbon, edit, impl, invalidation, type } from "#schema";
 @type.define({ className: "EveSpriteLineSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteLineSetItem extends CjsModel
 {
-  @invalidation.rebuild("packedGeometry")
+
   @edit.persist
   @type.int32
   boneIndex = 0;
@@ -24,62 +24,50 @@ export class EveSpriteLineSetItem extends CjsModel
   @type.string
   name = "";
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.boolean
   isCircle = false;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   position = vec3.create();
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.quat
   rotation = quat.create();
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   spacing = 1;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   blinkRate = 0.1;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   blinkPhase = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   blinkPhaseShift = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   minScale = 1;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   maxScale = 10;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.float32
   falloff = 0;
 
-  @invalidation.rebuild("packedGeometry")
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);

@@ -114,8 +114,10 @@ export class Tr2ActionPython extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
+    if (propertyName !== "module" && propertyName !== "className") return true;
     const controller = this.#controller;
     const wasPlaying = this.#isPlaying;
     if (controller)

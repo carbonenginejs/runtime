@@ -49,12 +49,13 @@ export class Tr2StateMachineState extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    const controller = this.#stateMachine?.GetController() ?? null;
-    if (this.finalizer && controller)
+    if (propertyName === "finalizer")
     {
-      this.finalizer.Link(controller);
+      const controller = this.#stateMachine?.GetController() ?? null;
+      if (this.finalizer && controller) this.finalizer.Link(controller);
     }
     return true;
   }

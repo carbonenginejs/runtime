@@ -284,7 +284,7 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   transform.grannyRes = source;
   transform.group = "root";
   transform.name = "Bone";
-  transform.Initialize();
+  transform.SetCurves();
   assert(transform.TracksReady());
   assertEquals(transform.Length(), 4);
   assertAlmostEquals(transform.translation[0], 1);
@@ -300,7 +300,7 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   vector.grannyRes = source;
   vector.group = "root";
   vector.name = "Alpha";
-  vector.Initialize();
+  vector.SetCurves();
   assert(vector.TracksReady());
   assertEquals(vector.Length(), 4);
   assertEquals(vector.value, 10);
@@ -321,6 +321,10 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   assert(pathBound.TracksReady());
   pathBound.UpdateValue(3.5);
   assertEquals(pathBound.value, 40);
+  pathBound.SetValues({ grannyResPath: "" });
+  assertEquals(pathBound.grannyRes, null);
+  assertEquals(pathBound.TracksReady(), false);
+  assertEquals(pathBound.Length(), 0);
   assertEquals(CjsSchema.getField(Tr2GrannyTrack, "grannyResPath")?.type.kind, "path");
   assertEquals(CjsSchema.getField(Tr2GrannyTrack, "duration")?.type.kind, "float32");
   assertEquals(CjsGrannyCurves.resolveResource("res:/synthetic/test.gr2"), source);
@@ -335,7 +339,7 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   eventTrack.eventListener = {
     HandleEvent: value => events.push(value)
   };
-  eventTrack.Initialize();
+  eventTrack.SetCurves();
   assert(eventTrack.TracksReady());
   assertEquals(eventTrack.Length(), 4);
   eventTrack.UpdateValue(1);
@@ -360,7 +364,7 @@ test("Granny JSON tracks bind the first matching group and sample values", () =>
   };
   later.group = "root";
   later.name = "Bone";
-  later.Initialize();
+  later.SetCurves();
   assertEquals(later.TracksReady(), false);
   assertEquals(later.Length(), 0);
 });
@@ -430,7 +434,7 @@ test("Granny JSON tracks tolerate raw wrappers and reject missing curves", () =>
   transform.group = "raw";
   transform.name = "Bone";
   transform.cycle = true;
-  transform.Initialize();
+  transform.SetCurves();
   assert(transform.TracksReady());
   assertEquals(transform.Length(), 0);
   assertAlmostEquals(transform.translation[0], 9);
@@ -444,14 +448,14 @@ test("Granny JSON tracks tolerate raw wrappers and reject missing curves", () =>
   vector.grannyRes = rawWrapped;
   vector.group = "raw";
   vector.name = "Alpha";
-  vector.Initialize();
+  vector.SetCurves();
   assert(vector.TracksReady());
   assertAlmostEquals(vector.value, 0.75);
   const broken = new Tr2GrannyVectorTrack();
   broken.grannyRes = rawWrapped;
   broken.group = "raw";
   broken.name = "Broken";
-  broken.Initialize();
+  broken.SetCurves();
   assertEquals(broken.TracksReady(), false);
   const events = [];
   const eventTrack = new Tr2GrannyEventTrack();
@@ -464,7 +468,7 @@ test("Granny JSON tracks tolerate raw wrappers and reject missing curves", () =>
       events.push(value);
     }
   };
-  eventTrack.Initialize();
+  eventTrack.SetCurves();
   eventTrack.UpdateValue(0);
   assertEquals(events.join(","), "ready");
 });

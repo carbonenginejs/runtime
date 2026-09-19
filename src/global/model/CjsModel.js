@@ -1,6 +1,7 @@
 import { coerceCarbonMathInto, coerceCarbonTypedArrayInto, exportCarbonValue, normalizeCarbonValue } from "../schema/types/index.js";
 import { CJS_MODEL_BRAND, CjsSchema } from "../schema/index.js";
 import { getRuntimeState } from "../compose/runtimeState.js";
+import { queueModifiedMember, settleModifiedMembers } from "../compose/values.js";
 import { BLUELISTEVENT } from "../consts/blue.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
@@ -32,7 +33,6 @@ export function isModelInstance(value)
     return CjsSchema.isModelInstance(value);
 }
 
-const MAX_UPDATE_PASSES = 32;
 const CHILD_COLLECTION_KINDS = new Set([ "array", "list" ]);
 
 
@@ -170,7 +170,7 @@ export class CjsModel extends CjsEventEmitter
      * Appends an existing object to a schema-backed child collection.
      *
      * The mutation invokes Carbon-shaped `OnListModified` when present,
-     * records the field's declared flag/rebuild consequences, emits one
+     * queues the field's declared member notification, emits one
      * `childadded` event, and settles the parent unless suppressed by options.
      *
      * @param {CjsModel} target Owning model instance.
@@ -316,9 +316,9 @@ export class CjsModel extends CjsEventEmitter
      * `__state.IsDirty()` before calling.
      *
      * @param {object} [options={}]
-     * @param {string|Iterable<string>} [options.property] Fields the caller changed directly; their declared flag/rebuild tokens are added first.
+     * @param {string|Iterable<string>} [options.property] Fields the caller changed directly; queued before settling.
      * @param {string|Iterable<string>} [options.properties] Alias of `property`.
-     * @param {*} [options.source=this] Origin forwarded to the hook and event (binding feedback control).
+     * @param {*} [options.source=this] Origin carried by the completion event (binding feedback control).
      * @param {boolean} [options.skipEvents=false] Prevents the final modified event.
      * @returns {boolean} False when the hook rejected the update (dirty is retained).
      * @throws {Error} If local changes do not settle within the update-pass limit.
@@ -326,40 +326,15 @@ export class CjsModel extends CjsEventEmitter
     UpdateValues(options = {})
     {
         addExplicitUpdateProperties(this, options.property ?? options.properties);
+        if (options.property == null && options.properties == null && options.changedFields == null
+            && (this.__state.updating || !this.__state.pendingModified?.size))
+        {
+            queueModifiedMember(this, null);
+        }
         if (this.__state.updating) return true;
 
         const source = options.source ?? this;
-        this.__state.updating = true;
-
-        try
-        {
-            for (let pass = 0; ; pass++)
-            {
-                if (pass >= MAX_UPDATE_PASSES)
-                {
-                    throw new Error(`${CjsSchema.getClassName(this.constructor)}.UpdateValues exceeded ${MAX_UPDATE_PASSES} local settle passes.`);
-                }
-
-                this.__state.dirty = false;
-
-                if (this.OnModified({ ...options, source }) === false)
-                {
-                    this.__state.dirty = true;
-                    return false;
-                }
-
-                if (!this.__state.dirty) break;
-            }
-        }
-        catch (err)
-        {
-            this.__state.dirty = true;
-            throw err;
-        }
-        finally
-        {
-            this.__state.updating = false;
-        }
+        if (!settleModifiedMembers(this)) return false;
 
         if (options.skipEvents !== true && this.__state.suppressEvents === 0)
         {
@@ -373,18 +348,16 @@ export class CjsModel extends CjsEventEmitter
      * The settle hook: reproduces the meaningful consequences of the
      * corresponding Carbon INotify::OnModified implementation.
      *
-     * Invoked only by UpdateValues. Receives the mutation options bag
-     * (source, caller context, skipEvents, ...). There is no changed-property
-     * list - the pipeline is cooperative and cannot guarantee one - so
-     * overrides are written broad-safe: consult own state, compare cached
-     * derivations, and rely on `__state.flags`/`__state.rebuild` tokens for
-     * targeted signals. Returning `false` rejects the update and retains the
-     * dirty mark.
+     * Receives one exposed member name, corresponding to Carbon's member
+     * address. The values transport applies its NOTIFY gate before queuing.
+     * Direct native-shaped callers choose their own gate. A null identity
+     * preserves the existing explicit unnamed UpdateValues call; its wider
+     * UI policy remains separate. No options bag is passed to this hook.
      *
-     * @param {object} [options={}]
+     * @param {string|null} [_propertyName]
      * @returns {boolean} Whether the update may complete.
      */
-    OnModified(options = {})
+    OnModified(_propertyName = null)
     {
         return true;
     }
@@ -521,6 +494,7 @@ export class CjsModel extends CjsEventEmitter
     MarkDirty()
     {
         this.__state.MarkDirty();
+        if (this.__state.updating) queueModifiedMember(this, null);
         return this;
     }
 
@@ -663,6 +637,7 @@ export class CjsModel extends CjsEventEmitter
         const enumTranslations = validateEnumInputs(out, values);
 
         const changed = new Set();
+        let notifyRequested = false;
         for (const field of getModelFields(out))
         {
             if (!isWritableModelField(field)) continue;
@@ -687,7 +662,7 @@ export class CjsModel extends CjsEventEmitter
 
                     if (structChanged !== null)
                     {
-                        didChange = field.edit?.always === true || structChanged;
+                        didChange = structChanged;
                     }
                     else
                     {
@@ -701,30 +676,27 @@ export class CjsModel extends CjsEventEmitter
 
                         if (mathChanged !== null)
                         {
-                            didChange = field.edit?.always === true || mathChanged;
+                            didChange = mathChanged;
                         }
                         else
                         {
                             const newValue = importSourceValue(incoming, field, importOptions);
-                            didChange = field.edit?.always === true || !areEquivalentSourceValues(oldValue, newValue);
-                            if (didChange) out[field.name] = newValue;
+                            didChange = !areEquivalentSourceValues(oldValue, newValue);
+                            out[field.name] = newValue;
                         }
                     }
                 }
 
-                if (didChange)
+                if (didChange) changed.add(field.name);
+                if (options.markDirty !== false)
                 {
-                    changed.add(field.name);
-                    if (options.markDirty !== false)
+                    if (didChange) out.__state.dirty = true;
+                    // BluePyWrap writes first, then tests NOTIFY without equality.
+                    if (options.notify !== false && field.edit?.notify)
                     {
+                        queueModifiedMember(out, field.name);
                         out.__state.dirty = true;
-                        // Write-time token adds: the knowledge of WHICH field
-                        // changed lives here, so declared consequences land
-                        // here (props are not tracked in state).
-                        if (options.notify !== false)
-                        {
-                            addDeclaredFieldTokens(out, field);
-                        }
+                        notifyRequested = true;
                     }
                 }
             }
@@ -743,15 +715,9 @@ export class CjsModel extends CjsEventEmitter
                 out.EmitEvent("modified", out, createModifiedPayload(changed, options.source ?? out));
             }
         }
-        else if (changed.size && options.skipUpdate !== true && !out.__state.updating)
+        else if ((changed.size || notifyRequested) && options.skipUpdate !== true && !out.__state.updating)
         {
-            // The changed names ride through to OnModified. The write knows them
-            // and used to drop them, which left every hook guessing: a class whose
-            // OnModified dispatches per member had to run every arm on every
-            // write. The compose transport has always passed them
-            // (compose/values.js), and the decision page rules the options-bag
-            // form additive - a positional name would flip three `!propertyName`
-            // gates, which is why it is not done that way.
+            // Members were queued at mutation time, including deferred writes.
             out.UpdateValues({ ...options, changedFields: changed });
         }
 
@@ -929,7 +895,6 @@ export const carbon = CjsSchema.carbon;
 export { CjsSchema };
 export const impl = CjsSchema.impl;
 export const edit = CjsSchema.edit;
-export const invalidation = CjsSchema.invalidation;
 export const jessica = CjsSchema.jessica;
 export const lifecycle = CjsSchema.lifecycle;
 export const schema = CjsSchema;
@@ -1004,9 +969,8 @@ function initializeOwnedGraph(root, options = {})
             if (value.__state instanceof CjsModelState)
             {
                 // Construction: everything is new, so every declared consequence
-                // applies - all flag/rebuild tokens are added, and the object is
+                // applies; the object is
                 // marked for one settle.
-                addAllDeclaredTokens(value);
                 value.__state.dirty = true;
             }
 
@@ -1154,7 +1118,7 @@ function recordChildMutation(target, field, options)
 {
     if (options.markDirty === false) return;
     target.__state.dirty = true;
-    if (options.notify !== false) addDeclaredFieldTokens(target, field);
+    if (options.notify !== false && field.edit?.notify) queueModifiedMember(target, field.name);
 }
 
 function notifyListModified(target, event, index, secondIndex, child, collection)
@@ -1206,38 +1170,17 @@ function settleChildMutation(target, field, options)
         return;
     }
 
-    if (!target.__state.updating) target.UpdateValues(options);
+    if (!target.__state.updating) target.UpdateValues({ ...options, changedFields: new Set([field.name]) });
 }
 
-// Adds one field's declared @invalidation.flag / @invalidation.rebuild tokens
-// to their stores. Duplicate adds are no-ops (Sets). Nothing in the model layer
-// ever clears these stores - getters clear flags, work methods clear rebuild
-// tokens. GOING AWAY with the namespace; see CjsSchema.invalidation.
-function addDeclaredFieldTokens(target, field)
-{
-    const invalidation = field?.invalidation;
-    if (!invalidation) return;
-    if (invalidation.flag) for (const token of invalidation.flag) target.__state.flags.add(token);
-    if (invalidation.rebuild) for (const token of invalidation.rebuild) target.__state.rebuild.add(token);
-}
-
-// Construction / broad invalidation: every declared token applies.
-function addAllDeclaredTokens(target)
-{
-    const fields = CjsSchema.getSchema(target.constructor)?.fields || [];
-    for (const field of fields) addDeclaredFieldTokens(target, field);
-}
-
-// Direct-mutation courtesy: a caller that knows which fields it touched
-// (bindings) passes them so declared consequences stay precise.
+// Direct callers supply their own identities and notification policy.
 function addExplicitUpdateProperties(target, properties)
 {
     if (properties === null || properties === undefined) return;
     target.__state.dirty = true;
     for (const property of typeof properties === "string" ? [properties] : properties)
     {
-        const field = CjsSchema.getField(target.constructor, property);
-        if (field) addDeclaredFieldTokens(target, field);
+        queueModifiedMember(target, property);
     }
 }
 
@@ -1926,9 +1869,9 @@ function applyIncomingReference(out, field, incoming, options)
         return true;
     }
 
-    if (field.edit?.always !== true && Object.is(out[fieldName], resolved)) return false;
+    const changed = !Object.is(out[fieldName], resolved);
     out[fieldName] = resolved;
-    return true;
+    return changed;
 }
 
 function resolveRegisteredModelClass(typeName, options = {})

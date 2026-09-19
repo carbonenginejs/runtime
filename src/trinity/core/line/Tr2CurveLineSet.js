@@ -440,6 +440,8 @@ export class Tr2CurveLineSet extends CjsModel
   // NOT PORTED. Carbon builds the vertex stream on this class:
   // Tr2CurveLineSet::SubmitChanges (cpp:677) tessellates the curves and fills
   // the buffer, which is pure CPU float maths.
+
+  /** Declares the unported curve-line batch collection operation. */
   @carbon.method
   @impl.notImplemented
   GetBatches(_accumulator, _batchType, _perObjectData, _reason)

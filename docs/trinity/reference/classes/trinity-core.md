@@ -38,7 +38,7 @@ Registers constant-data struct shapes and leases packed payloads from a per-engi
 <!-- class:Tr2VertexDefinition -->
 ## `Tr2VertexDefinition`
 
-A mesh's vertex element list, and the matching of it to a shader's inputs.
+Describes a mesh's vertex elements and per-stream offsets.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js`

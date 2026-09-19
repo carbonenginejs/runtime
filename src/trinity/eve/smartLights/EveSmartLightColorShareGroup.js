@@ -69,7 +69,6 @@ export class EveSmartLightColorShareGroup extends EveEntity
   #resolvedGroupColor = color.createLinear();
 
   /** Last `display` value the settle hook applied (JS-only change detection). */
-  #lastAppliedDisplay = true;
 
   /** Faction-aware group color (Carbon base EveSmartLightBaseGroup.cpp:43-53). */
   @carbon.method
@@ -98,14 +97,10 @@ export class EveSmartLightColorShareGroup extends EveEntity
   /** display edits re-register the shared groups (EveSmartLightColorShareGroup.cpp:17-24). */
   @carbon.method
   @impl.adapted
-  @impl.reason("The settle hook receives no changed-property list; the display edit is detected by comparing the cached last-applied value.")
-  OnModified(_options = {})
+  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
+  OnModified(propertyName)
   {
-    if (this.display !== this.#lastAppliedDisplay)
-    {
-      this.#lastAppliedDisplay = this.display;
-      this.ReRegister();
-    }
+    if (propertyName === "display") this.ReRegister();
     return true;
   }
 

@@ -44,7 +44,6 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
 
   #controller = null;
 
-  #linkedOwner = null;
 
   /**
    * Links to the destination owner.
@@ -97,19 +96,14 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   }
 
   /**
-   * Relinks the destination when the authored owner name changed since the
-   * last link (Carbon gates on the m_destinationOwner notification;
-   * broad-safe here means comparing against the cached linked owner rather
-   * than a changed-property list).
+   * Relinks the destination on the native destinationOwner notification.
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    if (this.destinationOwner !== this.#linkedOwner)
-    {
-      this.#linkToDestinationOwner();
-    }
+    if (propertyName === "destinationOwner") this.#linkToDestinationOwner();
     return true;
   }
 
@@ -133,12 +127,10 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
 
   /**
    * Resolves `destination` by case-insensitively matching destinationOwner
-   * against the owner's binding roots, and records the name it resolved against
-   * so OnModified can detect a real change.
+   * against the owner's binding roots.
    */
   #linkToDestinationOwner()
   {
-    this.#linkedOwner = this.destinationOwner;
     this.destination = null;
     if (!this.#controller)
     {

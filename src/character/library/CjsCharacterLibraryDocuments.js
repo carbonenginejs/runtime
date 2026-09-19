@@ -1,4 +1,4 @@
-import { CjsSchema, edit, invalidation, type } from "#schema";
+import { CjsSchema, edit, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import "../model/index.js";
 
@@ -29,6 +29,28 @@ const DOCUMENT_DEFINITIONS = [
 @type.define({ className: "CjsCharacterLibraryDocuments", family: "character" })
 export class CjsCharacterLibraryDocuments extends CjsModel
 {
+    #documentRevisions = new Map();
+
+    /** Revision of library-owned list mutations, independent of edit settling. */
+    GetDocumentRevision(name)
+    {
+        return this.#documentRevisions.get(name) ?? 0;
+    }
+
+    /** Advances the revision of the document list that was mutated. */
+    @impl.custom
+    @impl.reason("JS character library lookup indexes must observe same-length list replacements, including deferred edits.")
+    @impl.invalidates("#documentRevisions")
+    OnListModified(_event, _key, _key2, _value, list)
+    {
+        for (const [name] of DOCUMENT_DEFINITIONS)
+        {
+            if (this[name] === list)
+            {
+                this.#documentRevisions.set(name, this.GetDocumentRevision(name) + 1);
+            }
+        }
+    }
 
     /** Returns the canonical ordered combined-library document names. */
     static listDocumentNames()
@@ -85,102 +107,102 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     }
 
     @edit.readwrite
-    @invalidation.flag("index:ancestries")
+
     @type.list("CjsCharacterAncestry")
     ancestries = [];
 
     @edit.readwrite
-    @invalidation.flag("index:archetypes")
+
     @type.list("CjsCharacterArchetype")
     archetypes = [];
 
     @edit.readwrite
-    @invalidation.flag("index:bloodlines")
+
     @type.list("CjsCharacterBloodline")
     bloodlines = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterAvatarBehaviors")
+
     @type.list("CjsCharacterAvatarBehavior")
     characterAvatarBehaviors = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterColorLocations")
+
     @type.list("CjsCharacterColorLocation")
     characterColorLocations = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterColorNames")
+
     @type.list("CjsCharacterColorName")
     characterColorNames = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterModifierLocations")
+
     @type.list("CjsCharacterModifierLocation")
     characterModifierLocations = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterPortraitResources")
+
     @type.list("CjsCharacterPortraitResource")
     characterPortraitResources = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterResources")
+
     @type.list("CjsCharacterResource")
     characterResources = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterSculptingLocations")
+
     @type.list("CjsCharacterSculptingLocation")
     characterSculptingLocations = [];
 
     @edit.readwrite
-    @invalidation.flag("index:paperdolls")
+
     @type.list("CjsCharacterPaperdoll")
     paperdolls = [];
 
     @edit.readwrite
-    @invalidation.flag("index:races")
+
     @type.list("CjsCharacterRace")
     races = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterDefinitions")
+
     @type.list("CjsCharacterDefinition")
     characterDefinitions = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterPartTypes")
+
     @type.list("CjsCharacterPartType")
     characterPartTypes = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterPartSources")
+
     @type.list("CjsCharacterPartSource")
     characterPartSources = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterPartMetadata")
+
     @type.list("CjsCharacterPartMetadata")
     characterPartMetadata = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterMaterialProfiles")
+
     @type.list("CjsCharacterMaterialProfile")
     characterMaterialProfiles = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterProjectionProfiles")
+
     @type.list("CjsCharacterProjectionProfile")
     characterProjectionProfiles = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterRecipeProfiles")
+
     @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
 
     @edit.readwrite
-    @invalidation.flag("index:characterTextureMetadata")
+
     @type.list("CjsCharacterTextureMetadata")
     characterTextureMetadata = [];
 

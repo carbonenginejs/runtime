@@ -2,6 +2,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2Model } from "./Tr2Model.js";
 import { vec3 } from "#math/vec3";
+import { BLUELISTEVENT } from "#consts/blue";
 
 /**
  * Skinned character model selecting a named skeleton from supplied geometry
@@ -14,10 +15,6 @@ export class Tr2SkinnedModel extends Tr2Model
   #areAllMeshesBound = false;
 
   #boneList = null;
-
-  #cachedGeometryResPath = "";
-
-  #cachedSkeletonName = "";
 
   #skeletonIndex = -1;
 
@@ -48,17 +45,36 @@ export class Tr2SkinnedModel extends Tr2Model
   /** Carbon INotify hook: refreshes the selected skeleton from an already supplied resource. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Compares cached JavaScript values because the cooperative mutation hook does not receive native Be::Var field handles; resource acquisition remains outside the character layer.")
-  OnModified(_options = {})
+  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  OnModified(propertyName)
   {
-    if (this.#skeletonResource !== this.geometryRes
-      || this.#cachedGeometryResPath !== this.geometryResPath
-      || this.#cachedSkeletonName !== this.skeletonName)
-    {
-      this.RebuildCachedData(this.geometryRes);
-    }
-
+    if (propertyName === "geometryResPath" || propertyName === "skeletonName") this.Initialize();
     return true;
+  }
+
+  /**
+   * Resets binding state and selects a skeleton from the supplied geometry
+   * resource.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Character resource acquisition remains host-owned. Resets native skeleton/binding state and resolves against the supplied geometry; native resource subscription/acquisition is not implemented here.")
+  @impl.invalidates("#areAllMeshesBound")
+  Initialize()
+  {
+    this.#skeletonIndex = -1;
+    this.#areAllMeshesBound = false;
+    this.RebuildCachedData(this.geometryRes);
+    return true;
+  }
+
+  /** Invalidates mesh binding completion when a mesh is inserted. */
+  @carbon.method
+  @impl.implemented
+  @impl.invalidates("#areAllMeshesBound")
+  OnListModified(event)
+  {
+    if (event === BLUELISTEVENT.BELIST_INSERTED) this.#areAllMeshesBound = false;
   }
 
   /** Carbon resource-notify hook: clears the selected skeleton index. */
@@ -77,8 +93,6 @@ export class Tr2SkinnedModel extends Tr2Model
   {
     this.#skeletonIndex = -1;
     this.#skeletonResource = resource ?? null;
-    this.#cachedGeometryResPath = this.geometryResPath;
-    this.#cachedSkeletonName = this.skeletonName;
 
     if (!resource
       || typeof resource.GetSkeletonCount !== "function"

@@ -503,37 +503,38 @@ test("EveChildMesh acts on what changed, the way Carbon's three tests do", () =>
   child.GetOwner = () => owner;
 
   // First test: reflectionMode, display, mesh or castShadow re-register.
-  child.OnModified({ property: "display" });
+  child.OnModified("display");
   assert.deepEqual(calls, [ "reregister" ]);
 
   // Second: mesh or animationUpdater re-initialize the animation. A mesh edit
   // satisfies BOTH tests, which is why the donor uses ifs rather than a chain.
   calls.length = 0;
-  child.OnModified({ property: "mesh" });
+  child.OnModified("mesh");
   assert.deepEqual(calls, [ "reregister", "animation" ]);
 
   calls.length = 0;
-  child.OnModified({ property: "animationUpdater" });
+  child.OnModified("animationUpdater");
   assert.deepEqual(calls, [ "animation" ], "an updater edit must not re-register");
 
   // Third: a transform edit invalidates the owner's merged locators, but ONLY
   // for a child that owns locator sets.
   calls.length = 0;
-  child.OnModified({ property: "translation" });
+  child.OnModified("translation");
   assert.deepEqual(calls, [], "a transform edit must not re-register");
   assert.deepEqual(owner.reasons, [], "a child owning no locator sets must not invalidate");
 
   child.ownedLocatorSets = [ { name: "locators" } ];
-  child.OnModified({ property: "translation" });
+  child.OnModified("translation");
   assert.deepEqual(owner.reasons, [ "partMoved" ], "Carbon passes PartMoved, not StructureChanged");
 
-  // A write that names nothing applies every test, since the settle reports a
-  // whole write rather than one member.
+  // A notification without an identity matches no native member.
   calls.length = 0;
   owner.reasons.length = 0;
   child.OnModified();
-  assert.deepEqual(calls, [ "reregister", "animation" ]);
-  assert.deepEqual(owner.reasons, [ "partMoved" ]);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(owner.reasons, []);
+  child.SetValues({ translation: [1, 2, 3] });
+  assert.deepEqual(owner.reasons, ["partMoved"]);
 });
 
 test("EveChildMesh tells its owner through Carbon's own helper", () =>

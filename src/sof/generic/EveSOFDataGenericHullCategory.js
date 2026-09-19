@@ -8,6 +8,8 @@ import { ReflectionMode } from "#consts/graphics";
 @type.define({ className: "EveSOFDataGenericHullCategory", family: "eve" })
 export class EveSOFDataGenericHullCategory extends CjsModel
 {
+  static ReflectionMode = ReflectionMode;
+
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
   @edit.persist

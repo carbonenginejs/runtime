@@ -30,12 +30,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
   @type.float32
   defaultValue = 0;
 
-  /** Last value/invert pair the settle hook applied (JS-only change detection). */
-  #lastAppliedValue = 0;
-
-  /** See #lastAppliedValue. */
-  #lastAppliedInvert = false;
-
   /**
    * Seeds the listener from its default value before the base crossfade seed
    * (EveSmartLightAttributeModifierControllerVariableListener.cpp:15-21).
@@ -47,8 +41,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
     this.value = this.defaultValue;
     this.startsActive = this.defaultValue > 0.5;
     this.active = this.defaultValue > 0.5;
-    this.#lastAppliedValue = this.value;
-    this.#lastAppliedInvert = this.invertReceivedValue;
     return super.Initialize();
   }
 
@@ -59,17 +51,12 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The settle hook receives no changed-property list; value/invert edits are detected by comparing cached last-applied values.")
-  OnModified(options = {})
+  @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
+  OnModified(propertyName)
   {
-    if (this.value !== this.#lastAppliedValue || this.invertReceivedValue !== this.#lastAppliedInvert)
-    {
-      this.#lastAppliedValue = this.value;
-      this.#lastAppliedInvert = this.invertReceivedValue;
-      this.#ApplyValue();
-    }
-
-    return super.OnModified(options);
+    if (propertyName === "value" || propertyName === "invertReceivedValue") this.#ApplyValue();
+    super.OnModified(propertyName);
+    return true;
   }
 
   /**
@@ -84,7 +71,6 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
     if (this.variableName === name)
     {
       this.value = Number(value);
-      this.#lastAppliedValue = this.value;
       this.#ApplyValue();
     }
 

@@ -23,6 +23,7 @@ const DATA_TYPE_BASE_BYTES = {
 };
 
 
+/** Describes a mesh's vertex elements and per-stream offsets. */
 export class Tr2VertexDefinition
 {
   /** Carbon m_items. */

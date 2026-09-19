@@ -2,6 +2,8 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
+import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
@@ -9,6 +11,10 @@ import { vec3 } from "#math/vec3";
 @type.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
 export class EveSOFDataHullDecalSetItem extends CjsModel
 {
+  static ColorType = EveSOFDataFactionColorSet.ColorType;
+
+  static LogoType = EveSOFDataLogoSet.LogoType;
+
 
   static Usage = Object.freeze({
     USAGE_STANDARD: 0,

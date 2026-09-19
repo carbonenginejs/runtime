@@ -271,16 +271,11 @@ test("vector parameters expose Blue component accessors and sRGB mirrors", () =>
   assert.equal(vector4.v4, 0.125);
 });
 
-test("schema decorators: sampler fields rebuild bindings, const parameters persist", () =>
+test("schema decorators: constant parameters persist", () =>
 {
   // Field metadata registers via decorator initializers on first construction.
   void new Tr2SamplerOverride();
   void new Tr2ConstantEffectParameter();
-  for (const field of ["filter", "mipFilter", "lodBias", "maxMipLevel", "maxAnisotropy"])
-  {
-    const meta = CjsSchema.getField(Tr2SamplerOverride, field);
-    assert.ok(meta?.invalidation?.rebuild?.includes("bindings"), `${field} carries the bindings consequence`);
-  }
   assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "name")?.edit?.persist, true);
   assert.equal(CjsSchema.getField(Tr2ConstantEffectParameter, "value")?.edit?.persist, true);
 });

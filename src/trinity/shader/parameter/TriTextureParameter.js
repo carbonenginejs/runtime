@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -19,7 +19,7 @@ import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 @carbon.inherit(ITriEffectTextureParameter)
 export class TriTextureParameter extends CjsParameter
 {
-  @invalidation.flag("resource")
+
   @edit.notify
   @edit.persist
   @type.path
@@ -45,7 +45,6 @@ export class TriTextureParameter extends CjsParameter
   @type.boolean
   usedByCurrentEffect = false;
 
-  @invalidation.flag("effectHandles")
   @edit.notify
   @edit.persist
   @type.string
@@ -220,6 +219,16 @@ export class TriTextureParameter extends CjsParameter
     resource.OnCompleted(() => this.OnTextureChanged(), this);
   }
 
+  /** Releases this parameter's CjsResource completion subscription. */
+  #ReleaseCompletion(resource)
+  {
+    if (resource && this.#armed.has(resource))
+    {
+      resource.OffEvent("completed", null, this);
+      this.#armed.delete(resource);
+    }
+  }
+
   /**
    * Binds this parameter's texture as an unordered-access view at its mip.
    *
@@ -315,24 +324,20 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Consumes the two dirty flags: `resource` drops the attached texture and
-   * re-initializes, `effectHandles` re-resolves against the cached shader.
+   * Carbon drops texture subscriptions and resources on every notification,
+   * then reinitializes and rebuilds effect handles.
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("Carbon resource notifications use CjsResource completion events; resource acquisition remains an explicit Initialize port gap.")
+  OnModified(_propertyName)
   {
-    const flags = this.__state.flags;
-    if (flags.delete("resource"))
-    {
-      this.resource = null;
-      this.#lowResResource = null;
-      this.Initialize();
-    }
-    if (flags.delete("effectHandles"))
-    {
-      this.RebuildEffectHandles(this.#cachedEffect);
-    }
+    this.#ReleaseCompletion(this.resource);
+    this.#ReleaseCompletion(this.#lowResResource);
+    this.resource = null;
+    this.#lowResResource = null;
+    this.Initialize();
+    this.RebuildEffectHandles(this.#cachedEffect);
     return true;
   }
 

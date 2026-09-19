@@ -4,7 +4,7 @@
 //   EveChildInstancedMesh type. It does not; renaming is blocked because SOF
 //   writes this className into DNA documents as a string.
 import { CjsModel } from "#model";
-import { edit, invalidation, type } from "#schema";
+import { edit, type } from "#schema";
 
 
 /**
@@ -15,22 +15,19 @@ import { edit, invalidation, type } from "#schema";
 @type.define({ className: "EveChildInstancedMeshArea", family: "eve/child" })
 export class EveChildInstancedMeshArea extends CjsModel
 {
-  @invalidation.rebuild("instanceBuffer")
+
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
-  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.uint32
   batchType = 0;
 
-  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.uint32
   areaIndex = 0;
 
-  @invalidation.rebuild("instanceBuffer")
   @edit.persist
   @type.uint32
   areaCount = 1;

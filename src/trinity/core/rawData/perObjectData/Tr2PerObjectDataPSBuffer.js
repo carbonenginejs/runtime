@@ -103,6 +103,10 @@ export class Tr2PerObjectDataPSBuffer extends Tr2PerObjectData
     return [ this.ps ];
   }
 
+  /**
+   * Allocates pixel-stage object data and checks its size against the stage
+   * budget.
+   */
   static alloc(accumulator, psStruct)
   {
     const data = new this();

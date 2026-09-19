@@ -2,11 +2,14 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataArea } from "../shared/EveSOFDataArea.js";
 
 /** Carbon-authored hull mesh-area record. */
 @type.define({ className: "EveSOFDataHullArea", family: "eve" })
 export class EveSOFDataHullArea extends CjsModel
 {
+  static AreaType = EveSOFDataArea.AreaType;
+
 
   /** m_areaType (EveSOFDataArea::AreaType - enum AreaType) [READWRITE, PERSIST, ENUM] */
   @edit.persist

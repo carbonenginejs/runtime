@@ -33,7 +33,6 @@ export class EveSmartLightAttributeModifierBucket extends IEveSmartLightGroupAtt
       this.ResetPlayTime(isActive);
     }
     this.active = isActive;
-    this.lastAppliedActive = isActive;
   }
 
   /**

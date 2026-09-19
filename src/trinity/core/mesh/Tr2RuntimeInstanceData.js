@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2RuntimeInstanceData_Blue.cpp
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { Tr2ParticleElementDeclaration } from "../../particle/element/Tr2ParticleElementDeclaration.js";
 import { Tr2VertexUsageCode } from "../vertex/usageCode.js";
 import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceData/index.js";
@@ -32,15 +32,14 @@ export class Tr2RuntimeInstanceData extends CjsModel
   // The JS port persists the whole quintet so instance data authored in JS can
   // round-trip without Carbon's Python/CMF side channels. Carbon-authored
   // .black files never populate these fields.
-  @invalidation.flag("cpuData")
-  @invalidation.rebuild("instanceBuffer")
+
+
   @edit.notify
   @edit.persist
   @type.array("unknown")
   layout = [];
 
-  @invalidation.flag("cpuData")
-  @invalidation.rebuild("instanceBuffer")
+
   @edit.notify
   @edit.persist
   @type.array("unknown")
@@ -103,14 +102,14 @@ export class Tr2RuntimeInstanceData extends CjsModel
   }
 
   /**
-   * Repacks the CPU buffer only when the cpuData flag was scheduled, i.e. layout
-   * or rows actually changed.
+   * Repacks persisted JS layout/rows; GPU publication remains explicit.
    */
-  @carbon.method
-  @impl.adapted
-  OnModified(_options = {})
+  @impl.custom
+  @impl.reason("JS persists layout and rows, unlike Carbon; edits repack CPU data while UpdateData owns GPU publication.")
+  @impl.invalidates("#dirty")
+  OnModified(propertyName)
   {
-    if (this.__state.flags.delete("cpuData"))
+    if (propertyName === "layout" || propertyName === "rows")
     {
       this.#rebuildCpuData();
     }
@@ -123,6 +122,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   SetElementLayout(layout)
   {
     this.#setElementLayout(layout);
@@ -135,6 +135,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   SetData(rows)
   {
     this.#setData(rows);
@@ -158,6 +159,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   SetItem(index, row)
   {
     this.#assertItemIndex(index);
@@ -183,6 +185,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   SetItemElement(index, elementIndex, value)
   {
     this.#assertItemIndex(index);
@@ -387,6 +390,7 @@ export class Tr2RuntimeInstanceData extends CjsModel
    */
   @carbon.method
   @impl.adapted
+  @impl.invalidates("#dirty")
   DestroyData()
   {
     this.rows = [];

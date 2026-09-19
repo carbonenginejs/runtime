@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Tr2MeshArea.cpp
 // Source: trinity/trinity/Tr2MeshArea_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 
 
 /**
@@ -23,27 +23,22 @@ export class Tr2MeshArea extends CjsModel
   @type.boolean
   display = true;
 
-  @invalidation.rebuild("batches")
   @edit.persist
   @type.int32
   index = 0;
 
-  @invalidation.rebuild("batches")
   @edit.persist
   @type.int32
   count = 1;
 
-  @invalidation.rebuild("batches")
   @edit.persistOnly
   @type.boolean
   reversed = false;
 
-  @invalidation.rebuild("batches")
   @edit.persist
   @type.boolean
   useSHLighting = false;
 
-  @invalidation.rebuild("batches")
   @edit.notify
   @edit.persist
   @type.objectRef("Tr2Effect")
@@ -56,25 +51,25 @@ export class Tr2MeshArea extends CjsModel
   // values exchange. Without them every area defaults to shadow-casting.
 
   /** m_castsShadows - per-batch-type shadow participation (SOF-stamped). */
-  @invalidation.rebuild("batches")
+
   @edit.persist
   @type.boolean
   castsShadows = true;
 
   /** m_generateDepthArea - authored depth-area participation (SOF-stamped). */
-  @invalidation.rebuild("batches")
+
   @edit.persist
   @type.boolean
   generateDepthArea = false;
 
   /** m_alphaCutout - decal-style surface whose ray-facing rule is two-sided. */
-  @invalidation.rebuild("batches")
+
   @edit.persist
   @type.boolean
   alphaCutout = false;
 
   /** m_minLod (Tr2Lod) - minimal visible lod; TR2_LOD_UNSPECIFIED = -1. */
-  @invalidation.rebuild("batches")
+
   @edit.persist
   @type.int32
   minLod = -1;

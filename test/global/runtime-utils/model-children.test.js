@@ -18,7 +18,6 @@ CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
 CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
 CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
-CjsSchema.defineField(ChildModel, "deleteRequested", "invalidation", { rebuild: [ "delete" ] });
 
 class ParentModel extends CjsModel
 {
@@ -74,14 +73,10 @@ CjsSchema.defineField(ParentModel, "children", "type", {
     kind: "list",
     itemType: "ChildMutationTestChild"
 });
-CjsSchema.defineField(ParentModel, "children", "edit", { persist: true });
+CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: true });
 CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
-CjsSchema.defineField(ParentModel, "children", "invalidation", {
-    flag: [ "bounds" ],
-    rebuild: [ "children" ]
-});
 
-test("CjsModel child factories hydrate, append, notify, flag, and settle", () => {
+test("CjsModel child factories hydrate, append, notify and settle", () => {
     const parent = new ParentModel();
     const events = [];
 
@@ -101,8 +96,6 @@ test("CjsModel child factories hydrate, append, notify, flag, and settle", () =>
         child,
         length: 1
     }]);
-    assert.equal(parent.__state.flags.has("bounds"), true);
-    assert.equal(parent.__state.rebuild.has("children"), true);
     assert.equal(parent.IsDirty(), false);
     assert.equal(parent.modifiedCount, 1);
     assert.equal(events.length, 1);
@@ -172,7 +165,7 @@ test("CjsModel clear sends unload-start while the collection is populated", () =
     }]);
 });
 
-test("CjsModel child mutation options preserve SetValues dirty and token rules", () => {
+test("CjsModel child mutation options preserve SetValues dirty and notification rules", () => {
     const parent = new ParentModel();
     const child = new ChildModel();
     let eventCount = 0;
@@ -180,34 +173,23 @@ test("CjsModel child mutation options preserve SetValues dirty and token rules",
 
     parent.AddChild(child, { skipUpdate: true, skipEvents: true });
     assert.equal(parent.IsDirty(), true);
-    assert.equal(parent.__state.flags.has("bounds"), true);
-    assert.equal(parent.__state.rebuild.has("children"), true);
     assert.equal(eventCount, 0);
 
     parent.UpdateValues({ skipEvents: true });
-    parent.__state.flags.clear();
-    parent.__state.rebuild.clear();
     parent.RemoveChild(child, { markDirty: false, skipEvents: true });
     assert.equal(parent.IsDirty(), false);
-    assert.equal(parent.__state.flags.size, 0);
-    assert.equal(parent.__state.rebuild.size, 0);
 });
 
-test("child-owned rebuild requests remain context policy, not implicit parent deletion", () => {
+test("a child field does not implicitly delete its owner relationship", () => {
     const parent = new ParentModel();
     const child = parent.CreateChild({ name: "requested" }, { skipEvents: true });
 
-    child.__state.rebuild.clear();
-    parent.__state.rebuild.clear();
     child.SetValues({ deleteRequested: true }, { skipEvents: true });
 
-    assert.equal(child.__state.rebuild.has("delete"), true);
-    assert.equal(parent.__state.rebuild.size, 0);
     assert.deepEqual(parent.children, [ child ]);
 
-    // The context that owns this collection chooses when to consume the token.
+    // Only explicit deletion removes the child.
     assert.equal(parent.DeleteChild(child, { skipEvents: true }), true);
-    child.__state.rebuild.delete("delete");
     assert.deepEqual(parent.children, []);
 });
 

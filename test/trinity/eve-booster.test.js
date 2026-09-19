@@ -181,6 +181,7 @@ test("EveBoosterSet2Renderable maintains Carbon trail spline CPU data", () =>
 {
   const boosters = new EveBoosterSet2();
   boosters.SetTrail(new EveTrailsSet());
+  boosters.SetGlow(new EveSpriteSet());
   boosters.SetCount(1);
   boosters.physicsUpdate = false;
   boosters.alwaysOn = true;
@@ -224,6 +225,7 @@ test("EveBoosterSet2Renderable preserves Carbon trail fades and fixed-step motio
 {
   const boosters = new EveBoosterSet2();
   boosters.SetTrail(new EveTrailsSet());
+  boosters.SetGlow(new EveSpriteSet());
   boosters.SetCount(1);
   boosters.physicsUpdate = false;
 
@@ -413,4 +415,16 @@ test("EveBoosterSet2.UpdateVisibility gates on display and reports glow visibili
 
   set.effect = null;
   assert.deepEqual(set.GetRenderables(), [], "no effect, no batches");
+});
+
+
+test("static trail offsets are rebuilt only while glows are attached", () =>
+{
+  const boosters = new EveBoosterSet2();
+  const before = Array.from(boosters.trailsStaticOffsets4);
+  boosters.SetValues({ staticTrailLength: 40 });
+  assert.deepEqual(Array.from(boosters.trailsStaticOffsets4), before);
+  boosters.SetGlow(new EveSpriteSet());
+  boosters.SetValues({ staticTrailLength: 80 });
+  assert.notDeepEqual(Array.from(boosters.trailsStaticOffsets4), before);
 });

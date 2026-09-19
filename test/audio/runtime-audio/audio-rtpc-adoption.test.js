@@ -1,3 +1,4 @@
+import { CjsModel } from "../../../npm/dist/global/model/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -73,8 +74,7 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
     const second = system.CreateEmitter({ name: "second", position: [ 1, 0, 0 ] });
     const parameter = new AudParameter();
     parameter.SetValues({ name: "speed", value: 2 });
-    first.parameters.push(parameter);
-    first.UpdateValues({ property: "parameters" });
+    CjsModel.addChild(first, "parameters", parameter);
     assert.equal(applied.length, 0, "binding does not push the existing value");
     parameter.SetValues({ name: "renamed" });
     assert.equal(applied.length, 0, "name-only changes do not push");

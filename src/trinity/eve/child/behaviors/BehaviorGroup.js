@@ -206,11 +206,11 @@ export class BehaviorGroup extends EveEntity
   @impl.reason("Blue Var matching maps to the repo's OnModified duck; a mesh change refreshes the (stubbed) vertex declaration and a booster change re-syncs the flare count.")
   OnModified(value = null)
   {
-    if (value === "mesh" || (value !== null && value === this.mesh))
+    if (value === "mesh")
     {
       this.CreateVertexDeclaration();
     }
-    if ((value === "boosters" || (value !== null && value === this.boosters)) && this.boosters !== null)
+    if ((value === "boosters") && this.boosters !== null)
     {
       this.boosters.RebuildFlareBuffer?.(this.actualCount);
     }

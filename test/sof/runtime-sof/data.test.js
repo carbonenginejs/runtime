@@ -110,6 +110,46 @@ test("SOF blink data exposes Carbon enum values and lookup behavior", () => {
   blinkTypes.Blink = blink;
   assert.equal(blinkTypes.GetByType(EveSOFDataBlinkType.Type.BLINK), blink);
   assert.equal(CjsSchema.GetConstructor("EveSOFDataBlink"), EveSOFDataBlink);
+  assert.deepEqual(EveSOFDataBlinkType.BlinkType, {
+    TYPE_STATIC: 0,
+    TYPE_BLINK: 1,
+    TYPE_FADE_IN: 2,
+    TYPE_FADE_OUT: 3,
+    TYPE_CYCLE: 4,
+  });
+});
+
+test("SOF enum fields expose their shared chooser values through schema metadata", async () => {
+  const { Tr2Lod } = await import("../../../npm/dist/global/consts/trinity.js");
+  const { ReflectionMode } = await import("../../../npm/dist/global/consts/graphics/index.js");
+  const cases = [
+    ["generic", "EveSOFDataGeneric", "turretAreaType", "AreaType", EveSOFDataArea.AreaType],
+    ["hull", "EveSOFDataHullArea", "areaType", "AreaType", EveSOFDataArea.AreaType],
+    ["generic", "EveSOFDataGenericHullCategory", "reflectionMode", "ReflectionMode", ReflectionMode],
+    ["hull", "EveSOFDataHullChild", "lowestLodVisible", "Tr2Lod", Tr2Lod],
+    ["hull", "EveSOFDataHullChildSetItem", "lowestLodVisible", "Tr2Lod", Tr2Lod],
+    ["shared", "EveSOFDataInstancedMesh", "lowestLodVisible", "Tr2Lod", Tr2Lod],
+    ["hull", "EveSOFDataHullDecalSetItem", "logoType", "LogoType", EveSOFDataLogoSet.LogoType],
+    ["hull", "EveSOFDataHullDecalSetItem", "glowColorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullHazeSetItem", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullPlaneSetItem", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullSpotlightSetItem", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullSpriteLineSetItem", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullSpriteSetItem", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["shared", "EveSOFDataAreaMaterial", "colorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullLightSetItem", "lightColor", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["race", "EveSOFDataRace", "hullPrimaryHeatColorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["race", "EveSOFDataRace", "hullReactorHeatColorType", "ColorType", EveSOFDataFactionColorSet.ColorType],
+    ["hull", "EveSOFDataHullPlaneSetItem", "blinkMode", "BlinkType", EveSOFDataBlinkType.BlinkType],
+  ];
+  for (const [folder, name, fieldName, enumName, members] of cases)
+  {
+    const { [name]: Constructor } = await import(`../../../npm/dist/sof/${folder}/${name}.js`);
+    assert.equal(Constructor[enumName], members, `${name}.${enumName} shares the canonical object`);
+    new Constructor();
+    const field = CjsSchema.getSchema(Constructor).fields.find(value => value.name === fieldName);
+    assert.deepEqual(field.enum.members, members, `${name}.${fieldName} exposes its chooser`);
+  }
 });
 
 test("EveSOFDataTexture: faithful defaults + schema registration", () => {

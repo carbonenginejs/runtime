@@ -2,6 +2,8 @@
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { EveSOFDataBlinkType } from "../shared/EveSOFDataBlinkType.js";
+import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -10,6 +12,10 @@ import { vec4 } from "#math/vec4";
 @type.define({ className: "EveSOFDataHullPlaneSetItem", family: "eve" })
 export class EveSOFDataHullPlaneSetItem extends CjsModel
 {
+  static BlinkType = EveSOFDataBlinkType.BlinkType;
+
+  static ColorType = EveSOFDataFactionColorSet.ColorType;
+
 
   /** m_blinkMode (int32_t) [READWRITE, PERSIST, ENUM] */
   @edit.persist

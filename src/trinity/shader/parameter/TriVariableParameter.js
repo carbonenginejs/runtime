@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Shader/Parameter/TriVariableParameter.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import { carbon, edit, impl, invalidation, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
 
@@ -10,7 +10,7 @@ export class TriVariableParameter extends CjsParameter
 {
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @invalidation.flag("effectHandles")
+
   @edit.notify
   @edit.persist
   @type.string
@@ -27,7 +27,7 @@ export class TriVariableParameter extends CjsParameter
   usedByCurrentEffect = false;
 
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
-  @invalidation.flag("variable")
+
   @edit.notify
   @edit.persist
   @type.string
@@ -82,16 +82,16 @@ export class TriVariableParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  OnModified(_options = {})
+  @impl.reason("JS identifies the changed member by its exposed property name; variable-store and effect binding adaptations remain on their owning methods.")
+  OnModified(propertyName)
   {
-    const flags = this.__state.flags;
-    if (flags.delete("variable"))
-    {
-      this.Initialize(this.variableStore);
-    }
-    if (flags.delete("effectHandles"))
+    if (propertyName === "name")
     {
       this.RebuildEffectHandles(this.cachedEffect);
+    }
+    else
+    {
+      this.Initialize();
     }
     return true;
   }
