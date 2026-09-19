@@ -658,3 +658,22 @@ function makeLegacyChannelDdsHeader(width, height, pfFlags, bitCount, payload = 
     bytes.set(payload, 128);
     return bytes;
 }
+
+test("decodes every packed luminance and alpha pixel across multiple rows", () =>
+{
+    for (const [flags, bits, payload, expected] of [
+        [0x20000, 8, [10, 20, 30, 40],
+            [10,10,10,255,20,20,20,255,30,30,30,255,40,40,40,255]],
+        [0x20001, 16, [10,50,20,60,30,70,40,80],
+            [10,10,10,50,20,20,20,60,30,30,30,70,40,40,40,80]],
+        [0x2, 8, [10,20,30,40],
+            [0,0,0,10,0,0,0,20,0,0,0,30,0,0,0,40]],
+        [0x40, 8, [10,20,30,40],
+            [10,10,10,255,20,20,20,255,30,30,30,255,40,40,40,255]]
+    ])
+    {
+        const bytes = makeLegacyChannelDdsHeader(2, 2, flags, bits, payload);
+        assert.deepEqual(Array.from(CjsDdsFormat.read(bytes, {emit: "rgba"}).data), expected);
+    }
+});
+

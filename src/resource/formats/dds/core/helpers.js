@@ -727,9 +727,12 @@ function getDdsLevelLayout(pixelFormat, width, height, depth)
 function decodeUncompressed(source, metadata)
 {
     const rgba = new Uint8Array(metadata.width * metadata.height * 4);
+    // Legacy luminance/alpha pixels are packed too: L8/A8 use one byte,
+    // L8A8 uses two. A four-byte stride skips samples and blacks out most
+    // of the decoded surface (including planet height maps).
     const bytesPerPixel = metadata.pixelFormat === "bgr8unorm" ? 3 :
-        metadata.pixelFormat === "rg8unorm" ? 2 :
-            metadata.pixelFormat === "r8unorm" ? 1 : 4;
+        [ "rg8unorm", "l8a8unorm" ].includes(metadata.pixelFormat) ? 2 :
+            [ "r8unorm", "l8unorm", "a8unorm" ].includes(metadata.pixelFormat) ? 1 : 4;
     for (let pixel = 0; pixel < metadata.width * metadata.height; pixel++)
     {
         const sourceOffset = pixel * bytesPerPixel;
@@ -1186,6 +1189,7 @@ function getDdsPixelFormat(format)
     if ((format.pfFlags & DDS_ALPHA) && format.rgbBitCount === 8) return "a8unorm";
     return "";
 }
+
 
 
 
