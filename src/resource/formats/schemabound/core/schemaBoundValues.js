@@ -25,6 +25,11 @@ export function ReadValue(context, offset, node) {
     // that a number is a key.
     case "localizationID": case "typeID": case "factionID": case "groupID":
     case "categoryID": case "graphicID": case "iconID": case "fsdReference":
+    // `typeListID` names a row in a type-list table. Frontier declares it in the
+    // embedded schema of `solarsystemcontent.static` (field
+    // `constructableTypeListID`, alongside `graphicID` in the same node shape);
+    // Tranquility has no such type, which is why it went unseen.
+    case "typeListID":
       return ReadInt(context, offset, { size: node.size ?? 4, min: 0 });
     case "float": return ReadFloat(context, offset, node);
     case "bool": return { value: context.view.getUint8(offset) !== 0, size: node.size ?? 1 };
