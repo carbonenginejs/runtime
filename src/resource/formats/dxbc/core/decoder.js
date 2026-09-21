@@ -1,4 +1,4 @@
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 import {
     DXBC_OPCODE_CUSTOMDATA,
     DxbcBooleanTestOpcodeNames,
@@ -299,7 +299,7 @@ export class DxbcInstructionDecoder
     /**
    * Decodes every instruction in a shader program token stream.
    *
-   * @param {import("./program.js").DxbcShaderProgram} program Parsed `SHEX`/`SHDR` program.
+   * @param {import("./DxbcShaderProgram.js").DxbcShaderProgram} program Parsed `SHEX`/`SHDR` program.
    * @param {object} [options] Decode options.
    * @param {string} [options.source] Source name used in error details.
    * @returns {DxbcInstructionDecoder} This decoder.

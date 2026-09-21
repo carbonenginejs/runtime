@@ -7,7 +7,7 @@ import { CjsReader } from "../../../../src/resource/format/CjsReader.js";
 import { CjsCarbonEffectReader } from "../../../../src/resource/format/carbonEffect/CjsCarbonEffectReader.js";
 import { HlslReader } from "../../../../src/resource/formats/hlsl/core/HlslReader.js";
 import { DxbcReader } from "../../../../src/resource/formats/dxbc/core/DxbcReader.js";
-import { DxbcReadError } from "../../../../src/resource/formats/dxbc/core/errors.js";
+import { DxbcReadError } from "../../../../src/resource/formats/dxbc/core/DxbcReadError.js";
 import { CjsBlackReader } from "../../../../src/resource/formats/black/core/CjsBlackReader.js";
 import {
     CJS_BLACK_FOURCC,

@@ -1,4 +1,4 @@
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 
 /**
  * Program type names indexed by the SM4/SM5 version-token program-type field.

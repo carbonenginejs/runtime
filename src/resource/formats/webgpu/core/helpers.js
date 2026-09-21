@@ -13,7 +13,7 @@ import {
     deriveWgsl,
     resolvedPermutationIndex
 } from "./carbonWebgpu/containerViews.js";
-import { WebgpuReadError } from "./errors.js";
+import { WebgpuReadError } from "./WebgpuReadError.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import {
     normalizeEffectPermutation,

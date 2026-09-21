@@ -30,20 +30,8 @@
     "src/resource/formats/dds/core/bc7.js": [
       "Bc7BitReader"
     ],
-    "src/resource/formats/dxbc/core/container.js": [
-      "DxbcContainer"
-    ],
     "src/resource/formats/dxbc/core/decoder.js": [
       "DxbcInstructionDecoder"
-    ],
-    "src/resource/formats/dxbc/core/errors.js": [
-      "DxbcReadError"
-    ],
-    "src/resource/formats/dxbc/core/program.js": [
-      "DxbcShaderProgram"
-    ],
-    "src/resource/formats/dxbc/core/signature.js": [
-      "DxbcSignatureChunk"
     ],
     "src/resource/formats/fbx/core/helpers.js": [
       "DeflateBitReader",
@@ -73,15 +61,6 @@
     ],
     "src/resource/formats/stl/core/stl.js": [
       "DisjointSet"
-    ],
-    "src/resource/formats/webgl/core/errors.js": [
-      "WebglReadError"
-    ],
-    "src/resource/formats/webgl/core/glsl/DxbcGlslHelpers.js": [
-      "DxbcGlslHelperRegistry"
-    ],
-    "src/resource/formats/webgpu/core/errors.js": [
-      "WebgpuReadError"
     ],
     "src/resource/formats/wem/core/bitStream.js": [
       "WemBitstreamError",

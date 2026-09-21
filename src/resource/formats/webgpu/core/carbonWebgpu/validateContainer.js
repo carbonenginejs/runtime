@@ -1,4 +1,4 @@
-import { WebgpuReadError } from "../errors.js";
+import { WebgpuReadError } from "../WebgpuReadError.js";
 
 /**
  * Structural validation for a loaded WebGPU effect container.

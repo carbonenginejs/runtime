@@ -1,5 +1,5 @@
 import { CjsByteReader } from "../../../format/CjsByteReader.js";
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 
 /**
  * Little-endian binary reader for DirectX shader bytecode.

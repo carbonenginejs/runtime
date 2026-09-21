@@ -13,7 +13,7 @@ import { asUint8Array } from "#utils/bytes";
 
 import { DxbcGlslEmitter } from "./glsl/DxbcGlslEmitter.js";
 import { applyPackedLightFixups } from "./glsl/packedLightFixups.js";
-import { WebglReadError } from "./errors.js";
+import { WebglReadError } from "./WebglReadError.js";
 import {
     looksLikeCarbonEffectContainer
 } from "../../../format/carbonEffect/CjsCarbonEffectReader.js";

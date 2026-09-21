@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { CjsDxbcFormat } from "../../../../../src/resource/formats/dxbc/index.js";
-import { DxbcContainer } from "../../../../../src/resource/formats/dxbc/core/container.js";
+import { DxbcContainer } from "../../../../../src/resource/formats/dxbc/core/DxbcContainer.js";
 import { buildContainer, buildMinimalVertexDxbc } from "./synthetic.js";
 
 test("DxbcContainer reads a synthetic chunk directory", () =>

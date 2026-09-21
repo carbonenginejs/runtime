@@ -1,5 +1,5 @@
 import { DxbcReader } from "./DxbcReader.js";
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 
 const SIGNATURE_TABLE_HEADER_SIZE = 8;
 

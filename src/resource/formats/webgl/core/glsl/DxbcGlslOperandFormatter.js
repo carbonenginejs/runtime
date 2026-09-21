@@ -1,4 +1,4 @@
-import { WebglReadError } from "../errors.js";
+import { WebglReadError } from "../WebglReadError.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const COMPONENT_INDEX = { x: 0, y: 1, z: 2, w: 3 };

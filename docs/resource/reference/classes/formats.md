@@ -187,7 +187,7 @@ Bounded little-endian byte cursor over DXBC payloads, with optional shared strin
 Parsed DXBC container that locates and exposes its four-character-code chunks.
 
 - Export: `None`
-- Source: `src/resource/formats/dxbc/core/container.js`
+- Source: `src/resource/formats/dxbc/core/DxbcContainer.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -207,7 +207,7 @@ Decodes the DXBC shader token stream into structured instructions, operands, and
 Error raised when DXBC bytes are malformed, truncated, or structurally invalid.
 
 - Export: `None`
-- Source: `src/resource/formats/dxbc/core/errors.js`
+- Source: `src/resource/formats/dxbc/core/DxbcReadError.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -217,7 +217,7 @@ Error raised when DXBC bytes are malformed, truncated, or structurally invalid.
 Decoded DXBC shader program: version, stage type, and its ordered instruction stream.
 
 - Export: `None`
-- Source: `src/resource/formats/dxbc/core/program.js`
+- Source: `src/resource/formats/dxbc/core/DxbcShaderProgram.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -227,7 +227,7 @@ Decoded DXBC shader program: version, stage type, and its ordered instruction st
 Parsed DXBC input, output, or patch-constant signature chunk and its parameter records.
 
 - Export: `None`
-- Source: `src/resource/formats/dxbc/core/signature.js`
+- Source: `src/resource/formats/dxbc/core/DxbcSignatureChunk.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -1535,7 +1535,7 @@ WebGL shader format profile that translates compiled Carbon effects into Carbon 
 Error raised when container bytes or their backend blocks are malformed or inconsistent.
 
 - Export: `None`
-- Source: `src/resource/formats/webgl/core/errors.js`
+- Source: `src/resource/formats/webgl/core/WebglReadError.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -1555,7 +1555,7 @@ Translates decoded DXBC shader programs into GLSL for the WebGL backend.
 Collects and emits the GLSL helper functions a translated program requires.
 
 - Export: `None`
-- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslHelpers.js`
+- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslHelperRegistry.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -1597,7 +1597,7 @@ Reader over one WebGPU effect container.
 Error raised when Carbon WebGPU bytes or package documents are malformed or inconsistent.
 
 - Export: `None`
-- Source: `src/resource/formats/webgpu/core/errors.js`
+- Source: `src/resource/formats/webgpu/core/WebgpuReadError.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 

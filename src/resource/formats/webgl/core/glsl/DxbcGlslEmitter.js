@@ -1,7 +1,7 @@
 import CjsDxbcFormat from "../../../dxbc/index.js";
-import { WebglReadError } from "../errors.js";
+import { WebglReadError } from "../WebglReadError.js";
 import { DxbcGlslOperandFormatter } from "./DxbcGlslOperandFormatter.js";
-import { DxbcGlslHelperRegistry } from "./DxbcGlslHelpers.js";
+import { DxbcGlslHelperRegistry } from "./DxbcGlslHelperRegistry.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 

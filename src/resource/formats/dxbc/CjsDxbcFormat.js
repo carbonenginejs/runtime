@@ -7,7 +7,7 @@ import { CjsFormat } from "../../format/CjsFormat.js";
  * the shared read path live in core/helpers.js.
  */
 
-import { DxbcContainer } from "./core/container.js";
+import { DxbcContainer } from "./core/DxbcContainer.js";
 import { disassembleInstructions } from "./core/disassemble.js";
 import {
     DEFAULT_VALUES,

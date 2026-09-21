@@ -11,7 +11,7 @@ import {
     CARBON_BACKEND_ENGINE_ID,
     readBackendEngineId
 } from "../../../format/carbonEffect/backendEngineId.js";
-import { DxbcComponentTypeNames } from "../../dxbc/core/signature.js";
+import { DxbcComponentTypeNames } from "../../dxbc/core/DxbcSignatureChunk.js";
 import { DxbcResourceDimensionNames } from "../../dxbc/core/decoder.js";
 
 /**

@@ -1,8 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { DxbcContainer } from "../../../../../src/resource/formats/dxbc/core/container.js";
-import { DxbcShaderProgram } from "../../../../../src/resource/formats/dxbc/core/program.js";
+import { DxbcContainer } from "../../../../../src/resource/formats/dxbc/core/DxbcContainer.js";
+import { DxbcShaderProgram } from "../../../../../src/resource/formats/dxbc/core/DxbcShaderProgram.js";
 import { DxbcInstructionDecoder } from "../../../../../src/resource/formats/dxbc/core/decoder.js";
 import { buildContainer, buildMinimalVertexDxbc, buildMinimalVertexShex, opcodeToken, versionToken } from "./synthetic.js";
 

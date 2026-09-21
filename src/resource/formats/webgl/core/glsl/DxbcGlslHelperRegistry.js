@@ -1,4 +1,4 @@
-import { WebglReadError } from "../errors.js";
+import { WebglReadError } from "../WebglReadError.js";
 
 /**
  * Registry of GLSL helper functions the emitter can require per shader.

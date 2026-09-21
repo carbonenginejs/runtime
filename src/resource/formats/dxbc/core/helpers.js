@@ -9,11 +9,11 @@ import { asUint8Array } from "#utils/bytes";
  * static one-shots, and JSON conversion live here.
  */
 
-import { DxbcContainer } from "./container.js";
-import { DxbcSignatureChunk } from "./signature.js";
-import { DxbcShaderProgram } from "./program.js";
+import { DxbcContainer } from "./DxbcContainer.js";
+import { DxbcSignatureChunk } from "./DxbcSignatureChunk.js";
+import { DxbcShaderProgram } from "./DxbcShaderProgram.js";
 import { DxbcInstructionDecoder } from "./decoder.js";
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_RAW = "raw";

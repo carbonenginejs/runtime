@@ -1,6 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { DxbcReader } from "./DxbcReader.js";
-import { DxbcReadError } from "./errors.js";
+import { DxbcReadError } from "./DxbcReadError.js";
 
 const DXBC_HEADER_SIZE = 32;
 const DXBC_CHUNK_HEADER_SIZE = 8;
