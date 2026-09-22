@@ -135,6 +135,26 @@ Texture type, format, size and mip layout, with the mip arithmetic every create,
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:HostBitmap -->
+## `HostBitmap`
+
+A texture description and its CPU bytes: create, lay out, convert, filter and sample images between a reader and a texture upload, with Carbon's own quirks kept.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/HostBitmap.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:ImageUtility -->
+## `ImageUtility`
+
+Single-pixel reads from BGRA, BGRX, R8, BC1 and BC3 data as packed 0xAARRGGBB, including two reproduced Carbon BC3 bugs.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/ImageUtility.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:BlueClasses -->
 ## `BlueClasses`
 

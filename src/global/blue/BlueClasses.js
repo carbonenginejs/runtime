@@ -46,7 +46,7 @@ export class BlueClasses extends IBlueClasses
   static Flags = ClassRegistrationFlags;
 
   /** Carbon's per-registration createFn and flags, where they differ from `new type()` and 0. */
-  #extras = new Map();
+  _extras = new Map();
 
   /**
    * Register every entry of a table (BlueClasses.cpp:296-302).
@@ -57,7 +57,7 @@ export class BlueClasses extends IBlueClasses
   {
     for (const registration of table)
     {
-      this.#RegisterSingleClass(registration);
+      this._RegisterSingleClass(registration);
     }
   }
 
@@ -70,7 +70,7 @@ export class BlueClasses extends IBlueClasses
   {
     for (const registration of table)
     {
-      this.#extras.delete(registration.name);
+      this._extras.delete(registration.name);
       CjsSchema.DeleteConstructor(registration.name);
     }
   }
@@ -87,7 +87,7 @@ export class BlueClasses extends IBlueClasses
 
     if (!type) return null;
 
-    const extras = this.#extras.get(clsid);
+    const extras = this._extras.get(clsid);
 
     return {
       name: clsid,
@@ -133,7 +133,7 @@ export class BlueClasses extends IBlueClasses
   }
 
   /** Register one entry, refusing a name already taken (BlueClasses.cpp:266-280). */
-  #RegisterSingleClass(registration)
+  _RegisterSingleClass(registration)
   {
     const { name, type } = registration;
 
@@ -148,7 +148,7 @@ export class BlueClasses extends IBlueClasses
 
     if (registration.createFn || registration.flags)
     {
-      this.#extras.set(name, { createFn: registration.createFn, flags: registration.flags ?? 0 });
+      this._extras.set(name, { createFn: registration.createFn, flags: registration.flags ?? 0 });
     }
   }
 

@@ -7,3 +7,5 @@
 // global/blue: declare metadata with CjsSchema.define at the foot of a file.
 
 export * from "./BitmapDimensions.js";
+export * from "./ImageUtility.js";
+export * from "./HostBitmap.js";
