@@ -1,5 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 /**
  * Exposed CarbonEngineJS-facing glTF/GLB format class.
  *
@@ -21,8 +22,6 @@ import {
     normalizeValues,
     readWithValues,
     toJsonValue,
-    validateClass,
-    validateClassKey
 } from "./core/helpers.js";
 
 const FORMAT_NAME = "CjsGltfFormat";
@@ -37,18 +36,18 @@ const FORMAT_NAME = "CjsGltfFormat";
  * CarbonEngineJS mesh, skeleton, and animation graph. JSON is an explicit
  * debug/output projection rather than an intermediate format contract.
  */
-export class CjsGltfFormat extends CjsFormat
+export class CjsGltfFormat extends CjsGeometryFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
-    #buffers = DEFAULT_VALUES.buffers;
-    #packTangents = DEFAULT_VALUES.packTangents;
-    #uvHandedness = DEFAULT_VALUES.uvHandedness;
-    #rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
-    #rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
-    #rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
-    #classes = DEFAULT_VALUES.classes;
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
+    _buffers = DEFAULT_VALUES.buffers;
+    _packTangents = DEFAULT_VALUES.packTangents;
+    _uvHandedness = DEFAULT_VALUES.uvHandedness;
+    _rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
+    _rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
+    _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
+    _classes = DEFAULT_VALUES.classes;
 
     /**
      * Create a reusable format profile.
@@ -71,15 +70,15 @@ export class CjsGltfFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
 
-        this.#emit = values.emit;
-        this.#source = values.source;
-        this.#buffers = values.buffers;
-        this.#packTangents = values.packTangents;
-        this.#uvHandedness = values.uvHandedness;
-        this.#rebuildMissingNormals = values.rebuildMissingNormals;
-        this.#rebuildMissingTangents = values.rebuildMissingTangents;
-        this.#rebuildMissingBiNormals = values.rebuildMissingBiNormals;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._source = values.source;
+        this._buffers = values.buffers;
+        this._packTangents = values.packTangents;
+        this._uvHandedness = values.uvHandedness;
+        this._rebuildMissingNormals = values.rebuildMissingNormals;
+        this._rebuildMissingTangents = values.rebuildMissingTangents;
+        this._rebuildMissingBiNormals = values.rebuildMissingBiNormals;
+        this._classes = values.classes;
 
         return this;
     }
@@ -93,72 +92,16 @@ export class CjsGltfFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source,
-            buffers: this.#buffers,
-            packTangents: this.#packTangents,
-            uvHandedness: this.#uvHandedness,
-            rebuildMissingNormals: this.#rebuildMissingNormals,
-            rebuildMissingTangents: this.#rebuildMissingTangents,
-            rebuildMissingBiNormals: this.#rebuildMissingBiNormals,
-            classes: this.#classes
+            emit: this._emit,
+            source: this._source,
+            buffers: this._buffers,
+            packTangents: this._packTangents,
+            uvHandedness: this._uvHandedness,
+            rebuildMissingNormals: this._rebuildMissingNormals,
+            rebuildMissingTangents: this._rebuildMissingTangents,
+            rebuildMissingBiNormals: this._rebuildMissingBiNormals,
+            classes: this._classes
         }, options, FORMAT_NAME);
-    }
-
-    /**
-     * Set multiple node-class constructors for this profile.
-     *
-     * @param {object} [classes] Map of node class keys to constructors.
-     * @returns {CjsGltfFormat} This format profile.
-     */
-    SetClasses(classes = {})
-    {
-        return this.SetValues({ classes });
-    }
-
-    /**
-     * Set one node-class constructor for this profile.
-     *
-     * @param {string} type Node class key.
-     * @param {Function|null|undefined} Class Constructor to use, or nullish to delete.
-     * @returns {CjsGltfFormat} This format profile.
-     */
-    SetClass(type, Class)
-    {
-        if (Class === null || Class === undefined)
-        {
-            validateClassKey(type, FORMAT_NAME);
-            const classes = { ...this.#classes };
-            delete classes[type];
-            this.#classes = classes;
-            return this;
-        }
-
-        validateClass(type, Class, FORMAT_NAME);
-        return this.SetValues({ classes: { [type]: Class } });
-    }
-
-    /**
-     * Get a configured node-class constructor.
-     *
-     * @param {string} type Node class key.
-     * @returns {Function|undefined} The registered constructor, if any.
-     */
-    GetClass(type)
-    {
-        validateClassKey(type, FORMAT_NAME);
-        return this.#classes[type];
-    }
-
-    /**
-     * Whether this format profile has a constructor registered for a node key.
-     *
-     * @param {string} type Node class key.
-     * @returns {boolean} True when a constructor is registered.
-     */
-    HasClass(type)
-    {
-        return !!this.GetClass(type);
     }
 
     /**
@@ -279,7 +222,6 @@ export class CjsGltfFormat extends CjsFormat
     });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsGltfFormat";
-    static mediaTypes = Object.freeze([ "geometry" ]);
     static outputs = CjsFormat.defineOutputs({
         shared: { default: true, decoded: true },
         gr2: { decoded: true },

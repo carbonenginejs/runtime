@@ -1,4 +1,5 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 /**
  * Exposed CarbonEngineJS-facing CMF format class.
  *
@@ -29,8 +30,6 @@ import {
     readWithValues,
     readWithValuesAsync,
     toJsonValue,
-    validateClass,
-    validateClassKey
 } from "./core/helpers.js";
 
 /**
@@ -41,12 +40,12 @@ import {
  * shared geometry, emit shared geometry when requested, or hydrate
  * caller-supplied CarbonEngineJS-style classes.
  */
-export class CjsCmfFormat extends CjsFormat
+export class CjsCmfFormat extends CjsGeometryFormat
 {
-    #emit = DEFAULT_VALUES.emit;
-    #validateCrc = DEFAULT_VALUES.validateCrc;
-    #decodeBuffers = DEFAULT_VALUES.decodeBuffers;
-    #classes = {};
+    _emit = DEFAULT_VALUES.emit;
+    _validateCrc = DEFAULT_VALUES.validateCrc;
+    _decodeBuffers = DEFAULT_VALUES.decodeBuffers;
+    _classes = {};
 
     /**
      * Create a reusable format profile.
@@ -69,10 +68,10 @@ export class CjsCmfFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options);
 
-        this.#emit = values.emit;
-        this.#validateCrc = values.validateCrc;
-        this.#decodeBuffers = values.decodeBuffers;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._validateCrc = values.validateCrc;
+        this._decodeBuffers = values.decodeBuffers;
+        this._classes = values.classes;
 
         return this;
     }
@@ -86,66 +85,11 @@ export class CjsCmfFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            validateCrc: this.#validateCrc,
-            decodeBuffers: this.#decodeBuffers,
-            classes: this.#classes
+            emit: this._emit,
+            validateCrc: this._validateCrc,
+            decodeBuffers: this._decodeBuffers,
+            classes: this._classes
         }, options);
-    }
-
-    /**
-     * Set multiple CMF JSON node constructors for this profile.
-     *
-     * @param {object} [classes] Map of node class keys to constructors.
-     * @returns {CjsCmfFormat} This format profile.
-     */
-    SetClasses(classes = {})
-    {
-        return this.SetValues({ classes });
-    }
-
-    /**
-     * Set a CMF JSON node constructor for this profile.
-     *
-     * @param {string} type Node class key.
-     * @param {Function|null|undefined} Class Constructor to use, or nullish to delete.
-     * @returns {CjsCmfFormat} This format profile.
-     */
-    SetClass(type, Class)
-    {
-        validateClassKey(type);
-        if (Class === null || Class === undefined)
-        {
-            delete this.#classes[type];
-            return this;
-        }
-
-        validateClass(type, Class);
-        this.#classes = { ...this.#classes, [type]: Class };
-        return this;
-    }
-
-    /**
-     * Get a configured CMF JSON node constructor.
-     *
-     * @param {string} type Node class key.
-     * @returns {Function|undefined}
-     */
-    GetClass(type)
-    {
-        validateClassKey(type);
-        return this.#classes[type];
-    }
-
-    /**
-     * Whether this reader has a constructor for a CMF JSON node key.
-     *
-     * @param {string} type Node class key.
-     * @returns {boolean}
-     */
-    HasClass(type)
-    {
-        return !!this.GetClass(type);
     }
 
     /**
@@ -516,7 +460,6 @@ export class CjsCmfFormat extends CjsFormat
     });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsCmfFormat";
-    static mediaTypes = Object.freeze([ "geometry" ]);
     // The writer's own graph is the default: `write` takes a CMF-native graph,
     // while `writeShared` converts a shared geometry root through it first.
     // Both are lossless - CMF is the container this package writes for keeps.

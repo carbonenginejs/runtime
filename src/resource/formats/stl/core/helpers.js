@@ -2,6 +2,7 @@
  * Internal pipeline glue for CjsStlFormat.
  */
 
+import { CjsGeometryFormat } from "../../../format/CjsGeometryFormat.js";
 import { toJsonWithArrayValues as toJsonValue } from "../../../format/jsonPolicies.js";
 import { hydrateJson } from "./json.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS } from "./targets.js";
@@ -94,10 +95,7 @@ function validateNumber(name, value, readerName, { minExclusive = null, minInclu
  */
 export function validateClassKey(key, readerName = "CjsStlFormat")
 {
-    if (!CLASS_KEYS.includes(key))
-    {
-        throw new Error(`${readerName}: unknown class key ${JSON.stringify(key)}; expected one of ${CLASS_KEYS.join(", ")}`);
-    }
+    CjsGeometryFormat.validateClassKey(key, CLASS_KEYS, readerName);
 }
 
 /**
@@ -109,11 +107,7 @@ export function validateClassKey(key, readerName = "CjsStlFormat")
  */
 export function validateClass(key, Class, readerName = "CjsStlFormat")
 {
-    validateClassKey(key, readerName);
-    if (typeof Class !== "function")
-    {
-        throw new TypeError(`${readerName}: class ${JSON.stringify(key)} must be a constructor`);
-    }
+    CjsGeometryFormat.validateClass(key, Class, CLASS_KEYS, readerName);
 }
 
 function mergeClasses(base, classes, readerName)

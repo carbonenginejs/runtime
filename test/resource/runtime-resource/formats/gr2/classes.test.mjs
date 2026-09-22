@@ -615,18 +615,19 @@ test("direct CMF emission retains reflected tangent-only x3 widths", () =>
 
 test("CjsGr2Format instances expose only the PascalCase public profile API", () =>
 {
+    // The class registry is inherited from CjsGeometryFormat.
+    for (const name of [ "SetClasses", "SetClass", "GetClass", "HasClass" ])
+    {
+        assert.equal(typeof CjsGr2Format.prototype[name], "function", name);
+    }
     assert.deepEqual(Object.getOwnPropertyNames(CjsGr2Format.prototype).sort(), [
-        "GetClass",
         "GetValues",
-        "HasClass",
         "Inspect",
         "InspectGSF",
         "IsGSF",
         "Read",
         "ReadGSF",
         "ReadRaw",
-        "SetClass",
-        "SetClasses",
         "SetValues",
         "ToJSON",
         "Write",

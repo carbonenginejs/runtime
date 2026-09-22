@@ -1,4 +1,5 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 
 import { curves } from "./core/curves.js";
 import { GR2_MAGICS, bytesToHex } from "./core/reader.js";
@@ -18,8 +19,6 @@ import {
     readRawInput,
     readWithValues,
     toJsonValue,
-    validateClass,
-    validateClassKey
 } from "./core/helpers.js";
 
 /**
@@ -31,16 +30,16 @@ import {
  * writes pure-JavaScript GR2 geometry from CMF without pretending those
  * classes are the engine runtime itself.
  */
-export class CjsGr2Format extends CjsFormat
+export class CjsGr2Format extends CjsGeometryFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #decompressCurves = DEFAULT_VALUES.decompressCurves;
-    #unpackTangents = DEFAULT_VALUES.unpackTangents;
-    #rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
-    #rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
-    #rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
-    #classes = {};
+    _emit = DEFAULT_VALUES.emit;
+    _decompressCurves = DEFAULT_VALUES.decompressCurves;
+    _unpackTangents = DEFAULT_VALUES.unpackTangents;
+    _rebuildMissingNormals = DEFAULT_VALUES.rebuildMissingNormals;
+    _rebuildMissingTangents = DEFAULT_VALUES.rebuildMissingTangents;
+    _rebuildMissingBiNormals = DEFAULT_VALUES.rebuildMissingBiNormals;
+    _classes = {};
 
     /**
      * Create a reusable format profile.
@@ -63,13 +62,13 @@ export class CjsGr2Format extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options);
 
-        this.#emit = values.emit;
-        this.#decompressCurves = values.decompressCurves;
-        this.#unpackTangents = values.unpackTangents;
-        this.#rebuildMissingNormals = values.rebuildMissingNormals;
-        this.#rebuildMissingTangents = values.rebuildMissingTangents;
-        this.#rebuildMissingBiNormals = values.rebuildMissingBiNormals;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._decompressCurves = values.decompressCurves;
+        this._unpackTangents = values.unpackTangents;
+        this._rebuildMissingNormals = values.rebuildMissingNormals;
+        this._rebuildMissingTangents = values.rebuildMissingTangents;
+        this._rebuildMissingBiNormals = values.rebuildMissingBiNormals;
+        this._classes = values.classes;
 
         return this;
     }
@@ -83,69 +82,14 @@ export class CjsGr2Format extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            decompressCurves: this.#decompressCurves,
-            unpackTangents: this.#unpackTangents,
-            rebuildMissingNormals: this.#rebuildMissingNormals,
-            rebuildMissingTangents: this.#rebuildMissingTangents,
-            rebuildMissingBiNormals: this.#rebuildMissingBiNormals,
-            classes: this.#classes
+            emit: this._emit,
+            decompressCurves: this._decompressCurves,
+            unpackTangents: this._unpackTangents,
+            rebuildMissingNormals: this._rebuildMissingNormals,
+            rebuildMissingTangents: this._rebuildMissingTangents,
+            rebuildMissingBiNormals: this._rebuildMissingBiNormals,
+            classes: this._classes
         }, options);
-    }
-
-    /**
-     * Set multiple GR2 JSON node constructors for this profile.
-     *
-     * @param {object} [classes] Map of node class keys to constructors.
-     * @returns {CjsGr2Format} This format profile.
-     */
-    SetClasses(classes = {})
-    {
-        return this.SetValues({ classes });
-    }
-
-    /**
-     * Set a GR2 JSON node constructor for this profile.
-     *
-     * @param {string} type Node class key.
-     * @param {Function|null|undefined} Class Constructor to use, or nullish to delete.
-     * @returns {CjsGr2Format} This format profile.
-     */
-    SetClass(type, Class)
-    {
-        validateClassKey(type);
-        if (Class === null || Class === undefined)
-        {
-            delete this.#classes[type];
-            return this;
-        }
-
-        validateClass(type, Class);
-        this.#classes = { ...this.#classes, [type]: Class };
-        return this;
-    }
-
-    /**
-     * Get a configured GR2 JSON node constructor.
-     *
-     * @param {string} type Node class key.
-     * @returns {Function|undefined}
-     */
-    GetClass(type)
-    {
-        validateClassKey(type);
-        return this.#classes[type];
-    }
-
-    /**
-     * Whether this reader has a constructor for a GR2 JSON node key.
-     *
-     * @param {string} type Node class key.
-     * @returns {boolean}
-     */
-    HasClass(type)
-    {
-        return !!this.GetClass(type);
     }
 
     /**
@@ -345,7 +289,6 @@ export class CjsGr2Format extends CjsFormat
     static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsGr2Format";
-    static mediaTypes = Object.freeze([ "geometry" ]);
     // Same shape as the other geometry writers: a native CMF v1 graph is the
     // default input, and `writeShared` adapts a shared or GR2-shaped root.
     static inputs = CjsFormat.defineInputs({

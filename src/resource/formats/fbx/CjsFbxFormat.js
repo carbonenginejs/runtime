@@ -1,5 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 import {
     CLASS_KEYS,
     DEFAULT_VALUES,
@@ -28,9 +29,9 @@ const FORMAT_NAME = "CjsFbxFormat";
  * and exported from native CMF in pure JavaScript. Geometry, skeletons, skin,
  * morph targets, and their animations are in scope; cameras and lights are not.
  */
-export class CjsFbxFormat extends CjsFormat
+export class CjsFbxFormat extends CjsGeometryFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable FBX format profile.
@@ -51,7 +52,7 @@ export class CjsFbxFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "fbx", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "fbx", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -63,7 +64,7 @@ export class CjsFbxFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "fbx", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "fbx", ...options }, FORMAT_NAME);
     }
 
     /**
@@ -94,9 +95,9 @@ export class CjsFbxFormat extends CjsFormat
 
         if (Class === null || Class === undefined)
         {
-            const classes = { ...this.#values.classes };
+            const classes = { ...this._values.classes };
             delete classes[type];
-            this.#values = { ...this.#values, classes };
+            this._values = { ...this._values, classes };
             return this;
         }
 
@@ -113,7 +114,7 @@ export class CjsFbxFormat extends CjsFormat
     GetClass(type)
     {
         validateClassKey(type, FORMAT_NAME);
-        return this.#values.classes[type];
+        return this._values.classes[type];
     }
 
     /**
@@ -287,7 +288,6 @@ export class CjsFbxFormat extends CjsFormat
     });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsFbxFormat";
-    static mediaTypes = Object.freeze([ "geometry" ]);
     // FBX is written THROUGH CMF: `write` takes a native CMF graph and
     // `writeShared` converts shared or GR2-shaped geometry into one first.
     static inputs = CjsFormat.defineInputs({

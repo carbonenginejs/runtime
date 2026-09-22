@@ -1,4 +1,5 @@
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
 /**
  * Exposed CarbonEngineJS-facing STL format class.
  *
@@ -20,8 +21,6 @@ import {
     normalizeValues,
     readWithValues,
     toJsonValue,
-    validateClass,
-    validateClassKey,
     writeWithValues
 } from "./core/helpers.js";
 
@@ -69,20 +68,20 @@ const FORMAT_NAME = "CjsStlFormat";
  * STL is a triangle-only import/export format; the JSON contract is the shared
  * CarbonEngineJS mesh schema.
  */
-export class CjsStlFormat extends CjsFormat
+export class CjsStlFormat extends CjsGeometryFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
-    #binary = DEFAULT_VALUES.binary;
-    #solidName = DEFAULT_VALUES.solidName;
-    #scale = DEFAULT_VALUES.scale;
-    #recalculateNormals = DEFAULT_VALUES.recalculateNormals;
-    #weldVertices = DEFAULT_VALUES.weldVertices;
-    #weldTolerance = DEFAULT_VALUES.weldTolerance;
-    #skipDegenerate = DEFAULT_VALUES.skipDegenerate;
-    #requireWatertight = DEFAULT_VALUES.requireWatertight;
-    #classes = DEFAULT_VALUES.classes;
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
+    _binary = DEFAULT_VALUES.binary;
+    _solidName = DEFAULT_VALUES.solidName;
+    _scale = DEFAULT_VALUES.scale;
+    _recalculateNormals = DEFAULT_VALUES.recalculateNormals;
+    _weldVertices = DEFAULT_VALUES.weldVertices;
+    _weldTolerance = DEFAULT_VALUES.weldTolerance;
+    _skipDegenerate = DEFAULT_VALUES.skipDegenerate;
+    _requireWatertight = DEFAULT_VALUES.requireWatertight;
+    _classes = DEFAULT_VALUES.classes;
 
     /**
      * Create a reusable format profile.
@@ -110,17 +109,17 @@ export class CjsStlFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
 
-        this.#emit = values.emit;
-        this.#source = values.source;
-        this.#binary = values.binary;
-        this.#solidName = values.solidName;
-        this.#scale = values.scale;
-        this.#recalculateNormals = values.recalculateNormals;
-        this.#weldVertices = values.weldVertices;
-        this.#weldTolerance = values.weldTolerance;
-        this.#skipDegenerate = values.skipDegenerate;
-        this.#requireWatertight = values.requireWatertight;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._source = values.source;
+        this._binary = values.binary;
+        this._solidName = values.solidName;
+        this._scale = values.scale;
+        this._recalculateNormals = values.recalculateNormals;
+        this._weldVertices = values.weldVertices;
+        this._weldTolerance = values.weldTolerance;
+        this._skipDegenerate = values.skipDegenerate;
+        this._requireWatertight = values.requireWatertight;
+        this._classes = values.classes;
 
         return this;
     }
@@ -135,74 +134,18 @@ export class CjsStlFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source,
-            binary: this.#binary,
-            solidName: this.#solidName,
-            scale: this.#scale,
-            recalculateNormals: this.#recalculateNormals,
-            weldVertices: this.#weldVertices,
-            weldTolerance: this.#weldTolerance,
-            skipDegenerate: this.#skipDegenerate,
-            requireWatertight: this.#requireWatertight,
-            classes: this.#classes
+            emit: this._emit,
+            source: this._source,
+            binary: this._binary,
+            solidName: this._solidName,
+            scale: this._scale,
+            recalculateNormals: this._recalculateNormals,
+            weldVertices: this._weldVertices,
+            weldTolerance: this._weldTolerance,
+            skipDegenerate: this._skipDegenerate,
+            requireWatertight: this._requireWatertight,
+            classes: this._classes
         }, options, FORMAT_NAME);
-    }
-
-    /**
-     * Set multiple node-class constructors for this profile.
-     *
-     * @param {object} [classes] Map of node class keys to constructors.
-     * @returns {CjsStlFormat} This format profile.
-     */
-    SetClasses(classes = {})
-    {
-        return this.SetValues({ classes });
-    }
-
-    /**
-     * Set one node-class constructor for this profile.
-     *
-     * @param {string} type Node class key.
-     * @param {Function|null|undefined} Class Constructor to use, or nullish to delete.
-     * @returns {CjsStlFormat} This format profile.
-     */
-    SetClass(type, Class)
-    {
-        if (Class === null || Class === undefined)
-        {
-            validateClassKey(type, FORMAT_NAME);
-            const classes = { ...this.#classes };
-            delete classes[type];
-            this.#classes = classes;
-            return this;
-        }
-
-        validateClass(type, Class, FORMAT_NAME);
-        return this.SetValues({ classes: { [type]: Class } });
-    }
-
-    /**
-     * Get a configured node-class constructor.
-     *
-     * @param {string} type Node class key.
-     * @returns {Function|undefined} The registered constructor, if any.
-     */
-    GetClass(type)
-    {
-        validateClassKey(type, FORMAT_NAME);
-        return this.#classes[type];
-    }
-
-    /**
-     * Whether this format profile has a constructor registered for a node class key.
-     *
-     * @param {string} type Node class key.
-     * @returns {boolean} True when a constructor is registered.
-     */
-    HasClass(type)
-    {
-        return !!this.GetClass(type);
     }
 
     /**
@@ -343,7 +286,6 @@ export class CjsStlFormat extends CjsFormat
     });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsStlFormat";
-    static mediaTypes = Object.freeze([ "geometry" ]);
     // STL takes the shared geometry root directly rather than going through
     // CMF, because it carries triangles and nothing else worth preserving.
     // Lossless for what STL can represent; everything else was never in scope.

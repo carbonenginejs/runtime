@@ -2,6 +2,7 @@
  * Internal read-pipeline glue for CjsObjFormat.
  */
 
+import { CjsGeometryFormat } from "../../../format/CjsGeometryFormat.js";
 import { toJsonWithArrayValues as toJsonValue } from "../../../format/jsonPolicies.js";
 import { hydrateJson } from "./json.js";
 import { parseObjText } from "./parser.js";
@@ -60,10 +61,7 @@ const OPTION_KEYS = new Set([
  */
 export function validateClassKey(key, readerName = "CjsObjFormat")
 {
-    if (!CLASS_KEYS.includes(key))
-    {
-        throw new Error(`${readerName}: unknown class key ${JSON.stringify(key)}; expected one of ${CLASS_KEYS.join(", ")}`);
-    }
+    CjsGeometryFormat.validateClassKey(key, CLASS_KEYS, readerName);
 }
 
 /**
@@ -75,11 +73,7 @@ export function validateClassKey(key, readerName = "CjsObjFormat")
  */
 export function validateClass(key, Class, readerName = "CjsObjFormat")
 {
-    validateClassKey(key, readerName);
-    if (typeof Class !== "function")
-    {
-        throw new TypeError(`${readerName}: class ${JSON.stringify(key)} must be a constructor`);
-    }
+    CjsGeometryFormat.validateClass(key, Class, CLASS_KEYS, readerName);
 }
 
 /**

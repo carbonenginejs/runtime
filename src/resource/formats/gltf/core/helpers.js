@@ -2,6 +2,7 @@
  * Internal read-pipeline glue for CjsGltfFormat.
  */
 
+import { CjsGeometryFormat } from "../../../format/CjsGeometryFormat.js";
 import { toJsonWithArrayValues as toJsonValue } from "../../../format/jsonPolicies.js";
 import { CLASS_KEYS as GR2_CLASS_KEYS, hydrateShared } from "./json.js";
 import { buildCmfFromShared } from "../../cmf/core/shared.js";
@@ -66,20 +67,13 @@ const OPTION_KEYS = new Set([
 /** Validates a requested runtime class key for the glTF format reader. */
 export function validateClassKey(key, readerName = "CjsGltfFormat")
 {
-    if (!CLASS_KEYS.includes(key))
-    {
-        throw new Error(`${readerName}: unknown class key ${JSON.stringify(key)}; expected one of ${CLASS_KEYS.join(", ")}`);
-    }
+    CjsGeometryFormat.validateClassKey(key, CLASS_KEYS, readerName);
 }
 
 /** Validates a resolved runtime class constructor for the glTF format reader. */
 export function validateClass(key, Class, readerName = "CjsGltfFormat")
 {
-    validateClassKey(key, readerName);
-    if (typeof Class !== "function")
-    {
-        throw new TypeError(`${readerName}: class ${JSON.stringify(key)} must be a constructor`);
-    }
+    CjsGeometryFormat.validateClass(key, Class, CLASS_KEYS, readerName);
 }
 
 function mergeClasses(base, classes, readerName)

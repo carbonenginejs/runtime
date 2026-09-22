@@ -125,6 +125,16 @@ The base of every image format: gives each one Carbon's handler table as Format.
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsGeometryFormat -->
+## `CjsGeometryFormat`
+
+The base of every geometry format (gr2, cmf, fbx, obj, stl, gltf): the geometry media type and the node-class registry (`SetClasses`, `SetClass`, `GetClass`, `HasClass`) that hydrates a read into caller-supplied constructors.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsGeometryFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsFormat -->
 ## `CjsFormat`
 
