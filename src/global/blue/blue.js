@@ -33,9 +33,10 @@
 import { IBlueResMan } from "./IBlueResMan.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
+import { BlueClasses } from "./BlueClasses.js";
 import { blueEnums } from "./enums/CjsBlueEnumRegistry.js";
 
-/** Carbon's process-wide Blue facilities: `blue.resMan`, `blue.paths` and `blue.os`. */
+/** Carbon's process-wide Blue facilities: `blue.resMan`, `blue.paths`, `blue.os` and `blue.classes`. */
 export const blue = {
   /** EnumRegistration and BlueEnum responsibilities combined for JavaScript. */
   enums: blueEnums,
@@ -55,5 +56,11 @@ export const blue = {
   // clock the whole render path reads. Composed like the others, and answering
   // truthfully before anything composes it - see CjsBlueOS.
   /** `BeOS` (IBlueOS.h:226) - the clock, the pump, and the tick registry. */
-  os: new CjsBlueOS()
+  os: new CjsBlueOS(),
+
+  // The class registry. Like paths it answers truthfully uncomposed: nothing
+  // registered means nothing found, which is Carbon's answer too. It is how a
+  // layer builds a class another layer owns without importing it.
+  /** `BeClasses` (blueexposure/BlueClasses.cpp:28) - class registration and creation by name. */
+  classes: new BlueClasses()
 };

@@ -125,6 +125,26 @@ The paths service a browser can answer: res-file-index existence, with the verbs
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:BlueClasses -->
+## `BlueClasses`
+
+The class registry `blue.classes` holds: registration and creation by class name over the same constructor table the schema fills, so one layer can build a class another owns without importing it.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/BlueClasses.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:IBlueClasses -->
+## `IBlueClasses`
+
+Class registration, lookup and creation by name, as consumers see Carbon's class registry.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueClasses.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:IBluePaths -->
 ## `IBluePaths`
 

@@ -324,6 +324,15 @@ export class CjsSchema
         return this;
     }
 
+    /** Removes the constructor registered under a serialized class name. */
+    static DeleteConstructor(name)
+    {
+        if (typeof name !== "string" || !name.trim()) return false;
+        const removed = CONSTRUCTOR_BY_NAME.delete(name.trim());
+        if (removed) SCHEMA_GENERATION += 1;
+        return removed;
+    }
+
     /** Returns the constructor registered for a serialized class name. */
     static GetConstructor(name)
     {

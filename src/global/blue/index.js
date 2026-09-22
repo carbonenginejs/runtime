@@ -29,5 +29,7 @@ export * from "./IListNotify.js";
 export * from "./INotify.js";
 export * from "./CjsBluePaths.js";
 export * from "./IBluePaths.js";
+export * from "./IBlueClasses.js";
+export * from "./BlueClasses.js";
 export * from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
