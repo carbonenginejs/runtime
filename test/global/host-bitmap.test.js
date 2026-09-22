@@ -106,12 +106,18 @@ test("ConvertFormat covers Carbon's transitions and refuses the rest", () =>
   assert.deepEqual([ ...b.GetRawData() ], [ 3, 2, 1, 255, 6, 5, 4, 255 ]);
   assert.equal(b.ConvertFormat(BGRA), true);
 
-  // quirk: BGRA -> R8 keeps byte 0, which is blue (HostBitmap.cpp:321-325).
+  // diverged (issue 6): BGRA -> R8 keeps red; Carbon kept blue.
   assert.equal(b.ConvertFormat(R8), true);
-  assert.deepEqual([ ...b.GetRawData() ], [ 1, 4 ]);
+  assert.deepEqual([ ...b.GetRawData() ], [ 3, 6 ]);
 
   assert.equal(b.ConvertFormat(BGRX), true);
-  assert.deepEqual([ ...b.GetRawData() ], [ 1, 1, 1, 255, 4, 4, 4, 255 ]);
+  assert.deepEqual([ ...b.GetRawData() ], [ 3, 3, 3, 255, 6, 6, 6, 255 ]);
+
+  // diverged (issue 7): BGRX -> RGBA gets an opaque alpha, not the X byte.
+  const x = bitmap(1, 1, 1, BGRX);
+  x.GetRawData().set([ 1, 2, 3, 9 ]);
+  assert.equal(x.ConvertFormat(RGBA), true);
+  assert.deepEqual([ ...x.GetRawData() ], [ 3, 2, 1, 255 ]);
 
   const rg = bitmap(1, 1, 1, R8G8);
   rg.GetRawData().set([ 7, 200 ]);
@@ -133,10 +139,11 @@ test("GenerateMipMaps box-filters each level and DropMipMaps undoes it", () =>
   assert.equal(b.GetMipCount(), 1);
   assert.deepEqual([ ...b.GetRawData() ], [ 0, 4, 8, 12 ]);
 
-  // quirk: asking for more than the full chain fails with the mip count left at 0.
+  // diverged (issue 13): a refusal leaves the mip count as it was.
   const c = bitmap(2, 2, 1, R8);
   assert.equal(c.GenerateMipMaps(5), false);
-  assert.equal(c.GetMipCount(), 0);
+  assert.equal(c.GetMipCount(), 1);
+  assert.equal(new HostBitmap().GenerateMipMaps(), false);
 });
 
 test("GenerateMipMaps keeps each array element's top level in place", () =>
@@ -148,7 +155,7 @@ test("GenerateMipMaps keeps each array element's top level in place", () =>
   assert.deepEqual([ ...b.GetRawData() ], [ 1, 1, 1, 1, 1, 9, 9, 9, 9, 9 ]);
 });
 
-test("Downsample2x2 halves in place; a full-chain bitmap fails as Carbon's wrap does", () =>
+test("Downsample2x2 halves in place, full-chain bitmaps included (diverged, issue 12)", () =>
 {
   const b = bitmap(2, 2, 1, R8);
   b.GetRawData().set([ 0, 4, 8, 12 ]);
@@ -156,12 +163,13 @@ test("Downsample2x2 halves in place; a full-chain bitmap fails as Carbon's wrap 
   assert.equal(b.GetWidth(), 1);
   assert.deepEqual([ ...b.GetRawData() ], [ 6 ]);
 
-  const wrap = bitmap(4, 4, 0, R8);
-  assert.equal(wrap.Downsample2x2(), false);
-  assert.equal(wrap.IsValid(), false);
+  const chain = bitmap(4, 4, 0, R8);
+  assert.equal(chain.Downsample2x2(), true);
+  assert.equal(chain.GetWidth(), 2);
+  assert.equal(chain.GetTrueMipCount(), 2);
 });
 
-test("Crop compacts rows; quirk: an empty rectangle destroys and returns true", () =>
+test("Crop compacts rows; an empty rectangle is refused (diverged, issue 14)", () =>
 {
   const b = bitmap(3, 2, 1, R8);
   b.GetRawData().set([ 1, 2, 3, 4, 5, 6 ]);
@@ -169,8 +177,8 @@ test("Crop compacts rows; quirk: an empty rectangle destroys and returns true", 
   assert.deepEqual([ ...b.GetRawData() ], [ 2, 3, 5, 6 ]);
 
   const e = bitmap(2, 2, 1, R8);
-  assert.equal(e.Crop(1, 1, 1, 1), true);
-  assert.equal(e.IsValid(), false);
+  assert.equal(e.Crop(1, 1, 1, 1), false);
+  assert.equal(e.IsValid(), true);
 });
 
 test("RotateFaceClockwise turns (x, y) into (size-1-y, x)", () =>
@@ -212,15 +220,18 @@ test("CopyChannel copies a byte channel between same-shape bitmaps", () =>
   assert.equal(a.CopyChannel(r, 1, 0), false);
 });
 
-test("GetPixel reads BGRA, and quirk: x == width passes the bounds test (HostBitmap.cpp:1324)", () =>
+test("GetPixel reads BGRA and R8, and refuses x == width (diverged, issue 8)", () =>
 {
   const b = bitmap(1, 1, 1, BGRA);
   b.GetRawData().set([ 51, 102, 153, 255 ]);
   const p = b.GetPixel(0, 0);
   assert.equal(p.b, Math.fround(51 / 255));
   assert.equal(p.r, Math.fround(153 / 255));
-  assert.notEqual(b.GetPixel(1, 0), null);
-  assert.equal(b.GetPixel(2, 0), null);
+  assert.equal(b.GetPixel(1, 0), null);
+
+  const r8 = bitmap(1, 1, 1, R8);
+  r8.GetRawData()[0] = 255;
+  assert.equal(r8.GetPixel(0, 0).r, 1);
 });
 
 test("BC1 interpolates on the packed 565 value (ImageUtility.cpp:66-80)", () =>
@@ -231,22 +242,22 @@ test("BC1 interpolates on the packed 565 value (ImageUtility.cpp:66-80)", () =>
   assert.equal(ImageUtility.getPixelColor_BC1(0, 0, 4, 0, block), ImageUtility.convertBGR565A8ToBGRA8(packed, 255));
 });
 
-test("bug: BC3 reads block 0 whatever the pixel (ImageUtility.cpp:101-110)", () =>
+test("BC3 reads the pixel's own block (diverged, issue 3)", () =>
 {
   const two = new Uint8Array(32);
   two.set([ 255, 255 ], 0);
   two.set([ 0, 0 ], 16);
-  assert.equal(ImageUtility.getPixelColor_BC3(4, 0, 8, 0, two) >>> 24, 255);
+  assert.equal(ImageUtility.getPixelColor_BC3(4, 0, 8, 0, two) >>> 24, 0);
 });
 
-test("bug: BC3 alpha-index bytes are sign-extended as MSVC chars", () =>
+test("BC3 alpha-index bytes are read unsigned (diverged, issue 4)", () =>
 {
-  // alpha0 > alpha1; mask byte 0 = 0x80 -> signed -128 fills the upper bits,
-  // so pixel (3,0), bits 9-11, reads index 7 instead of 0.
+  // alpha0 > alpha1; mask byte 0 = 0x80. Carbon's signed char filled the upper
+  // bits so pixel (3,0), bits 9-11, read index 7; unsigned it is index 0.
   const block = new Uint8Array(16);
   block.set([ 200, 100, 0x80, 0, 0, 0, 0, 0 ]);
   const alpha = ImageUtility.getPixelColor_BC3(3, 0, 4, 0, block) >>> 24;
-  assert.equal(alpha, Math.floor((1 * 200 + 6 * 100 + 3) / 7));
+  assert.equal(alpha, 200);
 });
 
 test("GetAverageColor samples BGRX and treats X as opaque", () =>

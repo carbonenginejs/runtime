@@ -10,16 +10,14 @@
 //
 // Values are read little-endian, as the x86/ARM targets Carbon ships on do.
 //
-// TWO CARBON BUGS ARE REPRODUCED HERE, NOT FIXED (see
-// /docs/research/carbon-known-defects.md). Art and thresholds were tuned
-// against the shipped behaviour:
+// TWO CARBON BUGS ARE FIXED HERE (operator, 2026-09-22: fix image-io defects in
+// our library and report them upstream; issues 3 and 4 in
+// /docs/research/carbon-imageio-issue.md):
 //
-// 1. getPixelColor_BC3 computes the block index and never uses it: alpha and
-//    colour are read from `source`, so every pixel is read from block 0
-//    (ImageUtility.cpp:101-102 vs 106-110, 130-134).
-// 2. getPixelColor_BC3 builds its two 24-bit alpha-index masks from `const
-//    char` bytes (`auto alphaMask = source + 2`, :108-110). `char` is signed on
-//    MSVC, so a byte >= 0x80 sign-extends into the bits above it before the OR.
+// 1. Carbon's GetPixelColor_BC3 computes the block index and never uses it, so
+//    every pixel is read from block 0 (ImageUtility.cpp:101-110, 130-134).
+// 2. Carbon assembles the alpha-index masks from signed `char` bytes (:108-110),
+//    so a byte >= 0x80 sign-extends into the bits above it.
 
 /** Carbon's `ImageUtility` namespace (imageio/ImageUtility.cpp). */
 export class ImageUtility
@@ -158,8 +156,8 @@ export class ImageUtility
   /**
    * One BC3 pixel as 0xAARRGGBB (ImageUtility.cpp:99-165).
    *
-   * Reproduces both Carbon bugs in the file header: every read is from block 0,
-   * and the alpha-index masks are built from signed bytes.
+   * diverged: reads the pixel's own block with unsigned bytes; Carbon reads
+   * block 0 with sign-extended bytes (see the file header).
    *
    * @param {number} x Column.
    * @param {number} y Row.
@@ -170,17 +168,15 @@ export class ImageUtility
    */
   static getPixelColor_BC3(x, y, width, _pitch, source)
   {
-    // bug: Carbon computes the block index here (ImageUtility.cpp:101-102)
-    // and never uses it; every read below is from block 0.
+    const index = (Math.floor(x / 4) + Math.floor(y / 4) * Math.floor((width + 3) / 4)) * 16;
+    const block = source.subarray(index);
 
     const alpha = new Array(8);
-    alpha[0] = source[0];
-    alpha[1] = source[1];
+    alpha[0] = block[0];
+    alpha[1] = block[1];
 
-    // bug: `char` bytes, sign-extended on MSVC before the shifts and ORs.
-    const s = i => (source[2 + i] << 24) >> 24;
-    const alphaMask0 = (s(0) | (s(1) << 8) | (s(2) << 16)) >>> 0;
-    const alphaMask1 = (s(3) | (s(4) << 8) | (s(5) << 16)) >>> 0;
+    const alphaMask0 = (block[2] | (block[3] << 8) | (block[4] << 16)) >>> 0;
+    const alphaMask1 = (block[5] | (block[6] << 8) | (block[7] << 16)) >>> 0;
 
     if (alpha[0] > alpha[1])
     {
@@ -201,11 +197,11 @@ export class ImageUtility
       alpha[7] = 255;
     }
 
-    const color0 = ImageUtility.convertBGR565A8ToBGRA8(source[8] | (source[9] << 8), 0);
-    const color1 = ImageUtility.convertBGR565A8ToBGRA8(source[10] | (source[11] << 8), 0);
+    const color0 = ImageUtility.convertBGR565A8ToBGRA8(block[8] | (block[9] << 8), 0);
+    const color1 = ImageUtility.convertBGR565A8ToBGRA8(block[10] | (block[11] << 8), 0);
     const color2 = ImageUtility.interpolatedColor(color0, 2, color1, 1, 1, 3);
     const color3 = ImageUtility.interpolatedColor(color0, 1, color1, 2, 1, 3);
-    const bits = (source[12] | (source[13] << 8) | (source[14] << 16) | (source[15] << 24)) >>> 0;
+    const bits = (block[12] | (block[13] << 8) | (block[14] << 16) | (block[15] << 24)) >>> 0;
 
     const px = x % 4;
     const py = y % 4;

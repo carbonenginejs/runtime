@@ -208,16 +208,19 @@ export function GetBlockByteSize(format)
     return EIGHT_BYTE_BLOCK_FORMATS.has(format) ? 8 : 16;
 }
 
-// CARBON'S TABLE, INCLUDING THE THREE-CHANNEL ENTRY. The R32G32B32 formats are
-// listed with the four-channel ones and so report 16 bytes rather than 12
-// (`PixelFormat.h:203-215`). That is deliberate transcription, not an oversight:
-// changing it here would make our mip pitch disagree with the engine we mirror.
+// CARBON'S TABLE, WITH ONE FIX. diverged: Carbon lists the R32G32B32 formats
+// with the four-channel ones, so they report 16 bytes rather than 12
+// (`PixelFormat.h:211-215`), and every size, pitch and offset for them is wrong.
+// Fixed here (operator, 2026-09-22); reported upstream as issue 5 in
+// /docs/research/carbon-imageio-issue.md.
 const BYTES_PER_PIXEL = new Map([
     [ 16, [
         PixelFormat.PIXEL_FORMAT_R32G32B32A32_TYPELESS,
         PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT,
         PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT,
-        PixelFormat.PIXEL_FORMAT_R32G32B32A32_SINT,
+        PixelFormat.PIXEL_FORMAT_R32G32B32A32_SINT
+    ] ],
+    [ 12, [
         PixelFormat.PIXEL_FORMAT_R32G32B32_TYPELESS,
         PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT,
         PixelFormat.PIXEL_FORMAT_R32G32B32_UINT,

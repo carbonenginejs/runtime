@@ -21,9 +21,11 @@
 // - No logging facility is ported; each CCP_LOG call is kept as a comment
 //   with its message, and the failure is reported by the return value alone.
 //
-// Carbon bugs and quirks are reproduced, not fixed, and marked `bug:` or
-// `quirk:` with their line. See /docs/research/carbon-known-defects.md and
-// /docs/projects/hostbitmap-port.md.
+// CARBON'S DEFECTS ARE FIXED, NOT REPRODUCED (operator, 2026-09-22: fix the
+// image-io defects in our library and report them upstream). Each fix is marked
+// `diverged:` with its issue number in /docs/research/carbon-imageio-issue.md. Behaviour
+// that is Carbon's design rather than a defect is kept and marked `quirk:`.
+import { CjsSchema } from "#schema";
 import {
   PixelFormat,
   TextureType,
@@ -241,7 +243,8 @@ export class HostBitmap extends BitmapDimensions
   /**
    * A cube bitmap: six square faces (HostBitmap.cpp:153-182).
    *
-   * quirk: no logging, and the allocation is not checked (178-181).
+   * (Carbon does not check its allocation here, issue 15; a JavaScript
+   * allocation throws instead of returning null.)
    *
    * @param {number} width Face width and height.
    * @param {number} mipCount Mip count; 0 means the full chain.
@@ -271,8 +274,7 @@ export class HostBitmap extends BitmapDimensions
   /**
    * A volume bitmap (HostBitmap.cpp:184-213).
    *
-   * quirk: height and depth are not checked for zero (188), there is no
-   * logging, and the allocation is not checked (209-212).
+   * diverged: height and depth are validated; Carbon checks width only (issue 15).
    *
    * @param {number} width Width of mip 0.
    * @param {number} height Height of mip 0.
@@ -285,7 +287,7 @@ export class HostBitmap extends BitmapDimensions
   {
     this.Destroy();
 
-    if (!width || format >= PixelFormat.PIXEL_FORMAT_SENTINEL) return false;
+    if (!width || !height || !depth || format >= PixelFormat.PIXEL_FORMAT_SENTINEL) return false;
     if (IsCompressedFormat(format) && ((width % 4) !== 0 || (height % 4) !== 0)) return false;
 
     this._width = width;
@@ -414,15 +416,15 @@ export class HostBitmap extends BitmapDimensions
 
     if (format === F.PIXEL_FORMAT_R8_UNORM && (isBgra || isBgrx))
     {
-      // quirk: keeps byte 0 of each pixel, which is BLUE in B8G8R8 memory
-      // order (HostBitmap.cpp:321-325).
+      // diverged: keeps byte 2, red; Carbon keeps byte 0, which is blue in
+      // B8G8R8 memory order (HostBitmap.cpp:321-325, issue 6).
       const pixelCount = Math.floor(this._data.length / GetBytesPerPixel(current));
       const src = this._data;
       const dst = new Uint8Array(pixelCount);
 
       for (let i = 0; i < pixelCount; ++i)
       {
-        dst[i] = src[i * 4];
+        dst[i] = src[i * 4 + 2];
       }
 
       this._data = dst;
@@ -433,8 +435,9 @@ export class HostBitmap extends BitmapDimensions
     if ((format === F.PIXEL_FORMAT_R8G8B8A8_UNORM && (isBgra || isBgrx)) ||
       (current === F.PIXEL_FORMAT_R8G8B8A8_UNORM && (format === F.PIXEL_FORMAT_B8G8R8A8_UNORM || format === F.PIXEL_FORMAT_B8G8R8X8_UNORM)))
     {
-      // quirk: swaps bytes 0 and 2 only; a BGRX source keeps its undefined X
-      // byte as alpha (HostBitmap.cpp:332-349).
+      // diverged: a BGRX source gets an opaque alpha; Carbon swaps bytes 0 and
+      // 2 only and keeps the undefined X byte as alpha (HostBitmap.cpp:332-349,
+      // issue 7).
       const data = this._data;
       const bpp = GetBytesPerPixel(current);
 
@@ -443,6 +446,7 @@ export class HostBitmap extends BitmapDimensions
         const tmp = data[i];
         data[i] = data[i + 2];
         data[i + 2] = tmp;
+        if (isBgrx) data[i + 3] = 0xff;
       }
 
       this._format = format;
@@ -772,19 +776,12 @@ export class HostBitmap extends BitmapDimensions
       return false;
     }
 
-    if (this._mipCount === 0)
-    {
-      // bug: `m_mipCount - 1` wraps to UINT_MAX on an unsigned full-chain count
-      // (689), so Carbon loops ~4 billion levels and the final resize asks for
-      // an impossible size, which fails into Destroy() and false. The loop is
-      // not run here - it would hang JavaScript - but the outcome is the same.
-      this.Destroy();
-      return false;
-    }
-
+    // diverged: counts from the true mip count; Carbon's `m_mipCount - 1`
+    // wraps for a full-chain bitmap (mip count 0, HostBitmap.cpp:689, issue 12).
+    const mipCountBefore = this.GetTrueMipCount();
     const data = this._data;
     const bpp = GetBytesPerPixel(this._format);
-    const newMipCount = Math.max(this._mipCount - 1, 1);
+    const newMipCount = Math.max(mipCountBefore - 1, 1);
     let src = 0;
     let dst = 0;
 
@@ -811,7 +808,7 @@ export class HostBitmap extends BitmapDimensions
       }
 
       // Skip lowest mip level, but only if we had any mips to begin with.
-      if (this._mipCount !== 1)
+      if (mipCountBefore !== 1)
       {
         src += curHeight * curWidth * bpp;
       }
@@ -842,7 +839,8 @@ export class HostBitmap extends BitmapDimensions
    * Crop a single-mip 2D bitmap in place (HostBitmap.cpp:745-781); `right` and
    * `bottom` are exclusive.
    *
-   * quirk: an empty rectangle Destroy()s the bitmap and returns true (758-762).
+   * diverged: an empty rectangle returns false and leaves the bitmap intact;
+   * Carbon Destroy()s it and returns true (758-762, issue 14).
    *
    * @param {number} left Left column.
    * @param {number} top Top row.
@@ -864,11 +862,7 @@ export class HostBitmap extends BitmapDimensions
     top = Math.min(top, this._height);
     bottom = Math.min(bottom, this._height);
 
-    if (left >= right || top >= bottom)
-    {
-      this.Destroy();
-      return true;
-    }
+    if (left >= right || top >= bottom) return false;
 
     const data = this._data;
     const bpp = GetBytesPerPixel(this._format);
@@ -894,8 +888,8 @@ export class HostBitmap extends BitmapDimensions
   /**
    * Rotate one face clockwise by a multiple of 90 degrees (HostBitmap.cpp:787-868).
    *
-   * quirk: a full-chain bitmap (mip count 0) passes the single-mip check
-   * (`GetMipCount() > 1`, 795), and the face offset then ignores its mips.
+   * diverged: requires exactly one mip level; Carbon's `GetMipCount() > 1`
+   * lets a full-chain bitmap (mip count 0) through (795, issue 17).
    *
    * @param {number} face Array element.
    * @param {number} times Quarter turns.
@@ -905,7 +899,7 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid()) return false;
 
-    if ((this.GetType() !== TextureType.TEX_TYPE_2D && this.GetType() !== TextureType.TEX_TYPE_CUBE) || this.GetMipCount() > 1)
+    if ((this.GetType() !== TextureType.TEX_TYPE_2D && this.GetType() !== TextureType.TEX_TYPE_CUBE) || this.GetTrueMipCount() !== 1)
     {
       // Carbon: CCP_LOGERR("HostBitmap.RotateFaceClockwise requires 2D/CUBE bitmap with a single mip level")
       return false;
@@ -1025,8 +1019,9 @@ export class HostBitmap extends BitmapDimensions
    * Convert a horizontal strip of square slices into a cubic volume
    * (HostBitmap.cpp:960-1023). The strip is read bottom-aligned.
    *
-   * bug: the row pitch is `GetPitch() / GetWidth() * cubeSize` (991), which is
-   * wrong for a compressed format; ported as written.
+   * diverged: a block-compressed bitmap is refused; Carbon's row pitch
+   * `GetPitch() / GetWidth() * cubeSize` (991) and its per-line copy are wrong
+   * for block rows, so it produced a corrupt volume (issue 16).
    *
    * @returns {boolean} Whether it was converted.
    */
@@ -1042,8 +1037,7 @@ export class HostBitmap extends BitmapDimensions
     // Carbon: CCP_LOGERR("HostBitmap.ConvertToVolume: source image does not represent a cubic volume texture!")
     if (cubeSize * cubeSize < this.GetWidth()) return false;
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertToVolume: %i is not a valid size for compressed texture")
-    if (IsCompressedFormat(this.GetFormat()) && (cubeSize % 4) !== 0) return false;
+    if (IsCompressedFormat(this.GetFormat())) return false;
 
     cubeSize = Math.floor(Math.sqrt(Math.fround(this.GetWidth())));
 
@@ -1080,15 +1074,15 @@ export class HostBitmap extends BitmapDimensions
    * (HostBitmap.cpp:1036-1130). Only 2D and cube bitmaps with one level, in
    * an 8-bit-per-channel format.
    *
-   * quirk: there is no IsValid() check, and asking for more levels than the
-   * full chain fails with the mip count already set to 0 (1074-1080).
+   * diverged: checks validity, and leaves the mip count untouched when it
+   * refuses; Carbon has no validity check and leaves it at 0 (1036-1080, issue 13).
    *
    * @param {number} [levels=0] Total levels to keep; 0 means the full chain.
    * @returns {boolean} Whether the mips were generated.
    */
   GenerateMipMaps(levels = 0)
   {
-    if ((this._type !== TextureType.TEX_TYPE_2D && this._type !== TextureType.TEX_TYPE_CUBE) || this._mipCount > 1)
+    if (!this.IsValid() || (this._type !== TextureType.TEX_TYPE_2D && this._type !== TextureType.TEX_TYPE_CUBE) || this._mipCount > 1)
     {
       return false;
     }
@@ -1096,12 +1090,17 @@ export class HostBitmap extends BitmapDimensions
     const format = this.GetFormat();
     if (!EIGHT_BIT_FORMATS.has(format)) return false;
 
+    const previousMipCount = this._mipCount;
     this._mipCount = 0;
     let mipCount = this.GetTrueMipCount();
 
     if (levels)
     {
-      if (levels > mipCount) return false;
+      if (levels > mipCount)
+      {
+        this._mipCount = previousMipCount;
+        return false;
+      }
       mipCount = levels;
     }
     else
@@ -1235,10 +1234,12 @@ export class HostBitmap extends BitmapDimensions
    * adapted: returns `{r, g, b, a}` in 0..1, or null where Carbon returns
    * false and writes nothing.
    *
-   * quirk: it samples mip `GetMipCount() - 1` - the SMALLEST level - and for a
-   * full-chain bitmap (mip count 0) that index wraps, `GetMipWidth` answers 0
-   * and it fails (1217-1225). It divides by the full grid count even when a
-   * sample was skipped (1292). BC3 inherits ImageUtility's block-0 bug.
+   * quirk: it samples the SMALLEST mip level, a cheap average by design.
+   *
+   * diverged: the level is `GetTrueMipCount() - 1` and the average divides by
+   * the samples actually taken; Carbon's `GetMipCount() - 1` wraps for a
+   * full-chain bitmap so it always fails, and it divides by the whole grid even
+   * when samples were skipped (1217, 1292, issue 9).
    *
    * @returns {{r: number, g: number, b: number, a: number}|null} The colour.
    */
@@ -1246,7 +1247,7 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid())
     {
-      // Carbon: CCP_LOGERR("GetAverageColor: bitmap %s is not valid") - bug: %s has no argument (1203).
+      // Carbon: CCP_LOGERR("GetAverageColor: bitmap %s is not valid") - its %s has no argument (1203, issue 9).
       return null;
     }
 
@@ -1261,7 +1262,7 @@ export class HostBitmap extends BitmapDimensions
       return null;
     }
 
-    const mipLevel = (this.GetMipCount() - 1) >>> 0;
+    const mipLevel = this.GetTrueMipCount() - 1;
     const width = this.GetMipWidth(mipLevel);
     const height = this.GetMipHeight(mipLevel);
 
@@ -1290,7 +1291,7 @@ export class HostBitmap extends BitmapDimensions
       default: getPixel = (x, y) => ImageUtility.getPixelColor_BC3(x, y, width, pitch, data); break;
     }
 
-    let rChannel = 0, gChannel = 0, bChannel = 0, aChannel = 0;
+    let rChannel = 0, gChannel = 0, bChannel = 0, aChannel = 0, samples = 0;
 
     for (let x = 0; x < xSampleCount; ++x)
     {
@@ -1300,6 +1301,7 @@ export class HostBitmap extends BitmapDimensions
         if (y * yStep + yOffset >= height) continue;
 
         const pixelValue = getPixel(x * xStep + xOffset, y * yStep + yOffset);
+        samples++;
         rChannel += (pixelValue >>> 16) & 0xff;
         gChannel += (pixelValue >>> 8) & 0xff;
         bChannel += pixelValue & 0xff;
@@ -1307,7 +1309,9 @@ export class HostBitmap extends BitmapDimensions
       }
     }
 
-    const multiplier = Math.fround(Math.fround(1 / (xSampleCount * ySampleCount)) / 255);
+    if (samples === 0) return null;
+
+    const multiplier = Math.fround(Math.fround(1 / samples) / 255);
 
     return {
       r: Math.fround(rChannel * multiplier),
@@ -1323,9 +1327,9 @@ export class HostBitmap extends BitmapDimensions
    *
    * adapted: returns `{r, g, b, a}`, or null where Carbon returns false.
    *
-   * bug: the bounds test is `x > width || y > height` (1324), so `x == width`
-   * is let through; and its R8 case (1332) can never run, because the format
-   * guard above it rejects R8.
+   * diverged: the bounds test is `>=`, and R8 is accepted; Carbon tests
+   * `x > width || y > height` (1324), reading one past the row, and its R8 case
+   * (1332) is unreachable behind the format guard (issue 8).
    *
    * @param {number} x Column.
    * @param {number} y Row.
@@ -1345,7 +1349,8 @@ export class HostBitmap extends BitmapDimensions
     const format = this.GetFormat();
 
     if (format !== F.PIXEL_FORMAT_B8G8R8X8_UNORM && format !== F.PIXEL_FORMAT_B8G8R8A8_UNORM &&
-      format !== F.PIXEL_FORMAT_BC1_UNORM && format !== F.PIXEL_FORMAT_BC3_UNORM)
+      format !== F.PIXEL_FORMAT_BC1_UNORM && format !== F.PIXEL_FORMAT_BC3_UNORM &&
+      format !== F.PIXEL_FORMAT_R8_UNORM)
     {
       return null;
     }
@@ -1353,7 +1358,7 @@ export class HostBitmap extends BitmapDimensions
     const width = this.GetWidth();
     const height = this.GetHeight();
 
-    if (x > width || y > height)
+    if (x >= width || y >= height)
     {
       // Carbon: CCP_LOGERR("GetPixel: pixel index out of range. Requested pixel (%d, %d), dimensions (%d, %d)")
       return null;
@@ -1365,6 +1370,7 @@ export class HostBitmap extends BitmapDimensions
 
     switch (format)
     {
+      case F.PIXEL_FORMAT_R8_UNORM: pixelValue = ImageUtility.getPixelColor_R(x, y, pitch, data); break;
       case F.PIXEL_FORMAT_B8G8R8A8_UNORM: pixelValue = ImageUtility.getPixelColor_BGRA(x, y, pitch, data); break;
       case F.PIXEL_FORMAT_B8G8R8X8_UNORM: pixelValue = ImageUtility.getPixelColor_BGRX(x, y, pitch, data); break;
       case F.PIXEL_FORMAT_BC1_UNORM: pixelValue = ImageUtility.getPixelColor_BC1(x, y, width, pitch, data); break;
@@ -1381,3 +1387,7 @@ export class HostBitmap extends BitmapDimensions
   }
 
 }
+
+
+// A call, not a decorator: see BitmapDimensions.js.
+CjsSchema.define(HostBitmap, { className: "HostBitmap", carbon: "HostBitmap" });
