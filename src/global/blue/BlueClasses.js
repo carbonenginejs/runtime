@@ -34,16 +34,15 @@
 import { CjsSchema, carbon, impl } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 
-/** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
-const ClassRegistrationFlags = Object.freeze({
-  DISABLE_PYTHON_CONSTRUCTION: 1 << 0
-});
 
 /** `BlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
 export class BlueClasses extends IBlueClasses
 {
 
-  static Flags = ClassRegistrationFlags;
+  /** Carbon's `Be::ClassRegistration::Flags` (BlueTypes.h:415-418). */
+  static Flags = {
+    DISABLE_PYTHON_CONSTRUCTION: 1
+  };
 
   /** Carbon's per-registration createFn and flags, where they differ from `new type()` and 0. */
   _extras = new Map();

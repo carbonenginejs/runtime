@@ -1,5 +1,7 @@
 // Source: imageio/include/Tr2ImageHandler.h (Cutout)
 
+import { CjsSchema } from "#schema";
+
 /** `ImageIO::Cutout` - the normalized sub-rectangle a PNG can declare. */
 export class Cutout
 {
@@ -15,3 +17,7 @@ export class Cutout
   /** height - 0..1. */
   height = 1;
 }
+
+
+// A call, not a decorator: see BitmapDimensions.js.
+CjsSchema.define(Cutout, { className: "Cutout", carbon: "Cutout" });

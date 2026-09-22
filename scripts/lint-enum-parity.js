@@ -39,13 +39,17 @@ function stripComments(source)
     return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/\/\/[^\n]*/g, "");
 }
 
-/** Every frozen numeric vocabulary in one module, as a name -> (member -> value) map. */
+/**
+ * Every numeric vocabulary in one module, as a name -> (member -> value) map.
+ * Frozen or not: the library does not freeze its own data (operator,
+ * 2026-09-22), so a plain `static Code = { ... }` is a vocabulary too.
+ */
 function jsVocabularies(source)
 {
     const found = new Map();
     const clean = stripComments(source);
 
-    for (const match of clean.matchAll(/(?:export\s+const|static)\s+(\w+)\s*=\s*Object\.freeze\(\{([^}]*)\}\)/g))
+    for (const match of clean.matchAll(/(?:export\s+const|static)\s+(\w+)\s*=\s*(?:Object\.freeze\()?\{([^}]*)\}/g))
     {
         const members = new Map();
         let numeric = true;

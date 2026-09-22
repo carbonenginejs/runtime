@@ -1,4 +1,5 @@
 // Source: imageio/include/Tr2ImageHandler.h (Metadata, MetadataStrings)
+import { CjsSchema } from "#schema";
 import { Cutout } from "./Cutout.js";
 
 /** `ImageIO::Metadata` - what an image file carries besides its pixels. */
@@ -10,3 +11,7 @@ export class Metadata
   /** metadata - `MetadataStrings`: key/value pairs from the CCP-META trailer. */
   metadata = [];
 }
+
+
+// A call, not a decorator: see BitmapDimensions.js.
+CjsSchema.define(Metadata, { className: "Metadata", carbon: "Metadata" });

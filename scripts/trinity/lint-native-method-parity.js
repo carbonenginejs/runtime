@@ -252,6 +252,9 @@ async function ReadJavaScriptClasses(directory)
           continue;
         }
         methods.add(name);
+        // `_Method` is the library's private spelling (underscore, not `#`),
+        // so it credits Carbon's private `Method` the same way `#Method` does.
+        if (name.startsWith("_")) methods.add(name.slice(1));
         const renamed = RenamedOriginal(member);
         if (renamed) methods.add(renamed);
       }
