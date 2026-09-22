@@ -1,5 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -21,7 +22,7 @@ const FORMAT_NAME = "CjsTgaFormat";
  * TGA format profile that inspects header metadata and reads TGA bytes into
  * raw, debug JSON, or decoded RGBA image payloads.
  */
-export class CjsTgaFormat extends CjsFormat
+export class CjsTgaFormat extends CjsImageFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -238,6 +239,21 @@ export class CjsTgaFormat extends CjsFormat
         raw: { role: "debug", default: true, passthrough: true }
 
     });
+
+    /**
+     * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
+     * registry (`CjsTgaFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     *
+     * @param {Uint8Array|ArrayBuffer} input Image bytes.
+     * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
+     * @param {object} bitmap Destination HostBitmap.
+     * @param {object|null} [metadata] Optional Metadata out.
+     * @returns {object} ImageIOResult.
+     */
+    static readImageNative(input, _loadParameters, bitmap, metadata = null)
+    {
+        return this.readImageFromRgbaPayload(this.read(input, { emit: "rgba" }), bitmap, metadata);
+    }
 
     static extensions = Object.freeze([ ".tga" ]);
 }

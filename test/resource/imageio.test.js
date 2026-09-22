@@ -50,7 +50,7 @@ test("CjsDdsFormat.carbon is Carbon's handler table, built per format class", ()
 {
   const table = CjsDdsFormat.carbon;
   assert.equal(CjsDdsFormat.carbon, table);
-  assert.deepEqual(Object.keys(table), [ "checkExtension", "readImage", "isSaveSupported", "save" ]);
+  assert.deepEqual(Object.keys(table), [ "checkExtension", "readImage", "readImageAsync", "isSaveSupported", "save" ]);
   assert.equal(table.checkExtension("DDS"), true);
   assert.equal(table.checkExtension("png"), false);
   assert.equal(table.isSaveSupported(null).code, ImageIOResult.Code.METHOD_NOT_SUPPORTED);
@@ -146,4 +146,19 @@ test("a block-compressed read decodes when a caller asks for RGBA or BGRA", () =
   const bgra = new HostBitmap();
   assert.equal(ImageIO.readImage(header, new LoadParameters("a.dds", 0, 0xffffffff, F.PIXEL_FORMAT_B8G8R8A8_UNORM), bgra).IsOk(), true);
   assert.deepEqual([ ...bgra.GetRawData().subarray(0, 4) ], [ 0, 0, 255, 255 ]);
+});
+
+test("PNG reads into a HostBitmap through the async path, as BGRA", async () =>
+{
+  const { CjsPngFormat } = await import("../../npm/dist/resource/formats/png/index.js");
+  const png = await CjsPngFormat.writeAsync({ width: 1, height: 1, data: new Uint8Array([ 10, 20, 30, 40 ]) });
+
+  const sync = ImageIO.readImage(png, new LoadParameters("a.png"), new HostBitmap());
+  assert.equal(sync.code, ImageIOResult.Code.METHOD_NOT_SUPPORTED);
+
+  const bitmap = new HostBitmap();
+  const r = await ImageIO.readImageAsync(png, new LoadParameters("a.png"), bitmap);
+  assert.equal(r.IsOk(), true, r.GetErrorMessage());
+  assert.equal(bitmap.GetFormat(), F.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  assert.deepEqual([ ...bitmap.GetRawData() ], [ 30, 20, 10, 40 ]);
 });

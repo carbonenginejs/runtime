@@ -1,5 +1,7 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { ImageIOResult } from "#imageio";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -23,7 +25,7 @@ const FORMAT_NAME = "CjsPngFormat";
  * and emits raw bytes or debug JSON, with RGBA decoding available on the
  * asynchronous read path.
  */
-export class CjsPngFormat extends CjsFormat
+export class CjsPngFormat extends CjsImageFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -253,6 +255,37 @@ export class CjsPngFormat extends CjsFormat
         pngJson: { role: "debug", probes: [ "pngJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
+    /**
+     * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
+     * registry (`CjsPngFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     *
+     * @param {Uint8Array|ArrayBuffer} input Image bytes.
+     * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
+     * @param {object} bitmap Destination HostBitmap.
+     * @param {object|null} [metadata] Optional Metadata out.
+     * @returns {object} ImageIOResult.
+     */
+    static readImageNative(_input, _loadParameters, _bitmap, _metadata = null)
+    {
+        // PNG inflates through the browser's DecompressionStream, which is
+        // asynchronous only; see CjsImageFormat.readImageAsync.
+        return new ImageIOResult(ImageIOResult.Code.METHOD_NOT_SUPPORTED, "PNG decodes asynchronously; use readImageAsync");
+    }
+
+    /**
+     * Fill a HostBitmap through this format's asynchronous RGBA8 output.
+     *
+     * @param {Uint8Array|ArrayBuffer} input Image bytes.
+     * @param {object} _loadParameters Load parameters.
+     * @param {object} bitmap Destination HostBitmap.
+     * @param {object|null} [metadata] Optional Metadata out.
+     * @returns {Promise<object>} ImageIOResult.
+     */
+    static async readImageNativeAsync(input, _loadParameters, bitmap, metadata = null)
+    {
+        return this.readImageFromRgbaPayload(await this.readAsync(input, { emit: "rgba" }), bitmap, metadata);
+    }
+
     static extensions = Object.freeze([ ".png" ]);
 }
 

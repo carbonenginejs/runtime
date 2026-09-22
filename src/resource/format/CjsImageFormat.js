@@ -1,5 +1,5 @@
 import { CjsFormat } from "./CjsFormat.js";
-import { BitmapDimensions, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
+import { BitmapDimensions, Cutout, HostBitmap, ImageIOResult, LoadParameters } from "#imageio";
 import { IsCompressedFormat, PixelFormat, PixelFormatFromCanonical } from "#consts/render-context";
 import { canDecodeDdsBlockFormat, decodeDdsSlice } from "../formats/dds/core/helpers.js";
 
@@ -53,6 +53,8 @@ export class CjsImageFormat extends CjsFormat
       this._carbon = {
         checkExtension: extension => this.checkExtension(extension),
         readImage: (bytes, loadParameters, bitmap, metadata = null) => this.readImage(bytes, loadParameters, bitmap, metadata),
+        // Not Carbon: see readImageAsync.
+        readImageAsync: (bytes, loadParameters, bitmap, metadata = null) => this.readImageAsync(bytes, loadParameters, bitmap, metadata),
         isSaveSupported: dimensions => this.isSaveSupported(dimensions),
         save: (bitmap, metadata = null) => this.save(bitmap, metadata)
       };
@@ -90,6 +92,90 @@ export class CjsImageFormat extends CjsFormat
   }
 
   /**
+   * Fill a bitmap from one of our readers' RGBA8 outputs (`read(bytes, { emit: "rgba" })`),
+   * for the formats whose decoders already produce one: PNG, JPEG, TGA, GIF.
+   *
+   * The bitmap is a single-mip 2D B8G8R8A8_UNORM image, as Carbon's JPEG handler
+   * and its PNG/TGA handlers for images with alpha produce, and as the texture
+   * pipeline's pack step requires of its inputs (BGRA, BGRX or R8).
+   *
+   * adapted: Carbon's PNG/TGA handlers keep an opaque RGB image as BGRX and a
+   * grey one as R8 (Tr2PngHandler.cpp:125-160, Tr2TgaHandler.cpp:98-110); our
+   * decoders report RGBA only, so those arrive as BGRA with their alpha. The
+   * metadata cutout is the default: the PNG cutout chunk is not read yet.
+   *
+   * @param {object} payload An RGBA8 payload: width, height, data, strideBytes.
+   * @param {object} bitmap Destination HostBitmap.
+   * @param {object|null} [metadata] Optional Metadata out.
+   * @returns {ImageIOResult} The result.
+   */
+  static readImageFromRgbaPayload(payload, bitmap, metadata = null)
+  {
+    if (!(payload.data instanceof Uint8Array))
+    {
+      return new ImageIOResult(ImageIOResult.Code.HEADER_NOT_SUPPORTED, `${payload.pixelFormat} is not an 8-bit image`);
+    }
+
+    if (!bitmap.Create(payload.width, payload.height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM))
+    {
+      return new ImageIOResult(ImageIOResult.Code.ERROR_CREATING_BITMAP);
+    }
+
+    const dst = bitmap.GetRawData();
+    const row = payload.width * 4;
+    const stride = payload.strideBytes || row;
+
+    for (let y = 0; y < payload.height; y++)
+    {
+      dst.set(payload.data.subarray(y * stride, y * stride + row), y * row);
+    }
+
+    bitmap.ConvertFormat(PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+
+    if (metadata) metadata.cutout = new Cutout();
+
+    return new ImageIOResult(ImageIOResult.Code.OK);
+  }
+
+  /**
+   * The asynchronous native read. Defaults to the synchronous one; a format
+   * whose decoder is asynchronous (PNG, which inflates through the browser's
+   * DecompressionStream) overrides this instead.
+   *
+   * @param {Uint8Array} bytes File bytes.
+   * @param {LoadParameters} loadParameters Load parameters.
+   * @param {object} bitmap Destination HostBitmap.
+   * @param {object|null} metadata Optional Metadata out.
+   * @returns {Promise<ImageIOResult>} The result.
+   */
+  static async readImageNativeAsync(bytes, loadParameters, bitmap, metadata)
+  {
+    return this.readImageNative(bytes, loadParameters, bitmap, metadata);
+  }
+
+  /**
+   * `readImage` for any image format, including those whose decoder is
+   * asynchronous.
+   *
+   * Not Carbon: Carbon's ReadImage is synchronous because its zlib is. In a
+   * browser, inflation is DecompressionStream, which has only an asynchronous
+   * API, so PNG cannot answer the synchronous call. Resource loading is
+   * asynchronous anyway; every format answers this one.
+   *
+   * @param {Uint8Array} bytes File bytes.
+   * @param {LoadParameters} loadParameters Load parameters.
+   * @param {object} bitmap Destination HostBitmap.
+   * @param {object|null} [metadata] Optional Metadata out.
+   * @returns {Promise<ImageIOResult>} The result.
+   */
+  static async readImageAsync(bytes, loadParameters, bitmap, metadata = null)
+  {
+    const result = await this.readImageNativeAsync(bytes, loadParameters, bitmap, metadata);
+
+    return this._finishRead(result, loadParameters, bitmap);
+  }
+
+  /**
    * Read an image into `bitmap`, then convert it to `loadParameters.requestedFormat`
    * when one is asked for.
    *
@@ -101,7 +187,12 @@ export class CjsImageFormat extends CjsFormat
    */
   static readImage(bytes, loadParameters, bitmap, metadata = null)
   {
-    const result = this.readImageNative(bytes, loadParameters, bitmap, metadata);
+    return this._finishRead(this.readImageNative(bytes, loadParameters, bitmap, metadata), loadParameters, bitmap);
+  }
+
+  /** The conversion to the requested format, shared by both reads. */
+  static _finishRead(result, loadParameters, bitmap)
+  {
     if (!result.IsOk()) return result;
 
     const requested = loadParameters.requestedFormat;

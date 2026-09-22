@@ -1,5 +1,6 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsImageFormat } from "../../format/CjsImageFormat.js";
 import {
     DEFAULT_VALUES,
     OUTPUT_IMAGE,
@@ -20,7 +21,7 @@ const FORMAT_NAME = "CjsGifFormat";
  * GIF format profile that inspects header and frame metadata and reads GIF
  * bytes into raw, debug JSON, or LZW-decoded RGBA frame payloads.
  */
-export class CjsGifFormat extends CjsFormat
+export class CjsGifFormat extends CjsImageFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -143,6 +144,21 @@ export class CjsGifFormat extends CjsFormat
         gifJson: { role: "debug", probes: [ "gifJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
+    /**
+     * Fill a HostBitmap through this format's RGBA8 output, for Carbon's ImageIO
+     * registry (`CjsGifFormat.carbon`). See CjsImageFormat.readImageFromRgbaPayload.
+     *
+     * @param {Uint8Array|ArrayBuffer} input Image bytes.
+     * @param {object} _loadParameters Load parameters; a single-mip image skips nothing.
+     * @param {object} bitmap Destination HostBitmap.
+     * @param {object|null} [metadata] Optional Metadata out.
+     * @returns {object} ImageIOResult.
+     */
+    static readImageNative(input, _loadParameters, bitmap, metadata = null)
+    {
+        return this.readImageFromRgbaPayload(this.read(input, { emit: "rgba" }), bitmap, metadata);
+    }
+
     static extensions = Object.freeze([ ".gif" ]);
 }
 

@@ -9,6 +9,10 @@
 // A namespace of free functions becomes a class of statics, camelCase.
 import { ImageIOResult } from "#imageio";
 import { CjsDdsFormat } from "../formats/dds/CjsDdsFormat.js";
+import { CjsGifFormat } from "../formats/gif/CjsGifFormat.js";
+import { CjsJpegFormat } from "../formats/jpeg/CjsJpegFormat.js";
+import { CjsPngFormat } from "../formats/png/CjsPngFormat.js";
+import { CjsTgaFormat } from "../formats/tga/CjsTgaFormat.js";
 
 const Code = ImageIOResult.Code;
 
@@ -32,7 +36,12 @@ export class ImageIO
     if (registered) return;
 
     registered = true;
+    // Carbon's order (Bmp, Dds, Jpeg, Png, Psd, Tga, Vta) for the ones we have, then ours.
     ImageIO.registerImageHandler(CjsDdsFormat.carbon);
+    ImageIO.registerImageHandler(CjsJpegFormat.carbon);
+    ImageIO.registerImageHandler(CjsPngFormat.carbon);
+    ImageIO.registerImageHandler(CjsTgaFormat.carbon);
+    ImageIO.registerImageHandler(CjsGifFormat.carbon);
   }
 
   /**
@@ -90,6 +99,26 @@ export class ImageIO
     if (!handler) return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE);
 
     return handler.readImage(bytes, loadParameters, bitmap, metadata);
+  }
+
+  /**
+   * `readImage` that also serves formats whose decoder is asynchronous (PNG).
+   *
+   * Not Carbon: see CjsImageFormat.readImageAsync.
+   *
+   * @param {Uint8Array|ArrayBuffer} bytes File bytes.
+   * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
+   * @param {import("#imageio").HostBitmap} bitmap Destination bitmap.
+   * @param {import("#imageio").Metadata|null} [metadata] Optional metadata out.
+   * @returns {Promise<ImageIOResult>} The result.
+   */
+  static async readImageAsync(bytes, loadParameters, bitmap, metadata = null)
+  {
+    const handler = ImageIO.getImageHandler(ImageIO.getExtension(loadParameters.filename));
+
+    if (!handler) return new ImageIOResult(Code.UNRECOGNIZED_IMAGE_TYPE);
+
+    return handler.readImageAsync(bytes, loadParameters, bitmap, metadata);
   }
 
   /**
