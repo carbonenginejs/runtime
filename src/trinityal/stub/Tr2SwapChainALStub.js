@@ -16,7 +16,7 @@
 import { CjsSchema } from "#schema";
 import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
-import { Tr2BitmapDimensions } from "../Tr2BitmapDimensions.js";
+import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2TextureALStub } from "./Tr2TextureALStub.js";
 import { PixelFormat, Tr2GpuUsage } from "../../global/consts/renderContext/index.js";
 

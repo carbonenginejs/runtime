@@ -14,7 +14,9 @@
 // classes, and around sixty "device work this package does not do" comments,
 // all since removed. The directory is named after the thing now.
 export * from "./ALResult.js";
-export * from "./Tr2BitmapDimensions.js";
+// Tr2BitmapDimensions is Carbon's AL alias of ImageIO::BitmapDimensions
+// (Tr2RenderContextEnum.h:435); the class lives in global/imageio.
+export { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 export * from "./Tr2BufferAL/index.js";
 export * from "./Tr2DeviceResourceAL/index.js";
 export * from "./Tr2DrawUPHelper.js";

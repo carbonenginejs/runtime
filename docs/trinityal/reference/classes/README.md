@@ -15,16 +15,6 @@ The base of every AL resource.
 - Visibility: Public
 - Kind: Carbon
 
-<!-- class:Tr2BitmapDimensions -->
-## `Tr2BitmapDimensions`
-
-Texture type, format, size and mip layout, with the mip arithmetic every create, map and copy is described in.
-
-- Export: `@carbonenginejs/runtime/trinityal`
-- Source: `src/trinityal/Tr2BitmapDimensions.js`
-- Visibility: Public
-- Kind: Carbon
-
 <!-- class:Tr2DrawUPHelper -->
 ## `Tr2DrawUPHelper`
 

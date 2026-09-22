@@ -24,7 +24,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
-import { Tr2BitmapDimensions } from "../../../trinityal/Tr2BitmapDimensions.js";
+import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
 
 /** Tr2DepthStencil (trinityCore) - the depth-stencil surface a pass renders into. */

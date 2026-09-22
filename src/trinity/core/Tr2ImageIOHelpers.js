@@ -14,7 +14,7 @@
 // PREPARED resource is bound, through the context that binds it, and stored on
 // the resource exactly where Carbon stores it. A resource not yet prepared
 // yields null, and the parameter binds Carbon's fallback instead.
-import { Tr2BitmapDimensions } from "../../trinityal/Tr2BitmapDimensions.js";
+import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { PixelFormat, PixelFormatFromCanonical, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 

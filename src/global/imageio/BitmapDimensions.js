@@ -1,8 +1,11 @@
 // Source: imageio/include/BitmapDimensions.h
 //
-// `Tr2BitmapDimensions` is the abstraction layer's own alias for
-// `ImageIO::BitmapDimensions` (`Tr2RenderContextEnum.h:435`), and it is the
-// type every texture create, map and copy is described in. It holds the seven
+// `ImageIO::BitmapDimensions`. The abstraction layer knows it by its own alias,
+// `Tr2BitmapDimensions` (`Tr2RenderContextEnum.h:435`), which
+// `trinityal/Tr2BitmapDimensions.js` re-exports; it is the type every texture
+// create, map and copy is described in, and the base of `HostBitmap`. It lives
+// in global/imageio because both the resource layer and the abstraction layer
+// use it, and neither may import the other. It holds the seven
 // numbers that always travel together - type, format, width, height, depth,
 // mip count, array size - and the mip arithmetic that would otherwise be
 // rewritten at every call site.
@@ -26,7 +29,7 @@ import {
   IsCompressedFormat,
   GetBlockByteSize,
   GetBytesPerPixel
-} from "../global/consts/renderContext/index.js";
+} from "../consts/renderContext/index.js";
 
 
 /**
@@ -45,7 +48,7 @@ import {
  * and the pass attachments are `struct`s in Carbon with public members, and stay
  * that way.
  */
-export class Tr2BitmapDimensions
+export class BitmapDimensions
 {
   /** Width of mip zero. */
   _width = 0;
@@ -106,11 +109,11 @@ export class Tr2BitmapDimensions
    * @param {number} height Height of mip zero.
    * @param {number} mipCount Declared mip count.
    * @param {number} format A `PixelFormat` value.
-   * @returns {Tr2BitmapDimensions} The description.
+   * @returns {BitmapDimensions} The description.
    */
   static Texture2D(width, height, mipCount, format)
   {
-    return new Tr2BitmapDimensions({
+    return new BitmapDimensions({
       type: TextureType.TEX_TYPE_2D,
       format,
       width,
@@ -347,7 +350,7 @@ export class Tr2BitmapDimensions
   /**
    * Whether two descriptions name the same texture layout.
    *
-   * @param {Tr2BitmapDimensions} other The description to compare with.
+   * @param {BitmapDimensions} other The description to compare with.
    * @returns {boolean} True when every field matches.
    */
   Equals(other)
@@ -369,4 +372,4 @@ export class Tr2BitmapDimensions
 // that reaches this file without a build first. `CjsSchema.define` is the same
 // metadata through the door the schema already provides for exactly this, and
 // it keeps the layer free of the decorator chain it has never carried.
-CjsSchema.define(Tr2BitmapDimensions, { className: "Tr2BitmapDimensions", carbon: "BitmapDimensions" });
+CjsSchema.define(BitmapDimensions, { className: "BitmapDimensions", carbon: "BitmapDimensions", aliases: [ "Tr2BitmapDimensions" ] });

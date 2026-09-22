@@ -125,6 +125,16 @@ The paths service a browser can answer: res-file-index existence, with the verbs
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:BitmapDimensions -->
+## `BitmapDimensions`
+
+Texture type, format, size and mip layout, with the mip arithmetic every create, map and copy is described in; the abstraction layer exports it as `Tr2BitmapDimensions`, Carbon's own alias.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/BitmapDimensions.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:BlueClasses -->
 ## `BlueClasses`
 

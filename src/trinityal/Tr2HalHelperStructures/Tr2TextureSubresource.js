@@ -190,7 +190,7 @@ export class Tr2TextureSubresource
   /**
    * Clamps the range to a texture, filling in a box if there was none.
    *
-   * @param {import("./Tr2BitmapDimensions.js").Tr2BitmapDimensions} texture The texture to clamp against.
+   * @param {import("#imageio").BitmapDimensions} texture The texture to clamp against.
    */
   ClampToTexture(texture)
   {
@@ -239,7 +239,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range covers the entire texture.
    *
-   * @param {import("./Tr2BitmapDimensions.js").Tr2BitmapDimensions} texture The texture to check against.
+   * @param {import("#imageio").BitmapDimensions} texture The texture to check against.
    * @returns {boolean} True when nothing is left out.
    */
   IsSubresourceFull(texture)
@@ -268,7 +268,7 @@ export class Tr2TextureSubresource
   /**
    * Whether the range fits inside a texture.
    *
-   * @param {import("./Tr2BitmapDimensions.js").Tr2BitmapDimensions} bitmap The texture to check against.
+   * @param {import("#imageio").BitmapDimensions} bitmap The texture to check against.
    * @returns {boolean} True when it fits.
    */
   IsValidForBitmap(bitmap)
@@ -332,9 +332,9 @@ export class Tr2TextureSubresource
  * pass catches a box the shrink pushed back out of range.
  *
  * @param {Tr2TextureSubresource} sourceSR Source region; mutated in place.
- * @param {import("./Tr2BitmapDimensions.js").Tr2BitmapDimensions} sourceBD Source texture.
+ * @param {import("#imageio").BitmapDimensions} sourceBD Source texture.
  * @param {Tr2TextureSubresource} destSR Destination region; mutated in place.
- * @param {import("./Tr2BitmapDimensions.js").Tr2BitmapDimensions} destBD Destination texture.
+ * @param {import("#imageio").BitmapDimensions} destBD Destination texture.
  * @returns {boolean} True when a copy would make sense.
  */
 export function Crop(sourceSR, sourceBD, destSR, destBD)

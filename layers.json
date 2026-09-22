@@ -64,6 +64,18 @@
     "global/consts": {
       "mayImport": []
     },
+    "global/imageio": {
+      "mayImport": [
+        "global/consts",
+        "global/schema"
+      ],
+      "why": [
+        "Carbon imageio (E:/carbonengine/imageio): CPU image containers shared by the",
+        "resource layer (texture pipeline, image handlers) and the abstraction layer",
+        "(Tr2BitmapDimensions describes every AL texture). Classes only; the",
+        "handlers that call format readers live in resource/imageio."
+      ]
+    },
     "global/compose": {
       "mayImport": []
     },
@@ -96,7 +108,9 @@
     },
     "global/blue/enums": {
       "mayImport": [],
-      "why": ["Dependency-free enum storage shared by schema and Blue; never imports either facade."]
+      "why": [
+        "Dependency-free enum storage shared by schema and Blue; never imports either facade."
+      ]
     },
     "global/blue": {
       "mayImport": [
@@ -132,7 +146,8 @@
         "global/contracts",
         "global/blue",
         "global/schema",
-        "global/model"
+        "global/model",
+        "global/imageio"
       ]
     },
     "trinityal": {
@@ -143,7 +158,8 @@
         "global/contracts",
         "global/blue",
         "global/schema",
-        "global/model"
+        "global/model",
+        "global/imageio"
       ],
       "why": [
         "Carbon's abstraction layer, a sibling of trinity rather than a part of it",
@@ -162,7 +178,8 @@
         "global/schema",
         "global/model",
         "resource",
-        "trinityal"
+        "trinityal",
+        "global/imageio"
       ]
     },
     "sof": {
@@ -231,7 +248,8 @@
         "global/model",
         "resource",
         "trinity",
-        "trinityal"
+        "trinityal",
+        "global/imageio"
       ],
       "why": [
         "The implemented abstraction-layer backend extends canonical dependency-floor,",
