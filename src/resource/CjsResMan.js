@@ -3967,71 +3967,6 @@ function mergeResourceLoaderOptions(base, overrides = {})
 }
 
 /**
- * The short format ids used before 2026-09-22, when a format's id became its
- * declared class name. Accepted with a one-time warning; delete after the
- * deprecation period.
- */
-const DEPRECATED_FORMAT_IDS = new Map([
-  [ "black", "CjsBlackFormat" ],
-  [ "bnk", "CjsBnkFormat" ],
-  [ "cfsd64", "CjsFsd64Format" ],
-  [ "cmf", "CjsCmfFormat" ],
-  [ "dds", "CjsDdsFormat" ],
-  [ "dxbc", "CjsDxbcFormat" ],
-  [ "fbx", "CjsFbxFormat" ],
-  [ "flac", "CjsFlacFormat" ],
-  [ "fsd", "CjsFsdFormat" ],
-  [ "fsd32", "CjsFsd32Format" ],
-  [ "gif", "CjsGifFormat" ],
-  [ "gltf", "CjsGltfFormat" ],
-  [ "gr2", "CjsGr2Format" ],
-  [ "hlsl", "CjsHlslFormat" ],
-  [ "ies", "CjsIESFormat" ],
-  [ "jpeg", "CjsJpegFormat" ],
-  [ "jsonl", "CjsJsonlFormat" ],
-  [ "mp3", "CjsMp3Format" ],
-  [ "mp4", "CjsMp4Format" ],
-  [ "obj", "CjsObjFormat" ],
-  [ "ogg", "CjsOggFormat" ],
-  [ "pickle", "CjsPickleFormat" ],
-  [ "png", "CjsPngFormat" ],
-  [ "red", "CjsRedFormat" ],
-  [ "schemabound", "CjsSchemaBoundFormat" ],
-  [ "sqlite", "CjsSqliteFormat" ],
-  [ "static", "CjsStaticFormat" ],
-  [ "stl", "CjsStlFormat" ],
-  [ "tga", "CjsTgaFormat" ],
-  [ "vta", "CjsVtaFormat" ],
-  [ "wav", "CjsWavFormat" ],
-  [ "webgl", "CjsWebglFormat" ],
-  [ "webgpu", "CjsWebgpuFormat" ],
-  [ "webm", "CjsWebmFormat" ],
-  [ "webp", "CjsWebpFormat" ],
-  [ "wem", "CjsWemFormat" ],
-  [ "yaml", "CjsYamlFormat" ]
-]);
-
-const warnedFormatIds = new Set();
-
-/**
- * Map a deprecated short format id to the class-name id; anything else passes through.
- *
- * @param {string|Function} format Format constructor or id.
- * @returns {string|Function} The current id, or the input.
- */
-function resolveDeprecatedFormatId(format)
-{
-  const current = typeof format === "string" ? DEPRECATED_FORMAT_IDS.get(format) : undefined;
-  if (current === undefined) return format;
-  if (!warnedFormatIds.has(format))
-  {
-    warnedFormatIds.add(format);
-    console.warn(`CjsResMan: format id "${format}" is deprecated; use "${current}" or the format class.`);
-  }
-  return current;
-}
-
-/**
  * Filter current format descriptors using request material available before
  * source bytes are read. Byte-dependent support probes are deferred.
  *
@@ -4044,8 +3979,7 @@ function filterFormatDescriptors(descriptors, options)
   let candidates = [ ...descriptors ];
   if (options.format)
   {
-    const format = resolveDeprecatedFormatId(options.format);
-    candidates = candidates.filter(({ Format }) => Format === format || Format.id === format);
+    candidates = candidates.filter(({ Format }) => Format === options.format || Format.id === options.format);
   }
   if (options.emit !== undefined)
   {
