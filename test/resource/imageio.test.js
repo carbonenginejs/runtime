@@ -109,3 +109,19 @@ test("HostBitmap is reachable by name through blue.classes", () =>
 {
   assert.equal(blue.classes.CreateInstanceFromName("HostBitmap").constructor, HostBitmap);
 });
+
+test("the DDS format exposes Carbon's legacy clean-ups to direct readers", () =>
+{
+  assert.deepEqual([ ...CjsDdsFormat.expand24To32(new Uint8Array([ 1, 2, 3, 4, 5, 6 ])) ], [ 1, 2, 3, 0, 4, 5, 6, 0 ]);
+  assert.deepEqual([ ...CjsDdsFormat.convertL8A8ToBgra(new Uint8Array([ 9, 200 ])) ], [ 9, 9, 9, 200 ]);
+
+  const bytes = legacyDds(2, 1, 24, [ 0xFF0000, 0xFF00, 0xFF, 0 ], [ 1, 2, 3, 4, 5, 6 ]);
+  const plain = CjsDdsFormat.read(bytes, { emit: "texture" });
+  assert.equal(plain.pixelFormat, "bgr8unorm");
+  assert.equal(plain.data.length, 6);
+
+  const expanded = CjsDdsFormat.read(bytes, { emit: "texture", expandLegacy: true });
+  assert.equal(expanded.pixelFormat, "bgrx8unorm");
+  assert.deepEqual([ ...expanded.data ], [ 1, 2, 3, 0, 4, 5, 6, 0 ]);
+  assert.equal(expanded.subresources[0].rowPitch, 8);
+});

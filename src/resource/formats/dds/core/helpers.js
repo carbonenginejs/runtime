@@ -266,7 +266,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
 
     if (values.emit === OUTPUT_TEXTURE && metadata.sourceFormat === "dds")
     {
-        return readDdsTexture(bytes, metadata);
+        return readDdsTexture(bytes, metadata, values);
     }
 
     if ((values.emit === OUTPUT_RGBA || values.emit === OUTPUT_IMAGE) && metadata.sourceFormat === "dds")
@@ -414,7 +414,92 @@ function inspectDDS(bytes)
     };
 }
 
-function readDdsTexture(bytes, metadata)
+/**
+ * Carbon's load-time clean-up of 24-bit RGB: BGR -> BGRX with X = 0
+ * (imageio/Tr2DdsHandler.cpp Convert24BitTo32Bit, :774-795).
+ *
+ * @param {Uint8Array} source 24-bit pixels.
+ * @returns {Uint8Array} 32-bit pixels.
+ */
+export function expand24To32(source)
+{
+    const pixels = Math.floor(source.length / 3);
+    const out = new Uint8Array(pixels * 4);
+
+    for (let p = 0, s = 0, d = 0; p < pixels; p++)
+    {
+        out[d++] = source[s++];
+        out[d++] = source[s++];
+        out[d++] = source[s++];
+        out[d++] = 0;
+    }
+
+    return out;
+}
+
+/**
+ * Carbon's load-time clean-up of A8L8: luminance and alpha -> BGRA with
+ * B = G = R = L (Tr2DdsHandler.cpp:863-868, via HostBitmap::ConvertFormat
+ * R8G8 -> B8G8R8A8, HostBitmap.cpp:386-396).
+ *
+ * @param {Uint8Array} source L8A8 pixels.
+ * @returns {Uint8Array} BGRA pixels.
+ */
+export function convertL8A8ToBgra(source)
+{
+    const pixels = Math.floor(source.length / 2);
+    const out = new Uint8Array(pixels * 4);
+
+    for (let p = 0, s = 0, d = 0; p < pixels; p++, s += 2)
+    {
+        out[d++] = source[s];
+        out[d++] = source[s];
+        out[d++] = source[s];
+        out[d++] = source[s + 1];
+    }
+
+    return out;
+}
+
+/** The legacy layouts `expandLegacy` rewrites, with their converter and resulting format. */
+const LEGACY_EXPANSIONS = {
+    "bgr8unorm": { convert: expand24To32, pixelFormat: "bgrx8unorm", scale: 4 / 3 },
+    "l8a8unorm": { convert: convertL8A8ToBgra, pixelFormat: "bgra8unorm", scale: 2 }
+};
+
+/**
+ * Rewrite a 24-bit or A8L8 texture payload into Carbon's 32-bit shape, subresource
+ * by subresource, when `values.expandLegacy` asks for it.
+ */
+function expandLegacyTexture(texture)
+{
+    const rule = LEGACY_EXPANSIONS[texture.pixelFormat];
+    if (!rule) return texture;
+
+    const parts = [];
+    let offset = 0;
+    const subresources = texture.subresources.map(sub =>
+    {
+        const data = rule.convert(texture.data.subarray(sub.offset, sub.offset + sub.byteLength));
+        parts.push(data);
+        const next = {
+            ...sub,
+            offset,
+            byteLength: data.length,
+            rowPitch: Math.round(sub.rowPitch * rule.scale),
+            slicePitch: Math.round(sub.slicePitch * rule.scale)
+        };
+        offset += data.length;
+        return next;
+    });
+
+    const data = new Uint8Array(offset);
+    for (let i = 0, at = 0; i < parts.length; at += parts[i].length, i++) data.set(parts[i], at);
+
+    return { ...texture, pixelFormat: rule.pixelFormat, dataBytes: offset, subresources, data };
+}
+
+function readDdsTexture(bytes, metadata, values = DEFAULT_VALUES)
 {
     if (!metadata.pixelFormat)
     {
@@ -425,7 +510,7 @@ function readDdsTexture(bytes, metadata)
     }
 
     const subresources = buildDdsSubresources(bytes, metadata);
-    return {
+    const texture = {
         payloadType: OUTPUT_TEXTURE,
         sourceFormat: "dds",
         width: metadata.width,
@@ -448,6 +533,8 @@ function readDdsTexture(bytes, metadata)
         metadata,
         data: bytes.subarray(metadata.dataOffset, metadata.dataOffset + subresources.reduce((sum, entry) => sum + entry.byteLength, 0))
     };
+
+    return values.expandLegacy ? expandLegacyTexture(texture) : texture;
 }
 
 /**

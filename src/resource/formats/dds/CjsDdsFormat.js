@@ -12,6 +12,8 @@ import {
     OUTPUT_RAW,
     OUTPUT_RGBA,
     OUTPUT_TEXTURE,
+    convertL8A8ToBgra,
+    expand24To32,
     inspectBytes,
     inspectWithValues,
     isDDS,
@@ -308,14 +310,7 @@ export class CjsDdsFormat extends CjsImageFormat
 
             if (isRgb24)
             {
-                // Convert24BitTo32Bit (Tr2DdsHandler.cpp:774-795): BGR -> BGRX, X = 0.
-                for (let s = 0, d = element * elementSize; s + 2 < source.length; s += 3)
-                {
-                    dst[d++] = source[s];
-                    dst[d++] = source[s + 1];
-                    dst[d++] = source[s + 2];
-                    dst[d++] = 0;
-                }
+                dst.set(CjsDdsFormat.expand24To32(source), element * elementSize);
             }
             else
             {
@@ -334,6 +329,30 @@ export class CjsDdsFormat extends CjsImageFormat
         }
 
         return new ImageIOResult(Code.OK);
+    }
+
+    /**
+     * Carbon's 24-bit clean-up: BGR -> BGRX, X = 0 (Tr2DdsHandler.cpp:774-795).
+     * Also available on the texture output as `read(bytes, { emit: "texture", expandLegacy: true })`.
+     *
+     * @param {Uint8Array} source 24-bit pixels.
+     * @returns {Uint8Array} 32-bit pixels.
+     */
+    static expand24To32(source)
+    {
+        return expand24To32(source);
+    }
+
+    /**
+     * Carbon's A8L8 clean-up: -> BGRA with B = G = R = L (Tr2DdsHandler.cpp:863-868).
+     * Also available on the texture output as `read(bytes, { emit: "texture", expandLegacy: true })`.
+     *
+     * @param {Uint8Array} source L8A8 pixels.
+     * @returns {Uint8Array} BGRA pixels.
+     */
+    static convertL8A8ToBgra(source)
+    {
+        return convertL8A8ToBgra(source);
     }
 
     /**
