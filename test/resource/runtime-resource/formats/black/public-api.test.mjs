@@ -137,7 +137,7 @@ test("reader exposes the standard public profile API", () =>
     assert.equal(typeof CjsBlackFormat.readPayload, "function");
     assert.equal(typeof CjsBlackFormat.readRuntime, "function");
     assert.equal(typeof CjsBlackFormat.inspect, "function");
-    assert.equal(CjsBlackFormat.id, "black");
+    assert.equal(CjsBlackFormat.id, "CjsBlackFormat");
     assert.equal(CjsBlackFormat.version, 1);
 });
 

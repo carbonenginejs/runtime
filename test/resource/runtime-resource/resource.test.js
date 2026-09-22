@@ -542,6 +542,7 @@ test("CjsResMan Register accepts composed extension route objects", async () =>
 {
   class TestValueFormat
   {
+    static id = "TestValueFormat";
     static read() { return { type: "known", value: 4 }; }
   }
   class TestKnownTarget

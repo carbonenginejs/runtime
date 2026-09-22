@@ -409,7 +409,7 @@ export class CjsDdsFormat extends CjsImageFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_DDS_JSON = "ddsJson";
-    static id = "dds";
+    static id = "CjsDdsFormat";
     static mediaTypes = Object.freeze([ "texture", "image" ]);
     static outputs = CjsFormat.defineOutputs({
         texture: { probes: [ "texture", "compressed" ] },

@@ -187,7 +187,7 @@ export class CjsMp4Format extends CjsFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_MP4_JSON = "mp4Json";
-    static id = "mp4";
+    static id = "CjsMp4Format";
     static mediaTypes = Object.freeze([ "audio", "video" ]);
     static outputs = CjsFormat.defineOutputs({
         video: {  },

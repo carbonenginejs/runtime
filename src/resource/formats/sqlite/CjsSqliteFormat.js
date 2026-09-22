@@ -157,7 +157,7 @@ export class CjsSqliteFormat extends CjsFormat {
     RAW: OUTPUT_RAW
   });
 
-  static id = "sqlite";
+  static id = "CjsSqliteFormat";
   static extensions = Object.freeze([ ".sqlite", ".db", ".sqlite3" ]);
   static mediaTypes = Object.freeze([ "data" ]);
   static outputs = CjsFormat.defineOutputs({

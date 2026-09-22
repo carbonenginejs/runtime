@@ -241,7 +241,7 @@ export class CjsPngFormat extends CjsImageFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_PNG_JSON = "pngJson";
-    static id = "png";
+    static id = "CjsPngFormat";
     static mediaTypes = Object.freeze([ "image" ]);
     static inputs = CjsFormat.defineInputs({
         // async because the compressing path is the real one; the sync writer

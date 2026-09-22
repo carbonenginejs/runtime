@@ -25,7 +25,7 @@ test("treats M4A as an MP4 audio-profile input", () =>
 
     assert.equal(info.sourceFormat, "mp4");
     assert.equal(info.container, "isobmff");
-    assert.equal(CjsMp4Format.getSupport(bytes, { inputType: "m4a" }).format, "mp4");
+    assert.equal(CjsMp4Format.getSupport(bytes, { inputType: "m4a" }).format, "CjsMp4Format");
 });
 
 test("extracts M4A-style AAC track metadata", () =>

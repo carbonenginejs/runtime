@@ -95,7 +95,7 @@ test("reader exposes the standard public profile API", () =>
         "ReadRaw", "ReadRuntime", "SetClass", "SetClasses", "SetValues", "ToJSON",
         "constructor"
     ].sort());
-    assert.equal(CjsRedFormat.id, "red");
+    assert.equal(CjsRedFormat.id, "CjsRedFormat");
 });
 
 test("reader profile exposes and persists payload identity markers", () =>

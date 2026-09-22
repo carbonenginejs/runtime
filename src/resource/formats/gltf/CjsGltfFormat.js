@@ -278,7 +278,7 @@ export class CjsGltfFormat extends CjsFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "gltf";
+    static id = "CjsGltfFormat";
     static mediaTypes = Object.freeze([ "geometry" ]);
     static outputs = CjsFormat.defineOutputs({
         shared: { default: true, decoded: true },

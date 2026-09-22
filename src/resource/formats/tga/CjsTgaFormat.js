@@ -220,7 +220,7 @@ export class CjsTgaFormat extends CjsImageFormat
 
     static OUTPUT_TGA_JSON = "tgaJson";
 
-    static id = "tga";
+    static id = "CjsTgaFormat";
 
     static mediaTypes = Object.freeze([ "image" ]);
 

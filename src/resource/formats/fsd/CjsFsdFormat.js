@@ -84,7 +84,7 @@ export class CjsFsdFormat extends CjsFormat
         return this.read(input, { ...options, emit: OUTPUT_JSON });
     }
 
-    static id = "fsd";
+    static id = "CjsFsdFormat";
     static extensions = Object.freeze([ ".fsdbinary" ]);
     static mediaTypes = Object.freeze([ "data" ]);
     static outputs = CjsFormat.defineOutputs({

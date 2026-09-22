@@ -344,7 +344,7 @@ export class CjsGr2Format extends CjsFormat
     static OUTPUT_CMF = OUTPUT_CMF;
     static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "gr2";
+    static id = "CjsGr2Format";
     static mediaTypes = Object.freeze([ "geometry" ]);
     // Same shape as the other geometry writers: a native CMF v1 graph is the
     // default input, and `writeShared` adapts a shared or GR2-shaped root.

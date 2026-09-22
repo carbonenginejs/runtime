@@ -140,7 +140,7 @@ export class CjsOggFormat extends CjsFormat
     static OUTPUT_OGG_JSON = "oggJson";
     static OUTPUT_PCM = OUTPUT_PCM;
     static OUTPUT_AUDIO = OUTPUT_AUDIO;
-    static id = "ogg";
+    static id = "CjsOggFormat";
     static mediaTypes = Object.freeze([ "audio", "video" ]);
     static outputs = CjsFormat.defineOutputs({
         pcm: { decoded: true },

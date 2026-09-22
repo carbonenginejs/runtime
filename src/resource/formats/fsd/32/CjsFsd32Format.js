@@ -94,7 +94,7 @@ export class CjsFsd32Format extends CjsFormat
         return this.read(input, options);
     }
 
-    static id = VARIANT;
+    static id = "CjsFsd32Format";
     static extensions = Object.freeze([ ".fsdbinary" ]);
     static mediaTypes = Object.freeze([ "data" ]);
     static outputs = Object.freeze({});

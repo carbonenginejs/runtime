@@ -193,7 +193,7 @@ export class CjsWavFormat extends CjsFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_WAV_JSON = "wavJson";
-    static id = "wav";
+    static id = "CjsWavFormat";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({
         audio: { decoded: true, probes: [ "audio", "pcm" ] },

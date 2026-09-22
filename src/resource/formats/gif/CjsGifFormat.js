@@ -136,7 +136,7 @@ export class CjsGifFormat extends CjsImageFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_GIF_JSON = "gifJson";
-    static id = "gif";
+    static id = "CjsGifFormat";
     static mediaTypes = Object.freeze([ "image" ]);
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },

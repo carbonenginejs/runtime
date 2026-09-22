@@ -250,7 +250,7 @@ export class CjsHlslFormat extends CjsFormat
     static OUTPUT_METADATA = OUTPUT_METADATA;
     static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "hlsl";
+    static id = "CjsHlslFormat";
     static mediaTypes = Object.freeze([ "shader" ]);
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },

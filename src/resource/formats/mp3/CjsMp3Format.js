@@ -188,7 +188,7 @@ export class CjsMp3Format extends CjsFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_MP3_JSON = "mp3Json";
-    static id = "mp3";
+    static id = "CjsMp3Format";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({
         mp3Json: { role: "debug", probes: [ "mp3Json", "raw" ] },

@@ -150,7 +150,7 @@ export class CjsYamlFormat extends CjsFormat
     static TAG_PRESERVE = TAG_PRESERVE;
     static TAG_REJECT = TAG_REJECT;
     static TAG_HANDLE = TAG_HANDLE;
-    static id = "yaml";
+    static id = "CjsYamlFormat";
     static extensions = Object.freeze([ ".yaml", ".yml" ]);
     static mediaTypes = Object.freeze([ "data" ]);
     static outputs = CjsFormat.defineOutputs({

@@ -133,7 +133,7 @@ export class CjsWebpFormat extends CjsFormat
 
     static OUTPUT_WEBP_JSON = "webpJson";
 
-    static id = "webp";
+    static id = "CjsWebpFormat";
 
     static mediaTypes = Object.freeze([ "image" ]);
 

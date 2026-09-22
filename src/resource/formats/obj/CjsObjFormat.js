@@ -253,7 +253,7 @@ export class CjsObjFormat extends CjsFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "obj";
+    static id = "CjsObjFormat";
     static mediaTypes = Object.freeze([ "geometry" ]);
     static outputs = CjsFormat.defineOutputs({
         shared: { decoded: true },

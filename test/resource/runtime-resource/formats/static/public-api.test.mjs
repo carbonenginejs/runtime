@@ -160,7 +160,7 @@ test("reports the family on the shared probe seam", () =>
     Bytes([ 0x01, 0x00, 0x00, 0x00 ], "(dp1\nS'a'\np2\nI1\ns.")
   );
 
-  assert.equal(probe.format, "static");
+  assert.equal(probe.format, "CjsStaticFormat");
   assert.equal(probe.recognized, true);
   assert.equal(probe.supported, false);
   assert.equal(probe.metadata.payloadOffset, 4);

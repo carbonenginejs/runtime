@@ -110,7 +110,7 @@ export class CjsFlacFormat extends CjsFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_FLAC_JSON = "flacJson";
-    static id = "flac";
+    static id = "CjsFlacFormat";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({
         flacJson: { role: "debug", probes: [ "flacJson", "raw" ] },

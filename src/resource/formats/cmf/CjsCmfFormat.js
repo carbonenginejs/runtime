@@ -515,7 +515,7 @@ export class CjsCmfFormat extends CjsFormat
         SHARED: OUTPUT_SHARED
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "cmf";
+    static id = "CjsCmfFormat";
     static mediaTypes = Object.freeze([ "geometry" ]);
     // The writer's own graph is the default: `write` takes a CMF-native graph,
     // while `writeShared` converts a shared geometry root through it first.

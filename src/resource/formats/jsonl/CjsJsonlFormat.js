@@ -114,7 +114,7 @@ export class CjsJsonlFormat extends CjsFormat
         return lines.join("\n") + (lines.length ? "\n" : "");
     }
 
-    static id = "jsonl";
+    static id = "CjsJsonlFormat";
     static extensions = Object.freeze([ ".jsonl" ]);
     static mediaTypes = Object.freeze([ "data" ]);
     static outputs = CjsFormat.defineOutputs({

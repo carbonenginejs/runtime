@@ -18,7 +18,7 @@ test("format facade exposes the standard reusable API", () =>
         "GetValues", "Inspect", "Read", "ReadDocument", "ReadPayload", "ReadRaw",
         "SetValues", "ToJSON", "constructor"
     ].sort());
-    assert.equal(CjsYamlFormat.id, "yaml");
+    assert.equal(CjsYamlFormat.id, "CjsYamlFormat");
     assert.deepEqual(CjsYamlFormat.extensions, [ ".yaml", ".yml" ]);
 });
 

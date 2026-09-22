@@ -63,7 +63,7 @@ export class CjsIESFormat extends CjsFormat
         return metadata;
     }
 
-    static id = "ies";
+    static id = "CjsIESFormat";
     static extensions = Object.freeze([ ".ies" ]);
     static mediaTypes = Object.freeze([ "data" ]);
     static outputs = Object.freeze(CjsFormat.defineOutputs({

@@ -266,7 +266,7 @@ export class CjsPickleFormat extends CjsFormat
     RAW: OUTPUT_RAW
   });
   static supportedProtocols = Object.freeze([ 0, 1, 2, 3, 4 ]);
-  static id = "pickle";
+  static id = "CjsPickleFormat";
   static extensions = Object.freeze([ ".pickle" ]);
   static mediaTypes = Object.freeze([ "data" ]);
   static outputs = CjsFormat.defineOutputs({

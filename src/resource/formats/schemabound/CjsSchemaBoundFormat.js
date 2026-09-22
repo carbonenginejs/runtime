@@ -173,7 +173,7 @@ export class CjsSchemaBoundFormat extends CjsFormat {
 
   static Output = Object.freeze({ JSON: OUTPUT_JSON, PAYLOAD: OUTPUT_PAYLOAD });
 
-  static id = "schemabound";
+  static id = "CjsSchemaBoundFormat";
   static extensions = Object.freeze([ ".static" ]);
   static mediaTypes = Object.freeze([ "data" ]);
   static outputs = CjsFormat.defineOutputs({

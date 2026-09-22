@@ -286,7 +286,7 @@ export class CjsFbxFormat extends CjsFormat
         FBX_JSON: OUTPUT_FBX_JSON
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "fbx";
+    static id = "CjsFbxFormat";
     static mediaTypes = Object.freeze([ "geometry" ]);
     // FBX is written THROUGH CMF: `write` takes a native CMF graph and
     // `writeShared` converts shared or GR2-shaped geometry into one first.

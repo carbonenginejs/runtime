@@ -25,7 +25,7 @@ test("pickle facade declares protocol 0 and the standard format vocabulary", () 
     "GetValues", "Read", "ReadJSON", "ReadPayload", "ReadRaw", "SetValues",
     "ToJSON", "constructor"
   ].sort());
-  assert.equal(CjsPickleFormat.id, "pickle");
+  assert.equal(CjsPickleFormat.id, "CjsPickleFormat");
   assert.deepEqual(CjsPickleFormat.extensions, [ ".pickle" ]);
   assert.deepEqual(CjsPickleFormat.supportedProtocols, [ 0, 1, 2, 3, 4 ]);
   assert.equal(typeof CjsPickleFormat.normalizeValues, "function");

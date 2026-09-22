@@ -208,7 +208,7 @@ export class CjsVtaFormat extends CjsFormat
 
     static OUTPUT_VTA_JSON = OUTPUT_VTA_JSON;
 
-    static id = "vta";
+    static id = "CjsVtaFormat";
 
     static mediaTypes = Object.freeze([ "image" ]);
 

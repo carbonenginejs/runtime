@@ -14,7 +14,6 @@ import {
 } from "./core/helpers.js";
 import {
     CJS_BLACK_EXTENSION,
-    CJS_BLACK_FORMAT_ID,
     CJS_BLACK_FOURCC,
     CJS_BLACK_VERSION
 } from "./core/blackConstants.js";
@@ -320,7 +319,7 @@ export class CjsBlackFormat extends CjsFormat
         RUNTIME: OUTPUT_RUNTIME
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = CJS_BLACK_FORMAT_ID;
+    static id = "CjsBlackFormat";
     static extensions = Object.freeze([CJS_BLACK_EXTENSION]);
     static fourCC = CJS_BLACK_FOURCC;
     static version = CJS_BLACK_VERSION;

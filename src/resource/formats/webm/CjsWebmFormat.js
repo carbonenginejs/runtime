@@ -189,7 +189,7 @@ export class CjsWebmFormat extends CjsFormat
 
     static OUTPUT_WEBM_JSON = "webmJson";
 
-    static id = "webm";
+    static id = "CjsWebmFormat";
 
     static mediaTypes = Object.freeze([ "video" ]);
 

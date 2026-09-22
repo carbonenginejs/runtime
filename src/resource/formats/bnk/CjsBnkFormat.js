@@ -325,7 +325,7 @@ export class CjsBnkFormat extends CjsFormat
 
     static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
 
-    static id = "bnk";
+    static id = "CjsBnkFormat";
 
     static mediaTypes = Object.freeze([ "audio" ]);
 

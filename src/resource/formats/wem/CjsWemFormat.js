@@ -242,7 +242,7 @@ export class CjsWemFormat extends CjsFormat
         PCM: OUTPUT_PCM
     });
     static CODEC_NAMES = WEM_CODEC_NAMES;
-    static id = "wem";
+    static id = "CjsWemFormat";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({
         raw: { default: true, passthrough: true },

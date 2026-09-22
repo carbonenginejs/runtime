@@ -342,7 +342,7 @@ export class CjsStlFormat extends CjsFormat
         CMF: OUTPUT_CMF
     });
     static CLASS_KEYS = CLASS_KEYS;
-    static id = "stl";
+    static id = "CjsStlFormat";
     static mediaTypes = Object.freeze([ "geometry" ]);
     // STL takes the shared geometry root directly rather than going through
     // CMF, because it carries triangles and nothing else worth preserving.

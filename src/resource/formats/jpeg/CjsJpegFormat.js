@@ -243,7 +243,7 @@ export class CjsJpegFormat extends CjsImageFormat
         JSON: OUTPUT_JSON
     });
     static OUTPUT_JPEG_JSON = "jpegJson";
-    static id = "jpeg";
+    static id = "CjsJpegFormat";
     static mediaTypes = Object.freeze([ "image" ]);
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, lossy: true, options: [ "quality", "subsampling" ] }
