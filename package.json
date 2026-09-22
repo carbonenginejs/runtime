@@ -73,6 +73,7 @@
     "./resource/geometry/granny": "./src/resource/geometry/granny/index.js",
     "./resource/shader": "./src/resource/shader/index.js",
     "./resource/texture": "./src/resource/texture/index.js",
+    "./resource/imageio": "./src/resource/imageio/index.js",
     "./resource/worker": "./src/resource/worker/CjsResManWorker.js",
     "./resource/format": "./src/resource/format/index.js",
     "./resource/formats": "./src/resource/formats/index.js",

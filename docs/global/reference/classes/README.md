@@ -155,6 +155,46 @@ Single-pixel reads from BGRA, BGRX, R8, BC1 and BC3 data as packed 0xAARRGGBB, i
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:ImageIOResult -->
+## `ImageIOResult`
+
+An image operation's outcome: one of Carbon's fifteen ImageIO codes and an optional message.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/ImageIOResult.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:LoadParameters -->
+## `LoadParameters`
+
+What an image read is asked for: the file name that picks the handler, mip skip and mip cap, and an optional requested pixel format the format converts to.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/LoadParameters.js`
+- Visibility: Public
+- Kind: Adapted Carbon concept
+
+<!-- class:Cutout -->
+## `Cutout`
+
+The normalized sub-rectangle an image file can declare; the whole image by default.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/Cutout.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:Metadata -->
+## `Metadata`
+
+What an image file carries besides its pixels: the cutout and key/value strings.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/Metadata.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
 <!-- class:BlueClasses -->
 ## `BlueClasses`
 

@@ -18,5 +18,6 @@ export * from "./CjsByteWriter.js";
 export * from "./CjsStringTable.js";
 export * from "./carbonEffect/index.js";
 export * from "./CjsFormat.js";
+export * from "./CjsImageFormat.js";
 export * from "./CjsFormatStore.js";
 export * from "./payloadContract.js";

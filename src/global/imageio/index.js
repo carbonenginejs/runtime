@@ -9,3 +9,7 @@
 export * from "./BitmapDimensions.js";
 export * from "./ImageUtility.js";
 export * from "./HostBitmap.js";
+export * from "./ImageIOResult.js";
+export * from "./LoadParameters.js";
+export * from "./Cutout.js";
+export * from "./Metadata.js";

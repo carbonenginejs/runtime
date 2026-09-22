@@ -1,5 +1,8 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
+import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { BitmapDimensions, Cutout, ImageIOResult } from "#imageio";
+import { PixelFormat, PixelFormatFromCanonical, TextureType } from "#consts/render-context";
 import {
     DEFAULT_VALUES,
     canDecodeDdsBlockFormat,
@@ -9,6 +12,7 @@ import {
     OUTPUT_RAW,
     OUTPUT_RGBA,
     OUTPUT_TEXTURE,
+    inspectBytes,
     inspectWithValues,
     isDDS,
     probeSupportWithValues,
@@ -20,12 +24,28 @@ import {
 const FORMAT_NAME = "CjsDdsFormat";
 
 /**
+ * The legacy (non-DX10) DDS formats this format's parser names with a DDS-only
+ * string, mapped to Carbon's PixelFormat as Tr2DdsHandler's s_ddsFormats does
+ * (imageio/Tr2DdsHandler.cpp:190-226). Everything else maps through
+ * PixelFormatFromCanonical.
+ */
+const LEGACY_PIXEL_FORMATS = {
+    "bgr8unorm": PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM,
+    "bgrx8unorm": PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM,
+    "rgbx8unorm": PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+    "l8unorm": PixelFormat.PIXEL_FORMAT_R8_UNORM,
+    "l8a8unorm": PixelFormat.PIXEL_FORMAT_R8G8_UNORM,
+    "a8unorm": PixelFormat.PIXEL_FORMAT_A8_UNORM,
+    "rgb32float": PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT
+};
+
+/**
  * DDS texture format profile that inspects header metadata, probes output
  * support, and reads DDS bytes into raw, GPU-free texture, image, or
  * software-decoded RGBA and float payloads (BC1-BC5, BC7, and BC6H
  * included).
  */
-export class CjsDdsFormat extends CjsFormat
+export class CjsDdsFormat extends CjsImageFormat
 {
     #values = DEFAULT_VALUES;
 
@@ -188,8 +208,134 @@ export class CjsDdsFormat extends CjsFormat
     }
 
     /**
-     * Emit targets for this format (canonical frozen enum).
+     * Fill a HostBitmap from DDS bytes: Carbon's `Dds::ReadImage`
+     * (imageio/Tr2DdsHandler.cpp:922-958), read through this format's own
+     * header parser rather than a second one, so it covers every DDS variant the
+     * parser does - more than Carbon's handler table.
+     *
+     * Kept from Carbon: mip skipping from `LoadParameters` (not for cubes,
+     * DoReadHeader :484-515), 24-bit RGB expanded to 32-bit BGRX with X = 0
+     * (`Convert24BitTo32Bit`, :774-795), and A8L8 read as R8G8 then converted
+     * to BGRA (:863-868). The pixel data is copied as it lies: the file order is
+     * the HostBitmap layout.
+     *
+     * adapted: a cube ARRAY loads whole (arraySize = 6 x cubes); Carbon's
+     * CopyHeaderValuesToMembers always makes one cube (:447-449). Not yet
+     * ported: the CCP-META trailer; metadata gets its default cutout only.
+     *
+     * @param {Uint8Array|ArrayBuffer} input DDS bytes.
+     * @param {import("#imageio").LoadParameters} loadParameters Load parameters.
+     * @param {object} bitmap Destination HostBitmap; only its methods are used.
+     * @param {import("#imageio").Metadata|null} [metadata] Optional Metadata out.
+     * @returns {ImageIOResult} The result.
      */
+    static readImageNative(input, loadParameters, bitmap, metadata = null)
+    {
+        const Code = ImageIOResult.Code;
+        const bytes = asUint8Array(input, "Image input");
+
+        let meta;
+        try
+        {
+            meta = inspectBytes(bytes);
+        }
+        catch (error)
+        {
+            return new ImageIOResult(Code.INVALID_HEADER, error.message);
+        }
+
+        if (meta.sourceFormat !== "dds") return new ImageIOResult(Code.INVALID_HEADER);
+
+        const format = meta.hasDx10
+            ? meta.dxgiFormat
+            : LEGACY_PIXEL_FORMATS[meta.pixelFormat] ?? PixelFormatFromCanonical[meta.pixelFormat] ?? PixelFormat.PIXEL_FORMAT_UNKNOWN;
+
+        if (format === PixelFormat.PIXEL_FORMAT_UNKNOWN)
+        {
+            return new ImageIOResult(Code.HEADER_NOT_SUPPORTED, `unsupported DDS format ${meta.textureFormat}`);
+        }
+
+        const isRgb24 = meta.pixelFormat === "bgr8unorm";
+        const description = {
+            type: meta.isCube ? TextureType.TEX_TYPE_CUBE : (meta.isVolume ? TextureType.TEX_TYPE_3D : TextureType.TEX_TYPE_2D),
+            format,
+            width: meta.width,
+            height: meta.height,
+            depth: meta.isVolume ? Math.max(meta.depth, 1) : 1,
+            mipCount: meta.mipCount,
+            arraySize: meta.isCube ? 6 * Math.max(meta.arraySize, 1) : Math.max(meta.arraySize, 1)
+        };
+
+        let skipBytes = 0;
+
+        if (!meta.isCube)
+        {
+            const full = new BitmapDimensions(description);
+            const range = loadParameters.GetMipLevelRange(meta.width, meta.height, meta.hasMipMaps ? meta.mipCount : 0);
+
+            if (range.skipCount)
+            {
+                for (let i = 0; i < range.skipCount; ++i)
+                {
+                    skipBytes += isRgb24
+                        ? full.GetMipWidth(i) * full.GetMipHeight(i) * full.GetMipDepth(i) * 3
+                        : full.GetMipSize(i);
+                }
+
+                description.mipCount = range.mipCount;
+                description.width = meta.width >>> range.skipCount;
+                description.height = meta.height >>> range.skipCount;
+                description.depth = Math.max(1, description.depth >>> range.skipCount);
+            }
+        }
+
+        if (metadata) metadata.cutout = new Cutout();
+
+        if (!bitmap.CreateFromBitmapDimensions(new BitmapDimensions(description)))
+        {
+            return new ImageIOResult(Code.ERROR_CREATING_BITMAP);
+        }
+
+        const dst = bitmap.GetRawData();
+        const elementSize = bitmap.GetArrayElementSize();
+        const sourceElementSize = isRgb24 ? Math.floor(elementSize / 4) * 3 : elementSize;
+        let cursor = meta.dataOffset;
+
+        for (let element = 0; element < bitmap.GetArraySize(); ++element)
+        {
+            cursor += skipBytes;
+            const source = bytes.subarray(cursor, Math.min(cursor + sourceElementSize, bytes.length));
+
+            if (isRgb24)
+            {
+                // Convert24BitTo32Bit (Tr2DdsHandler.cpp:774-795): BGR -> BGRX, X = 0.
+                for (let s = 0, d = element * elementSize; s + 2 < source.length; s += 3)
+                {
+                    dst[d++] = source[s];
+                    dst[d++] = source[s + 1];
+                    dst[d++] = source[s + 2];
+                    dst[d++] = 0;
+                }
+            }
+            else
+            {
+                // quirk: a short file leaves a zeroed tail rather than failing,
+                // as a CCP stream's partial Read does.
+                dst.set(source, element * elementSize);
+            }
+
+            cursor += sourceElementSize;
+        }
+
+        if (meta.pixelFormat === "l8a8unorm" && !bitmap.ConvertFormat(PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM))
+        {
+            bitmap.Destroy();
+            return new ImageIOResult(Code.ERROR_CONVERTING_FORMAT);
+        }
+
+        return new ImageIOResult(Code.OK);
+    }
+
     /**
      * Decodes one block-compressed 2D slice to RGBA8.
      *

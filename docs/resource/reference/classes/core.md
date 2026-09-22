@@ -105,6 +105,26 @@ Shared output and hydration backend for Blue persistence readers that owns commo
 - Visibility: Internal
 - Kind: Internal implementation class
 
+<!-- class:ImageIO -->
+## `ImageIO`
+
+Carbon's image-handler registry: picks an image format by extension and reads into, or saves from, a HostBitmap.
+
+- Export: `@carbonenginejs/runtime/resource/imageio`
+- Source: `src/resource/imageio/ImageIO.js`
+- Visibility: Public
+- Kind: Faithful Carbon port
+
+<!-- class:CjsImageFormat -->
+## `CjsImageFormat`
+
+The base of every image format: gives each one Carbon's handler table as Format.carbon and converts a native read to a requested pixel format.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsImageFormat.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsFormat -->
 ## `CjsFormat`
 
