@@ -4,7 +4,9 @@
 // Carbon's `ImageUtility` namespace: single-pixel reads from BGRA, BGRX, R8,
 // BC1 and BC3 data, returned as one packed 0xAARRGGBB value. `HostBitmap`'s
 // GetAverageColor and GetPixel are its only callers. A namespace of free
-// functions becomes a class of statics, with Carbon's names kept.
+// functions becomes a class of statics. Statics are camelCase in
+// CarbonEngineJS - Carbon's `GetPixelColor_BGRA` is `getPixelColor_BGRA` - so a
+// static can never collide with an instance method.
 //
 // Values are read little-endian, as the x86/ARM targets Carbon ships on do.
 //
@@ -12,10 +14,10 @@
 // /docs/research/carbon-known-defects.md). Art and thresholds were tuned
 // against the shipped behaviour:
 //
-// 1. GetPixelColor_BC3 computes the block index and never uses it: alpha and
+// 1. getPixelColor_BC3 computes the block index and never uses it: alpha and
 //    colour are read from `source`, so every pixel is read from block 0
 //    (ImageUtility.cpp:101-102 vs 106-110, 130-134).
-// 2. GetPixelColor_BC3 builds its two 24-bit alpha-index masks from `const
+// 2. getPixelColor_BC3 builds its two 24-bit alpha-index masks from `const
 //    char` bytes (`auto alphaMask = source + 2`, :108-110). `char` is signed on
 //    MSVC, so a byte >= 0x80 sign-extends into the bits above it before the OR.
 
@@ -34,7 +36,7 @@ export class ImageUtility
    * @param {number} divisor Divisor.
    * @returns {number} Packed 0x00RRGGBB.
    */
-  static InterpolatedColor(color0, weight0, color1, weight1, offset, divisor)
+  static interpolatedColor(color0, weight0, color1, weight1, offset, divisor)
   {
     const r0 = (color0 >>> 16) & 0xff, g0 = (color0 >>> 8) & 0xff, b0 = color0 & 0xff;
     const r1 = (color1 >>> 16) & 0xff, g1 = (color1 >>> 8) & 0xff, b1 = color1 & 0xff;
@@ -49,11 +51,11 @@ export class ImageUtility
   /**
    * Expand a BGR565 value and an 8-bit alpha to 0xAARRGGBB (ImageUtility.cpp:24-30).
    *
-   * @param {number} color BGR565 value (or an interpolation of two, see GetPixelColor_BC1).
+   * @param {number} color BGR565 value (or an interpolation of two, see getPixelColor_BC1).
    * @param {number} alpha Alpha, 0-255.
    * @returns {number} Packed 0xAARRGGBB.
    */
-  static ConvertBGR565A8ToBGRA8(color, alpha)
+  static convertBGR565A8ToBGRA8(color, alpha)
   {
     return (
       Math.floor((color & 0x1f) * 255 / 31) |
@@ -72,7 +74,7 @@ export class ImageUtility
    * @param {Uint8Array} source Pixel data.
    * @returns {number} Packed 0xAARRGGBB.
    */
-  static GetPixelColor_BGRA(x, y, pitch, source)
+  static getPixelColor_BGRA(x, y, pitch, source)
   {
     const at = y * pitch + x * 4;
 
@@ -88,7 +90,7 @@ export class ImageUtility
    * @param {Uint8Array} source Pixel data.
    * @returns {number} Packed 0x00RR0000.
    */
-  static GetPixelColor_R(x, y, pitch, source)
+  static getPixelColor_R(x, y, pitch, source)
   {
     return (source[y * pitch + x] << 16) >>> 0;
   }
@@ -102,9 +104,9 @@ export class ImageUtility
    * @param {Uint8Array} source Pixel data.
    * @returns {number} Packed 0xFFRRGGBB.
    */
-  static GetPixelColor_BGRX(x, y, pitch, source)
+  static getPixelColor_BGRX(x, y, pitch, source)
   {
-    return (ImageUtility.GetPixelColor_BGRA(x, y, pitch, source) | 0xff000000) >>> 0;
+    return (ImageUtility.getPixelColor_BGRA(x, y, pitch, source) | 0xff000000) >>> 0;
   }
 
   /**
@@ -122,7 +124,7 @@ export class ImageUtility
    * @param {Uint8Array} source BC1 blocks.
    * @returns {number} Packed 0xAARRGGBB.
    */
-  static GetPixelColor_BC1(x, y, width, _pitch, source)
+  static getPixelColor_BC1(x, y, width, _pitch, source)
   {
     // ((width + 3) / 4) is a ceiling (ImageUtility.cpp:49-50).
     const index = (Math.floor(x / 4) + Math.floor(y / 4) * Math.floor((width + 3) / 4)) * 8;
@@ -131,7 +133,7 @@ export class ImageUtility
     const bits = (source[index + 4] | (source[index + 5] << 8) | (source[index + 6] << 16) | (source[index + 7] << 24)) >>> 0;
 
     const selector = (bits >>> (2 * (4 * (y % 4) + (x % 4)))) & 3;
-    const convert = ImageUtility.ConvertBGR565A8ToBGRA8;
+    const convert = ImageUtility.convertBGR565A8ToBGRA8;
 
     if (color0 > color1)
     {
@@ -166,7 +168,7 @@ export class ImageUtility
    * @param {Uint8Array} source BC3 blocks.
    * @returns {number} Packed 0xAARRGGBB.
    */
-  static GetPixelColor_BC3(x, y, width, _pitch, source)
+  static getPixelColor_BC3(x, y, width, _pitch, source)
   {
     // bug: Carbon computes the block index here (ImageUtility.cpp:101-102)
     // and never uses it; every read below is from block 0.
@@ -199,10 +201,10 @@ export class ImageUtility
       alpha[7] = 255;
     }
 
-    const color0 = ImageUtility.ConvertBGR565A8ToBGRA8(source[8] | (source[9] << 8), 0);
-    const color1 = ImageUtility.ConvertBGR565A8ToBGRA8(source[10] | (source[11] << 8), 0);
-    const color2 = ImageUtility.InterpolatedColor(color0, 2, color1, 1, 1, 3);
-    const color3 = ImageUtility.InterpolatedColor(color0, 1, color1, 2, 1, 3);
+    const color0 = ImageUtility.convertBGR565A8ToBGRA8(source[8] | (source[9] << 8), 0);
+    const color1 = ImageUtility.convertBGR565A8ToBGRA8(source[10] | (source[11] << 8), 0);
+    const color2 = ImageUtility.interpolatedColor(color0, 2, color1, 1, 1, 3);
+    const color3 = ImageUtility.interpolatedColor(color0, 1, color1, 2, 1, 3);
     const bits = (source[12] | (source[13] << 8) | (source[14] << 16) | (source[15] << 24)) >>> 0;
 
     const px = x % 4;

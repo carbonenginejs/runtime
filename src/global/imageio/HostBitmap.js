@@ -1284,10 +1284,10 @@ export class HostBitmap extends BitmapDimensions
     let getPixel;
     switch (format)
     {
-      case F.PIXEL_FORMAT_B8G8R8A8_UNORM: getPixel = (x, y) => ImageUtility.GetPixelColor_BGRA(x, y, pitch, data); break;
-      case F.PIXEL_FORMAT_B8G8R8X8_UNORM: getPixel = (x, y) => ImageUtility.GetPixelColor_BGRX(x, y, pitch, data); break;
-      case F.PIXEL_FORMAT_BC1_UNORM: getPixel = (x, y) => ImageUtility.GetPixelColor_BC1(x, y, width, pitch, data); break;
-      default: getPixel = (x, y) => ImageUtility.GetPixelColor_BC3(x, y, width, pitch, data); break;
+      case F.PIXEL_FORMAT_B8G8R8A8_UNORM: getPixel = (x, y) => ImageUtility.getPixelColor_BGRA(x, y, pitch, data); break;
+      case F.PIXEL_FORMAT_B8G8R8X8_UNORM: getPixel = (x, y) => ImageUtility.getPixelColor_BGRX(x, y, pitch, data); break;
+      case F.PIXEL_FORMAT_BC1_UNORM: getPixel = (x, y) => ImageUtility.getPixelColor_BC1(x, y, width, pitch, data); break;
+      default: getPixel = (x, y) => ImageUtility.getPixelColor_BC3(x, y, width, pitch, data); break;
     }
 
     let rChannel = 0, gChannel = 0, bChannel = 0, aChannel = 0;
@@ -1365,10 +1365,10 @@ export class HostBitmap extends BitmapDimensions
 
     switch (format)
     {
-      case F.PIXEL_FORMAT_B8G8R8A8_UNORM: pixelValue = ImageUtility.GetPixelColor_BGRA(x, y, pitch, data); break;
-      case F.PIXEL_FORMAT_B8G8R8X8_UNORM: pixelValue = ImageUtility.GetPixelColor_BGRX(x, y, pitch, data); break;
-      case F.PIXEL_FORMAT_BC1_UNORM: pixelValue = ImageUtility.GetPixelColor_BC1(x, y, width, pitch, data); break;
-      case F.PIXEL_FORMAT_BC3_UNORM: pixelValue = ImageUtility.GetPixelColor_BC3(x, y, width, pitch, data); break;
+      case F.PIXEL_FORMAT_B8G8R8A8_UNORM: pixelValue = ImageUtility.getPixelColor_BGRA(x, y, pitch, data); break;
+      case F.PIXEL_FORMAT_B8G8R8X8_UNORM: pixelValue = ImageUtility.getPixelColor_BGRX(x, y, pitch, data); break;
+      case F.PIXEL_FORMAT_BC1_UNORM: pixelValue = ImageUtility.getPixelColor_BC1(x, y, width, pitch, data); break;
+      case F.PIXEL_FORMAT_BC3_UNORM: pixelValue = ImageUtility.getPixelColor_BC3(x, y, width, pitch, data); break;
       default: break;
     }
 

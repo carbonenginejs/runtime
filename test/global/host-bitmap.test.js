@@ -228,7 +228,7 @@ test("BC1 interpolates on the packed 565 value (ImageUtility.cpp:66-80)", () =>
   // color0 = 0xF800 (red), color1 = 0x001F (blue); all selectors 2.
   const block = new Uint8Array([ 0x00, 0xF8, 0x1F, 0x00, 0xAA, 0xAA, 0xAA, 0xAA ]);
   const packed = Math.floor((2 * 0xF800 + 0x001F) / 3);
-  assert.equal(ImageUtility.GetPixelColor_BC1(0, 0, 4, 0, block), ImageUtility.ConvertBGR565A8ToBGRA8(packed, 255));
+  assert.equal(ImageUtility.getPixelColor_BC1(0, 0, 4, 0, block), ImageUtility.convertBGR565A8ToBGRA8(packed, 255));
 });
 
 test("bug: BC3 reads block 0 whatever the pixel (ImageUtility.cpp:101-110)", () =>
@@ -236,7 +236,7 @@ test("bug: BC3 reads block 0 whatever the pixel (ImageUtility.cpp:101-110)", () 
   const two = new Uint8Array(32);
   two.set([ 255, 255 ], 0);
   two.set([ 0, 0 ], 16);
-  assert.equal(ImageUtility.GetPixelColor_BC3(4, 0, 8, 0, two) >>> 24, 255);
+  assert.equal(ImageUtility.getPixelColor_BC3(4, 0, 8, 0, two) >>> 24, 255);
 });
 
 test("bug: BC3 alpha-index bytes are sign-extended as MSVC chars", () =>
@@ -245,7 +245,7 @@ test("bug: BC3 alpha-index bytes are sign-extended as MSVC chars", () =>
   // so pixel (3,0), bits 9-11, reads index 7 instead of 0.
   const block = new Uint8Array(16);
   block.set([ 200, 100, 0x80, 0, 0, 0, 0, 0 ]);
-  const alpha = ImageUtility.GetPixelColor_BC3(3, 0, 4, 0, block) >>> 24;
+  const alpha = ImageUtility.getPixelColor_BC3(3, 0, 4, 0, block) >>> 24;
   assert.equal(alpha, Math.floor((1 * 200 + 6 * 100 + 3) / 7));
 });
 

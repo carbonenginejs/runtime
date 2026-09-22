@@ -63,7 +63,7 @@ test("a second registration under a taken name keeps the first (BlueClasses.cpp:
 test("a custom createFn and flags are kept", () =>
 {
   const made = { made: true };
-  blue.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: BlueClasses.Flags.DISABLE_PYTHON_CONSTRUCTION } ]);
+  blue.classes.RegisterClasses([ { name: "TestCustom", type: Unschemed, createFn: () => made, flags: BlueClasses.flags.DISABLE_PYTHON_CONSTRUCTION } ]);
   assert.equal(blue.classes.CreateInstanceFromName("TestCustom"), made);
   assert.equal(blue.classes.GetClassRegistration("TestCustom").flags, 1);
   blue.classes.UnregisterClasses([ { name: "TestCustom" } ]);
