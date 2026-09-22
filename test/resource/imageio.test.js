@@ -125,3 +125,25 @@ test("the DDS format exposes Carbon's legacy clean-ups to direct readers", () =>
   assert.deepEqual([ ...expanded.data ], [ 1, 2, 3, 0, 4, 5, 6, 0 ]);
   assert.equal(expanded.subresources[0].rowPitch, 8);
 });
+
+test("a block-compressed read decodes when a caller asks for RGBA or BGRA", () =>
+{
+  // One 4x4 DXT1 block: color0 = 0xF800 (red), all indices 0.
+  const header = legacyDds(4, 4, 0, [ 0, 0, 0, 0 ], [ 0x00, 0xF8, 0x00, 0x00, 0, 0, 0, 0 ]);
+  const v = new DataView(header.buffer);
+  v.setUint32(80, 0x4, true);                  // DDPF_FOURCC
+  v.setUint32(84, 0x31545844, true);           // "DXT1"
+
+  const native = new HostBitmap();
+  assert.equal(ImageIO.readImage(header, new LoadParameters("a.dds"), native).IsOk(), true);
+  assert.equal(native.GetFormat(), F.PIXEL_FORMAT_BC1_UNORM);
+
+  const rgba = new HostBitmap();
+  assert.equal(ImageIO.readImage(header, new LoadParameters("a.dds", 0, 0xffffffff, F.PIXEL_FORMAT_R8G8B8A8_UNORM), rgba).IsOk(), true);
+  assert.equal(rgba.GetFormat(), F.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  assert.deepEqual([ ...rgba.GetRawData().subarray(0, 4) ], [ 255, 0, 0, 255 ]);
+
+  const bgra = new HostBitmap();
+  assert.equal(ImageIO.readImage(header, new LoadParameters("a.dds", 0, 0xffffffff, F.PIXEL_FORMAT_B8G8R8A8_UNORM), bgra).IsOk(), true);
+  assert.deepEqual([ ...bgra.GetRawData().subarray(0, 4) ], [ 0, 0, 255, 255 ]);
+});
