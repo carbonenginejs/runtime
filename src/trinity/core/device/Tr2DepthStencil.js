@@ -113,7 +113,7 @@ export class Tr2DepthStencil extends CjsModel
 
     const msaa = new Tr2MsaaDesc(msaaType, msaaQuality);
     const texture = renderContext?.CreateTexture(
-      Tr2BitmapDimensions.Texture2D(width, height, 1, ConvertDepthStencilFormat(format)),
+      Tr2BitmapDimensions.texture2D(width, height, 1, ConvertDepthStencilFormat(format)),
       { gpuUsage, msaa }
     );
 

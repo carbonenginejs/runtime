@@ -21,7 +21,7 @@ const context = () =>
 
 /** A plain 2D colour texture the GPU can render into. */
 const colour = (width = 64, height = 64, mipCount = 1) =>
-  Tr2BitmapDimensions.Texture2D(width, height, mipCount, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  Tr2BitmapDimensions.texture2D(width, height, mipCount, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
 
 const create = (texture, desc, options, al) => texture.Create(desc, options, al);
 
@@ -263,7 +263,7 @@ test("a compressed mip pitch counts blocks, not pixels", () =>
   // The trap this exists for: a BC1 mip below 4x4 still occupies a whole 4x4
   // block, so the chain does not keep halving. A pitch computed as pixels is
   // right at the top and wrong everywhere else.
-  const desc = Tr2BitmapDimensions.Texture2D(64, 64, 0, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  const desc = Tr2BitmapDimensions.texture2D(64, 64, 0, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
 
   assert.equal(desc.GetTrueMipCount(), 7);
   assert.equal(desc.GetMipWidth(0), 64);
@@ -279,7 +279,7 @@ test("a compressed mip pitch counts blocks, not pixels", () =>
 
 test("an uncompressed mip chain halves and floors at one", () =>
 {
-  const desc = Tr2BitmapDimensions.Texture2D(8, 4, 0, PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  const desc = Tr2BitmapDimensions.texture2D(8, 4, 0, PixelFormat.PIXEL_FORMAT_R8_UNORM);
 
   assert.equal(desc.GetTrueMipCount(), 4);
   assert.deepEqual([ 0, 1, 2, 3 ].map(level => desc.GetMipWidth(level)), [ 8, 4, 2, 1 ]);
@@ -318,7 +318,7 @@ test("a box on a compressed texture cannot be written through a map", () =>
 
   create(
     texture,
-    Tr2BitmapDimensions.Texture2D(64, 64, 1, PixelFormat.PIXEL_FORMAT_BC3_UNORM),
+    Tr2BitmapDimensions.texture2D(64, 64, 1, PixelFormat.PIXEL_FORMAT_BC3_UNORM),
     { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE },
     al
   );

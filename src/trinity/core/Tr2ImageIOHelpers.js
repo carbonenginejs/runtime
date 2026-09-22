@@ -45,7 +45,7 @@ export function DescribeTexturePayload(payload)
     const srgb = payload.colorSpace === "srgb";
 
     return {
-      desc: Tr2BitmapDimensions.Texture2D(
+      desc: Tr2BitmapDimensions.texture2D(
         payload.width,
         payload.height,
         1,

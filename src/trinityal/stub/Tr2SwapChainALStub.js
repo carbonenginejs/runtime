@@ -48,7 +48,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
     this._backBuffer = new Tr2TextureALStub();
 
     return this._backBuffer.Create(
-      Tr2BitmapDimensions.Texture2D(
+      Tr2BitmapDimensions.texture2D(
         STUB_BACK_BUFFER_SIZE,
         STUB_BACK_BUFFER_SIZE,
         1,

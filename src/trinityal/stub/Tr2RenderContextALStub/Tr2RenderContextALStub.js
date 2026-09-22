@@ -408,7 +408,7 @@ export class Tr2RenderContextALStub
     const { mode } = presentParameters;
 
     const result = this._defaultBackBuffer.Create(
-      Tr2BitmapDimensions.Texture2D(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+      Tr2BitmapDimensions.texture2D(mode.width, mode.height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
       { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
       this
     );

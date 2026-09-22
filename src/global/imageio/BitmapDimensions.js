@@ -111,7 +111,7 @@ export class BitmapDimensions
    * @param {number} format A `PixelFormat` value.
    * @returns {BitmapDimensions} The description.
    */
-  static Texture2D(width, height, mipCount, format)
+  static texture2D(width, height, mipCount, format)
   {
     return new BitmapDimensions({
       type: TextureType.TEX_TYPE_2D,

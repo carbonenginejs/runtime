@@ -43,7 +43,7 @@ const ClassRegistrationFlags = Object.freeze({
 export class BlueClasses extends IBlueClasses
 {
 
-  static flags = ClassRegistrationFlags;
+  static Flags = ClassRegistrationFlags;
 
   /** Carbon's per-registration createFn and flags, where they differ from `new type()` and 0. */
   _extras = new Map();

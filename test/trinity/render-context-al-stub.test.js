@@ -444,7 +444,7 @@ function renderTarget(width, height)
 
   al.CreateDevice();
   texture.Create(
-    Tr2BitmapDimensions.Texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+    Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
     { gpuUsage: Tr2GpuUsage.RENDER_TARGET },
     al
   );

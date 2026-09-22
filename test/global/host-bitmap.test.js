@@ -82,7 +82,7 @@ test("CreateCube, CreateVolume and CreateFromBitmapDimensions", () =>
   assert.equal(volume.GetRawDataSize(), 8);
 
   const fromDims = new HostBitmap();
-  assert.equal(fromDims.CreateFromBitmapDimensions(BitmapDimensions.Texture2D(4, 2, 1, BGRA)), true);
+  assert.equal(fromDims.CreateFromBitmapDimensions(BitmapDimensions.texture2D(4, 2, 1, BGRA)), true);
   assert.equal(fromDims.GetRawDataSize(), 32);
   assert.equal(new HostBitmap().CreateFromBitmapDimensions(new BitmapDimensions()), false);
 });

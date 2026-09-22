@@ -64,7 +64,7 @@ test("Create makes the texture with its sRGB sibling declared and uploads one wr
 {
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
-  const desc = Tr2BitmapDimensions.Texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  const desc = Tr2BitmapDimensions.texture2D(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
 
   assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ, initialData: bc1Mips() }, al), ALResult.S_OK);
   assert.equal(texture.IsValid(), true);
@@ -95,7 +95,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  texture.Create(Tr2BitmapDimensions.Texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ { sysMem: new Uint8Array(256), sysMemPitch: 32, sysMemSlicePitch: 256 } ] }, al);
+  texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ { sysMem: new Uint8Array(256), sysMemPitch: 32, sysMemSlicePitch: 256 } ] }, al);
 
   const linear = texture.GetDeviceTextureView("2d", 0);
   const srgb = texture.GetDeviceTextureView("2d", 1);
@@ -110,7 +110,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   // A format with no sRGB sibling answers the linear view for both spaces.
   const single = new CjsWebgpuTextureAL();
 
-  single.Create(Tr2BitmapDimensions.Texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), { initialData: [ { sysMem: new Uint8Array(16), sysMemPitch: 16, sysMemSlicePitch: 16 } ] }, al);
+  single.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), { initialData: [ { sysMem: new Uint8Array(16), sysMemPitch: 16, sysMemSlicePitch: 16 } ] }, al);
   assert.equal(single.GetDeviceTextureView("2d", 1).format, undefined);
   assert.equal(calls.textures[1].viewFormats, undefined);
 });
@@ -134,15 +134,15 @@ test("Carbon's refusals: no data for an unwritable texture, an unknown format, a
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  assert.equal(texture.Create(Tr2BitmapDimensions.Texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), {}, al), ALResult.E_INVALIDARG, "samples black forever");
-  assert.equal(texture.Create(Tr2BitmapDimensions.Texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT), { initialData: [ {} ] }, al), ALResult.E_INVALIDARG, "no WebGPU format");
+  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), {}, al), ALResult.E_INVALIDARG, "samples black forever");
+  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT), { initialData: [ {} ] }, al), ALResult.E_INVALIDARG, "no WebGPU format");
   assert.equal(texture.Create(new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, width: 2, height: 2, mipCount: 1, arraySize: 5 }), { initialData: [ {} ] }, al), ALResult.E_INVALIDARG);
-  assert.equal(texture.Create(Tr2BitmapDimensions.Texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ {} ] }, { IsValid: () => false }), ALResult.E_FAIL);
+  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ {} ] }, { IsValid: () => false }), ALResult.E_FAIL);
   assert.equal(calls.textures.length, 0);
   assert.equal(texture.IsValid(), false);
 
   // A render target needs no data: the GPU writes it.
-  assert.equal(texture.Create(Tr2BitmapDimensions.Texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
+  assert.equal(texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
   assert.equal(calls.textures[0].usage & TEXTURE_USAGE.RENDER_ATTACHMENT, TEXTURE_USAGE.RENDER_ATTACHMENT);
 
   texture.SetName("hull");
@@ -155,7 +155,7 @@ test("Carbon's refusals: no data for an unwritable texture, an unknown format, a
 test("the context creates the backend's texture, and Create accepts Trinity's context", () =>
 {
   const { al } = composed();
-  const desc = Tr2BitmapDimensions.Texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  const desc = Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
   const data = [ { sysMem: new Uint8Array(64), sysMemPitch: 16, sysMemSlicePitch: 64 } ];
 
   assert.ok(al.CreateTexture(desc, { initialData: data }) instanceof CjsWebgpuTextureAL);
