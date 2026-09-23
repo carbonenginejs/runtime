@@ -188,7 +188,7 @@ export class CjsObjFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsObjFormat";
     static outputs = CjsFormat.defineOutputs({
         shared: { decoded: true },

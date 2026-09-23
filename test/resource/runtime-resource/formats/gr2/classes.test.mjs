@@ -393,8 +393,8 @@ test("CjsGr2Format exposes the static package constants and helper namespaces", 
     assert.equal("gr2Json", "gr2Json");
     assert.equal("cmf", "cmf");
     assert.equal("raw", "raw");
-    for (const key of CLASS_KEYS) assert.ok(CjsGr2Format.CLASS_KEYS.includes(key));
-    assert.ok(CjsGr2Format.CLASS_KEYS.includes("VertexElement"));
+    for (const key of CLASS_KEYS) assert.ok(CjsGr2Format.classKeys.includes(key));
+    assert.ok(CjsGr2Format.classKeys.includes("VertexElement"));
     assert.deepEqual(Object.values(CjsGr2Format.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsGr2Format.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "gr2Json", "raw" ]);
     assert.equal(typeof CjsGr2Format.curves.decode, "function");

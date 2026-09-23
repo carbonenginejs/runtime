@@ -380,7 +380,7 @@ export class CjsWebgpuFormat extends CjsFormat
         return toJsonValue(value);
     }
 
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsWebgpuFormat";
     static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({

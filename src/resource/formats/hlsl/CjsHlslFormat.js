@@ -40,7 +40,7 @@ const FORMAT_NAME = "CjsHlslFormat";
  * internals, useful mainly for resolving multiple permutations by hand.
  *
  * The `classes` option lets a caller register constructors for specific
- * node kinds in the emitted JSON graph (see `CjsHlslFormat.CLASS_KEYS`);
+ * node kinds in the emitted JSON graph (see `CjsHlslFormat.classKeys`);
  * class registration does not depend on importing internal graph classes.
  */
 export class CjsHlslFormat extends CjsFormat
@@ -99,7 +99,7 @@ export class CjsHlslFormat extends CjsFormat
     /**
      * Set multiple node-class constructors for this profile.
      *
-     * @param {object} [classes] Map of node class keys to constructors. See {@link CjsHlslFormat.CLASS_KEYS}.
+     * @param {object} [classes] Map of node class keys to constructors. See {@link CjsHlslFormat.classKeys}.
      * @returns {CjsHlslFormat} This format profile.
      */
     SetClasses(classes = {})
@@ -246,7 +246,7 @@ export class CjsHlslFormat extends CjsFormat
         return toJsonValue(value);
     }
 
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsHlslFormat";
     static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({

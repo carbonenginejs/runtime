@@ -213,7 +213,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsGltfFormat";
     static outputs = CjsFormat.defineOutputs({
         shared: { default: true, decoded: true },

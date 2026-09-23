@@ -10,7 +10,7 @@ import { CjsFormat } from "./CjsFormat.js";
  * this base existed (/docs/projects/geometry-format-overlap.md).
  *
  * A subclass supplies:
- * - `static id` and `static CLASS_KEYS`, the node keys `classes` may name;
+ * - `static id` and `static classKeys`, the node keys `classes` may name;
  * - `_classes`, the current map, which its `SetValues` merges `classes` into.
  */
 export class CjsGeometryFormat extends CjsFormat
@@ -73,17 +73,17 @@ export class CjsGeometryFormat extends CjsFormat
    */
   SetClass(type, Class)
   {
-    const { CLASS_KEYS, id } = this.constructor;
+    const { classKeys, id } = this.constructor;
     if (Class === null || Class === undefined)
     {
-      CjsGeometryFormat.validateClassKey(type, CLASS_KEYS, id);
+      CjsGeometryFormat.validateClassKey(type, classKeys, id);
       const classes = { ...this._classes };
       delete classes[type];
       this._classes = classes;
       return this;
     }
 
-    CjsGeometryFormat.validateClass(type, Class, CLASS_KEYS, id);
+    CjsGeometryFormat.validateClass(type, Class, classKeys, id);
     return this.SetValues({ classes: { [type]: Class } });
   }
 
@@ -95,7 +95,7 @@ export class CjsGeometryFormat extends CjsFormat
    */
   GetClass(type)
   {
-    CjsGeometryFormat.validateClassKey(type, this.constructor.CLASS_KEYS, this.constructor.id);
+    CjsGeometryFormat.validateClassKey(type, this.constructor.classKeys, this.constructor.id);
     return this._classes[type];
   }
 

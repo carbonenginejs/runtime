@@ -3,8 +3,8 @@
  */
 export class HlslEffectStageInput
 {
-    static INVALID = 0xffffffff;
-    static SHADER_CONSTANTS_MAX = 256 * 16;
+    static invalid = 0xffffffff;
+    static shaderConstantsMax = 256 * 16;
 
     /**
    * Creates an empty stage input record.
@@ -15,7 +15,7 @@ export class HlslEffectStageInput
         this.resources = new Map();
         this.uavs = new Map();
         this.samplers = new Map();
-        this.m_shader = HlslEffectStageInput.INVALID;
+        this.m_shader = HlslEffectStageInput.invalid;
         this.constants = [];
         this.m_constantValueSize = 0;
         this.constantValues = new Uint8Array(0);

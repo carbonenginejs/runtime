@@ -282,7 +282,7 @@ export class CjsGr2Format extends CjsGeometryFormat
         return toJsonValue(value);
     }
 
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsGr2Format";
     // Same shape as the other geometry writers: a native CMF v1 graph is the
     // default input, and `writeShared` adapts a shared or GR2-shaped root.

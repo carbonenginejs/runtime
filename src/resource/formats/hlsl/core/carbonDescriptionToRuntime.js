@@ -509,7 +509,7 @@ function applyStageData(input, data, stageType, context)
     const declaredSize = data.defaultValues?.size ?? 0;
     input.sourceConstantValueSize = declaredSize;
     input.sourceConstantValues = Uint8Array.from(data.defaultValues?.bytes ?? new Uint8Array(0));
-    input.m_constantValueSize = Math.min(declaredSize, HlslEffectStageInput.SHADER_CONSTANTS_MAX);
+    input.m_constantValueSize = Math.min(declaredSize, HlslEffectStageInput.shaderConstantsMax);
     input.constantValues = input.sourceConstantValues.slice(0, input.m_constantValueSize);
 
     input.resources = new Map((data.textures ?? [])

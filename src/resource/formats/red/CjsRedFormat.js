@@ -274,7 +274,7 @@ export class CjsRedFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static schema = blackDefinitions;
     static id = "CjsRedFormat";
     static extensions = [ ".red" ];

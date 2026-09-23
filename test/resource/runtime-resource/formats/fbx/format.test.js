@@ -12,7 +12,7 @@ test("exports default and named CjsFbxFormat", () =>
     assert.equal("gr2", "gr2");
     assert.deepEqual(Object.values(CjsFbxFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsFbxFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "fbxJson", "raw" ]);
-    assert.equal(CjsFbxFormat.CLASS_KEYS.includes("Mesh"), true);
+    assert.equal(CjsFbxFormat.classKeys.includes("Mesh"), true);
 });
 
 test("configures output classes without hydrating debug fbxJson", () =>

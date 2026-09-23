@@ -449,7 +449,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsCmfFormat";
     // The writer's own graph is the default: `write` takes a CMF-native graph,
     // while `writeShared` converts a shared geometry root through it first.

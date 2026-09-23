@@ -534,7 +534,7 @@ test("truncated header is rejected with a read error", () =>
 
 test("CLASS_KEYS lists the hydratable node kinds", () =>
 {
-    assert.deepEqual(CjsHlslFormat.CLASS_KEYS, [
+    assert.deepEqual(CjsHlslFormat.classKeys, [
         "Root",
         "Permutation",
         "EffectDescription",

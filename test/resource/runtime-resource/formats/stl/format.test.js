@@ -72,8 +72,8 @@ test("package root exports one public class", () =>
     assert.equal("cmf", "cmf");
     assert.deepEqual(Object.values(CjsStlFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsStlFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "stlJson" ]);
-    assert.ok(CjsStlFormat.CLASS_KEYS.includes("IndexGroup"));
-    assert.ok(CjsStlFormat.CLASS_KEYS.includes("VertexElement"));
+    assert.ok(CjsStlFormat.classKeys.includes("IndexGroup"));
+    assert.ok(CjsStlFormat.classKeys.includes("VertexElement"));
 });
 
 test("writes ASCII STL from shared JSON", () =>

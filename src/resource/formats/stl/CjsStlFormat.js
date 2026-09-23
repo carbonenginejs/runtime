@@ -277,7 +277,7 @@ export class CjsStlFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static CLASS_KEYS = CLASS_KEYS;
+    static classKeys = CLASS_KEYS;
     static id = "CjsStlFormat";
     // STL takes the shared geometry root directly rather than going through
     // CMF, because it carries triangles and nothing else worth preserving.
