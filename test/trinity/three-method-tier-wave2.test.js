@@ -1,3 +1,5 @@
+import { PixelFormat } from "#consts/render-context";
+import { HostBitmap } from "../../src/global/imageio/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -137,6 +139,7 @@ test("EveTacticalTrails.UpdateGraphicsState packs Carbon's twelve LineVertex rec
 test("Tr2TexturePipelineStepPack carries its own step virtuals (cpp:39-57, 60-179)", () =>
 {
   const step = new Tr2TexturePipelineStepPack();
+  step.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
   step.r = new Tr2TexturePackChannel();
   step.r.path = "res:/red.png";
   step.r.channel = 2; // Carbon's BGRA chooser: 2 selects the red byte.
@@ -147,16 +150,26 @@ test("Tr2TexturePipelineStepPack carries its own step virtuals (cpp:39-57, 60-17
   const resources = step.GetResourceDependencies();
   assert.deepEqual([ ...resources ].sort(), [ "res:/alpha.png", "res:/red.png" ]);
 
-  const red = { width: 1, height: 1, data: Uint8Array.from([ 200, 0, 0, 255 ]) };
-  const alpha = { width: 1, height: 1, data: Uint8Array.from([ 40, 0, 0, 255 ]) };
+  const red = PackSource([ 200, 0, 0, 255 ]);
+  const alpha = PackSource([ 40, 0, 0, 255 ]);
   const inputs = new Map([ [ "res:/red.png", red ], [ "res:/alpha.png", alpha ] ]);
+  const packed = new HostBitmap();
 
-  const packed = step.Execute(inputs);
-  assert.equal(packed.width, 1);
-  // Unfilled g/b channels take their fill byte (0); r and a read channel 2
-  // (red) of their sources.
-  assert.deepEqual([ ...packed.data ], [ 200, 0, 0, 40 ]);
+  assert.equal(step.Execute(packed, inputs), true);
+  assert.equal(packed.GetWidth(), 1);
+  // Unfilled b/g channels take their fill byte (0); r and a read channel 2
+  // (the red byte) of their sources.
+  assert.deepEqual([ ...packed.GetMipRawData(0) ], [ 0, 0, 200, 40 ]);
 });
+
+/** A 1x1 BGRA HostBitmap. */
+function PackSource(bytes)
+{
+  const bitmap = new HostBitmap();
+  bitmap.Create(1, 1, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  bitmap.GetRawData().set(Uint8Array.from(bytes));
+  return bitmap;
+}
 
 test("EveChildExplosion shares, aliases and rebases as Carbon's copier flow does (cpp:319-448)", () =>
 {

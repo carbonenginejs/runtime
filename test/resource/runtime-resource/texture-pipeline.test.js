@@ -1,13 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../../src/global/schema/index.js";
-import { PixelFormat as PayloadPixelFormat } from "#consts/graphics";
-import { PixelFormat as CarbonPixelFormat } from "#consts/render-context";
+import { PixelFormat } from "#consts/render-context";
+import { HostBitmap } from "../../../src/global/imageio/index.js";
 import {
   Tr2TextureLodManager,
   Tr2TexturePackChannel,
   Tr2TexturePipeline,
+  Tr2TexturePipelineStepCompress,
   Tr2TexturePipelineStepLimitSize,
+  Tr2TexturePipelineStepGenerateMips,
   Tr2TexturePipelineStepLoad,
   Tr2TexturePipelineStepPack,
   TriTextureRes
@@ -46,11 +48,11 @@ test("Tr2TexturePipeline collects sorted unique Carbon step dependencies", () =>
   assert.deepEqual(pipeline.GetResourceDependencies(), [ "res:/a.png", "res:/z.png" ]);
   assert.equal(
     CjsSchema.getMethod(Tr2TexturePipeline, "GetResourceDependencies").impl.status,
-    "implemented"
+    "adapted"
   );
 });
 
-test("Tr2TexturePipeline executes Carbon load and limit-size steps on CPU RGBA", async () =>
+test("Tr2TexturePipeline runs Carbon's steps against one HostBitmap", () =>
 {
   const load = new Tr2TexturePipelineStepLoad();
   load.path = "res:/source.png";
@@ -58,63 +60,111 @@ test("Tr2TexturePipeline executes Carbon load and limit-size steps on CPU RGBA",
   limit.maxWidth = 1;
   const pipeline = new Tr2TexturePipeline();
   pipeline.steps = [ load, limit ];
-  const source = RgbaPayload(2, 2, [
+
+  // 2x2 BGRA; each pixel's blue channel is 0, 20, 40, 60.
+  const source = Bgra(2, 2, [
     0, 10, 20, 255,
     20, 30, 40, 255,
     40, 50, 60, 255,
     60, 70, 80, 255
   ]);
+  const result = new HostBitmap();
 
-  const result = await pipeline.Execute(0, 0, {
-    inputs: new Map([[ load.path, source ]])
-  });
-
-  assert.equal(result.width, 1);
-  assert.equal(result.height, 1);
-  assert.deepEqual(result.data, new Uint8Array([ 30, 40, 50, 255 ]));
-  assert.equal(source.width, 2);
+  assert.equal(pipeline.Execute(result, new Map([[ load.path, source ]])), true);
+  assert.equal(result.GetWidth(), 1);
+  assert.equal(result.GetHeight(), 1);
+  // The box filter of the four source pixels, not a zeroed level (Carbon issue 1).
+  assert.deepEqual([ ...result.GetMipRawData(0) ], [ 30, 40, 50, 255 ]);
+  assert.equal(source.GetWidth(), 2, "the input bitmap is not consumed");
   assert.equal(
     CjsSchema.getMethod(Tr2TexturePipeline, "Execute").impl.status,
     "adapted"
   );
 });
 
-test("Tr2TexturePipeline packs logical RGBA channels from independent inputs", async () =>
+test("a failed step stops the pipeline (diverged from Carbon, issue 19)", () =>
+{
+  const load = new Tr2TexturePipelineStepLoad();
+  load.path = "res:/missing.png";
+  const mips = new Tr2TexturePipelineStepGenerateMips();
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ load, mips ];
+  const result = new HostBitmap();
+
+  assert.equal(pipeline.Execute(result, new Map()), false);
+  assert.equal(result.IsValid(), false);
+});
+
+test("Tr2TexturePipeline packs channels from independent inputs", () =>
 {
   const pack = new Tr2TexturePipelineStepPack();
+  pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
   pack.r = Object.assign(new Tr2TexturePackChannel(), { path: "res:/r.png", channel: 2 });
   pack.g = Object.assign(new Tr2TexturePackChannel(), { fill: 7 });
   pack.b = Object.assign(new Tr2TexturePackChannel(), { path: "res:/b.png", channel: 0 });
   pack.a = Object.assign(new Tr2TexturePackChannel(), { fill: 255 });
   const pipeline = new Tr2TexturePipeline();
   pipeline.steps = [ pack ];
+  const result = new HostBitmap();
 
-  const result = await pipeline.Execute(0, 0, {
-    inputs: {
-      "res:/r.png": RgbaPayload(1, 1, [ 11, 22, 33, 44 ]),
-      "res:/b.png": RgbaPayload(1, 1, [ 55, 66, 77, 88 ])
-    }
-  });
+  const inputs = new Map([
+    [ "res:/r.png", Bgra(1, 1, [ 11, 22, 33, 44 ]) ],
+    [ "res:/b.png", Bgra(1, 1, [ 55, 66, 77, 88 ]) ]
+  ]);
 
-  assert.deepEqual(result.data, new Uint8Array([ 11, 7, 77, 255 ]));
-  assert.equal(
-    result.metadata.carbonPixelFormat,
-    CarbonPixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM
-  );
+  assert.equal(pipeline.Execute(result, inputs), true);
+  assert.equal(result.GetFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  // b from b.png's channel 0 (byte 2), g filled, r from r.png's channel 2 (byte 0), a filled.
+  assert.deepEqual([ ...result.GetMipRawData(0) ], [ 77, 7, 11, 255 ]);
 });
 
-function RgbaPayload(width, height, data)
+test("an R8 pack writes one byte per pixel (diverged from Carbon, issue 2)", () =>
 {
-  return {
-    payloadType: "rgba",
-    sourceFormat: "png",
-    width,
-    height,
-    pixelFormat: PayloadPixelFormat.RGBA8_UNORM,
-    data: new Uint8Array(data),
-    strideBytes: width * 4,
-    origin: "top-left",
-    colorSpace: "srgb",
-    alphaMode: "straight"
-  };
+  const pack = new Tr2TexturePipelineStepPack();
+  pack.format = PixelFormat.PIXEL_FORMAT_R8_UNORM;
+  pack.r = Object.assign(new Tr2TexturePackChannel(), { path: "res:/r.png", channel: 0 });
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ pack ];
+  const result = new HostBitmap();
+
+  assert.equal(pipeline.Execute(result, new Map([[ "res:/r.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
+  assert.equal(result.GetFormat(), PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  // Red is byte 2 of each BGRA pixel; Carbon's switch never reaches this arm.
+  assert.deepEqual([ ...result.GetMipRawData(0) ], [ 3, 7 ]);
+});
+
+test("a BGRX pack leaves the X byte alone (diverged from Carbon, issue 2)", () =>
+{
+  const pack = new Tr2TexturePipelineStepPack();
+  pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM;
+  pack.b = Object.assign(new Tr2TexturePackChannel(), { path: "res:/x.png", channel: 2 });
+  pack.g = Object.assign(new Tr2TexturePackChannel(), { fill: 9 });
+  pack.r = Object.assign(new Tr2TexturePackChannel(), { fill: 8 });
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ pack ];
+  const result = new HostBitmap();
+
+  assert.equal(pipeline.Execute(result, new Map([[ "res:/x.png", Bgra(2, 1, [ 1, 2, 3, 4, 5, 6, 7, 8 ]) ]])), true);
+  // Carbon writes three bytes per pixel into four-byte pixels, shifting pixel 2.
+  assert.deepEqual([ ...result.GetMipRawData(0) ], [ 1, 9, 8, 0, 5, 9, 8, 0 ]);
+});
+
+test("the compress step refuses rather than passing data off as compressed", () =>
+{
+  const bitmap = Bgra(4, 4, new Array(4 * 4 * 4).fill(1));
+  const compress = new Tr2TexturePipelineStepCompress();
+  compress.format = PixelFormat.PIXEL_FORMAT_BC1_UNORM;
+
+  assert.equal(compress.Execute(bitmap), false);
+  compress.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
+  assert.equal(compress.Execute(bitmap), true);
+});
+
+/** A BGRA HostBitmap holding the supplied bytes. */
+function Bgra(width, height, data)
+{
+  const bitmap = new HostBitmap();
+  bitmap.Create(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  bitmap.GetRawData().set(new Uint8Array(data));
+  return bitmap;
 }

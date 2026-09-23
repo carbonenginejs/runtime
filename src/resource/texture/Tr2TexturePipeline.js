@@ -7,16 +7,15 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import {
-  executeTexturePipeline,
-  getTexturePipelineDependencies
-} from "./texturePipelineBehavior.js";
+import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
+import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
 
 /**
  * Carbon texture-specific CPU bitmap transformation pipeline.
  *
- * Inputs are supplied explicitly, through a load callback, or through an
- * injected CjsResMan. The result is a canonical plain RGBA payload.
+ * The steps share one ImageIO::HostBitmap, exactly as Carbon does: each step
+ * reads and rewrites it, and the caller supplies every input bitmap the steps
+ * name, keyed by resource path.
  */
 export class Tr2TexturePipeline extends CjsModel
 {
@@ -38,26 +37,52 @@ export class Tr2TexturePipeline extends CjsModel
   }
 
   /**
-   * Execute the CPU pipeline and return a canonical RGBA payload.
+   * Carbon Execute (cpp:24-45): run every step against one bitmap, then apply
+   * the caller's size limit.
    *
-   * @param {number} maxWidth Optional caller width limit.
-   * @param {number} maxHeight Optional caller height limit.
-   * @param {object|null} options Input map, load callback, or CjsResMan.
-   * @returns {Promise<object>} Canonical RGBA payload.
+   * diverged: a failed step stops the pipeline. Carbon ignores each step's
+   * result and runs the next one as though it had succeeded, so a failed Load
+   * leaves the following steps working on an empty bitmap (issue 19,
+   * /docs/research/carbon-imageio-issue.md).
+   *
+   * @param {import("#imageio").HostBitmap} result Bitmap to fill; destroyed first.
+   * @param {Map<string, import("#imageio").HostBitmap>} inputs Loaded inputs by path.
+   * @param {Tr2TexturePipelineParams} params Caller size limits.
+   * @returns {boolean} Whether the pipeline succeeded.
    */
-  async Execute(maxWidth = 0, maxHeight = 0, options = null)
+  Execute(result, inputs, params = new Tr2TexturePipelineParams())
   {
-    return executeTexturePipeline(this.steps, { maxWidth, maxHeight }, options);
+    result.Destroy();
+
+    // Carbon: CCP_LOGERR("Tr2TexturePipeline: no steps")
+    if (!this.steps.length) return false;
+
+    for (const step of this.steps)
+    {
+      if (!step.Execute(result, inputs, params)) return false;
+    }
+
+    if (params.maxHeight || params.maxWidth)
+    {
+      return Tr2TexturePipelineStepLimitSize.limitSize(result, params.maxWidth, params.maxHeight);
+    }
+
+    return true;
   }
 
   /**
-   * Return sorted unique resource paths consumed by load and pack steps.
+   * Carbon GetResourceDependencies (cpp:15-22): every path the steps need.
+   *
+   * adapted: Carbon fills a caller-owned set; this returns the paths sorted,
+   * which the resource layer wants for a stable load order.
    *
    * @returns {string[]} Resource dependency paths.
    */
   GetResourceDependencies()
   {
-    return getTexturePipelineDependencies(this.steps);
+    const resources = new Set();
+    for (const step of this.steps) step.GetResourceDependencies(resources);
+    return [ ...resources ].sort();
   }
 
 }
@@ -69,7 +94,7 @@ CjsSchema.define(Tr2TexturePipeline, {
     steps: [ edit.persist, type.list("ITr2TexturePipelineStep") ]
   },
   methods: {
-    Execute: [ carbon.method, impl.adapted, impl.reason("Carbon fills an ImageIO::HostBitmap through blocking file reads; JavaScript resolves inputs asynchronously and returns the runtime resource layer's plain CPU payload.") ],
-    GetResourceDependencies: [ carbon.method, impl.implemented ]
+    Execute: [ carbon.method, impl.adapted, impl.reason("Carbon ignores each step's result and runs the next one regardless; ours stops on the first failure (issue 19).") ],
+    GetResourceDependencies: [ carbon.method, impl.adapted, impl.reason("Carbon fills a caller-owned set; ours returns the paths sorted, for a stable load order.") ]
   }
 });
