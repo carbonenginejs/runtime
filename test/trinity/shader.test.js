@@ -23,6 +23,7 @@ import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
+import { TriTextureRes } from "../../npm/dist/resource/index.js";
 
 
 function assert(condition, message = "assertion failed")
@@ -1116,7 +1117,8 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   }
 
   const texture = new TriTextureParameter();
-  texture.resource = { id: "diffuse" };
+  const diffuse = new TriTextureRes();
+  texture.resource = diffuse;
   pass.stageInput[PIXEL].textures.push(
     Object.assign(new Tr2EffectParam(), { sourceValue: texture, registerIndex: 3, registerCount: ResourceFlags.RESOURCE_FLAG_SRGB })
   );
@@ -1126,7 +1128,8 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assertEquals(locked.join(","), "0,1", "and only those had their mirror copied into the buffer");
 
   const srv = pass.resourceSetDesc.m_srv[0];
-  assertEquals(srv?.texture?.id, "diffuse", "the parameter bound itself into the description");
+  // Unprepared, so Carbon's fallback route binds the RESOURCE in the texture's place.
+  assertEquals(srv?.texture, diffuse, "the parameter bound itself into the description");
   assertEquals(srv?.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "registerCount carried the sRGB flag");
 
   assert(boundSets[0], "a resource set was realized and bound");

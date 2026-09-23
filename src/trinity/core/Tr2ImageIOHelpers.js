@@ -30,6 +30,11 @@ const TYPE_OF_DIMENSION = Object.freeze({
 /**
  * The description and initial data a texture payload describes.
  *
+ * TRANSITIONAL. Carbon uploads from an `ImageIO::HostBitmap`
+ * (`DescribeBitmap`), and the plain payload is ours, not Carbon's. This route
+ * stays only until every texture reader publishes a bitmap
+ * (/docs/projects/hostbitmap-port.md).
+ *
  * @param {object} payload A `"texture"` or `"rgba"` payload.
  * @returns {{desc: Tr2BitmapDimensions, initialData: object[]}|null} What to
  *   create, or null when the payload is not one a texture can be made from.
@@ -107,6 +112,90 @@ export function DescribeTexturePayload(payload)
 
 
 /**
+ * The description and initial data a HostBitmap describes: Carbon's own
+ * `CreateTexture` loop (`Tr2ImageIOHelpers.cpp:104-128`), one
+ * `Tr2SubresourceData` per (mip, layer) indexed `i + j * trueMipCount`.
+ *
+ * @param {import("#imageio").HostBitmap} bitmap A valid bitmap.
+ * @returns {{desc: Tr2BitmapDimensions, initialData: object[], memoryUse: number}|null}
+ *   What to create, or null when the bitmap cannot be uploaded.
+ */
+export function DescribeBitmap(bitmap)
+{
+  if (!bitmap || !bitmap.IsValid()) return null;
+
+  const mipCount = bitmap.GetTrueMipCount();
+  const arraySize = bitmap.GetArraySize();
+  const initialData = new Array(mipCount * arraySize);
+  let memoryUse = 0;
+
+  for (let layer = 0; layer < arraySize; ++layer)
+  {
+    for (let mip = 0; mip < mipCount; ++mip)
+    {
+      const sysMem = bitmap.GetMipRawData(mip, layer);
+
+      if (!sysMem) return null;
+
+      const sysMemSlicePitch = bitmap.GetMipSize(mip);
+
+      initialData[mip + layer * mipCount] = {
+        sysMem,
+        sysMemPitch: bitmap.GetMipPitch(mip),
+        sysMemSlicePitch
+      };
+      memoryUse += sysMemSlicePitch;
+    }
+  }
+
+  return {
+    desc: new Tr2BitmapDimensions({
+      type: bitmap.GetType(),
+      format: bitmap.GetFormat(),
+      width: bitmap.GetWidth(),
+      height: bitmap.GetHeight(),
+      depth: bitmap.GetDepth(),
+      mipCount,
+      arraySize
+    }),
+    initialData,
+    memoryUse
+  };
+}
+
+
+/**
+ * Carbon's `Tr2ImageIOHelpers::CreateTexture( bitmap, out, memoryUse, ctx,
+ * USAGE_IMMUTABLE )` (`Tr2ImageIOHelpers.cpp:93-128`): shader-resource usage,
+ * CPU read, every mip supplied at creation.
+ *
+ * adapted: Carbon fills an out-param texture and an out-param memoryUse and
+ * returns a bool; this returns the texture, or null.
+ *
+ * @param {import("#imageio").HostBitmap} bitmap The decoded bitmap.
+ * @param {object} renderContext The `Tr2RenderContext` to create through.
+ * @param {string} [name] Debug name for the texture.
+ * @returns {object|null} A `Tr2TextureAL`, or null.
+ */
+export function CreateTextureFromBitmap(bitmap, renderContext, name = "")
+{
+  const described = DescribeBitmap(bitmap);
+
+  if (!described || !renderContext) return null;
+
+  const texture = renderContext.CreateTexture(described.desc, {
+    gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
+    cpuUsage: Tr2CpuUsage.READ,
+    initialData: described.initialData
+  });
+
+  if (texture && name) texture.SetName(name);
+
+  return texture;
+}
+
+
+/**
  * Creates the running backend's texture from a prepared texture resource.
  *
  * Carbon's `Tr2ImageIOHelpers::CreateTexture( bitmap, out, memoryUse, ctx,
@@ -118,6 +207,10 @@ export function DescribeTexturePayload(payload)
  */
 export function CreateTexture(resource, renderContext)
 {
+  const bitmap = resource.GetBitmap();
+
+  if (bitmap) return CreateTextureFromBitmap(bitmap, renderContext, resource.GetPath() || resource.name || "TriTextureRes");
+
   const described = DescribeTexturePayload(resource.GetPayload());
 
   if (!described) return null;
@@ -140,18 +233,16 @@ export function CreateTexture(resource, renderContext)
  * This is `TriTextureRes::DoPrepare`'s creation step (`TriTextureRes.cpp:690-704`)
  * moved to the first bind, for the reason in the head note.
  *
- * @param {object} resource A `TriTextureRes`, or anything else (which yields null).
+ * @param {object} resource A `TriTextureRes`.
  * @param {object} renderContext The `Tr2RenderContext` to create through.
  * @returns {object|null} The texture, or null while the resource is not ready.
  */
 export function RealizeTexture(resource, renderContext)
 {
-  if (!resource || typeof resource.GetTexture !== "function") return null;
-
   const existing = resource.GetTexture();
 
   if (existing) return existing;
-  if (!renderContext || typeof resource.IsPrepared !== "function" || !resource.IsPrepared()) return null;
+  if (!renderContext || !resource.IsPrepared()) return null;
 
   const texture = CreateTexture(resource, renderContext);
 

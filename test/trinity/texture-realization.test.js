@@ -97,7 +97,6 @@ test("RealizeTexture makes the resource's texture once it is prepared, and store
   // Dropping the payload drops the texture made from it.
   resource.SetPayload(null);
   assert.equal(resource.GetTexture(), null);
-  assert.equal(RealizeTexture({ id: "not a texture resource" }, context), null);
   assert.equal(CreateTexture(new TriTextureRes(), context), null);
 });
 

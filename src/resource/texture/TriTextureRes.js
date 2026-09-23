@@ -111,6 +111,9 @@ export class TriTextureRes extends CjsResource
    */
   texture = null;
 
+  /** m_loadedBitmap: the decoded image the texture is made from, or null. */
+  loadedBitmap = null;
+
   /**
    * The live texture, or null while there is none - Carbon returns nullptr
    * until the load finishes and the parameter substitutes the fallback
@@ -135,6 +138,52 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
+   * The decoded bitmap this resource was loaded from, or null.
+   *
+   * Carbon's `m_loadedBitmap` (`TriTextureRes.cpp:606`): the CPU-side image
+   * the texture is made from, kept so the texture can be remade - for a device
+   * reset, a LOD change or a save.
+   *
+   * @returns {import("#imageio").HostBitmap|null} The bitmap.
+   */
+  GetBitmap() {
+    return this.loadedBitmap;
+  }
+
+  /**
+   * Adopt a decoded bitmap as this resource's image
+   * (`TriTextureRes::CreateFromHostBitmap`, `TriTextureRes.cpp:960-978`).
+   *
+   * adapted: Carbon creates the texture here, on the main thread's render
+   * context (`USE_MAIN_THREAD_RENDER_CONTEXT`). The resource layer may not
+   * reach a render context (layers.json), so the texture is made on first bind
+   * instead - `Tr2ImageIOHelpers.RealizeTexture` - and this only adopts the
+   * bitmap and drops any texture made from the previous one.
+   *
+   * @param {import("#imageio").HostBitmap|null} bitmap The decoded bitmap.
+   * @returns {boolean} Whether the bitmap was adopted.
+   */
+  CreateFromHostBitmap(bitmap) {
+    this.SetTexture(null);
+
+    if (!bitmap || !bitmap.IsValid()) {
+      this.loadedBitmap = null;
+      return false;
+    }
+
+    this.loadedBitmap = bitmap;
+    this.SetValues({
+      format: bitmap.GetFormat(),
+      width: bitmap.GetWidth(),
+      height: bitmap.GetHeight(),
+      depth: bitmap.GetDepth(),
+      arraySize: bitmap.GetArraySize(),
+      cpuMip: bitmap.GetTrueMipCount()
+    });
+    return true;
+  }
+
+  /**
    * Attach a plain texture, RGBA, or video payload and mirror Carbon-exposed
    * metadata. Invalid payloads are rejected before replacing the current one.
    *
@@ -146,6 +195,7 @@ export class TriTextureRes extends CjsResource
     if (payload === null) {
       // The bytes are gone; so is the texture made from them.
       this.SetTexture(null);
+      this.loadedBitmap = null;
       super.SetPayload(null);
       return this;
     }
@@ -348,15 +398,6 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Create a device texture from a host bitmap.
-   *
-   * @throws {Error}
-   */
-  CreateFromHostBitmap() {
-    throw resourceBoundaryError("TriTextureRes", "CreateFromHostBitmap", "Use engine-gpu to allocate and upload texture data.");
-  }
-
-  /**
    * Create this texture from another texture resource.
    *
    * @throws {Error}
@@ -466,7 +507,8 @@ CjsSchema.define(TriTextureRes, {
     cutoutWidth: [ type.float32, edit.readwrite ],
     width: [ type.uint32, edit.read ],
     cutoutX: [ type.float32, edit.readwrite ],
-    cutoutY: [ type.float32, edit.readwrite ]
+    cutoutY: [ type.float32, edit.readwrite ],
+    loadedBitmap: [ type.unknown, edit.read ]
   },
   methods: {
     Initialize: [ carbon.method, impl.adapted, impl.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],
@@ -486,7 +528,8 @@ CjsSchema.define(TriTextureRes, {
     CreateEmptyTexture: [ carbon.method, impl.notSupported ],
     SetFromRenderTarget: [ carbon.method, impl.notSupported ],
     CreateAndCopyFromRenderTarget: [ carbon.method, impl.notSupported ],
-    CreateFromHostBitmap: [ carbon.method, impl.notSupported ],
+    CreateFromHostBitmap: [ carbon.method, impl.adapted, impl.reason("Carbon creates the texture here on the main thread's render context; the resource layer may not reach one, so this adopts the bitmap and the texture is made on first bind (Tr2ImageIOHelpers.RealizeTexture).") ],
+    GetBitmap: [ impl.custom, impl.reason("Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap; the upload happens at bind time here, so the bitmap has to be readable.") ],
     CreateFromTexture: [ carbon.method, impl.notSupported ],
     HasALObject: [ carbon.method, impl.adapted ],
     GetPipeline: [ carbon.method, impl.adapted ],
