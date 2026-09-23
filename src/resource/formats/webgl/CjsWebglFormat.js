@@ -222,7 +222,6 @@ export class CjsWebglFormat extends CjsFormat
         json: { default: true, decoded: true }
     });
     static extensions = Object.freeze([]);
-    static packageVersion = "0.2.0";
 
 }
 

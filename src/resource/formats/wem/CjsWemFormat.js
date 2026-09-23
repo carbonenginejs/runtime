@@ -241,7 +241,6 @@ export class CjsWemFormat extends CjsFormat
         OGG: OUTPUT_OGG,
         PCM: OUTPUT_PCM
     });
-    static CODEC_NAMES = WEM_CODEC_NAMES;
     static id = "CjsWemFormat";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({

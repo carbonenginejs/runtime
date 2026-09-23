@@ -321,9 +321,7 @@ export class CjsBnkFormat extends CjsFormat
         MEDIA: OUTPUT_MEDIA
     });
 
-    static HIRC_TYPE_NAMES = HIRC_TYPE_NAMES;
 
-    static HIRC_V150_TYPE_NAMES = HIRC_V150_TYPE_NAMES;
 
     static id = "CjsBnkFormat";
 

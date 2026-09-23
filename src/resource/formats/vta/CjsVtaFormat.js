@@ -192,10 +192,8 @@ export class CjsVtaFormat extends CjsFormat
      * Grid payload encodings. Rle7/Rle7_5/Rle6 differ only in the encoder's
      * quantization; one decoder serves all three.
      */
-    static Encoding = VTA_ENCODING;
 
     /** The only VTA container version Carbon ever wrote. */
-    static VERSION = VTA_VERSION;
 
     /**
      * Emit targets for this format (canonical frozen enum).

@@ -218,9 +218,6 @@ test("parseEffectNode rejects malformed and unqualified bodies", () =>
 
 test("effectNodesFromBanks catalogs only v150 ShareSet and Custom records", () =>
 {
-    assert.equal(CjsBnkFormat.HIRC_V150_TYPE_NAMES[16], "fx-share-set");
-    assert.equal(CjsBnkFormat.HIRC_V150_TYPE_NAMES[17], "fx-custom");
-    assert.equal(CjsBnkFormat.HIRC_V150_TYPE_NAMES[18], "auxiliary-bus");
 
     const result = CjsBnkFormat.wwise.effectNodesFromBanks([
         {
