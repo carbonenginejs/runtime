@@ -1,3 +1,4 @@
+import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -50,33 +51,41 @@ const rampChannel = { keys: [ { time: 0, value: 0 }, { time: 1, value: 1 } ] };
 const emptyChannel = { keys: [] };
 const half = value => num.fromHalfFloat(num.toHalfFloat(value));
 
+/** Reads the bitmap's half floats in channel order. */
+function Channels(bitmap)
+{
+  const raw = bitmap.GetRawData();
+  const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+  return index => num.fromHalfFloat(view.getUint16(index * 2, true));
+}
+
 test("a gradient path rasterizes each channel across the texture width", () =>
 {
   const path = gradientPath(3, [ rampChannel, emptyChannel, emptyChannel, { keys: [ { time: 0, value: 1 } ] } ]);
   assert.equal(IsGradientTexturePath(path), true);
 
-  const payload = RasterizeGradient(path);
-  assert.equal(payload.payloadType, "rgba");
-  assert.equal(payload.pixelFormat, "rgba32float");
-  assert.equal(payload.width, 3);
-  assert.equal(payload.height, 1);
-  assert.equal(payload.strideBytes, 48);
-  assert.equal(payload.data.length, 12);
+  const bitmap = RasterizeGradient(path);
+  assert.equal(bitmap.GetFormat(), PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, "Carbon's format exactly");
+  assert.equal(bitmap.GetWidth(), 3);
+  assert.equal(bitmap.GetHeight(), 1);
+  assert.equal(bitmap.GetRawDataSize(), 24);
+
+  const channel = Channels(bitmap);
 
   // Carbon samples i / (width - 1), and stores each sample as a half float.
-  assert.equal(payload.data[0], half(0));
-  assert.equal(payload.data[4], half(0.5));
-  assert.equal(payload.data[8], half(1));
+  assert.equal(channel(0), half(0));
+  assert.equal(channel(4), half(0.5));
+  assert.equal(channel(8), half(1));
   // A channel with no keys is 0 everywhere; a single key holds its value.
-  assert.deepEqual([ payload.data[1], payload.data[5], payload.data[9] ], [ 0, 0, 0 ]);
-  assert.deepEqual([ payload.data[3], payload.data[7], payload.data[11] ], [ 1, 1, 1 ]);
+  assert.deepEqual([ channel(1), channel(5), channel(9) ], [ 0, 0, 0 ]);
+  assert.deepEqual([ channel(3), channel(7), channel(11) ], [ 1, 1, 1 ]);
 });
 
 test("a one-pixel gradient samples the curve at its midpoint", () =>
 {
-  const payload = RasterizeGradient(gradientPath(1, [ rampChannel, emptyChannel, emptyChannel, emptyChannel ]));
-  assert.equal(payload.width, 1);
-  assert.equal(payload.data[0], half(0.5));
+  const bitmap = RasterizeGradient(gradientPath(1, [ rampChannel, emptyChannel, emptyChannel, emptyChannel ]));
+  assert.equal(bitmap.GetWidth(), 1);
+  assert.equal(Channels(bitmap)(0), half(0.5));
 });
 
 test("GradientPathToCurve returns the colour curve the path describes", () =>
@@ -115,7 +124,7 @@ test("dynamic:/gradient_1d resolves through the resource manager without a sourc
   const texture = resMan.GetResource(path);
   assert.equal(CjsSchema.cast(texture, TriTextureRes), texture);
   assert.equal(texture.IsGood(), true);
-  assert.equal(texture.GetPayload().width, 2);
+  assert.equal(texture.GetBitmap().GetWidth(), 2);
   assert.equal(texture.width, 2);
   // Identical queries share one resource.
   assert.equal(resMan.GetResource(path), texture);

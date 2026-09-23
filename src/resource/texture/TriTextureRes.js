@@ -83,13 +83,13 @@ export class TriTextureRes extends CjsResource
    * so it publishes the bitmap as the payload and Trinity makes the texture at
    * first bind, as it does for every other texture.
    *
-   * @param {Function} rasterize `(path) => payload | null`.
+   * @param {Function} rasterize `(path) => HostBitmap | null`.
    * @returns {void}
    */
   #RasterizeProceduralTexture(rasterize) {
     this.MarkLoading();
-    const payload = rasterize(this.path);
-    if (!payload) {
+    const bitmap = rasterize(this.path);
+    if (!bitmap) {
       // Carbon: "Failed to parse dynamic:/color/%s texture path", and the
       // texture is never prepared.
       const error = new Error(`Failed to parse ${this.path} texture path`);
@@ -98,7 +98,7 @@ export class TriTextureRes extends CjsResource
       this.SetError(error);
       return;
     }
-    this.SetPayload(payload);
+    this.SetPayload(bitmap);
     this.MarkPrepared();
   }
 
@@ -218,30 +218,27 @@ export class TriTextureRes extends CjsResource
       return this;
     }
 
-    // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978): the
-    // image route hands one straight over. The plain payload below is the
-    // TRANSITIONAL route (/docs/projects/hostbitmap-port.md).
+    // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978).
     const bitmap = CjsSchema.cast(payload, HostBitmap);
 
     if (bitmap) {
       this.CreateFromHostBitmap(bitmap);
       super.SetPayload(bitmap, options);
+      if (options) this.SetValues(options);
       if (bitmap.metadata?.cutout) this.SetCutout(bitmap.metadata.cutout);
       return this;
     }
 
-    const validator = {
-      [ResourcePayloadType.RGBA]: validateRgbaPayload,
-      [ResourcePayloadType.TEXTURE]: validateTexturePayload,
-      [ResourcePayloadType.VIDEO]: validateVideoPayload
-    }[payload?.payloadType];
-    if (!validator) {
+    // A video frame source is the one payload left: it is not an image the
+    // CPU decoded, it is a playing element the backend samples.
+    if (payload?.payloadType !== ResourcePayloadType.VIDEO) {
       throw resourcePayloadError(
         "TriTextureRes",
-        'Expected payloadType "rgba", "texture", or "video".',
+        'Expected an ImageIO::HostBitmap, or payloadType "video".',
         "payloadType"
       );
     }
+    const validator = validateVideoPayload;
     validateResourcePayload("TriTextureRes", payload, validator);
 
     const values = { ...(options || {}) };
@@ -304,8 +301,9 @@ export class TriTextureRes extends CjsResource
    * @returns {number}
    */
   GetMsaaType() {
-    const payload = this.GetPayload();
-    return payload?.multiSampleType ?? payload?.msaaType ?? payload?.samples ?? 1;
+    // Carbon: m_texture ? m_texture->GetMsaaDesc().samples : 1 (cpp:1214-1216).
+    const texture = this.GetTexture();
+    return texture ? texture.GetMsaaDesc().samples : 1;
   }
 
   /**
@@ -314,8 +312,9 @@ export class TriTextureRes extends CjsResource
    * @returns {number}
    */
   GetMsaaQuality() {
-    const payload = this.GetPayload();
-    return payload?.multiSampleQuality ?? payload?.msaaQuality ?? 0;
+    // Carbon: m_texture ? m_texture->GetMsaaDesc().quality : 0 (cpp:1219-1222).
+    const texture = this.GetTexture();
+    return texture ? texture.GetMsaaDesc().quality : 0;
   }
 
   /**
@@ -543,8 +542,8 @@ CjsSchema.define(TriTextureRes, {
   methods: {
     Initialize: [ carbon.method, impl.adapted, impl.reason("Carbon rasterizes a procedural path into a half-float HostBitmap and creates the GPU texture inside Initialize; this resource cannot reach a render context, so it publishes the half-float-quantized colour as an rgba32float payload. The gradient_1d branch is not ported.") ],
     GetMipCount: [ carbon.method, impl.adapted ],
-    GetMsaaType: [ carbon.method, impl.adapted ],
-    GetMsaaQuality: [ carbon.method, impl.adapted ],
+    GetMsaaType: [ carbon.method, impl.implemented ],
+    GetMsaaQuality: [ carbon.method, impl.implemented ],
     HadLodRequests: [ carbon.method, impl.adapted ],
     GetSrvIndexInHeap: [ carbon.method, impl.notSupported ],
     GetTexture: [ carbon.method, impl.implemented ],

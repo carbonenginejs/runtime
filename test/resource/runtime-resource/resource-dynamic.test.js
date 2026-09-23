@@ -1,3 +1,4 @@
+import { PixelFormat } from "../../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { CjsSchema } from "../../../src/global/schema/index.js";
@@ -37,19 +38,22 @@ test("ParseColor follows Carbon's stream extraction, including the empty-alpha q
   assert.deepEqual(ParseColor("1,2,3,"), [ 1, 2, 3, 0 ]);
 });
 
-test("RasterizeSolidColor stores Carbon's half-float values in an rgba32float payload", () =>
+test("RasterizeSolidColor writes Carbon's half-float bitmap", () =>
 {
-  const payload = RasterizeSolidColor("dynamic:/color/2,0.1,0,1");
-  assert.equal(payload.payloadType, "rgba");
-  assert.equal(payload.pixelFormat, "rgba32float");
-  assert.equal(payload.width, 1);
-  assert.equal(payload.height, 1);
-  assert.equal(payload.data instanceof Float32Array, true);
+  const bitmap = RasterizeSolidColor("dynamic:/color/2,0.1,0,1");
+  assert.equal(bitmap.GetFormat(), PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, "Carbon's format exactly");
+  assert.equal(bitmap.GetWidth(), 1);
+  assert.equal(bitmap.GetHeight(), 1);
+
+  const raw = bitmap.GetRawData();
+  const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+  const channel = index => num.fromHalfFloat(view.getUint16(index * 2, true));
+
   // Above one survives: Carbon's texture is float, not clamped.
-  assert.equal(payload.data[0], 2);
-  // Quantized through the half-float codec, as Carbon's Float_16 is.
-  assert.equal(payload.data[1], Math.fround(num.fromHalfFloat(num.toHalfFloat(0.1))));
-  assert.notEqual(payload.data[1], Math.fround(0.1));
+  assert.equal(channel(0), 2);
+  // Half-float, as Carbon's Float_16 is.
+  assert.equal(channel(1), num.fromHalfFloat(num.toHalfFloat(0.1)));
+  assert.notEqual(channel(1), Math.fround(0.1));
   assert.equal(RasterizeSolidColor("res:/texture.dds"), null);
   assert.equal(RasterizeSolidColor("dynamic:/color/1,2"), null);
 });
@@ -62,7 +66,8 @@ test("dynamic:/color resolves through its constructor, shares by query, and neve
   const red = resMan.GetResource("dynamic:/color/1,0,0,1");
   assert.equal(CjsSchema.cast(red, TriTextureRes), red);
   assert.equal(red.IsGood(), true);
-  assert.equal(red.GetPayload().data[0], 1);
+  const raw = red.GetBitmap().GetRawData();
+  assert.equal(new DataView(raw.buffer, raw.byteOffset, raw.byteLength).getUint16(0, true), num.toHalfFloat(1));
   assert.equal(resMan.GetResource("dynamic:/color/1,0,0,1"), red);
   assert.notEqual(resMan.GetResource("dynamic:/color/0,1,0,1"), red);
 

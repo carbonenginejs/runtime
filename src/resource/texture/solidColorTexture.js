@@ -8,6 +8,8 @@
 // import cycle.
 //
 // Not ported, for want of a consumer: ColorPathToColor and ColorToColorPath.
+import { HostBitmap } from "#imageio";
+import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
 
 /** `colorPrefix` (SolidColorTexture.cpp:13). */
@@ -82,13 +84,10 @@ export function IsSolidColorTexturePath(path)
  * Carbon's `RasterizeSolidColor` (SolidColorTexture.cpp:104-126): a 1x1 bitmap of
  * the parsed colour, or null where Carbon leaves the bitmap invalid.
  *
- * Carbon writes `PIXEL_FORMAT_R16G16B16A16_FLOAT`. The resource payload contract
- * carries float colour as `rgba32float` only, so each component is quantized
- * through the half-float codec first - the stored values are Carbon's, in a
- * wider container.
+ * Carbon's format exactly: a 1x1 `PIXEL_FORMAT_R16G16B16A16_FLOAT` bitmap.
  *
  * @param {string} path `dynamic:/color/...` path.
- * @returns {object|null} An `rgba` payload.
+ * @returns {HostBitmap|null} The bitmap, or null where Carbon leaves it invalid.
  */
 export function RasterizeSolidColor(path)
 {
@@ -96,21 +95,17 @@ export function RasterizeSolidColor(path)
   const color = ParseColor(String(path).slice(ColorPrefix.length));
   if (!color) return null;
 
-  const data = new Float32Array(4);
+  const bitmap = new HostBitmap();
+
+  if (!bitmap.Create(1, 1, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT)) return null;
+
+  const raw = bitmap.GetRawData();
+  const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+
   for (let index = 0; index < 4; index++)
   {
-    data[index] = num.fromHalfFloat(num.toHalfFloat(color[index]));
+    view.setUint16(index * 2, num.toHalfFloat(color[index]), true);
   }
-  return {
-    payloadType: "rgba",
-    sourceFormat: "dynamic-color",
-    width: 1,
-    height: 1,
-    pixelFormat: "rgba32float",
-    data,
-    strideBytes: 16,
-    origin: "top-left",
-    colorSpace: "linear",
-    alphaMode: "straight"
-  };
+
+  return bitmap;
 }

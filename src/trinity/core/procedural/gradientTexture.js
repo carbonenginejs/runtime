@@ -13,6 +13,8 @@
 // parse - stays in TriTextureRes.Initialize as Carbon has it.
 //
 // Not ported, for want of a consumer: CurveToGradientPath (the writer).
+import { HostBitmap } from "#imageio";
+import { PixelFormat } from "#consts/render-context";
 import { num } from "#math/num";
 import { Tr2CurveColor } from "../../curves/curve/Tr2CurveColor.js";
 import { Tr2CurveScalar } from "../../curves/curve/Tr2CurveScalar.js";
@@ -179,21 +181,18 @@ export function RasterizeGradient(path)
     // (`pixels + 1`, stride 4); a subarray is the same offset view.
     curve.Rasterize({ width, stride: CHANNEL_COUNT, data: data.subarray(channel) });
   }
+  const bitmap = new HostBitmap();
+
+  // Carbon's format: one half-float per channel (GradientTexture.cpp).
+  if (!bitmap.Create(width, 1, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT)) return null;
+
+  const raw = bitmap.GetRawData();
+  const view = new DataView(raw.buffer, raw.byteOffset, raw.byteLength);
+
   for (let index = 0; index < data.length; index++)
   {
-    data[index] = num.fromHalfFloat(num.toHalfFloat(data[index]));
+    view.setUint16(index * 2, num.toHalfFloat(data[index]), true);
   }
 
-  return {
-    payloadType: "rgba",
-    sourceFormat: "dynamic-gradient",
-    width,
-    height: 1,
-    pixelFormat: "rgba32float",
-    data,
-    strideBytes: width * 16,
-    origin: "top-left",
-    colorSpace: "linear",
-    alphaMode: "straight"
-  };
+  return bitmap;
 }

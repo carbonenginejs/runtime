@@ -5,8 +5,7 @@ import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsResource } from "../CjsResource.js";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
-import { validateRgbaPayload } from "../format/payloadContract.js";
-import { validateResourcePayload } from "../resourceBoundary.js";
+import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
 
 /**
@@ -52,25 +51,18 @@ export class Tr2ImageRes extends CjsResource
       return this;
     }
 
-    // Carbon's DoLoad reads straight into m_bitmap (Tr2ImageRes.cpp:39-52), so
-    // a HostBitmap is what this resource is made of; the plain RGBA payload
-    // below is the TRANSITIONAL route (/docs/projects/hostbitmap-port.md).
+    // Carbon's DoLoad reads straight into m_bitmap (Tr2ImageRes.cpp:39-52),
+    // so a HostBitmap is what this resource is made of.
     const bitmap = CjsSchema.cast(payload, HostBitmap);
 
-    if (bitmap)
+    if (!bitmap)
     {
-      this.bitmap = bitmap;
-      super.SetPayload(bitmap);
-      this.SetValues({ ...(options || {}), width: bitmap.GetWidth(), height: bitmap.GetHeight() });
-      return this;
+      throw resourcePayloadError("Tr2ImageRes", "Expected an ImageIO::HostBitmap.", "payload");
     }
 
-    validateResourcePayload("Tr2ImageRes", payload, validateRgbaPayload);
-    const values = { ...(options || {}) };
-    values.width = payload.width;
-    values.height = payload.height;
-    super.SetPayload(payload);
-    this.SetValues(values);
+    this.bitmap = bitmap;
+    super.SetPayload(bitmap);
+    this.SetValues({ ...(options || {}), width: bitmap.GetWidth(), height: bitmap.GetHeight() });
     return this;
   }
 

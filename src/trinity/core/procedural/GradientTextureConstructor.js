@@ -29,8 +29,8 @@ export class GradientTextureConstructor
     const texture = new TriTextureRes();
     texture.Initialize(path, "");
 
-    const payload = RasterizeGradient(path);
-    if (!payload)
+    const bitmap = RasterizeGradient(path);
+    if (!bitmap)
     {
       // Carbon logs "Failed to parse dynamic:/gradient_1d/ texture path" (or the
       // zero-width variant) and leaves the bitmap invalid, so the texture is
@@ -41,7 +41,7 @@ export class GradientTextureConstructor
       texture.SetError(error);
       return texture;
     }
-    texture.SetPayload(payload);
+    texture.SetPayload(bitmap);
     texture.MarkPrepared();
     return texture;
   }

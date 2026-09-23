@@ -1,3 +1,5 @@
+import { HostBitmap } from "../../../src/global/imageio/index.js";
+import { PixelFormat } from "../../../src/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
@@ -2127,35 +2129,13 @@ test("TriTextureRes accepts a plain video payload and preserves it on invalid re
   assert.equal(texture.GetPayload(), video);
 });
 
-test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => {
+test("TriTextureRes holds a HostBitmap, and TriGeometryRes a validated payload", () => {
   const texture = new TriTextureRes().Initialize("res:/texture/ship.dds");
-  const texturePayload = {
-    payloadType: ResourcePayloadType.TEXTURE,
-    sourceFormat: "dds",
-    width: 4,
-    height: 4,
-    dimension: "2d",
-    arraySize: 1,
-    pixelFormat: "bc1-rgba-unorm",
-    mipCount: 1,
-    isCompressed: true,
-    multiSampleType: 4,
-    multiSampleQuality: 2,
-    hadLodRequests: true,
-    originalMemoryUsage: 64,
-    data: new Uint8Array(8),
-    subresources: [ {
-      mip: 0,
-      layer: 0,
-      offset: 0,
-      byteLength: 8,
-      width: 4,
-      height: 4,
-      rowPitch: 8,
-      slicePitch: 8
-    } ]
-  };
-  texture.SetPayload(texturePayload);
+  // The image is a bitmap; the rest are values the loader knows and the
+  // bitmap does not - MSAA, LOD history, the original memory use.
+  const bitmap = new HostBitmap();
+  bitmap.Create(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  texture.SetPayload(bitmap, { hadLodRequests: true, originalMemoryUsage: 64 });
 
   const geometry = new TriGeometryRes().Initialize("res:/geometry/ship.cmf");
   const geometryPayload = {
@@ -2182,12 +2162,13 @@ test("TriTextureRes and TriGeometryRes consume validated plain payloads", () => 
   assert.equal(texture.GetPath(), "res:/texture/ship.dds");
   assert.equal(texture.width, 4);
   assert.equal(texture.GetMipCount(), 1);
-  assert.equal(texture.GetMsaaType(), 4);
-  assert.equal(texture.GetMsaaQuality(), 2);
+  // Carbon reads MSAA from the texture, and there is none until it is made.
+  assert.equal(texture.GetMsaaType(), 1);
+  assert.equal(texture.GetMsaaQuality(), 0);
   assert.equal(texture.HadLodRequests(), true);
   assert.equal(texture.GetOriginalMemoryUsage(), 64);
   assert.equal(texture.HasPayload(), true);
-  assert.equal(texture.GetPayload().sourceFormat, "dds");
+  assert.equal(texture.GetPayload(), bitmap, "the bitmap IS what the resource holds");
   assert.equal(TriTextureRes.payload, "texture");
   assert.equal(CjsSchema.GetConstructor("TriTextureRes"), TriTextureRes);
   assert.equal(CjsSchema.getField(TriTextureRes, "variants"), null);
@@ -2316,19 +2297,12 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   effect.SetPayload(shaderPayload);
 
   const image = new Tr2ImageRes().Initialize("res:/image/icon.png");
-  const imagePayload = {
-    payloadType: ResourcePayloadType.RGBA,
-    sourceFormat: "png",
-    width: 2,
-    height: 1,
-    pixelFormat: "rgba8unorm",
-    data: new Uint8Array([ 255, 255, 255, 255, 0, 0, 0, 0 ]),
-    strideBytes: 8,
-    origin: "top-left",
-    colorSpace: "srgb",
-    alphaMode: "straight"
-  };
-  image.SetPayload(imagePayload);
+  // Carbon's image resource IS a HostBitmap (Tr2ImageRes.h:38): opaque white,
+  // then a fully transparent pixel.
+  const imageBitmap = new HostBitmap();
+  imageBitmap.Create(2, 1, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  imageBitmap.GetRawData().set([ 255, 255, 255, 255, 0, 0, 0, 0 ]);
+  image.SetPayload(imageBitmap);
 
   assert.equal(effect.HasPayload(), true);
   assert.deepEqual(effect.GetPermutationDescription(), [ {
@@ -2346,17 +2320,18 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(image.width, 2);
   assert.equal(image.GetWidth(), 2);
   assert.equal(image.GetHeight(), 1);
-  // Carbon's accessors read m_bitmap, and only BGRA/BGRX (Tr2ImageRes.cpp:54-108),
-  // so the transitional RGBA payload answers transparent until a bitmap arrives.
-  assert.deepEqual(image.GetPixelColor(0, 0), { r: 0, g: 0, b: 0, a: 0 });
-  assert.equal(image.IsPixelOpaque(0, 0), false);
+  // Carbon's accessors read m_bitmap, BGRA or BGRX only (Tr2ImageRes.cpp:54-108).
+  assert.deepEqual(image.GetPixelColor(0, 0), { r: 1, g: 1, b: 1, a: 1 });
+  assert.equal(image.IsPixelOpaque(0, 0), true);
+  assert.equal(image.IsPixelOpaque(1, 0), false, "alpha 0");
   assert.equal(Tr2ImageRes.payload, "image");
   assert.equal(CjsSchema.getField(Tr2ImageRes, "pixels"), null);
   assert.throws(
     () => image.SetPayload({ payloadType: ResourcePayloadType.RGBA, width: 2, height: 1 }),
     error => error.code === "CJS_RESOURCE_PAYLOAD_INVALID"
   );
-  assert.equal(image.GetPayload(), imagePayload);
+  assert.equal(image.GetPayload(), imageBitmap);
+  assert.equal(image.GetBitmap(), imageBitmap);
 });
 
 test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource prepared", async () => {

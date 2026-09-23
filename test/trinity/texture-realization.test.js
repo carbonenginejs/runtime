@@ -1,3 +1,4 @@
+import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -14,6 +15,18 @@ import { PixelFormat, TextureType, Tr2ColorSpace } from "../../npm/dist/global/c
 // one Tr2SubresourceData per (mip, layer) indexed mip + layer * mipCount
 // (Tr2ImageIOHelpers.cpp:104-128), and stores it with SetTexture. Ours makes it
 // at first bind through the binding context and stores it in the same place.
+
+/** The same image as a HostBitmap, which is what a resource holds. */
+function bc1Bitmap()
+{
+  const bitmap = new HostBitmap();
+
+  bitmap.Create(8, 8, 2, PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB);
+  bitmap.GetMipRawData(0).fill(1);
+  bitmap.GetMipRawData(1).fill(2);
+
+  return bitmap;
+}
 
 /** A BC1 texture payload: 8x8 with two mips, one layer. */
 function bc1Payload()
@@ -83,7 +96,7 @@ test("RealizeTexture makes the resource's texture once it is prepared, and store
   assert.equal(RealizeTexture(resource, context), null, "nothing before the payload arrives");
   assert.equal(resource.GetTexture(), null);
 
-  resource.SetPayload(bc1Payload());
+  resource.SetPayload(bc1Bitmap());
   resource.SetState(TriTextureRes.State.PREPARED);
 
   const texture = RealizeTexture(resource, context);
@@ -118,7 +131,7 @@ test("a texture parameter binds the realized texture, or the resource until it i
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, 0, context), true);
   assert.equal(description.m_srv[0].texture, resource);
 
-  resource.SetPayload(bc1Payload());
+  resource.SetPayload(bc1Bitmap());
   resource.SetState(TriTextureRes.State.PREPARED);
 
   assert.ok(dirtied.length >= 1, "completion re-dirtied the material, as Carbon's m_onTextureChange does");
