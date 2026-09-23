@@ -153,26 +153,12 @@
         "rather than in DoPrepare as Carbon does."
       ],
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
-        "global/imageio"
+        "global"
       ]
     },
     "trinityal": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
-        "global/imageio"
+        "global"
       ],
       "why": [
         "Carbon's abstraction layer, a sibling of trinity rather than a part of it",
@@ -183,27 +169,14 @@
     },
     "trinity": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource",
-        "trinityal",
-        "global/imageio"
+        "trinityal"
       ]
     },
     "sof": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource"
       ],
       "why": [
@@ -216,53 +189,28 @@
     },
     "audio": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource"
       ]
     },
     "character": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource",
         "trinity"
       ]
     },
     "input": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model"
+        "global"
       ]
     },
     "trinityal/webgpu": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource",
         "trinity",
-        "trinityal",
-        "global/imageio"
+        "trinityal"
       ],
       "why": [
         "The implemented abstraction-layer backend extends canonical dependency-floor,",
@@ -271,13 +219,7 @@
     },
     "core": {
       "mayImport": [
-        "global/utils",
-        "global/math",
-        "global/consts",
-        "global/contracts",
-        "global/blue",
-        "global/schema",
-        "global/model",
+        "global",
         "resource",
         "trinity",
         "sof",

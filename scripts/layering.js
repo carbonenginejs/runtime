@@ -116,6 +116,24 @@ function validatePackageMap(field, map, root, problems)
     }
 }
 
+/**
+ * Expand the one alias the config uses: `"global"` in a `mayImport` list
+ * means every `global/*` layer. Nine layers restated the same eight globals
+ * before this; the direction rules are what matter, not the bookkeeping.
+ *
+ * @param {object} layers The layers map, edited in place.
+ */
+function expandGlobalAlias(layers)
+{
+    const globals = Object.keys(layers).filter(name => name.startsWith("global/"));
+
+    for (const layer of Object.values(layers))
+    {
+        if (!Array.isArray(layer?.mayImport) || !layer.mayImport.includes("global")) continue;
+        layer.mayImport = [ ...new Set(layer.mayImport.flatMap(target => target === "global" ? globals : [ target ])) ];
+    }
+}
+
 function validateGraph(layers, sourceRoot, problems)
 {
     const names = Object.keys(layers);
@@ -366,6 +384,7 @@ export async function validateLayering(options = {})
     const config = JSON.parse(await readFile(join(root, "layers.json"), "utf8"));
     const manifest = JSON.parse(await readFile(join(root, "package.json"), "utf8"));
     const layers = config.layers ?? {};
+    expandGlobalAlias(config.layers ?? {});
     const surfaces = config.surfaces ?? {};
     const imports = manifest.imports ?? {};
     const externalImportValues = config.externalImports ?? [];
