@@ -1,3 +1,5 @@
+import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
+import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -44,15 +46,26 @@ test("Tr2ImageRes memory accounting follows the load state (cpp:14-27)", () =>
 {
   const image = new Tr2ImageRes();
   assert.equal(image.GetMemoryUsage(), 1024, "unloaded resources carry the 1024-byte placeholder");
-  assert.equal(image.GetBitmap(), null);
+  assert.equal(image.GetBitmap().IsValid(), false, "Carbon's m_bitmap exists but holds nothing yet");
 
-  image.SetPayload({
-    payloadType: "rgba", sourceFormat: "tga", width: 2, height: 2,
-    pixelFormat: "rgba8unorm", data: new Uint8Array(16), strideBytes: 8,
-    origin: "top-left", colorSpace: "srgb", alphaMode: "straight"
-  });
+  // Carbon's DoLoad reads the file straight into m_bitmap (cpp:39-52).
+  const bitmap = new HostBitmap();
+  bitmap.Create(2, 2, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  bitmap.GetRawData().set([
+    255, 255, 255, 255, 10, 20, 30, 0,
+    0, 0, 0, 255, 0, 0, 0, 128
+  ]);
+  image.SetPayload(bitmap);
+
+  assert.equal(image.GetBitmap(), bitmap, "Carbon's GetBitmap (cpp:110-113)");
   assert.equal(image.GetMemoryUsage(), 16, "the bitmap raw size once loaded");
-  assert.equal(image.GetBitmap(), image.GetPayload(), "GetBitmap IS the decoded payload");
+  assert.equal(image.GetWidth(), 2);
+  assert.equal(image.GetHeight(), 2);
+  assert.deepEqual(image.GetPixelColor(0, 0), { b: 1, g: 1, r: 1, a: 1 });
+  // Opaque means an alpha byte above 0x7f (cpp:69).
+  assert.equal(image.IsPixelOpaque(0, 0), true);
+  assert.equal(image.IsPixelOpaque(1, 0), false, "alpha 0");
+  assert.equal(image.IsPixelOpaque(1, 1), true, "alpha 128 is just over half");
   assert.equal(typeof image.IsMemoryUsageKnown(), "boolean");
 });
 

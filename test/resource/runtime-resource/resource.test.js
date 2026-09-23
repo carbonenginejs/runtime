@@ -2346,8 +2346,10 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(image.width, 2);
   assert.equal(image.GetWidth(), 2);
   assert.equal(image.GetHeight(), 1);
-  assert.deepEqual(image.GetPixelColor(0, 0), [ 255, 255, 255, 255 ]);
-  assert.equal(image.IsPixelOpaque(1, 0), false);
+  // Carbon's accessors read m_bitmap, and only BGRA/BGRX (Tr2ImageRes.cpp:54-108),
+  // so the transitional RGBA payload answers transparent until a bitmap arrives.
+  assert.deepEqual(image.GetPixelColor(0, 0), { r: 0, g: 0, b: 0, a: 0 });
+  assert.equal(image.IsPixelOpaque(0, 0), false);
   assert.equal(Tr2ImageRes.payload, "image");
   assert.equal(CjsSchema.getField(Tr2ImageRes, "pixels"), null);
   assert.throws(
