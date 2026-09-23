@@ -22,7 +22,7 @@ const FORMAT_NAME = "CjsMp4Format";
  */
 export class CjsMp4Format extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable MP4 format profile.
@@ -43,7 +43,7 @@ export class CjsMp4Format extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "mp4", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "mp4", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -55,7 +55,7 @@ export class CjsMp4Format extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "mp4", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "mp4", ...options }, FORMAT_NAME);
     }
 
     /**

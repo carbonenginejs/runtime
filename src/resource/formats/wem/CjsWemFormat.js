@@ -29,7 +29,7 @@ const FORMAT_NAME = "CjsWemFormat";
  */
 export class CjsWemFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Browser-worker module declaration consumed by CjsResManWorkerLoader.
@@ -60,7 +60,7 @@ export class CjsWemFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, options, FORMAT_NAME);
+        this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
     }
 
@@ -72,7 +72,7 @@ export class CjsWemFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, options, FORMAT_NAME);
+        return normalizeValues(this._values, options, FORMAT_NAME);
     }
 
     /**

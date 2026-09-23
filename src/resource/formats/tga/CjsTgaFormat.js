@@ -24,7 +24,7 @@ const FORMAT_NAME = "CjsTgaFormat";
  */
 export class CjsTgaFormat extends CjsImageFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * One-shot TGA write from a normalized RGBA payload.
@@ -69,7 +69,7 @@ export class CjsTgaFormat extends CjsImageFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "tga", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "tga", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -81,7 +81,7 @@ export class CjsTgaFormat extends CjsImageFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "tga", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "tga", ...options }, FORMAT_NAME);
     }
 
     /**

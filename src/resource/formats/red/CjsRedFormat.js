@@ -34,10 +34,10 @@ const FORMAT_NAME = "CjsRedFormat";
 export class CjsRedFormat extends CjsFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #schema = DEFAULT_VALUES.schema;
-    #readerOptions = {};
-    #classes = {};
+    _emit = DEFAULT_VALUES.emit;
+    _schema = DEFAULT_VALUES.schema;
+    _readerOptions = {};
+    _classes = {};
 
     /**
      * Create a reusable format profile.
@@ -57,10 +57,10 @@ export class CjsRedFormat extends CjsFormat
     SetValues(options = {})
     {
         const values = normalizeValues(this.GetValues(), options, CLASS_KEYS, FORMAT_NAME);
-        this.#emit = values.emit;
-        this.#schema = values.schema;
-        this.#classes = values.classes;
-        this.#readerOptions = CjsRedFormat.copyReaderOptions(values);
+        this._emit = values.emit;
+        this._schema = values.schema;
+        this._classes = values.classes;
+        this._readerOptions = CjsRedFormat.copyReaderOptions(values);
         return this;
     }
 
@@ -73,10 +73,10 @@ export class CjsRedFormat extends CjsFormat
     {
         return normalizeValues({
             ...DEFAULT_VALUES,
-            emit: this.#emit,
-            schema: this.#schema,
-            ...this.#readerOptions,
-            classes: this.#classes
+            emit: this._emit,
+            schema: this._schema,
+            ...this._readerOptions,
+            classes: this._classes
         }, options, CLASS_KEYS, FORMAT_NAME);
     }
 
@@ -101,12 +101,12 @@ export class CjsRedFormat extends CjsFormat
         validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
         if (Class === null || Class === undefined)
         {
-            delete this.#classes[type];
+            delete this._classes[type];
             return this;
         }
 
         validateClass(CLASS_KEYS, type, Class, FORMAT_NAME);
-        this.#classes = { ...this.#classes, [type]: Class };
+        this._classes = { ...this._classes, [type]: Class };
         return this;
     }
 
@@ -118,7 +118,7 @@ export class CjsRedFormat extends CjsFormat
     GetClass(type)
     {
         validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
-        return this.#classes[type];
+        return this._classes[type];
     }
 
     /**

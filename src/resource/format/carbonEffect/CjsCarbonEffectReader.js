@@ -120,10 +120,10 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
         this.Skip(this.stringTableSize);
         this.SetStringTable(this.stringTableBytes, this.stringTableSize);
 
-        this.permutations = this.#readPermutations();
-        this.records = this.#readRecords();
+        this.permutations = this._readPermutations();
+        this.records = this._readRecords();
         this.headerEnd = this.offset;
-        this.diagnostics = this.#inspect();
+        this.diagnostics = this._inspect();
 
         if (!options.permissive)
         {
@@ -225,20 +225,20 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
 
         if (options.backend !== undefined)
         {
-            return this.#readDescriptionAs(record, options.backend === true);
+            return this._readDescriptionAs(record, options.backend === true);
         }
 
         // Plain Carbon first: it is the larger population, and it is the reading
         // that must stay cheap.
         try
         {
-            return this.#readDescriptionAs(record, false);
+            return this._readDescriptionAs(record, false);
         }
         catch (withoutBlocks)
         {
             try
             {
-                return this.#readDescriptionAs(record, true);
+                return this._readDescriptionAs(record, true);
             }
             catch
             {
@@ -258,7 +258,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      * @param {boolean} backend Whether to expect the per-pass block.
      * @returns {object} Description record tree.
      */
-    #readDescriptionAs(record, backend)
+    _readDescriptionAs(record, backend)
     {
         const reader = new this.constructor.BodyReader(this.bytes, {
             source: this.source,
@@ -292,7 +292,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      *
      * @returns {object[]} Permutation axes with arena references retained.
      */
-    #readPermutations()
+    _readPermutations()
     {
         const permutations = [];
         const count = this.ReadUint8();
@@ -330,7 +330,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      *
      * @returns {object[]} Offset-table rows.
      */
-    #readRecords()
+    _readRecords()
     {
         const count = this.ReadUint32();
         if (count === 0)
@@ -363,7 +363,7 @@ export class CjsCarbonEffectReader extends CjsCarbonEffectBodyReader
      *
      * @returns {object} Structural diagnostics.
      */
-    #inspect()
+    _inspect()
     {
         const headerEnd = this.headerEnd;
         const byteLength = this.bytes.length;

@@ -23,7 +23,7 @@ const FORMAT_NAME = "CjsOggFormat";
  */
 export class CjsOggFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /** Creates a CjsOggFormat with caller-provided reader configuration. */
     constructor(options = {})
@@ -38,7 +38,7 @@ export class CjsOggFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "ogg", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "ogg", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -48,7 +48,7 @@ export class CjsOggFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "ogg", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "ogg", ...options }, FORMAT_NAME);
     }
 
     /**

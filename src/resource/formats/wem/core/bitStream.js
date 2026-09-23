@@ -98,15 +98,15 @@ export class BitReader extends CjsBitReader
  */
 export class OggPageWriter
 {
-    #pages = [];
-    #payload = new Uint8Array(OGG_MAX_PAYLOAD);
-    #payloadBytes = 0;
-    #bitBuffer = 0;
-    #bitsStored = 0;
-    #granule = 0;
-    #sequenceNumber = 0;
-    #first = true;
-    #continued = false;
+    _pages = [];
+    _payload = new Uint8Array(OGG_MAX_PAYLOAD);
+    _payloadBytes = 0;
+    _bitBuffer = 0;
+    _bitsStored = 0;
+    _granule = 0;
+    _sequenceNumber = 0;
+    _first = true;
+    _continued = false;
 
     /**
      * Write a single bit.
@@ -115,9 +115,9 @@ export class OggPageWriter
      */
     writeBit(bit)
     {
-        if (bit) this.#bitBuffer |= (1 << this.#bitsStored);
-        this.#bitsStored++;
-        if (this.#bitsStored === 8) this.#flushBits();
+        if (bit) this._bitBuffer |= (1 << this._bitsStored);
+        this._bitsStored++;
+        if (this._bitsStored === 8) this._flushBits();
     }
 
     /**
@@ -141,22 +141,22 @@ export class OggPageWriter
      */
     setGranule(granule)
     {
-        this.#granule = granule;
+        this._granule = granule;
     }
 
     /** Flushes bits into the current WEM binary writer output. */
-    #flushBits()
+    _flushBits()
     {
-        if (this.#bitsStored === 0) return;
-        if (this.#payloadBytes === OGG_MAX_PAYLOAD)
+        if (this._bitsStored === 0) return;
+        if (this._payloadBytes === OGG_MAX_PAYLOAD)
         {
             const error = new Error("wem: packet too large for one Ogg page");
             error.code = "CJS_FORMAT_OUTPUT_NOT_SUPPORTED";
             throw error;
         }
-        this.#payload[this.#payloadBytes++] = this.#bitBuffer;
-        this.#bitsStored = 0;
-        this.#bitBuffer = 0;
+        this._payload[this._payloadBytes++] = this._bitBuffer;
+        this._bitsStored = 0;
+        this._bitBuffer = 0;
     }
 
     /**
@@ -166,10 +166,10 @@ export class OggPageWriter
      */
     flushPage(last = false)
     {
-        this.#flushBits();
-        if (this.#payloadBytes === 0) return;
+        this._flushBits();
+        if (this._payloadBytes === 0) return;
 
-        const payloadBytes = this.#payloadBytes;
+        const payloadBytes = this._payloadBytes;
         let segments = Math.floor((payloadBytes + OGG_SEGMENT_SIZE) / OGG_SEGMENT_SIZE);
         if (segments === OGG_MAX_SEGMENTS + 1) segments = OGG_MAX_SEGMENTS;
 
@@ -179,11 +179,11 @@ export class OggPageWriter
         page[2] = 0x67;
         page[3] = 0x53;
         page[4] = 0;
-        page[5] = (this.#continued ? 1 : 0) | (this.#first ? 2 : 0) | (last ? 4 : 0);
-        writeU32(page, 6, this.#granule % 0x100000000);
-        writeU32(page, 10, Math.floor(this.#granule / 0x100000000));
+        page[5] = (this._continued ? 1 : 0) | (this._first ? 2 : 0) | (last ? 4 : 0);
+        writeU32(page, 6, this._granule % 0x100000000);
+        writeU32(page, 10, Math.floor(this._granule / 0x100000000));
         writeU32(page, 14, 1);
-        writeU32(page, 18, this.#sequenceNumber);
+        writeU32(page, 18, this._sequenceNumber);
         writeU32(page, 22, 0);
         page[26] = segments;
 
@@ -201,14 +201,14 @@ export class OggPageWriter
             }
         }
 
-        page.set(this.#payload.subarray(0, payloadBytes), OGG_HEADER_BYTES + segments);
+        page.set(this._payload.subarray(0, payloadBytes), OGG_HEADER_BYTES + segments);
         writeU32(page, 22, oggChecksum(page, page.length));
 
-        this.#pages.push(page);
-        this.#sequenceNumber++;
-        this.#first = false;
-        this.#continued = false;
-        this.#payloadBytes = 0;
+        this._pages.push(page);
+        this._sequenceNumber++;
+        this._first = false;
+        this._continued = false;
+        this._payloadBytes = 0;
     }
 
     /**
@@ -219,10 +219,10 @@ export class OggPageWriter
     toBytes()
     {
         let total = 0;
-        for (const page of this.#pages) total += page.length;
+        for (const page of this._pages) total += page.length;
         const bytes = new Uint8Array(total);
         let offset = 0;
-        for (const page of this.#pages)
+        for (const page of this._pages)
         {
             bytes.set(page, offset);
             offset += page.length;
@@ -237,7 +237,7 @@ export class OggPageWriter
      */
     get pageCount()
     {
-        return this.#pages.length;
+        return this._pages.length;
     }
 }
 

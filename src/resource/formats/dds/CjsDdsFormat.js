@@ -49,7 +49,7 @@ const LEGACY_PIXEL_FORMATS = {
  */
 export class CjsDdsFormat extends CjsImageFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable DDS format profile.
@@ -70,7 +70,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "dds", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "dds", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -82,7 +82,7 @@ export class CjsDdsFormat extends CjsImageFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "dds", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "dds", ...options }, FORMAT_NAME);
     }
 
     /**

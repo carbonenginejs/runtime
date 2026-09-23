@@ -62,8 +62,8 @@ const UTF8 = new TextDecoder("utf-8", { fatal: true });
  */
 export class CjsPickleProtocol4Reader
 {
-  #bytes;
-  #limits;
+  _bytes;
+  _limits;
 
   /**
    * Bind one byte source and its resource limits.
@@ -73,14 +73,14 @@ export class CjsPickleProtocol4Reader
    */
   constructor(input, options = {})
   {
-    this.#bytes = normalizeBytes(input);
-    this.#limits = normalizeLimits(options.limits ?? options);
+    this._bytes = normalizeBytes(input);
+    this._limits = normalizeLimits(options.limits ?? options);
 
-    if (this.#bytes.byteLength > this.#limits.maxInputBytes)
+    if (this._bytes.byteLength > this._limits.maxInputBytes)
     {
       throw pickleError(
         "CJS_PICKLE_FORMAT_LIMIT_EXCEEDED",
-        `Pickle input exceeds maxInputBytes (${this.#limits.maxInputBytes}).`,
+        `Pickle input exceeds maxInputBytes (${this._limits.maxInputBytes}).`,
         0,
         DEFAULT_PROTOCOL
       );
@@ -94,7 +94,7 @@ export class CjsPickleProtocol4Reader
    */
   Read()
   {
-    return decode(this.#bytes, this.#limits);
+    return decode(this._bytes, this._limits);
   }
 
   /**

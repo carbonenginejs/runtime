@@ -147,7 +147,7 @@ class CjsFormatRoute
  */
 export class CjsFormatStore
 {
-  #byExtension = new Map();
+  _byExtension = new Map();
 
   /**
    * Register a format, by default under every extension it declares.
@@ -225,8 +225,8 @@ export class CjsFormatStore
           + `under ${JSON.stringify(extension)}, which is not an extension.`
         );
       }
-      const existing = this.#byExtension.get(key);
-      if (!existing) this.#byExtension.set(key, [ route ]);
+      const existing = this._byExtension.get(key);
+      if (!existing) this._byExtension.set(key, [ route ]);
       else if (!existing.some(entry => isSameRoute(entry, route))) existing.push(route);
     }
     return this;
@@ -259,7 +259,7 @@ export class CjsFormatStore
    */
   Get(extension)
   {
-    return [ ...(this.#byExtension.get(normalizeResourceExtension(extension)) || []) ];
+    return [ ...(this._byExtension.get(normalizeResourceExtension(extension)) || []) ];
   }
 
   /**
@@ -270,7 +270,7 @@ export class CjsFormatStore
    */
   Has(extension)
   {
-    return this.#byExtension.has(normalizeResourceExtension(extension));
+    return this._byExtension.has(normalizeResourceExtension(extension));
   }
 
   /**
@@ -300,7 +300,7 @@ export class CjsFormatStore
    */
   Resolve(extension, data, options = null)
   {
-    let candidates = this.#byExtension.get(normalizeResourceExtension(extension)) || [];
+    let candidates = this._byExtension.get(normalizeResourceExtension(extension)) || [];
 
     const output = options?.output || null;
     if (output)
@@ -323,13 +323,13 @@ export class CjsFormatStore
   /** Every extension the store can route, sorted. */
   Extensions()
   {
-    return [ ...this.#byExtension.keys() ].sort();
+    return [ ...this._byExtension.keys() ].sort();
   }
 
   /** Forget every registration. */
   Clear()
   {
-    this.#byExtension.clear();
+    this._byExtension.clear();
     return this;
   }
 }

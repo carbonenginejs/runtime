@@ -22,7 +22,7 @@ const FORMAT_NAME = "CjsFlacFormat";
  */
 export class CjsFlacFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /** Creates a CjsFlacFormat with caller-provided reader configuration. */
     constructor(options = {})
@@ -37,7 +37,7 @@ export class CjsFlacFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "flac", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "flac", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -47,7 +47,7 @@ export class CjsFlacFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "flac", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "flac", ...options }, FORMAT_NAME);
     }
 
     /**

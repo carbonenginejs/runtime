@@ -23,7 +23,7 @@ const FORMAT_NAME = "CjsGifFormat";
  */
 export class CjsGifFormat extends CjsImageFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /** Creates a CjsGifFormat with caller-provided reader configuration. */
     constructor(options = {})
@@ -38,7 +38,7 @@ export class CjsGifFormat extends CjsImageFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "gif", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "gif", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -48,7 +48,7 @@ export class CjsGifFormat extends CjsImageFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "gif", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "gif", ...options }, FORMAT_NAME);
     }
 
     /**

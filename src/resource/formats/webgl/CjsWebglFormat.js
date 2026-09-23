@@ -37,8 +37,8 @@ const FORMAT_NAME = "CjsWebglFormat";
 export class CjsWebglFormat extends CjsFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
 
     /**
      * Create a reusable format profile.
@@ -61,8 +61,8 @@ export class CjsWebglFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
 
-        this.#emit = values.emit;
-        this.#source = values.source;
+        this._emit = values.emit;
+        this._source = values.source;
 
         return this;
     }
@@ -76,8 +76,8 @@ export class CjsWebglFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source
+            emit: this._emit,
+            source: this._source
         }, options, FORMAT_NAME);
     }
 

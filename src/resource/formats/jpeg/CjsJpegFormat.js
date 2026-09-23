@@ -26,7 +26,7 @@ const FORMAT_NAME = "CjsJpegFormat";
  */
 export class CjsJpegFormat extends CjsImageFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable JPEG format profile.
@@ -47,7 +47,7 @@ export class CjsJpegFormat extends CjsImageFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "jpeg", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "jpeg", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -59,7 +59,7 @@ export class CjsJpegFormat extends CjsImageFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "jpeg", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "jpeg", ...options }, FORMAT_NAME);
     }
 
     /**

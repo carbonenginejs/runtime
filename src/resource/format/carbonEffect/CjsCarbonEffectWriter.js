@@ -262,13 +262,13 @@ export function writeCarbonEffectFile(parts)
  */
 export class CjsCarbonEffectWriter
 {
-    #table;
-    #permutations = [];
-    #bodies = [];
-    #compilerVersion;
-    #sourceHash;
-    #backend;
-    #version;
+    _table;
+    _permutations = [];
+    _bodies = [];
+    _compilerVersion;
+    _sourceHash;
+    _backend;
+    _version;
 
     /**
      * Creates an empty container builder.
@@ -285,11 +285,11 @@ export class CjsCarbonEffectWriter
      */
     constructor(options = {})
     {
-        this.#version = resolveWriteVersion(options.version);
-        this.#table = options.stringTable ?? new CjsStringTable();
-        this.#compilerVersion = options.compilerVersion ?? [ 0, 0, 0, 0 ];
-        this.#sourceHash = options.sourceHash ?? "0".repeat(CARBON_EFFECT_SOURCE_HASH_BYTES);
-        this.#backend = options.backend === true;
+        this._version = resolveWriteVersion(options.version);
+        this._table = options.stringTable ?? new CjsStringTable();
+        this._compilerVersion = options.compilerVersion ?? [ 0, 0, 0, 0 ];
+        this._sourceHash = options.sourceHash ?? "0".repeat(CARBON_EFFECT_SOURCE_HASH_BYTES);
+        this._backend = options.backend === true;
     }
 
     /**
@@ -299,7 +299,7 @@ export class CjsCarbonEffectWriter
      */
     get stringTable()
     {
-        return this.#table;
+        return this._table;
     }
 
     /**
@@ -315,7 +315,7 @@ export class CjsCarbonEffectWriter
      */
     addPermutation(axis)
     {
-        this.#permutations.push({
+        this._permutations.push({
             name: String(axis.name ?? ""),
             defaultOption: axis.defaultOption ?? 0,
             description: String(axis.description ?? ""),
@@ -334,7 +334,7 @@ export class CjsCarbonEffectWriter
      */
     addBody(index, description)
     {
-        this.#bodies.push({ index, description, bytes: null });
+        this._bodies.push({ index, description, bytes: null });
         return this;
     }
 
@@ -351,7 +351,7 @@ export class CjsCarbonEffectWriter
      */
     addRawBody(index, bytes)
     {
-        this.#bodies.push({ index, description: null, bytes: Uint8Array.from(bytes) });
+        this._bodies.push({ index, description: null, bytes: Uint8Array.from(bytes) });
         return this;
     }
 
@@ -362,49 +362,49 @@ export class CjsCarbonEffectWriter
      */
     toBytes()
     {
-        for (const axis of this.#permutations)
+        for (const axis of this._permutations)
         {
-            axis.nameRef = this.#table.addString(axis.name);
-            axis.descriptionRef = this.#table.addString(axis.description);
-            axis.optionRefs = axis.options.map((option) => this.#table.addString(option));
+            axis.nameRef = this._table.addString(axis.name);
+            axis.descriptionRef = this._table.addString(axis.description);
+            axis.optionRefs = axis.options.map((option) => this._table.addString(option));
         }
-        for (const body of this.#bodies)
+        for (const body of this._bodies)
         {
             if (body.description)
             {
                 writeEffectDescription(new CjsByteWriter(), body.description, {
-                    arena: collectArena(this.#table),
-                    backend: this.#backend,
-                    version: this.#version
+                    arena: collectArena(this._table),
+                    backend: this._backend,
+                    version: this._version
                 });
             }
         }
 
-        this.#table.finish();
+        this._table.finish();
 
-        const arena = internArena(this.#table);
-        const bodies = this.#bodies.map((body) =>
+        const arena = internArena(this._table);
+        const bodies = this._bodies.map((body) =>
         {
             if (body.bytes) return { index: body.index, bytes: body.bytes };
             const writer = new CjsByteWriter();
-            writeEffectDescription(writer, body.description, { arena, backend: this.#backend, version: this.#version });
+            writeEffectDescription(writer, body.description, { arena, backend: this._backend, version: this._version });
             return { index: body.index, bytes: writer.toBytes() };
         });
 
-        const permutationRows = this.#permutations.map((axis) => ({
+        const permutationRows = this._permutations.map((axis) => ({
             name: axis.name,
-            nameOffset: this.#table.offsetOf(axis.nameRef),
+            nameOffset: this._table.offsetOf(axis.nameRef),
             defaultOption: axis.defaultOption,
-            descriptionOffset: this.#table.offsetOf(axis.descriptionRef),
+            descriptionOffset: this._table.offsetOf(axis.descriptionRef),
             type: axis.type,
-            options: axis.optionRefs.map((reference) => this.#table.offsetOf(reference))
+            options: axis.optionRefs.map((reference) => this._table.offsetOf(reference))
         }));
 
         return writeCarbonEffectFile({
-            version: this.#version,
-            compilerVersion: this.#compilerVersion,
-            sourceHash: this.#sourceHash,
-            stringTableBytes: this.#table.toBytes(),
+            version: this._version,
+            compilerVersion: this._compilerVersion,
+            sourceHash: this._sourceHash,
+            stringTableBytes: this._table.toBytes(),
             permutationRows,
             bodies
         });

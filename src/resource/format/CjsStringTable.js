@@ -84,11 +84,11 @@ function hashBytes(bytes)
  */
 export class CjsStringTable
 {
-    #blobs = [];
-    #buckets = new Map();
-    #byteLength = 0;
-    #offsets = null;
-    #handedOutOffsets = false;
+    _blobs = [];
+    _buckets = new Map();
+    _byteLength = 0;
+    _offsets = null;
+    _handedOutOffsets = false;
 
     /**
      * Returns the arena payload byte count, excluding the `u32` size prefix.
@@ -100,7 +100,7 @@ export class CjsStringTable
      */
     get byteLength()
     {
-        return this.#byteLength;
+        return this._byteLength;
     }
 
     /**
@@ -114,7 +114,7 @@ export class CjsStringTable
      */
     get containerSize()
     {
-        return this.#byteLength + 4;
+        return this._byteLength + 4;
     }
 
     /**
@@ -124,7 +124,7 @@ export class CjsStringTable
      */
     get entryCount()
     {
-        return this.#blobs.length;
+        return this._blobs.length;
     }
 
     /**
@@ -138,7 +138,7 @@ export class CjsStringTable
         const text = textEncoder.encode(String(value));
         const bytes = new Uint8Array(text.length + 1);
         bytes.set(text, 0);
-        return this.#add(bytes);
+        return this._add(bytes);
     }
 
     /**
@@ -152,7 +152,7 @@ export class CjsStringTable
         const source = value instanceof Uint8Array
             ? value
             : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-        return this.#add(Uint8Array.from(source));
+        return this._add(Uint8Array.from(source));
     }
 
     /**
@@ -165,19 +165,19 @@ export class CjsStringTable
      */
     finish()
     {
-        if (this.#offsets) return this;
+        if (this._offsets) return this;
 
-        const order = this.#blobs.map((blob, index) => index);
-        order.sort((a, b) => compareTableBlobs(this.#blobs[a], this.#blobs[b]));
+        const order = this._blobs.map((blob, index) => index);
+        order.sort((a, b) => compareTableBlobs(this._blobs[a], this._blobs[b]));
 
-        const offsets = new Array(this.#blobs.length);
+        const offsets = new Array(this._blobs.length);
         let cursor = 0;
         for (const index of order)
         {
             offsets[index] = cursor;
-            cursor += this.#blobs[index].length;
+            cursor += this._blobs[index].length;
         }
-        this.#offsets = offsets;
+        this._offsets = offsets;
         return this;
     }
 
@@ -196,16 +196,16 @@ export class CjsStringTable
         {
             return CJS_STRING_TABLE_NULL_REFERENCE;
         }
-        if (!Number.isInteger(reference) || reference < 0 || reference >= this.#blobs.length)
+        if (!Number.isInteger(reference) || reference < 0 || reference >= this._blobs.length)
         {
             throw new CjsFormatWriteError("Unknown string-table reference", {
                 reference,
-                entryCount: this.#blobs.length
+                entryCount: this._blobs.length
             });
         }
         this.finish();
-        this.#handedOutOffsets = true;
-        return this.#offsets[reference];
+        this._handedOutOffsets = true;
+        return this._offsets[reference];
     }
 
     /**
@@ -216,14 +216,14 @@ export class CjsStringTable
      */
     bytesOf(reference)
     {
-        if (!Number.isInteger(reference) || reference < 0 || reference >= this.#blobs.length)
+        if (!Number.isInteger(reference) || reference < 0 || reference >= this._blobs.length)
         {
             throw new CjsFormatWriteError("Unknown string-table reference", {
                 reference,
-                entryCount: this.#blobs.length
+                entryCount: this._blobs.length
             });
         }
-        return this.#blobs[reference];
+        return this._blobs[reference];
     }
 
     /**
@@ -234,10 +234,10 @@ export class CjsStringTable
     toBytes()
     {
         this.finish();
-        const out = new Uint8Array(this.#byteLength);
-        for (let index = 0; index < this.#blobs.length; index += 1)
+        const out = new Uint8Array(this._byteLength);
+        for (let index = 0; index < this._blobs.length; index += 1)
         {
-            out.set(this.#blobs[index], this.#offsets[index]);
+            out.set(this._blobs[index], this._offsets[index]);
         }
         return out;
     }
@@ -251,8 +251,8 @@ export class CjsStringTable
     write(writer)
     {
         this.finish();
-        writer.u32(this.#byteLength);
-        if (this.#byteLength === 0) return;
+        writer.u32(this._byteLength);
+        if (this._byteLength === 0) return;
         writer.bytes(this.toBytes());
     }
 
@@ -264,22 +264,22 @@ export class CjsStringTable
      * @param {Uint8Array} bytes Owned bytes to intern.
      * @returns {number} Arena reference.
      */
-    #add(bytes)
+    _add(bytes)
     {
         const key = hashBytes(bytes);
-        const bucket = this.#buckets.get(key);
+        const bucket = this._buckets.get(key);
         if (bucket)
         {
             for (const candidate of bucket)
             {
-                if (compareTableBlobs(this.#blobs[candidate], bytes) === 0)
+                if (compareTableBlobs(this._blobs[candidate], bytes) === 0)
                 {
                     return candidate;
                 }
             }
         }
 
-        if (this.#handedOutOffsets)
+        if (this._handedOutOffsets)
         {
             throw new CjsFormatWriteError(
                 "String-table entry added after offsets were resolved; every offset already handed out would shift",
@@ -287,12 +287,12 @@ export class CjsStringTable
             );
         }
 
-        const reference = this.#blobs.length;
-        this.#blobs.push(bytes);
-        this.#byteLength += bytes.length;
-        this.#offsets = null;
+        const reference = this._blobs.length;
+        this._blobs.push(bytes);
+        this._byteLength += bytes.length;
+        this._offsets = null;
         if (bucket) bucket.push(reference);
-        else this.#buckets.set(key, [ reference ]);
+        else this._buckets.set(key, [ reference ]);
         return reference;
     }
 }

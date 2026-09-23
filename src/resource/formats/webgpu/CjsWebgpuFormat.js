@@ -34,12 +34,12 @@ const FORMAT_NAME = "CjsWebgpuFormat";
  */
 export class CjsWebgpuFormat extends CjsFormat
 {
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
-    #decodeInstructions = DEFAULT_VALUES.decodeInstructions;
-    #permutation = DEFAULT_VALUES.permutation;
-    #schema = DEFAULT_VALUES.schema;
-    #classes = {};
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
+    _decodeInstructions = DEFAULT_VALUES.decodeInstructions;
+    _permutation = DEFAULT_VALUES.permutation;
+    _schema = DEFAULT_VALUES.schema;
+    _classes = {};
 
     /**
      * Create a reusable format profile.
@@ -61,12 +61,12 @@ export class CjsWebgpuFormat extends CjsFormat
     SetValues(options = {})
     {
         const values = normalizeValues(this.GetValues(), options, CLASS_KEYS, FORMAT_NAME);
-        this.#emit = values.emit;
-        this.#source = values.source;
-        this.#decodeInstructions = values.decodeInstructions;
-        this.#permutation = values.permutation;
-        this.#schema = values.schema;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._source = values.source;
+        this._decodeInstructions = values.decodeInstructions;
+        this._permutation = values.permutation;
+        this._schema = values.schema;
+        this._classes = values.classes;
         return this;
     }
 
@@ -79,12 +79,12 @@ export class CjsWebgpuFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source,
-            decodeInstructions: this.#decodeInstructions,
-            permutation: this.#permutation,
-            schema: this.#schema,
-            classes: this.#classes
+            emit: this._emit,
+            source: this._source,
+            decodeInstructions: this._decodeInstructions,
+            permutation: this._permutation,
+            schema: this._schema,
+            classes: this._classes
         }, options, CLASS_KEYS, FORMAT_NAME);
     }
 
@@ -111,12 +111,12 @@ export class CjsWebgpuFormat extends CjsFormat
         validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
         if (Class === null || Class === undefined)
         {
-            delete this.#classes[type];
+            delete this._classes[type];
             return this;
         }
 
         validateClass(CLASS_KEYS, type, Class, FORMAT_NAME);
-        this.#classes = { ...this.#classes, [type]: Class };
+        this._classes = { ...this._classes, [type]: Class };
         return this;
     }
 
@@ -129,7 +129,7 @@ export class CjsWebgpuFormat extends CjsFormat
     GetClass(type)
     {
         validateClassKey(CLASS_KEYS, type, FORMAT_NAME);
-        return this.#classes[type];
+        return this._classes[type];
     }
 
     /**

@@ -17,9 +17,9 @@ const textEncoder = new TextEncoder();
  */
 export class CjsByteWriter
 {
-    #bytes;
-    #view;
-    #length = 0;
+    _bytes;
+    _view;
+    _length = 0;
 
     /**
      * Creates an empty writer with an initial capacity.
@@ -29,8 +29,8 @@ export class CjsByteWriter
     constructor(initialCapacity = 1024)
     {
         const capacity = Number.isInteger(initialCapacity) && initialCapacity > 0 ? initialCapacity : 1024;
-        this.#bytes = new Uint8Array(capacity);
-        this.#view = new DataView(this.#bytes.buffer);
+        this._bytes = new Uint8Array(capacity);
+        this._view = new DataView(this._bytes.buffer);
     }
 
     /**
@@ -40,7 +40,7 @@ export class CjsByteWriter
      */
     get length()
     {
-        return this.#length;
+        return this._length;
     }
 
     /**
@@ -51,8 +51,8 @@ export class CjsByteWriter
      */
     u8(value)
     {
-        const offset = this.#advance(1);
-        this.#view.setUint8(offset, value & 0xff);
+        const offset = this._advance(1);
+        this._view.setUint8(offset, value & 0xff);
         return offset;
     }
 
@@ -64,8 +64,8 @@ export class CjsByteWriter
      */
     u16(value)
     {
-        const offset = this.#advance(2);
-        this.#view.setUint16(offset, value & 0xffff, true);
+        const offset = this._advance(2);
+        this._view.setUint16(offset, value & 0xffff, true);
         return offset;
     }
 
@@ -77,8 +77,8 @@ export class CjsByteWriter
      */
     i16(value)
     {
-        const offset = this.#advance(2);
-        this.#view.setInt16(offset, value | 0, true);
+        const offset = this._advance(2);
+        this._view.setInt16(offset, value | 0, true);
         return offset;
     }
 
@@ -90,8 +90,8 @@ export class CjsByteWriter
      */
     u32(value)
     {
-        const offset = this.#advance(4);
-        this.#view.setUint32(offset, value >>> 0, true);
+        const offset = this._advance(4);
+        this._view.setUint32(offset, value >>> 0, true);
         return offset;
     }
 
@@ -103,8 +103,8 @@ export class CjsByteWriter
      */
     i32(value)
     {
-        const offset = this.#advance(4);
-        this.#view.setInt32(offset, value | 0, true);
+        const offset = this._advance(4);
+        this._view.setInt32(offset, value | 0, true);
         return offset;
     }
 
@@ -116,8 +116,8 @@ export class CjsByteWriter
      */
     i64(value)
     {
-        const offset = this.#advance(8);
-        this.#view.setBigInt64(offset, BigInt(value), true);
+        const offset = this._advance(8);
+        this._view.setBigInt64(offset, BigInt(value), true);
         return offset;
     }
 
@@ -129,8 +129,8 @@ export class CjsByteWriter
      */
     f32(value)
     {
-        const offset = this.#advance(4);
-        this.#view.setFloat32(offset, Number(value) || 0, true);
+        const offset = this._advance(4);
+        this._view.setFloat32(offset, Number(value) || 0, true);
         return offset;
     }
 
@@ -142,8 +142,8 @@ export class CjsByteWriter
      */
     f64(value)
     {
-        const offset = this.#advance(8);
-        this.#view.setFloat64(offset, Number(value) || 0, true);
+        const offset = this._advance(8);
+        this._view.setFloat64(offset, Number(value) || 0, true);
         return offset;
     }
 
@@ -169,8 +169,8 @@ export class CjsByteWriter
         const source = value instanceof Uint8Array
             ? value
             : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-        const offset = this.#advance(source.byteLength);
-        this.#bytes.set(source, offset);
+        const offset = this._advance(source.byteLength);
+        this._bytes.set(source, offset);
         return offset;
     }
 
@@ -197,8 +197,8 @@ export class CjsByteWriter
         {
             throw new CjsFormatWriteError("Reserve count must be a non-negative integer", { count });
         }
-        const offset = this.#advance(count);
-        this.#bytes.fill(0, offset, offset + count);
+        const offset = this._advance(count);
+        this._bytes.fill(0, offset, offset + count);
         return offset;
     }
 
@@ -210,8 +210,8 @@ export class CjsByteWriter
      */
     patchU8(offset, value)
     {
-        this.#requireWritten(offset, 1);
-        this.#view.setUint8(offset, value & 0xff);
+        this._requireWritten(offset, 1);
+        this._view.setUint8(offset, value & 0xff);
     }
 
     /**
@@ -222,8 +222,8 @@ export class CjsByteWriter
      */
     patchU32(offset, value)
     {
-        this.#requireWritten(offset, 4);
-        this.#view.setUint32(offset, value >>> 0, true);
+        this._requireWritten(offset, 4);
+        this._view.setUint32(offset, value >>> 0, true);
     }
 
     /**
@@ -237,8 +237,8 @@ export class CjsByteWriter
         const source = value instanceof Uint8Array
             ? value
             : new Uint8Array(value.buffer, value.byteOffset, value.byteLength);
-        this.#requireWritten(offset, source.byteLength);
-        this.#bytes.set(source, offset);
+        this._requireWritten(offset, source.byteLength);
+        this._bytes.set(source, offset);
     }
 
     /**
@@ -248,7 +248,7 @@ export class CjsByteWriter
      */
     toBytes()
     {
-        return this.#bytes.slice(0, this.#length);
+        return this._bytes.slice(0, this._length);
     }
 
     /**
@@ -256,15 +256,15 @@ export class CjsByteWriter
      *
      * @param {number} capacity Required total capacity.
      */
-    #ensure(capacity)
+    _ensure(capacity)
     {
-        if (capacity <= this.#bytes.length) return;
-        let next = this.#bytes.length * 2;
+        if (capacity <= this._bytes.length) return;
+        let next = this._bytes.length * 2;
         while (next < capacity) next *= 2;
         const grown = new Uint8Array(next);
-        grown.set(this.#bytes.subarray(0, this.#length));
-        this.#bytes = grown;
-        this.#view = new DataView(grown.buffer);
+        grown.set(this._bytes.subarray(0, this._length));
+        this._bytes = grown;
+        this._view = new DataView(grown.buffer);
     }
 
     /**
@@ -273,11 +273,11 @@ export class CjsByteWriter
      * @param {number} size Byte count for this append.
      * @returns {number} Offset of the appended run.
      */
-    #advance(size)
+    _advance(size)
     {
-        const offset = this.#length;
-        this.#ensure(offset + size);
-        this.#length = offset + size;
+        const offset = this._length;
+        this._ensure(offset + size);
+        this._length = offset + size;
         return offset;
     }
 
@@ -287,14 +287,14 @@ export class CjsByteWriter
      * @param {number} offset Target offset.
      * @param {number} size Patch byte count.
      */
-    #requireWritten(offset, size)
+    _requireWritten(offset, size)
     {
-        if (!Number.isInteger(offset) || offset < 0 || offset + size > this.#length)
+        if (!Number.isInteger(offset) || offset < 0 || offset + size > this._length)
         {
             throw new CjsFormatWriteError("Patch target is outside the written range", {
                 offset,
                 size,
-                length: this.#length
+                length: this._length
             });
         }
     }

@@ -27,7 +27,7 @@ const FORMAT_NAME = "CjsPngFormat";
  */
 export class CjsPngFormat extends CjsImageFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * One-shot PNG write from a normalized RGBA payload, without compressing.
@@ -92,7 +92,7 @@ export class CjsPngFormat extends CjsImageFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "png", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "png", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -104,7 +104,7 @@ export class CjsPngFormat extends CjsImageFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "png", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "png", ...options }, FORMAT_NAME);
     }
 
     /**

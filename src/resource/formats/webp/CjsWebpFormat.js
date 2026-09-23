@@ -20,7 +20,7 @@ const FORMAT_NAME = "CjsWebpFormat";
  */
 export class CjsWebpFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /** Creates a CjsWebpFormat with caller-provided reader configuration. */
     constructor(options = {})
@@ -35,7 +35,7 @@ export class CjsWebpFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "webp", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "webp", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -45,7 +45,7 @@ export class CjsWebpFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "webp", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "webp", ...options }, FORMAT_NAME);
     }
 
     /**

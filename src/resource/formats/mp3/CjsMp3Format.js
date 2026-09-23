@@ -22,7 +22,7 @@ const FORMAT_NAME = "CjsMp3Format";
  */
 export class CjsMp3Format extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable MP3 format profile.
@@ -43,7 +43,7 @@ export class CjsMp3Format extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "mp3", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "mp3", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -55,7 +55,7 @@ export class CjsMp3Format extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "mp3", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "mp3", ...options }, FORMAT_NAME);
     }
 
     /**

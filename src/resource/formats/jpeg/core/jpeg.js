@@ -73,18 +73,18 @@ export function canDecodeJpeg(metadata = {})
  */
 class BaselineJpegDecoder
 {
-    #bytes;
-    #offset = 0;
-    #quantization = new Map();
-    #huffman = new Map();
-    #frame = null;
-    #scan = null;
-    #restartInterval = 0;
+    _bytes;
+    _offset = 0;
+    _quantization = new Map();
+    _huffman = new Map();
+    _frame = null;
+    _scan = null;
+    _restartInterval = 0;
 
     /** Creates a BaselineJpegDecoder with caller-provided initial state. */
     constructor(bytes)
     {
-        this.#bytes = bytes;
+        this._bytes = bytes;
     }
 
     /**
@@ -94,7 +94,7 @@ class BaselineJpegDecoder
     decode()
     {
         this.readMarker(0xd8);
-        while (this.#offset < this.#bytes.length)
+        while (this._offset < this._bytes.length)
         {
             const marker = this.nextMarker();
             if (marker === 0xd9) break;
@@ -155,9 +155,9 @@ class BaselineJpegDecoder
             list.push(component);
         }
         const consumed = 8 + components * 3;
-        if (length !== consumed) this.#offset += Math.max(0, length - consumed);
+        if (length !== consumed) this._offset += Math.max(0, length - consumed);
         if (marker === 0xc2) throw new Error("jpeg: progressive scans are not supported by the software decoder");
-        this.#frame = { width, height, precision, components: list, maxH, maxV };
+        this._frame = { width, height, precision, components: list, maxH, maxV };
     }
 
     /**
@@ -166,8 +166,8 @@ class BaselineJpegDecoder
      */
     readQuantizationTables()
     {
-        const end = this.#offset + this.readU16() - 2;
-        while (this.#offset < end)
+        const end = this._offset + this.readU16() - 2;
+        while (this._offset < end)
         {
             const info = this.readU8();
             const precision = info >>> 4;
@@ -175,9 +175,9 @@ class BaselineJpegDecoder
             if (precision > 1) throw new Error("jpeg: unsupported 16-bit quantization table");
             const table = new Uint16Array(64);
             for (let i = 0; i < 64; i++) table[ZIGZAG[i]] = precision ? this.readU16() : this.readU8();
-            this.#quantization.set(id, table);
+            this._quantization.set(id, table);
         }
-        this.#offset = end;
+        this._offset = end;
     }
 
     /**
@@ -186,8 +186,8 @@ class BaselineJpegDecoder
      */
     readHuffmanTables()
     {
-        const end = this.#offset + this.readU16() - 2;
-        while (this.#offset < end)
+        const end = this._offset + this.readU16() - 2;
+        while (this._offset < end)
         {
             const info = this.readU8();
             const table = new Array(17).fill(null).map(() => []);
@@ -199,16 +199,16 @@ class BaselineJpegDecoder
             {
                 for (let i = 0; i < counts[length - 1]; i++)
                 {
-                    table[length].push({ code, value: this.#bytes[this.#offset + valueIndex] });
+                    table[length].push({ code, value: this._bytes[this._offset + valueIndex] });
                     valueIndex++;
                     code++;
                 }
                 code <<= 1;
             }
-            this.#offset += valueIndex;
-            this.#huffman.set(`${info >>> 4}:${info & 0x0f}`, table);
+            this._offset += valueIndex;
+            this._huffman.set(`${info >>> 4}:${info & 0x0f}`, table);
         }
-        this.#offset = end;
+        this._offset = end;
     }
 
     /**
@@ -219,7 +219,7 @@ class BaselineJpegDecoder
     {
         const length = this.readU16();
         if (length !== 4) throw new Error("jpeg: invalid restart interval segment");
-        this.#restartInterval = this.readU16();
+        this._restartInterval = this.readU16();
     }
 
     /**
@@ -230,8 +230,8 @@ class BaselineJpegDecoder
     {
         const length = this.readU16();
         const count = this.readU8();
-        if (!this.#frame || count !== this.#frame.components.length) throw new Error("jpeg: unsupported scan component count");
-        const byId = new Map(this.#frame.components.map(component => [ component.id, component ]));
+        if (!this._frame || count !== this._frame.components.length) throw new Error("jpeg: unsupported scan component count");
+        const byId = new Map(this._frame.components.map(component => [ component.id, component ]));
         for (let i = 0; i < count; i++)
         {
             const id = this.readU8();
@@ -249,8 +249,8 @@ class BaselineJpegDecoder
             throw new Error("jpeg: progressive or non-sequential scan is not supported");
         }
         const consumed = 6 + count * 2;
-        if (length !== consumed) this.#offset += Math.max(0, length - consumed);
-        this.#scan = { byId };
+        if (length !== consumed) this._offset += Math.max(0, length - consumed);
+        this._scan = { byId };
     }
 
     /**
@@ -259,7 +259,7 @@ class BaselineJpegDecoder
      */
     decodeScan()
     {
-        const frame = this.#frame;
+        const frame = this._frame;
         const mcuWidth = 8 * frame.maxH;
         const mcuHeight = 8 * frame.maxV;
         const mcuColumns = Math.ceil(frame.width / mcuWidth);
@@ -271,7 +271,7 @@ class BaselineJpegDecoder
             component.plane = new Uint8Array(component.planeWidth * component.planeHeight);
         }
 
-        const reader = new EntropyReader(this.#bytes, this.#offset);
+        const reader = new EntropyReader(this._bytes, this._offset);
         let mcuIndex = 0;
         for (let row = 0; row < mcuRows; row++)
         {
@@ -291,7 +291,7 @@ class BaselineJpegDecoder
                     }
                 }
                 mcuIndex++;
-                if (this.#restartInterval && mcuIndex % this.#restartInterval === 0 && mcuIndex < mcuColumns * mcuRows)
+                if (this._restartInterval && mcuIndex % this._restartInterval === 0 && mcuIndex < mcuColumns * mcuRows)
                 {
                     reader.align();
                     reader.consumeRestart();
@@ -331,9 +331,9 @@ class BaselineJpegDecoder
      */
     decodeBlock(reader, component)
     {
-        const quantization = this.#quantization.get(component.quantizationId);
-        const dcTable = this.#huffman.get(`0:${component.dc}`);
-        const acTable = this.#huffman.get(`1:${component.ac}`);
+        const quantization = this._quantization.get(component.quantizationId);
+        const dcTable = this._huffman.get(`0:${component.dc}`);
+        const acTable = this._huffman.get(`1:${component.ac}`);
         if (!quantization || !dcTable || !acTable) throw new Error("jpeg: missing quantization or Huffman table");
         const coefficients = new Int32Array(64);
         const category = decodeHuffman(reader, dcTable);
@@ -361,8 +361,8 @@ class BaselineJpegDecoder
      */
     readU8()
     {
-        if (this.#offset >= this.#bytes.length) throw new Error("jpeg: unexpected end of input");
-        return this.#bytes[this.#offset++];
+        if (this._offset >= this._bytes.length) throw new Error("jpeg: unexpected end of input");
+        return this._bytes[this._offset++];
     }
 
     /**
@@ -385,13 +385,13 @@ class BaselineJpegDecoder
     /** Scans forward to the next valid JPEG marker byte for the JPEG decoder. */
     nextMarker()
     {
-        while (this.#offset < this.#bytes.length && this.#bytes[this.#offset++] !== 0xff)
+        while (this._offset < this._bytes.length && this._bytes[this._offset++] !== 0xff)
         {
             // Scan forward to the next marker prefix.
         }
-        while (this.#offset < this.#bytes.length && this.#bytes[this.#offset] === 0xff) this.#offset++;
-        if (this.#offset >= this.#bytes.length) throw new Error("jpeg: unexpected end while reading marker");
-        return this.#bytes[this.#offset++];
+        while (this._offset < this._bytes.length && this._bytes[this._offset] === 0xff) this._offset++;
+        if (this._offset >= this._bytes.length) throw new Error("jpeg: unexpected end while reading marker");
+        return this._bytes[this._offset++];
     }
 
     /**
@@ -401,8 +401,8 @@ class BaselineJpegDecoder
     skipSegment()
     {
         const length = this.readU16();
-        if (length < 2 || this.#offset + length - 2 > this.#bytes.length) throw new Error("jpeg: invalid segment length");
-        this.#offset += length - 2;
+        if (length < 2 || this._offset + length - 2 > this._bytes.length) throw new Error("jpeg: invalid segment length");
+        this._offset += length - 2;
     }
 }
 
@@ -412,11 +412,11 @@ class BaselineJpegDecoder
  */
 class EntropyReader
 {
-    #bytes;
-    #offset;
-    #buffer = 0;
-    #bits = 0;
-    #marker = null;
+    _bytes;
+    _offset;
+    _buffer = 0;
+    _bits = 0;
+    _marker = null;
 
     /**
      * Creates a EntropyReader over caller-provided JPEG bytes and reader
@@ -424,28 +424,28 @@ class EntropyReader
      */
     constructor(bytes, offset)
     {
-        this.#bytes = bytes;
-        this.#offset = offset;
+        this._bytes = bytes;
+        this._offset = offset;
     }
 
     /** Reads one entropy-coded bit for the JPEG binary reader. */
     readBit()
     {
-        if (!this.#bits)
+        if (!this._bits)
         {
-            let value = this.#bytes[this.#offset++];
+            let value = this._bytes[this._offset++];
             if (value === 0xff)
             {
-                while (this.#bytes[this.#offset] === 0xff) this.#offset++;
-                const marker = this.#bytes[this.#offset++];
-                if (marker !== 0x00) { this.#marker = marker; throw new Error("jpeg: unexpected marker in entropy data"); }
+                while (this._bytes[this._offset] === 0xff) this._offset++;
+                const marker = this._bytes[this._offset++];
+                if (marker !== 0x00) { this._marker = marker; throw new Error("jpeg: unexpected marker in entropy data"); }
                 value = 0xff;
             }
             if (value === undefined) throw new Error("jpeg: unexpected end in entropy data");
-            this.#buffer = value;
-            this.#bits = 8;
+            this._buffer = value;
+            this._bits = 8;
         }
-        return (this.#buffer >>> --this.#bits) & 1;
+        return (this._buffer >>> --this._bits) & 1;
     }
 
     /**
@@ -465,7 +465,7 @@ class EntropyReader
      */
     align()
     {
-        this.#bits = 0;
+        this._bits = 0;
     }
 
     /**
@@ -474,8 +474,8 @@ class EntropyReader
      */
     consumeRestart()
     {
-        while (this.#bytes[this.#offset] === 0xff) this.#offset++;
-        const marker = this.#bytes[this.#offset++];
+        while (this._bytes[this._offset] === 0xff) this._offset++;
+        const marker = this._bytes[this._offset++];
         if (marker < 0xd0 || marker > 0xd7) throw new Error("jpeg: missing restart marker");
     }
 }

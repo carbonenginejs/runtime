@@ -31,7 +31,7 @@ const FORMAT_NAME = "CjsVtaFormat";
  */
 export class CjsVtaFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable VTA format profile.
@@ -52,7 +52,7 @@ export class CjsVtaFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, options, FORMAT_NAME);
+        this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
     }
 
@@ -64,7 +64,7 @@ export class CjsVtaFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, options, FORMAT_NAME);
+        return normalizeValues(this._values, options, FORMAT_NAME);
     }
 
     /**

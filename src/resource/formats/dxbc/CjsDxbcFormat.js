@@ -66,9 +66,9 @@ function resolveDecoderRecord(input, options)
 export class CjsDxbcFormat extends CjsFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
-    #decodeInstructions = DEFAULT_VALUES.decodeInstructions;
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
+    _decodeInstructions = DEFAULT_VALUES.decodeInstructions;
 
     /**
      * Create a reusable format profile.
@@ -91,9 +91,9 @@ export class CjsDxbcFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
 
-        this.#emit = values.emit;
-        this.#source = values.source;
-        this.#decodeInstructions = values.decodeInstructions;
+        this._emit = values.emit;
+        this._source = values.source;
+        this._decodeInstructions = values.decodeInstructions;
 
         return this;
     }
@@ -107,9 +107,9 @@ export class CjsDxbcFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source,
-            decodeInstructions: this.#decodeInstructions
+            emit: this._emit,
+            source: this._source,
+            decodeInstructions: this._decodeInstructions
         }, options, FORMAT_NAME);
     }
 

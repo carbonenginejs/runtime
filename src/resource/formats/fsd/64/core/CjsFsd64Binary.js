@@ -36,20 +36,20 @@ export class CjsFsd64Binary
         UINT_64_IDENTIFIER: "UINT_64_IDENTIFIER",
     };
 
-    #bytes;
-    #view;
+    _bytes;
+    _view;
 
     /** Creates a validated view over caller-supplied container bytes. */
     constructor(bytes, options = {})
     {
-        this.#bytes = NormalizeBytes(bytes);
-        this.#view = new DataView(
-            this.#bytes.buffer,
-            this.#bytes.byteOffset,
-            this.#bytes.byteLength,
+        this._bytes = NormalizeBytes(bytes);
+        this._view = new DataView(
+            this._bytes.buffer,
+            this._bytes.byteOffset,
+            this._bytes.byteLength,
         );
 
-        this.#AssertContainer(options.path ?? "FSD input");
+        this._AssertContainer(options.path ?? "FSD input");
 
         if (options.schemaID)
         {
@@ -60,7 +60,7 @@ export class CjsFsd64Binary
     /** Returns the complete container byte length. */
     get ByteLength()
     {
-        return this.#bytes.byteLength;
+        return this._bytes.byteLength;
     }
 
     /** Returns the payload length declared by the container header. */
@@ -78,7 +78,7 @@ export class CjsFsd64Binary
     /** Returns the lossless hexadecimal schema identity from the header. */
     get SchemaID()
     {
-        return Hex(this.#bytes.subarray(0, 24));
+        return Hex(this._bytes.subarray(0, 24));
     }
 
     /**
@@ -94,7 +94,7 @@ export class CjsFsd64Binary
      */
     get LayoutID()
     {
-        return Hex(this.#bytes.subarray(0, 16));
+        return Hex(this._bytes.subarray(0, 16));
     }
 
     /**
@@ -165,49 +165,49 @@ export class CjsFsd64Binary
     Byte(offset)
     {
         this.AssertRange(offset, 1);
-        return this.#view.getUint8(offset);
+        return this._view.getUint8(offset);
     }
 
     /** Returns a bounded byte view without copying its contents. */
     Bytes(offset, size)
     {
         this.AssertRange(offset, size);
-        return this.#bytes.subarray(offset, offset + size);
+        return this._bytes.subarray(offset, offset + size);
     }
 
     /** Reads one little-endian 32-bit floating-point value. */
     Float32(offset)
     {
         this.AssertRange(offset, 4);
-        return this.#view.getFloat32(offset, true);
+        return this._view.getFloat32(offset, true);
     }
 
     /** Reads one little-endian 64-bit floating-point value. */
     Float64(offset)
     {
         this.AssertRange(offset, 8);
-        return this.#view.getFloat64(offset, true);
+        return this._view.getFloat64(offset, true);
     }
 
     /** Reads one little-endian signed 32-bit integer. */
     Int32(offset)
     {
         this.AssertRange(offset, 4);
-        return this.#view.getInt32(offset, true);
+        return this._view.getInt32(offset, true);
     }
 
     /** Reads one little-endian unsigned 32-bit integer. */
     Uint32(offset)
     {
         this.AssertRange(offset, 4);
-        return this.#view.getUint32(offset, true);
+        return this._view.getUint32(offset, true);
     }
 
     /** Reads one little-endian unsigned 64-bit safe integer. */
     Uint64(offset)
     {
         this.AssertRange(offset, 8);
-        const value = this.#view.getBigUint64(offset, true);
+        const value = this._view.getBigUint64(offset, true);
 
         if (value > BigInt(Number.MAX_SAFE_INTEGER))
         {
@@ -227,7 +227,7 @@ export class CjsFsd64Binary
     Uint64Identity(offset)
     {
         this.AssertRange(offset, 8);
-        return this.#view.getBigUint64(offset, true).toString(10);
+        return this._view.getBigUint64(offset, true).toString(10);
     }
 
     /** Returns a safe unsigned 64-bit value or null for an invalid read. */
@@ -238,7 +238,7 @@ export class CjsFsd64Binary
             return null;
         }
 
-        const value = this.#view.getBigUint64(offset, true);
+        const value = this._view.getBigUint64(offset, true);
         return value <= BigInt(Number.MAX_SAFE_INTEGER) ? Number(value) : null;
     }
 
@@ -259,7 +259,7 @@ export class CjsFsd64Binary
 
         const tableOffset = this.Absolute(this.Uint64(headerOffset));
         const bucketCount = this.Uint64(tableOffset - 8);
-        this.#AssertElementRange(tableOffset, bucketCount, 8);
+        this._AssertElementRange(tableOffset, bucketCount, 8);
 
         const offsets = [];
 
@@ -267,7 +267,7 @@ export class CjsFsd64Binary
         {
             const bucketOffset = this.Absolute(this.Uint64(tableOffset + index * 8));
             const recordCount = this.Uint64(bucketOffset - 8);
-            this.#AssertElementRange(bucketOffset, recordCount, recordSize);
+            this._AssertElementRange(bucketOffset, recordCount, recordSize);
 
             for (let recordIndex = 0; recordIndex < recordCount; recordIndex++)
             {
@@ -321,7 +321,7 @@ export class CjsFsd64Binary
             throw error;
         }
 
-        this.#AssertElementRange(dataOffset, count, recordSize);
+        this._AssertElementRange(dataOffset, count, recordSize);
         return Array.from(
             { length: count },
             (_, index) => dataOffset + index * recordSize,
@@ -369,7 +369,7 @@ export class CjsFsd64Binary
 
         try
         {
-            return strictTextDecoder.decode(this.#bytes.subarray(dataOffset, dataOffset + length));
+            return strictTextDecoder.decode(this._bytes.subarray(dataOffset, dataOffset + length));
         }
         catch
         {
@@ -438,7 +438,7 @@ export class CjsFsd64Binary
     }
 
     /** Validates the byte range occupied by a repeated fixed-size value. */
-    #AssertElementRange(offset, count, size)
+    _AssertElementRange(offset, count, size)
     {
         if (!Number.isSafeInteger(count) || count < 0 ||
             count > Math.floor(this.ByteLength / size))
@@ -454,7 +454,7 @@ export class CjsFsd64Binary
     }
 
     /** Validates the fixed header and its declared payload length. */
-    #AssertContainer(path)
+    _AssertContainer(path)
     {
         if (this.ByteLength < HEADER_SIZE)
         {

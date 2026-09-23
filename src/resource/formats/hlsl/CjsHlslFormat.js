@@ -46,10 +46,10 @@ const FORMAT_NAME = "CjsHlslFormat";
 export class CjsHlslFormat extends CjsFormat
 {
 
-    #emit = DEFAULT_VALUES.emit;
-    #source = DEFAULT_VALUES.source;
-    #permutation = DEFAULT_VALUES.permutation;
-    #classes = DEFAULT_VALUES.classes;
+    _emit = DEFAULT_VALUES.emit;
+    _source = DEFAULT_VALUES.source;
+    _permutation = DEFAULT_VALUES.permutation;
+    _classes = DEFAULT_VALUES.classes;
 
     /**
      * Create a reusable format profile.
@@ -72,10 +72,10 @@ export class CjsHlslFormat extends CjsFormat
     {
         const values = normalizeValues(this.GetValues(), options, FORMAT_NAME);
 
-        this.#emit = values.emit;
-        this.#source = values.source;
-        this.#permutation = values.permutation;
-        this.#classes = values.classes;
+        this._emit = values.emit;
+        this._source = values.source;
+        this._permutation = values.permutation;
+        this._classes = values.classes;
 
         return this;
     }
@@ -89,10 +89,10 @@ export class CjsHlslFormat extends CjsFormat
     GetValues(options = {})
     {
         return normalizeValues({
-            emit: this.#emit,
-            source: this.#source,
-            permutation: this.#permutation,
-            classes: this.#classes
+            emit: this._emit,
+            source: this._source,
+            permutation: this._permutation,
+            classes: this._classes
         }, options, FORMAT_NAME);
     }
 
@@ -119,9 +119,9 @@ export class CjsHlslFormat extends CjsFormat
         if (Class === null || Class === undefined)
         {
             validateClassKey(type, FORMAT_NAME);
-            const classes = { ...this.#classes };
+            const classes = { ...this._classes };
             delete classes[type];
-            this.#classes = classes;
+            this._classes = classes;
             return this;
         }
 
@@ -138,7 +138,7 @@ export class CjsHlslFormat extends CjsFormat
     GetClass(type)
     {
         validateClassKey(type, FORMAT_NAME);
-        return this.#classes[type];
+        return this._classes[type];
     }
 
     /**

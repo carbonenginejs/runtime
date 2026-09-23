@@ -6,7 +6,7 @@
  */
 export class CjsFsd64Reader
 {
-    #readers = new Map();
+    _readers = new Map();
 
     /**
      * Registers one approved file-specific reader by logical path.
@@ -16,7 +16,7 @@ export class CjsFsd64Reader
         const key = NormalizeReaderKey(path);
         const implementation = NormalizeReader(reader);
 
-        if (this.#readers.has(key) && options.replace !== true)
+        if (this._readers.has(key) && options.replace !== true)
         {
             const error = new Error(`FSD reader is already registered: ${key}`);
             error.code = "CJS_FSD_READER_EXISTS";
@@ -24,7 +24,7 @@ export class CjsFsd64Reader
             throw error;
         }
 
-        this.#readers.set(key, implementation);
+        this._readers.set(key, implementation);
         return this;
     }
 
@@ -33,7 +33,7 @@ export class CjsFsd64Reader
      */
     Remove(path)
     {
-        return this.#readers.delete(NormalizeReaderKey(path));
+        return this._readers.delete(NormalizeReaderKey(path));
     }
 
     /**
@@ -41,7 +41,7 @@ export class CjsFsd64Reader
      */
     Has(path)
     {
-        return this.#readers.has(NormalizeReaderKey(path));
+        return this._readers.has(NormalizeReaderKey(path));
     }
 
     /**
@@ -49,7 +49,7 @@ export class CjsFsd64Reader
      */
     List()
     {
-        return [ ...this.#readers.keys() ].sort();
+        return [ ...this._readers.keys() ].sort();
     }
 
     /**
@@ -58,7 +58,7 @@ export class CjsFsd64Reader
     async Read(input, options = {})
     {
         const path = NormalizeReaderKey(options.path);
-        const reader = this.#readers.get(path);
+        const reader = this._readers.get(path);
 
         if (!reader)
         {
@@ -82,7 +82,7 @@ export class CjsFsd64Reader
     async ReadJSON(input, options = {})
     {
         const path = NormalizeReaderKey(options.path);
-        const reader = this.#readers.get(path);
+        const reader = this._readers.get(path);
 
         if (!reader)
         {

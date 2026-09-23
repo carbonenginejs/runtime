@@ -55,32 +55,32 @@ function enumValue(names, value, label)
  */
 class Flattener
 {
-    #bytes = new Uint8Array(1024);
-    #view = new DataView(this.#bytes.buffer);
-    #chunkCache = new Map();
+    _bytes = new Uint8Array(1024);
+    _view = new DataView(this._bytes.buffer);
+    _chunkCache = new Map();
     size = 0;
 
     /**
      * Grows the output buffer when the requested write would exceed capacity for
      * the CMF binary writer.
      */
-    #ensure(capacity)
+    _ensure(capacity)
     {
-        if (capacity <= this.#bytes.length) return;
-        let next = this.#bytes.length * 2;
+        if (capacity <= this._bytes.length) return;
+        let next = this._bytes.length * 2;
         while (next < capacity) next *= 2;
         const grown = new Uint8Array(next);
-        grown.set(this.#bytes.subarray(0, this.size));
-        this.#bytes = grown;
-        this.#view = new DataView(grown.buffer);
+        grown.set(this._bytes.subarray(0, this.size));
+        this._bytes = grown;
+        this._view = new DataView(grown.buffer);
     }
 
     /** Reserves output storage in the current CMF binary writer. */
     reserve(byteLength)
     {
         const offset = this.size;
-        this.#ensure(offset + byteLength);
-        this.#bytes.fill(0, offset, offset + byteLength);
+        this._ensure(offset + byteLength);
+        this._bytes.fill(0, offset, offset + byteLength);
         this.size = offset + byteLength;
         return offset;
     }
@@ -89,8 +89,8 @@ class Flattener
     reserveAligned(byteLength, alignment = 8)
     {
         const padded = Math.ceil(this.size / alignment) * alignment;
-        this.#ensure(padded);
-        this.#bytes.fill(0, this.size, padded);
+        this._ensure(padded);
+        this._bytes.fill(0, this.size, padded);
         this.size = padded;
         return this.reserve(byteLength);
     }
@@ -99,37 +99,37 @@ class Flattener
      * Writes an unsigned 8-bit integer into the output buffer for the CMF binary
      * writer.
      */
-    u8(offset, value) { this.#view.setUint8(offset, value); }
+    u8(offset, value) { this._view.setUint8(offset, value); }
 
     /**
      * Writes an unsigned 16-bit little-endian integer into the output buffer for
      * the CMF binary writer.
      */
-    u16(offset, value) { this.#view.setUint16(offset, value, true); }
+    u16(offset, value) { this._view.setUint16(offset, value, true); }
 
     /**
      * Writes an unsigned 32-bit little-endian integer into the output buffer for
      * the CMF binary writer.
      */
-    u32(offset, value) { this.#view.setUint32(offset, value, true); }
+    u32(offset, value) { this._view.setUint32(offset, value, true); }
 
     /**
      * Writes a 32-bit little-endian float into the output buffer for the CMF
      * binary writer.
      */
-    f32(offset, value) { this.#view.setFloat32(offset, value ?? 0, true); }
+    f32(offset, value) { this._view.setFloat32(offset, value ?? 0, true); }
 
     /**
      * Writes a signed 64-bit little-endian integer into the output buffer for
      * the CMF binary writer.
      */
-    i64(offset, value) { this.#view.setBigInt64(offset, BigInt(value), true); }
+    i64(offset, value) { this._view.setBigInt64(offset, BigInt(value), true); }
 
     /**
      * Writes an unsigned 64-bit little-endian integer into the output buffer for
      * the CMF binary writer.
      */
-    u64(offset, value) { this.#view.setBigUint64(offset, BigInt(value), true); }
+    u64(offset, value) { this._view.setBigUint64(offset, BigInt(value), true); }
 
     /**
      * Copies bytes into a previously reserved output range for the CMF binary
@@ -137,7 +137,7 @@ class Flattener
      */
     setBytes(offset, bytes)
     {
-        this.#bytes.set(bytes, offset);
+        this._bytes.set(bytes, offset);
     }
 
     /**
@@ -166,8 +166,8 @@ class Flattener
             for (let i = 0; i < count; i++) writeElement(scratch, scratchOffset + i * elementSize, elements[i]);
             const chunk = scratch.bytes();
             const key = chunkKey(chunk);
-            const cached = this.#chunkCache.get(key);
-            if (cached !== undefined && bytesEqual(this.#bytes, cached, chunk))
+            const cached = this._chunkCache.get(key);
+            if (cached !== undefined && bytesEqual(this._bytes, cached, chunk))
             {
                 this.i64(fieldOffset, cached - fieldOffset + 1);
                 this.u64(fieldOffset + 8, byteSize);
@@ -175,7 +175,7 @@ class Flattener
             }
             const chunkOffset = this.reserveAligned(byteSize);
             this.setBytes(chunkOffset, chunk);
-            this.#chunkCache.set(key, chunkOffset);
+            this._chunkCache.set(key, chunkOffset);
             this.i64(fieldOffset, chunkOffset - fieldOffset + 1);
             this.u64(fieldOffset + 8, byteSize);
             return;
@@ -203,7 +203,7 @@ class Flattener
      */
     bytes()
     {
-        return this.#bytes.slice(0, this.size);
+        return this._bytes.slice(0, this.size);
     }
 }
 

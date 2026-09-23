@@ -22,7 +22,7 @@ const FORMAT_NAME = "CjsWebmFormat";
  */
 export class CjsWebmFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable WebM format profile.
@@ -43,7 +43,7 @@ export class CjsWebmFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "webm", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "webm", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -55,7 +55,7 @@ export class CjsWebmFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "webm", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "webm", ...options }, FORMAT_NAME);
     }
 
     /**

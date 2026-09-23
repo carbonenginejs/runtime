@@ -22,7 +22,7 @@ const FORMAT_NAME = "CjsYamlFormat";
  */
 export class CjsYamlFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /** Creates a CjsYamlFormat with caller-provided reader configuration. */
     constructor(options = {})
@@ -37,7 +37,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, options, FORMAT_NAME);
+        this._values = normalizeValues(this._values, options, FORMAT_NAME);
         return this;
     }
 
@@ -47,7 +47,7 @@ export class CjsYamlFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, options, FORMAT_NAME);
+        return normalizeValues(this._values, options, FORMAT_NAME);
     }
 
     /**

@@ -41,7 +41,7 @@ function readerFor(input)
  */
 export class CjsPickleFormat extends CjsFormat
 {
-  #values = DEFAULT_VALUES;
+  _values = DEFAULT_VALUES;
 
   /**
    * Create a reusable pickle format profile.
@@ -62,7 +62,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   SetValues(options = {})
   {
-    this.#values = this.constructor.normalizeValues(this.#values, options);
+    this._values = this.constructor.normalizeValues(this._values, options);
     return this;
   }
 
@@ -74,7 +74,7 @@ export class CjsPickleFormat extends CjsFormat
    */
   GetValues(options = {})
   {
-    return this.constructor.normalizeValues(this.#values, options);
+    return this.constructor.normalizeValues(this._values, options);
   }
 
   /**

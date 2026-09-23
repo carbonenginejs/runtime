@@ -23,7 +23,7 @@ const FORMAT_NAME = "CjsWavFormat";
  */
 export class CjsWavFormat extends CjsFormat
 {
-    #values = DEFAULT_VALUES;
+    _values = DEFAULT_VALUES;
 
     /**
      * Create a reusable WAV format profile.
@@ -44,7 +44,7 @@ export class CjsWavFormat extends CjsFormat
      */
     SetValues(options = {})
     {
-        this.#values = normalizeValues(this.#values, { inputType: "wav", ...options }, FORMAT_NAME);
+        this._values = normalizeValues(this._values, { inputType: "wav", ...options }, FORMAT_NAME);
         return this;
     }
 
@@ -56,7 +56,7 @@ export class CjsWavFormat extends CjsFormat
      */
     GetValues(options = {})
     {
-        return normalizeValues(this.#values, { inputType: "wav", ...options }, FORMAT_NAME);
+        return normalizeValues(this._values, { inputType: "wav", ...options }, FORMAT_NAME);
     }
 
     /**
