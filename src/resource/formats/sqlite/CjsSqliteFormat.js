@@ -151,11 +151,6 @@ export class CjsSqliteFormat extends CjsFormat {
     return ReadMaster(bytes, ReadHeader(bytes)).filter(entry => entry.type === "table");
   }
 
-  static Output = Object.freeze({
-    JSON: OUTPUT_JSON,
-    PAYLOAD: OUTPUT_PAYLOAD,
-    RAW: OUTPUT_RAW
-  });
 
   static id = "CjsSqliteFormat";
   static extensions = Object.freeze([ ".sqlite", ".db", ".sqlite3" ]);

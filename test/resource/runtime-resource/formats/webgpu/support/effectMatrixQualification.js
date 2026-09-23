@@ -86,7 +86,7 @@ function qualifyStage(bytecode, source)
     try
     {
         const decoded = CjsDxbcFormat.read(bytecode, {
-            emit: CjsDxbcFormat.OUTPUT_RAW,
+            emit: "raw",
             source,
             decodeInstructions: true
         });
@@ -483,7 +483,7 @@ function serializePassVariants(variants)
 async function qualifyBackend(label, sourcePath)
 {
     const bytes = await readFile(sourcePath);
-    const effect = CjsHlslFormat.read(bytes, { emit: CjsHlslFormat.OUTPUT_RAW, source: sourcePath });
+    const effect = CjsHlslFormat.read(bytes, { emit: "raw", source: sourcePath });
     const axes = normalizeAxes(effect);
     const selections = enumerateEffectPermutations(axes);
     const offsets = Array.isArray(effect.m_offsets) ? effect.m_offsets : [];

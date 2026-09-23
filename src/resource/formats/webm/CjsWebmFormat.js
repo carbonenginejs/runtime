@@ -181,13 +181,7 @@ export class CjsWebmFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        VIDEO: OUTPUT_VIDEO,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
 
-    static OUTPUT_WEBM_JSON = "webmJson";
 
     static id = "CjsWebmFormat";
 

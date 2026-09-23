@@ -50,7 +50,7 @@ export function buildEffectPackage(input, options = {})
     // up front. What lands in `info.containerVersion` is what was emitted.
     const containerVersion = resolveWriteVersion(options.version);
     const effectRes = CjsHlslFormat.read(values.sourceBytes, {
-        emit: CjsHlslFormat.OUTPUT_RAW,
+        emit: "raw",
         source: values.source
     });
 

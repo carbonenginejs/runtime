@@ -449,15 +449,6 @@ export class CjsCmfFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        JSON: OUTPUT_JSON,
-        CMF: OUTPUT_CMF,
-        CMF_JSON: OUTPUT_CMF_JSON,
-        GR2: OUTPUT_GR2,
-        NATIVE: OUTPUT_NATIVE,
-        RAW: OUTPUT_RAW,
-        SHARED: OUTPUT_SHARED
-    });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsCmfFormat";
     // The writer's own graph is the default: `write` takes a CMF-native graph,

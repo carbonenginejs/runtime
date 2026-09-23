@@ -282,11 +282,6 @@ export class CjsGr2Format extends CjsGeometryFormat
         return toJsonValue(value);
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
-    static OUTPUT_GR2 = OUTPUT_GR2;
-    static OUTPUT_GR2_JSON = OUTPUT_GR2_JSON;
-    static OUTPUT_CMF = OUTPUT_CMF;
-    static OUTPUT_RAW = OUTPUT_RAW;
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsGr2Format";
     // Same shape as the other geometry writers: a native CMF v1 graph is the

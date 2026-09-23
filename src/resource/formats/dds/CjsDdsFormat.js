@@ -401,14 +401,6 @@ export class CjsDdsFormat extends CjsImageFormat
         return canDecodeDdsBlockFormat(pixelFormat);
     }
 
-    static Output = Object.freeze({
-        IMAGE: OUTPUT_IMAGE,
-        TEXTURE: OUTPUT_TEXTURE,
-        RGBA: OUTPUT_RGBA,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
-    static OUTPUT_DDS_JSON = "ddsJson";
     static id = "CjsDdsFormat";
     static mediaTypes = Object.freeze([ "texture", "image" ]);
     static outputs = CjsFormat.defineOutputs({

@@ -67,7 +67,7 @@ test(
                 payloads += 1;
                 try
                 {
-                    const result = CjsDxbcFormat.read(blob, { emit: CjsDxbcFormat.OUTPUT_RAW, source: filePath });
+                    const result = CjsDxbcFormat.read(blob, { emit: "raw", source: filePath });
                     if (result.decoder) instructions += result.decoder.instructions.length;
                 }
                 catch (error)

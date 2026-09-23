@@ -277,13 +277,6 @@ export class CjsStlFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        JSON: OUTPUT_JSON,
-        STL_JSON: OUTPUT_STL_JSON,
-        SHARED: OUTPUT_SHARED,
-        GR2: OUTPUT_GR2,
-        CMF: OUTPUT_CMF
-    });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsStlFormat";
     // STL takes the shared geometry root directly rather than going through

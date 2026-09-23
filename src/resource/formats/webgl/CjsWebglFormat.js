@@ -215,7 +215,6 @@ export class CjsWebglFormat extends CjsFormat
         return toJsonValue(value);
     }
 
-    static OUTPUT_JSON = OUTPUT_JSON;
     static id = "CjsWebglFormat";
     static mediaTypes = Object.freeze([ "shader" ]);
     static outputs = CjsFormat.defineOutputs({

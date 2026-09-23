@@ -24,7 +24,7 @@ test("body inventory deduplicates exact aliases before decoding", () =>
 {
     const bytes = buildPortableReflectionEffectBytes();
     const effectRes = CjsHlslFormat.read(bytes, {
-        emit: CjsHlslFormat.OUTPUT_RAW,
+        emit: "raw",
         source: "inventory.sm_depth"
     });
     const cacheSize = effectRes.m_shaders.size;
@@ -70,14 +70,14 @@ test("body inventory deduplicates exact aliases before decoding", () =>
     distinctBytes[effectRes.m_offsets[1].offset + effectRes.m_offsets[1].size - 1]
         ^= 0xff;
     const distinct = CjsHlslFormat.read(distinctBytes, {
-        emit: CjsHlslFormat.OUTPUT_RAW
+        emit: "raw"
     });
     assert.equal(enumerateUniqueEffectBodies(distinct).length, 2);
 
     assert.throws(
         () => enumerateUniqueEffectBodies(
             CjsHlslFormat.read(buildEffectBytes({ version: 8 }), {
-                emit: CjsHlslFormat.OUTPUT_RAW
+                emit: "raw"
             })
         ),
         /version-15/u

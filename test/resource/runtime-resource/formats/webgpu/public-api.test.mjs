@@ -73,7 +73,7 @@ test("reader manages values and classes", () =>
     assert.equal(reader.HasClass("Package"), true);
     assert.equal(reader.HasClass("Resource"), true);
     assert.equal(reader.GetClass("Package"), Package);
-    assert.equal(reader.GetValues().emit, CjsWebgpuFormat.OUTPUT_JSON);
+    assert.equal(reader.GetValues().emit, "json");
     assert.equal(reader.GetValues().source, "profile");
     assert.equal(reader.GetValues().decodeInstructions, false);
 });

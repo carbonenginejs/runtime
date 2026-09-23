@@ -260,11 +260,6 @@ export class CjsPickleFormat extends CjsFormat
     };
   }
 
-  static Output = Object.freeze({
-    JSON: OUTPUT_JSON,
-    PAYLOAD: OUTPUT_PAYLOAD,
-    RAW: OUTPUT_RAW
-  });
   static supportedProtocols = Object.freeze([ 0, 1, 2, 3, 4 ]);
   static id = "CjsPickleFormat";
   static extensions = Object.freeze([ ".pickle" ]);

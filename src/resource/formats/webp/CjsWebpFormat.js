@@ -126,12 +126,7 @@ export class CjsWebpFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
 
-    static OUTPUT_WEBP_JSON = "webpJson";
 
     static id = "CjsWebpFormat";
 

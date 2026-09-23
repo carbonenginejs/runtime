@@ -181,13 +181,6 @@ export class CjsMp3Format extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        AUDIO: OUTPUT_AUDIO,
-        PCM: OUTPUT_PCM,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
-    static OUTPUT_MP3_JSON = "mp3Json";
     static id = "CjsMp3Format";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({

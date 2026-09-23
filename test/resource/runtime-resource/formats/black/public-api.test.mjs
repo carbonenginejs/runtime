@@ -148,7 +148,7 @@ test("reader manages values and classes", () =>
     assert.equal(reader.HasClass("Root"), true);
     assert.equal(reader.HasClass("Object"), true);
     assert.equal(reader.GetClass("Root"), Root);
-    assert.equal(reader.GetValues().emit, CjsBlackFormat.Output.JSON);
+    assert.equal(reader.GetValues().emit, "json");
     assert.equal(reader.GetValues().schema, sampleSchema);
 });
 
@@ -274,7 +274,7 @@ test("readDocument keeps a neutral debug graph when requested", () =>
 {
     const input = createRootFixture();
     const document = CjsBlackFormat.read(input, {
-        emit: CjsBlackFormat.Output.DOCUMENT,
+        emit: "document",
         schema: sampleSchema
     });
 

@@ -234,13 +234,6 @@ export class CjsPngFormat extends CjsImageFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        IMAGE: OUTPUT_IMAGE,
-        RGBA: OUTPUT_RGBA,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
-    static OUTPUT_PNG_JSON = "pngJson";
     static id = "CjsPngFormat";
     static mediaTypes = Object.freeze([ "image" ]);
     static inputs = CjsFormat.defineInputs({

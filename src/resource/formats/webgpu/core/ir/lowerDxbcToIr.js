@@ -31,7 +31,7 @@ function readDecoded(input, options)
     if (input instanceof Uint8Array || input instanceof ArrayBuffer || ArrayBuffer.isView(input))
     {
         const raw = CjsDxbcFormat.read(input, {
-            emit: CjsDxbcFormat.OUTPUT_RAW,
+            emit: "raw",
             source: options.source || "memory",
             decodeInstructions: true
         });

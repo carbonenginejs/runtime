@@ -279,13 +279,6 @@ export class CjsFbxFormat extends CjsGeometryFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        CMF: OUTPUT_CMF,
-        GR2: OUTPUT_GR2,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON,
-        FBX_JSON: OUTPUT_FBX_JSON
-    });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsFbxFormat";
     // FBX is written THROUGH CMF: `write` takes a native CMF graph and

@@ -417,7 +417,7 @@ export class DxbcGlslEmitter
     Emit(bytes, options = {})
     {
         const sourceName = options.source || "memory";
-        const raw = CjsDxbcFormat.read(bytes, { source: sourceName, emit: CjsDxbcFormat.OUTPUT_RAW });
+        const raw = CjsDxbcFormat.read(bytes, { source: sourceName, emit: "raw" });
         if (!raw.program)
         {
             throw new WebglReadError("DXBC container has no shader program chunk", { source: sourceName });

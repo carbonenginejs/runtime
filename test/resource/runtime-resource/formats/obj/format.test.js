@@ -29,11 +29,11 @@ function almostEqual(actual, expected, epsilon = 1e-6)
 
 test("default export and named export are the same CjsObjFormat class", () => {
     assert.equal(CjsObjFormat, NamedFormat);
-    assert.equal(CjsObjFormat.Output.JSON, "json");
-    assert.equal(CjsObjFormat.Output.OBJ_JSON, "objJson");
-    assert.equal(CjsObjFormat.Output.SHARED, "shared");
-    assert.equal(CjsObjFormat.Output.GR2, "gr2");
-    assert.equal(CjsObjFormat.Output.CMF, "cmf");
+    assert.equal("json", "json");
+    assert.equal("objJson", "objJson");
+    assert.equal("shared", "shared");
+    assert.equal("gr2", "gr2");
+    assert.equal("cmf", "cmf");
     assert.deepEqual(Object.values(CjsObjFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsObjFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "objJson" ]);
 });

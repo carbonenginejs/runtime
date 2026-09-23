@@ -17,7 +17,7 @@ test("disassembles a decoded payload from bytes", () =>
 
 test("accepts an already-decoded read result without decoding twice", () =>
 {
-    const decoded = CjsDxbcFormat.read(buildMinimalVertexDxbc(), { emit: CjsDxbcFormat.OUTPUT_RAW });
+    const decoded = CjsDxbcFormat.read(buildMinimalVertexDxbc(), { emit: "raw" });
 
     assert.equal(
         CjsDxbcFormat.disassemble(decoded),

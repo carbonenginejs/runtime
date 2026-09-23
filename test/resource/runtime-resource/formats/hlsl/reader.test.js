@@ -56,7 +56,7 @@ test("json emit is the documented plain effect graph", () =>
 
 test("raw emit exposes the live HlslEffectRes graph", () =>
 {
-    const result = CjsHlslFormat.read(buildEffectBytes(), { emit: CjsHlslFormat.OUTPUT_RAW });
+    const result = CjsHlslFormat.read(buildEffectBytes(), { emit: "raw" });
 
     assert.equal(result.constructor.name, "HlslEffectRes");
     assert.equal(result.IsGood(), true);
@@ -98,7 +98,7 @@ test("metadata emit reports selected permutation options without shader bytecode
     });
 
     const defaults = CjsHlslFormat.read(bytes, {
-        emit: CjsHlslFormat.OUTPUT_METADATA,
+        emit: "metadata",
         source: "synthetic"
     });
     assert.equal(defaults.bodyCount, 4);
@@ -110,7 +110,7 @@ test("metadata emit reports selected permutation options without shader bytecode
     assert.equal(defaults.effect, null);
 
     const selected = new CjsHlslFormat({
-        emit: CjsHlslFormat.OUTPUT_METADATA,
+        emit: "metadata",
         source: "synthetic"
     }).Read(bytes, {
         permutation: new Map([
@@ -492,11 +492,11 @@ test("binding manifest retains SM 5.1 static samplers omitted from signature reg
 
 test("profiles hold values and reject invalid emits", () =>
 {
-    const reader = new CjsHlslFormat({ emit: CjsHlslFormat.OUTPUT_RAW, source: "profile" });
-    assert.equal(reader.GetValues().emit, CjsHlslFormat.OUTPUT_RAW);
+    const reader = new CjsHlslFormat({ emit: "raw", source: "profile" });
+    assert.equal(reader.GetValues().emit, "raw");
     assert.equal(reader.GetValues({ source: "override" }).source, "override");
     assert.equal(reader.GetValues().source, "profile");
-    assert.equal(new CjsHlslFormat({ emit: CjsHlslFormat.OUTPUT_METADATA }).GetValues().emit, "metadata");
+    assert.equal(new CjsHlslFormat({ emit: "metadata" }).GetValues().emit, "metadata");
     assert.throws(() => new CjsHlslFormat({ emit: "nonsense" }), /emit must be/);
     assert.throws(() => CjsHlslFormat.read(buildEffectBytes(), { emit: "nonsense" }), /emit must be/);
 });

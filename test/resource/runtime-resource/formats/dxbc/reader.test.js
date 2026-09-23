@@ -25,7 +25,7 @@ test("json emit is plain data with decoded instructions", () =>
 
 test("raw emit exposes the decoder objects", () =>
 {
-    const result = CjsDxbcFormat.read(buildMinimalVertexDxbc(), { emit: CjsDxbcFormat.OUTPUT_RAW });
+    const result = CjsDxbcFormat.read(buildMinimalVertexDxbc(), { emit: "raw" });
 
     assert.equal(result.program.constructor.name, "DxbcShaderProgram");
     assert.equal(result.decoder.constructor.name, "DxbcInstructionDecoder");
@@ -45,8 +45,8 @@ test("inspect summarizes without instruction decode", () =>
 
 test("profiles hold values and reject invalid emits", () =>
 {
-    const reader = new CjsDxbcFormat({ emit: CjsDxbcFormat.OUTPUT_RAW, source: "profile" });
-    assert.equal(reader.GetValues().emit, CjsDxbcFormat.OUTPUT_RAW);
+    const reader = new CjsDxbcFormat({ emit: "raw", source: "profile" });
+    assert.equal(reader.GetValues().emit, "raw");
     assert.equal(reader.GetValues({ source: "override" }).source, "override");
     assert.equal(reader.GetValues().source, "profile");
     assert.throws(() => new CjsDxbcFormat({ emit: "nonsense" }), /emit must be/);

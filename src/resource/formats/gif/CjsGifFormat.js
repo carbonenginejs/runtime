@@ -129,13 +129,6 @@ export class CjsGifFormat extends CjsImageFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        IMAGE: OUTPUT_IMAGE,
-        RGBA: OUTPUT_RGBA,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
-    static OUTPUT_GIF_JSON = "gifJson";
     static id = "CjsGifFormat";
     static mediaTypes = Object.freeze([ "image" ]);
     static outputs = CjsFormat.defineOutputs({

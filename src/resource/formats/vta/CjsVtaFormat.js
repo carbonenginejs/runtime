@@ -198,13 +198,7 @@ export class CjsVtaFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        VOLUME: OUTPUT_VOLUME,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
 
-    static OUTPUT_VTA_JSON = OUTPUT_VTA_JSON;
 
     static id = "CjsVtaFormat";
 

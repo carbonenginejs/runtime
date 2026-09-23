@@ -211,14 +211,7 @@ export class CjsTgaFormat extends CjsImageFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        IMAGE: OUTPUT_IMAGE,
-        RGBA: OUTPUT_RGBA,
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON
-    });
 
-    static OUTPUT_TGA_JSON = "tgaJson";
 
     static id = "CjsTgaFormat";
 

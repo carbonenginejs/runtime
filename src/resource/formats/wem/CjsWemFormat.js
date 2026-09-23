@@ -234,13 +234,6 @@ export class CjsWemFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON,
-        WEM_JSON: OUTPUT_WEM_JSON,
-        OGG: OUTPUT_OGG,
-        PCM: OUTPUT_PCM
-    });
     static id = "CjsWemFormat";
     static mediaTypes = Object.freeze([ "audio" ]);
     static outputs = CjsFormat.defineOutputs({

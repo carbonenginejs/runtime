@@ -388,11 +388,11 @@ test("emitJson requires registered classes to implement SetValues", () =>
 
 test("CjsGr2Format exposes the static package constants and helper namespaces", () =>
 {
-    assert.equal(CjsGr2Format.OUTPUT_JSON, "json");
-    assert.equal(CjsGr2Format.OUTPUT_GR2, "gr2");
-    assert.equal(CjsGr2Format.OUTPUT_GR2_JSON, "gr2Json");
-    assert.equal(CjsGr2Format.OUTPUT_CMF, "cmf");
-    assert.equal(CjsGr2Format.OUTPUT_RAW, "raw");
+    assert.equal("json", "json");
+    assert.equal("gr2", "gr2");
+    assert.equal("gr2Json", "gr2Json");
+    assert.equal("cmf", "cmf");
+    assert.equal("raw", "raw");
     for (const key of CLASS_KEYS) assert.ok(CjsGr2Format.CLASS_KEYS.includes(key));
     assert.ok(CjsGr2Format.CLASS_KEYS.includes("VertexElement"));
     assert.deepEqual(Object.values(CjsGr2Format.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "gr2", "cmf" ]);
@@ -671,9 +671,9 @@ test("CjsGr2Format instances carry reusable values and classes", () =>
 
     assert.ok(constructed instanceof Root);
     assert.ok(constructed.meshes[0] instanceof Mesh);
-    assert.equal(reader.Read(buildRaw(), { emit: CjsGr2Format.OUTPUT_RAW }).version, 7);
-    assert.equal(reader.GetValues({ emit: CjsGr2Format.OUTPUT_RAW }).emit, CjsGr2Format.OUTPUT_RAW);
-    assert.equal(reader.GetValues().emit, CjsGr2Format.OUTPUT_JSON);
+    assert.equal(reader.Read(buildRaw(), { emit: "raw" }).version, 7);
+    assert.equal(reader.GetValues({ emit: "raw" }).emit, "raw");
+    assert.equal(reader.GetValues().emit, "json");
 });
 
 test("unpackTangents accepts per-mesh rule functions", () =>

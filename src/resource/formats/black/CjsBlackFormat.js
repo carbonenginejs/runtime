@@ -311,13 +311,6 @@ export class CjsBlackFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        JSON: OUTPUT_JSON,
-        RAW: OUTPUT_RAW,
-        DOCUMENT: OUTPUT_DOCUMENT,
-        PAYLOAD: OUTPUT_PAYLOAD,
-        RUNTIME: OUTPUT_RUNTIME
-    });
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsBlackFormat";
     static extensions = Object.freeze([CJS_BLACK_EXTENSION]);

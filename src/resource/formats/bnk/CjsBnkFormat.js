@@ -314,12 +314,6 @@ export class CjsBnkFormat extends CjsFormat
     /**
      * Emit targets for this format (canonical frozen enum).
      */
-    static Output = Object.freeze({
-        RAW: OUTPUT_RAW,
-        JSON: OUTPUT_JSON,
-        BNK_JSON: OUTPUT_BNK_JSON,
-        MEDIA: OUTPUT_MEDIA
-    });
 
 
 

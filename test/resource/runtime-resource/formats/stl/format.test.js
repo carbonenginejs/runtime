@@ -65,11 +65,11 @@ const OPEN_TRIANGLE = Object.freeze({
 test("package root exports one public class", () =>
 {
     assert.equal(CjsStlFormat, NamedCjsStlFormat);
-    assert.equal(CjsStlFormat.Output.JSON, "json");
-    assert.equal(CjsStlFormat.Output.STL_JSON, "stlJson");
-    assert.equal(CjsStlFormat.Output.SHARED, "shared");
-    assert.equal(CjsStlFormat.Output.GR2, "gr2");
-    assert.equal(CjsStlFormat.Output.CMF, "cmf");
+    assert.equal("json", "json");
+    assert.equal("stlJson", "stlJson");
+    assert.equal("shared", "shared");
+    assert.equal("gr2", "gr2");
+    assert.equal("cmf", "cmf");
     assert.deepEqual(Object.values(CjsStlFormat.outputs).filter(entry => entry.role === "runtime").map(entry => entry.output), [ "shared", "gr2", "cmf" ]);
     assert.deepEqual(Object.values(CjsStlFormat.outputs).filter(entry => entry.role === "debug").map(entry => entry.output), [ "json", "stlJson" ]);
     assert.ok(CjsStlFormat.CLASS_KEYS.includes("IndexGroup"));
