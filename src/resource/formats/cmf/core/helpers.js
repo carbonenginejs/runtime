@@ -8,7 +8,7 @@ import { validateCmfGraph } from "./validate.js";
 export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED };
 
 export const DEFAULT_VALUES = Object.freeze({
-    emit: OUTPUT_NATIVE,
+    emit: OUTPUT_CMF,
     validateCrc: true,
     decodeBuffers: true,
     classes: {}
@@ -43,7 +43,7 @@ export function normalizeValues(base = {}, options = {})
 
 function normalizeEmit(emit)
 {
-    if (emit === undefined || emit === OUTPUT_NATIVE || emit === OUTPUT_CMF || emit === OUTPUT_CMF_JSON || emit === OUTPUT_JSON)
+    if (emit === undefined || emit === OUTPUT_CMF || emit === OUTPUT_CMF_JSON || emit === OUTPUT_JSON)
     {
         return OUTPUT_CMF;
     }

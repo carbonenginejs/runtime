@@ -298,6 +298,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
     static outputs = CjsFormat.defineOutputs({
         gr2: { decoded: true },
         cmf: { decoded: true },
+        json: { role: "debug", decoded: true, probes: [ "fbxJson", "document" ] },
         fbxJson: { role: "debug", decoded: true, probes: [ "fbxJson", "document" ] },
         raw: { role: "debug", default: true, passthrough: true, probes: [ "raw", "document" ] }
     });

@@ -32,8 +32,7 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
-    if (emit === OUTPUT_JSON && inputType) return DEBUG_OUTPUTS[inputType] || OUTPUT_JSON;
-    if ([ OUTPUT_VIDEO, OUTPUT_RAW, OUTPUT_JSON ].includes(emit)) return emit;
+    if ([ OUTPUT_VIDEO, OUTPUT_RAW].includes(emit)) return emit;
     if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
@@ -137,7 +136,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
             bytes
         };
     }
-    if (values.emit === OUTPUT_JSON || values.emit === DEBUG_OUTPUTS[metadata.sourceFormat]) return metadata;
+    if (values.emit === DEBUG_OUTPUTS[metadata.sourceFormat]) return metadata;
 
     if (values.emit === OUTPUT_VIDEO && metadata.sourceFormat === "mp4")
     {

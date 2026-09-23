@@ -51,8 +51,7 @@ export function normalizeInputType(inputType)
 export function normalizeEmit(emit, inputType, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
-    if (emit === OUTPUT_JSON && inputType) return DEBUG_OUTPUTS[inputType] || OUTPUT_JSON;
-    if ([ OUTPUT_IMAGE, OUTPUT_RGBA, OUTPUT_RAW, OUTPUT_JSON ].includes(emit)) return emit;
+    if ([ OUTPUT_IMAGE, OUTPUT_RGBA, OUTPUT_RAW].includes(emit)) return emit;
     if (Object.values(DEBUG_OUTPUTS).includes(emit)) return emit;
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }
@@ -148,7 +147,7 @@ export function readWithValues(input, values = DEFAULT_VALUES, expectedType = ""
         };
     }
 
-    if (values.emit === OUTPUT_JSON || values.emit === DEBUG_OUTPUTS[metadata.sourceFormat])
+    if (values.emit === DEBUG_OUTPUTS[metadata.sourceFormat])
     {
         return metadata;
     }
@@ -169,7 +168,7 @@ export async function readWithValuesAsync(input, values = DEFAULT_VALUES, expect
     const bytes = asUint8Array(input, "Image input");
     const metadata = inspectWithValues(bytes, values, expectedType);
 
-    if (values.emit === OUTPUT_RAW || values.emit === OUTPUT_JSON || values.emit === DEBUG_OUTPUTS[metadata.sourceFormat])
+    if (values.emit === OUTPUT_RAW || values.emit === DEBUG_OUTPUTS[metadata.sourceFormat])
     {
         return readWithValues(bytes, values, expectedType);
     }

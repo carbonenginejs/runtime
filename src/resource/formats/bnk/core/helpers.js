@@ -75,7 +75,6 @@ export function normalizeValues(base = DEFAULT_VALUES, options = {}, readerName 
 export function normalizeEmit(emit, readerName)
 {
     if (emit === undefined || emit === null) return OUTPUT_RAW;
-    if (emit === OUTPUT_JSON) return OUTPUT_BNK_JSON;
     if ([ OUTPUT_RAW, OUTPUT_BNK_JSON, OUTPUT_MEDIA ].includes(emit)) return emit;
     throw new TypeError(`${readerName}: unknown emit value ${JSON.stringify(emit)}`);
 }

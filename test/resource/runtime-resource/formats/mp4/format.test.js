@@ -21,7 +21,7 @@ test("inspects mp4 container", () =>
 test("treats M4A as an MP4 audio-profile input", () =>
 {
     const bytes = new Uint8Array([ 0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70, 0x4d, 0x34, 0x41, 0x20 ]);
-    const info = CjsMp4Format.read(bytes, { inputType: "m4a", emit: "json" });
+    const info = CjsMp4Format.read(bytes, { inputType: "m4a", emit: "mp4Json" });
 
     assert.equal(info.sourceFormat, "mp4");
     assert.equal(info.container, "isobmff");

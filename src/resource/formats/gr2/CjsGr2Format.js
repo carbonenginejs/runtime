@@ -306,7 +306,6 @@ export class CjsGr2Format extends CjsGeometryFormat
     static extensions = Object.freeze([ ".gr2", ".gsf" ]);
     static curves = curves;
     static tangents = tangents;
-    static gsf = Object.freeze({ isRaw: isGsfRaw, project: projectGsf, inspectRaw: inspectGsfRaw });
 
     /**
      * Cheap magic probe for GR2/GSF byte streams.

@@ -83,7 +83,7 @@ test("emits raw container payload and passthrough support report", () =>
 test("emit json returns metadata and unsupported emits fail cleanly", () =>
 {
     const bytes = makeVorbisWem({ sampleCount: 96000 });
-    const metadata = CjsWemFormat.read(bytes, { emit: "json" });
+    const metadata = CjsWemFormat.read(bytes, { emit: "wemJson" });
 
     assert.equal(metadata.codec, "wwise-vorbis");
     // pcm is a valid emit, but Vorbis routes through the ogg repack instead.
