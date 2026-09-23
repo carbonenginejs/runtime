@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes.cpp
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { HostBitmap } from "#imageio";
 import { CjsResource } from "../CjsResource.js";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "../ResourceRequirement.js";
@@ -138,6 +139,23 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
+   * Adopt the cutout an image declared (Carbon reads ImageIO::Metadata's
+   * cutout in DoPrepare and stores it as m_cutoutX/Y/Width/Height).
+   *
+   * @param {{x: number, y: number, width: number, height: number}} cutout The rectangle.
+   * @returns {TriTextureRes} This resource.
+   */
+  SetCutout(cutout) {
+    this.SetValues({
+      cutoutX: cutout.x,
+      cutoutY: cutout.y,
+      cutoutWidth: cutout.width,
+      cutoutHeight: cutout.height
+    });
+    return this;
+  }
+
+  /**
    * The decoded bitmap this resource was loaded from, or null.
    *
    * Carbon's `m_loadedBitmap` (`TriTextureRes.cpp:606`): the CPU-side image
@@ -197,6 +215,18 @@ export class TriTextureRes extends CjsResource
       this.SetTexture(null);
       this.loadedBitmap = null;
       super.SetPayload(null);
+      return this;
+    }
+
+    // Carbon's resource IS its bitmap (TriTextureRes.cpp:606, 960-978): the
+    // image route hands one straight over. The plain payload below is the
+    // TRANSITIONAL route (/docs/projects/hostbitmap-port.md).
+    const bitmap = CjsSchema.cast(payload, HostBitmap);
+
+    if (bitmap) {
+      this.CreateFromHostBitmap(bitmap);
+      super.SetPayload(bitmap, options);
+      if (bitmap.metadata?.cutout) this.SetCutout(bitmap.metadata.cutout);
       return this;
     }
 
@@ -529,6 +559,7 @@ CjsSchema.define(TriTextureRes, {
     SetFromRenderTarget: [ carbon.method, impl.notSupported ],
     CreateAndCopyFromRenderTarget: [ carbon.method, impl.notSupported ],
     CreateFromHostBitmap: [ carbon.method, impl.adapted, impl.reason("Carbon creates the texture here on the main thread's render context; the resource layer may not reach one, so this adopts the bitmap and the texture is made on first bind (Tr2ImageIOHelpers.RealizeTexture).") ],
+    SetCutout: [ impl.custom, impl.reason("Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read happens in the loader here, so the resource is told.") ],
     GetBitmap: [ impl.custom, impl.reason("Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap; the upload happens at bind time here, so the bitmap has to be readable.") ],
     CreateFromTexture: [ carbon.method, impl.notSupported ],
     HasALObject: [ carbon.method, impl.adapted ],

@@ -1,3 +1,4 @@
+export * from "./registerTextureResources.js";
 export * from "./CjsTextureArrayRes.js";
 export * from "./CjsTextureArrayResParameterProxy.js";
 export * from "./SolidColorTextureConstructor.js";
