@@ -139,6 +139,19 @@
       ]
     },
     "resource": {
+      "//": [
+        "Trinity MAY import resource, and importing one Res class has never been",
+        "the problem - resource/texture/** reaches only consts, imageio and the",
+        "payload validators. Preferring the FILE over resource/index.js is a",
+        "nicety, not a rule: the root barrel pulls CjsResMan, the worker loaders",
+        "and every format reader, which a bundler mostly shakes out again. It",
+        "would only matter to someone wanting the audio engine without trinity.",
+        "",
+        "The rule in the other direction is real: resource may NOT import",
+        "trinity, so a resource cannot reach a render context. That is why a",
+        "texture is created on first bind (Tr2ImageIOHelpers.RealizeTexture)",
+        "rather than in DoPrepare as Carbon does."
+      ],
       "mayImport": [
         "global/utils",
         "global/math",
