@@ -235,7 +235,7 @@ export class CjsPngFormat extends CjsImageFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsPngFormat";
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
     static inputs = CjsFormat.defineInputs({
         // async because the compressing path is the real one; the sync writer
         // emits stored blocks and is the fallback, not the intent.
@@ -279,7 +279,7 @@ export class CjsPngFormat extends CjsImageFormat
         return this.readImageFromRgbaPayload(await this.readAsync(input, { emit: "rgba" }), bitmap, metadata);
     }
 
-    static extensions = Object.freeze([ ".png" ]);
+    static extensions = [ ".png" ];
 }
 
 export default CjsPngFormat;

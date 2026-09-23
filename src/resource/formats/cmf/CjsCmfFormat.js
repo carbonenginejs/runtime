@@ -467,7 +467,7 @@ export class CjsCmfFormat extends CjsGeometryFormat
         cmfJson: { role: "debug", payloadType: "cmf", decoded: true },
         raw: { role: "debug", decoded: true }
     });
-    static extensions = Object.freeze([ ".cmf" ]);
+    static extensions = [ ".cmf" ];
 }
 
 export default CjsCmfFormat;

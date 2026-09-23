@@ -155,9 +155,9 @@ export class CjsStaticFormat extends CjsFormat
 
 
   static id = "CjsStaticFormat";
-  static extensions = Object.freeze([ ".static" ]);
-  static mediaTypes = Object.freeze([ "data" ]);
-  static outputs = Object.freeze({});
+  static extensions = [ ".static" ];
+  static mediaTypes = [ "data" ];
+  static outputs = {};
 
   /**
    * The extension is the only input this format claims.

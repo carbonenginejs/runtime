@@ -48,7 +48,6 @@ test("exposes the shared format contract and validates inspection", async () =>
 {
     assert.equal(DefaultFormat, CjsIESFormat);
     CjsFormat.validateContract(CjsIESFormat);
-    assert.ok(Object.isFrozen(CjsIESFormat.outputs));
     const format = new CjsIESFormat({ source: "fixture.ies" });
     const expected = CjsIESFormat.read(bytes());
     assert.deepEqual(format.Read(bytes()), expected);

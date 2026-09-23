@@ -130,7 +130,7 @@ export class CjsWebpFormat extends CjsFormat
 
     static id = "CjsWebpFormat";
 
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
 
     static outputs = CjsFormat.defineOutputs({
 
@@ -140,7 +140,7 @@ export class CjsWebpFormat extends CjsFormat
 
     });
 
-    static extensions = Object.freeze([ ".webp" ]);
+    static extensions = [ ".webp" ];
 }
 
 export default CjsWebpFormat;

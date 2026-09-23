@@ -313,7 +313,7 @@ export class CjsFormat
     {
       throw new TypeError("A format with inputs must declare exactly one default input.");
     }
-    return Object.freeze(inputs);
+    return inputs;
   }
 
   /** Freeze and validate one format's authoritative output map. */
@@ -470,9 +470,9 @@ export class CjsFormat
   });
 
   static id = "";
-  static mediaTypes = Object.freeze([]);
-  static extensions = Object.freeze([]);
-  static outputs = Object.freeze({});
+  static mediaTypes = [];
+  static extensions = [];
+  static outputs = {};
   /**
    * What this format can be written FROM, empty when it cannot be written.
    *
@@ -483,7 +483,7 @@ export class CjsFormat
    * contract - it says nothing about what payload it takes or whether the
    * result is lossy.
    */
-  static inputs = Object.freeze({});
+  static inputs = {};
   static requestResponseType = "arraybuffer";
   static worker = null;
 }

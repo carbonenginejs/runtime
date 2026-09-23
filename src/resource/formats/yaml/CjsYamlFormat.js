@@ -142,8 +142,8 @@ export class CjsYamlFormat extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsYamlFormat";
-    static extensions = Object.freeze([ ".yaml", ".yml" ]);
-    static mediaTypes = Object.freeze([ "data" ]);
+    static extensions = [ ".yaml", ".yml" ];
+    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         json: { decoded: true },
         payload: { default: true, decoded: true },

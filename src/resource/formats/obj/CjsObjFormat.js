@@ -197,7 +197,7 @@ export class CjsObjFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         objJson: { role: "debug", default: true, decoded: true }
     });
-    static extensions = Object.freeze([ ".obj" ]);
+    static extensions = [ ".obj" ];
 
 }
 

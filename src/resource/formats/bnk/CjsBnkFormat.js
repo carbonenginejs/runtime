@@ -70,12 +70,12 @@ export class CjsBnkFormat extends CjsFormat
     /**
      * Browser-worker module declaration consumed by CjsResManWorkerLoader.
      */
-    static worker = Object.freeze({
+    static worker = {
         module: import.meta.url,
         exportName: "CjsBnkFormat",
         outputTypes: Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON ]),
         defaultOutput: OUTPUT_RAW
-    });
+    };
 
     /**
      * Create a reusable bnk format profile.
@@ -285,7 +285,7 @@ export class CjsBnkFormat extends CjsFormat
      * v150 Fx ShareSet and Fx Custom bodies while leaving plug-in parameter
      * blocks opaque for separately qualified DSP adapters.
      */
-    static wwise = Object.freeze({
+    static wwise = {
         isSoundbanksInfo,
         parseSoundbanksInfo,
         buildSoundbanksCatalog,
@@ -309,7 +309,7 @@ export class CjsBnkFormat extends CjsFormat
         parseSfxRandomSequence,
         parseSfxSwitch,
         parseSfxLayer
-    });
+    };
 
     /**
      * Emit targets for this format (canonical frozen enum).
@@ -319,7 +319,7 @@ export class CjsBnkFormat extends CjsFormat
 
     static id = "CjsBnkFormat";
 
-    static mediaTypes = Object.freeze([ "audio" ]);
+    static mediaTypes = [ "audio" ];
 
     static outputs = CjsFormat.defineOutputs({
 
@@ -331,7 +331,7 @@ export class CjsBnkFormat extends CjsFormat
 
     });
 
-    static extensions = Object.freeze([ ".bnk" ]);
+    static extensions = [ ".bnk" ];
 }
 
 export default CjsBnkFormat;

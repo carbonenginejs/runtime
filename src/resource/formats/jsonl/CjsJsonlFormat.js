@@ -115,8 +115,8 @@ export class CjsJsonlFormat extends CjsFormat
     }
 
     static id = "CjsJsonlFormat";
-    static extensions = Object.freeze([ ".jsonl" ]);
-    static mediaTypes = Object.freeze([ "data" ]);
+    static extensions = [ ".jsonl" ];
+    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
     });

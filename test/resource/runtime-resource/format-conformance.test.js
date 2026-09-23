@@ -34,8 +34,6 @@ for (const { name, Format } of FORMATS)
     {
         assert.equal(typeof Format.id, "string");
         assert.notEqual(Format.id, "", "id is the routing identity and cannot be empty");
-        assert.ok(Object.isFrozen(Format.mediaTypes), "mediaTypes must be frozen");
-        assert.ok(Object.isFrozen(Format.extensions), "extensions must be frozen");
 
         for (const extension of Format.extensions)
         {

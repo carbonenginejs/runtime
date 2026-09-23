@@ -64,12 +64,12 @@ export class CjsIESFormat extends CjsFormat
     }
 
     static id = "CjsIESFormat";
-    static extensions = Object.freeze([ ".ies" ]);
-    static mediaTypes = Object.freeze([ "data" ]);
-    static outputs = Object.freeze(CjsFormat.defineOutputs({
+    static extensions = [ ".ies" ];
+    static mediaTypes = [ "data" ];
+    static outputs = CjsFormat.defineOutputs({
         payload: { default: true, decoded: true },
         lightProfile: { decoded: true }
-    }));
+    });
 }
 
 export default CjsIESFormat;

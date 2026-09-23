@@ -402,7 +402,7 @@ export class CjsDdsFormat extends CjsImageFormat
     }
 
     static id = "CjsDdsFormat";
-    static mediaTypes = Object.freeze([ "texture", "image" ]);
+    static mediaTypes = [ "texture", "image" ];
     static outputs = CjsFormat.defineOutputs({
         texture: { probes: [ "texture", "compressed" ] },
         image: { decoded: true, probes: [ "image", "rgba" ] },
@@ -410,7 +410,7 @@ export class CjsDdsFormat extends CjsImageFormat
         ddsJson: { role: "debug", probes: [ "ddsJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
-    static extensions = Object.freeze([ ".dds" ]);
+    static extensions = [ ".dds" ];
 }
 
 export default CjsDdsFormat;

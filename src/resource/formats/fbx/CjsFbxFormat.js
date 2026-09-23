@@ -295,7 +295,7 @@ export class CjsFbxFormat extends CjsGeometryFormat
         fbxJson: { role: "debug", decoded: true, probes: [ "fbxJson", "document" ] },
         raw: { role: "debug", default: true, passthrough: true, probes: [ "raw", "document" ] }
     });
-    static extensions = Object.freeze([ ".fbx" ]);
+    static extensions = [ ".fbx" ];
 }
 
 export default CjsFbxFormat;

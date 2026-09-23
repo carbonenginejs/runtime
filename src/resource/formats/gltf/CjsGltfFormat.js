@@ -222,7 +222,7 @@ export class CjsGltfFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         gltfJson: { role: "debug", decoded: true }
     });
-    static extensions = Object.freeze([ ".gltf", ".glb" ]);
+    static extensions = [ ".gltf", ".glb" ];
 
 }
 

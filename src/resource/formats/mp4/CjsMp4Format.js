@@ -182,13 +182,13 @@ export class CjsMp4Format extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsMp4Format";
-    static mediaTypes = Object.freeze([ "audio", "video" ]);
+    static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
         video: {  },
         mp4Json: { role: "debug", probes: [ "mp4Json", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
-    static extensions = Object.freeze([ ".mp4", ".m4v", ".m4a" ]);
+    static extensions = [ ".mp4", ".m4v", ".m4a" ];
 }
 
 export default CjsMp4Format;

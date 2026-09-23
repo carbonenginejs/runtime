@@ -277,8 +277,8 @@ export class CjsRedFormat extends CjsFormat
     static CLASS_KEYS = CLASS_KEYS;
     static schema = blackDefinitions;
     static id = "CjsRedFormat";
-    static extensions = Object.freeze([ ".red" ]);
-    static mediaTypes = Object.freeze([ "data" ]);
+    static extensions = [ ".red" ];
+    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         payload: { decoded: true },

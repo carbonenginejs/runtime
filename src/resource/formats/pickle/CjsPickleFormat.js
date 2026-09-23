@@ -260,10 +260,10 @@ export class CjsPickleFormat extends CjsFormat
     };
   }
 
-  static supportedProtocols = Object.freeze([ 0, 1, 2, 3, 4 ]);
+  static supportedProtocols = [ 0, 1, 2, 3, 4 ];
   static id = "CjsPickleFormat";
-  static extensions = Object.freeze([ ".pickle" ]);
-  static mediaTypes = Object.freeze([ "data" ]);
+  static extensions = [ ".pickle" ];
+  static mediaTypes = [ "data" ];
   static outputs = CjsFormat.defineOutputs({
       json: { default: true, decoded: true },
       payload: { decoded: true },

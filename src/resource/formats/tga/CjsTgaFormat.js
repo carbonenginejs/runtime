@@ -215,7 +215,7 @@ export class CjsTgaFormat extends CjsImageFormat
 
     static id = "CjsTgaFormat";
 
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
 
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, options: [ "compress" ] }
@@ -248,7 +248,7 @@ export class CjsTgaFormat extends CjsImageFormat
         return this.readImageFromRgbaPayload(this.read(input, { emit: "rgba" }), bitmap, metadata);
     }
 
-    static extensions = Object.freeze([ ".tga" ]);
+    static extensions = [ ".tga" ];
 }
 
 export default CjsTgaFormat;

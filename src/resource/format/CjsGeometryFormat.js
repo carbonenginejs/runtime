@@ -16,7 +16,7 @@ import { CjsFormat } from "./CjsFormat.js";
 export class CjsGeometryFormat extends CjsFormat
 {
 
-  static mediaTypes = Object.freeze([ "geometry" ]);
+  static mediaTypes = [ "geometry" ];
 
   /** Node key -> constructor; replaced, never mutated, so a copy handed out stays stable. */
   _classes = {};

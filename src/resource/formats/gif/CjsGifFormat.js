@@ -130,7 +130,7 @@ export class CjsGifFormat extends CjsImageFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsGifFormat";
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
     static outputs = CjsFormat.defineOutputs({
         image: { decoded: true, probes: [ "image", "rgba" ] },
         rgba: { decoded: true },
@@ -152,7 +152,7 @@ export class CjsGifFormat extends CjsImageFormat
         return this.readImageFromRgbaPayload(this.read(input, { emit: "rgba" }), bitmap, metadata);
     }
 
-    static extensions = Object.freeze([ ".gif" ]);
+    static extensions = [ ".gif" ];
 }
 
 export default CjsGifFormat;

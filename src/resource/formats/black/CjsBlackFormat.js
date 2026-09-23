@@ -40,12 +40,12 @@ export class CjsBlackFormat extends CjsFormat
      * runtime outputs retain class identity and therefore stay on the caller
      * thread.
      */
-    static worker = Object.freeze({
+    static worker = {
         module: import.meta.url,
         exportName: "CjsBlackFormat",
         outputTypes: Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD ]),
         defaultOutput: OUTPUT_JSON
-    });
+    };
 
     /**
      * Create a reusable format profile.
@@ -313,10 +313,10 @@ export class CjsBlackFormat extends CjsFormat
      */
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsBlackFormat";
-    static extensions = Object.freeze([CJS_BLACK_EXTENSION]);
+    static extensions = [CJS_BLACK_EXTENSION];
     static fourCC = CJS_BLACK_FOURCC;
     static version = CJS_BLACK_VERSION;
-    static mediaTypes = Object.freeze([ "data" ]);
+    static mediaTypes = [ "data" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         document: { decoded: true },

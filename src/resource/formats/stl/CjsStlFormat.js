@@ -293,7 +293,7 @@ export class CjsStlFormat extends CjsGeometryFormat
         json: { role: "debug", decoded: true },
         stlJson: { role: "debug", default: true, decoded: true }
     });
-    static extensions = Object.freeze([ ".stl" ]);
+    static extensions = [ ".stl" ];
 
 }
 

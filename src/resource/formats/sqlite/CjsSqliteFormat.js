@@ -153,8 +153,8 @@ export class CjsSqliteFormat extends CjsFormat {
 
 
   static id = "CjsSqliteFormat";
-  static extensions = Object.freeze([ ".sqlite", ".db", ".sqlite3" ]);
-  static mediaTypes = Object.freeze([ "data" ]);
+  static extensions = [ ".sqlite", ".db", ".sqlite3" ];
+  static mediaTypes = [ "data" ];
   static outputs = CjsFormat.defineOutputs({
       json: { default: true, decoded: true },
       payload: { decoded: true },

@@ -134,14 +134,14 @@ export class CjsOggFormat extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsOggFormat";
-    static mediaTypes = Object.freeze([ "audio", "video" ]);
+    static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({
         pcm: { decoded: true },
         audio: { decoded: true, probes: [ "audio", "pcm" ] },
         oggJson: { role: "debug", probes: [ "oggJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
-    static extensions = Object.freeze([ ".ogg", ".oga", ".ogv" ]);
+    static extensions = [ ".ogg", ".oga", ".ogv" ];
 }
 
 export default CjsOggFormat;

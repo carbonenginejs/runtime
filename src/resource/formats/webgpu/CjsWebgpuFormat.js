@@ -382,11 +382,11 @@ export class CjsWebgpuFormat extends CjsFormat
 
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsWebgpuFormat";
-    static mediaTypes = Object.freeze([ "shader" ]);
+    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true }
     });
-    static extensions = Object.freeze([ ".carbonwebgpu" ]);
+    static extensions = [ ".carbonwebgpu" ];
     static format = CARBON_WEBGPU_FORMAT;
     static analysisFormat = CARBON_WEBGPU_ANALYSIS_FORMAT;
     static packageVersion = FORMAT_WEBGPU_PACKAGE_VERSION;

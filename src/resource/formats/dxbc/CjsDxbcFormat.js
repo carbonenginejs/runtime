@@ -210,12 +210,12 @@ export class CjsDxbcFormat extends CjsFormat
     }
 
     static id = "CjsDxbcFormat";
-    static mediaTypes = Object.freeze([ "shader" ]);
+    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         raw: { role: "debug", decoded: true }
     });
-    static extensions = Object.freeze([]);
+    static extensions = [];
 
 }
 

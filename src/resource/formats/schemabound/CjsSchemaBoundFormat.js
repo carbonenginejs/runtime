@@ -172,8 +172,8 @@ export class CjsSchemaBoundFormat extends CjsFormat {
   }
 
   static id = "CjsSchemaBoundFormat";
-  static extensions = Object.freeze([ ".static" ]);
-  static mediaTypes = Object.freeze([ "data" ]);
+  static extensions = [ ".static" ];
+  static mediaTypes = [ "data" ];
   static outputs = CjsFormat.defineOutputs({
       json: { default: true, decoded: true },
       payload: { decoded: true }

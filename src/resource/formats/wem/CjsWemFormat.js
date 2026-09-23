@@ -34,12 +34,12 @@ export class CjsWemFormat extends CjsFormat
     /**
      * Browser-worker module declaration consumed by CjsResManWorkerLoader.
      */
-    static worker = Object.freeze({
+    static worker = {
         module: import.meta.url,
         exportName: "CjsWemFormat",
         outputTypes: Object.freeze([ OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON ]),
         defaultOutput: OUTPUT_RAW
-    });
+    };
 
     /**
      * Create a reusable wem format profile.
@@ -235,14 +235,14 @@ export class CjsWemFormat extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsWemFormat";
-    static mediaTypes = Object.freeze([ "audio" ]);
+    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         raw: { default: true, passthrough: true },
         ogg: {  },
         pcm: { decoded: true },
         wemJson: { role: "debug", probes: [ "wemJson", "raw" ] }
     });
-    static extensions = Object.freeze([ ".wem" ]);
+    static extensions = [ ".wem" ];
 }
 
 export default CjsWemFormat;

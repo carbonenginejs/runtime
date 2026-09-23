@@ -202,7 +202,7 @@ export class CjsVtaFormat extends CjsFormat
 
     static id = "CjsVtaFormat";
 
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
 
     static outputs = CjsFormat.defineOutputs({
 
@@ -214,7 +214,7 @@ export class CjsVtaFormat extends CjsFormat
 
     });
 
-    static extensions = Object.freeze([ ".vta" ]);
+    static extensions = [ ".vta" ];
 }
 
 export default CjsVtaFormat;

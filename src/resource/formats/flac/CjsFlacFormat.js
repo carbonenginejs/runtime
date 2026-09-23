@@ -105,12 +105,12 @@ export class CjsFlacFormat extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsFlacFormat";
-    static mediaTypes = Object.freeze([ "audio" ]);
+    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         flacJson: { role: "debug", probes: [ "flacJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
-    static extensions = Object.freeze([ ".flac" ]);
+    static extensions = [ ".flac" ];
 }
 
 export default CjsFlacFormat;

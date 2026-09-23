@@ -237,7 +237,7 @@ export class CjsJpegFormat extends CjsImageFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsJpegFormat";
-    static mediaTypes = Object.freeze([ "image" ]);
+    static mediaTypes = [ "image" ];
     static inputs = CjsFormat.defineInputs({
         rgba: { default: true, lossy: true, options: [ "quality", "subsampling" ] }
     });
@@ -263,7 +263,7 @@ export class CjsJpegFormat extends CjsImageFormat
         return this.readImageFromRgbaPayload(this.read(input, { emit: "rgba" }), bitmap, metadata);
     }
 
-    static extensions = Object.freeze([ ".jpg", ".jpeg" ]);
+    static extensions = [ ".jpg", ".jpeg" ];
 }
 
 export default CjsJpegFormat;

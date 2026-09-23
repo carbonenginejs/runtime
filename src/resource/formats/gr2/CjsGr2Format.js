@@ -298,7 +298,7 @@ export class CjsGr2Format extends CjsGeometryFormat
         gr2Json: { role: "debug", decoded: true },
         raw: { role: "debug", decoded: true }
     });
-    static extensions = Object.freeze([ ".gr2", ".gsf" ]);
+    static extensions = [ ".gr2", ".gsf" ];
     static curves = curves;
     static tangents = tangents;
 

@@ -187,14 +187,14 @@ export class CjsWavFormat extends CjsFormat
      * Emit targets for this format (canonical frozen enum).
      */
     static id = "CjsWavFormat";
-    static mediaTypes = Object.freeze([ "audio" ]);
+    static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({
         audio: { decoded: true, probes: [ "audio", "pcm" ] },
         pcm: { decoded: true },
         wavJson: { role: "debug", probes: [ "wavJson", "raw" ] },
         raw: { role: "debug", default: true, passthrough: true }
     });
-    static extensions = Object.freeze([ ".wav" ]);
+    static extensions = [ ".wav" ];
 }
 
 export default CjsWavFormat;

@@ -248,13 +248,13 @@ export class CjsHlslFormat extends CjsFormat
 
     static CLASS_KEYS = CLASS_KEYS;
     static id = "CjsHlslFormat";
-    static mediaTypes = Object.freeze([ "shader" ]);
+    static mediaTypes = [ "shader" ];
     static outputs = CjsFormat.defineOutputs({
         json: { default: true, decoded: true },
         metadata: { decoded: true },
         raw: { role: "debug", decoded: true }
     });
-    static extensions = Object.freeze([ ".sm_hi", ".sm_lo", ".sm_depth" ]);
+    static extensions = [ ".sm_hi", ".sm_lo", ".sm_depth" ];
 
 }
 
