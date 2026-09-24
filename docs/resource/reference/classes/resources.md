@@ -325,6 +325,16 @@ The `dynamic:/texturepack/<source>[:channels];...` constructor: packs up to four
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
+<!-- class:CjsTexturePipelineStepPack -->
+## `CjsTexturePipelineStepPack`
+
+Our packer: Carbon's Pack step plus output formats Carbon's does not write (RG8 for a pair of channels). Carbon's own formats pass straight through to Carbon's step, which is unchanged.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTexturePipelineStepPack.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsTexturePipelineStepConvert -->
 ## `CjsTexturePipelineStepConvert`
 

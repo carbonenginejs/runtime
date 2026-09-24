@@ -154,8 +154,11 @@ test("dynamic:/texturepack builds a recipe and packs channels from separate imag
 
   const bitmap = texture.GetBitmap();
   assert.equal(bitmap.GetWidth(), 2, "resized up to the largest source");
-  // BGRA: b fill 0, g = metal's red, r = rough's red, a opaque; plus a mip chain.
-  assert.deepEqual([ ...bitmap.GetMipRawData(0).subarray(0, 4) ], [ 0, 90, 40, 255 ]);
+  // Two channels pack to RG8 (ours; Carbon's Pack writes only BGRA/BGRX/R8):
+  // r = rough's red, g = metal's red; plus a mip chain.
+  const { PixelFormat: F } = await import("../../npm/dist/global/consts/renderContext/index.js");
+  assert.equal(bitmap.GetFormat(), F.PIXEL_FORMAT_R8G8_UNORM);
+  assert.deepEqual([ ...bitmap.GetMipRawData(0).subarray(0, 2) ], [ 40, 90 ]);
   assert.equal(bitmap.GetTrueMipCount(), 2);
   assert.equal(resMan.GetResource("dynamic:/texturepack/res:/x/rough.dds;res:/x/metal.dds"), texture, "one texture per query");
 

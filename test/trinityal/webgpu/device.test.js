@@ -2752,4 +2752,17 @@ test("CjsWebgpuDevice realizes a texture resource's HostBitmap (textures hold Ca
   assert.equal(decoded.textures.t.format, "rgba8unorm-srgb");
   assert.equal(bc1.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB, "still compressed on the resource");
   decoded.Destroy();
+
+  // A packed pair (RG8) is two channels, not Carbon's luminance-and-alpha reading.
+  const rg = new HostBitmap();
+  rg.Create(1, 1, 1, PixelFormat.PIXEL_FORMAT_R8G8_UNORM);
+  rg.GetRawData().set([ 40, 90 ]);
+  const rgFake = fakeDevice("rg8-realization");
+  const rgDevice = new CjsWebgpuDevice({ device: rgFake.device, shaderStage: SHADER_STAGE, textureUsage: TEXTURE_USAGE });
+  const packed = adapterResourceSlot();
+  packed.payload = rg;
+  const pair = await rgDevice.RealizeRgba8Texture(packed, { textureKey: "t", adapterKey: "webgpu:rg" });
+  const write = rgFake.device.calls.find(([ kind ]) => kind === "writeTexture");
+  assert.deepEqual([ ...write[2] ].slice(0, 4), [ 40, 90, 0, 255 ]);
+  pair.Destroy();
 });

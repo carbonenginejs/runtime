@@ -737,7 +737,10 @@ function mapRgba8TextureBitmap(bitmap, plan)
   copy.GetMipRawData(0).set(bitmap.GetMipRawData(0).subarray(0, bitmap.GetMipSize(0)));
 
   const requested = srgb ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB : PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM;
-  if (!CjsImageFormat.convertImage(copy, requested)) fail(`${label} cannot be converted to RGBA8`);
+  // Carbon's ConvertFormat reads R8G8 as luminance and alpha; a packed pair is
+  // two channels, so it expands to (R, G, 0, 255) here instead.
+  if (bitmap.GetFormat() === PixelFormat.PIXEL_FORMAT_R8G8_UNORM) expandRg8(copy);
+  else if (!CjsImageFormat.convertImage(copy, requested)) fail(`${label} cannot be converted to RGBA8`);
 
   const texture = {
     width: copy.GetWidth(),
@@ -750,6 +753,29 @@ function mapRgba8TextureBitmap(bitmap, plan)
     label: plan.bundleLabel,
     textures: frozenRecord([ [ plan.textureKey, texture ] ])
   };
+}
+
+/** Expand an RG8 bitmap's top mip in place to RGBA8 as (R, G, 0, 255). */
+function expandRg8(bitmap)
+{
+  const width = bitmap.GetWidth();
+  const height = bitmap.GetHeight();
+  const source = bitmap.GetMipRawData(0).slice();
+  const pitch = bitmap.GetMipPitch(0);
+
+  bitmap.Create(width, height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  const target = bitmap.GetMipRawData(0);
+  const targetPitch = bitmap.GetMipPitch(0);
+
+  for (let y = 0; y < height; y++)
+  {
+    for (let x = 0; x < width; x++)
+    {
+      target[y * targetPitch + x * 4] = source[y * pitch + x * 2];
+      target[y * targetPitch + x * 4 + 1] = source[y * pitch + x * 2 + 1];
+      target[y * targetPitch + x * 4 + 3] = 255;
+    }
+  }
 }
 
 /** Whether a Carbon pixel format is one of the `_SRGB` variants. */

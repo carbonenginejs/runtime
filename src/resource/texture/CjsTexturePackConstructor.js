@@ -6,7 +6,7 @@ import { IBlueDynamicResourceConstructor } from "#blue";
 import { PixelFormat } from "#consts/render-context";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2TexturePipeline } from "./Tr2TexturePipeline.js";
-import { Tr2TexturePipelineStepPack } from "./Tr2TexturePipelineStepPack.js";
+import { CjsTexturePipelineStepPack } from "./CjsTexturePipelineStepPack.js";
 import { Tr2TexturePackChannel } from "./Tr2TexturePackChannel.js";
 import { Tr2TexturePipelineStepGenerateMips } from "./Tr2TexturePipelineStepGenerateMips.js";
 import { CjsTexturePipelineStepConvert } from "./CjsTexturePipelineStepConvert.js";
@@ -92,8 +92,14 @@ export class CjsTexturePackConstructor extends IBlueDynamicResourceConstructor
 
     if (!sources) return null;
 
-    const pack = new Tr2TexturePipelineStepPack();
-    pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
+    const channelCount = sources.reduce((sum, source) => sum + source.channels.length, 0);
+    const pack = new CjsTexturePipelineStepPack();
+
+    // The narrowest output that holds the channels: one byte a texel for one,
+    // two for two, BGRA for three or four.
+    pack.format = channelCount === 1 ? PixelFormat.PIXEL_FORMAT_R8_UNORM
+      : channelCount === 2 ? PixelFormat.PIXEL_FORMAT_R8G8_UNORM
+        : PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
 
     // Output channels fill red, green, blue, alpha in order; alpha defaults opaque.
     const outputs = [ "r", "g", "b", "a" ];

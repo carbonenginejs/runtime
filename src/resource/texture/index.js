@@ -1,3 +1,4 @@
+export * from "./CjsTexturePipelineStepPack.js";
 export * from "./CjsTexturePackConstructor.js";
 export * from "./CjsTexturePipelineStepConvert.js";
 export * from "./CjsTexturePipelineStepResize.js";
