@@ -16,6 +16,7 @@ import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../imageio/ImageIO.js";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
+import { ResourceRequirement } from "../ResourceRequirement.js";
 
 
 /**
@@ -90,6 +91,11 @@ export function RegisterTextureResources(resourceManager, options = {})
     resourceManager.RegisterObjectLoader(extension, ReadImageResource);
     resourceManager.RegisterExtension(extension, Handler);
   }
+
+  // Carbon asks for the same file as a texture or as a "raw" image; the
+  // requirement picks the class and keeps a separate cache entry for each.
+  resourceManager.RegisterResourceType(ResourceRequirement.TEXTURE, TriTextureRes);
+  resourceManager.RegisterResourceType(ResourceRequirement.IMAGE, Tr2ImageRes);
 
   return resourceManager;
 }

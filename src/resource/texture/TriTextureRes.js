@@ -139,6 +139,60 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
+   * Build this texture from a texture pipeline: Carbon's `.ctr` route
+   * (`TriTextureRes.cpp:238-258` then `ResourcePrepFinished`, `:296-340`).
+   *
+   * Every path the pipeline names is loaded as a raw `Tr2ImageRes` (Carbon asks
+   * for the `"raw"` requirement; ours is `ResourceRequirement.IMAGE`), the
+   * pipeline runs once they have all settled, and the result becomes this
+   * texture's bitmap. An input that failed to load reaches the pipeline as
+   * null, exactly as Carbon passes it, so the step that needed it fails.
+   *
+   * adapted: Carbon reads the pipeline from a `.ctr` file with
+   * `BeResMan->LoadObject` and waits on a fence. No shipped build contains a
+   * `.ctr` (checked across 45 resfileindexes, 2026-09-24), so the pipeline is
+   * handed in - built in memory by the `dynamic:/` constructors that use this
+   * route - and the fence is a promise. The manager is passed because the
+   * resource layer has no global `BeResMan`.
+   *
+   * quirk: Carbon marks the resource good even when the pipeline fails
+   * (`m_isGood = true` after the branch, `:337`), so the texture is simply
+   * absent and the parameter binds its fallback. Reproduced: the resource is
+   * prepared either way, with no bitmap when the pipeline failed.
+   *
+   * @param {import("./Tr2TexturePipeline.js").Tr2TexturePipeline} pipeline The recipe.
+   * @param {object} resourceManager The `CjsResMan` that loads its inputs.
+   * @returns {Promise<boolean>} Whether the pipeline produced a bitmap.
+   */
+  async LoadPipeline(pipeline, resourceManager) {
+    this.MarkLoading();
+
+    const images = new Map();
+
+    for (const path of pipeline.GetResourceDependencies()) {
+      images.set(path, resourceManager.GetResource(path, { requirement: ResourceRequirement.IMAGE }));
+    }
+
+    // Carbon's m_pipelineFence: wait for every input, whatever became of it.
+    await Promise.allSettled([ ...images.values() ].map(image => image.Ready()));
+
+    // Carbon: it->second && it->second->IsGood() ? &it->second->GetBitmap() : nullptr
+    const inputs = new Map();
+
+    for (const [ path, image ] of images) {
+      inputs.set(path, image.IsGood() ? image.GetBitmap() : null);
+    }
+
+    const result = new HostBitmap();
+    const executed = pipeline.Execute(result, inputs);
+
+    if (executed) this.SetPayload(result);
+
+    this.MarkPrepared();
+    return executed;
+  }
+
+  /**
    * Adopt the cutout an image declared (Carbon reads ImageIO::Metadata's
    * cutout in DoPrepare and stores it as m_cutoutX/Y/Width/Height).
    *
@@ -558,6 +612,7 @@ CjsSchema.define(TriTextureRes, {
     SetFromRenderTarget: [ carbon.method, impl.notSupported ],
     CreateAndCopyFromRenderTarget: [ carbon.method, impl.notSupported ],
     CreateFromHostBitmap: [ carbon.method, impl.adapted, impl.reason("Carbon creates the texture here on the main thread's render context; the resource layer may not reach one, so this adopts the bitmap and the texture is made on first bind (Tr2ImageIOHelpers.RealizeTexture).") ],
+    LoadPipeline: [ impl.adapted, impl.reason("Carbon's .ctr branch reads the pipeline from a file through the global BeResMan and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the manager passed, and the fence is a promise.") ],
     SetCutout: [ impl.custom, impl.reason("Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read happens in the loader here, so the resource is told.") ],
     GetBitmap: [ impl.custom, impl.reason("Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap; the upload happens at bind time here, so the bitmap has to be readable.") ],
     CreateFromTexture: [ carbon.method, impl.notSupported ],

@@ -87,3 +87,52 @@ test("a file the image handlers refuse fails the load, as Carbon's DoLoad does",
     error => /broken\.dds/.test(error.message) || error.code === "CJS_RESOURCE_IMAGE_READ_FAILED"
   );
 });
+
+test("a texture built from a pipeline packs images loaded as raw Tr2ImageRes (Carbon's .ctr route)", async () =>
+{
+  const { Tr2TexturePipeline, Tr2TexturePipelineStepPack, Tr2TexturePackChannel } = await import("../../npm/dist/resource/index.js");
+  const files = {
+    "res:/x/red.dds": legacyDds(2, 1, [ 0, 0, 200, 255, 0, 0, 100, 255 ]),
+    "res:/x/mask.dds": legacyDds(2, 1, [ 0, 0, 7, 255, 0, 0, 9, 255 ])
+  };
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
+  RegisterTextureResources(resMan);
+
+  const pack = new Tr2TexturePipelineStepPack();
+  pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
+  // Channel 0 is authored red; in BGRA memory that is byte 2.
+  pack.r = Object.assign(new Tr2TexturePackChannel(), { path: "res:/x/red.dds", channel: 0 });
+  pack.a = Object.assign(new Tr2TexturePackChannel(), { path: "res:/x/mask.dds", channel: 0 });
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ pack ];
+
+  const texture = new TriTextureRes();
+  assert.equal(await texture.LoadPipeline(pipeline, resMan), true);
+
+  // Each input was loaded once, as Carbon's "raw" image, not as a texture.
+  assert.ok(resMan.GetResource("res:/x/red.dds", { requirement: "image" }) instanceof Tr2ImageRes);
+
+  const bitmap = texture.GetBitmap();
+  assert.equal(bitmap.GetWidth(), 2);
+  assert.deepEqual([ ...bitmap.GetRawData() ], [ 0, 0, 200, 7, 0, 0, 100, 9 ]);
+  assert.equal(texture.IsPrepared(), true);
+});
+
+test("a pipeline whose input fails leaves the texture prepared without a bitmap, as Carbon does", async () =>
+{
+  const { Tr2TexturePipeline, Tr2TexturePipelineStepLoad } = await import("../../npm/dist/resource/index.js");
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: () => Promise.resolve(new Uint8Array(128)) } });
+  RegisterTextureResources(resMan);
+
+  const load = new Tr2TexturePipelineStepLoad();
+  load.path = "res:/x/broken.dds";
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ load ];
+
+  const texture = new TriTextureRes();
+  assert.equal(await texture.LoadPipeline(pipeline, resMan), false);
+  assert.equal(texture.IsPrepared(), true, "Carbon sets m_isGood regardless (TriTextureRes.cpp:337)");
+  assert.equal(texture.GetBitmap(), null, "so the parameter binds its fallback");
+});
