@@ -1,3 +1,5 @@
+export * from "./CjsTexturePipelineStepConvert.js";
+export * from "./CjsTexturePipelineStepResize.js";
 export * from "./registerTextureResources.js";
 export * from "./CjsTextureArrayRes.js";
 export * from "./CjsTextureArrayResParameterProxy.js";

@@ -168,3 +168,39 @@ function Bgra(width, height, data)
   bitmap.GetRawData().set(new Uint8Array(data));
   return bitmap;
 }
+
+test("our Convert and Resize steps let Pack join a compressed source and a differently sized one", async () =>
+{
+  const { CjsTexturePipelineStepConvert, CjsTexturePipelineStepResize } = await import("../../../src/resource/index.js");
+
+  // A 4x4 BC1 block of pure red (color0 = 0xF800, all indices 0) - EVE ships
+  // scalar maps compressed, and Carbon's Pack refuses block formats.
+  const compressed = new HostBitmap();
+  compressed.Create(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC1_UNORM);
+  compressed.GetRawData().set([ 0x00, 0xF8, 0x00, 0x00, 0, 0, 0, 0 ]);
+  // An 8x8 BGRA source whose red byte is 100 everywhere.
+  const larger = Bgra(8, 8, new Array(8 * 8).fill([ 0, 0, 100, 255 ]).flat());
+  const inputs = new Map([ [ "res:/red.dds", compressed ], [ "res:/mask.dds", larger ] ]);
+
+  const pack = new Tr2TexturePipelineStepPack();
+  pack.format = PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM;
+  pack.r = Object.assign(new Tr2TexturePackChannel(), { path: "res:/red.dds", channel: 0 });
+  pack.g = Object.assign(new Tr2TexturePackChannel(), { path: "res:/mask.dds", channel: 0 });
+  pack.a = Object.assign(new Tr2TexturePackChannel(), { fill: 255 });
+
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ new CjsTexturePipelineStepConvert(), new CjsTexturePipelineStepResize(), pack ];
+
+  // Carbon's Pack alone refuses both: a block format, and mismatched sizes.
+  const carbonOnly = new Tr2TexturePipeline();
+  carbonOnly.steps = [ pack ];
+  assert.equal(carbonOnly.Execute(new HostBitmap(), new Map(inputs)), false);
+
+  const result = new HostBitmap();
+  assert.equal(pipeline.Execute(result, inputs), true);
+  assert.equal(result.GetWidth(), 8, "resized up to the largest input");
+  assert.equal(result.GetHeight(), 8);
+  // BGRA: b (unset fill 0), g from the mask's red, r from the decoded red block.
+  assert.deepEqual([ ...result.GetMipRawData(0).subarray(0, 4) ], [ 0, 100, 255, 255 ]);
+  assert.equal(compressed.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM, "the source bitmap was not changed");
+});

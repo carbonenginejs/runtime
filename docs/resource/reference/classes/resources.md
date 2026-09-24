@@ -315,6 +315,26 @@ Attribute-free persisted marker step mirroring Carbon's mip-generation step; the
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:CjsTexturePipelineStepConvert -->
+## `CjsTexturePipelineStepConvert`
+
+Texture-pipeline step of our own: converts the pipeline's inputs to one pixel format, decoding block formats, before a later step such as Pack reads them.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTexturePipelineStepConvert.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsTexturePipelineStepResize -->
+## `CjsTexturePipelineStepResize`
+
+Texture-pipeline step of our own: resamples the pipeline's inputs to one size (the largest by default) so Pack can join sources that differ in size.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTexturePipelineStepResize.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:Tr2TexturePipelineStepLimitSize -->
 ## `Tr2TexturePipelineStepLimitSize`
 
