@@ -167,3 +167,27 @@ test("dynamic:/texturepack builds a recipe and packs channels from separate imag
   assert.equal(CjsTexturePackConstructor.parseQuery("res:/a.dds:rgb;res:/b.dds:rg"), null, "five channels");
   assert.equal(CjsTexturePackConstructor.parseQuery(""), null);
 });
+
+test("dynamic:/texturearray stacks separate images as the layers of one array", async () =>
+{
+  const { RegisterTextureArray } = await import("../../npm/dist/resource/index.js");
+  const files = {
+    "res:/x/detail1.dds": legacyDds(2, 2, new Array(4).fill([ 1, 2, 3, 255 ]).flat()),
+    "res:/x/detail2.dds": legacyDds(1, 1, [ 4, 5, 6, 255 ])
+  };
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
+  RegisterTextureResources(resMan);
+  RegisterTextureArray(resMan);
+
+  const texture = resMan.GetResource("dynamic:/texturearray/res:/x/detail1.dds;res:/x/detail2.dds");
+  await texture.Ready();
+
+  const bitmap = texture.GetBitmap();
+  assert.equal(bitmap.GetArraySize(), 2, "one layer per path, in order");
+  assert.equal(bitmap.GetWidth(), 2, "layers resized to the largest");
+  assert.deepEqual([ ...bitmap.GetMipRawData(0, 0).subarray(0, 4) ], [ 1, 2, 3, 255 ]);
+  assert.deepEqual([ ...bitmap.GetMipRawData(0, 1).subarray(0, 4) ], [ 4, 5, 6, 255 ]);
+  assert.equal(bitmap.GetTrueMipCount(), 2, "a mip chain per layer");
+  assert.equal(resMan.GetResource("dynamic:/texturearray/res:/x/detail1.dds;res:/x/detail2.dds"), texture, "the string is the identity");
+});

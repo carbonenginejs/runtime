@@ -315,6 +315,26 @@ Attribute-free persisted marker step mirroring Carbon's mip-generation step; the
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:CjsTextureArrayConstructor -->
+## `CjsTextureArrayConstructor`
+
+The `dynamic:/texturearray/<path>;<path>...` constructor: separate images as the layers of one 2D texture array, layer 0 first, built by a texture-pipeline recipe (Convert, Resize, Array, GenerateMips). The string is the aggregate's identity. Register it with `RegisterTextureArray(resMan)`.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTextureArrayConstructor.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
+<!-- class:CjsTexturePipelineStepArray -->
+## `CjsTexturePipelineStepArray`
+
+Texture-pipeline step of our own: stacks the named inputs, in order, into one 2D texture array.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTexturePipelineStepArray.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsTexturePackConstructor -->
 ## `CjsTexturePackConstructor`
 

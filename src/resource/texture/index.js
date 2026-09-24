@@ -1,3 +1,5 @@
+export * from "./CjsTextureArrayConstructor.js";
+export * from "./CjsTexturePipelineStepArray.js";
 export * from "./CjsTexturePipelineStepPack.js";
 export * from "./CjsTexturePackConstructor.js";
 export * from "./CjsTexturePipelineStepConvert.js";
