@@ -1,3 +1,7 @@
+import { HostBitmap } from "#imageio";
+import { CjsImageFormat } from "#resource/format/CjsImageFormat";
+import { CjsSchema } from "#schema";
+import { PixelFormat } from "#consts/render-context";
 import { CjsResource } from "#resource/CjsResource";
 import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "./core/CjsWebgpuPipelineCache.js";
 import { AssertFormatFeature, PlanTextureUpload } from "./core/textureLayout.js";
@@ -705,6 +709,53 @@ function mapRgba8TexturePayload(value, plan)
     label: plan.bundleLabel,
     textures: frozenRecord([ [ plan.textureKey, texture ] ])
   };
+}
+
+/**
+ * The RGBA8 texture record for a texture resource's HostBitmap.
+ *
+ * A texture resource holds Carbon's `ImageIO::HostBitmap` (TriTextureRes.cpp:606),
+ * not a plain payload. This path uploads one RGBA8 level, so the top mip is
+ * converted - block formats decoded - on a COPY: the resource keeps its own
+ * bitmap for other backends and for rebuilds.
+ *
+ * Colour space follows the format, as Carbon's does: an `_SRGB` format uploads
+ * as `rgba8unorm-srgb`, anything else as `rgba8unorm`.
+ *
+ * @param {HostBitmap} bitmap The resource's bitmap.
+ * @param {object} plan The realization plan.
+ * @returns {object} The bundle input.
+ */
+function mapRgba8TextureBitmap(bitmap, plan)
+{
+  const label = `${plan.name} bitmap`;
+  if (!bitmap.IsValid()) fail(`${label} is not valid`);
+
+  const srgb = isSrgbCarbonFormat(bitmap.GetFormat());
+  const copy = new HostBitmap();
+  if (!copy.Create(bitmap.GetWidth(), bitmap.GetHeight(), 1, bitmap.GetFormat())) fail(`${label} could not be copied`);
+  copy.GetMipRawData(0).set(bitmap.GetMipRawData(0).subarray(0, bitmap.GetMipSize(0)));
+
+  const requested = srgb ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB : PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM;
+  if (!CjsImageFormat.convertImage(copy, requested)) fail(`${label} cannot be converted to RGBA8`);
+
+  const texture = {
+    width: copy.GetWidth(),
+    height: copy.GetHeight(),
+    format: srgb ? "rgba8unorm-srgb" : "rgba8unorm",
+    bytesPerRow: copy.GetMipPitch(0),
+    data: copy.GetMipRawData(0)
+  };
+  return {
+    label: plan.bundleLabel,
+    textures: frozenRecord([ [ plan.textureKey, texture ] ])
+  };
+}
+
+/** Whether a Carbon pixel format is one of the `_SRGB` variants. */
+function isSrgbCarbonFormat(format)
+{
+  return Object.entries(PixelFormat).some(([ name, value ]) => value === format && name.endsWith("_SRGB"));
 }
 
 function mapSamplerPayload(value, plan)
@@ -1878,7 +1929,9 @@ export class CjsWebgpuDevice
   {
     assertRealizationResource(resource);
     const plan = normalizeRgba8TextureRealizationOptions(options);
-    const input = mapRgba8TexturePayload(resource.GetPayload(), plan);
+    const payload = resource.GetPayload();
+    const bitmap = CjsSchema.cast(payload, HostBitmap);
+    const input = bitmap ? mapRgba8TextureBitmap(bitmap, plan) : mapRgba8TexturePayload(payload, plan);
     return this.RealizeResource(resource, input, { adapterKey: plan.adapterKey });
   }
 

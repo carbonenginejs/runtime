@@ -2721,3 +2721,35 @@ test("CjsWebgpuDevice refuses dynamic offsets it cannot honour", async () =>
     /not a dynamic binding/i
   );
 });
+
+test("CjsWebgpuDevice realizes a texture resource's HostBitmap (textures hold Carbon's bitmap, not a payload)", async () =>
+{
+  const { HostBitmap } = await import("../../../npm/dist/global/imageio/index.js");
+  const { PixelFormat } = await import("../../../npm/dist/global/consts/renderContext/index.js");
+  const fake = fakeDevice("bitmap-realization");
+  const webgpu = new CjsWebgpuDevice({ device: fake.device, shaderStage: SHADER_STAGE, textureUsage: TEXTURE_USAGE });
+
+  // A BGRA bitmap uploads as linear RGBA8, bytes swizzled to RGBA.
+  const bgra = new HostBitmap();
+  bgra.Create(1, 1, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  bgra.GetRawData().set([ 10, 20, 30, 255 ]);
+  const linear = adapterResourceSlot();
+  linear.payload = bgra;
+
+  const plain = await webgpu.RealizeRgba8Texture(linear, { textureKey: "t", adapterKey: "webgpu:plain" });
+  assert.equal(plain.textures.t.format, "rgba8unorm");
+  assert.deepEqual([ ...bgra.GetRawData() ], [ 10, 20, 30, 255 ], "the resource's own bitmap is untouched");
+  plain.Destroy();
+
+  // A block-compressed sRGB bitmap is decoded on a copy and stays sRGB.
+  const bc1 = new HostBitmap();
+  bc1.Create(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB);
+  bc1.GetRawData().set([ 0x00, 0xF8, 0x00, 0x00, 0, 0, 0, 0 ]);
+  const srgb = adapterResourceSlot();
+  srgb.payload = bc1;
+
+  const decoded = await webgpu.RealizeRgba8Texture(srgb, { textureKey: "t", adapterKey: "webgpu:srgb" });
+  assert.equal(decoded.textures.t.format, "rgba8unorm-srgb");
+  assert.equal(bc1.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB, "still compressed on the resource");
+  decoded.Destroy();
+});
