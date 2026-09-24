@@ -768,10 +768,11 @@ export class Tr2LightManager extends CjsModel
       let index = profile.GetTextureIndex();
       if (index < 0 && typeof profile.RegisterProfileElement === "function")
       {
-        const payload = typeof profile.GetPayload === "function" ? profile.GetPayload() : null;
-        if (payload && payload.samples)
+        // Carbon hands the profile's m_bitmap to the array (Tr2LightProfileRes.cpp:95-99).
+        const bitmap = profile.GetBitmap();
+        if (bitmap.IsValid())
         {
-          const element = Tr2LightManager.getLightProfileArray().AddElement(payload);
+          const element = Tr2LightManager.getLightProfileArray().AddElement(bitmap);
           if (element.IsValid())
           {
             profile.RegisterProfileElement(element);

@@ -1,3 +1,5 @@
+import { HostBitmap } from "../../npm/dist/global/imageio/index.js";
+import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2LightManager, Tr2TextureArray, Tr2TextureArrayElement } from "../../npm/dist/trinity/index.js";
@@ -22,6 +24,12 @@ function bakedProfilePayload(peak = 500)
     const numbers = [ 1, 100, 1, 2, 1, 1, 1, 0.2, 0.3, 0.4, 1, 0, 60, 0, 180, 0, peak, 0 ];
     const bytes = new TextEncoder().encode(`IESNA:LM-63-1995\nTILT=NONE\n${numbers.join(" ")}\n`);
     return CjsIESFormat.read(bytes, { emit: "lightProfile" });
+}
+
+/** A baked profile as Carbon's bitmap: 1024x1 R16_FLOAT with a full chain. */
+function profileBitmap(peak = 500)
+{
+    return Tr2LightProfileRes.bitmapFromBake(bakedProfilePayload(peak));
 }
 
 function profileResource(payload = bakedProfilePayload())
@@ -49,7 +57,7 @@ function packedProfileSlot(manager, lightIndex = 0)
 test("the texture array gates dimensions, reuses released slots, and rounds capacity", () =>
 {
     const array = new Tr2TextureArray();
-    const good = bakedProfilePayload();
+    const good = profileBitmap();
 
     assert.equal(array.GetWidth(), 0, "width is 0 before the first element (cpp:101-104)");
 
@@ -62,34 +70,38 @@ test("the texture array gates dimensions, reuses released slots, and rounds capa
 
     // The dimension gate rejects a wrong mip count SILENTLY - an invalid
     // handle, exactly how a bad light profile fails to register in Carbon.
-    const rejected = array.AddElement({ ...good, mipCount: 1 });
+    const oneMip = new HostBitmap();
+    oneMip.Create(1024, 1, 1, PixelFormat.PIXEL_FORMAT_R16_FLOAT);
+    const rejected = array.AddElement(oneMip);
     assert.equal(rejected.IsValid(), false);
     assert.equal(rejected.GetElementIndex(), 0, "Carbon quirk: invalid handles report index 0");
 
-    const b = array.AddElement(bakedProfilePayload(9));
+    const b = array.AddElement(profileBitmap(9));
     assert.equal(b.GetElementIndex(), 1);
     assert.equal(array.GetElementCount(), 2);
 
     // Element data is copied in (Carbon memcpy, cpp:53): mutating the
     // source after the add must not reach the stored slice.
-    good.samples[0] = 0;
-    assert.notEqual(array.GetElement(0).samples[0], 0);
+    const firstByte = array.GetElement(0).GetRawData()[1];
+    good.GetRawData()[1] = firstByte ^ 0xff;
+    assert.equal(array.GetElement(0).GetRawData()[1], firstByte);
 
     // Release frees the slot; the next add reuses it first-fit.
     a.Release();
-    assert.equal(array.GetElementCount(), 1);
+    // Carbon counts slots, released ones included: m_elements.size() (cpp:91-94).
+    assert.equal(array.GetElementCount(), 2);
     assert.equal(array.GetElement(0), null);
-    const c = array.AddElement(bakedProfilePayload(7));
+    const c = array.AddElement(profileBitmap(7));
     assert.equal(c.GetElementIndex(), 0, "first-fit reuse of the released slot");
     assert.equal(a.IsValid(), false, "released handles stay invalid");
     a.Release(); // idempotent
 
     let changes = 0;
     const off = array.OnTextureChange(() => { changes += 1; });
-    array.AddElement(bakedProfilePayload(3));
+    array.AddElement(profileBitmap(3));
     assert.equal(changes, 1);
     off();
-    array.AddElement(bakedProfilePayload(4));
+    array.AddElement(profileBitmap(4));
     assert.equal(changes, 1, "unsubscribed listeners stay quiet");
 });
 
@@ -130,7 +142,8 @@ test("unloading a profile releases its slice for reuse", () =>
 
     resource.SetPayload(null);
     assert.equal(resource.GetTextureIndex(), -1, "unload releases the slice");
-    assert.equal(array.GetElementCount(), before);
+    assert.equal(array.GetElementCount(), before + 1, "the released slot is still counted (cpp:91-94)");
+    assert.equal(array.GetElement(index), null, "but it holds nothing");
 
     // The freed slot is reused first-fit by the next profile.
     const next = profileResource(bakedProfilePayload(50));

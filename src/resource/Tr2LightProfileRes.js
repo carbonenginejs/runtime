@@ -2,6 +2,8 @@
 import { CjsSchema } from "#schema";
 import { CjsResource } from "./CjsResource.js";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
+import { HostBitmap } from "#imageio";
+import { PixelFormat } from "#consts/render-context";
 import { ResourceRequirement } from "./ResourceRequirement.js";
 
 /**
@@ -21,6 +23,12 @@ export class Tr2LightProfileRes extends CjsResource
   // only GetElementIndex/Release, never the array class.
   #element = null;
 
+  /**
+   * m_bitmap: the baked profile, a 1024x1 `PIXEL_FORMAT_R16_FLOAT` strip with a
+   * full mip chain (Tr2LightProfileRes.cpp:13-15, 198-215). Invalid until loaded.
+   */
+  bitmap = new HostBitmap();
+
   /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
   {
@@ -34,12 +42,45 @@ export class Tr2LightProfileRes extends CjsResource
         this.#element.Release();
         this.#element = null;
       }
+      this.bitmap = new HostBitmap();
       super.SetPayload(null);
       return this;
     }
     assertResourcePayloadObject("Tr2LightProfileRes", payload);
+    this.bitmap = Tr2LightProfileRes.bitmapFromBake(payload);
     super.SetPayload(payload);
     return this;
+  }
+
+  /**
+   * Carbon's `m_bitmap`, which it hands to the light-profile array
+   * (Tr2LightProfileRes.cpp:95-99).
+   *
+   * @returns {HostBitmap} The baked profile; invalid until loaded.
+   */
+  GetBitmap()
+  {
+    return this.bitmap;
+  }
+
+  /**
+   * The baked profile as Carbon's bitmap. The IES bake already writes Carbon's
+   * bytes - half floats, one mip after another - which is exactly a 1024x1
+   * R16_FLOAT HostBitmap's memory, so this is a copy, not a conversion.
+   *
+   * @param {{width: number, samples: Uint16Array}} bake The IES reader's lightProfile output.
+   * @returns {HostBitmap} The bitmap; invalid when the bake has no samples.
+   */
+  static bitmapFromBake(bake)
+  {
+    const bitmap = new HostBitmap();
+
+    if (!(bake.samples instanceof Uint16Array)) return bitmap;
+    if (!bitmap.Create(bake.width, 1, 0, PixelFormat.PIXEL_FORMAT_R16_FLOAT)) return bitmap;
+
+    const raw = bitmap.GetRawData();
+    raw.set(new Uint8Array(bake.samples.buffer, bake.samples.byteOffset, Math.min(bake.samples.byteLength, raw.byteLength)));
+    return bitmap;
   }
 
   /**
