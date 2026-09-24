@@ -1174,9 +1174,9 @@ export class CjsResMan
     {
       throw new TypeError("CjsResMan.RegisterResourceConstructor requires a name.");
     }
-    if (typeof constructor?.GetResource !== "function")
+    if (typeof constructor?.GetResource !== "function" || typeof constructor.IsCacheable !== "function")
     {
-      throw new TypeError(`CjsResMan dynamic resource constructor "${key}" must implement GetResource.`);
+      throw new TypeError(`CjsResMan dynamic resource constructor "${key}" must implement IBlueDynamicResourceConstructor (GetResource and IsCacheable).`);
     }
     this.#dynamicConstructors.set(key, constructor);
     return this;
@@ -2271,8 +2271,9 @@ export class CjsResMan
 
   /**
    * `dynamic:` branch of BlueResMan::GetResourceHelper (BlueResMan.cpp:219-245).
-   * Inserted not cacheable, Carbon's `CACHING_NOT_ALLOWED`: a dynamic resource is
-   * never admitted to the byte cache.
+   * Carbon inserts every dynamic resource `CACHING_NOT_ALLOWED`; here the
+   * constructor decides (`IBlueDynamicResourceConstructor.IsCacheable`), because
+   * rebuilding costs a network fetch and a decode rather than a disk read.
    *
    * @param {string} key Normalized `dynamic:/<name>/<query>` path.
    * @param {string} cacheKey MotherLode key.
@@ -2299,7 +2300,7 @@ export class CjsResMan
     }
     this.#dynamicResources.add(resource);
     resource.SetObjectLoader(() => this.GetObject(key));
-    const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: false });
+    const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
     const canonical = insertion?.resource || resource;
     this.#BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);

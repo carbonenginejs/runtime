@@ -16,9 +16,25 @@ export class IBlueDynamicResourceConstructor
 {
   /** `GetResource` - construct the resource this query describes. */
   GetResource(_query) {}
+
+  /**
+   * Whether the resource this constructor builds may stay in the cache once
+   * nothing holds it.
+   *
+   * Not Carbon: Carbon inserts every dynamic resource with
+   * `CACHING_NOT_ALLOWED` (`BlueResMan.cpp:233`) because it rebuilds from local
+   * disk. We pay a network fetch and a decode, so each constructor says what its
+   * resource costs to rebuild. The default is Carbon's.
+   *
+   * @returns {boolean} True to keep the resource cached after release.
+   */
+  IsCacheable() {
+    return false;
+  }
 }
 
 CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "GetResource", compose.abstract, impl.abstract);
+CjsSchema.decorateMethod(IBlueDynamicResourceConstructor, "IsCacheable", impl.custom);
 CjsSchema.define(IBlueDynamicResourceConstructor, {
   className: "IBlueDynamicResourceConstructor", carbon: "IBlueDynamicResourceConstructor", family: "blue", fields: {}
 });

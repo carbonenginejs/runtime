@@ -9,6 +9,7 @@ import {
   ParseColor,
   RasterizeSolidColor,
   RegisterSolidColorTexture,
+  SolidColorTextureConstructor,
   TriTextureRes
 } from "../../../src/resource/index.js";
 
@@ -81,6 +82,7 @@ test("dynamic constructor names are lowercased and can be unregistered", () =>
   const { resMan } = countingManager();
   const built = [];
   resMan.RegisterResourceConstructor("Probe", {
+    IsCacheable() { return false; },
     GetResource(query)
     {
       built.push(query);
@@ -109,7 +111,7 @@ test("an unknown dynamic name and a constructor yielding nothing are raised by n
     error => error.code === "CJS_RESMAN_DYNAMIC_CONSTRUCTOR_MISSING"
       && error.constructorName === "nothing"
   );
-  resMan.RegisterResourceConstructor("empty", { GetResource() { return null; } });
+  resMan.RegisterResourceConstructor("empty", { GetResource() { return null; }, IsCacheable() { return false; } });
   assert.throws(
     () => resMan.GetResource("dynamic:/empty/x"),
     error => error.code === "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE"
@@ -152,6 +154,7 @@ test("a dynamic constructor registered under a backslash path still resolves", (
   const { resMan } = countingManager();
   const queries = [];
   resMan.RegisterResourceConstructor("probe", {
+    IsCacheable() { return false; },
     GetResource(query)
     {
       queries.push(query);
@@ -162,4 +165,19 @@ test("a dynamic constructor registered under a backslash path still resolves", (
   });
   resMan.GetResource("dynamic:\\Probe\\KeepMe");
   assert.deepEqual(queries, [ "KeepMe" ]);
+});
+
+test("each dynamic constructor declares its cache policy; Carbon's default is not to keep it", async () =>
+{
+  const { IBlueDynamicResourceConstructor } = await import("../../../src/global/blue/index.js");
+  const { GradientTextureConstructor } = await import("../../../npm/dist/trinity/core/procedural/GradientTextureConstructor.js");
+
+  // Carbon inserts every dynamic resource CACHING_NOT_ALLOWED (BlueResMan.cpp:233).
+  assert.equal(new IBlueDynamicResourceConstructor().IsCacheable(), false);
+  assert.equal(new GradientTextureConstructor().IsCacheable(), false);
+  // A solid colour is four numbers; it is kept for good.
+  assert.equal(new SolidColorTextureConstructor().IsCacheable(), true);
+
+  const resMan = new CjsResMan();
+  assert.throws(() => resMan.RegisterResourceConstructor("half", { GetResource() {} }), /IsCacheable/);
 });

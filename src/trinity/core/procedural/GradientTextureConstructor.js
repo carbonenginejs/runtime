@@ -3,6 +3,7 @@
 // Carbon registers this constructor at static-initialisation time
 // (GradientTexture.cpp:26-44). As with RegisterShaderResources and
 // RegisterSolidColorTexture, registration here is an explicit composition call.
+import { IBlueDynamicResourceConstructor } from "#blue";
 import { TriTextureRes } from "#resource";
 import { GradientPrefix, RasterizeGradient } from "./gradientTexture.js";
 
@@ -15,7 +16,7 @@ import { GradientPrefix, RasterizeGradient } from "./gradientTexture.js";
  * TriTextureRes is in the resource layer and cannot reach the curves - see the
  * head comment of gradientTexture.js.
  */
-export class GradientTextureConstructor
+export class GradientTextureConstructor extends IBlueDynamicResourceConstructor
 {
   /**
    * `IBlueDynamicResourceConstructor::GetResource` (GradientTexture.cpp:32-38).
