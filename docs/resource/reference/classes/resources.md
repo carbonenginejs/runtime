@@ -315,6 +315,16 @@ Attribute-free persisted marker step mirroring Carbon's mip-generation step; the
 - Visibility: Public
 - Kind: Faithful Carbon port
 
+<!-- class:CjsTexturePackConstructor -->
+## `CjsTexturePackConstructor`
+
+The `dynamic:/texturepack/<source>[:channels];...` constructor: packs up to four channels from separate images into one texture by building a texture-pipeline recipe (Convert, Resize, Pack, GenerateMips). Register it with `RegisterTexturePack(resMan)`.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/texture/CjsTexturePackConstructor.js`
+- Visibility: Public
+- Kind: Original CarbonEngineJS class
+
 <!-- class:CjsTexturePipelineStepConvert -->
 ## `CjsTexturePipelineStepConvert`
 

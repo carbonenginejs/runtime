@@ -136,3 +136,31 @@ test("a pipeline whose input fails leaves the texture prepared without a bitmap,
   assert.equal(texture.IsPrepared(), true, "Carbon sets m_isGood regardless (TriTextureRes.cpp:337)");
   assert.equal(texture.GetBitmap(), null, "so the parameter binds its fallback");
 });
+
+test("dynamic:/texturepack builds a recipe and packs channels from separate images", async () =>
+{
+  const { RegisterTexturePack, CjsTexturePackConstructor } = await import("../../npm/dist/resource/index.js");
+  const files = {
+    "res:/x/rough.dds": legacyDds(1, 1, [ 0, 0, 40, 255 ]),
+    "res:/x/metal.dds": legacyDds(2, 2, new Array(4).fill([ 0, 0, 90, 255 ]).flat())
+  };
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: path => Promise.resolve(files[path]) } });
+  RegisterTextureResources(resMan);
+  RegisterTexturePack(resMan);
+
+  const texture = resMan.GetResource("dynamic:/texturepack/res:/x/rough.dds;res:/x/metal.dds");
+  await texture.Ready();
+
+  const bitmap = texture.GetBitmap();
+  assert.equal(bitmap.GetWidth(), 2, "resized up to the largest source");
+  // BGRA: b fill 0, g = metal's red, r = rough's red, a opaque; plus a mip chain.
+  assert.deepEqual([ ...bitmap.GetMipRawData(0).subarray(0, 4) ], [ 0, 90, 40, 255 ]);
+  assert.equal(bitmap.GetTrueMipCount(), 2);
+  assert.equal(resMan.GetResource("dynamic:/texturepack/res:/x/rough.dds;res:/x/metal.dds"), texture, "one texture per query");
+
+  // Channel selection, and the limits of a query.
+  assert.deepEqual(CjsTexturePackConstructor.parseQuery("res:/a.dds:rg;res:/b.dds:rg").map(s => s.channels.join("")), [ "rg", "rg" ]);
+  assert.equal(CjsTexturePackConstructor.parseQuery("res:/a.dds:rgb;res:/b.dds:rg"), null, "five channels");
+  assert.equal(CjsTexturePackConstructor.parseQuery(""), null);
+});

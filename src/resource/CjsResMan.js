@@ -1395,6 +1395,16 @@ export class CjsResMan
 
     if (this.#dynamicResources.has(resource))
     {
+      // One still building is waited for: a texture made from a pipeline loads
+      // its inputs first, as Carbon's .ctr texture does (TriTextureRes.cpp:238-258).
+      if (resource.IsLoading())
+      {
+        return new Promise((resolve, reject) => resource.OnCompleted(() => (resource.HasPayload()
+          ? resolve(this.GetObject(path, options))
+          : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
+            "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload")))));
+      }
+
       // A dynamic resource is built by its constructor, never read from a
       // source: without a payload it failed, and there is nothing to fetch.
       return Promise.reject(resource.error || dynamicResourceError(
