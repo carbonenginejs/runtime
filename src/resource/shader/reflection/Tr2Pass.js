@@ -4,9 +4,12 @@ import { CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import {
 } from "#utils/is";
-import { requireShaderStageType, SHADER_STAGE_COUNT } from "./shaderStage.js";
+import { requireShaderStageType, SHADER_STAGE_COUNT, ShaderStageType } from "./shaderStage.js";
 import { Tr2EffectStageInput } from "./Tr2EffectStageInput.js";
 import { recordBytes, toRecordBlob } from "./carbonRecordFields.js";
+import { CARBON_BACKEND_ENGINE_ID, peekBackendEngineId } from "../../format/carbonEffect/backendEngineId.js";
+import { readBackendBlock } from "../../format/carbonEffect/carbonEffectBackendBlock.js";
+import { readGlslBackendBlock } from "../../formats/webgl/core/glslBackendBlock.js";
 
 /** Reflected effect pass; Carbon's interned program and state handles are kept as authored data. */
 export class Tr2Pass extends CjsModel
@@ -55,9 +58,11 @@ export class Tr2Pass extends CjsModel
    * explicit empty slots rather than left as holes. The stage's own type byte
    * decides where it lands; position in the record does not.
    *
-   * The optional backend block is retained verbatim and not interpreted here. It
-   * is the one place the container diverges by backend, and deciding what it
-   * means is the engine's job, not the reader's.
+   * The optional backend block is retained verbatim. It is the one place the
+   * container diverges by backend, and deciding what it means is the engine's
+   * job, not the reader's - with one exception: the texture merges it records
+   * are copied onto the pixel stage's reflected resources
+   * (`readMergedResources`).
    *
    * @param {object} record Carbon pass record.
    * @returns {Tr2Pass} Reflected pass.
@@ -121,7 +126,88 @@ export class Tr2Pass extends CjsModel
       }
     }
 
+    // The one part of the block that is not the backend's alone: which textures
+    // were merged. The effect binds by register from this reflection, so the
+    // merged register has to say what it now holds.
+    const pixel = pass.stageInputs[ShaderStageType.PIXEL_SHADER];
+
+    for (const merge of Tr2Pass.readMergedResources(pass.backendBlock))
+    {
+      const resource = pixel.resources.get(merge.register);
+
+      if (!resource)
+      {
+        throw new Error(`Backend block merges into t${merge.register}, which the pixel stage does not reflect`);
+      }
+
+      resource.arrayLayers = merge.arrayLayers;
+      resource.packed = merge.packed;
+    }
+
     return pass;
+  }
+
+  /**
+   * The texture merges a pass's backend block records, each at the register the
+   * merged texture binds to.
+   *
+   * Not Carbon; see `Tr2EffectResource.arrayLayers`. The merge list is shared by
+   * both browser backends, but where the merged texture landed is not: WebGPU
+   * tags the binding with the merge's id, and the GLSL emitter declares it as
+   * `s` + the merge's output name at the first member it met. A merge with no
+   * such binding was never sampled in this body, so it is left out. Blocks of
+   * any other backend record no merges.
+   *
+   * @param {{bytes: Uint8Array}|null} backendBlock The pass's backend block.
+   * @returns {Array<{register: number, arrayLayers: string[], packed: boolean}>} The merges.
+   */
+  static readMergedResources(backendBlock)
+  {
+    if (!backendBlock) return [];
+
+    const engine = peekBackendEngineId(backendBlock.bytes);
+    let transforms;
+    let registerOf;
+
+    if (engine === CARBON_BACKEND_ENGINE_ID.webgpu)
+    {
+      const block = readBackendBlock(backendBlock.bytes, { source: "Tr2Pass.backendBlock" });
+      const bindings = block.bindGroups.flatMap(group => group.bindings);
+
+      transforms = block.transforms;
+      registerOf = transform => bindings.find(binding => binding.transformId === transform.id)?.registerIndex;
+    }
+    else if (engine === CARBON_BACKEND_ENGINE_ID.webgl2)
+    {
+      const block = readGlslBackendBlock(backendBlock.bytes, { source: "Tr2Pass.backendBlock" });
+      const bindings = block.stages.pixel?.bindings ?? [];
+
+      transforms = block.transforms;
+      registerOf = transform => bindings.find(binding => binding.kind === "resource" && binding.name === `s${transform.output.name}`)?.registerIndex;
+    }
+    else
+    {
+      return [];
+    }
+
+    const merges = [];
+
+    for (const transform of transforms)
+    {
+      if (transform.kind !== "texture-2d-array" && transform.kind !== "texture-2d-packed") continue;
+
+      const register = registerOf(transform);
+
+      if (register === undefined) continue;
+
+      merges.push({
+        register,
+        arrayLayers: transform.inputs.map(input => input.parameter),
+        packed: transform.kind === "texture-2d-packed"
+      });
+    }
+
+    return merges;
   }
 
 
@@ -196,6 +282,9 @@ CjsSchema.define(Tr2Pass, {
     indirectLayout: type.rawStruct("Tr2IndirectDrawBufferLayout"),
     renderStateValues: [ impl.adapted, impl.reason("Carbon interns the state block while reading (Tr2EffectStateManager::RegisterRenderStateSetup, .h:118) and keeps only the renderStates index (Tr2EffectDescription.h:202). Ours interns at the Trinity boundary, so the authored state/value pairs are retained until then; see Tr2EffectStateManager.registerShaderHandles."), type.rawStruct("CjsEffectRenderStateValues") ],
     stageOrder: [ impl.custom, impl.reason("Carbon indexes pass stages by type in a fixed array and loses the file's ordering; the port retains it so a body can be re-emitted as the file that produced it."), type.rawStruct("CjsEffectStageOrder") ],
-    backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains uninterpreted."), type.rawStruct("CjsEffectBackendBlock") ]
+    backendBlock: [ impl.custom, impl.reason("Carbon ends a pass at its render states; CarbonEngineJS containers may append one per-pass block carrying the backend program, which the resource retains, reading only its texture merges."), type.rawStruct("CjsEffectBackendBlock") ]
+  },
+  methods: {
+    readMergedResources: impl.custom
   }
 });

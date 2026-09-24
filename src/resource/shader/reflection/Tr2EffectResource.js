@@ -26,6 +26,26 @@ export class Tr2EffectResource extends CjsModel
   arrayElements = 0;
 
   /**
+   * The member parameter names, layer (or channel) 0 first, when a browser
+   * backend merged several of this stage's textures into the one bound at this
+   * register; null otherwise.
+   *
+   * Not Carbon. WebGL2 has sixteen texture units, so a family of maps
+   * (Detail1Map..Detail3Map) is merged into one texture when the container is
+   * built, and the pass's backend block records the merge. The reader copies it
+   * here so the effect can keep its named parameters and bind the assembled
+   * texture in their place. The members' own registers stay reflected; the
+   * backend no longer declares them.
+   */
+  arrayLayers = null;
+
+  /**
+   * Whether the merge packs the members as channels of one 2D texture, rather
+   * than stacking them as layers of a 2D array. Not Carbon; see `arrayLayers`.
+   */
+  packed = false;
+
+  /**
    * Build one SRV or UAV from its Carbon v15 description record.
    *
    * Both a texture record and a UAV record land here, and they are not the same
@@ -120,6 +140,8 @@ CjsSchema.define(Tr2EffectResource, {
     isAutoregister: type.boolean,
     name: type.string,
     type: [ type.int32, type.enum("Type") ],
-    arrayElements: type.uint32
+    arrayElements: type.uint32,
+    arrayLayers: [ impl.custom, type.list("string") ],
+    packed: [ impl.custom, type.boolean ]
   }
 });
