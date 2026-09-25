@@ -66,5 +66,8 @@ export * from "./CjsResMan.js";
 export * from "./IBluePaths.js";
 export * from "./IBlueClasses.js";
 export * from "./BlueClasses.js";
+export * from "./ICopier.js";
+export * from "./ICopierCustomAssignment.js";
+export * from "./Copier.js";
 export * from "./blue.js";
 export { CjsBlueEnumRegistry, EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";

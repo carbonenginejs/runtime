@@ -33,6 +33,7 @@
 // carry, the name is the only identity there is.
 import { CjsSchema, carbon, impl } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
+import { Copier } from "./Copier.js";
 
 
 /** `BlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp. */
@@ -157,9 +158,35 @@ export class BlueClasses extends IBlueClasses
 
   UpdateObjectCount() { throw new Error("BlueClasses.UpdateObjectCount is not implemented"); }
 
-  CopyTo() { throw new Error("BlueClasses.CopyTo is not implemented"); }
+  /**
+   * Copies `source` into `dest`, or into a new instance of its class when
+   * `dest` is null, through a fresh Copier (BlueClasses.cpp:498-510).
+   *
+   * @param {object} source The object to copy.
+   * @param {object|null} [dest=null] An existing object of the same class, or null.
+   * @param {Function|null} [copyOverride=null] See `Copier.SetCopyOverrideCallback`.
+   * @param {Function|null} [postCopy=null] See `Copier.SetPostCopyCallback`.
+   * @returns {object|null} The destination, or null when the copy failed.
+   */
+  CopyTo(source, dest = null, copyOverride = null, postCopy = null)
+  {
+    const copier = new Copier();
+    copier.SetCopyOverrideCallback(copyOverride);
+    copier.SetPostCopyCallback(postCopy);
+    return copier.CopyTo(source, dest);
+  }
 
-  CloneTo() { throw new Error("BlueClasses.CloneTo is not implemented"); }
+  /**
+   * Copies preserving topology, through a fresh Copier (BlueClasses.cpp:512-516).
+   *
+   * @param {object} source The object to copy.
+   * @param {object|null} [dest=null] An existing object of the same class, or null.
+   * @returns {object|null} The destination, or null when the copy failed.
+   */
+  CloneTo(source, dest = null)
+  {
+    return new Copier().CloneTo(source, dest);
+  }
 
   ProcessPendingDeletes() { throw new Error("BlueClasses.ProcessPendingDeletes is not implemented"); }
 
@@ -191,8 +218,8 @@ CjsSchema.define(BlueClasses, {
     QueryThisInterface: [ carbon.method, impl.notImplemented, NOT_YET ],
     FindVariable: [ carbon.method, impl.notImplemented, NOT_YET ],
     UpdateObjectCount: [ carbon.method, impl.notImplemented, NOT_YET ],
-    CopyTo: [ carbon.method, impl.notImplemented, NOT_YET ],
-    CloneTo: [ carbon.method, impl.notImplemented, NOT_YET ],
+    CopyTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**, and each callback carries a void* context; JavaScript returns the destination or null, and closures carry their own context.") ],
+    CloneTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**; JavaScript returns the destination or null.") ],
     ProcessPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
     ProcessAllPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
     SetPendingDeletesEnabled: [ carbon.method, impl.notImplemented, NOT_YET ],

@@ -41,11 +41,11 @@ export class IBlueClasses
   /** `UpdateObjectCount` - adjust the live and lock counts of an object's class. */
   UpdateObjectCount(_obj, _inst, _lock) {}
 
-  /** `CopyTo` - deep-copy an object through its exposed members. */
-  CopyTo(_source) {}
+  /** `CopyTo` - copy an object through its persisted members, into `dest` or a new instance. */
+  CopyTo(_source, _dest, _copyOverride, _postCopy) {}
 
-  /** `CloneTo` - clone an object through its exposed members. */
-  CloneTo(_source) {}
+  /** `CloneTo` - copy an object preserving topology; the same as `CopyTo`. */
+  CloneTo(_source, _dest) {}
 
   /** `ProcessPendingDeletes` - release objects whose deletion was deferred. */
   ProcessPendingDeletes() {}
