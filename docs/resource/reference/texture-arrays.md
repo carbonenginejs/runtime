@@ -110,4 +110,3 @@ schedules a complete topology rebuild. Topology-changing snapshots set
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
-- [Texture CPU pipeline and LOD membership](texture-pipeline.md)

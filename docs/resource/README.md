@@ -61,9 +61,6 @@ lifecycle, shader, format and container work.
   helper modules shared across concrete formats, and the one case where
   apparent duplication is deliberate — read before collapsing a repeated
   format helper.
-- [concepts/writing-an-engine-adapter.md](concepts/writing-an-engine-adapter.md):
-  the coupling rules and the reflection/topology seam for engine packages —
-  read before writing a second engine.
 - [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic
@@ -78,8 +75,6 @@ lifecycle, shader, format and container work.
   resource records, effect selection, and shader-reflection classes.
 - [reference/texture-arrays.md](reference/texture-arrays.md): texture-array
   proxies, update generations, and adapter commits.
-- [reference/texture-pipeline.md](reference/texture-pipeline.md):
-  `Tr2TexturePipeline` CPU steps and `Tr2TextureLodManager` membership.
 - [reference/events.md](reference/events.md): the `CjsEventEmitter` contract
   and event memory rules.
 - [reference/classes/README.md](reference/classes/README.md): the searchable
