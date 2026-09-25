@@ -376,12 +376,81 @@ test("nested child damage locators merge and route damage to their owning mesh",
   assertVectorClose(merged[0].position, [ 13, 0, 0 ], "nested damage locator");
 
   object.SetImpactDamageState(0, 0.5, 1, true);
-  assert.equal(mesh.GetDamageOverlay() instanceof EveDamageOverlay, true);
-  assert.equal(mesh.GetDamageOverlay().ArmorImpacts().size, 1);
+  assert.equal(mesh.GetPartDamageOverlay(mesh.GetPartTag()) instanceof EveDamageOverlay, true);
+  assert.equal(mesh.GetPartDamageOverlay(mesh.GetPartTag()).ArmorImpacts().size, 1);
   object.SetImpactAnimation("armorrepair", true, 4);
-  assert.equal(mesh.GetDamageOverlay().GetArmorRepairing().kickInLength, 1);
+  assert.equal(mesh.GetPartDamageOverlay(mesh.GetPartTag()).GetArmorRepairing().kickInLength, 1);
   object.ClearImpactDamage();
-  assert.equal(mesh.GetDamageOverlay().ArmorImpacts().size, 0);
+  assert.equal(mesh.GetPartDamageOverlay(mesh.GetPartTag()).ArmorImpacts().size, 0);
+});
+
+
+test("shared instanced parts own their damage locators and per-part overlays (Carbon 108ab454)", () =>
+{
+  const locator = new Locator();
+  vec3.set(locator.position, 2, 0, 0);
+  const damageSet = new EveLocatorSets();
+  damageSet.Set("damage", [ locator ]);
+  const armorShader = { token: "part armour shader" };
+
+  const object = new EveSpaceObject2();
+  object.SetImpactOverlay(new EveImpactOverlay());
+  const shared = new EveChildInstancedMeshes();
+  object.AddToEffectChildrenList(shared);
+
+  // Rotating, non-uniformly scaled instance: a reversed composition moves the
+  // merged locator somewhere other than [10, 2, 0].
+  const rotation = quat.setAxisAngle(quat.create(), [ 0, 0, 1 ], Math.PI / 2);
+  const instance = mat4.fromRotationTranslationScale(mat4.create(), rotation, [ 10, 0, 0 ], [ 1, 2, 3 ]);
+  const areas = [ { effect: null, batchType: TriBatchType.TRIBATCHTYPE_OPAQUE, areaIndex: 0, areaCount: 1 } ];
+  shared.AddMesh("res:/part.cmf", false, 3, 0, areas, [ instance ], "", "", 5, [ damageSet ], armorShader);
+  object.Initialize();
+
+  const merged = object.GetLocatorsForSet("damage");
+  assert.equal(merged.length, 1);
+  assertVectorClose(merged[0].position, [ 10, 2, 0 ], "part locator merged through its instance");
+  const transformed = object.GetTransformedLocatorsFromSet("damage");
+  assert.equal(transformed.length, 1);
+  assertVectorClose(transformed[0][0], [ 10, 2, 0 ], "GetTransformedLocatorsFromSet includes part locators");
+
+  const localPosition = vec3.create();
+  const localDirection = vec3.create();
+  assert.equal(shared.GetPartDamageLocatorAnimatedLocal(5, 0, localPosition, localDirection), true);
+  assertVectorClose(localPosition, [ 2, 0, 0 ], "part-local damage locator");
+  assert.equal(shared.GetPartDamageLocatorAnimatedLocal(6, 0, localPosition, localDirection), false);
+  assert.equal(shared.GetPartArmorDamageShaderEffect(5), armorShader);
+
+  object.SetImpactDamageState(0, 0.5, 1, true);
+  const overlay = shared.GetPartDamageOverlay(5);
+  assert.equal(overlay instanceof EveDamageOverlay, true);
+  assert.equal(overlay.ArmorImpacts().size, 1);
+  assert.equal(overlay.GetArmorDamageShaderEffect(), armorShader);
+  assert.equal(shared.GetPartDamageOverlay(6), null);
+  assert.deepEqual(object.CollectPartDamageOverlays([]), [ [ overlay, 0 ] ]);
+
+  EveDamageOverlay.impactEffectEnabled = false;
+  try
+  {
+    assert.equal(object.CreateImpact(0, [ 0, 0, 1 ], 1, 1), -1, "part impacts honour the impact switch");
+  }
+  finally
+  {
+    EveDamageOverlay.impactEffectEnabled = true;
+  }
+  const partImpact = object.CreateImpact(0, [ 0, 0, 1 ], 1, 1);
+  assert.ok(partImpact >= 0, "with the switch on, the impact lands on the part");
+  assert.equal(overlay.HasImpact(partImpact), true);
+  assert.equal(overlay.GetSeed(), object.impactOverlay.GetDamageOverlay().GetSeed() + 5, "seed offset by the range's part tag");
+
+  object.ClearImpactDamage();
+  assert.equal(overlay.ArmorImpacts().size, 0);
+
+  shared.SetInstanceTransformByPartTag(5, [ 0, 0, 7 ], [ 0, 0, 0, 1 ], [ 1, 1, 1 ]);
+  assertVectorClose(object.GetLocatorsForSet("damage")[0].position, [ 2, 0, 7 ], "moving the part re-merges its locators");
+
+  shared.RemoveInstancesByPartTag(5);
+  assert.equal(shared.GetPartDamageOverlay(5), null, "removing a part drops its overlay");
+  assert.equal(object.GetLocatorsForSet("damage"), null, "and its merged locators");
 });
 
 

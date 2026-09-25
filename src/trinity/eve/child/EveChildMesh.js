@@ -427,6 +427,14 @@ export class EveChildMesh extends EveChildTransform
     return this.instanceTransforms;
   }
 
+  /** Returns the Tr2MeshBase this child draws, or null (Carbon EveChildMesh.cpp:968-971). */
+  @carbon.method
+  @impl.implemented
+  GetMesh()
+  {
+    return this.mesh;
+  }
+
   /**
    * Assigns the Tr2MeshBase this child draws; a nullish value clears it, which
    * also makes the child permanently invisible (UpdateVisibility requires a
@@ -1670,7 +1678,7 @@ export class EveChildMesh extends EveChildTransform
     mat4.multiply(childToObject, parentTransform, local);
     for (const sets of this.ownedLocatorSets)
     {
-      out.push({ childToObject: mat4.clone(childToObject), owner: this, sets });
+      out.push({ childToObject: mat4.clone(childToObject), owner: this, partTag: this.GetPartTag(), sets });
     }
   }
 
@@ -1703,21 +1711,23 @@ export class EveChildMesh extends EveChildTransform
     if (owner) owner.InvalidateMergedLocators("structure");
   }
 
-  /** Returns this child mesh's armour and hull damage overlay. */
+  /**
+   * Returns this child mesh's armour and hull damage overlay; a child mesh is
+   * one part, so the tag is ignored (Carbon EveChildMesh.cpp:2098-2101).
+   */
   @carbon.method
   @impl.implemented
-  GetDamageOverlay()
+  GetPartDamageOverlay(_partTag)
   {
     return this.damageOverlay;
   }
 
-  /** Creates this child mesh's damage overlay when it does not yet exist. */
+  /** Creates this child mesh's damage overlay when it does not yet exist (Carbon cpp:2103-2109). */
   @carbon.method
   @impl.implemented
-  EnsureDamageOverlay()
+  CreatePartDamageOverlay(_partTag)
   {
     this.damageOverlay ??= new EveDamageOverlay();
-    return this.damageOverlay;
   }
 
   /** Sets the per-part armour damage shader stamped by SOF placement creation. */
@@ -1728,17 +1738,17 @@ export class EveChildMesh extends EveChildTransform
     this.armorDamageShader = effect ?? null;
   }
 
-  /** Returns the per-part armour damage shader, or null when the part has none. */
+  /** Returns the per-part armour damage shader, or null when the part has none (Carbon cpp:2116-2119). */
   @carbon.method
   @impl.implemented
-  GetArmorDamageShaderEffect()
+  GetPartArmorDamageShaderEffect(_partTag)
   {
     return this.armorDamageShader;
   }
 
   /**
    * Returns the locator list of this child's own damage set, or null when the
-   * child owns no damage locators (Carbon EveChildMesh.cpp:2117-2127).
+   * child owns no damage locators (Carbon EveChildMesh.cpp:2121-2131).
    */
   @carbon.method
   @impl.implemented
@@ -1754,7 +1764,7 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Resolves one damage locator's BIND-pose position in the child's local
    * space - no bone transform, the stable overlay seed position (Carbon
-   * EveChildMesh.cpp:2129-2139).
+   * EveChildMesh.cpp:2133-2143).
    */
   @carbon.method
   @impl.implemented
@@ -1770,11 +1780,11 @@ export class EveChildMesh extends EveChildTransform
   /**
    * Resolves one damage locator's animated position and direction in the
    * child's local space, posed by this child's own animation updater (Carbon
-   * EveChildMesh.cpp:2141-2151).
+   * EveChildMesh.cpp:2145-2155; the part tag is ignored).
    */
   @carbon.method
   @impl.implemented
-  GetDamageLocatorAnimatedLocal(index, outPosition, outDirection)
+  GetPartDamageLocatorAnimatedLocal(_partTag, index, outPosition, outDirection)
   {
     const locators = this.GetOwnedDamageLocators();
     const locatorIndex = Number(index) | 0;

@@ -92,7 +92,6 @@
     "CreateHorizontalCurvedBannerGeometry",
     "CreateVerticalCurvedBannerGeometry",
     "OnPrepareResources",
-    "OnStructureListModified",
     "ReleaseResources"
   ],
   "EveBaseDistributionMethod": [
@@ -161,7 +160,6 @@
     "DoUpdateAsyncronous",
     "GetDebugOptions",
     "GetPerObjectDataSize",
-    "OnListModified",
     "RenderDebugInfo",
     "UpdatePerObjectBuffer"
   ],
@@ -246,11 +244,9 @@
     "GetMeshBindingIndices",
     "GetOverlayEffects",
     "GetPerObjectDataSize",
-    "InvalidateOwnerMergedLocators",
     "IsMorphsBaked",
     "IsShadowCastingDirty",
     "MarkRtDirty",
-    "OnListModified",
     "OnPrepareResources",
     "PrepareMorphBuffers",
     "PushRtGeometry",
@@ -290,7 +286,6 @@
     "GetEffectChildByName",
     "GetExternalParameters",
     "GetRangeDuration",
-    "OnListModified",
     "PlayAllCurveSets",
     "PlayCurveSet",
     "RenderDebugInfo",
@@ -393,7 +388,6 @@
     "CommitRibbonBatch",
     "GetID",
     "GetPickingBatches",
-    "OnListModified",
     "OnPrepareResources",
     "RebuildGeometry",
     "RefreshGeometryIfNeeded",
@@ -583,13 +577,13 @@
     "GetRenderPriority",
     "IsAnimated",
     "NextAudioInstanceId",
-    "OnListModified",
     "PlayAnimationOnce",
     "PlayCurveSet",
     "PrepareForAnimation",
     "PushChildrenAndDecalRenderables",
     "PushRenderables",
     "PushRtGeometry",
+    "PyGetTransformedLocatorsFromSet",
     "PyTransformLocators",
     "RegisterAudioGeometry",
     "RegisterSecondaryLightSource",
@@ -937,9 +931,6 @@
   "Tr2ActionOverlay": [
     "LoadOverlay"
   ],
-  "Tr2ActionPlayMeshAnimation": [
-    "HasDelayedBinding"
-  ],
   "Tr2ActionPython": [
     "InstantiateObject"
   ],
@@ -1239,7 +1230,6 @@
     "GenerateID",
     "GetHash",
     "GetID",
-    "SpawnOnce",
     "UpdateHash"
   ],
   "Tr2GpuStructuredBuffer": [
@@ -1392,7 +1382,6 @@
     "GetVertexDeclaration",
     "IsLoading",
     "OnPrepareResources",
-    "RebuildCachedData",
     "ReleaseCachedData",
     "ReleaseResources",
     "RenderDebugInfo"
@@ -1616,21 +1605,14 @@
   ],
   "Tr2Mesh": [
     "GetLowResMeshResPath",
-    "GetMeshResPath",
-    "InitializeGeometryResource",
     "IsLoading",
-    "PySetGeometryRes",
-    "RebuildCachedData",
     "ReleaseCachedData",
-    "SetLowResGeometryRes",
     "SetLowResMeshResPath"
   ],
   "Tr2MeshArea": [
-    "AddOwnerMesh",
     "GetOrCreateRtMeshArea",
     "GetRtMeshArea",
-    "HasVertexBufferAccessInRtShadow",
-    "RemoveOwnerMesh"
+    "HasVertexBufferAccessInRtShadow"
   ],
   "Tr2MeshBase": [
     "BindToRig",
@@ -1672,12 +1654,6 @@
   ],
   "Tr2PPTaaEffect": [
     "IncrementJitter"
-  ],
-  "Tr2ParticleElementData": [
-    "Invalid"
-  ],
-  "Tr2ParticleElementDeclaration": [
-    "GetSize"
   ],
   "Tr2ParticleSystem": [
     "ApplyConstraint",
@@ -1852,7 +1828,6 @@
   ],
   "Tr2RenderContext": [
     "BeginParallelEncoding",
-    "DestroyMainThreadRenderContext",
     "EndParallelEncoding",
     "Fork",
     "Join",
@@ -1885,8 +1860,6 @@
   "Tr2Renderer": [
     "AddMipLevelSkipExclusionDirectory",
     "AdjustProjection",
-    "BeginFrame",
-    "BeginRenderContext",
     "DisableFallbackTextureDebugging",
     "DisableResourceLoad",
     "DrawBox",
@@ -1894,14 +1867,9 @@
     "DrawOrientedBox",
     "DrawSphere",
     "EnableFallbackTextureDebugging",
-    "EndFrame",
-    "EndRenderContext",
-    "GetAnimationTime",
-    "GetAnimationTimeElapsed",
     "GetAspectRatio",
     "GetBackBufferDimensions",
     "GetBackClip",
-    "GetCurrentFrameCounter",
     "GetCurrentProjectionType",
     "GetFallbackTexture",
     "GetFieldOfView",
@@ -1916,7 +1884,6 @@
     "GetPoolAllocator",
     "GetProjectionRawTransform",
     "GetProjectionTransform",
-    "GetQuadListIndexBuffer",
     "GetReversedDepthProjectionTransform",
     "GetSettings",
     "GetShaderModel",
@@ -1948,7 +1915,6 @@
     "ReinitializeRegisteredEffects",
     "ReleaseDeviceResources",
     "RenderDebugInfo",
-    "ReserveQuadListIndexBuffer",
     "RunComputeShader",
     "RunComputeShaderIndirect",
     "SetOrthoProjection",
@@ -2032,7 +1998,6 @@
     "GetDynamicBoundingBox",
     "GetGeometryResPath",
     "HasTransparency",
-    "Initialize",
     "SetGeometryResPath",
     "SetSkeletonName"
   ],
@@ -2379,23 +2344,6 @@
     "ExecuteFromScript",
     "GetResourceDependenciesFromScript"
   ],
-  "Tr2TexturePipelineStepCompress": [
-    "Execute"
-  ],
-  "Tr2TexturePipelineStepGenerateMips": [
-    "Execute"
-  ],
-  "Tr2TexturePipelineStepLimitSize": [
-    "Execute",
-    "LimitSize"
-  ],
-  "Tr2TexturePipelineStepLoad": [
-    "Execute",
-    "GetResourceDependencies"
-  ],
-  "Tr2TexturePipelineStepPack": [
-    "Pack"
-  ],
   "Tr2TextureReference": [
     "GetArraySize",
     "GetDepth",
@@ -2459,11 +2407,8 @@
     "GetValueAtMult"
   ],
   "TriDevice": [
-    "AddPostUpdateCallback",
     "ApplicationActivated",
     "CreateUpscalingTechnique",
-    "DestroyRenderContext",
-    "DeviceExists",
     "DoReleaseDevice",
     "GetAdapter",
     "GetAsyncLoadDisabled",
@@ -2471,16 +2416,10 @@
     "GetGeometryLoadDisabled",
     "GetMinimumModelLOD",
     "GetMipLevelSkipCount",
-    "GetResourcesRegistered",
     "GetTextureLoadDisabled",
     "GetThrottling",
-    "HandleRenderTick",
-    "InitD3DDevice",
-    "InvalidateAndUnregisterForTicks",
     "IsDeviceLost",
     "LogAllLiveResources",
-    "OnSimClockRebase",
-    "PrepareDeviceResources",
     "PyCreateFullScreenDevice",
     "PyCreateWindowedDevice",
     "PyCreateWindowlessDevice",
@@ -2490,21 +2429,14 @@
     "PyRender",
     "PythonCreateDeviceHelper",
     "RebuildDeviceResourcesInPython",
-    "RegisterResource",
-    "ReleaseDeviceResources",
     "ResetDevice",
     "SetAsyncLoadDisabled",
     "SetEffectLoadDisabled",
     "SetGeometryLoadDisabled",
     "SetMinimumModelLOD",
-    "SetPresentParameters",
-    "SetPresentation",
     "SetTextureLoadDisabled",
     "SetThrottling",
-    "ShouldSkipFrame",
-    "Throttle",
-    "UnregisterResource",
-    "Update"
+    "ShouldSkipFrame"
   ],
   "TriGeometryRes": [
     "ClearCMFData",
@@ -2513,7 +2445,6 @@
     "CreateLodFromGrannyMesh",
     "CreateMeshesFromCMFFile",
     "CreateMeshesFromGrannyFile",
-    "DestroyRayCaster",
     "DetermineAreaBoundsAndVertCount",
     "DoPrepare",
     "ExtractAudioGeometry",
@@ -2547,7 +2478,6 @@
     "ReadGrannyFile",
     "RebuildCachedData",
     "RecalculateBoundingBox",
-    "ReleaseResources",
     "ReleaseResourcesHelper",
     "RenderAreas",
     "SaveMeshToCMFFile",
@@ -2798,9 +2728,6 @@
     "SetTextureFromRT",
     "TrimLods",
     "UpdateLodRequest"
-  ],
-  "TriTransformParameter": [
-    "RebuildEffectHandles"
   ],
   "TriValueBinding": [
     "DetermineCopyFunc",

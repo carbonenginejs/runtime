@@ -9,12 +9,18 @@ import { carbon, impl, edit, type } from "#schema";
 import { Tr2ScalarFader } from "../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../generated/include/enums.js";
 import { Tr2Lod } from "./EveLODHelper.js";
-import { EveDamageOverlay } from "./overlays/EveDamageOverlay.js";
+import {
+  EveDamageOverlay,
+  IMPACT_ARMOR_SIZE_FACTOR,
+  IMPACT_ARMOR_SIZE_MAX
+} from "./overlays/EveDamageOverlay.js";
+import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
 
 
 const IMPACT_SHIELD_SIZE_MAX = 2000;
 const IMPACT_SHIELD_SIZE_MIN = 70;
 const IMPACT_SHIELD_FADEOUT = 1.5;
+const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
 
 
 /**
@@ -605,12 +611,74 @@ export class EveImpactOverlay extends CjsModel
   /** Advances shield faders and publishes the shared damage block. */
   @carbon.method
   @impl.adapted
-  UpdateSyncronous(updateContext, _parent = null)
+  UpdateSyncronous(updateContext, parent)
   {
+    // Carbon EveImpactOverlay.cpp:96-110: debris spawns BEFORE the activity
+    // early-out, so part overlays spawn even while the ship's is idle.
+    this.SpawnImpactDebris(updateContext, parent);
+
     const hasGeneralActivity = this.HasGeneralActivity();
     this.damageOverlay.UpdateBlockData(
       hasGeneralActivity ? updateContext.GetDataTextureManager() : null,
       hasGeneralActivity);
+  }
+
+  /**
+   * Spawns debris particles once for every armour impact that requested them,
+   * on the ship's overlay and then on each part's, offsetting part locators by
+   * their range in the merged damage set (Carbon EveImpactOverlay.cpp:116-180).
+   * The hull-emitter test reads the SHIP's impact configuration even for a
+   * part overlay; ported as written.
+   */
+  @carbon.method
+  @impl.implemented
+  SpawnImpactDebris(updateContext, parent)
+  {
+    if (!EveDamageOverlay.impactEffectEnabled) return;
+    const gpuParticleSystem = updateContext.GetGpuParticleSystem();
+    if (!gpuParticleSystem || !this.armorImpactEmitter) return;
+
+    const spawnFromOverlay = (overlay, mergedIndexOffset) =>
+    {
+      const armorImpactParentSize = overlay.GetArmorImpactParentSize();
+      if (armorImpactParentSize <= 0) return;
+      for (const impact of overlay.ArmorImpacts().values())
+      {
+        if (!impact.requestSpawnDebris) continue;
+        const locatorIndex = mergedIndexOffset + impact.damageLocatorIndex;
+        const impactPosWS = vec3.create();
+        parent.GetDamageLocatorPosition(locatorIndex, true, impactPosWS);
+        this.armorImpactEmitter.SetPosition(impactPosWS);
+        const impactDirWS = vec3.fromValues(0, 1, 0);
+        parent.GetDamageLocatorDirection(locatorIndex, true, impactDirWS);
+        this.armorImpactEmitter.SetDirection(impactDirWS);
+        const parentVelocityWS = vec3.create();
+        parent.GetWorldVelocity(parentVelocityWS);
+        const scale = impact.size * armorImpactParentSize / (IMPACT_ARMOR_SIZE_MAX / IMPACT_ARMOR_SIZE_FACTOR);
+        const rateModifier = Math.min(Math.max(
+          overlay.GetRenderPriority() / IMPACT_ARMOR_PARTICLE_LOD_FACTOR, 0), 1);
+        const args = new ITr2GenericEmitterUpdateArguments();
+        args.time = updateContext.GetTime();
+        args.system = gpuParticleSystem;
+        vec3.copy(args.originShift, updateContext.GetOriginShift());
+        this.armorImpactEmitter.SpawnOnce(args, parentVelocityWS, scale, rateModifier);
+        impact.requestSpawnDebris = false;
+
+        if (this.hullImpactEmitter &&
+          this.damageOverlay.GetImpactConfiguration() === ImpactConfiguration.IMPACT_HULL)
+        {
+          this.hullImpactEmitter.SetPosition(impactPosWS);
+          this.hullImpactEmitter.SetDirection(impactDirWS);
+          this.hullImpactEmitter.SpawnOnce(args, parentVelocityWS, scale, rateModifier);
+        }
+      }
+    };
+
+    spawnFromOverlay(this.damageOverlay, 0);
+    for (const [ overlay, start ] of parent.CollectPartDamageOverlays([]))
+    {
+      spawnFromOverlay(overlay, start);
+    }
   }
 
   /** Ages shield impacts and rebuilds the shared damage rows. */

@@ -21,6 +21,7 @@ import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
+import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
@@ -1364,15 +1365,17 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
+    // Carbon EveSpaceObject2.cpp:1715-1716 sizes EVERY object, mesh or not: a
+    // mesh-less modular object still draws its impacts at this LOD.
+    EveSpaceObject2.#SetSphere(
+      EveSpaceObject2.#worldSphere,
+      this.modelWorldPosition,
+      this.#boundingSphereWorldRadius
+    );
+    this.#meshScreenSize = EveSpaceObject2.#GetEstimatedPixelSize(frustum, EveSpaceObject2.#worldSphere) * lodFactor;
+    if (!this.#allowLodSelection) this.#meshScreenSize = Infinity;
     if (this.mesh && this.#boundingSphereWorldRadius > 0)
     {
-      EveSpaceObject2.#SetSphere(
-        EveSpaceObject2.#worldSphere,
-        this.modelWorldPosition,
-        this.#boundingSphereWorldRadius
-      );
-      this.#meshScreenSize = EveSpaceObject2.#GetEstimatedPixelSize(frustum, EveSpaceObject2.#worldSphere) * lodFactor;
-      if (!this.#allowLodSelection) this.#meshScreenSize = Infinity;
       this.mesh.UseWithScreenSize?.(this.#meshScreenSize, this.#boundingSphereWorldRadius);
     }
     return this.isVisible;
@@ -1391,6 +1394,12 @@ export class EveSpaceObject2 extends EveEntity
     }
     if (this.mesh && this.#isMeshVisible && this.mesh.IsLoading?.() !== true)
     {
+      out.push(this);
+    }
+    else if (!this.mesh && this.impactOverlay && this.#isMeshVisible)
+    {
+      // A mesh-less modular object still draws its impacts (Carbon
+      // EveSpaceObject2.cpp:1545-1548).
       out.push(this);
     }
     if (this.DisplayChildren())
@@ -1428,7 +1437,13 @@ export class EveSpaceObject2 extends EveEntity
   @impl.reason("Overlay area-block batches are deferred; the view position arrives via the appended render-context argument instead of Carbon's renderer global.")
   GetBatches(batches, batchType, perObjectData, reason, renderContext = null)
   {
-    if (!this.mesh) return false;
+    if (!this.mesh)
+    {
+      // Mesh-less objects (modular ships) still render their impact effects
+      // (Carbon EveSpaceObject2.cpp:1127-1135).
+      if (!this.impactOverlay) return false;
+      return this.impactOverlay.GetBatches(batches, batchType, perObjectData, this.#meshScreenSize);
+    }
     if (this.mesh.display === false) return false;
 
     // Returns whether any batch was committed (JS addition; Carbon returns
@@ -2233,10 +2248,12 @@ export class EveSpaceObject2 extends EveEntity
       {
         this.#mergedDamageLocatorSources.push({
           owner: source.owner,
-          partTag: source.owner.GetPartTag(),
+          // The SOURCE's tag, not the owner's (Carbon EveSpaceObject2.cpp:1941):
+          // one shared instanced child owns many parts' sets.
+          partTag: source.partTag,
           start,
           count: sourceSet.GetLocators().length,
-          // Carbon LocatorSourceRange.childToObject (EveSpaceObject2.cpp:1938):
+          // Carbon LocatorSourceRange.childToObject (EveSpaceObject2.cpp:1944):
           // lets GetLocatorInObjectSpace pose merged damage locators against
           // the owning child's skeleton, then lift them into object space.
           childToObject: source.childToObject
@@ -2461,7 +2478,7 @@ export class EveSpaceObject2 extends EveEntity
     this.EnsureChildLocatorMerged();
     for (const range of this.#mergedDamageLocatorSources)
     {
-      const overlay = range.owner.GetDamageOverlay();
+      const overlay = range.owner.GetPartDamageOverlay(range.partTag);
       if (overlay) overlay.Clear();
     }
   }
@@ -2504,8 +2521,11 @@ export class EveSpaceObject2 extends EveEntity
         for (const range of this.#mergedDamageLocatorSources)
         {
           if (damageLocatorIndex < range.start || damageLocatorIndex >= range.start + range.count) continue;
+          // Carbon EveSpaceObject2.cpp:3644-3651: parts honour the impact
+          // switch here, and spawn debris except at low LOD.
+          if (!EveDamageOverlay.impactEffectEnabled) return -1;
           return this.#EnsureChildDamageOverlay(range).CreateImpact(
-            damageLocatorIndex - range.start, size, false);
+            damageLocatorIndex - range.start, size, this.lodLevel !== Tr2Lod.TR2_LOD_LOW);
         }
       }
       return this.impactOverlay.CreateImpact(
@@ -2890,7 +2910,7 @@ export class EveSpaceObject2 extends EveEntity
     this.EnsureChildLocatorMerged();
     for (const range of this.#mergedDamageLocatorSources)
     {
-      const overlay = range.owner.GetDamageOverlay();
+      const overlay = range.owner.GetPartDamageOverlay(range.partTag);
       if (overlay && overlay.HasImpact(impactIndex)) return true;
     }
     return false;
@@ -3376,18 +3396,20 @@ export class EveSpaceObject2 extends EveEntity
   /** Creates and synchronizes the damage overlay owned by one child-locator range. */
   #EnsureChildDamageOverlay(range)
   {
-    let overlay = range.owner.GetDamageOverlay();
+    let overlay = range.owner.GetPartDamageOverlay(range.partTag);
     if (!overlay)
     {
-      overlay = range.owner.EnsureDamageOverlay();
+      // Carbon EveSpaceObject2.cpp:3529-3555: the child creates the part's
+      // overlay, then it is fetched back by the same part tag.
+      range.owner.CreatePartDamageOverlay(range.partTag);
+      overlay = range.owner.GetPartDamageOverlay(range.partTag);
       const shipDamage = this.impactOverlay.GetDamageOverlay();
-      // The part's OWN armour shader (Carbon EveSpaceObject2.cpp:3529, commit
-      // 6975d9f1): an animated part needs the skinned variant, which the
-      // ship-wide effect is not.
-      overlay.SetArmorDamageShaderEffect(range.owner.GetArmorDamageShaderEffect());
+      // The part's OWN armour shader (commit 6975d9f1): an animated part
+      // needs the skinned variant, which the ship-wide effect is not.
+      overlay.SetArmorDamageShaderEffect(range.owner.GetPartArmorDamageShaderEffect(range.partTag));
       const flicker = shipDamage.GetHullDamageFlickerCurve();
       if (flicker) overlay.SetHullDamageFlickerCurve(TriPerlinCurve.from(flicker.GetValues()));
-      overlay.SetSeed(shipDamage.GetSeed() + range.owner.GetPartTag());
+      overlay.SetSeed(shipDamage.GetSeed() + range.partTag);
     }
 
     overlay.SetDamageLocatorCount(range.count);
@@ -3395,6 +3417,25 @@ export class EveSpaceObject2 extends EveEntity
       this.#damageLocatorEnabled.slice(range.start, range.start + range.count));
     overlay.SetImpactIndexSource(this.impactOverlay.GetDamageOverlay());
     return overlay;
+  }
+
+  /**
+   * Appends every part's existing damage overlay with its range start in the
+   * merged damage locator set, as [overlay, start] pairs (Carbon
+   * EveSpaceObject2.cpp:3561-3574).
+   */
+  @carbon.method
+  @impl.implemented
+  CollectPartDamageOverlays(out = [])
+  {
+    this.EnsureChildLocatorMerged();
+    for (const range of this.#mergedDamageLocatorSources)
+    {
+      if (!range.owner) continue;
+      const overlay = range.owner.GetPartDamageOverlay(range.partTag);
+      if (overlay) out.push([ overlay, range.start ]);
+    }
+    return out;
   }
 
   /**
@@ -3490,6 +3531,31 @@ export class EveSpaceObject2 extends EveEntity
     return result;
   }
 
+  /**
+   * Returns the named set's locators - including those merged in from parts -
+   * posed by the current bones and model curves, as [position, rotation,
+   * boneIndex] tuples (Carbon script GetTransformedLocatorsFromSet maps to
+   * PyGetTransformedLocatorsFromSet, EveSpaceObject2_Blue.cpp:146-181).
+   */
+  @carbon.method
+  @impl.implemented
+  GetTransformedLocatorsFromSet(locatorSetName)
+  {
+    const result = [];
+    for (const locator of this.GetLocatorsForSet(locatorSetName) ?? [])
+    {
+      const position = vec3.clone(locator.position);
+      const rotation = quat.clone(locator.direction);
+      this.#TransformLocator(position, rotation, locator.boneIndex);
+      if (this.modelTranslationCurve || this.modelRotationCurve)
+      {
+        this.#ApplyModelTransform(position, rotation);
+      }
+      result.push([position, rotation, locator.boneIndex]);
+    }
+    return result;
+  }
+
   // Carbon Blue TransformLocator: bone-attached records pick up the mesh
   // bone matrix; without bone data the authored values pass through.
 
@@ -3563,7 +3629,7 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Writes a locator's object-space position and direction (Carbon
-   * EveSpaceObject2.cpp:3751-3772, rewritten upstream by 3d988b1d).
+   * EveSpaceObject2.cpp:3784-3805, rewritten upstream by 3d988b1d).
    *
    * A merged damage locator (mergedDamageIndex >= 0, indexing the merged
    * damage set) delegates to the owning child's animated pose - the locator's
@@ -3586,7 +3652,8 @@ export class EveSpaceObject2 extends EveEntity
       {
         if (range.owner && mergedDamageIndex >= range.start && mergedDamageIndex < range.start + range.count)
         {
-          if (range.owner.GetDamageLocatorAnimatedLocal(mergedDamageIndex - range.start, outPosition, outDirection))
+          if (range.owner.GetPartDamageLocatorAnimatedLocal(
+            range.partTag, mergedDamageIndex - range.start, outPosition, outDirection))
           {
             vec3.transformMat4(outPosition, outPosition, range.childToObject);
             EveSpaceObject2.#TransformNormal(outDirection, outDirection, range.childToObject);

@@ -5,7 +5,7 @@ import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
-import { EveTurretTarget } from "./EveTurretTarget.js";
+import { EVE_TURRET_RANDOM_DELAY_MAX, EveTurretTarget } from "./EveTurretTarget.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -437,7 +437,7 @@ export class EveTurretSet extends EveEntity
 
   /**
    * The shared sysbone aiming math, synced from this set's flat tuning
-   * fields. Carbon embeds EveTurretAiming by value (EveTurretSet.h:425) and
+   * fields. Carbon embeds EveTurretAiming by value (EveTurretSet.h:423) and
    * re-exposes its members as these flat Blue attributes; pose-owning
    * consumers of the UpdateTrackingPose seam use THIS object so both hosts
    * run identical math.
@@ -476,7 +476,23 @@ export class EveTurretSet extends EveEntity
     {
       return false;
     }
+    return EveTurretSet.applyFactionToTurretShader(effect, resolveParameter);
+  }
 
+  /**
+   * The effect-walking half of Carbon's private EveSOF::ApplyFactionToTurretShader
+   * (EveSOF.cpp:4201-4254): overwrites a turret effect's constants, or its
+   * vec4 parameters when no constants are authored, with resolved SOF values.
+   * Shared by the ship turret set and EveChildTurret; the value resolution
+   * stays in SOF, which cannot import this layer.
+   * @param {Object} effect - a Tr2Effect
+   * @param {Function} resolveParameter - parameter name -> vec4 or null
+   * @returns {Boolean} true
+   */
+  @impl.custom
+  @impl.reason("The combined runtime keeps SOF independently importable, so the Tr2Effect half of Carbon's EveSOF helper lives beside the turret classes that own the effects.")
+  static applyFactionToTurretShader(effect, resolveParameter)
+  {
     if (effect.constParameters.length)
     {
       effect.StartUpdate();
@@ -519,28 +535,28 @@ export class EveTurretSet extends EveEntity
     return true;
   }
 
-  /** Carbon method GetShotTimeVariance (MAP_METHOD_AND_WRAP). */
+  /** Carbon method GetShotTimeVariance (EveTurretSet.h:223-226). */
   @carbon.method
   @impl.implemented
   GetShotTimeVariance()
   {
-    return 0.6;
+    return EVE_TURRET_RANDOM_DELAY_MAX;
   }
 
-  /** Carbon method MissQueueSize (MAP_METHOD_AND_WRAP). */
+  /** Carbon method MissQueueSize (EveTurretSet.cpp:3597-3600). */
   @carbon.method
   @impl.implemented
   MissQueueSize()
   {
-    return this.target?.MissQueueSize?.() ?? 0;
+    return this.target.MissQueueSize();
   }
 
-  /** Carbon method GetLastShotTime (MAP_METHOD_AND_WRAP). */
+  /** Carbon method GetLastShotTime (EveTurretSet.cpp:3606-3609). */
   @carbon.method
   @impl.implemented
   GetLastShotTime()
   {
-    return this.target?.GetLastShotTime?.() ?? 0;
+    return this.target.GetLastShotTime();
   }
 
   /** Carbon method EnterStateDeactive (MAP_METHOD_AND_WRAP). */
@@ -847,6 +863,9 @@ export class EveTurretSet extends EveEntity
   @impl.reason("Carbon QueryInterface target attachment is delegated to EveTurretTarget's browser-compatible target validation.")
   SetTargetObject(object)
   {
+    // Carbon EveTurretSet.cpp:3630-3633: the ship set cannot clear its target;
+    // only EveChildTurret passes null through to EveTurretTarget.
+    if (!object) return false;
     this.target ??= new EveTurretTarget();
     const previous = this.target.GetTargetable?.();
     const accepted = this.target.SetTargetable(object);

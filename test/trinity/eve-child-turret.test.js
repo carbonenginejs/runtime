@@ -226,3 +226,53 @@ test("EveChildTurret tracking fades, muzzle transforms and movement audio", () =
   });
   assert.deepEqual(events, [ "turret_move_start" ]);
 });
+
+
+test("clearing a child turret's target drops it to idle and controllers reach the firing effect (Carbon ee9dfdca, 4c9b4d24, 7e04c301)", () =>
+{
+  const turret = new EveChildTurret();
+  turret.animationUpdater = createUpdaterDuck();
+  const targetable = {
+    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 1, 0, 0); return true; },
+    GetWorldPosition(out) { return vec3.set(out, 1, 0, 0); }
+  };
+  turret.SetTargetObject(targetable);
+  turret.EnterStateTargeting();
+  assert.equal(turret.state, State.STATE_TARGETING);
+  assert.equal(turret.GetTargetObject(), targetable);
+
+  turret.SetTargetObject(null);
+  assert.equal(turret.state, State.STATE_IDLE);
+  assert.equal(turret.GetTargetObject(), null);
+
+  const calls = [];
+  turret.firingEffect = {
+    SetControllerVariable(name, value) { calls.push([ "set", name, value ]); },
+    StartControllers() { calls.push([ "start" ]); }
+  };
+  turret.SetControllerVariable("Heat", 0.5);
+  turret.StartControllers();
+  assert.deepEqual(calls, [ [ "set", "Heat", 0.5 ], [ "start" ] ]);
+});
+
+
+test("turret targets clear on null and expose the shot-time variance (Carbon 89f5a177)", () =>
+{
+  const set = new EveTurretSet();
+  const targetable = {
+    GetDamageLocatorPosition(_index, _inWorldSpace, out) { vec3.set(out, 1, 0, 0); return true; },
+    GetWorldPosition(out) { return vec3.set(out, 1, 0, 0); }
+  };
+  assert.equal(set.GetShotTimeVariance(), 0.6);
+  assert.equal(set.target.GetShotTimeVariance(), 0.6);
+  assert.equal(set.SetTargetObject(targetable), true);
+  // The ship set cannot clear its target (Carbon EveTurretSet.cpp:3630-3633).
+  assert.equal(set.SetTargetObject(null), false);
+  assert.equal(set.GetTargetObject(), targetable);
+  // The target itself can (Carbon EveTurretTarget.cpp:62-67).
+  assert.equal(set.target.SetTargetable(null), true);
+  assert.equal(set.GetTargetObject(), null);
+  set.target.SetShotMissed(true, 12);
+  assert.equal(set.MissQueueSize(), 1);
+  assert.equal(set.GetLastShotTime(), 12);
+});

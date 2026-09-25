@@ -7,6 +7,14 @@ import { ImpactConfiguration } from "../../../generated/include/enums.js";
 
 
 /**
+ * Maximum firing-time offset between turrets; godma reads it back through
+ * GetShotTimeVariance as the window grouping shots into one damage message
+ * (Carbon EveTurretTarget.h:9-11, moved from EveTurretSet.h in trinity 89f5a177).
+ */
+export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
+
+
+/**
  * Tracks what a turret set is shooting at: the chosen damage locator, the
  * resolved impact and miss positions, and the queue of hit/miss results the
  * server has sent.
@@ -36,7 +44,7 @@ export class EveTurretTarget extends CjsModel
   #randomMissDistanceOffset = 0.5;
   #randomMissPositionOffset = vec3.create();
 
-  // Carbon m_fadeOnLocatorChange (EveTurretTarget.h:84) - default off; only
+  // Carbon m_fadeOnLocatorChange (EveTurretTarget.h:92) - default off; only
   // EveChildTurret enables it, so ship turrets keep the snap behaviour.
   #fadeOnLocatorChange = false;
 
@@ -54,13 +62,19 @@ export class EveTurretTarget extends CjsModel
    * Accepts an object as the target only when it exposes both an impact or
    * damage-locator surface and a world-position surface; a change to a different
    * object seeds the position blend so tracking eases off the previous target.
-   * Returns whether the object was accepted.
+   * Null clears the target (Carbon EveTurretTarget.cpp:62-67). Returns whether
+   * the object was accepted.
    */
   @carbon.method @impl.adapted
   @impl.reason("Carbon QueryInterface checks are represented by validating the targetable's required duck-typed position surface.")
   SetTargetable(object)
   {
-    if (!object) return false;
+    if (!object)
+    {
+      this.#targetable = null;
+      this.#worldPositionObject = null;
+      return true;
+    }
     const hasTargetSurface = typeof object.GetDamageLocatorPosition === "function" || typeof object.GetImpactPosition === "function";
     const hasPositionSurface = typeof object.GetWorldPosition === "function" || object.worldPosition?.length >= 3 || object.position?.length >= 3;
     if (!(hasTargetSurface && hasPositionSurface)) return false;
@@ -83,7 +97,7 @@ export class EveTurretTarget extends CjsModel
 
   /**
    * Smooths the aim over locator changes instead of snapping (Carbon
-   * EveTurretTarget.cpp:98-105): firing at or leaving a locator seeds the
+   * EveTurretTarget.cpp:104-111): firing at or leaving a locator seeds the
    * position blend from the current tracking position.
    */
   @carbon.method @impl.implemented
@@ -103,7 +117,7 @@ export class EveTurretTarget extends CjsModel
   StartFireAtLocator(locator, delay, length, source = EveTurretTarget.#zero)
   {
     this.locator = Number(locator) | 0;
-    // Carbon EveTurretTarget.cpp:116-120: fading turrets blend out of the
+    // Carbon EveTurretTarget.cpp:122-126: fading turrets blend out of the
     // CURRENT tracking position when the locator changes.
     if (this.#fadeOnLocatorChange)
     {
@@ -144,7 +158,7 @@ export class EveTurretTarget extends CjsModel
   StopFireAtLocator()
   {
     this.locator = -1;
-    // Carbon EveTurretTarget.cpp:166-174: fading turrets ease out of the
+    // Carbon EveTurretTarget.cpp:172-180: fading turrets ease out of the
     // last tracking position; others snap by disabling the blend.
     if (this.#fadeOnLocatorChange)
     {
@@ -311,7 +325,7 @@ export class EveTurretTarget extends CjsModel
 
   /**
    * Sets only the impact configuration, leaving miss behaviour untouched
-   * (Carbon EveTurretTarget.cpp:365-369, split out for EveChildTurret).
+   * (Carbon EveTurretTarget.cpp:371-375, split out for EveChildTurret).
    */
   @carbon.method @impl.implemented
   SetImpactBehaviour(impactSize, impactBehaviour)
@@ -367,6 +381,13 @@ export class EveTurretTarget extends CjsModel
   MissQueueSize()
   {
     return this.#missQueue.length;
+  }
+
+  /** The maximum firing-time variance between turrets (Carbon EveTurretTarget.h:62-65). */
+  @carbon.method @impl.implemented
+  GetShotTimeVariance()
+  {
+    return EVE_TURRET_RANDOM_DELAY_MAX;
   }
 
   /**

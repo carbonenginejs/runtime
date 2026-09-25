@@ -45,9 +45,12 @@ import { EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings } from "
 import { EveSOFDataHullExtensionBucket } from "../../../npm/dist/sof/layout/EveSOFDataHullExtensionBucket.js";
 import { EveSOFDataLogoSet } from "../../../npm/dist/sof/shared/EveSOFDataLogoSet.js";
 import {
+  EveChildTurret,
   EveTurretSet,
   Tr2ConstantEffectParameter,
   Tr2Effect,
+  Tr2Mesh,
+  Tr2MeshArea,
   Tr2Vector4Parameter,
 } from "../../../npm/dist/trinity/index.js";
 
@@ -5055,6 +5058,75 @@ test("EveSOF applies faction and DNA turret materials to both effect parameter p
   );
 });
 
+test("faction turret materials read generic turretAreaType for ship and child turrets (Carbon bc9cb374)", () => {
+  const createTurretData = () => {
+    const data = createData();
+    data.material.push(
+      { name: "primary1", parameters: [{ name: "Diffuse", value: [0, 0, 1, 1] }] },
+      { name: "turret1", parameters: [{ name: "Diffuse", value: [1, 1, 0, 1] }] },
+    );
+    data.faction[0].materialUsageMtl1 = 1;
+    data.faction[0].areaTypes = {
+      Primary: { material1: "", material2: "primary1", material3: "", material4: "", colorType: 0 },
+      Turret: { material1: "", material2: "turret1", material3: "", material4: "", colorType: 0 },
+    };
+    return data;
+  };
+  const createConstantEffect = () => {
+    const effect = new Tr2Effect();
+    const parameter = new Tr2ConstantEffectParameter();
+    parameter.name = "Mtl1Diffuse";
+    effect.constParameters = [parameter];
+    return { effect, parameter };
+  };
+
+  const data = createTurretData();
+  data.generic.turretAreaType = EveSOFDataArea.AreaType.TYPE_TURRET;
+  const sof = new EveSOF();
+  assert.equal(sof.dataMgr.SetData(data), true);
+
+  const shipSet = new EveTurretSet();
+  const ship = createConstantEffect();
+  shipSet.turretEffect = ship.effect;
+  sof.SetupTurretMaterialFromFaction(shipSet, "minmatar");
+  assert.deepEqual(Array.from(ship.parameter.value), [1, 1, 0, 1], "ship turret reads the turret area");
+
+  // Child turret: every OPAQUE area material, and only those.
+  const turret = new EveChildTurret();
+  const mesh = new Tr2Mesh();
+  const opaque = new Tr2MeshArea();
+  const opaqueEffect = createConstantEffect();
+  opaque.effect = opaqueEffect.effect;
+  mesh.opaqueAreas.push(opaque);
+  const transparent = new Tr2MeshArea();
+  const transparentEffect = createConstantEffect();
+  transparent.effect = transparentEffect.effect;
+  mesh.transparentAreas.push(transparent);
+  turret.mesh = mesh;
+  const untouched = Array.from(transparentEffect.parameter.value);
+  sof.SetupChildTurretMaterialFromFaction(turret, "minmatar");
+  assert.deepEqual(Array.from(opaqueEffect.parameter.value), [1, 1, 0, 1]);
+  assert.deepEqual(Array.from(transparentEffect.parameter.value), untouched);
+
+  // Carbon's early returns: unknown faction, null turret, no mesh.
+  opaqueEffect.parameter.value.set([9, 9, 9, 9]);
+  sof.SetupChildTurretMaterialFromFaction(turret, "missing");
+  sof.SetupChildTurretMaterialFromFaction(null, "minmatar");
+  sof.SetupChildTurretMaterialFromFaction(new EveChildTurret(), "minmatar");
+  assert.deepEqual(Array.from(opaqueEffect.parameter.value), [9, 9, 9, 9]);
+
+  // Negative control: without the generic override the default area is Primary.
+  const defaults = createTurretData();
+  delete defaults.generic.turretAreaType;
+  const defaultSof = new EveSOF();
+  assert.equal(defaultSof.dataMgr.SetData(defaults), true);
+  const defaultSet = new EveTurretSet();
+  const fallback = createConstantEffect();
+  defaultSet.turretEffect = fallback.effect;
+  defaultSof.SetupTurretMaterialFromFaction(defaultSet, "minmatar");
+  assert.deepEqual(Array.from(fallback.parameter.value), [0, 0, 1, 1]);
+});
+
 test("EveSOFDNA texture inserts require an explicit resource-existence resolver", () => {
   const data = createData();
   data.faction[0].resPathInsert = "amarr";
@@ -5874,10 +5946,17 @@ test("BuildChild composes modular values with transformed bounds and part tags",
   assert.equal(shared.meshes.length, 1);
   assert.deepEqual(shared.meshes[0].partTags, [23]);
   assert.deepEqual(shared.meshes[0].instances[0].transform, transform);
-  const damage = composed.locatorSets.find(set => set.name === "damage");
-  assert.ok(damage);
-  assert.deepEqual(damage.locators.at(-1).position, [10, 22, 30]);
-  assert.equal(damage.locators.at(-1).partTag, 23);
+  // Carbon trinity 108ab454: the part's locators travel hull-local on its
+  // shared mesh and the object merges them per instance; the root set gains
+  // nothing.
+  const rootDamage = composed.locatorSets.find(set => set.name === "damage");
+  const ownerDamage = owner.locatorSets.find(set => set.name === "damage");
+  assert.deepEqual(rootDamage, ownerDamage);
+  const partDamage = shared.meshes[0].ownedLocatorSets.find(set => set.name === "damage");
+  assert.ok(partDamage);
+  assert.deepEqual(partDamage.locators[0].position, [1, 0, 0]);
+  assert.equal(partDamage.locators[0].boneIndex, 7);
+  assert.ok(shared.meshes[0].armorDamageShader, "a part with damage locators gets its own armour shader");
 
   const mutable = JSON.parse(JSON.stringify(owner));
   assert.equal(sof.BuildChild(mutable, "rifter:minmatar:minmatar", 23, transform), true);

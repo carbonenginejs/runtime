@@ -11,8 +11,11 @@ import { RawData } from "../../../core/rawData/RawData.js";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import {
   CollectInstancedOverlayAreaBlocks,
+  EmitDamageOverlayBatches,
   EmitOverlayBatches
 } from "../../overlays/overlayBatches.js";
+import { EveDamageOverlay } from "../../overlays/EveDamageOverlay.js";
+import { EveGetLocatorPose } from "../../locator/EveLocatorSets.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { EveChildInstancedMeshArea } from "./EveChildInstancedMeshArea.js";
 import { EveChildInstancedMeshInstance } from "./EveChildInstancedMeshInstance.js";
@@ -32,6 +35,23 @@ const OVERLAY_WORLD_LAST_SCRATCH = mat4.create();
 const OVERLAY_INV_WORLD_SCRATCH = mat4.create();
 const OVERLAY_INV_LOCAL_SCRATCH = mat4.create();
 const OVERLAY_CLIP_SCRATCH = vec3.create();
+
+/** Stand-in for an instance sphere the async pass has not built yet: Carbon
+ * sizes instanceSpheres at AddMesh (cpp:559), JS fills it lazily. */
+const EMPTY_SPHERE = { center: vec3.create(), radius: 0 };
+
+/**
+ * Returns the locator list of a part's own "damage" set, or null (Carbon
+ * EveChildInstancedMeshes.cpp:12-22, file-local).
+ */
+function FindDamageLocators(sets)
+{
+  for (const entry of sets)
+  {
+    if (entry.HasName("damage")) return entry.GetLocators();
+  }
+  return null;
+}
 
 /**
  * Space-object child that hands batches of instanced meshes to the engine's
@@ -83,6 +103,10 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
 
   #lastInvLodFactor = 1;
 
+  /** Carbon m_partDamageOverlays (h:215): one damage overlay per part tag,
+   * created on first damage through CreatePartDamageOverlay. */
+  _partDamageOverlays = new Map();
+
   static #inverseScratch = mat4.create();
 
   static #customMaskScratch = mat4.create();
@@ -128,9 +152,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Carbon EveChildInstancedMeshes::GetRenderables (cpp:188-190) collects
-   * nothing: the instanced mesh manager emits the draws, so the accumulator
-   * comes back unchanged.
+   * Carbon EveChildInstancedMeshes::GetRenderables (cpp:200-207): the base
+   * hull draws through the instanced mesh manager, so this child is a
+   * renderable only for overlay draws - inherited, own, or part damage.
    */
   @carbon.method
   @impl.implemented
@@ -138,7 +162,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     if (this.hasUpdated &&
       ((this.#parentOverlayEffects?.length && this.#AnyMeshInheritsOverlayEffects()) ||
-        this.#HasAnyOwnOverlayEffects()))
+        this.#HasAnyOwnOverlayEffects() || this._partDamageOverlays.size !== 0))
     {
       renderables.push(this);
     }
@@ -245,9 +269,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     {
       for (const overlay of mesh.ownOverlayEffects) overlay.Update(time, time);
     }
+
+    // Carbon cpp:228-231: every part's damage overlay publishes its block.
+    for (const overlay of this._partDamageOverlays.values()) overlay.UpdateSyncronous(updateContext);
   }
 
-  /** Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:202-328), the CPU
+  /** Carbon EveChildInstancedMeshes::UpdateAsyncronous (cpp:234-413), the CPU
    * half: per-mesh RENDER_IN_REFLECTION refresh (cpp:251), the mesh-local
    * bounds sphere radius = |center| + radius (cpp:254-255), per-instance
    * world cull spheres - position from the instance translation (Carbon reads
@@ -263,7 +290,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   @carbon.method
   @impl.adapted
   @impl.reason("Trinity owns the CPU per-object field copy; the raytracing mesh build (cpp:283-327) is not ported yet. Mesh bounds come from a GetMeshData duck ({minBounds, maxBounds}) and meshes without one are skipped fail-closed.")
-  UpdateAsyncronous(_updateContext, params)
+  UpdateAsyncronous(updateContext, params)
   {
     const previousWorldTransform = mat4.create();
     mat4.transpose(previousWorldTransform, this.#perObjectData.GetTransposed("worldTransform"));
@@ -361,21 +388,61 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     this.#parentOverlayEffects = Array.isArray(parent?.overlayEffects) && parent.overlayEffects.length
       ? parent.overlayEffects
       : null;
-    if ((this.#parentOverlayEffects && this.#AnyMeshInheritsOverlayEffects()) ||
-      this.#HasAnyOwnOverlayEffects())
+
+    // Carbon cpp:333-359: each part's overlay is aged against its own
+    // instance - local mesh sphere, world instance sphere, and the part's own
+    // bind-pose damage locators. A part whose mesh is not loaded gets Carbon's
+    // default owner info, which resolves no locators.
+    for (const [ partTag, overlay ] of this._partDamageOverlays)
     {
-      this.#UpdateOverlayInstanceData(parentRecords.vs, parentRecords.ps, previousWorldTransform);
+      const info = { boundingSphere: [ 0, 0, 0, -1 ], estimatedPixelDiameter: 0, isInFrustum: false };
+      const found = this._FindMeshByPartTag(partTag);
+      const geometry = found?.mesh.GetGeometryResource();
+      if (found && geometry && geometry.IsGood() !== false)
+      {
+        const meshData = geometry.GetMeshData(found.mesh.meshIndex);
+        if (meshData?.minBounds && meshData?.maxBounds)
+        {
+          const minBounds = meshData.minBounds;
+          const maxBounds = meshData.maxBounds;
+          info.boundingSphere = [
+            (minBounds[0] + maxBounds[0]) * 0.5,
+            (minBounds[1] + maxBounds[1]) * 0.5,
+            (minBounds[2] + maxBounds[2]) * 0.5,
+            Math.hypot(maxBounds[0] - minBounds[0], maxBounds[1] - minBounds[1], maxBounds[2] - minBounds[2]) * 0.5
+          ];
+        }
+        const worldSphere = found.mesh.instanceSpheres[found.instanceIndex] ?? EMPTY_SPHERE;
+        const frustum = updateContext.GetFrustum();
+        info.estimatedPixelDiameter = Math.max(
+          frustum.GetPixelSizeAccrossEst(worldSphere.center, worldSphere.radius) * updateContext.GetInvLodFactor(), 0);
+        info.isInFrustum = frustum.IsSphereVisible(worldSphere.center, worldSphere.radius);
+        const damageLocators = FindDamageLocators(found.mesh.ownedLocatorSets);
+        info.getDamageLocatorPositionOS = (index, out) =>
+        {
+          if (!damageLocators || index < 0 || index >= damageLocators.length) return false;
+          vec3.copy(out, damageLocators[index].position);
+          return true;
+        };
+      }
+      overlay.UpdateAsyncronous(updateContext, info, 0, false);
+    }
+
+    if ((this.#parentOverlayEffects && this.#AnyMeshInheritsOverlayEffects()) ||
+      this.#HasAnyOwnOverlayEffects() || this._partDamageOverlays.size !== 0)
+    {
+      this.#UpdateOverlayInstanceData(updateContext, parentRecords.vs, parentRecords.ps, previousWorldTransform);
     }
 
     this.hasUpdated = true;
   }
 
   /** Builds one persistent VS/PS record pair per authored instance. */
-  #UpdateOverlayInstanceData(parentVs, parentPs, previousWorldTransform)
+  #UpdateOverlayInstanceData(updateContext, parentVs, parentPs, previousWorldTransform)
   {
     for (const mesh of this.meshes)
     {
-      if (!mesh.instances.length || !mesh.display || !this.#MeshHasActiveOverlayEffects(mesh)) continue;
+      if (!mesh.instances.length || !mesh.display || !this._MeshNeedsOverlayPods(mesh)) continue;
 
       if (!mesh.overlayPods || mesh.overlayPods.length !== mesh.instances.length)
       {
@@ -425,6 +492,18 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           pod.ps.Set("clipSphereFactor", [ 0 ]);
           pod.ps.Set("clipSphereFactor2", [ 0 ]);
         }
+
+        // Carbon cpp:1238-1242: a damaged part flickers and reads its own
+        // rows of the damage data texture.
+        const damageOverlay = this._FindPartDamageOverlay(mesh.partTags[index]);
+        if (damageOverlay)
+        {
+          const shipData = pod.ps.Get("shipData");
+          pod.ps.Set("shipData", [
+            shipData[0], shipData[1] * damageOverlay.GetActivationStrength(updateContext), shipData[2], shipData[3]
+          ]);
+          pod.ps.Set("impactDataOffset", [ damageOverlay.GetDataTextureOffset() ]);
+        }
       }
     }
   }
@@ -446,6 +525,41 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     return mesh.ownOverlayEffects.length !== 0 ||
       (this.#parentOverlayEffects !== null && mesh.inheritOverlayEffects);
+  }
+
+  /**
+   * Finds the mesh holding an instance of a part, and that instance's index
+   * (Carbon FindMeshByPartTag, cpp:1115-1132; the size_t* out-param becomes
+   * the returned record).
+   * @returns {{mesh: EveChildInstancedMesh, instanceIndex: Number}|null}
+   */
+  _FindMeshByPartTag(partTag)
+  {
+    for (const mesh of this.meshes)
+    {
+      const instanceIndex = mesh.partTags.indexOf(partTag);
+      if (instanceIndex !== -1) return { mesh, instanceIndex };
+    }
+    return null;
+  }
+
+  /** Returns a part's damage overlay, or null (Carbon FindPartDamageOverlay, cpp:1134-1142). */
+  _FindPartDamageOverlay(partTag)
+  {
+    return this._partDamageOverlays.get(partTag) ?? null;
+  }
+
+  /** Reports whether any instance of a mesh belongs to a damaged part (Carbon cpp:1144-1158). */
+  _MeshHasDamageOverlays(mesh)
+  {
+    if (this._partDamageOverlays.size === 0) return false;
+    return mesh.partTags.some(tag => this._partDamageOverlays.has(tag));
+  }
+
+  /** Reports whether a mesh needs per-instance overlay pods (Carbon cpp:1160-1163). */
+  _MeshNeedsOverlayPods(mesh)
+  {
+    return this.#MeshHasActiveOverlayEffects(mesh) || this._MeshHasDamageOverlays(mesh);
   }
 
   /**
@@ -534,10 +648,12 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
-   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:418-425), and clears the registration latch so the next AddMeshesToManager pass picks it up.
+   * Appends one instanced mesh: normalizes the area ducks, copies the instance transforms, stamps CASTS_SHADOW plus one flag bit per area batch type (Carbon cpp:574-581), and clears the registration latch so the next AddMeshesToManager pass picks it up.
    * @param {Iterable} areas - area ducks ({effect, batchType, areaIndex, areaCount})
    * @param {Iterable<Float32Array>} instanceTransforms - 16-value matrices; copied, not retained
    * @param {Number} partTag - modular owner shared by every appended instance
+   * @param {Iterable} ownedLocatorSets - the part's hull-local EveLocatorSets, merged by the owner per instance
+   * @param {Object|null} armorDamageShader - the part's armour damage Tr2Effect
    * @returns {Boolean} false when no areas or no instances were supplied (nothing is added)
    */
   @carbon.method
@@ -551,7 +667,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     instanceTransforms,
     sofHullName = "",
     sofLocatorSetName = "",
-    partTag = 0
+    partTag = 0,
+    ownedLocatorSets = [],
+    armorDamageShader = null
   )
   {
     const sourceAreas = Array.from(areas ?? []);
@@ -584,9 +702,16 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     mesh.partTags = instances.map(() => Number(partTag) >>> 0);
     mesh.sofHullName = String(sofHullName ?? "");
     mesh.sofLocatorSetName = String(sofLocatorSetName ?? "");
-    // Carbon (cpp:418-425): the CASTS_SHADOW flag and one bit per area batch
+    mesh.ownedLocatorSets = Array.from(ownedLocatorSets ?? []);
+    mesh.armorDamageShader = armorDamageShader ?? null;
+    // Carbon cpp:586-589: the owner merges this part's sets per instance.
+    if (mesh.ownedLocatorSets.length && this.GetOwner())
+    {
+      this.GetOwner().InvalidateMergedLocators("structure");
+    }
+    // Carbon (cpp:574-581): the CASTS_SHADOW flag and one bit per area batch
     // type are stamped at add time; RENDER_IN_REFLECTION is refreshed each
-    // async pass. cpp:428 clears the registration latch.
+    // async pass. cpp:590 clears the registration latch.
     if (mesh.castsShadow)
     {
       mesh.flags = (mesh.flags | INSTANCE_FLAG_CASTS_SHADOW) >>> 0;
@@ -612,6 +737,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     const tag = Number(partTag) >>> 0;
     let changed = false;
+    let removedOwnedLocators = false;
     for (let meshIndex = this.meshes.length - 1; meshIndex >= 0; meshIndex--)
     {
       const mesh = this.meshes[meshIndex];
@@ -629,6 +755,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         keptTags.push(instanceTag);
       }
       if (keptInstances.length === mesh.instances.length) continue;
+      removedOwnedLocators ||= mesh.ownedLocatorSets.length !== 0;
 
       if (mesh.sphereHandle !== null)
       {
@@ -660,6 +787,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
     {
       this.#allRegistered = false;
       this.#revision++;
+    }
+    // Carbon cpp:659-663: the part's damage overlay goes with it, and the
+    // owner re-merges without the part's locators.
+    this._partDamageOverlays.delete(tag);
+    if (removedOwnedLocators && this.GetOwner())
+    {
+      this.GetOwner().InvalidateMergedLocators("structure");
     }
     return changed;
   }
@@ -705,12 +839,81 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   }
 
   /**
+   * Contributes each part's owned locator sets once per instance, tagged with
+   * that instance's part (Carbon EveChildInstancedMeshes.cpp:1473-1495).
+   * Carbon row-vector instanceTransform * parentTransform maps to gl-matrix
+   * multiply(out, parentTransform, instanceTransform).
+   */
+  @carbon.method
+  @impl.implemented
+  CollectOwnedLocatorSets(parentTransform, out)
+  {
+    for (const mesh of this.meshes)
+    {
+      for (const sets of mesh.ownedLocatorSets)
+      {
+        if (!sets || !sets.GetLocators().length) continue;
+        for (let index = 0; index < mesh.instances.length; index++)
+        {
+          const childToObject = mat4.create();
+          mat4.multiply(childToObject, parentTransform, mesh.instances[index].transform);
+          out.push({ childToObject, owner: this, partTag: mesh.partTags[index], sets });
+        }
+      }
+    }
+  }
+
+  /** Returns a part's damage overlay, or null while it has none (Carbon cpp:1497-1500). */
+  @carbon.method
+  @impl.implemented
+  GetPartDamageOverlay(partTag)
+  {
+    return this._FindPartDamageOverlay(partTag);
+  }
+
+  /** Creates a part's damage overlay when it does not yet exist (Carbon cpp:1502-1509). */
+  @carbon.method
+  @impl.implemented
+  CreatePartDamageOverlay(partTag)
+  {
+    if (!this._partDamageOverlays.has(partTag))
+    {
+      this._partDamageOverlays.set(partTag, new EveDamageOverlay());
+    }
+  }
+
+  /** Returns the armour damage shader of the mesh carrying a part (Carbon cpp:1511-1518). */
+  @carbon.method
+  @impl.implemented
+  GetPartArmorDamageShaderEffect(partTag)
+  {
+    return this._FindMeshByPartTag(partTag)?.mesh.armorDamageShader ?? null;
+  }
+
+  /**
+   * Writes the part-local pose of one of a part's damage locators. Shared
+   * instances carry no skeleton, so the pose is the authored one (Carbon
+   * cpp:1520-1534 passes a null animation updater).
+   */
+  @carbon.method
+  @impl.implemented
+  GetPartDamageLocatorAnimatedLocal(partTag, index, position, direction)
+  {
+    const found = this._FindMeshByPartTag(partTag);
+    if (!found) return false;
+    const locators = FindDamageLocators(found.mesh.ownedLocatorSets);
+    if (!locators || index < 0 || index >= locators.length) return false;
+    EveGetLocatorPose(position, direction, null, locators[index]);
+    return true;
+  }
+
+  /**
    * Overwrites the transform of every instance owned by a modular part with an
-   * ABSOLUTE new transform (Carbon EveChildInstancedMeshes.cpp:591-605,
-   * PLAT-11963). Carbon writes only the instance transform: no dirty flag, no
-   * handle teardown - the per-frame async pass refreshes the cull spheres from
-   * the live transforms, and the per-part filter lives HERE, not at the call
-   * site (the shared child carries many parts' instances).
+   * ABSOLUTE new transform (Carbon EveChildInstancedMeshes.cpp:665-685,
+   * PLAT-11963). No handle teardown - the per-frame async pass refreshes the
+   * cull spheres from the live transforms - but a part that owns locators
+   * invalidates the owner's merged set. The per-part filter lives HERE, not at
+   * the call site (the shared child carries many parts' instances).
    */
   @carbon.method
   @impl.implemented
@@ -718,6 +921,7 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   {
     const tag = Number(partTag) >>> 0;
     const transform = mat4.fromRotationTranslationScale(mat4.create(), rotation, translation, scale);
+    let movedOwnedLocators = false;
     for (const mesh of this.meshes)
     {
       for (let index = 0; index < mesh.instances.length; index++)
@@ -725,8 +929,14 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
         if ((Number(mesh.partTags[index] ?? 0) >>> 0) === tag)
         {
           mat4.copy(mesh.instances[index].transform, transform);
+          movedOwnedLocators ||= mesh.ownedLocatorSets.length !== 0;
         }
       }
+    }
+    // Carbon cpp:681-684: moved part-owned locators are re-merged.
+    if (movedOwnedLocators && this.GetOwner())
+    {
+      this.GetOwner().InvalidateMergedLocators("partMoved");
     }
   }
 
@@ -1024,13 +1234,13 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
   GetPerObjectData(_accumulator = null)
   {
     if ((!this.#parentOverlayEffects || !this.#AnyMeshInheritsOverlayEffects()) &&
-      !this.#HasAnyOwnOverlayEffects()) return null;
+      !this.#HasAnyOwnOverlayEffects() && this._partDamageOverlays.size === 0) return null;
 
     let first = null;
     for (const mesh of this.meshes)
     {
       if (!mesh.overlayPods) continue;
-      if (!mesh.display || !this.#MeshHasActiveOverlayEffects(mesh))
+      if (!mesh.display || !this._MeshNeedsOverlayPods(mesh))
       {
         for (const pod of mesh.overlayPods) pod.framePod = null;
         continue;
@@ -1061,7 +1271,9 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
       const inherited = this.#parentOverlayEffects && mesh.inheritOverlayEffects
         ? this.#parentOverlayEffects
         : null;
-      if ((!inherited?.length && !mesh.ownOverlayEffects.length) || !mesh.display || !mesh.overlayPods) continue;
+      const hasDamageOverlays = this._MeshHasDamageOverlays(mesh);
+      if ((!inherited?.length && !mesh.ownOverlayEffects.length && !hasDamageOverlays) ||
+        !mesh.display || !mesh.overlayPods) continue;
       if (reason === Tr2RenderReason.TR2RENDERREASON_REFLECTION && !ShouldReflect(mesh.reflectionMode)) continue;
 
       const geometry = mesh.GetGeometryResource();
@@ -1086,6 +1298,18 @@ export class EveChildInstancedMeshes extends EveSpaceObjectChild
           : Infinity;
         const lod = geometry.GetMeshLod(mesh.meshIndex, screenSize);
 
+        // Carbon cpp:1404-1413: the part's damage pass comes first, under
+        // its own and the inherited overlays.
+        if (hasDamageOverlays)
+        {
+          const damageShader = this._FindPartDamageOverlay(mesh.partTags[index])?.GetArmorDamageShader(batchType);
+          if (damageShader)
+          {
+            committed = EmitDamageOverlayBatches(
+              batches, pod.framePod, damageShader,
+              mesh.overlayAreaBlocks, geometry, mesh.meshIndex, lod) || committed;
+          }
+        }
         if (mesh.ownOverlayEffects.length)
         {
           committed = EmitOverlayBatches(

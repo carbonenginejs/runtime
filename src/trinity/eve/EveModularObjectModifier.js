@@ -126,10 +126,9 @@ export class EveModularObjectModifier extends CjsModel
       if (child.GetPartTag() === part.partId) this.#object.RemoveFromEffectChildrenList(child);
     }
 
-    for (const set of this.#object.locatorSets)
-    {
-      set.locators = set.locators.filter(locator => locator.partTag !== part.partId);
-    }
+    // A part's locators are owned by its child and merged by the object, so
+    // removing the child removes them; Carbon stopped filtering the object's
+    // sets by part tag in trinity 108ab454.
     if (this.#instancedMeshes) this.#instancedMeshes.RemoveInstancesByPartTag(part.partId);
     this.#data.parts.splice(this.#data.parts.indexOf(part), 1);
     this.#object.InvalidateMergedLocators("structure");
@@ -155,23 +154,9 @@ export class EveModularObjectModifier extends CjsModel
       throw new Error(`Modular part ${part.partId} has a singular transform.`);
     }
 
-    const inverseOldRotation = quat.invert(quat.create(), part.rotation);
-    for (const set of this.#object.locatorSets)
-    {
-      for (const locator of set.locators)
-      {
-        if (locator.partTag !== part.partId) continue;
-        locator.scale[0] = scale[0] / part.scale[0];
-        locator.scale[1] = scale[1] / part.scale[1];
-        locator.scale[2] = scale[2] / part.scale[2];
-        // Carbon invOld.rotation * newRotation (row-vector composition) maps
-        // to reversed gl-matrix quaternion operands.
-        quat.multiply(locator.direction, rotation, inverseOldRotation);
-        vec3.transformMat4(locator.position, locator.position, inverseOld);
-        vec3.transformMat4(locator.position, locator.position, newTransform);
-      }
-    }
-
+    // Part-owned locators follow their child's transform through the merge
+    // (the PartMoved invalidation below); Carbon stopped moving them here in
+    // trinity 108ab454.
     const center = vec3.fromValues(
       part.boundingSphere[0], part.boundingSphere[1], part.boundingSphere[2]);
     vec3.transformMat4(center, center, inverseOld);
@@ -189,7 +174,7 @@ export class EveModularObjectModifier extends CjsModel
       {
         child.Setup(scale, rotation, position, Tr2Lod.TR2_LOD_LOW);
       }
-      // OUTSIDE the partTag gate (Carbon EveModularObjectModifier.cpp:225-228,
+      // OUTSIDE the partTag gate (Carbon EveModularObjectModifier.cpp:200-203,
       // PLAT-11963): the shared instanced child carries many parts' instances
       // under its own aggregate tag; the per-part filter lives in the method.
       if (child instanceof EveChildInstancedMeshes)

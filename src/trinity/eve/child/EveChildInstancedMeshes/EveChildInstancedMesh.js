@@ -53,6 +53,17 @@ export class EveChildInstancedMesh extends CjsModel
   @type.string
   sofLocatorSetName = "";
 
+  // Carbon Mesh::ownedLocatorSets and Mesh::armorDamageShader
+  // (EveChildInstancedMeshes.h:163-164), set by SOF BuildChild through AddMesh;
+  // CarbonEngineJS delivers built objects as documents, so both persist.
+  @edit.persist
+  @type.list("EveLocatorSets")
+  ownedLocatorSets = [];
+
+  @edit.persist
+  @type.objectRef("Tr2Effect")
+  armorDamageShader = null;
+
   @edit.persist
   @type.boolean
   display = true;
@@ -84,7 +95,7 @@ export class EveChildInstancedMesh extends CjsModel
   instanceSpheres = [];
 
   /** Carbon Mesh::flags (InstanceFlags uint32) - batch-type bits stamped at
-   * AddMesh (cpp:422-425), CASTS_SHADOW at AddMesh (cpp:418-421),
+   * AddMesh (cpp:578-581), CASTS_SHADOW at AddMesh (cpp:574-577),
    * RENDER_IN_REFLECTION refreshed each async pass (cpp:251). */
   flags = 0;
 

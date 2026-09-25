@@ -1197,7 +1197,13 @@ export class EveSOF extends CjsModel
         decals: [],
         attachments: [],
         lights: [],
-        animationUpdater: document.AddNode("Tr2GrannyAnimation", {})
+        animationUpdater: document.AddNode("Tr2GrannyAnimation", {}),
+        // The part owns its hull-local locators and, with damage locators,
+        // its own armour shader (Carbon EveSOF.cpp:395-399).
+        ownedLocatorSets: this.BuildHullLocalLocatorSets(document, dna),
+        armorDamageShader: dna.GetLocatorCount("damage") > 0
+          ? this.CreateArmorDamageEffect(document, dna)
+          : null
       };
       this.SetupDecalSets(document, childFields, dna);
       this.SetupAttachments(document, childFields, dna, [identityMatrix()], false);
@@ -1225,6 +1231,12 @@ export class EveSOF extends CjsModel
           partTags: [partTag],
           sofHullName: this.editorMode ? dna.GetHullNames()[0] : "",
           sofLocatorSetName: "",
+          // Carbon EveSOF.cpp:450-470: the shared part carries its own
+          // locators and armour shader through AddMesh.
+          ownedLocatorSets: this.BuildHullLocalLocatorSets(document, dna),
+          armorDamageShader: dna.GetLocatorCount("damage") > 0
+            ? this.CreateArmorDamageEffect(document, dna)
+            : null,
           display: true
         }));
       }
@@ -1278,7 +1290,8 @@ export class EveSOF extends CjsModel
     {
       this.SetupImpactEffects(document, rootFields, dna);
     }
-    this.SetupLocatorSets(document, rootFields, dna, [transform], partTag);
+    // No SetupLocatorSets here: the part's locators travel with its child and
+    // the object merges them (Carbon removed the call in trinity 108ab454).
     this.SetupLayout(document, rootFields, dna, {
       ...(layoutOptions ?? {}),
       offsets: [transform]
@@ -3988,7 +4001,8 @@ export class EveSOF extends CjsModel
 
   /**
    * Overwrites turret shader constants or vector parameters with the
-   * primary-area material selected by a faction catalog entry.
+   * turret-area material selected by a faction catalog entry (Carbon
+   * EveSOF.cpp:4260-4269).
    */
   @carbon.method
   @impl.implemented
@@ -3996,13 +4010,40 @@ export class EveSOF extends CjsModel
   {
     const factionData = this.dataMgr.GetFactionData(factionName);
     if (!factionData) return;
-    const genericData = this.dataMgr.GetGenericData();
-    turretSet.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(
+    this.ApplyFactionToTurretShader(turretSet, this.dataMgr.GetGenericData(), factionData);
+  }
+
+  /**
+   * Overrides turret shader parameters with a faction's turret-area material
+   * (Carbon EveSOF.cpp:4201-4254). Carbon receives the Tr2Effect; here the
+   * turret that owns the effects receives the resolved values, because SOF
+   * cannot import the Trinity layer that walks a Tr2Effect.
+   * @param {Object} turret - an EveTurretSet or EveChildTurret
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("SOF cannot import Trinity, so the Tr2Effect walk is delegated to the turret's ApplySofTurretMaterial; the faction value resolution is Carbon's.")
+  ApplyFactionToTurretShader(turret, genericData, factionData)
+  {
+    turret.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(
       this.dataMgr,
       genericData,
       factionData,
       parameterName
     ));
+  }
+
+  /**
+   * Applies a faction's turret-area material to every opaque area of a child
+   * turret's mesh (Carbon EveSOF.cpp:4271-4298).
+   */
+  @carbon.method
+  @impl.implemented
+  SetupChildTurretMaterialFromFaction(childTurret, factionName)
+  {
+    const factionData = this.dataMgr.GetFactionData(factionName);
+    if (!childTurret || !factionData) return;
+    this.ApplyFactionToTurretShader(childTurret, this.dataMgr.GetGenericData(), factionData);
   }
 
   /**
@@ -4032,11 +4073,13 @@ function findTurretFactionParameter(dataMgr, genericData, factionData, parameter
     );
     info.ChangeMaterialIdx(genericData, usageIndex);
   }
+  // Carbon EveSOF.cpp:4223 and :4243 read the generic turret area type
+  // (default TYPE_PRIMARY) since trinity bc9cb374.
   return findTurretAreaParameter(
     dataMgr,
     factionData.colorData?.colors ?? [],
     factionData.areaMaterials,
-    EveSOFDataArea.AreaType.TYPE_PRIMARY,
+    Number(genericData?.turretAreaType ?? EveSOFDataArea.AreaType.TYPE_PRIMARY),
     info
   );
 }

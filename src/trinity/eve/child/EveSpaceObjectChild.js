@@ -213,6 +213,46 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   {
   }
 
+  /**
+   * Returns the damage overlay of one part of this child, or null while the
+   * part has none (Carbon EveSpaceObjectChild.cpp:138-141 base default).
+   */
+  @carbon.method
+  @impl.implemented
+  GetPartDamageOverlay(_partTag)
+  {
+    return null;
+  }
+
+  /** Creates the damage overlay of one part (Carbon cpp:143-145 base no-op). */
+  @carbon.method
+  @impl.implemented
+  CreatePartDamageOverlay(_partTag)
+  {
+  }
+
+  /**
+   * Returns the armour damage shader of one part, or null when the child has
+   * none (Carbon cpp:147-150 base default).
+   */
+  @carbon.method
+  @impl.implemented
+  GetPartArmorDamageShaderEffect(_partTag)
+  {
+    return null;
+  }
+
+  /**
+   * Writes the animated child-local pose of one of a part's damage locators;
+   * the base child owns none, so nothing is written (Carbon cpp:152-155).
+   */
+  @carbon.method
+  @impl.implemented
+  GetPartDamageLocatorAnimatedLocal(_partTag, _index, _position, _direction)
+  {
+    return false;
+  }
+
   /** Attaches one child and propagates owner and nonzero part-tag state. */
   RegisterChild(child)
   {

@@ -1345,3 +1345,42 @@ test("decal priority is its index, renumbered on every structural change", () =>
   object.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, null, [ first ]);
   assert.equal(first.priority, null);
 });
+
+
+test("a mesh-less EveSpaceObject2 with an impact overlay renders its impacts (Carbon EveSpaceObject2.cpp:1127-1135, 1545-1548, 1715-1716)", () =>
+{
+  const object = new EveSpaceObject2();
+  object.SetBoundingSphereInformation(new Float32Array([0, 0, 0, 10]));
+  object.UpdateWorldTransform(1);
+  object.UpdateWorldBounds();
+  const calls = [];
+  const impactOverlay = new EveImpactOverlay();
+  impactOverlay.GetBatches = (...args) =>
+  {
+    calls.push(args);
+    return true;
+  };
+  object.impactOverlay = impactOverlay;
+
+  const frustum = {
+    IsSphereVisible() { return true; },
+    GetPixelSizeAccross() { return 80; },
+    GetPixelSizeAccrossEst() { return 75; }
+  };
+  assert.equal(object.UpdateVisibility({
+    frustum,
+    visibilityThreshold: 1,
+    lowDetailThreshold: 20,
+    mediumDetailThreshold: 60,
+    lodFactor: 1
+  }), true);
+  assert.deepEqual(object.GetRenderables([]), [object]);
+  assert.equal(object.GetBatches({}, 0, null, 0), true);
+  assert.equal(calls.length, 1);
+  // The screen size is computed without a mesh, so impacts pick a real LOD.
+  assert.equal(calls[0][3], 75);
+
+  object.impactOverlay = null;
+  assert.deepEqual(object.GetRenderables([]), []);
+  assert.equal(object.GetBatches({}, 0, null, 0), false);
+});

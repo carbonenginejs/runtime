@@ -216,6 +216,18 @@ export class Tr2GpuSharedEmitter extends CjsModel
   }
 
   /**
+   * Emits one scaled burst into the GPU particle system (Carbon
+   * Tr2GpuSharedEmitter.cpp:236-276). Requires Tr2GpuParticleSystem.Emit and
+   * the parameter hash/ID registry, neither of which is ported.
+   */
+  @carbon.method
+  @impl.notImplemented
+  SpawnOnce(_arguments, _velocity, _scale = 1, _rateModifier = 1)
+  {
+    throw new Error("Tr2GpuSharedEmitter.SpawnOnce is not implemented in CarbonEngineJS.");
+  }
+
+  /**
    * Projects Carbon's emitter and particle-parameter structs onto the schema-backed fields in one batched, event-free update followed by a single UpdateValues.
    * @param {object} emitterData emission shape and speed range; missing members fall back to the current values
    * @param {object} paramsData per-particle parameters; colors may be supplied either as a colors array or as color0..color3

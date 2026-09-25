@@ -12,8 +12,8 @@ import { ImpactConfiguration } from "../../generated/include/enums.js";
 
 const IMPACT_HOLE_TO_ARMOR_DAMAGE_RATIO = 12;
 const IMPACT_HOLE_TO_HULL_DAMAGE_RATIO = 4;
-const IMPACT_ARMOR_SIZE_FACTOR = 0.0129;
-const IMPACT_ARMOR_SIZE_MAX = 10;
+export const IMPACT_ARMOR_SIZE_FACTOR = 0.0129;
+export const IMPACT_ARMOR_SIZE_MAX = 10;
 
 
 /**
@@ -382,6 +382,9 @@ export class EveDamageOverlay extends CjsModel
     const radius = Number(sphere?.radius ?? sphere?.[3] ?? -1);
     this.armorImpactParentSize = Math.min(radius, IMPACT_ARMOR_SIZE_MAX / IMPACT_ARMOR_SIZE_FACTOR);
 
+    // Carbon EveDamageOverlay.cpp:301: an owner that cannot resolve its
+    // locators (an instanced part whose mesh is not loaded) supplies none.
+    if (!ownerInfo.getDamageLocatorPositionOS) return;
     let row = 0;
     for (const impact of this.#armorImpacts.values())
     {
