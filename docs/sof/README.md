@@ -85,6 +85,5 @@ before requesting expanded output.
 
 ## Documentation map
 
-- [Architecture and boundaries](architecture.md)
 - [Class catalog](reference/classes/README.md)
 - [Package README](../../README.md)

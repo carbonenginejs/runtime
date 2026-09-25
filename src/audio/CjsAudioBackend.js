@@ -84,6 +84,13 @@ const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
  * use target automation with a 5 ms time constant. Cone attenuation,
  * distance-driven filters, spread/focus, diffraction and transmission are
  * not realized.
+ *
+ * Missing optional Web Audio primitives degrade per stage: without
+ * `createBiquadFilter` the voice LPF/HPF stages are omitted, without
+ * `createAnalyser` level reporting reads 0, and without
+ * `createDynamicsCompressor` the master safety compressor is absent and the
+ * master gain connects straight to the destination. Shared-bus route
+ * qualification stays all-or-nothing.
  */
 export class CjsAudioBackend
 {
@@ -489,7 +496,12 @@ export class CjsAudioBackend
         return this.#hasEventStops(String(eventName)) === true;
     }
 
-    /** Starts an event: allocates the playing id synchronously, starts when the media resolves. */
+    /**
+     * Starts an event: allocates the playing id synchronously, starts when the media resolves.
+     *
+     * An event owned by both the music engine and the SFX program starts both
+     * sides under one playing ID and completes after both have ended.
+     */
     PostEvent(eventID, gameObjID, additionalFlags, emitter, eventName)
     {
         this.#CommitHeardCrossfadeTransactions();

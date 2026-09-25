@@ -687,6 +687,7 @@ export class CjsAudioMan
      * `auto` prefers individual prepared/original media, then embedded range
      * reads, then whole-bank reads. `individual` excludes embedded media,
      * `whole` disables ranges, and `range` requires ranges for embedded media.
+     * A change clears the decoded-media cache and retained music media.
      */
     SetDelivery(delivery)
     {
@@ -701,7 +702,10 @@ export class CjsAudioMan
         return this;
     }
 
-    /** Sets the ordered language preferences used for future selections. */
+    /**
+     * Sets the ordered language preferences used for future selections. A
+     * change clears the decoded-media cache and retained music media.
+     */
     SetLanguages(languages)
     {
         const values = NormalizeLanguages(languages);

@@ -144,7 +144,7 @@ and TGA are exact.
 | YAML (`.yaml`/`.yml`) | `CjsYamlFormat` | `@carbonenginejs/runtime/resource/formats/yaml` |
 
 Detailed pages: [CMF, FBX, and glTF geometry interchange](geometry-interchange.md),
-[Granny GR2 and GSF](gr2.md),
+Granny GR2 and GSF,
 FSD and cFSD,
 data-only pickle protocol 0,
 client `.static` container identification,
@@ -195,7 +195,8 @@ GR2 JSON emission, optional curve decompression, CCP packed tangent-frame
 unpacking, and caller-class hydration (`emit: "gr2"`/`"cmf"` with a
 `classes` map). It was migrated from `@carbonenginejs/format-gr2` after that
 package's 2026-07-24 MIT relicense, preserving its behavior and test
-surface; [gr2.md](gr2.md) documents the reader API, output modes, graph
+surface; the `CjsGr2Format` JSDoc and the `gr2/index.js` module comment
+document the reader API, output modes, graph
 shape, and hydration contract.
 
 ## Red output markers

@@ -140,7 +140,7 @@ the *buffers* that need the arena. If it ever starts pooling, route through it.
 
 - **`Tr2PerObjectDataSkinned` and `Tr2PerAreaDataSkinned`** belong to the
   character domain: every allocation site is a skinned or interior path, and they
-  need the interior renderer. `runtime/docs/character/architecture.md` holds their
+  need the interior renderer. `src/character/trinity/README.md` holds their
   layout, including a transpose rule that does **not** match this family's.
 - **`ApplyConstantBuffers`**, the indirect-draw sibling of the upload, writes
   through `Tr2IndirectDrawBufferWriter`. That has no JS counterpart and nothing on

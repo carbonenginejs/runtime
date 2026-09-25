@@ -120,7 +120,12 @@ export class CjsCharacterModifierOrder
         return result;
     }
 
-    /** Returns the native numeric key for one category and optional group. */
+    /**
+     * Returns the native numeric key for one category and optional group:
+     * `categoryIndex * 1000 + groupIndex`. `groupIndex` is the position in
+     * the makeup group list for a known `makeup` group and 999 otherwise; an
+     * unknown category returns -1.
+     */
     static getSortKey(category, group = "", categories = DEFAULT_CATEGORIES)
     {
         if (!Array.isArray(categories))
@@ -144,7 +149,11 @@ export class CjsCharacterModifierOrder
         return categoryIndex * 1000 + groupIndex;
     }
 
-    /** Returns a stable, non-mutating sort of modifier-like values. */
+    /**
+     * Returns a stable, non-mutating sort of modifier-like values by
+     * `getSortKey`; equal keys keep their input order, and unknown categories
+     * (-1) sort first.
+     */
     static sort(values, {
         categories = DEFAULT_CATEGORIES,
         getCategory = DefaultCategory,

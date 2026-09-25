@@ -26,5 +26,3 @@ kind. It is an index rather than a method reference.
 
 ## Related documentation
 
-- [Current API reference](../api.md)
-- [Carbon compatibility](../carbon-compatibility.md)

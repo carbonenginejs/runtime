@@ -1,7 +1,15 @@
 import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** Authored metadata associated with one character part source. */
+/**
+ * Authored metadata associated with one character part source.
+ *
+ * `dependentModifiers` and `occludesModifiers` keep the raw authored strings.
+ * `dependencies` and `occlusions` hold ordered `CjsCharacterModifierReference`
+ * projections beside them, each with its `authoredValue`, an
+ * optional normalized unsuffixed `modifierPath`, and exact `partSource` /
+ * `modifierLocation` relationships only when a join is exact.
+ */
 @type.define({ className: "CjsCharacterPartMetadata", family: "character" })
 export class CjsCharacterPartMetadata extends CjsCharacterRecord
 {

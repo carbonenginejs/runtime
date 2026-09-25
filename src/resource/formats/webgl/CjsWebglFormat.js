@@ -30,9 +30,9 @@ const FORMAT_NAME = "CjsWebglFormat";
  * The Cjs prefix marks this as a JavaScript format/construction boundary. A
  * WebGL effect is a stock Carbon effect container whose stored programs are
  * GLSL ES 3.00 - the same file shape Carbon ships for its own backends, and the
- * same one WebGPU emits with WGSL. `Read` decodes one into stage and shader
- * records; `Inspect` is a cheap structural summary; `BuildEffect` translates a
- * compiled Tr2 effect into one; `EmitGlsl` translates a single DXBC stage.
+ * same one WebGPU emits with WGSL. `read` decodes one into stage and shader
+ * records; `inspect` is a cheap structural summary; `buildEffect` translates a
+ * compiled Tr2 effect into one; `emitGlsl` translates a single DXBC stage.
  */
 export class CjsWebglFormat extends CjsFormat
 {

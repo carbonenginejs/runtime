@@ -8,6 +8,10 @@
 // Eve/UI/*.cpp, GetPerObjectData), all of which fill only WorldMat and leave
 // every other field at its layout default.
 //
+// Carbon's constructor (cpp:42-45) sets only the VS payload size; unlike the
+// PS storage, which Tr2PerObjectDataPSBuffer memsets, its 40-register VS
+// storage is not zeroed.
+//
 // WHY THIS CLASS EXISTS RATHER THAN A { vs, ps } RECORD. Carbon's upload is a
 // virtual on the data, and its subclasses differ in a way no shared function can
 // express: Standard binds its pixel buffer without consulting the technique mask

@@ -39,8 +39,8 @@ The optional `./library-builder` entry is separate so builder-only BNK/HIRC
 construction code is absent from ordinary runtime bundles. Playback keeps its
 WEM format import lazy until original WEM bytes actually need preparation.
 The builder resolves supplied version-150 NodeBase and Actor-Mixer inheritance;
-its [document contract](reference/api.md#complete-document) and
-[compatibility ledger](reference/carbon-compatibility.md#compatibility-ledger)
+the document typedefs (`src/audio/library/audioLibraryDocument.js`) and
+`src/audio/README.md`
 define qualified SFX projections and browser realization limits.
 
 ## Owned responsibilities
@@ -96,7 +96,7 @@ runtime contains the reviewed outputs and never imports generator inputs.
 
 All public runtime entries are browser-safe. Import and ordinary construction
 perform no DOM, fetch, Node, or device work. Explicit
-[builder/loading calls](reference/api.md#builder) may fetch caller-selected
+builder/loading calls may fetch caller-selected
 resources; browser playback requires no Node service. `Enable()` is the first
 point at which the supplied/default context factory may create an `AudioContext`.
 Without a usable context, enablement fails safely and graph events retain
@@ -111,6 +111,3 @@ availability probe. It neither synthesizes Wwise events nor replaces
 ## Related documentation
 
 - [Browser playback guide](guides/browser-playback.md)
-- [Authored SFX programs](guides/sfx.md)
-- [API reference](reference/api.md)
-- [Carbon compatibility](reference/carbon-compatibility.md)

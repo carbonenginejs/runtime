@@ -808,6 +808,12 @@ export class EveSOF extends CjsModel
   /**
    * Returns a new space-object values graph with one Carbon modular hull
    * contribution. Invalid DNA returns null without changing the input graph.
+   *
+   * The part tag is stamped on the placement container or child mesh it
+   * adds and on the shared instanced mesh (`partTags`). The root's bounding
+   * sphere and shape ellipsoid are set to the part hull's values under
+   * `transform`. Hydration into Trinity and live removal belong to the
+   * caller; SOF only builds the device-free graph.
    */
   @impl.custom
   @impl.reason("Provides the immutable values form needed to compose a modular graph before optional Trinity hydration.")

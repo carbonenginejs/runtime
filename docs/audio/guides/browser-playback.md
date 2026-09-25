@@ -112,8 +112,8 @@ audio.Dispose();
 
 The example's opt-ins admit only qualified browser approximations, not general
 Wwise DSP. Rejected shared-bus processing normally leaves the voice audible on
-its legacy route. See the [policy table](../reference/api.md#effect-policies)
-and [compatibility ledger](../reference/carbon-compatibility.md#compatibility-ledger)
+its legacy route. See the effect policies on the `CjsAudioMan` constructor and
+the "Not emulated" list in `src/audio/README.md`
 before enabling a policy.
 
 ## Provider routes
@@ -121,24 +121,24 @@ before enabling a policy.
 Implement `Read` for individual files or whole banks, or `ReadRange` for exact
 embedded-media windows. The provider owns URLs, credentials, fetch policy, and
 cancellation; the audio layer owns selection, validation, preparation,
-decoding, and caches. Follow the [provider and cancellation contract](../reference/api.md#delivery)
+decoding, and caches. Follow the provider and cancellation contract
 when forwarding abort signals: one stopped event must not cancel another's read.
 
 For authored random, sequence, switch, layered, or RTPC-controlled behavior,
-include the optional `sfx` program described in
-[Authored SFX programs](sfx.md). Its sound leaves still use these same
+include the optional `sfx` program described in `src/audio/README.md`
+(SFX program playback). Its sound leaves still use these same
 provider routes.
 
 ## Spatial attenuation
 
 Use `SetAttenuationScalingFactor()` to change playback range, but note that
 Carbon's culling radius scales differently. The exact curve, culling quirk,
-missing-curve fallback, and unrendered spatial features are documented under
-[adaptations](../reference/carbon-compatibility.md#adaptations).
+missing-curve fallback, and unrendered spatial features are listed under
+"Not emulated" in `src/audio/README.md`.
 
 For host-computed blockage, register the emitter before calling
 `SetEmitterLineOfSightBlockage(emitterID, value)`. No ray casting is performed.
-The [manager API](../reference/api.md#caller-supplied-obstruction-and-occlusion)
+The `AudManager` JSDoc
 describes fading and backend delivery; audible filtering requires the explicit
 `wwiseObstructionOcclusion` opt-in.
 
@@ -149,11 +149,9 @@ in the `CjsMusicEngine` JSDoc.
 ## Cleanup
 
 Release emitters with `ReleaseEmitter()` and the owner with `Dispose()`.
-For cache release without caller cancellation, use the methods listed in
-[Delivery](../reference/api.md#delivery).
+For cache release without caller cancellation, use the release methods
+documented on `CjsAudioMan`.
 
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
-- [Authored SFX programs](sfx.md)
-- [API reference](../reference/api.md)

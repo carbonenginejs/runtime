@@ -20,7 +20,24 @@ const MAX_TREMOLO_DEPTH_PERCENT = 100;
 const FILTER_SETTLE_MULTIPLIER = 2;
 const FILTER_REMAINING_AT_AUTHORED_TIME = 0.005;
 
-/** Owns live AudioParam bindings for one realized source-effect chain. */
+/**
+ * Owns live AudioParam bindings for one realized source-effect chain.
+ *
+ * The reader resolves a curve's control as object RTPC, then global RTPC,
+ * then the curve's `defaultValue`, then its first point. The curve output is
+ * converted by scaling (2: Wwise dB conversion, 3: `10 ** value`, otherwise
+ * raw); `additive` adds it to the static record value and `exclusive`
+ * replaces it. Results are clamped: EQ gain -24..24 dB, EQ frequency
+ * 20 Hz..min(20 kHz, Nyquist), Tremolo frequency 0.02 Hz..that maximum, and
+ * depth, wet/dry and drive 0..100 %. Each span between known control
+ * boundaries is scheduled as a 33-point value curve.
+ *
+ * A curve with `controlTransition` (Filtering Over Time) reads its control
+ * through a per-lane exponential filter that reaches 99.5 % at the authored
+ * ramp time (ramp-up or ramp-down by direction) and settles exactly one ramp
+ * later. The lane belongs to one voice, so a new voice starts from the
+ * current control value and never inherits another voice's filter history.
+ */
 export class CjsWwiseSourceEffectRtpcLane
 {
     #bindings;

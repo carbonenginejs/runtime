@@ -1006,7 +1006,13 @@ export function writeGr2(input, writerOptions = {})
     });
 }
 
-/** Convert shared or GR2-shaped geometry through CMF, then serialize GR2. */
+/**
+ * Convert shared or GR2-shaped geometry through CMF, then serialize GR2.
+ *
+ * A four-component `tangent` with no `normal` or `binormal` is a packed frame
+ * and enters CMF as `PackedTangentLegacy`, so the CMF step keeps the packed
+ * layout instead of expanding it.
+ */
 export function writeSharedGr2(input, writerOptions = {})
 {
     const options = validateOptions(writerOptions);

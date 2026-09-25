@@ -162,4 +162,3 @@ an explicitly registered extension, or a newly verified Carbon convention.
 ## Related documentation
 
 - [Format subpaths](README.md)
-- [Granny GR2 and GSF](gr2.md)

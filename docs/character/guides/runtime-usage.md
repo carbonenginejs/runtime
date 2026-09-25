@@ -184,7 +184,7 @@ const resolved = CjsCharacterAppearanceResolver.resolvePaperdoll(library, paperd
 This stage preserves modifier selections and emits a plan contribution for
 every strict source-version match. It selects unique candidates or qualified
 retained atomic bundles. For requested LOD, family selection and fallback
-behavior, see [appearance plans](../reference/character-appearance-plans.md#runtime-boundary). Its
+behavior, see the `CjsCharacterAppearanceResolver` JSDoc. Its
 `layers` collection records owner/contributor relationships, not atlas order.
 Effective version metadata contributes the five verified modifier-order flags,
 but this policy normalization does not reorder `plan.layers`. Raw dependency
@@ -206,4 +206,4 @@ fetch/decoding through resource readers; metadata inspection can call an
 injected resource manager. The manager's combined-document loader returns
 decoded objects, not bytes. Selected-asset caching/lifecycle and rendering stay
 with resource and graphics hosts; there is no Node/local-file fallback in
-character. See [architecture](../architecture.md).
+character. See `src/character/trinity/README.md`.

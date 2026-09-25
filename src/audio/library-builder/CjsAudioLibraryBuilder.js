@@ -6096,6 +6096,9 @@ function ParseStaticWwiseSilenceDuration(effects, source, rawId)
  * plug-ins, and unsafe independent LFE routing keep the documented dry
  * approximation. Static source EQ may retain `processLfe:false`; decoded
  * multichannel voices reject the complete chain at realization time.
+ * Wwise Harmonizer is one such unsupported plug-in: Web Audio has no
+ * duration-preserving pitch shifter, and `playbackRate` would change the
+ * source duration, so a chain containing it stays dry.
  */
 function CreateSfxSoundEffectProjection(ancestry, effects, names, rawId)
 {

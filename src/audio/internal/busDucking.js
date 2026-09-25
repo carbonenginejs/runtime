@@ -130,6 +130,14 @@ export function indexBusDuckingCatalog(value)
  *
  * Signals are scheduled transport intervals, not analyser levels. The same
  * controller is shared by SFX and music so either engine can duck the other.
+ * A physical source schedules one activity on every source Bus of its dry
+ * route from its scheduled start, silent samples included; pending media and
+ * authored graph silence schedule nothing. Per source and target, the first
+ * active signal starts the Fade Out toward `volumeDb`, overlapping signals
+ * hold one duck, and the last end starts Recovery followed by Fade In. Fades
+ * interpolate linear gain with the authored Wwise curve. One source's
+ * matching targets sum in dB and clamp at its `maxDuckVolumeDb`; different
+ * sources add in dB.
  */
 export class CjsBusDuckingController
 {

@@ -1322,7 +1322,21 @@ export function createBusEffectChain(context, indexedCatalog, busPathIds)
     return createWwiseEffectChain(context, effects);
 }
 
-/** Creates one ordered browser effect chain from normalized portable records. */
+/**
+ * Creates one ordered browser effect chain from normalized portable records.
+ *
+ * Returns `null` for an empty list, and also when the source chain as a whole
+ * must stay dry, so the voice plays without any of its effects:
+ * - it holds a Compressor or Peak Limiter, Flanger or Tremolo, Guitar
+ *   Distortion, Matrix Reverb or RoomVerb whose policy option is `"strict"`;
+ * - it holds an EQ with `processLfe: false` and the source has more than two
+ *   channels;
+ * - it holds a live curve (EQ or Tremolo `rtpcCurves`, Flanger
+ *   `wetDryMixRtpcCurve`, Distortion `driveRtpcCurve`) and no
+ *   `readSourceEffectRtpc` reader is supplied;
+ * - `wwiseMeterFeedback` is `"strict"` and a Meter writes a Game Parameter.
+ * A record type outside the realizable set throws.
+ */
 export function createWwiseEffectChain(
     context,
     effects,
