@@ -124,6 +124,7 @@ import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js
 import { RenderingMode, TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../../../npm/dist/global/math/vec3.js";
+import { EveCamera } from "../../../../npm/dist/trinity/eve/camera/EveCamera.js";
 import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js";
 
 
@@ -916,66 +917,88 @@ async function CountDrawnPixels(device, texture, canvas)
 
 
 /**
- * The scene's per-frame blocks, framed on the hull.
+ * An EveCamera orbiting the hull, as the client's space camera orbits a ship.
  *
- * CARBON IS ROW-VECTOR AND gl-matrix IS COLUMN-VECTOR, so every composition
- * swaps its operands: Carbon's `view * projection` is `multiply(out,
- * projection, view)` here. Getting it the other way round yields a matrix that
- * is not obviously wrong and puts the hull nowhere.
+ * The camera's parent is the hull's centre (`extraTranslation`), its distance
+ * `translationFromParent`. It starts on the angle the demo used to fix: yaw a
+ * quarter turn between +X and +Z, pitched slightly down onto the hull. The clip
+ * planes follow the hull's size; the camera's defaults (10 to 10,000,000) suit
+ * a scene, not one frigate.
  *
  * @param {object} bounds Centre and radius of the hull.
+ * @returns {EveCamera} The camera.
+ */
+function OrbitCamera(bounds)
+{
+  const camera = new EveCamera();
+
+  camera.useExtraTranslation = true;
+  vec3.copy(camera.extraTranslation, bounds.centre);
+  camera.fieldOfView = Math.PI / 4;
+  camera.frontClip = Math.max(1, bounds.radius * 0.05);
+  camera.backClip = bounds.radius * 100;
+  camera.translationFromParent = bounds.radius * 2.2;
+  camera.SetOrbit(Math.PI / 4, -0.3);
+  return camera;
+}
+
+
+/**
+ * Drags orbit the camera and the wheel dollies it, through Carbon's verbs.
+ *
+ * `OrbitParent` scales by the camera's `maxSpeed` (0.05 rad per unit), so
+ * pixels are scaled down to keep a full-width drag near one turn.
+ *
+ * @param {HTMLCanvasElement} canvas The canvas receiving input.
+ * @param {EveCamera} camera The camera.
+ * @param {object} bounds Centre and radius of the hull.
+ * @returns {void}
+ */
+function BindCameraInput(canvas, camera, bounds)
+{
+  let last = null;
+
+  canvas.addEventListener("pointerdown", event =>
+  {
+    last = [ event.clientX, event.clientY ];
+    canvas.setPointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointerup", event =>
+  {
+    last = null;
+    canvas.releasePointerCapture(event.pointerId);
+  });
+  canvas.addEventListener("pointermove", event =>
+  {
+    if (!last) return;
+    camera.OrbitParent((event.clientX - last[0]) * 0.1, (event.clientY - last[1]) * 0.1);
+    last = [ event.clientX, event.clientY ];
+  });
+  canvas.addEventListener("wheel", event =>
+  {
+    event.preventDefault();
+    camera.Dolly(Math.sign(event.deltaY) * bounds.radius * 0.1);
+  }, { passive: false });
+}
+
+
+/**
+ * The scene's per-frame blocks, with everything but the camera filled.
+ *
  * @param {number} width Viewport width in pixels.
  * @param {number} height Viewport height in pixels.
  * @returns {{vs: object, ps: object, viewProjection: Float32Array}} The blocks.
  */
-function PerFrameData(bounds, width, height)
+function PerFrameData(width, height)
 {
-  const aspect = width / height;
-
-  // Close enough to read the surface. Three radii framed the whole hull with
-  // room to spare, which is tidy and useless for judging shading.
-  const distance = bounds.radius * 1.7;
-  const eye = vec3.fromValues(
-    bounds.centre[0] + distance * 0.8,
-    bounds.centre[1] + distance * 0.35,
-    bounds.centre[2] + distance * 0.8
-  );
-  const view = mat4.lookAt(mat4.create(), eye, bounds.centre, vec3.fromValues(0, 1, 0));
-
-  // ZO, not NO: WebGPU's clip volume puts the near plane at zero, as D3D and
-  // Metal do. An OpenGL-style projection clips half the model away before any
-  // raster state gets a say.
-  const projection = mat4.perspectiveZO(mat4.create(), Math.PI / 4, aspect, bounds.radius * 0.05, distance * 4);
-  const viewProjection = mat4.multiply(mat4.create(), projection, view);
   const vs = RawData.create("EveSpaceScenePerFrameVSData");
   const ps = RawData.create("EveSpaceScenePerFramePSData");
 
-  // TRANSPOSED ON THE WAY IN, which is not decoration. The shader reads each
-  // matrix as four consecutive `vec4`s and DOTS the position with them, so it
-  // wants the rows where gl-matrix stores columns. `SetAndTranspose` is the
-  // method the rest of the runtime writes these with for exactly that reason.
-  //
-  // ViewInverseTransposeMat IS WHAT ITS NAME SAYS: the TRANSPOSED inverse view,
-  // which SetAndTranspose then stores as the inverse view itself. That is
-  // Carbon's "need the transposed, but shader also needs column_major, so it is
-  // transpose(transpose(m)) == m" (EveSpaceScene.cpp:3026-3027, 3082-3083).
-  // Passing the plain inverse scrambled the camera position and view
-  // directions the shader derives from it, so Fresnel and reflections landed
-  // on the wrong surfaces: gold dark, matte panels shiny.
-  const viewInverse = mat4.invert(mat4.create(), view);
-  const viewInverseTranspose = mat4.transpose(mat4.create(), viewInverse);
-
-  vs.SetAndTranspose("ViewMat", view);
-  vs.SetAndTranspose("ProjectionMat", projection);
-  vs.SetAndTranspose("ViewProjectionMat", viewProjection);
-  vs.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
   vs.Set("Sun.DirWorld", SUN_DIRECTION);
   vs.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   vs.Set("TargetResolution", [ width, height ]);
   vs.Set("ViewportSize", [ width, height ]);
 
-  ps.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
-  ps.SetAndTranspose("ViewMat", view);
   ps.Set("Sun.DirWorld", SUN_DIRECTION);
   ps.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   // ccpwgl's own scene defaults rather than invented numbers: ambient and fog
@@ -1006,7 +1029,58 @@ function PerFrameData(bounds, width, height)
   ps.Set("SceneMipLodBias", 0);
   ps.Set("Upscaling", 1);
 
-  return { vs, ps, viewProjection };
+  return { vs, ps, viewProjection: mat4.create() };
+}
+
+
+/**
+ * Updates the camera and writes its view and projection into the frame.
+ *
+ * CARBON IS ROW-VECTOR AND gl-matrix IS COLUMN-VECTOR, so every composition
+ * swaps its operands: Carbon's `view * projection` is `multiply(out,
+ * projection, view)` here. The camera's projection is Carbon's own
+ * (`EveCamera::CalculateProjectionMatrix`), depth 0 to 1 as WebGPU's clip
+ * volume expects.
+ *
+ * @param {{vs: object, ps: object, viewProjection: Float32Array}} frame The blocks.
+ * @param {EveCamera} camera The camera.
+ * @param {number} width Viewport width in pixels.
+ * @param {number} height Viewport height in pixels.
+ * @returns {void}
+ */
+function WriteCamera(frame, camera, width, height)
+{
+  const seconds = performance.now() / 1000;
+
+  camera.Update(seconds, width / height, seconds);
+
+  const { vs, ps, viewProjection } = frame;
+  const view = camera.GetViewMatrix().transform;
+  const projection = camera.GetProjection().transform;
+
+  mat4.multiply(viewProjection, projection, view);
+
+  // TRANSPOSED ON THE WAY IN, which is not decoration. The shader reads each
+  // matrix as four consecutive `vec4`s and DOTS the position with them, so it
+  // wants the rows where gl-matrix stores columns. `SetAndTranspose` is the
+  // method the rest of the runtime writes these with for exactly that reason.
+  //
+  // ViewInverseTransposeMat IS WHAT ITS NAME SAYS: the TRANSPOSED inverse view,
+  // which SetAndTranspose then stores as the inverse view itself. That is
+  // Carbon's "need the transposed, but shader also needs column_major, so it is
+  // transpose(transpose(m)) == m" (EveSpaceScene.cpp:3026-3027, 3082-3083).
+  // Passing the plain inverse scrambled the camera position and view
+  // directions the shader derives from it, so Fresnel and reflections landed
+  // on the wrong surfaces: gold dark, matte panels shiny.
+  const viewInverse = mat4.invert(mat4.create(), view);
+  const viewInverseTranspose = mat4.transpose(mat4.create(), viewInverse);
+
+  vs.SetAndTranspose("ViewMat", view);
+  vs.SetAndTranspose("ProjectionMat", projection);
+  vs.SetAndTranspose("ViewProjectionMat", viewProjection);
+  vs.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
+  ps.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
+  ps.SetAndTranspose("ViewMat", view);
 }
 
 
@@ -1267,7 +1341,11 @@ export async function RunDemo(canvas)
 
   const material = areas[0].material;
   const effectPath = areas[0].path;
-  const frame = PerFrameData(bounds, canvas.width, canvas.height);
+  const frame = PerFrameData(canvas.width, canvas.height);
+  const camera = OrbitCamera(bounds);
+
+  BindCameraInput(canvas, camera, bounds);
+  WriteCamera(frame, camera, canvas.width, canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
   // matrix is identity. EveTransform's payload is the simplest placeable one
@@ -1512,11 +1590,10 @@ export async function RunDemo(canvas)
   // can end up compositing a blank image over the frame it just drew. Drawing
   // every tick removes the question entirely, and it is what a demo should do.
   //
-  // THE ROTATION IS NOT DECORATION. It writes a new world matrix per frame, so
-  // the per-object constant upload and the arena's per-frame reset are exercised
-  // continuously rather than once - and a still hull cannot tell you whether the
-  // second frame still works, which is exactly the class of defect this lane
-  // keeps finding.
+  // EVERY FRAME REWRITES THE PER-FRAME BLOCKS from the camera, so the constant
+  // uploads and the arena's per-frame reset are exercised continuously rather
+  // than once - a single frame cannot tell you whether the second one works.
+  // `?spin=1` also turns the hull, rewriting its world matrix each frame.
   //
   // `?still=1` holds it at one frame, for when a report must be deterministic.
   const parameters = new URLSearchParams(globalThis.location?.search ?? "");
@@ -1524,6 +1601,7 @@ export async function RunDemo(canvas)
   if (parameters.get("still") !== "1")
   {
     const spin = mat4.create();
+    const spinning = parameters.get("spin") === "1";
     const start = performance.now();
 
     // The loop stopped dead after about a dozen frames with nothing in the
@@ -1537,8 +1615,12 @@ export async function RunDemo(canvas)
     {
       try
       {
-        mat4.fromYRotation(spin, (performance.now() - start) / 4000);
-        SetWorld(perObject, spin);
+        WriteCamera(frame, camera, canvas.width, canvas.height);
+        if (spinning)
+        {
+          mat4.fromYRotation(spin, (performance.now() - start) / 4000);
+          SetWorld(perObject, spin);
+        }
 
         // Synchronous: the pixel readback in `Frame` is the only asynchronous
         // part and a live loop does not need it.
