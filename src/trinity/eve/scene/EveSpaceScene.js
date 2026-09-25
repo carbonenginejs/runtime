@@ -547,6 +547,13 @@ export class EveSpaceScene extends CjsModel
   // offset. The per-frame pixel block reports only whether it is non-zero.
   jitter = vec4.create();
 
+  // NOTHING IN THIS RUNTIME WRITES viewLast, projectionLast, jitterMatrix OR
+  // jitter. Carbon advances them in Jitter and EndRender (cpp:1262-1287,
+  // 2867-2868) and EveSpaceSceneRenderDriver::Execute (cpp:431-432); this
+  // scene has neither method and the JS driver does not copy them. A host that
+  // wants motion vectors or jitter writes them each frame; otherwise they stay
+  // identity/zero.
+
   // Carbon m_upscalingAmount (EveSpaceScene.h:623, =1 by default at cpp:221).
   // Reset by the per-frame pixel fill and raised by an upscaler, if any.
   upscalingAmount = 1;
