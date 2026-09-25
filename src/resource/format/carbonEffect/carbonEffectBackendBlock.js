@@ -190,6 +190,21 @@ function deriveBindingDescriptor(binding)
         };
     }
 
+    // A storage texture's WGSL type names its dimension, format and access in
+    // full (`lowerBindingLayout.js` storageTextureLayout), so nothing more is
+    // stored for it.
+    const storage = STORAGE_TEXTURE_TYPE.exec(binding.type);
+    if (storage)
+    {
+        return {
+            storageTexture: {
+                access: STORAGE_TEXTURE_ACCESS[storage[3]],
+                format: storage[2],
+                viewDimension: storage[1].replace("_", "-")
+            }
+        };
+    }
+
     return {
         buffer: {
             type: "storage",
@@ -198,6 +213,12 @@ function deriveBindingDescriptor(binding)
         }
     };
 }
+
+/** `texture_storage_<dimension><<format>, <access>>`. */
+const STORAGE_TEXTURE_TYPE = /^texture_storage_(2d|2d_array|3d)<(\w+), (write|read|read_write)>$/u;
+
+/** WGSL storage-texture access to the WebGPU layout's `storageTexture.access`. */
+const STORAGE_TEXTURE_ACCESS = Object.freeze({ write: "write-only", read: "read-only", read_write: "read-write" });
 
 /** Texture descriptors by WGSL type (`lowerBindingLayout.js:90-95`). */
 const TEXTURE_DESCRIPTORS = Object.freeze({

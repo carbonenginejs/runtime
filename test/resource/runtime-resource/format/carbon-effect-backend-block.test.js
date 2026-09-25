@@ -501,3 +501,28 @@ test("a texture's sample type survives the block; the WGSL type alone cannot say
     assert.equal(bindings[1].texture.sampleType, "float", "an ordinary texture stays float");
     assert.equal("textureSampleType" in bindings[3], false, "the wire field does not leak onto the record");
 });
+
+test("a storage texture binding is rebuilt from its WGSL type", () =>
+{
+    // Nothing beyond the type is stored: texture_storage_<dim><<format>, <access>>
+    // names the layout's dimension, format and access in full.
+    const block = {
+        bindGroups: [ {
+            group: 0,
+            bindings: [ {
+                binding: 3,
+                resourceKind: "storage-resource",
+                registerSpace: 0,
+                registerIndex: 0,
+                visibility: [ "compute" ],
+                type: "texture_storage_2d_array<rgba16float, write>",
+                generatedSymbol: "u0"
+            } ]
+        } ]
+    };
+
+    const [ binding ] = readBackendBlock(writeBackendBlock(block)).bindGroups[0].bindings;
+
+    assert.deepEqual(binding.storageTexture, { access: "write-only", format: "rgba16float", viewDimension: "2d-array" });
+    assert.equal(binding.buffer, undefined, "not mistaken for a storage buffer");
+});

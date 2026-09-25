@@ -34,6 +34,7 @@ function LayoutKey(binding)
     binding.registerIndex,
     binding.buffer ?? null,
     binding.texture ?? null,
+    binding.storageTexture ?? null,
     binding.sampler ?? null
   ]);
 }
@@ -187,6 +188,7 @@ export class CjsWebgpuShaderProgramAL
               ? { buffer: binding.buffer.type === "uniform" ? { ...binding.buffer, hasDynamicOffset: true } : binding.buffer }
               : {}),
             ...(binding.texture ? { texture: binding.texture } : {}),
+            ...(binding.storageTexture ? { storageTexture: binding.storageTexture } : {}),
             ...(binding.sampler ? { sampler: binding.sampler } : {})
           }))
       }));

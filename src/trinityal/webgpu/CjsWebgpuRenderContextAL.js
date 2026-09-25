@@ -905,27 +905,52 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Runs a compute dispatch, which may not happen inside a render pass.
+   * Dispatches the bound compute program.
    *
-   * REFUSES, BECAUSE NOTHING DISPATCHES. This reported success and encoded no
-   * command: it set the encoder type and returned true, and there is no
-   * `dispatchWorkgroups` anywhere in this backend. A caller running a cull or
-   * simulate pass was told it had happened, then read a buffer the GPU never
-   * touched - with no validation error, because no command existed to be
-   * rejected. That is the failure `ClearUav` below refuses to allow, one method
-   * over, and it was allowed here for a day.
+   * Carbon's AL verb (`Tr2RenderContextDx11.h:151`); Metal's is the compute
+   * encoder's `DispatchThreadgroups`. The program, its resource set and its
+   * constants are whatever `Tr2Renderer.runComputeShader` bound for the pass.
+   * WebGPU needs a `GPUComputePipeline`, made once per program here, where a
+   * D3D context binds the compute shader directly.
    *
-   * Carbon's stub refuses too (`stub/Tr2RenderContextStub.h:171-174`, `E_FAIL`).
-   *
-   * @param {number} [_x] Workgroups.
-   * @param {number} [_y] Workgroups.
-   * @param {number} [_z] Workgroups.
-   * @returns {boolean} False; nothing is dispatched.
+   * @param {number} x Thread groups along x.
+   * @param {number} y Thread groups along y.
+   * @param {number} z Thread groups along z.
+   * @returns {boolean} Whether the dispatch was encoded.
    */
-  RunComputeShader(_x = 1, _y = 1, _z = 1)
+  RunComputeShader(x, y, z)
   {
-    return false;
+    if (!this._webgpu) return false;
+
+    const program = this._shaderProgram;
+    const module = program && typeof program.GetModuleFor === "function"
+      ? program.GetModuleFor(ShaderType.COMPUTE_SHADER)
+      : null;
+
+    if (!module) return this._RefusePipeline("a compute program");
+
+    let pipeline = this._computePipelines.get(program) ?? null;
+
+    if (!pipeline)
+    {
+      pipeline = this._webgpu.GetDevice().createComputePipeline({
+        label: `Tr2RenderContextAL compute ${program.GetIdentity()}`,
+        layout: program.GetPipelineLayout(),
+        compute: { module, entryPoint: WEBGPU_ENTRY_POINT }
+      });
+      this._computePipelines.set(program, pipeline);
+    }
+
+    if (!this._EmitBindGroups()) return false;
+
+    this._workQueue.SetComputePipeline(pipeline);
+    this._Record(this._workQueue.DispatchThreadgroups(x, y, z));
+
+    return true;
   }
+
+  /** Compute pipelines by program; a program's compute pipeline has no other state. */
+  _computePipelines = new WeakMap();
 
   /**
    * Runs a compute dispatch whose group counts are read from a buffer.
@@ -1643,12 +1668,13 @@ export class CjsWebgpuRenderContextAL
   {
     if (binding.sampler) return this.GetDummySampler();
     if (binding.texture) return this.GetDummyTexture(binding.texture.viewDimension ?? "2d");
+    if (binding.storageTexture) return this.GetDummyStorageTexture(binding.storageTexture.format, binding.storageTexture.viewDimension);
 
     return { buffer: this.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
   }
 
   /** The dummies, created once each: `MetalContext::m_dummyTexture[]`, `m_dummySampler`. */
-  _dummies = { textures: new Map(), sampler: null, buffers: new Map() };
+  _dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map() };
 
   /**
    * A 1x1 texture view of the given dimension, for a slot nothing filled.
@@ -1679,6 +1705,38 @@ export class CjsWebgpuRenderContextAL
 
     this._dummies.textures.set(viewDimension, view);
 
+    return view;
+  }
+
+  /**
+   * A 1x1 storage view for a UAV slot nothing filled.
+   *
+   * D3D binds a null UAV and drops its writes; WebGPU has no null binding and
+   * checks the view's format against the layout, so the stand-in is one per
+   * format and dimension, written to and never read.
+   *
+   * @param {string} format The binding's `storageTexture.format`.
+   * @param {string} viewDimension The binding's `storageTexture.viewDimension`.
+   * @returns {object} A `GPUTextureView`.
+   */
+  GetDummyStorageTexture(format, viewDimension)
+  {
+    const key = `${format}:${viewDimension}`;
+    const existing = this._dummies.storageTextures.get(key);
+
+    if (existing) return existing;
+
+    const usage = this._webgpu.GetTextureUsage();
+    const texture = this._webgpu.GetDevice().createTexture({
+      label: `Tr2RenderContextAL dummy storage ${key}`,
+      size: { width: 1, height: 1, depthOrArrayLayers: 1 },
+      dimension: viewDimension === "3d" ? "3d" : "2d",
+      format,
+      usage: usage.STORAGE_BINDING
+    });
+    const view = texture.createView({ dimension: viewDimension });
+
+    this._dummies.storageTextures.set(key, view);
     return view;
   }
 

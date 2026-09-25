@@ -116,6 +116,17 @@ export class CjsWebgpuTextureAL
       usage |= usageFlags.RENDER_ATTACHMENT ?? 0;
     }
 
+    // An unordered-access texture is written by compute through a storage
+    // binding; D3D's UAV is WebGPU's STORAGE_BINDING.
+    if (HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) usage |= usageFlags.STORAGE_BINDING ?? 0;
+
+    // A texture something renders or computes into is also a copy source, as
+    // D3D resources are without a flag: CopySubresourceRegion reads it.
+    if (HasFlag(gpuUsage, Tr2GpuUsage.RENDER_TARGET) || HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS))
+    {
+      usage |= usageFlags.COPY_SRC ?? 0;
+    }
+
     this.m_texture = device.createTexture({
       label: this.m_name || "Tr2TextureAL",
       size: { width: desc.GetWidth(), height: desc.GetHeight(), depthOrArrayLayers: layers },
@@ -194,6 +205,38 @@ export class CjsWebgpuTextureAL
         label: `${this.m_name || "Tr2TextureAL"} ${key}`,
         dimension: viewDimension,
         ...(srgb ? { format: this.m_srgbFormat } : {})
+      });
+      this.m_views.set(key, view);
+    }
+
+    return view;
+  }
+
+  /**
+   * The view a storage (UAV) binding writes: ONE mip level, every layer.
+   *
+   * Carbon binds a UAV at a mip (`Tr2ResourceSetDescriptionAL::SetUav`'s
+   * `mip`), and a WebGPU storage view must name exactly one. A cube is bound
+   * as a 2d-array of its faces, which is how a compute shader writes one.
+   *
+   * @param {string} viewDimension The binding's `storageTexture.viewDimension`.
+   * @param {number} mip The mip level.
+   * @returns {GPUTextureView|null} The view, or null before Create.
+   */
+  GetDeviceStorageView(viewDimension, mip)
+  {
+    if (!this.m_texture) return null;
+
+    const key = `storage:${viewDimension}:${mip}`;
+    let view = this.m_views.get(key) ?? null;
+
+    if (!view)
+    {
+      view = this.m_texture.createView({
+        label: `${this.m_name || "Tr2TextureAL"} ${key}`,
+        dimension: viewDimension,
+        baseMipLevel: mip,
+        mipLevelCount: 1
       });
       this.m_views.set(key, view);
     }

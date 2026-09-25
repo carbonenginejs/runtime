@@ -257,7 +257,9 @@ export class TriTextureParameter extends CjsParameter
   @impl.implemented
   ApplyUav(resourceDesc, stage, registerIndex)
   {
-    return resourceDesc.SetUav(stage, registerIndex, this.GetResource(), this.uavMipLevel);
+    // Carbon binds m_cachedTexture, the provider's texture (cpp:189-195).
+    const resource = this.GetResource();
+    return resourceDesc.SetUav(stage, registerIndex, resource ? resource.GetTexture() : null, this.uavMipLevel);
   }
 
   /** Always true - a texture swap must dirty the owning materials' resource sets. */

@@ -248,6 +248,62 @@ export class CjsWebgpuWorkQueue
     this._currentEncoderType = encoderType;
     this._events.push({ type: "open", encoderType });
 
+    // Metal's compute encoder (`MetalWorkQueue.mm` GetComputeEncoder): a
+    // compute pass on the frame's command encoder, starting with nothing bound.
+    if (encoderType === EncoderType.COMPUTE && this._commandEncoder)
+    {
+      this._computePass = this._commandEncoder.beginComputePass({ label: "Tr2RenderContextAL compute" });
+      this._encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+    }
+
+    return this._Drain();
+  }
+
+  /** The open compute pass, or null. */
+  _computePass = null;
+
+  /**
+   * Names the compute pipeline the next dispatch runs.
+   *
+   * @param {object} pipeline A `GPUComputePipeline`.
+   */
+  SetComputePipeline(pipeline)
+  {
+    this._pending.computePipeline = pipeline;
+  }
+
+  /**
+   * Dispatches thread groups on the compute encoder, opening one if another
+   * encoder is current: Metal's `DispatchThreadgroups`, which binds the
+   * pending pipeline and bind groups first.
+   *
+   * @param {number} x Thread groups along x.
+   * @param {number} y Thread groups along y.
+   * @param {number} z Thread groups along z.
+   * @returns {object[]} The transitions this required.
+   */
+  DispatchThreadgroups(x, y, z)
+  {
+    if (!this._inFrame) fail("a dispatch outside a frame");
+
+    const events = this._currentEncoderType === EncoderType.COMPUTE ? [] : this.SetCurrentEncoder(EncoderType.COMPUTE);
+
+    this._events.push(...events, { type: "dispatch", x, y, z });
+
+    if (this._computePass)
+    {
+      const pass = this._computePass;
+
+      pass.setPipeline(this._pending.computePipeline);
+
+      for (const [ index, entry ] of this._pending.bindGroups.entries())
+      {
+        if (entry) pass.setBindGroup(index, entry.bindGroup, entry.dynamicOffsets ?? []);
+      }
+
+      pass.dispatchWorkgroups(x, y, z);
+    }
+
     return this._Drain();
   }
 
@@ -366,7 +422,7 @@ export class CjsWebgpuWorkQueue
   // an encoder opens - a new pass starts with nothing bound.
 
   /** What the next draw must have bound. */
-  _pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
+  _pending = { pipeline: null, computePipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
   /** What the open encoder has been told, reset per encoder. */
   _encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
@@ -641,6 +697,12 @@ export class CjsWebgpuWorkQueue
     {
       this._renderPass.end();
       this._renderPass = null;
+    }
+
+    if (this._computePass)
+    {
+      this._computePass.end();
+      this._computePass = null;
     }
 
     this._events.push({ type: "close", encoderType: this._currentEncoderType });

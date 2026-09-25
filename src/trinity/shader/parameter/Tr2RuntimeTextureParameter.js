@@ -4,6 +4,8 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
+import { ResourceFlags } from "./ITr2EffectValue.js";
+import { Tr2ColorSpace } from "#consts/render-context";
 
 
 /**
@@ -105,6 +107,48 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
 
     // Carbon caches the effect resource type here for later resource-set
     // binding. Not ported yet.
+  }
+
+  /**
+   * Carbon `CopyToResourceSet` (`Tr2RuntimeTextureParameter.cpp:30-46`): the
+   * provider's texture as a shader resource. With none, a null binding, which
+   * a backend fills with its placeholder as Carbon's fallback texture.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  {
+    const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
+      ? Tr2ColorSpace.COLOR_SPACE_SRGB
+      : Tr2ColorSpace.COLOR_SPACE_LINEAR;
+
+    return resourceDesc.SetSrv(stage, registerIndex, this.texture ? this.texture.GetTexture() : null, colorSpace);
+  }
+
+  /**
+   * Carbon `ApplyUav` (`Tr2RuntimeTextureParameter.cpp:49-60`): the
+   * provider's texture as an unordered-access view at this parameter's mip.
+   *
+   * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
+   * @param {number} stage A `ShaderType`.
+   * @param {number} registerIndex The register.
+   * @returns {boolean} Whether the slot took the binding.
+   */
+  @carbon.method
+  @impl.implemented
+  ApplyUav(resourceDesc, stage, registerIndex)
+  {
+    const texture = this.texture ? this.texture.GetTexture() : null;
+
+    return texture
+      ? resourceDesc.SetUav(stage, registerIndex, texture, this.uavMipLevel)
+      : resourceDesc.SetUav(stage, registerIndex, null);
   }
 
   /**

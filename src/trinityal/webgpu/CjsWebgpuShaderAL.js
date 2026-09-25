@@ -122,6 +122,7 @@ function StageBindings(type, signature)
         // form - the reader derives it from the WGSL type text.
         buffer: binding.buffer,
         texture: binding.texture,
+        storageTexture: binding.storageTexture,
         sampler: binding.sampler
       });
     }

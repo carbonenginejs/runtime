@@ -99,7 +99,11 @@
 // inputs, the draw arguments from the LOD's areas, the render states the effect
 // authors, the resource set laid out against the program's bindings.
 
-import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
+import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
+import { SetEffectPathDefaults } from "../../../../npm/dist/global/utils/effectPath.js";
+import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
@@ -568,6 +572,82 @@ const SUN_DIRECTION = (() =>
   return Array.from(vec3.normalize(direction, direction));
 })();
 
+
+/**
+ * `?probe=copy`: a STEP TOWARD Carbon's reflection probe, not the probe.
+ *
+ * Tr2ReflectionProbe fills EveSpaceSceneEnvMap with a 256x256 HDR cube it
+ * builds with compute (Tr2ReflectionProbe.cpp:15-16, 272, 347-381). This runs
+ * its last pass alone - CopyCube.fx, the nebula into the cube's top mip, with
+ * Hollywood backlighting at the scene's values (EveSpaceScene.cpp:211-212) -
+ * so the compute path is exercised end to end: in-memory translation, a
+ * writable cube render target, storage bindings and a dispatch. The cube has
+ * one mip because nothing fills the others until the filter passes run.
+ */
+const PROBE_MODE = new URLSearchParams(globalThis.location?.search ?? "").get("probe");
+
+const COPY_CUBE = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
+
+async function ProbeCopyCube(renderContext, al, areas)
+{
+  SetEffectPathDefaults({ platformName: "webgpu" });
+
+  const envPath = SCENE_TEXTURES.find(scene => scene.name === "EveSpaceSceneEnvMap").path;
+  const nebula = blue.resMan.GetResource(`res:/${envPath}`, { requirement: ResourceRequirement.TEXTURE });
+
+  await nebula.Ready();
+  // Carbon's TriTextureRes makes its texture in DoPrepare; ours at first bind.
+  RealizeTexture(nebula, renderContext);
+
+  const target = new Tr2RenderTarget();
+  target.SetName("ReflectionProbe");
+  const created = target.CreateArray(256, 256, 1, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
+    ExFlag.EX_BIND_UNORDERED_ACCESS, TextureType.TEX_TYPE_CUBE, renderContext);
+  if (created !== 0) throw new Error(`probe cube CreateArray failed: ${created}`);
+
+  const copy = new Tr2Effect();
+  copy.SetEffectPathName(COPY_CUBE);
+  await copy.effectResource.Ready();
+  copy.RebuildCachedData();
+  Tr2EffectStateManager.registerShaderHandles(copy.shader);
+
+  copy.SetOption("HOLLYWOOD_MODE", "HOLLYWOOD_ON");
+  copy.SetParameter("tex_hi_res", nebula);
+  copy.SetParameter("tex_lo_res", target);
+  copy.SetParameter("BackLightColor", [ 2, 2, 2, 2 ]);
+  copy.SetParameter("BackLightContrast", 8);
+  copy.SetParameter("ViewDirection", [ 0, 1, 0 ]);
+
+  al.BeginScene();
+  const dispatched = Tr2Renderer.runComputeShader(copy, 256 / 8, 256 / 8, 6, renderContext);
+  await al.EndScene();
+  if (!dispatched) throw new Error(`probe CopyCube did not dispatch: ${al.m_pipelineFailure ?? "no compute pass"}`);
+
+  for (const area of areas)
+  {
+    area.material.GetResourceByName("EveSpaceSceneEnvMap").SetResource(target);
+  }
+
+  // EVIDENCE THE DISPATCH WROTE: read back the centre texel of two faces. An
+  // untouched rgba16float target reads all zeros.
+  const device = al.GetWebgpu().GetDevice();
+  const texels = [];
+  for (const face of [ 0, 3 ])
+  {
+    const readback = device.createBuffer({ size: 256, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+    const encoder = device.createCommandEncoder();
+    encoder.copyTextureToBuffer(
+      { texture: target.GetRenderTarget().GetDeviceTexture(), origin: { x: 128, y: 128, z: face } },
+      { buffer: readback, bytesPerRow: 256 },
+      { width: 1, height: 1, depthOrArrayLayers: 1 });
+    device.queue.submit([ encoder.finish() ]);
+    await readback.mapAsync(GPUMapMode.READ);
+    texels.push(Array.from(new Uint16Array(readback.getMappedRange().slice(0, 8))));
+    readback.unmap();
+  }
+  globalThis.__probe = { dispatched, faces: target.GetArraySize(), size: target.GetWidth(), texels };
+  console.log(`probe: ${JSON.stringify(globalThis.__probe)}`);
+}
 
 const SCENE_TEXTURES = Object.freeze([
   // 1.0 is "not occluded". Zero darkened every surface uniformly.
@@ -1265,6 +1345,9 @@ export async function RunDemo(canvas)
   perObject.vs.Set("boneOffsets", [ boneOffsets.GetCurrentFrameOffset(), boneOffsets.GetPreviousFrameOffset(), REST_POSE_BONES, 0 ]);
 
   for (const area of areas) area.material.RebuildCachedData();
+
+  // ?probe=copy: the first step of Carbon's reflection probe, run on the GPU.
+  if (PROBE_MODE === "copy") await ProbeCopyCube(renderContext, al, areas);
 
   {
     const esm = renderContext.GetEffectStateManager();

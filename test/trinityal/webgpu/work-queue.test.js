@@ -226,3 +226,38 @@ test("with no command encoder the queue still reports transitions and draws noth
 
   assert.ok(events.some(event => event.type === "open"), "the rules still ran");
 });
+
+test("a dispatch opens a compute pass, binds its pipeline and groups, and closes with the encoder", () =>
+{
+  // Metal's DispatchThreadgroups on the compute encoder; the pass ends when the
+  // encoder is released, as a render pass does.
+  const calls = [];
+  const computePass = {
+    setPipeline: pipeline => calls.push([ "setPipeline", pipeline ]),
+    setBindGroup: (index, group, offsets) => calls.push([ "setBindGroup", index, group, offsets ]),
+    dispatchWorkgroups: (x, y, z) => calls.push([ "dispatch", x, y, z ]),
+    end: () => calls.push([ "end" ])
+  };
+  const commandEncoder = {
+    beginComputePass: () => { calls.push([ "begin" ]); return computePass; },
+    beginRenderPass: () => ({ end() {} })
+  };
+  const queue = started();
+
+  queue.SetCommandEncoder(commandEncoder, () => ({}));
+  queue.SetComputePipeline("pipeline");
+  queue.SetBindGroup(0, "group0");
+  const events = queue.DispatchThreadgroups(32, 32, 6);
+
+  assert.equal(queue.GetCurrentEncoderType(), EncoderType.COMPUTE);
+  assert.deepEqual(events.map(event => event.type), [ "open", "dispatch" ]);
+  assert.deepEqual(calls, [
+    [ "begin" ],
+    [ "setPipeline", "pipeline" ],
+    [ "setBindGroup", 0, "group0", [] ],
+    [ "dispatch", 32, 32, 6 ]
+  ]);
+
+  queue.SetCurrentEncoder(EncoderType.RENDER);
+  assert.deepEqual(calls.at(-1), [ "end" ], "moving to another encoder ends the compute pass");
+});

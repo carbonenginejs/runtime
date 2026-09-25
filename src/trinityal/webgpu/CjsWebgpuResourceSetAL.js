@@ -148,6 +148,20 @@ export class CjsWebgpuResourceSetAL
       return view ?? renderContext.GetDummyTexture(dimension);
     }
 
+    // A storage texture is a UAV bound at one mip; the description keeps the mip
+    // in the slot's colour-space word (Tr2ResourceSetDescriptionAL.SetUav).
+    if (binding.storageTexture)
+    {
+      const slot = SlotFor(description, "uav", binding);
+      const texture = slot?.type === 2 ? slot.texture : null;
+      const { format, viewDimension } = binding.storageTexture;
+      const view = texture && typeof texture.GetDeviceStorageView === "function"
+        ? texture.GetDeviceStorageView(viewDimension, slot.colorSpace)
+        : null;
+
+      return view ?? renderContext.GetDummyStorageTexture(format, viewDimension);
+    }
+
     // A storage buffer: read-only ones are SRVs, writable ones UAVs.
     const kind = binding.buffer && binding.buffer.type === "storage" ? "uav" : "srv";
     const slot = SlotFor(description, kind, binding);
