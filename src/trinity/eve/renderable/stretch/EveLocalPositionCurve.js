@@ -5,6 +5,7 @@ import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -17,7 +18,7 @@ export class EveLocalPositionCurve extends CjsModel
 {
   @edit.readwrite
   @edit.persist
- @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
+ @type.int32 @type.enum("trinity.EveLocalPositionCurve.LocalPositionBehavior") behavior = 0;
   @edit.readwrite @type.float32 impactSize = 1;
   @edit.readwrite
   @edit.persist
@@ -342,3 +343,21 @@ function sampleQuaternion(curve, time, out)
   else if (curve.value?.length >= 4) quat.copy(out, curve.value);
   return out;
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:40).
+blue.enums.RegisterEnum("trinity.EveLocalPositionCurve.LocalPositionBehavior", EveLocalPositionCurve.LocalPositionBehavior, {
+  source: "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve.h", family: "eve/renderable/stretch", line: 26,
+  exposedName: "EveLocalPositionBehavior", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/Renderable/Stretch/EveLocalPositionCurve_Blue.cpp:8",
+  chooser: [
+    { name: "none", value: EveLocalPositionCurve.LocalPositionBehavior.POS_NONE, description: "No position." },
+    { name: "nearestBounds", value: EveLocalPositionCurve.LocalPositionBehavior.POS_NEAREST_BOUNDING_POINT, description: "use the closest point on the ellyptical bounding sphere of the parent object." },
+    { name: "centerBounds", value: EveLocalPositionCurve.LocalPositionBehavior.POS_CENTER_BOUNDING_POINT, description: "Use the center of the bounding sphere of the parent object." },
+    { name: "damageLocator", value: EveLocalPositionCurve.LocalPositionBehavior.POS_TARGET_DMG_LOCATOR, description: "Use a damage locator of the target object." },
+    { name: "damageLocatorImpact", value: EveLocalPositionCurve.LocalPositionBehavior.POS_TARGET_DMG_LOCATOR_IMPACT, description: "Use a damage locator of the target object, but with impact effect" },
+    { name: "offsetPosition", value: EveLocalPositionCurve.LocalPositionBehavior.POS_OFFSET_POSITION, description: "Calculate a position based on an offset from parent position" },
+    { name: "offsetPlaneRotation", value: EveLocalPositionCurve.LocalPositionBehavior.POS_OFFSET_PLANE_ROTATION, description: "Moves the vector from parentPositionCurve(or 0, 0, 0) to alignedPositionCurve OR positionOffset to the xz plane containing parentPositionCurve, maintaining the vector's length." },
+    { name: "nearestFiringLocator", value: EveLocalPositionCurve.LocalPositionBehavior.POS_NEAREST_FIRING_LOCATOR, description: "Use the nearest firing locator of source object" },
+    { name: "activeTurret", value: EveLocalPositionCurve.LocalPositionBehavior.POS_ACTIVE_TURRET, description: "Use the active turret world position" }
+  ]
+});

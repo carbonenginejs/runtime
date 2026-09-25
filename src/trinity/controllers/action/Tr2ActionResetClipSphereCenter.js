@@ -23,7 +23,7 @@ export class Tr2ActionResetClipSphereCenter extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ResetBehavior")
+  @type.enum("trinity.Tr2ActionResetClipSphereCenter.ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
   @edit.readwrite

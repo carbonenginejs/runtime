@@ -91,7 +91,7 @@ test("turret enums live on their Carbon owner classes", () => {
   assert.equal(EveTurretSet.SystemBones.SYSBONE_MAX, 15);
   assert.deepEqual(EveTurretFiringFX.MaxMuzzleCount, { MUZZLECOUNT_MAX: 12 });
   assert.equal(EveTurretFiringFX.MUZZLE_COUNT_MAX, 12);
-  assert.equal(CjsSchema.getField(EveTurretSet, "lodLevel")?.enum?.enumType, "LOD");
+  assert.equal(CjsSchema.getField(EveTurretSet, "lodLevel")?.enum?.enumType, "trinity.EveTurretSet.LOD");
 });
 
 test("completed low-hanging classes and turret enums are absent from generated", () => {

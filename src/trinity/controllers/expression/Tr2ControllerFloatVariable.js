@@ -19,7 +19,7 @@ export class Tr2ControllerFloatVariable extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Type")
+  @type.enum("trinity.Tr2ControllerFloatVariable.Type")
   variableType = Type.FLOAT;
 
   @edit.readwrite

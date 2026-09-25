@@ -178,7 +178,7 @@ export class EveChildContainer extends EveChildTransform
   @edit.read
   @edit.persist
   @type.int32
-  @type.enum("Origin")
+  @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
   @edit.persist
@@ -1539,5 +1539,16 @@ blue.enums.RegisterEnum("trinity.EveChildContainer.DisplayQualityModifier", EveC
     { name: "Medium", value: EveChildContainer.DisplayQualityModifier.SHADER_MED, description: "Only visible for users with shader settings on Medium" },
     { name: "Low", value: EveChildContainer.DisplayQualityModifier.SHADER_LOW, description: "Only visible for users with shader settings on Low" },
     { name: "Only Reflections", value: EveChildContainer.DisplayQualityModifier.ONLY_REFLECTIONS, description: "Only visible in the reflections" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:12).
+blue.enums.RegisterEnum("trinity.EveSpaceObjectChild.Origin", EveChildContainer.Origin, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveSpaceObjectChild.h", family: "eve/child", line: 66,
+  exposedName: "EveSpaceObjectChildOrigin", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:7",
+  chooser: [
+    { name: "SPACE", value: EveChildContainer.Origin.SPACE, description: "Origin in Space" },
+    { name: "SOF", value: EveChildContainer.Origin.SOF, description: "Origin in SOF" }
   ]
 });

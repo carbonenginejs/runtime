@@ -16,6 +16,7 @@ import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObje
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -44,7 +45,7 @@ export class EveTurretSet extends EveEntity
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ImpactBehaviour")
+  @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = 0;
 
   /** m_firingEffect (EveTurretFiringFXPtr) [HIDDEN] */
@@ -90,7 +91,7 @@ export class EveTurretSet extends EveEntity
   /** m_lodLevel (LOD - enum LOD) [READ] */
   @edit.read
   @type.int32
-  @type.enum("LOD")
+  @type.enum("trinity.EveTurretSet.LOD")
   lodLevel = 0;
 
   /** m_currentCyclingFiresPos (uint32_t) [READ] */
@@ -1673,3 +1674,16 @@ export class EveTurretSet extends EveEntity
   static #closestPair = { turret: EveTurretSet.INVALID_INDEX, locator: -1 };
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:27).
+blue.enums.RegisterEnum("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
+  source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 235,
+  exposedName: "EveTurretSetLOD", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:11",
+  chooser: [
+    { name: "LOD_INVALID", value: EveTurretSet.LOD.LOD_INVALID, description: "" },
+    { name: "LOD_EMPTY", value: EveTurretSet.LOD.LOD_EMPTY, description: "" },
+    { name: "LOD_HIGHEST", value: EveTurretSet.LOD.LOD_HIGHEST, description: "" },
+    { name: "LOD_DISABLED", value: EveTurretSet.LOD.LOD_DISABLED, description: "" }
+  ]
+});

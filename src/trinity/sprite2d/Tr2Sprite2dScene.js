@@ -9,6 +9,7 @@ import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
+import "./Tr2SpriteObjectBase.js";
 
 
 /**
@@ -23,7 +24,7 @@ export class Tr2Sprite2dScene extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2SpriteObjectPickState")
+  @type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = 1;
 
   /** m_uberShader2d (Tr2EffectPtr) [READ] */

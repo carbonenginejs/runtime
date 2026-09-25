@@ -36,6 +36,7 @@ import {
   EmitOverlayBatches
 } from "../overlays/overlayBatches.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import "./EveChildContainer.js";
 
 // Module scratch for the hot per-frame visibility/shadow paths (allocation
 // rules: copy-into, never allocate per call; child updates run sequentially so
@@ -296,7 +297,7 @@ export class EveChildMesh extends EveChildTransform
   @edit.read
   @edit.persist
   @type.int32
-  @type.enum("Origin")
+  @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
   @edit.persist

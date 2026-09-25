@@ -5,6 +5,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2SpriteObjectPickState } from "../generated/sprite2d/enums.js";
+import { blue } from "#blue";
 
 /** Shared portable state and dirty propagation for Sprite2D objects. */
 @type.define({ className: "Tr2SpriteObjectBase", family: "sprite2d" })
@@ -177,7 +178,7 @@ export class Tr2SpriteObjectBase extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2SpriteObjectPickState")
+  @type.enum("trinity.Tr2SpriteObjectPickState")
   pickState = Tr2SpriteObjectPickState.TR2_SPS_ON;
 
   /** m_isDirty (bool) [READWRITE] */
@@ -229,3 +230,15 @@ export class Tr2SpriteObjectBase extends CjsModel
   static Tr2SpriteObjectPickState = Tr2SpriteObjectPickState;
 
 }
+
+// Carbon gives this a chooser (trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10) but never registers it,
+// so it takes no exposure.
+blue.enums.RegisterEnum("trinity.Tr2SpriteObjectPickState", Tr2SpriteObjectBase.Tr2SpriteObjectPickState, {
+  source: "trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h", family: "sprite2d", line: 8,
+  chooserSource: "trinity/trinity/Sprite2d/Tr2SpriteObject_Blue.cpp:10",
+  chooser: [
+    { name: "TR2_SPS_OFF", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_OFF, description: "Picking is disabled" },
+    { name: "TR2_SPS_ON", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_ON, description: "Picking is enabled" },
+    { name: "TR2_SPS_CHILDREN", value: Tr2SpriteObjectBase.Tr2SpriteObjectPickState.TR2_SPS_CHILDREN, description: "Only children are pickable" }
+  ]
+});

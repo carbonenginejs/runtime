@@ -4,6 +4,7 @@ import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ImpactConfiguration } from "../../../generated/include/enums.js";
+import { blue } from "#blue";
 
 
 /**
@@ -23,7 +24,7 @@ export const EVE_TURRET_RANDOM_DELAY_MAX = 0.6;
 export class EveTurretTarget extends CjsModel
 {
   @edit.read @type.vec3 targetPosition = vec3.create();
-  @edit.read @type.int32 @type.enum("ImpactBehaviour") behaviour = 0;
+  @edit.read @type.int32 @type.enum("trinity.ImpactBehaviour") behaviour = 0;
   @edit.read @type.float32 positionOldInfluence = -1;
   @edit.read @type.vec3 position = vec3.create();
   @edit.read @type.vec3 positionOld = vec3.create();
@@ -439,3 +440,15 @@ function copyOrReturn(value, out)
 {
   return out ? vec3.copy(out, value) : value;
 }
+
+// Carbon gives this a chooser (trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34) but never registers it,
+// so it takes no exposure.
+blue.enums.RegisterEnum("trinity.ImpactBehaviour", EveTurretTarget.ImpactBehaviour, {
+  source: "trinity/trinity/Eve/Turret/EveTurretTarget.h", family: "eve/attachment/turrets", line: 13,
+  chooserSource: "trinity/trinity/Eve/Turret/EveTurretSet_Blue.cpp:34",
+  chooser: [
+    { name: "DAMAGE_LOCATOR", value: EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR, description: "" },
+    { name: "SHIELD_ELLIPSOID", value: EveTurretTarget.ImpactBehaviour.SHIELD_ELLIPSOID, description: "" },
+    { name: "CENTER", value: EveTurretTarget.ImpactBehaviour.CENTER, description: "" }
+  ]
+});

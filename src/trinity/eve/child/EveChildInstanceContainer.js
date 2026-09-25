@@ -7,6 +7,7 @@ import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import "./EveChildContainer.js";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
@@ -88,7 +89,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** m_origin (Origin - enum Origin) [READ] */
   @edit.read
   @type.int32
-  @type.enum("Origin")
+  @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
   /** Propagates the owning space object to the source and live instances. */

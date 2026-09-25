@@ -29,6 +29,7 @@ import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { blue, EnumRegistrationType } from "#blue";
+import "./EveSpaceSceneRenderDriver.js";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
@@ -418,7 +419,7 @@ export class EveSpaceScene extends CjsModel
   @edit.notify
   @edit.readwrite
   @type.int32
-  @type.enum("ShadowQuality")
+  @type.enum("trinity.ShadowQuality")
   shadowQualitySetting = 3;
 
   /** m_sunColor (Color) [READWRITE, PERSIST] */

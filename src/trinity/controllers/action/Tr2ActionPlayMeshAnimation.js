@@ -23,19 +23,19 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("DestinationType")
+  @type.enum("trinity.Tr2ActionPlayMeshAnimation.DestinationType")
   destinationType = DestinationType.OWNER;
 
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("PlayAction")
+  @type.enum("trinity.Tr2ActionPlayMeshAnimation.PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("StopAction")
+  @type.enum("trinity.Tr2ActionPlayMeshAnimation.StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
   @edit.readwrite

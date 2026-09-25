@@ -180,7 +180,7 @@ export class EveChildTurret extends EveChildMesh
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ImpactBehaviour")
+  @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR;
 
   /** The observer for turret movement sounds; positioned automatically. */
