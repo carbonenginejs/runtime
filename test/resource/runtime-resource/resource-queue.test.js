@@ -1,13 +1,13 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { CjsMotherLode } from "../../../src/resource/CjsMotherLode.js";
-import { CjsResMan } from "../../../src/resource/CjsResMan.js";
-import { CjsResource } from "../../../src/resource/CjsResource.js";
+import { CjsMotherLode } from "../../../src/global/blue/CjsMotherLode.js";
+import { CjsResMan } from "../../../src/global/blue/CjsResMan.js";
+import { CjsResource } from "../../../src/global/blue/CjsResource.js";
 import { CjsResManQueue as RootCjsResManQueue } from "../../../src/resource/index.js";
 import {
   CjsResManQueue,
   CjsResManWorkQueue
-} from "../../../src/resource/CjsResManWorkQueue.js";
+} from "../../../src/global/blue/CjsResManWorkQueue.js";
 
 test("CjsResManWorkQueue preserves ids, pause state, and queued cancellation", async () => {
   assert.equal(RootCjsResManQueue, CjsResManQueue);

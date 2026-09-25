@@ -1,4 +1,4 @@
-import { ResourceRequirement } from "../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 // Source: trinity/trinity/Resources/TriGeometryRes_Blue.cpp
@@ -9,7 +9,7 @@ import { ray3 } from "#math/ray3";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
 import {

@@ -1,5 +1,5 @@
 import { CjsError } from "#utils/errors";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 
 /**
  * Physical audio byte-owner resource whose payload may back one complete file or several logical audio files.

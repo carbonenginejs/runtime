@@ -3,9 +3,9 @@
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { HostBitmap } from "#imageio";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
-import { ResourceRequirement } from "../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 import {
   ResourcePayloadType,
   validateRgbaPayload,

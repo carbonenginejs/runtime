@@ -112,7 +112,7 @@
       "CjsFormatRangeError",
       "CjsFormatWriteError"
     ],
-    "src/resource/format/CjsFormatStore.js": [
+    "src/global/blue/CjsFormatStore.js": [
       "CjsFormatRoute",
       "CjsFormatStore"
     ],
@@ -164,10 +164,10 @@
     "src/resource/generated/resources/GrannyDeprecationLevel.js": [
       "GrannyDeprecationLevel"
     ],
-    "src/resource/ResourceHandlerMode.js": [
+    "src/global/blue/ResourceHandlerMode.js": [
       "ResourceHandlerMode"
     ],
-    "src/resource/ResourceRequirement.js": [
+    "src/global/blue/ResourceRequirement.js": [
       "ResourceRequirement"
     ],
     "src/trinity/core/mesh/TriGeometryResAllocations.js": [

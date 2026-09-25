@@ -11,7 +11,7 @@ import {
   CjsResMan,
   CjsResManQueue
 } from "../../../src/resource/index.js";
-import { CjsResManWorker } from "../../../src/resource/worker/CjsResManWorker.js";
+import { CjsResManWorker } from "../../../src/global/blue/worker/CjsResManWorker.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const workerFormatUrl = pathToFileURL(

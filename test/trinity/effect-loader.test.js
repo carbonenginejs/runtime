@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsResMan } from "../../npm/dist/resource/CjsResMan.js";
+import { CjsResMan } from "../../npm/dist/global/blue/CjsResMan.js";
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { RegisterShaderResources, ShaderResourceExtensions, Tr2EffectRes } from "../../npm/dist/resource/shader/index.js";

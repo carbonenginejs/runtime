@@ -22,7 +22,7 @@
 // carries it in the resource FLAGS rather than in the texture. See
 // /docs/contracts/texture-sampler-pairing.md for why the sampler pairing cannot
 // come from here.
-import { ResourceRequirement } from "#resource/ResourceRequirement";
+import { ResourceRequirement } from "#blue";
 
 
 function fail(message)

@@ -32,7 +32,7 @@
   "src/resource/shader/reflection/Tr2EffectLibrary.js": 1,
   "src/resource/shader/reflection/Tr2EffectStageInput.js": 1,
   "src/resource/shader/Tr2Shader.js": 1,
-  "src/resource/worker/CjsResManWorker.js": 1,
+  "src/global/blue/worker/CjsResManWorker.js": 1,
   "src/sof/CjsSofLibraryBuilder.js": 1,
   "src/sof/EveSOF.js": 3,
   "src/sof/EveSOFDNA.js": 1,

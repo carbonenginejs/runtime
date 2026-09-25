@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { deflateSync } from "node:zlib";
 import test from "node:test";
-import { CjsResMan } from "../../../../../src/resource/CjsResMan.js";
+import { CjsResMan } from "../../../../../src/global/blue/CjsResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
 
 test("exports default and named CjsPngFormat", () =>

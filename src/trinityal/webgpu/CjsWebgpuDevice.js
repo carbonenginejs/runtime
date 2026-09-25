@@ -2,7 +2,7 @@ import { HostBitmap } from "#imageio";
 import { CjsImageFormat } from "#resource/format/CjsImageFormat";
 import { CjsSchema } from "#schema";
 import { PixelFormat } from "#consts/render-context";
-import { CjsResource } from "#resource/CjsResource";
+import { CjsResource } from "#blue";
 import { CanonicalKey, CjsWebgpuPipelineCache, RenderPipelineKey } from "./core/CjsWebgpuPipelineCache.js";
 import { AssertFormatFeature, PlanTextureUpload } from "./core/textureLayout.js";
 import { CjsWebgpuEncodeState } from "./core/CjsWebgpuEncodeState.js";

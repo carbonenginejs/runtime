@@ -2,11 +2,11 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
 import { resourcePayloadError, validateResourcePayload } from "../resourceBoundary.js";
-import { ResourceRequirement } from "../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 /**
  * Tr2ImageRes resource record.

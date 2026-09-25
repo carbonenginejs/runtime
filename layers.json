@@ -48,7 +48,7 @@
     "yaml"
   ],
   "externalDynamicImports": [
-    "resource/worker/CjsResManWorker.js"
+    "global/blue/worker/CjsResManWorker.js"
   ],
   "layers": {
     "global/utils": {
@@ -116,7 +116,8 @@
       "mayImport": [
         "global/consts",
         "global/blue/enums",
-        "global/schema"
+        "global/schema",
+        "global/utils"
       ],
       "why": [
         "Ports of Carbon's blueexposure layer - facilities Blue provides to every",

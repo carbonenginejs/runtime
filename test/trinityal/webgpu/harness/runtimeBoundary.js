@@ -2,7 +2,7 @@
 // This keeps its nominal identities aligned with the npm artifact and prevents
 // raw source aliases from becoming a second, independently translated runtime.
 export { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
-export { CjsResource } from "../../../../npm/dist/resource/CjsResource.js";
+export { CjsResource } from "../../../../npm/dist/global/blue/CjsResource.js";
 export {
     CjsWebgpuTrinityBatchDispatcher,
     CjsWebgpuTrinityPassEncoder

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { TriStorageFlags } from "../../../src/global/consts/graphics/index.js";
-import { CjsResource } from "../../../src/resource/CjsResource.js";
+import { CjsResource } from "../../../src/global/blue/CjsResource.js";
 import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
 
 // One triangle is enough: the raycaster only has to build, not hit anything.

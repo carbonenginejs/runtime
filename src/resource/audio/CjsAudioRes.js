@@ -1,6 +1,6 @@
 import { coerceNonNegativeInteger } from "#utils/validation";
 import { CjsError } from "#utils/errors";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 
 import { CjsAudioBufferRes } from "./CjsAudioBufferRes.js";
 

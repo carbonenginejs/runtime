@@ -11,7 +11,7 @@ Summary: Provides one-sentence purpose descriptors for the resource manager, reg
 Strong, deterministic resource registry that owns canonical path/variant identities and evicts entries only through explicit ownership removal, inactivity sweeps, or recorded-byte cache trimming, replacing Carbon's weak-live/strong-cache ownership transition.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/CjsMotherLode.js`
+- Source: `src/global/blue/CjsMotherLode.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -21,7 +21,7 @@ Strong, deterministic resource registry that owns canonical path/variant identit
 GPU-free resource manager that resolves paths through registered sources and formats, publishes canonical resources into a `CjsMotherLode` registry under exact-owner generation guards, and drives the main/background work queues, read-operation caching, reload staging, and automatic purge policy.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/CjsResMan.js`
+- Source: `src/global/blue/CjsResMan.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -31,7 +31,7 @@ GPU-free resource manager that resolves paths through registered sources and for
 Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, concurrency, cancellation, and sync/async completion while queue policy stays in the manager.
 
 - Export: None
-- Source: `src/resource/CjsResManWorkQueue.js`
+- Source: `src/global/blue/CjsResManWorkQueue.js`
 - Visibility: Internal
 - Kind: Internal implementation class
 
@@ -41,7 +41,7 @@ Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, c
 Base runtime resource handle that carries normalized path/extension/requirement identity, load state, and an attached CPU payload, with manager lifecycle callbacks supplied by `CjsResMan` after canonical insertion.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/CjsResource.js`
+- Source: `src/global/blue/CjsResource.js`
 - Visibility: Public
 - Kind: Adapted Carbon concept
 
@@ -51,7 +51,7 @@ Base runtime resource handle that carries normalized path/extension/requirement 
 Resource-compatible handler whose public loading result is the constructed object produced by an extension route.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/CjsLoadingObject.js`
+- Source: `src/global/blue/CjsLoadingObject.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
@@ -61,7 +61,7 @@ Resource-compatible handler whose public loading result is the constructed objec
 Direct execution strategy that reads through a structural source and invokes registered format facades on the caller thread.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/worker/CjsResManMainThreadLoader.js`
+- Source: `src/global/blue/worker/CjsResManMainThreadLoader.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl loader strategy
 
@@ -71,7 +71,7 @@ Direct execution strategy that reads through a structural source and invokes reg
 Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/worker/CjsResManWorkerLoader.js`
+- Source: `src/global/blue/worker/CjsResManWorkerLoader.js`
 - Visibility: Public
 - Kind: Adapted ccpwgl loader strategy
 
@@ -81,7 +81,7 @@ Browser module-worker strategy that correlates source/format requests, transfers
 Static browser-worker host that owns its operation/message vocabulary, executes clone-safe source and format operations, installs the message envelope, transfers owned buffers, and serializes failures for `CjsResMan`.
 
 - Export: `@carbonenginejs/runtime/resource/worker`
-- Source: `src/resource/worker/CjsResManWorker.js`
+- Source: `src/global/blue/worker/CjsResManWorker.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
@@ -91,7 +91,7 @@ Static browser-worker host that owns its operation/message vocabulary, executes 
 `CjsResMan` provider that fetches an already-resolved URL on the caller thread or through the resource worker.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/CjsResManFetchProvider.js`
+- Source: `src/global/blue/CjsResManFetchProvider.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 
@@ -161,7 +161,7 @@ Internal base for construction-bound readers that are created for one source and
 Captures one registered extension, content probe, reader, and output-capability route for format dispatch.
 
 - Export: `None`
-- Source: `src/resource/format/CjsFormatStore.js`
+- Source: `src/global/blue/CjsFormatStore.js`
 - Visibility: Internal
 - Kind: Original CarbonEngineJS class
 
@@ -171,7 +171,7 @@ Captures one registered extension, content probe, reader, and output-capability 
 Registers ordered content-aware format routes without coupling resource classes to concrete format implementations.
 
 - Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/format/CjsFormatStore.js`
+- Source: `src/global/blue/CjsFormatStore.js`
 - Visibility: Public
 - Kind: Original CarbonEngineJS class
 

@@ -1,8 +1,8 @@
-import { destroyAdapterValue, CjsResource } from "../CjsResource.js";
+import { destroyAdapterValue, CjsResource } from "#blue";
 import { CjsSchema } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsTextureArrayResParameterProxy } from "./CjsTextureArrayResParameterProxy.js";
-import { ResourceRequirement } from "../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 /**
  * Mutable runtime aggregate for an ordered texture-array request.

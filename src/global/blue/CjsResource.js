@@ -4,7 +4,7 @@ import {
   normalizeResourcePath
 } from "#utils/path";
 import { CjsSchema, carbon, compose, impl, type } from "#schema";
-import { CjsFormatRoute } from "./format/CjsFormatStore.js";
+import { CjsFormatRoute } from "./CjsFormatStore.js";
 import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
 
 /**

@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/TriGrannyRes.h
 import { CjsSchema } from "#schema";
-import { CjsResource } from "../../CjsResource.js";
+import { CjsResource } from "#blue";
 import { assertResourcePayloadObject, resourcePayloadError } from "../../resourceBoundary.js";
-import { ResourceRequirement } from "../../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 /**
  * Runtime-owned Granny resource.

@@ -1,10 +1,10 @@
 // Source: trinity/trinity/Resources/Tr2LightProfileRes.h
 import { CjsSchema } from "#schema";
-import { CjsResource } from "./CjsResource.js";
+import { CjsResource } from "#blue";
 import { assertResourcePayloadObject } from "./resourceBoundary.js";
 import { HostBitmap } from "#imageio";
 import { PixelFormat } from "#consts/render-context";
-import { ResourceRequirement } from "./ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 /**
  * Runtime-owned light-profile resource.

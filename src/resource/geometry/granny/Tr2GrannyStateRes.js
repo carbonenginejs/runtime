@@ -1,8 +1,8 @@
 // Source: trinity/trinity/Resources/Tr2GrannyStateRes.h
 import { CjsSchema } from "#schema";
-import { CjsResource } from "../../CjsResource.js";
+import { CjsResource } from "#blue";
 import { assertResourcePayloadObject, resourceFormatRequiredError, resourcePayloadError } from "../../resourceBoundary.js";
-import { ResourceRequirement } from "../../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 /**
  * Runtime-owned GState resource.

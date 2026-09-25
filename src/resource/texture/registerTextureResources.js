@@ -16,7 +16,7 @@ import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../imageio/ImageIO.js";
 import { TriTextureRes } from "./TriTextureRes.js";
 import { Tr2ImageRes } from "./Tr2ImageRes.js";
-import { ResourceRequirement } from "../ResourceRequirement.js";
+import { ResourceRequirement } from "#blue";
 
 
 /**

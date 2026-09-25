@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TriGeometryRes.h
 // Source: trinity/trinity/Resources/TriGeometryRes.cpp
 import { CjsSchema, type } from "#schema";
-import { CjsResource } from "../CjsResource.js";
+import { CjsResource } from "#blue";
 
 
 /** CPU raycast session resource borrowed from a resident TriGeometryRes. */
