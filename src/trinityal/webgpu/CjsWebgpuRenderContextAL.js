@@ -179,6 +179,13 @@ const CONSTANT_BUFFER_REGISTERS = 20;
 /** WebGPU behind the abstraction layer, holding a work queue as Metal does. */
 export class CjsWebgpuRenderContextAL
 {
+  /**
+   * The shader stages this backend runs, a bit per stage: `SHADER_TYPE_MASK`,
+   * which `SHADER_TYPE_EXISTS` tests (`Tr2RenderContextEnum.h:413`). Vertex,
+   * pixel and compute, as Metal's (`Tr2RenderContextMetal.h:190-191`).
+   */
+  static SHADER_TYPE_MASK = (1 << ShaderType.VERTEX_SHADER) | (1 << ShaderType.PIXEL_SHADER) | (1 << ShaderType.COMPUTE_SHADER);
+
   /** m_workQueue */
   _workQueue = new CjsWebgpuWorkQueue();
 

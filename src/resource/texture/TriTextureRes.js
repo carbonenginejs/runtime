@@ -223,6 +223,44 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
+   * `ITriTextureRes::IsValid`, which Carbon's TriTextureRes answers with
+   * `IsGood()` (`TriTextureRes.h:65-68`).
+   *
+   * @returns {boolean} Whether the resource loaded.
+   */
+  IsValid() {
+    return this.IsGood();
+  }
+
+  /**
+   * `ITriTextureRes::GetWidth`. Carbon's resource IS its Tr2BitmapDimensions
+   * (`TriTextureRes.h:46-49`); ours keeps them on the loaded bitmap.
+   *
+   * @returns {number} Width of mip zero, or 0 before load.
+   */
+  GetWidth() {
+    return this.loadedBitmap ? this.loadedBitmap.GetWidth() : 0;
+  }
+
+  /**
+   * `ITriTextureRes::GetHeight` (`TriTextureRes.h:50-53`).
+   *
+   * @returns {number} Height of mip zero, or 0 before load.
+   */
+  GetHeight() {
+    return this.loadedBitmap ? this.loadedBitmap.GetHeight() : 0;
+  }
+
+  /**
+   * `ITriTextureRes::GetMipLevelCount` (`TriTextureRes.h:54-57`).
+   *
+   * @returns {number} Mip count, or 0 before load.
+   */
+  GetMipLevelCount() {
+    return this.loadedBitmap ? this.loadedBitmap.GetMipCount() : 0;
+  }
+
+  /**
    * Adopt a decoded bitmap as this resource's image
    * (`TriTextureRes::CreateFromHostBitmap`, `TriTextureRes.cpp:960-978`).
    *
@@ -615,6 +653,10 @@ CjsSchema.define(TriTextureRes, {
     LoadPipeline: [ impl.adapted, impl.reason("Carbon's .ctr branch reads the pipeline from a file through the global BeResMan and waits on a fence; no shipped build has a .ctr, so the pipeline is handed in, the manager passed, and the fence is a promise.") ],
     SetCutout: [ impl.custom, impl.reason("Carbon reads the cutout from ImageIO::Metadata inside DoPrepare; the read happens in the loader here, so the resource is told.") ],
     GetBitmap: [ impl.custom, impl.reason("Carbon keeps m_loadedBitmap private and uploads it inside CreateFromHostBitmap; the upload happens at bind time here, so the bitmap has to be readable.") ],
+    IsValid: [ carbon.method, impl.implemented ],
+    GetWidth: [ carbon.method, impl.adapted ],
+    GetHeight: [ carbon.method, impl.adapted ],
+    GetMipLevelCount: [ carbon.method, impl.adapted ],
     CreateFromTexture: [ carbon.method, impl.notSupported ],
     HasALObject: [ carbon.method, impl.adapted ],
     GetPipeline: [ carbon.method, impl.adapted ],

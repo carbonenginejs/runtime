@@ -10,6 +10,16 @@ behavior is still generator-owned. Package visibility is recorded from the
 actual export graph; a source-level `export class` alone does not make a class
 part of the public package API.
 
+<!-- class:Tr2ReflectionProbe -->
+## `Tr2ReflectionProbe`
+
+Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its environment map.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2ReflectionProbe.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:EveCloudEditableVolume -->
 ## `EveCloudEditableVolume`
 
@@ -347,16 +357,6 @@ Positions a displayable text label with its font and content inside a primitive 
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/trinityCore/Tr2PrimitiveText.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:Tr2ReflectionProbe -->
-## `Tr2ReflectionProbe`
-
-Carries periodic reflection-capture textures, position locking, resolution, and backlight treatment.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2ReflectionProbe.js`
 - Visibility: Public
 - Kind: Carbon generated
 

@@ -6,26 +6,59 @@
     <link rel="icon" href="data:,">
     <title>CarbonEngineJS WebGPU demo</title>
     <style>
-        body { margin: 0; background: #0b0d12; color: #cfd6e4; font: 13px/1.5 ui-monospace, monospace; }
-        main { display: flex; gap: 16px; padding: 16px; align-items: flex-start; }
-        canvas { background: #05070c; border: 1px solid #1d2531; }
-        pre { margin: 0; white-space: pre-wrap; }
+        html, body { margin: 0; height: 100%; overflow: hidden; background: #05070c; color: #cfd6e4; font: 13px/1.5 ui-monospace, monospace; }
+        canvas { display: block; width: 100vw; height: 100vh; }
+        #toggle { position: fixed; top: 12px; right: 12px; z-index: 2; padding: 4px 12px; font: inherit; color: inherit;
+                  background: #111722cc; border: 1px solid #2a3444; border-radius: 4px; cursor: pointer; }
+        #toggle.fail { color: #ff8080; border-color: #ff8080; }
+        #panel { position: fixed; top: 0; right: 0; bottom: 0; z-index: 1; width: min(640px, 100vw); box-sizing: border-box;
+                 padding: 48px 16px 16px; overflow: auto; background: #0b0d12ee; border-left: 1px solid #1d2531; }
+        #panel[hidden] { display: none; }
+        pre { margin: 0; white-space: pre-wrap; word-break: break-word; }
         .fail { color: #ff8080; }
+        .warn { color: #ffd080; }
     </style>
 </head>
 <body>
-    <main>
-        <canvas id="view" width="1536" height="1152"></canvas>
+    <canvas id="view"></canvas>
+    <button id="toggle" type="button">Log</button>
+    <div id="panel" hidden>
+        <pre id="log"></pre>
         <pre id="result">Running…</pre>
-    </main>
+    </div>
     <script type="module">
-        import { RunDemo } from "./demo.bundle.js";
-
+        const canvas = document.getElementById("view");
+        const panel = document.getElementById("panel");
+        const toggle = document.getElementById("toggle");
+        const log = document.getElementById("log");
         const result = document.getElementById("result");
+
+        // The swap chain is configured once at this size, so the canvas takes
+        // the window's device pixels before the demo starts.
+        canvas.width = Math.round(innerWidth * devicePixelRatio);
+        canvas.height = Math.round(innerHeight * devicePixelRatio);
+
+        toggle.addEventListener("click", () => { panel.hidden = !panel.hidden; });
+
+        // Console output is mirrored into the panel as well as the devtools.
+        for (const level of [ "log", "warn", "error" ])
+        {
+            const original = console[level].bind(console);
+            console[level] = (...args) =>
+            {
+                original(...args);
+                const line = document.createElement("div");
+                line.textContent = args.map(arg => typeof arg === "string" ? arg : (arg instanceof Error ? arg.message : JSON.stringify(arg))).join(" ");
+                if (level !== "log") line.className = level === "warn" ? "warn" : "fail";
+                log.append(line);
+            };
+        }
+
+        const { RunDemo } = await import("./demo.bundle.js");
 
         try
         {
-            const report = await RunDemo(document.getElementById("view"));
+            const report = await RunDemo(canvas);
 
             result.textContent = JSON.stringify(report, null, 2);
             window.__demo = { ok: true, report };
@@ -34,6 +67,8 @@
         {
             result.textContent = `${error.message}\n\n${error.stack ?? ""}`;
             result.className = "fail";
+            toggle.className = "fail";
+            panel.hidden = false;
             window.__demo = { ok: false, error: error.message };
         }
     </script>

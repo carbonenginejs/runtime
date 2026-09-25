@@ -101,6 +101,7 @@
 
 import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
+import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
 import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { SetEffectPathDefaults } from "../../../../npm/dist/global/utils/effectPath.js";
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
@@ -588,6 +589,52 @@ const PROBE_MODE = new URLSearchParams(globalThis.location?.search ?? "").get("p
 
 const COPY_CUBE = "res:/graphics/effect/managed/space/System/Reflection/CopyCube.fx";
 
+/**
+ * Carbon's reflection probe filtering the nebula into EveSpaceSceneEnvMap:
+ * `customSourceTexture` and `RunFilter`, the two Carbon exposes to Blue for
+ * exactly this ("Filters the currently set texture"). EveSpaceScene gives its
+ * probe the scene's backlight (EveSpaceScene.cpp:211-212, 3220-3221). The
+ * default; `?probe=off` binds the unfiltered nebula instead.
+ */
+async function ReflectionProbe(renderContext, al, areas)
+{
+  SetEffectPathDefaults({ platformName: "webgpu" });
+
+  const envPath = SCENE_TEXTURES.find(scene => scene.name === "EveSpaceSceneEnvMap").path;
+  const nebula = blue.resMan.GetResource(`res:/${envPath}`, { requirement: ResourceRequirement.TEXTURE });
+
+  await nebula.Ready();
+  // Carbon's TriTextureRes makes its texture in DoPrepare; ours at first bind.
+  RealizeTexture(nebula, renderContext);
+
+  const probe = new Tr2ReflectionProbe();
+  probe.customSourceTexture = nebula;
+  probe.SetBackLightColor([ 2, 2, 2, 2 ]);
+  probe.SetBackLightContrast(8);
+
+  // The effects load through the resource manager, as the scene's would; the
+  // first frame the probe filters is the first one they are all ready for.
+  if (!probe.DoPrepareResources(PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, renderContext))
+  {
+    throw new Error("reflection probe resources could not be created");
+  }
+  await Promise.all([ probe._preFilterEffect, probe._filterEffect, probe._copyMipEffect ]
+    .map(effect => effect.effectResource.Ready()));
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  al.BeginScene();
+  probe.Filter(renderContext);
+  await al.EndScene();
+
+  const reflection = probe.GetReflection();
+  for (const area of areas)
+  {
+    area.material.GetResourceByName("EveSpaceSceneEnvMap").SetResource(reflection);
+  }
+  globalThis.__probe = { mips: reflection.GetMipCount(), size: reflection.GetWidth(), failure: al.m_pipelineFailure ?? null };
+  console.log(`probe: ${JSON.stringify(globalThis.__probe)}`);
+}
+
 async function ProbeCopyCube(renderContext, al, areas)
 {
   SetEffectPathDefaults({ platformName: "webgpu" });
@@ -1000,9 +1047,14 @@ export async function RunDemo(canvas)
   // family only behind this feature; a device without it decodes to RGBA8
   // instead, so the demo runs either way and reports which happened.
   const compressed = adapter.features.has("texture-compression-bc");
-  const device = await adapter.requestDevice(
-    compressed ? { requiredFeatures: [ "texture-compression-bc" ] } : {}
-  );
+  // EIGHT STORAGE TEXTURES PER STAGE, when the adapter has them: the
+  // reflection probe's main filter writes seven cube mips in one dispatch
+  // (ReflectionFilterActivision128), and WebGPU's default is four.
+  const storageTextures = Math.min(8, adapter.limits.maxStorageTexturesPerShaderStage);
+  const device = await adapter.requestDevice({
+    ...(compressed ? { requiredFeatures: [ "texture-compression-bc" ] } : {}),
+    requiredLimits: { maxStorageTexturesPerShaderStage: storageTextures }
+  });
   const context = canvas.getContext("webgpu");
 
   // REMEMBERS WHICH SWAP-CHAIN IMAGE THE FRAME WENT INTO, because asking the
@@ -1363,6 +1415,7 @@ export async function RunDemo(canvas)
 
   // ?probe=copy: the first step of Carbon's reflection probe, run on the GPU.
   if (PROBE_MODE === "copy" || PROBE_MODE === "mips") await ProbeCopyCube(renderContext, al, areas);
+  else if (PROBE_MODE !== "off") await ReflectionProbe(renderContext, al, areas);
 
   {
     const esm = renderContext.GetEffectStateManager();

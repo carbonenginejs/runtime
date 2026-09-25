@@ -48,6 +48,12 @@ export const ShaderResourceExtensions = Object.freeze([
  * overlay, with byte-identical output. The translator is passed in rather than
  * imported so the emitter reaches only bundles that ask for it.
  *
+ * PERMUTATIONS. Carbon's containers carry every permutation. Translating all
+ * of them costs seconds for a large hull shader, so by default (`permutations:
+ * "onDemand"`) the load translates only the default permutation and hands the
+ * resource a translator for the rest, which runs the first time one is asked
+ * for. `permutations: "all"` translates every one at load instead.
+ *
  * The resource keeps its BACKEND path (`graphics/effect.webgpu/...`): that path
  * is its identity, and `Tr2EffectRes` decides from it how the container is laid
  * out. The byte source supplies the shipped `graphics/effect.dx11/...` file for
@@ -56,9 +62,10 @@ export const ShaderResourceExtensions = Object.freeze([
  * @param {object} resourceManager Manager to register on.
  * @param {object} [options] Registration options.
  * @param {{buildEffect: Function}|null} [options.translator] Converts a shipped container into the running backend's.
+ * @param {"onDemand"|"all"} [options.permutations] When a translator builds each permutation.
  * @returns {object} The same manager, for chaining.
  */
-export function RegisterShaderResources(resourceManager, { translator = null } = {})
+export function RegisterShaderResources(resourceManager, { translator = null, permutations = "onDemand" } = {})
 {
   if (typeof resourceManager?.RegisterExtension !== "function"
     || typeof resourceManager?.RegisterObjectLoader !== "function")
@@ -70,9 +77,25 @@ export function RegisterShaderResources(resourceManager, { translator = null } =
     throw new TypeError("RegisterShaderResources translator must expose buildEffect.");
   }
 
-  const loader = translator
-    ? async (bytes, context) => (await translator.buildEffect(bytes, { source: context.path })).bytes
-    : bytes => bytes;
+  if (permutations !== "onDemand" && permutations !== "all")
+  {
+    throw new TypeError(`RegisterShaderResources permutations must be "onDemand" or "all", got ${permutations}.`);
+  }
+
+  const loader = !translator
+    ? bytes => bytes
+    : permutations === "all"
+      ? (bytes, context) => translator.buildEffect(bytes, { source: context.path, mode: "all" }).bytes
+      : (bytes, context) =>
+      {
+        const translate = permutation => BuiltPermutation(
+          translator.buildEffect(bytes, { source: context.path, permutation })
+        );
+        const loaded = translate([]);
+
+        context.resource.SetPermutationTranslator(translate, loaded.indices);
+        return loaded.bytes;
+      };
 
   for (const extension of ShaderResourceExtensions)
   {
@@ -81,4 +104,23 @@ export function RegisterShaderResources(resourceManager, { translator = null } =
   }
 
   return resourceManager;
+}
+
+
+/**
+ * A selected-mode build's container and every permutation index it carries a
+ * body for - all the indices that share the translated body.
+ *
+ * @param {object} built `buildEffect` result.
+ * @returns {{bytes: Uint8Array, indices: number[]}}
+ */
+function BuiltPermutation(built)
+{
+  const { variants } = built.permutationGraph;
+  const bodyKey = variants.find(variant => variant.permutationIndex === built.metadata.bodyIndex)?.bodyKey;
+
+  return {
+    bytes: built.bytes,
+    indices: variants.filter(variant => variant.bodyKey === bodyKey).map(variant => variant.permutationIndex)
+  };
 }

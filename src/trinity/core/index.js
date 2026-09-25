@@ -12,6 +12,7 @@ export * from "./animation/index.js";
 export * from "./batch/index.js";
 export * from "./binding/index.js";
 export * from "./Tr2Renderer.js";
+export * from "./Tr2ReflectionProbe.js";
 export * from "./Tr2RenderUtils.js";
 export * from "./Tr2Blitter.js";
 export * from "./Tr2Denoiser.js";

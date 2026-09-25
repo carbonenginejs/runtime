@@ -27,6 +27,15 @@ export class Tr2EffectRes extends CjsResource
   /** Whether this container carries per-pass backend blocks; null when unknown. */
   #carriesBackendBlock = null;
 
+  /** Translates one requested permutation on first use; null when every body is present. */
+  #translatePermutation = null;
+
+  /** Permutation indices whose body the held container can read; null means all. */
+  #translatedIndices = null;
+
+  /** Readers for permutations translated after the load, by permutation index. */
+  #permutationReaders = new Map();
+
   /**
    * Read a Carbon effect container and take ownership of its reader.
    *
@@ -54,6 +63,7 @@ export class Tr2EffectRes extends CjsResource
   {
     const reader = new CjsCarbonEffectReader(data);
     this.#shaders.clear();
+    this.#permutationReaders.clear();
     this.#reader = reader;
 
     // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
@@ -114,6 +124,7 @@ export class Tr2EffectRes extends CjsResource
     {
       this.#shaders.clear();
       this.#reader = null;
+      this.#ClearPermutationTranslator();
       this.#carriesBackendBlock = null;
       super.SetPayload(null);
       return this;
@@ -255,9 +266,91 @@ export class Tr2EffectRes extends CjsResource
       return null;
     }
 
-    const shader = Tr2Shader.fromCarbonBinary(this.#reader, index, this.#carriesBackendBlock);
+    const shader = Tr2Shader.fromCarbonBinary(this.#ReaderFor(index), index, this.#carriesBackendBlock);
     this.#shaders.set(index, shader);
     return shader;
+  }
+
+  /**
+   * Hands this resource a way to translate permutations its container lacks.
+   *
+   * Not Carbon: Carbon's containers are compiled offline with every permutation
+   * present. A browser backend translates the shipped dx11 container in
+   * memory, and translating every permutation of a large hull shader costs
+   * seconds, so the load translates only the default one and the rest are
+   * translated here the first time `GetShaderByIndex` asks for them.
+   *
+   * Called by the object loader before the bytes are published, so it survives
+   * the `DoLoad` that follows.
+   *
+   * @param {(permutation: Array<{name: string, value: string}>) => {bytes: Uint8Array, indices: number[]}} translate
+   *   Translates the named permutation and reports every index the result carries a body for.
+   * @param {number[]} translatedIndices Indices the loaded container already carries a body for.
+   * @returns {void}
+   */
+  SetPermutationTranslator(translate, translatedIndices)
+  {
+    this.#translatePermutation = translate;
+    this.#translatedIndices = new Set(translatedIndices);
+    this.#permutationReaders.clear();
+  }
+
+  /** Forgets the permutation translator, for a payload that carries every body. */
+  #ClearPermutationTranslator()
+  {
+    this.#translatePermutation = null;
+    this.#translatedIndices = null;
+    this.#permutationReaders.clear();
+  }
+
+  /**
+   * The reader holding `index`'s body, translating it first when the loaded
+   * container lacks it.
+   *
+   * @param {number} index Permutation index below the variant count.
+   * @returns {CjsCarbonEffectReader}
+   */
+  #ReaderFor(index)
+  {
+    if (!this.#translatedIndices || this.#translatedIndices.has(index))
+    {
+      return this.#permutationReaders.get(index) ?? this.#reader;
+    }
+
+    const result = this.#translatePermutation(this.#PermutationOf(index));
+    const reader = new CjsCarbonEffectReader(result.bytes);
+
+    for (const translated of result.indices)
+    {
+      if (this.#translatedIndices.has(translated)) continue;
+      this.#translatedIndices.add(translated);
+      this.#permutationReaders.set(translated, reader);
+    }
+    if (!this.#translatedIndices.has(index))
+    {
+      throw new Error(`Tr2EffectRes ${this.GetPath()}: translating permutation ${index} produced no body for it`);
+    }
+    return this.#permutationReaders.get(index);
+  }
+
+  /**
+   * The option values a permutation index selects - `GetShader`'s mixed radix,
+   * first axis least significant, run backwards.
+   *
+   * @param {number} index Permutation index.
+   * @returns {Array<{name: string, value: string}>}
+   */
+  #PermutationOf(index)
+  {
+    const permutation = [];
+    let remainder = index;
+
+    for (const axis of getPermutationAxes(this.GetPayload()))
+    {
+      permutation.push({ name: axis.name, value: axis.options[remainder % axis.options.length] });
+      remainder = Math.floor(remainder / axis.options.length);
+    }
+    return permutation;
   }
 
   /**
@@ -295,6 +388,7 @@ export class Tr2EffectRes extends CjsResource
   {
     this.#shaders.clear();
     this.#reader = null;
+    this.#ClearPermutationTranslator();
     return super.ReleasePayload();
   }
 
@@ -459,6 +553,7 @@ CjsSchema.define(Tr2EffectRes, {
   methods: {
     GetShader: [ carbon.method, impl.adapted, impl.reason("Carbon interns the selected body's handles during the read (Tr2EffectDescription.cpp:587-666); ours are interned later at the Trinity boundary, so this returns the hydrated shader graph rather than an already-stamped one.") ],
     GetShaderByIndex: [ impl.custom, impl.reason("Carbon selects compiled bodies through GetShader; CarbonEngineJS exposes exact package-index hydration for deterministic package consumers and tests.") ],
+    SetPermutationTranslator: [ impl.custom ],
     GetPermutationDescription: [ carbon.method, impl.adapted, impl.reason("Carbon exposes a Python tuple through Blue; CarbonEngineJS returns a JSON-friendly plain axis description.") ],
     ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Clears the hydrated shader graphs only. Carbon also does SetGood(false), SetPrepared(false), CancelPendingLoad() and NotifyReleaseCachedData(), and takes a TriStorage mask; not ported yet, Tr2EffectRes.cpp:328-341.") ]
   }
