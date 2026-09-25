@@ -2120,6 +2120,62 @@ test("fragment lowering emits a counted loop with carried phis and a conditional
     assert.match(CjsWebgpuFormat.buildWgsl(inheritedEntryIr).code, /loop\n    \{/u);
 });
 
+// An accumulator updated only inside an `if` reaches the latch through the
+// endif's merge phi. The join block writes nothing to that register, so a latch
+// resolved from block writes alone fell through to the value from before the
+// loop and re-zeroed the accumulator every iteration (the reflection filter
+// divided by that zero and wrote Infinity).
+test("fragment loop latches carry a value merged by an if inside the loop", () =>
+{
+    const program = {
+        program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [], output: [ signature("SV_Target", 0, 15) ] },
+        instructions: [
+            globalFlagsDeclaration(),
+            instruction(2, "mov", [ register("temp", 0, { mask: "x" }), immediate([ 0 ]) ]),
+            instruction(6, "mov", [ register("temp", 1, { mask: "x" }), immediate([ 0 ]) ]),
+            instruction(10, "loop", []),
+            instruction(11, "ige", [
+                register("temp", 2, { mask: "x" }),
+                register("temp", 0, { selected: "x" }),
+                immediate([ 4 ])
+            ]),
+            { ...instruction(15, "breakc", [ register("temp", 2, { selected: "x" }) ]), testBoolean: "nonzero" },
+            instruction(17, "and", [
+                register("temp", 2, { mask: "x" }),
+                register("temp", 0, { selected: "x" }),
+                immediate([ 1 ])
+            ]),
+            { ...instruction(21, "if", [ register("temp", 2, { selected: "x" }) ]), testBoolean: "nonzero" },
+            instruction(23, "iadd", [
+                register("temp", 1, { mask: "x" }),
+                register("temp", 1, { selected: "x" }),
+                register("temp", 0, { selected: "x" })
+            ]),
+            instruction(27, "endif", []),
+            instruction(28, "iadd", [
+                register("temp", 0, { mask: "x" }),
+                register("temp", 0, { selected: "x" }),
+                immediate([ 1 ])
+            ]),
+            instruction(32, "endloop", []),
+            instruction(33, "itof", [ register("temp", 3, { mask: "x" }), register("temp", 1, { selected: "x" }) ]),
+            instruction(37, "mov", [ register("output", 0, { mask: "xyzw" }), register("temp", 3, { swizzle: "xxxx" }) ]),
+            instruction(41, "ret", [])
+        ]
+    };
+    const ir = CjsWebgpuFormat.buildShaderIr(program);
+    const values = ir.values instanceof Map ? [ ...ir.values.values() ] : ir.values;
+    const accumulator = values.filter((value) => value.origin === "control-flow-merge" && value.register === "temp[1]");
+    const header = accumulator.find((value) => value.incoming.some((incoming) => accumulator.some((merge) => merge.id === incoming.valueId)));
+    const join = accumulator.find((value) => value !== header);
+    assert(header && join, "the accumulator has a loop header phi and an endif join phi");
+
+    const code = CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-fragment-loop-if-accumulator" }).code;
+    const continuing = code.slice(code.indexOf("continuing"));
+    assert.match(continuing, new RegExp(`${header.id} = ${join.id};`, "u"));
+});
+
 test("fragment loop headers reject carried entry values with indirect undefined ancestry", () =>
 {
     const program = {

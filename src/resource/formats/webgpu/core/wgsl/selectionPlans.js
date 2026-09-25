@@ -162,24 +162,59 @@ function armInputUsable(value, armBlockId, boundaryInstruction, dominators, live
  * `blockId`, but their value ref may resolve to an upstream definition; this walk
  * derives that same reaching value directly from block state.
  *
+ * A join block's merge phi counts too. `outputValues` lists only the registers
+ * a block WRITES, so a join that merges a register and writes nothing - the
+ * block after an `endif` whose arm updated a loop's accumulator - is invisible
+ * to them, and the walk would fall through to the value from before the loop.
+ * The phi is the block's value on entry; a write in the same block replaces it.
+ *
  * @returns {{valueId: string, component: string}|null} The reaching ref, or null.
  */
 function reachingRef(program, blockId, register, component, dominators)
 {
     const domSet = dominators.get(blockId);
     if (!domSet) return null;
+    const phis = mergePhisByBlock(program);
     let best = null;
     for (const block of program.blocks)
     {
         if (!domSet.has(block.id)) continue;
         const output = (block.outputValues || []).find((entry) =>
             entry.register === register && entry.component === component);
-        if (output && (!best || block.startInstruction > best.block.startInstruction))
+        const phi = output ? null : phis.get(block.id)?.find((value) =>
+            value.register === register && value.writeMask === component);
+        const ref = output?.ref ?? (phi ? { valueId: phi.id, component } : null);
+        if (ref && (!best || block.startInstruction > best.block.startInstruction))
         {
-            best = { block, ref: output.ref };
+            best = { block, ref };
         }
     }
     return best ? { valueId: best.ref.valueId, component: best.ref.component } : null;
+}
+
+const MERGE_PHIS_BY_BLOCK = new WeakMap();
+
+/**
+ * A program's control-flow merge values, grouped by the block they open.
+ *
+ * @param {object} program Shader IR.
+ * @returns {Map<string, object[]>}
+ */
+function mergePhisByBlock(program)
+{
+    let phis = MERGE_PHIS_BY_BLOCK.get(program);
+    if (phis) return phis;
+
+    phis = new Map();
+    const values = program.values instanceof Map ? program.values.values() : (program.values || []);
+    for (const value of values)
+    {
+        if (value?.origin !== "control-flow-merge") continue;
+        if (!phis.has(value.blockId)) phis.set(value.blockId, []);
+        phis.get(value.blockId).push(value);
+    }
+    MERGE_PHIS_BY_BLOCK.set(program, phis);
+    return phis;
 }
 
 function withCondition(constraints, conditionId, nonzero)
