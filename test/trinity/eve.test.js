@@ -729,7 +729,7 @@ test("EveImpactOverlay constructs the CPU graph required by SOF", () =>
   assertEquals(new Set(faders).size, 5, "Carbon creates five independent faders");
   assertEquals(overlay.configuration, 0);
   assertEquals(CjsSchema.getField(EveImpactOverlay, "configuration")?.type?.kind, "int32");
-  assertEquals(CjsSchema.getField(EveImpactOverlay, "configuration")?.enum?.enumType, "ImpactConfiguration");
+  assertEquals(CjsSchema.getField(EveImpactOverlay, "configuration")?.enum?.enumType, "trinity.ITriTargetable.ImpactConfiguration");
   assertEquals(overlay.GetArmorImpactLifeTime(), 10);
   assertVec3(overlay.GetLastDamageState(), [1, 1, 1]);
   assertEquals(overlay.GetDataTextureOffset(), -1);

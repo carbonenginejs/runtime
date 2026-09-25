@@ -3,6 +3,7 @@
 import { CjsModel } from "#model";
 import { type } from "#schema";
 import { UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
+import "#blue/registerTrinityEnums";
 
 
 /**
@@ -21,12 +22,12 @@ export class Tr2UpscalingTechniqueInfo extends CjsModel
 
   /** Tr2UpscalingTechniqueInfo::technique. */
   @type.uint32
-  @type.enum("UpscalingTechnique")
+  @type.enum("trinity.Tr2UpscalingAL.Technique")
   technique = 0;
 
   /** Tr2UpscalingTechniqueInfo::supportedSettings. */
   @type.uint32
-  @type.enum("UpscalingSetting")
+  @type.enum("trinity.Tr2UpscalingAL.Setting")
   supportedSettings = 0;
 
   /** Blue structure field `framegeneration` (C++ member `framegen`). */

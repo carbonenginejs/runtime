@@ -68,7 +68,7 @@ export class Tr2Light extends CjsModel
   lightProfilePath = "";
 
   @type.int32
-  @type.enum("LIGHT_TYPE")
+  @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.UNDEFINED_LIGHT;
 
   // Compat view over the flattened light fields (2026-07-23 flatten
@@ -343,3 +343,8 @@ export class Tr2Light extends CjsModel
   static #lightRecord = CreateLightRecord();
 
 }
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.Tr2Light.LIGHT_TYPE", Tr2Light.LightType, {
+  source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 71
+});

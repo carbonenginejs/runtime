@@ -6,6 +6,7 @@
 // animation time as the FIRST argument instead (the light manager duck is the
 // engine-owned clock source at the GetLights call sites) - the only
 // adaptation; every formula is verbatim.
+import { blue } from "#blue";
 
 /** Carbon FadeType (EveSpaceObjectAttachmentUtils.h:7-14). */
 export const FadeType = Object.freeze({
@@ -115,3 +116,8 @@ export function Saturate(out, color, saturation)
   out[3] = color[3];
   return out;
 }
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.FadeType", FadeType, {
+  source: "trinity/trinity/Eve/SpaceObject/Attachments/Sets/EveSpaceObjectAttachmentUtils.h", family: "eve/attachment/planes", line: 7
+});

@@ -135,7 +135,7 @@ export class Tr2SpotLight extends Tr2Light
   isVolumetric = false;
 
   @type.int32
-  @type.enum("LIGHT_TYPE")
+  @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.SPOT_LIGHT;
 
 }

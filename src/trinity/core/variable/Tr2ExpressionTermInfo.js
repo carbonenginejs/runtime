@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Tr2ExpressionTermInfo_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
+import { blue } from "#blue";
 
 
 const TermType = Object.freeze({
@@ -24,7 +25,7 @@ export class Tr2ExpressionTermInfo extends CjsModel
 {
   @edit.readwrite
   @type.int32
-  @type.enum("TermType")
+  @type.enum("trinity.Tr2ExpressionTermInfo.TermType")
   type = TermType.VARIABLE;
 
   @edit.readwrite
@@ -90,3 +91,8 @@ export class Tr2ExpressionTermInfo extends CjsModel
   static TermType = TermType;
 
 }
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.Tr2ExpressionTermInfo.TermType", TermType, {
+  source: "trinity/trinity/Tr2ExpressionTermInfo.h", family: "trinityCore", line: 12
+});

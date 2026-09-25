@@ -51,3 +51,8 @@ blue.enums.RegisterEnum("trinity.SplineTunnelGroup.TunnelGroupType", TunnelGroup
     { name: "Other_Tunnels", value: TunnelGroupType.OTHER_TUNNELS, description: "pathways in the scene (hallways etc)" }
   ]
 });
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.EveKDdroneManagementTree.PlaneType", PlaneType, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/Behaviors/EveKDdroneManagementTree.h", family: "eve/child/behaviors", line: 27
+});

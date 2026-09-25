@@ -8,6 +8,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { TriBatchType } from "#consts/graphics";
 import { Tr2ScalarFader } from "../../curves/curve/Tr2ScalarFader.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
+import "../EveImpactOverlay.js";
 
 
 const IMPACT_HOLE_TO_ARMOR_DAMAGE_RATIO = 12;
@@ -79,7 +80,7 @@ export class EveDamageOverlay extends CjsModel
 
   @edit.read
   @type.int32
-  @type.enum("ImpactConfiguration")
+  @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   configuration = ImpactConfiguration.IMPACT_INVALID;
 
   @edit.readwrite

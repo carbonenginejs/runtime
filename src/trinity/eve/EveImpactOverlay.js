@@ -15,6 +15,7 @@ import {
   IMPACT_ARMOR_SIZE_MAX
 } from "./overlays/EveDamageOverlay.js";
 import { ITr2GenericEmitterUpdateArguments } from "../particle/ITr2GenericEmitter/index.js";
+import { blue } from "#blue";
 
 
 const IMPACT_SHIELD_SIZE_MAX = 2000;
@@ -50,7 +51,7 @@ export class EveImpactOverlay extends CjsModel
 
   @edit.read
   @type.int32
-  @type.enum("ImpactConfiguration")
+  @type.enum("trinity.ITriTargetable.ImpactConfiguration")
   configuration = 0;
 
   @edit.read
@@ -869,3 +870,8 @@ function intersectEllipsoidRay(out, center, radii, origin, direction)
   if (t < 0) t = discriminant - vs / vv;
   return vec3.scaleAndAdd(out, origin, direction, t);
 }
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.ITriTargetable.ImpactConfiguration", EveImpactOverlay.ImpactConfiguration, {
+  source: "trinity/trinity/Include/ITriTargetable.h", family: "eve/overlays/impact", line: 9
+});

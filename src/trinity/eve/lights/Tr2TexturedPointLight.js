@@ -39,7 +39,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   isDynamic = true;
 
   @type.int32
-  @type.enum("LIGHT_TYPE")
+  @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.POINT_LIGHT;
 
   #saturation = 1;

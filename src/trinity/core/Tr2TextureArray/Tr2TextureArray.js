@@ -6,6 +6,7 @@ import { CjsModel } from "#model";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions, HostBitmap } from "#imageio";
 import { Tr2TextureArrayElement } from "./Tr2TextureArrayElement.js";
+import "#blue/registerTrinityEnums";
 
 /** Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback. */
 @type.define({ className: "Tr2TextureArray", family: "trinityCore", purpose: "Describes a texture array's elements, dimensions, resource usage, upload increment, backing texture, and change callback." })
@@ -34,12 +35,12 @@ export class Tr2TextureArray extends CjsModel
 
     /** m_cpuUsage (Tr2CpuUsage::Type - enum Tr2CpuUsage) */
     @type.int32
-    @type.enum("Tr2CpuUsage")
+    @type.enum("trinity.Tr2CpuUsage")
     cpuUsage = 0;
 
     /** m_gpuUsage (Tr2GpuUsage::Type - enum Tr2GpuUsage) */
     @type.int32
-    @type.enum("Tr2GpuUsage")
+    @type.enum("trinity.Tr2GpuUsage")
     gpuUsage = 16;
 
 

@@ -191,13 +191,13 @@ export class TriDevice extends CjsModel
   /** m_upscalingSetting (Tr2UpscalingAL::Setting) [READ] */
   @edit.read
   @type.uint32
-  @type.enum("UpscalingSetting")
+  @type.enum("trinity.Tr2UpscalingAL.Setting")
   upscalingSetting = 1;
 
   /** m_upscalingTechnique (Tr2UpscalingAL::Technique) [READ] */
   @edit.read
   @type.uint32
-  @type.enum("UpscalingTechnique")
+  @type.enum("trinity.Tr2UpscalingAL.Technique")
   upscalingTechnique = 0;
 
   /** m_upscalingWithFrameGeneration (bool) [READ] */

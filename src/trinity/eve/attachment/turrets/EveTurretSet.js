@@ -248,7 +248,7 @@ export class EveTurretSet extends EveEntity
   @edit.read
   @edit.persist
   @type.int32
-  @type.enum("State")
+  @type.enum("trinity.EveTurretSet.State")
   state = 2;
 
   /** m_sysBoneHeight (float) [READWRITE, PERSIST] */
@@ -1686,4 +1686,9 @@ blue.enums.RegisterEnum("trinity.EveTurretSet.LOD", EveTurretSet.LOD, {
     { name: "LOD_HIGHEST", value: EveTurretSet.LOD.LOD_HIGHEST, description: "" },
     { name: "LOD_DISABLED", value: EveTurretSet.LOD.LOD_DISABLED, description: "" }
   ]
+});
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.EveTurretSet.State", EveTurretSet.State, {
+  source: "trinity/trinity/Eve/Turret/EveTurretSet.h", family: "eve/attachment/turrets", line: 245
 });

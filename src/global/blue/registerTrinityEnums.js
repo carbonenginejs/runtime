@@ -9,6 +9,8 @@ import { EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 import { ReflectionMode } from "../consts/graphics/trinityEnums.js";
 import { Tr2Lod } from "../consts/trinity.js";
 import { PresentInterval, SwapEffect } from "../consts/renderContext/presentation.js";
+import { Tr2CpuUsage, Tr2GpuUsage, UpscalingSetting, UpscalingTechnique } from "../consts/renderContext/index.js";
+import { TriBatchType } from "../consts/graphics/trinityEnums.js";
 import { DepthStencilFormat, PixelFormat, TextureType } from "../consts/renderContext/formats.js";
 import { Tr2WindowMode, Tr2WindowShowState } from "../consts/renderContext/window.js";
 import { RenderingMode, TRIEXTRAPOLATION, TRIOPERATOR } from "../consts/graphics/trinityEnums.js";
@@ -176,4 +178,35 @@ blue.enums.RegisterEnum("trinity.ImageIO.TextureType", TextureType, {
     { name: "TEX_TYPE_CUBE", value: TextureType.TEX_TYPE_CUBE, description: "Cube texture" },
     { name: "TEX_TYPE_INVALID", value: TextureType.TEX_TYPE_INVALID, description: "Invalid texture" }
   ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:191).
+blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Technique", UpscalingTechnique, {
+  source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 12,
+  exposedName: "UPSCALING_TECHNIQUE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:170",
+  chooser: [ "NONE", "FSR1", "FSR2", "FSR3", "DLSS", "XESS", "METALFX" ].map(name => ({ name, value: UpscalingTechnique[name], description: "" }))
+});
+
+// Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:197).
+blue.enums.RegisterEnum("trinity.Tr2UpscalingAL.Setting", UpscalingSetting, {
+  source: "trinity/trinityal/include/upscaling/Tr2UpscalingAL.h", family: "trinity", line: 23,
+  exposedName: "UPSCALING_SETTING", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:181",
+  chooser: [ "NATIVE", "ULTRA_QUALITY", "QUALITY", "BALANCED", "PERFORMANCE", "ULTRA_PERFORMANCE" ].map(name => ({ name, value: UpscalingSetting[name], description: "" }))
+});
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.Tr2CpuUsage", Tr2CpuUsage, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 438
+});
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.Tr2GpuUsage", Tr2GpuUsage, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 461
+});
+
+// Carbon neither registers this nor gives it a chooser.
+blue.enums.RegisterEnum("trinity.TriBatchType", TriBatchType, {
+  source: "trinity/trinity/ITr2Renderable.h", family: "trinity", line: 18
 });

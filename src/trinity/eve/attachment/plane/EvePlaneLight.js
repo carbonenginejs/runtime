@@ -34,7 +34,7 @@ export class EvePlaneLight extends CjsModel
   lightProfile = null;
 
   @type.int32
-  @type.enum("FadeType")
+  @type.enum("trinity.FadeType")
   fadeType = EvePlaneLight.FT_NONE;
 
   @type.float32

@@ -12,6 +12,7 @@ import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2Pa
 import { TriBatchType } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { BuildDecalGeometry, BuildStaticDecalGeometry } from "./decalIndices.js";
+import "#blue/registerTrinityEnums";
 
 
 /**
@@ -42,7 +43,7 @@ export class EveSpaceObjectDecal extends CjsModel
 
   @edit.read
   @type.int32
-  @type.enum("TriBatchType")
+  @type.enum("trinity.TriBatchType")
   batchType = 1;
 
   @edit.notify

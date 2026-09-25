@@ -61,7 +61,7 @@ export class EveKDdroneManagementTree extends CjsModel
 
   /** planeType (PlaneType - enum PlaneType) */
   @type.int32
-  @type.enum("PlaneType")
+  @type.enum("trinity.EveKDdroneManagementTree.PlaneType")
   planeType = 0;
 
   /** b (int) */
