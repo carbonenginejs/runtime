@@ -153,10 +153,13 @@ export class TriTextureParameter extends CjsParameter
   /**
    * Carbon GetResource (cpp:271-290): the low-res stand-in while one is
    * active, released for good once the authored resource is ready.
+   *
+   * Carbon asks whether the authored resource has its texture, which it
+   * creates in DoPrepare. Ours is created at first bind, which never happens
+   * while the stand-in is the one bound, so readiness is asked as IsPrepared.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon asks whether the authored resource has its texture, which it creates in DoPrepare; ours is created at first bind, which never happens while the stand-in is bound, so readiness is asked as IsPrepared.")
   GetResource()
   {
     if (this.#lowResResource)
