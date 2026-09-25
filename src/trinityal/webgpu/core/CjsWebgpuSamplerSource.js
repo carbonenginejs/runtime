@@ -1,7 +1,7 @@
 // An effect's declared sampler to a realized WebGPU sampler.
 //
-// The mirror of CjsWebgpuTextureSource, and much shorter, because a sampler
-// needs nothing loaded. Its state is authored INTO the effect container and
+// Much shorter than a texture's route, because a sampler needs nothing
+// loaded. Its state is authored INTO the effect container and
 // arrives on the binding record itself, so resolution is synchronous and has no
 // resource path, no network and no first-frame absence.
 //

@@ -106,8 +106,8 @@ import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
+import { blue } from "../../../../npm/dist/global/blue/index.js";
 import {
-  CjsResMan,
   RegisterSolidColorTexture,
   RegisterTextureArray,
   RegisterTexturePack,
@@ -402,22 +402,6 @@ function Material(bytes, path, values = null)
 
 
 /**
- * Loads each of a material's texture parameters from the client.
- *
- * A `TriTextureParameter` binds `GetResource()`, and until that resource is
- * PREPARED the backend gets Carbon's fallback rather than a texture - which is
- * why an unloaded material draws white rather than failing. This gives each
- * parameter the manager's `TriTextureRes` for its path.
- *
- * BC STAYS BC. The hull's maps are BC7, which WebGPU exposes only behind the
- * `texture-compression-bc` feature. The image route keeps the file's format,
- * so a device without that feature cannot take them; decoding for such a
- * device is not wired yet.
- *
- * @param {object} effect The hydrated effect.
- * @returns {Promise<{loaded: number, failed: string[]}>} What arrived.
- */
-/**
  * The scene-owned textures `quadv5` declares, and what "nothing" means for each.
  *
  * ZERO IS THE WRONG NOTHING FOR MOST OF THESE, which is why the hull came out
@@ -484,70 +468,50 @@ const SCENE_TEXTURES = Object.freeze([
 ]);
 
 
-/**
- * The resource manager every texture in the demo comes through.
- *
- * Textures load as Carbon's HostBitmap through the ordinary image route, so the
- * demo exercises the same path a scene does - including `dynamic:/color` and
- * the texture pack and array constructors a merged shader slot resolves.
- */
-const TEXTURES = (() =>
-{
-  const resMan = new CjsResMan();
-
-  resMan.Register({ source: { Read: path => ResourceBytes(String(path).replace(/^res:\//u, "")) } });
-  RegisterTextureResources(resMan);
-  RegisterSolidColorTexture(resMan);
-  RegisterTextureArray(resMan);
-  RegisterTexturePack(resMan);
-
-  return resMan;
-})();
+// Blue's resource manager, which every texture comes through. A texture
+// parameter fetches its own path when the path is set
+// (`TriTextureParameter.Initialize`), as Carbon's does, so the demo supplies
+// only the byte source and the texture routes. Textures load as Carbon's
+// HostBitmap through the ordinary image route - including `dynamic:/color`
+// and the texture pack and array constructors a merged shader slot resolves.
+blue.resMan.Register({ source: { Read: path => ResourceBytes(String(path).replace(/^res:\//u, "")) } });
+RegisterTextureResources(blue.resMan);
+RegisterSolidColorTexture(blue.resMan);
+RegisterTextureArray(blue.resMan);
+RegisterTexturePack(blue.resMan);
 
 /**
- * A texture resource from the manager, once it has finished loading.
- *
- * @param {string} path Resource path, `res:/` or `dynamic:/`.
- * @returns {Promise<object>} The resource.
- * @throws {Error} When it failed to load, naming the path.
- */
-async function LoadedTexture(path)
-{
-  const texture = TEXTURES.GetResource(path);
-
-  await texture.Ready();
-
-  if (!texture.GetBitmap()) throw new Error(`${path}: no image`);
-
-  return texture;
-}
-
-/**
- * A scene texture: a client file, or a flat colour as Carbon's
+ * A scene texture's path: a client file, or a flat colour as Carbon's
  * `dynamic:/color/r,g,b,a` (float components).
  *
  * @param {object} scene A `SCENE_TEXTURES` entry.
- * @returns {Promise<object|null>} The resource, or null when it cannot be had.
+ * @returns {string} The resource path.
  */
-async function SceneTexture(scene)
+function SceneTexturePath(scene)
 {
-  const path = scene.path
+  return scene.path
     ? `res:/${scene.path}`
     : `dynamic:/color/${scene.colour.map(byte => byte / 255).join(",")}`;
-
-  try
-  {
-    return await LoadedTexture(path);
-  }
-  catch
-  {
-    // Not fatal: the slot falls back to the backend's dummy, which is what it
-    // had before this existed.
-    return null;
-  }
 }
 
 
+/**
+ * Waits for every texture the material's parameters already requested.
+ *
+ * A `TriTextureParameter` binds `GetResource()`, and until that resource is
+ * PREPARED the backend gets Carbon's fallback rather than a texture. Waiting is
+ * the demo's choice, so the first frame shows the finished hull; a scene may
+ * equally draw at once and let each texture replace the fallback as it
+ * arrives. A failed texture keeps the fallback and is named.
+ *
+ * BC STAYS BC. The hull's maps are BC7, which WebGPU exposes only behind the
+ * `texture-compression-bc` feature. The image route keeps the file's format,
+ * so a device without that feature cannot take them; decoding for such a
+ * device is not wired yet.
+ *
+ * @param {object} effect The hydrated effect.
+ * @returns {Promise<{loaded: number, failed: string[]}>} What arrived.
+ */
 async function LoadTextures(effect)
 {
   const failed = [];
@@ -557,9 +521,12 @@ async function LoadTextures(effect)
   {
     if (!parameter.resourcePath) return;
 
+    const resource = parameter.GetResource();
+
     try
     {
-      parameter.resource = await LoadedTexture(parameter.resourcePath);
+      await resource.Ready();
+      if (!resource.GetBitmap()) throw new Error(`${parameter.resourcePath}: no image`);
       loaded += 1;
     }
     catch (error)
@@ -986,9 +953,8 @@ export async function RunDemo(canvas)
       const parameter = new TriTextureParameter();
 
       parameter.name = scene.name;
-      parameter.resource = await SceneTexture(scene);
-
-      if (parameter.resource) material.resources.push(parameter);
+      parameter.SetResourcePath(SceneTexturePath(scene));
+      material.resources.push(parameter);
     }
 
     material.RebuildCachedData();

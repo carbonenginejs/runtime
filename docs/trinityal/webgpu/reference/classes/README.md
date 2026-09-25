@@ -185,16 +185,6 @@ Resolves a Trinity batch to a WebGPU pipeline, device geometry and the bindings 
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
-<!-- class:CjsWebgpuTextureSource -->
-## `CjsWebgpuTextureSource`
-
-Realizes an authored texture path into a device texture, once per resource.
-
-- Export: Not exported
-- Source: `src/trinityal/webgpu/core/CjsWebgpuTextureSource.js`
-- Visibility: Internal
-- Kind: CarbonEngineJS
-
 <!-- class:CjsWebgpuSamplerSource -->
 ## `CjsWebgpuSamplerSource`
 

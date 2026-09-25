@@ -156,6 +156,5 @@
   "src/trinity/shader/parameter/TriTransformParameter.js": 1,
   "src/trinity/shader/parameter/TriVariableParameter.js": 3,
   "src/trinity/shader/Tr2Effect.js": 14,
-  "src/trinityal/webgpu/core/CjsWebgpuTextureSource.js": 3,
   "src/trinityal/webgpu/core/CjsWebgpuTrinityBatchResolver.js": 12
 }

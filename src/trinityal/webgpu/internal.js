@@ -5,7 +5,6 @@ export { CjsWebgpuEncodeState } from "./core/CjsWebgpuEncodeState.js";
 export { CjsWebgpuRenderTarget } from "./core/CjsWebgpuRenderTarget.js";
 export { CjsWebgpuTrinityBatchDispatcher } from "./core/CjsWebgpuTrinityBatchDispatcher.js";
 export { CjsWebgpuTrinityBatchResolver } from "./core/CjsWebgpuTrinityBatchResolver.js";
-export { CjsWebgpuTextureSource } from "./core/CjsWebgpuTextureSource.js";
 export { CjsWebgpuUtils } from "./core/CjsWebgpuUtils.js";
 export { CjsWebgpuTrinityPassEncoder } from "./core/CjsWebgpuTrinityPassEncoder.js";
 export { CarbonSamplerDescriptor, IsEmulatedAddressMode, EMULATED_ADDRESS_MODES } from "./core/samplerDescriptor.js";
