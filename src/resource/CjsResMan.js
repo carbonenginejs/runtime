@@ -1337,7 +1337,40 @@ export class CjsResMan
     }
     this.#BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);
+
+    // A reload request drives its own load (ReloadResource / GetObject).
+    if (!existing && options.reload !== true) this._RequestResource(canonical, options);
+
     return canonical;
+  }
+
+  /**
+   * Starts loading a resource just handed out.
+   *
+   * Asking for a resource requests it, as Carbon's does: GetResource calls
+   * Initialize, which queues the load (BlueResMan.cpp:276-288,
+   * BlueAsyncRes.cpp:191-230). A later Ready() joins this operation. A load
+   * that fails, whether before its promise exists or after, is recorded on
+   * the resource rather than thrown from GetResource; a caller that wants the
+   * outcome awaits Ready(), which also retries a resource with no payload.
+   *
+   * The request carries the options GetResource was given, including per-call
+   * controls such as `cacheSource`, which the resource's own loader does not
+   * retain; the request is made here, so that is where they apply.
+   *
+   * @param {CjsResource} resource The resource to request.
+   * @param {object} options The options GetResource was given.
+   */
+  _RequestResource(resource, options)
+  {
+    try
+    {
+      resource.Ready(options).catch(() => {});
+    }
+    catch (error)
+    {
+      resource.SetError(error);
+    }
   }
 
   /**

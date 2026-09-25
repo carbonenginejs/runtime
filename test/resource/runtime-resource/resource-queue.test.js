@@ -294,16 +294,21 @@ test("Clear cancellation settles an already captured resource lineage", async ()
 test("Wait excludes direct LoadResourceObject work that bypasses both queues", async () => {
   let releaseSource;
   let directSettled = false;
+  let reads = 0;
   const resMan = new CjsResMan({
     source: {
       Read()
       {
+        // GetResource's own queued load reads first and completes; the direct
+        // load's read stays pending until released.
+        if (++reads === 1) return new Uint8Array([ 1 ]);
         return new Promise(resolve => { releaseSource = resolve; });
       }
     }
   });
   resMan.RegisterObjectLoader("bin", bytes => bytes);
   const resource = resMan.GetResource("res:/queue/direct-wait.bin");
+  await resource.Ready();
   const direct = resMan.LoadResourceObject(resource).then(value => {
     directSettled = true;
     return value;
@@ -537,23 +542,24 @@ test("an atomic reload commits before an older canonical operation settles last"
 
 test("the newest concurrent reload candidate wins regardless of settlement order", async () => {
   const sourceReleases = [];
+  let reads = 0;
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     maxConcurrentLoads: 2,
     source: {
       Read()
       {
+        // The first read loads the owner; the reloads' reads are held.
+        if (++reads === 1) return "{\"revision\":0}";
         return new Promise(resolve => sourceReleases.push(resolve));
       }
     }
   });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
-  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
 
   const path = "res:/queue/newest-reload-wins.json";
-  const current = resMan.GetResource(path);
-  current.SetPayload({ revision: 0 });
-  current.MarkLoaded();
+  const current = await LoadOwner(resMan, path);
+  resMan.PauseQueue(CjsResManQueue.BACKGROUND);
   const firstCandidate = resMan.GetResource(path, { reload: true });
   let firstCandidateDestroyed = 0;
   firstCandidate.SetAdapterResource("candidate", {
@@ -593,11 +599,14 @@ test("the newest concurrent reload candidate wins regardless of settlement order
 
 test("deleting the expected owner during reload prevents candidate resurrection", async () => {
   let releaseSource;
+  let reads = 0;
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     source: {
       Read()
       {
+        // The first read loads the owner; the reload's read is held.
+        if (++reads === 1) return "{\"revision\":1}";
         return new Promise(resolve => { releaseSource = resolve; });
       }
     }
@@ -605,9 +614,7 @@ test("deleting the expected owner during reload prevents candidate resurrection"
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const path = "res:/queue/delete-during-reload.json";
-  const current = resMan.GetResource(path);
-  current.SetPayload({ revision: 1 });
-  current.MarkLoaded();
+  const current = await LoadOwner(resMan, path);
   const candidate = resMan.GetResource(path, { reload: true });
   let candidateDestroyed = 0;
   candidate.SetAdapterResource("candidate", {
@@ -632,11 +639,14 @@ test("deleting the expected owner during reload prevents candidate resurrection"
 
 test("Wait and MotherLode replacement account for an active reload candidate", async () => {
   let releaseSource;
+  let reads = 0;
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     source: {
       Read()
       {
+        // The first read loads the owner; the reload's read is held.
+        if (++reads === 1) return "{\"revision\":1}";
         return new Promise(resolve => { releaseSource = resolve; });
       }
     }
@@ -644,9 +654,7 @@ test("Wait and MotherLode replacement account for an active reload candidate", a
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
   const path = "res:/queue/wait-reload-candidate.json";
-  const current = resMan.GetResource(path);
-  current.SetPayload({ revision: 1 });
-  current.MarkLoaded();
+  const current = await LoadOwner(resMan, path);
   const candidate = resMan.GetResource(path, { reload: true });
   const operation = candidate.Ready();
   const wait = resMan.Wait({ pump: false });
@@ -758,16 +766,21 @@ test("MotherLode replacement rejects active queued and direct resource mutations
   assert.equal(queuedManager.motherLode, queuedReplacement);
 
   let releaseDirect;
+  let directReads = 0;
   const directManager = new CjsResMan({
     source: {
       Read()
       {
+        // GetResource's own load reads first and completes; the direct load's
+        // read stays pending until released.
+        if (++directReads === 1) return new Uint8Array([ 1 ]);
         return new Promise(resolve => { releaseDirect = resolve; });
       }
     }
   });
   directManager.RegisterObjectLoader("bin", bytes => bytes);
   const directResource = directManager.GetResource("res:/queue/replace-direct-owner.bin");
+  await directResource.Ready();
   const directOperation = directManager.LoadResourceObject(directResource);
   const directOwner = directManager.motherLode;
   const directReplacement = new CjsMotherLode();
@@ -788,7 +801,9 @@ test("MotherLode replacement rejects active queued and direct resource mutations
 
 test("standalone direct preparation cannot publish after its canonical identity is deleted", async () => {
   let releaseRead;
-  const resMan = new CjsResMan();
+  // GetResource requests the path; this source never answers, so that request
+  // stays pending and the test's own direct preparation is the one observed.
+  const resMan = new CjsResMan({ source: { Read: () => new Promise(() => {}) } });
   resMan.RegisterObjectLoader("bin", bytes => new Promise(resolve => {
     releaseRead = () => resolve({ bytes });
   }));
@@ -806,10 +821,28 @@ test("standalone direct preparation cannot publish after its canonical identity 
   releaseRead();
   await operationFailure;
 
-  assert.equal(resource.state, "empty");
+  // The stale direct preparation published nothing. The state is the
+  // manager's own request from GetResource, still pending on a silent source.
+  assert.equal(resource.state, "requested");
   assert.equal(resource.error, null);
   assert.equal(resource.HasPayload(), false);
 });
+
+/**
+ * Loads a path's first owner through the manager, as a scene would:
+ * GetResource requests it, and pumping the queues lets that request finish
+ * where a test has turned automatic pumping off.
+ */
+async function LoadOwner(resMan, path) {
+  const resource = resMan.GetResource(path);
+  for (let pass = 0; pass < 100 && !resource.HasPayload(); pass++) {
+    resMan.PumpBackgroundQueue();
+    resMan.PumpMainThreadQueue();
+    await FlushMicrotasks();
+  }
+  assert.equal(resource.HasPayload(), true, `${path} loaded`);
+  return resource;
+}
 
 async function FlushMicrotasks() {
   await Promise.resolve();

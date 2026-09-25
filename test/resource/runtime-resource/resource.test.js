@@ -1233,15 +1233,17 @@ test("failed reload source work preserves the exact good owner and cleans its ca
 {
   const expectedError = new Error("expected reload source failure");
   const path = "res:/data/reload-source-failure.json";
+  let reads = 0;
+  // The first read loads the good owner; the reload's read fails.
   const resMan = new CjsResMan({
-    source: { Read() { throw expectedError; } }
+    source: { Read() { if (++reads > 1) throw expectedError; return "{\"revision\":1}"; } }
   });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
   const current = resMan.GetResource(path);
-  const currentPayload = { revision: 1 };
+  await current.Ready();
+  const currentPayload = current.GetPayload();
   let currentDestroyed = 0;
   let candidateDestroyed = 0;
-  current.SetPayload(currentPayload);
-  current.MarkLoaded();
   current.SetAdapterResource("current", { destroy() { currentDestroyed += 1; } });
 
   const candidate = resMan.GetResource(path, { reload: true });
@@ -1265,11 +1267,12 @@ test("failed reload CPU read preserves the good owner and releases candidate ada
   const resMan = new CjsResMan({
     source: { Read: () => "{\"revision\":2}" }
   });
-  resMan.RegisterObjectLoader("json", () => { throw expectedError; });
+  let reads = 0;
+  // The first read loads the good owner; the reload's CPU read fails.
+  resMan.RegisterObjectLoader("json", value => { if (++reads > 1) throw expectedError; return JSON.parse(value); });
   const current = resMan.GetResource(path);
-  const currentPayload = { revision: 1 };
-  current.SetPayload(currentPayload);
-  current.MarkLoaded();
+  await current.Ready();
+  const currentPayload = current.GetPayload();
 
   const candidate = resMan.GetResource(path, { reload: true });
   candidate.SetAdapterResource("candidate", {
@@ -1340,13 +1343,15 @@ test("displaced cleanup failure reports a committed atomic reload", async () =>
 test("candidate cleanup failure is aggregated without replacing the good owner", async () =>
 {
   const expectedError = new Error("expected reload failure");
-  const path = "res:/data/reload-candidate-cleanup-failure.bin";
+  const path = "res:/data/reload-candidate-cleanup-failure.json";
+  let reads = 0;
+  // The first read loads the good owner; the reload's read fails.
   const resMan = new CjsResMan({
-    source: { Read() { throw expectedError; } }
+    source: { Read() { if (++reads > 1) throw expectedError; return "{\"stable\":true}"; } }
   });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
   const current = resMan.GetResource(path);
-  current.SetPayload({ stable: true });
-  current.MarkLoaded();
+  await current.Ready();
   const candidate = resMan.GetResource(path, { reload: true });
   candidate.SetAdapterResource("failing", {
     destroy() { throw new Error("expected candidate cleanup failure"); }
@@ -3044,10 +3049,12 @@ test("released resources retain source provenance but not cache policy", async (
   const resMan = new CjsResMan({ source: originalSource });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
   const path = "res:/data/provenance.json";
+  // Request options go on GetResource, which starts the load; Ready() waits.
   const resource = resMan.GetResource(path, {
-    sourceRevision: "original-v1"
+    sourceRevision: "original-v1",
+    cacheSource: true
   });
-  await resource.Ready({ cacheSource: true });
+  await resource.Ready();
   assert.equal(originalReads, 1);
   resMan.SetSource(laterDefaultSource);
   assert.equal(resMan.InvalidateReadCache(path, {
@@ -3229,4 +3236,30 @@ test("GetMeshVertexElements reads the element list the readers actually emit", (
   assert.equal(elements[0].usage, "POSITION");
   assert.equal(elements[1].offset, 12);
   assert.deepEqual(geometry.GetMeshVertexElements(9), [], "no such mesh");
+});
+
+test("GetResource requests the resource; Ready() waits on that request (Carbon's Initialize queues the load)", async () =>
+{
+  let reads = 0;
+  const resMan = new CjsResMan({ source: { Read() { reads += 1; return "{\"loaded\":true}"; } } });
+  resMan.RegisterObjectLoader("json", value => JSON.parse(value));
+
+  const resource = resMan.GetResource("res:/data/requested.json");
+  // Nothing has awaited it: the request was made by asking for the resource.
+  for (let i = 0; i < 20 && reads === 0; i++) await Promise.resolve();
+  assert.equal(reads, 1, "GetResource alone read the source");
+
+  assert.deepEqual(await resource.Ready(), { loaded: true });
+  assert.equal(reads, 1, "Ready() joined the request rather than reading again");
+  assert.equal(resMan.GetResource("res:/data/requested.json"), resource);
+  assert.equal(reads, 1, "a cache hit requests nothing");
+});
+
+test("a resource that cannot be fetched fails on the resource, not in GetResource", () =>
+{
+  const resMan = new CjsResMan();
+  const resource = resMan.GetResource("res:/data/unreachable.json");
+
+  assert.equal(resource.IsFailed(), true);
+  assert.ok(resource.error, "the reason is kept on the resource");
 });
