@@ -7,7 +7,7 @@ import { AudEmitter } from "../audio/AudEmitter.js";
 import { AudGameObjResource } from "../audio/AudGameObjResource.js";
 import { StretchAudio } from "../audio/StretchAudio.js";
 
-/** Tr2AudioStretchBase (trinityAudio) - generated from schema shapeHash f6d14e40.... */
+/** Creates and updates the three Carbon emitters used by a Trinity audio stretch. */
 @type.define({ className: "Tr2AudioStretchBase", family: "trinityAudio" })
 export class Tr2AudioStretchBase extends CjsModel
 {

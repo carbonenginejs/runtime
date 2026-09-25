@@ -4,7 +4,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2AsyncSave dropped reference shape (resources), schema shapeHash 2d9b1936.... */
+/** Retained-only reference shape mirroring Carbon's abstract prepare/save callback base, superseded by promise-based format `Write`/`WriteAsync` operations and resource-level save-status compatibility methods. */
 export class Tr2AsyncSave extends CjsModel
 {
 

@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 
-/** Tr2GrannyIntersectionResult (resources) - maintained from schema shapeHash f0ccc62b.... */
+/** Data record mirroring Carbon's Granny intersection-query result: hit position, normal, UV, bone index, and mesh/area indices with per-field presence flags. */
 export class Tr2GrannyIntersectionResult extends CjsModel
 {
 

@@ -8,20 +8,10 @@ Summary: Provides one-sentence purpose descriptors for maintained file-index cla
 <!-- class:CjsFileIndex -->
 ## `CjsFileIndex`
 
-Represents an immutable file index with deterministic declaration-order lookup.
+An immutable file index with deterministic declaration-order lookup.
 
 - Export: `@carbonenginejs/runtime/tools/fileindex`
 - Source: `src/tools/fileindex/CjsFileIndex.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsFileIndexEntry -->
-## `CjsFileIndexEntry`
-
-Represents one immutable row from a CCP-style appfileindex or resfileindex.
-
-- Export: `@carbonenginejs/runtime/tools/fileindex`
-- Source: `src/tools/fileindex/CjsFileIndexEntry.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -35,10 +25,20 @@ Compares two resfileindexes to find what changed between builds.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsFileIndexEntry -->
+## `CjsFileIndexEntry`
+
+One immutable row from a CCP-style appfileindex or resfileindex.
+
+- Export: `@carbonenginejs/runtime/tools/fileindex`
+- Source: `src/tools/fileindex/CjsFileIndexEntry.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsFileIndexLibrary -->
 ## `CjsFileIndexLibrary`
 
-Coordinates one provider/build appfileindex, its named resfileindexes, manual overlays, and resolved sources.
+One complete provider/build appfileindex, resfileindexes, and manual overlays.
 
 - Export: `@carbonenginejs/runtime/tools/fileindex`
 - Source: `src/tools/fileindex/CjsFileIndexLibrary.js`
@@ -48,7 +48,7 @@ Coordinates one provider/build appfileindex, its named resfileindexes, manual ov
 <!-- class:CjsFileIndexOverlay -->
 ## `CjsFileIndexOverlay`
 
-Represents one caller-supplied replacement or fallback resfileindex layer.
+One caller-supplied manual replacement or fallback resfileindex layer.
 
 - Export: `@carbonenginejs/runtime/tools/fileindex`
 - Source: `src/tools/fileindex/CjsFileIndexOverlay.js`
@@ -58,7 +58,7 @@ Represents one caller-supplied replacement or fallback resfileindex layer.
 <!-- class:CjsFileIndexSource -->
 ## `CjsFileIndexSource`
 
-Maps a compact source ID to an HTTP(S) base URL and resolves safe relative locations.
+An immutable browser-safe mapping from a compact source ID to an HTTP(S) base URL.
 
 - Export: `@carbonenginejs/runtime/tools/fileindex`
 - Source: `src/tools/fileindex/CjsFileIndexSource.js`

@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { EveSOFDataParameter } from "../shared/EveSOFDataParameter.js";
 import { EveSOFDataTexture } from "../shared/EveSOFDataTexture.js";
 
-/** EveSOFDataRaceDamage (eve) - generated from schema shapeHash 87369617.... */
+/** Stores, combines, and assigns race-level armor and shield damage parameters and textures. */
 @type.define({ className: "EveSOFDataRaceDamage", family: "eve" })
 export class EveSOFDataRaceDamage extends CjsModel
 {

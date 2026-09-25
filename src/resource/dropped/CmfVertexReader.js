@@ -4,7 +4,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** CmfVertexReader dropped reference shape (resources), schema shapeHash b28887e3.... */
+/** Retained-only reference shape mirroring Carbon's CMF vertex-element pointer-lookup helper, superseded by the JavaScript CMF format's channel decoding. */
 export class CmfVertexReader extends CjsModel
 {
 

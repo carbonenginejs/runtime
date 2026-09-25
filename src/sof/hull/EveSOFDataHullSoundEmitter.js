@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullSoundEmitter (eve) - generated from schema shapeHash 7a1c55fe.... */
+/** Defines a named sound-emitter event prefix, position, rotation, and attenuation settings. */
 @type.define({ className: "EveSOFDataHullSoundEmitter", family: "eve" })
 export class EveSOFDataHullSoundEmitter extends CjsModel
 {

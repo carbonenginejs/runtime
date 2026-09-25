@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataHullPlaneSetItem (eve) - generated from schema shapeHash 40a65460.... */
+/** Defines a plane item's transform, colors, blink and UV scrolling, atlas selection, groups, intensity, and point-light contribution. */
 @type.define({ className: "EveSOFDataHullPlaneSetItem", family: "eve" })
 export class EveSOFDataHullPlaneSetItem extends CjsModel
 {

@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { blue, EnumRegistrationType } from "#blue";
 
-/** EveSOFDataBlinkType (eve) - generated from schema shapeHash db502493.... */
+/** Defines an enum-indexed blink mode with optional blink, fade, cycle, and timing values. */
 @type.define({ className: "EveSOFDataBlinkType", family: "eve" })
 export class EveSOFDataBlinkType extends CjsModel
 {

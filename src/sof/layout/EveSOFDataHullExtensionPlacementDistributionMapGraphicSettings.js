@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { blue } from "#blue";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
-/** EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings (eve) - generated from schema shapeHash 2142ba6f.... */
+/** Tests map graphic-quality settings as a condition for a hull-extension placement. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings", family: "eve" })
 export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings extends IEveSOFDataHullExtensionPlacementDistribution
 {

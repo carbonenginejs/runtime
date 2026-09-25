@@ -8,122 +8,12 @@ Summary: Provides one-sentence purpose descriptors for realization and music cla
 <!-- class:CjsAudioBackend -->
 ## `CjsAudioBackend`
 
-Realizes Carbon audio graph operations as Web Audio nodes and active playback sources.
+WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose.
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/CjsAudioBackend.js`
 - Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsAudioBackendSfxProgramBatch -->
-## `CjsAudioBackendSfxProgramBatch`
-
-Owns one overlapping Trigger-Rate or Crossfade batch within a program slot.
-
-- Export: None
-- Source: `src/audio/internal/CjsAudioBackendSfxProgramSlot.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioBackendSfxProgramSlot -->
-## `CjsAudioBackendSfxProgramSlot`
-
-Owns one backend SFX program slot and its cancellation state.
-
-- Export: None
-- Source: `src/audio/internal/CjsAudioBackendSfxProgramSlot.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioBackendSfxVoice -->
-## `CjsAudioBackendSfxVoice`
-
-Owns one realized SFX voice's authored, runtime, and disposable Web Audio state.
-
-- Export: None
-- Source: `src/audio/internal/CjsAudioBackendSfxVoice.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioBackendSfxVoiceLimitLedger -->
-## `CjsAudioBackendSfxVoiceLimitLedger`
-
-Owns backend SFX voice-limit reservations and their owner/key invariants.
-
-- Export: None
-- Source: `src/audio/internal/CjsAudioBackendSfxVoiceLimitLedger.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsWwiseSourceEffectRtpcLane -->
-## `CjsWwiseSourceEffectRtpcLane`
-
-Owns live Web Audio parameter bindings for one qualified source-effect RTPC chain.
-
-- Export: None
-- Source: `src/audio/internal/sourceEffectRtpc.js`
-- Visibility: Internal
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsWwiseFilteredControl -->
-## `CjsWwiseFilteredControl`
-
-Tracks one voice-local approximation of a Wwise Filtering Over Time control.
-
-- Export: None
-- Source: `src/audio/internal/sourceEffectRtpc.js`
-- Visibility: Internal
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsAudioManSharedAcquisition -->
-## `CjsAudioManSharedAcquisition`
-
-Owns one shared acquisition, its caller leases, and orphan cancellation.
-
-- Export: None
-- Source: `src/audio/internal/CjsAudioManSharedAcquisition.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsBusDuckingController -->
-## `CjsBusDuckingController`
-
-Coordinates transport-driven Wwise Audio Bus ducking activity shared by SFX and music routes.
-
-- Export: None
-- Source: `src/audio/internal/busDucking.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsBusGraphRuntime -->
-## `CjsBusGraphRuntime`
-
-Owns stable generation-scoped route handles for one installed Wwise Audio Bus graph.
-
-- Export: None
-- Source: `src/audio/internal/busGraphRuntime.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsSharedBusMixer -->
-## `CjsSharedBusMixer`
-
-Owns fail-closed shared Web Audio topology, qualified effect placement, explicit Meter telemetry omission, dynamic voice-limit route policy, and transparent-path admission of complete distributed Bus controls.
-
-- Export: None
-- Source: `src/audio/internal/busGraphMixer.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:WwiseRoomVerbReader -->
-## `WwiseRoomVerbReader`
-
-Reads one exact static v150 Wwise RoomVerb parameter block sequentially.
-
-- Export: None
-- Source: `src/audio/internal/wwiseRoomVerb.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
@@ -133,164 +23,253 @@ Installs one complete audio-library document and owns media selection, delivery,
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/CjsAudioMan.js`
 - Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsAudioLibrary -->
-## `CjsAudioLibrary`
-
-Hydrates immutable audio-library values, loads plain or gzip JSON, and exports detached persistence values.
-
-- Export: `@carbonenginejs/runtime/audio`
-- Source: `src/audio/library/CjsAudioLibrary.js`
-- Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsAudioLibraryBuilder -->
-## `CjsAudioLibraryBuilder`
-
-Builds a deterministic schema-v2 audio library from decoded values, raw resources, or injected bank access.
-
-- Export: `@carbonenginejs/runtime/audio/library-builder`
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsAudioLibraryBuilderBankInspectionSession -->
-## `CjsAudioLibraryBuilderBankInspectionSession`
-
-Owns ordered bank inspection and its identity and embedded-media projections.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioLibraryBuilderBusGraphConstructionSession -->
-## `CjsAudioLibraryBuilderBusGraphConstructionSession`
-
-Owns Wwise Bus graph qualification, route interning, and projection.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioLibraryBuilderSfxEventLoweringSession -->
-## `CjsAudioLibraryBuilderSfxEventLoweringSession`
-
-Owns recursive SFX event lowering, publication, and diagnostics.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioLibraryBuilderSfxNameCatalogAccumulator -->
-## `CjsAudioLibraryBuilderSfxNameCatalogAccumulator`
-
-Owns ordered Wwise name and default-value catalog accumulation.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioLibraryBuilderSfxNodeLoweringSession -->
-## `CjsAudioLibraryBuilderSfxNodeLoweringSession`
-
-Owns recursive SFX node lowering, memoized summaries, and synthetic IDs.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsAudioLibraryBuilderWwiseNodeBaseAncestry -->
-## `CjsAudioLibraryBuilderWwiseNodeBaseAncestry`
-
-Traces and caches mechanical Wwise NodeBase parent ancestry.
-
-- Export: None
-- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsAudioSystem -->
 ## `CjsAudioSystem`
 
-Composes repository, manager, backend, graph adoption, and optional music behavior for one audio owner.
+Audio system composition root: repository + manager + backend, attached to the graph seams.
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/CjsAudioSystem.js`
 - Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsMusicEngine -->
-## `CjsMusicEngine`
-
-Schedules an authored interactive-music graph against decoded Web Audio buffers.
-
-- Export: `@carbonenginejs/runtime/audio`
-- Source: `src/audio/CjsMusicEngine.js`
-- Visibility: Public
-- Kind: CarbonEngineJS original
-
-<!-- class:CjsMusicEngineScheduledClip -->
-## `CjsMusicEngineScheduledClip`
-
-Retains one music clip's logical window while disposable Web Audio sources are stopped and recreated across authored Pause and Resume actions.
-
-- Export: None
-- Source: `src/audio/CjsMusicEngine.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsMusicEngineScheduledSegment -->
-## `CjsMusicEngineScheduledSegment`
-
-Owns the Web Audio sources, fades, routes, and cleanup for one scheduled music segment.
-
-- Export: None
-- Source: `src/audio/CjsMusicEngine.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsJukebox -->
 ## `CjsJukebox`
 
-Plays an optional neutral music-library playlist through caller-supplied browser acquisition.
+Optional, neutral playlist player.
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/CjsJukebox.js`
 - Visibility: Public
-- Kind: CarbonEngineJS original
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMusicEngine -->
+## `CjsMusicEngine`
+
+Interactive-music engine over the extracted Wwise music graph.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/CjsMusicEngine.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMusicEngineScheduledClip -->
+## `CjsMusicEngineScheduledClip`
+
+One retained music clip whose disposable Web Audio source may be resumed.
+
+- Source: `src/audio/CjsMusicEngine.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMusicEngineScheduledSegment -->
+## `CjsMusicEngineScheduledSegment`
+
+Owns the Web Audio sources, fade state, and route nodes for one scheduled music segment.
+
+- Source: `src/audio/CjsMusicEngine.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:MusicInstance -->
+## `MusicInstance`
+
+One posted music event's selection, scheduling, and transport state.
+
+- Source: `src/audio/CjsMusicEngine.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
 
 <!-- class:CjsSfxEngine -->
 ## `CjsSfxEngine`
 
-Resolves an optional authored SFX program into media voices and live RTPC gains.
+Resolves authored SFX containers into one or more playable media selections.
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/CjsSfxEngine.js`
 - Visibility: Public
-- Kind: CarbonEngineJS original
+- Kind: CarbonEngineJS
 
 <!-- class:CjsSfxEngineSelectionTransactionLedger -->
 ## `CjsSfxEngineSelectionTransactionLedger`
 
 Owns speculative SFX selection leases, snapshots, and settlement.
 
-- Export: None
 - Source: `src/audio/CjsSfxEngine.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
-<!-- class:MusicInstance -->
-## `MusicInstance`
+<!-- class:CjsBusDuckingController -->
+## `CjsBusDuckingController`
 
-Tracks selection, scheduling-frontier, and browser-transport state for one active music event.
+Shared activity clock for Wwise Audio Bus auto-ducking.
 
-- Export: None
-- Source: `src/audio/CjsMusicEngine.js`
+- Source: `src/audio/internal/busDucking.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
+
+<!-- class:CjsSharedBusMixer -->
+## `CjsSharedBusMixer`
+
+Owns the shared Web Audio node topology for strictly qualified Bus routes.
+
+- Source: `src/audio/internal/busGraphMixer.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsBusGraphRuntime -->
+## `CjsBusGraphRuntime`
+
+Owns stable, generation-scoped handles into one installed Audio Bus graph.
+
+- Source: `src/audio/internal/busGraphRuntime.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendSfxProgramBatch -->
+## `CjsAudioBackendSfxProgramBatch`
+
+Owns one overlapping Trigger-Rate or Crossfade batch within a program slot.
+
+- Source: `src/audio/internal/CjsAudioBackendSfxProgramSlot.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendSfxProgramSlot -->
+## `CjsAudioBackendSfxProgramSlot`
+
+Owns one backend SFX program slot and its cancellation state.
+
+- Source: `src/audio/internal/CjsAudioBackendSfxProgramSlot.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendSfxVoice -->
+## `CjsAudioBackendSfxVoice`
+
+Owns one realized SFX voice's authored, runtime, and Web Audio state.
+
+- Source: `src/audio/internal/CjsAudioBackendSfxVoice.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendSfxVoiceLimitLedger -->
+## `CjsAudioBackendSfxVoiceLimitLedger`
+
+Owns backend SFX voice-limit reservations and their owner/key invariants.
+
+- Source: `src/audio/internal/CjsAudioBackendSfxVoiceLimitLedger.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioManSharedAcquisition -->
+## `CjsAudioManSharedAcquisition`
+
+Owns one shared acquisition, its caller leases, and orphan cancellation.
+
+- Source: `src/audio/internal/CjsAudioManSharedAcquisition.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWwiseFilteredControl -->
+## `CjsWwiseFilteredControl`
+
+Owns one voice-local approximation of a filtered Wwise control timeline.
+
+- Source: `src/audio/internal/sourceEffectRtpc.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWwiseSourceEffectRtpcLane -->
+## `CjsWwiseSourceEffectRtpcLane`
+
+Owns live AudioParam bindings for one realized source-effect chain.
+
+- Source: `src/audio/internal/sourceEffectRtpc.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:WwiseRoomVerbReader -->
+## `WwiseRoomVerbReader`
+
+Sequential little-endian reader for one exact v150 RoomVerb payload.
+
+- Source: `src/audio/internal/wwiseRoomVerb.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilder -->
+## `CjsAudioLibraryBuilder`
+
+Builds a deterministic schema-v2 audio-library document from caller-supplied values and bank access.
+
+- Export: `@carbonenginejs/runtime/audio/library-builder`
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderBankInspectionSession -->
+## `CjsAudioLibraryBuilderBankInspectionSession`
+
+Owns ordered bank inspection and its coupled projections.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderBusGraphConstructionSession -->
+## `CjsAudioLibraryBuilderBusGraphConstructionSession`
+
+Owns Wwise Bus graph qualification, route interning, and projection.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderSfxEventLoweringSession -->
+## `CjsAudioLibraryBuilderSfxEventLoweringSession`
+
+Owns recursive SFX event lowering, publication, and diagnostics.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderSfxNameCatalogAccumulator -->
+## `CjsAudioLibraryBuilderSfxNameCatalogAccumulator`
+
+Owns ordered Wwise name and default-value catalog accumulation.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderSfxNodeLoweringSession -->
+## `CjsAudioLibraryBuilderSfxNodeLoweringSession`
+
+Owns recursive SFX node lowering, memoized summaries, and synthetic IDs.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibraryBuilderWwiseNodeBaseAncestry -->
+## `CjsAudioLibraryBuilderWwiseNodeBaseAncestry`
+
+Traces and caches mechanical Wwise NodeBase parent ancestry.
+
+- Source: `src/audio/library-builder/CjsAudioLibraryBuilder.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioLibrary -->
+## `CjsAudioLibrary`
+
+Immutable hydrated audio-library value with the shared model export seam.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/library/CjsAudioLibrary.js`
+- Visibility: Public
+- Kind: CarbonEngineJS

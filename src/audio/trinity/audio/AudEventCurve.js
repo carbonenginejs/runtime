@@ -7,7 +7,7 @@ import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudEventKey } from "../../generated/audio/AudEventKey.js";
 
-/** AudEventCurve (audio) - timeline curve whose keys fire audio events. */
+/** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @type.define({ className: "AudEventCurve", family: "audio" })
 export class AudEventCurve extends CjsModel
 {

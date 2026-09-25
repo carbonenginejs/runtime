@@ -3,7 +3,7 @@
 import { CjsSchema, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePackChannel (resources) - maintained from schema shapeHash 3ea887a3.... */
+/** Persisted data record mirroring Carbon's pack-step channel selection: the source channel index, fill value, and source texture path for one output channel. */
 export class Tr2TexturePackChannel extends CjsModel
 {
 

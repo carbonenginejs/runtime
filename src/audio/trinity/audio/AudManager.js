@@ -24,7 +24,7 @@ function BankKey(name)
   return dot === -1 ? text : text.slice(0, dot);
 }
 
-/** AudManager (audio) - engine lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
+/** Coordinates audio lifecycle, banks, global controls, culling, and caller-supplied obstruction/occlusion. */
 @type.define({ className: "AudManager", family: "audio" })
 export class AudManager extends CjsModel
 {

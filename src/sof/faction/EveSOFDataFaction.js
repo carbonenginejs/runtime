@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataFaction (eve) - generated from schema shapeHash 1e118b8a.... */
+/** Aggregates a faction's area, color, logo, pattern, material-slot, visibility, plane, spotlight, child, and resource-path configuration. */
 @type.define({ className: "EveSOFDataFaction", family: "eve" })
 export class EveSOFDataFaction extends CjsModel
 {

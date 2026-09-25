@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** AudSettings (audio) - generated from schema shapeHash 9f163503.... */
+/** Stores Carbon audio path, language, device-name, and spatial-audio settings. */
 @type.define({ className: "AudSettings", family: "audio" })
 export class AudSettings extends CjsModel
 {

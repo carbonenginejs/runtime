@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { EveSOFDataHullExtensionPlacement } from "./EveSOFDataHullExtensionPlacement.js";
 
-/** EveSOFDataHullExtensionBucket (eve) - generated from schema shapeHash af31c426.... */
+/** Groups extension placements and depletion counters while preserving the compatible Blue bucket surface. */
 // Carbon really does declare Bucket as a subclass of the concrete Placement
 // type (EveSOFData.h:2088-2104) but Blue-maps ONLY name, depletionCounters,
 // and placements (EveSOFData_Blue2.cpp:292-299): the base placement surface

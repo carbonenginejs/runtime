@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { EveSOFDataBoosterShape } from "./EveSOFDataBoosterShape.js";
 
-/** EveSOFDataBooster (eve) - generated from schema shapeHash b4868013.... */
+/** Combines normal and warp booster colors, scales, shapes, textures, and light settings. */
 @type.define({ className: "EveSOFDataBooster", family: "eve" })
 export class EveSOFDataBooster extends CjsModel
 {

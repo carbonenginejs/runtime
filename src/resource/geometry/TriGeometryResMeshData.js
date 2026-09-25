@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
-/** TriGeometryResMeshData (resources) - maintained from schema shapeHash 3d7f49cc.... */
+/** Data record mirroring Carbon's per-mesh geometry block: name, vertex layout facts, bounds, joint bindings, audio geometry, decals, and the LOD list. */
 export class TriGeometryResMeshData extends CjsModel
 {
 

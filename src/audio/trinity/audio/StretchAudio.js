@@ -7,7 +7,7 @@ import { IStretchAudio } from "../trinityAudioApi/IStretchAudio.js";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
-/** StretchAudio (audio) - three-emitter beam audio (source/dest/stretch), listener projected onto the segment. */
+/** Positions source, destination, and stretch emitters along one beam segment, with the listener projected onto that segment. */
 @type.define({ className: "StretchAudio", family: "audio" })
 export class StretchAudio extends IStretchAudio
 {

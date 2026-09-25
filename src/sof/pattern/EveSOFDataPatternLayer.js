@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 
-/** EveSOFDataPatternLayer (eve) - generated from schema shapeHash ea568a07.... */
+/** Defines a pattern layer's texture, material source, UV modes and slots, and helpers that populate textures and custom masks. */
 @type.define({ className: "EveSOFDataPatternLayer", family: "eve" })
 export class EveSOFDataPatternLayer extends CjsModel
 {

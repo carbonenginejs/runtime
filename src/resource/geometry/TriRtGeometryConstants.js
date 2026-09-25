@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriRtGeometryConstants (resources) - maintained from schema shapeHash cb7de752.... */
+/** Data record mirroring Carbon's ray-tracing geometry constants: index/vertex buffer ids and strides plus attribute offsets and types. */
 export class TriRtGeometryConstants extends CjsModel
 {
 

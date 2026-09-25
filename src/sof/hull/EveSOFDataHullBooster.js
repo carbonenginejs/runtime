@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullBooster (eve) - generated from schema shapeHash 8aafe11c.... */
+/** Groups booster placements and records whether boosters and their trails remain active. */
 @type.define({ className: "EveSOFDataHullBooster", family: "eve" })
 export class EveSOFDataHullBooster extends CjsModel
 {

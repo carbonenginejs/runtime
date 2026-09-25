@@ -9,7 +9,7 @@ import { ErrSOFDecalShaderNotFound } from "./ErrSOFDecalShaderNotFound.js";
 import { ErrSOFMaterialPrefixNotFound } from "./ErrSOFMaterialPrefixNotFound.js";
 import { ErrSOFPatternMaterialPrefixNotFound } from "./ErrSOFPatternMaterialPrefixNotFound.js";
 
-/** EveSOFDataGeneric (eve) - generated from schema shapeHash 5f2c6dc7.... */
+/** Provides the top-level generic SOF configuration for shaders, material prefixes, decals, material tables, variants, categories, visibility, swarm, and damage data, with their named lookup helpers. */
 @type.define({ className: "EveSOFDataGeneric", family: "eve" })
 export class EveSOFDataGeneric extends CjsModel
 {

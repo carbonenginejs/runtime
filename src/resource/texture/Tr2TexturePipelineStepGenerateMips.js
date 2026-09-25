@@ -4,7 +4,7 @@
 import { carbon, CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePipelineStepGenerateMips (resources) - attribute-free Blue marker class. */
+/** Attribute-free persisted Blue marker step mirroring Carbon's mip-generation step; the mip generation itself happens where the pipeline executes. */
 export class Tr2TexturePipelineStepGenerateMips extends CjsModel
 {
 

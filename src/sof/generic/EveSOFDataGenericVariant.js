@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataGenericVariant (eve) - generated from schema shapeHash fdb9ef63.... */
+/** Names a generic variant and its optional hull-area override and transparency policy. */
 @type.define({ className: "EveSOFDataGenericVariant", family: "eve" })
 export class EveSOFDataGenericVariant extends CjsModel
 {

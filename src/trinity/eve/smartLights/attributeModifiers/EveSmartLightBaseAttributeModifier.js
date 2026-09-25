@@ -4,7 +4,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { LifeTimeFormulas } from "./enums.js";
 
-/** EveSmartLightBaseAttributeModifier (eve/smartLights/attributeModifiers) - generated from schema shapeHash d70f7c45.... */
+/** Owns common smart-light activation state and a nominal modifier contract whose optional colour and controller hooks default to no-ops while required update and attribute-processing methods throw until a concrete modifier implements them. */
 @type.define({ className: "EveSmartLightBaseAttributeModifier", family: "eve/smartLights/attributeModifiers" })
 export class EveSmartLightBaseAttributeModifier extends CjsModel
 {

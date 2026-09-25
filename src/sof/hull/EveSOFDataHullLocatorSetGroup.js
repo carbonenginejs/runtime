@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { IEveSOFDataHullLocatorSet } from "./IEveSOFDataHullLocatorSet.js";
 
-/** EveSOFDataHullLocatorSetGroup (eve) - generated from schema shapeHash 0b9a4431.... */
+/** Recursively groups polymorphic locator-set records under one name. */
 @type.define({ className: "EveSOFDataHullLocatorSetGroup", family: "eve" })
 export class EveSOFDataHullLocatorSetGroup extends IEveSOFDataHullLocatorSet
 {

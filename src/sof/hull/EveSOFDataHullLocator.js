@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
-/** EveSOFDataHullLocator (eve) - generated from schema shapeHash afb2ce68.... */
+/** Stores a named hull locator and its transformation matrix. */
 @type.define({ className: "EveSOFDataHullLocator", family: "eve" })
 export class EveSOFDataHullLocator extends CjsModel
 {

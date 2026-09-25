@@ -13,7 +13,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataParameter (eve) - generated from schema shapeHash 148eba9e.... */
+/** Stores a named vector parameter and supports assignment and composition; the typed subclasses below flatten to a shader vec4 through `GetValue()`. */
 @type.define({ className: "EveSOFDataParameter", family: "eve" })
 export class EveSOFDataParameter extends CjsModel
 {

@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { IEveSOFDataHullLocatorSet } from "./IEveSOFDataHullLocatorSet.js";
 
-/** EveSOFDataHullLocatorSet (eve) - generated from schema shapeHash 9cacbf77.... */
+/** Provides a concrete named list of hull locators. */
 @type.define({ className: "EveSOFDataHullLocatorSet", family: "eve" })
 export class EveSOFDataHullLocatorSet extends IEveSOFDataHullLocatorSet
 {

@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** GStateBindingCallbackData (resources) - maintained from schema shapeHash ffae27cd.... */
+/** Data record mirroring Carbon's GState binding callback payload, holding the `gsf_path` string that identifies the Granny state file to bind. */
 export class GStateBindingCallbackData extends CjsModel
 {
 

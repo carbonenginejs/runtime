@@ -14,79 +14,71 @@ correspondence is checkable rather than assumed.
 <!-- class:ConstantBufferToken -->
 ## `ConstantBufferToken`
 
-Retained-only reference shape mirroring Carbon's atomic constant-arena token, superseded by the plain `m_token` field `CjsWebgpuConstantBufferAL` carries, because uploads here happen on one thread.
+Carbon's atomic constant-arena token; dropped because the port carries it as a plain field on the constant buffer.
 
-- Export: None
 - Source: `src/trinityal/dropped/ConstantBufferToken.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalBlendState -->
 ## `MetalBlendState`
 
-Retained-only reference shape mirroring Carbon's hashable Metal blend record, superseded by the pipeline recipe `Tr2RenderStateSetup.GetWebgpuRecipe` projects, because WebGPU folds blending into the render pipeline and has no per-state setter.
+Carbon's hashable Metal blend record; dropped because WebGPU folds blending into the render pipeline.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalBlendState.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalClearState -->
 ## `MetalClearState`
 
-Retained-only reference shape mirroring Carbon's per-pass load, store and clear state, superseded by the equivalent fields WebGPU carries on each render-pass attachment.
+Carbon's per-pass load/store/clear state; dropped because WebGPU carries the same fields on each attachment.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalClearState.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalColor -->
 ## `MetalColor`
 
-Retained-only reference shape mirroring Carbon's plain RGBA aggregate for Metal clear and blend colours, superseded by `vec4`, which already is one.
+Carbon's plain RGBA aggregate for Metal clear and blend colours; dropped because vec4 already is one.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalColor.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalDepthBias -->
 ## `MetalDepthBias`
 
-Retained-only reference shape mirroring Carbon's Metal depth-bias triple, superseded by the authored render states `RS_DEPTHBIAS` and `RS_SLOPESCALEDEPTHBIAS`, which `Tr2RenderStateSetup.GetWebgpuRecipe` already projects onto the pipeline's depth-stencil state.
+Carbon's Metal depth-bias triple; dropped because the authored render states already carry these values through Tr2RenderStateSetup into the pipeline.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalDepthBias.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalRenderPassHint -->
 ## `MetalRenderPassHint`
 
-Carbon's deferred render-pass attachment record, whose behaviour this package ports on `CjsWebgpuWorkQueue` and `CjsWebgpuRenderContextAL` while flattening the struct into loose colour and depth arguments to match WebGPU's own descriptor.
+Carbon's deferred render-pass attachment record; ported as flattened colors/depth arguments rather than a struct.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalRenderPassHint.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:MetalWorkQueue -->
 ## `MetalWorkQueue`
 
-Carbon's Metal command recorder, whose encoder-lifetime half this package ports as `CjsWebgpuWorkQueue` while the pipeline, resource sets and render context's draw verbs take the rest of its surface.
+Carbon's Metal command recorder; its encoder-lifetime half is ported as CjsWebgpuWorkQueue and the rest is distributed across the WebGPU backend.
 
-- Export: None
 - Source: `src/trinityal/dropped/MetalWorkQueue.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:ShaderResourceMask -->
 ## `ShaderResourceMask`
 
-Retained-only reference shape mirroring Carbon's per-stage bind masks, superseded by the stage bindings `CjsWebgpuShaderAL` carries, because WebGPU resolves binding validity when a bind group layout is created rather than per draw.
+Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity in the bind group layout.
 
-- Export: None
 - Source: `src/trinityal/dropped/ShaderResourceMask.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped

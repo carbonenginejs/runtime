@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataFactionChild (eve) - generated from schema shapeHash 283273de.... */
+/** Names a faction child and records its group and visibility settings. */
 @type.define({ className: "EveSOFDataFactionChild", family: "eve" })
 export class EveSOFDataFactionChild extends CjsModel
 {

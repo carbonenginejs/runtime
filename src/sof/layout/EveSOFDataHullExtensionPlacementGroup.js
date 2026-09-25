@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullExtensionPlacementGroup (eve) - generated from schema shapeHash 31adf376.... */
+/** Groups enabled nested placements with group-level conditions and depletion counters. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementGroup", family: "eve" })
 export class EveSOFDataHullExtensionPlacementGroup extends CjsModel
 {

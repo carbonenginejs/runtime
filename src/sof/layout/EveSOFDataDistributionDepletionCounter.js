@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataDistributionDepletionCounter (eve) - generated from schema shapeHash 33483ac2.... */
+/** Stores a named integer counter used to deplete layout-distribution capacity deterministically. */
 @type.define({ className: "EveSOFDataDistributionDepletionCounter", family: "eve" })
 export class EveSOFDataDistributionDepletionCounter extends CjsModel
 {

@@ -10,134 +10,95 @@ Summary: Provides one-sentence purpose descriptors for maintained classes under 
 <!-- class:CjsBlackFormat -->
 ## `CjsBlackFormat`
 
-Black format profile that reads `.black` binary object graphs into payload, document, raw, or runtime output using CarbonEngineJS canonical schemas or caller-supplied source-shape registries.
+CarbonEngineJS-facing Black format profile.
 
 - Export: `@carbonenginejs/runtime/resource/formats/black`
 - Source: `src/resource/formats/black/CjsBlackFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsBlackBinaryReader -->
 ## `CjsBlackBinaryReader`
 
 Bounds-aware `DataView` cursor that provides the primitive reads and end-of-stream checks the Black transport decodes with.
 
-- Export: `None`
 - Source: `src/resource/formats/black/core/CjsBlackBinaryReader.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsBlackPropertyReaders -->
 ## `CjsBlackPropertyReaders`
 
 Static set of read and skip routines that decode or skip individual Black property values (primitives, strings, arrays, structure lists, dictionaries, and binary blocks) from their type descriptors.
 
-- Export: `None`
 - Source: `src/resource/formats/black/core/CjsBlackPropertyReaders.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsBlackReader -->
 ## `CjsBlackReader`
 
-Transport that reads a `.black` stream into a payload, document, or runtime graph, owning the binary buffer, string tables, numeric references, and binary read cursor.
+Reads a `.black` stream into a payload/document/runtime graph.
 
-- Export: `None`
 - Source: `src/resource/formats/black/core/CjsBlackReader.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsBlackSchemaRegistry -->
 ## `CjsBlackSchemaRegistry`
 
 Registry that normalizes caller-supplied schemas into per-class source shapes the Black reader uses to resolve persisted fields.
 
-- Export: `None`
 - Source: `src/resource/formats/black/core/CjsBlackSchemaRegistry.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### bnk
+- Kind: CarbonEngineJS
 
 <!-- class:CjsBnkFormat -->
 ## `CjsBnkFormat`
 
-Reader for Audiokinetic Wwise soundbank (`.bnk`) containers that inspects the bank header, embedded media index, object hierarchy, and referenced bank names without copying payloads, and reads out the raw bank, debug JSON, or undecoded embedded media items.
+Reader for Audiokinetic Wwise soundbank (.bnk) containers.
 
 - Export: `@carbonenginejs/runtime/resource/formats/bnk`
 - Source: `src/resource/formats/bnk/CjsBnkFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-- Export: `None`
-- Source: `src/resource/formats/bnk/core/musicNodes.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:WwiseCursor -->
 ## `WwiseCursor`
 
-The single bounds-aware little-endian cursor for every exact Wwise v150 payload — NodeBase, authored SFX, attenuation, Event Action, Global Settings, and interactive music.
+Bounds-aware little-endian cursor over one HIRC payload.
 
-- Export: `None`
 - Source: `src/resource/formats/bnk/core/WwiseCursor.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:WemBitstreamError -->
-## `WemBitstreamError`
-
-Error raised when a Wwise Vorbis bitstream runs out mid-read; carries the package truncation code.
-
-- Export: internal to `@carbonenginejs/runtime/resource/formats/wem`
-- Source: `src/resource/formats/wem/core/bitStream.js`
-- Visibility: Internal
-- Kind: Original CarbonEngineJS class
-
-
-- Export: `None`
-- Source: `src/resource/formats/bnk/core/globalSettings.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-- Export: `None`
-- Source: `src/resource/formats/bnk/core/eventAction.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### cmf
+- Kind: CarbonEngineJS
 
 <!-- class:CjsCmfFormat -->
 ## `CjsCmfFormat`
 
-CMF geometry-container format class that reads, inspects, constructs, and writes CMF data, emitting CMF-native output by default alongside GR2, shared-mesh, and debug JSON targets.
+CarbonEngineJS-facing CMF reader.
 
 - Export: `@carbonenginejs/runtime/resource/formats/cmf`
 - Source: `src/resource/formats/cmf/CjsCmfFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:BinaryReader -->
 ## `BinaryReader`
 
 Bounds-checked little-endian offset reader over CMF file bytes, including 64-bit integer reads guarded against unsafe values.
 
-- Export: `None`
 - Source: `src/resource/formats/cmf/core/binary.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:Flattener -->
 ## `Flattener`
 
-Writer-side helper that flattens a CMF object graph into the binary Data section with self-relative tagged span offsets, depth-first ordering, chunk alignment, and duplicate-leaf deduplication, mirroring CarbonEngine's `cmf::BuildFile`.
+Growable little-endian struct buffer with tagged span support.
 
-- Export: `None`
 - Source: `src/resource/formats/cmf/core/writer.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### dds
+- Kind: CarbonEngineJS
 
 <!-- class:CjsDdsFormat -->
 ## `CjsDdsFormat`
@@ -147,123 +108,108 @@ DDS texture format profile that inspects header metadata, probes output support,
 - Export: `@carbonenginejs/runtime/resource/formats/dds`
 - Source: `src/resource/formats/dds/CjsDdsFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:Bc7BitReader -->
 ## `Bc7BitReader`
 
-LSB-first bit reader over a single 128-bit BC7 block bitstream for the software BC7 decoder.
+The shared LSB-first cursor, bounded to one 128-bit block.
 
-- Export: `None`
 - Source: `src/resource/formats/dds/core/bc7.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### dxbc
+- Kind: CarbonEngineJS
 
 <!-- class:CjsDxbcFormat -->
 ## `CjsDxbcFormat`
 
-DXBC shader-bytecode format profile that reads container chunks, signatures, and the decoded shader program from compiled Direct3D bytecode.
+CarbonEngineJS-facing DXBC (Direct3D shader bytecode) reader.
 
 - Export: `@carbonenginejs/runtime/resource/formats/dxbc`
 - Source: `src/resource/formats/dxbc/CjsDxbcFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:DxbcReader -->
-## `DxbcReader`
-
-Bounded little-endian byte cursor over DXBC payloads, with optional shared string-table resolution.
-
-- Export: `None`
-- Source: `src/resource/formats/dxbc/core/DxbcReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:DxbcContainer -->
-## `DxbcContainer`
-
-Parsed DXBC container that locates and exposes its four-character-code chunks.
-
-- Export: `None`
-- Source: `src/resource/formats/dxbc/core/DxbcContainer.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:DxbcInstructionDecoder -->
 ## `DxbcInstructionDecoder`
 
-Decodes the DXBC shader token stream into structured instructions, operands, and declarations.
+SM4/SM5 instruction-stream decoder over a `DxbcShaderProgram` token array.
 
-- Export: `None`
 - Source: `src/resource/formats/dxbc/core/decoder.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
+
+<!-- class:DxbcContainer -->
+## `DxbcContainer`
+
+DirectX shader bytecode container reader.
+
+- Source: `src/resource/formats/dxbc/core/DxbcContainer.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:DxbcReader -->
+## `DxbcReader`
+
+Little-endian binary reader for DirectX shader bytecode.
+
+- Source: `src/resource/formats/dxbc/core/DxbcReader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
 
 <!-- class:DxbcReadError -->
 ## `DxbcReadError`
 
-Error raised when DXBC bytes are malformed, truncated, or structurally invalid.
+Error raised when DirectX shader bytecode cannot be decoded safely.
 
-- Export: `None`
 - Source: `src/resource/formats/dxbc/core/DxbcReadError.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:DxbcShaderProgram -->
 ## `DxbcShaderProgram`
 
-Decoded DXBC shader program: version, stage type, and its ordered instruction stream.
+DXBC shader program chunk reader for `SHEX`/`SHDR` token streams.
 
-- Export: `None`
 - Source: `src/resource/formats/dxbc/core/DxbcShaderProgram.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:DxbcSignatureChunk -->
 ## `DxbcSignatureChunk`
 
-Parsed DXBC input, output, or patch-constant signature chunk and its parameter records.
+DXBC input/output signature chunk reader for `ISGN`-family chunks.
 
-- Export: `None`
 - Source: `src/resource/formats/dxbc/core/DxbcSignatureChunk.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### fbx
+- Kind: CarbonEngineJS
 
 <!-- class:CjsFbxFormat -->
 ## `CjsFbxFormat`
 
-FBX format surface that recognizes and inspects FBX files and emits basic static-mesh GR2 or CMF output in pure JavaScript, ahead of full CarbonEngine-equivalent importer coverage.
+CarbonEngineJS-facing FBX format surface.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fbx`
 - Source: `src/resource/formats/fbx/CjsFbxFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:DeflateBitReader -->
 ## `DeflateBitReader`
 
 Bit reader over a zlib/deflate stream used to inflate compressed FBX property arrays.
 
-- Export: `None`
 - Source: `src/resource/formats/fbx/core/helpers.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:DeflateHuffmanTable -->
 ## `DeflateHuffmanTable`
 
 Canonical Huffman decode table built from deflate code lengths for inflating compressed FBX property arrays.
 
-- Export: `None`
 - Source: `src/resource/formats/fbx/core/helpers.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### flac
+- Kind: CarbonEngineJS
 
 <!-- class:CjsFlacFormat -->
 ## `CjsFlacFormat`
@@ -273,44 +219,32 @@ Metadata-only FLAC format profile that validates the stream signature, inspects 
 - Export: `@carbonenginejs/runtime/resource/formats/flac`
 - Source: `src/resource/formats/flac/CjsFlacFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### fsd
-
-<!-- class:CjsFsdFormat -->
-## `CjsFsdFormat`
-
-FSD format-pipeline facade that distinguishes explicitly declared legacy 32-bit FSD from self-identifying modern 64-bit cFSD and dispatches to the matching implementation.
-
-- Export: `@carbonenginejs/runtime/resource/formats/fsd`
-- Source: `src/resource/formats/fsd/CjsFsdFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsFsd32Format -->
 ## `CjsFsd32Format`
 
-Reserved legacy FSD format boundary that reports caller-identified 32-bit input and throws a stable unsupported error until its schema-driven decoder is implemented.
+Reserved legacy FSD reader boundary.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/32`
 - Source: `src/resource/formats/fsd/32/CjsFsd32Format.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsFsd64Format -->
 ## `CjsFsd64Format`
 
-Modern cFSD format profile that validates the 32-byte envelope and dispatches bytes to an explicitly supplied dataset reader or registry.
+Identifies and dispatches modern 64-bit cFSD containers.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64`
 - Source: `src/resource/formats/fsd/64/CjsFsd64Format.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
 <!-- class:CjsFsd64Binary -->
 ## `CjsFsd64Binary`
 
-Bounds-checked access to a modern 64-bit cFSD container and its schema identity, offsets, collections, strings, and primitive values.
+Provides bounds-checked access to 64-bit FSD container bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64`
 - Source: `src/resource/formats/fsd/64/core/CjsFsd64Binary.js`
@@ -320,7 +254,7 @@ Bounds-checked access to a modern 64-bit cFSD container and its schema identity,
 <!-- class:CjsFsd64Reader -->
 ## `CjsFsd64Reader`
 
-Acquisition-free registry that dispatches caller-supplied modern cFSD bytes by normalized logical path.
+Dispatches caller-supplied bytes to an explicitly registered FSD reader.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64`
 - Source: `src/resource/formats/fsd/64/core/CjsFsd64Reader.js`
@@ -330,7 +264,7 @@ Acquisition-free registry that dispatches caller-supplied modern cFSD bytes by n
 <!-- class:CjsFsd64SchemaDecoder -->
 ## `CjsFsd64SchemaDecoder`
 
-Validates JSON-shaped binary layout definitions and decodes modern cFSD bytes into typed or JSON-compatible values.
+Validates declarative binary schemas and decodes caller-supplied bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64`
 - Source: `src/resource/formats/fsd/64/core/CjsFsd64SchemaDecoder.js`
@@ -340,7 +274,7 @@ Validates JSON-shaped binary layout definitions and decodes modern cFSD bytes in
 <!-- class:CjsFsd64SchemaReader -->
 ## `CjsFsd64SchemaReader`
 
-Base class for modern file-specific readers whose package-owned JSON-shaped layout is exposed as `fsdSchema` and through `getFsdSchema()`.
+Base class for file-specific readers defined by JSON-shaped JavaScript layouts.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64`
 - Source: `src/resource/formats/fsd/64/core/CjsFsd64SchemaReader.js`
@@ -350,7 +284,7 @@ Base class for modern file-specific readers whose package-owned JSON-shaped layo
 <!-- class:CjsFsd64ReaderSetCharacterStaticData -->
 ## `CjsFsd64ReaderSetCharacterStaticData`
 
-Registers the complete reviewed character-static-data reader family on a modern cFSD reader registry.
+File-specific character/staticdata readers.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64ReaderSetCharacterStaticData.js`
@@ -360,7 +294,7 @@ Registers the complete reviewed character-static-data reader family on a modern 
 <!-- class:CjsFsd64SchemaAgentsInSpace -->
 ## `CjsFsd64SchemaAgentsInSpace`
 
-Exposes the verified inline modern cFSD layout for agents in space records through `getFsdSchema()`.
+Reads caller-supplied `agentsinspace.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaAgentsInSpace.js`
@@ -370,7 +304,7 @@ Exposes the verified inline modern cFSD layout for agents in space records throu
 <!-- class:CjsFsd64SchemaAgentTypes -->
 ## `CjsFsd64SchemaAgentTypes`
 
-Exposes the verified inline modern cFSD layout for agent types records through `getFsdSchema()`.
+Reads caller-supplied `agenttypes.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaAgentTypes.js`
@@ -380,7 +314,7 @@ Exposes the verified inline modern cFSD layout for agent types records through `
 <!-- class:CjsFsd64SchemaAncestries -->
 ## `CjsFsd64SchemaAncestries`
 
-Exposes the verified inline modern cFSD layout for ancestries records through `getFsdSchema()`.
+Reads caller-supplied ancestry static-data bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaAncestries.js`
@@ -390,7 +324,7 @@ Exposes the verified inline modern cFSD layout for ancestries records through `g
 <!-- class:CjsFsd64SchemaArchetypes -->
 ## `CjsFsd64SchemaArchetypes`
 
-Exposes the verified inline modern cFSD layout for archetypes records through `getFsdSchema()`.
+Reads caller-supplied archetype static-data bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaArchetypes.js`
@@ -400,7 +334,7 @@ Exposes the verified inline modern cFSD layout for archetypes records through `g
 <!-- class:CjsFsd64SchemaAudioMetadata -->
 ## `CjsFsd64SchemaAudioMetadata`
 
-Exposes the verified inline modern cFSD layout for audio metadata records through `getFsdSchema()`.
+Reads res:/staticdata/audiometadata.fsdbinary.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaAudioMetadata.js`
@@ -410,7 +344,7 @@ Exposes the verified inline modern cFSD layout for audio metadata records throug
 <!-- class:CjsFsd64SchemaBloodlines -->
 ## `CjsFsd64SchemaBloodlines`
 
-Exposes the verified inline modern cFSD layout for bloodlines records through `getFsdSchema()`.
+Reads caller-supplied bloodline static-data bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaBloodlines.js`
@@ -420,7 +354,7 @@ Exposes the verified inline modern cFSD layout for bloodlines records through `g
 <!-- class:CjsFsd64SchemaCategories -->
 ## `CjsFsd64SchemaCategories`
 
-Exposes the verified inline modern cFSD layout for categories records through `getFsdSchema()`.
+Reads caller-supplied `categories.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCategories.js`
@@ -430,7 +364,7 @@ Exposes the verified inline modern cFSD layout for categories records through `g
 <!-- class:CjsFsd64SchemaCharacterAvatarBehaviors -->
 ## `CjsFsd64SchemaCharacterAvatarBehaviors`
 
-Exposes the verified inline modern cFSD layout for character avatar behaviors records through `getFsdSchema()`.
+Reads caller-supplied character avatar-behavior bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterAvatarBehaviors.js`
@@ -440,7 +374,7 @@ Exposes the verified inline modern cFSD layout for character avatar behaviors re
 <!-- class:CjsFsd64SchemaCharacterColorLocations -->
 ## `CjsFsd64SchemaCharacterColorLocations`
 
-Exposes the verified inline modern cFSD layout for character color locations records through `getFsdSchema()`.
+Reads caller-supplied character color-location bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterColorLocations.js`
@@ -450,7 +384,7 @@ Exposes the verified inline modern cFSD layout for character color locations rec
 <!-- class:CjsFsd64SchemaCharacterColorNames -->
 ## `CjsFsd64SchemaCharacterColorNames`
 
-Exposes the verified inline modern cFSD layout for character color names records through `getFsdSchema()`.
+Reads caller-supplied character color-name bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterColorNames.js`
@@ -460,7 +394,7 @@ Exposes the verified inline modern cFSD layout for character color names records
 <!-- class:CjsFsd64SchemaCharacterModifierLocations -->
 ## `CjsFsd64SchemaCharacterModifierLocations`
 
-Exposes the verified inline modern cFSD layout for character modifier locations records through `getFsdSchema()`.
+Reads caller-supplied character modifier-location bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterModifierLocations.js`
@@ -470,7 +404,7 @@ Exposes the verified inline modern cFSD layout for character modifier locations 
 <!-- class:CjsFsd64SchemaCharacterPortraitResources -->
 ## `CjsFsd64SchemaCharacterPortraitResources`
 
-Exposes the verified inline modern cFSD layout for character portrait resources records through `getFsdSchema()`.
+Reads caller-supplied character portrait-resource bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterPortraitResources.js`
@@ -480,7 +414,7 @@ Exposes the verified inline modern cFSD layout for character portrait resources 
 <!-- class:CjsFsd64SchemaCharacterResources -->
 ## `CjsFsd64SchemaCharacterResources`
 
-Exposes the verified inline modern cFSD layout for character resources records through `getFsdSchema()`.
+Reads res:/staticdata/character_resources.fsdbinary.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterResources.js`
@@ -490,7 +424,7 @@ Exposes the verified inline modern cFSD layout for character resources records t
 <!-- class:CjsFsd64SchemaCharacterSculptingLocations -->
 ## `CjsFsd64SchemaCharacterSculptingLocations`
 
-Exposes the verified inline modern cFSD layout for character sculpting locations records through `getFsdSchema()`.
+Reads caller-supplied character sculpting-location bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCharacterSculptingLocations.js`
@@ -500,7 +434,7 @@ Exposes the verified inline modern cFSD layout for character sculpting locations
 <!-- class:CjsFsd64SchemaCompressibleTypes -->
 ## `CjsFsd64SchemaCompressibleTypes`
 
-Exposes the verified inline modern cFSD layout for compressible types records through `getFsdSchema()`.
+Reads caller-supplied `compressibletypes.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCompressibleTypes.js`
@@ -510,7 +444,7 @@ Exposes the verified inline modern cFSD layout for compressible types records th
 <!-- class:CjsFsd64SchemaContrabandTypes -->
 ## `CjsFsd64SchemaContrabandTypes`
 
-Exposes the verified inline modern cFSD layout for contraband types records through `getFsdSchema()`.
+Reads caller-supplied `contrabandtypes.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaContrabandTypes.js`
@@ -520,7 +454,7 @@ Exposes the verified inline modern cFSD layout for contraband types records thro
 <!-- class:CjsFsd64SchemaControlTowerResources -->
 ## `CjsFsd64SchemaControlTowerResources`
 
-Exposes the verified inline modern cFSD layout for control tower resources records through `getFsdSchema()`.
+Reads caller-supplied `controltowerresources.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaControlTowerResources.js`
@@ -530,7 +464,7 @@ Exposes the verified inline modern cFSD layout for control tower resources recor
 <!-- class:CjsFsd64SchemaCorporationActivities -->
 ## `CjsFsd64SchemaCorporationActivities`
 
-Exposes the verified inline modern cFSD layout for corporation activities records through `getFsdSchema()`.
+Reads caller-supplied `corporationactivities.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCorporationActivities.js`
@@ -540,7 +474,7 @@ Exposes the verified inline modern cFSD layout for corporation activities record
 <!-- class:CjsFsd64SchemaCorporationRoleGroups -->
 ## `CjsFsd64SchemaCorporationRoleGroups`
 
-Exposes the verified inline modern cFSD layout for corporation role groups records through `getFsdSchema()`.
+Reads caller-supplied `corporationrolegroups.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCorporationRoleGroups.js`
@@ -550,7 +484,7 @@ Exposes the verified inline modern cFSD layout for corporation role groups recor
 <!-- class:CjsFsd64SchemaCorporationRoles -->
 ## `CjsFsd64SchemaCorporationRoles`
 
-Exposes the verified inline modern cFSD layout for corporation roles records through `getFsdSchema()`.
+Reads caller-supplied `corporationroles.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaCorporationRoles.js`
@@ -560,7 +494,7 @@ Exposes the verified inline modern cFSD layout for corporation roles records thr
 <!-- class:CjsFsd64SchemaDogmaAttributeCategories -->
 ## `CjsFsd64SchemaDogmaAttributeCategories`
 
-Exposes the verified inline modern cFSD layout for dogma attribute categories records through `getFsdSchema()`.
+Reads caller-supplied `dogmaattributecategories.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaDogmaAttributeCategories.js`
@@ -570,7 +504,7 @@ Exposes the verified inline modern cFSD layout for dogma attribute categories re
 <!-- class:CjsFsd64SchemaDogmaAttributes -->
 ## `CjsFsd64SchemaDogmaAttributes`
 
-Exposes the verified inline modern cFSD layout for dogma attributes records through `getFsdSchema()`.
+Reads caller-supplied `dogmaattributes.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaDogmaAttributes.js`
@@ -580,7 +514,7 @@ Exposes the verified inline modern cFSD layout for dogma attributes records thro
 <!-- class:CjsFsd64SchemaDogmaEffects -->
 ## `CjsFsd64SchemaDogmaEffects`
 
-Exposes the verified inline modern cFSD layout for dogma effects records through `getFsdSchema()`.
+Reads caller-supplied `dogmaeffects.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaDogmaEffects.js`
@@ -590,7 +524,7 @@ Exposes the verified inline modern cFSD layout for dogma effects records through
 <!-- class:CjsFsd64SchemaDogmaUnits -->
 ## `CjsFsd64SchemaDogmaUnits`
 
-Exposes the verified inline modern cFSD layout for dogma units records through `getFsdSchema()`.
+Reads caller-supplied `dogmaunits.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaDogmaUnits.js`
@@ -600,7 +534,7 @@ Exposes the verified inline modern cFSD layout for dogma units records through `
 <!-- class:CjsFsd64SchemaDynamicItemAttributes -->
 ## `CjsFsd64SchemaDynamicItemAttributes`
 
-Exposes the verified inline modern cFSD layout for dynamic item attributes records through `getFsdSchema()`.
+Reads caller-supplied `dynamicitemattributes.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaDynamicItemAttributes.js`
@@ -610,7 +544,7 @@ Exposes the verified inline modern cFSD layout for dynamic item attributes recor
 <!-- class:CjsFsd64SchemaEpicArcs -->
 ## `CjsFsd64SchemaEpicArcs`
 
-Exposes the verified inline modern cFSD layout for epic arcs records through `getFsdSchema()`.
+Reads caller-supplied `epicarcs.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaEpicArcs.js`
@@ -620,7 +554,7 @@ Exposes the verified inline modern cFSD layout for epic arcs records through `ge
 <!-- class:CjsFsd64SchemaExpertSystems -->
 ## `CjsFsd64SchemaExpertSystems`
 
-Exposes the verified inline modern cFSD layout for expert systems records through `getFsdSchema()`.
+Reads caller-supplied `expertsystems.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaExpertSystems.js`
@@ -630,7 +564,7 @@ Exposes the verified inline modern cFSD layout for expert systems records throug
 <!-- class:CjsFsd64SchemaFactions -->
 ## `CjsFsd64SchemaFactions`
 
-Exposes the verified inline modern cFSD layout for factions records through `getFsdSchema()`.
+Reads caller-supplied `factions.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaFactions.js`
@@ -640,29 +574,27 @@ Exposes the verified inline modern cFSD layout for factions records through `get
 <!-- class:CjsFsd64SchemaFrontierGraphicIds -->
 ## `CjsFsd64SchemaFrontierGraphicIds`
 
-Exposes the verified inline modern cFSD layout for EVE Frontier's graphic ids records through `getFsdSchema()`.
+Reads caller-supplied graphic identifier bytes **as EVE Frontier stores them**.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaFrontierGraphicIds.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
-- Notes: A separate pinned layout, not a version of `CjsFsd64SchemaGraphicIds`: the record is 168 bytes rather than 160 and carries a presence word the EVE one does not have.
 
 <!-- class:CjsFsd64SchemaFrontierTypes -->
 ## `CjsFsd64SchemaFrontierTypes`
 
-Exposes the verified inline modern cFSD layout for EVE Frontier's types records through `getFsdSchema()`.
+Reads caller-supplied `types.fsdbinary` bytes **as EVE Frontier stores them**.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaFrontierTypes.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
-- Notes: A separate pinned layout, not a version of `CjsFsd64SchemaTypes`: the record is 136 bytes rather than 152, and it carries `tags` while dropping the fields Frontier has no use for.
 
 <!-- class:CjsFsd64SchemaGraphicIds -->
 ## `CjsFsd64SchemaGraphicIds`
 
-Exposes the verified inline modern cFSD layout for graphic ids records through `getFsdSchema()`.
+Reads caller-supplied graphic identifier bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaGraphicIds.js`
@@ -672,7 +604,7 @@ Exposes the verified inline modern cFSD layout for graphic ids records through `
 <!-- class:CjsFsd64SchemaGraphicMaterialSets -->
 ## `CjsFsd64SchemaGraphicMaterialSets`
 
-Exposes the verified inline modern cFSD layout for graphic material sets records through `getFsdSchema()`.
+Reads caller-supplied graphic material set bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaGraphicMaterialSets.js`
@@ -682,7 +614,7 @@ Exposes the verified inline modern cFSD layout for graphic material sets records
 <!-- class:CjsFsd64SchemaGroups -->
 ## `CjsFsd64SchemaGroups`
 
-Exposes the verified inline modern cFSD layout for groups records through `getFsdSchema()`.
+Reads caller-supplied `groups.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaGroups.js`
@@ -692,7 +624,7 @@ Exposes the verified inline modern cFSD layout for groups records through `getFs
 <!-- class:CjsFsd64SchemaIcons -->
 ## `CjsFsd64SchemaIcons`
 
-Exposes the verified inline modern cFSD layout for icons records through `getFsdSchema()`.
+Reads caller-supplied `iconids.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaIcons.js`
@@ -702,7 +634,7 @@ Exposes the verified inline modern cFSD layout for icons records through `getFsd
 <!-- class:CjsFsd64SchemaMarketGroups -->
 ## `CjsFsd64SchemaMarketGroups`
 
-Exposes the verified inline modern cFSD layout for market groups records through `getFsdSchema()`.
+Reads caller-supplied `marketgroups.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaMarketGroups.js`
@@ -712,7 +644,7 @@ Exposes the verified inline modern cFSD layout for market groups records through
 <!-- class:CjsFsd64SchemaMetaGroups -->
 ## `CjsFsd64SchemaMetaGroups`
 
-Exposes the verified inline modern cFSD layout for meta groups records through `getFsdSchema()`.
+Reads caller-supplied `metagroups.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaMetaGroups.js`
@@ -722,7 +654,7 @@ Exposes the verified inline modern cFSD layout for meta groups records through `
 <!-- class:CjsFsd64SchemaNpcCorporationDivisions -->
 ## `CjsFsd64SchemaNpcCorporationDivisions`
 
-Exposes the verified inline modern cFSD layout for npc corporation divisions records through `getFsdSchema()`.
+Reads caller-supplied `npccorporationdivisions.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaNpcCorporationDivisions.js`
@@ -732,7 +664,7 @@ Exposes the verified inline modern cFSD layout for npc corporation divisions rec
 <!-- class:CjsFsd64SchemaNpcCorporations -->
 ## `CjsFsd64SchemaNpcCorporations`
 
-Exposes the verified inline modern cFSD layout for npc corporations records through `getFsdSchema()`.
+Reads caller-supplied `npccorporations.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaNpcCorporations.js`
@@ -742,7 +674,7 @@ Exposes the verified inline modern cFSD layout for npc corporations records thro
 <!-- class:CjsFsd64SchemaPaperdolls -->
 ## `CjsFsd64SchemaPaperdolls`
 
-Exposes the verified inline modern cFSD layout for paperdolls records through `getFsdSchema()`.
+Reads caller-supplied paper-doll recipe bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaPaperdolls.js`
@@ -752,7 +684,7 @@ Exposes the verified inline modern cFSD layout for paperdolls records through `g
 <!-- class:CjsFsd64SchemaRaces -->
 ## `CjsFsd64SchemaRaces`
 
-Exposes the verified inline modern cFSD layout for races records through `getFsdSchema()`.
+Reads caller-supplied race static-data bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaRaces.js`
@@ -762,7 +694,7 @@ Exposes the verified inline modern cFSD layout for races records through `getFsd
 <!-- class:CjsFsd64SchemaSchoolMap -->
 ## `CjsFsd64SchemaSchoolMap`
 
-Exposes the verified inline modern cFSD layout for school map records through `getFsdSchema()`.
+Reads caller-supplied `schoolmap.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSchoolMap.js`
@@ -772,7 +704,7 @@ Exposes the verified inline modern cFSD layout for school map records through `g
 <!-- class:CjsFsd64SchemaSchools -->
 ## `CjsFsd64SchemaSchools`
 
-Exposes the verified inline modern cFSD layout for schools records through `getFsdSchema()`.
+Reads caller-supplied `schools.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSchools.js`
@@ -782,7 +714,7 @@ Exposes the verified inline modern cFSD layout for schools records through `getF
 <!-- class:CjsFsd64SchemaSkillPlans -->
 ## `CjsFsd64SchemaSkillPlans`
 
-Exposes the verified inline modern cFSD layout for skill plans records through `getFsdSchema()`.
+Reads caller-supplied `skillplans.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkillPlans.js`
@@ -792,7 +724,7 @@ Exposes the verified inline modern cFSD layout for skill plans records through `
 <!-- class:CjsFsd64SchemaSkinrComponentCategories -->
 ## `CjsFsd64SchemaSkinrComponentCategories`
 
-Exposes the verified inline modern cFSD layout for skinr component categories records through `getFsdSchema()`.
+Reads caller-supplied `ship_skin_design_component_categories.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentCategories.js`
@@ -802,7 +734,7 @@ Exposes the verified inline modern cFSD layout for skinr component categories re
 <!-- class:CjsFsd64SchemaSkinrComponentPointValues -->
 ## `CjsFsd64SchemaSkinrComponentPointValues`
 
-Exposes the verified inline modern cFSD layout for skinr component point values records through `getFsdSchema()`.
+Reads caller-supplied `ship_skin_design_component_point_values.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentPointValues.js`
@@ -812,7 +744,7 @@ Exposes the verified inline modern cFSD layout for skinr component point values 
 <!-- class:CjsFsd64SchemaSkinrComponentRarities -->
 ## `CjsFsd64SchemaSkinrComponentRarities`
 
-Exposes the verified inline modern cFSD layout for skinr component rarities records through `getFsdSchema()`.
+Reads caller-supplied `ship_skin_design_component_rarities.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponentRarities.js`
@@ -822,7 +754,7 @@ Exposes the verified inline modern cFSD layout for skinr component rarities reco
 <!-- class:CjsFsd64SchemaSkinrComponents -->
 ## `CjsFsd64SchemaSkinrComponents`
 
-Exposes the verified inline modern cFSD layout for skinr components records through `getFsdSchema()`.
+Reads caller-supplied `ship_skin_design_components.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrComponents.js`
@@ -832,7 +764,7 @@ Exposes the verified inline modern cFSD layout for skinr components records thro
 <!-- class:CjsFsd64SchemaSkinrSlotCategories -->
 ## `CjsFsd64SchemaSkinrSlotCategories`
 
-Exposes the verified inline modern cFSD layout for skinr slot categories records through `getFsdSchema()`.
+Reads caller-supplied `ship_cosmetic_slot_categories.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotCategories.js`
@@ -842,7 +774,7 @@ Exposes the verified inline modern cFSD layout for skinr slot categories records
 <!-- class:CjsFsd64SchemaSkinrSlotConfigurations -->
 ## `CjsFsd64SchemaSkinrSlotConfigurations`
 
-Exposes the verified inline modern cFSD layout for skinr slot configurations records through `getFsdSchema()`.
+Reads caller-supplied `ship_cosmetic_slot_configurations.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotConfigurations.js`
@@ -852,7 +784,7 @@ Exposes the verified inline modern cFSD layout for skinr slot configurations rec
 <!-- class:CjsFsd64SchemaSkinrSlotNames -->
 ## `CjsFsd64SchemaSkinrSlotNames`
 
-Exposes the verified inline modern cFSD layout for skinr slot names records through `getFsdSchema()`.
+Reads caller-supplied `ship_cosmetic_slot_names.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlotNames.js`
@@ -862,7 +794,7 @@ Exposes the verified inline modern cFSD layout for skinr slot names records thro
 <!-- class:CjsFsd64SchemaSkinrSlots -->
 ## `CjsFsd64SchemaSkinrSlots`
 
-Exposes the verified inline modern cFSD layout for skinr slots records through `getFsdSchema()`.
+Reads caller-supplied `ship_cosmetic_slots.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrSlots.js`
@@ -872,7 +804,7 @@ Exposes the verified inline modern cFSD layout for skinr slots records through `
 <!-- class:CjsFsd64SchemaSkinrTierThresholds -->
 ## `CjsFsd64SchemaSkinrTierThresholds`
 
-Exposes the verified inline modern cFSD layout for skinr tier thresholds records through `getFsdSchema()`.
+Reads caller-supplied `ship_skin_design_tier_thresholds.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaSkinrTierThresholds.js`
@@ -882,7 +814,7 @@ Exposes the verified inline modern cFSD layout for skinr tier thresholds records
 <!-- class:CjsFsd64SchemaStationOperations -->
 ## `CjsFsd64SchemaStationOperations`
 
-Exposes the verified inline modern cFSD layout for station operations records through `getFsdSchema()`.
+Reads caller-supplied `stationoperations.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaStationOperations.js`
@@ -892,7 +824,7 @@ Exposes the verified inline modern cFSD layout for station operations records th
 <!-- class:CjsFsd64SchemaStationServices -->
 ## `CjsFsd64SchemaStationServices`
 
-Exposes the verified inline modern cFSD layout for station services records through `getFsdSchema()`.
+Reads caller-supplied `stationservices.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaStationServices.js`
@@ -902,7 +834,7 @@ Exposes the verified inline modern cFSD layout for station services records thro
 <!-- class:CjsFsd64SchemaTypeDogma -->
 ## `CjsFsd64SchemaTypeDogma`
 
-Exposes the verified inline modern cFSD layout for type dogma records through `getFsdSchema()`.
+Reads caller-supplied `typedogma.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaTypeDogma.js`
@@ -912,7 +844,7 @@ Exposes the verified inline modern cFSD layout for type dogma records through `g
 <!-- class:CjsFsd64SchemaTypeLists -->
 ## `CjsFsd64SchemaTypeLists`
 
-Exposes the verified inline modern cFSD layout for type lists records through `getFsdSchema()`.
+Reads caller-supplied `typelist.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaTypeLists.js`
@@ -922,7 +854,7 @@ Exposes the verified inline modern cFSD layout for type lists records through `g
 <!-- class:CjsFsd64SchemaTypeMaterials -->
 ## `CjsFsd64SchemaTypeMaterials`
 
-Exposes the verified inline modern cFSD layout for type materials records through `getFsdSchema()`.
+Reads caller-supplied `typematerials.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaTypeMaterials.js`
@@ -932,14 +864,22 @@ Exposes the verified inline modern cFSD layout for type materials records throug
 <!-- class:CjsFsd64SchemaTypes -->
 ## `CjsFsd64SchemaTypes`
 
-Exposes the verified inline modern cFSD layout for types records through `getFsdSchema()`.
+Reads caller-supplied `types.fsdbinary` bytes.
 
 - Export: `@carbonenginejs/runtime/resource/formats/fsd/64/readers`
 - Source: `src/resource/formats/fsd/64/readers/CjsFsd64SchemaTypes.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-+### gif
+<!-- class:CjsFsdFormat -->
+## `CjsFsdFormat`
+
+Normal FSD format-pipeline entry point.
+
+- Export: `@carbonenginejs/runtime/resource/formats/fsd`
+- Source: `src/resource/formats/fsd/CjsFsdFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
 
 <!-- class:CjsGifFormat -->
 ## `CjsGifFormat`
@@ -949,9 +889,7 @@ GIF format profile that inspects header and frame metadata and reads GIF bytes i
 - Export: `@carbonenginejs/runtime/resource/formats/gif`
 - Source: `src/resource/formats/gif/CjsGifFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### gltf
+- Kind: CarbonEngineJS
 
 <!-- class:CjsGltfFormat -->
 ## `CjsGltfFormat`
@@ -961,9 +899,7 @@ glTF/GLB format class that parses documents, decodes accessors, and converts mes
 - Export: `@carbonenginejs/runtime/resource/formats/gltf`
 - Source: `src/resource/formats/gltf/CjsGltfFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### gr2
+- Kind: CarbonEngineJS
 
 <!-- class:CjsGr2Format -->
 ## `CjsGr2Format`
@@ -973,713 +909,251 @@ CarbonEngineJS-facing GR2/GSF reader and CMF-first GR2 geometry writer.
 - Export: `@carbonenginejs/runtime/resource/formats/gr2`
 - Source: `src/resource/formats/gr2/CjsGr2Format.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
+
+<!-- class:FrequencyModel -->
+## `FrequencyModel`
+
+One adaptive frequency model with 15-bit precision (TOTAL = 0x8000).
+
+- Source: `src/resource/formats/gr2/core/bitknit2.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
 
 <!-- class:SectionSerializer -->
 ## `SectionSerializer`
 
 Serializes one reflected Granny object graph into relocatable section data.
 
-- Export: `None`
 - Source: `src/resource/formats/gr2/core/container.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:Decoder -->
 ## `Decoder`
 
-Arithmetic decoder over the Oodle1 7-bit-per-byte compressed bitstream for GR2 section decompression.
+Arithmetic decoder for the Oodle1 7-bit-per-byte bitstream.
 
-- Export: `None`
 - Source: `src/resource/formats/gr2/core/oodle1.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:Dictionary -->
 ## `Dictionary`
 
-Per-segment Oodle1 decode dictionary holding the adaptive symbol windows for literal and back-reference decoding.
+Per-segment Oodle1 dictionary and adaptive symbol windows.
 
-- Export: `None`
 - Source: `src/resource/formats/gr2/core/oodle1.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:FrequencyModel -->
-## `FrequencyModel`
-
-Adaptive 15-bit-precision frequency model with cumulative tables and a fast symbol lookup used by the clean-room BitKnit2 decompressor.
-
-- Export: `None`
-- Source: `src/resource/formats/gr2/core/bitknit2.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:WeighWindow -->
 ## `WeighWindow`
 
-Adaptive weighted symbol window that Oodle1 dictionaries use to model symbol probabilities.
+Adaptive weighted symbol window used by Oodle1 dictionaries.
 
-- Export: `None`
 - Source: `src/resource/formats/gr2/core/oodle1.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### hlsl
+- Kind: CarbonEngineJS
 
 <!-- class:CjsHlslFormat -->
 ## `CjsHlslFormat`
 
-Compiled Carbon effect format profile that reads .sm_* shader packages into permutation, technique, and stage metadata.
+CarbonEngineJS-facing reader for CCP's Tr2 compiled effect container format (`.sm_hi` / `.sm_lo` / `.sm_depth` bodies).
 
 - Export: `@carbonenginejs/runtime/resource/formats/hlsl`
 - Source: `src/resource/formats/hlsl/CjsHlslFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:HlslReader -->
-## `HlslReader`
-
-Bounded little-endian byte cursor over compiled effect payloads, with shared string-table resolution.
-
-- Export: `None`
-- Source: `src/resource/formats/hlsl/core/HlslReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectReadError -->
 ## `HlslEffectReadError`
 
-Error raised when compiled effect bytes are malformed, truncated, or an unsupported version.
+Error raised when a Carbon/Trinity effect payload cannot be decoded safely.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/HlslEffectReadError.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectStateManager -->
 ## `HlslEffectStateManager`
 
-Resolves and caches render-state setups referenced by a compiled effect while it is read.
+In-memory JavaScript substitute for Carbon's effect state manager registry.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/HlslEffectStateManager.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
+
+<!-- class:HlslReader -->
+## `HlslReader`
+
+Little-endian binary reader for Carbon/Trinity compiled effect data.
+
+- Source: `src/resource/formats/hlsl/core/HlslReader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
 
 <!-- class:HlslRenderStateSetup -->
 ## `HlslRenderStateSetup`
 
-Ordered render-state key and value records attached to one pass.
+JavaScript mirror of a registered Carbon render-state setup.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/HlslRenderStateSetup.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslResourceSetDescription -->
 ## `HlslResourceSetDescription`
 
-Describes one resource set bound by a compiled effect stage.
+JavaScript mirror of Carbon's resource-set descriptor builder.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/HlslResourceSetDescription.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslShaderBytecode -->
 ## `HlslShaderBytecode`
 
-Stage bytecode payload carried by a compiled effect, with its stage type and name.
+JavaScript stand-in for Carbon's shader-bytecode handle payload.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/HlslShaderBytecode.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectRes -->
 ## `HlslEffectRes`
 
-Parsed compiled effect resource: permutation axes, body offsets, and lazily decoded shader bodies.
+Carbon/Trinity effect resource reader for compiled shader metadata.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/resources/HlslEffectRes.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslShaderPermutation -->
 ## `HlslShaderPermutation`
 
-One permutation axis of a compiled effect, with its ordered options and default.
+Trinity shader permutation axis and option metadata.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/resources/HlslShaderPermutation.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectBindingManifest -->
 ## `HlslEffectBindingManifest`
 
-Flattened per-stage binding manifest derived from a resolved effect description.
+Carbon-backed binding manifest for register-named shader outputs.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectBindingManifest.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectConstant -->
 ## `HlslEffectConstant`
 
-Reflected shader constant: name, offset, size, type, dimension, and element count.
+Constant-buffer parameter metadata read from a Trinity effect body.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectConstant.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectDescription -->
 ## `HlslEffectDescription`
 
-Decoded effect body: techniques, passes, stages, libraries, and top-level annotations.
+Trinity effect-description body decoded from one compiled permutation record.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectDescription.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectLibrary -->
 ## `HlslEffectLibrary`
 
-Ray-tracing shader library record with its exports, payload size, and stage inputs.
+Ray-tracing shader library metadata from v14+ Trinity effects.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectLibrary.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectParameterAnnotation -->
 ## `HlslEffectParameterAnnotation`
 
-Typed annotation attached to a reflected effect parameter.
+Parameter annotation value attached to a Trinity effect parameter.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectParameterAnnotation.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectResource -->
 ## `HlslEffectResource`
 
-Reflected shader resource or UAV binding with its register identity and array count.
+Shader resource or UAV metadata read from a Trinity effect body.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectResource.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectStageInput -->
 ## `HlslEffectStageInput`
 
-Reflected stage input: constants, resources, samplers, signatures, and default constant bytes.
+Decoded per-stage input metadata for constants, resources, samplers, and signatures.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectStageInput.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslEffectTechnique -->
 ## `HlslEffectTechnique`
 
-Named technique of a compiled effect body and its ordered passes.
+Trinity effect technique containing passes and optional shader libraries.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslEffectTechnique.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslPass -->
 ## `HlslPass`
 
-One pass of a technique, carrying its stage inputs and render states.
+Trinity effect pass containing shader stages, resource metadata, and render state.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslPass.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslSamplerDescription -->
 ## `HlslSamplerDescription`
 
-Sampler state description: filters, address modes, LOD bounds, and comparison function.
+Trinity sampler descriptor read from compiled effect metadata.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslSamplerDescription.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslSamplerSetup -->
 ## `HlslSamplerSetup`
 
-Named or static sampler setup bound by a compiled effect stage.
+Trinity sampler binding that pairs a metadata name with a sampler descriptor.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslSamplerSetup.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslShader -->
 ## `HlslShader`
 
-Decoded shader body for one permutation index, wrapping its effect description.
+Trinity shader wrapper around a decoded `HlslEffectDescription`.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslShader.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:HlslShaderOption -->
 ## `HlslShaderOption`
 
-One option value of a permutation axis.
+Name/value shader permutation option used during effect lookup.
 
-- Export: `None`
 - Source: `src/resource/formats/hlsl/core/tr2/shader/HlslShaderOption.js`
 - Visibility: Internal
-- Kind: Internal implementation class
-
-### jpeg
-
-<!-- class:CjsJpegFormat -->
-## `CjsJpegFormat`
-
-JPEG format profile that inspects marker and header metadata and reads baseline JPEG bytes into raw, debug JSON, or RGBA payloads through the in-project baseline decoder.
-
-- Export: `@carbonenginejs/runtime/resource/formats/jpeg`
-- Source: `src/resource/formats/jpeg/CjsJpegFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:BitWriter -->
-## `BitWriter`
-
-Writer-side helper that packs Huffman codes into a JPEG entropy stream, stuffing the zero byte after every 0xFF so entropy data cannot be mistaken for a marker.
-
-- Export: `None`
-- Source: `src/resource/formats/jpeg/core/writer.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:BaselineJpegDecoder -->
-## `BaselineJpegDecoder`
-
-Pure-JS baseline sequential JPEG decoder that parses markers, quantization and Huffman tables, and entropy-coded scans into RGBA pixels.
-
-- Export: `None`
-- Source: `src/resource/formats/jpeg/core/jpeg.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:EntropyReader -->
-## `EntropyReader`
-
-Bit-level reader over JPEG entropy-coded data that handles byte stuffing and restart markers for the baseline decoder.
-
-- Export: `None`
-- Source: `src/resource/formats/jpeg/core/jpeg.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### jsonl
-
-<!-- class:CjsJsonlFormat -->
-## `CjsJsonlFormat`
-
-JSON Lines format profile that reads one standalone JSON value per non-blank line into an ordered record array, inspects record counts without parsing every line, and serializes iterables back to JSON Lines text. Its canonical instances are CCP's official static-data export tables.
-
-- Export: `@carbonenginejs/runtime/resource/formats/jsonl`
-- Source: `src/resource/formats/jsonl/CjsJsonlFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### mp3
-
-<!-- class:CjsMp3Format -->
-## `CjsMp3Format`
-
-MP3 audio format profile that inspects frame and tag metadata and emits raw container bytes or debug JSON, with PCM decoding not implemented.
-
-- Export: `@carbonenginejs/runtime/resource/formats/mp3`
-- Source: `src/resource/formats/mp3/CjsMp3Format.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### mp4
-
-<!-- class:CjsMp4Format -->
-## `CjsMp4Format`
-
-MP4 container format profile that inspects box and track structure and emits raw bytes, debug JSON, or a container-only video payload with codec and duration summaries but no frame decoding.
-
-- Export: `@carbonenginejs/runtime/resource/formats/mp4`
-- Source: `src/resource/formats/mp4/CjsMp4Format.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### obj
-
-<!-- class:CjsObjFormat -->
-## `CjsObjFormat`
-
-OBJ format class that parses Wavefront OBJ text and rebuilds it into shared-mesh, GR2, or CMF output plus debug JSON through its core helpers.
-
-- Export: `@carbonenginejs/runtime/resource/formats/obj`
-- Source: `src/resource/formats/obj/CjsObjFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### ogg
-
-<!-- class:CjsOggFormat -->
-## `CjsOggFormat`
-
-Ogg container format profile that inspects page and stream metadata and decodes Ogg Vorbis audio to PCM with the in-project pure-JS Vorbis decoder, alongside raw and debug JSON output.
-
-- Export: `@carbonenginejs/runtime/resource/formats/ogg`
-- Source: `src/resource/formats/ogg/CjsOggFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:Codebook -->
-## `Codebook`
-
-Vorbis codebook that builds Huffman decode trees and VQ lookup vectors for scalar and vector packet decoding.
-
-- Export: `None`
-- Source: `src/resource/formats/ogg/core/vorbis.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:PacketReader -->
-## `PacketReader`
-
-LSB-first bit reader over one Vorbis packet's bytes for the pure-JS Vorbis decoder.
-
-- Export: `None`
-- Source: `src/resource/formats/ogg/core/vorbis.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### pickle
-
-<!-- class:CjsPickleFormat -->
-## `CjsPickleFormat`
-
-Data-only Python pickle format facade that currently decodes protocol 0 into JSON-compatible values or identity-preserving payload graphs while rejecting callable and object-construction opcodes.
-
-- Export: `@carbonenginejs/runtime/resource/formats/pickle`
-- Source: `src/resource/formats/pickle/CjsPickleFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsSchemaBoundFormat -->
-## `CjsSchemaBoundFormat`
-
-Reads a binary record container against the separate schema document that describes its layout.
-
-- Export: `@carbonenginejs/runtime/resource/formats/schemabound`
-- Source: `src/resource/formats/schemabound/CjsSchemaBoundFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-- Notes: The schema is required and there is no default. These bytes carry no signature, so the wrong schema decodes into plausible nonsense rather than failing.
-
-<!-- class:CjsSqliteFormat -->
-## `CjsSqliteFormat`
-
-Reads a SQLite 3 container as data: the tables it holds and every row of them, with no SQL and no query engine.
-
-- Export: `@carbonenginejs/runtime/resource/formats/sqlite`
-- Source: `src/resource/formats/sqlite/CjsSqliteFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-- Notes: Read-only and full-scan. Index b-trees are never walked, and nothing here needs a driver or a filesystem.
-
-<!-- class:CjsStaticFormat -->
-## `CjsStaticFormat`
-
-Identifies which of three unrelated containers a client `.static` file holds, so a caller can route it to the format that decodes it.
-
-- Export: `@carbonenginejs/runtime/resource/formats/static`
-- Source: `src/resource/formats/static/CjsStaticFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-- Notes: Signature-based, and it decodes nothing at all since 2026-08-15. It reports the family and the payload offset; `CjsPickleFormat`, `CjsSqliteFormat` and `CjsSchemaBoundFormat` decode.
-
-<!-- class:CjsPickleProtocol0Reader -->
-## `CjsPickleProtocol0Reader`
-
-Construction-bound decoder for the inert data subset of Python pickle protocol 0.
-
-- Export: `None`
-- Source: `src/resource/formats/pickle/core/CjsPickleProtocol0Reader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsPickleProtocol4Reader -->
-## `CjsPickleProtocol4Reader`
-
-Construction-bound decoder for the inert data subset of Python pickle's binary protocols, 1 through 4.
-
-- Export: `None`
-- Source: `src/resource/formats/pickle/core/CjsPickleProtocol4Reader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-- Notes: Shares every refusal rule with `CjsPickleProtocol0Reader` through `pickleCommon`, and owns only how the binary protocols spell their opcodes.
-
-### png
-
-<!-- class:CjsPngFormat -->
-## `CjsPngFormat`
-
-PNG format profile that synchronously inspects chunk and header metadata and emits raw bytes or debug JSON, with RGBA decoding available on the asynchronous read path.
-
-- Export: `@carbonenginejs/runtime/resource/formats/png`
-- Source: `src/resource/formats/png/CjsPngFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### red
-
-<!-- class:CjsRedFormat -->
-## `CjsRedFormat`
-
-Red format profile that reads type-discriminated, self-referential Red YAML object graphs and emits a compact public payload, a neutral raw graph, or caller-supplied runtime classes through the shared hydration adapter.
-
-- Export: `@carbonenginejs/runtime/resource/formats/red`
-- Source: `src/resource/formats/red/CjsRedFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsRedReader -->
-## `CjsRedReader`
-
-Reader that walks a Red (YAML) type-discriminated, self-referential graph into payload, raw, or runtime shapes, sharing repeated nodes and stripping authoring-tool keys.
-
-- Export: `None`
-- Source: `src/resource/formats/red/core/CjsRedReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### stl
-
-<!-- class:CjsStlFormat -->
-## `CjsStlFormat`
-
-STL format class that parses ASCII and binary STL, writes STL from shared meshes, and inspects printability, emitting shared-mesh, GR2, or CMF output plus debug JSON.
-
-- Export: `@carbonenginejs/runtime/resource/formats/stl`
-- Source: `src/resource/formats/stl/CjsStlFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:DisjointSet -->
-## `DisjointSet`
-
-Union-find structure with path compression used to group edge-connected triangles during STL printability inspection.
-
-- Export: `None`
-- Source: `src/resource/formats/stl/core/stl.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### tga
-
-<!-- class:CjsTgaFormat -->
-## `CjsTgaFormat`
-
-TGA format profile that inspects header metadata and reads TGA bytes into raw, debug JSON, or decoded RGBA image payloads.
-
-- Export: `@carbonenginejs/runtime/resource/formats/tga`
-- Source: `src/resource/formats/tga/CjsTgaFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### wav
-
-<!-- class:CjsWavFormat -->
-## `CjsWavFormat`
-
-WAV audio format profile that inspects RIFF chunk metadata and reads supported WAV bytes into PCM or audio payloads, alongside raw and debug JSON output.
-
-- Export: `@carbonenginejs/runtime/resource/formats/wav`
-- Source: `src/resource/formats/wav/CjsWavFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### shared effect layer
-
-### webgl
-
-<!-- class:CjsWebglFormat -->
-## `CjsWebglFormat`
-
-WebGL shader format profile that translates compiled Carbon effects into Carbon v15 containers carrying GLSL programs and a per-pass backend block.
-
-- Export: `@carbonenginejs/runtime/resource/formats/webgl`
-- Source: `src/resource/formats/webgl/CjsWebglFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:WebglReadError -->
-## `WebglReadError`
-
-Error raised when container bytes or their backend blocks are malformed or inconsistent.
-
-- Export: `None`
-- Source: `src/resource/formats/webgl/core/WebglReadError.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:DxbcGlslEmitter -->
-## `DxbcGlslEmitter`
-
-Translates decoded DXBC shader programs into GLSL for the WebGL backend.
-
-- Export: `None`
-- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslEmitter.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:DxbcGlslHelperRegistry -->
-## `DxbcGlslHelperRegistry`
-
-Collects and emits the GLSL helper functions a translated program requires.
-
-- Export: `None`
-- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslHelperRegistry.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:DxbcGlslOperandFormatter -->
-## `DxbcGlslOperandFormatter`
-
-Formats DXBC operands, swizzles, and modifiers as GLSL expressions.
-
-- Export: `None`
-- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslOperandFormatter.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### webgpu
-
-<!-- class:CjsWebgpuFormat -->
-## `CjsWebgpuFormat`
-
-WebGPU shader format profile that translates compiled Carbon effects into Carbon WebGPU containers carrying WGSL programs and bind-group layouts.
-
-- Export: `@carbonenginejs/runtime/resource/formats/webgpu`
-- Source: `src/resource/formats/webgpu/CjsWebgpuFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CarbonWebgpuContainer -->
-## `CarbonWebgpuContainer`
-
-Reader over one WebGPU effect container.
-
-- Export: `None`
-- Source: `src/resource/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:WebgpuReadError -->
-## `WebgpuReadError`
-
-Error raised when Carbon WebGPU bytes or package documents are malformed or inconsistent.
-
-- Export: `None`
-- Source: `src/resource/formats/webgpu/core/WebgpuReadError.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### webm
-
-<!-- class:CjsWebmFormat -->
-## `CjsWebmFormat`
-
-WebM container format profile that inspects EBML segment and track structure and emits raw bytes, debug JSON, or a container-only video payload with codec and duration summaries but no frame decoding.
-
-- Export: `@carbonenginejs/runtime/resource/formats/webm`
-- Source: `src/resource/formats/webm/CjsWebmFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### webp
-
-<!-- class:CjsWebpFormat -->
-## `CjsWebpFormat`
-
-Metadata-only WebP format profile that inspects RIFF chunk headers and emits raw container bytes or debug JSON without decoding pixels.
-
-- Export: `@carbonenginejs/runtime/resource/formats/webp`
-- Source: `src/resource/formats/webp/CjsWebpFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-### wem
-
-<!-- class:CjsWemFormat -->
-## `CjsWemFormat`
-
-Reader for Audiokinetic Wwise media (`.wem`) containers that inspects codec, channel/rate layout, and Vorbis duration, and reads out raw container bytes, a ww2ogg-style Ogg repack of Wwise Vorbis, or decoded PCM.
-
-- Export: `@carbonenginejs/runtime/resource/formats/wem`
-- Source: `src/resource/formats/wem/CjsWemFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:BitReader -->
-## `BitReader`
-
-LSB-first bit reader over Wwise Vorbis packet bytes for the Ogg repacking path.
-
-- Export: `None`
-- Source: `src/resource/formats/wem/core/bitStream.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:OggPageWriter -->
-## `OggPageWriter`
-
-LSB-first bit writer that assembles repacked Wwise Vorbis packets into standard Ogg pages, one page per packet, matching ww2ogg behavior.
-
-- Export: `None`
-- Source: `src/resource/formats/wem/core/bitStream.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### yaml
-
-<!-- class:CjsYamlFormat -->
-## `CjsYamlFormat`
-
-YAML format profile that parses YAML text or strict UTF-8 bytes into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
-
-- Export: `@carbonenginejs/runtime/resource/formats/yaml`
-- Source: `src/resource/formats/yaml/CjsYamlFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsYamlReader -->
-## `CjsYamlReader`
-
-Construction-bound reader that parses one YAML source with the `yaml` library and produces the format's payload, raw, or document graphs while enforcing tag policy and alias limits.
-
-- Export: `None`
-- Source: `src/resource/formats/yaml/core/CjsYamlReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-### ies
+- Kind: CarbonEngineJS
 
 <!-- class:CjsIESFormat -->
 ## `CjsIESFormat`
@@ -1689,13 +1163,395 @@ Reads IES photometric bytes into authored CPU data.
 - Export: `@carbonenginejs/runtime/resource/formats/ies`
 - Source: `src/resource/formats/ies/CjsIESFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
+
+<!-- class:CjsJpegFormat -->
+## `CjsJpegFormat`
+
+JPEG format profile that inspects marker and header metadata and reads baseline JPEG bytes into raw, debug JSON, or RGBA payloads through the in-project baseline decoder.
+
+- Export: `@carbonenginejs/runtime/resource/formats/jpeg`
+- Source: `src/resource/formats/jpeg/CjsJpegFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:BaselineJpegDecoder -->
+## `BaselineJpegDecoder`
+
+Pure-JS baseline sequential JPEG decoder that parses markers, quantization and Huffman tables, and entropy-coded scans into RGBA pixels.
+
+- Source: `src/resource/formats/jpeg/core/jpeg.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:EntropyReader -->
+## `EntropyReader`
+
+Bit-level reader over JPEG entropy-coded data that handles byte stuffing and restart markers for the baseline decoder.
+
+- Source: `src/resource/formats/jpeg/core/jpeg.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:BitWriter -->
+## `BitWriter`
+
+Collects bytes and packs Huffman codes, stuffing 0x00 after every 0xFF.
+
+- Source: `src/resource/formats/jpeg/core/writer.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsJsonlFormat -->
+## `CjsJsonlFormat`
+
+JSON Lines format profile: one standalone JSON value per non-blank line.
+
+- Export: `@carbonenginejs/runtime/resource/formats/jsonl`
+- Source: `src/resource/formats/jsonl/CjsJsonlFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMp3Format -->
+## `CjsMp3Format`
+
+MP3 audio format profile that inspects frame and tag metadata and emits raw container bytes or debug JSON, with PCM decoding not implemented.
+
+- Export: `@carbonenginejs/runtime/resource/formats/mp3`
+- Source: `src/resource/formats/mp3/CjsMp3Format.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMp4Format -->
+## `CjsMp4Format`
+
+MP4 container format profile that inspects box and track structure and emits raw bytes, debug JSON, or a container-only video payload with codec and duration summaries but no frame decoding.
+
+- Export: `@carbonenginejs/runtime/resource/formats/mp4`
+- Source: `src/resource/formats/mp4/CjsMp4Format.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsObjFormat -->
+## `CjsObjFormat`
+
+CarbonEngineJS-facing Wavefront OBJ format surface.
+
+- Export: `@carbonenginejs/runtime/resource/formats/obj`
+- Source: `src/resource/formats/obj/CjsObjFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsOggFormat -->
+## `CjsOggFormat`
+
+Ogg container format profile that inspects page and stream metadata and decodes Ogg Vorbis audio to PCM with the in-project pure-JS Vorbis decoder, alongside raw and debug JSON output.
+
+- Export: `@carbonenginejs/runtime/resource/formats/ogg`
+- Source: `src/resource/formats/ogg/CjsOggFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Codebook -->
+## `Codebook`
+
+Vorbis codebook that builds Huffman decode trees and VQ lookup vectors for scalar and vector packet decoding.
+
+- Source: `src/resource/formats/ogg/core/vorbis.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:PacketReader -->
+## `PacketReader`
+
+LSB-first bit reader over one Vorbis packet; reading past the end sets `eop` instead of throwing (end-of-packet is a defined decode condition).
+
+- Source: `src/resource/formats/ogg/core/vorbis.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsPickleFormat -->
+## `CjsPickleFormat`
+
+Data-only Python pickle format facade that decodes the inert subset of protocols 0 through 4 into JSON-compatible values or identity-preserving payload graphs while rejecting callable and object-construction opcodes.
+
+- Export: `@carbonenginejs/runtime/resource/formats/pickle`
+- Source: `src/resource/formats/pickle/CjsPickleFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsPickleProtocol0Reader -->
+## `CjsPickleProtocol0Reader`
+
+Construction-bound decoder for the inert data subset of Python pickle protocol 0.
+
+- Source: `src/resource/formats/pickle/core/CjsPickleProtocol0Reader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsPickleProtocol4Reader -->
+## `CjsPickleProtocol4Reader`
+
+Construction-bound decoder for the inert data subset of Python pickle's binary protocols, 1 through 4.
+
+- Source: `src/resource/formats/pickle/core/CjsPickleProtocol4Reader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsPngFormat -->
+## `CjsPngFormat`
+
+PNG format profile that synchronously inspects chunk and header metadata and emits raw bytes or debug JSON, with RGBA decoding available on the asynchronous read path.
+
+- Export: `@carbonenginejs/runtime/resource/formats/png`
+- Source: `src/resource/formats/png/CjsPngFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsRedFormat -->
+## `CjsRedFormat`
+
+CarbonEngineJS-facing Red format profile.
+
+- Export: `@carbonenginejs/runtime/resource/formats/red`
+- Source: `src/resource/formats/red/CjsRedFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsRedReader -->
+## `CjsRedReader`
+
+Reads a Red (YAML) object graph.
+
+- Source: `src/resource/formats/red/core/CjsRedReader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsSchemaBoundFormat -->
+## `CjsSchemaBoundFormat`
+
+Reads a container whose layout lives in a separate schema.
+
+- Export: `@carbonenginejs/runtime/resource/formats/schemabound`
+- Source: `src/resource/formats/schemabound/CjsSchemaBoundFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsSqliteFormat -->
+## `CjsSqliteFormat`
+
+Reads a SQLite 3 container as data.
+
+- Export: `@carbonenginejs/runtime/resource/formats/sqlite`
+- Source: `src/resource/formats/sqlite/CjsSqliteFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsStaticFormat -->
+## `CjsStaticFormat`
+
+Identifies which container a client `.static` file actually holds.
+
+- Export: `@carbonenginejs/runtime/resource/formats/static`
+- Source: `src/resource/formats/static/CjsStaticFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsStlFormat -->
+## `CjsStlFormat`
+
+CarbonEngineJS-facing STL format surface.
+
+- Export: `@carbonenginejs/runtime/resource/formats/stl`
+- Source: `src/resource/formats/stl/CjsStlFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:DisjointSet -->
+## `DisjointSet`
+
+Union-find structure with path compression used to group edge-connected triangles during STL printability inspection.
+
+- Source: `src/resource/formats/stl/core/stl.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsTgaFormat -->
+## `CjsTgaFormat`
+
+TGA format profile that inspects header metadata and reads TGA bytes into raw, debug JSON, or decoded RGBA image payloads.
+
+- Export: `@carbonenginejs/runtime/resource/formats/tga`
+- Source: `src/resource/formats/tga/CjsTgaFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsVtaFormat -->
 ## `CjsVtaFormat`
 
-VTA format profile that inspects the volume-texture-animation header, grid table and frame offsets and reads `.vta` bytes into raw or debug JSON synchronously, with zlib-inflated R8 volume payloads on the asynchronous read path.
+VTA format profile - Carbon's Volume Texture Animation container.
 
 - Export: `@carbonenginejs/runtime/resource/formats/vta`
 - Source: `src/resource/formats/vta/CjsVtaFormat.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWavFormat -->
+## `CjsWavFormat`
+
+WAV audio format profile that inspects RIFF chunk metadata and reads supported WAV bytes into PCM or audio payloads, alongside raw and debug JSON output.
+
+- Export: `@carbonenginejs/runtime/resource/formats/wav`
+- Source: `src/resource/formats/wav/CjsWavFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebglFormat -->
+## `CjsWebglFormat`
+
+CarbonEngineJS-facing format surface for `.carbonwebgl` WebGL shader packages, and a DXBC -> GLSL ES 3.00 emitter for the WebGL2 vertex/pixel/map-style-compute stages ccpwgl targets.
+
+- Export: `@carbonenginejs/runtime/resource/formats/webgl`
+- Source: `src/resource/formats/webgl/CjsWebglFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:DxbcGlslEmitter -->
+## `DxbcGlslEmitter`
+
+DXBC -> GLSL ES 3.00 emitter for vertex and pixel stages.
+
+- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslEmitter.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:DxbcGlslHelperRegistry -->
+## `DxbcGlslHelperRegistry`
+
+Registry of GLSL helper functions the emitter can require per shader.
+
+- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslHelperRegistry.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:DxbcGlslOperandFormatter -->
+## `DxbcGlslOperandFormatter`
+
+Formats decoded DXBC operands as GLSL ES 3.00 expressions and assignments.
+
+- Source: `src/resource/formats/webgl/core/glsl/DxbcGlslOperandFormatter.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:WebglReadError -->
+## `WebglReadError`
+
+Error raised when a Carbon WebGL package or a DXBC-to-GLSL emission cannot be completed safely.
+
+- Source: `src/resource/formats/webgl/core/WebglReadError.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebgpuFormat -->
+## `CjsWebgpuFormat`
+
+CarbonEngineJS-facing format surface for `.carbonwebgpu` WebGPU packages, plus an offline effect-analysis helper built on the runtime resource HLSL and DXBC format subpaths.
+
+- Export: `@carbonenginejs/runtime/resource/formats/webgpu`
+- Source: `src/resource/formats/webgpu/CjsWebgpuFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CarbonWebgpuContainer -->
+## `CarbonWebgpuContainer`
+
+Reader over one WebGPU effect container.
+
+- Source: `src/resource/formats/webgpu/core/carbonWebgpu/CarbonWebgpuContainer.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:WebgpuReadError -->
+## `WebgpuReadError`
+
+Error raised when a Carbon WebGPU package or WebGPU analysis pass cannot be completed safely.
+
+- Source: `src/resource/formats/webgpu/core/WebgpuReadError.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebmFormat -->
+## `CjsWebmFormat`
+
+WebM container format profile that inspects EBML segment and track structure and emits raw bytes, debug JSON, or a container-only video payload with codec and duration summaries but no frame decoding.
+
+- Export: `@carbonenginejs/runtime/resource/formats/webm`
+- Source: `src/resource/formats/webm/CjsWebmFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWebpFormat -->
+## `CjsWebpFormat`
+
+Metadata-only WebP format profile that inspects RIFF chunk headers and emits raw container bytes or debug JSON without decoding pixels.
+
+- Export: `@carbonenginejs/runtime/resource/formats/webp`
+- Source: `src/resource/formats/webp/CjsWebpFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWemFormat -->
+## `CjsWemFormat`
+
+Reader for Audiokinetic Wwise media (.wem) containers.
+
+- Export: `@carbonenginejs/runtime/resource/formats/wem`
+- Source: `src/resource/formats/wem/CjsWemFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:BitReader -->
+## `BitReader`
+
+LSB-first bit reader over a byte range.
+
+- Source: `src/resource/formats/wem/core/bitStream.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:OggPageWriter -->
+## `OggPageWriter`
+
+LSB-first bit writer that assembles Ogg pages, one packet per page.
+
+- Source: `src/resource/formats/wem/core/bitStream.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:WemBitstreamError -->
+## `WemBitstreamError`
+
+Error raised when a Wwise Vorbis bitstream runs out mid-read.
+
+- Source: `src/resource/formats/wem/core/bitStream.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsYamlFormat -->
+## `CjsYamlFormat`
+
+YAML format profile that parses YAML text or strict UTF-8 bytes into payload, JSON-graph, raw, or document output with configurable tag policies, alias limits, and identity/reference markers.
+
+- Export: `@carbonenginejs/runtime/resource/formats/yaml`
+- Source: `src/resource/formats/yaml/CjsYamlFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsYamlReader -->
+## `CjsYamlReader`
+
+Construction-bound reader that parses one YAML source with the `yaml` library and produces the format's payload, raw, or document graphs while enforcing tag policy and alias limits.
+
+- Source: `src/resource/formats/yaml/core/CjsYamlReader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS

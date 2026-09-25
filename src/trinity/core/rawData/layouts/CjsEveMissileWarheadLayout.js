@@ -6,7 +6,7 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** EveMissileWarhead.h:194 */
+/** Per-object constant-buffer layout for `EveMissileWarheadPerObjectData` (EveMissileWarhead.h:194). */
 export class CjsEveMissileWarheadLayout
 {
   static structConfig = Object.freeze({

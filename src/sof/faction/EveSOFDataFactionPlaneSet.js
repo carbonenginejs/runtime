@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataFactionPlaneSet (eve) - generated from schema shapeHash e6cd0e1a.... */
+/** Names a faction plane-set group and supplies its color. */
 @type.define({ className: "EveSOFDataFactionPlaneSet", family: "eve" })
 export class EveSOFDataFactionPlaneSet extends CjsModel
 {

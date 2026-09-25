@@ -5,7 +5,7 @@ import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 
-/** EveSOFDataHullPlaneSet (eve) - generated from schema shapeHash cb49d2d1.... */
+/** Groups plane items with usage, texture, atlas, visibility, and skinning policy. */
 @type.define({ className: "EveSOFDataHullPlaneSet", family: "eve" })
 export class EveSOFDataHullPlaneSet extends CjsModel
 {

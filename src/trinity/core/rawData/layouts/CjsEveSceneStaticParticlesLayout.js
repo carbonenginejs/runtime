@@ -6,7 +6,7 @@ import { CjsConstantLayout } from "../CjsConstantLayout.js";
 const { Identity: IDENTITY, Types } = CjsConstantLayout;
 
 
-/** EveSceneStaticParticles.h:105 */
+/** Per-object constant-buffer layout for `EveSceneStaticParticlesPerObjectData` (EveSceneStaticParticles.h:105). */
 export class CjsEveSceneStaticParticlesLayout
 {
   static structConfig = Object.freeze({

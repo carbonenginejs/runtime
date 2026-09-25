@@ -7,7 +7,7 @@ import { EveSOFDataLogo } from "./EveSOFDataLogo.js";
 import { ErrSOFLogoSetTypeUnknown } from "./ErrSOFLogoSetTypeUnknown.js";
 import { ErrSOFLogoSetTypeNotFound } from "./ErrSOFLogoSetTypeNotFound.js";
 
-/** EveSOFDataLogoSet (eve) - generated from schema shapeHash 1a77225e.... */
+/** Provides enum-based primary, secondary, tertiary, and marking-logo lookup plus logo-set composition. */
 @type.define({ className: "EveSOFDataLogoSet", family: "eve" })
 export class EveSOFDataLogoSet extends CjsModel
 {

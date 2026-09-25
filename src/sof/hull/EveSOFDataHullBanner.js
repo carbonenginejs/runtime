@@ -8,7 +8,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { EveSOFDataHullBannerLight } from "./EveSOFDataHullBannerLight.js";
 
-/** EveSOFDataHullBanner (eve) - generated from schema shapeHash bea85335.... */
+/** Defines a banner's usage, bone-relative transform, visibility, optional light override, aspect ratio, and flat or curved presentation. */
 @type.define({ className: "EveSOFDataHullBanner", family: "eve" })
 export class EveSOFDataHullBanner extends CjsModel
 {

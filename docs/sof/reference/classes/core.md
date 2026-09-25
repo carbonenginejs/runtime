@@ -8,69 +8,67 @@ Summary: Provides one-sentence purpose descriptors for SOF builder, DNA, catalog
 <!-- class:CjsSofLibraryBuilder -->
 ## `CjsSofLibraryBuilder`
 
-Builds and grows a serializable partial SOF catalog from `generic.black` and individually requested named Black records, publishing each record into an `EveSOFDataMgr`.
+Builds and grows one serializable partial SOF catalog from individual Black records, publishing each decoded record into an EveSOFDataMgr.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/CjsSofLibraryBuilder.js`
 - Visibility: Public
-- Kind: CarbonEngineJS implementation helper
+- Kind: CarbonEngineJS
 
 <!-- class:EveSOF -->
 ## `EveSOF`
 
-Carbon-first, GPU-free SOF builder that configures catalog and resource inputs, resolves DNA, and emits the supported plain model-values graph.
+Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/EveSOF.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:EveSOFData -->
 ## `EveSOFData`
 
-Owns the root SOF catalog collections for factions, generic settings, hulls, layouts, materials, patterns, and races.
+Root SOF data catalog.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/EveSOFData.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:EveSOFDataMgr -->
 ## `EveSOFDataMgr`
 
-Provides the CPU-side SOF data manager and named catalog lookups used by DNA resolution and graph building.
+Owns the CPU-side SOF lookup tables consumed by EveSOFDNA and EveSOF.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/EveSOFDataMgr.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:EveSOFDNA -->
 ## `EveSOFDNA`
 
-Parses and resolves a SOF DNA or layout descriptor against an `EveSOFDataMgr` and exposes the selected catalog records.
+Resolves a SOF DNA string against an EveSOFDataMgr.
 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/EveSOFDNA.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:SofLayoutRandom -->
 ## `SofLayoutRandom`
 
 Implements the deterministic integer pseudo-random sequence used by internal SOF layout planning.
 
-- Export: None
 - Source: `src/sof/layoutPlanner.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: CarbonEngineJS
 
 <!-- class:SofDocumentBuilder -->
 ## `SofDocumentBuilder`
 
 Allocates and links the internal compatibility node table, imports self-describing values or legacy document fragments, and retains only nodes reachable from its root.
 
-- Export: None
 - Source: `src/sof/SofDocumentBuilder.js`
 - Visibility: Internal
-- Kind: Internal implementation class
+- Kind: Carbon

@@ -41,7 +41,7 @@ function NowMs()
   return globalThis.performance?.now() ?? Date.now();
 }
 
-/** AudGameObjResource (audio) - base Wwise game object: event/RTPC/switch bookkeeping + culling participation. */
+/** Maintains per-object event, RTPC, switch, placement, and culling state for Carbon audio objects. The base Wwise game object. */
 @type.define({ className: "AudGameObjResource", family: "audio" })
 export class AudGameObjResource extends CjsModel
 {

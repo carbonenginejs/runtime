@@ -210,7 +210,6 @@ Defines a textured 2D line segment with endpoint positions, colors, widths, and 
 - Visibility: Public
 - Kind: Carbon generated
 
-
 <!-- class:Tr2Sprite2dStretch -->
 ## `Tr2Sprite2dStretch`
 

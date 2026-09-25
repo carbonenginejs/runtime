@@ -7,7 +7,7 @@ import { Tr2Lod } from "#consts/trinity";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullChild (eve) - generated from schema shapeHash 28ff7a88.... */
+/** Places a RED child resource with build and LOD policy, transform, identifier, and group metadata, deriving its display name from the resource path. */
 @type.define({ className: "EveSOFDataHullChild", family: "eve" })
 export class EveSOFDataHullChild extends CjsModel
 {

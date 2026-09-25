@@ -5,7 +5,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullExtensionPlacementDistributionPlacement (eve) - generated from schema shapeHash 1cff41f5.... */
+/** Controls placement completeness, caps, bias, random scale and rotation, uniformity, and locator-occupancy policy. */
 // Carbon derives this record directly from IRoot with its own m_name
 // (EveSOFData.h:1999-2021); it is NOT a distribution condition, despite the
 // name - the distribution conditions implement the separate BLUE_INTERFACE.

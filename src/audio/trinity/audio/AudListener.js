@@ -8,7 +8,7 @@ import { LISTENER_GAME_OBJ_ID } from "./SoundPrioritization.js";
 
 const FLOAT_MAX = 3.4028234663852886e38;
 
-/** AudListener (audio) - the singleton ears; fixed id 4, never culled by prioritization. */
+/** Represents the singleton Carbon listener and its effective orientation and position. Its id is fixed at 4 and prioritization never culls it. */
 @type.define({ className: "AudListener", family: "audio" })
 export class AudListener extends AudGameObjResource
 {

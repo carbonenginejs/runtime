@@ -5,7 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
-/** AudioCurveSetDriver (audio) - drives a curve set's time from a live RTPC value, with a fallback curve. */
+/** Drives a curve set's time from a live RTPC value, with a fallback curve. */
 @type.define({ className: "AudioCurveSetDriver", family: "audio" })
 export class AudioCurveSetDriver extends CjsModel
 {

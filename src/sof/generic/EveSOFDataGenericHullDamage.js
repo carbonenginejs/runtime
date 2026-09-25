@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataGenericHullDamage (eve) - generated from schema shapeHash 681d5059.... */
+/** Defines hull-damage particle emission, motion, turbulence, size, texture, and color settings. */
 @type.define({ className: "EveSOFDataGenericHullDamage", family: "eve" })
 export class EveSOFDataGenericHullDamage extends CjsModel
 {

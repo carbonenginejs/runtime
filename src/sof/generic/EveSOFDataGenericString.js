@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataGenericString (eve) - generated from schema shapeHash ebea2832.... */
+/** Provides the persisted wrapper used for a generic SOF string value. */
 @type.define({ className: "EveSOFDataGenericString", family: "eve" })
 export class EveSOFDataGenericString extends CjsModel
 {

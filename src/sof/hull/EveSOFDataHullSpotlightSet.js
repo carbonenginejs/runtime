@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullSpotlightSet (eve) - generated from schema shapeHash ab0a5bcb.... */
+/** Groups spotlight items with cone, glow, and flare textures plus skinning, depth, and visibility policy. */
 @type.define({ className: "EveSOFDataHullSpotlightSet", family: "eve" })
 export class EveSOFDataHullSpotlightSet extends CjsModel
 {

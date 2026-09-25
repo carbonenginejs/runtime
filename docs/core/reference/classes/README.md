@@ -8,7 +8,7 @@ Summary: Provides one-sentence purpose descriptors for every maintained class in
 <!-- class:CjsLibrary -->
 ## `CjsLibrary`
 
-GPU-free CarbonEngineJS composition root and runtime service registry.
+CarbonEngineJS composition root.
 
 - Export: `@carbonenginejs/runtime/core`
 - Source: `src/core/CjsLibrary.js`
@@ -18,7 +18,7 @@ GPU-free CarbonEngineJS composition root and runtime service registry.
 <!-- class:CjsWebGLProbe -->
 ## `CjsWebGLProbe`
 
-Privacy-safe WebGL2 capability snapshot, reported under its own keys rather than as the absence of WebGPU.
+A privacy-safe snapshot of one WebGL2 context's advertised capabilities.
 
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/CjsWebGLProbe.js`
@@ -33,7 +33,7 @@ Current browser Screen snapshot; browsers do not expose a native mode list.
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2DisplayMode.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
 <!-- class:Tr2PlatformInfo -->
 ## `Tr2PlatformInfo`
@@ -43,34 +43,34 @@ Browser feature report replacing Carbon's compile-time platform macros.
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2PlatformInfo.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:Tr2VideoAdapter -->
 ## `Tr2VideoAdapter`
 
-Privacy-respecting browser snapshot of Carbon's `Tr2VideoAdapter`.
+Privacy-respecting browser snapshot of Carbon's Tr2VideoAdapter.
 
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2VideoAdapter.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
 <!-- class:Tr2VideoAdapters -->
 ## `Tr2VideoAdapters`
 
-Browser adapter/display facade for Carbon's `Tr2VideoAdapters` surface.
+Browser adapter/display facade for Carbon's Tr2VideoAdapters surface.
 
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2VideoAdapters.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
 <!-- class:Tr2VideoDriver -->
 ## `Tr2VideoDriver`
 
-Browser-visible subset of Carbon's `Tr2VideoDriver`.
+Browser-visible subset of Carbon's Tr2VideoDriver.
 
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2VideoDriver.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS

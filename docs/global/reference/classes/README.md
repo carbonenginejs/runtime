@@ -5,6 +5,66 @@ Scope: `@carbonenginejs/runtime` class exports
 Audience: Runtime authors and integrators
 Summary: Catalogs maintained named classes in the consolidated runtime foundation.
 
+<!-- class:BeInfo -->
+## `BeInfo`
+
+`BeInfo` - Blue's clocks, framerate state and pump counters, per blue/include/IBlueOS.h:55.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/BeInfo.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:BlueClasses -->
+## `BlueClasses`
+
+`BlueClasses` - the class registry `blue.classes` holds, per blueexposure/BlueClasses.cpp.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/BlueClasses.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CcpDateTime -->
+## `CcpDateTime`
+
+`CcpDateTime` - a UTC calendar breakdown, all fields `uint16_t` in the donor.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CcpDateTime.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsBlueOS -->
+## `CjsBlueOS`
+
+Carbon's `BeOS`, as much of it as is honest: the clock and the pump.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsBlueOS.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsBluePaths -->
+## `CjsBluePaths`
+
+Browser paths service: res-file-index existence, with the file-system verbs still refused.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsBluePaths.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsScriptCallback -->
+## `CjsScriptCallback`
+
+A stored script callback that can be invoked later.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/CjsScriptCallback.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:CjsBlueEnumRegistry -->
 ## `CjsBlueEnumRegistry`
 
@@ -13,7 +73,137 @@ Combines Carbon enum registration and BlueEnum lookup in a dependency-free regis
 - Export: `@carbonenginejs/runtime/blue`
 - Source: `src/global/blue/enums/CjsBlueEnumRegistry.js`
 - Visibility: Public
-- Kind: Adapted Carbon port
+- Kind: Carbon
+
+<!-- class:IBlueClasses -->
+## `IBlueClasses`
+
+`IBlueClasses` - class registration and creation by name, per blueexposure/include/IBlueClasses.h.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueClasses.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueDynamicResourceConstructor -->
+## `IBlueDynamicResourceConstructor`
+
+`IBlueDynamicResourceConstructor` - builds a resource for a `dynamic:/<name>` path.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueDynamicResourceConstructor.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueEvents -->
+## `IBlueEvents`
+
+`IBlueEvents` - the fixed-rate tick callback, per blue/include/IBlueOS.h:229.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueEvents.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueOS -->
+## `IBlueOS`
+
+`IBlueOS` - the clock, the pump, error reporting and process control, per blue/include/IBlueOS.h.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueOS.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBluePaths -->
+## `IBluePaths`
+
+`IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBluePaths.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueResMan -->
+## `IBlueResMan`
+
+`IBlueResMan` - the resource manager a consumer sees, per blue/include/IBlueResMan.h.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueResMan.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueResManNotifications -->
+## `IBlueResManNotifications`
+
+`IBlueResManNotifications` - optional per-call notice of how GetResource answered.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IBlueResManNotifications.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ICatchupTicks -->
+## `ICatchupTicks`
+
+`ICatchupTicks` - a variable-rate ticker told when the frame ends, per blue/include/IBlueOS.h:256.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/ICatchupTicks.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IInitialize -->
+## `IInitialize`
+
+`IInitialize` - everything has been written; link it up.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IInitialize.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IListNotify -->
+## `IListNotify`
+
+`IListNotify` - the single observer a Blue list notifies.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IListNotify.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:INotify -->
+## `INotify`
+
+`INotify` - a mapped member of this instance was modified from outside.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/INotify.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ISimTimeRebaseNotify -->
+## `ISimTimeRebaseNotify`
+
+`ISimTimeRebaseNotify` - told when the simulation clock is moved, per blue/include/IBlueOS.h:267.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/ISimTimeRebaseNotify.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IVariableTicker -->
+## `IVariableTicker`
+
+`IVariableTicker` - the variable-rate tick callback, per blue/include/IBlueOS.h:246.
+
+- Export: `@carbonenginejs/runtime/blue`
+- Source: `src/global/blue/IVariableTicker.js`
+- Visibility: Public
+- Kind: Carbon
 
 <!-- class:CjsBackendCandidate -->
 ## `CjsBackendCandidate`
@@ -38,7 +228,7 @@ Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
 <!-- class:ITr2BoundingBox -->
 ## `ITr2BoundingBox`
 
-Dependency-free abstract contract for objects that publish ready world-space axis-aligned bounds, with a mixin for providers that already inherit a model base.
+Dependency-free contract for objects that publish a ready world-space axis-aligned bounding box.
 
 - Export: `@carbonenginejs/runtime/contracts`
 - Source: `src/global/contracts/ITr2BoundingBox.js`
@@ -53,285 +243,114 @@ Dependency-free contract for one node in a Trinity render graph.
 - Export: `@carbonenginejs/runtime/contracts`
 - Source: `src/global/contracts/ITr2RenderNode.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:IBlueResMan -->
-## `IBlueResMan`
-
-The resource manager as its consumers see it: the eighteen verbs Carbon publishes, behind which any implementation may sit.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueResMan.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IBlueResManNotifications -->
-## `IBlueResManNotifications`
-
-Optional per-call notice of whether a resource request was answered from the cache or newly created, with doing nothing as the declared default.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueResManNotifications.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IInitialize -->
-## `IInitialize`
-
-Carbon's once-per-object hook, called after a read has written every member. A class implementing it is asking to be told once at the end instead of once per member, and readers suppress `INotify` for it entirely.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IInitialize.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IListNotify -->
-## `IListNotify`
-
-The single observer a Blue list notifies, and the owner of the `BLUELISTEVENT` vocabulary. Every event fires after the mutation, and load and unload OR a flag on top, so mask before comparing.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IListNotify.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:INotify -->
-## `INotify`
-
-Carbon's single-method hook, called when something outside the object edits a member the class flagged for notification. One implementor per class; it is not the event emitter, and a reader calls it or `IInitialize` but never both.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/INotify.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IBlueDynamicResourceConstructor -->
-## `IBlueDynamicResourceConstructor`
-
-The factory a subsystem registers with the manager so a `dynamic:/<name>` path can be built without the manager knowing what it builds.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueDynamicResourceConstructor.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:CjsBluePaths -->
-## `CjsBluePaths`
-
-The paths service a browser can answer: res-file-index existence, with the verbs needing a real file system still refused.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/CjsBluePaths.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
+- Kind: Carbon
 
 <!-- class:BitmapDimensions -->
 ## `BitmapDimensions`
 
-Texture type, format, size and mip layout, with the mip arithmetic every create, map and copy is described in; the abstraction layer exports it as `Tr2BitmapDimensions`, Carbon's own alias.
+The dimensions, format and mip layout of a texture.
 
 - Export: `@carbonenginejs/runtime/imageio`
 - Source: `src/global/imageio/BitmapDimensions.js`
 - Visibility: Public
 - Kind: Carbon
 
-<!-- class:HostBitmap -->
-## `HostBitmap`
-
-A texture description and its CPU bytes: create, lay out, convert, filter and sample images between a reader and a texture upload, with Carbon's own quirks kept.
-
-- Export: `@carbonenginejs/runtime/imageio`
-- Source: `src/global/imageio/HostBitmap.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:ImageUtility -->
-## `ImageUtility`
-
-Single-pixel reads from BGRA, BGRX, R8, BC1 and BC3 data as packed 0xAARRGGBB, including two reproduced Carbon BC3 bugs.
-
-- Export: `@carbonenginejs/runtime/imageio`
-- Source: `src/global/imageio/ImageUtility.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:ImageIOResult -->
-## `ImageIOResult`
-
-An image operation's outcome: one of Carbon's fifteen ImageIO codes and an optional message.
-
-- Export: `@carbonenginejs/runtime/imageio`
-- Source: `src/global/imageio/ImageIOResult.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:LoadParameters -->
-## `LoadParameters`
-
-What an image read is asked for: the file name that picks the handler, mip skip and mip cap, and an optional requested pixel format the format converts to.
-
-- Export: `@carbonenginejs/runtime/imageio`
-- Source: `src/global/imageio/LoadParameters.js`
-- Visibility: Public
-- Kind: Adapted Carbon concept
-
 <!-- class:Cutout -->
 ## `Cutout`
 
-The normalized sub-rectangle an image file can declare; the whole image by default.
+`ImageIO::Cutout` - the normalized sub-rectangle a PNG can declare.
 
 - Export: `@carbonenginejs/runtime/imageio`
 - Source: `src/global/imageio/Cutout.js`
 - Visibility: Public
-- Kind: Faithful Carbon port
+- Kind: Carbon
+
+<!-- class:HostBitmap -->
+## `HostBitmap`
+
+`ImageIO::HostBitmap` - a texture description and its CPU bytes.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/HostBitmap.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ImageIOResult -->
+## `ImageIOResult`
+
+`ImageIO::Result` - an image operation's outcome.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/ImageIOResult.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ImageUtility -->
+## `ImageUtility`
+
+Carbon's `ImageUtility` namespace (imageio/ImageUtility.cpp).
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/ImageUtility.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:LoadParameters -->
+## `LoadParameters`
+
+`ImageIO::LoadParameters` - the parameters of one image read.
+
+- Export: `@carbonenginejs/runtime/imageio`
+- Source: `src/global/imageio/LoadParameters.js`
+- Visibility: Public
+- Kind: Carbon
 
 <!-- class:Metadata -->
 ## `Metadata`
 
-What an image file carries besides its pixels: the cutout and key/value strings.
+`ImageIO::Metadata` - what an image file carries besides its pixels.
 
 - Export: `@carbonenginejs/runtime/imageio`
 - Source: `src/global/imageio/Metadata.js`
 - Visibility: Public
-- Kind: Faithful Carbon port
+- Kind: Carbon
 
-<!-- class:BlueClasses -->
-## `BlueClasses`
+<!-- class:CjsEventEmitter -->
+## `CjsEventEmitter`
 
-The class registry `blue.classes` holds: registration and creation by class name over the same constructor table the schema fills, so one layer can build a class another owns without importing it.
+Minimal event emitter with lowercase exact-name dispatch.
 
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/BlueClasses.js`
-- Visibility: Public
-- Kind: Adapted Carbon concept
-
-<!-- class:IBlueClasses -->
-## `IBlueClasses`
-
-Class registration, lookup and creation by name, as consumers see Carbon's class registry.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueClasses.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IBluePaths -->
-## `IBluePaths`
-
-Search paths, resolution, directory contents, existence and streams, kept a separate service from the resource manager as Carbon keeps them.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBluePaths.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IBlueOS -->
-## `IBlueOS`
-
-The operating system as its consumers see it: the root clock, the pump that ticks every registrant, error reporting and process control. The error, startup-argument and process-control verbs are declared and refused.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueOS.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:CjsBlueOS -->
-## `CjsBlueOS`
-
-The half of `BeOS` a browser can answer honestly: the clock, the frame-time cache and the tick registry that drives `TriDevice.OnTick`.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/CjsBlueOS.js`
+- Export: `@carbonenginejs/runtime/model`
+- Source: `src/global/model/CjsEventEmitter.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CcpDateTime -->
-## `CcpDateTime`
+<!-- class:CjsModel -->
+## `CjsModel`
 
-A Blue timestamp broken into UTC calendar fields, laid out as Win32 SYSTEMTIME so that `dayOfWeek` sits between `month` and `day` and is output only.
+Shared base for schema-backed CarbonEngineJS runtime classes.
 
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/CcpDateTime.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:BeInfo -->
-## `BeInfo`
-
-Blue's clocks, framerate state and pump counters in one record, as `GetInfo` returns it. Only the time and pump fields are filled here.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/BeInfo.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IBlueEvents -->
-## `IBlueEvents`
-
-The fixed-rate tick callback. A class implements `OnTick` and hands itself to `RegisterForTicks`; Carbon maps this on nothing, so it is an implementation base and never a cast.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IBlueEvents.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:IVariableTicker -->
-## `IVariableTicker`
-
-The variable-rate tick callback, told how much time passed rather than what time it is.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/IVariableTicker.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:ICatchupTicks -->
-## `ICatchupTicks`
-
-A variable-rate ticker that is also told when every tick for its system in this frame has completed.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/ICatchupTicks.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:ISimTimeRebaseNotify -->
-## `ISimTimeRebaseNotify`
-
-Told when the simulation clock is MOVED rather than slowed, so anything holding a simulation timestamp can rebase it.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/ISimTimeRebaseNotify.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:CjsScriptCallback -->
-## `CjsScriptCallback`
-
-A stored script callback that can be invoked later.
-
-- Export: `@carbonenginejs/runtime/blue`
-- Source: `src/global/blue/CjsScriptCallback.js`
+- Export: `@carbonenginejs/runtime/model`
+- Source: `src/global/model/CjsModel.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsError -->
-## `CjsError`
+<!-- class:CjsPendingReference -->
+## `CjsPendingReference`
 
-Represents one structured operational failure with a stable CarbonEngineJS code.
+Represents one unresolved model reference during a single import operation.
 
-- Export: `@carbonenginejs/runtime/utils/errors`
-- Source: `src/global/utils/errors/CjsError.js`
-- Visibility: Public
+- Source: `src/global/model/CjsModel.js`
+- Visibility: Internal
 - Kind: CarbonEngineJS
 
-<!-- class:CjsCancellationError -->
-## `CjsCancellationError`
+<!-- class:CjsModelState -->
+## `CjsModelState`
 
-Represents one cancelled operation using Web-compatible abort identity.
+Per-model runtime state.
 
-- Export: `@carbonenginejs/runtime/utils/errors`
-- Source: `src/global/utils/errors/CjsCancellationError.js`
+- Export: `@carbonenginejs/runtime/model`
+- Source: `src/global/model/CjsModelState.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -395,45 +414,6 @@ Inspectable lifecycle state shared by participating runtime objects.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
-<!-- class:CjsEventEmitter -->
-## `CjsEventEmitter`
-
-Minimal event emitter with lowercase exact-name dispatch.
-
-- Export: `@carbonenginejs/runtime/model`
-- Source: `src/global/model/CjsEventEmitter.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsModel -->
-## `CjsModel`
-
-Shared base for schema-backed CarbonEngineJS runtime classes.
-
-- Export: `@carbonenginejs/runtime/model`
-- Source: `src/global/model/CjsModel.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsPendingReference -->
-## `CjsPendingReference`
-
-Represents one unresolved model reference during a single import operation.
-
-- Source: `src/global/model/CjsModel.js`
-- Visibility: Internal
-- Kind: CarbonEngineJS
-
-<!-- class:CjsModelState -->
-## `CjsModelState`
-
-Per-model runtime state.
-
-- Export: `@carbonenginejs/runtime/model`
-- Source: `src/global/model/CjsModelState.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:CjsSchema -->
 ## `CjsSchema`
 
@@ -441,5 +421,25 @@ Reusable schema/decorator metadata surface.
 
 - Export: `@carbonenginejs/runtime/schema`
 - Source: `src/global/schema/CjsSchema.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsCancellationError -->
+## `CjsCancellationError`
+
+Represents one cancelled operation using Web-compatible abort identity.
+
+- Export: `@carbonenginejs/runtime/utils/errors`
+- Source: `src/global/utils/errors/CjsCancellationError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsError -->
+## `CjsError`
+
+Represents one structured operational failure with a stable CarbonEngineJS code.
+
+- Export: `@carbonenginejs/runtime/utils/errors`
+- Source: `src/global/utils/errors/CjsError.js`
 - Visibility: Public
 - Kind: CarbonEngineJS

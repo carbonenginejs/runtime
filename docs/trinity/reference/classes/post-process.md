@@ -5,29 +5,6 @@ Scope: `@carbonenginejs/runtime/trinity/postProcess`
 Audience: Runtime and engine authors
 Summary: Catalogs maintained post-process graph settings and execution boundaries.
 
-<!-- class:Tr2SSAO -->
-## `Tr2SSAO`
-
-Owns Carbon's SSAO and CORTAO settings and their portable quality policy.
-
-Physical filtering remains an explicit engine obligation.
-
-- Export: `@carbonenginejs/runtime/trinity/postProcess`
-- Source: `src/trinity/postProcess/Tr2SSAO.js`
-- Visibility: Public
-- Kind: Carbon
-
-<!-- class:Tr2PostProcessRenderer -->
-## `Tr2PostProcessRenderer`
-
-Owns Carbon's post-process renderer quality and authored effect references.
-Physical execution remains an explicit engine obligation.
-
-- Export: `@carbonenginejs/runtime/trinity/postProcess`
-- Source: `src/trinity/postProcess/Tr2PostProcessRenderer.js`
-- Visibility: Public
-- Kind: Carbon
-
 <!-- class:BlurContext -->
 ## `BlurContext`
 
@@ -237,3 +214,23 @@ One post-process volume's contribution: a value and an enable flag per attribute
 - Source: `src/trinity/postProcess/Tr2PostProcessAttributes.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:Tr2PostProcessRenderer -->
+## `Tr2PostProcessRenderer`
+
+Carbon's post-process renderer settings and physical execution obligation.
+
+- Export: `@carbonenginejs/runtime/trinity/postProcess`
+- Source: `src/trinity/postProcess/Tr2PostProcessRenderer.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:Tr2SSAO -->
+## `Tr2SSAO`
+
+Carbon's authored SSAO settings and quality controls.
+
+- Export: `@carbonenginejs/runtime/trinity/postProcess`
+- Source: `src/trinity/postProcess/Tr2SSAO.js`
+- Visibility: Public
+- Kind: CarbonEngineJS

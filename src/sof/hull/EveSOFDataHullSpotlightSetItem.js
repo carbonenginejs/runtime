@@ -6,7 +6,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullSpotlightSetItem (eve) - generated from schema shapeHash 653439c4.... */
+/** Defines a faction-aware spotlight placement with group and booster policy, cone, flare, sprite, saturation, scale, and typed spotlight-light data. */
 @type.define({ className: "EveSOFDataHullSpotlightSetItem", family: "eve" })
 export class EveSOFDataHullSpotlightSetItem extends CjsModel
 {

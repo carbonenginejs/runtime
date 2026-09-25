@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
-/** EveSOFDataHullExtensionPlacementDistributionParentMatch (eve) - generated from schema shapeHash 2afff7b6.... */
+/** Matches a parent DNA descriptor as a condition for a hull-extension placement. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementDistributionParentMatch", family: "eve" })
 export class EveSOFDataHullExtensionPlacementDistributionParentMatch extends IEveSOFDataHullExtensionPlacementDistribution
 {

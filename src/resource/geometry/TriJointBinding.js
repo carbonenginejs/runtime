@@ -4,7 +4,7 @@ import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** TriJointBinding (resources) - maintained from schema shapeHash 8459bced.... */
+/** Data record mirroring Carbon's joint binding: a joint name with its oriented-bounding-box minimum and maximum. */
 export class TriJointBinding extends CjsModel
 {
 

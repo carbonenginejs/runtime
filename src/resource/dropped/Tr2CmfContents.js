@@ -4,7 +4,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2CmfContents dropped reference shape (resources), schema shapeHash e7125c76.... */
+/** Retained-only reference shape mirroring Carbon's native CMF section lifetime and decompression holder, superseded by `CjsCmfFormat`'s bounded section access and typed-array data. */
 export class Tr2CmfContents extends CjsModel
 {
 

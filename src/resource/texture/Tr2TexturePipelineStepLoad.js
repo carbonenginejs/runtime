@@ -3,7 +3,7 @@
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePipelineStepLoad (resources) - maintained from schema shapeHash 8f11e264.... */
+/** Persisted pipeline-step record mirroring Carbon's load step, holding the source texture path the pipeline reads. */
 export class Tr2TexturePipelineStepLoad extends CjsModel
 {
 

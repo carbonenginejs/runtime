@@ -4,7 +4,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2LoadPrepareFence dropped reference shape (resources), schema shapeHash ff002907.... */
+/** Retained-only reference shape mirroring Carbon's two-queue load/prepare fence helper, superseded by the snapshot-fence contract owned by `CjsResMan.Wait()`. */
 export class Tr2LoadPrepareFence extends CjsModel
 {
 

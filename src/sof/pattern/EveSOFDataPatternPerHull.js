@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataPatternTransform } from "./EveSOFDataPatternTransform.js";
 
-/** EveSOFDataPatternPerHull (eve) - generated from schema shapeHash ba16415a.... */
+/** Stores named per-hull transforms for both pattern layers plus flip, clear, and customization policy. */
 @type.define({ className: "EveSOFDataPatternPerHull", family: "eve" })
 export class EveSOFDataPatternPerHull extends CjsModel
 {

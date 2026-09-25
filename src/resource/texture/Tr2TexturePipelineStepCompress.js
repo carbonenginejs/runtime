@@ -3,7 +3,7 @@
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePipelineStepCompress (resources) - maintained from schema shapeHash 4d367f1c.... */
+/** Persisted pipeline-step record mirroring Carbon's compress step, naming the target pixel format and per-channel error weights. */
 export class Tr2TexturePipelineStepCompress extends CjsModel
 {
 

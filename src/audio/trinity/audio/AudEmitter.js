@@ -7,7 +7,7 @@ import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 import { ITr2AudEmitter } from "../trinityAudioApi/ITr2AudEmitter.js";
 
-/** AudEmitter (audio) - the concrete content-facing emitter (ITr2AudEmitter). */
+/** Represents the concrete content-facing audio emitter (ITr2AudEmitter) with authored placement and attenuation controls. */
 @type.define({ className: "AudEmitter", family: "audio" })
 @carbon.inherit(ITr2AudEmitter)
 export class AudEmitter extends AudGameObjResource

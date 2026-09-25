@@ -6,7 +6,7 @@ import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 import { Tr2Lod } from "#consts/trinity";
 
-/** EveSOFDataInstancedMesh (eve) - generated from schema shapeHash 24b147a0.... */
+/** Defines instanced-mesh geometry, shader, display and LOD policy, textures, and instance transforms. */
 @type.define({ className: "EveSOFDataInstancedMesh", family: "eve" })
 export class EveSOFDataInstancedMesh extends CjsModel
 {

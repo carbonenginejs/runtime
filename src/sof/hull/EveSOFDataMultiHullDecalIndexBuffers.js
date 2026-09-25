@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataMultiHullDecalIndexBuffers (eve) - generated from schema shapeHash 6887aa5b.... */
+/** Combines a geometry resource path with the decal index buffers used by a multi-hull decal. */
 @type.define({ className: "EveSOFDataMultiHullDecalIndexBuffers", family: "eve" })
 export class EveSOFDataMultiHullDecalIndexBuffers extends CjsModel
 {

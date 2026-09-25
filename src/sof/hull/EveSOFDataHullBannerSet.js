@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullBannerSet (eve) - generated from schema shapeHash a31a1da4.... */
+/** Groups banner items under a named visibility identity. */
 @type.define({ className: "EveSOFDataHullBannerSet", family: "eve" })
 export class EveSOFDataHullBannerSet extends CjsModel
 {

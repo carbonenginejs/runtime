@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriGeometryResSkeletonData (resources) - maintained from schema shapeHash 9cfcfdf1.... */
+/** Data record mirroring Carbon's geometry skeleton block, pairing a skeleton name with its joint list. */
 export class TriGeometryResSkeletonData extends CjsModel
 {
 

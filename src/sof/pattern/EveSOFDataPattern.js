@@ -6,7 +6,7 @@ import { EveSOFDataPatternLayer } from "./EveSOFDataPatternLayer.js";
 import { EveSOFDataPatternPerHull } from "./EveSOFDataPatternPerHull.js";
 import { ErrSOFProjectionNotFound } from "./ErrSOFProjectionNotFound.js";
 
-/** EveSOFDataPattern (eve) - generated from schema shapeHash f8a30280.... */
+/** Defines a named two-layer pattern with application groups, per-hull lookup, flip policy, and custom mask support. */
 @type.define({ className: "EveSOFDataPattern", family: "eve" })
 export class EveSOFDataPattern extends CjsModel
 {

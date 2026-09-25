@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataPatternMaterialOverride (eve) - generated from schema shapeHash ce565030.... */
+/** Defines a four-slot target mask for overriding pattern materials. */
 @type.define({ className: "EveSOFDataPatternMaterialOverride", family: "eve" })
 export class EveSOFDataPatternMaterialOverride extends CjsModel
 {

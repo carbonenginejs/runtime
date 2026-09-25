@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataTexture } from "./EveSOFDataTexture.js";
 
-/** EveSOFDataLogo (eve) - generated from schema shapeHash ce883998.... */
+/** Stores a logo texture set and supports assignment and composition with another logo value. */
 @type.define({ className: "EveSOFDataLogo", family: "eve" })
 export class EveSOFDataLogo extends CjsModel
 {

@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { blue } from "#blue";
 import { CjsModel } from "#model";
 
-/** EveSOFDataPatternLayerProperties (eve) - generated from schema shapeHash 3f25edf9.... */
+/** Stores a pattern layer's projection modes, area types, and material slots. */
 @type.define({ className: "EveSOFDataPatternLayerProperties", family: "eve" })
 export class EveSOFDataPatternLayerProperties extends CjsModel
 {

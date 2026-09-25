@@ -8,7 +8,7 @@ import { EveSOFDataLogoSet } from "../shared/EveSOFDataLogoSet.js";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullDecalSetItem (eve) - generated from schema shapeHash 246ca107.... */
+/** Defines a logo or usage decal with faction color, bone and transform placement, mesh and material data, and single- or multi-hull index buffers. */
 @type.define({ className: "EveSOFDataHullDecalSetItem", family: "eve" })
 export class EveSOFDataHullDecalSetItem extends CjsModel
 {

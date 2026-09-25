@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { quat } from "#math/quat";
 import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 
-/** EveSOFDataHullLightSetSpotLight (eve) - generated from schema shapeHash ce169196.... */
+/** Extends a hull light item with rotation and inner and outer cone angles for spot-light emission. */
 // Carbon derives this from EveSOFDataHullLightSetItem (EveSOFData.h:
 // 1422-1429) and maps the full base surface (including lightColor) plus
 // rotation, innerAngle, and outerAngle (EveSOFData_Blue.cpp:1096-1114).

@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataGenericDecalShader (eve) - generated from schema shapeHash ce334d46.... */
+/** Declares the parameters and textures accepted by a decal shader and builds its configuration record. */
 @type.define({ className: "EveSOFDataGenericDecalShader", family: "eve" })
 export class EveSOFDataGenericDecalShader extends CjsModel
 {

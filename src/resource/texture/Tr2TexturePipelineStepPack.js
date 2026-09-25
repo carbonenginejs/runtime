@@ -10,7 +10,7 @@ import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
 
-/** Tr2TexturePipelineStepPack (resources) - maintained from schema shapeHash 3efe48d4.... */
+/** Persisted pipeline-step record mirroring Carbon's pack step, naming the target pixel format and the four per-channel pack sources. */
 export class Tr2TexturePipelineStepPack extends CjsModel
 {
 

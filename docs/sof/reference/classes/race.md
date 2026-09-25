@@ -13,7 +13,7 @@ Names a race, stores its heat color, and combines race-level booster and damage 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/race/EveSOFDataRace.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:EveSOFDataRaceDamage -->
 ## `EveSOFDataRaceDamage`
@@ -23,4 +23,4 @@ Stores, combines, and assigns race-level armor and shield damage parameters and 
 - Export: `@carbonenginejs/runtime/sof`
 - Source: `src/sof/race/EveSOFDataRaceDamage.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon

@@ -6,7 +6,7 @@ import { EveSOFDNADescriptor } from "../shared/EveSOFDNADescriptor.js";
 import { EveSOFDataHullExtensionPlacementDistributionPlacement } from "./EveSOFDataHullExtensionPlacementDistributionPlacement.js";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullExtensionPlacement (eve) - generated from schema shapeHash 9f4b8ceb.... */
+/** Defines a concrete hull extension by DNA, locator, offset, distribution, conditions, and build flags. */
 @type.define({ className: "EveSOFDataHullExtensionPlacement", family: "eve" })
 export class EveSOFDataHullExtensionPlacement extends IEveSOFDataHullExtensionPlacement
 {

@@ -39,7 +39,7 @@ Retains the quarantined native CAS sharpening constants that renderer code repla
 <!-- class:EveInstancedMeshManager -->
 ## `EveInstancedMeshManager`
 
-Retains the quarantined native GPU-backed instancing manager; Carbon's scene owns it directly and it is not ported.
+Retains the quarantined native GPU-backed instancing manager whose realization belongs to an engine backend.
 
 - Source: `src/trinity/dropped/EveInstancedMeshManager.js`
 - Visibility: Internal
@@ -48,7 +48,7 @@ Retains the quarantined native GPU-backed instancing manager; Carbon's scene own
 <!-- class:EveSpherePinIndexTree -->
 ## `EveSpherePinIndexTree`
 
-Retains the quarantined pointer-backed spherical geometry index; it is not ported.
+Retains the quarantined pointer-backed spherical geometry index whose realization belongs to resource or engine spatial indexing.
 
 - Source: `src/trinity/dropped/EveSpherePinIndexTree.js`
 - Visibility: Internal

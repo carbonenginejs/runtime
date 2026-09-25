@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePipelineParams (resources) - maintained from schema shapeHash 36df8e41.... */
+/** Data record mirroring Carbon's texture-pipeline execution parameters, holding the maximum output width and height. */
 export class Tr2TexturePipelineParams extends CjsModel
 {
 

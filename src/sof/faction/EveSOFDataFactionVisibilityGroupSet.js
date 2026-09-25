@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataFactionVisibilityGroupSet (eve) - generated from schema shapeHash da3a6331.... */
+/** Defines faction visibility-group membership and object-visibility policy. */
 @type.define({ className: "EveSOFDataFactionVisibilityGroupSet", family: "eve" })
 export class EveSOFDataFactionVisibilityGroupSet extends CjsModel
 {

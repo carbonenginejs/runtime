@@ -4,7 +4,7 @@ import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** AudioGeometryResData (resources) - maintained from schema shapeHash 89e7ddb7.... */
+/** Data record mirroring Carbon's per-mesh audio-geometry block: an id plus the vertices, indices, and min/max bounds consumed by audio occlusion. */
 export class AudioGeometryResData extends CjsModel
 {
 

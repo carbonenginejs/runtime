@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataFactionSpotlightSet (eve) - generated from schema shapeHash 22a58aeb.... */
+/** Names a faction spotlight-set group and supplies its cone, sprite, and flare colors. */
 @type.define({ className: "EveSOFDataFactionSpotlightSet", family: "eve" })
 export class EveSOFDataFactionSpotlightSet extends CjsModel
 {

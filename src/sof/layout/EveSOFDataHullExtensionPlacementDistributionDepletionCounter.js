@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
-/** EveSOFDataHullExtensionPlacementDistributionDepletionCounter (eve) - generated from schema shapeHash a7fc1a95.... */
+/** Tests named depletion counters as a condition for a hull-extension placement. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementDistributionDepletionCounter", family: "eve" })
 export class EveSOFDataHullExtensionPlacementDistributionDepletionCounter extends IEveSOFDataHullExtensionPlacementDistribution
 {

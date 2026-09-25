@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullLightSetItem (eve) - generated from schema shapeHash 81e9a739.... */
+/** Provides the common faction, flag, bone, position, radius, brightness, and noise fields shared by point, textured-point, and spot lights. */
 @type.define({ className: "EveSOFDataHullLightSetItem", family: "eve" })
 export class EveSOFDataHullLightSetItem extends CjsModel
 {

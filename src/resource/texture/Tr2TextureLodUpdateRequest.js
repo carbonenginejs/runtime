@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Tr2TextureLodUpdateRequest (resources) - maintained from schema shapeHash 7cfa47a1.... */
+/** Data record mirroring Carbon's texture-LOD update request: the frame number, requested mip change, and RAM-cache flag. */
 export class Tr2TextureLodUpdateRequest extends CjsModel
 {
 

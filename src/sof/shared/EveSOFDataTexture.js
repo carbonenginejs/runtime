@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataTexture (eve) - generated from schema shapeHash b8067c29.... */
+/** Stores a named texture binding and supports assignment and composition. */
 @type.define({ className: "EveSOFDataTexture", family: "eve" })
 export class EveSOFDataTexture extends CjsModel
 {

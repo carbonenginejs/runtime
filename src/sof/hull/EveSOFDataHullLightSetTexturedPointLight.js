@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { EveSOFDataHullLightSetItem } from "./EveSOFDataHullLightSetItem.js";
 
-/** EveSOFDataHullLightSetTexturedPointLight (eve) - generated from schema shapeHash daa6d349.... */
+/** Extends a hull light item with a texture resource while hiding the inherited light-color schema field used by other light types. */
 // Carbon derives this from EveSOFDataHullLightSetItem (EveSOFData.h:
 // 1410-1417) and re-maps the base surface WITHOUT lightColor, adding
 // texturePath (EveSOFData_Blue.cpp:1076-1094): a textured point light takes

@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataPointLightAttachment (eve) - generated from schema shapeHash e6f58a3b.... */
+/** Defines point-light placement, rotation, intensity, saturation, scale, noise, and profile data for an attachment. */
 @type.define({ className: "EveSOFDataPointLightAttachment", family: "eve" })
 export class EveSOFDataPointLightAttachment extends CjsModel
 {

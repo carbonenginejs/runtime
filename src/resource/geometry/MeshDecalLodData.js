@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** MeshDecalLodData (resources) - maintained from schema shapeHash 932b2966.... */
+/** Data record mirroring Carbon's per-LOD decal range, holding the start index and primitive count for one decal LOD. */
 export class MeshDecalLodData extends CjsModel
 {
 

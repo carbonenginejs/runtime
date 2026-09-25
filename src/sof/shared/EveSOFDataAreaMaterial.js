@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.js";
 
-/** EveSOFDataAreaMaterial (eve) - generated from schema shapeHash 19be099b.... */
+/** Chooses a faction color and four material names for an area and supports assignment and override composition. */
 @type.define({ className: "EveSOFDataAreaMaterial", family: "eve" })
 export class EveSOFDataAreaMaterial extends CjsModel
 {

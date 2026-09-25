@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullController (eve) - generated from schema shapeHash ef1e599d.... */
+/** Names a controller resource path and its build filter, deriving the controller name from the path. */
 @type.define({ className: "EveSOFDataHullController", family: "eve" })
 export class EveSOFDataHullController extends CjsModel
 {

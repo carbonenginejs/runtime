@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataGenericSwarm (eve) - generated from schema shapeHash 8b492eb6.... */
+/** Stores swarm anchor, speed, cohesion, alignment, separation, formation, wander, and deceleration settings. */
 @type.define({ className: "EveSOFDataGenericSwarm", family: "eve" })
 export class EveSOFDataGenericSwarm extends CjsModel
 {

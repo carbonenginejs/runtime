@@ -5,7 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { AudGameObjResource } from "./AudGameObjResource.js";
 
-/** AudParameter (audio) - generated from schema shapeHash daad2621.... */
+/** Binds an authored real-time parameter value to its owning audio game object. */
 @type.define({ className: "AudParameter", family: "audio" })
 export class AudParameter extends CjsModel
 {

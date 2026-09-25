@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullBannerLight (eve) - generated from schema shapeHash a442806d.... */
+/** Stores the brightness, radius, noise, saturation, and octave tuning for a banner light. */
 @type.define({ className: "EveSOFDataHullBannerLight", family: "eve" })
 export class EveSOFDataHullBannerLight extends CjsModel
 {

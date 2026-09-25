@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataPatternApplicationGroup (eve) - generated from schema shapeHash 4e2e103e.... */
+/** Names per-layer pattern properties and provides searchable per-hull projections. */
 @type.define({ className: "EveSOFDataPatternApplicationGroup", family: "eve" })
 export class EveSOFDataPatternApplicationGroup extends CjsModel
 {

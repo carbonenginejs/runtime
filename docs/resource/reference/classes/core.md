@@ -5,75 +5,94 @@ Scope: `@carbonenginejs/runtime/resource` classes under `src/`, `src/resource`, 
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for the resource manager, registry, resource, source, and format/probe base classes.
 
-<!-- class:CjsMotherLode -->
-## `CjsMotherLode`
+<!-- class:CjsFormatRoute -->
+## `CjsFormatRoute`
 
-Strong, deterministic resource registry that owns canonical path/variant identities and evicts entries only through explicit ownership removal, inactivity sweeps, or recorded-byte cache trimming, replacing Carbon's weak-live/strong-cache ownership transition.
+One registered route: an extension, the format that reads it, the reader to call, and the output to ask for.
 
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/CjsMotherLode.js`
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsFormatStore.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
-<!-- class:CjsResMan -->
-## `CjsResMan`
+<!-- class:CjsFormatStore -->
+## `CjsFormatStore`
 
-GPU-free resource manager that resolves paths through registered sources and formats, publishes canonical resources into a `CjsMotherLode` registry under exact-owner generation guards, and drives the main/background work queues, read-operation caching, reload staging, and automatic purge policy.
+The link between a resource and the formats that can populate it.
 
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/CjsResMan.js`
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsFormatStore.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
-
-<!-- class:CjsResManWorkQueue -->
-## `CjsResManWorkQueue`
-
-Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, concurrency, cancellation, and sync/async completion while queue policy stays in the manager.
-
-- Export: None
-- Source: `src/global/blue/CjsResManWorkQueue.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsResource -->
-## `CjsResource`
-
-Base runtime resource handle that carries normalized path/extension/requirement identity, load state, and an attached CPU payload, with manager lifecycle callbacks supplied by `CjsResMan` after canonical insertion.
-
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/CjsResource.js`
-- Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
 <!-- class:CjsLoadingObject -->
 ## `CjsLoadingObject`
 
 Resource-compatible handler whose public loading result is the constructed object produced by an extension route.
 
-- Export: `@carbonenginejs/runtime/resource`
+- Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/CjsLoadingObject.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
+
+<!-- class:CjsMotherLode -->
+## `CjsMotherLode`
+
+Strong, deterministic JavaScript resource registry.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsMotherLode.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsResMan -->
+## `CjsResMan`
+
+GPU-free resource manager that resolves paths through registered sources and formats, publishes canonical resources into a `CjsMotherLode` registry under exact-owner generation guards, and drives the main/background work queues, read-operation caching, reload staging, and automatic purge policy.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsResMan.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsResManFetchProvider -->
+## `CjsResManFetchProvider`
+
+`CjsResMan` provider that fetches an already-resolved URL on the caller thread or through the resource worker.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsResManFetchProvider.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsResManWorkQueue -->
+## `CjsResManWorkQueue`
+
+Small FIFO executor used inside `CjsResMan` that tracks item ids, pause state, concurrency, cancellation, and sync/async completion while queue policy stays in the manager.
+
+- Source: `src/global/blue/CjsResManWorkQueue.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsResource -->
+## `CjsResource`
+
+ResMan-owned runtime resource.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/CjsResource.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
 
 <!-- class:CjsResManMainThreadLoader -->
 ## `CjsResManMainThreadLoader`
 
 Direct execution strategy that reads through a structural source and invokes registered format facades on the caller thread.
 
-- Export: `@carbonenginejs/runtime/resource`
+- Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/worker/CjsResManMainThreadLoader.js`
 - Visibility: Public
-- Kind: Adapted ccpwgl loader strategy
-
-<!-- class:CjsResManWorkerLoader -->
-## `CjsResManWorkerLoader`
-
-Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.
-
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/worker/CjsResManWorkerLoader.js`
-- Visibility: Public
-- Kind: Adapted ccpwgl loader strategy
+- Kind: CarbonEngineJS
 
 <!-- class:CjsResManWorker -->
 ## `CjsResManWorker`
@@ -83,167 +102,17 @@ Static browser-worker host that owns its operation/message vocabulary, executes 
 - Export: `@carbonenginejs/runtime/resource/worker`
 - Source: `src/global/blue/worker/CjsResManWorker.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
 
-<!-- class:CjsResManFetchProvider -->
-## `CjsResManFetchProvider`
+<!-- class:CjsResManWorkerLoader -->
+## `CjsResManWorkerLoader`
 
-`CjsResMan` provider that fetches an already-resolved URL on the caller thread or through the resource worker.
+Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.
 
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/CjsResManFetchProvider.js`
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/worker/CjsResManWorkerLoader.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsBlueReader -->
-## `CjsBlueReader`
-
-Shared output and hydration backend for Blue persistence readers that owns common payload/runtime targets, reference emission, hydration adapter phases, reports, finalization, and schema-descriptor helpers, while transports keep framing and member decoding.
-
-- Export: None
-- Source: `src/resource/format/CjsBlueReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:ImageIO -->
-## `ImageIO`
-
-Carbon's image-handler registry: picks an image format by extension and reads into, or saves from, a HostBitmap.
-
-- Export: `@carbonenginejs/runtime/resource/imageio`
-- Source: `src/resource/imageio/ImageIO.js`
-- Visibility: Public
-- Kind: Faithful Carbon port
-
-<!-- class:CjsImageFormat -->
-## `CjsImageFormat`
-
-The base of every image format: gives each one Carbon's handler table as Format.carbon and converts a native read to a requested pixel format.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsImageFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsGeometryFormat -->
-## `CjsGeometryFormat`
-
-The base of every geometry format (gr2, cmf, fbx, obj, stl, gltf): the geometry media type and the node-class registry (`SetClasses`, `SetClass`, `GetClass`, `HasClass`) that hydrates a read into caller-supplied constructors.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsGeometryFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFormat -->
-## `CjsFormat`
-
-Decorator-free base for every format facade. It owns normalized statics, boolean `is()` routing, structural `inspect()`, synchronous advisory `getSupport()`, exact asynchronous `verifySupport()`, and shared instance option handling.
-
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/resource/format/CjsFormat.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsReader -->
-## `CjsReader`
-
-Internal base for construction-bound readers that are created for one source and dropped after use, relying on garbage collection instead of explicit dispose/clear cleanup.
-
-- Export: None
-- Source: `src/resource/format/CjsReader.js`
-- Visibility: Internal
-- Kind: Internal implementation class
-
-<!-- class:CjsFormatRoute -->
-## `CjsFormatRoute`
-
-Captures one registered extension, content probe, reader, and output-capability route for format dispatch.
-
-- Export: `None`
-- Source: `src/global/blue/CjsFormatStore.js`
-- Visibility: Internal
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFormatStore -->
-## `CjsFormatStore`
-
-Registers ordered content-aware format routes without coupling resource classes to concrete format implementations.
-
-- Export: `@carbonenginejs/runtime/resource`
-- Source: `src/global/blue/CjsFormatStore.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFormatReadError -->
-## `CjsFormatReadError`
-
-Error raised when shared binary format bytes cannot be decoded safely.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsFormatError.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFormatRangeError -->
-## `CjsFormatRangeError`
-
-Error raised when a read would run past the end of its source, or resolve an out-of-range string-table offset.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsFormatError.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsFormatWriteError -->
-## `CjsFormatWriteError`
-
-Error raised when shared binary format bytes cannot be encoded safely.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsFormatError.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsByteReader -->
-## `CjsByteReader`
-
-Little-endian cursor over resource bytes, with optional string-table arena resolution.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsByteReader.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsBitReader -->
-## `CjsBitReader`
-
-LSB-first bit cursor over a byte range, shared by the Wwise Vorbis, Ogg packet, FBX deflate, and BC7 block readers.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsBitReader.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsByteWriter -->
-## `CjsByteWriter`
-
-Growable little-endian append cursor with reserve-and-patch support.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsByteWriter.js`
-- Visibility: Public
-- Kind: Original CarbonEngineJS class
-
-<!-- class:CjsStringTable -->
-## `CjsStringTable`
-
-Carbon's compiled-effect string table: a deduplicated blob arena whose offsets are assigned by a bytewise sort rather than by insertion order.
-
-- Export: `@carbonenginejs/runtime/resource/format`
-- Source: `src/resource/format/CjsStringTable.js`
-- Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: CarbonEngineJS
 
 <!-- class:CjsCarbonEffectBodyReader -->
 ## `CjsCarbonEffectBodyReader`
@@ -253,17 +122,17 @@ Plain byte cursor over one description blob, carrying the Carbon effect error cl
 - Export: `@carbonenginejs/runtime/resource/format`
 - Source: `src/resource/format/carbonEffect/CjsCarbonEffectReader.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:CjsCarbonEffectReader -->
 ## `CjsCarbonEffectReader`
 
-Reader for Carbon's compiled-effect container at version 15.
+Reader for Carbon's compiled-effect container, versions 8 through 15.
 
 - Export: `@carbonenginejs/runtime/resource/format`
 - Source: `src/resource/format/carbonEffect/CjsCarbonEffectReader.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:CjsCarbonEffectWriter -->
 ## `CjsCarbonEffectWriter`
@@ -273,14 +142,143 @@ Builder for a Carbon compiled-effect container.
 - Export: `@carbonenginejs/runtime/resource/format`
 - Source: `src/resource/format/carbonEffect/CjsCarbonEffectWriter.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
+
+<!-- class:CjsBitReader -->
+## `CjsBitReader`
+
+LSB-first bit cursor over a byte range.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsBitReader.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsBlueReader -->
+## `CjsBlueReader`
+
+Shared output and hydration backend for Blue persistence readers.
+
+- Source: `src/resource/format/CjsBlueReader.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsByteReader -->
+## `CjsByteReader`
+
+Little-endian cursor over resource bytes, with optional string-table arena resolution.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsByteReader.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsByteWriter -->
+## `CjsByteWriter`
+
+Growable little-endian append cursor with reserve-and-patch support.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsByteWriter.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFormat -->
+## `CjsFormat`
+
+Decorator-free base for every concrete format facade.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/format/CjsFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFormatRangeError -->
+## `CjsFormatRangeError`
+
+Error raised when a read would run past the end of its source.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFormatReadError -->
+## `CjsFormatReadError`
+
+Error raised when shared binary format bytes cannot be decoded safely.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsFormatWriteError -->
+## `CjsFormatWriteError`
+
+Error raised when shared binary format bytes cannot be encoded safely.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsFormatError.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsGeometryFormat -->
+## `CjsGeometryFormat`
+
+The base of every geometry format (gr2, cmf, fbx, obj, stl, gltf): the geometry media type and the node-class registry that lets a caller hydrate a read into its own constructors instead of plain JSON.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsGeometryFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsImageFormat -->
+## `CjsImageFormat`
+
+The base of every image format: it gives each subclass Carbon's image-handler table and the step that turns a native read into the format a caller asked for.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsImageFormat.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsReader -->
+## `CjsReader`
+
+Internal base for construction-bound readers.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsReader.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
 
 <!-- class:CjsResourceProbe -->
 ## `CjsResourceProbe`
 
-Optional plain record normalizing a format support report. It records recognition, the selected output, advisory or verified support, declared output capabilities, metadata, warnings, and structured errors, and exposes `canUseSelected()` and `canUse(output)`.
+A format support report, normalized.
 
 - Export: `@carbonenginejs/runtime/resource`
 - Source: `src/resource/format/CjsResourceProbe.js`
 - Visibility: Public
-- Kind: Original CarbonEngineJS class
+- Kind: CarbonEngineJS
+
+<!-- class:CjsStringTable -->
+## `CjsStringTable`
+
+Carbon's compiled-effect string table: a deduplicated blob arena whose offsets are assigned by a bytewise sort rather than by insertion order.
+
+- Export: `@carbonenginejs/runtime/resource/format`
+- Source: `src/resource/format/CjsStringTable.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ImageIO -->
+## `ImageIO`
+
+Carbon's `ImageIO` registry and entry points (imageio/Tr2ImageHandler.cpp).
+
+- Export: `@carbonenginejs/runtime/resource/imageio`
+- Source: `src/resource/imageio/ImageIO.js`
+- Visibility: Public
+- Kind: Carbon

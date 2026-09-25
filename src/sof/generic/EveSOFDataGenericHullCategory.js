@@ -5,7 +5,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ReflectionMode } from "#consts/graphics";
 
-/** EveSOFDataGenericHullCategory (eve) - generated from schema shapeHash 8a182e5f.... */
+/** Names a generic hull category and records its reflection mode. */
 @type.define({ className: "EveSOFDataGenericHullCategory", family: "eve" })
 export class EveSOFDataGenericHullCategory extends CjsModel
 {

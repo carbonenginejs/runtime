@@ -4,7 +4,7 @@ import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { HostBitmap } from "#imageio";
 import { CjsModel } from "#model";
 
-/** Tr2TexturePipelineStepLimitSize (resources) - maintained from schema shapeHash 9e97efed.... */
+/** Persisted pipeline-step record mirroring Carbon's size-limit step, holding the maximum width and height the bitmap may keep. */
 export class Tr2TexturePipelineStepLimitSize extends CjsModel
 {
 

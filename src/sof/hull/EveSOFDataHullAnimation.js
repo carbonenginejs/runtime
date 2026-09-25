@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullAnimation (eve) - generated from schema shapeHash 67955e12.... */
+/** Identifies a hull animation and records its rotation, translation, timing, and rate endpoints. */
 @type.define({ className: "EveSOFDataHullAnimation", family: "eve" })
 export class EveSOFDataHullAnimation extends CjsModel
 {

@@ -13,7 +13,7 @@ Browser adaptation of CarbonEngine's main-window state and input boundary.
 - Export: `@carbonenginejs/runtime/input`
 - Source: `src/input/Tr2MainWindow.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:Tr2MainWindowState -->
 ## `Tr2MainWindowState`
@@ -23,7 +23,7 @@ Carbon main-window state record for mode, size, position, and presentation setti
 - Export: `@carbonenginejs/runtime/input`
 - Source: `src/input/Tr2MainWindowState.js`
 - Visibility: Public
-- Kind: Faithful Carbon port
+- Kind: Carbon
 
 <!-- class:Tr2MouseCursor -->
 ## `Tr2MouseCursor`
@@ -33,7 +33,7 @@ Browser adaptation of CarbonEngine's mouse cursor using CSS cursor values.
 - Export: `@carbonenginejs/runtime/input`
 - Source: `src/input/Tr2MouseCursor.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon
 
 <!-- class:UIScancode -->
 ## `UIScancode`
@@ -43,4 +43,4 @@ Carbon-compatible keyboard scancode record with browser code mapping.
 - Export: `@carbonenginejs/runtime/input`
 - Source: `src/input/UIScancode.js`
 - Visibility: Public
-- Kind: Adapted Carbon concept
+- Kind: Carbon

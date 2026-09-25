@@ -6,7 +6,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullSpriteLineSetItem (eve) - generated from schema shapeHash 975dc141.... */
+/** Defines a faction-aware sprite line with bone-relative transform, spacing, circle mode, blink, scale, falloff, intensity, saturation, and point-light data. */
 @type.define({ className: "EveSOFDataHullSpriteLineSetItem", family: "eve" })
 export class EveSOFDataHullSpriteLineSetItem extends CjsModel
 {

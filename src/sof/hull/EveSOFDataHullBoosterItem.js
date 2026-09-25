@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataHullBoosterItem (eve) - generated from schema shapeHash 8b21bdcd.... */
+/** Defines a booster transform, functionality, trail, atlas, and light scale. */
 @type.define({ className: "EveSOFDataHullBoosterItem", family: "eve" })
 export class EveSOFDataHullBoosterItem extends CjsModel
 {

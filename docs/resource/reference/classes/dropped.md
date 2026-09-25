@@ -10,57 +10,51 @@ Summary: Provides one-sentence purpose descriptors for retained-only Carbon refe
 
 Retained-only reference shape mirroring Carbon's CMF vertex-element pointer-lookup helper, superseded by the JavaScript CMF format's channel decoding.
 
-- Export: None
 - Source: `src/resource/dropped/CmfVertexReader.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
+
+<!-- class:FrameDeleter -->
+## `FrameDeleter`
+
+Carbon's unique_ptr frame deleter; dropped with FrameOwner, because GC reclaims frames.
+
+- Source: `src/resource/dropped/FrameDeleter.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:FrameOwner -->
+## `FrameOwner`
+
+Carbon's frame-pool owner interface; dropped because GC reclaims frames.
+
+- Source: `src/resource/dropped/FrameOwner.js`
+- Visibility: Internal
+- Kind: Carbon dropped
 
 <!-- class:Tr2AsyncSave -->
 ## `Tr2AsyncSave`
 
 Retained-only reference shape mirroring Carbon's abstract prepare/save callback base, superseded by promise-based format `Write`/`WriteAsync` operations and resource-level save-status compatibility methods.
 
-- Export: None
 - Source: `src/resource/dropped/Tr2AsyncSave.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:Tr2CmfContents -->
 ## `Tr2CmfContents`
 
 Retained-only reference shape mirroring Carbon's native CMF section lifetime and decompression holder, superseded by `CjsCmfFormat`'s bounded section access and typed-array data.
 
-- Export: None
 - Source: `src/resource/dropped/Tr2CmfContents.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped
 
 <!-- class:Tr2LoadPrepareFence -->
 ## `Tr2LoadPrepareFence`
 
 Retained-only reference shape mirroring Carbon's two-queue load/prepare fence helper, superseded by the snapshot-fence contract owned by `CjsResMan.Wait()`.
 
-- Export: None
 - Source: `src/resource/dropped/Tr2LoadPrepareFence.js`
 - Visibility: Internal
-- Kind: Faithful Carbon port
-
-<!-- class:FrameDeleter -->
-## `FrameDeleter`
-
-Carbon's unique_ptr frame deleter, which returns a finished video or audio frame to its pool or deletes it, dropped because JavaScript reclaims frames without that decision.
-
-- Export: None
-- Source: `src/resource/dropped/FrameDeleter.js`
-- Visibility: Internal
-- Kind: Faithful Carbon port
-
-<!-- class:FrameOwner -->
-## `FrameOwner`
-
-Carbon's frame-pool owner interface, whose one ReleaseFrame method gives a frame back to the decoder that made it, dropped because a JavaScript decoder that recycles buffers keeps its own free list.
-
-- Export: None
-- Source: `src/resource/dropped/FrameOwner.js`
-- Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped

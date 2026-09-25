@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriMorphTargetGeometryConstants (resources) - maintained from schema shapeHash d650628c.... */
+/** Data record mirroring Carbon's morph-target geometry constants: vertex-buffer stride, position/tangent offsets and types, and vertex count. */
 export class TriMorphTargetGeometryConstants extends CjsModel
 {
 

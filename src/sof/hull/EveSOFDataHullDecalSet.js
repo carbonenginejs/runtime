@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullDecalSet (eve) - generated from schema shapeHash 6c3dc4d1.... */
+/** Groups named decal items and their visibility policy. */
 @type.define({ className: "EveSOFDataHullDecalSet", family: "eve" })
 export class EveSOFDataHullDecalSet extends CjsModel
 {

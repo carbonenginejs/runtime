@@ -4,7 +4,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2AudioStretchBase } from "./Tr2AudioStretchBase.js";
 
-/** Tr2AudioStretchAuto (trinityAudio) - generated from schema shapeHash 66b9fbdd.... */
+/** Adds authored impact, outburst, and stretch event triggers to a three-emitter audio stretch. */
 @type.define({ className: "Tr2AudioStretchAuto", family: "trinityAudio" })
 export class Tr2AudioStretchAuto extends Tr2AudioStretchBase
 {

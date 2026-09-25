@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataMaterial (eve) - generated from schema shapeHash 044816c1.... */
+/** Stores named material parameters and assigns them to a target with an optional parameter prefix. */
 @type.define({ className: "EveSOFDataMaterial", family: "eve" })
 export class EveSOFDataMaterial extends CjsModel
 {

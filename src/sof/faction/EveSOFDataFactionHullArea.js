@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataFactionHullArea (eve) - generated from schema shapeHash 31000f7c.... */
+/** Stores named faction hull-area parameters and provides case-insensitive lookup. */
 @type.define({ className: "EveSOFDataFactionHullArea", family: "eve" })
 export class EveSOFDataFactionHullArea extends CjsModel
 {

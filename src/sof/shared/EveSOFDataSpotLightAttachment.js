@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataSpotLightAttachment (eve) - generated from schema shapeHash ace3b68a.... */
+/** Defines spotlight placement, intensity, saturation, cone angles, scales, noise, and profile data for an attachment. */
 @type.define({ className: "EveSOFDataSpotLightAttachment", family: "eve" })
 export class EveSOFDataSpotLightAttachment extends CjsModel
 {

@@ -8,7 +8,7 @@ export const UI_GAME_OBJ_ID = 2;
 
 const FLOAT_MAX = 3.4028234663852886e38;
 
-/** AudUIPlayer (audio) - fixed UI emitter with dialogue position and finish callbacks. */
+/** Provides the fixed Carbon UI emitter with dialogue position and completion callbacks. */
 @type.define({ className: "AudUIPlayer", family: "audio" })
 export class AudUIPlayer extends AudEmitter
 {

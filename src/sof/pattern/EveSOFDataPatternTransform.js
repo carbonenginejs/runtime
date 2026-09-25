@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataPatternTransform (eve) - generated from schema shapeHash 67e6771a.... */
+/** Stores pattern position, scale, rotation, and mirror settings and composes their transformation matrix. */
 @type.define({ className: "EveSOFDataPatternTransform", family: "eve" })
 export class EveSOFDataPatternTransform extends CjsModel
 {

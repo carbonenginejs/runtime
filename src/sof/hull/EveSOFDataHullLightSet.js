@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullLightSet (eve) - generated from schema shapeHash aab0bc34.... */
+/** Groups named hull light items and their visibility policy. */
 @type.define({ className: "EveSOFDataHullLightSet", family: "eve" })
 export class EveSOFDataHullLightSet extends CjsModel
 {

@@ -4,7 +4,7 @@ import { type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** Tr2AudGeometryData (trinityAudioApi) - generated from schema shapeHash 92764465.... */
+/** Stores vertices, indices, and bounds for Carbon audio geometry data. */
 @type.define({ className: "Tr2AudGeometryData", family: "trinityAudioApi" })
 export class Tr2AudGeometryData extends CjsModel
 {

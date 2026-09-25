@@ -6,7 +6,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataHullHazeSetItem (eve) - generated from schema shapeHash 87e1b0e0.... */
+/** Defines a faction-aware haze item with bone-relative transform, brightness, falloff, saturation, booster influence, and point-light data. */
 @type.define({ className: "EveSOFDataHullHazeSetItem", family: "eve" })
 export class EveSOFDataHullHazeSetItem extends CjsModel
 {

@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataGenericDamage (eve) - generated from schema shapeHash 7d59fc8f.... */
+/** Defines generic armor particle and color settings together with shield geometry, flicker, and shader configuration. */
 @type.define({ className: "EveSOFDataGenericDamage", family: "eve" })
 export class EveSOFDataGenericDamage extends CjsModel
 {

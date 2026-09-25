@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** AudEventKey (audio) - generated from schema shapeHash 54ef4422.... */
+/** Stores one authored event name and time for an audio event curve. */
 @type.define({ className: "AudEventKey", family: "audio" })
 export class AudEventKey extends CjsModel
 {

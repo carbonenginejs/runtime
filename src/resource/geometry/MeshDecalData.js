@@ -9,7 +9,7 @@ import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math";
 
-/** MeshDecalData (resources) - maintained from schema shapeHash edd09cef.... */
+/** Data record mirroring Carbon's per-mesh decal block: an index-buffer allocation reference, a LOD mask, and the per-LOD decal ranges. */
 export class MeshDecalData extends CjsModel
 {
 

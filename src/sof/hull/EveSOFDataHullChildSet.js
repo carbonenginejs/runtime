@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullChildSet (eve) - generated from schema shapeHash 7e44fd77.... */
+/** Groups child-resource placements under a named visibility identity. */
 @type.define({ className: "EveSOFDataHullChildSet", family: "eve" })
 export class EveSOFDataHullChildSet extends CjsModel
 {

@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataGenericShader (eve) - generated from schema shapeHash 54379592.... */
+/** Defines a generic shader's parameters, textures, defaults, transparency and depth policy, and generated configuration. */
 @type.define({ className: "EveSOFDataGenericShader", family: "eve" })
 export class EveSOFDataGenericShader extends CjsModel
 {

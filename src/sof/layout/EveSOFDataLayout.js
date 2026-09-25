@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataLayout (eve) - generated from schema shapeHash 8fb7e831.... */
+/** Defines a named, seeded top-level layout with placements, counters, and randomization policy. */
 @type.define({ className: "EveSOFDataLayout", family: "eve" })
 export class EveSOFDataLayout extends CjsModel
 {

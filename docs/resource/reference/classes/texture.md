@@ -8,9 +8,9 @@ Summary: Provides one-sentence purpose descriptors for the texture-array, textur
 <!-- class:SolidColorTextureConstructor -->
 ## `SolidColorTextureConstructor`
 
-Carbon's `dynamic:/color` resource constructor, which builds the 1x1 `TriTextureRes` a `dynamic:/color/r,g,b,a` path names and is registered on a manager through `RegisterSolidColorTexture`.
+Carbon's `SolidColorTextureConstructor`: builds the texture a `dynamic:/color/<query>` path names.
 
 - Export: `@carbonenginejs/runtime/resource`
 - Source: `src/resource/texture/SolidColorTextureConstructor.js`
 - Visibility: Public
-- Kind: Faithful Carbon port
+- Kind: Carbon

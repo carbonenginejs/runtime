@@ -4,7 +4,7 @@ import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 
-/** TriGeometryResAreaData (resources) - maintained from schema shapeHash a859a2c5.... */
+/** Data record mirroring Carbon's geometry area block: a named draw range with bounds, joint bindings, skinning/morph flags, and ray-tracing structure references. */
 export class TriGeometryResAreaData extends CjsModel
 {
 

@@ -6,7 +6,7 @@ import { EveSOFDataFactionColorSet } from "../faction/EveSOFDataFactionColorSet.
 import { EveSOFDataBooster } from "../shared/EveSOFDataBooster.js";
 import { EveSOFDataRaceDamage } from "./EveSOFDataRaceDamage.js";
 
-/** EveSOFDataRace (eve) - generated from schema shapeHash f7cdba2b.... */
+/** Names a race, stores its heat color, and combines race-level booster and damage configuration. */
 @type.define({ className: "EveSOFDataRace", family: "eve" })
 export class EveSOFDataRace extends CjsModel
 {

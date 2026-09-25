@@ -5,52 +5,47 @@ Scope: `@carbonenginejs/runtime` global classes under `src/global/dropped`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for donor classes that are written but deliberately not live, each carrying the reason it was dropped.
 
+<!-- class:BlueResManRegistrar -->
+## `BlueResManRegistrar`
+
+Carbon's file-extension registrar; dropped because a module body registers directly.
+
+- Source: `src/global/dropped/BlueResManRegistrar.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:BlueScriptCallbackStatus -->
+## `BlueScriptCallbackStatus`
+
+The call outcome Carbon returns from every script callback invocation; dropped because JavaScript propagates the exception itself.
+
+- Source: `src/global/dropped/BlueScriptCallbackStatus.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
 <!-- class:EnumRegistration -->
 ## `EnumRegistration`
 
 Records the enum template registration responsibilities absorbed by CjsBlueEnumRegistry.
 
-- Export: None
 - Source: `src/global/dropped/EnumRegistration.js`
 - Visibility: Internal
-- Kind: Dropped Carbon helper
+- Kind: Carbon dropped
 
 <!-- class:EnumTypeRegistration -->
 ## `EnumTypeRegistration`
 
 Records the static enum registrar absorbed by CjsBlueEnumRegistry.RegisterEnum.
 
-- Export: None
 - Source: `src/global/dropped/EnumTypeRegistration.js`
 - Visibility: Internal
-- Kind: Dropped Carbon helper
+- Kind: Carbon dropped
 
 <!-- class:PyBlueEnumObject -->
 ## `PyBlueEnumObject`
 
 Records the Python BlueEnum wrapper absorbed by CjsBlueEnumRegistry and plain enum objects.
 
-- Export: None
 - Source: `src/global/dropped/PyBlueEnumObject.js`
 - Visibility: Internal
-- Kind: Dropped Carbon helper
-
-<!-- class:BlueResManRegistrar -->
-## `BlueResManRegistrar`
-
-Retained-only reference shape mirroring Carbon's file-extension registrar, a constructor-only class whose sole purpose is to run a registration when a translation unit loads; dropped because a JavaScript module runs its own body on import, so the equivalent is the registration call itself.
-
-- Export: None
-- Source: `src/global/dropped/BlueResManRegistrar.js`
-- Visibility: Internal
-- Kind: Faithful Carbon port
-
-<!-- class:BlueScriptCallbackStatus -->
-## `BlueScriptCallbackStatus`
-
-Retained-only reference shape mirroring Carbon's script-callback result, which carries OK/CALL_ERROR/EXCEPTION and the captured Python exception so a C++ caller can mute or report it; dropped because JavaScript shares one exception mechanism across that boundary and a throwing callback propagates by itself.
-
-- Export: None
-- Source: `src/global/dropped/BlueScriptCallbackStatus.js`
-- Visibility: Internal
-- Kind: Faithful Carbon port
+- Kind: Carbon dropped

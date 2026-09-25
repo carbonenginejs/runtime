@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataVisibilityGroup (eve) - generated from schema shapeHash a4e27d72.... */
+/** Names and describes a generic visibility group. */
 @type.define({ className: "EveSOFDataVisibilityGroup", family: "eve" })
 export class EveSOFDataVisibilityGroup extends CjsModel
 {

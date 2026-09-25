@@ -6,7 +6,7 @@ import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 
-/** EveSOFDataTransform (eve) - generated from schema shapeHash a3d40133.... */
+/** Stores a bone-relative scale, rotation, and translation and composes them into a transformation matrix. */
 @type.define({ className: "EveSOFDataTransform", family: "eve" })
 export class EveSOFDataTransform extends CjsModel
 {

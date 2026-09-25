@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { blue, EnumRegistrationType } from "#blue";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullHazeSet (eve) - generated from schema shapeHash 3da83fe6.... */
+/** Groups named haze items with spherical-type, visibility, and skinning policy. */
 @type.define({ className: "EveSOFDataHullHazeSet", family: "eve" })
 export class EveSOFDataHullHazeSet extends CjsModel
 {

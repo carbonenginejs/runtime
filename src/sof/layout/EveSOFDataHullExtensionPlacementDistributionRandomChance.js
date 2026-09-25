@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { IEveSOFDataHullExtensionPlacementDistribution } from "./IEveSOFDataHullExtensionPlacementDistribution.js";
 
-/** EveSOFDataHullExtensionPlacementDistributionRandomChance (eve) - generated from schema shapeHash 0c93607e.... */
+/** Applies a probability threshold as a condition for a hull-extension placement. */
 @type.define({ className: "EveSOFDataHullExtensionPlacementDistributionRandomChance", family: "eve" })
 export class EveSOFDataHullExtensionPlacementDistributionRandomChance extends IEveSOFDataHullExtensionPlacementDistribution
 {

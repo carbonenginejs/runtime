@@ -31,7 +31,7 @@ function DefaultSettings()
   };
 }
 
-/** SoundPrioritization (audio) - audio culling engine: weight, sort, keep the top set awake. */
+/** Ranks audio game objects by weight and keeps the configured highest-priority set awake. */
 @type.define({ className: "SoundPrioritization", family: "audio" })
 export class SoundPrioritization extends CjsModel
 {

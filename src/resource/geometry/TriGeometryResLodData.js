@@ -3,7 +3,7 @@
 import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** TriGeometryResLodData (resources) - maintained from schema shapeHash 92d97df7.... */
+/** Data record mirroring Carbon's per-LOD geometry block: mesh reference, naming and screen-size selection data, vertex/primitive counts, UV densities, areas, and buffer-allocation references. */
 export class TriGeometryResLodData extends CjsModel
 {
 

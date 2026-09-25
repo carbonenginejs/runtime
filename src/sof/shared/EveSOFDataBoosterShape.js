@@ -4,7 +4,7 @@ import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 
-/** EveSOFDataBoosterShape (eve) - generated from schema shapeHash 17bbd0bf.... */
+/** Combines the noise, frequency, speed, and color parameters that define a booster shape. */
 @type.define({ className: "EveSOFDataBoosterShape", family: "eve" })
 export class EveSOFDataBoosterShape extends CjsModel
 {

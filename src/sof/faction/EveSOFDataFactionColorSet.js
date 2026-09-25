@@ -8,7 +8,7 @@ import { vec4 } from "#math/vec4";
 import { ErrSOFFactionColorSetTypeUnknown } from "./ErrSOFFactionColorSetTypeUnknown.js";
 import { ErrSOFFactionColorSetTypeNotFound } from "./ErrSOFFactionColorSetTypeNotFound.js";
 
-/** EveSOFDataFactionColorSet (eve) - generated from schema shapeHash 715e3a12.... */
+/** Stores a faction's semantic color palette and resolves enum-selected colors into vectors. */
 @type.define({ className: "EveSOFDataFactionColorSet", family: "eve" })
 export class EveSOFDataFactionColorSet extends CjsModel
 {

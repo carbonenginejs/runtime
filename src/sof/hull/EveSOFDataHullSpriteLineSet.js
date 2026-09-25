@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataHullSpriteLineSet (eve) - generated from schema shapeHash b00a68a1.... */
+/** Groups named sprite-line items with visibility and skinning policy. */
 @type.define({ className: "EveSOFDataHullSpriteLineSet", family: "eve" })
 export class EveSOFDataHullSpriteLineSet extends CjsModel
 {

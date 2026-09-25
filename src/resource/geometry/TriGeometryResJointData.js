@@ -4,7 +4,7 @@ import { CjsSchema, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 
-/** TriGeometryResJointData (resources) - maintained from schema shapeHash 9b31acb5.... */
+/** Data record mirroring Carbon's geometry joint entry: a joint name, parent-joint index, and inverse world transform. */
 export class TriGeometryResJointData extends CjsModel
 {
 

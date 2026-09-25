@@ -3,7 +3,7 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDNADescriptor (eve) - generated from schema shapeHash db1ef974.... */
+/** Stores the hull, faction, race, pattern, and layout selections encoded by one parsed SOF DNA value. */
 @type.define({ className: "EveSOFDNADescriptor", family: "eve" })
 export class EveSOFDNADescriptor extends CjsModel
 {

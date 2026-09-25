@@ -3,7 +3,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** EveSOFDataDecalIndexBuffer (eve) - generated from schema shapeHash 0c215c06.... */
+/** Stores an unsigned decal index buffer with helpers for appending indices and exposing its contents. */
 @type.define({ className: "EveSOFDataDecalIndexBuffer", family: "eve" })
 export class EveSOFDataDecalIndexBuffer extends CjsModel
 {
