@@ -4022,7 +4022,6 @@ export class EveSOF extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("SOF cannot import Trinity, so the Tr2Effect walk is delegated to the turret's ApplySofTurretMaterial; the faction value resolution is Carbon's.")
   ApplyFactionToTurretShader(turret, genericData, factionData)
   {
     turret.ApplySofTurretMaterial(parameterName => findTurretFactionParameter(

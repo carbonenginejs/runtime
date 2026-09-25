@@ -93,9 +93,11 @@ export class Tr2DataTextureManager extends CjsModel
    * Unregisters the variable and the device resource and drops the texture:
    * the destructor (cpp:22-25) plus the base's unregistration
    * (Tr2DeviceResource.cpp:15-18).
+   *
+   * JavaScript has no destructor, so the owner releases explicitly, as
+   * Tr2GpuResourcePool handles do.
    */
   @impl.custom
-  @impl.reason("JavaScript has no destructor, so the owner releases explicitly, as Tr2GpuResourcePool handles do.")
   Release()
   {
     Tr2VariableStore.GlobalStore().UnregisterVariable(IMPACT_SHIELD_DATA_MAP);
@@ -114,10 +116,13 @@ export class Tr2DataTextureManager extends CjsModel
   /**
    * Prepares the device half (Carbon Tr2DeviceResource::PrepareResources,
    * Tr2DeviceResource.cpp:21-33).
+   *
+   * Carbon skips creation during a device reset via
+   * Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context
+   * with no device refuses Create instead.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon skips creation during a device reset via Tr2Renderer::IsResourceCreationAllowed, which has no JS counterpart; a context with no device refuses Create instead.")
   PrepareResources()
   {
     return this.OnPrepareResources();
@@ -126,10 +131,12 @@ export class Tr2DataTextureManager extends CjsModel
   /**
    * Creates the zero-filled RGBA32F data texture and announces it, whether or
    * not creation succeeded (Carbon cpp:62-77).
+   *
+   * Carbon creates in place on the by-value Tr2TextureAL; JS textures come from the
+   * render-context factory and are installed on the reference, which broadcasts.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon creates in place on the by-value Tr2TextureAL; JS textures come from the render-context factory and are installed on the reference, which broadcasts.")
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -150,10 +157,14 @@ export class Tr2DataTextureManager extends CjsModel
     return texture !== null;
   }
 
-  /** Drops the data texture and announces it (Carbon cpp:40-45). */
+  /**
+   * Drops the data texture and announces it (Carbon cpp:40-45).
+   *
+   * Carbon resets the by-value texture to an empty Tr2TextureAL; JS destroys the
+   * texture and installs null.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon resets the by-value texture to an empty Tr2TextureAL; JS destroys the texture and installs null.")
   ReleaseResources(_storage)
   {
     const previous = this._dataTexture.GetTexture();
@@ -232,6 +243,10 @@ export class Tr2DataTextureManager extends CjsModel
   /**
    * Queues a copy of one block for the next Update and returns its id, or -1
    * for a non-positive priority (Carbon cpp:175-203).
+   *
+   * Carbon reads flat Vector4 arrays; the JS owners keep columns of vec4s, which
+   * are copied here into Carbon's flat header-then-data[x*H + y] order.
+   *
    * @param {Float32Array[]} header - textureHeight vec4s, one per texture row
    * @param {Number} blockLength - data columns, not counting the header
    * @param {Float32Array[][]} data - blockLength columns of textureHeight vec4s
@@ -239,7 +254,6 @@ export class Tr2DataTextureManager extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon reads flat Vector4 arrays; the JS owners keep columns of vec4s, which are copied here into Carbon's flat header-then-data[x*H + y] order.")
   RequestBlockData(header, blockLength, data, priority)
   {
     if (priority <= 0) return -1;

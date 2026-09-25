@@ -1060,11 +1060,14 @@ export class EveChildTurret extends EveChildMesh
    * Applies resolved SOF faction values to every opaque area material of this
    * turret's mesh - the Trinity half of Carbon
    * EveSOF::SetupChildTurretMaterialFromFaction (EveSOF.cpp:4271-4298).
+   *
+   * The combined runtime keeps SOF independently importable, so the mesh-area walk
+   * of Carbon's EveSOF method sits on the turret that owns the mesh.
+   *
    * @param {Function} resolveParameter - parameter name -> vec4 or null
    * @returns {Boolean} false when there is no mesh or no opaque area
    */
   @impl.custom
-  @impl.reason("The combined runtime keeps SOF independently importable, so the mesh-area walk of Carbon's EveSOF method sits on the turret that owns the mesh.")
   ApplySofTurretMaterial(resolveParameter)
   {
     const mesh = this.GetMesh();

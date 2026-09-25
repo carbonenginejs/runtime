@@ -33,10 +33,12 @@ export class Tr2TextureReference extends CjsModel
   /**
    * Returns the referenced AL texture, or null while none is installed
    * (Carbon Tr2TextureReference.cpp:11-14).
+   *
+   * Carbon returns a pointer to its by-value member; JS textures are factory-made
+   * objects, so this returns the installed texture or null.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon returns a pointer to its by-value member; JS textures are factory-made objects, so this returns the installed texture or null.")
   GetTexture()
   {
     return this.texture;
@@ -45,12 +47,16 @@ export class Tr2TextureReference extends CjsModel
   /**
    * Registers a texture-change listener (Carbon's OnTextureChange event,
    * cpp:16-19).
+   *
+   * Carbon returns its event object for the caller to attach to; this takes the
+   * listener and returns the unsubscribe, matching Tr2DepthStencil and
+   * Tr2TextureArray.
+   *
    * @param {Function} listener - called with this reference after each change
    * @returns {Function} unsubscribe
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon returns its event object for the caller to attach to; this takes the listener and returns the unsubscribe, matching Tr2DepthStencil and Tr2TextureArray.")
   OnTextureChange(listener)
   {
     this._listeners.push(listener);
@@ -67,10 +73,13 @@ export class Tr2TextureReference extends CjsModel
    * then calling OnTextureChange().Broadcast(). Named after Carbon's
    * Tr2TransientTextureReference::SetTexture (cpp:122-126), which does exactly
    * this for a borrowed texture.
+   *
+   * Carbon owners mutate the by-value Tr2TextureAL in place; JS AL textures are
+   * factory-made, so the owner installs the new one here.
+   *
    * @param {Object|null} texture - a Tr2TextureAL from the render context factory
    */
   @impl.custom
-  @impl.reason("Carbon owners mutate the by-value Tr2TextureAL in place; JS AL textures are factory-made, so the owner installs the new one here.")
   SetTexture(texture)
   {
     this.texture = texture ?? null;

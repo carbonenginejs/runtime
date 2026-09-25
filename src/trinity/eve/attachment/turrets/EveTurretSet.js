@@ -490,7 +490,6 @@ export class EveTurretSet extends EveEntity
    * @returns {Boolean} true
    */
   @impl.custom
-  @impl.reason("The combined runtime keeps SOF independently importable, so the Tr2Effect half of Carbon's EveSOF helper lives beside the turret classes that own the effects.")
   static applyFactionToTurretShader(effect, resolveParameter)
   {
     if (effect.constParameters.length)
