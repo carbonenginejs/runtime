@@ -30,6 +30,7 @@ import { TriTextureParameter } from "./parameter/TriTextureParameter.js";
 import { TriVariableParameter } from "./parameter/TriVariableParameter.js";
 import { TriVector4 } from "./parameter/TriVector4.js";
 import { CjsParameter } from "./parameter/CjsParameter.js";
+import { CjsTextureArrayBridge } from "./parameter/CjsTextureArrayBridge.js";
 import { ResourceFlags } from "./parameter/ITr2EffectValue.js";
 import { Tr2VariableStore } from "../core/variable/Tr2VariableStore.js";
 
@@ -587,7 +588,12 @@ export class Tr2Effect extends Tr2Material
 
       if (!name) continue;
 
-      let value = this.GetResourceByName(name) ?? null;
+      // A browser container merged several maps into this register; the
+      // bridge binds the texture made from the named members (not Carbon, see
+      // CjsTextureArrayBridge).
+      let value = resource.arrayLayers
+        ? new CjsTextureArrayBridge(this, resource.arrayLayers, resource.packed)
+        : this.GetResourceByName(name) ?? null;
 
       if (value)
       {

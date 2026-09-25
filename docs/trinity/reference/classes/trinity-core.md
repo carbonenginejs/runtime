@@ -1233,6 +1233,15 @@ Shared base for the shader parameter models: destination-reroute plumbing, effec
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
+<!-- class:CjsTextureArrayBridge -->
+## `CjsTextureArrayBridge`
+
+Binds a register a browser container merged several maps into: reads the named member parameters' current paths and binds the `dynamic:/texturearray` or `dynamic:/texturepack` texture made from them.
+
+- Source: `src/trinity/shader/parameter/CjsTextureArrayBridge.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
 <!-- class:CjsVectorParameter -->
 ## `CjsVectorParameter`
 
