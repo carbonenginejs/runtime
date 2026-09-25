@@ -19,8 +19,8 @@ vertex-channel conversion, and caller-class hydration. `CjsResMan` owns resource
 caching and publication; engine packages own GPU realization.
 
 Supported section compression is None, Oodle1, and the in-project clean-room
-BitKnit2 decoder. Licensing and migration history are recorded in
-[format provenance](provenance.md).
+BitKnit2 decoder (BitKnit2 is RAD Game Tools' format; only the decoder is
+ours). Licensing is recorded in `format-notices/gr2/`.
 
 ## Import and basic use
 
@@ -286,4 +286,3 @@ consume that depth repeatedly.
 ## Related documentation
 
 - [Format subpaths](README.md)
-- [Format ownership and provenance](provenance.md)

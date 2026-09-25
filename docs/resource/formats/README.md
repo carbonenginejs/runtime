@@ -146,12 +146,11 @@ and TGA are exact.
 Detailed pages: [CMF, FBX, and glTF geometry interchange](geometry-interchange.md),
 [Granny GR2 and GSF](gr2.md),
 FSD and cFSD,
-[data-only pickle protocol 0](pickle.md),
-[client `.static` container identification](static.md),
-[schema-bound containers](schemabound.md),
-[Wwise soundbanks and media](wwise.md), and STL export. Ownership
-history, retained snapshots, and donor licensing are recorded in
-[provenance.md](provenance.md).
+data-only pickle protocol 0,
+client `.static` container identification,
+schema-bound containers,
+Wwise soundbanks and media, and STL export. Donor licensing is recorded
+in `format-notices/`.
 
 `CjsPngFormat.inspect(bytes)` is the one-shot, decode-free PNG inspection
 entry point. In addition to the header and bounded chunk summary, it exposes
@@ -226,4 +225,3 @@ decoders are implemented in-project with no codec package.
 
 ## Related documentation
 
-- [Format ownership and fork provenance](provenance.md)

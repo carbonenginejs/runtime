@@ -439,4 +439,3 @@ observable graph order.
 
 ## Related documentation
 
-- [Implementation status and audits](reference/implementation-status.md)
