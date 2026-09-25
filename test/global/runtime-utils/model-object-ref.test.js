@@ -175,3 +175,44 @@ test("the model brand is not exported as a field value", () =>
     assert.deepEqual(Object.keys(values), [ "name" ]);
     assert.equal(Object.getOwnPropertySymbols(values).length, 0);
 });
+
+// A registered class need not be a CjsModel - resources and AL classes are
+// not - and the Black reader hands over live instances of them, as
+// Tr2InstancedMesh.instanceGeometryResource receives a TriGeometryRes. Carbon
+// assigns that pointer; the value path used to rebuild it as the declared
+// interface and threw "is not a CjsModel".
+class RegisteredResource
+{
+    path = "";
+}
+
+CjsSchema.define(RegisteredResource, { className: "ObjectRefTestResource", family: "test" });
+
+class ResourceInterface {}
+
+CjsSchema.define(ResourceInterface, { className: "IObjectRefTestResource", family: "test" });
+
+class ResourceHolder extends CjsModel
+{
+    resource = null;
+
+    resources = [];
+}
+
+CjsSchema.define(ResourceHolder, { className: "ObjectRefTestResourceHolder", family: "test" });
+CjsSchema.defineField(ResourceHolder, "resource", "type", { kind: "objectRef", className: "IObjectRefTestResource" });
+CjsSchema.defineField(ResourceHolder, "resource", "edit", { persist: true });
+CjsSchema.defineField(ResourceHolder, "resources", "type", { kind: "list", itemType: "IObjectRefTestResource" });
+CjsSchema.defineField(ResourceHolder, "resources", "edit", { persist: true });
+
+test("a live instance of a registered non-model class is assigned, not rebuilt", () =>
+{
+    const resource = new RegisteredResource();
+    const other = new RegisteredResource();
+    const holder = new ResourceHolder();
+
+    holder.SetValues({ resource, resources: [ other ] });
+
+    assert.equal(holder.resource, resource);
+    assert.equal(holder.resources[0], other);
+});

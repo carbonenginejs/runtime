@@ -1524,6 +1524,14 @@ export function importSourceValue(value, field = null, options = {})
     // but a silent copy into a plain object further down.
     if (isModelInstance(value)) return value;
 
+    const schemaType = getSchemaType(options.ownerConstructor, field?.name);
+
+    // An instance of any registered class is a live object too - the Black
+    // reader builds a TriGeometryRes for Tr2InstancedMesh's IROOTPTR
+    // instanceGeometryResource - and Carbon's reader assigns that pointer.
+    // Only a struct position copies.
+    if (schemaType?.kind !== "struct" && isRegisteredInstance(value)) return value;
+
     if (isReferenceValue(value))
     {
         const resolved = resolveIncomingReference(value, options);
@@ -1534,7 +1542,6 @@ export function importSourceValue(value, field = null, options = {})
         return resolved;
     }
 
-    const schemaType = getSchemaType(options.ownerConstructor, field?.name);
     const declaredClassName = getSchemaClassName(schemaType, options);
     if (value && typeof value === "object" && !isModelInstance(value) && !Array.isArray(value) && !ArrayBuffer.isView(value))
     {
@@ -1564,7 +1571,7 @@ export function importSourceValue(value, field = null, options = {})
                 result.push(importReferenceInto(item, options, result, i));
                 continue;
             }
-            if (!item || typeof item !== "object" || item instanceof CjsModel || ArrayBuffer.isView(item))
+            if (!item || typeof item !== "object" || item instanceof CjsModel || isRegisteredInstance(item) || ArrayBuffer.isView(item))
             {
                 result.push(importSourceValue(item, null, options));
                 continue;
@@ -1712,6 +1719,14 @@ function getSchemaClassName(schemaType, options = {})
             : null;
     }
     return null;
+}
+
+/** Whether a value is an instance of a class registered with the schema, not a plain values object. */
+function isRegisteredInstance(value)
+{
+    if (!value || typeof value !== "object" || Array.isArray(value) || ArrayBuffer.isView(value)) return false;
+    const Constructor = value.constructor;
+    return typeof Constructor === "function" && Constructor !== Object && CjsSchema.getClassName(Constructor) !== null;
 }
 
 function createModelValue(className, values, options)
