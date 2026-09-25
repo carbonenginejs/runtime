@@ -121,7 +121,6 @@ test("ClearUav and buffer copies refuse, as Carbon's stub does", () =>
   const al = ready();
 
   assert.equal(al.ClearUav(), false);
-  assert.equal(al.CopyRenderTarget(), false);
 });
 
 test("draws are counted, so a headless frame can be asserted", () =>
@@ -136,19 +135,6 @@ test("draws are counted, so a headless frame can be asserted", () =>
   al.DrawInstanced();
 
   assert.equal(al.GetDrawCount(), 2);
-});
-
-test("a target is only valid once a device exists", () =>
-{
-  const al = new Tr2RenderContextALStub();
-  const target = { id: "colour" };
-
-  assert.equal(al.IsRenderTargetValid(target), false);
-
-  al.CreateDevice();
-
-  assert.equal(al.IsRenderTargetValid(target), true);
-  assert.equal(al.IsRenderTargetValid(null), false);
 });
 
 test("Destroy clears the bindings and drops validity", () =>

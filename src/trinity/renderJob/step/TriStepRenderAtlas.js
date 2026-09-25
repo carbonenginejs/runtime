@@ -82,13 +82,14 @@ export class TriStepRenderAtlas extends TriRenderStep
   }
 
   /**
-   * Draws the bound texture atlas for inspection.
+   * Draws the bound texture atlas for inspection. Not ported: Carbon draws it
+   * itself from Tr2TextureAtlas's free and used areas, which are unported.
    */
   @carbon.method
-  @impl.adapted
-  Execute(_realTime, _simTime, renderContext)
+  @impl.notImplemented
+  Execute(_realTime, _simTime, _renderContext)
   {
-    if (this.atlas) renderContext.RenderAtlas(this);
+    if (this.atlas) throw new Error("TriStepRenderAtlas.Execute is not ported yet; it needs Tr2TextureAtlas GetFreeAreas/GetUsedAreas/GetMargin.");
     return TriRenderStep.Result.RS_OK;
   }
 

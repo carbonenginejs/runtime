@@ -706,44 +706,6 @@ export class Tr2RenderContextALStub
   }
 
   /**
-   * REFUSED, as Carbon refuses `CopySubBuffer` (`cpp:97-101`).
-   *
-   * @returns {boolean} False, always.
-   */
-  CopyRenderTarget()
-  {
-    return false;
-  }
-
-  /**
-   * A render target is valid once a device exists and something is bound.
-   *
-   * @param {object} renderTarget The target to test.
-   * @returns {boolean} Whether it can be drawn to.
-   */
-  IsRenderTargetValid(renderTarget)
-  {
-    return this._isValid && !!renderTarget;
-  }
-
-  /**
-   * Resolving a multisampled target has no meaning without a GPU, and Carbon's
-   * stub carries no multisample path, so this reports success and does nothing.
-   *
-   * @returns {boolean} True.
-   */
-  ResolveRenderTarget()
-  {
-    return true;
-  }
-
-  /** @see ResolveRenderTarget */
-  GenerateMipMaps()
-  {
-    return true;
-  }
-
-  /**
    * Opens the device's scene. Carbon's stub accepts it and does nothing
    * (`cpp:267-270`).
    *

@@ -3,6 +3,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { Failed } from "#trinityal";
 
 
 /**
@@ -34,22 +35,24 @@ export class TriStepResolve extends TriRenderStep
   }
 
   /**
-   * Skips silently with RS_OK when either operand is missing or the render context
-   * reports it invalid; otherwise resolves and, when requested, regenerates the
-   * destination's mip maps. An explicit false from the resolve is RS_FAILED.
+   * Carbon Execute (TriStepResolve.cpp:13-33): resolve the source's texture
+   * into the destination's and, when asked, regenerate the destination's mips.
+   * Missing or invalid operands are a no-op; a failed resolve is RS_FAILED.
    */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    if (!this.source || !this.destination) return TriRenderJob.StepResult.RS_OK;
-    if (!renderContext.IsRenderTargetValid(this.source) || !renderContext.IsRenderTargetValid(this.destination))
+    if (!this.source || !this.destination
+      || !this.source.GetRenderTarget()?.IsValid() || !this.destination.GetRenderTarget()?.IsValid())
     {
       return TriRenderJob.StepResult.RS_OK;
     }
-    const resolved = renderContext.ResolveRenderTarget(this.source, this.destination);
-    if (resolved === false) return TriRenderJob.StepResult.RS_FAILED;
-    if (this.generateMipmap) renderContext.GenerateMipMaps(this.destination);
+    if (Failed(this.source.GetRenderTarget().Resolve(this.destination.GetRenderTarget(), renderContext)))
+    {
+      return TriRenderJob.StepResult.RS_FAILED;
+    }
+    if (this.generateMipmap) this.destination.GetRenderTarget().GenerateMipMaps(renderContext);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

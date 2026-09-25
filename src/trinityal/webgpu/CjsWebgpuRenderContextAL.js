@@ -860,17 +860,6 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Whether a target can be drawn to.
-   *
-   * @param {object} renderTarget The target.
-   * @returns {boolean} Whether it is usable.
-   */
-  IsRenderTargetValid(renderTarget)
-  {
-    return this._isValid && !!renderTarget;
-  }
-
-  /**
    * Sets the viewport following draws use.
    *
    * @param {object} viewport `{ x, y, width, height }`.

@@ -189,13 +189,17 @@ export class TriLineSet extends CjsModel
     this.vertices.length = 0;
   }
 
-  /** Carbon method Render -> RenderFromScript (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon method Render -> RenderFromScript (MAP_METHOD_AND_WRAP). Carbon
+   * draws the line set's own vertex buffer through its own effect; that body
+   * is not ported, so a set with vertices refuses by name.
+   */
   @carbon.method
-  @impl.adapted
-  Render(renderContext = null)
+  @impl.notImplemented
+  Render(_renderContext = null)
   {
-    if (!this.vertices.length || !renderContext?.DrawLineSet) return false;
-    return renderContext.DrawLineSet(this);
+    if (!this.vertices.length) return false;
+    throw new Error("TriLineSet.Render is not ported yet; it needs the line set's vertex buffer and effect.");
   }
 
   /** Carbon method SetCurrentColor (MAP_METHOD_AND_WRAP). */

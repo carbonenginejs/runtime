@@ -6,18 +6,10 @@
 //    SetRenderState/...) mirrors the backend AL context classes and CALLS the
 //    installed backend, as Carbon does.
 //
-//    IT USED TO RECORD INTENTS, and that mechanism is gone (2026-09-06). The
-//    recording existed because "the engine does device work" was read as the
-//    trinityal/webgpu PACKAGE rather than the abstraction layer, so a queue was
-//    invented to carry work across a boundary Carbon does not have.
-//
 //    THE BACKEND IS NEVER ABSENT. Carbon's context INHERITS Tr2RenderContextAL,
 //    a compile-time platform typedef, so it cannot be missing one; ours
 //    defaults the field to the stub for the same guarantee. A bare context is
 //    therefore headless, not broken - see the field's own comment.
-//
-//    Four verbs refuse outright rather than pretend: DrawLineSet, RenderAtlas,
-//    RenderLineGraphs and RenderDebug are unported and name what they need.
 // 2. The cached view state (SetViewTransform -> GetViewTransform/
 //    GetInverseViewTransform/GetViewPosition) relocates Carbon's Tr2Renderer
 //    STATICS onto this context so frame consumers read it via the threaded
@@ -79,12 +71,6 @@ export class Tr2RenderContext extends CjsModel
    * Tr2RenderContext()` then behaves exactly as Carbon compiled against its
    * stub backend does: real render-target and depth-stencil stacks, real sizes,
    * draws counted, nothing drawn, and `IsValid()` false until `CreateDevice`.
-   *
-   * TWO EARLIER ANSWERS HERE WERE BOTH INVENTED. The first was to RECORD every
-   * verb into an intent queue when no backend was installed; the second, while
-   * removing that, was to THROW. Carbon does neither, because Carbon never
-   * reaches the state. Deleting a behaviour still means choosing what stands in
-   * its place, and that choice needs a citation like any other.
    */
   #al = new Tr2RenderContextALStub();
 
@@ -199,8 +185,7 @@ export class Tr2RenderContext extends CjsModel
    * Installs the abstraction-layer backend this context drives.
    *
    * `Tr2RenderContextALStub` gives a headless context that still carries
-   * correct data; an engine installs its own. Passing null restores the
-   * recording fallback.
+   * correct data; an engine installs its own. Passing null restores the stub.
    *
    * @param {object|null} al The backend.
    * @returns {object|null} The backend now installed.
@@ -392,15 +377,12 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Binds a render target to a slot and records a set-render-target intent for
-   * the engine to realize.
+   * Binds a render target to a slot on the backend.
    */
   SetRenderTarget(slot, renderTarget, slice = 0)
   {
     // THE BACKEND OWNS THE BINDING, as Carbon's do (m_boundRenderTarget), and
-    // GetRenderTarget below reads it back from there. The context kept a
-    // duplicate map while it was also a recorder; two copies of one binding is
-    // one too many, and the local one was the stale half.
+    // GetRenderTarget below reads it back from there.
     return this.#requireAL("SetRenderTarget").SetRenderTarget(Number(slot) >>> 0, renderTarget, Number(slice) >>> 0);
   }
 
@@ -469,16 +451,15 @@ export class Tr2RenderContext extends CjsModel
    *
    * THE BACKEND OWNS THE BINDING WHEN THERE IS ONE. Carbon has no split to
    * bridge here - its `Tr2RenderContext` IS `Tr2RenderContextBase` plus
-   * `Tr2RenderContextAL`, so there is one piece of state. Ours composes the two,
-   * and a getter that answered from the recording path while the backend held
-   * the real binding would report a target nothing is drawing to.
+   * `Tr2RenderContextAL`, so there is one piece of state; ours composes the
+   * two and reads the binding from the backend.
    */
   GetRenderTarget(slot = 0)
   {
     return this.#requireAL("GetRenderTarget").GetRenderTarget(slot);
   }
 
-  /** Binds the depth-stencil surface and records a set-depth-stencil intent. */
+  /** Binds the depth-stencil surface on the backend. */
   SetDepthStencil(depthStencil)
   {
     this.#depthStencil = depthStencil ?? null;
@@ -588,11 +569,7 @@ export class Tr2RenderContext extends CjsModel
     return this.#al.GetCaps();
   }
 
-  // THE GEOMETRY BINDING FAMILY, which forwards to the AL and fails without one.
-  //
-  // Every other verb here has a recording fallback, because the intent stream
-  // has a vocabulary for it. These have none, and inventing one would be
-  // building exactly what the WebGPU AL is about to replace. Carbon's
+  // THE GEOMETRY BINDING FAMILY, which forwards to the AL. Carbon's
   // `SubmitGeometry` (`Tr2RenderContext.cpp:83-103`) is the sequence they
   // exist for: topology, then the declaration, streams and indices through the
   // state manager's `Apply*` redundancy filter, then the draw.
@@ -1036,36 +1013,6 @@ export class Tr2RenderContext extends CjsModel
     return this.#esm;
   }
 
-  /** GPU-free validity check: any non-null render target counts as valid. */
-  IsRenderTargetValid(renderTarget)
-  {
-    return this.#requireAL("IsRenderTargetValid").IsRenderTargetValid(renderTarget);
-  }
-
-  /**
-   * Records a resolve intent moving a multisampled source into a resolved
-   * destination.
-   */
-  ResolveRenderTarget(source, destination)
-  {
-    return this.#requireAL("ResolveRenderTarget").ResolveRenderTarget(source, destination);
-  }
-
-  /**
-   * Records a copy-render-target intent, spreading the caller's descriptor
-   * fields into it.
-   */
-  CopyRenderTarget(intent)
-  {
-    return this.#requireAL("CopyRenderTarget").CopyRenderTarget(intent);
-  }
-
-  /** Records a generate-mipmaps intent for a render target. */
-  GenerateMipMaps(renderTarget)
-  {
-    return this.#requireAL("GenerateMipMaps").GenerateMipMaps(renderTarget);
-  }
-
   /**
    * Draws one finalized batch accumulator.
    *
@@ -1311,51 +1258,13 @@ export class Tr2RenderContext extends CjsModel
     throw new Error("Tr2RenderContext.RenderBatchesForPicking is not ported.");
   }
 
-  // THE FOUR BELOW ARE NOT PORTED, AND THEY REFUSE RATHER THAN RECORD.
-  //
-  // Each used to push an intent nothing ever read - the queue's whole failure
-  // mode: a call that reports success and moves nothing. Refusing by name costs
-  // a caller one clear error instead of a silent absence they debug elsewhere.
-  //
-  // What each actually needs:
-  //   DrawLineSet      - line rendering; Carbon has no TriStepDrawLineSet, this
-  //                      verb is ours (see the non-Carbon extension register).
-  //   RenderAtlas      - Tr2TextureAtlas, an unported shell with no
-  //                      GetFreeAreas/GetUsedAreas/GetMargin. Debug visualiser.
-  //   RenderLineGraphs - Tr2Renderer::PrintfImmediate, so fonts.
-  //   RenderDebug      - DrawPrimitiveUP plus fonts.
-
-  /** NOT PORTED: line rendering. @returns {never} Always throws. */
-  DrawLineSet(_lineSet)
-  {
-    throw new Error("Tr2RenderContext.DrawLineSet is not ported; it needs the line-rendering path.");
-  }
-
   /**
-   * Records a clear-unordered-access-view intent; the clear value is copied by
-   * value and clearWithFloat selects float rather than integer clearing.
+   * Clears an unordered-access view on the backend; clearWithFloat selects
+   * float rather than integer clearing.
    */
   ClearUav(buffer, value, clearWithFloat = false)
   {
     return this.#requireAL("ClearUav").ClearUav(buffer, value, clearWithFloat);
-  }
-
-  /** NOT PORTED: needs Tr2TextureAtlas. @returns {never} Always throws. */
-  RenderAtlas(_step)
-  {
-    throw new Error("Tr2RenderContext.RenderAtlas is not ported; Tr2TextureAtlas is an unported shell.");
-  }
-
-  /** NOT PORTED: needs the font path. @returns {never} Always throws. */
-  RenderLineGraphs(_step)
-  {
-    throw new Error("Tr2RenderContext.RenderLineGraphs is not ported; it needs Tr2Renderer::PrintfImmediate.");
-  }
-
-  /** NOT PORTED: needs DrawPrimitiveUP and fonts. @returns {never} Always throws. */
-  RenderDebug(_debugStep)
-  {
-    throw new Error("Tr2RenderContext.RenderDebug is not ported; it needs DrawPrimitiveUP and the font path.");
   }
 
   /**
@@ -1445,15 +1354,12 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Clears the cached viewport and records a fullscreen-viewport intent, leaving
-   * the engine to resolve the actual target extent.
+   * Sets the viewport to the whole of the bound render target.
    */
   SetFullScreenViewport()
   {
-    // Nothing to defer: the backend knows the bound target's extent, so "full
-    // screen" resolves here and now. The old recording path deferred it as its
-    // own intent because without a backend the extent was unknown until
-    // realization - which is exactly the deferral the queue existed to provide.
+    // The backend knows the bound target's extent, so "full screen" resolves
+    // here and now.
     const size = this.#requireAL("GetRenderTargetSize").GetRenderTargetSize(0);
 
     if (Failed(size.result)) return false;
@@ -1480,7 +1386,7 @@ export class Tr2RenderContext extends CjsModel
 
   /**
    * Caches the view/camera/simTime record, refreshes the cached view matrix and
-   * its inverse from the view matrix, and records a set-view intent.
+   * its inverse from the view matrix.
    */
   SetView(view, camera = null, simTime = 0)
   {
@@ -1491,7 +1397,7 @@ export class Tr2RenderContext extends CjsModel
 
   /**
    * Caches a raw view matrix (Tr2Renderer::SetViewTransform), refreshes the
-   * inverse and eye position, and records a set-view-transform intent.
+   * inverse and eye position.
    */
   SetViewTransform(transform, source = null)
   {
@@ -1611,9 +1517,8 @@ export class Tr2RenderContext extends CjsModel
 
   /**
    * Restores the last pushed view transform, re-deriving the inverse and eye
-   * position (or resetting them to identity when nothing was cached), and
-   * re-records a set-view-transform intent; returns false when the stack is
-   * empty.
+   * position (or resetting them to identity when nothing was cached); returns
+   * false when the stack is empty.
    */
   PopViewTransform()
   {
@@ -1642,7 +1547,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Copies the active 4x4 projection matrix and records it as an intent.
+   * Copies the active 4x4 projection matrix.
    * Tr2RenderContext owns this matrix so later caller mutations cannot change
    * the state observed by frame consumers.
    */
@@ -1693,13 +1598,9 @@ export class Tr2RenderContext extends CjsModel
     return this.#requireAL("SetRenderStates").SetRenderStates(setup, overrides);
   }
 
-  /** Records the intent to apply the standard state block for a rendering mode. */
+  /** Applies the standard state block for a rendering mode, through the state manager. */
   ApplyStandardStates(renderingMode)
   {
-    // The state manager owns this, and always did. Recording it instead sent
-    // the call to a planner that classified it PIPELINE_STATE and then failed
-    // on it - `requires a WebGPU pipeline-state translator` - so the intent was
-    // not merely redundant, it was fatal if ever planned.
     return this.#esm.ApplyStandardStates(Number(renderingMode) >>> 0);
   }
 
@@ -1751,8 +1652,7 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Restores the last pushed projection and re-records a set-projection intent;
-   * returns false when the stack is empty.
+   * Restores the last pushed projection; returns false when the stack is empty.
    */
   PopProjection()
   {

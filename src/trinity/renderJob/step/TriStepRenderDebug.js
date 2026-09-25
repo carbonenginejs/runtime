@@ -109,15 +109,15 @@ export class TriStepRenderDebug extends TriRenderStep
   }
 
   /**
-   * Hands the accumulated debug lines and text to the render context, then clears them for the next frame.
+   * Draws the accumulated debug lines and text, then clears them for the next
+   * frame. Not ported: Carbon draws through its debug resource helper and
+   * fonts (TriStepRenderDebug.cpp:57-64).
    */
   @carbon.method
-  @impl.adapted
-  Execute(_realTime, _simTime, renderContext)
+  @impl.notImplemented
+  Execute(_realTime, _simTime, _renderContext)
   {
-    renderContext.RenderDebug(this);
-    if (this.autoClear) this.Clear();
-    return TriRenderStep.Result.RS_OK;
+    throw new Error("TriStepRenderDebug.Execute is not ported yet; it needs the debug resource helper and fonts.");
   }
 
 }

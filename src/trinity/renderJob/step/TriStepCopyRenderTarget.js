@@ -4,6 +4,9 @@
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { ALResult, Failed, Tr2TextureSubresource } from "#trinityal";
+import { TriTextureRes } from "#resource";
+import { Tr2RenderTarget } from "../../core/device/Tr2RenderTarget.js";
 
 
 /**
@@ -58,17 +61,22 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   }
 
   /**
-   * Assigns the copy operands, routing a texture-resource destination to
-   * destinationTexture and anything else to the render-target destination.
+   * Carbon PyInitLowLevel (TriStepCopyRenderTarget_Blue.cpp:14-70): the
+   * destination is cast to a render target, else to a texture resource.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   __init__(destination = null, source = null, destinationViewport = null, sourceViewport = null)
   {
     if (destination)
     {
-      if (TriStepCopyRenderTarget.#isTextureResource(destination)) this.destinationTexture = destination;
-      else this.Destination = destination;
+      const renderTarget = CjsSchema.cast(destination, Tr2RenderTarget);
+      if (renderTarget) this.Destination = renderTarget;
+      else
+      {
+        const texture = CjsSchema.cast(destination, TriTextureRes);
+        if (texture) this.destinationTexture = texture;
+      }
     }
     this.Source = source ?? null;
     this.destinationViewport = destinationViewport ?? null;
@@ -76,141 +84,93 @@ export class TriStepCopyRenderTarget extends TriRenderStep
   }
 
   /**
-   * Builds the copy intent and hands it to the render context's CopyRenderTarget;
-   * incomplete operands yield no intent and are a no-op that still reports
-   * RS_OK, while an explicit false from the render context is RS_FAILED.
+   * Carbon Execute (TriStepCopyRenderTarget.cpp:13-95): copy the source render
+   * target into the destination render target's texture, or into the
+   * destination texture resource's. A negative destination origin clamps to
+   * zero and trims the same amount off the copied region; a source viewport
+   * with no extent copies nothing.
    */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    const intent = this.GetCopyIntent();
-    if (!intent) return TriRenderJob.StepResult.RS_OK;
-    const copied = renderContext.CopyRenderTarget(intent);
-    return copied === false ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
-  }
+    const destinationRT = this.Destination;
+    const sourceRT = this.Source;
 
-  /**
-   * Carbon TriStepCopyRenderTarget::Execute (cpp:13-95): resolves the operands and viewports into a plain copy description the render context performs, with destinationType distinguishing the render-target path from the texture path.
-   * @returns {object|null} the copy intent, or null when the source or both destinations are missing
-   */
-  @carbon.method
-  @impl.adapted
-  GetCopyIntent()
-  {
-    if (!this.Source || (!this.Destination && !this.destinationTexture)) return null;
-    const destX = Number(this.destinationViewport?.x) || 0;
-    const destY = Number(this.destinationViewport?.y) || 0;
-    if (this.Destination)
-    {
-      return TriStepCopyRenderTarget.#renderTargetIntent(
-        this.Source,
-        this.Destination,
-        this.sourceViewport,
-        destX,
-        destY
-      );
-    }
-    return {
-      source: this.Source,
-      destination: this.destinationTexture,
-      destinationType: "texture",
-      destinationPoint: { x: destX, y: destY },
-      sourceRect: this.sourceViewport ? TriStepCopyRenderTarget.#viewportRect(this.sourceViewport) : null
-    };
-  }
+    if ((!destinationRT && !this.destinationTexture) || !sourceRT) return TriRenderJob.StepResult.RS_OK;
 
-  /**
-   * Builds the render-target-to-render-target rectangles: a source viewport with
-   * a non-positive extent cancels the copy, and a negative destination origin
-   * clamps to zero while trimming the same amount off the source rectangle
-   * (Carbon TriStepCopyRenderTarget.cpp:33-73).
-   */
-  static #renderTargetIntent(source, destination, sourceViewport, destX, destY)
-  {
-    let x = destX;
-    let y = destY;
-    let sourceRect;
-    if (sourceViewport)
+    let destX = this.destinationViewport ? this.destinationViewport.x : 0;
+    let destY = this.destinationViewport ? this.destinationViewport.y : 0;
+    let result = ALResult.S_OK;
+
+    if (destinationRT)
     {
-      if (Number(sourceViewport.width) <= 0 || Number(sourceViewport.height) <= 0) return null;
-      sourceRect = TriStepCopyRenderTarget.#viewportRect(sourceViewport);
-      if (x < 0)
+      if (!this.sourceViewport)
       {
-        sourceRect.right -= -x;
-        x = 0;
+        const dest = Tr2TextureSubresource.ForMipLevel(0);
+        dest.SetRect(destX, destY, destX + sourceRT.GetWidth(), destY + sourceRT.GetHeight());
+
+        if (this.destinationViewport)
+        {
+          if (this.destinationViewport.x < 0)
+          {
+            dest.m_box.left = 0;
+            dest.m_box.right = (sourceRT.GetWidth() + this.destinationViewport.x) >>> 0;
+          }
+          if (this.destinationViewport.y < 0)
+          {
+            dest.m_box.top = 0;
+            dest.m_box.bottom = (sourceRT.GetHeight() + this.destinationViewport.y) >>> 0;
+          }
+        }
+        result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), Tr2TextureSubresource.ForMipLevel(0), renderContext);
       }
-      if (y < 0)
+      else
       {
-        sourceRect.bottom -= -y;
-        y = 0;
+        const vp = this.sourceViewport;
+        const src = Tr2TextureSubresource.ForMipLevel(0);
+        src.SetRect(vp.x >>> 0, vp.y >>> 0, (vp.x + vp.width) >>> 0, (vp.y + vp.height) >>> 0);
+        if (vp.width <= 0 || vp.height <= 0) return TriRenderJob.StepResult.RS_OK;
+
+        if (this.destinationViewport)
+        {
+          if (this.destinationViewport.x < 0)
+          {
+            destX = 0;
+            src.m_box.right -= -this.destinationViewport.x;
+          }
+          if (this.destinationViewport.y < 0)
+          {
+            destY = 0;
+            src.m_box.bottom -= -this.destinationViewport.y;
+          }
+        }
+
+        const dest = Tr2TextureSubresource.ForMipLevel(0);
+        dest.SetRect(destX, destY, destX + src.m_box.right - src.m_box.left, destY + src.m_box.bottom - src.m_box.top);
+
+        result = destinationRT.GetRenderTarget().CopySubresourceRegion(dest, sourceRT.GetRenderTarget(), src, renderContext);
       }
     }
-    else
+    else if (this.destinationTexture.GetTexture())
     {
-      sourceRect = {
-        left: 0,
-        top: 0,
-        right: TriStepCopyRenderTarget.#dimension(source, "Width", "width"),
-        bottom: TriStepCopyRenderTarget.#dimension(source, "Height", "height")
-      };
-      if (x < 0)
+      const destView = new Tr2TextureSubresource();
+      destView.m_box.left = destX;
+      destView.m_box.top = destY;
+
+      const sourceView = new Tr2TextureSubresource();
+      if (this.sourceViewport)
       {
-        sourceRect.right += x;
-        x = 0;
+        const vp = this.sourceViewport;
+        sourceView.m_box.left = vp.x;
+        sourceView.m_box.top = vp.y;
+        sourceView.m_box.right = vp.x + vp.width;
+        sourceView.m_box.bottom = vp.y + vp.height;
       }
-      if (y < 0)
-      {
-        sourceRect.bottom += y;
-        y = 0;
-      }
+
+      result = this.destinationTexture.GetTexture().CopySubresourceRegion(destView, sourceRT.GetRenderTarget(), sourceView, renderContext);
     }
-    return {
-      source,
-      destination,
-      destinationType: "renderTarget",
-      sourceRect,
-      destinationRect: {
-        left: x,
-        top: y,
-        right: x + sourceRect.right - sourceRect.left,
-        bottom: y + sourceRect.bottom - sourceRect.top
-      }
-    };
-  }
 
-  /**
-   * Converts a viewport's x/y/width/height into a left/top/right/bottom
-   * rectangle, treating non-numeric fields as zero.
-   */
-  static #viewportRect(viewport)
-  {
-    const left = Number(viewport.x) || 0;
-    const top = Number(viewport.y) || 0;
-    return {
-      left,
-      top,
-      right: left + (Number(viewport.width) || 0),
-      bottom: top + (Number(viewport.height) || 0)
-    };
-  }
-
-  /**
-   * Reads a dimension off a render target through its Get<Name>() accessor or
-   * its lower-case property, yielding 0 when neither is present.
-   */
-  static #dimension(value, method, property)
-  {
-    return Number(value?.[`Get${method}`]?.() ?? value?.[property]) || 0;
-  }
-
-  /**
-   * Identifies a destination as a texture resource by its registered class name,
-   * a name ending in TextureRes, or the presence of GetTexture.
-   */
-  static #isTextureResource(value)
-  {
-    const name = CjsSchema.getClassName(value?.constructor) ?? value?._sourceClassName ?? "";
-    return name === "TriTextureRes" || /TextureRes$/.test(name) || typeof value?.GetTexture === "function";
+    return Failed(result) ? TriRenderJob.StepResult.RS_FAILED : TriRenderJob.StepResult.RS_OK;
   }
 }

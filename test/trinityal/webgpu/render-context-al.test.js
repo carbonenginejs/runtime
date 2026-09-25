@@ -296,8 +296,6 @@ test("the target size is refused when nothing is bound", () =>
   al.SetRenderTarget(0, target(800, 600));
 
   assert.deepEqual(al.GetRenderTargetSize(0), { result: ALResult.S_OK, width: 800, height: 600 });
-  assert.equal(al.IsRenderTargetValid(null), false);
-  assert.equal(al.IsRenderTargetValid({}), true);
 });
 
 // A composed backend: the device half, faked at the seams the AL actually

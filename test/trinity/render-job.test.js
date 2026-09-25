@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { Tr2RenderContext, Tr2VariableStore, Tr2VisibilityResults, TriProjection } from "../../npm/dist/trinity/core/index.js";
-import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2RenderTarget } from "../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
+import { PixelFormat, TextureType } from "../../npm/dist/global/consts/renderContext/index.js";
+import { TriTextureRes } from "../../npm/dist/resource/texture/TriTextureRes.js";
 import { Tr2RenderJobs, TriRenderJob, TriRenderStep, TriStepClear, TriStepCopyRenderTarget, TriStepEnableWireframeMode, TriStepGenerateMipMaps, TriStepPopDepthStencil, TriStepPopRenderTarget, TriStepPresentSwapChain, TriStepPushDepthStencil, TriStepPushRenderTarget, TriStepRemoteSync, TriStepResolve, TriStepRunJob, TriStepSetDepthStencil, TriStepSetProjection, TriStepSetRenderState, TriStepSetRenderTarget, TriStepSetStdRndStates, TriStepSetView, TriStepSetViewport, TriStepSetVisualizationMode } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepFilterVisibilityResults } from "../../npm/dist/trinity/renderJob/index.js";
 import { TriStepPythonCB } from "../../npm/dist/trinity/renderJob/index.js";
@@ -56,6 +59,15 @@ function stubContext()
  * viewport, so a bare {} no longer stands in - with no backend installed that
  * path was never reached.
  */
+/** A real render target on the stub backend. */
+function renderTarget(context, width = 64, height = 64)
+{
+  const target = new Tr2RenderTarget();
+  const created = target.Create(width, height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 0, 0, TextureType.TEX_TYPE_2D, context);
+  if (created !== ALResult.S_OK) throw new Error(`render target Create failed: ${created}`);
+  return target;
+}
+
 function stubTarget(width = 64, height = 64)
 {
   return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height };
@@ -234,16 +246,16 @@ test("portable generated resource steps initialize and emit render intents", () 
   assertEquals(clear.clearWithFloat, true);
   assertEquals(clear.Execute(0, 0, context), TriRenderStep.RS_OK);
 
-  // RenderAtlas and RenderLineGraphs are NOT PORTED and refuse by name rather
-  // than recording an intent nothing read. What each step still owns - its
-  // bindings, and the line graph's scale derivation - is asserted directly.
+  // The atlas and line-graph drawing is NOT PORTED and refuses by name, in the
+  // step that owns it. What each step still does - its bindings, and the line
+  // graph's scale derivation - is asserted directly.
   const atlas = {};
   const focus = {};
   const renderAtlas = new TriStepRenderAtlas();
   renderAtlas.__init__(atlas, focus);
   let atlasRefusal = null;
   try { renderAtlas.Execute(0, 0, context); } catch (error) { atlasRefusal = error.message; }
-  assertEquals(/RenderAtlas is not ported/u.test(atlasRefusal), true);
+  assertEquals(/TriStepRenderAtlas.Execute is not ported/u.test(atlasRefusal), true);
   assertEquals(renderAtlas.atlas, atlas);
   assertEquals(renderAtlas.focus, focus);
 
@@ -257,7 +269,7 @@ test("portable generated resource steps initialize and emit render intents", () 
   renderGraphs.scaleChangeCallback = () => scaleChanges++;
   let graphRefusal = null;
   try { renderGraphs.Execute(0, 0, context); } catch (error) { graphRefusal = error.message; }
-  assertEquals(/RenderLineGraphs is not ported/u.test(graphRefusal), true);
+  assertEquals(/TriStepRenderLineGraph.Execute is not ported/u.test(graphRefusal), true);
 
   // The scale derivation happens BEFORE the draw, so it still runs.
   assertEquals(renderGraphs.scale, 0.05);
@@ -322,7 +334,7 @@ test("TriStepRenderDebug accumulates CPU commands and snapshots them on execute"
   const context = stubContext();
   let refused = null;
   try { debug.Execute(0, 0, context); } catch (error) { refused = error.message; }
-  assertEquals(/RenderDebug is not ported/u.test(refused), true);
+  assertEquals(/TriStepRenderDebug.Execute is not ported/u.test(refused), true);
 
   // The refusal happens BEFORE autoClear, so the accumulation is still there.
   // On the recording path Execute deep-copied then cleared; nothing consumed
@@ -685,22 +697,35 @@ test("an observed depth-stencil failure stops the shared render job", () =>
 
 test("resolve, mipmap, and present steps preserve Carbon result observation rules", () =>
 {
+  // Carbon's steps act on the render target's TEXTURE (TriStepResolve.cpp:13-33,
+  // TriStepGenerateMipMaps.cpp:15-22): Resolve, then GenerateMipMaps on it.
   const context = stubContext();
-  const source = stubTarget();
-  const destination = stubTarget();
+  const source = renderTarget(context);
+  const destination = renderTarget(context);
   const resolve = new TriStepResolve();
   resolve.__init__(destination, source);
   resolve.generateMipmap = true;
+  const mipped = [];
+  destination.GetRenderTarget().GenerateMipMaps = rc => { mipped.push(rc); return ALResult.S_OK; };
   assertEquals(resolve.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  // Both reach the backend; the stub accepts and counts them.
-  assertEquals(context.GetRenderContextAL().GetDrawCount() >= 0, true);
+  assertEquals(mipped.length, 1, "the destination's mips regenerate after the resolve");
+  assertEquals(mipped[0], context);
 
-  context.ResolveRenderTarget = () => false;
+  source.GetRenderTarget().Resolve = () => ALResult.E_FAIL;
   assertEquals(resolve.Execute(0, 0, context), TriRenderJob.StepResult.RS_FAILED);
+
+  // An invalid operand is a no-op, not a failure.
+  destination.Destroy();
+  assertEquals(resolve.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+
   const mips = new TriStepGenerateMipMaps();
   assertEquals(mips.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
-  mips.__init__(destination);
+  const target = renderTarget(context);
+  let generated = 0;
+  target.GetRenderTarget().GenerateMipMaps = () => { generated += 1; return ALResult.S_OK; };
+  mips.__init__(target);
   assertEquals(mips.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  assertEquals(generated, 1);
 
   const present = new TriStepPresentSwapChain();
   present.Execute(0, 0, context);
@@ -721,43 +746,55 @@ test("resolve, mipmap, and present steps preserve Carbon result observation rule
   assertEquals(context.GetRenderContextAL().GetRenderedFrameNumber(), before + 1);
 });
 
-test("TriStepCopyRenderTarget normalizes Carbon copy rectangles before delegation", () =>
+test("TriStepCopyRenderTarget computes Carbon's copy rectangles", () =>
 {
-  const source = { width: 100, height: 50 };
-  const destination = stubTarget();
+  // Carbon TriStepCopyRenderTarget.cpp:13-95: a negative destination origin
+  // clamps to zero and trims the copied region; the destination's TEXTURE
+  // takes the copy through CopySubresourceRegion.
+  const context = stubContext();
+  const source = renderTarget(context, 100, 50);
+  const destination = renderTarget(context, 128, 128);
+  const copies = [];
+  const record = (dest, src, srcRegion) =>
+  {
+    copies.push({ dest: [ dest.m_box.left, dest.m_box.top, dest.m_box.right, dest.m_box.bottom ], src, srcRegion });
+    return ALResult.S_OK;
+  };
+  destination.GetRenderTarget().CopySubresourceRegion = record;
   const copy = new TriStepCopyRenderTarget();
   copy.__init__(destination, source, { x: -10, y: -5 });
-  let intent = copy.GetCopyIntent();
-  assertEquals(intent.destinationType, "renderTarget");
-  assertEquals(JSON.stringify(intent.sourceRect), JSON.stringify({ left: 0, top: 0, right: 90, bottom: 45 }));
-  assertEquals(JSON.stringify(intent.destinationRect), JSON.stringify({ left: 0, top: 0, right: 90, bottom: 45 }));
+  assertEquals(copy.Destination, destination, "a render target casts to the render-target destination");
+  assertEquals(copy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  assertEquals(JSON.stringify(copies[0].dest), JSON.stringify([ 0, 0, 90, 45 ]));
+  assertEquals(copies[0].src, source.GetRenderTarget());
 
   copy.sourceViewport = { x: 10, y: 20, width: 30, height: 40 };
   copy.destinationViewport = { x: -5, y: -7 };
-  intent = copy.GetCopyIntent();
-  assertEquals(JSON.stringify(intent.sourceRect), JSON.stringify({ left: 10, top: 20, right: 35, bottom: 53 }));
-  assertEquals(JSON.stringify(intent.destinationRect), JSON.stringify({ left: 0, top: 0, right: 25, bottom: 33 }));
-  copy.sourceViewport.width = 0;
-  assertEquals(copy.GetCopyIntent(), null);
+  assertEquals(copy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  const region = copies[1].srcRegion.m_box;
+  assertEquals(JSON.stringify([ region.left, region.top, region.right, region.bottom ]), JSON.stringify([ 10, 20, 35, 53 ]));
+  assertEquals(JSON.stringify(copies[1].dest), JSON.stringify([ 0, 0, 25, 33 ]));
 
-  class TriTextureRes { GetTexture() { return {}; } }
+  copy.sourceViewport.width = 0;
+  assertEquals(copy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  assertEquals(copies.length, 2, "a source viewport with no extent copies nothing");
+
+  // A texture resource destination: its texture takes the copy.
   const texture = new TriTextureRes();
+  const textureCopies = [];
+  texture.GetTexture = () => ({ CopySubresourceRegion: (dest, src, srcRegion) =>
+  {
+    textureCopies.push({ dest: dest.m_box, srcRegion: srcRegion.m_box });
+    return ALResult.E_FAIL;
+  } });
   const textureCopy = new TriStepCopyRenderTarget();
   textureCopy.__init__(texture, source, { x: -2, y: -3 }, { x: 1, y: 2, width: 3, height: 4 });
-  intent = textureCopy.GetCopyIntent();
-  assertEquals(intent.destinationType, "texture");
-  assertEquals(JSON.stringify(intent.destinationPoint), JSON.stringify({ x: -2, y: -3 }));
-  assertEquals(JSON.stringify(intent.sourceRect), JSON.stringify({ left: 1, top: 2, right: 4, bottom: 6 }));
-
-  // Carbon's stub REFUSES buffer-to-buffer copies deliberately
-  // (Tr2RenderContextStub.cpp:87-101) rather than pretending to succeed, so the
-  // step correctly reports failure against it. That the step OBSERVES the
-  // backend's result is what this asserts.
-  const context = stubContext();
+  assertEquals(textureCopy.destinationTexture, texture, "a texture resource casts to the texture destination");
+  // A failed copy is RS_FAILED: the step observes the backend's result.
   assertEquals(textureCopy.Execute(0, 0, context), TriRenderJob.StepResult.RS_FAILED);
-
-  context.GetRenderContextAL().CopyRenderTarget = () => true;
-  assertEquals(textureCopy.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
+  assertEquals(JSON.stringify([ textureCopies[0].dest.left, textureCopies[0].dest.top ]), JSON.stringify([ -2, -3 ]));
+  const box = textureCopies[0].srcRegion;
+  assertEquals(JSON.stringify([ box.left, box.top, box.right, box.bottom ]), JSON.stringify([ 1, 2, 4, 6 ]));
 });
 
 test("Tr2RenderJobs preserves recurring, once, chained, and update scheduling", () =>

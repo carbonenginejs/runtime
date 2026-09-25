@@ -55,11 +55,12 @@ export class TriStepRenderLineGraph extends TriRenderStep
   }
 
   /**
-   * Draws the bound line graphs at the configured scale.
+   * Updates the graphs' scale, as Carbon does, then refuses: drawing them is
+   * not ported (it needs Tr2Renderer::PrintfImmediate and fonts).
    */
   @carbon.method
-  @impl.adapted
-  Execute(_realTime, _simTime, renderContext)
+  @impl.notImplemented
+  Execute(_realTime, _simTime, _renderContext)
   {
     if (this.autoScale)
     {
@@ -90,8 +91,7 @@ export class TriStepRenderLineGraph extends TriRenderStep
         else this.scaleChangeCallback?.CallVoid?.();
       }
     }
-    renderContext.RenderLineGraphs(this);
-    return TriRenderStep.Result.RS_OK;
+    throw new Error("TriStepRenderLineGraph.Execute is not ported yet; drawing the graphs needs Tr2Renderer::PrintfImmediate and fonts.");
   }
 
 }

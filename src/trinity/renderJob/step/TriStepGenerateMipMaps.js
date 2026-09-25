@@ -22,14 +22,14 @@ export class TriStepGenerateMipMaps extends TriRenderStep
   }
 
   /**
-   * Asks the render context to regenerate the target's mip maps; with no target set
-   * the step is a no-op.
+   * Carbon Execute (TriStepGenerateMipMaps.cpp:15-22): regenerate the render
+   * target texture's mip chain; with no target set the step is a no-op.
    */
   @carbon.method
   @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
-    if (this.renderTarget) renderContext.GenerateMipMaps(this.renderTarget);
+    if (this.renderTarget) this.renderTarget.GetRenderTarget().GenerateMipMaps(renderContext);
     return TriRenderJob.StepResult.RS_OK;
   }
 }

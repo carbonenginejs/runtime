@@ -188,7 +188,7 @@ test("TriRigidOrientation sorts and integrates Carbon torque states", () =>
   assert.deepEqual(Array.from(orientation.value), Array.from(first.rot0));
 });
 
-test("TriLineSet builds Carbon debug geometry and records render intent", () =>
+test("TriLineSet builds Carbon debug geometry; drawing is not ported", () =>
 {
   const lines = new TriLineSet();
   lines.Add([0, 0, 0], 0x11223344, [1, 0, 0], 0x55667788);
@@ -204,12 +204,10 @@ test("TriLineSet builds Carbon debug geometry and records render intent", () =>
   assertEquals(lines.vertices.length, 28);
   lines.AddSphere([0, 0, 0], 1, 3);
   assertEquals(lines.vertices.length, 156);
-  // Render reaches Tr2RenderContext.DrawLineSet, which is NOT PORTED and now
-  // refuses by name rather than recording an intent nothing read. What is still
-  // asserted is the part TriLineSet owns: it offers a non-empty set and
-  // declines an empty one.
+  // Drawing a line set is NOT PORTED, and TriLineSet.Render refuses by name for
+  // a set with vertices. An empty set is declined without refusing.
   const context = new Tr2RenderContext();
-  assert.throws(() => lines.Render(context), /DrawLineSet is not ported/u);
+  assert.throws(() => lines.Render(context), /TriLineSet.Render is not ported/u);
   lines.Clear();
   assertEquals(lines.Render(context), false);
 });
