@@ -207,6 +207,13 @@ function buildLayouts(entries)
                 pass.identities.set(identity, binding);
                 continue;
             }
+            // A texture one stage only loads and another samples is one
+            // binding, and sampling needs it filterable: it stays "float".
+            if (existing.texture && binding.texture && existing.texture.sampleType !== binding.texture.sampleType)
+            {
+                existing.texture = { ...existing.texture, sampleType: "float" };
+                binding.texture = { ...binding.texture, sampleType: "float" };
+            }
             if (bindingFingerprint(existing) !== bindingFingerprint(binding))
             {
                 throw new Error(`WGSL set ${passKey} has conflicting layouts for ${identity}`);

@@ -95,7 +95,36 @@ const TEXTURE_DIMENSIONS = Object.freeze({
     texture2darray: { type: "texture_2d_array<f32>", viewDimension: "2d-array" }
 });
 
-function textureLayout(binding)
+/** Instructions that read a texture without filtering: a texel load and a size query. */
+const UNFILTERED_TEXTURE_OPCODES = new Set([ "ld", "ld_ms", "resinfo" ]);
+
+/**
+ * Whether this program only ever loads the texture at a register, never
+ * samples it. Such a texture binds as `unfilterable-float`, which is what lets
+ * a 32-bit float texture bind at all: WebGPU cannot filter one without the
+ * optional `float32-filterable` feature. The impact effects read
+ * `ImpactShieldDataMap` (RGBA32F, Tr2DataTextureManager) only with `ld`.
+ * A register this program never touches stays `float`.
+ *
+ * @param {object} program Decoded shader program.
+ * @param {number} registerIndex The texture register.
+ * @returns {boolean} True when every use is a load or a size query.
+ */
+function isOnlyLoaded(program, registerIndex)
+{
+    let used = false;
+    for (const instruction of program.instructions)
+    {
+        const touches = instruction.operands?.some((operand) =>
+            operand?.typeName === "resource" && operand.registerIndex === registerIndex);
+        if (!touches || instruction.isDeclaration) continue;
+        if (!UNFILTERED_TEXTURE_OPCODES.has(instruction.opcodeName)) return false;
+        used = true;
+    }
+    return used;
+}
+
+function textureLayout(program, binding)
 {
     const dimension = TEXTURE_DIMENSIONS[binding.resourceDimension];
     if (!dimension)
@@ -111,7 +140,7 @@ function textureLayout(binding)
         declaration: "var",
         type: dimension.type,
         texture: {
-            sampleType: "float",
+            sampleType: isOnlyLoaded(program, bindingRegister(binding)) ? "unfilterable-float" : "float",
             viewDimension: dimension.viewDimension,
             multisampled: false
         }
@@ -174,7 +203,7 @@ function sampledResourceLayout(program, binding)
 {
     if (binding.resourceDimension === "buffer") return typedBufferLayout(program, binding);
     return binding.structureStride === null || binding.structureStride === undefined
-        ? textureLayout(binding)
+        ? textureLayout(program, binding)
         : structuredBufferLayout(binding);
 }
 

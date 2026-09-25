@@ -1041,7 +1041,10 @@ function resolveBindingResource(owner, entry, resource)
     // Every dimension the texture adapter can create must be bindable, or a
     // cube map is creatable and then unusable. Multisampled textures are still
     // out: those are attachments, and the render target owns them.
-    if (!TEXTURE_VIEW_DIMENSIONS.has(viewDimension) || multisampled || sampleType !== "float")
+    // A float texture binds to either float slot; "unfilterable-float" is a
+    // slot only ever loaded from, which a 32-bit float texture needs.
+    if (!TEXTURE_VIEW_DIMENSIONS.has(viewDimension) || multisampled
+      || (sampleType !== "float" && sampleType !== "unfilterable-float"))
     {
       fail(`${entry.identity} requires a ${multisampled ? "multisampled " : ""}${sampleType} ${viewDimension} texture,`
         + " which this adapter does not realize");

@@ -2166,7 +2166,8 @@ test("compute lowering canonicalizes the exact SM5.0 and finite SM5.1 create-his
                 bufferType: null,
                 minBindingSize: null,
                 texture: {
-                    sampleType: "float",
+                    // Only ever loaded (ld), so unfilterable.
+                    sampleType: "unfilterable-float",
                     viewDimension: "2d",
                     multisampled: false
                 }

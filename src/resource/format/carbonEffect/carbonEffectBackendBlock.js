@@ -75,6 +75,12 @@ export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
     "storage-resource"
 ]);
 
+/**
+ * A texture binding's sample type, ordered so the wire value is stable. The
+ * first is the default and what every non-texture binding writes.
+ */
+export const CARBON_BACKEND_TEXTURE_SAMPLE_TYPE = Object.freeze([ "float", "unfilterable-float" ]);
+
 /** Shader stages, as a bit position in the visibility mask. */
 export const CARBON_BACKEND_VISIBILITY = Object.freeze([ "vertex", "fragment", "compute" ]);
 
@@ -134,6 +140,11 @@ function unpackVisibility(mask)
  * buffer and a compute typed buffer, and the structure stride separates them:
  * structured always carries one, typed never does.
  *
+ * One texture fact is not in the WGSL type and is stored: its sample type.
+ * `texture_2d<f32>` is the same declaration whether the layout says `float` or
+ * `unfilterable-float`, and only the lowering, which sees the instructions,
+ * knows a texture is only ever loaded.
+ *
  * @param {object} binding Decoded binding record.
  * @returns {object} The descriptor fragment, as one `{buffer|texture|sampler}` key.
  */
@@ -168,7 +179,7 @@ function deriveBindingDescriptor(binding)
     if (binding.resourceKind === "sampled-resource")
     {
         const texture = TEXTURE_DESCRIPTORS[binding.type];
-        if (texture) return { texture: { ...texture } };
+        if (texture) return { texture: { ...texture, sampleType: binding.textureSampleType } };
 
         return {
             buffer: {
@@ -283,6 +294,14 @@ export function writeBackendBlock(block)
             writer.u32(binding.registerIndex);
             writer.u32(binding.structureStride ?? ABSENT);
             writer.u8(binding.arrayLayerCount ?? 0);
+            const sampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE.indexOf(binding.texture?.sampleType ?? "float");
+            if (sampleType < 0)
+            {
+                throw new CjsFormatWriteError(`Unknown texture sample type "${binding.texture.sampleType}"`, {
+                    sampleType: binding.texture.sampleType
+                });
+            }
+            writer.u8(sampleType);
             writeInlineString(writer, binding.type);
             writeInlineString(writer, binding.generatedSymbol);
             // A binding either carries a transform id or it does not; an empty
@@ -328,6 +347,13 @@ export function readBackendBlock(bytes, options = {})
             const registerIndex = reader.ReadUint32();
             const structureStride = reader.ReadUint32();
             const arrayLayerCount = reader.ReadUint8();
+            const textureSampleType = CARBON_BACKEND_TEXTURE_SAMPLE_TYPE[reader.ReadUint8()];
+            if (!textureSampleType)
+            {
+                throw new CjsFormatReadError("Backend block binding has an unknown texture sample type", {
+                    source: options.source ?? "backend block"
+                });
+            }
             const type = readInlineString(reader);
             const generatedSymbol = readInlineString(reader);
             const transformId = readInlineString(reader);
@@ -348,7 +374,7 @@ export function readBackendBlock(bytes, options = {})
                 ...(arrayLayerCount === 0 ? {} : { arrayLayerCount }),
                 ...(transformId === "" ? {} : { transformId })
             };
-            bindings.push({ ...record, ...deriveBindingDescriptor(record) });
+            bindings.push({ ...record, ...deriveBindingDescriptor({ ...record, textureSampleType }) });
         }
         bindGroups.push({ group, bindings });
     }

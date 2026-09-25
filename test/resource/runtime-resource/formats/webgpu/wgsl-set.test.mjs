@@ -280,3 +280,21 @@ test("BuildWgslSet rejects malformed, duplicate, and stage-mismatched entries", 
         { key: "Main.pass0.compute", shader: compute }
     ]), /cannot mix compute and render shader stages/u);
 });
+
+test("BuildWgslSet keeps a texture filterable when any stage samples it", () =>
+{
+    const shared = (sampleType) => binding("sampled-resource", "t0", 0, {
+        identity: "sampled-resource:0:0",
+        scopeIdentity: "sampled-resource:0:0",
+        type: "texture_2d<f32>",
+        texture: { sampleType, viewDimension: "2d", multisampled: false }
+    });
+    const build = (vertex, pixel) => CjsWebgpuFormat.buildWgslSet([
+        { key: "Main.pass0.vertex", shader: emitted("vertex", [ shared(vertex) ]) },
+        { key: "Main.pass0.pixel", shader: emitted("fragment", [ shared(pixel) ]) }
+    ]).layouts[0].bindGroups[0].bindings[0].texture.sampleType;
+
+    assert.equal(build("unfilterable-float", "float"), "float", "loaded in one stage, sampled in the other");
+    assert.equal(build("float", "unfilterable-float"), "float");
+    assert.equal(build("unfilterable-float", "unfilterable-float"), "unfilterable-float", "only ever loaded");
+});

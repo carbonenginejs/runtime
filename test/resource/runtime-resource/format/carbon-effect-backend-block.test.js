@@ -479,3 +479,25 @@ test("a foreign engine id is absent data at the container, not a failed load", (
     assert.equal(peekBackendEngineId(new Uint8Array(0)), CARBON_BACKEND_ENGINE_ID.invalid);
     assert.equal(peekBackendEngineId(null), CARBON_BACKEND_ENGINE_ID.invalid);
 });
+
+test("a texture's sample type survives the block; the WGSL type alone cannot say it", () =>
+{
+    const block = sampleBlock();
+    block.bindGroups[0].bindings.push({
+        group: 0,
+        binding: 3,
+        resourceKind: "sampled-resource",
+        registerSpace: 0,
+        registerIndex: 5,
+        visibility: [ "fragment" ],
+        type: "texture_2d<f32>",
+        generatedSymbol: "t5",
+        texture: { sampleType: "unfilterable-float", viewDimension: "2d", multisampled: false }
+    });
+
+    const bindings = readBackendBlock(writeBackendBlock(block), { layoutKey: "Main.pass0" }).bindGroups[0].bindings;
+
+    assert.equal(bindings[3].texture.sampleType, "unfilterable-float", "a loaded-only texture stays unfilterable");
+    assert.equal(bindings[1].texture.sampleType, "float", "an ordinary texture stays float");
+    assert.equal("textureSampleType" in bindings[3], false, "the wire field does not leak onto the record");
+});

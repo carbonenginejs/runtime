@@ -1172,7 +1172,8 @@ function validateBindings(bindings)
         || input.registerSpace !== 0
         || input.declaration !== "var"
         || input.type !== "texture_2d<f32>"
-        || input.texture?.sampleType !== "float"
+        // Only ever loaded, so the lowering declares it unfilterable.
+        || input.texture?.sampleType !== "unfilterable-float"
         || input.texture.viewDimension !== "2d"
         || input.texture.multisampled !== false
         || output.resourceKind !== "storage-resource"
