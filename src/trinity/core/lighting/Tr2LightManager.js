@@ -699,7 +699,7 @@ export class Tr2LightManager extends CjsModel
 
   /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
   @impl.custom
-  @impl.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view (precedent: Tr2DataTextureManager.GetPackedBlocks).")
+  @impl.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own texture, so this has no precedent.")
   GetLightBufferData()
   {
     return this.#packed.subarray(0, this.#packedCount * FLOATS_PER_LIGHT);

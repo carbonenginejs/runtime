@@ -6,7 +6,7 @@ import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
-import { Tr2TextureReference } from "../../generated/trinityCore/Tr2TextureReference.js";
+import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 

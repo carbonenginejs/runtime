@@ -29,10 +29,13 @@ import {
   EveUpdateContext,
   Locator,
   Tr2DataTextureManager,
+  Tr2RenderContext_GetMainThreadRenderContext,
+  Tr2VariableStore,
   Tr2Mesh,
   Tr2MeshArea
 } from "../../npm/dist/trinity/index.js";
 import { Tr2Lod } from "../../npm/dist/global/consts/trinity.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
 
 
@@ -122,38 +125,99 @@ test("EveDamageOverlay filters locators compactly and shares impact indices", ()
 });
 
 
-test("damage blocks remain CPU-owned until an engine consumes packed rows", () =>
+test("without a device the data texture maps nothing, so no block gets an offset (Carbon Tr2DataTextureManager.cpp:106-155)", () =>
 {
   const manager = new Tr2DataTextureManager();
-  const context = new EveUpdateContext();
-  context.SetDataTextureManager(manager);
-  context.SetTime(1);
+  try
+  {
+    const context = new EveUpdateContext();
+    context.SetDataTextureManager(manager);
+    context.SetTime(1);
 
-  const shader = { name: "armor" };
-  const damage = new EveDamageOverlay();
-  damage.SetArmorDamageShaderEffect(shader);
-  damage.SetDamageLocatorCount(1);
-  damage.CreateImpact(0, 0.5);
-  damage.UpdateAsyncronous(context, {
-    boundingSphere: [ 0, 0, 0, 20 ],
-    estimatedPixelDiameter: 64,
-    isInFrustum: true,
-    getDamageLocatorPositionOS(_index, out)
-    {
-      vec3.set(out, 1, 2, 3);
-      return true;
-    }
-  });
+    const shader = { name: "armor" };
+    const damage = new EveDamageOverlay();
+    damage.SetArmorDamageShaderEffect(shader);
+    damage.SetDamageLocatorCount(1);
+    damage.CreateImpact(0, 0.5);
+    damage.UpdateAsyncronous(context, {
+      boundingSphere: [ 0, 0, 0, 20 ],
+      estimatedPixelDiameter: 64,
+      isInFrustum: true,
+      getDamageLocatorPositionOS(_index, out)
+      {
+        vec3.set(out, 1, 2, 3);
+        return true;
+      }
+    });
 
-  damage.UpdateSyncronous(context);
-  assert.equal(damage.GetDataTextureOffset(), -1);
-  const packed = manager.Update(context);
-  assert.equal(packed.length, 1);
-  assert.equal(packed[0].offset, 0);
+    damage.UpdateSyncronous(context);
+    assert.equal(manager.Update(context), undefined, "Update returns void, as Carbon");
+    assert.equal(manager.maxBlockCount, 1);
+    damage.UpdateSyncronous(context);
+    assert.equal(damage.GetDataTextureOffset(), -1);
+    // No offset, no damage pass (Carbon EveDamageOverlay.cpp:556).
+    assert.equal(damage.GetArmorDamageShader(TriBatchType.TRIBATCHTYPE_DECAL), null);
+    assert.equal(damage.GetArmorDamageShaderEffect(), shader);
+  }
+  finally
+  {
+    manager.Release();
+  }
+});
 
-  damage.UpdateSyncronous(context);
-  assert.equal(damage.GetDataTextureOffset(), 0);
-  assert.equal(damage.GetArmorDamageShader(TriBatchType.TRIBATCHTYPE_DECAL), shader);
+
+test("Tr2DataTextureManager packs blocks into the ImpactShieldDataMap texture (Carbon Tr2DataTextureManager.cpp:62-164)", () =>
+{
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+  const previousAL = renderContext.GetRenderContextAL();
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  renderContext.SetRenderContextAL(al);
+  const manager = new Tr2DataTextureManager();
+  try
+  {
+    const texture = manager._dataTexture.GetTexture();
+    assert.ok(texture, "the constructor prepared the texture");
+    assert.equal(texture.GetDesc().GetWidth(), 256);
+    assert.equal(texture.GetDesc().GetHeight(), 4);
+    assert.equal(Tr2VariableStore.GlobalStore().GetVariable("ImpactShieldDataMap").GetValue(), manager._dataTexture);
+
+    let mapped = null;
+    const mapForWriting = texture.MapForWriting.bind(texture);
+    texture.MapForWriting = (region, context) => (mapped = mapForWriting(region, context));
+
+    const header = n => [ 0, 1, 2, 3 ].map(y => vec4.fromValues(n, y, 0, 0));
+    const column = (n, x) => [ 0, 1, 2, 3 ].map(y => vec4.fromValues(n, x, y, 1));
+    assert.equal(manager.RequestBlockData(header(9), 1, [ column(9, 0) ], 0), -1, "priority 0 is rejected");
+    const low = manager.RequestBlockData(header(1), 1, [ column(1, 0) ], 1);
+    const first = manager.RequestBlockData(header(2), 2, [ column(2, 0), column(2, 1) ], 5);
+    const second = manager.RequestBlockData(header(3), 0, [], 5);
+    manager.Update(null);
+
+    // Highest priority first; equal priorities in reverse insertion order (multimap rbegin).
+    assert.equal(manager.GetTextureOffset(second), 0);
+    assert.equal(manager.GetTextureOffset(first), 1);
+    assert.equal(manager.GetTextureOffset(low), 4);
+    assert.equal(manager.maxPixelCount, 6);
+    assert.equal(manager.maxBlockCount, 3);
+
+    const floats = new Float32Array(mapped.data.buffer, mapped.data.byteOffset, mapped.data.byteLength / 4);
+    const rowFloats = mapped.pitch / 4;
+    const texel = (x, y) => Array.from(floats.subarray(y * rowFloats + x * 4, y * rowFloats + x * 4 + 4));
+    assert.deepEqual(texel(1, 3), [ 2, 3, 0, 0 ], "header row 3 of the second-placed block");
+    assert.deepEqual(texel(3, 2), [ 2, 1, 2, 1 ], "its data column 1, row 2");
+    assert.deepEqual(texel(5, 0), [ 1, 0, 0, 1 ], "data column 0, row 0 of the low-priority block");
+
+    // An Update with nothing queued keeps the previous offsets (cpp:98-104).
+    manager.Update(null);
+    assert.equal(manager.GetTextureOffset(first), 1);
+    assert.equal(manager.maxPixelCount, 0);
+  }
+  finally
+  {
+    manager.Release();
+    renderContext.SetRenderContextAL(previousAL);
+  }
 });
 
 
@@ -211,10 +275,10 @@ test("shield impacts reuse, age and publish Carbon-compatible data rows", () =>
   assert.equal(overlay.shieldImpactParentSize, 2000, "shield parent size is clamped");
 
   overlay.UpdateSyncronous(context, parent);
-  const packed = manager.Update(context);
-  assert.equal(packed.length, 1, "shield-only activity requests a shared data block");
+  manager.Update(context);
+  assert.equal(manager.maxBlockCount, 1, "shield-only activity requests a shared data block");
   overlay.UpdateSyncronous(context, parent);
-  assert.equal(overlay.GetDataTextureOffset(), 0);
+  assert.equal(overlay.GetDataTextureOffset(), -1, "headless: no texture mapped, so no offset (Carbon cpp:111)");
 
   assert.equal(overlay.CreateImpact(
     0, [ 1, 0, 0 ], 1, 1, 1, Tr2Lod.TR2_LOD_LOW, parent), -1,

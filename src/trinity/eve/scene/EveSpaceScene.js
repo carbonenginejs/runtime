@@ -16,6 +16,7 @@ import { EveEntity } from "../EveEntity.js";
 import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
+import { Tr2DataTextureManager } from "../../shader/Tr2DataTextureManager.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
@@ -197,7 +198,7 @@ export class EveSpaceScene extends CjsModel
   /** m_dataTextureMgr (Tr2DataTextureManagerPtr) [READ] */
   @edit.read
   @type.objectRef("Tr2DataTextureManager")
-  dataTextureMgr = null;
+  dataTextureMgr = new Tr2DataTextureManager();
 
   /** m_dynamicObjectReflectionEnabled (bool) [READWRITE] */
   @edit.readwrite
@@ -591,7 +592,7 @@ export class EveSpaceScene extends CjsModel
     const context = this.updateContext;
     context.SetTime(simTime);
     context.UpdateOrigin(this.ballpark);
-    context.dataTextureManager = this.dataTextureMgr;
+    context.SetDataTextureManager(this.dataTextureMgr);
 
     for (const object of this.backgroundObjects)
     {

@@ -391,16 +391,6 @@ Holds the collection of texture atlases exposed through Carbon's atlas allocatio
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2TextureReference -->
-## `Tr2TextureReference`
-
-Models Carbon's reference-counted texture holder and its texture-change notification surface.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2TextureReference.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2TransientTextureReference -->
 ## `Tr2TransientTextureReference`
 

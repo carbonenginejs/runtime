@@ -1445,7 +1445,7 @@ Associates a shader sampler register with the sampler-state object to bind.
 <!-- class:Tr2DataTextureManager -->
 ## `Tr2DataTextureManager`
 
-Packs shader-readable data blocks into a shared texture, whose allocation an engine adapter owns.
+Packs shader-readable data blocks into the shared impact data texture.
 
 - Export: `@carbonenginejs/runtime/trinity/shader`
 - Source: `src/trinity/shader/Tr2DataTextureManager.js`
@@ -1618,6 +1618,16 @@ Describes a texture array's elements, dimensions, resource usage, upload increme
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/Tr2TextureArray/Tr2TextureArray.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureReference -->
+## `Tr2TextureReference`
+
+Holds one engine texture so it can be published through a variable store and observed for replacement.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/Tr2TextureReference.js`
 - Visibility: Public
 - Kind: Carbon
 

@@ -29,3 +29,4 @@ export * from "./view/index.js";
 export * from "./volumetrics/index.js";
 export * from "./Tr2StreamingBitmapSaver.js";
 export * from "./Tr2TextureArray/index.js";
+export * from "./Tr2TextureReference.js";

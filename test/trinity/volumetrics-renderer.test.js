@@ -69,7 +69,7 @@ test("Tr2VolumetricsRenderer is maintained with Carbon defaults and scene owners
   assert.equal(renderer.gameBackClip, 1e6);
   assert.equal(renderer.logBlending, true);
   assert.equal(renderer.logBlendingSmoothness, 4);
-  assert.ok(renderer.mieEnvironmentMap instanceof generatedCore.Tr2TextureReference);
+  assert.ok(renderer.mieEnvironmentMap instanceof core.Tr2TextureReference);
   for (const name of [
     "EveSceneFogVolumeMap",
     "VolumetricDepthMap",

@@ -10,6 +10,5 @@ export * from "./Tr2ReflectionProbe.js";
 export * from "./Tr2SSSSS.js";
 export * from "./Tr2TextureAtlas.js";
 export * from "./Tr2TextureAtlasMan.js";
-export * from "./Tr2TextureReference.js";
 export * from "./Tr2TransientTextureReference.js";
 export * from "./enums.js";

@@ -305,6 +305,8 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     if (!this.enableRendering) return false;
 
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
+    // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
+    if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
     this.scene.BlendLightingOverrides();
     this.scene.UpdateFogSettings();
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
