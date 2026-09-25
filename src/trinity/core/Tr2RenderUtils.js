@@ -12,8 +12,7 @@
 // calls it twice and does nothing else - and it lives in a Trinity header. It
 // went unported because "the engine does device work" was read as the
 // `trinityal/webgpu` package rather than the abstraction layer, so the upload was
-// reimplemented engine-side and this file never got written. See
-// /docs/research/graphics-path-review-2026-09-05.md.
+// reimplemented engine-side and this file never got written.
 //
 // `SetupScreenQuad` and `SetupScreenQuadInCameraSpace` are here too. They feed
 // `Tr2Blitter`'s fullscreen-quad path, which is the single gate in front of

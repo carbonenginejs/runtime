@@ -2,7 +2,7 @@
 //   trinity/trinity/Tr2StreamingBitmapSaver.cpp
 //   imageio/Tr2TgaHandler.cpp (SaveHeader, the 18-byte TGA header)
 // Hand-maintained from Carbon source, promoted out of generated intake
-// 2026-09-06 (docs/research/ratchet-three-method-tier-2026-09-06.md).
+// 2026-09-06.
 //
 // TWO DONOR DEFECTS AT StartSaving, recorded rather than silently corrected:
 // the format pre-check reads the STALE member (`IsSaveSupported( m_format )`

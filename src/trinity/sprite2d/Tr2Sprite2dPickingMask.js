@@ -3,7 +3,7 @@
 //   trinity/trinity/Sprite2d/Tr2Sprite2dPickingMask_Blue.cpp:29-30 (the
 //   maskPath property pair)
 // Hand-maintained from Carbon source, promoted out of generated intake
-// 2026-09-06 (docs/research/ratchet-three-method-tier-2026-09-06.md).
+// 2026-09-06.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { ResourceRequirement } from "#resource";

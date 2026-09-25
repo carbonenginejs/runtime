@@ -2,7 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/EveCloudEditableVolume.cpp:394-441
 //   (the parameter's methods live in the volume's translation unit)
 // Hand-maintained from Carbon source, promoted out of generated intake
-// 2026-09-06 (docs/research/ratchet-three-method-tier-2026-09-06.md).
+// 2026-09-06.
 //
 // CopyToResourceSet (cpp:415-433) is deliberately NOT here: it is
 // Tr2ResourceSetDescriptionAL/Tr2TextureAL device work and stays with the

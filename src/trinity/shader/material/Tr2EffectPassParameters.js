@@ -28,8 +28,7 @@ export class Tr2EffectPassParameters extends CjsModel
   //
   // The reader's object is not junk - its heap views are a fidelity artifact
   // of the binding-manifest round trip and its own test asserts them - so the
-  // two are separated rather than one deleted. See
-  // /docs/research/graphics-path-review-2026-09-05.md.
+  // two are separated rather than one deleted.
 
   /** m_resourceSetDesc (Tr2ResourceSetDescriptionAL) */
   @type.rawStruct("Tr2ResourceSetDescriptionAL")

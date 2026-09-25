@@ -3,10 +3,8 @@
 // THIS FILE WAS `export {};` UNTIL 2026-09-05, and that is worth recording. It
 // existed, it was re-exported from the barrel, and it was listed in
 // `src/trinity/generated/summary.json` - so every file-level inventory reported
-// this interface as ported while it declared nothing at all. Four other
-// interface files are still in that state; see the register in
-// `/docs/research/optional-call-hedges-2026-09-05.md`. A file existing is not
-// evidence that a header was ported.
+// this interface as ported while it declared nothing at all. A file existing
+// is not evidence that a header was ported.
 //
 // The cost was 50 call sites that hedged the METHOD as well as the receiver,
 // against a contract that had been named but never written.
