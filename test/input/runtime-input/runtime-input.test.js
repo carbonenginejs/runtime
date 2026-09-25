@@ -8,6 +8,8 @@ import {
     Tr2MouseCursor,
     UIScancode
 } from "../../../npm/dist/input/index.js";
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 
 class FakeTarget
 {
@@ -66,6 +68,23 @@ test("Tr2MainWindowState retains Carbon defaults and reset comparison", () =>
         () => windowed.RequiresDeviceReset(state.GetValues()),
         /requires Tr2MainWindowState/u
     );
+});
+
+test("Tr2MainWindowState exposes Carbon's eight attributes with Blue-registered enums", () =>
+{
+    // Tr2MainWindow_Blue.cpp:59-76; the choosers at :9-51 and Tr2RenderContext_Blue.cpp:277-288.
+    const fields = CjsSchema.getSchema(Tr2MainWindowState).fields;
+    assert.deepEqual(fields.map(field => field.name),
+        [ "windowMode", "adapter", "width", "height", "presentInterval", "left", "top", "showState" ]);
+    for (const field of fields) assert.ok(field.edit.read && field.edit.write && field.edit.persist, field.name);
+
+    const byName = Object.fromEntries(fields.map(field => [ field.name, field ]));
+    assert.equal(byName.windowMode.enum.members, Tr2MainWindowState.Tr2WindowMode);
+    assert.equal(byName.showState.enum.members, Tr2MainWindowState.Tr2WindowShowState);
+    assert.equal(byName.presentInterval.enum.members, Tr2MainWindowState.PresentInterval);
+    assert.deepEqual(byName.windowMode.enum.chooser.map(entry => entry.name), [ "FULL_SCREEN", "WINDOWED", "FIXED_WINDOW" ],
+        "the chooser omits _COUNT");
+    assert.deepEqual(blue.enums.GetEnumInfo("trinity.Tr2RenderContextEnum.PresentInterval").exposedName, "PRESENT_INTERVAL");
 });
 
 test("Tr2MouseCursor realizes browser CSS cursor state without native handles", () =>

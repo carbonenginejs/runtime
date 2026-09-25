@@ -3,7 +3,8 @@
 export const Tr2WindowMode = Object.freeze({
     FULL_SCREEN: 0,
     WINDOWED: 1,
-    FIXED_WINDOW: 2
+    FIXED_WINDOW: 2,
+    _COUNT: 3
 });
 
 export const Tr2WindowShowState = Object.freeze({

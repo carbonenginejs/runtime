@@ -2,6 +2,8 @@
 // Source: trinity/trinity/UI/Tr2MainWindow.cpp
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
+import { CjsSchema, edit, type } from "#schema";
+import "../global/blue/registerTrinityEnums.js";
 
 /**
  * Carbon main-window state record for mode, size, position, and presentation settings.
@@ -129,5 +131,24 @@ function presentIntervalName(value)
         default: return "INVALID PRESENT INTERVAL";
     }
 }
+
+// Tr2MainWindow_Blue.cpp:59-76, in Carbon's order. `input` ships as raw
+// source (package.json "./input"), so the schema is defined here rather than
+// with decorator syntax.
+CjsSchema.define(Tr2MainWindowState, {
+    className: "Tr2MainWindowState",
+    carbon: "Tr2MainWindowState",
+    family: "input",
+    fields: {
+        windowMode: [ type.int32, type.enum("trinity.Tr2WindowMode"), edit.readwrite, edit.persist ],
+        adapter: [ type.uint32, edit.readwrite, edit.persist ],
+        width: [ type.uint32, edit.readwrite, edit.persist ],
+        height: [ type.uint32, edit.readwrite, edit.persist ],
+        presentInterval: [ type.int32, type.enum("trinity.Tr2RenderContextEnum.PresentInterval"), edit.readwrite, edit.persist ],
+        left: [ type.int32, edit.readwrite, edit.persist ],
+        top: [ type.int32, edit.readwrite, edit.persist ],
+        showState: [ type.int32, type.enum("trinity.Tr2WindowShowState"), edit.readwrite, edit.persist ]
+    }
+});
 
 export default Tr2MainWindowState;
