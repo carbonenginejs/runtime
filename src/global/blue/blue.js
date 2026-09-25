@@ -72,3 +72,15 @@ export const blue = {
 // The manager ticks with the OS, as Carbon's constructor registers itself
 // (BlueResMan.cpp:113); done here because the manager cannot import this file.
 blue.os.RegisterForTicks(blue.resMan);
+
+// "Local" in a browser means ALREADY FETCHED. Carbon's FileExistsLocally asks
+// whether a file is on this machine rather than only reachable through the
+// remote cache, and callers use it to pick something already present over
+// something that must be downloaded (Tr2Mesh's low-detail swap). A browser has
+// no disk; what it has is the manager's own holdings. A Node wrapper replaces
+// this with a predicate that asks its disk (data-supply mode 4).
+blue.paths.SetResourceFileIndex(path =>
+{
+  const resource = blue.resMan.Lookup(path);
+  return resource !== null && resource.HasPayload();
+});

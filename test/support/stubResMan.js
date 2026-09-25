@@ -72,6 +72,16 @@ export class StubResMan extends IBlueResMan
     return this.#resourceFor(path, options);
   }
 
+  /**
+   * What this manager already holds with its data, as `CjsResMan.Lookup`
+   * answers; `blue.paths.FileExistsLocally` asks it ("already fetched"). A
+   * stub loads nothing, so it holds nothing.
+   */
+  Lookup()
+  {
+    return null;
+  }
+
   LoadObject(path)
   {
     this.requests.push({ path, load: true });

@@ -21,6 +21,7 @@ function withGlobalManager(run)
   // the handle, not container decoding.
   const source = { Read() { return new Uint8Array(0); } };
   const resourceManager = RegisterShaderResources(new CjsResMan({ source }));
+  const previous = blue.resMan;
   blue.resMan = resourceManager;
   try
   {
@@ -28,7 +29,7 @@ function withGlobalManager(run)
   }
   finally
   {
-    blue.resMan = new IBlueResMan();
+    blue.resMan = previous;
     SetEffectPathDefaults(null);
   }
 }
@@ -123,6 +124,7 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   // The intent it was reaching for is real and survives: a caller who assigns
   // the resource owns it, and Tr2Effect must not go looking. So assign one,
   // leave the manager uncomposed, and let the throw prove nothing asked.
+  const previous = blue.resMan;
   blue.resMan = new IBlueResMan();
   SetEffectPathDefaults({ platformName: "webgpu" });
 
@@ -139,6 +141,7 @@ test("a hand-assigned resource is not replaced, and is not fetched for", () =>
   }
   finally
   {
+    blue.resMan = previous;
     SetEffectPathDefaults(null);
   }
 });

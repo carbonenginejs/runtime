@@ -1,18 +1,18 @@
 // Source: blue/include/IBluePaths.h
 //
-// The paths service as a browser can answer it. Carbon asks its file system;
-// here the same questions are answered from a res file index the composer
-// supplies - the "fake local machine", which is what a browser has instead of
-// a disk it may walk.
+// The paths service as a browser can answer it. Carbon asks its file system
+// whether a file is on this machine (`FileExistsLocally`, IBluePaths.h:38), as
+// opposed to reachable only through the remote cache; callers use the answer
+// to prefer what is already present (`Tr2Mesh::InitializeGeometryResource`'s
+// low-detail swap). The question is answered by an installed predicate:
 //
-// WHY THIS IS INSTALLED BY DEFAULT WHERE THE MANAGER IS NOT. An uncomposed
-// resource manager cannot answer "fetch me this" at all, so it throws. An
-// uncomposed paths service CAN answer "is this file here": no, it is not.
-// Carbon returns exactly that for a file absent from the local machine
-// (`FileExistsLocally`, IBluePaths.h:38), and every caller is written for the
-// answer already - `Tr2Mesh::InitializeGeometryResource` takes the authored
-// path when the probe says no. Throwing instead would make "no index" a
-// different case from "no such file", which it is not.
+// - in a browser, "already fetched" - `blue.js` installs one asking the
+//   resource manager whether it holds the resource with its data;
+// - in Node, a wrapper may install one asking its disk (data-supply mode 4),
+//   which is Carbon's literal meaning.
+//
+// With nothing installed the answer is no, which keeps a caller on the path it
+// was authored with; every caller is already written for that answer.
 //
 // The verbs this cannot answer without a real file system stay refused, from
 // IBluePaths. They are not no-ops: a caller that needs a directory listing or a
