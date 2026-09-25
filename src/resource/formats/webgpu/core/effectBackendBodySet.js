@@ -212,6 +212,11 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
  * A body that cannot be lowered is retained as an explicitly unsupported
  * in-memory record carrying its reason. Portable source reflection is built
  * separately from the same effect; this body-set document does not store it.
+ * Any unsupported body makes `coverage.bodies` `"partial"`. The emitted
+ * container keeps that body's non-program fields with zero-length programs, so
+ * a reread can report only that it carries no translated programs, not why.
+ * The caller (`buildEffectPackage`, mode `"all"`) has already required the
+ * resolved selection to translate before this runs.
  *
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).

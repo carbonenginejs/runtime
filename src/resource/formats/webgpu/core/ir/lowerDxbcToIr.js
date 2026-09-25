@@ -126,6 +126,9 @@ function immediateRecord(value)
  * module-scope WGSL `const` array (the same shape as the DXBC icb), so their
  * dynamic reads never need mutable-register SSA. Any relative indexable-temp
  * usage that does not fit this shape fails closed here with a diagnostic.
+ * Out-of-bounds dynamic reads keep WGSL's implementation-chosen array-access
+ * result rather than D3D's register semantics (the same applies to icb reads,
+ * where D3D returns zero).
  *
  * @param {object[]} declarationInstructions Decoded declaration instructions.
  * @param {object[]} executable Decoded executable instructions.

@@ -1139,7 +1139,20 @@ function lowerBody(program, bindings)
 }
 
 /**
- * Lowers the exact SM5.0/finite-SM5.1 512-record in-workgroup sort profile.
+ * Lowers the exact SM5.0/finite-SM5.1 512-record in-workgroup sort profile
+ * (`particles/gpu/sort`, 256x1x1; selected before sort-inner, whose family is
+ * shorter).
+ *
+ * The source's storage-dependent `if (N == 0) return` ahead of the barriers is
+ * omitted: a zero count causes no external load, shared read or store, so
+ * letting every invocation reach the barriers gives the same result and keeps
+ * barrier participation uniform. Uniform merge-width/stride state drives 45
+ * compare/exchange stages; the initial barrier plus one per stage gives 46,
+ * each requiring exactly `threads_in_group | thread_group_shared_memory`.
+ * Both record words move together; finite f32 keys sort ascending, while equal
+ * keys, signed zero and NaN keep the source comparison, not a total order.
+ * Shared memory is exactly 4 KiB; external reads and two-word records keep
+ * the zero/drop rules.
  *
  * The workgroup shared-memory proof is self-contained for arbitrary u32 N:
  * the source signed clamp keeps R in [0, 512], and every comparator endpoint

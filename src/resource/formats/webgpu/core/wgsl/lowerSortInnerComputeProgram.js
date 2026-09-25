@@ -998,7 +998,24 @@ function lowerBody(program, bindings)
 }
 
 /**
- * Lowers the exact SM5.0/finite-SM5.1 sort-inner bitonic-merge profile.
+ * Lowers the exact SM5.0/finite-SM5.1 sort-inner bitonic-merge profile
+ * (`particles/gpu/sortinner`, 256x1x1).
+ *
+ * External storage follows the sort-step zero/drop rules; shared memory is
+ * exactly 4 KiB (`array<u32, 1024>`, 512 two-word records). Logical N is not
+ * clamped to the physical UAV length, since robust zero records may move into
+ * present slots. The nine-stage compare/exchange network merges bitonic input,
+ * not arbitrary input: each stage pairs 512 records disjointly and swaps both
+ * words when the high f32 key is lower (NaN keeps the source's false result).
+ * A dedicated uniform signed stride and immutable exit keep varying values out
+ * of barrier control; both sync sites require exactly
+ * `threads_in_group | thread_group_shared_memory`, giving ten unconditional
+ * workgroup barriers. Flattened and local-x identifiers coincide only because
+ * the group is 256x1x1.
+ *
+ * The dispatch premise below is an integration obligation: SetSortArgs
+ * completes first, its first three words dispatch ceil(max(N, 1) / 512) groups
+ * and its fourth word is the N read as `t0[3]`; x-dispatch <= 65535 bounds N.
  *
  * Correct shared-memory initialization retains the source shader's external
  * orchestration premise: N <= 33,553,920 and workgroup_id.x within

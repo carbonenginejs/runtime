@@ -31,6 +31,9 @@ export function blockForInstruction(program, instructionIndex)
  * Whether a lowered statement definitely returns on every path: a `return`, an
  * `if`/`else` whose both arms terminate, or a `switch` with a default whose
  * every clause terminates. Code after such a statement is unreachable.
+ * The lowerers drop that dead tail (commonly a trailing `ret` after fully
+ * branched Picking/depth outputs), so output completeness is validated only on
+ * reachable returns.
  *
  * @param {object[]} statements Lowered statement list.
  * @returns {boolean} True when the list's last statement terminates all paths.
@@ -284,6 +287,26 @@ function undefinedPathMaskedByAnd(use, constraints)
         && constraints.get(`${siblingRef.valueId}.${siblingRef.component}`) === false;
 }
 
+/**
+ * Rejects a live merge whose emitted assignments can observably carry an
+ * undefined register. The walk follows the exact references the plans emit:
+ * selection arms, switch clauses, shared `if { switch }` joins, loop header
+ * entry/backedge assignments and loop-exit break assignments. Correlation keys
+ * are SSA value plus component, so two lanes of one vector comparison stay
+ * distinct. Selection conditions are carried through acyclic paths and cleared
+ * across loop backedges/exits; switch selector correlations are not modeled.
+ *
+ * Direct undefined uses fail closed except one lane-exact rule
+ * (`undefinedPathMaskedByAnd`): a raw, unmodified, default-precision `and`
+ * whose sibling lane is the SSA condition proven zero on that path, since
+ * `0 & unknown` is zero. The proof is repeated per use and lane.
+ *
+ * @param {object} program Shader IR.
+ * @param {Set<string>} live Live merge value ids.
+ * @param {Map<string, object>} values Values by id.
+ * @param {Map<number, object>} plans Region plans.
+ * @param {string} stage Diagnostic stage label.
+ */
 function validateUndefinedMergePaths(program, live, values, plans, stage)
 {
     const mergePlans = new Map();
@@ -369,6 +392,22 @@ function validateUndefinedMergePaths(program, live, values, plans, stage)
     }
 }
 
+/**
+ * Plans one switch region: grouped case markers with immediate, unique
+ * selectors, each clause ending in `break` or `ret`. Live scalar merges at the
+ * after-endswitch join require a DXBC default and break-terminated clauses,
+ * and admit at most one pass-through incoming (a clause that keeps the value
+ * from before the switch, which must dominate the header).
+ *
+ * @param {object} program Shader IR.
+ * @param {object} region Switch control-flow region.
+ * @param {Map<string, object>} values Values by id.
+ * @param {Set<string>} live Live merge value ids.
+ * @param {object} dominators Dominator sets.
+ * @param {string} stage Diagnostic stage label.
+ * @param {boolean} [sharedJoin] Whether an enclosing `if` owns the join merges.
+ * @returns {object} Switch plan.
+ */
 function buildSwitchPlan(program, region, values, live, dominators, stage, sharedJoin = false)
 {
     const header = blockForInstruction(program, region.startInstruction);

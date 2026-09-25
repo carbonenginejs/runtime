@@ -1421,6 +1421,27 @@ function lowerBody(program, bindings)
  * Lowers the two exact CreateHistograms backend schedules to one canonical
  * 16x16 atomic histogram program.
  *
+ * SM5.0 and finite-SM5.1 validators feed one emitter, which hoists the pure
+ * uniform `ftou(cb0.z)` to match SM5.1. The first 64 flattened lanes zero 64
+ * shared atomic-u32 bins, all lanes synchronize, in-range pixels increment
+ * bins, all synchronize again, and the first 16 lanes store four bins each as
+ * uint4 records at wrapping address
+ * `((workgroup_id.y * ScreenTilesX + workgroup_id.x) << 4) + local_index`.
+ * Barriers require exactly `threads_in_group | thread_group_shared_memory`.
+ * Mip-zero `resinfo_uint` is `textureDimensions(t0, 0)`; the source
+ * coordinate test plus a safe physical load/zero select avoid eager OOB
+ * access. Luminance math keeps source f32 order and constants, and an extra
+ * `0 <= bin && bin < 64` guard contains shared atomics on adapted numeric
+ * edges. u0 checks `arrayLength / 4` before all four stores, so partial
+ * records write nothing.
+ *
+ * Qualified domain: ScreenTilesX finite, non-negative, integer-valued and u32
+ * representable, and equal to both the x workgroup count and the output row
+ * stride; MinLuminance < MaxLuminance, finite; every executed pixel yields
+ * positive finite luminance with the multiply/ftoi input in [0, 64]. Outside
+ * it (zero or negative luminance, NaN, overflow) equivalence is not claimed;
+ * finite saturation uses clamp, and D3D's NaN-to-zero saturate is not kept.
+ *
  * @param {object} program CJS shader IR program.
  * @param {object} [options] Exact compute-only binding options.
  * @returns {object} Typed compute program.

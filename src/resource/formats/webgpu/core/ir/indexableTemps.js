@@ -38,7 +38,11 @@ function validateComponents(operand, role, componentCount)
 
 /**
  * Validates the declaration-backed identity of an indexable-temp operand.
- * Mutable fixed slots are returned as ordinary SSA register identities.
+ * Mutable fixed slots are returned as ordinary SSA register identities: a
+ * uniquely declared width-four register addressed as `x#[immediate-slot]`
+ * in range becomes a bounded family of register locals, each slot/lane taking
+ * part in SSA and structured merges; no mutable WGSL array is emitted.
+ * Relative addressing and narrower mutable declarations fail closed.
  * Reads from an extracted immutable table return null so they bypass register
  * SSA and lower through the table expression path instead.
  *

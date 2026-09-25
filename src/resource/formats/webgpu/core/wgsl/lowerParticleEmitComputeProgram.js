@@ -887,7 +887,17 @@ function lowerBody(program, bindings)
 }
 
 /**
- * Lowers the one audited SM5.0 particle-emit schedule.
+ * Lowers the one audited SM5.0 particle-emit schedule (`particles/gpu/emit`,
+ * 16x16x1; a recognized SM5.1 program is comparison-only).
+ *
+ * Admission is the exact declaration family (including 4096 vec4 cb3 rows and
+ * 112-byte raw TGSM) plus a SHA-256 digest of the complete normalized program
+ * (`particleEmitSemanticDigest.js`), which rejects aliases, sparse arrays,
+ * accessors, prototypes and unknown fields. Lane zero initializes TGSM before
+ * a uniform barrier; the returned signed `atomicAdd(u1[0u], -1i)` stays ahead
+ * of its `old - 1` success test. DeadBuffer and cbuffer reads clamp physical
+ * accesses and select zero when absent, TGSM stays inside initialized words,
+ * and the final particle write requires a complete eight-word record.
  *
  * @param {object} program Frozen CJS shader IR.
  * @param {object} [options] Optional exact compute binding plan.

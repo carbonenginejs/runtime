@@ -1496,6 +1496,18 @@ function lowerClearBody(program)
 /**
  * Lowers the exact effect-authorized particle counter reset.
  *
+ * Emits `atomicStore(&u0[0u], 0i)` over atomic-i32 storage (4-byte minimum).
+ * A standalone reset declaration proves no view format, so the signed store
+ * is admitted only with the opaque proof `preflightParticleClearEffectProfile`
+ * mints after validating both Main.pass0/pass1 compute programs and the shared
+ * one-element ParticleCounters UAV (Carbon type 10) beside stride-4 DeadBuffer
+ * and stride-32 ParticleBuffer. The same proof gates binding planning; this is
+ * not general signed typed-store support. Missing, forged or differently
+ * decoded proofs fail closed.
+ *
+ * Dispatch premise: one reset group, completed and visible, then exactly one
+ * initialization group with no concurrent counter users.
+ *
  * @param {object} program CJS shader IR.
  * @param {object} [options] Binding plan and opaque effect proof.
  * @returns {object} Typed compute program.
@@ -1530,6 +1542,16 @@ export function lowerParticleClearResetComputeProgram(program, options = {})
 
 /**
  * Lowers the exact self-proving particle/dead-list initialization shader.
+ *
+ * 16x16x1; its signed view is proven by the returned `imm_atomic_iadd`. Count
+ * is `bitcast<u32>(cb3[0u].x)`; complete-block indices keep
+ * `insertBits(local_invocation_index, block_index, 8u, 24u)`. All 256 lanes
+ * cover complete blocks, then lane zero covers the remainder, visiting
+ * [0, count) once. Each visit attempts both ParticleBuffer stores under a
+ * complete-record guard, increments the signed counter, bitcasts its old value
+ * to the dead-list index and guards the DeadBuffer store independently; no
+ * barrier is added. Undersized buffers are safe, but the counter still reaches
+ * count, not the number of successful writes.
  *
  * @param {object} program CJS shader IR.
  * @param {object} [options] Optional binding plan/effect proof.

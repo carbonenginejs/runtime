@@ -170,6 +170,17 @@ function structuredBufferLayout(binding)
     };
 }
 
+/**
+ * Typed `Buffer` SRVs. A DXBC `dcl_resource` of dimension `buffer` declares
+ * the component class `ld` returns but not the bound DXGI view's width or
+ * conversion: one uniform-uint declaration may be bound as R32_UINT or
+ * R32G32B32A32_UINT, and one WGSL element type would index one of them wrong.
+ * Render stages therefore fail closed until trusted bound-view format metadata
+ * is part of the binding policy, manifest and compatibility fingerprint; that
+ * metadata would then supply element type, stride, missing-channel values,
+ * conversion and `minBindingSize`. Compute admits only the bounded profiles'
+ * separately validated scalar-word view (`array<i32|u32>`, 4-byte minimum).
+ */
 function typedBufferLayout(program, binding)
 {
     if (binding.structureStride !== null && binding.structureStride !== undefined)
@@ -247,6 +258,10 @@ function uavBufferLayout(program, binding, policy)
     {
         return storageTextureLayout(program, binding, storageTexture, returns);
     }
+    // Typed buffer UAVs become `array<atomic<u32>>` (atomic i32 only for an
+    // effect-proven signed counter): WGSL requires atomic builtins for every
+    // access to an atomic element, so compute profiles store with atomicStore.
+    // The engine binds raw 4-byte words; no DXGI view conversion is reproduced.
     const identity = `storage-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`;
     const signedAtomic = policy.signedAtomicI32Identities.has(identity);
     const scalar = signedAtomic ? "sint" : "uint";

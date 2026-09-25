@@ -46,6 +46,37 @@ import {
  * or empty program slots plus representable non-program fields. Filesystem
  * concerns remain in callers.
  *
+ * Options:
+ * - `mode`: `"selected"` (default) translates only the resolved body's
+ *   requested complete passes; `"all"` first requires that selection to
+ *   translate, then attempts every distinct body. `allPermutations: true`
+ *   forces `"all"`. Neither mode drops permutation rows.
+ * - `permutation`: `{ name, value }[]` or a `Map`; unknown, duplicate or
+ *   unresolved assertions throw.
+ * - `selection`: `{ techniqueName, passIndex, stageNames }`; `stageNames`
+ *   requires an exact `passIndex`.
+ * - `bindingPolicy.sharedIdentities`: D3D identities allowed to share one
+ *   physical binding across stages.
+ * - `source`, `outputPath`, `sourceIdentity`: returned provenance only; the
+ *   wire's backend identity comes from the consumer's resource path. A
+ *   supplied `sourceIdentity.sha256` must match the exact input bytes.
+ *
+ * Returned fields (caller evidence, none stored separately in the wire):
+ * - `bytes`: the Carbon v15 container;
+ * - `info`: producer, source, translation-scope (`backendBodyCoverage`) and
+ *   completeness evidence;
+ * - `metadata`: resolved selection and caller provenance;
+ * - `permutationGraph`: complete source permutation and body-alias view;
+ * - `analysis`: selected-body diagnostic analysis;
+ * - `wgsl`: emitted shaders, layouts and resource transforms;
+ * - `backendBodySet`: all-body translation result, or `null` in selected mode;
+ * - `inspection`: summary from rereading the emitted bytes;
+ * - `qualification`: structural outcome and translation counts.
+ *
+ * `qualification.packageValid` is structural validity only; `backendComplete`
+ * and `runtimeComplete` stay false because translating bodies does not prove
+ * pipeline preparation or a draw. Compiler IR is transient and not returned.
+ *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
  * @param {object} [options] Source, body-mode, permutation, and stage-selection policy.
  * @returns {object} Package bytes plus inspection and provenance documents.

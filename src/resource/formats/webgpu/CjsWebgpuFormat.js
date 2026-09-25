@@ -308,7 +308,26 @@ export class CjsWebgpuFormat extends CjsFormat
     }
 
     /**
-     * Static selected-body Carbon WebGPU builder.
+     * Static Carbon WebGPU builder: parses the complete version-15 input,
+     * resolves a permutation, lowers supported DXBC, allocates pass-global
+     * bindings, emits WGSL, writes a Carbon v15 container and validates it. It
+     * takes bytes and never opens files or resource paths. Options and result
+     * fields are documented on `buildEffectPackage` (`core/packageEffect.js`).
+     *
+     * ```js
+     * const result = CjsWebgpuFormat.buildEffect(effectBytes, {
+     *     source: "res:/graphics/effect.dx11/example.sm_hi",
+     *     mode: "selected",
+     *     permutation: [ { name: "QUALITY", value: "HIGH" } ],
+     *     selection: { techniqueName: "Main", passIndex: 0, stageNames: [ "vertex", "pixel" ] },
+     *     sourceIdentity: { sha256: expectedSha256 } // checked against effectBytes
+     * });
+     * const packageBytes = result.bytes;
+     * ```
+     *
+     * `source` is a diagnostic label; `sourceIdentity` is returned provenance
+     * and does not change the wire, whose backend identity is the resource path
+     * the emitted bytes are later loaded from (`effect.webgpu/`).
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
      * @param {object} [options] Source, body-mode, permutation, and stage-selection policy.

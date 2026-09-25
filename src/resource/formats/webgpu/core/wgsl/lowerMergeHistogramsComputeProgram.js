@@ -1068,6 +1068,17 @@ function lowerBody(program, bindings)
  * final typed uint UAV atomic is guarded by arrayLength so an OOB destination
  * drops the write. TGSM indices are fixed by the exact 0..63 source loop.
  *
+ * Schedule (`postprocess/mergehistograms`, 256x1x1): lanes 0-63 zero 64
+ * shared atomic-u32 bins, all lanes synchronize, active invocations add 16
+ * uint4 records (four atomics each), all synchronize, then lanes 0-63 add the
+ * totals to u0. Both barriers are unconditional and require exactly
+ * `threads_in_group | thread_group_shared_memory`. t0 records sit at wrapping
+ * word address `(global_invocation_id.x << 6) >> 2`. The intended result
+ * needs cb0.x/y to be finite, non-negative, integer-valued and u32
+ * representable (`ftou` is qualified only there); their low-u32 product is the
+ * active invocation count. Undersized bindings stay memory-safe but do not
+ * give the complete histogram.
+ *
  * @param {object} program CJS shader IR program.
  * @param {object} [options] Exact compute-only binding options.
  * @returns {object} Typed compute program.

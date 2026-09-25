@@ -109,6 +109,16 @@ function assignComponents(indent, field, components, source, ordinal)
     ];
 }
 
+/**
+ * One f32 lane of an immediate constant buffer or immutable indexable-temp
+ * table. Non-finite lanes and negative zero are written as `bitcast<f32>` of
+ * the raw bits so the exceptional or sign pattern survives. Finite lanes use a
+ * readable decimal; WGSL does not fix the rounding direction of an inexact
+ * decimal-to-f32 conversion, so that form is not a normative raw-bit guarantee.
+ *
+ * @param {{float32: number, uint32: number}} value Decoded lane.
+ * @returns {string} WGSL f32 expression.
+ */
 function f32Literal(value)
 {
     const number = value.float32;
@@ -365,6 +375,13 @@ export function buildWgsl(input, options = {})
         // filter reproduces it (a standard WGSL opt-out) rather than rejecting
         // the shader. Neighbor lanes that skip the branch yield undefined
         // derivatives there, exactly as under D3D11.
+        // The directive rather than gradient hoisting: converting to
+        // textureSampleGrad with a gradient computed in uniform control flow
+        // would substitute a different gradient than the one D3D11 used. The
+        // directive keeps the operation at its source control-flow point, is
+        // emitted only when the fragment lowerer detected a non-uniform
+        // derivative/sample (including after a loop with a non-uniform exit),
+        // and is flagged on the typed program so the reliance is never silent.
         lines.push("diagnostic(off, derivative_uniformity);", "");
     }
     const interfaceInputs = compute ? [] : program.interface.inputs;
@@ -504,6 +521,10 @@ export function buildWgsl(input, options = {})
             }
             if (!statement.clauses.some((clause) => clause.isDefault))
             {
+                // WGSL requires a default clause; a DXBC switch without one
+                // falls through to endswitch, which an empty default matches.
+                // Switches carrying live merges need a real DXBC default and
+                // are rejected earlier by the switch merge planner.
                 lines.push(`${indent}    default:`, `${indent}    {`, `${indent}    }`);
             }
             lines.push(`${indent}}`);

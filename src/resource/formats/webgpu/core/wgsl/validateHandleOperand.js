@@ -1,5 +1,7 @@
 /**
  * Requires one fixed, unmodified, default-precision resource-handle operand.
+ * Relative identities fail closed before binding lookup because the binding
+ * layout supports singleton ranges only; legal result swizzles stay allowed.
  *
  * @param {object} instruction Decoded instruction.
  * @param {number} operandIndex Handle operand index.

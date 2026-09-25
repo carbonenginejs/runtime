@@ -758,6 +758,13 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
     return vectorCode(parts, type.scalarType);
 }
 
+/**
+ * Lowers one result-writing vertex instruction. Opcode mappings and numeric
+ * adaptations match the fragment lowerer's `expressionFor`. Sampling is
+ * explicit-LOD only (`sample_l` -> `textureSampleLevel`, `sample_d` ->
+ * `textureSampleGrad`): WGSL forbids implicit derivatives in a vertex entry
+ * point, so `sample`/`sample_b` are not admitted.
+ */
 function expressionFor(program, instruction, write, type, inputs, bindings)
 {
     const mask = write.mask;
@@ -1415,6 +1422,9 @@ export function lowerVertexProgram(program, options = {})
             {
                 throw new Error(`WGSL vertex if instruction ${ifInstruction.index} requires one unmodified scalar condition`);
             }
+            // Arms may write outputs (typically SV_Position in a Picking or
+            // stretch pass) alongside live merges; see the matching note in
+            // lowerFragmentProgram.js.
             for (const merge of plan.merges)
             {
                 const expression = plan.hasElse

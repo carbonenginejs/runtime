@@ -337,11 +337,22 @@ function buildResourceTransforms(entries, layouts)
 }
 
 /**
- * Builds the portable JSON document stored in a Carbon WebGPU `WGSL` chunk.
- * Existing numeric bindings are validated and never reassigned.
+ * Builds the portable `CJS_WGSL_SET` document: shader descriptors plus
+ * pass-level layouts. The container does not store this document; its
+ * programs go to stage program slots and its layouts/transforms to each pass's
+ * backend block, and reads re-derive it. Existing numeric bindings are
+ * validated and never reassigned.
+ *
+ * Every set is `WGSL_SET_VERSION` (3); `resourceTransforms` is present only
+ * when a pass merged logical resources (see `buildResourceTransformPlan`).
+ * Version 3 carries every version-2 rule: a bare (shared) scope must cover at
+ * least two stages, and explicit D3D and scope identities are both required.
+ * Consumers must gate those checks with `formatVersion >= 2`, not `=== 2`, or
+ * version 3 silently falls back to version-1 semantics; a DX11/DX12 draw
+ * comparison cannot catch that because both inputs would downgrade alike.
  *
  * @param {Array<object>} input Wrapped emitted shader descriptors.
- * @returns {object} Frozen CJS_WGSL_SET document.
+ * @returns {object} CJS_WGSL_SET document.
  */
 export function buildWgslSet(input)
 {

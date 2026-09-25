@@ -886,7 +886,17 @@ export function isSkinVerticesComputeProfile(program)
 }
 
 /**
- * Lowers the bounded structured skinning compute profile.
+ * Lowers the bounded structured skinning compute profile
+ * (`system/raytracing/skinvertices`, 64x1x1; SM5.1 is comparison-only because
+ * its unbounded space1/space2 ranges do not supply this fixed binding layout).
+ *
+ * `global_invocation_id.x` is already global: it is not multiplied by the
+ * workgroup size. Packed indices use unsigned `ubfe` over eight-bit fields.
+ * SRV strides 48/4 and UAV stride 4 are flat u32 words, preserving f32 bit
+ * patterns. Structured loads use `arrayLength / strideWords`, clamp eager
+ * accesses and select zero for an absent structure; each scalar store drops
+ * an absent word independently. Offset plus swizzle beyond the declared stride
+ * is rejected.
  *
  * @param {object} program CJS shader IR program.
  * @param {object} [options] Exact compute-only binding options.

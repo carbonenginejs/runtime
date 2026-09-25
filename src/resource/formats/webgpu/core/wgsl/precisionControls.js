@@ -34,15 +34,18 @@ export function requireRefactoringAllowed(program, stage)
 }
 
 /**
- * Validates precise-mask metadata only. ADAPTED CONTRACT (requester decision,
- * 2026-07-20): DXBC `precise` operations are accepted and lowered as ordinary
- * IEEE float math, and the vertex position output is emitted `@invariant`.
+ * Validates precise-mask metadata only. ADAPTED: DXBC `precise` operations
+ * are accepted and lowered as ordinary IEEE float math, and every vertex
+ * `SV_Position` output is emitted `@invariant @builtin(position)`.
  * WGSL has no general no-contraction control, so bit-exact parity with native
- * D3D11 arithmetic is NOT promised; `@invariant` instead guarantees identical
- * position results across the pipelines built from the same emitted WGSL,
- * which is the multi-pass invariance `precise` protects in these shaders.
- * See docs/resource/formats/webgpu/reference/wgsl-compatibility.md ("precise" entry) before changing
- * this.
+ * D3D11 arithmetic is NOT promised (differential tests may differ in final
+ * ulps); `@invariant` instead guarantees identical position results across
+ * the pipelines built from the same emitted WGSL, which is the multi-pass
+ * crack/z-fight invariance `precise` protects in these shaders. The mask is
+ * still checked structurally: well formed, and every precise lane covered by a
+ * destination write. Globally non-refactorable shaders stay rejected by
+ * `requireRefactoringAllowed`. If WGSL gains a no-contraction control, lower
+ * `precise` exactly and drop this adaptation.
  *
  * @param {object} instruction Typed CJS shader IR instruction.
  * @param {string} stage Diagnostic stage label.

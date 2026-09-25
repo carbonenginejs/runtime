@@ -896,6 +896,13 @@ function validateBlockOutput(program, state)
 /**
  * Lowers the bounded setdrawparameters/setsortargs compute slice into typed SSA.
  *
+ * SM5.0, 1x1x1, straight-line `ld`, low-half `imul`, `umax`, `iadd`, `ushr`,
+ * `store_uav_typed` and `ret`. SRVs are `array<i32>` and UAVs
+ * `array<atomic<u32>>` written with `atomicStore`, each `minBindingSize: 4`
+ * with no DXGI typed-view conversion. Scalar-x loads and replicated full-mask
+ * stores avoid inferring a general typed-buffer width. Out-of-bounds loads
+ * clamp the eager access and select zero; stores branch and drop the write.
+ *
  * @param {object} program Frozen CJS shader IR.
  * @param {object} [options] Optional exact compute-only binding plan.
  * @returns {object} Frozen typed compute program.
@@ -1071,7 +1078,18 @@ function lowerScalarWordComputeProgram(program, options = {})
 /**
  * Routes one compute program to an exact declaration-shaped lowering profile.
  * Once a profile is selected its validation errors are final; malformed input
- * never falls through to a broader profile.
+ * never falls through to a broader profile. A matching path, workgroup size or
+ * declaration alone is insufficient: each profile validates its literal
+ * declaration, opcode, operand, modifier, range, CFG, SSA and type schedule
+ * (shared checks in `validateExactComputeIr.js`). The exact profile set is
+ * closed; see this folder's README. Finite SM5.1 input means validated
+ * canonical ranges, not unbounded descriptor indexing.
+ *
+ * `system/crash` must stay rejected. Without its sentinel its loop visits all
+ * 2^32 indices and never terminates, and multiple workgroups race where it
+ * expects exactly one; an iteration cap would change observable semantics and
+ * the package proves neither premise. No profile claims it; re-check that it
+ * still fails closed whenever the general path's instruction set widens.
  *
  * @param {object} program Frozen CJS shader IR.
  * @param {object} [options] Optional exact compute-only binding plan.

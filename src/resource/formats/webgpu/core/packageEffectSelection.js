@@ -8,7 +8,7 @@ const KNOWN_UNSUPPORTED_STAGE_NAMES = new Set([ "geometry", "hull", "domain" ]);
  * Normalize caller permutation assertions without coercing malformed values.
  *
  * @param {object[]|Map<string,string>|null|undefined} value Permutation assertions.
- * @returns {object[]} Frozen NAME=VALUE assertion records.
+ * @returns {object[]} `{ name, value }` assertion records.
  */
 export function normalizeEffectPermutation(value)
 {
@@ -45,7 +45,7 @@ export function normalizeEffectPermutation(value)
 /**
  * Verify that every requested permutation resolved exactly.
  *
- * @param {object[]} requested Requested NAME=VALUE records.
+ * @param {object[]} requested Requested `{ name, value }` records.
  * @param {object[]} selectedOptions Resolved effect option records.
  * @returns {true} True when every request resolved exactly.
  */

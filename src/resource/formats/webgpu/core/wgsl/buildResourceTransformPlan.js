@@ -107,11 +107,15 @@ function normalizeTransform(transform)
 }
 
 /**
- * Validates and freezes the compiler-owned resource-transform plan.
+ * Validates and canonicalizes the compiler-owned resource-transform plan:
+ * version-1 `texture-2d-array` recipes in the fragment stage, inputs numbered
+ * contiguously from layer zero, output bound to layer zero's identity with
+ * `layerCount` equal to the input count, `native-or-rgba8` representation and
+ * `missingLayer: "reject"`.
  *
  * @param {object|null|undefined} value Candidate plan.
  * @param {string|null} [layoutKey] Optional expected pass layout key.
- * @returns {object|null} Canonical frozen plan, or null.
+ * @returns {object|null} Canonical plan, or null.
  */
 export function normalizeResourceTransformPlan(value, layoutKey = null)
 {
@@ -219,6 +223,21 @@ function rejectCandidate()
 /**
  * Recognizes the exact Carbon Detail-map sample family and builds a late
  * physical texture-array overlay. The source IR remains unchanged.
+ *
+ * `recogniseDetailMapFamily` (hlsl) decides which registers take part; this
+ * planner then proves every fragment use can be redirected at an array layer.
+ * Each layer must resolve to exactly one singleton, non-structured Texture2D
+ * with four float return components, and every use must be operand 2 of a
+ * five-operand `sample_b` with no `sample_controls` offset, a fixed
+ * unmodified default-precision handle, one shared sampler and one identical
+ * bias operand; each layer must be sampled at least once. Anything else
+ * (relative or non-uniform handles, other opcodes, an unresolvable candidate
+ * register) returns null and the pass keeps its separate bindings.
+ *
+ * The output reuses layer zero's identity and slot; later inputs leave the
+ * physical layout. Reflection and analysis stay pre-transform and still list
+ * every declared register, so comparing them with the post-transform layout
+ * must not report the merged-away inputs as drift.
  *
  * @param {Array<{ir: object, semanticBindings: object[]}>} entries Pass stages.
  * @param {object} options Planner options.

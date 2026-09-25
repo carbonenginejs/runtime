@@ -794,7 +794,17 @@ export function isSortStepComputeProfile(program)
 }
 
 /**
- * Lowers the exact SM5.0/finite-SM5.1 sort-step compute profile.
+ * Lowers the exact SM5.0/finite-SM5.1 sort-step compute profile
+ * (`particles/gpu/sortstep`, 256x1x1, two-word records).
+ *
+ * Workgroup-x and local-invocation-x form the source lane. Arithmetic wraps as
+ * u32 and integer `neg` is two's complement. Both record words move together;
+ * the second is bitcast to f32 for `<`, keeping false comparisons with NaN.
+ * Finite SM5.1 `cb0[3]` normalizes to physical `cb3`. `t0[3]` is a clamped
+ * read with zero fallback over a scalar-u32 view (`minBindingSize: 4`), which
+ * SetSortArgs establishes by writing four separate words. `u0` has
+ * `minBindingSize: 8`: its length is halved, both eager loads are clamped, an
+ * absent record reads as zeros, and each store writes both words or neither.
  *
  * @param {object} program CJS shader IR program.
  * @param {object} [options] Exact compute-only binding options.

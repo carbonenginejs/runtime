@@ -102,6 +102,11 @@ function scalarTypeName(type)
     return ({ float32: "f32", int32: "i32", uint32: "u32", bool: "bool", bitpattern32: "u32" })[type] || null;
 }
 
+/**
+ * A compiler-emitted dead store to a local temp whose value nothing reads, and
+ * whose type is therefore unresolvable, is skipped rather than failing the
+ * module.
+ */
 function isDeadUntypedWrite(program, write, readValueIds, localSsaDestination)
 {
     if (!localSsaDestination || readValueIds.has(write.valueId)) return false;
@@ -190,6 +195,13 @@ function interfaceField(rows, direction)
     };
 }
 
+/**
+ * Groups signature rows by register. DXBC can emit several rows for one
+ * interpolant register when semantics occupy different lanes (three TEXCOORDs
+ * packed into x/y/z); each row alone has a non-prefix mask. Grouping unions
+ * the masks so `interfaceField` emits one field per register with the
+ * register's true lane occupancy (prefix mask, one component type).
+ */
 function groupSignaturesByRegister(signatures)
 {
     const groups = new Map();
@@ -295,6 +307,8 @@ function valueReference(program, ref, inputs)
         const target = value.componentTypes?.[ref.component];
         if (field.scalarType === "bool")
         {
+            // SV_IsFrontFace: DXBC reads a 0xFFFFFFFF/0 mask, WGSL's
+            // front_facing is bool.
             if (target === "bool") return code;
             if (target === "uint32" || target === "bitpattern32") return `select(0u, 0xffffffffu, ${code})`;
             if (target === "int32") return `select(0i, -1i, ${code})`;
@@ -534,6 +548,16 @@ function modifierOnStorage(part, storage, modifier)
 
 const MODIFIER_STORAGE_TYPES = new Set([ "float32", "int32", "uint32", "bitpattern32" ]);
 
+/**
+ * Applies a DXBC source modifier according to the consuming instruction's
+ * type: float consumers get IEEE negate/abs; `int32` `neg` is `-(x)` and
+ * `uint32` `neg` the wrapping `(0u - x)` (WGSL has no unary minus on u32);
+ * integer `abs`/`absneg` fail closed because the absolute modifier is
+ * defined only for float instructions. Bit-preserving movers apply float
+ * semantics to the raw lane bits through `modifierOnStorage`. Float operators
+ * match D3D for finite non-zero inputs; signed-zero and non-finite cases keep
+ * WGSL's latitude.
+ */
 function applyModifier(parts, operand, expected, storageTypes, instruction, operandIndex)
 {
     const modifier = operand.modifierName || "none";
@@ -807,6 +831,14 @@ function splatScalar(code, count)
     return count === 1 ? code : `vec${count}<f32>(${code})`;
 }
 
+/**
+ * `ld_structured` with one unmodified scalar address, an immediate DWORD byte
+ * offset and a fixed resource. Every word fetch is clamped into the storage
+ * array and selected to zero when the structure index is outside
+ * `arrayLength / stride`, reproducing D3D's zero result without an invalid
+ * access. Offset plus swizzle beyond the declared stride fails closed, so
+ * D3D's undefined byte-offset overrun is never emitted.
+ */
 function structuredLoadExpression(program, instruction, write, type, inputs, bindings)
 {
     const count = write.mask.length;
@@ -858,6 +890,47 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
     return vectorCode(parts, type.scalarType);
 }
 
+/**
+ * Lowers one result-writing instruction to a WGSL expression. The vertex
+ * lowerer's `expressionFor` follows the same rules for the opcodes it admits.
+ *
+ * Mappings and deliberate adaptations (ordinary WGSL float operations keep
+ * WGSL's rounding, denormal, zero-sign and finite-math latitude, so D3D's
+ * NaN/infinity tables are not portable on edge inputs):
+ * - comparisons produce D3D's 0xFFFFFFFF/0 masks as
+ *   `select(0u, 0xffffffffu, a OP b)`, keeping mask arithmetic bit-faithful;
+ * - `rcp` is `1.0 / x`. WGSL's 2.5 ULP division meets DXBC's 2^-21 relative
+ *   error for finite normal `abs(x)` in [2^-126, 2^126]; signed-zero,
+ *   subnormal and non-finite results are not portable, so immediate lanes
+ *   with exponent 0 or 255 are rejected (`validateRcpImmediate`). `div`
+ *   shares the dynamic caveats;
+ * - `udiv` keeps direct `/`/`%` for all-non-zero immediate divisors, else
+ *   `select(0xffffffffu, a / max(b, 1u), b != 0u)`: D3D defines x/0 as
+ *   UINT_MAX and WGSL evaluates both `select` arms eagerly. Two destinations
+ *   need matching masks (also for `sincos`);
+ * - `imul`/`umul`: only the low-half destination; WGSL has no 32x32->64;
+ * - `ishl`/`ishr` cast the count to `u32`; `round_ne` is `round` (ties to
+ *   even), `round_pi` `ceil`, `round_ni` `floor`, `round_z` `trunc`;
+ * - `ftoi`/`ftou` are `i32(x)`/`u32(x)`: exact for in-range finite input; NaN
+ *   is indeterminate and positive overflow clamps to 2147483520/4294967040
+ *   where D3D gives 0 and the integer maximum;
+ * - `f16tof32`/`f32tof16` use `unpack2x16float`/`pack2x16float` per lane,
+ *   exact for finite normal binary16 values; subnormals may flush, zero sign
+ *   may be lost, and D3D's round-toward-zero and signed-max overflow are not
+ *   reproduced;
+ * - `resinfo`: 2D/3D textures, immediate mip; a non-zero mip queries a
+ *   clamped level and selects zero dimensions when out of range (D3D's
+ *   defined result). `_rcpFloat` reciprocates dimensions only; saturation is
+ *   unsupported. D3D's zero result for an unbound resource is out of scope:
+ *   WebGPU requires every declared binding;
+ * - `ld` on a 2D texture clamps coordinates and mip for the eager
+ *   `textureLoad`, then selects zero unless the original address was in
+ *   range. The zero vector is exact only for four-component views; a
+ *   one- or two-component view would need D3D's missing-channel defaults;
+ * - 2D-array sampling passes the layer as `i32(round(layer))`: D3D rounds
+ *   ties to even and clamps, as WGSL `round` and sampling do. `sample_d`
+ *   gradients use xy for 2d/2d-array and xyz otherwise.
+ */
 function expressionFor(program, instruction, write, inputs, bindings, context = null)
 {
     const mask = write.mask;
@@ -1227,8 +1300,8 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
         // Screen-space derivative / implicit-LOD sample under non-uniform control
         // flow. Rather than reject, record that the module needs the WGSL
         // derivative-uniformity opt-out (emitted at module top); this reproduces
-        // D3D11's permissive behavior. See uniformity.js and
-        // docs/resource/formats/webgpu/reference/wgsl-compatibility.md.
+        // D3D11's permissive behavior. See uniformity.js and the directive
+        // comment in emitWgsl.js.
         context.requiresDerivativeUniformityOptOut = true;
     }
     validatePreciseInstruction(instruction, "fragment");
@@ -1242,6 +1315,9 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
     {
         for (const field of outputs)
         {
+            // Unlike the vertex stage, an unwritten SV_Target lane fails
+            // closed: an undefined render-target lane feeds blending and is
+            // not a safe zero.
             const missing = field.components.filter((component) => !written.get(field.id).has(component));
             if (missing.length) throw new Error(`WGSL fragment output ${field.semanticName}${field.semanticIndex} leaves ${missing.join("")} unwritten before return`);
         }
@@ -1297,6 +1373,8 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
         const value = operandExpression(program, instruction, 2, "x", 1, "uint32", inputs, bindings);
         // D3D defines out-of-bounds typed-UAV atomics as dropped writes; the
         // bounds guard reproduces that (WGSL could redirect to a live element).
+        // Only the non-returning form exists here; a result-returning
+        // imm_atomic_iadd would also need a synthesized zero old value.
         return {
             kind: "if",
             instructionIndex: instruction.index,
@@ -1344,6 +1422,13 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
         const mixedTypes = mixedImmediateTypes(program, write);
         if (mixedTypes)
         {
+            // One instruction writing lanes of different resolved storage
+            // types cannot be one WGSL vector: split into per-lane lets
+            // (valueN_x, ...) for structured loads, packed intrinsic results,
+            // immediate movs and per-lane movc selects. The movc path is
+            // bounded to unsaturated temps with register, immediate or cbuffer
+            // lane sources; its condition follows u32 modifier rules and its
+            // value operands the raw float-data mover rules.
             if (instruction.opcodeName === "ld_structured" && localSsaDestination && !instruction.saturate)
             {
                 const words = structuredLoadExpression(program, instruction, write, null, inputs, bindings);
@@ -1800,7 +1885,7 @@ function lowerProgramBody(program, options, compute)
                 // A non-uniform loop exit makes both the body and everything after
                 // the loop non-uniform. Fold that into the running flow flag so a
                 // requires-uniform op (sample/derivative) below picks up the
-                // derivative-uniformity opt-out (D3D11-permissive; see the ledger).
+                // derivative-uniformity opt-out (D3D11-permissive; see emitWgsl.js).
                 const loopNonUniform = loopHasNonUniformExit(program, plan.region, varying);
                 const body = lowerRange(index + 1, plan.region.endInstruction, bodyWritten, true,
                     flowNonUniform || loopNonUniform, plan.exitEdges);
@@ -1912,6 +1997,11 @@ function lowerProgramBody(program, options, compute)
             {
                 throw new Error(`WGSL fragment if instruction ${ifInstruction.index} requires one unmodified scalar condition`);
             }
+            // Arms may write shader outputs alongside live merges: merge vars
+            // are declared here and assigned at each arm's end, while output
+            // completeness comes from the post-branch intersection below and
+            // the reachable-return check. Only an arm that returns ahead of
+            // its merge assignment is rejected.
             for (const merge of plan.merges)
             {
                 const expression = plan.hasElse
