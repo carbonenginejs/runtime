@@ -129,6 +129,15 @@ const AUDIO_LANGUAGE_TAGS = Object.freeze({
 /**
  * Builds a deterministic schema-v2 audio-library document from caller-supplied
  * values and bank access.
+ *
+ * Every bank is keyed by its `bankID:languageID` pair, so localized variants
+ * of one bank stay distinct; each keeps the canonical BCP-47 `language` beside
+ * the SoundbanksInfo `authoredLanguage`. A media ID repeated across loose files
+ * (`media`) or across banks (`embeddedMedia`) keeps every source variant; an
+ * embedded member whose ID is already loose is not recorded. `embeddedMedia` and `eventMedia` (with
+ * the `eventMediaLanguage` that selected its graph) exist only after bank
+ * inspection; `build()` alone yields a source catalog, not an
+ * event-to-playable-media index.
  */
 export class CjsAudioLibraryBuilder
 {
@@ -163,8 +172,8 @@ export class CjsAudioLibraryBuilder
      * derived from SoundbanksInfo plus the metadata `IsEssential` flag; an
      * index still contributes storage paths, checksums and byte lengths.
      * `inspectBanks: false` returns the catalog without opening banks.
-     * `includeSfx` defaults to true here; `music` defaults to on when every
-     * authored music bank is present. `fsdOptions: { bitWidth: 32 }` selects
+     * `includeSfx` defaults to true here; `music` defaults to on when
+     * `common.bnk`, `music.bnk` and `music_essential.bnk` are all indexed. `fsdOptions: { bitWidth: 32 }` selects
      * legacy FSD, whose reader throws as unsupported. The builder never
      * discovers installations, selects providers, touches caches or uses the
      * Node filesystem.
@@ -689,8 +698,11 @@ export class CjsAudioLibraryBuilder
      * as `sfx` or `enrichment.sfx` instead). Each lowered event also gets
      * `eventsStoppedBy` from its authored Stop targets, and each leaf keeps
      * its resolved `spatial` flag and dry-volume curve. `language` (default
-     * `en-us`) selects one localized bank variant before HIRC objects merge,
-     * because localized banks reuse object IDs; `onSfxDiagnostics` receives
+     * `en-us`, recorded as `eventMediaLanguage`) selects one localized bank
+     * variant before HIRC objects merge, because localized banks reuse object
+     * IDs; every variant stays in `banks` and the media tables, but graph
+     * references name only the selected language and shared banks.
+     * `onSfxDiagnostics` receives
      * what was omitted and why. `music: true` decodes the
      * authored music hierarchy; music events are found from typed Play/Stop
      * targets and music argument groups across every selected bank, never
