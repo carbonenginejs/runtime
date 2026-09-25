@@ -197,24 +197,37 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   cloud.lightmapHeight = 64;
   cloud.lightmapDepth = 64;
 
-  // No compute duck - failure resets the offset and returns false.
+  // No shader resolved, so Tr2Renderer.runComputeShader dispatches nothing -
+  // failure resets the offset and returns false.
   cloud.lightmapDirtyOffset = 7;
-  assert.equal(cloud.UpdateVolumetricLightmap(null), false, "no duck - false");
+  assert.equal(cloud.UpdateVolumetricLightmap(null), false, "no shader - false");
   assert.equal(cloud.lightmapDirtyOffset, 0, "failure resets offset (cpp:378)");
 
   // Success: VOXELS = floor(6400000 * 0.25^3) = 100000; scaled dims 16;
   // slices = floor(100000 / 256) = 390; groups use the UNSCALED dims
-  // ((64+7)/8 = 8) - the cpp:359-361 quirk.
+  // ((64+7)/8 = 8) - the cpp:359-361 quirk. The GenerateLightmap technique is
+  // looked up by name, its pass bound, and the context dispatches (x, y, z).
+  const applied = [];
+  const shader = {
+    GetTechniqueIndex: name => (name === "GenerateLightmap" ? 1 : -1),
+    GetEffectDescription: () => ({
+      techniques: [ { passes: [] }, { passes: [ { stageInputs: [ null, null, { exists: true } ] } ] } ]
+    }),
+    ApplyAllStateForPass: (technique, pass) => { applied.push([ "state", technique, pass ]); return true; }
+  };
+  cloud.effect.GetShaderStateInterface = () => shader;
+  cloud.effect.ApplyMaterialDataForPass = (technique, pass) => { applied.push([ "material", technique, pass ]); return true; };
   const calls = [];
   const renderContext = {
-    RunComputeShader(effect, name, x, y, z)
+    RunComputeShader(x, y, z)
     {
-      calls.push([effect, name, x, y, z]);
+      calls.push([ x, y, z ]);
       return true;
     }
   };
   assert.equal(cloud.UpdateVolumetricLightmap(renderContext), true, "budget consumed");
-  assert.deepEqual(calls, [[cloud.effect, "GenerateLightmap", 390, 8, 8]], "dispatch arguments");
+  assert.deepEqual(applied, [ [ "state", 1, 0 ], [ "material", 1, 0 ] ], "the named technique's pass is bound first");
+  assert.deepEqual(calls, [ [ 390, 8, 8 ] ], "dispatch arguments");
   assert.equal(cloud.lightmapDirty, false, "completed (390 >= scaledWidth 16)");
   assert.equal(cloud.lightmapDirtyOffset, 0, "offset reset on completion (cpp:369)");
   assert.equal(cloud.UpdateVolumetricLightmap(renderContext), false, "clean lightmap - false");

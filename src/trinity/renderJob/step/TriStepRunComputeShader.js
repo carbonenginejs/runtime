@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 
 /** A render step that dispatches a compute shader over its configured group dimensions. */
 @type.define({ className: "TriStepRunComputeShader", family: "renderJob" })
@@ -50,19 +51,24 @@ export class TriStepRunComputeShader extends TriRenderStep
   }
 
   /**
-   * Dispatches the compute shader over its configured group dimensions, indirectly when an argument buffer is bound.
+   * Carbon Execute (TriStepRunComputeShader.cpp:37-55): dispatches through
+   * Tr2Renderer, indirectly from the provider's buffer when one is bound.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Execute(_realTime, _simTime, renderContext)
   {
     if (this.indirectionBuffer)
     {
-      renderContext.RunComputeShaderIndirect(this.effect, this.indirectionBuffer, this.offsetForArgs);
+      const buffer = this.indirectionBuffer.GetGpuBuffer(0);
+      if (buffer)
+      {
+        Tr2Renderer.runComputeShaderIndirect(this.effect, buffer, this.offsetForArgs, renderContext);
+      }
     }
     else
     {
-      renderContext.RunComputeShader(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ);
+      Tr2Renderer.runComputeShader(this.effect, this.groupDimX, this.groupDimY, this.groupDimZ, renderContext);
     }
     return TriRenderStep.Result.RS_OK;
   }

@@ -37,6 +37,7 @@ import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { gTriDev } from "./device/gTriDev.js";
+import { ShaderType } from "#consts/render-context";
 
 
 /** perFrameVS, owned by the scene. */
@@ -539,6 +540,102 @@ export class Tr2Renderer
   static GetQuadListIndexBuffer()
   {
     return Tr2Renderer.#quadListIndexBuffer;
+  }
+
+  /**
+   * Carbon `Tr2Renderer::RunComputeShader` (`Tr2Renderer.cpp:848-925`): for
+   * every pass of the technique with a compute stage, bind the pass's program
+   * and states, bind its material data, and dispatch.
+   *
+   * Carbon's two overloads - technique 0, or a technique by name - are one
+   * method here, told apart by whether the second argument is a string,
+   * because JavaScript has no overloads. As in Carbon, the named form looks
+   * the technique up before it checks the description is non-empty.
+   *
+   * @param {object} effect The `Tr2Material` holding the compute passes.
+   * @param {...*} args `(groupDimX, groupDimY, groupDimZ, renderContext)` or
+   *     `(techniqueName, groupDimX, groupDimY, groupDimZ, renderContext)`.
+   * @returns {boolean} Whether at least one pass dispatched, and none failed.
+   */
+  @carbon.method
+  @impl.implemented
+  static runComputeShader(effect, ...args)
+  {
+    const named = typeof args[0] === "string";
+    const [ techniqueName, groupDimX, groupDimY, groupDimZ, renderContext ] = named ? args : [ null, ...args ];
+
+    if (!effect) return false;
+
+    const shader = effect.GetShaderStateInterface();
+
+    if (!shader) return false;
+
+    let techniqueIndex = 0;
+
+    if (named)
+    {
+      techniqueIndex = shader.GetTechniqueIndex(techniqueName);
+      if (techniqueIndex < 0) return false;
+    }
+
+    const desc = shader.GetEffectDescription();
+
+    if (!desc?.techniques?.length) return false;
+
+    let result = false;
+
+    for (const [ passIndex, pass ] of desc.techniques[techniqueIndex].passes.entries())
+    {
+      if (!pass.stageInputs[ShaderType.COMPUTE_SHADER]?.exists) continue;
+
+      shader.ApplyAllStateForPass(techniqueIndex, passIndex, renderContext);
+      effect.ApplyMaterialDataForPass(techniqueIndex, passIndex, renderContext);
+
+      if (!renderContext.RunComputeShader(groupDimX, groupDimY, groupDimZ)) return false;
+
+      result = true;
+    }
+
+    return result;
+  }
+
+  /**
+   * Carbon `Tr2Renderer::RunComputeShaderIndirect` (`Tr2Renderer.cpp:942-971`):
+   * as `runComputeShader` on technique 0, with the group counts read from a
+   * buffer. Carbon's quirk kept: it answers true when no pass has a compute
+   * stage, where `runComputeShader` answers false.
+   *
+   * @param {object} effect The `Tr2Material` holding the compute passes.
+   * @param {object} indirectParams A `Tr2BufferAL` holding the group counts.
+   * @param {number} offset Byte offset to them.
+   * @param {object} renderContext The context to dispatch on.
+   * @returns {boolean} False when there is no effect or shader, or a dispatch failed.
+   */
+  @carbon.method
+  @impl.implemented
+  static runComputeShaderIndirect(effect, indirectParams, offset, renderContext)
+  {
+    if (!effect) return false;
+
+    const shader = effect.GetShaderStateInterface();
+
+    if (!shader) return false;
+
+    const desc = shader.GetEffectDescription();
+
+    if (!desc?.techniques?.length) return false;
+
+    for (const [ passIndex, pass ] of desc.techniques[0].passes.entries())
+    {
+      if (!pass.stageInputs[ShaderType.COMPUTE_SHADER]?.exists) continue;
+
+      shader.ApplyAllStateForPass(0, passIndex, renderContext);
+      effect.ApplyMaterialDataForPass(0, passIndex, renderContext);
+
+      if (!renderContext.RunComputeShaderIndirect(indirectParams, offset)) return false;
+    }
+
+    return true;
   }
 
   /** Carbon s_quadListSize. */

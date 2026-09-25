@@ -1351,21 +1351,24 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
-   * Records a compute-dispatch intent with an explicit thread-group count per
-   * axis.
+   * Dispatches the bound compute program with a thread-group count per axis.
+   *
+   * Carbon's AL verb (`Tr2RenderContextDx11.h:151`). The effect is not an
+   * argument: `Tr2Renderer.runComputeShader` binds each pass, then calls this.
    */
-  RunComputeShader(effect, groupDimX = 1, groupDimY = 1, groupDimZ = 1)
+  RunComputeShader(groupDimX, groupDimY, groupDimZ)
   {
-    return this.#requireAL("RunComputeShader").RunComputeShader(effect, groupDimX, groupDimY, groupDimZ);
+    return this.#requireAL("RunComputeShader").RunComputeShader(groupDimX, groupDimY, groupDimZ);
   }
 
   /**
-   * Records an indirect compute-dispatch intent reading its group counts from a
-   * buffer at the given byte offset.
+   * Dispatches the bound compute program with its group counts read from a
+   * buffer at a byte offset (`Tr2RenderContextDx11.h:152`); see
+   * `Tr2Renderer.runComputeShaderIndirect`.
    */
-  RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs = 0)
+  RunComputeShaderIndirect(indirectParams, offset)
   {
-    return this.#requireAL("RunComputeShaderIndirect").RunComputeShaderIndirect(effect, indirectionBuffer, offsetForArgs);
+    return this.#requireAL("RunComputeShaderIndirect").RunComputeShaderIndirect(indirectParams, offset);
   }
 
   /** Records the upscaler context the following work belongs to. */

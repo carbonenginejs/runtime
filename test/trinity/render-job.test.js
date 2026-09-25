@@ -185,8 +185,10 @@ test("portable generated render steps initialize and emit backend-neutral work",
   assertEquals(effectOrder.join(","), "buffer,draw");
 
   const compute = new TriStepRunComputeShader();
-  compute.__init__({ name: "compute" }, 2, 3, 4);
-  compute.Execute(0, 0, context);
+  // A material with no shader resolved: Tr2Renderer.runComputeShader binds
+  // nothing and dispatches nothing, and the step still reports RS_OK.
+  compute.__init__({ name: "compute", GetShaderStateInterface: () => null }, 2, 3, 4);
+  assertEquals(compute.Execute(0, 0, context), TriRenderStep.RS_OK);
 
   const update = new TriStepUpdate();
   update.__init__({ Update: (realTime, simTime) => events.push(["update", realTime, simTime]) });

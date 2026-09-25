@@ -10,6 +10,7 @@ import { ReflectionMode, RenderingMode, TriBatchType } from "#consts/graphics";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../core/batch/TriRenderBatch/index.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
 import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
@@ -628,7 +629,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
    * lightmapDirtyOffset by slices; reaching scaledWidth completes the map
    * (dirty false, offset 0); failure resets the offset and returns false. */
   @impl.adapted
-  @impl.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch is delegated to a renderContext.RunComputeShader duck and fail-closes to false when absent.")
+  @impl.reason("The 3D lightmap texture lifecycle, per-object upload and LightMap variable swaps (cpp:327-352, 363-372) are not ported yet; the GenerateLightmap dispatch goes through Tr2Renderer.runComputeShader as Carbon's does (cpp:338-344).")
   UpdateVolumetricLightmap(renderContext)
   {
     if (this.currentQuality < this.minVisibleQuality || !this.hasUpdated)
@@ -643,13 +644,14 @@ export class EveChildCloud2 extends EveSpaceObjectChild
 
       const VOXELS_PER_UPDATE = Math.floor(6400000 * this.lightmapSizeScale ** 3);
       const slices = Math.max(Math.floor(VOXELS_PER_UPDATE / (scaledHeight * scaledDepth)), 1);
-      const success = renderContext?.RunComputeShader?.(
+      const success = Tr2Renderer.runComputeShader(
         this.effect,
         "GenerateLightmap",
         slices,
         Math.floor((this.lightmapHeight + 7) / 8),
-        Math.floor((this.lightmapDepth + 7) / 8)
-      ) === true;
+        Math.floor((this.lightmapDepth + 7) / 8),
+        renderContext
+      );
       if (success)
       {
         this.lightmapDirtyOffset += slices;
