@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/EveEffectRoot2.h
 // Source: trinity/trinity/Eve/EveEffectRoot2.cpp
 // Source: trinity/trinity/Eve/EveEffectRoot2_Blue.cpp
-import "../../../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";

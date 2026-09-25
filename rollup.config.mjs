@@ -11,7 +11,9 @@ const unpublishedInputs = new Set([
     "src/trinity/generated/eve/EveDamageOverlay.js",
     "src/trinity/generated/eve/EveModularObjectModifier.js"
 ]);
-const privateInputs = [ "src/trinityal/webgpu/internal.js" ];
+// Reached only through an `imports` alias, which rollup keeps external, so
+// nothing in the export graph emits them.
+const privateInputs = [ "src/trinityal/webgpu/internal.js", "src/global/blue/registerTrinityEnums.js" ];
 
 function collectTargets(value, out = [])
 {

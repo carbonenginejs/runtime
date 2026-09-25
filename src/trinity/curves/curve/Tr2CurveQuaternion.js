@@ -37,13 +37,13 @@ export class Tr2CurveQuaternion extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.uint32
-  @type.enum("Tr2CurveExtrapolation")
+  @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
   @edit.readwrite
   @edit.persist
   @type.uint32
-  @type.enum("Tr2CurveExtrapolation")
+  @type.enum("trinity.Tr2CurveExtrapolation")
   extrapolationAfter = Tr2CurveExtrapolation.CLAMP;
 
   #lastSegment = 0;

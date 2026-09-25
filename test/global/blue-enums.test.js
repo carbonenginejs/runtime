@@ -346,3 +346,35 @@ test("post-process enum fields resolve through Blue with Carbon's choosers", asy
     assert.deepEqual(labels("trinity.SSAOQuality"), [ "Lowest", "Low", "Medium", "High", "Highest" ]);
     assert.equal(services.enums.GetNameFromValue("trinity.Tr2PPTaaEffect.Debug", 1), "Motion Vectors");
 });
+
+
+test("curve enum fields resolve through Blue, and audio shares Blue's TRIEXTRAPOLATION", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    // [ module, field, identity, class static ]
+    const cases = [
+        ["trinity/curves/curve/Tr2CurveScalar", "extrapolationBefore", "trinity.Tr2CurveExtrapolation"],
+        ["trinity/curves/curve/Tr2CurveQuaternion", "extrapolationAfter", "trinity.Tr2CurveExtrapolation"],
+        ["trinity/curves/curve/Tr2CurveVector3Lerp", null, "trinity.Tr2CurveVector3LerpKeyInterpolation"],
+        ["trinity/curves/key/Tr2CameraFollowCurveKey", null, "trinity.Tr2FollowCurveKeyInterpolation"],
+        ["trinity/curves/key/Tr2ObjectFollowCurveKey", null, "trinity.Tr2ObjectFollowCurveKey.RotationSetting"],
+        ["trinity/curves/key/Tr2ScalarExprKey", null, "trinity.Tr2CurveInterpolation"],
+        ["trinity/curves/curve/TriColorSequencer", "operator", "blue.TRIOPERATOR"],
+        ["trinity/curves/curve/TriVectorSequencer", "operator", "blue.TRIOPERATOR"],
+        ["trinity/curves/curve/TriEventCurve", "extrapolation", "blue.TRIEXTRAPOLATION"],
+        ["audio/trinity/audio/AudEventCurve", "extrapolation", "blue.TRIEXTRAPOLATION"]
+    ];
+    for (const [path, member, identity] of cases)
+    {
+        const name = path.split("/").at(-1);
+        const { [name]: Constructor } = await import(`../../npm/dist/${path}.js`);
+        const fields = schema.getSchema(Constructor).fields.filter(field => field.enum?.identity === identity);
+        assert.ok(fields.length, `${name} has a field typed ${identity}`);
+        if (member) assert.ok(fields.some(field => field.name === member), `${name}.${member}`);
+        for (const field of fields) assert.equal(field.enum.members, services.enums.GetEnum(identity));
+    }
+    assert.deepEqual(services.enums.GetEnumInfo("trinity.Tr2ObjectFollowCurveKey.RotationSetting").chooser.map(entry => entry.name),
+        [ "NO_ROTATION", "LOCATOR_ROTATION", "MODEL_ROTATION" ]);
+    assert.equal(services.enums.GetEnumInfo("blue.TRIOPERATOR").exposedName, undefined);
+});

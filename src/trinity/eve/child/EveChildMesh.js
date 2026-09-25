@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildMesh_Blue.cpp
-import "../../../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";

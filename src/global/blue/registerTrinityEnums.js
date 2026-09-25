@@ -10,6 +10,7 @@ import { ReflectionMode } from "../consts/graphics/trinityEnums.js";
 import { Tr2Lod } from "../consts/trinity.js";
 import { PresentInterval } from "../consts/renderContext/presentation.js";
 import { Tr2WindowMode, Tr2WindowShowState } from "../consts/renderContext/window.js";
+import { TRIEXTRAPOLATION, TRIOPERATOR } from "../consts/graphics/trinityEnums.js";
 
 blue.enums.RegisterEnum("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
   source: "trinity/trinity/Eve/EveEntity.h", family: "trinity", line: 9,
@@ -60,5 +61,29 @@ blue.enums.RegisterEnum("trinity.Tr2WindowShowState", Tr2WindowShowState, {
     { name: "NORMAL", value: Tr2WindowShowState.NORMAL, description: "" },
     { name: "MAXIMIZED", value: Tr2WindowShowState.MAXIMIZED, description: "" },
     { name: "MINIMIZED", value: Tr2WindowShowState.MINIMIZED, description: "" }
+  ]
+});
+
+// Blue's ITriConstants.h enums, shared by audio and Trinity. Neither is
+// registered; the choosers are Trinity's (audio's AudConstants.cpp:6 copy of
+// TriExtrapolation is identical).
+blue.enums.RegisterEnum("blue.TRIEXTRAPOLATION", TRIEXTRAPOLATION, {
+  source: "blue/include/ITriConstants.h", family: "blue", line: 33,
+  chooserSource: "trinity/trinity/TriConstants.cpp:94",
+  chooser: [
+    { name: "TRIEXT_NONE", value: TRIEXTRAPOLATION.TRIEXT_NONE, description: "no comment" },
+    { name: "TRIEXT_CONSTANT", value: TRIEXTRAPOLATION.TRIEXT_CONSTANT, description: "no comment" },
+    { name: "TRIEXT_GRADIENT", value: TRIEXTRAPOLATION.TRIEXT_GRADIENT, description: "no comment" },
+    { name: "TRIEXT_CYCLE", value: TRIEXTRAPOLATION.TRIEXT_CYCLE, description: "no comment" }
+  ]
+});
+
+blue.enums.RegisterEnum("blue.TRIOPERATOR", TRIOPERATOR, {
+  source: "blue/include/ITriConstants.h", family: "blue", line: 80,
+  chooserSource: "trinity/trinity/TriConstants.cpp:185",
+  chooser: [
+    { name: "TRIOP_MULTIPLY", value: TRIOPERATOR.TRIOP_MULTIPLY, description: "multiply" },
+    { name: "TRIOP_ADD", value: TRIOPERATOR.TRIOP_ADD, description: "add" },
+    { name: "TRIOP_AVERAGE", value: TRIOPERATOR.TRIOP_AVERAGE, description: "average" }
   ]
 });

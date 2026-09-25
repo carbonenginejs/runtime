@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildCloud2.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import "../../../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";

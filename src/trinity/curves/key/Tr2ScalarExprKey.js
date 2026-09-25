@@ -22,7 +22,7 @@ export class Tr2ScalarExprKey extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.uint32
-  @type.enum("Tr2CurveInterpolation")
+  @type.enum("trinity.Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   @edit.notify

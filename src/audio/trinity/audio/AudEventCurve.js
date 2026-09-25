@@ -6,6 +6,7 @@ import { CjsModel } from "#model";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { AudEmitter } from "./AudEmitter.js";
 import { AudEventKey } from "../../generated/audio/AudEventKey.js";
+import "#blue/registerTrinityEnums";
 
 /** Fires authored audio events as playback time crosses ordered event keys on a timeline curve. */
 @type.define({ className: "AudEventCurve", family: "audio" })
@@ -16,7 +17,7 @@ export class AudEventCurve extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("TRIEXTRAPOLATION")
+  @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = 0;
 
   /** m_time (double) [READ] */
@@ -315,7 +316,7 @@ export class AudEventCurve extends CjsModel
 
   // Carbon enum TRIEXTRAPOLATION (blue/include/ITriConstants.h:33) - shared
   // vocabulary owned by the global foundation; aliased as a class static per the org
-  // enum rule so @type.enum("TRIEXTRAPOLATION") resolves and users address
+  // enum rule so @type.enum("blue.TRIEXTRAPOLATION") resolves and users address
   // AudEventCurve.TRIEXTRAPOLATION.TRIEXT_CYCLE (TRIOPERATOR pattern).
   static TRIEXTRAPOLATION = TRIEXTRAPOLATION;
 

@@ -3,7 +3,7 @@
 // Source: trinity/trinity/UI/Tr2MainWindow_Blue.cpp
 import { PresentInterval, Tr2WindowMode, Tr2WindowShowState } from "#consts/render-context";
 import { CjsSchema, edit, type } from "#schema";
-import "../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 
 /**
  * Carbon main-window state record for mode, size, position, and presentation settings.

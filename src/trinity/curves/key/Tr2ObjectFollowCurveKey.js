@@ -36,7 +36,7 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2FollowCurveKeyInterpolation")
+  @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   @edit.readwrite
@@ -71,7 +71,7 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("RotationSetting")
+  @type.enum("trinity.Tr2ObjectFollowCurveKey.RotationSetting")
   rotationSetting = RotationSetting.NO_ROTATION;
 
   #locator = null;

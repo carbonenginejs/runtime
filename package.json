@@ -195,6 +195,7 @@
     "#consts/*": "./src/global/consts/*.js",
     "#contracts": "./src/global/contracts/index.js",
     "#blue": "./src/global/blue/index.js",
+    "#blue/*": "./src/global/blue/*.js",
     "#imageio": "./src/global/imageio/index.js",
     "#contracts/*": "./src/global/contracts/*.js",
     "#schema": "./src/global/schema/index.js",

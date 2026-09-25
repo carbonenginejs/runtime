@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
-import "../../../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { IEveTransform } from "../IEveTransform.js";

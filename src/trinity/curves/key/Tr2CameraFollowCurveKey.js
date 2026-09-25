@@ -20,7 +20,7 @@ export class Tr2CameraFollowCurveKey extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2FollowCurveKeyInterpolation")
+  @type.enum("trinity.Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   @edit.notify

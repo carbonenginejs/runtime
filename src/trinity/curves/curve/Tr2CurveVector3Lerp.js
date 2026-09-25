@@ -37,7 +37,7 @@ export class Tr2CurveVector3Lerp extends CjsModel
 
   @edit.readwrite
   @type.uint32
-  @type.enum("Tr2CurveVector3LerpKeyInterpolation")
+  @type.enum("trinity.Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
   @edit.readwrite

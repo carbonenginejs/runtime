@@ -4,6 +4,7 @@ import { vec3 } from "#math/vec3";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { TRIOPERATOR } from "#consts/graphics";
+import "#blue/registerTrinityEnums";
 
 
 /**
@@ -17,7 +18,7 @@ export class TriVectorSequencer extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("TRIOPERATOR")
+  @type.enum("blue.TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
   @edit.readwrite

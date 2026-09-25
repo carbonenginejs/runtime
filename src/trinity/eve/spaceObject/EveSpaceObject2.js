@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.h
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2.cpp
 // Source: trinity/trinity/Eve/SpaceObject/EveSpaceObject2_Blue.cpp
-import "../../../global/blue/registerTrinityEnums.js";
+import "#blue/registerTrinityEnums";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";

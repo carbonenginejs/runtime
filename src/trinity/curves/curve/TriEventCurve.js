@@ -4,6 +4,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { TRIEXTRAPOLATION } from "#consts/graphics";
 import { TriEventKey } from "../key/TriEventKey.js";
+import "#blue/registerTrinityEnums";
 
 
 /**
@@ -66,7 +67,7 @@ export class TriEventCurve extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("TRIEXTRAPOLATION")
+  @type.enum("blue.TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
   @edit.readwrite
