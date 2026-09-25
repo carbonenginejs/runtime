@@ -7,7 +7,14 @@ const NORMALIZED_RECTS = {
     accessories: [ 0.75, 0.5, 1, 1 ]
 };
 
-/** Provides the verified logical regions of the shared character atlas. */
+/**
+ * Provides the verified logical regions of the shared character atlas.
+ *
+ * Region order is composition-group order only: each output map's
+ * `CjsCharacterCompositionTarget.passes` stays the authoritative pass order.
+ * Accessory UV packing inside the accessories rectangle is dynamic, so no
+ * accessory sub-order is implied.
+ */
 export class CjsCharacterAtlasLayout
 {
 

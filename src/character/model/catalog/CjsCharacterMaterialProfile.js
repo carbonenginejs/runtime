@@ -1,7 +1,14 @@
 import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** Authored character color, pattern, and specular profile. */
+/**
+ * Authored character color, pattern, and specular profile.
+ *
+ * The collection is optional and may be empty even when the decoded source
+ * values exist in `characterDefinitions`. The appearance resolver does not
+ * read it; a consumer that needs a profile-to-part join must diagnose a
+ * missing one rather than assume the catalog is populated.
+ */
 @type.define({ className: "CjsCharacterMaterialProfile", family: "character" })
 export class CjsCharacterMaterialProfile extends CjsCharacterRecord
 {

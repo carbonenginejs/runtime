@@ -135,7 +135,8 @@ export function validateMusicLibrary(value)
 }
 
 /**
- * Returns a detached, deeply frozen jukebox catalog.
+ * Returns a detached JSON clone of the jukebox catalog. The clone is not
+ * frozen: `DeepFreeze()` walks it but never calls `Object.freeze`.
  *
  * Only JSON-compatible catalogs are accepted so the same object may be
  * supplied as imported JavaScript, downloaded JSON, or an API response.

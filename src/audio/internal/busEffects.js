@@ -223,7 +223,14 @@ export function normalizeWwiseMeterFeedbackMode(value = "strict")
     return mode;
 }
 
-/** Validates host policy for the dynamic MaxNumInstances RTPC barrier. */
+/**
+ * Validates host policy for the dynamic MaxNumInstances RTPC barrier.
+ *
+ * `"ignore"` lets the shared mixer admit a Bus whose only extra processing
+ * reason is `"voice-limits"` (the v150 Audio Bus `MaxNumInstances` RTPC).
+ * It does not apply the changing count or the Wwise eviction policy. Static
+ * Bus maximum instances, stealing and virtual voices are never enforced.
+ */
 export function normalizeWwiseVoiceLimitMode(value = "strict")
 {
     const mode = String(value);
@@ -237,7 +244,13 @@ export function normalizeWwiseVoiceLimitMode(value = "strict")
     return mode;
 }
 
-/** Validates and indexes one portable static Wwise bus-effect catalog. */
+/**
+ * Validates and indexes one portable static Wwise bus-effect catalog.
+ *
+ * This is the distributed fallback used by routes the shared mixer rejects.
+ * It holds static Parametric EQ only, so a shared Bus Delay has no
+ * distributed fallback.
+ */
 export function indexBusEffectCatalog(value)
 {
     if (value === null || value === undefined)
@@ -2092,7 +2105,14 @@ function CreateWwiseDynamicsApproximation(context, effect)
     return { input: dynamics, output, nodes };
 }
 
-/** Creates one static Wwise Delay adaptation from Web Audio primitives. */
+/**
+ * Creates one static Wwise Delay adaptation from Web Audio primitives.
+ *
+ * The input splits into a dry gain `1 - mix` and a DelayNode feeding a wet
+ * gain `mix`. With feedback enabled, a gain of `feedbackPercent / 100`
+ * loops the delay output back into it. Both paths sum into one output gain
+ * at the authored output level. Not bit-equivalent to the Wwise DSP.
+ */
 function CreateWwiseDelayStage(context, effect)
 {
     if (typeof context?.createDelay !== "function"
@@ -2131,7 +2151,15 @@ function CreateWwiseDelayStage(context, effect)
     return { input, output, nodes };
 }
 
-/** Decodes one source-proven v150 Wwise Parametric EQ parameter block. */
+/**
+ * Decodes one source-proven v150 Wwise Parametric EQ parameter block.
+ *
+ * 56 bytes, little-endian: three 17-byte bands at 0, 17 and 34 (u32 filter
+ * type index into lowpass/highpass/bandpass/notch/lowshelf/highshelf/peaking,
+ * f32 gain dB, f32 frequency Hz, f32 Q, u8 enabled), then f32 output gain dB
+ * at 51 and u8 process LFE at 55. Only enabled bands are returned, in band
+ * order. Process LFE 0 is rejected unless `allowIndependentLfe` is set.
+ */
 export function parseStaticParametricEqBytes(
     bytes,
     {
@@ -2244,7 +2272,13 @@ export function parseGraphStaticWwiseDelay(effect, effectId, slotIndex)
     );
 }
 
-/** Decodes one source-proven static v150 Wwise Delay parameter block. */
+/**
+ * Decodes one source-proven static v150 Wwise Delay parameter block.
+ *
+ * 18 bytes, little-endian: f32 delay seconds (0.001..1), f32 feedback %
+ * (0..100), f32 wet/dry mix % (0..100), f32 output level dB (-96.3..0),
+ * u8 enable feedback, u8 process LFE. Process LFE 0 is rejected.
+ */
 export function parseStaticWwiseDelayBytes(
     bytes,
     {
@@ -2810,6 +2844,10 @@ export function parseGraphStaticWwiseGuitarDistortion(
  * explicit approximation policy may adapt it, but Web Audio's native
  * DynamicsCompressorNode cannot reproduce Wwise's variable lookahead, peak
  * detector, channel linking, or release behavior.
+ *
+ * 22 bytes, little-endian: f32 threshold dB (-96.3..0), f32 ratio (1..50),
+ * f32 lookahead s (0.001..0.02), f32 release s (0.001..5), f32 output gain dB
+ * (-24..24), u8 process LFE, u8 channel link.
  */
 export function parseGraphStaticWwisePeakLimiter(effect, effectId, slotIndex)
 {
@@ -2876,6 +2914,10 @@ export function parseGraphStaticWwisePeakLimiter(effect, effectId, slotIndex)
  * Unlike the Peak Limiter layout, this field order is not yet source-proven by
  * the pinned wwiser tree. It is retained only to drive the explicit Web Audio
  * approximation and remains outside strict shared-bus admission.
+ *
+ * 22 bytes, little-endian: f32 threshold dB (-96.3..0), f32 ratio (1..50),
+ * f32 attack s (0..2), f32 release s (0..2), f32 output gain dB (-24..24),
+ * u8 process LFE, u8 channel link.
  */
 export function parseGraphStaticWwiseCompressor(effect, effectId, slotIndex)
 {
@@ -2936,7 +2978,15 @@ export function parseGraphStaticWwiseCompressor(effect, effectId, slotIndex)
     };
 }
 
-/** Decodes one static v150 Wwise Meter parameter block. */
+/**
+ * Decodes one static v150 Wwise Meter parameter block.
+ *
+ * 28 bytes, little-endian: f32 attack, f32 release (0..10 s), f32 minimum dB
+ * (-96.3..0), f32 maximum dB (-96.3..12, not below minimum), f32 hold
+ * (0..10 s), u8 infinite hold, u8 mode (0 peak, 1 RMS), u8 scope (0 global,
+ * 1 game object), u8 apply downstream volume, u32 output Game Parameter ID
+ * (0 for none). Bank version 150 only.
+ */
 export function parseStaticWwiseMeterBytes(
     bytes,
     {
@@ -3056,7 +3106,13 @@ export function parseGraphFeedbackFreeMeter(
     };
 }
 
-/** Decodes one effect admitted by the selected shared Bus realization policy. */
+/**
+ * Decodes one effect admitted by the selected shared Bus realization policy.
+ *
+ * Admits static Parametric EQ, static Wwise Delay and a transparent Meter.
+ * Compressor and Peak Limiter pass only under
+ * `wwiseDynamics: "approximate-web-audio"`. Every other plug-in throws.
+ */
 export function parseGraphSharedBusEffect(
     effect,
     effectId,
@@ -3114,6 +3170,13 @@ export function parseGraphSharedBusEffect(
     throw new TypeError(`Audio Bus graph effect ${effectId} is unsupported`);
 }
 
+/**
+ * Admits a decoded Compressor or Peak Limiter for the Web Audio
+ * approximation: process LFE and channel link must both be set, release must
+ * be at most one second, and a Compressor attack must be above 0 and at most
+ * one second. The independent master safety compressor still follows the
+ * whole mix, so an admitted route passes through both stages.
+ */
 function RequireApproximateDynamics(effect, type)
 {
     if (effect.processLfe !== true || effect.channelLink !== true)

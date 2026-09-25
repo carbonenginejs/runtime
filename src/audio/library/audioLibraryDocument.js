@@ -49,6 +49,8 @@ const AUDIO_LIBRARY_VERSION = 2;
  *   Reset Bus Volume, which blocks audible shared effects on that ancestry.
  *   Required when any SFX program uses Bus-target Voice Volume.
  * - `busDucking` and `busEffects` are v1 catalogs.
+ * Field-level rules for every catalog, the cross-catalog agreement checks
+ * and the `sourceEffects` record kinds are in this folder's README.
  *
  * @typedef {object} CjsAudioLibraryDocument
  * @property {"carbonenginejs.audioLibrary"} schema
@@ -237,6 +239,12 @@ function ValidateBusGraphVoiceVolumeActionRoutes(busGraph, sfx)
     }
 }
 
+/**
+ * Requires `busVolumeActionControlled` on every graph bus a Set/Reset Bus
+ * Volume action targets, and `busVolumeMayIncrease` where a Set is absolute
+ * or its base plus range maximum exceeds 0 dB. Element targets absent from
+ * the graph are not checked.
+ */
 function ValidateBusGraphVolumeActionRisk(busGraph, sfx)
 {
     const buses = busGraph.buses ?? {};
@@ -386,6 +394,12 @@ function ValidateBusGraphConsumers(busGraph, sfx, music)
     }
 }
 
+/**
+ * Validates `busStates` v1 (additive Bus Volume dB only) or v2 (any of
+ * `gainDb`, `pitchCents`, `lowPass`, `highPass`). Its `stateTransitions`
+ * must be non-empty and exactly cover the bus State groups by ID and name.
+ * The subset is merged with the SFX graph table by `CjsAudioMan`, not here.
+ */
 function ValidateBusStates(value)
 {
     if (value === undefined)
@@ -776,7 +790,8 @@ function SfxEventNames(sfx)
 }
 
 /**
- * Validates and returns an immutable detached audio-library document.
+ * Validates and returns a detached, normalized audio-library document. The
+ * result is a plain JSON clone; it is not frozen.
  *
  * Applications may obtain the input through an API, a packaged module, a
  * download, or the optional library builder. Runtime-audio never discovers

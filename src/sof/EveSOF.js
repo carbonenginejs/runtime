@@ -338,7 +338,27 @@ export class EveSOF extends CjsModel
   // GetBuildDiagnostics().
   #buildDiagnostics = [];
 
-  /** Add standalone SOF configuration or accept CjsLibrary topic forwarding. */
+  /**
+   * Add standalone SOF configuration or accept CjsLibrary topic forwarding.
+   *
+   * Only the options present are applied:
+   * - `dataPath`: monolithic catalog path; when set, `InitializeAsync` loads
+   *   it instead of booting the lazy builder.
+   * - `resources`: `{ getObject, exists }` async functions (or null) used by
+   *   the async builds.
+   * - `lazyData`: `true` installs a `CjsSofLibraryBuilder` whose source is
+   *   `resources.getObject` (runtime output); an options object may supply
+   *   its own `source` returning decoded objects or Black bytes; a
+   *   `CjsSofLibraryBuilder` is installed as is (it must update this
+   *   factory's data manager); `false`/`null` removes it.
+   * - `resFileIndex`: synchronous existence oracle for texture
+   *   `resPathInsert` selection: an array of file names (case-insensitive),
+   *   a predicate, a Set or Map (exact `has`), or null.
+   * - `allowFileCaching`, `alphaCutoutShadowsEnabled`, `volumetricTrailPath`,
+   *   `buildTime`, `editorMode`: copied onto the matching fields.
+   *
+   * @throws {TypeError} for a malformed option value.
+   */
   Register(options = {})
   {
     if (!options || typeof options !== "object" || Array.isArray(options))

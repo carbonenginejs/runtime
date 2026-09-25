@@ -39,6 +39,16 @@ import {
 //   randomization. Loop 0 = infinite. Transition segments bridge source and
 //   destination with authored pre-entry/post-exit windows. Stingers and MIDI
 //   tracks are not played.
+// - A natural playlist step picks its rule from the playlist container's own
+//   transition matrix (previous segment -> next segment), applying the
+//   source fade, destination fade and the playPostExit/playPreEntry flags.
+//   Scheduling lookahead grows to cover long fades (see
+//   PlaylistScheduleHorizon).
+// - When two associations select the same music object, the object keeps
+//   its iterator and timeline unless a changed switch container on the route
+//   has Continue Playback off; then it restarts at the rule's boundary.
+//   Rules match the directly selected child IDs of the owning container,
+//   even when those children are switch containers.
 // - Every playable target of an authored Play event runs under one playing
 //   ID. Linear fades use Web Audio ramps; other Wwise interpolation IDs are
 //   sampled approximations.
@@ -113,7 +123,12 @@ function FadeOffset(fade)
     return (Number(fade?.fadeOffset) || 0) / 1000;
 }
 
-/** Lookahead needed to begin a playlist transition before its boundary. */
+/**
+ * Lookahead needed to begin a playlist transition before its boundary.
+ * The base horizon is 1.5 s. Each rule can raise it to its source fade
+ * duration minus the source fade offset, or to a negative destination fade
+ * offset. The result is capped at 60 s.
+ */
 function PlaylistScheduleHorizon(node)
 {
     let seconds = SCHEDULE_HORIZON_SECONDS;
@@ -234,6 +249,20 @@ function EvaluateBusVolumeState(state, at)
     return 20 * Math.log10(Math.max(1e-10, gain));
 }
 
+/**
+ * Schedules one music route gain as a sum of dB contributions.
+ *
+ * Always added: authored bus Make-Up Gain, the effective output-bus
+ * NodeBase's Output Bus Volume, live Set/Reset Bus Volume states on each bus
+ * of the path (`states`, counted once per bus), the Music Track Voice Volume
+ * RTPC curves, and bus ducking. On a legacy route (`sharedBusFaders` false)
+ * the base Bus Volume, global bus Volume RTPCs and bus State gain are also
+ * added here. On a qualified shared route they are left out, because the
+ * shared mixer applies them in its per-bus fader.
+ *
+ * The value is held at `now`, then rebuilt as sampled curves between the
+ * next Set/Reset, RTPC, State and ducking transition boundaries.
+ */
 function ScheduleMusicBusGain(
     param,
     states,
@@ -371,6 +400,13 @@ function ScheduleMusicBusGain(
     }
 }
 
+/**
+ * Sums the dB output of a Music Track's Voice Volume RTPC curves at `at`.
+ * Each curve reads the global Game Parameter lane. When the lane has no
+ * value it uses the curve's `defaultValue`, then its first point. The curve
+ * is evaluated with each point's serialized Wwise interpolation and
+ * converted with Wwise dB scaling. Only the global lane is read.
+ */
 function EvaluateMusicTrackRtpcGainDb(curves, readGlobalRtpc, at)
 {
     if (!Array.isArray(curves))
@@ -1898,7 +1934,36 @@ export class CjsMusicEngine
         return true;
     }
 
-    /** Applies one ordered bank-authored Pause/Resume program. */
+    /**
+     * Applies one ordered bank-authored Pause/Resume program.
+     *
+     * The document validator admits only `kind` pause/resume with scope
+     * `game-object`, `targetFlags` 0, `actionFlags` 7 (pause) or 6 (resume),
+     * no exceptions, `curve` 0..9, a finite `transitionMs` >= 0, and no
+     * delay, range or probability fields. Mode `element` must target a
+     * postable music root (an `eventTargets` entry); mode `all` must target
+     * ID 0. A program cannot share its event name with music Play, Stop or
+     * setter actions. Descendant-only element targets therefore fail closed.
+     *
+     * Each action visits live instances posted on the same game object;
+     * `element` also requires the instance root to equal `targetId`. Pause
+     * depth is counted per instance: the first Pause starts the fade and the
+     * Resume that returns depth to 0 resumes. The action's `transitionMs` and
+     * Wwise `curve` shape the instance-level output envelope.
+     *
+     * Pause: sources keep playing through the fade. The timeline is queued
+     * through the pause edge and clip carriers get audio-clock stops there,
+     * so a throttled frame loop cannot move the retained offset. At the edge
+     * each clip retains its offset and remaining window. Media that finishes
+     * loading while paused is kept but not started. A destination prepared
+     * while paused is pinned and commits on Resume.
+     *
+     * Resume: a Resume during the Pause fade cancels the armed stops and
+     * fades back from the current level. After the freeze it shifts the
+     * boundary, timeline and future clips by the frozen interval, recreates
+     * each source at its retained offset, and keeps the playlist iterator,
+     * random/shuffle history and sequence positions.
+     */
     #ApplyMusicProgram(program, gameObjID)
     {
         for (const action of program ?? [])
@@ -4330,7 +4395,14 @@ export class CjsMusicEngine
         });
     }
 
-    /** Gets or creates one scheduled track's pre-bus gain route. */
+    /**
+     * Gets or creates one scheduled track's pre-bus gain route.
+     *
+     * A track with Voice Volume RTPC curves gets its own gain node, keyed by
+     * track ID, that feeds the bus route (or the segment gain when the track
+     * has no bus path). Different tracks on one output route therefore keep
+     * independent RTPC gains. This is a track-local stage, not a Bus Volume.
+     */
     #GetRouteGain(instance, scheduled, trackId, track)
     {
         const trackRtpcCurves = Array.isArray(track.rtpcCurves)
@@ -4397,7 +4469,27 @@ export class CjsMusicEngine
         return route.input;
     }
 
-    /** Gets or creates one scheduled segment's shared Bus processing route. */
+    /**
+     * Gets or creates one scheduled segment's shared Bus processing route.
+     *
+     * Legacy route (no qualified bus-graph route, or no mixer input):
+     * `[State LPF] -> [State HPF] -> route gain -> [busEffects chain] ->
+     * segment gain -> instance gain -> music gain`. The busEffects chain is
+     * the Parametric EQ fallback for the path.
+     *
+     * Qualified shared route: `[State LPF] -> [State HPF] -> route gain ->
+     * transition lane -> instance lane -> mixer "music" input`. The
+     * transition lane is per scheduled segment and route. The instance lane
+     * is one gain per instance and bus-graph route, shared by overlapping
+     * segments. No busEffects chain is built; the mixer owns the bus
+     * effects and faders after these envelopes. Routes are keyed by bus-graph
+     * route and authored gains, so crossfades never merge different routes.
+     *
+     * LPF/HPF nodes exist only when a bus State on the path uses that
+     * property. They follow the State timeline (see ScheduleMusicBusFilter).
+     * Audio Bus Pitch is not read. The route exists before media loads, so
+     * late buffers enter behind every scheduled fade.
+     */
     #GetBusRouteGain(instance, scheduled, trackId, track)
     {
         const busPathIds = track.busPathIds.map(String);

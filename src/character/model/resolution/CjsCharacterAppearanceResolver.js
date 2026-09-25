@@ -20,8 +20,9 @@ export class CjsCharacterAppearanceResolver
      * Resolves one hydrated paper doll into the currently provable appearance-plan tranche.
      *
      * - Source: the part type's `partSources` are filtered by the resource's
-     *   `resGender` (0 female, 1 male); anything but one match is a
-     *   diagnostic. Every strict selected source-version match becomes a plan
+     *   `resGender` (0 female, 1 male, any other value keeps every sex);
+     *   anything but one match is a diagnostic. The deterministic
+     *   `sourcePath` representative is never used to choose a source. Every strict selected source-version match becomes a plan
      *   part and layer, and every exact texture candidate is kept.
      * - Model choice: configuration/geometry are filled when each candidate is
      *   unique or one model bundle is retained. With a non-negative integer
@@ -48,7 +49,19 @@ export class CjsCharacterAppearanceResolver
      * - Colours: every paper-doll colour selection is copied into the plan; an
      *   unresolved reference is a diagnostic, never a default.
      *
-     * It creates no targets or passes and merges no version inventories.
+     * - Not resolved, reported instead of guessed: texture roles and placement
+     *   (`TEXTURE_ROLES_UNRESOLVED`), colour-variant materials
+     *   (`MATERIAL_SELECTION_UNRESOLVED`), unresolved authored occlusions
+     *   (`OCCLUSION_POLICY_UNRESOLVED`), and the resource coverage rules
+     *   `clothingAlsoCoversCategory`, `clothingAlsoCoversCategory2` and
+     *   `clothingRuleException` (`CLOTHING_RULES_UNRESOLVED`). A plan with
+     *   layers always carries `PASS_ORDER_UNRESOLVED`.
+     *
+     * It creates no targets or passes and merges no version inventories. A
+     * plan therefore does not qualify material/texture roles, normal-input
+     * combination, category coverage, accessory packing or tuck behaviour;
+     * missing evidence is a diagnostic, derived values carry a `derived`
+     * origin, and nothing is inferred from filenames.
      */
     static resolvePaperdoll(library, paperdoll, options = {})
     {

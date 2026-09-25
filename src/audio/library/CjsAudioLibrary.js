@@ -10,7 +10,7 @@ const TEXT_DECODER = new TextDecoder();
 /** Immutable hydrated audio-library value with the shared model export seam. */
 export class CjsAudioLibrary
 {
-    /** Creates an immutable library from one validated schema-v2 document. */
+    /** Creates a library from one validated schema-v2 document. */
     constructor(values)
     {
         Object.assign(this, installAudioLibraryDocument(values));

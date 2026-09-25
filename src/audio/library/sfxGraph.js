@@ -11,8 +11,11 @@ const SFX_SCHEMA_VERSION = 2;
  * cycles and unsupported node types are rejected before audio is enabled.
  *
  * `programs` is the ordered authoring source. For every event with a program,
- * `events[name]` must equal the ordered projection of its `play` actions;
+ * `events[name]` must equal the ordered projection of its `play` actions
+ * (an absent entry counts as empty, so an action-only program needs none);
  * `events` keeps legacy root lookup. Roots of one event play in parallel.
+ * The per-kind action rules (scopes, modes, targets, flags, value ranges)
+ * are tabled in this folder's README.
  *
  * Node types (`node.type`):
  * - `sound`: one media voice. `mediaId` must exist in `media` or
@@ -68,8 +71,8 @@ const SFX_SCHEMA_VERSION = 2;
  * @property {Object<string, Array<object>>} [programs] Non-empty ordered
  *   actions per event.
  * @property {Object<string, object>} nodes
- * @property {Array<object>} [stateTransitions] State Group IDs, names,
- *   known States, default duration and directed custom transitions.
+ * @property {Array<CjsAudioStateTransitionGroup>} [stateTransitions]
+ *   Non-empty when present.
  */
 const NODE_TYPES = new Set([
     "blend",
@@ -3181,6 +3184,27 @@ function ValidateStateProperties(value, label)
         }
     }
 }
+
+/**
+ * One Wwise State Group's transition timing. Used by the SFX graph's
+ * `stateTransitions` and by the `busStates` catalog's `stateTransitions`.
+ *
+ * IDs are unsigned 32-bit values; zero is allowed. `groupId` is unique in the
+ * array, and `group` names are unique case-insensitively. A State ID keeps
+ * one name and a name keeps one ID across `states` and the transition
+ * endpoints; numeric and named aliases must not collide. Each `fromId:toId`
+ * pair appears once. Endpoints stay numeric when no name is known.
+ *
+ * @typedef {object} CjsAudioStateTransitionGroup
+ * @property {number|string} groupId
+ * @property {string} [group]
+ * @property {number} defaultTransitionMs Unsigned 32-bit integer.
+ * @property {Array<{ stateId: number|string, state: string }>} [states]
+ *   Known States; non-empty when present.
+ * @property {Array<{ fromId: number|string, from?: string, toId: number|string,
+ *   to?: string, transitionMs: number }>} transitions Directed custom
+ *   overrides; may be empty. `transitionMs` is an unsigned 32-bit integer.
+ */
 
 /** Validates one optional portable Wwise State-transition catalog. */
 export function ValidateStateTransitions(value, label)
