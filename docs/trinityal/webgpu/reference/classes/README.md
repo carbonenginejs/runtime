@@ -285,6 +285,16 @@ Carbon's `ConstantBufferAllocator`: the per-frame constant arena of 2 MiB pages,
 - Visibility: Internal
 - Kind: Carbon
 
+<!-- class:CjsWebgpuUtils -->
+## `CjsWebgpuUtils`
+
+Modelled on Carbon's Metal `MetalUtils`: the backend's translation tables, owned by the render context as `m_utils`. Today it carries the pixel format table (Carbon `PixelFormat` to `GPUTextureFormat`, entry for entry with Metal's) and the sRGB view format.
+
+- Export: Not exported
+- Source: `src/trinityal/webgpu/core/CjsWebgpuUtils.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:CjsWebgpuSamplerStateAL -->
 ## `CjsWebgpuSamplerStateAL`
 

@@ -21,7 +21,6 @@
 import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType, Tr2MsaaDesc } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
-import { CarbonPixelFormatToWebGpu, SrgbSiblingOf } from "../../global/consts/webgpu/textureFormats.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
@@ -98,7 +97,7 @@ export class CjsWebgpuTextureAL
 
     if (!writable && !initialData) return ALResult.E_INVALIDARG;
 
-    const format = CarbonPixelFormatToWebGpu[desc.GetFormat()] ?? null;
+    const format = al.m_utils.GetGPUTextureFormat(desc.GetFormat());
 
     if (!format) return ALResult.E_INVALIDARG;
 
@@ -107,7 +106,7 @@ export class CjsWebgpuTextureAL
 
     const device = webgpu.GetDevice();
     const usageFlags = webgpu.GetTextureUsage();
-    const srgbFormat = SrgbSiblingOf(format);
+    const srgbFormat = al.m_utils.GetSRGBViewFormat(format);
     const mipCount = Math.max(1, desc.GetTrueMipCount());
     const layers = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetDepth()) : Math.max(1, desc.GetArraySize());
     let usage = usageFlags.TEXTURE_BINDING | usageFlags.COPY_DST;

@@ -10,14 +10,12 @@ import {
     TextureDimension,
     TriBatchType,
     TRIEXTRAPOLATION,
-    dxgiToPixelFormat,
     getPixelFormatBlockHeight,
     getPixelFormatBlockWidth,
     getPixelFormatBytesPerBlock,
     isCompressedPixelFormat,
     isSrgbPixelFormat,
-    normalizeColorSpace,
-    toWebGpuTextureFormat
+    normalizeColorSpace
 } from "../../../src/global/index.js";
 import { PixelFormat as RenderContextPixelFormat } from "../../../src/global/consts/renderContext/index.js";
 
@@ -62,12 +60,9 @@ test("reports pixel format block metrics", () =>
     assert.equal(getPixelFormatBlockHeight(PixelFormat.BC1_RGBA_UNORM), 4);
 });
 
-test("maps DXGI and WebGPU texture formats", () =>
+test("exports the DXGI format enum", () =>
 {
     assert.equal(DxgiFormat.BC7_UNORM, 98);
-    assert.equal(dxgiToPixelFormat(DxgiFormat.BC7_UNORM), PixelFormat.BC7_RGBA_UNORM);
-    assert.equal(dxgiToPixelFormat(DxgiFormat.R8G8_UNORM), PixelFormat.RG8_UNORM);
-    assert.equal(toWebGpuTextureFormat(PixelFormat.BC7_RGBA_UNORM), "bc7-rgba-unorm");
 });
 
 test("normalizes color spaces", () =>

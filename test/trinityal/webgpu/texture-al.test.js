@@ -2,7 +2,9 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
-import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
+import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
+import { CjsResMan, RegisterTextureResources } from "../../../npm/dist/resource/index.js";
+import { DescribeBitmap } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { ALResult, Tr2BitmapDimensions } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
@@ -164,4 +166,72 @@ test("the context creates the backend's texture, and Create accepts Trinity's co
   const texture = new CjsWebgpuTextureAL();
 
   assert.equal(texture.Create(desc, { initialData: data }, { GetRenderContextAL: () => al }), ALResult.S_OK);
+});
+
+test("CjsWebgpuUtils carries Metal's pixel format table (MetalUtils.mm:12-121)", () =>
+{
+  const utils = new CjsWebgpuUtils();
+
+  // BGRX has no format of its own on either API; Metal reads it as BGRA.
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM), "bgra8unorm");
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_B8G8R8X8_TYPELESS), "bgra8unorm");
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM_SRGB), "bgra8unorm-srgb");
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_BC7_UNORM), "bc7-rgba-unorm");
+  // Where Metal has a format and core WebGPU does not, the texture is refused.
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_A8_UNORM), null);
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_R32G32B32_FLOAT), null, "Metal has none either");
+  assert.equal(utils.GetGPUTextureFormat(PixelFormat.PIXEL_FORMAT_SENTINEL), null);
+  assert.equal(utils.GetSRGBViewFormat("bgra8unorm"), "bgra8unorm-srgb");
+  assert.equal(utils.GetSRGBViewFormat("r8unorm"), null);
+  assert.ok(new CjsWebgpuRenderContextAL().m_utils instanceof CjsWebgpuUtils, "the context owns one, as MetalContext does");
+});
+
+/** A legacy 24-bit RGB volume DDS, the shape of EVE's noise32cube_volume.dds. */
+function volumeDds(size)
+{
+  const header = new Uint8Array(128);
+  const v = new DataView(header.buffer);
+  v.setUint32(0, 0x20534444, true);     // "DDS "
+  v.setUint32(4, 124, true);
+  v.setUint32(8, 0x80100f, true);       // CAPS | HEIGHT | WIDTH | PITCH | PIXELFORMAT | DEPTH
+  v.setUint32(12, size, true);
+  v.setUint32(16, size, true);
+  v.setUint32(20, size * 3, true);
+  v.setUint32(24, size, true);          // depth
+  v.setUint32(76, 32, true);
+  v.setUint32(80, 0x40, true);          // RGB, no alpha
+  v.setUint32(88, 24, true);
+  v.setUint32(92, 0xff0000, true);
+  v.setUint32(96, 0xff00, true);
+  v.setUint32(100, 0xff, true);
+  v.setUint32(108, 0x1008, true);       // TEXTURE | COMPLEX
+  v.setUint32(112, 0x200000, true);     // VOLUME
+  const out = new Uint8Array(128 + size * size * size * 3);
+  out.set(header);
+  for (let i = 128; i < out.length; i++) out[i] = i & 0xff;
+  return out;
+}
+
+test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its slices", async () =>
+{
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: () => Promise.resolve(volumeDds(4)) } });
+  RegisterTextureResources(resMan);
+
+  const resource = await resMan.LoadObject("res:/texture/global/noise.dds");
+  const bitmap = resource.GetBitmap();
+
+  assert.equal(bitmap.GetFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM, "Carbon's reader widens 24-bit to BGRX");
+  assert.equal(bitmap.GetDepth(), 4);
+
+  const { desc, initialData } = DescribeBitmap(bitmap);
+  const { al, calls } = composed();
+  const texture = new CjsWebgpuTextureAL();
+
+  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData }, al), ALResult.S_OK);
+  assert.equal(calls.textures[0].format, "bgra8unorm");
+  assert.equal(calls.textures[0].dimension, "3d");
+  assert.deepEqual(calls.textures[0].size, { width: 4, height: 4, depthOrArrayLayers: 4 });
+  assert.equal(calls.writes.length, 1);
+  assert.equal(calls.writes[0].size.depthOrArrayLayers, 4);
 });

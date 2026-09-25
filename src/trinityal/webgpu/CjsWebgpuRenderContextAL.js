@@ -82,6 +82,7 @@ import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
 import { CjsWebgpuTextureAL } from "./CjsWebgpuTextureAL.js";
 import { CjsWebgpuConstantArena } from "./core/CjsWebgpuConstantArena.js";
+import { CjsWebgpuUtils } from "./core/CjsWebgpuUtils.js";
 import { CanonicalKey } from "./core/CjsWebgpuPipelineCache.js";
 import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
@@ -267,6 +268,12 @@ export class CjsWebgpuRenderContextAL
   _webgpu = null;
 
   _renderTarget = null;
+
+  /**
+   * The backend's translation tables, `MetalContext::m_utils` (`MetalContext.h:34`),
+   * reached as Metal reaches its own: `context.m_utils.GetGPUTextureFormat(...)`.
+   */
+  m_utils = new CjsWebgpuUtils();
 
   /** The frame's command encoder, between BeginScene and EndScene. */
   _commandEncoder = null;
