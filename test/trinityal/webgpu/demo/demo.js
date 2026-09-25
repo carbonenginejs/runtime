@@ -576,12 +576,15 @@ const SCENE_TEXTURES = Object.freeze([
   // just reflects flat grey, which is why ccpwgl leaves this parameter empty
   // rather than defaulting it.
   //
-  // A SCENE OWNS THIS ONE. EVE's scenes carry their reflection cube beside the
-  // backdrop, as `<scene>_cube_refl.dds`, and a stand-in scene has none - so
-  // this borrows the Amarr ship-icon background's, which is a real EVE cube of
-  // the right kind for an Amarr hull. It is a STAND-IN for scene data, not a
-  // default: a real scene supplies its own and this line goes away.
-  { name: "EveSpaceSceneEnvMap", path: "dx9/scene/iconbackground/ship_amarr_cube_refl.dds" }
+  // A SCENE OWNS THIS ONE, and it is the NEBULA. Carbon binds the reflection
+  // probe's cube here, or without a probe the static env map - the scene's
+  // `envMapResPath`, the full backdrop cube (`EveSpaceScene.cpp:3207-3226`).
+  // The small `<scene>_cube_refl.dds` files feed EnvMap1/ReflectionMap, a
+  // different variable; binding one here (the Amarr ship-icon cube, until
+  // 2026-09-26) reflected a 128x128 icon backdrop. This demo has no probe, so
+  // it binds a universe nebula; `?env=` picks another. A STAND-IN for scene
+  // data: a real scene supplies its own and this line goes away.
+  { name: "EveSpaceSceneEnvMap", path: new URLSearchParams(globalThis.location?.search ?? "").get("env") || "dx9/scene/universe/a01_cube.dds" }
 ]);
 
 
@@ -1039,7 +1042,9 @@ export async function RunDemo(canvas)
 
   device.createTexture = descriptor =>
   {
-    madeTextures.push(`${descriptor.size?.[0] ?? descriptor.size?.width}x${descriptor.size?.[1] ?? descriptor.size?.height}:${descriptor.format}`);
+    const layers = descriptor.size?.[2] ?? descriptor.size?.depthOrArrayLayers ?? 1;
+
+    madeTextures.push(`${descriptor.size?.[0] ?? descriptor.size?.width}x${descriptor.size?.[1] ?? descriptor.size?.height}x${layers}:${descriptor.format}:${descriptor.mipLevelCount ?? 1}mip`);
 
     return createTexture(descriptor);
   };
