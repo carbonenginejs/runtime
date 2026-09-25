@@ -24,7 +24,7 @@ export class CollisionAvoidance extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ProcessPriority")
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */

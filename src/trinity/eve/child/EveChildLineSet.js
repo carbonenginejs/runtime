@@ -5,6 +5,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** A child that renders a set of curved and sphere-projected line paths, as object geometry, as dedicated line rendering, or both. */
 @type.define({ className: "EveChildLineSet", family: "eve/child" })
@@ -17,7 +18,7 @@ export class EveChildLineSet extends EveChildTransform
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("lineSetType")
+  @type.enum("trinity.EveChildLineSet.lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
@@ -119,3 +120,15 @@ export class EveChildLineSet extends EveChildTransform
   });
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:13).
+blue.enums.RegisterEnum("trinity.EveChildLineSet.lineSetType", EveChildLineSet.lineSetType, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h", family: "eve/child", line: 92,
+  exposedName: "LineSetTypes", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet_Blue.cpp:7",
+  chooser: [
+    { name: "ObjectRender", value: EveChildLineSet.lineSetType.OBJECT_RENDER, description: "sprites or other objects are rendered at each segment" },
+    { name: "LineRender", value: EveChildLineSet.lineSetType.LINE_RENDER, description: "To render a 3dLine shader between the points" },
+    { name: "Both", value: EveChildLineSet.lineSetType.BOTH, description: "Both of the above" }
+  ]
+});

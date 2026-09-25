@@ -4,6 +4,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { TriRenderJob } from "../TriRenderJob.js";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { RenderingMode } from "#consts/graphics";
+import "#blue/registerTrinityEnums";
 
 
 /**
@@ -35,7 +36,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("RenderingMode")
+  @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = TriStepSetStdRndStates.RM_OPAQUE;
 
   /**

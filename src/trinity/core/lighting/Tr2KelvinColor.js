@@ -4,6 +4,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { Tr2StandardIlluminant } from "../../generated/trinityCore/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** A light colour authored as a temperature in kelvin, a tint, and a white-balance illuminant. */
 @type.define({ className: "Tr2KelvinColor", family: "trinityCore" })
@@ -14,7 +15,7 @@ export class Tr2KelvinColor extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2StandardIlluminant")
+  @type.enum("trinity.Tr2StandardIlluminant")
   whiteBalance = 2;
 
   /** m_temperature (float) [READWRITE, PERSIST] */
@@ -141,3 +142,30 @@ export class Tr2KelvinColor extends CjsModel
   ]);
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Tr2KelvinColor_Blue.cpp:71).
+blue.enums.RegisterEnum("trinity.Tr2StandardIlluminant", Tr2KelvinColor.Tr2StandardIlluminant, {
+  source: "trinity/trinity/Tr2KelvinColor.h", family: "trinityCore", line: 11,
+  exposedName: "Tr2StandardIlluminant", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2KelvinColor_Blue.cpp:12",
+  chooser: [
+    { name: "CIE_A", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_A, description: "(CIE A) Incandescent / Tungsten" },
+    { name: "CIE_D50", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_D50, description: "(CIE D50) Horizon Light" },
+    { name: "CIE_D55", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_D55, description: "(CIE D55) Mid-Morning / Mid-Afternoon Daylight" },
+    { name: "CIE_D65", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_D65, description: "(CIE D65) Noon Daylight" },
+    { name: "CIE_D75", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_D75, description: "(CIE D75) North Sky Daylight" },
+    { name: "CIE_E", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_E, description: "(CIE E) Equal Energy" },
+    { name: "CIE_F1", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F1, description: "(CIE F1) Daylight Fluorescent" },
+    { name: "CIE_F2", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F2, description: "(CIE F2) Cool White Fluorescent" },
+    { name: "CIE_F3", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F3, description: "(CIE F3) White Fluorescent" },
+    { name: "CIE_F4", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F4, description: "(CIE F4) Warm White Fluorescent" },
+    { name: "CIE_F5", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F5, description: "(CIE F5) Daylight Fluorescent" },
+    { name: "CIE_F6", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F6, description: "(CIE F6) Lite White Fluorescent" },
+    { name: "CIE_F7", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F7, description: "(CIE F7) D65 Fluorescent Simulator" },
+    { name: "CIE_F8", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F8, description: "(CIE F8) D50 Fluorescent Simulator" },
+    { name: "CIE_F9", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F9, description: "(CIE F9) Cool White Deluxe Fluorescent" },
+    { name: "CIE_F10", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F10, description: "(CIE F10) Philips TL85, Ultralume 50" },
+    { name: "CIE_F11", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F11, description: "(CIE F11) Philips TL84, Ultralume 40" },
+    { name: "CIE_F12", value: Tr2KelvinColor.Tr2StandardIlluminant.TR2STANDARDILLUMINANT_F12, description: "(CIE F12) Philips TL83, Ultralume 30" }
+  ]
+});

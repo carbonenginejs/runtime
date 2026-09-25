@@ -9,6 +9,7 @@ import { Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureReference } from "../Tr2TextureReference.js";
 import { AccumulatePriorityAttribute } from "../PriorityBlend.js";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 const FROXEL_FOG_COMPONENT = "FroxelFogSettings";
@@ -26,7 +27,7 @@ export class Tr2VolumetricsRenderer extends CjsModel
 {
   @edit.readwrite
   @type.int32
-  @type.enum("Tr2VolumerticQuality")
+  @type.enum("trinity.Tr2VolumerticQuality")
   quality = Tr2VolumerticQuality.High;
 
   @edit.read
@@ -468,3 +469,16 @@ export class Tr2VolumetricsRenderer extends CjsModel
 
   static Tr2VolumerticQuality = Tr2VolumerticQuality;
 }
+
+// Registered as Carbon registers it (trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:16).
+blue.enums.RegisterEnum("trinity.Tr2VolumerticQuality", Tr2VolumetricsRenderer.Tr2VolumerticQuality, {
+  source: "trinity/trinity/ITr2VolumetricRenderable.h", family: "trinityCore", line: 11,
+  exposedName: "Tr2VolumerticQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2VolumetricsRenderer_Blue.cpp:8",
+  chooser: [
+    { name: "Low", value: Tr2VolumetricsRenderer.Tr2VolumerticQuality.Low, description: "" },
+    { name: "Medium", value: Tr2VolumetricsRenderer.Tr2VolumerticQuality.Medium, description: "" },
+    { name: "High", value: Tr2VolumetricsRenderer.Tr2VolumerticQuality.High, description: "" },
+    { name: "Ultra", value: Tr2VolumetricsRenderer.Tr2VolumerticQuality.Ultra, description: "" }
+  ]
+});

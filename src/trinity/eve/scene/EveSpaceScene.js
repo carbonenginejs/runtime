@@ -28,6 +28,7 @@ import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRen
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 // Module scratch for the per-frame sun-direction read (assume-dirty).
@@ -129,7 +130,7 @@ export class EveSpaceScene extends CjsModel
   /** m_visualizeMethod (EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("EveVisualizeMethod")
+  @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
@@ -1558,3 +1559,19 @@ export class EveSpaceScene extends CjsModel
   }
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceScene_Blue.cpp:44).
+blue.enums.RegisterEnum("trinity.EveSpaceScene.EveVisualizeMethod", EveSpaceScene.EveVisualizeMethod, {
+  source: "trinity/trinity/Eve/EveSpaceScene.h", family: "eve/scene", line: 176,
+  exposedName: "EveVisualizeMethod", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/EveSpaceScene_Blue.cpp:20",
+  chooser: [
+    { name: "None", value: EveSpaceScene.EveVisualizeMethod.VM_NONE, description: "No visualizer - use normal rendering" },
+    { name: "TexCoord0", value: EveSpaceScene.EveVisualizeMethod.VM_TEXCOORD0, description: "" },
+    { name: "TexCoord1", value: EveSpaceScene.EveVisualizeMethod.VM_TEXCOORD1, description: "" },
+    { name: "White", value: EveSpaceScene.EveVisualizeMethod.VM_WHITE, description: "" },
+    { name: "Overdraw", value: EveSpaceScene.EveVisualizeMethod.VM_OVERDRAW, description: "" },
+    { name: "Wireframe", value: EveSpaceScene.EveVisualizeMethod.VW_WIREFRAME, description: "" },
+    { name: "LightCount", value: EveSpaceScene.EveVisualizeMethod.VW_LIGHT_COUNT, description: "" }
+  ]
+});

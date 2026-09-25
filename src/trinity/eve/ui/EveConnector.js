@@ -6,6 +6,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 const Y_AXIS = vec3.fromValues(0, 1, 0);
@@ -67,7 +68,7 @@ export class EveConnector extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ConnectorType")
+  @type.enum("trinity.EveConnector.ConnectorType")
   type = ConnectorType.PointToPoint;
 
   /** m_color (Color) [READWRITE, PERSIST] */
@@ -418,3 +419,20 @@ export class EveConnector extends CjsModel
   static ConnectorType = ConnectorType;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/UI/EveConnector_Blue.cpp:34).
+blue.enums.RegisterEnum("trinity.EveConnector.ConnectorType", EveConnector.ConnectorType, {
+  source: "trinity/trinity/Eve/UI/EveConnector.h", family: "eve/ui", line: 24,
+  exposedName: "EveConnectorStyle", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/UI/EveConnector_Blue.cpp:6",
+  chooser: [
+    { name: "PointToPoint", value: EveConnector.ConnectorType.PointToPoint, description: "Connection between two points" },
+    { name: "StraightAnchor", value: EveConnector.ConnectorType.StraightAnchor, description: "Anchor line from dest to xz plane containing source" },
+    { name: "CurvedAnchor", value: EveConnector.ConnectorType.CurvedAnchor, description: "Sphered line from dest to xz plane containing source using source as the center" },
+    { name: "XZ_Circle", value: EveConnector.ConnectorType.XZ_Circle, description: "Circle in xz plane going through the 'CurvedAnchor' point with source as the center" },
+    { name: "XZ_CircleStraight", value: EveConnector.ConnectorType.XZ_CircleStraight, description: "Circle in xz plane going through the 'StraightAnchor' point with source as the center" },
+    { name: "Circle", value: EveConnector.ConnectorType.Circle, description: "Circle in the plane normal plane" },
+    { name: "Ellipse", value: EveConnector.ConnectorType.Ellipse, description: "Ellipse in the plane normal plane, radiusX is destPosition.x, radiusY is destPosition.y and ellipse rotation is destPosition.z" },
+    { name: "Orbit", value: EveConnector.ConnectorType.Orbit, description: "Draws an orbit using planeNormal and radius" }
+  ]
+});

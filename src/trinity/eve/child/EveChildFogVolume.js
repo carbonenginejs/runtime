@@ -8,6 +8,7 @@ import { impl, edit, type } from "#schema";
 import { ITr2FroxelFogSettings } from "./ITr2FroxelFogSettings.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
+import "../../postProcess/Tr2PostProcessAttributes.js";
 
 
 const INVERSE_WORLD = mat4.create();
@@ -58,7 +59,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Priority")
+  @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
   @edit.read

@@ -10,6 +10,7 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Denoiser } from "./Tr2Denoiser.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { TriFrustumOrtho } from "./view/TriFrustumOrtho.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 const SHADOW_FRUSTUM_COUNT = 16;
 const SHADOW_MAP_WIDTH = 8;
@@ -141,7 +142,7 @@ export class Tr2ShadowMap extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ShadowSplitMode")
+  @type.enum("trinity.Tr2ShadowMap.ShadowSplitMode")
   shadowSplitMode = 0;
 
   @edit.readwrite
@@ -764,3 +765,15 @@ export class Tr2ShadowMap extends CjsModel
     MANUAL: 2
   });
 }
+
+// Registered as Carbon registers it (trinity/trinity/Tr2ShadowMap_Blue.cpp:14).
+blue.enums.RegisterEnum("trinity.Tr2ShadowMap.ShadowSplitMode", Tr2ShadowMap.ShadowSplitMode, {
+  source: "trinity/trinity/Tr2ShadowMap.h", family: "trinityCore", line: 102,
+  exposedName: "ShadowSplitModeChooser", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2ShadowMap_Blue.cpp:8",
+  chooser: [
+    { name: "Static", value: Tr2ShadowMap.ShadowSplitMode.STATIC, description: "Staticly computed splits for the shadow map" },
+    { name: "Dynamic", value: Tr2ShadowMap.ShadowSplitMode.DYNAMIC, description: "Dynamic splits that are generated based on near and far planes" },
+    { name: "Manual", value: Tr2ShadowMap.ShadowSplitMode.MANUAL, description: "Manual mode for use in graphite for debugging" }
+  ]
+});

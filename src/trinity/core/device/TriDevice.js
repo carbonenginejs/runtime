@@ -9,13 +9,14 @@ import {
   convertProjectionCoordToWorldPickRay,
   screenToProjection
 } from "../view/pickRay.js";
-import { blue, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
+import { blue, EnumRegistrationType, IBlueEvents, ISimTimeRebaseNotify } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
 import { TriViewport } from "../view/TriViewport.js";
 import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import "#blue/registerTrinityEnums";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
 @type.define({ className: "TriDevice", family: "trinityCore" })
@@ -62,7 +63,7 @@ export class TriDevice extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("PresentInterval")
+  @type.enum("trinity.Tr2RenderContextEnum.PresentInterval")
   presentationInterval = 1;
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
@@ -70,7 +71,7 @@ export class TriDevice extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("SwapEffect")
+  @type.enum("trinity.Tr2RenderContextEnum.SwapEffect")
   swapEffect = 0;
 
   /** m_throttlingState (uint32_t) [READ] */
@@ -81,7 +82,7 @@ export class TriDevice extends CjsModel
   /** m_deviceType (DeviceType - enum DeviceType) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("DeviceType")
+  @type.enum("trinity.TriDevice.DeviceType")
   deviceType = 0;
 
   /** m_allowThrottling (bool) [READWRITE] */
@@ -1086,3 +1087,14 @@ export class TriDevice extends CjsModel
   static UpscalingTechnique = UpscalingTechnique;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/TriDevice_Blue.cpp:164).
+blue.enums.RegisterEnum("trinity.TriDevice.DeviceType", TriDevice.DeviceType, {
+  source: "trinity/trinity/TriDevice.h", family: "trinityCore", line: 110,
+  exposedName: "TriDeviceType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/TriDevice_Blue.cpp:151",
+  chooser: [
+    { name: "HARDWARE", value: TriDevice.DeviceType.DEVICE_TYPE_HARDWARE, description: "Hardware device" },
+    { name: "SOFTWARE", value: TriDevice.DeviceType.DEVICE_TYPE_SOFTWARE, description: "Software device" }
+  ]
+});

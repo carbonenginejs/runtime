@@ -54,7 +54,7 @@ test("EveConnector is maintained with one canonical ConnectorType enum", () =>
   assert.equal(connector.animationSpeed, 0);
   assert.equal(connector.isAnimated, false);
   assert.equal(connector.autoScaleAnimation, false);
-  assert.equal(CjsSchema.getField(eve.EveConnector, "type")?.enum?.enumType, "ConnectorType");
+  assert.equal(CjsSchema.getField(eve.EveConnector, "type")?.enum?.enumType, "trinity.EveConnector.ConnectorType");
   assert.deepEqual(eve.ConnectorType, {
     PointToPoint: 0,
     XZ_CircleStraight: 1,

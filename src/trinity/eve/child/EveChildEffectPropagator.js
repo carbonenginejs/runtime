@@ -8,6 +8,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { PropagationType, TriggerType } from "../../generated/eve/child/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 // Module scratch for the trigger-driven locator paths (allocation rules:
 // copy-into, never allocate per frame; child updates run sequentially so the
@@ -60,7 +61,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("PropagationType")
+  @type.enum("trinity.EveChildEffectPropagator.PropagationType")
   propagationType = 0;
 
   /** m_triggerMethod (TriggerType - enum TriggerType) [READWRITE, PERSIST, ENUM, NOTIFY] */
@@ -68,7 +69,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("TriggerType")
+  @type.enum("trinity.EveChildEffectPropagator.TriggerType")
   triggerMethood = 0;
 
   /** m_stopAfterNumTriggers (float) [READWRITE, PERSIST, NOTIFY] */
@@ -878,3 +879,27 @@ export class EveChildEffectPropagator extends EveChildContainer
   static TriggerType = TriggerType;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:13).
+blue.enums.RegisterEnum("trinity.EveChildEffectPropagator.PropagationType", EveChildEffectPropagator.PropagationType, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h", family: "eve/child", line: 51,
+  exposedName: "EffectPropagationType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:7",
+  chooser: [
+    { name: "localLocators", value: EveChildEffectPropagator.PropagationType.LOCAL_LOCATORS, description: "just place your triggers manually" },
+    { name: "externalLocatorSet", value: EveChildEffectPropagator.PropagationType.LOCATOR_SET_BY_REF, description: "use a parent's locatorSet to propagate" },
+    { name: "randomSpread", value: EveChildEffectPropagator.PropagationType.RANDOM_SPREAD, description: "spreads locators randomly" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:21).
+blue.enums.RegisterEnum("trinity.EveChildEffectPropagator.TriggerType", EveChildEffectPropagator.TriggerType, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator.h", family: "eve/child", line: 58,
+  exposedName: "EffectPropagationTriggerType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp:15",
+  chooser: [
+    { name: "triggerSphereCurve", value: EveChildEffectPropagator.TriggerType.TRIGGER_SPHERE_CURVE, description: "animate a radius to trigger the effect" },
+    { name: "intervalTriggers", value: EveChildEffectPropagator.TriggerType.INTERVAL_TRIGGERS, description: "continuous effect trigger" },
+    { name: "instantPermanent", value: EveChildEffectPropagator.TriggerType.INSTANT_PERMANENT, description: "propagate instantly over set and no clean-up" }
+  ]
+});

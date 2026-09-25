@@ -5,7 +5,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
-import { blue } from "#blue";
+import { blue, EnumRegistrationType } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
 import { createCjsLightDataView, setCjsLightDataOwnerValues } from "./CjsLightData.js";
 import {
@@ -343,3 +343,15 @@ export class Tr2Light extends CjsModel
   static #lightRecord = CreateLightRecord();
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Lights/Tr2Light_Blue.cpp:14).
+blue.enums.RegisterEnum("trinity.PerLightShadowSetting", Tr2Light.PerLightShadowSetting, {
+  source: "trinity/trinity/Lights/Tr2Light.h", family: "eve/lights", line: 20,
+  exposedName: "PerLightShadowSetting", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Lights/Tr2Light_Blue.cpp:8",
+  chooser: [
+    { name: "Disabled", value: Tr2Light.PerLightShadowSetting.DISABLED, description: "Light does not cast shadow." },
+    { name: "Enabled Only On High/Raytraced Shadow Quality Settings", value: Tr2Light.PerLightShadowSetting.ENABLED_ONLY_ON_HIGH_QUALITY, description: "Light only casts shadow when Shadow Quality is set to High or Raytraced." },
+    { name: "Enabled", value: Tr2Light.PerLightShadowSetting.ALWAYS_ENABLED, description: "Light casts shadow regardless of Shadow Quality Setting" }
+  ]
+});

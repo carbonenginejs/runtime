@@ -39,7 +39,7 @@ export class ProcessLifetime extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ProcessPriority")
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */

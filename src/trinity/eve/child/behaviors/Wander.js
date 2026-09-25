@@ -26,7 +26,7 @@ export class Wander extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("ProcessPriority")
+  @type.enum("trinity.IBehavior.ProcessPriority")
   behaviorPriority = 0;
 
   /** rand1 (float) [READWRITE, PERSIST] */

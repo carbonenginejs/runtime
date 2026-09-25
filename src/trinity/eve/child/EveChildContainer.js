@@ -26,6 +26,7 @@ import {
   stampChildTransforms
 } from "../perObjectData/childPerObjectRecords.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 // Module scratch (read-only zero vector; container recursion forbids mutable
 // module scratch here - see GetBoundingSphere).
@@ -45,7 +46,7 @@ export class EveChildContainer extends EveChildTransform
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("DisplayQualityModifier")
+  @type.enum("trinity.EveChildContainer.DisplayQualityModifier")
   displayFilter = 5;
 
   @edit.read
@@ -1524,3 +1525,19 @@ export class EveChildContainer extends EveChildTransform
   static Origin = Origin;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:24).
+blue.enums.RegisterEnum("trinity.EveChildContainer.DisplayQualityModifier", EveChildContainer.DisplayQualityModifier, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.h", family: "eve/child", line: 158,
+  exposedName: "SetShader", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp:14",
+  chooser: [
+    { name: "None_", value: EveChildContainer.DisplayQualityModifier.SHADER_ALL, description: "Visible to users with all shader settings" },
+    { name: "Medium_and_High", value: EveChildContainer.DisplayQualityModifier.SHADER_HIGHMID, description: "Visible for users with shader settings on Medium or High" },
+    { name: "Low_and_Medium", value: EveChildContainer.DisplayQualityModifier.SHADER_LOWMID, description: "Visible for users with shader settings on Low or Medium" },
+    { name: "High", value: EveChildContainer.DisplayQualityModifier.SHADER_HIGH, description: "Only visible for users with shader settings on High" },
+    { name: "Medium", value: EveChildContainer.DisplayQualityModifier.SHADER_MED, description: "Only visible for users with shader settings on Medium" },
+    { name: "Low", value: EveChildContainer.DisplayQualityModifier.SHADER_LOW, description: "Only visible for users with shader settings on Low" },
+    { name: "Only Reflections", value: EveChildContainer.DisplayQualityModifier.ONLY_REFLECTIONS, description: "Only visible in the reflections" }
+  ]
+});

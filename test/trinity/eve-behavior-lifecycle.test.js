@@ -38,8 +38,8 @@ test("lifecycle and tunnel records own Carbon defaults, enums, and maintained pa
   const point = new SplineTunnelPoint();
   assert.equal(ProcessLifetime.ProcessPriority, ProcessPriority);
   assert.equal(SplineTunnelGroup.TunnelGroupType, TunnelGroupType);
-  assert.equal(CjsSchema.getField(ProcessLifetime, "behaviorPriority")?.enum?.enumType, "ProcessPriority");
-  assert.equal(CjsSchema.getField(SplineTunnelGroup, "tunnelGroupType")?.enum?.enumType, "TunnelGroupType");
+  assert.equal(CjsSchema.getField(ProcessLifetime, "behaviorPriority")?.enum?.enumType, "trinity.IBehavior.ProcessPriority");
+  assert.equal(CjsSchema.getField(SplineTunnelGroup, "tunnelGroupType")?.enum?.enumType, "trinity.SplineTunnelGroup.TunnelGroupType");
   assert.equal(CjsSchema.getField(SplineTunnelGroup, "tunnels"), null);
   assert.equal(tunnel.tunnelID, -1);
   assert.equal(tunnel.cylWidth, 20);

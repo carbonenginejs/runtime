@@ -3,6 +3,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 // Secondary lighting: light from one primary source reflected off "secondary
@@ -91,7 +92,7 @@ export class Tr2ShLightingManager extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Quality")
+  @type.enum("trinity.Tr2ShLightingManager.Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */
@@ -489,3 +490,14 @@ export class Tr2ShLightingManager extends CjsModel
   static #directionScratch = vec3.create();
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Tr2ShLightingManager_Blue.cpp:16).
+blue.enums.RegisterEnum("trinity.Tr2ShLightingManager.Quality", Tr2ShLightingManager.Quality, {
+  source: "trinity/trinity/Tr2ShLightingManager.h", family: "trinityCore", line: 34,
+  exposedName: "ShQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2ShLightingManager_Blue.cpp:10",
+  chooser: [
+    { name: "L1", value: Tr2ShLightingManager.Quality.L1, description: "" },
+    { name: "L2", value: Tr2ShLightingManager.Quality.L2, description: "" }
+  ]
+});

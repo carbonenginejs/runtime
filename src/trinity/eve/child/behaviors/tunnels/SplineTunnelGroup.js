@@ -33,7 +33,7 @@ export class SplineTunnelGroup extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("TunnelGroupType")
+  @type.enum("trinity.SplineTunnelGroup.TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_curveSets (PTr2CurveVector3Vector) [READ, PERSIST, NOTIFY] */

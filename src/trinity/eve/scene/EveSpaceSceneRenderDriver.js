@@ -29,6 +29,10 @@ import { TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
 import { BindPerFramePSData, BindPerFrameVSData } from "../../core/rawData/Tr2ConstantBufferFormats.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
+import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
+import "./EveSpaceScene.js";
+import { blue, EnumRegistrationType } from "#blue";
+import "../../postProcess/effect/Tr2PPEffect.js";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
@@ -38,31 +42,31 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** m_settings.aoQuality (AmbientOcclusionQuality - enum AmbientOcclusionQuality) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("AmbientOcclusionQuality")
+  @type.enum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality")
   aoQuality = 0;
 
   /** m_settings.antiAliasingQuality (AntiAliasingQuality - enum AntiAliasingQuality) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("AntiAliasingQuality")
+  @type.enum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality")
   antiAliasingQuality = 0;
 
   /** m_settings.visualizeMethod (EveSpaceScene::EveVisualizeMethod - enum EveVisualizeMethod) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("EveVisualizeMethod")
+  @type.enum("trinity.EveSpaceScene.EveVisualizeMethod")
   visualizeMethod = 0;
 
   /** m_settings.postProcessingQuality (PostProcess::Quality - enum Quality) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("Quality")
+  @type.enum("trinity.PostProcess.Quality")
   postProcessingQuality = 0;
 
   /** m_settings.shadowQuality (ShadowQuality - enum ShadowQuality) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("ShadowQuality")
+  @type.enum("trinity.ShadowQuality")
   shadowQuality = 0;
 
   /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
@@ -80,7 +84,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("Tr2VolumerticQuality")
+  @type.enum("trinity.Tr2VolumerticQuality")
   volumetricQuality = 0;
 
   /** m_scene (EveSpaceScenePtr) [PERSISTONLY] */
@@ -448,3 +452,42 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   static PixelFormat = PixelFormat;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:53).
+blue.enums.RegisterEnum("trinity.EveSpaceSceneRenderDriver.AmbientOcclusionQuality", EveSpaceSceneRenderDriver.AmbientOcclusionQuality, {
+  source: "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h", family: "eve/scene", line: 39,
+  exposedName: "EveSpaceSceneRenderDriverAmbientOcclusionQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:18",
+  chooser: [
+    { name: "Disabled", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Disabled, description: "" },
+    { name: "Low", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Low, description: "" },
+    { name: "Medium", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Medium, description: "" },
+    { name: "High", value: EveSpaceSceneRenderDriver.AmbientOcclusionQuality.High, description: "" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:52).
+blue.enums.RegisterEnum("trinity.EveSpaceSceneRenderDriver.AntiAliasingQuality", EveSpaceSceneRenderDriver.AntiAliasingQuality, {
+  source: "trinity/trinity/Eve/EveSpaceSceneRenderDriver.h", family: "eve/scene", line: 32,
+  exposedName: "EveSpaceSceneRenderDriverAntiAliasingQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:11",
+  chooser: [
+    { name: "Disabled", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Disabled, description: "" },
+    { name: "Low", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Low, description: "" },
+    { name: "Medium", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.Medium, description: "" },
+    { name: "High", value: EveSpaceSceneRenderDriver.AntiAliasingQuality.High, description: "" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:54).
+blue.enums.RegisterEnum("trinity.ShadowQuality", EveSpaceSceneRenderDriver.ShadowQuality, {
+  source: "trinity/trinity/Tr2LightManager.h", family: "eve/scene", line: 25,
+  exposedName: "ShadowQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/EveSpaceSceneRenderDriver_Blue.cpp:25",
+  chooser: [
+    { name: "Disabled", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_DISABLED, description: "" },
+    { name: "Low", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_LOW, description: "" },
+    { name: "High", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_HIGH, description: "" },
+    { name: "Raytraced", value: EveSpaceSceneRenderDriver.ShadowQuality.SHADOW_RAYTRACED, description: "" }
+  ]
+});

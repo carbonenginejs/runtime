@@ -14,6 +14,7 @@ import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TriFrustumOrtho } from "../../core/view/TriFrustumOrtho.js";
 import { Tr2RenderReason, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 
 // Carbon std::numeric_limits<float>::max() (cpp:916). The renderable-side sort
 // value is a finite float32, NOT Infinity - downstream distance sums must stay
@@ -123,7 +124,7 @@ export class EveChildCloud2 extends EveSpaceObjectChild
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Tr2VolumerticQuality")
+  @type.enum("trinity.Tr2VolumerticQuality")
   minVisibleQuality = 0;
 
   /** m_sortingModifier (float) [READWRITE, PERSIST] */

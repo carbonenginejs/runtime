@@ -8,9 +8,9 @@ import { blue } from "./blue.js";
 import { EnumRegistrationType } from "./enums/CjsBlueEnumRegistry.js";
 import { ReflectionMode } from "../consts/graphics/trinityEnums.js";
 import { Tr2Lod } from "../consts/trinity.js";
-import { PresentInterval } from "../consts/renderContext/presentation.js";
+import { PresentInterval, SwapEffect } from "../consts/renderContext/presentation.js";
 import { Tr2WindowMode, Tr2WindowShowState } from "../consts/renderContext/window.js";
-import { TRIEXTRAPOLATION, TRIOPERATOR } from "../consts/graphics/trinityEnums.js";
+import { RenderingMode, TRIEXTRAPOLATION, TRIOPERATOR } from "../consts/graphics/trinityEnums.js";
 
 blue.enums.RegisterEnum("trinity.EntityComponents.ReflectionMode", ReflectionMode, {
   source: "trinity/trinity/Eve/EveEntity.h", family: "trinity", line: 9,
@@ -85,5 +85,34 @@ blue.enums.RegisterEnum("blue.TRIOPERATOR", TRIOPERATOR, {
     { name: "TRIOP_MULTIPLY", value: TRIOPERATOR.TRIOP_MULTIPLY, description: "multiply" },
     { name: "TRIOP_ADD", value: TRIOPERATOR.TRIOP_ADD, description: "add" },
     { name: "TRIOP_AVERAGE", value: TRIOPERATOR.TRIOP_AVERAGE, description: "average" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/Tr2RenderContext_Blue.cpp:271).
+blue.enums.RegisterEnum("trinity.Tr2RenderContextEnum.SwapEffect", SwapEffect, {
+  source: "trinity/trinityal/Tr2RenderContextEnum.h", family: "trinity", line: 385,
+  exposedName: "SWAP_EFFECT", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2RenderContext_Blue.cpp:265",
+  chooser: [
+    { name: "DISCARD", value: SwapEffect.SWAP_EFFECT_DISCARD, description: "" },
+    { name: "SEQUENTIAL", value: SwapEffect.SWAP_EFFECT_SEQUENTIAL, description: "" }
+  ]
+});
+
+// Registered as Carbon registers it (trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:23).
+blue.enums.RegisterEnum("trinity.Tr2EffectStateManager.RenderingMode", RenderingMode, {
+  source: "trinity/trinity/Shader/Tr2EffectStateManager.h", family: "trinity", line: 59,
+  exposedName: "RENDERING_MODE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/RenderJob/TriStepSetStandardRenderStates_Blue.cpp:9",
+  chooser: [
+    { name: "RM_OPAQUE", value: RenderingMode.RM_OPAQUE, description: "Opaque rendering" },
+    { name: "RM_DECAL", value: RenderingMode.RM_DECAL, description: "Decal rendering" },
+    { name: "RM_DECAL_NO_DEPTH", value: RenderingMode.RM_DECAL_NO_DEPTH, description: "Decal rendering (Normals Only)" },
+    { name: "RM_ALPHA", value: RenderingMode.RM_ALPHA, description: "Alpha-blended rendering" },
+    { name: "RM_ALPHA_ADDITIVE", value: RenderingMode.RM_ALPHA_ADDITIVE, description: "Additive rendering" },
+    { name: "RM_DEPTH_ONLY", value: RenderingMode.RM_DEPTH_ONLY, description: "Depth-only rendering" },
+    { name: "RM_PICKING", value: RenderingMode.RM_PICKING, description: "Rendering for picking" },
+    { name: "RM_FULLSCREEN", value: RenderingMode.RM_FULLSCREEN, description: "Full-screen effects (2D) rendering" },
+    { name: "RM_SPRITE2D", value: RenderingMode.RM_SPRITE2D, description: "2D sprite rendering" }
   ]
 });

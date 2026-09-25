@@ -28,6 +28,7 @@ import { Tr2Renderer } from "./Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2RuntimeTextureParameter } from "../shader/parameter/Tr2RuntimeTextureParameter.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** Carbon's MIP_COUNT (`cpp:15`): filtered levels below the top. */
 const MIP_COUNT = 7;
@@ -51,7 +52,7 @@ export class Tr2ReflectionProbe extends CjsModel
   @edit.notify
   @edit.readwrite
   @type.int32
-  @type.enum("ReflectionProbeRenderFrequency")
+  @type.enum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency")
   renderFrequency = 0;
 
   /** m_currentFrame (uint8_t) [READ] */
@@ -470,3 +471,14 @@ export class Tr2ReflectionProbe extends CjsModel
   });
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/Tr2ReflectionProbe_Blue.cpp:14).
+blue.enums.RegisterEnum("trinity.Tr2ReflectionProbe.ReflectionProbeRenderFrequency", Tr2ReflectionProbe.ReflectionProbeRenderFrequency, {
+  source: "trinity/trinity/Tr2ReflectionProbe.h", family: "trinityCore", line: 22,
+  exposedName: "ReflectionProbeRenderFrequency", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2ReflectionProbe_Blue.cpp:8",
+  chooser: [
+    { name: "OneSidePerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ONE_SIDE_PER_FRAME, description: "One side per frame" },
+    { name: "AllSidesPerFrame", value: Tr2ReflectionProbe.ReflectionProbeRenderFrequency.ALL_SIDES_PER_FRAME, description: "All sides per frame" }
+  ]
+});

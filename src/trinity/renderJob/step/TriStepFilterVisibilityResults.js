@@ -3,6 +3,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { TriRenderStep } from "./TriRenderStep.js";
 import { FilterType } from "../../generated/renderJob/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 /** A render step that filters one visibility-result set into another by event and object filter. */
 @type.define({ className: "TriStepFilterVisibilityResults", family: "renderJob" })
@@ -19,7 +20,7 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("FilterType")
+  @type.enum("trinity.TriStepFilterVisibilityResults.FilterType")
   filterType = 1;
 
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
@@ -112,3 +113,14 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
   static FilterType = FilterType;
 
 }
+
+// Registered as Carbon registers it (trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:51).
+blue.enums.RegisterEnum("trinity.TriStepFilterVisibilityResults.FilterType", TriStepFilterVisibilityResults.FilterType, {
+  source: "trinity/trinity/RenderJob/TriStepFilterVisibilityResults.h", family: "renderJob", line: 41,
+  exposedName: "TRIVISIBILITY_FILTER_TYPE", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/RenderJob/TriStepFilterVisibilityResults_Blue.cpp:44",
+  chooser: [
+    { name: "TRIVISIBILITY_FILTER_ONLY_OBJECTS_IN_LIST", value: TriStepFilterVisibilityResults.FilterType.ONLY_OBJECTS_IN_LIST, description: "Only allow objects/lights in the objects list" },
+    { name: "TRIVISIBILITY_FILTER_EXCLUDE_OBJECTS_IN_LIST", value: TriStepFilterVisibilityResults.FilterType.EXCLUDE_OBJECTS_IN_LIST, description: "Exclude objects/lights in the objects list" }
+  ]
+});

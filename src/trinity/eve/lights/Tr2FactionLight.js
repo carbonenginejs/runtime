@@ -27,7 +27,7 @@ export class Tr2FactionLight extends Tr2Light
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("PerLightShadowSetting")
+  @type.enum("trinity.PerLightShadowSetting")
   castsShadows = 0;
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */

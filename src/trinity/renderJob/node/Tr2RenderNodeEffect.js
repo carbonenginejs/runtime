@@ -4,6 +4,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
+import "#blue/registerTrinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */
 @type.define({ className: "Tr2RenderNodeEffect", family: "renderJob" })
@@ -18,7 +19,7 @@ export class Tr2RenderNodeEffect extends CjsModel
   /** m_renderingMode (Tr2EffectStateManager::RenderingMode - enum RenderingMode) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("RenderingMode")
+  @type.enum("trinity.Tr2EffectStateManager.RenderingMode")
   renderingMode = 8;
 
   /** m_effect (Tr2EffectPtr) [READWRITE] */

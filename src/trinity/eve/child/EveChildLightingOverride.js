@@ -8,6 +8,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Priority } from "../../generated/postProcess/enums.js";
 import { IEveLightingOverride } from "./IEveLightingOverride.js";
+import "../../postProcess/Tr2PostProcessAttributes.js";
 
 
 /**
@@ -25,7 +26,7 @@ export class EveChildLightingOverride extends EveChildTransform
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Priority")
+  @type.enum("trinity.PostProcessEnums.Priority")
   priority = 2;
 
   @edit.readwrite

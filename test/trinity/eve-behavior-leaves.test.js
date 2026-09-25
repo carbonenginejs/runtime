@@ -29,7 +29,7 @@ test("behavior leaf priorities retain their shared enum metadata", () =>
     assert.equal(instance.GetProcessPriority(), ProcessPriority.MORE_PRIORITY);
     assert.equal(
       CjsSchema.getField(Type, "behaviorPriority")?.enum?.enumType,
-      "ProcessPriority"
+      "trinity.IBehavior.ProcessPriority"
     );
   }
 });

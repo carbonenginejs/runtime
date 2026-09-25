@@ -13,6 +13,7 @@ import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { Tr2RuntimeInstanceData } from "../../core/mesh/Tr2RuntimeInstanceData.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
 import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 const UP = vec3.fromValues(0, 1, 0);
@@ -86,7 +87,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("RotationalConstraints")
+  @type.enum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;
 
   @edit.readwrite
@@ -670,3 +671,15 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
   static RotationalConstraints = RotationalConstraints;
 }
+
+// Registered as Carbon registers it (trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:14).
+blue.enums.RegisterEnum("trinity.EveChildInstanceMeshRenderer.RotationalConstraints", EveChildInstanceMeshRenderer.RotationalConstraints, {
+  source: "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer.h", family: "eve/child", line: 35,
+  exposedName: "RotationalConstraint", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceMeshRenderer_Blue.cpp:7",
+  chooser: [
+    { name: "none", value: EveChildInstanceMeshRenderer.RotationalConstraints.NONE, description: "normal rendering" },
+    { name: "billboard", value: EveChildInstanceMeshRenderer.RotationalConstraints.BILLBOARD, description: "face the camera" },
+    { name: "lockZ", value: EveChildInstanceMeshRenderer.RotationalConstraints.BILLBOARD_WITH_Z_LOCKED, description: "face the camera but keep the original UP" }
+  ]
+});
