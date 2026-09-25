@@ -158,6 +158,56 @@ const DNA = "af1_t1:amarrbase:amarr";
 
 
 /**
+ * `?detail=1`: a TEST SETUP, not a real ship. Only skinned hulls (titans,
+ * carriers) author the detail shader, and this demo does not skin yet, so the
+ * hull area borrows `quaddetailv5` and at1_t1's Amarr detail maps and
+ * constants. Its browser container merges Detail1Map..Detail3Map into one
+ * texture array at t9, which is what this exercises: the effect keeps the
+ * three named parameters and `CjsTextureArrayBridge` binds
+ * `dynamic:/texturearray/<their paths>` in the merged register.
+ */
+const DETAIL_TEST = new URLSearchParams(globalThis.location?.search ?? "").get("detail") === "1";
+
+const DETAIL_TEXTURES = Object.freeze({
+  Detail1Map: "res:/dx9/model/shared/amarr/textures/ama_plating_detail_01_horizontal.dds",
+  Detail2Map: "res:/dx9/model/shared/amarr/textures/ama_plating_detail_02_horizontal.dds",
+  Detail3Map: "res:/dx9/model/shared/amarr/textures/ama_detail_blank.dds"
+});
+
+// at1_t1:amarrbase:amarr's area_hull values.
+const DETAIL_CONSTANTS = Object.freeze({
+  Detail1Data: [ 5, 0.8, 0, 0 ],
+  Detail2Data: [ 6, 0.8, 0.5, 0 ],
+  Detail3Data: [ 0, 0, 0, 0 ],
+  DetailAlbedoColor: [ 0, 0, 0, 0 ],
+  DetailFresnelColor: [ 0, 0, 0, 0 ],
+  DetailSelector: [ 0.8, 0, 0, 0.8 ]
+});
+
+/**
+ * The hull area's effect values moved onto the detail shader, for `?detail=1`.
+ *
+ * @param {object} effect SOF effect values.
+ * @returns {object} A copy naming `quaddetailv5`, with the detail maps and constants.
+ */
+function WithDetailMaps(effect)
+{
+  return {
+    ...effect,
+    effectFilePath: effect.effectFilePath.replace(/quadv5\.fx$/u, "quaddetailv5.fx"),
+    resources: [
+      ...effect.resources,
+      ...Object.entries(DETAIL_TEXTURES).map(([ name, resourcePath ]) => ({ _type: "TriTextureParameter", name, resourcePath }))
+    ],
+    constParameters: [
+      ...(effect.constParameters ?? []),
+      ...Object.entries(DETAIL_CONSTANTS).map(([ name, value ]) => ({ _type: "Tr2ConstantEffectParameter", name, value }))
+    ]
+  };
+}
+
+
+/**
  * Fetches the built SOF document for one DNA through the runner's proxy.
  *
  * @param {string} dna The DNA string.
@@ -657,11 +707,14 @@ async function CountDrawnPixels(device, texture, canvas)
  * is not obviously wrong and puts the hull nowhere.
  *
  * @param {object} bounds Centre and radius of the hull.
- * @param {number} aspect Viewport aspect ratio.
+ * @param {number} width Viewport width in pixels.
+ * @param {number} height Viewport height in pixels.
  * @returns {{vs: object, ps: object, viewProjection: Float32Array}} The blocks.
  */
-function PerFrameData(bounds, aspect)
+function PerFrameData(bounds, width, height)
 {
+  const aspect = width / height;
+
   // Close enough to read the surface. Three radii framed the whole hull with
   // room to spare, which is tidy and useless for judging shading.
   const distance = bounds.radius * 1.7;
@@ -692,8 +745,8 @@ function PerFrameData(bounds, aspect)
   vs.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
   vs.Set("Sun.DirWorld", SUN_DIRECTION);
   vs.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
-  vs.Set("TargetResolution", [ 768, 576 ]);
-  vs.Set("ViewportSize", [ 768, 576 ]);
+  vs.Set("TargetResolution", [ width, height ]);
+  vs.Set("ViewportSize", [ width, height ]);
 
   ps.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
   ps.SetAndTranspose("ViewMat", view);
@@ -704,8 +757,8 @@ function PerFrameData(bounds, aspect)
   ps.Set("AmbientColor", [ 0.25, 0.25, 0.25 ]);
   ps.Set("FogColor", [ 0.25, 0.25, 0.25, 1 ]);
   ps.Set("ReflectionIntensity", 1);
-  ps.Set("ViewportSize", [ 768, 576 ]);
-  ps.Set("TargetResolution", [ 768, 576 ]);
+  ps.Set("ViewportSize", [ width, height ]);
+  ps.Set("TargetResolution", [ width, height ]);
 
   // GAMMABRIGHTNESS IS WHY THE HULL WAS WHITE, and it is worth spelling out
   // because a zero here is not a dim picture, it is a saturated one. `quadv5`
@@ -940,7 +993,9 @@ export async function RunDemo(canvas)
 
   for (const declared of documentAreas)
   {
-    const effect = declared.effect ?? null;
+    const effect = DETAIL_TEST && declared.name === "area_hull" && declared.effect
+      ? WithDetailMaps(declared.effect)
+      : declared.effect ?? null;
     const path = effect?.effectFilePath ? EffectPath(effect.effectFilePath) : EFFECT;
     const material = Material(await ResourceBytes(path), `res:/${path}`, effect);
 
@@ -977,7 +1032,7 @@ export async function RunDemo(canvas)
 
   const material = areas[0].material;
   const effectPath = areas[0].path;
-  const frame = PerFrameData(bounds, canvas.width / canvas.height);
+  const frame = PerFrameData(bounds, canvas.width, canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
   // matrix is identity. EveTransform's payload is the simplest placeable one
