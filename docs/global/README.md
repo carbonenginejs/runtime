@@ -65,7 +65,6 @@ import { asUint8Array } from "@carbonenginejs/runtime/utils/bytes";
   foundation classes.
 - [Foundation consolidation](./architecture.md#foundation-consolidation) records the
   implemented ownership move and consumer migration map.
-- [Model lifecycle](./concepts/model-lifecycle.md) defines dirty settlement,
   initialization, traversal, resources, and optional lifecycle state.
 
 The Carbon type/model/document guide is retained under

@@ -39,9 +39,6 @@ construct canonical runtime model instances, or provide a rendering runtime.
 ## Start here
 
 - [Architecture](architecture.md)
-- [Reading effects](guides/reading-effects.md)
-- [Hydrating JSON output](guides/hydrating-json-output.md)
-- [API reference](reference/api.md)
 - [Advanced analysis exports](reference/advanced-analysis.md)
 - [JSON graph reference](reference/json-graph.md)
 - [Class catalog](reference/classes/README.md)

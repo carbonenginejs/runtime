@@ -75,7 +75,6 @@ Carbon uploads these structs by copy and binds them through
 `customData` 28. **DX11 EVE joints are not inline:** those offsets index the
 separate `BoneTransforms` ring/structured buffer. Each joint is `Float4x3`
 (three vec4); native upload evidence is `EveSpaceObject2.cpp:1441`.
-See the [historical WebGL2 `cb3` rewrite and its recorded August 2 `std140` UBO replacement](memory-structured.md#glsl-lowering--b-webgl2-cb3-joint-matrix-rewrite-contract-the-shipping-path).
 
 ### 2b. `EveSpaceObjectPSData` -> b4
 

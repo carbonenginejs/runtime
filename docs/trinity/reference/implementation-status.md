@@ -248,7 +248,7 @@ Catalog completeness and promotion gates are below.
   [instance-stream contract](../architecture.md#instance-stream-contract).
   These generated classes and the standalone connector enum are retired;
   remaining generated methods are explicit throwing obligations, not manual
-  behavior. [Promotion starts with the first substantive edit](../concepts/generated-class-lifecycle.md#current-lifecycle).
+  behavior. Promotion starts with the first substantive edit.
 - The child reference and socket resource seam is synchronous and injected.
 - Socket parameter auto-creation currently covers the emitted string
   parameter type; additional types require corresponding schema emission.
@@ -268,8 +268,7 @@ Catalog completeness and promotion gates are below.
 
 ## Planned completion gates
 
-See [Generated-class lifecycle](../concepts/generated-class-lifecycle.md) for
-promotion and maintained-home review. Later schema/interface obligations remain
+Later schema/interface obligations remain
 explicit parity-audit gaps without undoing promotion. Backend-only methods remain
 explicit until an owning engine exposes a proven capability.
 
@@ -280,5 +279,4 @@ documentation validation; dropped quarantine classes remain excluded.
 ## Related documentation
 
 - [Architecture and ownership boundaries](../architecture.md)
-- [Generated-class lifecycle](../concepts/generated-class-lifecycle.md)
 - [Current API](api.md)

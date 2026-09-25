@@ -443,5 +443,4 @@ observable graph order.
 - [Current API](reference/api.md)
 - [Main semantic extraction](reference/main-semantic-extraction.md)
 - [Eve runtime behavior](concepts/eve-runtime-behavior.md)
-- [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)

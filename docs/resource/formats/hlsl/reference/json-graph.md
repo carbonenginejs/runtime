@@ -92,6 +92,4 @@ rather than being filled with guessed values.
 
 ## Related documentation
 
-- [API reference](api.md)
 - [Advanced analysis exports](advanced-analysis.md)
-- [Reading effects](../guides/reading-effects.md)

@@ -115,6 +115,5 @@ explicit unsupported-environment error rather than importing a Node fallback.
 ## Detailed family references
 
 See the package README, the retained
-[Carbon type/model guide](../core-types/README.md),
-[model lifecycle](../concepts/model-lifecycle.md), and the source-backed
+[Carbon type/model guide](../core-types/README.md), and the source-backed
 subpath tests for the complete per-family surface.

@@ -26,9 +26,8 @@ Carbon helper must not be exported as a second fence model.
 
 Replacement surfaces:
 
-- `src/CjsResMan.js` (`Wait`)
-- `src/CjsResManWorkQueue.js`
-- `docs/reference/queues.md` snapshot-fence contract
+- `src/global/blue/CjsResMan.js` (`Wait`, whose JSDoc carries the snapshot-fence contract)
+- `src/global/blue/CjsResManWorkQueue.js`
 
 ## Tr2CmfContents and CmfVertexReader
 

@@ -103,5 +103,3 @@ never silently retargets existing JavaScript references.
 
 ## Related documentation
 
-- [MotherLode identity, cache, and retention](motherlode-cache.md)
-- [Queues and the Wait fence](queues.md)

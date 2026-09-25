@@ -144,7 +144,6 @@ instead of in a parallel table matched back by string through
 
 ## Related documentation
 
-- [Shared format helpers](shared-format-helpers.md)
 - [Format subpaths](../formats/README.md)
 - [Resource lifecycle](resource-lifecycle.md)
 - [Browser worker execution](../reference/workers.md)

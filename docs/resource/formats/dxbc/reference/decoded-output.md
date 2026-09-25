@@ -118,5 +118,4 @@ projection.
 
 ## Related documentation
 
-- [Public API reference](api.md)
 - [Architecture and boundaries](../architecture.md)

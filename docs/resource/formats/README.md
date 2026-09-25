@@ -149,7 +149,7 @@ Detailed pages: [CMF, FBX, and glTF geometry interchange](geometry-interchange.m
 [data-only pickle protocol 0](pickle.md),
 [client `.static` container identification](static.md),
 [schema-bound containers](schemabound.md),
-[Wwise soundbanks and media](wwise.md), and [STL export](stl.md). Ownership
+[Wwise soundbanks and media](wwise.md), and STL export. Ownership
 history, retained snapshots, and donor licensing are recorded in
 [provenance.md](provenance.md).
 
@@ -226,5 +226,4 @@ decoders are implemented in-project with no codec package.
 
 ## Related documentation
 
-- [Queues, publication, and registration](../reference/queues.md)
 - [Format ownership and fork provenance](provenance.md)

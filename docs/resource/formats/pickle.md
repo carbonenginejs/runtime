@@ -135,5 +135,4 @@ memory decision.
 ## Related documentation
 
 - [Format subpaths](README.md)
-- [Queues, publication, and registration](../reference/queues.md)
 - [Browser worker execution](../reference/workers.md)

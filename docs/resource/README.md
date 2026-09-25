@@ -57,15 +57,12 @@ lifecycle, shader, format and container work.
 - [concepts/shader-resource-model.md](concepts/shader-resource-model.md): how
   `Tr2EffectRes`, `Tr2Shader` and `Tr2Effect` relate, verified against Carbon —
   one file, many permutations, many effects sharing them.
-- [concepts/shared-format-helpers.md](concepts/shared-format-helpers.md): the
   helper modules shared across concrete formats, and the one case where
   apparent duplication is deliberate — read before collapsing a repeated
   format helper.
-- [reference/motherlode-cache.md](reference/motherlode-cache.md): canonical
   identity, byte-budget cache, payload retention, and purge contracts.
 - [reference/reload.md](reference/reload.md): the candidate-first atomic
   reload contract.
-- [reference/queues.md](reference/queues.md): queued CPU load, publication,
   registration, and the `Wait()` fence.
 - [reference/workers.md](reference/workers.md): browser-worker source and
   declared worker-safe format execution.
@@ -73,9 +70,7 @@ lifecycle, shader, format and container work.
   audio byte owners and individually addressable audio resource views.
 - [reference/classes/resources.md](reference/classes/resources.md): canonical
   resource records, effect selection, and shader-reflection classes.
-- [reference/texture-arrays.md](reference/texture-arrays.md): how merged
   texture registers bind `dynamic:/texturearray` and `dynamic:/texturepack`.
-- [reference/events.md](reference/events.md): the `CjsEventEmitter` contract
   and event memory rules.
 - [reference/classes/README.md](reference/classes/README.md): the searchable
   one-sentence class-purpose catalog.
@@ -87,7 +82,6 @@ lifecycle, shader, format and container work.
 - [formats/gr2.md](formats/gr2.md): Granny GR2/GSF reading, output modes,
   conversions, graph shape, and class hydration.
 - [formats/wwise.md](formats/wwise.md): Wwise soundbank and media readers.
-- [formats/stl.md](formats/stl.md): STL geometry export.
 - [formats/provenance.md](formats/provenance.md): format ownership, fork
   provenance, and retained snapshots.
 - [roadmap.md](roadmap.md): approved future direction with explicit current

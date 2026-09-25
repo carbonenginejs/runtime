@@ -63,10 +63,9 @@ per source/path and limits active source operations with
 separate main-queue items (`reader/format conversion -> publish`). Publication
 moves the resource to `PREPARED`: the published value is already the reader or
 converter outcome, so no CPU preparation remains. A route that hydrates a `Target` builds a new object for each
-caller from the retained decoded values, as Carbon's `LoadObject` does. See
-[reference/queues.md](../reference/queues.md) for the queue contract and
-[reference/motherlode-cache.md](../reference/motherlode-cache.md) for
-identity, retention, and release behavior.
+caller from the retained decoded values, as Carbon's `LoadObject` does. The
+queue contract is documented on `CjsResMan`, and identity, retention and
+release on `CjsMotherLode` (both in `src/global/blue/`).
 
 ## Request workflow
 
@@ -220,12 +219,10 @@ device memory are different budgets. Retention therefore distinguishes:
 
 Identity and lightweight metadata remain resident while CPU and adapter
 payloads release independently. Engine adapters own adapter-resource destruction;
-the resource layer supplies lifecycle hooks and opaque adapter slots. See
-[reference/motherlode-cache.md](../reference/motherlode-cache.md).
+the resource layer supplies lifecycle hooks and opaque adapter slots (see
+`CjsMotherLode`).
 
 ## Related documentation
 
 - [Architecture and boundaries](../architecture.md)
-- [MotherLode identity, cache, and retention](../reference/motherlode-cache.md)
 - [Candidate-first atomic reload](../reference/reload.md)
-- [Queues and the Wait fence](../reference/queues.md)

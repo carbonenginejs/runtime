@@ -348,9 +348,9 @@ export class DxbcGlslEmitter
                 "}"
             ].join("\n")
         });
-        // GLSL ES 3.00 has no `textureGather` (ES 3.10+/desktop 4.0+ only, see
-        // docs/dxbc-lowering/texture-sample.md section 5). Emulated with four
-        // `texelFetch` taps at the bilinear neighborhood, matching D3D Gather4 /
+        // GLSL ES 3.00 has no `textureGather` (ES 3.10+/desktop 4.0+ only).
+        // Emulated with four `texelFetch` taps at the bilinear neighborhood,
+        // matching D3D Gather4 /
         // GL textureGather's neighbor order (top-left, top-right, bottom-right,
         // bottom-left -> .x/.y/.z/.w), clamped to the texture's edge.
         this.helpers.define("hlslcc_textureGather4Emulated", {

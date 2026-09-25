@@ -75,5 +75,4 @@ lowering package.
 ## Related documentation
 
 - [Package documentation](README.md)
-- [Public API reference](reference/api.md)
 - [Decoded output contract](reference/decoded-output.md)

@@ -320,10 +320,9 @@ They return the same changed-set, boolean, or `false` result as `SetValues`.
 `Copy`/`copy` instead require an instantiated
 `CjsModel` source and forward the supplied `SetValues` options.
 
-For named child methods and the static collection helpers, see
-[Schema-backed child collections](../concepts/model-lifecycle.md#schema-backed-child-collections):
-the lifecycle owner defines hydration, list notifications, tokens, events,
-removal/deletion and nested-context responsibilities.
+Named child methods, the static collection helpers, hydration, list
+notifications, tokens, events and removal are documented in the JSDoc of
+`CjsModel` (`src/global/model/CjsModel.js`).
 
 ### Enum-backed fields
 
@@ -379,8 +378,8 @@ Hides pass to descendants and may be extended by another
 Naming a field that the parent schema does not expose throws during class
 registration.
 
-See [Model lifecycle](../concepts/model-lifecycle.md) for `__state`,
-settlement, initialization, traversal, resources and optional lifecycle state.
+`__state`, settlement, initialization, traversal and resources are documented
+in the JSDoc of `CjsModel` and `CjsModelState` (`src/global/model/`).
 
 ## Subpaths
 

@@ -7,7 +7,7 @@ Summary: Records approved future direction, open design questions, and the curre
 
 Unless a section is explicitly marked **Current**, everything below is future
 work. Current behavior is documented in the
-[reference pages](reference/motherlode-cache.md); where this page and a
+reference pages; where this page and a
 reference page disagree, the reference page describes the shipped package.
 
 ## Runtime manager follow-up
@@ -64,7 +64,7 @@ TGA, WAV, WebM, and WebP byte normalizers preserve an existing `Uint8Array`.
 input normalization. Decode operations that produce new pixel, sample,
 geometry, or decompression payloads currently allocate those result arrays
 internally. Resource payload references are shared read-only by default;
-[MotherLode retention](reference/motherlode-cache.md) defines the cases where
+MotherLode retention (see `CjsMotherLode`) defines the cases where
 a consumer must make an explicit copy.
 
 **Planned:** Known-size decode and transform operations should gain
@@ -224,5 +224,4 @@ is mechanical but wide.
 
 ## Related documentation
 
-- [MotherLode identity, cache, and retention](reference/motherlode-cache.md)
 - [Candidate-first atomic reload](reference/reload.md)

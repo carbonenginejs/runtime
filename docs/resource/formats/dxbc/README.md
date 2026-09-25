@@ -63,6 +63,5 @@ const decoded = CjsDxbcFormat.read(shaderBytes, {
 ## Documentation map
 
 - [Architecture and boundaries](architecture.md)
-- [Public API reference](reference/api.md)
 - [Decoded output contract](reference/decoded-output.md)
 - [Class-purpose catalog](reference/classes/README.md)

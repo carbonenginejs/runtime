@@ -13,8 +13,7 @@ hydrate, inspect, update, and collect renderer-neutral work from those graphs
 without creating a canvas, graphics context, or GPU device.
 
 The source contains generated schema intake and maintained implementations.
-See [Generated-class lifecycle](concepts/generated-class-lifecycle.md) for
-promotion and [Implementation status](reference/implementation-status.md) for
+See [Implementation status](reference/implementation-status.md) for
 explicit gaps, including obligations exposed after promotion.
 
 ## Use this package when
@@ -76,7 +75,6 @@ family. The root entry aggregates the complete public runtime.
 - [Main semantic extraction](reference/main-semantic-extraction.md)
 - [Eve runtime behavior](concepts/eve-runtime-behavior.md)
 - [The per-object constant-buffer ABI](concepts/per-object-abi.md)
-- [Generated-class lifecycle](concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](reference/implementation-status.md)
 - [Controller and curve classes](reference/classes/curves-and-utilities.md)
 - [Eve runtime classes](reference/classes/eve-runtime.md)

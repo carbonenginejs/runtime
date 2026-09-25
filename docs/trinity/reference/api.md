@@ -51,8 +51,7 @@ import {
 Runtime classes use `@type.define` for Carbon class identity and field
 decorators from `@carbonenginejs/runtime/schema`. Enum-backed integer
 fields use `@schema.enum` so metadata consumers can present the maintained enum
-vocabulary. See [Enum ownership](../concepts/generated-class-lifecycle.md#enum-ownership)
-for class, family, and shared vocabulary placement.
+vocabulary.
 
 Public methods that implement Carbon exposure use `@carbon.method`. The parity
 audit checks promoted classes for omitted and present-but-unexposed methods.
@@ -83,7 +82,6 @@ output buffers universally optional.
 - [Architecture and ownership boundaries](../architecture.md)
 - [Main semantic extraction](main-semantic-extraction.md)
 - [Eve runtime behavior](../concepts/eve-runtime-behavior.md)
-- [Generated-class lifecycle](../concepts/generated-class-lifecycle.md)
 - [Implementation status and audits](implementation-status.md)
 
 

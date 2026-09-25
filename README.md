@@ -81,7 +81,7 @@ Start with the [package documentation](docs/README.md) and the
 
 The parts described above are documented in
 [resource](docs/resource/README.md), [SOF](docs/sof/README.md) and
-[audio](docs/audio/README.md), each with its ownership boundary and class
+audio, each with its ownership boundary and class
 catalog.
 
 **Work in progress, documented but not ready to build against:** the Trinity/EVE

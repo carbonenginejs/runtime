@@ -139,6 +139,4 @@ worker's event loop.
 
 ## Related documentation
 
-- [Queues, publication, and the Wait fence](queues.md)
-- [MotherLode identity, cache, and retention](motherlode-cache.md)
 - [Wwise BNK/WEM formats](../formats/wwise.md)
