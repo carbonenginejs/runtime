@@ -50,8 +50,8 @@ its own `@impl.reason` at the site. "An engine owns this" is not one of them.
   source/read/resource deduplication, object loader dispatch, and prefetch.
 - Main-thread and browser-worker resource execution strategies, including
   transferable fetch results and declared worker-safe CPU readers.
-- `CjsTextureArrayRes` and `CjsTextureArrayResParameterProxy` for material-facing,
-  frame-coalesced texture-array inputs.
+- `dynamic:/texturearray` and `dynamic:/texturepack` constructors that assemble
+  one texture from several images, keyed by the image paths.
 - `CjsAudioBufferRes` for physical audio-byte ownership and `CjsAudioRes` for
   complete or windowed individually addressable audio files.
 - Raw `CjsEventEmitter` (from `global/model`) for manager/runtime events

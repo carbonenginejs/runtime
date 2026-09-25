@@ -73,8 +73,8 @@ lifecycle, shader, format and container work.
   audio byte owners and individually addressable audio resource views.
 - [reference/classes/resources.md](reference/classes/resources.md): canonical
   resource records, effect selection, and shader-reflection classes.
-- [reference/texture-arrays.md](reference/texture-arrays.md): texture-array
-  proxies, update generations, and adapter commits.
+- [reference/texture-arrays.md](reference/texture-arrays.md): how merged
+  texture registers bind `dynamic:/texturearray` and `dynamic:/texturepack`.
 - [reference/events.md](reference/events.md): the `CjsEventEmitter` contract
   and event memory rules.
 - [reference/classes/README.md](reference/classes/README.md): the searchable

@@ -5,8 +5,6 @@ export * from "./CjsTexturePackConstructor.js";
 export * from "./CjsTexturePipelineStepConvert.js";
 export * from "./CjsTexturePipelineStepResize.js";
 export * from "./registerTextureResources.js";
-export * from "./CjsTextureArrayRes.js";
-export * from "./CjsTextureArrayResParameterProxy.js";
 export * from "./SolidColorTextureConstructor.js";
 export * from "./Tr2ImageRes.js";
 export * from "./Tr2TextureLodManager.js";

@@ -1,6 +1,6 @@
 import { blue, IBlueResMan } from "../../npm/dist/global/blue/index.js";
 import {
-  CjsAudioRes, CjsResource, CjsTextureArrayRes, ResourceRequirement, Tr2EffectRes,
+  CjsAudioRes, CjsResource, ResourceRequirement, Tr2EffectRes,
   Tr2GrannyStateRes, Tr2LightProfileRes, TriGeometryRes, TriTextureRes
 } from "../../npm/dist/resource/index.js";
 
@@ -12,7 +12,6 @@ const RESOURCE_BY_REQUIREMENT = new Map([
   [ ResourceRequirement.GEOMETRY, TriGeometryRes ],
   [ ResourceRequirement.TEXTURE, TriTextureRes ],
   [ ResourceRequirement.IMAGE, TriTextureRes ],
-  [ ResourceRequirement.TEXTURE_ARRAY, CjsTextureArrayRes ],
   [ ResourceRequirement.LIGHT_PROFILE, Tr2LightProfileRes ],
   [ ResourceRequirement.GRANNY_STATE, Tr2GrannyStateRes ],
   [ ResourceRequirement.AUDIO, CjsAudioRes ]
