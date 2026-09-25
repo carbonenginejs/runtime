@@ -235,3 +235,49 @@ test("a 24-bit volume DDS becomes a 3D bgra8unorm texture, one write for all its
   assert.equal(calls.writes.length, 1);
   assert.equal(calls.writes[0].size.depthOrArrayLayers, 4);
 });
+
+test("a CPU-writable texture maps for writing and uploads on unmap (Carbon's MapForWriting, as Tr2DataTextureManager uses it)", async () =>
+{
+  const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
+  const { al, calls } = composed();
+  const texture = new CjsWebgpuTextureAL();
+  // 4x2 RGBA32F, zero-filled, CPU read|write: Tr2DataTextureManager::OnPrepareResources.
+  const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
+  const init = [ { sysMem: new Uint8Array(128), sysMemPitch: 64, sysMemSlicePitch: 128 } ];
+
+  assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE, initialData: init }, al), ALResult.S_OK);
+  assert.equal(calls.textures[0].format, "rgba32float");
+  calls.writes.length = 0;
+
+  const mapped = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  assert.equal(mapped.result, ALResult.S_OK);
+  assert.equal(mapped.pitch, 64);
+  assert.equal(mapped.data.byteLength, 128);
+  new Float32Array(mapped.data.buffer).fill(0.5);
+  assert.equal(calls.writes.length, 0, "nothing is uploaded until unmap");
+
+  assert.equal(texture.UnmapForWriting(al), ALResult.S_OK);
+  assert.equal(calls.writes.length, 1);
+  assert.equal(calls.writes[0].bytes, 128);
+  assert.equal(calls.writes[0].layout.bytesPerRow, 64);
+  assert.deepEqual(calls.writes[0].size, { width: 4, height: 2, depthOrArrayLayers: 1 });
+  assert.equal(texture.UnmapForWriting(al), ALResult.E_INVALIDCALL, "unmap without a map");
+});
+
+test("MapForWriting refuses a texture without CPU write, and a box it cannot preserve around", async () =>
+{
+  const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
+  const { al } = composed();
+  const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+  const init = [ { sysMem: new Uint8Array(32), sysMemPitch: 16, sysMemSlicePitch: 32 } ];
+
+  const readOnly = new CjsWebgpuTextureAL();
+  readOnly.Create(desc, { initialData: init }, al);
+  assert.equal(readOnly.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al).result, ALResult.E_INVALIDCALL);
+
+  const writable = new CjsWebgpuTextureAL();
+  writable.Create(desc, { cpuUsage: Tr2CpuUsage.WRITE, initialData: init }, al);
+  const boxed = Tr2TextureSubresource.ForMipLevel(0);
+  boxed.m_box.left = 1;
+  assert.equal(writable.MapForWriting(boxed, al).result, ALResult.E_INVALIDARG);
+});

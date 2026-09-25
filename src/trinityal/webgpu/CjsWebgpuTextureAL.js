@@ -314,16 +314,73 @@ export class CjsWebgpuTextureAL
     return ALResult.E_FAIL;
   }
 
-  /** Carbon's immutable texture cannot be mapped for writing either. */
-  MapForWriting(_region, _renderContext)
+  /** The CPU copy a write mapping hands out; kept between maps for WRITE_OFTEN. */
+  _mappedData = null;
+
+  /** The subresource the current write mapping covers, or null when unmapped. */
+  _mappedRegion = null;
+
+  /**
+   * Hands out memory for writing one subresource, Carbon's `MapForWriting`,
+   * with the stub's checks (`Tr2TextureALStub.MapForWriting`).
+   *
+   * WebGPU has no mappable texture memory, so the memory is a CPU copy of the
+   * mip, uploaded by `UnmapForWriting` with `queue.writeTexture` - the shape
+   * this backend's constant buffers already use. The copy starts zeroed, not
+   * with the texture's contents, because WebGPU cannot read a texture back
+   * synchronously; so a region with a box is refused rather than letting the
+   * upload overwrite the texels outside it. `Tr2DataTextureManager` maps the
+   * whole of subresource 0.
+   *
+   * @param {object} region A `Tr2TextureSubresource`.
+   * @param {object} renderContext The render context, Trinity's or the AL.
+   * @returns {{result: number, data: Uint8Array|null, pitch: number}} The mapping.
+   */
+  MapForWriting(region, renderContext)
   {
-    return { result: ALResult.E_FAIL, data: null, pitch: 0 };
+    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE)) return { result: ALResult.E_INVALIDCALL, data: null, pitch: 0 };
+
+    const al = RenderContextALOf(renderContext);
+
+    if (!this.IsValid() || !al || !al.IsValid()) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
+    if (!region.IsValidForBitmap(this.m_desc) || !region.IsSingleSubresource() || region.HasBox())
+    {
+      return { result: ALResult.E_INVALIDARG, data: null, pitch: 0 };
+    }
+
+    const mip = region.m_startMipLevel;
+    const pitch = this.m_desc.GetMipPitch(mip);
+    const size = pitch * this.m_desc.GetMipHeight(mip);
+
+    if (size === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
+    if (this._mappedData === null || this._mappedData.length !== size) this._mappedData = new Uint8Array(size);
+
+    this._mappedRegion = region;
+
+    return { result: ALResult.S_OK, data: this._mappedData, pitch };
   }
 
-  /** Paired with `MapForWriting`, which this backend refuses. */
-  UnmapForWriting(_renderContext)
+  /**
+   * Uploads what was written into the mapping, Carbon's `UnmapForWriting`.
+   * The CPU copy is kept for the next map only when the texture was created
+   * `WRITE_OFTEN`, as the stub keeps its buffer.
+   *
+   * @param {object} renderContext The render context, Trinity's or the AL.
+   * @returns {number} An `ALResult` value.
+   */
+  UnmapForWriting(renderContext)
   {
-    return ALResult.E_FAIL;
+    if (this._mappedRegion === null) return ALResult.E_INVALIDCALL;
+
+    const region = this._mappedRegion;
+    const mip = region.m_startMipLevel;
+    const pitch = this.m_desc.GetMipPitch(mip);
+    const result = this.UpdateSubresource(region, this._mappedData, pitch, pitch * this.m_desc.GetMipHeight(mip), renderContext);
+
+    this._mappedRegion = null;
+    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._mappedData = null;
+
+    return result;
   }
 
   /**
@@ -395,6 +452,8 @@ export class CjsWebgpuTextureAL
     this.m_texture?.destroy?.();
     this.m_texture = null;
     this.m_views = new Map();
+    this._mappedData = null;
+    this._mappedRegion = null;
     this.m_desc = null;
     this.m_format = null;
     this.m_srgbFormat = null;
