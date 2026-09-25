@@ -23,21 +23,25 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
 export class EveSmartLightPointLight extends EveEntity
 {
   /** m_lightGroupData.flags (uint16_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint16
   flags = 1;
 
   /** m_lightGroupData.innerRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerRadius = 0;
 
   /** m_lightGroupData.brightness (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_lightGroupData.radius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 0;
@@ -48,27 +52,32 @@ export class EveSmartLightPointLight extends EveEntity
   lightProfile = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   lightProfilePath = "";
 
   /** m_staticOffsetTranslation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
   /** m_staticOffsetRotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   staticOffsetRotation = quat.create();

@@ -11,16 +11,19 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   #localTimer = 0;
 
   /** m_completeness (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   completeness = 1;
 
   /** m_additionalTriggersPerBurst (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   additionalTriggersPerBurst = 0;
 
   /** m_delayBeforeInitialBurst (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayBeforeInitialBurst = 0;

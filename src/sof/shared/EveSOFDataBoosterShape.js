@@ -10,31 +10,37 @@ export class EveSOFDataBoosterShape extends CjsModel
 {
 
   /** m_noiseFunction (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseFunction = 0;
 
   /** m_noiseSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseSpeed = 0;
 
   /** m_noiseAmplitureStart (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   noiseAmplitureStart = vec4.create();
 
   /** m_noiseAmplitureEnd (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   noiseAmplitureEnd = vec4.create();
 
   /** m_noiseFrequency (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   noiseFrequency = vec4.create();
 
   /** m_color (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.create();

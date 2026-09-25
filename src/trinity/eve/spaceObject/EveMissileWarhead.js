@@ -20,23 +20,45 @@ import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.j
 @type.define({ className: "EveMissileWarhead", family: "eve/spaceObject" })
 export class EveMissileWarhead extends EveTransform
 {
-  @edit.persist @type.float32 pathOffsetNoiseScale = 0;
-  @edit.persist @type.float32 pathOffsetNoiseSpeed = 1;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 pathOffsetNoiseScale = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 pathOffsetNoiseSpeed = 1;
   @edit.readwrite @type.boolean startDataValid = false;
   @edit.readwrite @type.vec3 pathOffset = vec3.create();
-  @edit.persist @type.float32 maxExplosionDistance = 40;
-  @edit.persist @type.float32 impactDuration = 0.6;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 maxExplosionDistance = 40;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 impactDuration = 0.6;
   @edit.read @type.vec3 explosionPosition = vec3.create();
-  @edit.persist @type.float32 impactSize = 0;
-  @edit.persist @type.model("EveSpriteSet") spriteSet = null;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 impactSize = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.model("EveSpriteSet") spriteSet = null;
   @edit.read @type.int32 targetLocatorID = -1;
-  @edit.persist @type.float32 durationEjectPhase = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 durationEjectPhase = 0;
   @edit.readwrite @type.boolean doSpread = true;
-  @edit.persist @type.float32 acceleration = 1;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 acceleration = 1;
   @edit.readwrite @type.int32 id = -1;
-  @edit.persist @type.float32 startEjectVelocity = 0;
-  @edit.persist @type.float32 warheadLength = 1;
-  @edit.persist @type.float32 warheadRadius = 1;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 startEjectVelocity = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 warheadLength = 1;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 warheadRadius = 1;
 
   #state = EveMissileWarhead.State.STATE_DELAYED;
   #flyingTime = 0;

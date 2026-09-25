@@ -11,17 +11,20 @@ export class Tr2KelvinColor extends CjsModel
 {
 
   /** m_whiteBalance (Tr2StandardIlluminant - enum Tr2StandardIlluminant) [ENUM, READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2StandardIlluminant")
   whiteBalance = 2;
 
   /** m_temperature (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   temperature = 5500;
 
   /** m_tint (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   tint = 0.5;

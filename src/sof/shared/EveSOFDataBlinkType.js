@@ -10,21 +10,25 @@ export class EveSOFDataBlinkType extends CjsModel
 {
 
   /** m_blinkType[TYPE_BLINK] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Blink = null;
 
   /** m_blinkType[TYPE_FADE_IN] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeIn = null;
 
   /** m_blinkType[TYPE_FADE_OUT] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   FadeOut = null;
 
   /** m_blinkType[TYPE_CYCLE] (EveSOFDataBlinkPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataBlink")
   Cycle = null;

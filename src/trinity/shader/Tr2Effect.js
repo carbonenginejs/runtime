@@ -85,36 +85,42 @@ export class Tr2Effect extends Tr2Material
 
   /** m_effectFilePath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
-
+  @edit.readwrite
   @edit.persist
+
   @type.string
   effectFilePath = "";
 
   /** m_options (PTr2ShaderOptionStructureList) [READ, PERSIST] */
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ShaderOption")
   options = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_constParameters (PTr2ConstantEffectParameterStructureList) [READ, PERSIST] */
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ConstantEffectParameter")
   constParameters = [];
 
   /** m_parameters (PITriEffectParameterVector) [READ, PERSIST] */
 
+  @edit.read
   @edit.persist
   @type.list("ITriEffectParameter")
   parameters = [];
 
   /** m_resources (PITriEffectResourceParameterVector) [READ, PERSIST] */
 
+  @edit.read
   @edit.persist
   @type.list("ITriEffectResourceParameter")
   resources = [];
@@ -131,6 +137,7 @@ export class Tr2Effect extends Tr2Material
 
   /** m_samplerOverrides (PTr2SamplerOverrideStructureList) [READ, PERSIST] */
 
+  @edit.read
   @edit.persist
   @type.list("Tr2SamplerOverride")
   samplerOverrides = [];

@@ -17,26 +17,31 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class EveEllipsoidVolume extends IEveVolume
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   innerShape = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   shape = vec3.create();

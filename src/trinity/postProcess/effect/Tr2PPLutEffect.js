@@ -9,11 +9,13 @@ export class Tr2PPLutEffect extends Tr2PPEffect
 {
 
   /** m_influence (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   influence = 0;
 
   /** m_path (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "res:/dx9/scene/postprocess/LUTdefault.dds";

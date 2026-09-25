@@ -22,10 +22,12 @@ export class TriEventKey extends CjsModel
   @type.objectRef("PyObject")
   callableArgs = null;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;

@@ -147,11 +147,13 @@ export class EveChildMesh extends EveChildTransform
   }
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
+  @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
@@ -161,90 +163,110 @@ export class EveChildMesh extends EveChildTransform
   worldTransform = mat4.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   inheritOverlayEffects = true;
 
+  @edit.read
   @edit.persist
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveDamageOverlay")
   damageOverlay = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   castShadow = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.mat4
   localTransform = mat4.create();
 
+  @edit.read
   @edit.persist
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   staticTransform = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2GrannyAnimation")
   animationUpdater = null;
 
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sortValueOffset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sortValueScale = 1;
@@ -257,10 +279,12 @@ export class EveChildMesh extends EveChildTransform
   @type.float32
   currentInstanceScreenSize = -1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSRT = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   updateAnimation = true;

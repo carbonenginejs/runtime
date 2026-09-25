@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterBool", family: "eve" })
 export class EveSOFDataParameterBool extends EveSOFDataParameter
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   value = false;

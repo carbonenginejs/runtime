@@ -17,26 +17,31 @@ export class EveRootTransform extends EveTransform
 {
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   boundingSphereRadius = -1;
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;

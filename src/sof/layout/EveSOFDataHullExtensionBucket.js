@@ -26,16 +26,19 @@ export class EveSOFDataHullExtensionBucket extends EveSOFDataHullExtensionPlacem
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_placements (PEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullExtensionPlacement")
   placements = [];

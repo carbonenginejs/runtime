@@ -32,6 +32,7 @@ export class TriStepSetStdRndStates extends TriRenderStep
   static RM_PREPASS_COLOR = 13;
   static RM_COUNT = 14;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("RenderingMode")

@@ -37,6 +37,7 @@ export function EveCollectAreas(type, mesh, areaPool)
 @type.define({ className: "EveSpaceObjectChild", family: "eve/child" })
 export class EveSpaceObjectChild extends IEveSpaceObjectChild
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

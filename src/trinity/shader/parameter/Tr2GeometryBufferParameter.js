@@ -13,12 +13,14 @@ export class Tr2GeometryBufferParameter extends CjsParameter
   /** m_resourcePath (std::wstring) [READWRITE, NOTIFY, PERSIST] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   resourcePath = "";
 
   /** m_gpuBuffer (ITr2GpuBufferPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITr2GpuBuffer")
   gpuBuffer = null;
@@ -30,12 +32,14 @@ export class Tr2GeometryBufferParameter extends CjsParameter
 
   /** m_meshIndex (int32_t) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   meshIndex = 0;
 
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

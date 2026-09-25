@@ -9,16 +9,19 @@ export class EveSOFDataFactionChild extends CjsModel
 {
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   groupIndex = -1;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_isVisible (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isVisible = false;

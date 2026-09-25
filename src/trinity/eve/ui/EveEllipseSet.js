@@ -21,30 +21,37 @@ export class EveEllipseSet extends EveChildTransform
   #geometryDirty = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   ribbonSegmentCount = 128;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enablePicking = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthOffset = 0;
 
+  @edit.read
   @edit.persist
   @type.list("EveEllipseDefinition")
   ellipses = [];
 
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   effect = null;

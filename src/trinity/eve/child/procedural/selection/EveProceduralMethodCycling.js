@@ -20,21 +20,25 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   #startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveProceduralMethodCyclingParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_startTimeOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   startTimeOffset = 0;
 
   /** m_randomizeOrder (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   randomizeOrder = false;

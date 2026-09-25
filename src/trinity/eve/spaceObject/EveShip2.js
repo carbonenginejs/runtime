@@ -13,6 +13,7 @@ export class EveShip2 extends EveMobile
 {
 
   /** m_boosters (EveBoosterSet2Ptr) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.model("EveBoosterSet2")
   boosters = null;

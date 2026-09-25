@@ -20,34 +20,42 @@ import {
 @type.define({ className: "EveMeshOverlayEffect", family: "eve/overlays" })
 export class EveMeshOverlayEffect extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
+  @edit.readwrite
   @edit.persist
   @type.model("TriCurveSet")
   curveSet = null;
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   additiveEffects = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   decalEffects = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   distortionEffects = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   opaqueEffects = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   transparentEffects = [];

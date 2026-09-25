@@ -33,21 +33,25 @@ export class EveSmartLightBaseGroup extends CjsModel
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useFactionColor = false;
 
   /** m_attributeModifiers (PIEveSmartLightGroupAttributeModifierVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
   /** m_color (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   customColor = color.createLinear();

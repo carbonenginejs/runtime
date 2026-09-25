@@ -15,32 +15,38 @@ export class EveSOFDataHullChildSetItem extends CjsModel
 
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   buildFilter = 0xffffffff;
 
   /** m_redFilePath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   redFilePath = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);

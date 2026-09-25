@@ -18,6 +18,7 @@ import { Tr2FollowCurveKeyInterpolation, RotationSetting } from "../enums.js";
 })
 export class Tr2ObjectFollowCurveKey extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -27,19 +28,23 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   @type.objectRef("IRoot")
   object = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   leftTangent = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   rightTangent = vec3.create();
@@ -53,14 +58,17 @@ export class Tr2ObjectFollowCurveKey extends CjsModel
   rotatedRightTangent = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   offsetLocatorName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   offset = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("RotationSetting")

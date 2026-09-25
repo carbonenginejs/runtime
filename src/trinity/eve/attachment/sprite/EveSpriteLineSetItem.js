@@ -16,58 +16,72 @@ import { carbon, edit, impl, type } from "#schema";
 export class EveSpriteLineSetItem extends CjsModel
 {
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isCircle = false;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   spacing = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   blinkRate = 0.1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   blinkPhase = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   blinkPhaseShift = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScale = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxScale = 10;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   falloff = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);

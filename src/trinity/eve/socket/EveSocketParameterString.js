@@ -10,11 +10,13 @@ export class EveSocketParameterString extends IEveSocketParameter
 {
 
   /** m_name (std::string) */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_value (std::string) */
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";

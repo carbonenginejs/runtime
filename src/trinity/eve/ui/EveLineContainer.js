@@ -14,16 +14,19 @@ export class EveLineContainer extends CjsModel
 {
 
   /** m_connectors (PEveConnectorVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveConnector")
   connectors = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveCurveLineSet")
   lineSet = null;

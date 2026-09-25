@@ -13,18 +13,22 @@ import { TriRenderJob } from "./TriRenderJob.js";
 @type.define({ className: "Tr2RenderJobs", family: "renderJob" })
 export class Tr2RenderJobs extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("TriRenderJob")
   recurring = [];
 
+  @edit.read
   @edit.persist
   @type.list("TriRenderJob")
   once = [];
 
+  @edit.read
   @edit.persist
   @type.list("TriRenderJob")
   chained = [];
 
+  @edit.read
   @edit.persist
   @type.list("TriRenderJob")
   updateRecurring = [];

@@ -12,21 +12,25 @@ export class EveSOFDataTransform extends CjsModel
 {
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);

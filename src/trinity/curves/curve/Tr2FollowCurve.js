@@ -21,10 +21,12 @@ export class Tr2FollowCurve extends CjsModel
   @type.vec3
   currentValue = vec3.create();
 
+  @edit.read
   @edit.persist
   @type.list("ITr2FollowCurveKey")
   keys = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

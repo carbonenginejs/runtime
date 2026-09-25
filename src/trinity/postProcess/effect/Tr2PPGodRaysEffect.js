@@ -10,16 +10,19 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
 {
 
   /** m_godRayColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   godRayColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_intensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 0;
 
   /** m_noiseTexturePath (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   noiseTexturePath = "res:/Texture/Global/noise.dds";

@@ -16,10 +16,12 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSetShaderOption extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   key = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";

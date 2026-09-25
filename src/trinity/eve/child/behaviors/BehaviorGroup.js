@@ -81,26 +81,31 @@ export class BehaviorGroup extends EveEntity
   #groupIndex = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_maxVelocity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxVelocity = 100;
 
   /** m_scale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;
 
   /** m_blendScreenSizeMax (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   blendScreenSizeMax = 15;
 
   /** m_blendScreenSizeMin (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   blendScreenSizeMin = 5;
@@ -111,6 +116,7 @@ export class BehaviorGroup extends EveEntity
   currentScreenSize = 0;
 
   /** m_renderThreshold (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   renderThreshold = 1;
@@ -131,28 +137,33 @@ export class BehaviorGroup extends EveEntity
   actualCount = 0;
 
   /** m_count (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   count = 0;
 
   /** m_booster (BehaviorGroupBoosterPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("BehaviorGroupBooster")
   boosters = null;
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Mesh")
   mesh = null;
 
   /** m_behaviorGroupName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   boundingSphereRadius = 5;
@@ -163,16 +174,19 @@ export class BehaviorGroup extends EveEntity
   debugMode = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   update = true;
 
   /** m_behaviors (PIBehaviorVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IBehavior")
   behaviors = [];
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   spawnPosition = vec3.create();

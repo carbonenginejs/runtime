@@ -9,23 +9,27 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   invertReceivedValue = false;
 
   /** m_defaultValue (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   defaultValue = 0;

@@ -9,6 +9,7 @@ export class EveSOFDataGenericString extends CjsModel
 {
 
   /** m_str (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   str = "";

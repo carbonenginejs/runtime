@@ -35,6 +35,7 @@ export class Tr2ManipulationTool extends CjsModel
   _userData = null;
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   localTransform = mat4.create();

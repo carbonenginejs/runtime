@@ -15,10 +15,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class EveLocator2 extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();

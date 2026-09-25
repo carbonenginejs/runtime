@@ -22,68 +22,81 @@ export class EveChildParticleSystem extends EveChildTransform
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2InstancedMesh")
   mesh = null;
 
   /** m_lodClampLow (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   lodClampLow = 5;
 
   /** m_lodSphereRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lodSphereRadius = 0;
 
   /** m_useDynamicLod (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useDynamicLod = false;
 
   /** m_lodFactorLow (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lodFactorLow = 0.125;
 
   /** m_lodFactorMedium (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lodFactorMedium = 0.25;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;

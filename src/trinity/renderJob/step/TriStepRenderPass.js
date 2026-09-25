@@ -10,12 +10,14 @@ export class TriStepRenderPass extends TriRenderStep
 {
 
   /** m_pass (ITr2MultiPassScene::PassType - enum PassType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("PassType")
   passType = 0;
 
   /** m_scene (ITr2MultiPassScenePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2MultiPassScene")
   scene = null;

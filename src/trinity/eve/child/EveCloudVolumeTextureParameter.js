@@ -17,6 +17,7 @@ export class EveCloudVolumeTextureParameter extends CjsModel
 {
 
   /** m_volume (EveCloudEditableVolumePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveCloudEditableVolume")
   volume = null;
@@ -27,6 +28,7 @@ export class EveCloudVolumeTextureParameter extends CjsModel
   isUsedByEffect = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

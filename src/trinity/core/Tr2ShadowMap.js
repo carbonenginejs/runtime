@@ -138,6 +138,7 @@ function writeOrthoOffCenter(out, left, right, bottom, top, near, far)
 export class Tr2ShadowMap extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ShadowSplitMode")

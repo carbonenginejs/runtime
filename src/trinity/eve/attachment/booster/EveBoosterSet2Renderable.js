@@ -46,6 +46,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   boostersVisible = false;
 
   /** m_trailsTimeDelta (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   trailsTimeDelta = 1;

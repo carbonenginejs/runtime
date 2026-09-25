@@ -55,11 +55,13 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
 
   #froxelFogSettings = createFroxelFogSettings();
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Priority")
   priority = 2;
 
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   volumes = [];
@@ -72,10 +74,12 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   @type.float32
   boundingSphereRadius = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 1;

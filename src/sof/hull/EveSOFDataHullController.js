@@ -9,11 +9,13 @@ export class EveSOFDataHullController extends CjsModel
 {
 
   /** m_buildFilter (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   buildFilter = 0xffffffff;
 
   /** m_path (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "";

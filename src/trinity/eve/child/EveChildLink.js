@@ -17,11 +17,13 @@ export class EveChildLink extends EveChildMesh
 {
 
   /** m_linkStrengthCurves (PITriFunctionVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITriFunction")
   linkStrengthCurves = [];
 
   /** m_linkStrengthBindings (PITr2ValueBindingVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2ValueBinding")
   linkStrengthBindings = [];

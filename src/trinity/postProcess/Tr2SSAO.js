@@ -22,22 +22,27 @@ export class Tr2SSAO extends CjsModel
   quality = SSAOQuality.HIGHEST;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cortaoBentNormal = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   zoomLevel = 5;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   shadowClamp = 0.98;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   shadowPower = 2.6;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   shadowMultiplier = 1;
@@ -48,10 +53,12 @@ export class Tr2SSAO extends CjsModel
   cortaoBlur = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cortaoEnabled = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sharpness = 0.5;
@@ -85,6 +92,7 @@ export class Tr2SSAO extends CjsModel
   @type.boolean
   downsampled = false;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 6;

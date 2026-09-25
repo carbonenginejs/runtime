@@ -13,6 +13,7 @@ export class AudEventCurve extends CjsModel
 {
 
   /** m_extrapolation (TRIEXTRAPOLATION - enum TRIEXTRAPOLATION) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
@@ -34,16 +35,19 @@ export class AudEventCurve extends CjsModel
   localTime = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";
 
   /** m_sourceTriObserver (ITriObserverLocalPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriObserverLocal")
   sourceTriObserver = null;

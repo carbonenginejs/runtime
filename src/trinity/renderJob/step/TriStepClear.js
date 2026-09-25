@@ -14,26 +14,32 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepClear", family: "renderJob" })
 export class TriStepClear extends TriRenderStep
 {
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(0, 0, 0, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   depth = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   stencil = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isColorCleared = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isDepthCleared = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isStencilCleared = false;

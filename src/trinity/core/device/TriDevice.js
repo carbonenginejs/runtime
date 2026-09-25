@@ -59,6 +59,7 @@ export class TriDevice extends CjsModel
 
   /** mPresentParam.presentInterval (Tr2PresentParametersAL - enum Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("PresentInterval")
@@ -66,6 +67,7 @@ export class TriDevice extends CjsModel
 
   /** mSwapEffect (Tr2RenderContextEnum::SwapEffect - enum SwapEffect) [READWRITE, NOTIFY, PERSIST, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("SwapEffect")
@@ -93,6 +95,7 @@ export class TriDevice extends CjsModel
   onDeviceRemoved = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
@@ -103,6 +106,7 @@ export class TriDevice extends CjsModel
   supportedUpscalingTechniques = [];
 
   /** mViewport (PTriViewport) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.objectRef("TriViewport")
   viewport = null;
@@ -139,12 +143,14 @@ export class TriDevice extends CjsModel
 
   /** mPresentParam.msaaType (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   multiSampleType = 0;
 
   /** mPresentParam.msaaQuality (Tr2PresentParametersAL) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   multiSampleQuality = 0;

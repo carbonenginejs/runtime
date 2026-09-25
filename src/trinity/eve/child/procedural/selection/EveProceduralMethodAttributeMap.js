@@ -11,16 +11,19 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   #selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodAttributeMapParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveProceduralMethodAttributeMapParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_mappedAttribute (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   thresholdAttribute = "";

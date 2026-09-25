@@ -18,34 +18,42 @@ export class EveCustomMask extends CjsModel
 {
   static CUSTOM_MASK_COUNT = 2;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clampU = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clampV = false;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.uint8
   materialIndex = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isMirrored = false;
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   targetMaterials = vec4.fromValues(1, 1, 1, 1);

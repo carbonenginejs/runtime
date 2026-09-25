@@ -13,22 +13,27 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "EveTacticalOverlayTrackObject", family: "eve/ui" })
 export class EveTacticalOverlayTrackObject extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isAggressive = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   showVelocity = true;

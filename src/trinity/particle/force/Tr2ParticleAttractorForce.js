@@ -16,10 +16,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2ParticleAttractorForce extends ITr2ParticleForce
 {
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   magnitude = 1;

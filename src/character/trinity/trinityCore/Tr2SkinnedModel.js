@@ -22,6 +22,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   geometryResPath = "";
@@ -33,11 +34,13 @@ export class Tr2SkinnedModel extends Tr2Model
 
   /** m_skeletonName (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   skeletonName = "";
 
   /** m_skinScale (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   skinScale = vec3.fromValues(1, 1, 1);

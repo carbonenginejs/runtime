@@ -10,12 +10,14 @@ export class EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings exte
 {
 
   /** m_displayFilter (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullExtensionPlacementDistributionMapGraphicSettings.DisplayQualityModifier")
   displayFilter = 5;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

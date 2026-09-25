@@ -18,6 +18,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   #proceduralContainerVariables = new Map();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
@@ -28,16 +29,19 @@ export class EveChildProceduralContainer extends EveChildTransform
   selectedObject = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_selectionMethod (IEveProceduralSelectionMethodPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveProceduralSelectionMethod")
   selectionMethod = null;

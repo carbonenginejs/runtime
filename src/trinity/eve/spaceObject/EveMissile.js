@@ -18,7 +18,9 @@ import { EveMissileWarhead } from "./EveMissileWarhead.js";
 @type.define({ className: "EveMissile", family: "eve/spaceObject" })
 export class EveMissile extends EveSpaceObject2
 {
-  @edit.persist @type.list("EveMissileWarhead") warheads = [];
+  @edit.read
+  @edit.persist
+ @type.list("EveMissileWarhead") warheads = [];
   @edit.readwrite @type.boolean updateWarheads = true;
   @edit.readwrite @type.objectRef("ITriTargetable") target = null;
   @edit.readwrite @type.float32 targetRadius = 0;

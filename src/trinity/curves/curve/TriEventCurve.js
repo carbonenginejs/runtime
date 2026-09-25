@@ -63,11 +63,13 @@ export class TriEventCurve extends CjsModel
     this.#postUpdateCallbacks.length = 0;
   }
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TRIEXTRAPOLATION")
   extrapolation = TRIEXTRAPOLATION.TRIEXT_NONE;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -88,6 +90,7 @@ export class TriEventCurve extends CjsModel
   @type.float32
   localTime = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";

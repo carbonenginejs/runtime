@@ -11,16 +11,19 @@ export class Tr2Sprite2dLineTraceVertex extends CjsModel
 {
 
   /** m_color (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_position (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   position = vec2.create();

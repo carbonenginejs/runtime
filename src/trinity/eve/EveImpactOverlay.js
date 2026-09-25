@@ -31,6 +31,7 @@ const IMPACT_ARMOR_PARTICLE_LOD_FACTOR = 400;
 @type.define({ className: "EveImpactOverlay", family: "eve/overlays/impact" })
 export class EveImpactOverlay extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -84,6 +85,7 @@ export class EveImpactOverlay extends CjsModel
   @type.float32
   renderPriority = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
@@ -108,10 +110,12 @@ export class EveImpactOverlay extends CjsModel
   @type.objectRef("Tr2ScalarFader")
   shieldBoosting = new Tr2ScalarFader();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   armorDamageShader = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2GpuUniqueEmitter")
   armorImpactEmitter = null;
@@ -128,6 +132,7 @@ export class EveImpactOverlay extends CjsModel
   @type.objectRef("Tr2ScalarFader")
   hullRepairing = new Tr2ScalarFader();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriPerlinCurve")
   hullDamageFlickerCurve = null;
@@ -136,6 +141,7 @@ export class EveImpactOverlay extends CjsModel
   @type.float32
   hullDamageFactor = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2GpuUniqueEmitter")
   hullImpactEmitter = null;

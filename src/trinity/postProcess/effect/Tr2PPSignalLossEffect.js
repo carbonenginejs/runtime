@@ -9,6 +9,7 @@ export class Tr2PPSignalLossEffect extends Tr2PPEffect
 {
 
   /** m_strength (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   strength = 0;

@@ -17,16 +17,19 @@ import { Tr2FollowCurveKeyInterpolation } from "../enums.js";
 })
 export class Tr2CameraFollowCurveKey extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2FollowCurveKeyInterpolation")
   interpolation = Tr2FollowCurveKeyInterpolation.LINEAR;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   fovMultiplication = 0.5;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   offset = vec3.create();
@@ -36,14 +39,17 @@ export class Tr2CameraFollowCurveKey extends CjsModel
   @type.boolean
   enabled = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   angleZero = Math.PI / 2;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   angle = 0;
@@ -52,6 +58,7 @@ export class Tr2CameraFollowCurveKey extends CjsModel
   @type.vec3
   objectBounds = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   leftTangent = vec3.create();
@@ -60,6 +67,7 @@ export class Tr2CameraFollowCurveKey extends CjsModel
   @type.vec3
   boxPosition = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   rightTangent = vec3.create();
@@ -72,6 +80,7 @@ export class Tr2CameraFollowCurveKey extends CjsModel
   @type.vec3
   rotatedRightTangent = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;

@@ -18,10 +18,12 @@ import { ITr2InstanceDataInstanceData, ITr2InstanceData } from "./ITr2InstanceDa
 @carbon.inherit(ITr2InstanceData)
 export class Tr2RuntimeInstanceData extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2ParticleSystem")
   particleSystem = null;

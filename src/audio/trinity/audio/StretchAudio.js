@@ -13,36 +13,43 @@ export class StretchAudio extends IStretchAudio
 {
 
   /** m_stretchEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("AudEmitter")
   sourceEmitter = null;
 
   /** m_impactEvent (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   impactEvent = "";
 
   /** m_outburstEvent (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   outburstEvent = "";
 
   /** m_stretchEvent (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   stretchEvent = "";
 
   /** m_shotMissedEvent (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shotMissedEvent = "";

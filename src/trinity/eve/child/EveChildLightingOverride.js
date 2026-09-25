@@ -22,35 +22,43 @@ export class EveChildLightingOverride extends EveChildTransform
   #overrideIntensity = 0;
   #boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Priority")
   priority = 2;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   backgroundIntensity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   reflectionIntensity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sunIntensity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.color
   sunColor = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   volumes = [];

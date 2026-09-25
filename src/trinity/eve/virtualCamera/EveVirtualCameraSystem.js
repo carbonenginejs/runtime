@@ -17,14 +17,17 @@ import { EveVirtualCameraTransitionLerp } from "./transition/EveVirtualCameraTra
 })
 export class EveVirtualCameraSystem extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveVirtualCamera")
   externalCamera = null;
 
+  @edit.read
   @edit.persist
   @type.list("EveVirtualCamera")
   cameras = [];
 
+  @edit.read
   @edit.persist
   @type.objectRef("EveVirtualCamera")
   mainCamera = null;

@@ -14,6 +14,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
 {
 
   /** m_value (Color) */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   value = vec4.create();

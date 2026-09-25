@@ -10,6 +10,7 @@ export class Tr2Sprite2dStretch extends Tr2TexturedSpriteObject
 {
 
   /** m_dpiScaleBehavior (Tr2StretchScaleBehavior - enum Tr2StretchScaleBehavior) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2StretchScaleBehavior")

@@ -20,15 +20,18 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionResetClipSphereCenter extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ResetBehavior")
   resetBehavior = ResetBehavior.OBJECT_CENTER;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   locatorIndex = -1;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   locatorSetName = "";

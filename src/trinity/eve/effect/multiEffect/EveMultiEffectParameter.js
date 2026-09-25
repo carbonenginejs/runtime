@@ -19,6 +19,7 @@ export class EveMultiEffectParameter extends CjsModel
   @type.enum("ParameterType")
   type = 3;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

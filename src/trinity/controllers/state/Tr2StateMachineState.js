@@ -17,19 +17,23 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from
 })
 export class Tr2StateMachineState extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("ITr2ControllerAction")
   actions = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2StateMachineTransition")
   transitions = [];
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITr2StateMachineStateFinalizer")
   finalizer = null;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

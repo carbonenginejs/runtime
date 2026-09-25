@@ -180,6 +180,7 @@ export class EveCamera extends CjsModel
   errorHandler = null;
 
   /** m_noiseScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseScale = 1;
@@ -190,6 +191,7 @@ export class EveCamera extends CjsModel
   audio2Listener = null;
 
   /** m_noise (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   noise = false;
@@ -200,11 +202,13 @@ export class EveCamera extends CjsModel
   centerOffset = 0;
 
   /** m_pitch (float) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.float32
   pitch = 0;
 
   /** m_yaw (float) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.float32
   yaw = 0;
@@ -215,21 +219,25 @@ export class EveCamera extends CjsModel
   extraTranslation = vec3.create();
 
   /** m_idleSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   idleSpeed = 0.8;
 
   /** m_noiseDamp (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseDamp = 1.1;
 
   /** m_pos (Vector3) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.vec3
   pos = vec3.create();
 
   /** m_intr (Vector3) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.vec3
   intr = vec3.create();
@@ -251,6 +259,7 @@ export class EveCamera extends CjsModel
 
   /** m_rotationAroundParent (Quaternion) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotationAroundParent = quat.create();
@@ -263,81 +272,97 @@ export class EveCamera extends CjsModel
 
   /** m_rotationOfInterest (Quaternion) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotationOfInterest = quat.create();
 
   /** m_fieldOfView (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fieldOfView = Math.PI / 2;
 
   /** m_frontClip (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   frontClip = 10;
 
   /** m_backClip (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   backClip = 10000000;
 
   /** m_friction (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   friction = 7;
 
   /** m_noiseCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriScalarFunction")
   noiseCurve = null;
 
   /** m_noiseScaleCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriScalarFunction")
   noiseScaleCurve = null;
 
   /** m_noiseDampCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriScalarFunction")
   noiseDampCurve = null;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxSpeed = 0.05;
 
   /** m_update (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   update = true;
 
   /** m_zoomCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriScalarFunction")
   zoomCurve = createDefaultZoomCurve();
 
   /** Blue exposes m_translationFromParent.z, not the native Vector3. */
+  @edit.readwrite
   @edit.persist
   @type.float32
   translationFromParent = 20;
 
   /** m_minPitch (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minPitch = -1.4;
 
   /** m_maxPitch (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxPitch = 1.4;
 
   /** m_minYaw (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minYaw = 0;
 
   /** m_maxYaw (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxYaw = 0;
@@ -348,11 +373,13 @@ export class EveCamera extends CjsModel
   parent = null;
 
   /** m_idleScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   idleScale = 2;
 
   /** m_alignment (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   alignment = vec3.fromValues(0, 1, 0);
@@ -373,6 +400,7 @@ export class EveCamera extends CjsModel
   viewMatrix = new TriView();
 
   /** m_idleMove (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   idleMove = false;

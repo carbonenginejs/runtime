@@ -9,11 +9,13 @@ export class Tr2PrimitiveScene extends CjsModel
 {
 
   /** m_primitives (PTr2PrimitiveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2PrimitiveSet")
   primitives = [];
 
   /** m_textLabels (PTr2PrimitiveTextVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2PrimitiveText")
   textLabels = [];

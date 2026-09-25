@@ -10,12 +10,14 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
 {
 
   /** m_lifeTimeFormula (LifeTimeFormulas - enum LifeTimeFormulas) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("LifeTimeFormulas")
   lifeTimeFormula = 0;
 
   /** m_activationOverLifetime (Tr2CurveScalarPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2CurveScalar")
   activationOverLifetime = null;
@@ -31,31 +33,37 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   playTime = 0;
 
   /** m_crossFadeDuration (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   crossFadeDuration = 1;
 
   /** m_crossFadeIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   crossFadeIntensity = 1;
 
   /** m_perInstanceOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   perInstanceOffset = 0;
 
   /** m_activationStrength (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   attributeMultiplier = 1;
 
   /** m_startsActive (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   startsActive = true;
 
   /** m_restartPlayTimeWhenInactive (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   restartPlayTimeWhenInactive = true;
@@ -67,11 +75,13 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
 
   /** m_active (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   active = true;
 
   /** m_delayedActivation (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayedActivation = 0;

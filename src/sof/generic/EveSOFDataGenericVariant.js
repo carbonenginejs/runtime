@@ -9,16 +9,19 @@ export class EveSOFDataGenericVariant extends CjsModel
 {
 
   /** m_hullArea (EveSOFDataHullAreaPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataHullArea")
   hullArea = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_isTransparent (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isTransparent = false;

@@ -9,36 +9,43 @@ export class EveSOFDataHullSpotlightSet extends CjsModel
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
   /** m_zOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   zOffset = 0;
 
   /** m_coneTextureResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   coneTextureResPath = "";
 
   /** m_glowTextureResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   glowTextureResPath = "";
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullSpotlightSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullSpotlightSetItem")
   items = [];

@@ -41,22 +41,27 @@ export class Tr2ActionChildEffect extends CjsModel
     }
   }
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   addOnStart = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   targetAnotherOwner = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   childName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.path
   path = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   removeOnStop = true;

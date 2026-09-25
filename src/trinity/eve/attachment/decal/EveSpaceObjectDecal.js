@@ -35,6 +35,7 @@ export class EveSpaceObjectDecal extends CjsModel
     this.batchType = 1;
   }
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -45,28 +46,34 @@ export class EveSpaceObjectDecal extends CjsModel
   batchType = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   parentBoneIndex = -1;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   decalEffect = null;

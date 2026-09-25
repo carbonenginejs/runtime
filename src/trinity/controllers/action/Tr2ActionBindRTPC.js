@@ -19,18 +19,22 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 export class Tr2ActionBindRTPC extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   emitter = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   rtpcName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriScalarFunction")
   curve = null;

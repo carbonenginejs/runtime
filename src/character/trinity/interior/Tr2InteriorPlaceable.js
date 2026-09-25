@@ -12,12 +12,14 @@ export class Tr2InteriorPlaceable extends CjsModel
 
   /** m_placeableResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   placeableResPath = "";
 
   /** m_transform (PTriMatrix) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.objectRef("TriMatrix")
   transform = null;
@@ -38,6 +40,7 @@ export class Tr2InteriorPlaceable extends CjsModel
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthOffset = 0;
@@ -48,17 +51,20 @@ export class Tr2InteriorPlaceable extends CjsModel
   variableStore = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_probeOffset (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   probeOffset = vec3.create();
 
   /** m_isUniqueInstance (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isUnique = false;

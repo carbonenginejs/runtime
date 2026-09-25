@@ -15,6 +15,7 @@ export class AudEmitter extends AudGameObjResource
 
   /** m_authoredRotation (Quaternion) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
@@ -30,31 +31,37 @@ export class AudEmitter extends AudGameObjResource
   top = vec3.fromValues(0, 1, 0);
 
   /** m_normalizeAttenuationScaling (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   normalizeAttenuationScaling = false;
 
   /** m_visualizationRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   visualizationRadius = 0;
 
   /** m_maxNormalizedValue (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxNormalizedValue = 9000;
 
   /** m_maxNormalizedScalingFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxNormalizedScalingFactor = 3.5;
 
   /** m_minNormalizedValue (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minNormalizedValue = 30;
 
   /** m_minNormalizedScalingFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minNormalizedScalingFactor = 0.4;

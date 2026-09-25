@@ -17,6 +17,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
 @carbon.inherit(ITr2StateMachineStateFinalizer)
 export class Tr2SyncToAnimation extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   mask = "";

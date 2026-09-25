@@ -14,57 +14,68 @@ export class EveSOFDataHullSpotlightSetItem extends CjsModel
 
 
   /** m_colorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 12;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();
 
   /** m_boosterGainInfluence (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   boosterGainInfluence = false;
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   groupIndex = -1;
 
   /** m_spriteScale (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   spriteScale = vec3.fromValues(1, 1, 1);
 
   /** m_coneIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   coneIntensity = 0;
 
   /** m_flareIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   flareIntensity = 0;
 
   /** m_spriteIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   spriteIntensity = 0;
 
   /** m_saturation (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   saturation = 1;
 
   /** m_light (EveSOFDataSpotLightAttachmentPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataSpotLightAttachment")
   light = null;

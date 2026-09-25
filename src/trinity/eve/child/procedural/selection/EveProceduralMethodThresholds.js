@@ -22,21 +22,25 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   #selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodThresholdParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveProceduralMethodThresholdParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_thresholdAttribute (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   thresholdAttribute = "";

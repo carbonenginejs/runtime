@@ -12,6 +12,7 @@ export class TriView extends CjsModel
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();

@@ -21,21 +21,25 @@ export class EveChildSmartLightSet extends EveChildTransform
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_distribution (IEveDistributionMethodPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveDistributionMethod")
   distribution = null;
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSmartLightGroup")
   lightGroups = [];

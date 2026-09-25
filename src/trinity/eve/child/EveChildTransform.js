@@ -3,7 +3,7 @@
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 
 
@@ -54,15 +54,23 @@ export class EveChildTransform extends EveSpaceObjectChild
   @type.mat4
   worldTransform = mat4.create();
 
+  @edit.readwrite
+  @edit.persist
   @type.boolean
   staticTransform = false;
 
+  @edit.readwrite
+  @edit.persist
   @type.boolean
   useSRT = true;
 
+  @edit.readwrite
+  @edit.persist
   @type.boolean
   useStaticRotation = false;
 
+  @edit.readwrite
+  @edit.persist
   @type.boolean
   useStaticScale = false;
 

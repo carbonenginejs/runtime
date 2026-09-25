@@ -15,14 +15,17 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3Offset extends EveVirtualCameraBehaviourVector3Base
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   proportional = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   world = false;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   offset = vec3.create();

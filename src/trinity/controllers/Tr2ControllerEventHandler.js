@@ -15,10 +15,12 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.j
 })
 export class Tr2ControllerEventHandler extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("ITr2ControllerAction")
   actions = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

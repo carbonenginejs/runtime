@@ -26,16 +26,19 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   #resetTransformOnUpdate = false;
 
   /** m_distributionModifiers (PIEveDistributionModifierVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveDistributionModifier")
   lifetimeModifiers = [];
 
   /** m_locationsCanReTrigger (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   locationsCanReTrigger = true;
 
   /** m_timeOutOnTriggering (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeOutOnTriggering = 2;
@@ -51,11 +54,13 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   freePlacements = 0;
 
   /** m_playtimeMultiplier (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   playtimeMultiplier = 1;
 
   /** m_placementGenerators (PIEveDistributionPlacementGeneratorsVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveDistributionPlacementGenerators")
   placementGenerators = [];
@@ -66,11 +71,13 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   placementData = [];
 
   /** m_distributionSpawnModifiers (PIEveDistributionSpawnModifierVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveDistributionSpawnModifier")
   spawnModifiers = [];
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveDistributionSpawner")
   spawnTriggers = [];

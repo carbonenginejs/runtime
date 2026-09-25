@@ -38,6 +38,7 @@ function updateBoundingSphere(cloud)
 @carbon.inherit(ITr2Renderable)
 export class EveChildCloud extends EveSpaceObjectChild
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   sortingModifier = 1;
@@ -46,35 +47,43 @@ export class EveChildCloud extends EveSpaceObjectChild
   @type.uint64
   currentLod = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   preTesselationLevel = 32;
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Material")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.model("EveCloudEditableVolume")
   volume = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   cellScreenSize = 0.3;

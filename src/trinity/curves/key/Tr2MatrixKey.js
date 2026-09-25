@@ -14,10 +14,12 @@ import { edit, type } from "#schema";
 })
 export class Tr2MatrixKey extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   value = mat4.create();

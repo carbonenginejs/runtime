@@ -20,52 +20,63 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 export class Tr2ActionPlayMeshAnimation extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("DestinationType")
   destinationType = DestinationType.OWNER;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("PlayAction")
   playAction = PlayAction.ENQUEUE_PLAY;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("StopAction")
   stopAction = StopAction.ENQUEUE_STOP;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   mask = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   animation = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   speed = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   delay = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("IRoot")
   destination = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   delayBinding = false;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   loops = -1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "";

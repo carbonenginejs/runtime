@@ -9,16 +9,19 @@ export class EveOccluder extends CjsModel
 {
 
   /** m_sprites (PEveTransformVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveTransform")
   sprites = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;

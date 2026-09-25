@@ -20,6 +20,7 @@ export class Tr2Mesh extends Tr2MeshBase
   #morphAnimations = new Map();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   geometryResPath = "";
@@ -29,6 +30,7 @@ export class Tr2Mesh extends Tr2MeshBase
   serializedMorphAnimations = [];
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   deferGeometryLoad = false;

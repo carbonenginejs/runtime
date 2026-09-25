@@ -12,6 +12,7 @@ import { CjsParameter } from "./CjsParameter.js";
 export class TriFloatArrayParameter extends CjsParameter
 {
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("TriVector4")
   value = [];
@@ -25,6 +26,7 @@ export class TriFloatArrayParameter extends CjsParameter
   usedByCurrentEffect = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -10,6 +10,7 @@ export class EveSocketParameterVector2 extends EveSocketParameterBindingBase
 {
 
   /** m_value (Vector2) */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   value = vec2.create();

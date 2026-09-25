@@ -9,6 +9,7 @@ export class EveSocketParameterFloat extends EveSocketParameterBindingBase
 {
 
   /** m_value (float) */
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

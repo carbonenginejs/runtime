@@ -9,6 +9,7 @@ export class Tr2PPDesaturateEffect extends Tr2PPEffect
 {
 
   /** m_intensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 1;

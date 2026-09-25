@@ -32,6 +32,7 @@ export class Tr2RenderNodeEffect extends CjsModel
   viewport = null;
 
   /** m_inputNodes (PITr2RenderNodeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2RenderNode")
   inputNodes = [];

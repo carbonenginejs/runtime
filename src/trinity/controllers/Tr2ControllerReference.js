@@ -49,6 +49,7 @@ export class Tr2ControllerReference extends CjsModel
   controller = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.path
   path = "";

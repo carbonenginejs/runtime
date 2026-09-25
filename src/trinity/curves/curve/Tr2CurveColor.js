@@ -21,30 +21,37 @@ const CLAMP_MIN = vec4.create();
 })
 export class Tr2CurveColor extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   srgbOutput = false;
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeOffset = 0;

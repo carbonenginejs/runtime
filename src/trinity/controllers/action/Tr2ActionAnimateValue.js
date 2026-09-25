@@ -19,31 +19,37 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionAnimateValue extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriScalarFunction")
   curve = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   attribute = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("IRoot")
   destination = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   delayBinding = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "Curve(StateTime())";

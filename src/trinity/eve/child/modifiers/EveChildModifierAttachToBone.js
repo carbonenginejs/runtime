@@ -12,6 +12,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @type.define({ className: "EveChildModifierAttachToBone", family: "eve/child/modifiers" })
 export class EveChildModifierAttachToBone extends IEveChildTransformModifier
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = -1;

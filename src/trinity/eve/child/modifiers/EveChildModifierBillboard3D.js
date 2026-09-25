@@ -15,6 +15,7 @@ import { Billboard2D, DistanceBase } from "./EveChildModifierTransformCommon.js"
 @type.define({ className: "EveChildModifierBillboard3D", family: "eve/child/modifiers" })
 export class EveChildModifierBillboard3D extends IEveChildTransformModifier
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   fixed = false;

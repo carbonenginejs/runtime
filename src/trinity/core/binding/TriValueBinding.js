@@ -44,12 +44,14 @@ export class TriValueBinding extends CjsModel
 
   /** m_destinationAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   destinationAttribute = "";
 
   /** m_sourceAttribute (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceAttribute = "";
@@ -80,6 +82,7 @@ export class TriValueBinding extends CjsModel
   isEnabled = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -102,6 +105,7 @@ export class TriValueBinding extends CjsModel
   }
 
   /** m_offset (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   offset = vec4.create();
@@ -113,6 +117,7 @@ export class TriValueBinding extends CjsModel
   copyValueCallable = null;
 
   /** m_scale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;

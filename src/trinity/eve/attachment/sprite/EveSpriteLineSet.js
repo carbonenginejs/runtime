@@ -21,10 +21,12 @@ import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../..
 export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 {
 
+  @edit.read
   @edit.persist
   @type.list("EveSpriteLineSetItem")
   spriteLines = [];
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
@@ -33,6 +35,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.uint32
   effectHash = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -41,6 +44,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

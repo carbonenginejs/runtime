@@ -77,6 +77,7 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
   #initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

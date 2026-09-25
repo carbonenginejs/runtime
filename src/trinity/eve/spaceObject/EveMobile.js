@@ -16,6 +16,7 @@ import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 export class EveMobile extends EveSpaceObject2
 {
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("EveTurretSet")
   turretSets = [];

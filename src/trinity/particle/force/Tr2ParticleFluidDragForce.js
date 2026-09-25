@@ -16,6 +16,7 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2ParticleFluidDragForce extends ITr2ParticleForce
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   drag = 1;

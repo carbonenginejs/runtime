@@ -9,11 +9,13 @@ export class EveSOFDataMaterial extends CjsModel
 {
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -14,16 +14,19 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 
   /** m_animation (Tr2TextureAnimationPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2TextureAnimation")
   animation = null;
 
   /** m_channel (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   channel = "";
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

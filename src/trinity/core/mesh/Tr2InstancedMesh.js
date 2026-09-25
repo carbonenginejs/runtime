@@ -13,33 +13,40 @@ import { Tr2Mesh } from "./Tr2Mesh.js";
 @type.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
 export class Tr2InstancedMesh extends Tr2Mesh
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("BoundsMethod")
   boundsMethod = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   instanceGeometryResPath = "";
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   maxBounds = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxInstanceSize = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   minBounds = vec3.create();
 
+  @edit.readwrite
   @edit.persistOnly
   @type.objectRef("ITr2InstanceData")
   instanceGeometryResource = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   instanceMeshIndex = 0;

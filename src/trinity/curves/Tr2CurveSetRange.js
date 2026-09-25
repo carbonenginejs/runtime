@@ -14,18 +14,22 @@ import { edit, type } from "#schema";
 })
 export class Tr2CurveSetRange extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   startTime = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   endTime = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   looped = false;

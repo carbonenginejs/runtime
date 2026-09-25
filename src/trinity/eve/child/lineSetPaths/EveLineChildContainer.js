@@ -27,16 +27,19 @@ export class EveLineChildContainer extends IEveLineSetPath
   isVisible = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveLineSetPath")
   lines = [];

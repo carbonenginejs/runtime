@@ -88,22 +88,26 @@ export class Tr2ShLightingManager extends CjsModel
 {
 
   /** m_quality (Quality - enum Quality) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Quality")
   quality = 1;
 
   /** m_lights (PTr2PointLightVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2PointLight")
   lights = [];
 
   /** m_primaryIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   primaryIntensity = 1;
 
   /** m_secondaryIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   secondaryIntensity = 1;

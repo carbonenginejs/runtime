@@ -9,16 +9,19 @@ export class Tr2Sprite2dTriangle extends CjsModel
 {
 
   /** m_index[0] (uint16_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint16
   index0 = 0;
 
   /** m_index[1] (uint16_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint16
   index1 = 0;
 
   /** m_index[2] (uint16_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint16
   index2 = 0;

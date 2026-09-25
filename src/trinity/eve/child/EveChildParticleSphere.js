@@ -32,31 +32,37 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   #velocityElement = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_mesh (Tr2InstancedMeshPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2InstancedMesh")
   mesh = null;
 
   /** m_useSpaceObjectData (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSpaceObjectData = true;
 
   /** m_maxSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxSpeed = 0;
 
   /** m_radius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 500;
@@ -67,21 +73,25 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   egoSpeed = 0;
 
   /** m_positionShiftDecreaseSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   positionShiftDecreaseSpeed = 1000;
 
   /** m_positionShiftIncreaseSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   positionShiftIncreaseSpeed = 1000;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_movementScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   movementScale = 1;
@@ -92,16 +102,19 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
   positionShift = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_positionShiftMin (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   positionShiftMin = 100;
 
   /** m_positionShiftMax (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   positionShiftMax = 0;

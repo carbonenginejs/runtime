@@ -60,6 +60,7 @@ export class EveChildTurret extends EveChildMesh
   trackingInfluence = 0;
 
   /** How long tracking takes to fade in - and its influence ceiling. */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxTrackingTime = 1;
@@ -73,56 +74,69 @@ export class EveChildTurret extends EveChildMesh
   // The eleven flat sysbone tunables Carbon re-exposes from the embedded
   // EveTurretAiming (EveChildTurret_Blue.cpp:25-35); same names and defaults
   // as EveTurretSet. Offsets are authored in degrees.
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBoneHeight = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitchFactor = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitchOffset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitchMin = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitchMax = 90;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch01Factor = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch01Offset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch02Factor = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch02Offset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch03Factor = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sysBonePitch03Offset = 0;
 
   /** If greater than one, firing cycles through this many muzzle groups. */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   maxCyclingFirePos = 1;
 
   /** The number of muzzles in one cycle group, usually one. */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   cyclingFireGroupCount = 1;
@@ -133,12 +147,14 @@ export class EveChildTurret extends EveChildMesh
   currentCyclingFiresPos = 0;
 
   /** The module for the firing effect of this turret. */
-  @edit.persist
+  @edit.readwrite
+  @edit.hidden
   @type.objectRef("EveTurretFiringFX")
   firingEffect = null;
 
   /** A res path to the redfile containing the primary firing effect. */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   firingEffectResPath = "";
@@ -154,33 +170,39 @@ export class EveChildTurret extends EveChildMesh
 
   /** Size of impacts; no impact when 0 or less. */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   impactSize = 0;
 
   /** What the impacts should hit (an ImpactBehaviour value). */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ImpactBehaviour")
   impactBehaviour = EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR;
 
   /** The observer for turret movement sounds; positioned automatically. */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriObserverLocal")
   turretMovementObserver = null;
 
   /** Whether mechanical movement sounds play when events are authored. */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   playMovementSound = true;
 
   /** Audio event for mechanical noise when moving from idle to targeting. */
+  @edit.readwrite
   @edit.persist
   @type.string
   idleToTargetingMovementAudioEvent = "";
 
   /** Audio event for mechanical noise when moving from targeting to idle. */
+  @edit.readwrite
   @edit.persist
   @type.string
   targetingToIdleMovementAudioEvent = "";

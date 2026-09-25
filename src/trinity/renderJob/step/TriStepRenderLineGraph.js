@@ -14,26 +14,31 @@ export class TriStepRenderLineGraph extends TriRenderStep
   lineGraphs = [];
 
   /** m_scale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;
 
   /** m_legendScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   legendScale = 1;
 
   /** m_autoScale (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   autoScale = true;
 
   /** m_showLegend (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   showLegend = true;
 
   /** m_maxLegend (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxLegend = 1000000000000;

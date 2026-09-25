@@ -9,36 +9,43 @@ export class Tr2PPFilmGrainEffect extends Tr2PPEffect
 {
 
   /** m_colorAmount (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   colorAmount = 0.6;
 
   /** m_grainContrast (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   grainContrast = 4;
 
   /** m_grainDensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   grainDensity = 0.35;
 
   /** m_intensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 0.0008;
 
   /** m_grainSize (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   grainSize = 1.25;
 
   /** m_brightnessModifier (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightnessModifier = -3;
 
   /** m_colored (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   colored = true;

@@ -9,6 +9,7 @@ export class TriFloat extends CjsModel
 {
 
   /** m_value (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

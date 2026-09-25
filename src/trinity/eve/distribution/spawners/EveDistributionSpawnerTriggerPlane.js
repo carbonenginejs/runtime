@@ -17,31 +17,37 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   #currentTrigger = 0;
 
   /** m_triggerChance (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   triggerChance = 1;
 
   /** m_planeRotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   planeRotation = quat.create();
 
   /** m_startSequenceAtFirstTrigger (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   startSequenceAtFirstTrigger = true;
 
   /** m_playDuration (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   playDuration = 1;
 
   /** m_delayBeforeActivation (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayBeforeActivation = 0;
 
   /** m_reversePlaneAnimation (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   reversePlaneAnimation = false;

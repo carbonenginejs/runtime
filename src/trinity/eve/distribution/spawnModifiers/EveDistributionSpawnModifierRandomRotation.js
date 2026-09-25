@@ -14,21 +14,25 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   #timeSeed = Date.now() >>> 0;
 
   /** m_minRotation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   minRotation = vec3.create();
 
   /** m_maxRotation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   maxRotation = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_overrideRotation (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   overrideRotation = false;

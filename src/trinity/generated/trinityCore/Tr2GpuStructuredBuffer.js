@@ -10,18 +10,21 @@ export class Tr2GpuStructuredBuffer extends CjsModel
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   creationFlags = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   count = 0;
 
   /** m_stride (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   stride = 0;

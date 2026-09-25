@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterInt", family: "eve" })
 export class EveSOFDataParameterInt extends EveSOFDataParameter
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   value = 0;

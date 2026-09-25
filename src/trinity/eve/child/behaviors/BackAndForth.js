@@ -24,59 +24,70 @@ export class BackAndForth extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_enabled (bool) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_locatorType (LocatorType - enum LocatorType) [READWRITE, PERSIST, ENUM, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("LocatorType")
   locatorType = 0;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveLocatorSets")
   locatorSet = [];
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   arrivedRadius = 50;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   distFromOrigin = 20;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   slowDownRadius = 200;
 
   /** m_backAndForthWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   backAndForthWeight = 100;
 
   /** m_fxBehavior (IBehavior*) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IBehavior")
   fxBehavior = null;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveSpaceObject2")
   target = null;
 
   /** m_parent (EveSpaceObject2*) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveSpaceObject2")
   parent = null;
@@ -87,6 +98,7 @@ export class BackAndForth extends CjsModel
   secondsToTurn = 0.25;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   locatorSetName = "damage";

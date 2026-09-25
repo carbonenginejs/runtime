@@ -11,11 +11,13 @@ export class AudioCurveSetDriver extends CjsModel
 {
 
   /** m_fallbackCurve (ITriScalarFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriScalarFunction")
   fallbackCurve = null;
 
   /** m_name (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -26,6 +28,7 @@ export class AudioCurveSetDriver extends CjsModel
   audioParameterValue = 0;
 
   /** m_audioParameterName (std::wstring) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.string
   audioParameterName = "";

@@ -13,37 +13,44 @@ export class TriTransformParameter extends CjsParameter
 {
 
   /** m_transformBase (TRITRANSFORMBASE - enum TRITRANSFORMBASE) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TRITRANSFORMBASE")
   transformBase = 0;
 
   /** m_rotationCenter (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   rotationCenter = vec3.create();
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** m_worldTransform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   worldTransform = mat4.create();

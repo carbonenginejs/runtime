@@ -11,16 +11,19 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
 {
 
   /** m_expression (std::string) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.expression
   expression = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "bucket";
 
   /** m_inputs (PITriScalarFunctionVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITriScalarFunction")
   expressionInputs = [];

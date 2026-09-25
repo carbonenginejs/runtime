@@ -84,6 +84,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   volumetricQuality = 0;
 
   /** m_scene (EveSpaceScenePtr) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.model("EveSpaceScene")
   scene = null;
@@ -154,6 +155,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   fpsRenderer = null;
 
   /** m_mainPassRenderingEnabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   mainPassRenderingEnabled = true;
@@ -189,6 +191,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   background = null;
 
   /** m_ssao (Tr2SSAOPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2SSAO")
   SSAO = null;

@@ -16,6 +16,7 @@ export class Tr2IntSkinnedObject extends Tr2SkinnedObject
   boundingSphereRadius = 0;
 
   /** m_depthOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthOffset = 0;

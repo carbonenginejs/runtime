@@ -15,22 +15,27 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3MoveBetween extends EveVirtualCameraBehaviourVector3Base
 {
+  @edit.readwrite
   @edit.persist
   @type.vec3
   end = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   proportional = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   world = true;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   interpolationCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   start = vec3.create();

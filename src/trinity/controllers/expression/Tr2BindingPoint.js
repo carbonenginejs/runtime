@@ -29,6 +29,7 @@ const SWIZZLE_OFFSETS = {
 export class Tr2BindingPoint extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "";
@@ -39,6 +40,7 @@ export class Tr2BindingPoint extends CjsModel
   object = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   attribute = "";

@@ -47,36 +47,42 @@ export class EveChildSpherePin extends EveChildMesh
   }
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_centerNormal (Vector3) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   centerNormal = vec3.create();
 
   /** m_pinMaxRadius (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   pinMaxRadius = 0.2;
 
   /** m_pinRadius (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   pinRadius = 0;
 
   /** m_pinRotation (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   pinRotation = 0;
 
   /** m_pinAlphaThreshold (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   pinAlphaThreshold = 0;

@@ -19,26 +19,31 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 export class Tr2ActionSetValue extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   attribute = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("IRoot")
   destination = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   delayBinding = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   path = "";

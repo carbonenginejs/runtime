@@ -15,39 +15,48 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class TriCurveSet extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useRealTime = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   playOnLoad = true;
 
+  @edit.read
   @edit.persist
   @type.list("ITr2ValueBinding")
   bindings = [];
 
+  @edit.read
   @edit.persist
   @type.list("ITriFunction")
   curves = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2CurveSetRange")
   ranges = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSimTimeRebase = false;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ICurveSetDriver")
   driver = null;

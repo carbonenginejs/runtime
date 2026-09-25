@@ -25,6 +25,7 @@ export class Tr2DynamicBinding extends CjsModel
 
   #sourceRef = null;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   bindingDelay = 0;
@@ -37,31 +38,37 @@ export class Tr2DynamicBinding extends CjsModel
   @type.boolean
   isDestinationValid = false;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   destinationObjectAttribute = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   destinationObjectPath = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceObjectAttribute = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceObjectPath = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;

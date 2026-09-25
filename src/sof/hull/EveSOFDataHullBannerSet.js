@@ -9,11 +9,13 @@ export class EveSOFDataHullBannerSet extends CjsModel
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_banners (PEveSOFDataHullBannerSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullBannerSetItem")
   banners = [];

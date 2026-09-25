@@ -71,36 +71,42 @@ export class Tr2Denoiser extends CjsModel
 
   /** m_bypass (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   bypass = false;
 
   /** m_depthWeight (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthWeight = 100;
 
   /** m_normalWeight (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   normalWeight = 1.5;
 
   /** m_planeWeight (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   planeWeight = 0;
 
   /** m_radius (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   radius = 5;
 
   /** m_stepSize (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   stepSize = 1;

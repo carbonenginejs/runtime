@@ -14,26 +14,32 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class TriViewport extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   x = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   y = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   width = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   height = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minZ = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxZ = 1;

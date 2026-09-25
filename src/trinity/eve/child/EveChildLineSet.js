@@ -14,67 +14,79 @@ export class EveChildLineSet extends EveChildTransform
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("lineSetType")
   renderType = 1;
 
   /** m_lineSet (EveCurveLineSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveCurveLineSet")
   lineSet = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = -1;
 
   /** m_brightness (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_baseColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   baseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_animColor (Vector4) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   animColor = color.createLinear();
 
   /** m_additiveBatch (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   additiveBatches = false;
 
   /** m_scrollSpeed (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   scrollSpeed = 0;
 
   /** m_lines (PIEveLineSetPathVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveLineSetPath")
   lines = [];
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   alwaysOn = false;
@@ -86,6 +98,7 @@ export class EveChildLineSet extends EveChildTransform
 
   /** m_mesh (Tr2MeshPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Mesh")
   mesh = null;

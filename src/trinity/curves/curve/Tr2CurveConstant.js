@@ -19,10 +19,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2CurveConstant extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   value = vec4.create();

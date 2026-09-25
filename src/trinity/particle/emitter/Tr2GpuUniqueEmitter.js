@@ -13,16 +13,19 @@ import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 @type.define({ className: "Tr2GpuUniqueEmitter", family: "particle" })
 export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaledByParent = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   attractorPosition = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   attractorStrength = 0;

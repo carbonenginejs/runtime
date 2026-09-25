@@ -10,16 +10,19 @@ export class EveSOFDataPatternPerHull extends CjsModel
 {
 
   /** m_transformLayer1 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternTransform")
   transformLayer1 = null;
 
   /** m_transformLayer2 (EveSOFDataPatternTransformPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternTransform")
   transformLayer2 = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -20,16 +20,19 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   #parameterMapping = [];
 
   /** m_parameters (PEveProceduralMethodRandomParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveProceduralMethodRandomParameter")
   parameters = [];
 
   /** m_debugVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   debugVolumes = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -40,6 +43,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   totalWeight = 0;
 
   /** m_seedName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   seedName = "";

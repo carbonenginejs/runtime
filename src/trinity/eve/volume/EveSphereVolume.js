@@ -17,20 +17,24 @@ import { carbon, edit, impl, type } from "#schema";
 export class EveSphereVolume extends IEveVolume
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerRadius = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

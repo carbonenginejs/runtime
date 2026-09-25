@@ -9,11 +9,13 @@ export class EveSOFDataTexture extends CjsModel
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_resFilePath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   resFilePath = "";

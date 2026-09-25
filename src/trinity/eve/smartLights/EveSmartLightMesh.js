@@ -34,6 +34,7 @@ import { BELIST_INSERTED } from "../../controllers/contracts.js";
 ])
 export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   shaderParamColorName = "";
@@ -41,18 +42,23 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   // Flattened EveSmartLightBaseGroup secondary base.
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   factionColor = -1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useFactionColor = false;
 
+  @edit.notify
+  @edit.read
   @edit.persist
   @type.list("IEveSmartLightGroupAttributeModifier")
   attributeModifiers = [];
 
+  @edit.readwrite
   @edit.persist
   @type.color
   customColor = color.createLinear();

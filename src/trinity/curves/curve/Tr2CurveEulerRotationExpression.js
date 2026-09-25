@@ -16,18 +16,22 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 })
 export class Tr2CurveEulerRotationExpression extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persistOnly
   @type.expression
   expressionYaw = "";
 
+  @edit.readwrite
   @edit.persistOnly
   @type.expression
   expressionPitch = "";
 
+  @edit.readwrite
   @edit.persistOnly
   @type.expression
   expressionRoll = "";
@@ -36,22 +40,27 @@ export class Tr2CurveEulerRotationExpression extends CjsModel
   @type.quat
   currentValue = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input1 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input2 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input3 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input4 = 0;
 
+  @edit.read
   @edit.persist
   @type.list("ITriScalarFunction")
   inputs = [];

@@ -20,25 +20,30 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
 })
 export class EveCircle extends IEveLineSetPath
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
@@ -48,54 +53,65 @@ export class EveCircle extends IEveLineSetPath
   isVisible = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   circleRadius = 100;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   circleDistort = vec4.fromValues(1, 0, 1, 0);
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   numSegments = 64;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   completeness = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   startPoint = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   lineWidth = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaleSegmentsByCompleteness = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaleEndpoints = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   billboardObjects = false;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   objectScale = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   movementSpeed = 0;

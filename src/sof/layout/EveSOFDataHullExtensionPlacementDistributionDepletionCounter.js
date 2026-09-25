@@ -9,11 +9,13 @@ export class EveSOFDataHullExtensionPlacementDistributionDepletionCounter extend
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

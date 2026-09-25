@@ -17,18 +17,22 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 })
 export class Tr2CurveVector3 extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   z = new Tr2CurveScalar();

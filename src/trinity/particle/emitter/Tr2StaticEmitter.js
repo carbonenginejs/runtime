@@ -17,6 +17,7 @@ export class Tr2StaticEmitter extends CjsModel
   hasSpawnedParticles = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -27,18 +28,21 @@ export class Tr2StaticEmitter extends CjsModel
   geometryResource = null;
 
   /** m_meshIndex (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   meshIndex = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2ParticleSystem")
   particleSystem = null;
 
   /** m_geometryResourcePath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   geometryResourcePath = "";

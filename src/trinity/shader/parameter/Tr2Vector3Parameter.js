@@ -19,6 +19,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 export class Tr2Vector3Parameter extends CjsVectorParameter
 {
 
+  @edit.readwrite
   @edit.persistOnly
   @type.vec3
   value = vec3.fromValues(1, 1, 1);
@@ -32,6 +33,7 @@ export class Tr2Vector3Parameter extends CjsVectorParameter
   usedByCurrentEffect = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

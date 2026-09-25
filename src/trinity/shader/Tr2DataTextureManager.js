@@ -58,6 +58,7 @@ export class Tr2DataTextureManager extends CjsModel
   maxPixelCount = 0;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

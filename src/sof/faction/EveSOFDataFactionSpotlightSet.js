@@ -10,26 +10,31 @@ export class EveSOFDataFactionSpotlightSet extends CjsModel
 {
 
   /** m_groupIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   groupIndex = -1;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_coneColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   coneColor = vec4.create();
 
   /** m_spriteColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   spriteColor = vec4.create();
 
   /** m_flareColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   flareColor = vec4.create();

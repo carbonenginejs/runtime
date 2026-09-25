@@ -16,31 +16,37 @@ export class EveChildQuad extends EveChildTransform
 {
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_minScreenSize (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScreenSize = 0;
 
   /** m_brightness (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_color (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_viewRotation (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   viewRotation = 0;
@@ -51,6 +57,7 @@ export class EveChildQuad extends EveChildTransform
   currentScreenSize = -1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;

@@ -22,6 +22,7 @@ export class Tr2DynamicEmitter extends CjsModel
   #lastUpdate = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -32,22 +33,26 @@ export class Tr2DynamicEmitter extends CjsModel
   isValid = false;
 
   /** m_generators (PITr2AttributeGeneratorVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2AttributeGenerator")
   generators = [];
 
   /** m_maxParticles (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   maxParticles = -1;
 
   /** m_rate (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   rate = 0;
 
   /** m_particleSystem (Tr2ParticleSystemPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2ParticleSystem")
   particleSystem = null;

@@ -17,10 +17,12 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSpawnParticles extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2DynamicEmitter")
   emitter = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   rate = 1;

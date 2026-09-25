@@ -17,6 +17,7 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2DistanceTracker extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -25,32 +26,39 @@ export class Tr2DistanceTracker extends CjsModel
   @type.float32
   value = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   signedDistance = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   distanceToClosest = true;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   direction = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   sourceObject = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   targetObject = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   sourcePosition = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   targetPosition = vec3.create();

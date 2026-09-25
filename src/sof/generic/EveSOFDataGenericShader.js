@@ -9,31 +9,37 @@ export class EveSOFDataGenericShader extends CjsModel
 {
 
   /** m_parameters (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   parameters = [];
 
   /** m_defaultParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   defaultParameters = [];
 
   /** m_defaultTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /** m_transparencyTextureName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   transparencyTextureName = "";
 
   /** m_doGenerateDepthArea (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   doGenerateDepthArea = true;
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shader = "";

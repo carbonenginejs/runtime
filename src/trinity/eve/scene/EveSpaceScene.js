@@ -134,56 +134,66 @@ export class EveSpaceScene extends CjsModel
 
   /** m_envMap1ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   envMap1ResPath = "";
 
   /** m_envMap2ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   envMap2ResPath = "";
 
   /** m_envMap3ResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   envMap3ResPath = "";
 
   /** m_lowQualityNebulaResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   lowQualityNebulaResPath = "";
 
   /** m_lowQualityNebulaMixResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   lowQualityNebulaMixResPath = "";
 
   /** m_envMapResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   envMapResPath = "";
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   fogColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_sunData.DirWorld (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   sunDirection = vec3.fromValues(0, -1, 0);
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   ambientColor = vec4.fromValues(0.25, 0.25, 0.25, 1);
 
   /** m_shLightingManager (Tr2ShLightingManagerPtr) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.model("Tr2ShLightingManager")
   shLightingManager = null;
@@ -222,27 +232,32 @@ export class EveSpaceScene extends CjsModel
   postProcessDebug = null;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_defaultDiffuseRoughness (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   defaultDiffuseRoughness = 1;
 
   /** m_fogStart (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fogStart = 0;
 
   /** m_fogEnd (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fogEnd = 0;
 
   /** m_reflectionIntensity (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   reflectionIntensity = 1;
@@ -253,31 +268,37 @@ export class EveSpaceScene extends CjsModel
   distanceFields = [];
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   backgroundEffect = null;
 
   /** m_backgroundReflectionIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   backgroundReflectionIntensity = 1;
 
   /** m_nebulaIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   nebulaIntensity = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_backgroundRenderingEnabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   backgroundRenderingEnabled = false;
 
   /** m_update (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   update = true;
@@ -288,16 +309,19 @@ export class EveSpaceScene extends CjsModel
   impostorManager = null;
 
   /** m_lensflares (PEveLensflareVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveLensflare")
   lensflares = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_fogMax (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fogMax = 0;
@@ -313,21 +337,25 @@ export class EveSpaceScene extends CjsModel
   debugRenderer = null;
 
   /** m_objects (PIEveSpaceObject2Vector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
   objects = [];
 
   /** m_uiObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
   uiObjects = [];
 
   /** m_backgroundObjects (PIEveSpaceObject2Vector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObject2")
   backgroundObjects = [];
 
   /** m_planets (PEvePlanetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EvePlanet")
   planets = [];
@@ -339,12 +367,14 @@ export class EveSpaceScene extends CjsModel
 
   /** m_reflectionBackLightingColor (Color) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   reflectionBackLightingColor = vec4.fromValues(2, 2, 2, 2);
 
   /** m_reflectionBackLightingContrast (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   reflectionBackLightingContrast = 8;
@@ -361,16 +391,19 @@ export class EveSpaceScene extends CjsModel
   volumetricsRenderer = new Tr2VolumetricsRenderer();
 
   /** m_starfield (EveStarfieldPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveStarfield")
   starfield = null;
 
   /** m_planetScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   planetScale = 1000000;
 
   /** m_planetCameraScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   planetCameraScale = 1000000;
@@ -388,16 +421,19 @@ export class EveSpaceScene extends CjsModel
   shadowQualitySetting = 3;
 
   /** m_sunColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   sunDiffuseColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_sunColorWithDynamicLights (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   sunDiffuseColorWithDynamicLights = vec4.fromValues(1, 1, 1, 1);
 
   /** m_envMapRotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   envMapRotation = quat.create();
@@ -408,21 +444,25 @@ export class EveSpaceScene extends CjsModel
   ballpark = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_sunBall (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   sunBall = null;
 
   /** m_sceneDefaultPostProcess (Tr2PostProcess2Ptr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2PostProcess2")
   postprocess = null;
 
   /** m_virtualCameraSystem (EveVirtualCameraSystemPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveVirtualCameraSystem")
   virtualCameraSystem = null;
@@ -438,6 +478,7 @@ export class EveSpaceScene extends CjsModel
   perFrameDebug = 0;
 
   /** m_cascadedShadowMap (Tr2ShadowMapPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2ShadowMap")
   cascadedShadowMap = null;
@@ -448,6 +489,7 @@ export class EveSpaceScene extends CjsModel
   updateTime = 0;
 
   /** m_useSunColorWithDynamicLights (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSunDiffuseColorWithDynamicLights = false;

@@ -11,26 +11,31 @@ export class EveSOFDataHullSoundEmitter extends CjsModel
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_prefix (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   prefix = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_attenuationScalingFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   attenuationScalingFactor = 1;

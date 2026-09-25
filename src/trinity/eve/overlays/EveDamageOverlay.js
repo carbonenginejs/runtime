@@ -39,10 +39,12 @@ export class EveDamageOverlay extends CjsModel
   @type.float32
   renderPriority = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   armorDamageShader = null;
@@ -88,6 +90,7 @@ export class EveDamageOverlay extends CjsModel
   @type.int32
   dataTextureBlockID = -1;
 
+  @edit.readwrite
   @edit.persist
   @type.model("TriPerlinCurve")
   hullDamageFlickerCurve = null;

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema eve/child/EveChildInstanceTransform.json).
-import { type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -11,18 +11,22 @@ export class EveChildInstanceTransform extends CjsModel
 {
 
   /** scale (Vector3) */
+  @edit.persist
   @type.vec3
   scale = vec3.fromValues(1, 1, 1);
 
   /** rotation (Quaternion) */
+  @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** translation (Vector3) */
+  @edit.persist
   @type.vec3
   translation = vec3.create();
 
   /** boneIndex (int32_t) */
+  @edit.persist
   @type.int32
   boneIndex = -1;
 

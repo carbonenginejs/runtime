@@ -17,14 +17,17 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class EveChildModifierSRT extends IEveChildTransformModifier
 {
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();

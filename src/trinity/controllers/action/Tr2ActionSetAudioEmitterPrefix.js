@@ -16,10 +16,12 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSetAudioEmitterPrefix extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   emitter = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   prefix = "";

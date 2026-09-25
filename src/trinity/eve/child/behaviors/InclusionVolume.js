@@ -23,27 +23,32 @@ export class InclusionVolume extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** m_inclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   inclusionVolumes = [];
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   behaviorWeight = 60;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_framesBetweenUpdates (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   framesBetweenUpdates = 11;

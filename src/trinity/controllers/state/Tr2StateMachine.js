@@ -17,6 +17,7 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerTimeSec
 })
 export class Tr2StateMachine extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("Tr2StateMachineState")
   states = [];
@@ -26,10 +27,12 @@ export class Tr2StateMachine extends CjsModel
   currentState = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2StateMachineState")
   startState = null;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

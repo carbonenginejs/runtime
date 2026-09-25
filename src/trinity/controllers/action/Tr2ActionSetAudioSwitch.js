@@ -16,14 +16,17 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionSetAudioSwitch extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   emitter = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   switchGroup = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   switchState = "";

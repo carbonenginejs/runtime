@@ -156,6 +156,7 @@ export class Tr2CurveScalar extends CjsModel
     return fracPart * length + first;
   }
 
+  @edit.read
   @edit.persist
   @type.array({
     kind: "struct",
@@ -163,14 +164,17 @@ export class Tr2CurveScalar extends CjsModel
   })
   keys = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeOffset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeScale = 1;
@@ -179,11 +183,13 @@ export class Tr2CurveScalar extends CjsModel
   @type.float32
   currentValue = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")

@@ -39,30 +39,37 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   }
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint8
   pickBufferID = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   hideOnLowQuality = false;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.list("EvePlaneSetItem")
   planes = [];

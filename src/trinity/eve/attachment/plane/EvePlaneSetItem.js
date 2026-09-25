@@ -17,46 +17,57 @@ import { carbon, edit, impl, type } from "#schema";
 export class EvePlaneSetItem extends CjsModel
 {
 
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   layer1Transform = vec4.fromValues(1, 1, 0, 0);
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   layer2Transform = vec4.fromValues(1, 1, 0, 0);
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   layer1Scroll = vec4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   layer2Scroll = vec4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   maskAtlasID = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();

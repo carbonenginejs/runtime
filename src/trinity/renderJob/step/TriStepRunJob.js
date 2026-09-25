@@ -9,6 +9,7 @@ import { TriRenderJob } from "../TriRenderJob.js";
 @type.define({ className: "TriStepRunJob", family: "renderJob" })
 export class TriStepRunJob extends TriRenderStep
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriRenderJob")
   job = null;

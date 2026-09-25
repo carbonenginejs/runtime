@@ -13,16 +13,19 @@ export class EveSOFDataHullLightSetSpotLight extends EveSOFDataHullLightSetItem
 {
 
   /** m_data.rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_data.innerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerAngle = 0;
 
   /** m_data.outerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   outerAngle = 0;

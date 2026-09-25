@@ -19,14 +19,17 @@ export class EveThrottleable extends CjsModel
   @type.float32
   currentUpdateFrequency = 10;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   updateThrottle = true;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   maxUpdateFrequency = 20;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   minUpdateFrequency = 2;

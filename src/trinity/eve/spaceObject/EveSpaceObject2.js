@@ -63,23 +63,27 @@ export class EveSpaceObject2 extends EveEntity
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = 3;
 
   /** m_effectChildren (PIEveSpaceObjectChildVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   effectChildren = [];
 
   /** m_children (PIEveTransformVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveTransform")
   children = [];
 
   /** m_name (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -96,11 +100,13 @@ export class EveSpaceObject2 extends EveEntity
   inheritProperties = null;
 
   /** m_customMasks (PEveCustomMaskVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveCustomMask")
   customMasks = [];
 
   /** m_overlayEffects (PEveMeshOverlayEffectVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveMeshOverlayEffect")
   overlayEffects = [];
@@ -117,6 +123,7 @@ export class EveSpaceObject2 extends EveEntity
   lodLevel = -1;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
@@ -152,68 +159,81 @@ export class EveSpaceObject2 extends EveEntity
   animationUpdater = null;
 
   /** m_dna (std::string) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.string
   dna = "";
 
   /** m_castShadow (bool) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   castShadow = false;
 
   /** m_isAnimated (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isAnimated = false;
 
   /** m_dynamicBoundingSphereEnabled (bool) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.boolean
   dynamicBoundingSphereEnabled = false;
 
   /** m_attachments (PIEveSpaceObjectAttachmentVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
   /** m_decals (PEveSpaceObjectDecalVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSpaceObjectDecal")
   decals = [];
 
   /** m_lights (PTr2LightVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
   /** m_locators (PEveLocator2Vector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveLocator2")
   locators = [];
 
   /** m_mesh (Tr2MeshBasePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2MeshBase")
   mesh = null;
 
   /** m_impactOverlay (EveImpactOverlayPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveImpactOverlay")
   impactOverlay = null;
 
   /** m_clipSphereCenter (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   clipSphereCenter = vec3.create();
@@ -231,6 +251,7 @@ export class EveSpaceObject2 extends EveEntity
   clipSphereFactor = 0;
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
@@ -241,6 +262,7 @@ export class EveSpaceObject2 extends EveEntity
   worldPosition = vec3.create();
 
   /** m_ballRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   rotationCurve = null;
@@ -251,11 +273,13 @@ export class EveSpaceObject2 extends EveEntity
   worldRotation = quat.create();
 
   /** m_modelScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   modelScale = 1;
 
   /** m_locatorSets (PEveLocatorSetsVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveLocatorSets")
   locatorSets = [];
@@ -272,11 +296,13 @@ export class EveSpaceObject2 extends EveEntity
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_update (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   update = true;
@@ -287,6 +313,7 @@ export class EveSpaceObject2 extends EveEntity
   secondaryLightingSphereRadius = 0;
 
   /** m_boundingSphereCenter (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   boundingSphereCenter = vec3.create();
@@ -322,6 +349,7 @@ export class EveSpaceObject2 extends EveEntity
   damageLocatorAutoFilterEnabled = false;
 
   /** m_boundingSphereRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   boundingSphereRadius = -1;
@@ -332,26 +360,31 @@ export class EveSpaceObject2 extends EveEntity
   modelWorldPosition = vec3.create();
 
   /** m_modelTranslation (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   modelTranslationCurve = null;
 
   /** m_modelRotation (ITriQuaternionFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   modelRotationCurve = null;
 
   /** m_shapeEllipsoidCenter (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   shapeEllipsoidCenter = vec3.create();
 
   /** m_shapeEllipsoidRadius (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   shapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
   /** m_ballPosition (ITriVectorFunctionPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   translationCurve = null;

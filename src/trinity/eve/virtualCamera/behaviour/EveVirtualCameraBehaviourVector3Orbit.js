@@ -16,31 +16,38 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3Orbit extends EveVirtualCameraBehaviourVector3Base
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   orbitCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   distanceScalarCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   end = 180;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   proportional = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   world = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   start = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   distance = 1;

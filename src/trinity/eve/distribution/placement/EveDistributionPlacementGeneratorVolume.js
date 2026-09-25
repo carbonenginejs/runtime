@@ -20,23 +20,27 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
 
   /** m_numGenerated (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   numGenerated = 10;
 
   /** m_hollowVolume (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   hollowVolume = false;
 
   /** m_falloffFactor (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   falloffFactor = 1.5;
 
   /** m_volume (IEveVolumePtr) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.model("IEveVolume")
   volume = null;

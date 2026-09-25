@@ -15,15 +15,31 @@ import { EveEntity } from "../../EveEntity.js";
 @carbon.inherit(IEveSpaceObject2)
 export class EveFiringEffectElementContainer extends EveEntity
 {
-  @edit.persistOnly @type.model("IEveFiringEffectElement") element = null;
+  @edit.readwrite
+  @edit.persistOnly
+ @type.model("IEveFiringEffectElement") element = null;
   @edit.readwrite @type.vec3 source = vec3.create();
-  @edit.persist @type.mat4 sourceTransform = mat4.create();
-  @edit.persist @type.vec3 destination = vec3.create();
-  @edit.persist @type.boolean useSourceTransform = false;
-  @edit.persist @type.boolean displayDestination = true;
-  @edit.persist @type.boolean displaySource = true;
-  @edit.persist @type.boolean display = true;
-  @edit.persist @type.float32 destinationScale = 1;
+  @edit.readwrite
+  @edit.persist
+ @type.mat4 sourceTransform = mat4.create();
+  @edit.readwrite
+  @edit.persist
+ @type.vec3 destination = vec3.create();
+  @edit.readwrite
+  @edit.persist
+ @type.boolean useSourceTransform = false;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean displayDestination = true;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean displaySource = true;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean display = true;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 destinationScale = 1;
 
   #active = false;
 

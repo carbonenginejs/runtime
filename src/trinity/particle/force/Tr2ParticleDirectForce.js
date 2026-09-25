@@ -13,6 +13,7 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2ParticleDirectForce extends ITr2ParticleForce
 {
+  @edit.readwrite
   @edit.persist
   @type.vec3
   force = vec3.fromValues(1, 1, 1);

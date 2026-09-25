@@ -25,6 +25,7 @@ export class Tr2StepExecuteRenderNode extends TriRenderStep
   clearTargetOnFailure = true;
 
   /** m_node (ITr2RenderNodePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2RenderNode")
   node = null;

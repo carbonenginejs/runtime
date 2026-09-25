@@ -19,6 +19,7 @@ export class Tr2AtlasTexture extends CjsModel
   height = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

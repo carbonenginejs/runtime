@@ -101,11 +101,13 @@ export class EveTacticalTrails extends CjsModel
   egoBall = null;
 
   /** m_trailEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   trailEffect = null;
 
   /** m_fadeOutTime (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fadeOutTime = 5;

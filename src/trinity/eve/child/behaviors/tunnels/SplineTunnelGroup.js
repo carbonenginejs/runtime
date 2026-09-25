@@ -30,6 +30,7 @@ export class SplineTunnelGroup extends CjsModel
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TunnelGroupType")
@@ -37,30 +38,35 @@ export class SplineTunnelGroup extends CjsModel
 
   /** m_curveSets (PTr2CurveVector3Vector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("Tr2CurveVector3")
   curveSets = [];
 
   /** m_numBreakPoints (int32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   breakPoints = 2;
 
   /** m_tunnelWidth (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   tunnelWidth = 15;
 
   /** m_entrancePullSize (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   entrancePullSize = 50;
 
   /** m_entrySize (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   entrySize = 20;

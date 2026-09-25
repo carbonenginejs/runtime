@@ -14,38 +14,45 @@ export class EveSOFDataInstancedMesh extends CjsModel
 
 
   /** m_displayModifier (DisplayQualityModifier - enum DisplayQualityModifier) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataInstancedMesh.DisplayQualityModifier")
   displayModifier = 5;
 
   /** m_instances (PEveSofDataMeshInstanceStructureList) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSofDataMeshInstance")
   instances = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_lowestLodVisible (Tr2Lod - enum Tr2Lod) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lowestLodVisible = 0;
 
   /** m_geometryResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   geometryResPath = "";
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shader = "";

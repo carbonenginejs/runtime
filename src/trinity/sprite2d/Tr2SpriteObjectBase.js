@@ -174,6 +174,7 @@ export class Tr2SpriteObjectBase extends CjsModel
   display = true;
 
   /** m_pickState (Tr2SpriteObjectPickState - enum Tr2SpriteObjectPickState) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2SpriteObjectPickState")

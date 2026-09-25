@@ -14,10 +14,12 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
 })
 export class EveVirtualCameraBehaviourFloatAdd extends EveVirtualCameraBehaviourFloatBase
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   scaleCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

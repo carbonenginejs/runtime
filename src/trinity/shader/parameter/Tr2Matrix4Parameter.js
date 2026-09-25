@@ -17,6 +17,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @carbon.inherit(ITriReroutable)
 export class Tr2Matrix4Parameter extends CjsVectorParameter
 {
+  @edit.readwrite
   @edit.persistOnly
   @type.mat4
   value = mat4.create();
@@ -30,6 +31,7 @@ export class Tr2Matrix4Parameter extends CjsVectorParameter
   usedByCurrentEffect = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

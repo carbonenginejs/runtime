@@ -9,26 +9,31 @@ export class EveSOFDataHullExtensionPlacementGroup extends CjsModel
 {
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSOFDataHullExtensionPlacement")
   placements = [];
 
   /** m_distributionConditions (PIEveSOFDataHullExtensionPlacementDistributionVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSOFDataHullExtensionPlacementDistribution")
   distributionConditions = [];
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

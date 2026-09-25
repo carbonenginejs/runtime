@@ -23,6 +23,7 @@ export class Tr2GStateAnimation extends CjsModel
   model_ = "";
 
   /** m_gStateParameterList (PTr2GStateParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2GStateParameter")
   parameters = [];

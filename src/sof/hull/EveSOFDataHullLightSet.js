@@ -9,16 +9,19 @@ export class EveSOFDataHullLightSet extends CjsModel
 {
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullLightSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullLightSetItem")
   items = [];

@@ -15,17 +15,20 @@ export class Tr2MaterialParameterStore extends CjsModel
   parent = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_parentPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.path
   parentPath = "";
 
   /** m_parameters (PITriEffectParameterDict) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.map("ITriEffectParameter")
   parameters = new Map();

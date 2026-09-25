@@ -20,6 +20,7 @@ export class Tr2Sprite2dScene extends CjsModel
 {
 
   /** m_pickState (Tr2SpriteObjectPickState) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Tr2SpriteObjectPickState")
@@ -36,21 +37,25 @@ export class Tr2Sprite2dScene extends CjsModel
   ubershader3d = null;
 
   /** m_displayWidth (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   displayWidth = 1;
 
   /** m_displayHeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   displayHeight = 1;
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   backgroundColor = vec4.create();
 
   /** m_background (PITr2SpriteObjectVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2SpriteObject")
   background = [];
@@ -61,51 +66,61 @@ export class Tr2Sprite2dScene extends CjsModel
   captureIndexDataCapacity = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_ignoreClip (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   ignoreClip = false;
 
   /** m_clearFinishedCurveSets (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clearFinishedCurveSets = false;
 
   /** m_clearBackground (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clearBackground = false;
 
   /** m_is2dRender (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   is2dRender = true;
 
   /** m_is2dPick (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   is2dPick = true;
 
   /** m_drawWireFrame (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   drawWireFrame = false;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_isFullscreen (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isFullscreen = false;
 
   /** m_depthMax (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthMax = 0;
@@ -117,6 +132,7 @@ export class Tr2Sprite2dScene extends CjsModel
   maxSpriteCount = 1024;
 
   /** m_depthMin (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   depthMin = 0;
@@ -127,16 +143,19 @@ export class Tr2Sprite2dScene extends CjsModel
   lastPickPos = vec2.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_children (PITr2SpriteObjectVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2SpriteObject")
   children = [];
@@ -152,11 +171,13 @@ export class Tr2Sprite2dScene extends CjsModel
   maxItemsToRender = 4294967295;
 
   /** m_name (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_translation (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();

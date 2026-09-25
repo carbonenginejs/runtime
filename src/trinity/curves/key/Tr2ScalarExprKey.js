@@ -19,72 +19,86 @@ import { Tr2CurveInterpolation } from "../enums.js";
 })
 export class Tr2ScalarExprKey extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("Tr2CurveInterpolation")
   interpolation = Tr2CurveInterpolation.LINEAR;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   input1 = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   input2 = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   input3 = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   input4 = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   left = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.expression
   leftTangentExpression = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.expression
   rightTangentExpression = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.expression
   timeExpression = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.expression
   valueExpression = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   randomMax = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   randomMin = 0;
@@ -94,6 +108,7 @@ export class Tr2ScalarExprKey extends CjsModel
   randomConstant = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   right = 0;

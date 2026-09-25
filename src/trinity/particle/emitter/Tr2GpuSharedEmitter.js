@@ -18,133 +18,162 @@ import { ITr2GenericEmitter } from "../ITr2GenericEmitter/index.js";
 @carbon.inherit(ITr2GenericEmitter)
 export class Tr2GpuSharedEmitter extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   continuousEmitter = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   rate = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   emissionDensity = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxEmissionDensity = 10000;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxDisplacement = 1000;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   direction = vec3.fromValues(0, 1, 0);
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   angle = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerAngle = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   inheritVelocity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minSpeed = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxSpeed = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   minLifeTime = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxLifeTime = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   sizes = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   sizeVariance = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color0 = color.createLinear();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color1 = color.createLinear();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color2 = color.createLinear();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color3 = color.createLinear();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   textureIndex = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   colorMidpoint = 0.5;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   velocityStretchRotation = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   drag = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   turbulenceAmplitude = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   turbulenceFrequency = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   gravity = 0;

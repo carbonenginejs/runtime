@@ -15,6 +15,7 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBehaviourVector3Base
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   m_dampingRatio = 1;

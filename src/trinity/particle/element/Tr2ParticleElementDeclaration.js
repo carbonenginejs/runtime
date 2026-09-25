@@ -10,27 +10,32 @@ export class Tr2ParticleElementDeclaration extends CjsModel
 {
 
   /** m_name.m_type (Tr2ParticleElementDeclarationName::Type) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.Tr2ParticleElementDeclarationName.Type")
   elementType = 4;
 
   /** m_name.m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   customName = "";
 
   /** m_dimension (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   dimension = 1;
 
   /** m_usedByGPU (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   usedByGPU = true;
 
   /** m_usageIndex (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   usageIndex = 0;

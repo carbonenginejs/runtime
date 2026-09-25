@@ -15,6 +15,7 @@ export class Tr2MeshArea extends CjsModel
   // m_ownerMeshes (std::vector<Tr2MeshBase*>)
   #ownerMeshes = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -23,23 +24,28 @@ export class Tr2MeshArea extends CjsModel
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   index = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   count = 1;
 
+  @edit.readwrite
   @edit.persistOnly
   @type.boolean
   reversed = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSHLighting = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;

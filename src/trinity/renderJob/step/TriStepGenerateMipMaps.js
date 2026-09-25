@@ -9,6 +9,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepGenerateMipMaps", family: "renderJob" })
 export class TriStepGenerateMipMaps extends TriRenderStep
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2RenderTarget")
   renderTarget = null;

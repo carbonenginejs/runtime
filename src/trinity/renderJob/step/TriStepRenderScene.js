@@ -9,6 +9,7 @@ export class TriStepRenderScene extends TriRenderStep
 {
 
   /** m_scene (ITr2ScenePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2Scene")
   scene = null;

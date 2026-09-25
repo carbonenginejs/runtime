@@ -10,27 +10,32 @@ export class EveSOFDataHullHazeSet extends CjsModel
 {
 
   /** m_hazeType (HazeType - enum HazeType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullHazeSet.HazeType")
   hazeType = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullHazeSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullHazeSetItem")
   items = [];

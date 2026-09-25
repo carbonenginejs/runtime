@@ -26,32 +26,38 @@ export class EveChildInstanceContainer extends EveChildTransform
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
   /** m_transforms (PEveChildInstanceTransformStructureList) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveChildInstanceTransform")
   transforms = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_isAlwaysOn (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveChildInheritProperties")
   inheritProperties = null;
@@ -68,11 +74,13 @@ export class EveChildInstanceContainer extends EveChildTransform
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   locatorSet = "";
 
   /** m_source (IEveSpaceObjectChildPtr) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.model("IEveSpaceObjectChild")
   source = null;

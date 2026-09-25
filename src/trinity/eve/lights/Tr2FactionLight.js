@@ -24,48 +24,57 @@ export class Tr2FactionLight extends Tr2Light
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("PerLightShadowSetting")
   castsShadows = 0;
 
   /** m_lightData.flags (uint16_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint16
   flags = 1;
 
   /** m_lightData.position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_lightData.rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_lightData.boneIndex (int32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_lightData.radius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 0;
 
   /** m_lightData.innerRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerRadius = 0;
 
   /** m_lightData.innerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerAngle = 0;
 
   /** m_lightData.outerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   outerAngle = 0;
@@ -77,57 +86,66 @@ export class Tr2FactionLight extends Tr2Light
   color = color.createLinear();
 
   /** m_lightData.brightness (float) [READWRITE, PERSIST, NOTIFY] */
-  @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;
 
   /** m_lightData.noiseAmplitude (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseAmplitude = 0;
 
   /** m_lightData.noiseFrequency (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseFrequency = 1;
 
   /** m_lightData.noiseOctaves (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   noiseOctaves = 1;
 
   /** m_lightData.isVolumetric (bool) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isVolumetric = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_selectedColor (int) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_saturation (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   saturation = 1;
 
   /** m_isSpotlight (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isSpotlight = false;
 
   /** m_lightProfilePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   lightProfilePath = "";

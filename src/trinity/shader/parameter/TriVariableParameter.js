@@ -12,6 +12,7 @@ export class TriVariableParameter extends CjsParameter
   /** m_name (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -29,6 +30,7 @@ export class TriVariableParameter extends CjsParameter
   /** m_variableName (BlueSharedString) [READWRITE, NOTIFY, PERSIST] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   variableName = "";

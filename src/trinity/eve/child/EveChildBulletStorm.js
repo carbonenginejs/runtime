@@ -56,28 +56,33 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
 
   /** m_multiplier (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   multiplier = 1;
 
   /** m_speed (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   speed = 1000;
 
   /** m_sourceLocatorSet (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceLocatorSet = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_range (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   range = 1000;
@@ -88,6 +93,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   effect = null;

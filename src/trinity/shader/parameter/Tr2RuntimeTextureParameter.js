@@ -20,14 +20,17 @@ import { Tr2ColorSpace } from "#consts/render-context";
 export class Tr2RuntimeTextureParameter extends CjsParameter
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITr2TextureProvider")
   texture = null;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   uavMipLevel = 0;

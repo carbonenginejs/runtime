@@ -16,10 +16,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2RotationAdapter extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.quat
   value = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   curve = null;

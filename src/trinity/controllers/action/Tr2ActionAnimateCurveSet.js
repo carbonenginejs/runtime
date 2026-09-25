@@ -17,11 +17,13 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionAnimateCurveSet extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriCurveSet")
   curveSet = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "StateTime()";

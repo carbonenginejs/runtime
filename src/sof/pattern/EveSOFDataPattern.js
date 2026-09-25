@@ -12,31 +12,37 @@ export class EveSOFDataPattern extends CjsModel
 {
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataPatternPerHull")
   projections = [];
 
   /** m_applicationGroups (PEveSOFDataPatternApplicationGroupVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataPatternApplicationGroup")
   applicationGroups = [];
 
   /** m_layer1 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternLayer")
   layer1 = null;
 
   /** m_layer2 (EveSOFDataPatternLayerPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternLayer")
   layer2 = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_sof6 (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   sof6 = false;

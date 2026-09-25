@@ -18,50 +18,62 @@ export class Tr2PostProcess2 extends CjsModel
   // Carbon exposes this as a registered engine setting. Keeping it static makes
   // the graph deterministic while allowing a concrete backend to configure it.
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPSignalLossEffect")
   signalLoss = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPGodRaysEffect")
   godRays = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPBloomEffect")
   bloom = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPDynamicExposureEffect")
   dynamicExposure = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPFilmGrainEffect")
   filmGrain = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPDesaturateEffect")
   desaturate = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPFadeEffect")
   fade = null;
 
+  @edit.read
   @edit.persist
   @type.list("Tr2PPLutEffect")
   luts = [];
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPLutEffect")
   lut = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPVignetteEffect")
   vignette = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPFogEffect")
   fog = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPDepthOfFieldEffect")
   depthOfField = null;
@@ -70,14 +82,17 @@ export class Tr2PostProcess2 extends CjsModel
   @type.objectRef("Tr2PPTaaEffect")
   taa = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPTonemappingEffect")
   tonemapping = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPColorCorrectionEffect")
   colorCorrection = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2PPGenericEffect")
   genericEffect = null;

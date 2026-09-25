@@ -10,12 +10,14 @@ export class Tr2ImpostorManager extends CjsModel
 
   /** m_height (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   height = 1024;
 
   /** m_width (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   width = 1024;
@@ -27,12 +29,14 @@ export class Tr2ImpostorManager extends CjsModel
 
   /** m_itemHeight (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   itemHeight = 32;
 
   /** m_itemWidth (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   itemWidth = 32;
@@ -43,6 +47,7 @@ export class Tr2ImpostorManager extends CjsModel
   effect = null;
 
   /** m_maxUpdates (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   maxUpdates = 16;

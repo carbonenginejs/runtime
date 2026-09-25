@@ -16,30 +16,37 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "EveHazeSetItem", family: "eve/attachment/haze" })
 export class EveHazeSetItem extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   hazeData = vec4.fromValues(4, 0.2, 2, 0);

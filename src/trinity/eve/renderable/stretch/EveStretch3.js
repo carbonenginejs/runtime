@@ -43,23 +43,58 @@ export class EveStretch3 extends IEveFiringEffectElement
 {
   @edit.read @type.vec3 sourcePosition = vec3.create();
   @edit.read @type.vec3 destinationPosition = vec3.create();
-  @edit.notify @edit.persist @type.model("ITriVectorFunction") source = null;
-  @edit.notify @edit.persist @type.model("ITriVectorFunction") dest = null;
-  @edit.persist @type.string name = "";
-  @edit.persist @type.model("TriFloat") moveProgression = new TriFloat();
-  @edit.persist @type.model("IStretchAudio") stretchAudio = null;
-  @edit.persist @type.list("ITr2Controller") controllers = [];
-  @edit.persist @type.list("TriCurveSet") curveSets = [];
-  @edit.persist @type.model("TriFloat") length = new TriFloat();
-  @edit.persist @type.list("Tr2DynamicBinding") dynamicBindings = [];
-  @edit.notify @edit.persist @type.boolean display = true;
-  @edit.persist @type.boolean update = true;
-  @edit.persistOnly @type.model("IEveSpaceObjectChild") destObject = null;
-  @edit.persistOnly @type.model("IEveSpaceObjectChild") sourceObject = null;
-  @edit.persistOnly @type.model("IEveSpaceObjectChild") stretchObject = null;
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") source = null;
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") dest = null;
+  @edit.readwrite
+  @edit.persist
+ @type.string name = "";
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriFloat") moveProgression = new TriFloat();
+  @edit.readwrite
+  @edit.persist
+ @type.model("IStretchAudio") stretchAudio = null;
+  @edit.read
+  @edit.persist
+ @type.list("ITr2Controller") controllers = [];
+  @edit.read
+  @edit.persist
+ @type.list("TriCurveSet") curveSets = [];
+  @edit.read
+  @edit.persist
+ @type.model("TriFloat") length = new TriFloat();
+  @edit.read
+  @edit.persist
+ @type.list("Tr2DynamicBinding") dynamicBindings = [];
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
+ @type.boolean display = true;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean update = true;
+  @edit.readwrite
+  @edit.persistOnly
+ @type.model("IEveSpaceObjectChild") destObject = null;
+  @edit.readwrite
+  @edit.persistOnly
+ @type.model("IEveSpaceObjectChild") sourceObject = null;
+  @edit.readwrite
+  @edit.persistOnly
+ @type.model("IEveSpaceObjectChild") stretchObject = null;
   @edit.read @type.float64 startTime = 0;
-  @edit.persist @type.model("ITr2Audio") audio = null;
-  @edit.persistOnly @type.model("IEveSpaceObjectChild") moveObject = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITr2Audio") audio = null;
+  @edit.readwrite
+  @edit.persistOnly
+ @type.model("IEveSpaceObjectChild") moveObject = null;
 
   #sourceSpaceObject = null;
   #destinationSpaceObject = null;

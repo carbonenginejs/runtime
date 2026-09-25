@@ -13,26 +13,31 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   #numTriggered = 0;
 
   /** m_delayBetweenRepeats (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayBetweenRepeats = 1;
 
   /** m_numberOfTriggers (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   numberOfRepeats = 0;
 
   /** m_useRandomStartOffset (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useRandomStartOffset = true;
 
   /** m_maxRandomizedIntervalDelta (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxRandomizedIntervalDelta = 0;
 
   /** m_delayBeforeInitialSpawn (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayBeforeInitialSpawn = 0;

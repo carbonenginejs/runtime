@@ -42,47 +42,56 @@ export class EveSOFDataHullBanner extends CjsModel
   });
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullBanner.Usage")
   usage = 3;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_scaling (Vector3) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_angleX (float) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.float32
   angleX = 0;
 
   /** m_angleY (float) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.float32
   angleY = 0;
 
   /** m_lightOverride (EveSOFDataHullBannerLightPtr) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.objectRef("EveSOFDataHullBannerLight")
   lightOverride = new EveSOFDataHullBannerLight();
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
@@ -93,6 +102,7 @@ export class EveSOFDataHullBanner extends CjsModel
   maintainAspectRatio = true;
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";

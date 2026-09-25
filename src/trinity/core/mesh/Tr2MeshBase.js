@@ -19,6 +19,7 @@ import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 @type.define({ className: "Tr2MeshBase", family: "trinityCore" })
 export class Tr2MeshBase extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -28,58 +29,72 @@ export class Tr2MeshBase extends CjsModel
   display = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   meshIndex = 0;
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   opaqueAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   decalAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   depthAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   transparentAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   additiveAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   pickableAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   mirrorAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   decalNormalAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   depthNormalAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   opaquePrepassAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   decalPrepassAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   geometryEraserAreas = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2MeshArea")
   distortionAreas = [];

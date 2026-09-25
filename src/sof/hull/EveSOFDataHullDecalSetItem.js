@@ -29,69 +29,82 @@ export class EveSOFDataHullDecalSetItem extends CjsModel
   });
 
   /** m_logoType (EveSOFDataLogoSet::LogoType - enum LogoType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataLogoSet.LogoType")
   logoType = 0;
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullDecalSetItem.Usage")
   usage = 0;
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   glowColorType = 0;
 
   /** m_boneIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = -1;
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   textures = [];
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_multiHullIndexBuffers (PEveSOFDataMultiHullDecalIndexBuffersVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataMultiHullDecalIndexBuffers")
   multiHullIndexBuffers = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_rotation (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
   /** m_scaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
   /** m_meshIndex (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   meshIndex = -1;

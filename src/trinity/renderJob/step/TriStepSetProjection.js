@@ -13,6 +13,7 @@ export class TriStepSetProjection extends TriRenderStep
 {
   #transform = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriProjection")
   projection = null;

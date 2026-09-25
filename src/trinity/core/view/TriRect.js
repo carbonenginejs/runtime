@@ -12,18 +12,22 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class TriRect extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   left = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   top = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   right = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   bottom = 0;

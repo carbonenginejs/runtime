@@ -16,34 +16,42 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "EveSpotlightSetItem", family: "eve/attachment/spotlights" })
 export class EveSpotlightSetItem extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.color
   coneColor = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.color
   flareColor = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.color
   spriteColor = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   spriteScale = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   boosterGainInfluence = false;

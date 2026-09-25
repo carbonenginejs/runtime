@@ -10,16 +10,19 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
 {
 
   /** m_noiseAmplitude (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseAmplitude = 0;
 
   /** m_noiseFrequency (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   noiseFrequency = 1;
 
   /** m_noiseOctaves (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   noiseOctaves = 1;

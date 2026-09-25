@@ -10,6 +10,7 @@ export class Tr2BindingVector3 extends CjsModel
 {
 
   /** m_value (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   value = vec3.create();

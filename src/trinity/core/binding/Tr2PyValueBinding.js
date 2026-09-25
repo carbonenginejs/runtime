@@ -10,12 +10,14 @@ export class Tr2PyValueBinding extends CjsModel
 
   /** m_destinationAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   destinationAttribute = "";
 
   /** m_sourceAttribute (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceAttribute = "";
@@ -27,6 +29,7 @@ export class Tr2PyValueBinding extends CjsModel
   destinationObject = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

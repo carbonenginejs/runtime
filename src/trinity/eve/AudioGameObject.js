@@ -20,26 +20,32 @@ export class AudioGameObject extends CjsModel
 {
   #worldTransform = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITr2AudEmitter")
   audioEmitter = null;
 
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
@@ -49,6 +55,7 @@ export class AudioGameObject extends CjsModel
   @type.boolean
   mute = false;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

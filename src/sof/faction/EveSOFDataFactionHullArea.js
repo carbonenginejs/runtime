@@ -9,11 +9,13 @@ export class EveSOFDataFactionHullArea extends CjsModel
 {
 
   /** m_parameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   parameters = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -10,52 +10,61 @@ export class EveStarfield extends CjsModel
 
   /** m_seed (int32_t) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   seed = 0;
 
   /** m_minFlashIntensity (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   minFlashIntensity = 0;
 
   /** m_maxDistance (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxDist = 300;
 
   /** m_minDistance (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   minDist = 100;
 
   /** m_minFlashRate (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   minFlashRate = 0.5;
 
   /** m_maxFlashRate (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxFlashRate = 1;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_starCount (int32_t) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   numStars = 500;

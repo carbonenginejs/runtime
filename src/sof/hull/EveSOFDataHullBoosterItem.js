@@ -11,31 +11,37 @@ export class EveSOFDataHullBoosterItem extends CjsModel
 {
 
   /** m_transform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();
 
   /** m_functionality (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   functionality = vec4.fromValues(0, 1, 1, 1);
 
   /** m_hasTrail (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   hasTrail = true;
 
   /** m_atlasIndex0 (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   atlasIndex0 = 0;
 
   /** m_atlasIndex1 (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   atlasIndex1 = 0;
 
   /** m_lightScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightScale = 1;

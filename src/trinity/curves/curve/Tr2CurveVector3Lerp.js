@@ -17,6 +17,7 @@ import { Tr2CurveVector3LerpKeyInterpolation } from "../enums.js";
 })
 export class Tr2CurveVector3Lerp extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -29,6 +30,7 @@ export class Tr2CurveVector3Lerp extends CjsModel
   @type.vec3
   currentValue = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   curveStartTime = 1;
@@ -38,6 +40,7 @@ export class Tr2CurveVector3Lerp extends CjsModel
   @type.enum("Tr2CurveVector3LerpKeyInterpolation")
   startInterpolation = Tr2CurveVector3LerpKeyInterpolation.HERMITE;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;

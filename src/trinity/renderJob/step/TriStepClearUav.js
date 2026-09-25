@@ -10,36 +10,43 @@ export class TriStepClearUav extends TriRenderStep
 {
 
   /** m_buffer (ITr2GpuBufferPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2GpuBuffer")
   buffer = null;
 
   /** m_clearWithFloat (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clearWithFloat = false;
 
   /** m_floatValue (Vector4) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec4
   floatValue = vec4.create();
 
   /** m_uintValue[0] (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   bitValue0 = 0;
 
   /** m_uintValue[1] (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   bitValue1 = 0;
 
   /** m_uintValue[2] (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   bitValue2 = 0;
 
   /** m_uintValue[3] (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   bitValue3 = 0;

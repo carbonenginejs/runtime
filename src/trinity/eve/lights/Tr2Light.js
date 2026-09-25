@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { ResourceRequirement } from "#resource";
 import { blue } from "#blue";
 import { PerLightShadowSetting } from "../../generated/eve/lights/enums.js";
@@ -39,6 +39,8 @@ export class Tr2Light extends CjsModel
   static SPOT_LIGHT = 2;
   static COUNT = 3;
 
+  @edit.readwrite
+  @edit.persist
   @type.string
   name = "";
 
@@ -57,6 +59,9 @@ export class Tr2Light extends CjsModel
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
   @type.string
   lightProfilePath = "";
 

@@ -16,18 +16,22 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionPlaySound extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   emitter = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   event = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   target = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   bypassPrefix = false;

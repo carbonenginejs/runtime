@@ -13,18 +13,22 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "TriObserverLocal", family: "trinityCore" })
 export class TriObserverLocal extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   front = vec3.fromValues(0, 0, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("IBluePlacementObserver")
   observer = null;

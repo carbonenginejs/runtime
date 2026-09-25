@@ -34,37 +34,44 @@ export class FollowASpline extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_tunnelGroupType (TunnelGroupType - enum TunnelGroupType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TunnelGroupType")
   tunnelGroupType = 2;
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_smoothPullFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   smoothPullFactor = 0.8;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   behaviorWeight = 600;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_cornerSmoothener (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   cornerSmoothener = 0.8;

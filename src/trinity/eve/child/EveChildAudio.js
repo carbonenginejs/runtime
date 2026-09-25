@@ -15,6 +15,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 export class EveChildAudio extends EveChildTransform
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "EveChildAudio";
@@ -24,6 +25,7 @@ export class EveChildAudio extends EveChildTransform
   @type.boolean
   mute = false;
 
+  @edit.read
   @edit.persist
   @type.model("ITr2AudEmitter")
   audioEmitter = null;

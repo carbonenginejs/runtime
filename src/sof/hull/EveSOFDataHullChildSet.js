@@ -9,11 +9,13 @@ export class EveSOFDataHullChildSet extends CjsModel
 {
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_items (PEveSOFDataHullChildSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullChildSetItem")
   items = [];

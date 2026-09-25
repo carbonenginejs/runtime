@@ -53,30 +53,37 @@ const SPRITE_QUAD_COUNT = 2;
 export class EveSpotlightSet extends IEveSpaceObjectAttachment
 {
 
+  @edit.read
   @edit.persist
   @type.list("EveSpotlightSetItem")
   spotlightItems = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   coneEffect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   glowEffect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 1;

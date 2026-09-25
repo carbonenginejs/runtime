@@ -16,14 +16,17 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2ParticleVortexForce extends ITr2ParticleForce
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   magnitude = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   axis = vec3.fromValues(0, 1, 0);
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();

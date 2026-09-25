@@ -19,18 +19,22 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
 {
   static #nextPhase = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   octaves = 8;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   magnitude = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   perlineScale = 1;

@@ -14,27 +14,32 @@ export class EveChildPlug extends EveChildTransform
   #controllerVariables = new Map();
 
   /** m_objects (PIEveSpaceObjectChildVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   objects = [];
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_externalParameters (PTr2ExternalParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_controllers (PITr2ControllerVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2Controller")
   controllers = [];

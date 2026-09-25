@@ -9,11 +9,13 @@ export class EveSOFDataDistributionDepletionCounter extends CjsModel
 {
 
   /** m_value (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   value = 1;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -16,11 +16,13 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
 export class Tr2StateMachineTransition extends CjsModel
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   condition = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

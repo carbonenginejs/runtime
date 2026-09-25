@@ -28,18 +28,22 @@ export class Tr2TimelineController extends EveThrottleable
   @type.list("Tr2TimelineEntry")
   entries = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ControllerFloatVariable")
   variables = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ControllerEventHandler")
   eventHandlers = [];
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeScale = 1;

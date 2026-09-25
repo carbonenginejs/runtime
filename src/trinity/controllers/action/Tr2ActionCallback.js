@@ -16,6 +16,7 @@ import { carbon, impl, edit, type } from "#schema";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionCallback extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   callbackName = "";

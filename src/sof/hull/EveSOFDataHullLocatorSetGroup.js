@@ -9,11 +9,13 @@ export class EveSOFDataHullLocatorSetGroup extends IEveSOFDataHullLocatorSet
 {
 
   /** m_locatorSets (PIEveSOFDataHullLocatorSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSOFDataHullLocatorSet")
   locatorSets = [];
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

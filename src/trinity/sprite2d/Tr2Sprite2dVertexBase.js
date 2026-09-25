@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Sprite2d/ITr2Sprite2dRenderer.h
 // Promoted to hand-maintained source 2026-07-23 (Carbon-verified property shell; schema sprite2d/Tr2Sprite2dVertexBase.json.).
-import { type } from "#schema";
+import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
@@ -12,6 +12,8 @@ export class Tr2Sprite2dVertexBase extends CjsModel
 {
 
   /** position (Vector3) */
+  @edit.readwrite
+  @edit.persist
   @type.vec3
   position = vec3.create();
 

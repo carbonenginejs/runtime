@@ -10,6 +10,7 @@ export class TriStepSetVariableStore extends TriRenderStep
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   variableName = "";

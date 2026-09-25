@@ -15,12 +15,14 @@ export class Tr2GpuBuffer extends CjsModel
 
   /** m_creationFlags (CreationFlags) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   creationFlags = 0;
 
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READWRITE, ENUM, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("PixelFormat")
@@ -28,6 +30,7 @@ export class Tr2GpuBuffer extends CjsModel
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   count = 0;

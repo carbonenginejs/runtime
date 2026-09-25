@@ -8,11 +8,13 @@ export class Tr2Model extends CjsModel
 {
 
   /** m_meshes (PTr2MeshVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2Mesh")
   meshes = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

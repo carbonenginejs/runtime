@@ -23,10 +23,12 @@ export class TriTextureParameter extends CjsParameter
 {
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.path
   resourcePath = "";
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   uavMipLevel = 0;
@@ -48,6 +50,7 @@ export class TriTextureParameter extends CjsParameter
   usedByCurrentEffect = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

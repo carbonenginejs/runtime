@@ -20,11 +20,13 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   #travelDurationToNextPoint = 1;
 
   /** m_minTimeBetweenTriggers (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minBaseTimeBetweenTriggers = 1;
 
   /** m_maxTimeBetweenTriggers (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxBaseTimeBetweenTriggers = 1;
@@ -40,11 +42,13 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   destinationsReached = 0;
 
   /** m_totalDestinations (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   totalDestinations = 5;
 
   /** m_distanceToTravelTimeMultiplier (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   distanceToTravelTimeMultiplier = 0;

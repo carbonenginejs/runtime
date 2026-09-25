@@ -15,14 +15,28 @@ import { LocalPositionBehavior } from "../../../generated/eve/renderable/stretch
 @type.define({ className: "EveLocalPositionCurve", family: "eve/renderable/stretch" })
 export class EveLocalPositionCurve extends CjsModel
 {
-  @edit.persist @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.int32 @type.enum("LocalPositionBehavior") behavior = 0;
   @edit.readwrite @type.float32 impactSize = 1;
-  @edit.persist @type.float32 offset = 0;
-  @edit.persist @type.vec3 positionOffset = vec3.create();
-  @edit.persist @type.model("ITriVectorFunction") parentPositionCurve = null;
-  @edit.persist @type.model("ITriVectorFunction") alignPositionCurve = null;
-  @edit.persist @type.vec3 value = vec3.create();
-  @edit.persist @type.vec3 boundingSize = vec3.create();
+  @edit.readwrite
+  @edit.persist
+ @type.float32 offset = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.vec3 positionOffset = vec3.create();
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") parentPositionCurve = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") alignPositionCurve = null;
+  @edit.readwrite
+  @edit.persist
+ @type.vec3 value = vec3.create();
+  @edit.readwrite
+  @edit.persist
+ @type.vec3 boundingSize = vec3.create();
   @edit.readwrite @type.objectRef("ITriQuaternionFunction") parentRotationCurve = null;
   @edit.readwrite @type.objectRef("IEveSpaceObject2") parent = null;
   @edit.readwrite @type.objectRef("EveTurretSet") turretSetObject = null;

@@ -17,18 +17,22 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 })
 export class Tr2CurveEulerRotation extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   yaw = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   pitch = new Tr2CurveScalar();
 
+  @edit.read
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   roll = new Tr2CurveScalar();

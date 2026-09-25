@@ -52,6 +52,7 @@ export class Tr2RenderTarget extends CjsModel
 {
 
   /** m_name (std::string) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.string
   name = "";

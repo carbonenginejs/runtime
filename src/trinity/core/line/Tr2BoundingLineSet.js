@@ -11,12 +11,14 @@ export class Tr2BoundingLineSet extends Tr2LineSet
 
   /** m_maxBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   maxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   minBounds = vec3.create();

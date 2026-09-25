@@ -14,26 +14,31 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   #currentCascadingOffset = 0;
 
   /** m_minOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minOffset = 0;
 
   /** m_maxOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxOffset = 0;
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_cascadingLifetimeOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   cascadingLifetimeOffset = 0;
 
   /** m_normalizeOffsets (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   normalizeOffsets = false;

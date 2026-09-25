@@ -62,6 +62,7 @@ function FindDamageLocators(sets)
 @carbon.inherit(ITr2Renderable)
 export class EveChildInstancedMeshes extends EveSpaceObjectChild
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

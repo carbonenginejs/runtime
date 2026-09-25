@@ -9,6 +9,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
 {
 
   /** m_value (bool) */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   value = false;

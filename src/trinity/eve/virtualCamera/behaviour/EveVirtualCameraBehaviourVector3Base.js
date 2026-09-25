@@ -18,11 +18,13 @@ import { Tr2CurveExtrapolation } from "../../../curves/enums.js";
 })
 export class EveVirtualCameraBehaviourVector3Base extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   active = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

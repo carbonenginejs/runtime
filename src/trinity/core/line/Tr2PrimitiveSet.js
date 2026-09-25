@@ -13,6 +13,7 @@ export class Tr2PrimitiveSet extends CjsModel
 {
 
   /** m_localTransform (Matrix) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.mat4
   localTransform = mat4.create();
@@ -28,17 +29,20 @@ export class Tr2PrimitiveSet extends CjsModel
   _userData = null;
 
   /** m_viewOriented (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   viewOriented = false;
 
   /** m_scaleByDistanceToView (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaleByDistanceToView = false;
 
   /** m_color (Color) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(0.5, 0.5, 0.5, 1);
@@ -50,17 +54,20 @@ export class Tr2PrimitiveSet extends CjsModel
 
   /** m_effect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   effect = null;
 
   /** m_pickEffect (Tr2EffectPtr) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   pickEffect = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

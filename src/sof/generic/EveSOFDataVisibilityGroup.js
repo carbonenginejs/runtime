@@ -9,11 +9,13 @@ export class EveSOFDataVisibilityGroup extends CjsModel
 {
 
   /** m_description (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   description = "";
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

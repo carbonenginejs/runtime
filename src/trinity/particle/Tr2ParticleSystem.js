@@ -46,6 +46,7 @@ export class Tr2ParticleSystem extends CjsModel
   #gpuDeclaration = Object.freeze([]);
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ParticleElementDeclaration")
   elements = [];
@@ -56,54 +57,64 @@ export class Tr2ParticleSystem extends CjsModel
   isValid = false;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_constraints (PITr2GenericParticleConstraintVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2GenericParticleConstraint")
   constraints = [];
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_emissionOnDeathEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2GenericEmitter")
   emitParticleOnDeathEmitter = null;
 
   /** m_emissionWhileAliveEmitter (ITr2GenericEmitterPtr) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2GenericEmitter")
   emitParticleDuringLifeEmitter = null;
 
   /** m_applyForce (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   applyForce = true;
 
   /** m_applyAging (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   applyAging = true;
 
   /** m_isGlobal (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isGlobal = false;
 
   /** m_updateSimulation (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   updateSimulation = true;
 
   /** m_requiresSorting (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   requiresSorting = false;
@@ -125,11 +136,13 @@ export class Tr2ParticleSystem extends CjsModel
 
   /** m_useSimTimeRebase (bool) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSimTimeRebase = false;
 
   /** m_maxParticleCount (unsigned) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.uint32
   maxParticleCount = 0;

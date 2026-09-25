@@ -22,17 +22,20 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_lightGroups (PIEveSmartLightGroupVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("IEveSmartLightGroup")
   lightGroups = [];

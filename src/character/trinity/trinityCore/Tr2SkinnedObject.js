@@ -42,18 +42,21 @@ export class Tr2SkinnedObject extends CjsModel
   frameDelay = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_maxBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   explicitMaxBounds = vec3.create();
 
   /** m_minBounds (Vector3) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   explicitMinBounds = vec3.create();
@@ -64,27 +67,32 @@ export class Tr2SkinnedObject extends CjsModel
   updatePeriod = 0;
 
   /** m_transform (PTriMatrix) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.model("TriMatrix")
   transform = null;
 
   /** m_visualModel (Tr2SkinnedModelPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2SkinnedModel")
   visualModel = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_animationUpdater (ITr2AnimationUpdaterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2AnimationUpdater")
   animationUpdater = null;
 
   /** m_worldTransformUpdater (ITr2WorldTransformUpdaterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2WorldTransformUpdater")
   worldTransformUpdater = null;
@@ -157,6 +165,7 @@ export class Tr2SkinnedObject extends CjsModel
 
   /** m_useExplicitBounds (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useExplicitBounds = false;
@@ -167,6 +176,7 @@ export class Tr2SkinnedObject extends CjsModel
   estimatedPixelDiameter = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;

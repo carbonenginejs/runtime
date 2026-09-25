@@ -11,6 +11,7 @@ export class Tr2TextureAnimation extends CjsModel
   #channels = new Map();
 
   /** m_fps (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fps = 1;
@@ -26,22 +27,26 @@ export class Tr2TextureAnimation extends CjsModel
   time = 0;
 
   /** m_paused (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   paused = false;
 
   /** m_updateOnlyWhenRendered (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   updateOnlyWhenRendered = true;
 
   /** m_filename (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   resPath = "";
 
   /** m_looped (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   looped = true;

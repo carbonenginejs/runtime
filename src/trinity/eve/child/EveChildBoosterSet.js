@@ -60,6 +60,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
 
   static DEFAULT_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/Booster/ChildBoosterVolumetric.fx";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
@@ -80,92 +81,112 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   thrust = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   glowScale = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   glowColor = vec4.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   symHaloScale = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleX = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleY = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   haloColor = vec4.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   warpGlowColor = vec4.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   warpHaloColor = vec4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightOffset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerAmplitude = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerFrequency = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightRadius = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   lightColor = vec4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightWarpRadius = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.vec4
   lightWarpColor = vec4.create();
 
   /** Controller name the booster observes for the thrust value. */
+  @edit.readwrite
   @edit.persist
   @type.string
   driveName = EveChildBoosterSet.DEFAULT_DRIVE_NAME;
 
   /** When false the flares draw even at booster-LOD distances. */
+  @edit.notify
   @edit.readwrite
   @type.boolean
   flareLodEnabled = true;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effectFar = null;
 
   /** Sprite set rendering the glows on the boosters. */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSpriteSet")
   glows = null;

@@ -23,23 +23,28 @@ export class TriRenderJob extends CjsModel
 
   static StepResult = TriRenderStep.Result;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TriRenderJobStatus")
   status = TriRenderJob.Status.RJ_INIT;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   stackGuard = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.list("TriRenderStep")
   steps = [];

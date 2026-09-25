@@ -18,6 +18,7 @@ import { CjsVectorParameter } from "./CjsVectorParameter.js";
 @carbon.inherit(ITriReroutable)
 export class Tr2Vector2Parameter extends CjsVectorParameter
 {
+  @edit.readwrite
   @edit.persistOnly
   @type.vec2
   value = vec2.fromValues(1, 1);
@@ -31,6 +32,7 @@ export class Tr2Vector2Parameter extends CjsVectorParameter
   usedByCurrentEffect = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

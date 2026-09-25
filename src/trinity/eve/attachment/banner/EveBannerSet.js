@@ -32,18 +32,22 @@ import {
 export class EveBannerSet extends IEveSpaceObjectAttachment
 {
 
+  @edit.read
   @edit.persist
   @type.list("EveBannerItem")
   banners = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isPickable = false;
@@ -52,6 +56,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   key = 0;

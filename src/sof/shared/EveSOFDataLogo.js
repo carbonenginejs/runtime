@@ -10,6 +10,7 @@ export class EveSOFDataLogo extends CjsModel
 {
 
   /** m_textures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   textures = [];

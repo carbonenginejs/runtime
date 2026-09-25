@@ -15,14 +15,17 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3MoveForward extends EveVirtualCameraBehaviourVector3Base
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   scaleCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   proportional = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

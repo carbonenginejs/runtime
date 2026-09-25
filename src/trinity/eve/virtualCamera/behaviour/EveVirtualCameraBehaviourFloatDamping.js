@@ -14,6 +14,7 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
 })
 export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehaviourFloatBase
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   dampingFactor = 1;

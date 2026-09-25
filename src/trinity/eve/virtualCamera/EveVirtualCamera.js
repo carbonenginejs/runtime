@@ -66,18 +66,22 @@ export class EveVirtualCamera extends CjsModel
   @type.vec3
   pointOfInterestAnchorForwardDirection = vec3.create();
 
+  @edit.read
   @edit.persist
   @type.list("EveVirtualCameraBehaviourFloatBase")
   fovBehaviours = [];
 
+  @edit.read
   @edit.persist
   @type.list("EveVirtualCameraBehaviourVector3Base")
   pointOfInterestBehaviours = [];
 
+  @edit.read
   @edit.persist
   @type.list("EveVirtualCameraBehaviourVector3Base")
   positionBehaviours = [];
 
+  @edit.read
   @edit.persist
   @type.list("EveVirtualCameraBehaviourFloatBase")
   rollBehaviours = [];
@@ -90,10 +94,12 @@ export class EveVirtualCamera extends CjsModel
   @type.float32
   fov = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   animationTimelineLength = 10;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "Virtual Camera";

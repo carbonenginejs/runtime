@@ -15,6 +15,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @type.define({ className: "EveChildModifierStretch", family: "eve/child/modifiers" })
 export class EveChildModifierStretch extends IEveChildTransformModifier
 {
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   dest = null;

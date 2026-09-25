@@ -13,21 +13,25 @@ export class EveDistributionSpawnModifierRandomOffset extends IEveDistributionSp
   #timeSeed = Date.now() >>> 0;
 
   /** m_minOffset (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   minOffset = vec3.create();
 
   /** m_maxOffset (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   maxOffset = vec3.create();
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformOffset (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   uniformOffset = false;

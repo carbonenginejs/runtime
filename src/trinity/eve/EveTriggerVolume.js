@@ -35,36 +35,43 @@ export class EveTriggerVolume extends CjsModel
 {
 
   /** Name identifier, passed to the callback so one handler can serve many trigger volumes. */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** The volumes defining the trigger region. */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   volumes = [];
 
   /** Volumes subtracted from the trigger region. */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** Volume intensity (0..1) at which the tracked position counts as inside. */
+  @edit.readwrite
   @edit.persist
   @type.float32
   enterThreshold = 0.5;
 
   /** External parameters exposing per-placement values, e.g. for dungeon asset manipulations. */
+  @edit.read
   @edit.persist
   @type.list("Tr2ExternalParameter")
   externalParameters = [];
 
   /** m_ballPosition: vector function slot placing the trigger volume. */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
   /** m_ballRotation: quaternion function slot rotating the trigger volume. */
+  @edit.readwrite
   @edit.persist
   @type.model("ITriQuaternionFunction")
   rotationCurve = null;

@@ -21,22 +21,26 @@ export class CollisionAvoidance extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
   behaviorPriority = 0;
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
 
   /** m_collisionAvoidanceScalar (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   avoidanceScalar = 12;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;

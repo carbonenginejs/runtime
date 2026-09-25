@@ -17,6 +17,7 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2CurveRandomAxisRotation extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -25,10 +26,12 @@ export class Tr2CurveRandomAxisRotation extends CjsModel
   @type.quat
   currentValue = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   period = 1;
 
+  @edit.readwrite
   @edit.persistOnly
   @type.uint32
   seed = 0;

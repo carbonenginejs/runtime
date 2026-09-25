@@ -22,34 +22,42 @@ export class TriPerlinCurve extends CjsModel
 
   static #triRandState = 1234;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   alpha = 1.1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   beta = 2;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   N = 3;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   offset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   speed = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

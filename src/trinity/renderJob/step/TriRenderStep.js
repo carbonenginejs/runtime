@@ -27,6 +27,7 @@ export class TriRenderStep extends CjsModel
   @type.boolean
   enabled = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

@@ -9,11 +9,13 @@ export class AudEventKey extends CjsModel
 {
 
   /** m_value (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   value = "";
 
   /** m_time (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;

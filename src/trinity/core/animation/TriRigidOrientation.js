@@ -11,31 +11,37 @@ export class TriRigidOrientation extends CjsModel
 {
 
   /** mDrag (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   drag = 1;
 
   /** mStart (Be::Time) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float64
   start = 0;
 
   /** mI (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   I = 1;
 
   /** mStates (PTriTorqueVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriTorque")
   states = [];
 
   /** mValue (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   value = quat.create();
 
   /** mName (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

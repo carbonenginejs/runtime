@@ -14,12 +14,14 @@ export class SpawnDrones extends CjsModel
 {
 
   /** m_gridSpacing (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   gridSpacing = vec3.create();
 
   /** m_gridFullnessFactor (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   gridFullnessFactor = 1;
@@ -30,42 +32,50 @@ export class SpawnDrones extends CjsModel
   regenerateDrones = true;
 
   /** m_count (int) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   count = 1;
 
   /** m_seconds (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   seconds = -1;
 
   /** m_addOnGrid (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   addOnGrid = false;
 
   /** m_addByCount (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   addByCount = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;
 
   /** m_time (float) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.float32
   time = 0;
 
   /** m_spawnPosition (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   spawnPosition = vec3.create();
 
   /** m_gridInfo (Vector4) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec4
   gridInfo = vec4.fromValues(1, 1, 1, 10);

@@ -9,26 +9,31 @@ export class EveSOFDataLayout extends CjsModel
 {
 
   /** m_depletionCounters (PEveSOFDataDistributionDepletionCounterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDistributionDepletionCounter")
   depletionCounters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_placements (PIEveSOFDataHullExtensionPlacementVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSOFDataHullExtensionPlacement")
   placements = [];
 
   /** m_randomizeSeedOnLoad (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   randomizeSeedOnLoad = false;
 
   /** m_seed (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   seed = 1337;

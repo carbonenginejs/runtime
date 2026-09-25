@@ -20,22 +20,27 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
 {
   static #nextPhase = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   octaves = 8;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2CurveScalar")
   magnitudeCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   magnitude = vec3.fromValues(1, 0.6, 0.2);
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   perlineScale = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaleByView = true;

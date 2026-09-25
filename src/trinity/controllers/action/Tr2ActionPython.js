@@ -73,11 +73,13 @@ export class Tr2ActionPython extends CjsModel
   }
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   module = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   className = "";

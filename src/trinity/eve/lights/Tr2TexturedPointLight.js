@@ -30,6 +30,7 @@ export class Tr2TexturedPointLight extends Tr2PointLight
 
   /** m_lightData.texturePath (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   texturePath = "";

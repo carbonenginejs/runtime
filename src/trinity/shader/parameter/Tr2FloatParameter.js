@@ -13,11 +13,13 @@ import { CjsParameter } from "./CjsParameter.js";
 @carbon.inherit(ITriReroutable)
 export class Tr2FloatParameter extends CjsParameter
 {
+  @edit.readwrite
   @edit.persistOnly
   @type.float32
   value = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

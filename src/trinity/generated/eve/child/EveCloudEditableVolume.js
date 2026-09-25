@@ -9,17 +9,20 @@ export class EveCloudEditableVolume extends CjsModel
 {
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
 
   /** m_animated (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   animated = false;
 
   /** m_balls (PEveCloudVolumeBallVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveCloudVolumeBall")
   balls = [];
@@ -36,23 +39,27 @@ export class EveCloudEditableVolume extends CjsModel
 
   /** m_depth (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   depth = 64;
 
   /** m_height (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   height = 64;
 
   /** m_width (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.uint32
   width = 64;
 
   /** m_renderDebugInfo (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderDebugInfo = false;

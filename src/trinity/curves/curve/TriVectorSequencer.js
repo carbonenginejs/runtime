@@ -14,23 +14,28 @@ import { TRIOPERATOR } from "#consts/graphics";
 @type.define({ className: "TriVectorSequencer", family: "curves" })
 export class TriVectorSequencer extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("TRIOPERATOR")
   operator = TRIOPERATOR.TRIOP_MULTIPLY;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   value = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float64
   start = 0;
 
+  @edit.read
   @edit.persist
   @type.list("ITriVectorFunction")
   functions = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

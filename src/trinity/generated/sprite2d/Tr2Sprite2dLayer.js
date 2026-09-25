@@ -26,18 +26,21 @@ export class Tr2Sprite2dLayer extends Tr2Sprite2dContainer
 
   /** m_backgroundColor (Color) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   backgroundColor = vec4.create();
 
   /** m_color (Color) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_clearBackground (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   clearBackground = true;

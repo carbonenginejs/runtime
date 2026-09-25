@@ -17,22 +17,27 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2QuaternionLerpCurve extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.float64
   start = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   length = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   value = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   startCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriQuaternionFunction")
   endCurve = null;

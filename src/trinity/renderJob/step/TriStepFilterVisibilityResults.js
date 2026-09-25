@@ -10,27 +10,32 @@ export class TriStepFilterVisibilityResults extends TriRenderStep
 {
 
   /** m_eventFilter (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   eventFilter = 0xffffffff;
 
   /** m_filterType (FilterType - enum FilterType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("FilterType")
   filterType = 1;
 
   /** m_inputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2VisibilityResults")
   inputResults = null;
 
   /** m_objects (PIRootVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IRoot")
   objects = [];
 
   /** m_outputResults (Tr2VisibilityResultsPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2VisibilityResults")
   outputResults = null;

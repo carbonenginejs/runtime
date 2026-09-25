@@ -19,12 +19,14 @@ export class EveTrailsSet extends CjsModel
   geometryResource = null;
 
   /** m_fadeSpeed (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   fadeSpeed = 1;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -32,6 +34,7 @@ export class EveTrailsSet extends CjsModel
   /** m_geometryResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   geometryResPath = "";

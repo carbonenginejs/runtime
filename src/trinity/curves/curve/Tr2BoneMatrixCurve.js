@@ -29,26 +29,32 @@ export class Tr2BoneMatrixCurve extends CjsModel
   @type.mat4
   currentValue = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   length = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cycle = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   reversed = false;
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   startValue = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   endValue = mat4.create();
@@ -57,6 +63,7 @@ export class Tr2BoneMatrixCurve extends CjsModel
   @type.objectRef("Tr2SkinnedObject")
   skinnedObject = null;
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   transform = mat4.create();

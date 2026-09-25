@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Utilities/Tr2MaterialBoundsAdjustment.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { box3 } from "#math/box3";
 
@@ -18,6 +18,8 @@ export class Tr2MaterialBoundsAdjustment extends CjsModel
   maxLocalScale = 1;
 
   /** rotatesVertices (bool) */
+  @edit.read
+  @edit.persist
   @type.boolean
   rotatesVertices = false;
 

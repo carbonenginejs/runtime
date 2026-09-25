@@ -13,26 +13,31 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   #timeSeed = Date.now() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   minScale = vec3.fromValues(1, 1, 1);
 
   /** m_maxScale (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   maxScale = vec3.fromValues(1, 1, 1);
 
   /** m_consistentRandom (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   consistentRandom = false;
 
   /** m_uniformScale (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   uniformScale = false;
 
   /** m_overrideScale (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   overrideScale = false;

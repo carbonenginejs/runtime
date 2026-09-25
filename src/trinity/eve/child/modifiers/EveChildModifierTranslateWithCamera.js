@@ -12,6 +12,7 @@ import { IEveChildTransformModifier } from "./IEveChildTransformModifier.js";
 @type.define({ className: "EveChildModifierTranslateWithCamera", family: "eve/child/modifiers" })
 export class EveChildModifierTranslateWithCamera extends IEveChildTransformModifier
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   attachedToCamera = false;

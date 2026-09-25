@@ -17,6 +17,7 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2CurveColorMixer extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -25,10 +26,12 @@ export class Tr2CurveColorMixer extends CjsModel
   @type.color
   convertedLinearValue = color.createLinear();
 
+  @edit.readwrite
   @edit.persist
   @type.color
   color1 = color.createLinear();
 
+  @edit.readwrite
   @edit.persist
   @type.color
   color2 = color.createLinear();
@@ -37,14 +40,17 @@ export class Tr2CurveColorMixer extends CjsModel
   @type.color
   currentValue = color.createLinear();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   lerpValue = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   saturation = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightness = 1;

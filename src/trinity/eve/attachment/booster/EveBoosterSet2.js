@@ -36,76 +36,91 @@ export class EveBoosterSet2 extends EveEntity
   /** m_staticTrailLength (float) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   staticTrailLength = 0;
 
   /** m_trailsStaticOffsets[0] (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   trailsStaticOffsets0 = vec3.create();
 
   /** m_trailsStaticOffsets[1] (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   trailsStaticOffsets1 = vec3.create();
 
   /** m_trailsStaticOffsets[2] (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   trailsStaticOffsets2 = vec3.create();
 
   /** m_trailsStaticOffsets[3] (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   trailsStaticOffsets3 = vec3.create();
 
   /** m_trailsStaticOffsets[4] (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   trailsStaticOffsets4 = vec3.create();
 
   /** m_lightOffset (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightOffset = 0;
 
   /** m_lightFlickerAmplitude (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerAmplitude = 0;
 
   /** m_lightFlickerFrequency (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightFlickerFrequency = 0;
 
   /** m_lightRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightRadius = 0;
 
   /** m_lightColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   lightColor = vec4.create();
 
   /** m_lightWarpRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lightWarpRadius = 0;
 
   /** m_lightWarpColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   lightWarpColor = vec4.create();
 
   /** m_display (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
   /** m_alwaysOnIntensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   alwaysOnIntensity = 1;
@@ -113,6 +128,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_warpGlowColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   warpGlowColor = vec4.create();
@@ -120,6 +136,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_glowColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   glowColor = vec4.create();
@@ -127,6 +144,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_haloColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   haloColor = vec4.create();
@@ -134,17 +152,20 @@ export class EveBoosterSet2 extends EveEntity
   /** m_warpHaloColor (Color) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   warpHaloColor = vec4.create();
 
   /** m_effectFar (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effectFar = null;
 
   /** m_effect (Tr2EffectPtr) [READWRITE, PERSIST] */
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
@@ -162,6 +183,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_glowScale (float) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   glowScale = 1;
@@ -169,6 +191,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_symHaloScale (float) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   symHaloScale = 1;
@@ -176,6 +199,7 @@ export class EveBoosterSet2 extends EveEntity
   /** m_haloScaleX (float) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleX = 1;
@@ -183,16 +207,19 @@ export class EveBoosterSet2 extends EveEntity
   /** m_haloScaleY (float) [READWRITE, PERSIST, NOTIFY] */
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   haloScaleY = 1;
 
   /** m_trailsSmoothing (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   trailsSmoothing = 10;
 
   /** m_glows (EveSpriteSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSpriteSet")
   glows = null;
@@ -218,21 +245,25 @@ export class EveBoosterSet2 extends EveEntity
   warpIntensity = 0;
 
   /** m_physicsUpdate (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   physicsUpdate = true;
 
   /** m_destinyUpdate (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   destinyUpdate = true;
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_trails (EveTrailsSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveTrailsSet")
   trails = null;

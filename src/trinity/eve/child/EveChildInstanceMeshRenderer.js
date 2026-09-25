@@ -83,23 +83,28 @@ const INSTANCE_SPHERE = vec4.create();
 ])
 export class EveChildInstanceMeshRenderer extends EveChildMesh
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("RotationalConstraints")
   rotationConstraint = RotationalConstraints.NONE;
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   staticOffsetRotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   staticOffsetTranslation = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.model("IEveDistributionMethod")
   distribution = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   staticOffsetScale = vec3.fromValues(1, 1, 1);

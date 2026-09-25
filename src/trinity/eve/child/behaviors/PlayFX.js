@@ -18,16 +18,19 @@ export class PlayFX extends EveEntity
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   behaviorWeight = 20;
 
   /** m_firingEffect (IEveFiringEffectElementPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveFiringEffectElement")
   firingEffect = null;
@@ -38,11 +41,13 @@ export class PlayFX extends EveEntity
   generatedFiringEffects = [];
 
   /** m_sec (int32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   sec = 1;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;

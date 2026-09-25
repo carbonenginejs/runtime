@@ -9,16 +9,19 @@ export class EveSOFDataHullBooster extends CjsModel
 {
 
   /** m_items (PEveSOFDataHullBoosterItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullBoosterItem")
   items = [];
 
   /** m_alwaysOn (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   alwaysOn = false;
 
   /** m_hasTrails (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   hasTrails = true;

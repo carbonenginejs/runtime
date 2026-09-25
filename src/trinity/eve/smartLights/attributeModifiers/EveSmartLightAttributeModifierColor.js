@@ -12,31 +12,37 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
 
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   factionColor = -1;
 
   /** m_blendValue (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   blendValue = 1;
 
   /** m_useFactionColor (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useFactionColor = false;
 
   /** m_blendColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   blendColor = color.createLinear();
 
   /** m_brightnessMultiplier (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   brightnessMultiplier = 1;
 
   /** m_saturationMultiplier (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   saturationMultiplier = 1;

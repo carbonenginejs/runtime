@@ -16,22 +16,27 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionOverlay extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.path
   path = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   overlayName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   targetAnotherOwner = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   addOnStart = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   removeOnStop = true;

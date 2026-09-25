@@ -18,6 +18,7 @@ import { Tr2ScalarExprKey } from "../key/Tr2ScalarExprKey.js";
 })
 export class Tr2ScalarExprKeyCurve extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.uint32
   interpolation = Tr2CurveInterpolation.LINEAR;
@@ -26,26 +27,32 @@ export class Tr2ScalarExprKeyCurve extends CjsModel
   @type.float32
   currentValue = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cycle = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   reversed = false;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeOffset = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   timeScale = 1;
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ScalarExprKey")
   keys = [];

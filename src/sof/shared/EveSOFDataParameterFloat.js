@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterFloat", family: "eve" })
 export class EveSOFDataParameterFloat extends EveSOFDataParameter
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

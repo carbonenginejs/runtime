@@ -37,6 +37,7 @@ export class Tr2HostBitmap extends CjsModel
   imageType = 6;
 
   /** m_name (unknown) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

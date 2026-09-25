@@ -13,16 +13,19 @@ export class Tr2AudioStretchBase extends CjsModel
 {
 
   /** m_stretchEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2AudEmitter")
   stretchEmitter = null;
 
   /** m_destEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2AudEmitter")
   destinationEmitter = null;
 
   /** m_sourceEmitter (ITr2AudEmitterPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2AudEmitter")
   sourceEmitter = null;

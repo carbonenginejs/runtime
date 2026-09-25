@@ -14,11 +14,13 @@ export class EveChildPostProcessVolume extends EveChildTransform
 {
 
   /** m_volumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   volumes = [];
 
   /** m_exclusionVolumes (PIEveVolumeVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveVolume")
   exclusionVolumes = [];
@@ -34,11 +36,13 @@ export class EveChildPostProcessVolume extends EveChildTransform
   boundingSphereRadius = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_postProcessAttributes (Tr2PostProcessAttributesPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2PostProcessAttributes")
   postProcessAttributes = null;

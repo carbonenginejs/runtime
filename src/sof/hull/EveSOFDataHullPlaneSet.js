@@ -11,52 +11,62 @@ export class EveSOFDataHullPlaneSet extends CjsModel
 {
 
   /** m_usage (Usage - enum Usage) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataHullPlaneSet.Usage")
   usage = 0;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_layer1MapResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   layer1MapResPath = "";
 
   /** m_layer2MapResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   layer2MapResPath = "";
 
   /** m_maskMapResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   maskMapResPath = "";
 
   /** m_skinned (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
   /** m_atlasAspectRatio (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   atlasAspectRatio = vec2.fromValues(1, 1);
 
   /** m_visibilityGroup (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   visibilityGroup = "primary";
 
   /** m_atlasSize (uint32_t) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.uint32
   atlasSize = 1;
 
   /** m_items (PEveSOFDataHullPlaneSetItemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataHullPlaneSetItem")
   items = [];

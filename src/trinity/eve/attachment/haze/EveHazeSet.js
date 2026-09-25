@@ -19,18 +19,22 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 export class EveHazeSet extends IEveSpaceObjectAttachment
 {
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.list("EveHazeSetItem")
   hazes = [];

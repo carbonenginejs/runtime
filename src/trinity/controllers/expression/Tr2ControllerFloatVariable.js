@@ -16,11 +16,13 @@ import { Type } from "../enums.js";
 })
 export class Tr2ControllerFloatVariable extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Type")
   variableType = Type.FLOAT;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   enumValues = "";
@@ -30,10 +32,12 @@ export class Tr2ControllerFloatVariable extends CjsModel
   @type.float32
   value = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   defaultValue = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

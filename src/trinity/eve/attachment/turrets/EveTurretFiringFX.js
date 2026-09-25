@@ -14,86 +14,103 @@ export class EveTurretFiringFX extends EveEntity
 {
 
   /** m_startCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("TriCurveSet")
   startCurveSet = null;
 
   /** m_stopCurveSet (TriCurveSetPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("TriCurveSet")
   stopCurveSet = null;
 
   /** m_stretch (PIEveFiringEffectElementVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveFiringEffectElement")
   stretch = [];
 
   /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_firingPeakTime (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingPeakTime = 0;
 
   /** m_perMuzzleData[0].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay1 = 0;
 
   /** m_perMuzzleData[9].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay10 = 0;
 
   /** m_perMuzzleData[10].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay11 = 0;
 
   /** m_perMuzzleData[11].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay12 = 0;
 
   /** m_perMuzzleData[1].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay2 = 0;
 
   /** m_perMuzzleData[2].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay3 = 0;
 
   /** m_perMuzzleData[3].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay4 = 0;
 
   /** m_perMuzzleData[4].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay5 = 0;
 
   /** m_perMuzzleData[5].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay6 = 0;
 
   /** m_perMuzzleData[6].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay7 = 0;
 
   /** m_perMuzzleData[7].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay8 = 0;
 
   /** m_perMuzzleData[8].constantDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDelay9 = 0;
@@ -114,32 +131,38 @@ export class EveTurretFiringFX extends EveEntity
   isFiring = false;
 
   /** m_destinationObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("TriObserverLocal")
   destinationObserver = null;
 
   /** m_sourceObserver (TriObserverLocalPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("TriObserverLocal")
   sourceObserver = null;
 
   /** m_firingDurationOverride (float) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   firingDurationOverride = -1;
 
   /** m_useMuzzleTransform (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useMuzzleTransform = false;
 
   /** m_isLoopFiring (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isLoopFiring = false;
 
   /** m_boneName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   boneName = "Pos_Fire";
@@ -151,21 +174,25 @@ export class EveTurretFiringFX extends EveEntity
   display = true;
 
   /** m_scaleEffectTarget (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   scaleEffectTarget = false;
 
   /** m_minRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minRadius = 30;
 
   /** m_maxRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxRadius = 3000;
 
   /** m_minScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScale = 1;
@@ -615,6 +642,7 @@ export class EveTurretFiringFX extends EveEntity
   }
 
   /** m_maxScale (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxScale = 10;

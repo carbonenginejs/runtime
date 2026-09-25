@@ -16,6 +16,7 @@ import { EveVirtualCameraTransitionBase } from "./EveVirtualCameraTransitionBase
 })
 export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBase
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   tansitionTime = 1;

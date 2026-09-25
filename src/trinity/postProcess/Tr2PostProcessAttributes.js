@@ -27,6 +27,7 @@ import { AttributeType, Priority } from "../generated/postProcess/enums.js";
 export class Tr2PostProcessAttributes extends CjsModel
 {
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Priority")

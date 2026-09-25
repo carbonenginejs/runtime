@@ -9,26 +9,31 @@ export class EveSOFDataGenericDecalShader extends CjsModel
 {
 
   /** m_parameters (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   parameters = [];
 
   /** m_defaultTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   defaultTextures = [];
 
   /** m_parentTextures (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   parentTextures = [];
 
   /** m_additive (bool) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.boolean
   additive = false;
 
   /** m_shader (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shader = "";

@@ -11,11 +11,13 @@ import { Quality } from "../../generated/postProcess/enums.js";
 @type.define({ className: "Tr2PPGenericEffect", family: "postProcess" })
 export class Tr2PPGenericEffect extends Tr2PPEffect
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Quality")
   quality = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;

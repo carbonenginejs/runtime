@@ -14,11 +14,13 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class EveVirtualCameraBehaviourFloatBase extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.boolean
   active = true;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

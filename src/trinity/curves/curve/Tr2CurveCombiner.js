@@ -15,10 +15,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2CurveCombiner extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.read
   @edit.persist
   @type.array({
     kind: "objectRef",

@@ -9,6 +9,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterColor", family: "eve" })
 export class EveSOFDataParameterColor extends EveSOFDataParameter
 {
+  @edit.readwrite
   @edit.persist
   @type.vec4
   value = vec4.create();

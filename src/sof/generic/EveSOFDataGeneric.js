@@ -17,142 +17,170 @@ export class EveSOFDataGeneric extends CjsModel
 
 
   /** m_turretAreaType (EveSOFDataArea::AreaType - enum AreaType) [READ, PERSIST, ENUM] */
+  @edit.read
   @edit.persist
   @type.int32
   @type.enum("trinity.EveSOFDataArea.AreaType")
   turretAreaType = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_STANDARD] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_KILLCOUNTER] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeKILLCOUNTER = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_HOLE] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeHOLE = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_CYLINDRICAL] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWCYLINDRICAL] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeGLOWCYLINDRICAL = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_GLOWSTANDARD] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeGLOWSTANDARD = 0;
 
   /** m_decalMinScreenSizes[EveSOFDataHullDecalSetItem::USAGE_LOGO] (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   decalMinScreenSizeLOGO = 0;
 
   /** m_shaderPrefix (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shaderPrefix = "";
 
   /** m_shaderPrefixAnimated (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shaderPrefixAnimated = "";
 
   /** m_variants (PEveSOFDataGenericVariantVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericVariant")
   variants = [];
 
   /** m_hullCategories (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   hullCategories = [];
 
   /** m_visibilityGroups (PEveSOFDataVisibilityGroupVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataVisibilityGroup")
   visibilityGroups = [];
 
   /** m_bannerShader (PEveSOFDataGenericShader) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.struct("EveSOFDataGenericShader")
   bannerShader = new EveSOFDataGenericShader();
 
   /** m_swarm (EveSOFDataGenericSwarmPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataGenericSwarm")
   swarm = null;
 
   /** m_damage (EveSOFDataGenericDamagePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataGenericDamage")
   damage = null;
 
   /** m_hullDamage (EveSOFDataGenericHullDamagePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataGenericHullDamage")
   hullDamage = null;
 
   /** m_genericWreckMaterial (EveSOFDataAreaMaterialPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataAreaMaterial")
   genericWreckMaterial = null;
 
   /** m_areaShaders (PEveSOFDataGenericShaderVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericShader")
   areaShaders = [];
 
   /** m_decalShaders (PEveSOFDataGenericDecalShaderVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericDecalShader")
   decalShaders = [];
 
   /** m_materialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   materialPrefixes = [];
 
   /** m_patternMaterialPrefixes (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   patternMaterialPrefixes = [];
 
   /** m_hullCategoryData (PEveSOFDataGenericHullCategoryVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericHullCategory")
   hullCategoriesData = [];
 
   /** m_areaShaderLocation (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   areaShaderLocation = "";
 
   /** m_decalShaderLocation (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   decalShaderLocation = "";
 
   /** m_resPathDefaultAlliance (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   resPathDefaultAlliance = "";
 
   /** m_resPathDefaultCeo (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   resPathDefaultCeo = "";
 
   /** m_resPathDefaultCorp (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   resPathDefaultCorp = "";

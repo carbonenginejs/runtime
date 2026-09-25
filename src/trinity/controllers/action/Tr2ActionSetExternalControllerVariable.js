@@ -22,22 +22,27 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   destination = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   destinationOwner = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   variable = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   sourceVariable = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   startControllers = false;

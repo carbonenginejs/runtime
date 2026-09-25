@@ -16,11 +16,13 @@ import { CjsGrannyCurves } from "./CjsGrannyCurves.js";
 })
 export class Tr2GrannyTrack extends CjsModel
 {
-  @edit.persist
   @edit.notify
+  @edit.readwrite
+  @edit.persist
   @type.path
   grannyResPath = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cycle = false;
@@ -34,11 +36,13 @@ export class Tr2GrannyTrack extends CjsModel
   grannyRes = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   group = "";

@@ -13,12 +13,14 @@ export class EveSOFDataGenericHullCategory extends CjsModel
 
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.EntityComponents.ReflectionMode")
   reflectionMode = ReflectionMode.REFLECT_NEVER;
 
   /** m_categoryName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

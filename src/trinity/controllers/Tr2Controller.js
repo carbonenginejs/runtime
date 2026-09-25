@@ -19,14 +19,17 @@ import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
 @carbon.inherit(ITr2ActionController)
 export class Tr2Controller extends EveThrottleable
 {
+  @edit.read
   @edit.persist
   @type.list("Tr2StateMachine")
   stateMachines = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ControllerFloatVariable")
   variables = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2ControllerEventHandler")
   eventHandlers = [];
@@ -35,10 +38,12 @@ export class Tr2Controller extends EveThrottleable
   @type.boolean
   isPlaying = false;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   isShared = false;

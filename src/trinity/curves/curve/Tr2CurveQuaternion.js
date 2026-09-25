@@ -17,6 +17,7 @@ import { Tr2CurveQuaternionKey } from "../key/Tr2CurveQuaternionKey.js";
 })
 export class Tr2CurveQuaternion extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.array({
     kind: "struct",
@@ -24,6 +25,7 @@ export class Tr2CurveQuaternion extends CjsModel
   })
   keys = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -32,11 +34,13 @@ export class Tr2CurveQuaternion extends CjsModel
   @type.quat
   currentValue = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")
   extrapolationBefore = Tr2CurveExtrapolation.CLAMP;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   @type.enum("Tr2CurveExtrapolation")

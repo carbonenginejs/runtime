@@ -28,31 +28,37 @@ export class TriStepRenderObject extends TriRenderStep
 {
 
   /** m_effectOverride (Tr2MaterialPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Material")
   effectOverride = null;
 
   /** m_typeEnabled[3] (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderAdditive = true;
 
   /** m_typeEnabled[1] (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderDecal = true;
 
   /** m_typeEnabled[0] (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderOpaque = true;
 
   /** m_typeEnabled[2] (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderTransparent = true;
 
   /** m_renderable (ITr2RenderablePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("ITr2Renderable")
   renderable = null;

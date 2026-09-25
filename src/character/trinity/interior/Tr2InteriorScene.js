@@ -15,6 +15,7 @@ export class Tr2InteriorScene extends CjsModel
 
   /** m_backgroundCubeMapPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   backgroundCubemapPath = "";
@@ -27,6 +28,7 @@ export class Tr2InteriorScene extends CjsModel
   visualizeMethod = 0;
 
   /** m_curveSets (PTriCurveSetVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
@@ -50,33 +52,39 @@ export class Tr2InteriorScene extends CjsModel
   shadowCount = 4;
 
   /** m_minFogDistance (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   minFogDistance = 0;
 
   /** m_maxFogDistance (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxFogDistance = 1000;
 
   /** m_fogColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   fogColor = vec4.fromValues(1, 1, 1, 1);
 
   /** m_dynamics (PITr2InteriorDynamicVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("ITr2InteriorDynamic")
   dynamics = [];
 
   /** m_lights (PITr2InteriorLightVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("ITr2InteriorLight")
   lights = [];
 
   /** m_maxFogAmount (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxFogAmount = 0;
@@ -92,6 +100,7 @@ export class Tr2InteriorScene extends CjsModel
   visibilityResults = null;
 
   /** m_ambientColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   ambientColor = vec4.create();
@@ -114,16 +123,19 @@ export class Tr2InteriorScene extends CjsModel
   lightRenderTargets = [];
 
   /** m_sunDiffuseColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   sunDiffuseColor = color.createLinear();
 
   /** m_sunDirection (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   sunDirection = vec3.fromValues(0, 0, 1);
 
   /** m_sunSpecularColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   sunSpecularColor = vec4.fromValues(0.8, 0.8, 0.8, 1);
@@ -134,6 +146,7 @@ export class Tr2InteriorScene extends CjsModel
   backgroundCubemapRes = null;
 
   /** m_backgroundEffect (Tr2EffectPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2Effect")
   backgroundEffect = null;

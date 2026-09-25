@@ -11,21 +11,25 @@ export class EveSOFDataRaceDamage extends CjsModel
 {
 
   /** m_armorImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   armorImpactParameters = [];
 
   /** m_armorImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   armorImpactTextures = [];
 
   /** m_shieldImpactParameters (PEveSOFDataParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataParameter")
   shieldImpactParameters = [];
 
   /** m_shieldImpactTextures (PEveSOFDataTextureVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataTexture")
   shieldImpactTextures = [];

@@ -15,26 +15,31 @@ export class EveEllipseDefinition extends CjsModel
   #dirtyFlag = null;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   center = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   planeNormal = vec3.fromValues(0, 1, 0);
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   rotationDegrees = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   semiMajor = 1;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   semiMinor = 1;

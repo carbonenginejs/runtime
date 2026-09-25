@@ -11,61 +11,73 @@ export class Tr2PPVignetteEffect extends Tr2PPEffect
 {
 
   /** m_intensity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 0;
 
   /** m_color (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   /** m_detail1Scroll (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   detail1Scroll = vec2.create();
 
   /** m_detail1Size (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   detail1Size = vec2.fromValues(16, 16);
 
   /** m_detail2Scroll (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   detail2Scroll = vec2.create();
 
   /** m_detail2Size (Vector2) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec2
   detail2Size = vec2.fromValues(16, 16);
 
   /** m_detailPath (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   detailPath = "res:/texture/global/white.dds";
 
   /** m_opacity (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   opacity = 0;
 
   /** m_shapePath (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   shapePath = "res:/texture/global/black.dds";
 
   /** m_sineFrequency (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   sineFrequency = 1;
 
   /** m_sineMaximum (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   sineMaximum = 1;
 
   /** m_sineMinimum (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   sineMinimum = 0;

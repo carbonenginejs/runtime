@@ -14,45 +14,55 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "EveSpriteSetItem", family: "eve/attachment/sprites" })
 export class EveSpriteSetItem extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   blinkRate = 0.1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   blinkPhase = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   minScale = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   maxScale = 10;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   falloff = 0;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   color = vec4.fromValues(1, 1, 1, 1);
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.color
   warpColor = vec4.fromValues(1, 1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   boneIndex = 0;

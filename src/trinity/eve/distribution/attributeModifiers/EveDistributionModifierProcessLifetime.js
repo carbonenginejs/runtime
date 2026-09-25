@@ -10,12 +10,14 @@ export class EveDistributionModifierProcessLifetime extends IEveDistributionModi
 {
 
   /** m_killEvent (DistributionEntityLifeTimeEvent - enum DistributionEntityLifeTimeEvent) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("DistributionEntityLifeTimeEvent")
   killEvent = 1;
 
   /** m_lifetimeDuration (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   lifetimeDuration = -1;

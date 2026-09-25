@@ -11,6 +11,7 @@ import { carbon, impl, edit, type } from "#schema";
 @type.define({ className: "Tr2PostProcess", family: "postProcess" })
 export class Tr2PostProcess extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("Tr2Effect")
   stages = [];

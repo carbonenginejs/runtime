@@ -11,21 +11,25 @@ export class TriTorque extends CjsModel
 {
 
   /** mTime (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   time = 0;
 
   /** mRot0 (Quaternion) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.quat
   rot0 = quat.create();
 
   /** mOmega0 (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   omega0 = vec3.create();
 
   /** mTorque (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   torque = vec3.create();

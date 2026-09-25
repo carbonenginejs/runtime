@@ -14,6 +14,7 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
 })
 export class EveVirtualCameraBehaviourFloatSet extends EveVirtualCameraBehaviourFloatBase
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;

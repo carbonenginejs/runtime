@@ -39,46 +39,55 @@ export class EveChildExplosion extends EveChildContainer
   generatedGlobalExplosions = null;
 
   /** m_localExplosionScaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   localScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosionScaling (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   globalScaling = vec3.fromValues(1, 1, 1);
 
   /** m_globalExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveSpaceObjectChild")
   globalExplosion = null;
 
   /** m_localExplosion (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveSpaceObjectChild")
   localExplosion = null;
 
   /** m_localExplosionShared (IEveSpaceObjectChildPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("IEveSpaceObjectChild")
   localExplosionShared = null;
 
   /** m_globalExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   globalExplosions = [];
 
   /** m_localExplosionIntervalFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   localExplosionIntervalFactor = 1;
 
   /** m_localExplosionDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   localExplosionDelay = 0;
 
   /** m_globalExplosionDelay (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   globalExplosionDelay = 0;
@@ -89,6 +98,7 @@ export class EveChildExplosion extends EveChildContainer
   totalDuration = 0;
 
   /** m_globalDuration (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   globalDuration = 0;
@@ -99,11 +109,13 @@ export class EveChildExplosion extends EveChildContainer
   isPlaying = false;
 
   /** m_localExplosions (PIEveSpaceObjectChildVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   localExplosions = [];
 
   /** m_localExplosionInterval (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   localExplosionInterval = 1;
@@ -129,6 +141,7 @@ export class EveChildExplosion extends EveChildContainer
   playTime = 0;
 
   /** m_localDuration (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   localDuration = 0;

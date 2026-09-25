@@ -32,31 +32,37 @@ export class EveTransform extends Tr2Transform
 {
 
   /** m_meshLod (Tr2MeshBasePtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("Tr2MeshBase")
   meshLod = null;
 
   /** m_children (PIEveTransformVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveTransform")
   children = [];
 
   /** m_overrideBoundsMin (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   overrideBoundsMin = vec3.create();
 
   /** m_overrideBoundsMax (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   overrideBoundsMax = vec3.create();
 
   /** m_particleEmitters (PITr2GenericEmitterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2GenericEmitter")
   particleEmitters = [];
 
   /** m_particleSystems (PTr2ParticleSystemVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("Tr2ParticleSystem")
   particleSystems = [];
@@ -68,21 +74,25 @@ export class EveTransform extends Tr2Transform
   lodLevel = Tr2Lod.TR2_LOD_LOW;
 
   /** m_hideOnLowQuality (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   hideOnLowQuality = false;
 
   /** m_visibilityThreshold (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   visibilityThreshold = 2;
 
   /** m_observers (PTriObserverLocalVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
   /** m_useLodLevel (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useLodLevel = true;

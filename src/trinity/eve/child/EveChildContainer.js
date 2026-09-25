@@ -42,19 +42,23 @@ const ZERO_VEC3 = vec3.create();
 export class EveChildContainer extends EveChildTransform
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("DisplayQualityModifier")
   displayFilter = 5;
 
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectChild")
   objects = [];
 
+  @edit.read
   @edit.persist
   @type.list("IEveChildTransformModifier")
   transformModifiers = [];
 
+  @edit.read
   @edit.persist
   @type.list("TriCurveSet")
   curveSets = [];
@@ -69,74 +73,92 @@ export class EveChildContainer extends EveChildTransform
   mute = false;
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   translation = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
+  @edit.readwrite
   @edit.persist
   @type.mat4
   localTransform = mat4.create();
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   staticTransform = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   alwaysOn = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   updateOnDisplay = true;
 
+  @edit.read
   @edit.persist
   @type.list("IEveSpaceObjectAttachment")
   attachments = [];
 
+  @edit.read
   @edit.persist
   @type.list("TriObserverLocal")
   observers = [];
 
+  @edit.read
   @edit.persist
   @type.list("IEveFxAttribute")
   fxAttributes = [];
 
+  @edit.read
   @edit.persist
   @type.list("Tr2Light")
   lights = [];
 
+  @edit.read
   @edit.persist
   @type.list("ITr2Controller")
   controllers = [];
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveChildInheritProperties")
   inheritProperties = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useSRT = true;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useStaticRotation = false;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   useStaticScale = false;

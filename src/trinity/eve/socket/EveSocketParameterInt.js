@@ -9,6 +9,7 @@ export class EveSocketParameterInt extends EveSocketParameterBindingBase
 {
 
   /** m_value (int32_t) */
+  @edit.readwrite
   @edit.persist
   @type.int32
   value = 0;

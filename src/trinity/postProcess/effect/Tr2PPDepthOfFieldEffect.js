@@ -13,11 +13,13 @@ import { Tr2PPEffect } from "./Tr2PPEffect.js";
 export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
 {
 
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   scale = 0;
@@ -30,14 +32,17 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   @type.boolean
   useTAAFriendlyBokeh = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   focalLength = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   foregroundBlurNeeded = true;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   focalDistance = 0;

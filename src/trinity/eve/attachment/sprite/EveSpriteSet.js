@@ -51,27 +51,33 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 {
 
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("EveSpriteSetItem")
   sprites = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("Tr2Effect")
   effect = null;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   skinned = false;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   intensity = 1;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;

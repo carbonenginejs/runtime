@@ -24,36 +24,43 @@ export class SeekTarget extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   behaviorPriority = 0;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   behaviorWeight = 1200;
 
   /** m_distFromOrigin (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   distFromOrigin = 10;
 
   /** m_arrivedRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   arrivedRadius = 10;
 
   /** m_slowDownRadius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   slowDownRadius = 33;
 
   /** m_target (EveSpaceObject2*) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.model("EveSpaceObject2")
   target = null;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   firstSpawnAtRandomPlaces = false;
@@ -74,11 +81,13 @@ export class SeekTarget extends CjsModel
   secondsToTurn = 0.35;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   locatorSetName = "damage";
 
   /** m_locatorSet (EveLocatorSetsPtr) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.model("EveLocatorSets")
   locatorSet = null;
@@ -94,6 +103,7 @@ export class SeekTarget extends CjsModel
   repair = false;
 
   /** m_enabled (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   enabled = true;

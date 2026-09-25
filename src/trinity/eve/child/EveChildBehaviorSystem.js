@@ -21,11 +21,13 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_behaviorGroups (PBehaviorGroupVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("BehaviorGroup")
   behaviorGroups = [];
@@ -37,6 +39,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   display = true;

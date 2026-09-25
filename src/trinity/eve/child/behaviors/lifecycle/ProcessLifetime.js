@@ -36,6 +36,7 @@ export class ProcessLifetime extends CjsModel
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("ProcessPriority")
@@ -43,11 +44,13 @@ export class ProcessLifetime extends CjsModel
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.read
   @edit.persist
   @type.list("SplineTunnelGroup")
   splineTunnels = [];
 
   /** m_respawnAgentsOnDeath (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   respawnAgentsOnDeath = true;
@@ -58,23 +61,27 @@ export class ProcessLifetime extends CjsModel
   firstAgentLifetime = 0;
 
   /** m_returningAge (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   returningAge = -1;
 
   /** m_wanderAmount (float) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.float32
   wanderAmount = 0.3;
 
   /** m_firstSpawnAtRandomPlaces (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.boolean
   firstSpawnAtRandomPlaces = true;
 
   /** m_behaviorWeight (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   behaviorWeight = 900;

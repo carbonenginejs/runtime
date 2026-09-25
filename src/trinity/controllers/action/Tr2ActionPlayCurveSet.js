@@ -18,14 +18,17 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 @carbon.inherit(ITr2ControllerAction)
 export class Tr2ActionPlayCurveSet extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   curveSetName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.string
   rangeName = "";
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   syncToRange = false;

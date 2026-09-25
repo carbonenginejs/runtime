@@ -58,10 +58,12 @@ export function EveGetLocatorPose(outPosition, outDirection, animationUpdater, l
 })
 export class EveLocatorSets extends CjsModel
 {
+  @edit.read
   @edit.persist
   @type.list("Locator")
   locators = [];
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

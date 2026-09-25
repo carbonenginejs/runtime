@@ -9,21 +9,25 @@ export class EveSOFDataPatternApplicationGroup extends CjsModel
 {
 
   /** m_layer1Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternLayerProperties")
   layer1Properties = null;
 
   /** m_layer2Properties (EveSOFDataPatternLayerPropertiesPtr) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.objectRef("EveSOFDataPatternLayerProperties")
   layer2Properties = null;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
   /** m_projections (PEveSOFDataPatternPerHullVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataPatternPerHull")
   projections = [];

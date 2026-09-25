@@ -9,6 +9,7 @@ export class EveSOFDataFactionVisibilityGroupSet extends CjsModel
 {
 
   /** m_visibilityGroups (PEveSOFDataGenericStringVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataGenericString")
   visibilityGroups = [];

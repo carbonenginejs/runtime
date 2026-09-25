@@ -12,6 +12,7 @@ import { TriRenderStep } from "./TriRenderStep.js";
 @type.define({ className: "TriStepSetViewport", family: "renderJob" })
 export class TriStepSetViewport extends TriRenderStep
 {
+  @edit.readwrite
   @edit.persist
   @type.objectRef("TriViewport")
   viewport = null;

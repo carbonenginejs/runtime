@@ -25,19 +25,46 @@ export class EveStretch2 extends IEveFiringEffectElement
 {
   static MAX_QUAD_COUNT = 128;
 
-  @edit.persist @type.string name = "";
-  @edit.persist @type.model("TriCurveSet") loop = null;
-  @edit.persist @type.model("TriCurveSet") start = null;
-  @edit.persist @type.model("TriCurveSet") end = null;
-  @edit.persist @type.model("Tr2Effect") effect = null;
-  @edit.persist @type.model("Tr2GpuSharedEmitter") destinationEmitter = null;
-  @edit.persist @type.model("Tr2GpuSharedEmitter") sourceEmitter = null;
-  @edit.notify @edit.persist @type.uint32 quadCount = 0;
-  @edit.persist @type.model("TriObserverLocal") destinationObserver = null;
-  @edit.persist @type.model("TriObserverLocal") sourceObserver = null;
-  @edit.persist @type.model("Tr2PointLight") destinationLight = null;
-  @edit.persist @type.model("Tr2PointLight") sourceLight = null;
-  @edit.persist @type.float32 boundingRadius = 100;
+  @edit.readwrite
+  @edit.persist
+ @type.string name = "";
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriCurveSet") loop = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriCurveSet") start = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriCurveSet") end = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("Tr2Effect") effect = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("Tr2GpuSharedEmitter") destinationEmitter = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("Tr2GpuSharedEmitter") sourceEmitter = null;
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
+ @type.uint32 quadCount = 0;
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriObserverLocal") destinationObserver = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriObserverLocal") sourceObserver = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("Tr2PointLight") destinationLight = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("Tr2PointLight") sourceLight = null;
+  @edit.readwrite
+  @edit.persist
+ @type.float32 boundingRadius = 100;
 
   #source = vec3.create();
   #destination = vec3.create();

@@ -13,11 +13,13 @@ import { RenderState } from "#consts/render-context";
 @type.define({ className: "TriStepSetRenderState", family: "renderJob" })
 export class TriStepSetRenderState extends TriRenderStep
 {
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("RenderState")
   state = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.uint32
   value = 0;

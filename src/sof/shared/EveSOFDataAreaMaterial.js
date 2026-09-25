@@ -20,27 +20,32 @@ export class EveSOFDataAreaMaterial extends CjsModel
   });
 
   /** m_glowColorType (SOFDataFactionColorChooser::ColorType - enum ColorType) [READWRITE, PERSIST, ENUM] */
+  @edit.readwrite
   @edit.persist
   @type.int32
   @type.enum("trinity.SOFDataFactionColorChooser.ColorType")
   colorType = 12;
 
   /** m_material[MATERIAL1] (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   material1 = "";
 
   /** m_material[MATERIAL2] (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   material2 = "";
 
   /** m_material[MATERIAL3] (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   material3 = "";
 
   /** m_material[MATERIAL4] (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   material4 = "";

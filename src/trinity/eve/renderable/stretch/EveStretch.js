@@ -37,31 +37,68 @@ import {
 @carbon.inherit(IEveSpaceObject2, IEveTransform)
 export class EveStretch extends IEveFiringEffectElement
 {
-  @edit.persist @type.string name = "";
-  @edit.persist @type.model("ITriVectorFunction") source = null;
-  @edit.persist @type.model("ITriVectorFunction") dest = null;
-  @edit.persist @type.model("IStretchAudio") stretchAudio = null;
+  @edit.readwrite
+  @edit.persist
+ @type.string name = "";
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") source = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriVectorFunction") dest = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("IStretchAudio") stretchAudio = null;
   @edit.read
   @type.int32
   @type.enum("trinity.Tr2Lod")
   lodLevel = 0;
-  @edit.persist @type.model("ITriScalarFunction") progressCurve = null;
-  @edit.persist @type.model("TriCurveSet") moveCompletion = null;
-  @edit.persist @type.list("TriCurveSet") curveSets = [];
-  @edit.persist @type.model("TriFloat") length = new TriFloat();
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITriScalarFunction") progressCurve = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("TriCurveSet") moveCompletion = null;
+  @edit.read
+  @edit.persist
+ @type.list("TriCurveSet") curveSets = [];
+  @edit.read
+  @edit.persist
+ @type.model("TriFloat") length = new TriFloat();
   @edit.readwrite @type.boolean moving = false;
   @edit.readwrite @type.boolean moveCompleted = false;
-  @edit.notify @edit.persist @type.boolean display = true;
-  @edit.persist @type.boolean update = true;
-  @edit.persist @type.list("Tr2Light") destLights = [];
-  @edit.persist @type.list("Tr2Light") sourceLights = [];
-  @edit.persist @type.model("EveTransform") destObject = null;
-  @edit.persist @type.model("EveTransform") sourceObject = null;
-  @edit.persist @type.model("EveTransform") stretchObject = null;
-  @edit.persist @type.boolean useCurveLod = true;
+  @edit.notify
+  @edit.readwrite
+  @edit.persist
+ @type.boolean display = true;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean update = true;
+  @edit.read
+  @edit.persist
+ @type.list("Tr2Light") destLights = [];
+  @edit.read
+  @edit.persist
+ @type.list("Tr2Light") sourceLights = [];
+  @edit.readwrite
+  @edit.persist
+ @type.model("EveTransform") destObject = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("EveTransform") sourceObject = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("EveTransform") stretchObject = null;
+  @edit.readwrite
+  @edit.persist
+ @type.boolean useCurveLod = true;
   @edit.read @type.float64 startTime = -1;
-  @edit.persist @type.model("ITr2Audio") audio = null;
-  @edit.persist @type.model("EveTransform") moveObject = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("ITr2Audio") audio = null;
+  @edit.readwrite
+  @edit.persist
+ @type.model("EveTransform") moveObject = null;
 
   #sourcePosition = vec3.create();
   #destinationPosition = vec3.create();

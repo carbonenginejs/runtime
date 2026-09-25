@@ -10,6 +10,7 @@ export class Tr2SSSSS extends CjsModel
 {
 
   /** m_subSurfaceFrontScatterColor (Color) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.color
   subSurfaceFrontScatterColor = vec4.fromValues(1, 1, 1, 1);

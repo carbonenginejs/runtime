@@ -14,21 +14,25 @@ export class Tr2ForceSphereVolume extends ITr2ParticleForce
   #contribution = vec3.create();
 
   /** m_exponent (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   exponent = 1;
 
   /** m_forces (PITr2ParticleForceVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("ITr2ParticleForce")
   forces = [];
 
   /** m_position (Vector3) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   /** m_radius (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   radius = 1;

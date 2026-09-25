@@ -12,6 +12,7 @@ import { edit, type } from "#schema";
 })
 export class TriVector4 extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.vec4
   data = vec4.create();

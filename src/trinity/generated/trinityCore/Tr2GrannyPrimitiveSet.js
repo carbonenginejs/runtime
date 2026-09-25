@@ -10,11 +10,13 @@ export class Tr2GrannyPrimitiveSet extends Tr2PrimitiveSet
 
   /** m_grannyResPath (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   grannyResPath = "";
 
   /** m_renderSolid (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   renderSolid = false;

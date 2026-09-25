@@ -17,14 +17,17 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class Tr2TranslationAdapter extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.vec3
   value = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   curve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotationOffset = quat.create();

@@ -12,11 +12,13 @@ export class EveSmartLightSpotLight extends EveSmartLightPointLight
 {
 
   /** m_lightGroupData.innerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   innerAngle = 0;
 
   /** m_lightGroupData.outerAngle (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   outerAngle = 0;

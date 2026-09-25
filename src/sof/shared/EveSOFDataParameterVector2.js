@@ -10,6 +10,7 @@ import { EveSOFDataParameter } from "./EveSOFDataParameter.js";
 @type.define({ className: "EveSOFDataParameterVector2", family: "eve" })
 export class EveSOFDataParameterVector2 extends EveSOFDataParameter
 {
+  @edit.readwrite
   @edit.persist
   @type.vec2
   value = vec2.create();

@@ -33,6 +33,7 @@ export class Tr2DepthStencil extends CjsModel
 {
 
   /** m_name (std::string) [PERSISTONLY] */
+  @edit.readwrite
   @edit.persistOnly
   @type.string
   name = "";

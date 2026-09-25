@@ -9,11 +9,13 @@ export class EveSOFDataMultiHullDecalIndexBuffers extends CjsModel
 {
 
   /** m_indexBuffers (PEveSOFDataDecalIndexBufferVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("EveSOFDataDecalIndexBuffer")
   indexBuffers = [];
 
   /** m_combinedGeometryResPath (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   combinedGeometryResPath = "";

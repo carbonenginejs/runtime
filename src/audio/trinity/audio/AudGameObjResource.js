@@ -47,6 +47,7 @@ export class AudGameObjResource extends CjsModel
 {
 
   /** m_eventPrefix (std::wstring) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   eventPrefix = "";
@@ -62,12 +63,14 @@ export class AudGameObjResource extends CjsModel
   ID = null;
 
   /** m_parameters (PAudParameterVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("AudParameter")
   parameters = [];
 
   /** m_name (std::string) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
@@ -94,6 +97,7 @@ export class AudGameObjResource extends CjsModel
 
   /** m_eventName (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.string
   eventName = "";
@@ -109,6 +113,7 @@ export class AudGameObjResource extends CjsModel
   distanceFromListener = 0;
 
   /** m_scalingFactor (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   scalingFactor = 1;

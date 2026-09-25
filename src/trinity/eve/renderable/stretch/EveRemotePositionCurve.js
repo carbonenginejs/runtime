@@ -16,10 +16,12 @@ import { carbon, impl, edit, type } from "#schema";
 })
 export class EveRemotePositionCurve extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.float32
   delayTime = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.boolean
   cycle = false;
@@ -28,18 +30,22 @@ export class EveRemotePositionCurve extends CjsModel
   @type.vec3
   value = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   offsetDir2 = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.objectRef("ITriVectorFunction")
   startPositionCurve = null;
 
+  @edit.readwrite
   @edit.persist
   @type.vec3
   offsetDir1 = vec3.create();
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   sweepTime = 1;

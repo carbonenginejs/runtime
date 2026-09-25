@@ -18,25 +18,30 @@ import { carbon, impl, edit, type } from "#schema";
 export class EveBoxVolume extends IEveVolume
 {
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   position = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   scaling = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.vec3
   innerScaling = vec3.create();
 
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.quat
   rotation = quat.create();
 
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";

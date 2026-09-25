@@ -9,16 +9,19 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
 {
 
   /** m_variableName (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.string
   variableName = "";
 
   /** m_value (float) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.float32
   value = 0;
 
   /** m_invertReceivedValue (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   invertTrigger = false;
@@ -29,11 +32,13 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   isActive = false;
 
   /** m_distributionSpawners (PIEveDistributionSpawnerVector) [READ, PERSIST] */
+  @edit.read
   @edit.persist
   @type.list("IEveDistributionSpawner")
   spawners = [];
 
   /** m_restartOnReceivingValue (bool) [READWRITE, PERSIST] */
+  @edit.readwrite
   @edit.persist
   @type.boolean
   restartOnReceivingValue = false;

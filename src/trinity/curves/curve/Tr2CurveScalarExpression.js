@@ -16,10 +16,12 @@ import { CjsControllerExpressionProgram } from "../../controllers/expression/Cjs
 })
 export class Tr2CurveScalarExpression extends CjsModel
 {
+  @edit.readwrite
   @edit.persist
   @type.string
   name = "";
 
+  @edit.readwrite
   @edit.persistOnly
   @type.expression
   expression = "";
@@ -30,22 +32,27 @@ export class Tr2CurveScalarExpression extends CjsModel
 
   #program = null;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input1 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input2 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input3 = 0;
 
+  @edit.readwrite
   @edit.persist
   @type.float32
   input4 = 0;
 
+  @edit.read
   @edit.persist
   @type.list("ITriScalarFunction")
   inputs = [];
