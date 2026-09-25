@@ -4,6 +4,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { SSAOQuality } from "../generated/trinityCore/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -18,7 +19,7 @@ export class Tr2SSAO extends CjsModel
   @edit.notify
   @edit.readwrite
   @type.int32
-  @type.enum("SSAOQuality")
+  @type.enum("trinity.SSAOQuality")
   quality = SSAOQuality.HIGHEST;
 
   @edit.notify
@@ -141,3 +142,17 @@ export class Tr2SSAO extends CjsModel
   static SSAOQuality = SSAOQuality;
 
 }
+
+// Carbon's chooser lists the qualities lowest first.
+blue.enums.RegisterEnum("trinity.SSAOQuality", SSAOQuality, {
+  source: "trinity/trinity/Tr2SSAO.h", family: "postProcess", line: 9,
+  exposedName: "SSAOQuality", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/Tr2SSAO_Blue.cpp:8",
+  chooser: [
+    { name: "Lowest", value: SSAOQuality.LOWEST, description: "Lowest quality" },
+    { name: "Low", value: SSAOQuality.LOW, description: "Low quality" },
+    { name: "Medium", value: SSAOQuality.MEDIUM, description: "Medium quality" },
+    { name: "High", value: SSAOQuality.HIGH, description: "High quality" },
+    { name: "Highest", value: SSAOQuality.HIGHEST, description: "Highest (adaptive) quality" }
+  ]
+});

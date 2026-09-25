@@ -4,6 +4,8 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
+import "./effect/Tr2PPEffect.js";
 
 
 /**
@@ -15,13 +17,13 @@ export class Tr2PostProcessRenderer extends CjsModel
   @edit.notify
   @edit.readwrite
   @type.int32
-  @type.enum("BloomDebugMode")
+  @type.enum("trinity.Tr2PostProcessRenderer.BloomDebugMode")
   bloomDebugMode = BloomDebugMode.BLOOM_DEBUG_NONE;
 
   @edit.notify
   @edit.readwrite
   @type.int32
-  @type.enum("Quality")
+  @type.enum("trinity.PostProcess.Quality")
   quality = Quality.HIGH;
 
   @edit.readwrite
@@ -132,3 +134,20 @@ export class Tr2PostProcessRenderer extends CjsModel
   static Quality = Quality;
 
 }
+
+// Carbon gives this a chooser (Tr2PostProcessRenderer_Blue.cpp:9) but never
+// registers it, so it takes no exposure metadata.
+blue.enums.RegisterEnum("trinity.Tr2PostProcessRenderer.BloomDebugMode", BloomDebugMode, {
+  source: "trinity/trinity/PostProcess/Tr2PostProcessRenderer.h", family: "postProcess", line: 112,
+  chooserSource: "trinity/trinity/PostProcess/Tr2PostProcessRenderer_Blue.cpp:9",
+  chooser: [
+    { name: "None", value: BloomDebugMode.BLOOM_DEBUG_NONE, description: "No Debug" },
+    { name: "All", value: BloomDebugMode.BLOOM_DEBUG_ALL, description: "Show all steps" },
+    { name: "Step1", value: BloomDebugMode.BLOOM_DEBUG_STEP1, description: "Show step 1" },
+    { name: "Step2", value: BloomDebugMode.BLOOM_DEBUG_STEP2, description: "Show step 2" },
+    { name: "Step3", value: BloomDebugMode.BLOOM_DEBUG_STEP3, description: "Show step 3" },
+    { name: "Step4", value: BloomDebugMode.BLOOM_DEBUG_STEP4, description: "Show step 4" },
+    { name: "Step5", value: BloomDebugMode.BLOOM_DEBUG_STEP5, description: "Show step 5" },
+    { name: "Step6", value: BloomDebugMode.BLOOM_DEBUG_STEP6, description: "Show step 6" }
+  ]
+});

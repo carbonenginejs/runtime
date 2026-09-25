@@ -14,7 +14,7 @@ export class Tr2PPGenericEffect extends Tr2PPEffect
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Quality")
+  @type.enum("trinity.PostProcess.Quality")
   quality = 1;
 
   @edit.readwrite

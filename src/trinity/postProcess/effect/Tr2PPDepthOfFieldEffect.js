@@ -2,6 +2,7 @@
 // Source: trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.cpp
 import { edit, type } from "#schema";
 import { Tr2PPEffect } from "./Tr2PPEffect.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -16,7 +17,7 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Shape")
+  @type.enum("trinity.Tr2Bokeh.Shape")
   bokehShape = Tr2PPDepthOfFieldEffect.Disk;
 
   @edit.readwrite
@@ -92,3 +93,17 @@ export class Tr2PPDepthOfFieldEffect extends Tr2PPEffect
   ]);
 
 }
+
+blue.enums.RegisterEnum("trinity.Tr2Bokeh.Shape", Tr2PPDepthOfFieldEffect.Shape, {
+  source: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect.h", family: "postProcess", line: 8,
+  exposedName: "BokehShapeType", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/PostProcess/Effects/Tr2PPDepthOfFieldEffect_Blue.cpp:10",
+  chooser: [
+    { name: "Disk", value: Tr2PPDepthOfFieldEffect.Shape.Disk, description: "A perfectly circular aperture" },
+    { name: "Triangle", value: Tr2PPDepthOfFieldEffect.Shape.Triangle, description: "An aperture with 3 sides" },
+    { name: "Rectangle", value: Tr2PPDepthOfFieldEffect.Shape.Rectangle, description: "An aperture with 4 sides" },
+    { name: "Pentagon", value: Tr2PPDepthOfFieldEffect.Shape.Pentagon, description: "An aperture with 5 sides" },
+    { name: "Hexagon", value: Tr2PPDepthOfFieldEffect.Shape.Hexagon, description: "An aperture with 6 sides" },
+    { name: "Heart", value: Tr2PPDepthOfFieldEffect.Shape.Heart, description: "A heart-shaped aperture <3" }
+  ]
+});

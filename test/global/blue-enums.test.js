@@ -306,3 +306,43 @@ test("particle enum consumers share the native owner and chooser", async () =>
     assert.equal(services.enums.GetEnumInfo(buffers).chooser, undefined);
     assert.equal(services.enums.GetEnumInfo(buffers).exposedName, undefined);
 });
+
+
+test("post-process enum fields resolve through Blue with Carbon's choosers", async () =>
+{
+    const { CjsSchema: schema } = await import("../../npm/dist/global/schema/index.js");
+    const { blue: services } = await import("../../npm/dist/global/blue/index.js");
+    // [ module under trinity/postProcess, field, identity, class static, Carbon exposedName ]
+    const cases = [
+        ["effect/Tr2PPGenericEffect", "quality", "trinity.PostProcess.Quality", "Quality", "PostProcessQuality"],
+        ["Tr2PostProcessRenderer", "quality", "trinity.PostProcess.Quality", "Quality", "PostProcessQuality"],
+        ["Tr2PostProcessRenderer", "bloomDebugMode", "trinity.Tr2PostProcessRenderer.BloomDebugMode", "BloomDebugMode", undefined],
+        ["effect/Tr2PPDepthOfFieldEffect", "bokehShape", "trinity.Tr2Bokeh.Shape", "Shape", "BokehShapeType"],
+        ["Tr2PostProcessAttributes", "depthOfFieldShape", "trinity.Tr2Bokeh.Shape", "Shape", "BokehShapeType"],
+        ["Tr2PostProcessAttributes", "priority", "trinity.PostProcessEnums.Priority", "Priority", "Tr2PostProcessPriority"],
+        ["effect/Tr2PPTaaEffect", "quality", "trinity.Tr2PPTaaEffect.Quality", "Quality", "TaaQuality"],
+        ["effect/Tr2PPTaaEffect", "debug", "trinity.Tr2PPTaaEffect.Debug", "Debug", "TaaDebug"],
+        ["Tr2SSAO", "quality", "trinity.SSAOQuality", "SSAOQuality", "SSAOQuality"],
+        ["BlurContext", "type", "trinity.PostProcessBlur.BlurType", "BlurType", undefined],
+        ["BlurContext", "channel", "trinity.PostProcessBlur.BlurChannel", "BlurChannel", undefined],
+        ["BlurContext", "process", "trinity.PostProcessBlur.BlurProcess", "BlurProcess", undefined],
+        ["BlurContext", "finalize", "trinity.PostProcessBlur.BlurFinalize", "BlurFinalize", undefined]
+    ];
+    for (const [path, member, identity, staticName, exposedName] of cases)
+    {
+        const name = path.split("/").at(-1);
+        const { [name]: Constructor } = await import(`../../npm/dist/trinity/postProcess/${path}.js`);
+        const field = schema.getField(Constructor, member);
+        assert.equal(field.enum.identity, identity, `${name}.${member}`);
+        assert.equal(field.enum.members, Constructor[staticName], `${name}.${member}`);
+        assert.equal(field.enum.members, services.enums.GetEnum(identity));
+        assert.equal(services.enums.GetEnumInfo(identity).exposedName, exposedName);
+    }
+
+    // Choosers keep Carbon's order and omit the sentinels.
+    const labels = identity => services.enums.GetEnumInfo(identity).chooser.map(entry => entry.name);
+    assert.deepEqual(labels("trinity.PostProcess.Quality"), [ "Low", "Medium", "High" ]);
+    assert.deepEqual(labels("trinity.PostProcessEnums.Priority"), [ "UI", "High", "Medium", "Low", "SceneDefault" ]);
+    assert.deepEqual(labels("trinity.SSAOQuality"), [ "Lowest", "Low", "Medium", "High", "Highest" ]);
+    assert.equal(services.enums.GetNameFromValue("trinity.Tr2PPTaaEffect.Debug", 1), "Motion Vectors");
+});

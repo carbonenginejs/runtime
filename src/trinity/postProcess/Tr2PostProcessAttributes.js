@@ -16,6 +16,7 @@ import { Tr2PPLutEffect } from "./effect/Tr2PPLutEffect.js";
 import { Tr2PPSignalLossEffect } from "./effect/Tr2PPSignalLossEffect.js";
 import { Tr2PPVignetteEffect } from "./effect/Tr2PPVignetteEffect.js";
 import { AttributeType, Priority } from "../generated/postProcess/enums.js";
+import { blue, EnumRegistrationType } from "#blue";
 
 
 /**
@@ -30,7 +31,7 @@ export class Tr2PostProcessAttributes extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("Priority")
+  @type.enum("trinity.PostProcessEnums.Priority")
   priority = Tr2PostProcessAttributes.MEDIUM_PRIORITY;
 
   @edit.read
@@ -427,7 +428,7 @@ export class Tr2PostProcessAttributes extends CjsModel
 
   @edit.persist
   @type.int32
-  @type.enum("Shape")
+  @type.enum("trinity.Tr2Bokeh.Shape")
   depthOfFieldShape = 0;
 
   @edit.persist
@@ -1112,3 +1113,17 @@ export class Tr2PostProcessAttributes extends CjsModel
   static Shape = Tr2PPDepthOfFieldEffect.Shape;
 
 }
+
+// Carbon's chooser lists the priorities highest first and omits PRIORITY_COUNT.
+blue.enums.RegisterEnum("trinity.PostProcessEnums.Priority", Priority, {
+  source: "trinity/trinity/PostProcess/Tr2PostProcessEnums.h", family: "postProcess", line: 58,
+  exposedName: "Tr2PostProcessPriority", exposure: EnumRegistrationType.ENUM_REG_ENUM_OBJECT_ON_MODULE,
+  chooserSource: "trinity/trinity/PostProcess/Tr2PostProcessAttributes_Blue.cpp:9",
+  chooser: [
+    { name: "UI", value: Priority.UI_PRIORITY, description: "UI (Top) Priority" },
+    { name: "High", value: Priority.HIGH_PRIORITY, description: "High Priority" },
+    { name: "Medium", value: Priority.MEDIUM_PRIORITY, description: "Medium Priority" },
+    { name: "Low", value: Priority.LOW_PRIORITY, description: "Low Priority" },
+    { name: "SceneDefault", value: Priority.SCENE_DEFAULT_PRIORITY, description: "Scene Default (lowest) Priority" }
+  ]
+});
