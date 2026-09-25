@@ -163,7 +163,15 @@ export class Tr2RenderContext extends CjsModel
     TA_MIRROR_ONCE: 5
   });
 
-  /** Installs a nominal step executor; null restores direct step execution. */
+  /**
+   * Installs a nominal step executor; null restores the shared
+   * `CjsDirectTrinityStepExecutor`. Anything else throws a TypeError.
+   *
+   * The context calls the executor's methods directly and passes itself as the
+   * fifth argument of each step call. A concrete executor that omits a method
+   * reaches the `CjsTrinityStepExecutor` base, which throws; nothing falls back
+   * or skips the step.
+   */
   SetStepExecutor(executor)
   {
     if (executor !== null && !(executor instanceof CjsTrinityStepExecutor))
