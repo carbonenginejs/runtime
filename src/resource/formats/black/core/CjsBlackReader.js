@@ -750,12 +750,15 @@ export class CjsBlackReader extends CjsBlueReader
     /** Resolves black field target against the current Black object-graph reader. */
     ResolveBlackFieldTarget(blackName, blackField, fields)
     {
+        // The compact schema carries no C++ names, so a cppName comparison
+        // must not let null match null - it would pick the class's first field.
         const sourceField = fields.find(item =>
             item.name === blackField.fieldName ||
             item.name === blackField.name ||
-            item.cppName === blackField.cppName ||
-            item.cppName === blackField.memberPath ||
-            item.cppName === blackField.memberRoot
+            (item.cppName != null && (
+                item.cppName === blackField.cppName ||
+                item.cppName === blackField.memberPath ||
+                item.cppName === blackField.memberRoot))
         );
         const fieldName = blackField.fieldName || sourceField?.name || blackField.name || CjsBlackReader.toJsFieldName(blackName);
         const usesPayloadField = Boolean(blackField.name && blackField.name !== blackField.fieldName);
@@ -766,7 +769,12 @@ export class CjsBlackReader extends CjsBlueReader
             cppType: blackField.cppType || sourceField?.cppType || null,
             black: blackField
         };
-        const hasIndex = Boolean(blackField.indexToken || blackField.indexKey !== undefined);
+        // The index aggregates only when the Black name stores into another
+        // field (EveSOFDataArea's "Glass" into `materials`). Carbon's
+        // MAP_ATTRIBUTE("color1", m_params.colors[1]) records index 1 too, but
+        // "color1" is its own attribute, so indexing it would read a colour
+        // back as [ , colour ].
+        const hasIndex = Boolean(blackField.indexToken || blackField.indexKey !== undefined) && fieldName !== blackName;
         const storageKey = hasIndex
             ? blackField.indexKey ?? CjsBlackReader.normalizeIndexedKey(blackField.indexToken, field)
             : null;

@@ -260,6 +260,55 @@ test("compact definitions can map indexed chooser fields", () =>
     });
 });
 
+test("an indexed attribute that is its own field reads as a plain value", () =>
+{
+    // MAP_ATTRIBUTE("color1", m_params.colors[1]) (Tr2GpuSharedEmitter_Blue.cpp):
+    // the schema records the index, but "color1" is its own attribute.
+    const schema = {
+        TestColors: {
+            color0: { type: "float", token: "0" },
+            color1: { type: "float", index: 1, token: "1" }
+        }
+    };
+    const builder = new BlackFixtureBuilder();
+    const input = builder.Finish(builder.Object(1, "TestColors", [
+        [ "color0", f32(0.25) ],
+        [ "color1", f32(0.5) ]
+    ]));
+
+    assert.deepEqual(CjsBlackFormat.readPayload(input, { schema }).object, {
+        _type: "TestColors",
+        color0: 0.25,
+        color1: 0.5
+    });
+});
+
+test("compact fields without C++ names keep their own type", () =>
+{
+    // A null cppName once matched the class's first field, so "child" read
+    // with "name"'s string type and an object reference became a string.
+    const schema = {
+        TestNamed: { name: "string", child: "object" },
+        TestLeaf: { name: "string" }
+    };
+    class TestNamedRuntime {}
+    class TestLeafRuntime {}
+    const builder = new BlackFixtureBuilder();
+    const input = builder.Finish(builder.Object(1, "TestNamed", [
+        [ "name", builder.StringValue("parent") ],
+        [ "child", builder.Object(2, "TestLeaf", [ [ "name", builder.StringValue("leaf") ] ]) ]
+    ]));
+
+    const runtime = CjsBlackFormat.readRuntime(input, {
+        schema,
+        classes: { TestNamed: TestNamedRuntime, TestLeaf: TestLeafRuntime }
+    });
+
+    assert.equal(runtime.root.name, "parent");
+    assert.equal(runtime.root.child instanceof TestLeafRuntime, true);
+    assert.equal(runtime.root.child.name, "leaf");
+});
+
 test("empty objects do not need class definitions", () =>
 {
     const builder = new BlackFixtureBuilder();
