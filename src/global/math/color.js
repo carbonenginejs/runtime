@@ -1,4 +1,4 @@
-// Source: math/include/Color.h + Color_inline.h (e:\carbonengine)
+// Source: math/include/Color.h + Color_inline.h
 //
 // Carbon's Color - the ONE color type it has: four floats r, g, b, a. There
 // is no Color3 anywhere in Carbon's math; rgb data converts at the edges.
