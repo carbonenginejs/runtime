@@ -55,10 +55,16 @@ export class Tr2RuntimeInstanceData extends CjsModel
   @type.uint32
   count = 0;
 
+  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  @impl.adapted
+  @edit.read
   @edit.persist
   @type.vec3
   aabbMin = vec3.create();
 
+  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  @impl.adapted
+  @edit.read
   @edit.persist
   @type.vec3
   aabbMax = vec3.create();

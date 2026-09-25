@@ -291,6 +291,9 @@ export class EveChildMesh extends EveChildTransform
 
   // SOF-authored placement/instance values; persisted so the values
   // interchange reproduces Carbon's hidden child placement state.
+  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  @impl.adapted
+  @edit.read
   @edit.persist
   @type.int32
   @type.enum("Origin")

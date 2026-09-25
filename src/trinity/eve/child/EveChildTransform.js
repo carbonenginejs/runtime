@@ -51,6 +51,7 @@ export class EveChildTransform extends EveSpaceObjectChild
   @type.mat4
   localTransform = mat4.create();
 
+  @edit.read
   @type.mat4
   worldTransform = mat4.create();
 

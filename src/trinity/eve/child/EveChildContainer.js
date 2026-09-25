@@ -165,10 +165,16 @@ export class EveChildContainer extends EveChildTransform
 
   // SOF-authored placement values; persisted so the values interchange
   // reproduces Carbon's hidden container placement state.
+  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  @impl.adapted
+  @edit.read
   @edit.persist
   @type.objectRef("ITr2GrannyAnimationOwner")
   animationOwner = null;
 
+  // PERSIST is ours, not Carbon's: SOF's JSON output carries this value, which Carbon sets in C++.
+  @impl.adapted
+  @edit.read
   @edit.persist
   @type.int32
   @type.enum("Origin")

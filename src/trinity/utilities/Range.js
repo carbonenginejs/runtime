@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Utilities/Range.cpp
 // Source: trinity/trinity/Utilities/Range_Blue.cpp
 import { CjsModel } from "#model";
-import { carbon, impl, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 
 
 /**
@@ -16,15 +16,19 @@ import { carbon, impl, type } from "#schema";
 })
 export class Range extends CjsModel
 {
+  @edit.read
   @type.boolean
   isUniform = true;
 
+  @edit.read
   @type.float32
   centerPoint = 0;
 
+  @edit.read
   @type.float32
   minRangePoint = 0;
 
+  @edit.read
   @type.float32
   maxRangePoint = 0;
 
