@@ -179,16 +179,20 @@ test("Carbon's create-time refusals are kept", () =>
   assert.equal(buffer.IsValid(), false);
 });
 
-test("UpdateBuffer refuses a WRITE_OFTEN buffer and writes a plain WRITE one", () =>
+test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>
 {
   const { fake, context } = deviceAndContext();
   const often = new CjsWebgpuBufferAL();
   often.Create(quadDescription(), null, context);
 
-  // The stub refuses this and DX12 refuses it for a dynamic buffer, both
-  // because such a buffer's storage moves under a partial write. Ours does not
-  // move, but a caller reaching here has confused the two update paths.
-  assert.equal(often.UpdateBuffer(0, 4, new Uint8Array(4).fill(1), context), ALResult.E_INVALIDCALL);
+  // DX11 and Metal accept WRITE_OFTEN by map, copy, unmap
+  // (Tr2BufferALDx11.cpp:419-428, Tr2BufferALMetal.mm:293-301), and Carbon's
+  // Tr2RingBuffer depends on it. Refusing it left the bone ring all zeros, so
+  // every skinned vertex collapsed to the origin.
+  const beforeOften = writes(fake.calls).length;
+  assert.equal(often.UpdateBuffer(0, 4, new Uint8Array(4).fill(1), context), ALResult.S_OK);
+  assert.equal(writes(fake.calls).length, beforeOften + 1);
+  assert.deepEqual(Array.from(writes(fake.calls).at(-1)[3]), [ 1, 1, 1, 1 ]);
 
   const plain = new CjsWebgpuBufferAL();
   plain.Create(Tr2BufferDescriptionAL.FromStride(16, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE), null, context);

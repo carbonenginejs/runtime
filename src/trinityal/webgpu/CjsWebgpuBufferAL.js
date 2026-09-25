@@ -223,12 +223,14 @@ export class CjsWebgpuBufferAL
   /**
    * Writes a range without a map.
    *
-   * Carbon's stub refuses this for `WRITE_OFTEN` (`Tr2BufferALStub.cpp:138-141`)
-   * and DX12 refuses it for a DYNAMIC buffer (`Tr2ResourceHelper.cpp:253-256`),
-   * both because such a buffer's storage moves under a partial write. Ours does
-   * not move, but the refusal is kept: a caller that reaches here with a
-   * WRITE_OFTEN buffer has confused the two update paths, and every portable
-   * caller uses map/unmap for those.
+   * A `WRITE_OFTEN` buffer is accepted, as DX11 (`Tr2BufferALDx11.cpp:419-428`)
+   * and Metal (`Tr2BufferALMetal.mm:293-301`) accept it by mapping, copying the
+   * range and unmapping; Carbon's own `Tr2RingBuffer::PrepareBuffer` relies on
+   * that (`Tr2RingBuffer.cpp:63`). The stub refuses it
+   * (`Tr2BufferALStub.cpp:138-141`) and DX12 refuses it for a DYNAMIC buffer
+   * (`Tr2ResourceHelper.cpp:253-256`), because such storage moves under a
+   * partial write. Ours never moves: the retained shadow is written and the
+   * range uploaded, the same result as the map path.
    *
    * @param {number} offset Byte offset of the range.
    * @param {number} size Bytes in the range.
@@ -240,7 +242,6 @@ export class CjsWebgpuBufferAL
   {
     if (!this.IsValid()) return ALResult.E_INVALIDCALL;
     if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE)) return ALResult.E_INVALIDCALL;
-    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) return ALResult.E_INVALIDCALL;
     if (!data) return ALResult.E_INVALIDARG;
     if (offset < 0 || size < 0 || offset + size > this._shadow.length) return ALResult.E_INVALIDARG;
 

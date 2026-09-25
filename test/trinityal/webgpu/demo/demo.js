@@ -99,7 +99,7 @@
 // inputs, the draw arguments from the LOD's areas, the render states the effect
 // authors, the resource set laid out against the program's bindings.
 
-import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
@@ -151,10 +151,40 @@ function EffectPath(effectFilePath)
 }
 
 /** An Amarr frigate. Real geometry, real declaration, real packed tangents. */
-const HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
+const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
 
-/** The DNA whose built SOF document names this hull's maps and constants. */
-const DNA = "af1_t1:amarrbase:amarr";
+/**
+ * The DNA whose built SOF document names this hull's maps, constants and
+ * geometry. `?dna=` picks another, e.g. `?dna=at1_t1:amarrbase:amarr`.
+ */
+const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "af1_t1:amarrbase:amarr";
+
+
+/**
+ * Rest-pose bones for skinned hulls: every bone identity, so a vertex stays
+ * where the geometry authored it whatever bone it names. A stand-in for an
+ * animation updater, which this demo does not have.
+ *
+ * The skinned shaders read Carbon's `BoneTransforms` - rows of `Float4x3`, 12
+ * floats each - at `boneIndex + boneOffsets.x` from the per-object block
+ * (`EveSpaceObject2.cpp:1424-1428`); an index past the end reads zeros, which
+ * collapses the hull to the origin.
+ */
+const REST_POSE_BONES = 256;
+
+function RestPoseBones(count)
+{
+  const rows = new Float32Array(count * 12);
+
+  for (let bone = 0; bone < count; bone += 1)
+  {
+    rows[bone * 12] = 1;
+    rows[bone * 12 + 5] = 1;
+    rows[bone * 12 + 10] = 1;
+  }
+
+  return rows;
+}
 
 
 /**
@@ -979,6 +1009,8 @@ export async function RunDemo(canvas)
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
   const sof = await SofDocument(DNA);
+  // The document names the geometry; the default hull only when it cannot be had.
+  const HULL = sof?.mesh?.geometryResPath?.replace(/^res:\//u, "") || DEFAULT_HULL;
   const documentAreas = sof?.mesh?.opaqueAreas ?? [];
   const hullBytes = await ResourceBytes(HULL);
   const mesh = Unpack(HullMesh(hullBytes));
@@ -1160,6 +1192,23 @@ export async function RunDemo(canvas)
   const renderContext = new Tr2RenderContext();
 
   renderContext.SetRenderContextAL(al);
+
+  // WHAT EveSpaceScene's CONSTRUCTOR DOES (EveSpaceScene.cpp:257-258), which
+  // this stand-in scene must do itself: the Float4x3 ring is the global
+  // `BoneTransforms` variable. The materials were mapped before this existed,
+  // and a register maps to a variable only if it is registered at mapping, so
+  // they are rebuilt. Uploaded once: a rest pose never changes, and nothing
+  // here drives the ring's per-frame fence.
+  const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
+  const boneOffsets = new Tr2RingBufferOffsets();
+
+  bones.SetName("BoneTransformsBuffer");
+  Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+  boneOffsets.UploadTransforms(bones, RestPoseBones(REST_POSE_BONES), REST_POSE_BONES);
+  bones.PrepareBuffer(renderContext);
+  perObject.vs.Set("boneOffsets", [ boneOffsets.GetCurrentFrameOffset(), boneOffsets.GetPreviousFrameOffset(), REST_POSE_BONES, 0 ]);
+
+  for (const area of areas) area.material.RebuildCachedData();
 
   {
     const esm = renderContext.GetEffectStateManager();

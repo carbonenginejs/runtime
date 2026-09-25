@@ -42,7 +42,7 @@
 
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { Tr2BufferALStub, Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
+import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 
@@ -362,8 +362,6 @@ export class Tr2RingBuffer extends CjsModel
 
     if (this.#buffer) this.#buffer.Destroy();
 
-    this.#buffer = new Tr2BufferALStub();
-
     const description = Tr2BufferDescriptionAL.FromStride(
       this.stride,
       this.size,
@@ -371,7 +369,10 @@ export class Tr2RingBuffer extends CjsModel
       Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE
     );
 
-    this.#buffer.Create(description, initialData, this.#renderContext);
+    // The context creates the running backend's buffer, as Carbon's
+    // compile-time Tr2BufferAL is whichever backend was built.
+    this.#buffer = this.#renderContext.CreateBuffer(description, initialData);
+    if (!this.#buffer) failRing(`${this.name}: the backend refused its buffer`);
     this.#buffer.SetName(this.name);
   }
 }

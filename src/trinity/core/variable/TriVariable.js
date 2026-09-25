@@ -257,6 +257,12 @@ export class TriVariable extends CjsModel
       {
         return TriVariableContentType.TRIVARIABLE_TEXTURE_RES;
       }
+      // Carbon GetVariableType( const ITr2GpuBuffer* ) (TriVariable.h:33): a
+      // ring buffer registered as BoneTransforms (EveSpaceScene.cpp:257).
+      if (typeof value.GetGpuBuffer === "function")
+      {
+        return TriVariableContentType.TRIVARIABLE_GPUBUFFER;
+      }
     }
     return TriVariableContentType.TRIVARIABLE_INVALID;
   }
