@@ -9,8 +9,11 @@
 //
 // What this owns: canvas configuration, the depth attachment, the multisample
 // attachment, and their size. What it deliberately does not own: when a frame
-// happens, which passes exist, or what is drawn. Those belong to the executor
-// and to Trinity's steps.
+// happens, which passes exist, or what is drawn. Those belong to the AL work
+// queue (CjsWebgpuWorkQueue) and to Trinity's steps.
+//
+// CLEARING IS A LOAD OPERATION on an attachment, never a draw, which is what
+// lets a later pass over the same target composite by loading instead.
 //
 // THREE THINGS THAT MUST FAIL LOUDLY, because each is silent otherwise.
 //

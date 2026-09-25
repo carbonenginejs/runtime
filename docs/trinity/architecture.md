@@ -97,7 +97,7 @@ Trinity walks batches, applies shader/material state and submits geometry throug
 AL binding and draw calls. There is no `GetIntents`/`TakeIntents` history to
 replay. Real backend handles do not belong in persisted fields.
 
-The [WebGPU AL draw path](../trinityal/webgpu/architecture.md#current-al-draw-path)
+The [Trinity to WebGPU draw path](../architecture.md#trinity-to-webgpu-draw-path)
 documents pipeline resolution, first-use resource preparation and frame submission.
 
 ## Vertex-declaration matching

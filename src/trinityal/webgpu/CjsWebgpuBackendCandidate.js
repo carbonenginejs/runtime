@@ -30,7 +30,9 @@ export class CjsWebgpuBackendCandidate extends CjsBackendCandidate
    * @param {string} [options.label]
    * @param {object} [options.limits]
    * @param {Iterable<string>} [options.features]
-   * @param {object} [options.requestOptions]
+   * @param {object} [options.requestOptions] Browser acquisition inputs for
+   *   CjsWebgpuDevice.Request. It cannot carry `deviceDescriptor`: Prove
+   *   forwards the composition-resolved `context.descriptor` unchanged.
    */
   constructor(options = {})
   {

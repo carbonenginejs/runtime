@@ -62,6 +62,9 @@ function normalizePass(entry, index)
  *
  * Attachment lifetime, descriptors, pass order, batch-type order, technique
  * selection, command-buffer completion, and submission all remain external.
+ * Several batch types may share one pass or use separately prepared maps. A
+ * pass's `configure` callback must be synchronous, and every begun pass is
+ * ended, including when encoding throws.
  */
 export class CjsWebgpuTrinityPassEncoder
 {

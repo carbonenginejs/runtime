@@ -63,6 +63,42 @@ Browser platform and adapter snapshots are also available through
 `@carbonenginejs/runtime/core/platform`; importing either subpath remains
 headless and does not probe browser globals.
 
+## Trinity to WebGPU draw path
+
+Trinity renders through an abstraction-layer (AL) context installed with
+`Tr2RenderContext.SetRenderContextAL`; without one it uses the headless stub.
+The WebGPU implementation, `CjsWebgpuRenderContextAL`, is internal and reached
+through the private build entry, not the package root. The public
+`trinityal/webgpu` descriptor API is a separate surface, not a way to install
+the AL.
+
+1. Trinity's `RenderBatchesInOrder` walks the finalized accumulator, applies
+   standard states, per-object constants, shader pass state and material data,
+   then calls `SubmitGeometry`. The AL receives binding and draw calls, not
+   batches to resolve later. A mesh batch's geometry descriptor is realized
+   into suballocated buffers at its first submit through that context.
+2. AL setters retain the bound program, render state, declaration, streams and
+   resources. Each draw's `EmitRenderPipelineState` resolves the accumulated
+   description and reuses a cached pipeline or creates one synchronously. A
+   draw whose state cannot be honoured is refused, so this path does not by
+   itself show that every Carbon rendering feature is implemented.
+3. `CjsWebgpuResourceSetAL` resolves stage/register bindings for the linked
+   program at draw time. Constant buffers keep CPU shadows; the frame's
+   constant arena supplies upload regions and dynamic offsets. Texture views
+   are made on first bind; a slot with no created texture binds a dummy.
+4. `BeginScene` opens the command encoder, resets the constant arena and the
+   bound render targets. The work queue opens passes lazily and applies
+   render-pass hints; the canvas view is acquired at the first pass and shared
+   by the frame's later passes.
+5. `EndScene` closes the last pass, clears the bound program, resource set and
+   vertex layout, then finishes and submits the command encoder. It is
+   synchronous; the browser presents the canvas after that submission.
+
+Source owners: `src/trinity/core/context/Tr2RenderContext.js`,
+`src/trinityal/webgpu/CjsWebgpuRenderContextAL.js`,
+`src/trinityal/webgpu/CjsWebgpuResourceSetAL.js` and
+`src/trinityal/webgpu/core/CjsWebgpuWorkQueue.js`.
+
 ## Tools, demos, and generated source
 
 Browser-safe file-index helpers live in `src/tools`, off the default surface.

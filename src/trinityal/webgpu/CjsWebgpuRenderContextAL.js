@@ -102,8 +102,10 @@ const MAX_CACHED_BIND_GROUPS = 1024;
 /**
  * The `GPUBuffer` behind a bound stream, or null.
  *
- * A stream is whatever Trinity bound: a `Tr2BufferAL` answers; a geometry
- * descriptor - what a mesh batch carries today - does not, and the draw refuses.
+ * A stream is whatever Trinity bound: a `Tr2BufferAL` answers; anything else
+ * does not, and the draw refuses. Trinity realizes a mesh batch's geometry
+ * descriptor into suballocated buffers before binding it
+ * (`RealizeBatchGeometry`, called from `Tr2RenderContext.SubmitGeometry`).
  */
 function DeviceBufferOf(bound)
 {
@@ -1361,12 +1363,9 @@ export class CjsWebgpuRenderContextAL
    * deferred to here rather than set in `SetStreamSource`, as Metal defers
    * them (`:2570-2598` stores, `:2613-2690` binds).
    *
-   * WHAT IT CANNOT YET HONOUR, IT REFUSES. A program whose layout declares
-   * bind groups needs a resource set realised into `GPUBindGroup`s, and that
-   * half is not ported; drawing without them is a validation error on the GPU,
-   * so the draw is refused here and says why. A stream whose buffer is not a
-   * device buffer - a mesh batch carries a geometry descriptor today - is
-   * refused the same way.
+   * WHAT IT CANNOT HONOUR, IT REFUSES. A pipeline or bind group that cannot be
+   * resolved, or a stream or index buffer that is not a device buffer, would
+   * be a validation error on the GPU, so the draw is refused here and says why.
    *
    * @param {boolean} indexed Whether the draw reads the bound index buffer.
    * @returns {boolean} Whether the encoder is ready to draw.

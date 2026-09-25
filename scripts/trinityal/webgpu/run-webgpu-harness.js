@@ -1,3 +1,34 @@
+// Browser qualification harness for the WebGPU backend (maintainers only; the
+// npm artifact ships neither this launcher nor its fixtures).
+//
+//   npm run test:webgpu            rebuild npm/dist and the harness bundle, then
+//                                  run; reports SKIP when no WebGPU adapter exists
+//   npm run test:webgpu:required   same, but a missing adapter fails
+//
+// The browser loads .cache/trinityal/webgpu/harness-runtime.js, which
+// rollup.webgpu-harness.config.mjs bundles from the built npm artifact, so the
+// page exercises the same classes and nominal identities consumers receive.
+// The base gate prepares a CjsWebgpuDevice, draws a full-screen triangle into
+// an offscreen rgba8unorm target, reads it back and checks the pixels.
+//
+// Extra inputs go after `--` (e.g. `npm run test:webgpu:required -- <flag>`):
+//   --compile-wgsl <file>                 also compile one WGSL module
+//   --draw-wgsl <vertex> <fragment>       draw a vertex/fragment pair
+//   --draw-carbonwebgpu <file>            draw one complete .carbonwebgpu package
+//   --prepare-carbonwebgpu <file>         prepare a package without drawing
+//   --prepare-matrix <json>               prepare a CJS_WEBGPU_EFFECT_MATRIX file
+//   --prepare-bodyset <file>              prepare an all-body .carbonwebgpu package
+//   --draw-<family>v5 <dx11> <dx12>       compare two translations of a synthetic
+//                                         EVE family (quad, skinned, glass, heat,
+//                                         detail, sails, oil, decal variants; see
+//                                         the flag constants below)
+//   --capture-quadv5 <png>                save the QuadV5 comparison image
+//
+// Family gates use explicit fixture geometry, textures and values; they detect
+// translation, binding and upload drift, not production behaviour. Packages
+// come from tools-core. The launcher tries the installed Chrome channel, then
+// Playwright Chromium; set CJS_WEBGPU_BROWSER_CHANNEL to force a channel.
+
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";

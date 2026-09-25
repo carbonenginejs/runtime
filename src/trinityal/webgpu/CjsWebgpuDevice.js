@@ -2395,6 +2395,14 @@ export class CjsWebgpuDevice
 
   /**
    * Validates and snapshots one generation-bound indexed or non-indexed draw.
+   *
+   * `options.dynamicOffsets` is keyed by binding identity. Every dynamic
+   * binding needs a device-limit-aligned offset; a missing one throws rather
+   * than defaulting to zero, and an offset for a non-dynamic binding throws.
+   * The device orders each group's offsets by binding number, and EncodeDraw
+   * rebinds dynamic groups on every draw even when the bind group is
+   * unchanged. Storage buffer bindings passed through `resources` stay
+   * caller-owned; the device creates and owns uniform buffers only.
    */
   CreateDraw(livePipeline, options = {})
   {

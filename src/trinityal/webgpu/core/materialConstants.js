@@ -46,7 +46,9 @@ const PIXEL_STAGE = 1;
  * It sizes the buffer from `max(offset + size)` across the constants, as Carbon
  * does while iterating them. The stage input's `constantValueSize` is NOT that
  * number — it is the length of the authored default blob, and using it as the
- * buffer size would be right only by coincidence.
+ * buffer size would be right only by coincidence. It is only a floor, because
+ * the defaults occupy the start of the same buffer; the result is then rounded
+ * up to four bytes.
  *
  * It carries the authored DEFAULTS. Carbon keeps a default-constant block per
  * stage input, and it is why an effect can be drawn without the caller naming
@@ -94,9 +96,8 @@ export function MaterialLayoutFromShader(shader, options = {})
   // The extent belongs to the reflection, not to a backend: it is arithmetic
   // over the stage input's own constants and every backend gets the same
   // answer. `Tr2EffectStageInput.GetConstantBufferSize()` owns it, so this asks
-  // rather than recomputing, and falls back only for a reflection object that
-  // predates it. What IS this backend's business is alignment on top of the
-  // extent, which is applied below.
+  // rather than recomputing. What IS this backend's business is alignment on
+  // top of the extent, which is applied below.
   let size = stageInput.GetConstantBufferSize();
 
   size = Math.ceil(size / 4) * 4;

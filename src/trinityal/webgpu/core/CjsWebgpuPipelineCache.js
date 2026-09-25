@@ -35,6 +35,7 @@
 // stale wholesale on device reset. Ours are garbage-collected objects, so a
 // stale entry would keep a dead device's pipeline alive and hand it out; each
 // entry records the generation it was built for and a mismatch misses.
+// CjsWebgpuDevice also clears both of its caches on loss, Recreate and Destroy.
 
 function fail(message)
 {

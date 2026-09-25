@@ -176,6 +176,18 @@ function pipelineRecipe(recipe, topology)
  * Trinity supplies transient CPU references and draw arguments. A nominal
  * composition resolver maps those references to WebGPU-owned material,
  * geometry, and binding objects.
+ *
+ * This is the harness and conformance path, reached only through the private
+ * `internal.js` entry. Live Trinity submission does not come here: Trinity
+ * walks its own batches and calls CjsWebgpuRenderContextAL verb by verb.
+ *
+ * Each prepared batch owns its binding sets; a failed draw creation destroys
+ * the ones already made. Accumulators keep their GDPR and ordinary vectors
+ * separate and encode GDPR first, in accumulator order. Runs of adjacent
+ * batches are derived at encode time by CjsWebgpuEncodeState and include
+ * index-buffer identity; sorting stays Trinity's. Batch maps are prepared in
+ * their `GetBatchTypes()` order with the context `{ batchType }`. Resolvers
+ * receive a shallow copy of the preparation context plus `passIndex`.
  */
 export class CjsWebgpuTrinityBatchDispatcher extends CjsTrinityBatchDispatcher
 {
