@@ -1,7 +1,8 @@
 // Clean-room BitKnit2 (Granny .gr2 section format 4) codec support.
 //
-// The decoder was written solely from the published format specification
-// (docs/formats/bitknit2.md) by an isolated agent with no access to any other
+// BitKnit2 is RAD Game Tools' format; this is not RAD code. The decoder was
+// written solely from the facts-only format specification
+// (docs/resource/formats/bitknit2.md) by an isolated agent with no access to any other
 // BitKnit implementation, then validated byte-exact against 539 real EVE .gr2
 // streams. The raw-quantum encoder is the direct inverse of the decoder's raw
 // branch and is covered by exact vectors and quantum-boundary tests. Replaced

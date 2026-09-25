@@ -51,7 +51,9 @@ DEALINGS IN THE SOFTWARE.
 
 ## BitKnit / BitKnit2 decompressor - `src/resource/formats/gr2/core/bitknit2.js`
 
-**Original CarbonEngineJS code (MIT).** On 2026-07-24 the previous
+**BitKnit2 is RAD Game Tools' compression format; the format and algorithm are
+RAD's.** The decoder *source* in this file is CarbonEngineJS code (MIT), not RAD
+code. On 2026-07-24 the previous
 EUPL-derived port (transcribed from
 [neptuwunium/Knit](https://github.com/neptuwunium/Knit)
 `GrannyBitKnitCompression.cs`, EUPL-1.2) was replaced by a clean-room
@@ -63,8 +65,8 @@ or any other BitKnit implementation. The result was validated byte-exact
 against 539 BitKnit2 streams extracted from the EVE `.gr2` corpus (section
 payloads and compressed pointer-fixup blocks) plus synthetic raw-quantum
 streams. No third-party code, EUPL-derived or otherwise, remains in this
-file. BitKnit is a RAD Game Tools codec; the specification records on-disk
-format facts only.
+file. The specification records on-disk format facts only and contains no RAD
+source material.
 
 ---
 
