@@ -106,8 +106,13 @@ import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
-import { CjsDdsFormat } from "../../../../npm/dist/resource/formats/dds/index.js";
-import { TriTextureRes } from "../../../../npm/dist/resource/texture/index.js";
+import {
+  CjsResMan,
+  RegisterSolidColorTexture,
+  RegisterTextureArray,
+  RegisterTexturePack,
+  RegisterTextureResources
+} from "../../../../npm/dist/resource/index.js";
 import { CjsCmfFormat } from "../../../../npm/dist/resource/formats/cmf/index.js";
 import { RenderingMode, TriBatchType } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { mat4 } from "../../../../npm/dist/global/math/mat4.js";
@@ -402,15 +407,14 @@ function Material(bytes, path, values = null)
  * A `TriTextureParameter` binds `GetResource()`, and until that resource is
  * PREPARED the backend gets Carbon's fallback rather than a texture - which is
  * why an unloaded material draws white rather than failing. This gives each
- * parameter a real `TriTextureRes` carrying the decoded DDS.
+ * parameter the manager's `TriTextureRes` for its path.
  *
- * COMPRESSED WHEN THE DEVICE HAS BC, DECODED WHEN IT DOES NOT. The hull's maps
- * are BC7, which WebGPU exposes only behind the `texture-compression-bc`
- * feature; without it the reader decodes to RGBA8 instead, which costs memory
- * and time but needs nothing of the device.
+ * BC STAYS BC. The hull's maps are BC7, which WebGPU exposes only behind the
+ * `texture-compression-bc` feature. The image route keeps the file's format,
+ * so a device without that feature cannot take them; decoding for such a
+ * device is not wired yet.
  *
  * @param {object} effect The hydrated effect.
- * @param {boolean} compressed Whether the device accepts BC textures.
  * @returns {Promise<{loaded: number, failed: string[]}>} What arrived.
  */
 /**
@@ -481,23 +485,59 @@ const SCENE_TEXTURES = Object.freeze([
 
 
 /**
- * A texture resource read from the client.
+ * The resource manager every texture in the demo comes through.
  *
- * @param {string} path Resource path, without the `res:/` prefix.
- * @param {boolean} compressed Whether the device accepts BC textures.
- * @returns {Promise<object|null>} A prepared resource, or null when it cannot be had.
+ * Textures load as Carbon's HostBitmap through the ordinary image route, so the
+ * demo exercises the same path a scene does - including `dynamic:/color` and
+ * the texture pack and array constructors a merged shader slot resolves.
  */
-async function ClientTexture(path, compressed)
+const TEXTURES = (() =>
 {
+  const resMan = new CjsResMan();
+
+  resMan.Register({ source: { Read: path => ResourceBytes(String(path).replace(/^res:\//u, "")) } });
+  RegisterTextureResources(resMan);
+  RegisterSolidColorTexture(resMan);
+  RegisterTextureArray(resMan);
+  RegisterTexturePack(resMan);
+
+  return resMan;
+})();
+
+/**
+ * A texture resource from the manager, once it has finished loading.
+ *
+ * @param {string} path Resource path, `res:/` or `dynamic:/`.
+ * @returns {Promise<object>} The resource.
+ * @throws {Error} When it failed to load, naming the path.
+ */
+async function LoadedTexture(path)
+{
+  const texture = TEXTURES.GetResource(path);
+
+  await texture.Ready();
+
+  if (!texture.GetBitmap()) throw new Error(`${path}: no image`);
+
+  return texture;
+}
+
+/**
+ * A scene texture: a client file, or a flat colour as Carbon's
+ * `dynamic:/color/r,g,b,a` (float components).
+ *
+ * @param {object} scene A `SCENE_TEXTURES` entry.
+ * @returns {Promise<object|null>} The resource, or null when it cannot be had.
+ */
+async function SceneTexture(scene)
+{
+  const path = scene.path
+    ? `res:/${scene.path}`
+    : `dynamic:/color/${scene.colour.map(byte => byte / 255).join(",")}`;
+
   try
   {
-    const texture = new TriTextureRes();
-
-    texture.DoLoad(CjsDdsFormat.read(await ResourceBytes(path), { emit: compressed ? "texture" : "rgba" }));
-    texture.MarkLoaded();
-    texture.MarkPrepared();
-
-    return texture;
+    return await LoadedTexture(path);
   }
   catch
   {
@@ -507,63 +547,19 @@ async function ClientTexture(path, compressed)
   }
 }
 
-/**
- * A one-pixel texture resource of a single colour.
- *
- * @param {number[]} colour Four bytes, RGBA.
- * @returns {object} A prepared `TriTextureRes`.
- */
-function FlatTexture(colour)
-{
-  const texture = new TriTextureRes();
 
-  texture.DoLoad({
-    payloadType: "rgba",
-    pixelFormat: "rgba8unorm",
-    width: 1,
-    height: 1,
-    strideBytes: 4,
-    sliceBytes: 4,
-    origin: "top-left",
-    colorSpace: "linear",
-    alphaMode: "straight",
-    data: Uint8Array.from(colour)
-  });
-
-  texture.MarkLoaded();
-  texture.MarkPrepared();
-
-  return texture;
-}
-
-
-async function LoadTextures(effect, compressed)
+async function LoadTextures(effect)
 {
   const failed = [];
   let loaded = 0;
 
   await Promise.all((effect.resources ?? []).map(async parameter =>
   {
-    const path = parameter.resourcePath?.replace(/^res:\//u, "");
-
-    if (!path) return;
+    if (!parameter.resourcePath) return;
 
     try
     {
-      const texture = new TriTextureRes();
-
-      texture.DoLoad(CjsDdsFormat.read(await ResourceBytes(path), { emit: compressed ? "texture" : "rgba" }));
-
-      // MARKED BY HAND, BECAUSE NO RESOURCE MANAGER IS RUNNING. A resource
-      // carries a state machine that the manager drives, and `RealizeTexture`
-      // refuses anything not PREPARED - so a texture loaded but left in the
-      // default state binds nothing and the backend substitutes its dummy. That
-      // is exactly what happened first: ten maps read, and the only textures the
-      // device ever saw were the depth buffer and two 1x1 stand-ins.
-      texture.MarkLoaded();
-      texture.MarkPrepared();
-
-      parameter.resource = texture;
+      parameter.resource = await LoadedTexture(parameter.resourcePath);
       loaded += 1;
     }
     catch (error)
@@ -990,16 +986,14 @@ export async function RunDemo(canvas)
       const parameter = new TriTextureParameter();
 
       parameter.name = scene.name;
-      parameter.resource = scene.path
-        ? await ClientTexture(scene.path, compressed)
-        : FlatTexture(scene.colour);
+      parameter.resource = await SceneTexture(scene);
 
       if (parameter.resource) material.resources.push(parameter);
     }
 
     material.RebuildCachedData();
 
-    const loaded = await LoadTextures(material, compressed);
+    const loaded = await LoadTextures(material);
 
     textures.loaded += loaded.loaded;
     textures.failed.push(...loaded.failed);
