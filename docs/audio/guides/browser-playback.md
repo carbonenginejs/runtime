@@ -154,4 +154,4 @@ documented on `CjsAudioMan`.
 
 ## Related documentation
 
-- [Architecture and boundaries](../architecture.md)
+- `src/audio/README.md` for subpaths, ownership and what is not emulated

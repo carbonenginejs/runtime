@@ -27,6 +27,19 @@ of spatial-audio geometry or diffraction, and Wwise middleware rendering. The
 Carbon methods for them stay on their classes with implementation metadata;
 geometry data, settings and refcounts still reach an injected backend.
 
+Playback imports the WEM format lazily, only when original WEM bytes need
+preparing.
+
+Owned elsewhere:
+- WEM, BNK, Ogg parsing and CPU conversion: `runtime/resource`;
+- exact-build acquisition, caches, prefetch, CLI and HTTP routes: tools-core,
+  which calls `library-builder` with its own byte source;
+- user-gesture timing, credentials, endpoints, whether to build or download
+  the document, music-track delivery, and whether jukebox playback mixes with
+  or replaces authored music: the application;
+- `runtime/core` composes an audio-manager service without taking on audio
+  semantics.
+
 ## SFX program playback
 
 `CjsSfxEngine` resolves an installed `sfx` program into selections;
