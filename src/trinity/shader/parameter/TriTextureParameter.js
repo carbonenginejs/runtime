@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.h
 // Source: trinity/trinity/Shader/Parameter/TriTextureParameter.cpp
 import { carbon, edit, impl, type } from "#schema";
+import { ResourceRequirement } from "#resource";
+import { blue } from "#blue";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectTextureParameter } from "./ITriEffectTextureParameter.js";
@@ -142,20 +144,28 @@ export class TriTextureParameter extends CjsParameter
     {
       this.resource = resource;
     }
+    this.#ReleaseCompletion(this.#lowResResource);
     this.#lowResResource = null;
     this.RebuildEffectHandles(this.#cachedEffect);
     this.OnTextureChanged();
   }
 
   /**
-   * The texture actually in use: the low-res stand-in while one is active,
-   * otherwise the resolved resource.
+   * Carbon GetResource (cpp:271-290): the low-res stand-in while one is
+   * active, released for good once the authored resource is ready.
    */
   @carbon.method
   @impl.adapted
+  @impl.reason("Carbon asks whether the authored resource has its texture, which it creates in DoPrepare; ours is created at first bind, which never happens while the stand-in is bound, so readiness is asked as IsPrepared.")
   GetResource()
   {
-    return this.#lowResResource ?? this.resource;
+    if (this.#lowResResource)
+    {
+      if (!this.resource.IsPrepared()) return this.#lowResResource;
+      this.#ReleaseCompletion(this.#lowResResource);
+      this.#lowResResource = null;
+    }
+    return this.resource;
   }
 
   /**
@@ -329,7 +339,7 @@ export class TriTextureParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon resource notifications use CjsResource completion events; resource acquisition remains an explicit Initialize port gap.")
+  @impl.reason("Carbon's OnTextureChange listeners are CjsResource completion subscriptions here.")
   OnModified(_propertyName)
   {
     this.#ReleaseCompletion(this.resource);
@@ -342,14 +352,45 @@ export class TriTextureParameter extends CjsParameter
   }
 
   /**
-   * Not ported yet - res paths are never resolved to
-   * texture bytes here; returns true so callers can treat initialization as
-   * successful.
+   * Carbon Initialize (cpp:198-240): drop both resources, then fetch the
+   * authored path through the resource manager. When the authored file is not
+   * local but its `<base>_lowdetail<ext>` sibling is, the sibling is fetched
+   * too and renders until the authored one is ready (see GetResource).
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Initialize()
   {
+    this.#ReleaseCompletion(this.resource);
+    this.#ReleaseCompletion(this.#lowResResource);
+    this.resource = null;
+    this.#lowResResource = null;
+
+    if (this.resourcePath)
+    {
+      const request = path => blue.resMan.GetResource(path, { requirement: ResourceRequirement.TEXTURE });
+
+      // Carbon cpp:214-228, asking the same service: BePaths->FileExistsLocally
+      // is blue.paths.FileExistsLocally, which in a browser means "already
+      // fetched".
+      if (!blue.paths.FileExistsLocally(this.resourcePath))
+      {
+        const dot = this.resourcePath.lastIndexOf(".");
+        if (dot !== -1)
+        {
+          const lowResPath = `${this.resourcePath.slice(0, dot)}_lowdetail${this.resourcePath.slice(dot)}`;
+          if (blue.paths.FileExistsLocally(lowResPath))
+          {
+            this.#lowResResource = request(lowResPath);
+            this.#ArmCompletion(this.#lowResResource);
+          }
+        }
+      }
+
+      this.resource = request(this.resourcePath);
+      this.#ArmCompletion(this.resource);
+    }
+    this.OnTextureChanged();
     return true;
   }
 
