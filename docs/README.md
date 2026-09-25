@@ -46,6 +46,30 @@ sit at the top and remain off the default surface.
 build-time work. It may generate reviewed source artifacts for this package,
 but it is not a runtime dependency.
 
+## Where data comes from
+
+The runtime never requires a particular server. Any data-backed capability
+works in one of four ways, and the caller chooses:
+
+1. **Browser only.** The runtime fetches what it needs itself, with no build
+   step and no service.
+2. **Prebuilt payload.** The caller hands over an already-built document, and
+   nothing is fetched.
+3. **Injected getter.** The caller supplies the resource getter (one
+   asynchronous `Fetch(resPath)`), backed by any service or cache.
+4. **Injected local reader.** The caller keeps the resource manager's whole
+   pipeline (routes, formats, workers, caching) and swaps only its byte
+   source: `blue.resMan.Register({ source })` with any object that has
+   `Read(path, options)`. This is how a Node.js tool reads from a local disk;
+   the reader belongs to the caller, so the runtime itself stays free of
+   Node.js code.
+
+The resource manager lives in Blue and always exists as `blue.resMan`. A
+composing wrapper configures it (sources, paths, which formats and resource
+classes to register) according to what its environment offers; it does not
+have to create it. `@carbonenginejs/tools-core` is one possible data provider,
+never a requirement.
+
 ## Start here
 
 Run the current structural checks from the repository root:
