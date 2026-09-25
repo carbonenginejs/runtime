@@ -308,6 +308,35 @@ const UNPACKED_DECLARATION = Object.freeze([
   { usage: "BoneIndices", usageIndex: 0, type: "UInt16", elementCount: 4 }
 ]);
 
+/**
+ * The declaration the packed shader family (`quadv5`, `skinned_quadv5`, ... -
+ * no `unpacked_` prefix) reads: TANGENT0 is the file's legacy packed frame, a
+ * vec4 of angles the vertex shader decodes with sin/cos
+ * (`PackTangentsLegacy`, mesh/src/cmf/tangents.cpp). Feeding it the decoded
+ * tangent VECTOR instead - what this demo did until 2026-09-26 - makes the
+ * shader decode a direction as angles, and every normal-mapped surface lights
+ * wrong.
+ */
+const PACKED_DECLARATION = Object.freeze([
+  { usage: "Position", usageIndex: 0, type: "Float32", elementCount: 3 },
+  { usage: "Tangent", usageIndex: 0, type: "Float32", elementCount: 4 },
+  { usage: "TexCoord", usageIndex: 0, type: "Float32", elementCount: 2 },
+  { usage: "TexCoord", usageIndex: 1, type: "Float32", elementCount: 2 },
+  { usage: "BoneIndices", usageIndex: 0, type: "UInt16", elementCount: 4 }
+]);
+
+/**
+ * Whether every area's shader reads the packed frame. One vertex buffer serves
+ * every area, so a hull mixing the two families cannot satisfy both here.
+ *
+ * @param {object[]} areas SOF document areas.
+ * @returns {boolean} True when no area names an `unpacked_` shader.
+ */
+function ReadsPackedTangents(areas)
+{
+  return !areas.some(area => /\/unpacked/u.test(area.effect?.effectFilePath ?? ""));
+}
+
 
 /**
  * Re-declares a hull's vertices in the form the `unpacked_` shaders read.
@@ -340,18 +369,28 @@ const UNPACKED_DECLARATION = Object.freeze([
  * backend refuses instead, so something must supply what both of them fake.
  *
  * @param {object} mesh CMF mesh, mutated in place.
- * @returns {object} The same mesh, with the unpacked declaration.
+ * @param {boolean} [packed] Keep the packed frame for the packed shader family.
+ * @returns {object} The same mesh, with the matching declaration.
  */
-function Unpack(mesh)
+function Unpack(mesh, packed = false)
 {
   for (const channels of new Set([ mesh.vertex, ...(mesh.lods ?? []).map(lod => lod.vertex) ]))
   {
     if (!channels) continue;
 
-    const packed = channels.packedTangentLegacy;
+    const packedFrame = channels.packedTangentLegacy;
     const count = (channels.position?.length ?? 0) / 3;
 
-    if (!count || !packed?.length) continue;
+    if (!count || !packedFrame?.length) continue;
+
+    channels.texcoord1 = Array.from(channels.texcoord0 ?? new Array(count * 2).fill(0));
+    channels.blendIndice = new Array(count * 4).fill(0);
+
+    if (packed)
+    {
+      channels.tangent = Array.from(packedFrame);
+      continue;
+    }
 
     const normal = new Array(count * 3);
     const tangent = new Array(count * 3);
@@ -359,7 +398,7 @@ function Unpack(mesh)
 
     for (let i = 0; i < count; i += 1)
     {
-      const frame = decodeTangentFrame(packed.slice(i * 4, i * 4 + 4));
+      const frame = decodeTangentFrame(packedFrame.slice(i * 4, i * 4 + 4));
       const at = i * 3;
 
       for (let axis = 0; axis < 3; axis += 1)
@@ -373,13 +412,11 @@ function Unpack(mesh)
     channels.normal = normal;
     channels.tangent = tangent;
     channels.binormal = binormal;
-    channels.texcoord1 = Array.from(channels.texcoord0 ?? new Array(count * 2).fill(0));
-    channels.blendIndice = new Array(count * 4).fill(0);
   }
 
   let offset = 0;
 
-  mesh.decl = UNPACKED_DECLARATION.map(element =>
+  mesh.decl = (packed ? PACKED_DECLARATION : UNPACKED_DECLARATION).map(element =>
   {
     const stride = element.type === "UInt16" ? 2 : 4;
     const placed = { ...element, offset, stream: 0 };
@@ -389,7 +426,7 @@ function Unpack(mesh)
     return placed;
   });
 
-  if (!mesh.lods?.[0]?.vertex?.normal?.length && !mesh.vertex.normal?.length)
+  if (!packed && !mesh.lods?.[0]?.vertex?.normal?.length && !mesh.vertex.normal?.length)
   {
     throw new Error("hull carries no packed tangent frame to expand");
   }
@@ -1013,7 +1050,7 @@ export async function RunDemo(canvas)
   const HULL = sof?.mesh?.geometryResPath?.replace(/^res:\//u, "") || DEFAULT_HULL;
   const documentAreas = sof?.mesh?.opaqueAreas ?? [];
   const hullBytes = await ResourceBytes(HULL);
-  const mesh = Unpack(HullMesh(hullBytes));
+  const mesh = Unpack(HullMesh(hullBytes), ReadsPackedTangents(documentAreas));
   const bounds = Bounds(mesh);
   const geometry = GeometryResource(mesh, `res:/${HULL}`);
   const textures = { loaded: 0, failed: [] };
