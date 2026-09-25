@@ -76,9 +76,9 @@ a declared output is verified only through its normal asynchronous read path.
 
 Format subpaths must remain importable from authored source, so they return
 plain report objects and never import decorated model code. A resource-layer
-consumer that needs persistence or model metadata calls
-`CjsResourceProbe.from(report)`. The model exposes `canUseSelected()` and
-`canUse(output)` without changing the format-layer contract.
+consumer that wants every field typed and defaulted calls
+`CjsResourceProbe.from(report)`, a plain record exposing `canUseSelected()`
+and `canUse(output)` without changing the format-layer contract.
 
 ## Routing rule
 

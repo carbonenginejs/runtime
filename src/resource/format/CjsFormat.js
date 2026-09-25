@@ -9,9 +9,8 @@ const READ_MODE_ASYNC = "async";
  * Decorator-free base for every concrete format facade.
  *
  * The format subpaths must remain directly importable from authored source, so
- * this base deliberately does not import the decorated CjsResourceProbe model.
- * Formats return plain support reports; CjsResourceProbe.from() is the optional
- * resource-layer normalization boundary.
+ * this base carries no decorators. Formats return plain support reports;
+ * CjsResourceProbe.from() is the optional resource-layer normalization.
  */
 export class CjsFormat
 {

@@ -13,7 +13,7 @@ direct `src/` loading with a syntax error at the decorator, not the offending
 import.
 
 The practical consequence is that `inspect()`, `getSupport()`, and
-`verifySupport()` return plain objects rather than constructing a decorated
+`verifySupport()` return plain objects rather than constructing a
 `CjsResourceProbe`. `CjsResourceProbe.from()` is the optional resource-layer
 normalization boundary. `is()` remains the boolean-only synchronous routing
 predicate. See [format capabilities](../concepts/format-capabilities.md).

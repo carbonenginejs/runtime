@@ -1,14 +1,11 @@
-import { CjsModel } from "#model";
-import { CjsSchema, edit, type } from "#schema";
-
 /**
- * Persistable resource-layer view of a format support report.
+ * A format support report, normalized.
  *
- * Concrete formats return decorator-free plain objects so their direct
- * subpaths stay importable without a build transform. Consumers that need a
- * model normalize those reports here with {@link CjsResourceProbe.from}.
+ * Formats return plain report objects; this gives every field its type and
+ * default, and answers the two questions a caller asks of one. It is a plain
+ * record, never persisted or hydrated, so it carries no schema.
  */
-export class CjsResourceProbe extends CjsModel
+export class CjsResourceProbe
 {
   format = "";
 
@@ -44,24 +41,12 @@ export class CjsResourceProbe extends CjsModel
    */
   constructor(values = null)
   {
-    super();
-    this.SetValues(normalizeReport(values), {
-      skipUpdate: true,
-      skipEvents: true
-    });
+    Object.assign(this, normalizeReport(values));
   }
 
-  /** Replace this report from a plain format result. */
-  Initialize(values = null)
-  {
-    this.SetValues(normalizeReport(values), { skipEvents: true });
-    return this;
-  }
-
-  /** Normalize a plain format report at the decorated resource boundary. */
+  /** Normalize a plain format report at the resource boundary. */
   static from(input)
   {
-    if (input instanceof CjsResourceProbe) return input;
     if (input && typeof input.toJSON === "function") return new this(input.toJSON());
     return new this(input);
   }
@@ -124,23 +109,3 @@ function normalizeCapability(input)
 }
 
 export default CjsResourceProbe;
-
-CjsSchema.define(CjsResourceProbe, {
-  className: "CjsResourceProbe", family: "resource",
-  fields: {
-    format: [ edit.persist, type.string ],
-    source: [ edit.persist, type.string ],
-    recognized: [ edit.persist, type.boolean ],
-    output: [ edit.persist, type.string ],
-    supported: [ edit.persist, type.boolean ],
-    verified: [ edit.persist, type.boolean ],
-    preferredOutput: [ edit.persist, type.string ],
-    reason: [ edit.persist, type.string ],
-    metadata: [ edit.persist, type.unknown ],
-    capability: [ edit.persist, type.unknown ],
-    outputs: [ edit.persist, type.list("unknown") ],
-    warnings: [ edit.persist, type.list("string") ],
-    errors: [ edit.persist, type.list("string") ],
-    error: [ edit.persist, type.unknown ]
-  }
-});

@@ -278,7 +278,7 @@ Builder for a Carbon compiled-effect container.
 <!-- class:CjsResourceProbe -->
 ## `CjsResourceProbe`
 
-Optional decorated resource-layer model for a plain format support report. It records recognition, the selected output, advisory or verified support, declared output capabilities, metadata, warnings, and structured errors, and exposes `canUseSelected()` and `canUse(output)`.
+Optional plain record normalizing a format support report. It records recognition, the selected output, advisory or verified support, declared output capabilities, metadata, warnings, and structured errors, and exposes `canUseSelected()` and `canUse(output)`.
 
 - Export: `@carbonenginejs/runtime/resource`
 - Source: `src/resource/format/CjsResourceProbe.js`
