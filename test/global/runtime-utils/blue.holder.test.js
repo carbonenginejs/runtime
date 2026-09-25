@@ -1,24 +1,32 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { blue, BlueResManQueue, CjsBluePaths, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
+import { blue, BlueResManQueue, CjsBluePaths, CjsResMan, IBlueEvents, IBluePaths, IBlueResMan } from "../../../npm/dist/global/blue/index.js";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 
 test("the slots are filled before anything can read them", () =>
 {
-  // The holder constructs nothing it holds, so it is a leaf of the module
-  // graph and its body runs before any importer's. There is never a null to
+  // The holder's body runs before any importer's, so there is never a null to
   // capture, which is what lets a consumer write blue.resMan.GetResource(...)
-  // without a guard.
-  assert.equal(blue.resMan instanceof IBlueResMan, true);
+  // without a guard. The manager is real by default, as Carbon's is.
+  assert.equal(blue.resMan instanceof CjsResMan, true);
+  assert.ok(CjsSchema.cast(blue.resMan, IBlueResMan), "it is Carbon's IBlueResMan");
   assert.equal(blue.paths instanceof CjsBluePaths, true);
   assert.equal(blue.paths instanceof IBluePaths, true);
 });
 
-test("asking an uncomposed manager says so at the call site", () =>
+test("an unconfigured manager answers: a path it cannot fetch fails on the resource", () =>
 {
-  assert.throws(() => blue.resMan.GetResource("res:/model/ship.gr2"),
-    /^Error: IBlueResMan\.GetResource must be implemented\.$/u);
+  const resource = blue.resMan.GetResource("res:/model/holder-unconfigured.gr2");
+
+  assert.equal(resource.IsFailed(), true, "no source is configured yet");
+  blue.resMan.Delete("res:/model/holder-unconfigured.gr2");
+});
+
+test("the manager ticks with the OS, as Carbon's registers itself (BlueResMan.cpp:113)", () =>
+{
+  assert.ok(CjsSchema.cast(blue.resMan, IBlueEvents), "it is an IBlueEvents");
+  assert.equal(blue.os.IsRegisteredForTicks(blue.resMan), true);
 });
 
 test("an uncomposed paths service answers rather than refusing", () =>

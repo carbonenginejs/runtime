@@ -5,12 +5,11 @@
 // stays refused on the interface: it is a real operating-system service with
 // no consumer here, and filling it in would be inventing.
 //
-// WHY THERE IS A CONCRETE ONE AT ALL, when `blue.resMan` is a bare interface
-// that throws: the same reason `CjsBluePaths` exists. An unconfigured clock
-// can answer its questions truthfully - a browser and Node both have a
-// monotonic clock and a wallclock - whereas an unconfigured resource manager
-// cannot answer "fetch me this" at all. A host that has a better clock
-// replaces it; nothing has to be composed for the clock to be right.
+// WHY THERE IS A CONCRETE ONE AT ALL: an unconfigured clock can answer its
+// questions truthfully - a browser and Node both have a monotonic clock and a
+// wallclock. A host that has a better clock replaces it; nothing has to be
+// composed for the clock to be right. `blue.resMan` is concrete by default
+// for a similar reason, and ticks through this pump.
 //
 // SMOOTHED TIME IS ACTUAL TIME HERE, and that is Carbon's own fallback rather
 // than a shortcut. `BlueOS::GetSmoothedTime` samples a Python frame clock and

@@ -30,7 +30,7 @@
 // throw, so a call before composition says so at the call site instead of
 // failing later on a null. One CarbonEngineJS per page; see
 // /docs/internal/decisions/composition-root-is-the-wrapper.md.
-import { IBlueResMan } from "./IBlueResMan.js";
+import { CjsResMan } from "./CjsResMan.js";
 import { CjsBluePaths } from "./CjsBluePaths.js";
 import { CjsBlueOS } from "./CjsBlueOS.js";
 import { BlueClasses } from "./BlueClasses.js";
@@ -41,7 +41,11 @@ export const blue = {
   /** EnumRegistration and BlueEnum responsibilities combined for JavaScript. */
   enums: blueEnums,
   /** `BeResMan` (IBlueResMan.h:135) - the resource manager every consumer asks. */
-  resMan: new IBlueResMan(),
+  // Always present, as Carbon's is (a static singleton, ResourceLoading.cpp:25):
+  // everything that reaches Blue can load. Core configures it - sources,
+  // paths, which formats and resource classes to register - it does not
+  // create it.
+  resMan: new CjsResMan(),
 
   // Paths differs from the manager: an uncomposed one can still answer its
   // main question truthfully - no, that file is not here - which is what
@@ -64,3 +68,7 @@ export const blue = {
   /** `BeClasses` (blueexposure/BlueClasses.cpp:28) - class registration and creation by name. */
   classes: new BlueClasses()
 };
+
+// The manager ticks with the OS, as Carbon's constructor registers itself
+// (BlueResMan.cpp:113); done here because the manager cannot import this file.
+blue.os.RegisterForTicks(blue.resMan);

@@ -1,6 +1,8 @@
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
-import { compose } from "#schema";
+import { CjsSchema, compose } from "#schema";
+import { IBlueResMan } from "./IBlueResMan.js";
+import { IBlueEvents } from "./IBlueEvents.js";
 import { hasOwnThen } from "#utils/object";
 import {
   getResourceExtension,
@@ -813,6 +815,21 @@ export class CjsResMan
    */
   Tick(options = {}) {
     return this.Update(options);
+  }
+
+  /**
+   * The per-frame tick from `blue.os`, as Carbon's is: `BlueResMan::OnTick`
+   * is `Update()` (BlueResMan.cpp:434-437), and the manager registers for it
+   * (`BeOS->RegisterForTicks`, BlueResMan.cpp:113). MotherLode's trimming runs
+   * inside `Update`, so it ticks through the manager rather than registering
+   * separately as Carbon's MotherLode does.
+   *
+   * @param {number} _realTime Real time.
+   * @param {number} _simTime Simulation time.
+   * @param {*} _cookie Registration cookie.
+   */
+  OnTick(_realTime, _simTime, _cookie) {
+    this.Update();
   }
 
   /**
@@ -4897,3 +4914,10 @@ function createExtensionTargetError(resource, message, cause = null)
   if (cause) error.cause = cause;
   return error;
 }
+
+// Carbon: `class BlueResMan : public IBlueResMan, public IBlueEvents`. Declared
+// as calls - this folder cannot use decorator syntax (global/blue/index.js).
+// Ours is modelled on BlueResMan, not a replica: its browser work (workers,
+// fetch, routes) diverges too far to carry Carbon's name.
+CjsSchema.carbon.inherit(IBlueResMan, IBlueEvents)(CjsResMan);
+CjsSchema.define(CjsResMan, { className: "CjsResMan", modelledOn: "BlueResMan" });

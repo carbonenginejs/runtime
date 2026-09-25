@@ -1,6 +1,6 @@
 import { composeStubResMan } from "../../support/stubResMan.js";
 
-// blue.resMan throws until something composes a manager, so a test that
+// blue.resMan has no source until something configures it, so a test that
 // builds an object with a res path composes one. It answers null, which is
 // what these tests already asserted - previously by accident, because
 // nothing in src ever filled the old static slot.
