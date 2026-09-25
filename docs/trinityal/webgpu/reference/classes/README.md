@@ -204,6 +204,15 @@ A per-pass record of what is already bound, so a run's second and later batches 
 - Visibility: Internal
 - Kind: Carbon
 
+<!-- class:CjsWebgpuMipGenerator -->
+## `CjsWebgpuMipGenerator`
+
+Renders a texture's mip chain on a command encoder, one level from the one above.
+
+- Source: `src/trinityal/webgpu/core/CjsWebgpuMipGenerator.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
 <!-- class:CjsWebgpuPerFrameSource -->
 ## `CjsWebgpuPerFrameSource`
 

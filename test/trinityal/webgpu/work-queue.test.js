@@ -261,3 +261,26 @@ test("a dispatch opens a compute pass, binds its pipeline and groups, and closes
   queue.SetCurrentEncoder(EncoderType.RENDER);
   assert.deepEqual(calls.at(-1), [ "end" ], "moving to another encoder ends the compute pass");
 });
+
+test("generating mips ends the open pass first, then encodes the chain", () =>
+{
+  // Metal generates mips on a blit encoder, so whatever pass was open ends
+  // before the chain is encoded; later work sees the filled levels.
+  const calls = [];
+  const computePass = { setPipeline() {}, setBindGroup() {}, dispatchWorkgroups() {}, end: () => calls.push("compute.end") };
+  const commandEncoder = {
+    beginComputePass: () => computePass,
+    beginRenderPass: () => ({ end() {} })
+  };
+  const generator = { Encode: (encoder, texture) => calls.push([ "encode", encoder === commandEncoder, texture ]) };
+  const queue = started();
+
+  queue.SetCommandEncoder(commandEncoder, () => ({}));
+  queue.SetComputePipeline("pipeline");
+  queue.DispatchThreadgroups(1, 1, 1);
+  const events = queue.GenerateMipMaps("cube", generator);
+
+  assert.deepEqual(calls, [ "compute.end", [ "encode", true, "cube" ] ]);
+  assert.deepEqual(events.map(event => event.type), [ "close", "generate-mips" ]);
+  assert.equal(queue.GetCurrentEncoderType(), EncoderType.NONE);
+});

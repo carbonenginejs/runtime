@@ -263,6 +263,27 @@ export class CjsWebgpuWorkQueue
   _computePass = null;
 
   /**
+   * Regenerates a texture's mip chain, as Metal's work queue does on a blit
+   * encoder: the open pass ends first, so the chain is encoded in order with
+   * the work around it.
+   *
+   * @param {GPUTexture} texture The texture.
+   * @param {CjsWebgpuMipGenerator} generator The context's generator.
+   * @returns {object[]} The transitions this required.
+   */
+  GenerateMipMaps(texture, generator)
+  {
+    if (!this._inFrame) fail("GenerateMipMaps outside a frame");
+
+    this._ReleaseEncoder();
+    this._events.push({ type: "generate-mips" });
+
+    if (this._commandEncoder) generator.Encode(this._commandEncoder, texture);
+
+    return this._Drain();
+  }
+
+  /**
    * Names the compute pipeline the next dispatch runs.
    *
    * @param {object} pipeline A `GPUComputePipeline`.

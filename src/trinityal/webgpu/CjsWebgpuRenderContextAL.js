@@ -76,6 +76,7 @@ import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
+import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
@@ -951,6 +952,21 @@ export class CjsWebgpuRenderContextAL
 
   /** Compute pipelines by program; a program's compute pipeline has no other state. */
   _computePipelines = new WeakMap();
+
+  /** The mip generator textures on this context use, made on first ask. */
+  _mipGenerator = null;
+
+  /**
+   * The mip generator, standing in for the blit encoder's `generateMipmaps`
+   * that Metal's work queue calls (see CjsWebgpuMipGenerator).
+   *
+   * @returns {CjsWebgpuMipGenerator} The generator.
+   */
+  GetMipGenerator()
+  {
+    this._mipGenerator ??= new CjsWebgpuMipGenerator(this._webgpu.GetDevice());
+    return this._mipGenerator;
+  }
 
   /**
    * Runs a compute dispatch whose group counts are read from a buffer.

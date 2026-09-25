@@ -459,10 +459,28 @@ export class CjsWebgpuTextureAL
     return ALResult.E_FAIL;
   }
 
-  /** WebGPU has no mip generator; a full chain is uploaded at creation instead. */
-  GenerateMipMaps()
+  /**
+   * Regenerates the mip chain, as Metal's `GenerateMipMaps` does
+   * (`Tr2TextureALMetal.mm:795-805`): only a render target that is also a
+   * shader resource can be, and the work queue encodes it. WebGPU has no
+   * generator of its own, so the context's CjsWebgpuMipGenerator stands in for
+   * Metal's blit encoder.
+   *
+   * @param {object} renderContext The context whose work queue encodes it.
+   * @returns {number} An `ALResult` value.
+   */
+  GenerateMipMaps(renderContext)
   {
-    return ALResult.E_FAIL;
+    if (!HasFlag(this.m_gpuUsage, Tr2GpuUsage.RENDER_TARGET) || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.SHADER_RESOURCE))
+    {
+      return ALResult.E_INVALIDCALL;
+    }
+
+    const al = RenderContextALOf(renderContext);
+
+    al.GetWorkQueue().GenerateMipMaps(this.m_texture, al.GetMipGenerator());
+
+    return ALResult.S_OK;
   }
 
   /** Multisample resolve, which this backend has no multisampled textures for. */

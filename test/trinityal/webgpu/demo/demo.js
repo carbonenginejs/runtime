@@ -601,7 +601,11 @@ async function ProbeCopyCube(renderContext, al, areas)
 
   const target = new Tr2RenderTarget();
   target.SetName("ReflectionProbe");
-  const created = target.CreateArray(256, 256, 1, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
+  // ?probe=mips gives the cube Carbon's eight levels and fills them with
+  // GenerateMipMaps - a box chain, NOT the probe's filter; it proves the AL's
+  // mip generation, and the filter passes replace it.
+  const mipCount = PROBE_MODE === "mips" ? 8 : 1;
+  const created = target.CreateArray(256, 256, 1, mipCount, PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT,
     ExFlag.EX_BIND_UNORDERED_ACCESS, TextureType.TEX_TYPE_CUBE, renderContext);
   if (created !== 0) throw new Error(`probe cube CreateArray failed: ${created}`);
 
@@ -620,6 +624,7 @@ async function ProbeCopyCube(renderContext, al, areas)
 
   al.BeginScene();
   const dispatched = Tr2Renderer.runComputeShader(copy, 256 / 8, 256 / 8, 6, renderContext);
+  const mipped = mipCount > 1 ? target.GenerateMipMaps(renderContext) : null;
   await al.EndScene();
   if (!dispatched) throw new Error(`probe CopyCube did not dispatch: ${al.m_pipelineFailure ?? "no compute pass"}`);
 
@@ -632,12 +637,13 @@ async function ProbeCopyCube(renderContext, al, areas)
   // untouched rgba16float target reads all zeros.
   const device = al.GetWebgpu().GetDevice();
   const texels = [];
-  for (const face of [ 0, 3 ])
+  for (const [ face, mip ] of [ [ 0, 0 ], [ 3, 0 ], ...(mipCount > 1 ? [ [ 0, 3 ], [ 0, 7 ] ] : []) ])
   {
     const readback = device.createBuffer({ size: 256, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
     const encoder = device.createCommandEncoder();
+    const texel = (256 >> mip) >> 1;
     encoder.copyTextureToBuffer(
-      { texture: target.GetRenderTarget().GetDeviceTexture(), origin: { x: 128, y: 128, z: face } },
+      { texture: target.GetRenderTarget().GetDeviceTexture(), mipLevel: mip, origin: { x: texel, y: texel, z: face } },
       { buffer: readback, bytesPerRow: 256 },
       { width: 1, height: 1, depthOrArrayLayers: 1 });
     device.queue.submit([ encoder.finish() ]);
@@ -645,7 +651,7 @@ async function ProbeCopyCube(renderContext, al, areas)
     texels.push(Array.from(new Uint16Array(readback.getMappedRange().slice(0, 8))));
     readback.unmap();
   }
-  globalThis.__probe = { dispatched, faces: target.GetArraySize(), size: target.GetWidth(), texels };
+  globalThis.__probe = { dispatched, mipped, faces: target.GetArraySize(), size: target.GetWidth(), mips: target.GetMipCount(), texels };
   console.log(`probe: ${JSON.stringify(globalThis.__probe)}`);
 }
 
@@ -1356,7 +1362,7 @@ export async function RunDemo(canvas)
   for (const area of areas) area.material.RebuildCachedData();
 
   // ?probe=copy: the first step of Carbon's reflection probe, run on the GPU.
-  if (PROBE_MODE === "copy") await ProbeCopyCube(renderContext, al, areas);
+  if (PROBE_MODE === "copy" || PROBE_MODE === "mips") await ProbeCopyCube(renderContext, al, areas);
 
   {
     const esm = renderContext.GetEffectStateManager();
