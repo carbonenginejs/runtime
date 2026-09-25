@@ -901,18 +901,27 @@ function PerFrameData(bounds, width, height)
   // matrix as four consecutive `vec4`s and DOTS the position with them, so it
   // wants the rows where gl-matrix stores columns. `SetAndTranspose` is the
   // method the rest of the runtime writes these with for exactly that reason.
+  //
+  // ViewInverseTransposeMat IS WHAT ITS NAME SAYS: the TRANSPOSED inverse view,
+  // which SetAndTranspose then stores as the inverse view itself. That is
+  // Carbon's "need the transposed, but shader also needs column_major, so it is
+  // transpose(transpose(m)) == m" (EveSpaceScene.cpp:3026-3027, 3082-3083).
+  // Passing the plain inverse scrambled the camera position and view
+  // directions the shader derives from it, so Fresnel and reflections landed
+  // on the wrong surfaces: gold dark, matte panels shiny.
   const viewInverse = mat4.invert(mat4.create(), view);
+  const viewInverseTranspose = mat4.transpose(mat4.create(), viewInverse);
 
   vs.SetAndTranspose("ViewMat", view);
   vs.SetAndTranspose("ProjectionMat", projection);
   vs.SetAndTranspose("ViewProjectionMat", viewProjection);
-  vs.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
+  vs.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
   vs.Set("Sun.DirWorld", SUN_DIRECTION);
   vs.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   vs.Set("TargetResolution", [ width, height ]);
   vs.Set("ViewportSize", [ width, height ]);
 
-  ps.SetAndTranspose("ViewInverseTransposeMat", viewInverse);
+  ps.SetAndTranspose("ViewInverseTransposeMat", viewInverseTranspose);
   ps.SetAndTranspose("ViewMat", view);
   ps.Set("Sun.DirWorld", SUN_DIRECTION);
   ps.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
