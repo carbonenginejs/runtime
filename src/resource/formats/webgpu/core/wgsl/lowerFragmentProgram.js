@@ -31,9 +31,20 @@ const SUPPORTED_OPCODES = new Set([
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
     "sample_l", "sincos", "sqrt", "udiv", "uge", "ult", "umax", "umin", "ushr",
-    "utof", "xor", "endif", "ret"
+    "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
+
+/**
+ * The compute thread-ID registers as WGSL entry-point builtins, for compute
+ * programs lowered here (see `lowerGeneralComputeProgram`). Names match the
+ * signatures `computeEntryPointParameters` accepts.
+ */
+const COMPUTE_BUILTINS = Object.freeze({
+    "input_thread_id[]": Object.freeze({ builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" }),
+    "input_thread_id_in_group[]": Object.freeze({ builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" }),
+    "input_thread_group_id[]": Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" })
+});
 const SAMPLE_OFFSET_OPCODES = new Set([ "sample", "sample_b", "sample_d", "sample_l" ]);
 const NUMERIC_CONVERSIONS = Object.freeze({
     itof: [ "int32", "float32" ],
@@ -268,6 +279,12 @@ function valueReference(program, ref, inputs)
     const value = program.values.find((entry) => entry.id === ref.valueId);
     if (!value) throw new Error(`WGSL fragment references missing value ${ref.valueId}`);
     if (value.origin === "undefined-register") throw new Error(`WGSL fragment reads undefined ${value.register}.${ref.component}`);
+    if (value.origin === "program-input" && COMPUTE_BUILTINS[value.register])
+    {
+        const builtin = COMPUTE_BUILTINS[value.register];
+        const target = value.componentTypes?.[ref.component];
+        return reinterpretCode(`${builtin.name}.${ref.component}`, "uint32", target, 1, `${value.register}.${ref.component}`);
+    }
     if (value.origin === "program-input")
     {
         const registerIndex = Number(/^input\[(\d+)\]$/.exec(value.register)?.[1]);
@@ -1133,6 +1150,59 @@ function applyResultBitcast(instruction, write, expression, type)
         `instruction ${instruction.index} result`);
 }
 
+/**
+ * `store_uav_typed` into a storage texture: `textureStore` at the address's
+ * texel (and layer), guarded, because D3D drops an out-of-bounds typed-UAV
+ * write and WGSL does not promise to.
+ */
+function lowerStorageTextureStore(program, instruction, inputs, bindings)
+{
+    const uav = validateFixedHandleOperand(instruction, 0, "uav", "fragment");
+    if (instruction.operands.length !== 3 || instruction.saturate)
+    {
+        throw new Error(`WGSL store_uav_typed instruction ${instruction.index} has an unsupported operand shape`);
+    }
+    const binding = bindingForOperand(bindings, "storage-resource", uav);
+    if (!binding?.storageTexture)
+    {
+        throw new Error(`WGSL store_uav_typed instruction ${instruction.index} requires a storage-texture UAV`);
+    }
+    const arrayed = binding.storageTexture.viewDimension === "2d-array";
+    const lanes = arrayed ? 3 : 2;
+    const address = operandExpression(program, instruction, 1, arrayed ? "xyz" : "xy", lanes, "uint32", inputs, bindings);
+    const value = operandExpression(program, instruction, 2, "xyzw", 4, "float32", inputs, bindings);
+    const name = `store_address${instruction.index}`;
+    const symbol = binding.generatedSymbol;
+    const inBounds = arrayed
+        ? `all(${name}.xy < textureDimensions(${symbol})) && ${name}.z < textureNumLayers(${symbol})`
+        : `all(${name} < textureDimensions(${symbol}))`;
+    const call = arrayed
+        ? `textureStore(${symbol}, ${name}.xy, ${name}.z, ${value})`
+        : `textureStore(${symbol}, ${name}, ${value})`;
+    return [
+        {
+            kind: "let",
+            name,
+            type: `vec${lanes}<u32>`,
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            expression: { code: address, type: `vec${lanes}<u32>` }
+        },
+        {
+            kind: "if",
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            condition: { code: inBounds, type: "bool" },
+            statements: [ {
+                kind: "call",
+                instructionIndex: instruction.index,
+                dxbcOffset: instruction.dxbcOffset,
+                expression: { code: call, type: "void" }
+            } ]
+        }
+    ];
+}
+
 function lowerInstruction(program, instruction, inputs, outputs, bindings, written, readValueIds, nonUniform = false, context = null)
 {
     if (!SUPPORTED_OPCODES.has(instruction.opcodeName))
@@ -1146,6 +1216,11 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
     if (unsupportedExtension)
     {
         throw new Error(`WGSL fragment instruction ${instruction.index} opcode extension ${unsupportedExtension.typeName} is not supported`);
+    }
+    if (context?.compute && REQUIRES_UNIFORM_CONTROL_FLOW.has(instruction.opcodeName))
+    {
+        // WGSL has no derivatives in compute; D3D's compute has none either.
+        throw new Error(`WGSL compute instruction ${instruction.index} (${instruction.opcodeName}) needs screen-space derivatives`);
     }
     if (nonUniform && REQUIRES_UNIFORM_CONTROL_FLOW.has(instruction.opcodeName) && context)
     {
@@ -1234,6 +1309,10 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
                 expression: { code: `atomicAdd(&${binding.generatedSymbol}[${address}], ${value})`, type: "void" }
             } ]
         };
+    }
+    if (instruction.opcodeName === "store_uav_typed")
+    {
+        return lowerStorageTextureStore(program, instruction, inputs, bindings);
     }
     const writes = instruction.dataflow.writes;
     if (!writes.length) throw new Error(`WGSL fragment instruction ${instruction.index} has no result write`);
@@ -1507,17 +1586,62 @@ export function lowerFragmentProgram(program, options = {})
 {
     if (program?.format !== "CJS_SHADER_IR") throw new TypeError("WGSL fragment lowering expects CJS_SHADER_IR input");
     if (program.stage !== "pixel") throw new Error(`WGSL fragment lowering cannot lower ${program.stage}`);
+    return lowerProgramBody(program, options, false);
+}
+
+/**
+ * A compute program no hand-matched profile claims, lowered with the fragment
+ * lowering's general instruction set: no interface, the thread-ID registers
+ * as entry-point builtins, typed texture UAVs as storage textures.
+ *
+ * @param {object} program CJS_SHADER_IR compute program.
+ * @param {object} [options] Lowering options.
+ * @returns {object} Typed compute program.
+ */
+export function lowerGeneralComputeProgram(program, options = {})
+{
+    if (program?.format !== "CJS_SHADER_IR") throw new TypeError("WGSL compute lowering expects CJS_SHADER_IR input");
+    if (program.stage !== "compute") throw new Error(`WGSL general compute lowering cannot lower ${program.stage}`);
+    return lowerProgramBody(program, options, true);
+}
+
+/** `dcl_thread_group` as a three-component workgroup size. */
+function computeThreadGroupSize(program)
+{
+    const group = program.declarations.find((entry) => entry.opcodeName === "dcl_thread_group")?.data;
+    const size = [ group?.threadGroupX, group?.threadGroupY, group?.threadGroupZ ];
+    if (size.some((value) => !Number.isSafeInteger(value) || value < 1))
+    {
+        throw new Error("WGSL compute lowering requires a dcl_thread_group declaration");
+    }
+    return size;
+}
+
+/** The entry-point builtins this program reads, in `computeEntryPointParameters` order. */
+function computeBuiltinInputs(program)
+{
+    const used = new Set(program.values
+        .filter((value) => value.origin === "program-input" && COMPUTE_BUILTINS[value.register])
+        .map((value) => value.register));
+    const order = [ "input_thread_group_id[]", "input_thread_id_in_group[]", "input_thread_id[]" ];
+    const builtinInputs = order.filter((register) => used.has(register))
+        .map((register) => ({ ...COMPUTE_BUILTINS[register] }));
+    return builtinInputs.length ? { builtinInputs } : {};
+}
+
+function lowerProgramBody(program, options, compute)
+{
     if (program.shaderModel.major !== 5 || ![ 0, 1 ].includes(program.shaderModel.minor))
     {
         throw new Error("WGSL fragment body slice currently supports only SM5.0/SM5.1");
     }
     requireRefactoringAllowed(program, "fragment");
-    const liveRegisters = liveInputRegisters(program);
-    const inputs = groupSignaturesByRegister(
+    const liveRegisters = compute ? new Set() : liveInputRegisters(program);
+    const inputs = compute ? [] : groupSignaturesByRegister(
         program.signatures.input.filter((entry) => liveRegisters.has(entry.registerIndex)))
         .map((rows) => interfaceField(rows, "input"));
-    const outputs = program.signatures.output.map((entry) => interfaceField([ entry ], "output"));
-    if (!outputs.length) throw new Error("WGSL fragment body slice requires output signatures");
+    const outputs = compute ? [] : program.signatures.output.map((entry) => interfaceField([ entry ], "output"));
+    if (!compute && !outputs.length) throw new Error("WGSL fragment body slice requires output signatures");
     inputs.forEach((input) => validateInterpolation(program, input));
     const planFromBinding = options.bindingPlan?.resourceTransforms === undefined
         ? null
@@ -1555,7 +1679,8 @@ export function lowerFragmentProgram(program, options = {})
     }
     const context = {
         requiresDerivativeUniformityOptOut: false,
-        transformedInputs
+        transformedInputs,
+        compute
     };
     const written = new Map(outputs.map((field) => [ field.id, new Set() ]));
     const readValueIds = new Set([
@@ -1870,6 +1995,27 @@ export function lowerFragmentProgram(program, options = {})
     const lowered = lowerRange(0, program.instructions.length, written);
     if (!terminatesAllPaths(lowered)) throw new Error("WGSL fragment path must end in return");
     const statements = hoistEscapingValues(lowered);
+    if (compute)
+    {
+        if (context.requiresDerivativeUniformityOptOut)
+        {
+            throw new Error("WGSL compute cannot take screen-space derivatives or implicit-LOD samples");
+        }
+        return {
+            kind: "typed-shader-program",
+            format: "CJS_TYPED_SHADER",
+            formatVersion: 1,
+            source: program.source,
+            stage: "compute",
+            entryPoint: "main",
+            threadGroupSize: computeThreadGroupSize(program),
+            ...computeBuiltinInputs(program),
+            bindings,
+            immediateConstantBuffer: program.immediateConstantBuffer || null,
+            constTables: program.constTables || null,
+            statements
+        };
+    }
     return {
         kind: "typed-shader-program",
         format: "CJS_TYPED_SHADER",

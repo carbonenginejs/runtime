@@ -1,4 +1,5 @@
 import { requireRefactoringAllowed } from "./precisionControls.js";
+import { lowerGeneralComputeProgram } from "./lowerFragmentProgram.js";
 import {
     validateExactComputeEnvelope,
     validateReturnTypeMirror,
@@ -1115,5 +1116,16 @@ export function lowerComputeProgram(program, options = {})
     {
         return lowerSkinVerticesComputeProgram(program, options);
     }
-    return lowerScalarWordComputeProgram(program, options);
+    // No profile claims it. The exact scalar-word path keeps the programs it
+    // was written for; anything using more lowers through the general
+    // instruction set shared with the fragment stage.
+    const scalarWordShape = program.instructions.every((instruction) => SUPPORTED_OPCODES.has(instruction.opcodeName))
+        && program.declarations.every((declaration) => DECLARATION_OPCODES.includes(declaration.opcodeName))
+        && program.bindings.every((binding) => binding.resourceKind !== "storage-resource"
+            || binding.resourceDimension === "buffer");
+    if (scalarWordShape)
+    {
+        return lowerScalarWordComputeProgram(program, options);
+    }
+    return lowerGeneralComputeProgram(program, options);
 }

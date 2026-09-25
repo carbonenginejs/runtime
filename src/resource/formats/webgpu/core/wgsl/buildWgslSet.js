@@ -98,11 +98,11 @@ function portableBinding(binding, visibility)
     {
         throw new Error(`WGSL binding ${binding.generatedSymbol} has invalid scope identity ${scopeIdentity}`);
     }
-    const descriptorKeys = [ "buffer", "texture", "sampler" ].filter((key) => binding[key]);
+    const descriptorKeys = [ "buffer", "texture", "storageTexture", "sampler" ].filter((key) => binding[key]);
     const expectedDescriptors = {
         "uniform-buffer": [ "buffer" ],
         "sampled-resource": [ "buffer", "texture" ],
-        "storage-resource": [ "buffer" ],
+        "storage-resource": [ "buffer", "storageTexture" ],
         sampler: [ "sampler" ]
     }[binding.resourceKind];
     if (!expectedDescriptors || descriptorKeys.length !== 1 || !expectedDescriptors.includes(descriptorKeys[0]))
@@ -129,6 +129,7 @@ function portableBinding(binding, visibility)
         ...(Number.isInteger(binding.structureStride) ? { structureStride: binding.structureStride } : {}),
         ...(binding.buffer ? { buffer: clonePlain(binding.buffer) } : {}),
         ...(binding.texture ? { texture: clonePlain(binding.texture) } : {}),
+        ...(binding.storageTexture ? { storageTexture: clonePlain(binding.storageTexture) } : {}),
         ...(binding.sampler ? { sampler: clonePlain(binding.sampler) } : {})
     };
 }
@@ -155,6 +156,7 @@ function bindingFingerprint(binding)
         structureStride: binding.structureStride ?? null,
         buffer: binding.buffer || null,
         texture: binding.texture || null,
+        storageTexture: binding.storageTexture || null,
         sampler: binding.sampler || null
     });
 }

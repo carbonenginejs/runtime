@@ -242,6 +242,11 @@ function uavBufferLayout(program, binding, policy)
         };
     }
     const returns = binding.returnType?.returnTypeNames || [];
+    const storageTexture = STORAGE_TEXTURE_DIMENSIONS[binding.resourceDimension];
+    if (storageTexture)
+    {
+        return storageTextureLayout(program, binding, storageTexture, returns);
+    }
     const identity = `storage-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`;
     const signedAtomic = policy.signedAtomicI32Identities.has(identity);
     const scalar = signedAtomic ? "sint" : "uint";
@@ -262,6 +267,43 @@ function uavBufferLayout(program, binding, policy)
             type: "storage",
             hasDynamicOffset: false,
             minBindingSize: 4
+        }
+    };
+}
+
+/**
+ * Typed texture UAVs as WGSL storage textures, write-only, for compute.
+ *
+ * WGSL names a storage texture's format where DXBC names only the component
+ * type, so a float4 UAV takes `rgba16float`: a WebGPU storage format, and the
+ * format Carbon's DX12 path chooses when its R11G11B10 target is not
+ * UAV-compatible (Tr2ReflectionProbe.cpp:235-236). A render target bound here
+ * must be created in it.
+ */
+const STORAGE_TEXTURE_DIMENSIONS = Object.freeze({
+    texture2d: { type: "texture_storage_2d", viewDimension: "2d" },
+    texture2darray: { type: "texture_storage_2d_array", viewDimension: "2d-array" }
+});
+
+const STORAGE_TEXTURE_FORMAT = "rgba16float";
+
+function storageTextureLayout(program, binding, dimension, returns)
+{
+    if (program.stage !== "compute")
+    {
+        throw new Error(`WGSL storage texture ${binding.id} is supported only in the compute stage`);
+    }
+    if (returns.length !== 4 || returns.some((entry) => entry !== "float"))
+    {
+        throw new Error(`WGSL storage texture ${binding.id} requires a float4 return type`);
+    }
+    return {
+        declaration: "var",
+        type: `${dimension.type}<${STORAGE_TEXTURE_FORMAT}, write>`,
+        storageTexture: {
+            access: "write-only",
+            format: STORAGE_TEXTURE_FORMAT,
+            viewDimension: dimension.viewDimension
         }
     };
 }

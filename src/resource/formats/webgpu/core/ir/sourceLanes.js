@@ -34,6 +34,25 @@ function sampleGradientLanes(instruction, program)
         : XY;
 }
 
+/**
+ * A typed UAV store's address lanes follow the UAV's dimension: one for a
+ * buffer, x/y for a 2D texture, x/y and the layer (or depth) for an array or
+ * volume.
+ */
+function storeAddressLanes(instruction, program)
+{
+    const uav = instruction.operands?.[0];
+    const reference = uav?.resourceReference;
+    const binding = (program?.bindings || []).find((entry) => entry.resourceKind === "storage-resource"
+        && (reference?.rangeId !== null && reference?.rangeId !== undefined
+            ? entry.range?.rangeId === reference.rangeId
+            : entry.registerIndex === uav?.registerIndex));
+    const dimension = binding?.resourceDimension;
+    if (dimension === "texture2d") return XY;
+    if (dimension === "texture2darray" || dimension === "texture3d") return XYZ;
+    return [ "x" ];
+}
+
 function loadAddressLanes(instruction, program)
 {
     const dimension = sampledResourceDimension(instruction, program);
@@ -56,7 +75,7 @@ export function fixedSourceLanes(instruction, operandIndex, program = null)
     const dot = DOT_LANES[instruction.opcodeName];
     if (dot && operandIndex > 0) return dot;
     if (instruction.opcodeName === "ld" && operandIndex === 1) return loadAddressLanes(instruction, program);
-    if (instruction.opcodeName === "store_uav_typed" && operandIndex === 1) return [ "x" ];
+    if (instruction.opcodeName === "store_uav_typed" && operandIndex === 1) return storeAddressLanes(instruction, program);
     if (instruction.opcodeName === "ld_structured" && operandIndex === 1) return [ "x" ];
     if (instruction.opcodeName === "store_structured")
     {

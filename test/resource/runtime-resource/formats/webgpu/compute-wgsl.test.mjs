@@ -2404,7 +2404,9 @@ test("create-histograms compute fails closed on both schedules, numeric modifier
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
     assert.throws(() => lowerComputeProgram(siblingBody),
-        /WGSL compute declaration shape is not supported/u);
+        // No profile claims the damaged program, so the general compute lowering
+        // is the one that refuses it.
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
 });
 
 test("create-histograms compute validates the exact texture and atomic-buffer binding plan", () =>
@@ -2868,7 +2870,9 @@ test("merge-histograms compute profile fails closed on declarations, body, barri
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
     assert.throws(() => lowerComputeProgram(siblingBody),
-        /WGSL compute declaration shape is not supported/u);
+        // No profile claims the damaged program, so the general compute lowering
+        // is the one that refuses it.
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
 });
 
 test("merge-histograms compute validates exact binding plans and finite raw ranges", () =>
@@ -3239,7 +3243,9 @@ test("chunk-sort compute profile fails closed on declarations, body, barriers, r
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
     assert.throws(() => lowerComputeProgram(siblingBody),
-        /WGSL compute declaration shape is not supported/u);
+        // No profile claims the damaged program, so the general compute lowering
+        // is the one that refuses it.
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
 });
 
 test("chunk-sort compute validates exact binding plans and finite raw ranges", () =>
@@ -3462,7 +3468,9 @@ test("sort-inner compute profile fails closed on declarations, body, barriers, r
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
     assert.throws(() => lowerComputeProgram(siblingBody),
-        /WGSL compute declaration shape is not supported/u);
+        // No profile claims the damaged program, so the general compute lowering
+        // is the one that refuses it.
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
 });
 
 test("sort-inner compute validates exact binding plans and finite raw ranges", () =>
