@@ -1234,6 +1234,12 @@ export class CjsResMan
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
   GetResource(path, options = {}) {
+    // An invalid call throws; a resource that cannot be fetched is recorded on
+    // the resource instead (_RequestResource).
+    if (typeof path !== "string" || !path)
+    {
+      throw new TypeError("CjsResMan.GetResource requires a non-empty path string.");
+    }
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
       throw new TypeError("CjsResMan.GetResource options must be an object.");

@@ -3263,3 +3263,13 @@ test("a resource that cannot be fetched fails on the resource, not in GetResourc
   assert.equal(resource.IsFailed(), true);
   assert.ok(resource.error, "the reason is kept on the resource");
 });
+
+test("an invalid GetResource call throws; only resource failures are recorded", () =>
+{
+  const resMan = new CjsResMan();
+
+  assert.throws(() => resMan.GetResource(42), TypeError);
+  assert.throws(() => resMan.GetResource(""), TypeError);
+  assert.throws(() => resMan.GetResource("res:/data/x.json", 5), TypeError);
+  assert.equal(resMan.GetResource("res:/data/x.json").IsFailed(), true, "no source is the resource's failure");
+});
