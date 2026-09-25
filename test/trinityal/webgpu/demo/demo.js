@@ -104,10 +104,12 @@ import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js"
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
 import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
-import { Tr2EffectRes } from "../../../../npm/dist/resource/shader/index.js";
+import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
+import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { blue } from "../../../../npm/dist/global/blue/index.js";
 import {
+  ResourceRequirement,
   RegisterSolidColorTexture,
   RegisterTextureArray,
   RegisterTexturePack,
@@ -125,7 +127,10 @@ const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/quadv5.
 
 
 /**
- * Turns a SOF effect path into the container this backend loads.
+ * Turns a SOF effect path into the container this backend loads. No prebuilt
+ * overlay is needed: the byte source reads the shipped dx11 container for it
+ * and `RegisterShaderResources` translates in memory (byte-identical to a
+ * prebuilt one, measured 2026-09-26).
  *
  * A SOF DOCUMENT NAMES NO BACKEND. It carries
  * `res:/graphics/effect/.../quadv5.fx` - the neutral path - and a loader
@@ -494,11 +499,11 @@ function GeometryResource(mesh, path)
  * @param {string} path Resource path.
  * @returns {object} The effect, used as the area's material.
  */
-function Material(bytes, path, values = null)
+async function Material(path, values = null)
 {
-  const resource = new Tr2EffectRes().Initialize(path);
+  const resource = blue.resMan.GetResource(path, { requirement: ResourceRequirement.SHADER });
 
-  resource.DoLoad(bytes);
+  await resource.Ready();
 
   // HYDRATED FROM THE SOF DOCUMENT WHEN THERE IS ONE. The built document for a
   // DNA carries the area's whole effect - its constant parameters and a
@@ -594,11 +599,20 @@ const SCENE_TEXTURES = Object.freeze([
 // only the byte source and the texture routes. Textures load as Carbon's
 // HostBitmap through the ordinary image route - including `dynamic:/color`
 // and the texture pack and array constructors a merged shader slot resolves.
-blue.resMan.Register({ source: { Read: path => ResourceBytes(String(path).replace(/^res:\//u, "")) } });
+//
+// Effects are requested at their WebGPU paths and translated in memory: the
+// source answers an `effect.webgpu/` path with the shipped `effect.dx11/`
+// container, and `RegisterShaderResources` converts it. No prebuilt overlay.
+blue.resMan.Register({
+  source: {
+    Read: path => ResourceBytes(String(path).replace(/^res:\//u, "").replace("graphics/effect.webgpu/", "graphics/effect.dx11/"))
+  }
+});
 RegisterTextureResources(blue.resMan);
 RegisterSolidColorTexture(blue.resMan);
 RegisterTextureArray(blue.resMan);
 RegisterTexturePack(blue.resMan);
+RegisterShaderResources(blue.resMan, { translator: CjsWebgpuFormat });
 
 /**
  * A scene texture's path: a client file, or a flat colour as Carbon's
@@ -1071,7 +1085,7 @@ export async function RunDemo(canvas)
       ? WithDetailMaps(declared.effect)
       : declared.effect ?? null;
     const path = effect?.effectFilePath ? EffectPath(effect.effectFilePath) : EFFECT;
-    const material = Material(await ResourceBytes(path), `res:/${path}`, effect);
+    const material = await Material(`res:/${path}`, effect);
 
     // The scene's share of the texture slots, before the material is applied
     // and its resource set laid out. Added as ordinary named parameters,

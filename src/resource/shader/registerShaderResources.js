@@ -41,20 +41,42 @@ export const ShaderResourceExtensions = Object.freeze([
  * `SetPayload` and calls `DoLoad` itself. A loader that decoded here instead
  * would produce a payload whose reader the publish step then discarded.
  *
+ * TRANSLATION IN MEMORY. A browser backend has no shipped containers of its
+ * own, so composition may pass the backend's effect format as `translator`
+ * (e.g. `CjsWebgpuFormat`) and each container is converted before
+ * `Tr2EffectRes` sees it - the same `buildEffect` a tool runs to prebuild an
+ * overlay, with byte-identical output. The translator is passed in rather than
+ * imported so the emitter reaches only bundles that ask for it.
+ *
+ * The resource keeps its BACKEND path (`graphics/effect.webgpu/...`): that path
+ * is its identity, and `Tr2EffectRes` decides from it how the container is laid
+ * out. The byte source supplies the shipped `graphics/effect.dx11/...` file for
+ * that path; the source belongs to composition.
+ *
  * @param {object} resourceManager Manager to register on.
+ * @param {object} [options] Registration options.
+ * @param {{buildEffect: Function}|null} [options.translator] Converts a shipped container into the running backend's.
  * @returns {object} The same manager, for chaining.
  */
-export function RegisterShaderResources(resourceManager)
+export function RegisterShaderResources(resourceManager, { translator = null } = {})
 {
   if (typeof resourceManager?.RegisterExtension !== "function"
     || typeof resourceManager?.RegisterObjectLoader !== "function")
   {
     throw new TypeError("RegisterShaderResources requires a CjsResMan.");
   }
+  if (translator !== null && typeof translator?.buildEffect !== "function")
+  {
+    throw new TypeError("RegisterShaderResources translator must expose buildEffect.");
+  }
+
+  const loader = translator
+    ? async (bytes, context) => (await translator.buildEffect(bytes, { source: context.path })).bytes
+    : bytes => bytes;
 
   for (const extension of ShaderResourceExtensions)
   {
-    resourceManager.RegisterObjectLoader(extension, bytes => bytes);
+    resourceManager.RegisterObjectLoader(extension, loader);
     resourceManager.RegisterExtension(extension, Tr2EffectRes);
   }
 
