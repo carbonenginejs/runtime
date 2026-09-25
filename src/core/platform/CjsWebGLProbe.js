@@ -3,8 +3,7 @@
 // a library must be able to answer "is WebGL2 available" as a fact of its own,
 // not as the negation of a WebGPU probe: `capabilities.webgpu === false` says
 // only that WebGPU is absent, which is not the same statement as "WebGL2 is
-// present" and cannot select an engine. Authority:
-// docs/engine-backends-plan.md decision 7; registered in
+// present" and cannot select an engine. Registered in the organization's
 // docs/architecture/non-carbon-extensions.md.
 //
 // PROBING IS THE LIBRARY'S JOB, NOT AN ENGINE'S. An engine that probes is an
@@ -136,6 +135,10 @@ export class CjsWebGLProbe
      * Probes WebGL2 through an injected context, an injected canvas, or a
      * canvas this creates and releases. Never throws: an unavailable or failing
      * context is an unavailable capability, not a library bootstrap failure.
+     *
+     * A created canvas prefers `OffscreenCanvas`, then
+     * `document.createElement`. Only a context this call acquired is released,
+     * through `WEBGL_lose_context`; an injected `context` is left alive.
      */
     static Detect(options = {})
     {

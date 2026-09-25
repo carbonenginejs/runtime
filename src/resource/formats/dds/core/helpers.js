@@ -591,6 +591,20 @@ function canDecodeDdsToRgba(metadata)
     ].includes(metadata.pixelFormat);
 }
 
+/**
+ * Software-decodes a DDS into one RGBA surface (`emit: "rgba"`/`"image"`).
+ *
+ * Only the first subresource is decoded: no stored mips, cube faces or array
+ * layers (a volume's z-slices are all decoded). A successful RGBA read or
+ * probe therefore says nothing about multi-subresource support; engines that
+ * need mips generate them. BC1-BC5 and BC7 decode to RGBA8; signed and
+ * unsigned BC6H decode to linear `Float32Array` RGBA without clamping HDR
+ * values. The block decoders are in-project, with no codec package.
+ *
+ * @param {Uint8Array} bytes DDS bytes.
+ * @param {object} metadata Inspected DDS metadata.
+ * @returns {object} RGBA payload.
+ */
 function readDdsToRgba(bytes, metadata)
 {
     if (!canDecodeDdsToRgba(metadata))

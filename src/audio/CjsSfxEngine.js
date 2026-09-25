@@ -351,6 +351,16 @@ class CjsSfxEngineSelectionTransactionLedger
 
 /**
  * Resolves authored SFX containers into one or more playable media selections.
+ *
+ * Program actions run in authored order. Switch setters update the posting
+ * game object and State setters the global table; an immediate setter
+ * affects only later Play actions of the same post. Play timing (delay,
+ * probability, fade) is sampled once per Play action and inherited by every
+ * leaf it selects; delay is measured from the post. Gain curves interpolate
+ * between points, clamp outside them, and treat -96 dB or linear 0 as
+ * silence. Voice Volume, Pitch and LPF/HPF contributions from distinct
+ * matching identities add before the final clamp and never replace fades,
+ * emitter gain or distance attenuation.
  */
 export class CjsSfxEngine
 {

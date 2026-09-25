@@ -16,6 +16,21 @@ const NUMBER = /^[+-]?(?:[0-9]+(?:\.[0-9]*)?|\.[0-9]+)(?:[eE][+-]?[0-9]+)?$/u;
 
 /**
  * Parses the supported IES text container from a byte view.
+ *
+ * The result is `{ headerText, tilt, ...HEADER_FIELDS, verticalAngles,
+ * horizontalAngles, candelaValues }`: `headerText` is the text before the
+ * TILT line with trailing whitespace removed; angles stay in authored degrees;
+ * `candelaValues` keeps every horizontal plane in file order with vertical
+ * samples contiguous. Multipliers, ballast and units are returned but never
+ * applied.
+ *
+ * Accepts UTF-8 text with whitespace or comma separators, decimals and
+ * exponents. Rejects TILT other than NONE (included or external tilt),
+ * malformed or nonfinite numbers, non-integer integer fields, nonpositive
+ * angle counts, truncated tables and trailing numeric data. It is a
+ * structural reader: angle coverage and version-dependent LM-63 fields are
+ * not validated.
+ *
  * @param {ArrayBuffer|ArrayBufferView} input File bytes, respecting view offsets.
  * @param {object} [options] Source label and output selection.
  * @returns {object} Raw photometric fields and horizontal-major candela table.

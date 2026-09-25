@@ -33,7 +33,19 @@ import {
 /** Audio system composition root: repository + manager + backend, attached to the graph seams. */
 export class CjsAudioSystem
 {
-    /** Validates the small host-owned music-engine contract. */
+    /**
+     * Validates the small host-owned music-engine contract.
+     *
+     * An engine implements `HandlesEvent(name)`, `PostEvent(...)`,
+     * `ExecuteAction(action, playingID, fadeOutDuration)`, `Process()` and
+     * `Dispose()`; switch, state, volume, play-position, seek and media-cache
+     * methods are optional. `PostEvent` must call its completion callback
+     * exactly once. A `createMusicEngine(options)` factory is called
+     * synchronously at `Enable()` with `{ context, destination, graph,
+     * loadMedia, ... }` and must return the engine, not a promise. Without a
+     * factory or injected engine, a `musicGraph` selects the built-in
+     * `CjsMusicEngine`.
+     */
     static ValidateMusicEngine(engine)
     {
         if (engine === null || engine === undefined)
@@ -438,7 +450,12 @@ export class CjsAudioSystem
         return next;
     }
 
-    /** Posts an event directly to the injected/built-in music engine. */
+    /**
+     * Posts an event directly to the injected/built-in music engine.
+     *
+     * Bypasses the Carbon event catalog, so application-owned event names need
+     * no Wwise metadata. Returns 0 when the engine does not handle the event.
+     */
     PostMusicEvent(eventName, onFinished)
     {
         return this.backend?.PostMusicEvent(eventName, onFinished) ?? 0;
@@ -450,7 +467,10 @@ export class CjsAudioSystem
         return this.backend?.StopMusicEvent(playingID, fadeOutDuration) ?? false;
     }
 
-    /** Releases one decoded source from the built-in music cache. */
+    /**
+     * Releases one decoded source from the built-in music cache. Sources that
+     * are still playing keep their buffer until they finish.
+     */
     ReleaseMusicMedia(sourceId)
     {
         return this.musicEngine?.ReleaseMedia?.(sourceId) ?? false;

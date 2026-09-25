@@ -28,7 +28,33 @@ import {
  * reads `.gr2` geometry/skeleton/animation graphs and `.gsf` state profiles,
  * emits GR2 JSON, hydrated caller-supplied classes, or CMF-shaped output, and
  * writes pure-JavaScript GR2 geometry from CMF without pretending those
- * classes are the engine runtime itself.
+ * classes are the engine runtime itself. It needs no native Granny library,
+ * GPU or filesystem. Section decompression covers None, Oodle1 and BitKnit2.
+ *
+ * `emit`: `"json"` (default) and its alias `"gr2Json"` return the plain GR2
+ * graph; `"gr2"` and `"cmf"` return the GR2 or CMF graph hydrated with
+ * caller classes and require a non-empty `classes` map; `"raw"` returns the
+ * reflected `granny_file_info` result. With `"json"`/`"gr2Json"`, `classes`
+ * hydrates only the listed nodes. After raw reflection the JSON and CMF paths
+ * branch from one shared projection; CMF does not pass through the JSON output.
+ *
+ * Read options (all default `false`): `decompressCurves` adds decoded
+ * `knots`/`controls`/`dimension` to supported compressed curves while keeping
+ * the raw fields; `unpackTangents` expands packed tangent frames, primary and
+ * morph-target together, into normal/tangent/binormal channels;
+ * `rebuildMissingNormals`, `rebuildMissingTangents`, `rebuildMissingBiNormals`
+ * and `rebuildMissingBounds` fill absent data only and never repair authored
+ * channels. `unpackTangents` and the three channel rebuilds may be a function
+ * `(context) => boolean` deciding per mesh; `context` carries `reader`,
+ * `options`, `raw`, `json`, `mesh`, `meshIndex`, `feature` and `channel`.
+ *
+ * Hydration constructs each registered class with no arguments and calls
+ * `SetValues(fields)`; valid keys are in `CjsGr2Format.classKeys`.
+ * `ToJSON`/`toJSON` return a JSON-compatible value, not JSON text.
+ *
+ * `readGsf` projects a Granny State (`.gsf`) document: container revision,
+ * model and retarget hints, state machine, animation slots and sets,
+ * referenced relative `.gr2` files, token count, editor data and extended data.
  */
 export class CjsGr2Format extends CjsGeometryFormat
 {

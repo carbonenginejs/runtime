@@ -80,7 +80,7 @@ belts, stars and gates).
 
 ## Use
 
-See [format capabilities](../concepts/format-capabilities.md) for the shared
+See the `CjsFormat` JSDoc for the shared
 synchronous inspection seam.
 
 `is()` is the boolean routing predicate and `inspect()` returns the identified

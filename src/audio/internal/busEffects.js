@@ -1768,7 +1768,16 @@ export function createWwiseEffectChain(
     } : null;
 }
 
-/** Creates the bounded browser approximation of static Wwise distortion. */
+/**
+ * Creates the bounded browser approximation of static Wwise distortion.
+ *
+ * Selected by `wwiseDistortion: "approximate-web-audio"` for fully-wet
+ * Overdrive/Heavy records. Pre/post biquads surround a 4x-oversampled
+ * WaveShaper with a normalized tanh / full-wave rectification curve; a live
+ * Drive RTPC scales two Gain nodes around that fixed curve instead of
+ * rebuilding it. The law is not Wwise's proprietary transfer, Drive or
+ * Rectification law, and authored Tone is retained but not applied.
+ */
 function CreateWwiseGuitarDistortionApproximation(context, effect)
 {
     const shaper = context.createWaveShaper();
@@ -1866,7 +1875,13 @@ function CreateBiquadFilter(context, band)
     return filter;
 }
 
-/** Creates a static, all-channel browser approximation of Wwise Flanger. */
+/**
+ * Creates a static, all-channel browser approximation of Wwise Flanger.
+ *
+ * Gain/Delay/Oscillator nodes approximate the unified comb. Every decoded
+ * channel is processed despite authored Center/LFE bypass, and feedback is
+ * clamped to +/-0.999.
+ */
 function CreateWwiseFlangerApproximation(context, effect)
 {
     const input = context.createGain();
@@ -1933,7 +1948,12 @@ function CreateWwiseFlangerApproximation(context, effect)
     };
 }
 
-/** Creates a static, all-channel browser approximation of Wwise Tremolo. */
+/**
+ * Creates a static, all-channel browser approximation of Wwise Tremolo.
+ *
+ * Depth maps to a unipolar gain range of `[1 - depth, 1]`. PWM applies only
+ * to Square (a bounded Fourier pulse); Triangle PWM is ignored, as in Wwise.
+ */
 function CreateWwiseTremoloApproximation(context, effect)
 {
     const input = context.createGain();
@@ -2016,6 +2036,10 @@ function CreateWwiseTremoloApproximation(context, effect)
  * The post gain cancels the specified hard-knee makeup before applying Wwise's
  * authored output gain. A Peak Limiter receives only the additional delay
  * needed to reach an authored lookahead longer than Web Audio's fixed delay.
+ * Compressors keep their authored attack, Peak Limiters use zero attack, and
+ * knee is fixed at zero. The delay pad changes output latency only; it does
+ * not extend the detector's anticipation. Dynamic controls, Compressor
+ * attack 0 and timing above one second are not admitted.
  */
 function CreateWwiseDynamicsApproximation(context, effect)
 {
@@ -2992,6 +3016,10 @@ export function parseStaticWwiseMeterBytes(
 /**
  * Decodes a v150 Wwise Meter whose signal path is transparent. Telemetry may
  * be omitted only through explicit policy when it could feed the authored graph.
+ *
+ * A Meter only measures, so a feedback-free Meter allocates no node. With
+ * `wwiseMeterFeedback: "omit-telemetry"` a Game-Parameter-target Meter also
+ * passes, producing no value and therefore none of its authored feedback.
  */
 export function parseGraphFeedbackFreeMeter(
     effect,

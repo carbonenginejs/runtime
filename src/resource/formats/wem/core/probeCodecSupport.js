@@ -1,6 +1,7 @@
-// Structural codec support for WEM media. The fmt tag is only a declaration;
-// The fmt tag is the declaration; each candidate codec gets ONE bounded
-// structural check against the actual container facts - no audio is decoded:
+// Works out a WEM's real codec from its bytes, because the codec tag in the
+// `fmt ` header is only a claim: a WEM can say one codec and hold another.
+// Each candidate codec gets ONE bounded structural check against the actual
+// container facts - no audio is decoded:
 //
 // - wwise-vorbis: the Wwise Vorbis sidecar must exist (vorb chunk or inline
 //   fmt-0x42 layout) with a positive sample count and data payload;
@@ -10,11 +11,18 @@
 // - pcm / pcm-extensible: 16-bit with self-consistent blockAlign/byteRate
 //   and sample-aligned data.
 //
-// The declared codec is validated FIRST; when its check fails (a mislabeled
-// tag), the other candidates are tried in order. A 2026-07-19 census of all
-// 8,987 embedded wems in EVE build 3435006 found no mislabeled tags, so
-// mismatch is the exceptional path - but the check is what makes that a
-// verified fact per file rather than a corpus-wide assumption.
+// The declared codec is tried FIRST; if its check fails (a mislabelled
+// header), the other candidates are tried in order. The report carries
+// `declared`, `resolved` and `mismatch`, so the caller can see both what the
+// file claims and what it is.
+//
+// `toOgg`/`toPcm` decode by the declared tag (and `wemToOgg` also rejects any
+// tag other than Wwise Vorbis), so they cannot convert a file this probe
+// reports with `mismatch: true`; `resolved` names the decoder its bytes need.
+//
+// All 8,987 embedded wems in EVE build 3435006 declared their codec correctly,
+// so a mismatch is the exception; the check makes that true per file rather
+// than assumed for the whole corpus.
 import { inspectWithValues } from "./helpers.js";
 
 const CANDIDATES = [ "wwise-vorbis", "wwise-ptadpcm", "pcm" ];

@@ -11,6 +11,24 @@ const READ_MODE_ASYNC = "async";
  * The format subpaths must remain directly importable from authored source, so
  * this base carries no decorators. Formats return plain support reports;
  * CjsResourceProbe.from() is the optional resource-layer normalization.
+ *
+ * A concrete format declares these statics (checked by validateContract):
+ * - `id`: stable format identity;
+ * - `mediaTypes`: canonical MediaType categories;
+ * - `extensions`: lowercase dotted suffixes offered for routing;
+ * - `outputs`: the defineOutputs map of exact output selectors;
+ * - `requestResponseType`: how the source is acquired (default "arraybuffer");
+ * - `worker`: null, or a browser-worker execution descriptor.
+ *
+ * An output descriptor carries `output`, `payloadType`, `role`, `readMode`,
+ * `decoded`, `passthrough`, `default`, `probes` and `requires`. It declares
+ * a reader path; it never claims that path has run for a given input.
+ *
+ * Four questions stay separate: `is` (boolean routing), `inspect`
+ * (structure), `getSupport` (advice, never verified) and `verifySupport`
+ * (proof by the real read). Routing uses `is` or a route probe only; support
+ * reports never select a route, so a decoder limitation cannot change which
+ * format owns the bytes.
  */
 export class CjsFormat
 {
@@ -133,6 +151,11 @@ export class CjsFormat
    *
    * Concrete formats may override this with header/environment reasoning. The
    * public getSupport() method normalizes its result into the uniform contract.
+   *
+   * A probe that returns no `variants` already reports every declared output
+   * as supported whenever the input is recognised and `supported` is not
+   * false or "none", so an override is only worth writing for a condition
+   * the output declaration cannot express.
    */
   static probeSupport(input, options = null)
   {
@@ -193,6 +216,12 @@ export class CjsFormat
    * This is an explicit diagnostic/capability operation. Normal resource
    * loading calls readAsync() once and treats its successful result as proof;
    * it must not verify and then decode the same payload a second time.
+   *
+   * Proof is output-specific: `options.emit` selects the output, defaulting to
+   * the declared default. An undeclared output fails with
+   * CJS_FORMAT_OUTPUT_UNDECLARED without running a reader. Otherwise the
+   * report has `verified: true` and either `supported: true` or a structured
+   * `error` (name, code, message, details, cause).
    */
   static async verifySupport(input, options = null)
   {

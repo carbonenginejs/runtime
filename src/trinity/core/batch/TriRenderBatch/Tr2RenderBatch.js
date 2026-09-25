@@ -95,11 +95,12 @@ export class Tr2RenderBatch
     this.indexBuffer = null;
     this.indexStride = 0;
 
-    // NOT PORTED: Carbon's Tr2MeshBase::CreateGeometryBatch bakes the buffer
-    // allocations and computed draw arguments into the batch during collection.
-    // Here only a geometry-resource and area-range descriptor is recorded, and
-    // resolving it to allocations and final draw arguments is missing. See the
-    // render-batch contract in docs/architecture.md.
+    // Carbon's Tr2MeshBase::CreateGeometryBatch bakes the buffer allocations and
+    // computed draw arguments into the batch during collection. Here a mesh
+    // batch records only a geometry-resource and area-range descriptor;
+    // Tr2RenderContext.SubmitGeometry realizes it at first submit through
+    // RealizeBatchGeometry (TriGeometryResAllocations.js), which sets the
+    // streams and re-resolves the draw arguments with resolveDrawArguments.
     this.geometrySource = null;
 
     this.objectData = null;

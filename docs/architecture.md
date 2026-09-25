@@ -67,7 +67,7 @@ headless and does not probe browser globals.
 
 Browser-safe file-index helpers live in `src/tools`, off the default surface.
 The demo suite lives in `@carbonenginejs/demos`; engine-specific GPU harnesses
-stay with their engine layer. See [Tools](tools/README.md) for the migration.
+stay with their engine layer. The `src/tools/index.js` module comment covers the migration.
 
 `@carbonenginejs/tools-core` owns source generators, acquisition-aware artifact
 builders, schemas, catalogs, caches, and Node.js/native dependencies.

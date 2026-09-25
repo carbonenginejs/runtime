@@ -90,6 +90,12 @@ export class CjsSchema
     /**
      * Creates a field decorator that binds the field to a registered enum
      * identity.
+     *
+     * A name containing a dot resolves only through the Blue enum registry,
+     * when field or schema metadata is read: a missing registration throws, and
+     * the failure is not cached, so registering later and reading again works.
+     * Any other name resolves the declaring class's (or an ancestor's)
+     * PascalCase static; a missing static skips enum validation.
      */
     static enum(values)
     {
@@ -168,6 +174,12 @@ export class CjsSchema
 
     /**
      * Excludes named inherited fields from the decorated class's schema surface.
+     *
+     * Hidden fields leave schema introspection, GetValues, dehydration and
+     * every export option; SetValues and hydration ignore them as unknown
+     * fields. The JS properties and inheritance are unchanged. Hides pass to
+     * descendants and may be extended there; there is no unhide, and naming a
+     * field the parent schema does not expose throws TypeError at registration.
      */
     static hideInherited(fieldNames)
     {
@@ -305,7 +317,12 @@ export class CjsSchema
         return this.getClassNames(value.constructor).includes(name.trim());
     }
 
-    /** Registers a constructor under an explicit serialized class name. */
+    /**
+     * Registers a constructor under an explicit serialized class name.
+     *
+     * One direct name-to-constructor map serves every lookup; `define` and
+     * `type.define` register the `className` and each alias through here.
+     */
     static SetConstructor(name, Constructor)
     {
         if (typeof name !== "string" || !name.trim())
@@ -601,6 +618,7 @@ export class CjsSchema
      *
      * @param {object} values Sparse self-describing model values.
      * @returns {object} A new default-expanded plain-values graph.
+     * @throws {TypeError} When any `_type` names an unregistered class.
      */
     static applyDefaults(values)
     {
@@ -616,6 +634,15 @@ export class CjsSchema
     }
 
 
+    /**
+     * Field type descriptors. Three reference-shaped kinds differ in how a
+     * value is populated:
+     * - `model(className)` holds a registered class by reference;
+     * - `struct(className)` has value semantics: when the owner already holds
+     *   an instance, SetValues populates it in place, keeping its identity;
+     * - `rawStruct(nativeType)` is an opaque native payload whose plain values
+     *   never construct a model.
+     */
     static type = Object.freeze({
         array: itemType => fieldDecorator("type", { kind: "array", itemType }),
         boolean: fieldDecorator("type", { kind: "boolean" }),
@@ -668,6 +695,22 @@ export class CjsSchema
     // namespace was called `io` until 2026-09-18, which named about a third of
     // what it holds - only PERSIST and RPERSIST are I/O, NOTIFY is wiring,
     // HIDDEN and FLAGS are editor hints, READ and WRITE are access control.
+    /**
+     * Blue edit flags, one boolean per EDITFLAGS bit: read 0x001, write 0x002,
+     * notify 0x004, hidden 0x008, persist 0x010, rpersist 0x020, flags 0x100,
+     * enum 0x200; persistOnly is HIDDEN | PERSIST. The masks and
+     * EDIT_FORCELONG are not decorators. Flags combine independently, and
+     * persistence does not imply script access.
+     *
+     * - `notify` queues `OnModified(name)` after every accepted values write,
+     *   equal writes included; equality only decides the changed-set result.
+     *   `notify: false` or `markDirty: false` suppresses it and
+     *   `skipUpdate: true` defers it.
+     * - `type.enum(...)` already reports `edit.enum: true` in the resolved
+     *   schema; `flags` describes a bitmask and supplies no chooser.
+     * - Values transport does not enforce READ, and direct JS field access is
+     *   never intercepted.
+     */
     static edit = Object.freeze({
         none: fieldDecorator("edit", {}),
         // MODMASK 0x00F
@@ -712,6 +755,12 @@ export class CjsSchema
         values: composeValuesDecorator(CjsSchema.#statelessTransport)
     });
 
+    /**
+     * Editor-facing presentation hints: `group(name)`, `hidden`, `readOnly`
+     * and `widget(name)`. They change no persistence, validation or mutation:
+     * `jessica.hidden` is not `hideInherited`, and `jessica.readOnly` does not
+     * block SetValues.
+     */
     static jessica = Object.freeze({
         group: name => fieldDecorator("jessica", { group: name }),
         hidden: fieldDecorator("jessica", { hidden: true }),
@@ -806,6 +855,14 @@ export class CjsSchema
                 originalName: originalName.trim()
             });
         },
+        /**
+         * Marks a method that takes, as its first argument, the context standing
+         * in for Carbon renderer or process globals; the decorator throws when the
+         * method takes no argument. The marker does not go on the owner that
+         * constructs and stamps that context (`EveSpaceScene.Update`). When the
+         * method also writes into caller-owned output storage, that argument
+         * stays last.
+         */
         contextual: tiers => {
             const list = Array.isArray(tiers) ? tiers : [tiers];
             const normalized = [];

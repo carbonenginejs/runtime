@@ -1,3 +1,15 @@
+/**
+ * Opt-in source-local Wwise Matrix Reverb approximation, selected by
+ * `wwiseReverb: "approximate-web-audio"`.
+ *
+ * Admits static, control-free v150 default-delay records (29-byte layout).
+ * Four spaced default delays with cyclic feedback and fixed HF damping
+ * preserve dry/wet levels and Pre-Delay and approximate Reverb Time and HF
+ * Ratio; the authored 4/8/12/16 delay count stays metadata. Shared-bus
+ * placement, custom delay tables, dynamic controls, missing primitives and
+ * strict mode keep the whole source chain dry.
+ */
+
 const WWISE_REVERB_MODES = new Set([
     "strict",
     "approximate-web-audio",

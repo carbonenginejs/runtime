@@ -103,7 +103,15 @@ export class CjsCharacterLibraryBuilder
         return this.buildLibrary(documents, OmitResourceOptions(options));
     }
 
-    /** Builds one deterministic library value from keyed or named JSON documents. */
+    /**
+     * Builds one deterministic library value from keyed or named JSON documents.
+     *
+     * Missing or unmodelled document families and blank record keys are
+     * rejected, and the result must hydrate without losing a field.
+     * `recordID` is reserved for the source-map key; existing `_id`s are
+     * validated and reserved. The builder does no target discovery, cache
+     * management, selected-asset loading, policy resolution or rendering.
+     */
     static build(documents = {}, options = {})
     {
         RequirePlainObject(options, "Character library options");
@@ -268,6 +276,15 @@ function AddDocument(documents, value, data)
     documents.set(name, records);
 }
 
+/**
+ * Replaces proven relationship fields with graph-local `{ _ref }` tokens.
+ * A zero source identity becomes `null`; a positive identity whose target is
+ * missing keeps its named value, so the dangling fact stays visible without
+ * an unresolved `_ref` or placeholder. Existing `_id`s are reserved and only
+ * referenced targets receive a new one. A character resource's `resPath`
+ * links to `partType` only when an exact part-type record exists; `resPath`
+ * itself is unchanged.
+ */
 function ApplyRelationships(documents)
 {
     const recordsByDocument = new Map(DOCUMENT_NAMES.map(name => [

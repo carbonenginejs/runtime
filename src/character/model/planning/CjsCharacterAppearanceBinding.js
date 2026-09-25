@@ -1,7 +1,12 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Final consumer/sampler binding to a resolved texture or composition target. */
+/**
+ * Final consumer/sampler binding to a resolved texture or composition target.
+ *
+ * `consumerID` is opaque; the binding never carries a shader path or live
+ * effect object.
+ */
 @type.define({ className: "CjsCharacterAppearanceBinding", family: "character" })
 export class CjsCharacterAppearanceBinding extends CjsModel
 {

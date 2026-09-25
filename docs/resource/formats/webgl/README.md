@@ -108,7 +108,6 @@ const packageData = CjsWebglFormat.read(packageBytes);
 
 ## Documentation map
 
-- [Architecture and ownership](architecture.md)
 - [Carbon compiled-effect container](../carbon-effect-container.md)
 - [Constant-buffer layouts](carbon-constant-layouts.md)
 - [Class-purpose catalog](reference/classes/README.md)

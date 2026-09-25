@@ -39,6 +39,45 @@ import {
 //   randomization. Loop 0 = infinite. Transition segments bridge source and
 //   destination with authored pre-entry/post-exit windows. Stingers and MIDI
 //   tracks are not played.
+// - Every playable target of an authored Play event runs under one playing
+//   ID. Linear fades use Web Audio ramps; other Wwise interpolation IDs are
+//   sampled approximations.
+// - Reapplying the currently selected switch route is a no-op. A nested
+//   association change uses that nested container's transition matrix.
+//   Wwise "Nothing" is explicit ID zero and never matches "Any"; its rules
+//   also apply when playback first enters a target from silence.
+// - Authored SetSwitch/SetState actions keep fixed delays: an immediate
+//   setter updates the decision before a same-post Play, a delayed one stays
+//   pending on the AudioContext clock and reevaluates live instances when
+//   due. Setter-only posts complete after their last action; stopping the
+//   playing ID cancels pending setters. The library builder rejects
+//   randomized, probabilistic or transition-bearing setters.
+// - Each scheduled track owns a route gain between source playback and the
+//   segment transition: base Bus Volume and Make-Up Gain of its dry bus
+//   ancestry, the effective output-bus NodeBase's Output Bus Volume, and live
+//   Set/Reset Bus Volume. A qualified Music Track Voice Volume RTPC
+//   (property 0, additive, dB scaling) adds an independent pre-bus track
+//   gain read from the global RTPC lane, falling back to the STMG default.
+//   The application music volume is applied once, downstream.
+// - Qualified shared bus routes keep a per-route transition lane and a
+//   per-instance Play/Stop lane before the shared mixer; crossfades never
+//   merge different routes, and lanes exist before loading so late buffers
+//   cannot bypass fades. An Audio Bus Voice Volume RTPC keeps a music route
+//   out of the shared mixer. Rejected routes keep the legacy
+//   segment/instance/output gains with the blocked bus stages omitted.
+// - Bus States drive music Bus Volume and additive LPF/HPF clamped once
+//   before cutoff conversion. Audio Bus Pitch is ignored for music, as in
+//   Wwise.
+// - Bank-authored music Pause/Resume actions freeze at fade completion and
+//   resume by recreating sources at their retained offsets, shifting future
+//   clips and boundaries, and keeping playlist iterator, random/shuffle
+//   history and pending decisions. Shared-bus and plug-in DSP state is not
+//   frozen per instance. A Resume during the Pause fade reverses from the
+//   current level.
+// - Synth One sources and Music Track RTPC properties other than the
+//   qualified Voice Volume shape are not played. The native client renders
+//   MIDI clips through Synth One, so those layers are audible there and
+//   missing here.
 
 /** Returns an existing numeric id or delegates name hashing to the canonical BNK helper. */
 export function wwiseIdFromName(name)
@@ -2108,7 +2147,25 @@ export class CjsMusicEngine
         this.#MaybeFinishGroup(group);
     }
 
-    /** Capabilities for the browser transport over one live playing id. */
+    /**
+     * Capabilities for the browser transport over one live playing id.
+     *
+     * The transport (`GetTransportCapabilities`, `PauseTransport`,
+     * `ResumeTransport`, `StepTransport`, `RandomTransport`) is a
+     * CarbonEngineJS extension; Carbon has no equivalent and these are not
+     * Wwise event actions. Previous/next/random enumerate the Music Segments
+     * and a bounded coordinated path through Random/Sequence subtracks of the
+     * live playing id; layered-track Cartesian products are not built.
+     * Stopped Web Audio sources cannot resume, so pause and selection fade
+     * out and later replay the item from its entry cue without keeping the
+     * exact media position. Manual selection starts a fresh playlist
+     * traversal, and a selected Sequence Music Track continues at its
+     * following subtrack. Automatic selection stays authored. The mutation
+     * methods return `true` when the playing id accepted the operation and
+     * `false` when it had no applicable live authored item. `preparing`
+     * reports a retained item still loading for resume. This is separate from
+     * bank-authored music Pause/Resume actions handled by `PostEvent()`.
+     */
     GetTransportCapabilities(playingID)
     {
         const group = this.#groups.get(playingID);
@@ -2149,7 +2206,11 @@ export class CjsMusicEngine
         };
     }
 
-    /** Soft-pauses one playing id while retaining its authored item. */
+    /**
+     * Soft-pauses one playing id while retaining its authored item.
+     * `fadeOutDuration` is in milliseconds (default 30). Transport extension;
+     * see `GetTransportCapabilities()`.
+     */
     PauseTransport(playingID, fadeOutDuration = 30)
     {
         const group = this.#groups.get(playingID);

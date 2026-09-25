@@ -1,7 +1,13 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** Appearance contribution separating selection ownership from the asset that supplies it. */
+/**
+ * Appearance contribution separating selection ownership from the asset that supplies it.
+ *
+ * A dependency can be owned by one selection while another source supplies
+ * its mesh, material or visible alpha. `plan.layers` order is inventory
+ * order, not bake order.
+ */
 @type.define({ className: "CjsCharacterAppearanceLayer", family: "character" })
 export class CjsCharacterAppearanceLayer extends CjsModel
 {

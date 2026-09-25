@@ -953,7 +953,45 @@ function buildFileInfo(cmf, shared, options)
     };
 }
 
-/** Serialize a native CMF graph to a canonical 32-bit little-endian GR2 file. */
+/**
+ * Serialize a native CMF graph to a canonical 32-bit little-endian GR2 file.
+ *
+ * Output is a version-7 Granny container holding the standard reflected
+ * `granny_file_info` geometry and animation graph in one outer section, with
+ * pointer and mixed-marshalling fixups, a 2.12 type tag and the file CRC. CMF
+ * LODs become separate `Name LOD <threshold>` meshes; materials, mesh
+ * bindings, skin and inverse-bind data, morph targets, and skeletal or
+ * scalar-morph animation are written. Not written: GSF, cameras, lights,
+ * textures, EVE `MeshBoundsInfo` extended data (every `ExtendedData` is null),
+ * and size-reducing Oodle1/BitKnit2 section coding.
+ *
+ * Packed tangent output uses the legacy angle frame; CMF `PackedTangent`
+ * (quaternion) and `PackedTangentLegacy` inputs are both accepted.
+ *
+ * Curve packing picks the smallest representation whose decoded samples stay
+ * within tolerance, moving from 8-bit to 16-bit to float. Granny format 0
+ * (`DaKeyframes32f`) is never selected: its implicit timing depends on
+ * file-level `TimeStep` semantics that are not established.
+ *
+ * @param {object} input Native CMF v1 graph.
+ * @param {object} [writerOptions] Writer options.
+ * @param {"preserve"|"packed"|"unpacked"} [writerOptions.tangentMode] Default
+ *     `"preserve"` keeps the source layout; `"packed"` writes one
+ *     normalized-uint8 `Tangent[4]` frame; `"unpacked"` writes float
+ *     normal/tangent/binormal channels.
+ * @param {"none"|"bitknit2Raw"} [writerOptions.sectionCompression] Default
+ *     `"none"`. `"bitknit2Raw"` frames the section and both fixup tables as
+ *     BitKnit2 raw quanta (format 4); it adds bytes and is not compression.
+ * @param {boolean} [writerOptions.compressedCurves] Default `true`; `false`
+ *     writes float knot/control curves.
+ * @param {number} [writerOptions.tolerance] Scalar/general curve error, default 0.1.
+ * @param {number} [writerOptions.positionTolerance] Default 0.1.
+ * @param {number} [writerOptions.orientationTolerance] Angular error in
+ *     radians, default 0.1 degrees.
+ * @param {number} [writerOptions.scaleShearTolerance] Default 0.1.
+ * @param {string} [writerOptions.sourceName] Written to `FromFileName`, default "".
+ * @returns {Uint8Array} Complete GR2 file bytes.
+ */
 export function writeGr2(input, writerOptions = {})
 {
     const options = validateOptions(writerOptions);

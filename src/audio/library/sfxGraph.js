@@ -2,6 +2,75 @@ import { coerceFiniteNumber, coerceNonNegativeInteger, coercePositiveInteger } f
 import { normalizeStaticSourceEffectChain } from "../internal/busEffects.js";
 
 const SFX_SCHEMA_VERSION = 2;
+
+/**
+ * Portable authored SFX program (`sfx` in the audio-library document),
+ * validated by `validateSfxGraph()`. It describes posted-event behavior; sound
+ * leaves name library media IDs, never byte locations. Node and media IDs are
+ * positive unsigned 32-bit values serialized as strings. Missing references,
+ * cycles and unsupported node types are rejected before audio is enabled.
+ *
+ * `programs` is the ordered authoring source. For every event with a program,
+ * `events[name]` must equal the ordered projection of its `play` actions;
+ * `events` keeps legacy root lookup. Roots of one event play in parallel.
+ *
+ * Node types (`node.type`):
+ * - `sound`: one media voice. `mediaId` must exist in `media` or
+ *   `embeddedMedia`. Optional `loop` (boolean, not with `playCount`),
+ *   `playCount` (finite repeat count), `playbackRate`, `spatial` (panner
+ *   vs flat SFX route), `dryVolumeCurve` (Wwise distance gain),
+ *   `sourceEffects` (one complete static effect chain), `voiceLimit`.
+ * - `timed-silence`: one finite silent voice of `durationMs` that takes part
+ *   in routing, Stop matching and completion without acquiring media.
+ * - `silence`: no voice; keeps an authored empty case from falling through.
+ * - `random`: one weighted child; `mode: "shuffle"` exhausts a pool before
+ *   refilling, `avoidRepeat` excludes recent choices.
+ * - `sequence`: the next child per post; `loop: false` stops after the last.
+ * - `switch`: a named case from a per-object switch (`scope: "switch"`) or
+ *   global state (`scope: "state"`), with optional `default`; case names
+ *   match case-insensitively.
+ * - `parallel` / `blend`: every child plays at once (`blend` normally with
+ *   child gain curves for live crossfades).
+ * `random` and `sequence` keep history per game object unless
+ * `scope: "global"`, and may carry a `continuous` block
+ * (`transition`: disabled, delay, trigger-rate, crossfade-amplitude,
+ * crossfade-power). Physical leaves may carry `matchIds` (own ID first,
+ * then omitted hierarchy parents, so element actions match through
+ * Actor-Mixers) and bus routing (`outputBusId`, `busPathIds`, authored bus
+ * gains).
+ *
+ * Nodes and child edges may carry `gainDb` and `gainCurves`: gains on every
+ * edge of the selected path add in dB. A gain curve has `rtpc`, `scope`
+ * (`object`, falling back to the global value, or `global`), optional
+ * `defaultValue`, and non-decreasing points using one unit throughout,
+ * `{ x, gainDb }` or `{ x, gain: 0..1 }`, each with optional Wwise
+ * `interpolation` 0..9 for the segment it starts. Nodes may also carry
+ * property `rtpcCurves` (volume, pitch, lowPass, highPass, initialDelay) and
+ * additive `stateProperties` (`{ group, cases: { name: { gainDb,
+ * pitchCents, lowPass, highPass } } }`).
+ *
+ * Program action kinds, kept in authored order: `play` (`child` edge),
+ * `stop` / `pause` / `resume` (`scope` game-object or global, `mode`
+ * element, all or all-except; All modes use target `"0"`; bus targets are
+ * rejected), `switch` / `state` setters (fixed `delayMs` only),
+ * `set`/`reset-voice-volume`, `set-bus-voice-volume`,
+ * `set`/`reset-bus-volume`, `set`/`reset-voice-pitch`,
+ * `set`/`reset-voice-low-pass` and `-high-pass`, and
+ * `set`/`reset-game-parameter` (carrying the catalog `defaultValue`).
+ * Play edges may carry `delayMs`, `delayRangeMs` (signed offsets),
+ * `probability` 0..100, `fadeInMs`, `fadeInRangeMs` and `fadeCurve` 0..9;
+ * `weight` is allowed only under `random`.
+ *
+ * @typedef {object} CjsSfxGraph
+ * @property {2} schemaVersion
+ * @property {Object<string, Array<object|string>>} events Non-empty root
+ *   edges per event.
+ * @property {Object<string, Array<object>>} [programs] Non-empty ordered
+ *   actions per event.
+ * @property {Object<string, object>} nodes
+ * @property {Array<object>} [stateTransitions] State Group IDs, names,
+ *   known States, default duration and directed custom transitions.
+ */
 const NODE_TYPES = new Set([
     "blend",
     "parallel",

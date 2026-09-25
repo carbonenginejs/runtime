@@ -12,7 +12,7 @@ are relative to `trinity/trinity/`; offsets below are float4 (vec4) registers.
 Runtime lookup offsets are floats, not registers.
 
 Use the [canonical constant-data contract](../../../trinity/architecture.md#constant-data-ownership)
-and [per-frame/per-object public entries](../../../trinity/reference/api.md#current-subpaths),
+and per-frame/per-object public entries,
 not a second backend layout. Source declarations own field order, widths and
 encodings; this summary does not prove which family a shader consumes.
 

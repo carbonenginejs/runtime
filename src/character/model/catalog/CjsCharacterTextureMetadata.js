@@ -1,7 +1,15 @@
 import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** Inspected source-image facts and normalized character-atlas placement. */
+/**
+ * Inspected source-image facts and normalized character-atlas placement.
+ *
+ * `recordID` is the extension-neutral resource name and `sourcePath` the
+ * exact PNG inspected. Raw `oFFs`/`pHYs` values stay exact; the normalized
+ * millionths placement is additive character policy labelled
+ * `experimental-policy`, not PNG semantics. Chunk parsing belongs to the PNG
+ * format.
+ */
 @type.define({ className: "CjsCharacterTextureMetadata", family: "character" })
 export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 {

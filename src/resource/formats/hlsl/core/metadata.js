@@ -308,6 +308,31 @@ function emitHeader(effect)
 }
 
 /**
+ * The `emit: "metadata"` graph: the JSON graph's header plus the resolved
+ * selection, without bytecode or constant-value bytes.
+ *
+ * ```text
+ * MetadataRoot: version, compilerVersion, sourcePath, bodyCount, loadError,
+ *       permutations (each also carries defaultValue), bodyIndex,
+ *       selectedOptions, effect: MetadataEffect | null
+ * MetadataEffect: version, effectName, annotations, readError,
+ *       techniques: { name, shaderTypeMask, passes, libraries }[]
+ * Pass: shaderTypeMask, renderStates: RenderState[],
+ *       stageInputs: (StageInput | null)[]
+ * StageInput: stageType, stageName, constantValueSize, constants, resources,
+ *       samplers, uavs, annotations,
+ *       signature: { pipelineInputs, registers, samplers, threadGroupSize }
+ * Library: payloadSize, rayGenName, missName, closestHitName, anyHitName,
+ *       intersectionName, hitGroupName, exports, globalInput, localInput
+ * ```
+ *
+ * Render-state records keep the numeric `key`/`value` and add `name` and,
+ * for known states, `valueName`, `valueFloat`, `valueHex` or `valueFlags`.
+ *
+ * @typedef {object} HlslEffectMetadata
+ */
+
+/**
  * Emit metadata for one resolved permutation body.
  *
  * @param {object} effect Loaded HlslEffectRes.

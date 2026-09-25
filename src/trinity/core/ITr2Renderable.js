@@ -4,6 +4,13 @@ import { CjsSchema, impl } from "#schema";
 
 /**
  * Trinity-owned contract for objects collected through the renderable path.
+ *
+ * `IsVisible` keeps Carbon's concrete default; the four batch, transparency,
+ * sort-value and per-object-data methods throw on this root. Carbon's direct
+ * providers take the interface through `@carbon.inherit(ITr2Renderable)`, so
+ * their model ancestry is unchanged. The batch map, `CjsBatchManager` and the
+ * `ReflectionRenderable` component registration call or validate this
+ * interface directly rather than probing for methods.
  */
 export class ITr2Renderable
 {

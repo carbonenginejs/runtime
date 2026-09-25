@@ -135,4 +135,3 @@ memory decision.
 ## Related documentation
 
 - [Format subpaths](README.md)
-- [Browser worker execution](../reference/workers.md)

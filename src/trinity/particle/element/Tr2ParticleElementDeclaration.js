@@ -35,7 +35,11 @@ export class Tr2ParticleElementDeclaration extends CjsModel
   @type.uint32
   usageIndex = 0;
 
-  /** Returns the native semantic size or the authored custom dimension. */
+  /**
+   * Returns the native semantic size (2 for lifetime, 3 for position and
+   * velocity, 1 for mass) or, for CUSTOM elements, the authored `dimension`
+   * unclamped. Tr2ParticleSystem lays out its element buffers from this value.
+   */
   @carbon.method
   GetSize()
   {

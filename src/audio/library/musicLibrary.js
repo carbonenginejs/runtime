@@ -2,6 +2,41 @@ const MUSIC_LIBRARY_SCHEMA = "carbonenginejs.musicLibrary";
 const MUSIC_LIBRARY_VERSION = 1;
 
 /**
+ * Neutral jukebox catalog accepted by `validateMusicLibrary()`. It is not a
+ * Wwise graph section and never satisfies an authored event. Playlist ids
+ * are unique per catalog and song ids unique per playlist.
+ *
+ * @typedef {object} CjsMusicLibraryDocument
+ * @property {"carbonenginejs.musicLibrary"} schema
+ * @property {1} schemaVersion
+ * @property {string} name
+ * @property {string} version
+ * @property {string} [author]
+ * @property {Array<CjsMusicLibraryPlaylist>} playlists Non-empty.
+ */
+
+/**
+ * @typedef {object} CjsMusicLibraryPlaylist
+ * @property {string} id
+ * @property {string} name
+ * @property {string} [author]
+ * @property {string} [version]
+ * @property {Array<CjsMusicLibrarySong>} songs Non-empty.
+ */
+
+/**
+ * One song. At least one of `url` or `path` is required; both are
+ * caller-owned acquisition hints.
+ *
+ * @typedef {object} CjsMusicLibrarySong
+ * @property {string} id
+ * @property {string} name
+ * @property {string} [url]
+ * @property {string} [path]
+ * @property {number} [durationMs] Positive when present.
+ */
+
+/**
  * Validates one caller-owned jukebox catalog.
  *
  * Track `url` and `path` values are acquisition hints. Runtime-audio never

@@ -128,7 +128,15 @@ export class Tr2VolumetricsRenderer extends CjsModel
     store.RegisterVariable("EveSceneFroxelFogMap");
   }
 
-  /** Updates all fog attributes from the scene's nominal component registry. */
+  /**
+   * Updates all fog attributes from the scene's nominal component registry.
+   *
+   * Calls `GetFroxelFogSettings` directly on every registered component (the
+   * registry validated each as an `ITr2FroxelFogSettings` when it was added),
+   * sorts the records by descending priority and blends each attribute through
+   * `AccumulatePriorityAttribute`. With `logBlending`, thickness is blended in
+   * log space and converted back.
+   */
   @carbon.method
   @impl.adapted
   @impl.reason("The Eve component registry is supplied directly; Carbon's realized 64-deep noise texture becomes its fixed animation-depth constant while physical noise storage is not ported yet.")

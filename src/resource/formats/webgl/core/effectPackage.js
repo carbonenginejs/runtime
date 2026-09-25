@@ -39,6 +39,16 @@ const PACKAGE_VERSION = "0.11.1";
  * package assembly, and structural qualification. Filesystem and native-tool
  * concerns remain in Node callers.
  *
+ * `info.completeness`: `sourceComplete` is true only for a version-15 source
+ * effect; `backendComplete` and `runtimeComplete` are always false, because a
+ * successful translation or link does not prove the engine's binding/layout
+ * and transform handling, and live GPU objects are outside this format.
+ * `qualification.ok` separately reports whether the selected programs
+ * translated and formed complete raster passes; when it is false
+ * the build throws unless `allowFailures` is set. The derived permutation
+ * graph always covers every source permutation; only the backend programs
+ * follow the selection.
+ *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView} input Compiled effect bytes.
  * @param {object} [options] Selection, provenance, and emitter policy.
  * @returns {object} Package bytes plus inspection and qualification records.

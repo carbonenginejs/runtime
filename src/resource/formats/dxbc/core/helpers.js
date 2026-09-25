@@ -148,11 +148,32 @@ export function rawToJson(raw)
 }
 
 /**
+ * JSON result of `CjsDxbcFormat.read` (`emit: "json"`).
+ *
+ * Signature elements are `DxbcSignatureChunk` element records; instruction
+ * records are described by `DxbcInstructionRecord` in `decoder.js`. JSON output
+ * omits chunk payload bytes and the program token stream.
+ *
+ * @typedef {object} DxbcReadResult
+ * @property {string} source Caller-supplied diagnostic label ("memory" by default).
+ * @property {{source:string,version:number,totalSize:number,chunks:Array<{fourCC:string,offset:number,size:number}>}} container
+ *     Container version, declared total size and chunk directory in file order.
+ * @property {?{fourCC:string,programType:number,programTypeName:string,majorVersion:number,minorVersion:number,lengthDwords:number}} program
+ *     `SHEX`/`SHDR` header; `programTypeName` is pixel, vertex, geometry, hull,
+ *     domain, compute or "unknown". `null` when the container has no program.
+ * @property {?object[]} inputSignature `ISGN`/`ISG1` elements, or `null`.
+ * @property {?object[]} outputSignature `OSGN`/`OSG1`/`OSG5` elements, or `null`.
+ * @property {?object[]} patchSignature `PCSG`/`PSG1` elements, or `null`.
+ * @property {?object[]} instructions Decoded instructions, or `null` when
+ *     `decodeInstructions` is false or there is no program.
+ */
+
+/**
  * Shared read entry honouring the emit mode.
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input DXBC payload.
  * @param {object} values Normalized format values.
- * @returns {object} Raw result or plain JSON data per values.emit.
+ * @returns {object} Raw result or plain JSON data (`DxbcReadResult`) per values.emit.
  */
 export function readWithValues(input, values)
 {
@@ -165,7 +186,8 @@ export function readWithValues(input, values)
  *
  * @param {Uint8Array|ArrayBuffer|Buffer|DataView} input DXBC payload.
  * @param {object} values Normalized format values.
- * @returns {object} Plain summary data.
+ * @returns {{source:string,isDxbc:true,version:number,totalSize:number,chunks:Array<{fourCC:string,offset:number,size:number}>,programTypeName:?string,shaderModel:?string,inputElementCount:number,outputElementCount:number}}
+ *     Plain summary; `shaderModel` is "major.minor".
  */
 export function inspectWithValues(input, values)
 {

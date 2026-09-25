@@ -1228,7 +1228,7 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
         // flow. Rather than reject, record that the module needs the WGSL
         // derivative-uniformity opt-out (emitted at module top); this reproduces
         // D3D11's permissive behavior. See uniformity.js and
-        // docs/reference/wgsl-compatibility.md.
+        // docs/resource/formats/webgpu/reference/wgsl-compatibility.md.
         context.requiresDerivativeUniformityOptOut = true;
     }
     validatePreciseInstruction(instruction, "fragment");

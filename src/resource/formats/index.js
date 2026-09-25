@@ -1,3 +1,15 @@
+/**
+ * Every concrete format, also importable one by one from its own
+ * `resource/formats/<name>` subpath and registered by the caller.
+ *
+ * Format modules stay decorator-free (enforced by `scripts/lint-source.js`):
+ * a decorated module needs the build transform, and importing one breaks
+ * direct loading from source with a syntax error at the decorator rather than
+ * at the offending import. The same lint forbids formats from importing
+ * `CjsResourceProbe`, so `inspect`, `getSupport` and `verifySupport` return
+ * plain objects; `CjsResourceProbe.from()` normalizes them in the resource
+ * layer.
+ */
 export { CjsBlackFormat } from "./black/index.js";
 export { CjsBnkFormat } from "./bnk/index.js";
 export { CjsCmfFormat } from "./cmf/index.js";

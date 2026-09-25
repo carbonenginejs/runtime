@@ -1,3 +1,25 @@
+/**
+ * The global foundation: browser-safe primitives shared by every runtime
+ * domain (utilities, errors, contracts, Blue, constants, math, schema and
+ * model families).
+ *
+ * Dependency rules for everything under `global/`:
+ * - no import of another `@carbonenginejs/*` package or of a higher runtime
+ *   layer (resource, trinity, trinityal, core, input, tools); focused
+ *   browser-safe third-party primitives such as `gl-matrix` are allowed;
+ * - no Node built-ins or Node-only globals;
+ * - every public subpath stays importable on its own, and module evaluation
+ *   does no environment-specific work.
+ *
+ * Code belongs here only when all of these hold: more than one runtime layer
+ * needs it; it is useful without application, rendering, resource or domain
+ * policy; it meets the rules above; its semantics are stable enough for broad
+ * reuse; and owning it here removes duplicated behaviour rather than merely
+ * shortening an import.
+ *
+ * The `is*` predicates return literal booleans; domain-specific checks stay
+ * with their domain.
+ */
 export * as is from "./utils/is.js";
 export * from "./utils/is.js";
 

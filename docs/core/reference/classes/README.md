@@ -28,7 +28,7 @@ A privacy-safe snapshot of one WebGL2 context's advertised capabilities.
 <!-- class:Tr2DisplayMode -->
 ## `Tr2DisplayMode`
 
-Current browser Screen snapshot; browsers do not expose a native mode list.
+Current browser Screen snapshot: size, available size, colour and pixel depth, pixel ratio, orientation and extended-screen state where exposed.
 
 - Export: `@carbonenginejs/runtime/core/platform`
 - Source: `src/core/platform/Tr2DisplayMode.js`

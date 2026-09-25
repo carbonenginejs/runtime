@@ -277,6 +277,43 @@ function emitEffectDescription(description, classes)
 }
 
 /**
+ * The `emit: "json"` effect graph (node keys in parentheses are the
+ * `classes` keys that may replace a plain object):
+ *
+ * ```text
+ * Root: version, compilerVersion, sourcePath, bodyCount, loadError,
+ *       permutations: Permutation[], effect: EffectDescription | null
+ * Permutation: name, options, defaultOption, description, type
+ * EffectDescription: version, effectName, techniques: Technique[],
+ *       annotations: { name, annotations[] }[], readError
+ * Technique: name, shaderTypeMask, passes: Pass[], libraries (plain data)
+ * Pass: shaderTypeMask, stageInputs: (StageInput | null)[],
+ *       renderStates: { key, value }[]
+ * StageInput: stageType, stageName, constants: Constant[],
+ *       resources: Resource[], samplers: Sampler[], uavs: Resource[],
+ *       bytecode: ShaderBytecode | null,
+ *       signature: { pipelineInputs, registers, threadGroupSize }
+ * Constant: name, offset, size, type, dimension, elements, isSRGB, isAutoregister
+ * Resource: registerIndex, name, type, arrayElements, isSRGB, isAutoregister
+ * Sampler: registerIndex, name, isDynamic, comparison, min/mag/mipFilter,
+ *       addressU/V/W, mipLODBias, maxAnisotropy, comparisonFunc,
+ *       borderColor, minLOD, maxLOD
+ * ShaderBytecode: stageType, stageName, shaderSize, stringTableOffset,
+ *       effectName, bytes (number[])
+ * ```
+ *
+ * `effect` is the body selected by the `permutation` option (an array of
+ * `{ name, value }` or a `Map`) over the container's default option set;
+ * `HlslEffectRes.globalEffectOptions` take precedence over both.
+ * `stageInputs` is indexed by stage type; an absent stage is `null`. Bytecode
+ * bytes are opaque; the `dxbc` format decodes them. `loadError` and
+ * `readError` are `{ name, message }` when the container or the selected body
+ * failed to decode, otherwise `null`.
+ *
+ * @typedef {object} HlslEffectJson
+ */
+
+/**
  * Convert a loaded HlslEffectRes (and, when resolvable, its default- or
  * selected-permutation HlslShader) into the documented plain JSON shape.
  *

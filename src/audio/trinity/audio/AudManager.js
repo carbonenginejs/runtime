@@ -395,7 +395,19 @@ export class AudManager extends CjsModel
     return this.#spatialAudioSettings.GetSpatialAudioGeometryEnabled();
   }
 
-  /** Carbon method SetEmitterLineOfSightBlockage: stores a caller-computed blockage target. */
+  /**
+   * Carbon method SetEmitterLineOfSightBlockage: stores a caller-computed blockage target.
+   *
+   * The host computes blockage; audio performs no ray casting. Accepted only
+   * for a registered non-listener emitter while audio and the subsystem are
+   * enabled. The value becomes the occlusion target (obstruction stays 0), or
+   * 0 while spatial-audio geometry is enabled. A new emitter snaps to the
+   * target; later changes fade at GetObstructionOcclusionFadeRate() (default
+   * one unit per second, 0 is instantaneous). Changed awake values reach the
+   * backend's optional SetObjectObstructionAndOcclusion(emitterID, 4,
+   * obstruction, occlusion); an explicit false return is retried on the next
+   * Process(), any other return is accepted.
+   */
   @carbon.method
   @impl.implemented
   SetEmitterLineOfSightBlockage(emitterID, blockage)

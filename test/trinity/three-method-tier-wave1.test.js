@@ -18,9 +18,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { box3 } from "../../npm/dist/global/math/box3.js";
 
 /**
- * The three-method-tier wave-1 ports
- * (docs/research/ratchet-three-method-tier-2026-09-06.md), each pinned to its
- * donor body.
+ * The three-method-tier wave-1 ports, each pinned to its donor body.
  */
 
 test("TriStepRenderAtlas setters, and __init__ forwards through them (cpp:29,104,109)", () =>

@@ -7,7 +7,7 @@
  * concrete registerable format classes. It also exposes the format base, store,
  * and plain payload contract needed to consume an isolated format reader.
  *
- * See `docs/formats/carbon-effect-container.md`.
+ * See `docs/resource/formats/carbon-effect-container.md`.
  */
 
 export * from "./CjsReader.js";

@@ -83,6 +83,11 @@ export class Tr2QuadRenderer extends CjsModel
    * Accumulates instance data for a registered effect (Carbon cpp:60-79).
    * Accepts terminal byte views or legacy float32-compatible number arrays
    * covering count * instanceSize bytes; unknown keys are ignored like Carbon.
+   *
+   * The bytes are copied raw into the merged buffer. A producer with a
+   * mixed-width record, float16 tails included, packs it before calling: a
+   * number array is only ever packed as float32. Engines upload the merged
+   * bytes as they are.
    */
   @carbon.method
   @impl.adapted

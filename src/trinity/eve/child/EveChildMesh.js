@@ -690,7 +690,15 @@ export class EveChildMesh extends EveChildTransform
     return this.mesh?.GetMorphTargetWeight?.(name) ?? 0;
   }
 
-  /** Rebuilds the source-backed indexed morph buffer from manual and animation weights. */
+  /**
+   * Rebuilds the source-backed indexed morph buffer from manual and animation
+   * weights. Runs from UpdateAsyncronous.
+   *
+   * An animation value with the exact morph-target name overrides the mesh
+   * weight. Weights below 0.001 are inactive. The buffer is ordered runtime
+   * records, then baked records, then inactive ones, and the offsets record
+   * each active partition's start and count.
+   */
   @impl.adapted
   UpdateMorphAnimationBuffer()
   {

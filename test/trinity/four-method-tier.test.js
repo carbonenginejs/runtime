@@ -18,8 +18,7 @@ import { Tr2ImageRes } from "../../npm/dist/resource/texture/index.js";
 import { EveSOFDataDecalIndexBuffer } from "../../npm/dist/sof/shared/index.js";
 
 /**
- * The four-method-tier ports (classification in
- * docs/research/ratchet-four-method-tier-2026-09-06.md).
+ * The four-method-tier ports.
  */
 
 test("Tr2Vector2Parameter component utilities ride the reroute and sRGB machinery (cpp:265-334)", () =>

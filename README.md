@@ -70,7 +70,7 @@ full set is the `./resource/formats/*` block of `package.json`.
 
 Working from a clone rather than the package? The resource layer, including its
 format readers, is directly importable from authored source; see its
-[source layout](docs/resource/architecture.md#source-layout). Other layers still
+source layout (the `src/resource/index.js` module comment). Other layers still
 use decorator syntax that Node cannot parse and need the `npm/dist` build from
 `npm run build:npm`. The published package is already built.
 
@@ -80,7 +80,7 @@ Start with the [package documentation](docs/README.md) and the
 [runtime architecture](docs/architecture.md).
 
 The parts described above are documented in
-[resource](docs/resource/README.md), [SOF](docs/sof/README.md) and
+resource, [SOF](docs/sof/README.md) and
 audio, each with its ownership boundary and class
 catalog.
 

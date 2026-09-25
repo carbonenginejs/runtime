@@ -192,8 +192,8 @@ export class TriPoolAllocator
   // exists. The frame pool reproduces that by registering the whole catalog
   // when it is created (Tr2RenderContext, matching Carbon's pool creation in
   // Tr2Renderer::Initialize), which keeps struct registration a Trinity concern
-  // rather than an engine one - Trinity owns the offsets (docs/architecture.md,
-  // constant-data ownership). An ad-hoc struct outside the catalog, and a pool
+  // rather than an engine one - Trinity owns the offsets, one layout for every
+  // backend (see the header above). An ad-hoc struct outside the catalog, and a pool
   // sized too small to hold one, still registers explicitly.
 
   /**

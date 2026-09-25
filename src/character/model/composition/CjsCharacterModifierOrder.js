@@ -55,7 +55,13 @@ const RULE_FIELDS = [
     "swapSocks"
 ];
 
-/** Resolves and applies the verified stable character-modifier order policy. */
+/**
+ * Resolves and applies the verified stable character-modifier order policy.
+ *
+ * This is modifier-inventory policy, not an authored record and not an atlas
+ * pass order. Only the `makeup/<group>` prefix is split into category and
+ * named suborder; that suborder is not a complete cosmetic bake order.
+ */
 export class CjsCharacterModifierOrder
 {
 

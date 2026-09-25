@@ -1,7 +1,7 @@
 // NON-CARBON EXTENSION. Carbon's device creation has no negotiated-limit step:
 // a D3D feature level is a compile-time and driver fact, not a request. WebGPU
-// makes it a request, and docs/engine-backends-plan.md decision 7 puts the
-// decision here rather than in an engine - "no engine deciding its own
+// makes it a request, and the library, not an engine, makes that decision -
+// "no engine deciding its own
 // configuration. An engine that probes is an engine that will disagree with the
 // library about what it is running on."
 //

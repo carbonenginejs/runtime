@@ -2,7 +2,17 @@ import { Tr2DisplayMode } from "./Tr2DisplayMode.js";
 import { Tr2PlatformInfo } from "./Tr2PlatformInfo.js";
 import { Tr2VideoAdapter } from "./Tr2VideoAdapter.js";
 
-/** Browser adapter/display facade for Carbon's Tr2VideoAdapters surface. */
+/**
+ * Browser adapter/display facade for Carbon's Tr2VideoAdapters surface.
+ *
+ * Exposes at most the one adapter the browser selects (index 0) and one
+ * current-screen display mode. It never enumerates hidden hardware adapters
+ * or creates presentation objects. Back-buffer and render-target format
+ * support come from the injected `backBufferFormats`/`renderTargetFormats`
+ * policies (function, Set-like or array). Without a policy, only the
+ * current display mode's format (the configured or browser-preferred canvas
+ * format) is a supported back buffer, and no render-target format is.
+ */
 export class Tr2VideoAdapters
 {
     static DEFAULT_ADAPTER = 0;

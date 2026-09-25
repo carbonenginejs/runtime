@@ -279,4 +279,3 @@ documentation validation; dropped quarantine classes remain excluded.
 ## Related documentation
 
 - [Architecture and ownership boundaries](../architecture.md)
-- [Current API](api.md)

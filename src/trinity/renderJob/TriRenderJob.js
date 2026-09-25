@@ -63,7 +63,7 @@ export class TriRenderJob extends CjsModel
    * Each step is bracketed by begin/end so the end hook runs even when execution throws. When stackGuard is set, the executor's render-target and depth-stencil depths are compared against the depths recorded on entry: shortfalls are reported as diagnostics and surplus pushes are popped back to the baseline.
    * @param {number} realTime wall-clock time passed through to each step
    * @param {number} simTime simulation time passed through to each step
-   * @param {object} [executor] performs the actual work described by the steps; defaults to the shared Tr2RenderContext. It may take over step dispatch by implementing BeginStep/ExecuteStep/EndStep.
+   * @param {Tr2RenderContext|null} [executor] the render context the steps run against; null selects the main-thread render context, and anything that is not a Tr2RenderContext throws. Step dispatch is taken over through that context's SetStepExecutor. Nested jobs receive the same context.
    * @returns {number} the resulting TriRenderJob.Status
    */
   @carbon.method

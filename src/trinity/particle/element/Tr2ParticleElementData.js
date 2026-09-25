@@ -26,7 +26,11 @@ export class Tr2ParticleElementData extends CjsModel
   @type.uint32
   offset = 0;
 
-  /** Creates Carbon's invalid element descriptor with the COUNT buffer sentinel. */
+  /**
+   * Creates Carbon's invalid element descriptor: dimension, usage index and
+   * offset zero, `bufferType` the COUNT sentinel. `none` is the factory's local
+   * name, not a descriptor property.
+   */
   @carbon.method
   static Invalid()
   {

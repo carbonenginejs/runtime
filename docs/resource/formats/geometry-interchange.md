@@ -163,4 +163,3 @@ an explicitly registered extension, or a newly verified Carbon convention.
 
 - [Format subpaths](README.md)
 - [Granny GR2 and GSF](gr2.md)
-- [Format capabilities](../concepts/format-capabilities.md)

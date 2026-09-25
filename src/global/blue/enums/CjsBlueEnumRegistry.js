@@ -14,13 +14,39 @@ export const EnumRegistrationType = Object.freeze({
     ENUM_REG_ENUM_OBJECT_ON_MODULE: 2
 });
 
-/** Combines Carbon enum registration and BlueEnum lookup in a dependency-free registry. */
+/**
+ * Combines Carbon enum registration and BlueEnum lookup in a dependency-free registry.
+ *
+ * Values are signed or unsigned 32-bit integers, and both spellings of one bit
+ * pattern compare equal. Errors: a missing enum throws ReferenceError, a value
+ * or mask with no matching entry throws RangeError, and invalid input
+ * (fractions, out-of-range integers, strings, BigInt, malformed metadata)
+ * throws TypeError.
+ */
 export class CjsBlueEnumRegistry
 {
     #byName = new Map();
     #byObject = new WeakMap();
 
-    /** Registers a read-only named-value object and its ordered chooser metadata. */
+    /**
+     * Registers a read-only named-value object and its ordered chooser metadata.
+     *
+     * Freezes and returns the same object. Values may repeat as aliases; names
+     * must be non-numeric. `definition.members` orders and describes members
+     * (unlisted members follow in declaration order); `source`, `family`,
+     * `line`, `exposure`, `exposedName` and `chooserSource` are provenance
+     * only and register no aliases.
+     *
+     * `definition.chooser` preserves the native chooser: its names may differ
+     * from the identifiers and may omit sentinels, but its values must be
+     * declared. When present it is authoritative for name and bitmask lookup;
+     * omitted entries are not appended, and an explicit empty chooser matches
+     * nothing.
+     *
+     * Registering the same object, name and metadata again is harmless. A
+     * conflicting registration, or a second name for one object, throws
+     * TypeError before publication and does not freeze the rejected object.
+     */
     RegisterEnum(name, values, definition = {})
     {
         if (typeof name !== "string" || !name || name.trim() !== name)
@@ -151,7 +177,14 @@ export class CjsBlueEnumRegistry
         return matches.map(member => member.name).join(" | ");
     }
 
-    /** Returns the first exact mask name, or every contained nonzero chooser entry. */
+    /**
+     * Returns the first exact mask name, or every contained nonzero chooser entry.
+     *
+     * An exact match wins; otherwise every non-zero entry whose bits are all in
+     * the mask is joined with " | ", including aliases and composites. Unknown
+     * remaining bits do not invalidate known matches, and zero matches only an
+     * explicit zero entry.
+     */
     GetNameFromBitmask(name, mask)
     {
         const info = this.GetEnumInfo(name);

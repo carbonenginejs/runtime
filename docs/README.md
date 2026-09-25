@@ -20,7 +20,7 @@ headless-by-default audio, CPU/data character with isolated appearance backends,
 GPU-free composition, browser platform snapshots, and host-window/input adapters.
 WebGPU is an explicit opt-in subpath. The residual `/tools` surface owns
 browser-safe file-index helpers; demo UI and the realtime client moved to
-`@carbonenginejs/demos` (see [Tools](tools/README.md)).
+`@carbonenginejs/demos` (see the `src/tools/index.js` module comment).
 
 ## Use this package when
 
@@ -85,15 +85,10 @@ core, and tools.
 ## Documentation map
 
 - [Architecture and layer ownership](architecture.md)
-- [Global foundation](global/README.md)
-- [Resource capability](resource/README.md)
-- [Trinity and EVE graph](trinity/README.md)
 - [SOF builder and data model](sof/README.md)
 - [Audio: browser playback](audio/guides/browser-playback.md)
 - [Character: runtime usage](character/guides/runtime-usage.md)
-- [Input and browser host adapters](input/README.md)
 - [WebGPU abstraction layer](trinityal/webgpu/README.md)
-- [Browser-safe file-index tools and migration routes](tools/README.md)
 - [Repository migration procedure](../migration/README.md)
 - [Machine-readable layer contract](../layers.json)
 - [Machine-readable donor manifest](../migration/sources.json)

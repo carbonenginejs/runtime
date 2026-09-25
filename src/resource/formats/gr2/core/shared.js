@@ -91,9 +91,13 @@ function populate(instance, props, hydrationOptions = {})
  * @typedef {object} Gr2SharedRoot
  * @property {number} grannyFileFormatRevision Granny file format revision.
  * @property {string} grannyFileSource Original source filename, or an empty string.
- * @property {object[]} meshes Mesh records with deinterleaved vertex channels.
+ * @property {object[]} meshes Mesh records with deinterleaved flat numeric
+ *     vertex channels (`VERTEX_CHANNELS`), `boneBindings`, `morphTargets`
+ *     (sparse ones carry `vertexIndices`) and `indices` groups whose `faces`
+ *     is a flat triangle-index array.
  * @property {object[]} models Model records with skeleton and mesh bindings.
- * @property {object[]} animations Animation records and transform tracks.
+ * @property {object[]} animations Animation records: `trackGroups` ->
+ *     `transformTracks` -> curves.
  */
 
 /**

@@ -8,6 +8,11 @@ const
  *
  * Programmer-contract violations should continue to use native error classes
  * such as `TypeError`, `RangeError`, and `SyntaxError`.
+ *
+ * Each package owns its `CJS_*` codes; there is no central code registry, and
+ * only the code's shape is validated. `details` is cloned and frozen but not
+ * redacted, so callers must keep credentials and private payloads out of it.
+ * The class does not log, serialize, choose HTTP statuses or retry.
  */
 export class CjsError extends Error
 {

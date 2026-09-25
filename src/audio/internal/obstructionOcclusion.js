@@ -1,3 +1,17 @@
+/**
+ * Optional browser obstruction/occlusion response, selected by
+ * `wwiseObstructionOcclusion: "approximate-web-audio"`.
+ *
+ * CarbonEngineJS extension; Carbon has no equivalent. Carbon delegates the
+ * audible law to Wwise and ships no portable curve, so this fixed law is not
+ * authored or Wwise-equivalent. Obstruction and occlusion combine as
+ * `1 - (1 - obstruction) * (1 - occlusion)`; the combined blockage drives a
+ * logarithmic low-pass from min(20 kHz, Nyquist) down to 600 Hz and a
+ * 0 to -18 dB attenuation, smoothed with a 5 ms time constant. The stage
+ * applies to every emitter route; without BiquadFilterNode/GainNode support
+ * no stage is created and playback stays dry.
+ */
+
 const OBSTRUCTION_OCCLUSION_MODES = new Set([
     "strict",
     "approximate-web-audio",

@@ -1,5 +1,4 @@
-// CarbonEngineJS composition class (no Carbon counterpart) - see the
-// render-batch contract in docs/architecture.md.
+// CarbonEngineJS composition class (no Carbon counterpart).
 //
 // Library-level batch orchestrator: one per backend/CjsLibrary. Owns the
 // producer registry ({ type -> { Build, Realize } } plus scene-global

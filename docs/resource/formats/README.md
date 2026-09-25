@@ -16,7 +16,7 @@ The practical consequence is that `inspect()`, `getSupport()`, and
 `verifySupport()` return plain objects rather than constructing a
 `CjsResourceProbe`. `CjsResourceProbe.from()` is the optional resource-layer
 normalization boundary. `is()` remains the boolean-only synchronous routing
-predicate. See [format capabilities](../concepts/format-capabilities.md).
+predicate. The `CjsFormat` JSDoc owns that contract.
 
 Every format extends `CjsFormat` and exposes one normalized static contract:
 `id`, frozen `mediaTypes`, frozen dotted `extensions`, a frozen `outputs` map,
@@ -50,7 +50,7 @@ retention without introducing a parallel DTO class hierarchy.
 
 Clone-safe formats may additionally declare browser-worker execution
 metadata. Worker eligibility never changes the format's direct API; see
-[browser worker execution](../reference/workers.md).
+browser worker execution.
 
 ## Images can be written as well as read
 
@@ -122,7 +122,7 @@ and TGA are exact.
 | GIF (`.gif`) | `CjsGifFormat` | `@carbonenginejs/runtime/resource/formats/gif` |
 | glTF (`.gltf`/`.glb`) | `CjsGltfFormat` | `@carbonenginejs/runtime/resource/formats/gltf` |
 | Granny GR2/GSF (`.gr2`/`.gsf`) | `CjsGr2Format` | `@carbonenginejs/runtime/resource/formats/gr2` |
-| [IES photometry](ies/README.md) (`.ies`, TILT=NONE) | `CjsIESFormat` | `@carbonenginejs/runtime/resource/formats/ies` |
+| IES photometry (`.ies`, TILT=NONE) | `CjsIESFormat` | `@carbonenginejs/runtime/resource/formats/ies` |
 | JPEG (`.jpg`/`.jpeg`) | `CjsJpegFormat` | `@carbonenginejs/runtime/resource/formats/jpeg` |
 | JSON Lines (`.jsonl`) | `CjsJsonlFormat` | `@carbonenginejs/runtime/resource/formats/jsonl` |
 | MP3 (`.mp3`) | `CjsMp3Format` | `@carbonenginejs/runtime/resource/formats/mp3` |
@@ -145,7 +145,7 @@ and TGA are exact.
 
 Detailed pages: [CMF, FBX, and glTF geometry interchange](geometry-interchange.md),
 [Granny GR2 and GSF](gr2.md),
-[FSD and cFSD](fsd.md),
+FSD and cFSD,
 [data-only pickle protocol 0](pickle.md),
 [client `.static` container identification](static.md),
 [schema-bound containers](schemabound.md),

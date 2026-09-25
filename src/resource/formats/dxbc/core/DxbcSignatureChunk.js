@@ -29,6 +29,11 @@ export const DxbcComponentTypeNames = Object.freeze([ "unknown", "uint32", "int3
 
 /**
  * DXBC input/output signature chunk reader for `ISGN`-family chunks.
+ *
+ * Each element is `{ semanticName, semanticIndex, systemValueType,
+ * componentType, componentTypeName, registerIndex, mask, readWriteMask,
+ * stream, minPrecision }`; `stream` and `minPrecision` are 0 when the chunk
+ * layout has no such field.
  */
 export class DxbcSignatureChunk
 {

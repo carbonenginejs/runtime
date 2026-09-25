@@ -18,6 +18,15 @@ import { CjsReader } from "./CjsReader.js";
  * descriptor assignment, and normalization helpers for transports that resolve
  * persisted fields through a schema. Red does not opt into that descriptor
  * path yet and retains its lenient named-field behavior.
+ *
+ * Its two transports are `CjsBlackReader` (binary; keeps structure-list
+ * parsing and skipping) and `CjsRedReader` (the YAML encoding of the Blue
+ * graph; keeps anchors, aliases and typed tables). The generic `CjsYamlFormat`
+ * does not use this backend. Readers are bound to one source and
+ * garbage-collected, never disposed; each read entry point resets graph state
+ * before walking the source again. Runtime hydration constructs a target when
+ * its node is met, applies the node's values after its children are read, and
+ * runs every `finalize` only once the whole graph exists.
  */
 export class CjsBlueReader extends CjsReader
 {

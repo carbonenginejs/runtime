@@ -308,7 +308,7 @@ Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45....
 <!-- class:Tr2RenderTarget -->
 ## `Tr2RenderTarget`
 
-Tr2RenderTarget (trinityCore) - generated from schema shapeHash dc39c914....
+Holds a render-target texture and the parameters it was created with.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/device/Tr2RenderTarget.js`

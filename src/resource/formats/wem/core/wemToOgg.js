@@ -34,6 +34,12 @@ function notSupported(message)
 /**
  * Parse the Wwise Vorbis stream layout needed for repacking.
  *
+ * The chunk walk records only `fmt `, `vorb`, `data` and `smpl` and steps
+ * over every other id wherever it appears. EVE `.wem` files carry a chunk
+ * outside Wwise's own layout between `fmt ` and `data`: `hash`, 24 bytes with
+ * a 16-byte payload, which nothing reads. The walk must keep skipping unknown
+ * ids rather than assume a fixed chunk order or a whitelist.
+ *
  * @param {Uint8Array} bytes Wem bytes.
  * @returns {object} Stream layout, vorb fields, and loop info.
  */

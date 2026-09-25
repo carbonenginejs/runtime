@@ -70,7 +70,21 @@ const FADE_CURVE_SAMPLES = 65;
 // in-flight automation ramp during high-rate pointer or scene updates.
 const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
 
-/** WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose. */
+/**
+ * WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose.
+ *
+ * Spatial emitters use an HRTF PannerNode for direction only; its native
+ * distance rolloff is disabled. Each spatial Sound leaf gets its distance
+ * gain from its retained Wwise dry-volume curve, so parallel leaves on one
+ * emitter keep different curves. That gain is multiplied into the voice
+ * gain AudioParam shared with Voice Volume, State and RTPC automation; a
+ * move during an active gain transition reschedules the remainder with the
+ * new distance factor, which is close to but not a sample-exact Wwise
+ * envelope. The first pose is immediate; later pose and distance changes
+ * use target automation with a 5 ms time constant. Cone attenuation,
+ * distance-driven filters, spread/focus, diffraction and transmission are
+ * not realized.
+ */
 export class CjsAudioBackend
 {
     #context = null;
@@ -254,6 +268,8 @@ export class CjsAudioBackend
             // Safety limiter: many concurrent one-shots (weapon volleys) sum
             // well past 0 dBFS and hard-clip audibly without it. Wwise
             // projects carry a master-bus limiter for the same reason.
+            // It is a browser workaround, not an authored Wwise effect, and
+            // sits downstream of any admitted authored dynamics stage.
             const limiter = this.#context.createDynamicsCompressor?.() ?? null;
             if (limiter)
             {
@@ -1960,6 +1976,8 @@ export class CjsAudioBackend
     /**
      * Current output level (RMS, 0..~0.7) across one emitter's route signals.
      * 0 when the context has no analyser support or the emitter is unknown.
+     * A UI/debug reading from main-thread analyser frames, not Wwise Meter
+     * telemetry.
      */
     GetGameObjLevel(gameObjID)
     {
@@ -2002,7 +2020,14 @@ export class CjsAudioBackend
         return Math.sqrt(sum / mixed.length);
     }
 
-    /** Applies the optional browser obstruction/occlusion approximation. */
+    /**
+     * Applies the optional browser obstruction/occlusion approximation.
+     *
+     * Accepts only registered emitter IDs and the fixed listener ID 4;
+     * anything else returns `false` so the manager retries. Values are
+     * retained for routes created later. Under the default `"strict"` policy
+     * the values are accepted without DSP.
+     */
     SetObjectObstructionAndOcclusion(
         gameObjID,
         listenerID,
@@ -7439,6 +7464,13 @@ function SetPannerScalingFactor(panner, value)
 /**
  * Resolves Wwise distance attenuation in authored world units. Older/custom
  * graphs without a retained curve preserve the prior Web Audio inverse model.
+ *
+ * The curve is interpolated in raw Wwise space, converted from scaling type 2
+ * to dB, clamped at its endpoints and then made linear; it is evaluated at
+ * `distance / scalingFactor`, so a factor of 2 doubles the playback range.
+ * A missing curve (including an unresolved Wwise "Use Project" assignment,
+ * whose project default the document does not carry) uses the inverse
+ * fallback, which is not Wwise-equivalent.
  */
 function EvaluateSfxDistanceGain({
     curve,

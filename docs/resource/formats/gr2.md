@@ -286,6 +286,4 @@ consume that depth repeatedly.
 ## Related documentation
 
 - [Format subpaths](README.md)
-- [Architecture and boundaries](../architecture.md)
-- [Resource lifecycle](../concepts/resource-lifecycle.md)
 - [Format ownership and provenance](provenance.md)

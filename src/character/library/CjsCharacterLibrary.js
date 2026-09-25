@@ -4,7 +4,16 @@ import { CjsModel } from "#model";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { CjsCharacterTextureMetadata } from "../model/catalog/CjsCharacterTextureMetadata.js";
 
-/** Hydrated character library whose public fields have the same shape as its JSON values. */
+/**
+ * Hydrated character library whose public fields have the same shape as its JSON values.
+ *
+ * Each source record-map key becomes the record's `recordID`; other domain
+ * identities (`typeID`, `raceID`, ...) keep their authored names. `_id` and
+ * `_ref` only preserve object identity within one serialized graph and are
+ * never domain IDs; round trips preserve relationships, not token numbers.
+ * Document indexes and lazy index flags are runtime state excluded from
+ * JSON.
+ */
 @type.define({ className: "CjsCharacterLibrary", family: "character" })
 export class CjsCharacterLibrary extends CjsModel
 {
@@ -62,7 +71,13 @@ export class CjsCharacterLibrary extends CjsModel
         return super.SetValues(input, options);
     }
 
-    /** Rejects combined plain values that cannot hydrate without losing fields or structure. */
+    /**
+     * Rejects combined plain values that cannot hydrate without losing fields or structure.
+     *
+     * Schemas 7, 8 and 9 migrate to 10. Schemas 7 and 8 predate
+     * `characterTextureMetadata`, may not define it, and normalize it to an
+     * empty collection.
+     */
     static validateValues(value)
     {
         RequirePlainObject(value, "Character library");
@@ -312,7 +327,15 @@ export class CjsCharacterLibrary extends CjsModel
         return this;
     }
 
-    /** Returns or discovers extension-neutral character data for one resource path. */
+    /**
+     * Returns or discovers extension-neutral character data for one resource path.
+     *
+     * The extension-neutral name, `.dds` and `.png` address the same record.
+     * An existing record is returned directly; otherwise the `.png` is
+     * requested raw through `resMan.GetObject`, and concurrent requests for one
+     * identity share that operation. A discovered record is added through
+     * `Create`, so it raises the ordinary `recordadded` event.
+     */
     async InspectResourceForData(resourcePath, {
         resMan = this.#resourceManager,
         source = this

@@ -146,6 +146,28 @@ export class CjsAudioLibraryBuilder
     /**
      * Builds a hydrated library from raw resources through fetch by default or
      * one caller-supplied byte source.
+     *
+     * Fetch callers supply `baseUrl` or `resolveUrl` for `res:/` paths;
+     * `source.read(path, context)` replaces fetch. Each input has a path
+     * override and a value option that skips its read:
+     * - audio metadata FSD: `audioMetadataPath` (default: the reader's own
+     *   `res:/staticdata/audiometadata.fsdbinary`) or `metadata`; the FSD is
+     *   always decoded under that canonical logical path, and the read context
+     *   carries it as `logicalPath`;
+     * - resource index: `indexPath` (no default) or `indexEntries`;
+     * - SoundbanksInfo: `soundbanksInfoPath` (default
+     *   `res:/audio/soundbanksinfo.json` without an index, otherwise found in
+     *   the index) or `soundbanksInfo`.
+     *
+     * The index is optional. Without one, banks and streamed media are
+     * derived from SoundbanksInfo plus the metadata `IsEssential` flag; an
+     * index still contributes storage paths, checksums and byte lengths.
+     * `inspectBanks: false` returns the catalog without opening banks.
+     * `includeSfx` defaults to true here; `music` defaults to on when every
+     * authored music bank is present. `fsdOptions: { bitWidth: 32 }` selects
+     * legacy FSD, whose reader throws as unsupported. The builder never
+     * discovers installations, selects providers, touches caches or uses the
+     * Node filesystem.
      */
     static async buildFromResources(options = {})
     {
@@ -577,7 +599,16 @@ export class CjsAudioLibraryBuilder
         return createMusicEventProjection(inspections, metadata, nodes);
     }
 
-    /** Classifies embedded media by its four-byte container magic. */
+    /**
+     * Classifies embedded media by its four-byte container magic.
+     *
+     * A bank's media index (DIDX) records only id, offset and length, so
+     * nothing in the bank says what an entry is, and not every entry is a WEM.
+     * EVE banks also embed Wwise plug-in media: the Convolution Reverb impulse
+     * `154360724` in `hangar.bnk` is a `PLUG` payload, not audio. The bytes
+     * decide: `RIFF`/`RIFX` is `wem`, `MIDI` is `midi`, `PLUG` is `plugin`,
+     * anything else (or too short to hold a magic) is `unknown`.
+     */
     static mediaTypeFromMagic(bytes, offset = 0)
     {
         const value = toUint8Array(bytes);
@@ -651,6 +682,19 @@ export class CjsAudioLibraryBuilder
      * Builds a complete library by reading every indexed bank through one
      * caller-supplied capability. The capability may delegate acquisition and
      * inspection to workers; this class never discovers a network endpoint.
+     *
+     * `includeSfx: true` lets inspected v150 banks contribute a conservative
+     * SFX program, typed-graph `eventMedia` reachability and inherited `is2D`
+     * metadata; it cannot be combined with a supplied `sfx` graph (pass that
+     * as `sfx` or `enrichment.sfx` instead). Each lowered event also gets
+     * `eventsStoppedBy` from its authored Stop targets, and each leaf keeps
+     * its resolved `spatial` flag and dry-volume curve. `language` (default
+     * `en-us`) selects one localized bank variant before HIRC objects merge,
+     * because localized banks reuse object IDs; `onSfxDiagnostics` receives
+     * what was omitted and why. `music: true` decodes the
+     * authored music hierarchy; music events are found from typed Play/Stop
+     * targets and music argument groups across every selected bank, never
+     * from bank or event names.
      */
     static async buildFromBanks(options = {})
     {
@@ -2033,7 +2077,10 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     {
         // A Layer controls only children named by its association list. An
         // associated Continuous Layer is approximated only when every direct
-        // child is proven infinite.
+        // child is proven infinite: all children are pre-started and run
+        // until Stop, with gain and property RTPC curves applied live, instead
+        // of Wwise starting and stopping them at region boundaries (phase,
+        // voice count and acquisition cost can differ).
         const associatedContinuous = source.continuousValidation
             && source.layers.some(layer => layer.associations.length);
         const children = source.children.map(nodeId => ({

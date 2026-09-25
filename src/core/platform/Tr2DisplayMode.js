@@ -1,6 +1,13 @@
 import { finiteNumber } from "./browserHelpers.js";
 
-/** Current browser Screen snapshot; browsers do not expose a native mode list. */
+/**
+ * Current browser Screen snapshot: size, available size, colour and pixel
+ * depth, pixel ratio, orientation and extended-screen state where exposed.
+ *
+ * Browsers expose no native display-mode list, scanline ordering or reliable
+ * refresh rate, so FromScreen does not invent them: the refresh-rate fields
+ * stay 0 and scanline ordering stays null unless the caller supplies values.
+ */
 export class Tr2DisplayMode
 {
     /** Creates a browser display-mode snapshot. */

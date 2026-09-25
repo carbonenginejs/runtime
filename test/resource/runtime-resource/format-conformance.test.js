@@ -6,7 +6,7 @@ import * as formats from "../../../src/resource/formats/index.js";
 
 // ONE CONTRACT, ASSERTED IN ONE PLACE.
 //
-// `docs/resource/concepts/format-capabilities.md` says every concrete format
+// The `CjsFormat` JSDoc says every concrete format
 // inherits the same canonical capability contract. Until now nothing checked
 // that across the whole set: each format's own suite tested its own reading, so
 // a format could drift out of the shared shape and only its neighbours' tests

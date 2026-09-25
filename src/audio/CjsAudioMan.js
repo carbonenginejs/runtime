@@ -40,6 +40,24 @@ const ORIGINAL_MEDIA_TYPES = new Set([
 /**
  * Installs one complete audio-library document and owns media selection,
  * delivery, preparation, decode retention, and the composed audio system.
+ *
+ * Lifecycle: construct with a document and provider (or `InstallLibrary()`),
+ * call `Enable(soundBanks)` from a browser gesture, create or adopt emitters
+ * and drive `Process(updateContext)`, then release emitters/media or
+ * `Dispose()`. Playback is scheduled on the AudioContext clock, not the host
+ * update context.
+ *
+ * Failure signals: `InstallLibrary()` throws for anything but a current
+ * schema-v2 document; `Enable()` returns `false` when no AudioContext could
+ * be created (requested banks stay pending); `ResolveMedia()` throws when no
+ * representation/provider route exists; `LoadMedia()` rejects on acquisition,
+ * range, preparation or decode failure.
+ *
+ * Changing the effective provider, delivery mode or languages clears decoded
+ * media and the music engine's retained media. `ReleaseMedia()`,
+ * `ClearMedia()` and `ClearSourceData()` drop retained data without
+ * cancelling active callers; provider replacement and disposal abort every
+ * pending acquisition.
  */
 export class CjsAudioMan
 {
@@ -98,6 +116,32 @@ export class CjsAudioMan
      * audio-library document immediately.
      *
      * Construction never creates an AudioContext or performs media I/O.
+     * `mediaProvider` and `resourceLoader` are forwarded to
+     * `SetMediaProvider()` and `SetResourceLoader()`. `defaultSoundBanks`
+     * names banks that are requested on every `Enable()` and cannot be
+     * unloaded through the bank-intent methods. `musicLibrary`,
+     * `loadMusicTrack` and `isMusicTrackAvailable` opt into `jukebox`; the
+     * manager never fetches a song's `url` or `path` itself.
+     *
+     * Effect policies are host runtime options, never stored in the library
+     * document. Each defaults to `"strict"`; any value other than `"strict"`
+     * or its one opt-in value throws synchronously, and one policy never
+     * enables another. `CjsAudioSystem` forwards them to the backend; only
+     * `wwiseDynamics`, `wwiseMeterFeedback` and `wwiseVoiceLimits` reach the
+     * shared bus mixer. Opt-in admission is a bounded browser approximation,
+     * not Wwise DSP equivalence, and a missing Web Audio primitive keeps the
+     * strict fallback.
+     *
+     * | Option | Opt-in value | Admits | Strict outcome |
+     * | --- | --- | --- | --- |
+     * | `wwiseDynamics` | `"approximate-web-audio"` | static linked Compressor/Peak Limiter, shared bus and source-local | shared route blocked; source chain omitted, voice dry |
+     * | `wwiseModulation` | `"approximate-web-audio"` | source-local Flanger/Tremolo static and qualified dynamic forms | source chain omitted, voice dry |
+     * | `wwiseReverb` | `"approximate-web-audio"` | source-local Matrix Reverb default-delay subset | source chain omitted, voice dry |
+     * | `wwiseRoomVerb` | `"approximate-web-audio"` | source-local static v150 RoomVerb | source chain omitted, voice dry |
+     * | `wwiseDistortion` | `"approximate-web-audio"` | fully-wet v150 Guitar Distortion and its qualified Drive RTPC form | source chain omitted, voice dry |
+     * | `wwiseObstructionOcclusion` | `"approximate-web-audio"` | fixed blockage filter/attenuation on emitter routes | backend accepts updates without DSP; `AudManager` state still runs |
+     * | `wwiseMeterFeedback` | `"omit-telemetry"` | static target-bearing Meter; no Game Parameter feedback produced | shared route blocked or source chain dry |
+     * | `wwiseVoiceLimits` | `"ignore"` | routes whose only barrier is a dynamic Audio Bus `MaxNumInstances` RTPC; count is not enforced | route stays outside shared routing |
      */
     constructor(library = null, {
         mediaProvider = null,
@@ -596,6 +640,21 @@ export class CjsAudioMan
      * Installs the structural provider used for future individual, whole-file,
      * and ranged reads. Providers perform acquisition only; they do not select
      * audio-library records.
+     *
+     * The provider receives exact document records, never filenames:
+     * - `Read(record, { signal, kind, mediaID, ... })` reads an individual
+     *   `media` record (`kind: "media"`) or a whole original bank
+     *   (`kind: "bank"`) that the manager slices locally;
+     * - `ReadRange?(bankRecord, { signal, kind, mediaID, offset, byteLength })`
+     *   returns exactly `byteLength` bytes, or a complete original file
+     *   (`complete: true`, or long enough) that is sliced locally;
+     * - `CanRead?(record, context)` and `CanReadRange?(bankRecord, context)`
+     *   exclude a candidate route when they return `false`.
+     *
+     * A read may return bytes, `{ bytes, mediaType }`, `{ audioBuffer }`, an
+     * AudioBuffer-like value, or `{ channelData, sampleRate }` PCM. The
+     * provider cannot change while audio is enabled; replacing it aborts every
+     * pending acquisition and clears retained music media.
      */
     SetMediaProvider(provider)
     {
@@ -910,7 +969,12 @@ export class CjsAudioMan
         return enabled;
     }
 
-    /** Disables Carbon audio without destroying the reusable AudioContext. */
+    /**
+     * Disables Carbon audio without destroying the reusable AudioContext.
+     *
+     * The loaded and in-flight bank set is kept as pending intent for the
+     * next `Enable()`, and the jukebox stops.
+     */
     Disable()
     {
         if (this.#system?.manager.GetStateValue() === 2)
@@ -945,7 +1009,15 @@ export class CjsAudioMan
         return this.UnloadSoundBank(bank);
     }
 
-    /** Loads now when enabled, otherwise retains one bank intent. */
+    /**
+     * Loads now when enabled, otherwise retains one bank intent for the next
+     * successful `Enable()`.
+     *
+     * The bank-intent methods (`LoadSoundBank(s)`, `UnloadSoundBank(s)`,
+     * `SwapSoundBanks()`, `ReloadSoundBanks()` and the default-bank helpers)
+     * change desired state only. Backend banks are virtual, so none of them
+     * reads library or media bytes; media is acquired per event.
+     */
     LoadSoundBank(soundBankName)
     {
         const bank = NormalizeBankName(soundBankName);

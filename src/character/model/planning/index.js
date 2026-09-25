@@ -1,3 +1,20 @@
+/**
+ * Character appearance-plan records: one standalone, GPU-free, serializable
+ * `carbonenginejs.characterAppearancePlan` graph. The plan closes its own
+ * `_id`/`_ref` identities (source-library IDs survive only as origin data)
+ * and is mutated through its named `Create*`/`Add*`/`Remove*`/`Delete*`
+ * methods. Records reference shared `CjsCharacterOrigin` provenance whose
+ * `kind` is `authored`, `decoded`, `derived` or `policy`; missing evidence
+ * becomes a diagnostic or an explicit `policy` origin, never a filename
+ * inference.
+ *
+ * Placement and sampling stay separate values: a texture asset's decoded
+ * placement (`imageSize`, `atlasSize`, `atlasRect`) never overwrites a
+ * binding's `sampleBounds`, which follows the `TransformUV0` rectangle form
+ * `[uMin, vMin, uMax, vMax]` with identity `[0, 0, 1, 1]`. Diffuse, normal,
+ * specular and cut inputs keep independent placement and bounds.
+ */
+
 export * from "./CjsCharacterAppearanceBinding.js";
 export * from "./CjsCharacterAppearanceColorSelection.js";
 export * from "./CjsCharacterAppearanceDiagnostic.js";

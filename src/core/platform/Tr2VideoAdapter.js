@@ -1,7 +1,14 @@
 import { optionalString, snapshotFeatures, snapshotWebIdl } from "./browserHelpers.js";
 import { Tr2VideoDriver } from "./Tr2VideoDriver.js";
 
-/** Privacy-respecting browser snapshot of Carbon's Tr2VideoAdapter. */
+/**
+ * Privacy-respecting browser snapshot of Carbon's Tr2VideoAdapter.
+ *
+ * Records the browser-visible adapter info, sorted feature names, numeric
+ * limits, fallback status and a Tr2VideoDriver. Native identifiers, versions,
+ * dates and switchable-GPU flags stay null when the browser withholds them;
+ * nothing is inferred from the user agent or adapter name.
+ */
 export class Tr2VideoAdapter
 {
     /** Creates a privacy-safe video-adapter snapshot. */

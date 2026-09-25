@@ -1,7 +1,14 @@
 import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** One published character type definition folded into the combined catalog. */
+/**
+ * One published character type definition folded into the combined catalog.
+ *
+ * `partSources` keeps every exact sex-specific source relationship;
+ * `partSource` is set only when that relationship is unique.
+ * `bloodlineIDs` keeps authored identities without asserting availability,
+ * allow-list or deny-list meaning.
+ */
 @type.define({ className: "CjsCharacterPartType", family: "character" })
 export class CjsCharacterPartType extends CjsCharacterRecord
 {

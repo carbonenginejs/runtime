@@ -18,9 +18,8 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
 /**
- * The three-method-tier wave-2 ports
- * (docs/research/ratchet-three-method-tier-2026-09-06.md), each pinned to the
- * donor body re-read before porting.
+ * The three-method-tier wave-2 ports, each pinned to the donor body re-read
+ * before porting.
  */
 
 function assertVecNear(actual, expected, message, epsilon = 1e-5)

@@ -234,6 +234,13 @@ export class Tr2ShadowMap extends CjsModel
   @type.uint32
   size = 2048;
 
+  /**
+   * Carbon's `PerSplitData` record. `ShadowMatrixVal` holds each cascade's
+   * logical gl-matrix light view-projection, untransposed. The scene composes
+   * it with the inverse view and the atlas cell, and
+   * `RawData.SetAndTransposeIndex` performs the single packing transpose;
+   * engines must not transpose or rebuild these matrices.
+   */
   perSplitData = createPerSplitData();
 
   #width = SHADOW_MAP_WIDTH;

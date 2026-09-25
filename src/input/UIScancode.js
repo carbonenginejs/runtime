@@ -98,7 +98,11 @@ export class UIScancode
         this.browserCode = browserCode ? String(browserCode) : null;
     }
 
-    /** Creates a scancode from a KeyboardEvent-like object. */
+    /**
+     * Creates a scancode from a KeyboardEvent-like object. An unmapped
+     * `event.code` yields a fallback record built from `keyCode`/`which` and
+     * the event's code or key.
+     */
     static fromKeyboardEvent(event)
     {
         if (!event || typeof event !== "object") throw new TypeError("UIScancode requires a KeyboardEvent-like object.");
@@ -111,6 +115,11 @@ export class UIScancode
     }
 }
 
+/**
+ * The maintained browser-code mapping: a bounded browser vocabulary, not a
+ * claim of parity with Carbon's native scancode table. The list is frozen;
+ * its UIScancode records are shared with the lookup maps and stay mutable.
+ */
 export const SCANCODES = Object.freeze(Array.from(DEFINITIONS.values(), definition => new UIScancode(
         definition.virtualKey,
         definition.name,
@@ -127,7 +136,11 @@ for (const scancode of SCANCODES)
 }
 const BY_CODE = new Map(SCANCODES.map(scancode => [ scancode.browserCode, scancode ]));
 
-/** Resolves a scancode by record, numeric value, browser code, or Carbon name. */
+/**
+ * Resolves a scancode by record, numeric value (low byte), browser code, or
+ * Carbon name, or returns null. Where several codes share a value or name, the
+ * first mapped record wins.
+ */
 export function GetUIScancode(value)
 {
     if (value instanceof UIScancode) return value;

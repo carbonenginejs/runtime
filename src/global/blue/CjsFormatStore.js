@@ -289,6 +289,10 @@ export class CjsFormatStore
    *    extension already decided, and the format is entitled to reject its own
    *    file with a better message than a probe could produce.
    *
+   * Content probes answer with literal `true` only. Support reports
+   * (`getSupport`, `verifySupport`) are never consulted, so a decoder
+   * limitation cannot change which format owns the bytes.
+   *
    * Returns `null` rather than guessing when nothing matches, so the caller
    * reports what it could not read instead of handing bytes to a reader that
    * never claimed them.

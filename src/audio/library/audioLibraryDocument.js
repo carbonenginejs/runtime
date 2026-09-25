@@ -14,6 +14,69 @@ import {
 const AUDIO_LIBRARY_SCHEMA = "carbonenginejs.audioLibrary";
 const AUDIO_LIBRARY_VERSION = 2;
 
+/**
+ * Complete audio-library document accepted by
+ * `validateAudioLibraryDocument()`. Only schema version 2 is accepted.
+ *
+ * Identity rules: every `banks` key and its record's `sourceID` equal
+ * `${bankID}:${languageID}`. Media, bus and music-node IDs are canonical
+ * positive decimal strings.
+ *
+ * The bus catalogs describe authored Wwise routing; a catalog being present
+ * does not make a route audible. Only routes a qualified shared-bus runtime
+ * accepts are realized; everything else stays on the legacy path.
+ * - `busRtpcs` (v2, keyed by bus ID): named global Game Parameter curves for
+ *   `property` `"voice-volume"` or `"bus-volume"`, as raw Wwise scaling-2
+ *   values with the authored default and ordered points
+ *   `{ x, value: -1..1, interpolation: 0..9 }`. Interpolation runs before
+ *   Wwise's nonlinear dB conversion. SFX evaluates both properties on every
+ *   bus of its dry ancestry, Voice Volume on a separate pre-bus gain; music
+ *   evaluates Bus Volume only. v1 (no `property`) means Bus Volume.
+ * - `busStates` (v2, keyed by bus ID): named State groups whose cases carry
+ *   `gainDb`, `pitchCents`, `lowPass`, `highPass` under one transition
+ *   weight, the sync type, additive filter behavior and a self-contained
+ *   `stateTransitions` table. Matching groups on the dry ancestry
+ *   accumulate before final clamps; an unset group or missing case is
+ *   neutral. v1 carries additive Bus Volume dB only.
+ * - `busGraph` (v1): deduplicated dry/auxiliary route signatures
+ *   (`routes`), SFX and music route references (`sfxRoutes`,
+ *   `musicRoutes`), reachable `buses` with ancestry, sends, channel
+ *   configuration, ordered effect slots and bypass state, and `effects` with
+ *   opaque parameter blocks and plug-in media. `busVolumeMayIncrease` marks
+ *   a bus a retained absolute or positive-relative Bus Volume Set can
+ *   amplify (used to prove a static Aux return silent);
+ *   `busVolumeActionControlled` marks a bus targeted by a retained Set or
+ *   Reset Bus Volume, which blocks audible shared effects on that ancestry.
+ *   Required when any SFX program uses Bus-target Voice Volume.
+ * - `busDucking` and `busEffects` are v1 catalogs.
+ *
+ * @typedef {object} CjsAudioLibraryDocument
+ * @property {"carbonenginejs.audioLibrary"} schema
+ * @property {2} schemaVersion
+ * @property {{ Events: object, SoundBanks: object, WemFileIDs: object }} metadata
+ *   Events may carry `is2D` (0 or 1) and `maxRadiusAttenuation` (>= 0).
+ * @property {Object<string, object|Array<object>>} media Individual prepared
+ *   or original source records keyed by media ID.
+ * @property {Object<string, object>} banks Original banks keyed by
+ *   `bankID:languageID`.
+ * @property {Object<string, object|Array<object>>} [embeddedMedia] Media
+ *   inside an original bank: `{ bank, offset, byteLength }`.
+ * @property {Object<string, Array<string>>} [eventMedia] Unique media IDs
+ *   reachable from each event; every ID must exist in `media` or
+ *   `embeddedMedia`.
+ * @property {string} [eventMediaLanguage]
+ * @property {import("./sfxGraph.js").CjsSfxGraph} [sfx] Every SFX event must also exist in
+ *   `metadata.Events`.
+ * @property {object} [music] v1 authored music graph:
+ *   `{ schemaVersion, banks, nodes, programs?, eventTargets?, eventStops?,
+ *   switchSetters? }`.
+ * @property {object} [busRtpcs]
+ * @property {object} [busStates]
+ * @property {object} [busDucking]
+ * @property {object} [busEffects]
+ * @property {object} [busGraph]
+ */
+
 /** Validates one complete plain audio-library document. */
 export function validateAudioLibraryDocument(value)
 {

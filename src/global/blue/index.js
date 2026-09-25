@@ -11,6 +11,27 @@
 // preference, and it does not contradict the decorator direction in
 // /docs/internal/decisions/cjsmodel-composition-decorators.md.
 
+/**
+ * Resource lifecycle across CjsResource, CjsResMan and CjsMotherLode.
+ *
+ * States (`CjsResource.State`): EMPTY -> REQUESTED (waiting on a queued or
+ * shared source load) -> LOADING (bytes in hand, reader running) -> PREPARED
+ * when CjsResMan publishes the reader outcome; FAILED when reading,
+ * conversion, validation or publication fails. LOADED and PREPARING serve
+ * resources that prepare in a separate phase. PURGED marks a policy eviction;
+ * a purged handle reloads itself on its next KeepAlive()/IsGood().
+ *
+ * Retention has three independent axes: identity (path, state, lightweight
+ * metadata), CPU payload, and adapter payload (backend objects in opaque
+ * adapter slots, destroyed by their engine adapters). The CPU payload and the
+ * adapter payload are released independently while the identity stays
+ * resident.
+ *
+ * Liveness is per handle: `IsGood()` renews only the handle it is called on
+ * and never walks child fields, so an aggregate that owns child resources
+ * must query or retain them itself.
+ */
+
 export * from "./CjsScriptCallback.js";
 export * from "./IBlueDynamicResourceConstructor.js";
 export * from "./BeInfo.js";

@@ -168,8 +168,22 @@ function extractCustomMasks(object)
  * Extracts only the proven object-side Main semantics. Per-frame state stays
  * renderer-owned, while shipData remains an explicit caller requirement.
  *
+ * Requires `object` with 16-value `worldTransform`, `lastWorldTransform` and
+ * `inverseWorldTransform`, and a four-value `shipData`, which is never guessed.
+ * Values are applied in this order, later ones winning:
+ * 1. object-derived values (transforms, clip values, up to two custom masks);
+ * 2. fields of the optional `shared` record, where `shLighting` is accepted as
+ *    an alias of `shLightingCoefficients` (supplying both throws);
+ * 3. `vsOverrides` / `psOverrides`.
+ * Optional fields appear only when one of those supplies them. Inputs are
+ * cloned, so later mutation of them does not reach the result. Any invalid
+ * input, including an unknown override name or non-finite numeric data,
+ * throws an Error with code
+ * `CJS_TRINITY_SPACE_OBJECT_MAIN_VALUES_INVALID`.
+ *
  * @param {object} options Extraction inputs.
- * @returns {{perObjectVS: object, perObjectPS: object}} Frozen plain values.
+ * @returns {{perObjectVS: object, perObjectPS: object}} Plain mutable values,
+ *   not frozen. The two records share their transform and `shipData` arrays.
  */
 export function createEveSpaceObjectMainPerObjectValues(options = {})
 {

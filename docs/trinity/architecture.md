@@ -439,8 +439,4 @@ observable graph order.
 
 ## Related documentation
 
-- [Package documentation](README.md)
-- [Current API](reference/api.md)
-- [Main semantic extraction](reference/main-semantic-extraction.md)
-- [Eve runtime behavior](concepts/eve-runtime-behavior.md)
 - [Implementation status and audits](reference/implementation-status.md)

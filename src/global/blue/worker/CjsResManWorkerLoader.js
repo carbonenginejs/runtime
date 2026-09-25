@@ -11,8 +11,23 @@ const DEFAULT_WORKER_OPTIONS = Object.freeze({
  *
  * One module worker can overlap fetch requests and serializes synchronous
  * reader work on its own event loop. Sources opt in through
- * `CreateWorkerRequest(path, options)`. Formats opt in through a static
- * `worker` declaration containing their module URL and export name.
+ * `CreateWorkerRequest(path, options)`; returning null keeps that read on the
+ * main thread. Formats opt in through a static `worker` declaration:
+ *
+ * - `module` and `exportName` name the format the worker imports;
+ * - `outputTypes` restricts dispatch to the listed clone-safe outputs, matched
+ *   against `emit` or else `defaultOutput`; other outputs (for example Black's
+ *   class-bearing document and runtime outputs) stay on the caller thread;
+ * - `transferInput: true` transfers a whole-buffer input instead of cloning
+ *   it, detaching the caller's buffer, so declare it only when the caller owns
+ *   that buffer exclusively. Input is cloned by default.
+ *
+ * Format options and path context cross only when clone-safe: primitives,
+ * ArrayBuffers, typed arrays, Dates, arrays and plain objects. Functions,
+ * symbols, class instances and constructors send the read to the main-thread
+ * fallback; shared references and cycles are accepted. A fatal worker error
+ * rejects the pending requests; after it, or after a failed worker creation,
+ * reads use the fallback until Reset().
  */
 export class CjsResManWorkerLoader
 {

@@ -1,7 +1,12 @@
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
 
-/** One exact renderer-neutral morph-target request in an appearance plan. */
+/**
+ * One exact renderer-neutral morph-target request in an appearance plan.
+ *
+ * Matching the name against loaded geometry and the deformation itself are
+ * renderer-owned; the request never implies hiding another garment.
+ */
 @type.define({ className: "CjsCharacterMorphTargetWeight", family: "character" })
 export class CjsCharacterMorphTargetWeight extends CjsModel
 {

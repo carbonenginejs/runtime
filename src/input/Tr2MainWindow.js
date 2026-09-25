@@ -22,6 +22,12 @@ const EMPTY_CALLBACK = new CjsScriptCallback();
 
 /**
  * Browser adaptation of CarbonEngine's main-window state and input boundary.
+ *
+ * Callback fields accept a function, a CjsScriptCallback, or an object with
+ * `Call` and `CallVoid`; each assignment is normalized once. Notifications
+ * dispatch through `CallVoid`; the return-bearing close callback dispatches
+ * through `Call`. A `beforeunload` whose close callback returns literal
+ * `false` is cancelled (`preventDefault` plus `returnValue`).
  */
 export class Tr2MainWindow
 {
@@ -130,7 +136,10 @@ export class Tr2MainWindow
         return this;
     }
 
-    /** Applies changed sanitized window state and emits input-layer state intent. */
+    /**
+     * Applies changed sanitized window state and emits input-layer state intent.
+     * Re-applying a state equal to the current one emits nothing.
+     */
     SetWindowState(state)
     {
         const next = state instanceof Tr2MainWindowState ? state.Clone() : new Tr2MainWindowState(state);
@@ -147,7 +156,7 @@ export class Tr2MainWindow
         return this.#state.Clone();
     }
 
-    /** Clamps a window state to browser and configured size limits. */
+    /** Clamps a window state to browser and configured size limits, and forces adapter index 0. */
     SanitizeState(state)
     {
         if (!(state instanceof Tr2MainWindowState)) throw new TypeError("Tr2MainWindow.SanitizeState requires Tr2MainWindowState.");
@@ -178,7 +187,7 @@ export class Tr2MainWindow
         return this;
     }
 
-    /** Returns unique browser window and screen size options. */
+    /** Returns unique browser window and screen size options; native display modes are not enumerated. */
     GetWindowSizeOptions()
     {
         const sizes = [
@@ -217,7 +226,11 @@ export class Tr2MainWindow
         return this.#cursor;
     }
 
-    /** Requests browser pointer lock when supported. */
+    /**
+     * Requests browser pointer lock when supported. Returns false when the
+     * target has no `requestPointerLock`, otherwise true or a promise resolving
+     * true; the browser may still require a user gesture or reject.
+     */
     ClipCursor()
     {
         if (typeof this.#target?.requestPointerLock !== "function") return false;
@@ -239,7 +252,7 @@ export class Tr2MainWindow
         return [ ...this.#cursorPosition ];
     }
 
-    /** Reports unsupported because browsers cannot warp the system cursor. */
+    /** Returns false: browsers cannot warp the system cursor. */
     SetCursorPos()
     {
         // Browsers deliberately do not allow scripts to warp the system cursor.
@@ -275,32 +288,36 @@ export class Tr2MainWindow
         return this.#backBufferFormat;
     }
 
-    /** Returns zero because browser windows expose no native HWND. */
+    /** Returns 0: browser windows expose no native HWND. */
     GetHwndAsLong()
     {
         return 0;
     }
 
-    /** Reports unsupported because browsers expose no Windows message filter. */
+    /** Returns false: browsers expose no Windows message filter. */
     SetWindowsMessageFilter()
     {
         return false;
     }
 
-    /** Returns the explicit unsupported Windows message-filter result. */
+    /** Returns the explicit unsupported Windows message-filter result, `[false, []]`. */
     GetWindowsMessageFilter()
     {
         return [ false, [] ];
     }
 
-    /** Reports whether the browser-owned event loop may continue processing. */
+    /** Returns true until Close(); the browser owns and drains its event loop. */
     ProcessMessages()
     {
         // The browser owns and drains its event loop.
         return !this.#closed;
     }
 
-    /** Requests browser fullscreen mode on the configured target. */
+    /**
+     * Requests browser fullscreen mode on the configured target. Returns false
+     * when unsupported, otherwise the host's result (normally a promise the
+     * browser may reject).
+     */
     RequestFullscreen(options)
     {
         if (typeof this.#target?.requestFullscreen !== "function") return false;
@@ -314,7 +331,11 @@ export class Tr2MainWindow
         return this.#document.exitFullscreen();
     }
 
-    /** Requests closure, then marks the adapter closed and detaches listeners unless vetoed. */
+    /**
+     * Requests closure, then marks the adapter closed and detaches listeners
+     * unless vetoed. Returns false when `onClose` returns literal false, and
+     * true after closing or when already closed.
+     */
     Close()
     {
         if (this.#closed) return true;

@@ -277,6 +277,72 @@ function requirePositiveDwordAligned(value, fieldName, fail)
 }
 
 /**
+ * One decoded instruction (an element of `DxbcInstructionDecoder.instructions`
+ * and of the JSON `instructions` array).
+ *
+ * Opcode-specific fields: `testBoolean` ("zero"/"nonzero") on boolean-test
+ * opcodes; `resinfoReturnType`/`resinfoReturnTypeName` on `resinfo`;
+ * `syncFlags`/`syncFlagNames` on `sync`. `syncFlags` is the raw eight-bit mask
+ * (unknown bits stay set); `syncFlagNames` lists the recognised bits in bit
+ * order: threads_in_group, thread_group_shared_memory,
+ * thread_group_uav_memory, global_uav_memory. Sync control bits are not
+ * arithmetic controls, so `sync` always reports `saturate: false`; a `sync`
+ * with extensions, operands or reserved control bits is rejected.
+ *
+ * On SM5.1 programs, executable sampler, resource, constant-buffer and UAV
+ * operands also carry `resourceReference`: `{ bindingModel: "sm5.1-range",
+ * rangeId, nonUniform, absoluteIndex, bufferIndex, vectorOffset }`, where the
+ * index fields are operand index records (`bufferIndex`/`vectorOffset` for
+ * constant buffers, `absoluteIndex` otherwise). `rangeId` is the range
+ * identity, not the register an explicit-binding backend needs.
+ *
+ * @typedef {object} DxbcInstructionRecord
+ * @property {number} offset Token index of the opcode token.
+ * @property {number} opcode Opcode number.
+ * @property {string} opcodeName Mnemonic, or "customdata".
+ * @property {number} length Instruction length in tokens.
+ * @property {number} token0 Opcode token.
+ * @property {boolean} isDeclaration Declaration or custom-data block.
+ * @property {boolean} saturate Result saturation control.
+ * @property {string} preciseMask Precise components as "xyzw" letters.
+ * @property {object[]} extensions Opcode extensions (`sample_controls`,
+ *     `resource_dimension`, `resource_return_type`, other `extended_opcode_N`).
+ * @property {object[]} operands Operands: `{ token, type, typeName,
+ *     componentCount, selectionModeName, mask, swizzle, selected, modifierName,
+ *     minPrecisionName, nonUniform, registerIndex, indices, immediateValues,
+ *     length }`; each index is `{ dimension, representation, values, relative }`.
+ * @property {?DxbcDeclaration} declaration Declaration projection, or `null`
+ *     for executable instructions and declarations without a projection.
+ * @property {?object} customData `{ dataClass, dataClassName, valueCount,
+ *     immediateConstantBuffer }` for custom-data blocks; an immediate constant
+ *     buffer is rows of four `{ uint32, float32 }`.
+ * @property {number[]} tailTokens Well-framed declaration words left after
+ *     the projection.
+ */
+
+/**
+ * Declaration projection. Fields depend on the opcode (`registerIndex`,
+ * `tempCount`, `resourceDimension(Name)`, `returnType`, `samplerMode(Name)`,
+ * `interpolationMode(Name)`, `systemValue(Name)`, `structureStride`,
+ * `globallyCoherent`, `threadGroupX/Y/Z`, ...).
+ *
+ * Thread-group shared memory: `dcl_thread_group_shared_memory_raw` gives
+ * `registerIndex`, `byteCount`; `dcl_thread_group_shared_memory_structured`
+ * gives `registerIndex`, `structureStride`, `structureCount`. The operand must
+ * be one unmodified immediate `thread_group_shared_memory` register; byte
+ * counts and strides must be positive multiples of 4 and counts positive.
+ *
+ * SM5.1 resource, sampler, UAV and constant-buffer declarations set
+ * `bindingModel: "sm5.1-range"`, set `registerIndex` to the lower bound, and
+ * add `bindingRange`. SM5.0 declarations keep the direct `registerIndex`.
+ *
+ * @typedef {object} DxbcDeclaration
+ * @property {{bindingModel:string,rangeId:number,lowerBound:number,upperBound:number,unbounded:boolean,registerCount:?number,registerSpace:number}} [bindingRange]
+ *     `rangeId` is the class-local range identity; `unbounded` when the upper
+ *     bound is 0xffffffff, and then `registerCount` is `null`.
+ */
+
+/**
  * SM4/SM5 instruction-stream decoder over a `DxbcShaderProgram` token array.
  *
  * Executable instructions decode strictly: operands must consume the exact

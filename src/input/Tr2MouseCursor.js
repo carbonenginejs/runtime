@@ -36,7 +36,15 @@ export class Tr2MouseCursor
         this.Create(bitmap, hotspotX, hotspotY, representations);
     }
 
-    /** Selects a usable representation and creates its CSS cursor value. */
+    /**
+     * Selects a usable representation and creates its CSS cursor value.
+     *
+     * The bitmap, then each alternate representation, is tried in order: a CSS
+     * keyword, a URL or `url(...)` string, a canvas-like object
+     * (`toDataURL`), an object with `url`, `src` or `dataURL`, or a
+     * blob-like source turned into an object URL that Destroy() revokes.
+     * Returns false when none resolves.
+     */
     Create(bitmap, hotspotX = 0, hotspotY = 0, representations = [])
     {
         this.Destroy();

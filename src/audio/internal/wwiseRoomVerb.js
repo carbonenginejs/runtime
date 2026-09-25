@@ -1,3 +1,18 @@
+/**
+ * Opt-in source-local Wwise RoomVerb approximation, selected by
+ * `wwiseRoomVerb: "approximate-web-audio"`.
+ *
+ * Admits the static, control-free v150 subset of the 186-byte layout.
+ * Cached procedural convolution buffers plus Gain, optional Delay and Biquad
+ * nodes split early reflections from the late tail. Dry/Early/Late levels
+ * and Pre-Delay are preserved; room size, decay/HF damping, diffusion,
+ * density, shape, quality, stereo width and tone are approximated. Wwise's
+ * reflection tables, reverb algorithm and surround/LFE/center routing are
+ * not reproduced. Strict mode, missing convolution primitives, more than two
+ * decoded channels, dynamic controls and shared-bus placement keep the whole
+ * source chain dry.
+ */
+
 export const WWISE_ROOMVERB_PLUGIN_ID = 0x00760003;
 
 const WWISE_ROOMVERB_BANK_VERSION = 150;

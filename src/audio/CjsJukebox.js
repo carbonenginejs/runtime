@@ -12,6 +12,17 @@ const REPEAT_MODES = new Set([ "none", "playlist", "song" ]);
  * The jukebox never fetches a path. `loadTrack(song, context)` is supplied by
  * the host and may return an AudioBuffer, ArrayBuffer, typed array, or
  * `{ bytes }`. Byte results are decoded by the attached AudioContext.
+ * Replacing or stopping a pending selection cannot revive stale playback.
+ * `isTrackAvailable(song, context)` is likewise host-owned; after
+ * `RefreshAvailability()`, `GetPlaylistSongs(id, { includeUnavailable })`
+ * lets a UI hide or disable unreachable songs.
+ *
+ * The jukebox is independent of `CjsMusicEngine`: it posts no Wwise events
+ * and is never used to satisfy an authored event. Under `CjsAudioMan` it is
+ * attached to the master bus on `Enable()`, stopped by `Disable()`,
+ * `StopAllPlayingSounds()`, library replacement and `Dispose()`, and the
+ * global `menu_main_music_level` RTPC sets its output volume. Repeat modes
+ * are `none`, `playlist` and `song`.
  */
 export class CjsJukebox
 {

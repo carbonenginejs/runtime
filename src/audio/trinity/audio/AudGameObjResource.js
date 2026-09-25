@@ -845,7 +845,15 @@ export class AudGameObjResource extends CjsModel
     }
   }
 
-  /** Carbon method GetMaxAttenuationRadius: radiusSq scaled by the attenuation scaling factor. */
+  /**
+   * Carbon method GetMaxAttenuationRadius: radiusSq scaled by the attenuation scaling factor.
+   *
+   * Carbon multiplies the squared radius by the factor, so the effective
+   * culling radius is `authoredRadius * sqrt(scalingFactor)` while Wwise
+   * playback range scales linearly. With a factor above 1 a scaled voice can
+   * be culled before its distance curve reaches its endpoint; the quirk is
+   * kept as shipped.
+   */
   @carbon.method
   @impl.implemented
   GetMaxAttenuationRadius()

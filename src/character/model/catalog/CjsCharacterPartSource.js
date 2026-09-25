@@ -1,7 +1,13 @@
 import { edit, type } from "#schema";
 import { CjsCharacterRecord } from "../CjsCharacterRecord.js";
 
-/** One logical character source with its exact authored resource folders and candidates. */
+/**
+ * One logical character source with its exact authored resource folders and candidates.
+ *
+ * `sourcePaths` is the complete authored folder list; `sourcePath` is its
+ * deterministic first entry for single-path consumers and is never used to
+ * choose a source for rendering.
+ */
 @type.define({ className: "CjsCharacterPartSource", family: "character" })
 export class CjsCharacterPartSource extends CjsCharacterRecord
 {

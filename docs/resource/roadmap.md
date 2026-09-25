@@ -132,7 +132,7 @@ built from explicit tokens, not an implicit default on every loaded resource.
 
 ## Explicit capability verification
 
-**Current:** [Format capabilities](concepts/format-capabilities.md) defines
+**Current:** The `CjsFormat` JSDoc defines
 `is()` as the only routing predicate, advisory `getSupport()`, and asynchronous
 `verifySupport()` through the real read path for the exact requested output.
 
@@ -224,4 +224,3 @@ is mechanical but wide.
 
 ## Related documentation
 
-- [Candidate-first atomic reload](reference/reload.md)

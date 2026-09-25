@@ -153,6 +153,12 @@ const GAME_PARAMETER_ACTION_TYPES = new Set([
  * action types, other bank versions, truncated bodies, and recognized bodies
  * with trailing bytes return null so callers retain their shallow/raw view.
  *
+ * The v150 pin matches the EVE banks read so far. CarbonEngine itself pins
+ * Wwise SDK 2025.1.5.9095, whose tools emit a later bank version, so a
+ * producer toolchain upgrade breaks the pin by whole-body rejection rather
+ * than misreading: a sudden rise in `action: null` across a new build means a
+ * bank-version bump, not corrupt data.
+ *
  * @param {Uint8Array} payload Event Action body.
  * @param {object} [options] Decode options.
  * @param {number} [options.bankVersion=150] Wwise bank generator version.

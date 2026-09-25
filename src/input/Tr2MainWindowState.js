@@ -57,7 +57,11 @@ export class Tr2MainWindowState
         return new Tr2MainWindowState(this.GetValues());
     }
 
-    /** Reports whether applying another state requires device reconfiguration. */
+    /**
+     * Reports whether applying another state requires device reconfiguration:
+     * window mode, adapter, width, height or present interval differ. Throws
+     * TypeError unless `other` is a Tr2MainWindowState.
+     */
     RequiresDeviceReset(other)
     {
         if (!(other instanceof Tr2MainWindowState))

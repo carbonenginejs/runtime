@@ -20,6 +20,10 @@ const FETCH_OPTION_KEYS = Object.freeze([
 /**
  * `CjsResMan` provider that fetches an already-resolved URL on the caller
  * thread or through the resource worker.
+ *
+ * Worker fetches return the ArrayBuffer by transfer. Ordinary fetch options,
+ * including an HTTP `Range` header, pass through; range semantics belong to
+ * the provider, not to CjsResMan.
  */
 export class CjsResManFetchProvider
 {

@@ -393,6 +393,8 @@ function writeSegment(writer, marker, payload)
 /**
  * Encodes a normalized RGBA payload as baseline JPEG bytes.
  *
+ * Lossy, and the alpha channel is discarded: JPEG has none.
+ *
  * @param {object} payload `{ width, height, data }`, optionally with
  *   `strideBytes` and `origin` as the image formats in this package emit them.
  * @param {object} [options] `quality` 0..1 (default 0.9, matching the

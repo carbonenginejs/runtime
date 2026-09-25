@@ -144,7 +144,7 @@ describes fading and backend delivery; audible filtering requires the explicit
 
 For named soundtrack playback independent of authored Wwise music events,
 pass an optional neutral catalog, loader, and availability probe as described
-in [Optional jukebox](jukebox.md).
+in the `CjsMusicEngine` JSDoc.
 
 ## Cleanup
 
@@ -156,5 +156,4 @@ For cache release without caller cancellation, use the methods listed in
 
 - [Architecture and boundaries](../architecture.md)
 - [Authored SFX programs](sfx.md)
-- [Optional jukebox](jukebox.md)
 - [API reference](../reference/api.md)

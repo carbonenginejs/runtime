@@ -11,6 +11,8 @@
  * CMF has no shear channel, so authored Granny shear is rejected rather than
  * discarded. Inverse bind matrices are rebuilt from the rest pose hierarchy
  * in the row-major, translation-in-elements-12..14 layout Granny uses.
+ * Track-group layering, accumulation and loop metadata, text tracks, and
+ * vector tracks that do not name a morph target are not carried into CMF.
  */
 
 import {

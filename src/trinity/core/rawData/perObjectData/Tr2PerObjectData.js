@@ -180,7 +180,15 @@ export class Tr2PerObjectData
    * silently upload nothing. `getConstantRecords` beside it is static for the
    * same reason and takes the same argument.
    *
-   * @param {object} objectData A `{ vs, ps }` pair, a single payload, or null.
+   * The payload's tier is fixed by its producer's class, not decided here. A
+   * transient payload is leased from the frame's `TriPoolAllocator` and dies at
+   * its `Clear`; a persistent one is a member its owner keeps across frames and
+   * `Invalidate`s for re-upload (`EveSpaceObject2`). Both upload the same way.
+   *
+   * @param {object} objectData A `{ vs, ps }` pair (two payloads, two
+   *   buffers), a single payload bound once to each declared stage the mask uses, a
+   *   `Tr2PerObjectData` instance (read through `GetPayloads`), or null when
+   *   the renderable produced none.
    * @param {Array<object>} buffers A `Tr2ConstantBufferAL` per `ShaderType`.
    * @param {number} constantTypeMask The technique's shader-type mask.
    * @param {object} renderContext The context to upload and bind against.

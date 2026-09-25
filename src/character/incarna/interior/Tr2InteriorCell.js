@@ -6,7 +6,10 @@ import { CjsModel } from "#model";
  * Minimal persisted cell record used by historical Incarna interior scenes.
  *
  * This is an evidence-backed hydration shell, not a current Carbon class or a
- * claim of historical runtime behavior.
+ * claim of historical runtime behavior. Carbon's only mention of the name is
+ * the comment in Tr2InteriorPlaceable.h:36 ("inhabit one or more
+ * Tr2InteriorCells"); no Carbon header declares it, so its fields come from
+ * the reviewed records, not from a port.
  */
 @type.define({ className: "Tr2InteriorCell", family: "incarna" })
 export class Tr2InteriorCell extends CjsModel

@@ -267,7 +267,17 @@ const SOF_INSTANCE_LAYOUT = Object.freeze([
   Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
 ]);
 
-/** Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph. */
+/**
+ * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
+ *
+ * Where the builder resolves an authored SOF6 selector into output values, it
+ * writes the selector beside them under the source member's name with an
+ * underscore prefix: `_colorType`, `_glowColorType`, `_logoType`, `_areaType`
+ * or `_lightColor`. Output colours authored directly as vectors carry no
+ * annotation; selectors are never inferred by comparing a vector with a
+ * palette. Trinity classes declare none of these fields, so hydration ignores
+ * them.
+ */
 @type.define({ className: "EveSOF", family: "eve" })
 export class EveSOF extends CjsModel
 {

@@ -16,7 +16,40 @@ import { CjsCharacterResource } from "../resources/CjsCharacterResource.js";
 export class CjsCharacterAppearanceResolver
 {
 
-    /** Resolves one hydrated paper doll into the currently provable appearance-plan tranche. */
+    /**
+     * Resolves one hydrated paper doll into the currently provable appearance-plan tranche.
+     *
+     * - Source: the part type's `partSources` are filtered by the resource's
+     *   `resGender` (0 female, 1 male); anything but one match is a
+     *   diagnostic. Every strict selected source-version match becomes a plan
+     *   part and layer, and every exact texture candidate is kept.
+     * - Model choice: configuration/geometry are filled when each candidate is
+     *   unique or one model bundle is retained. With a non-negative integer
+     *   `options.requestedLod`, one exact labelled-LOD bundle wins; several
+     *   require one normalized part-family match. Otherwise a sole bundle is
+     *   used. There is no nearest-LOD search, and requested and resolved LOD
+     *   are separate fields.
+     * - Dependencies: a typed reference to an exact part source selects the
+     *   unique dependency version equal to the requester's version, else the
+     *   unique unversioned version; ambiguity is a diagnostic. A non-utility
+     *   `path###<number>` is decoded only with a matching typed relation; the
+     *   relation's weight wins over the suffix and is kept on the layer.
+     * - Suppression: an active selection is suppressed when another active
+     *   selection has an exact typed modifier-location occlusion or an exact
+     *   typed `clothingRemovesCategory` targeting its location. It stays in
+     *   the plan with provenance, but its layers, utility requests and order
+     *   policy do not; cycles stay active with a conflict diagnostic.
+     * - Utility shapes: `utilityshapes/<target>` requests weight 1 and
+     *   `utilityshapes/<target>###<number>` that weight (zero and >1 allowed,
+     *   never clamped); a matching relation's weight wins. Other `#` forms
+     *   stay unresolved. Occlusions suppress the same path; conflicting
+     *   active weights give a diagnostic and no request. Results land in
+     *   `plan.morphTargets` for the renderer to match.
+     * - Colours: every paper-doll colour selection is copied into the plan; an
+     *   unresolved reference is a diagnostic, never a default.
+     *
+     * It creates no targets or passes and merges no version inventories.
+     */
     static resolvePaperdoll(library, paperdoll, options = {})
     {
         if (!library

@@ -134,8 +134,14 @@ export class Tr2EffectRes extends CjsResource
    * Select and hydrate one canonical shader from the complete permutation
    * graph exposed by a Carbon WebGL/Carbon WebGPU raw package.
    *
-   * Global options have Carbon-compatible precedence over caller options.
-   * Unknown option values retain the authored default.
+   * The index is mixed radix with the first axis least significant, so it is
+   * meaningful only against this exact effect's axis order. Per axis:
+   * - a global option naming the axis owns it outright; its locals are not
+   *   consulted, and an invalid global value keeps the default while still
+   *   blocking the locals;
+   * - otherwise the last valid local option for the axis wins;
+   * - an unmatched or invalid value selects the axis's `defaultOption`, which
+   *   is often not 0.
    *
    * @param {Array<object>|Map<string,string>} options Local name/value choices.
    * @param {number|null} count Number of local entries to consider.
@@ -190,13 +196,6 @@ export class Tr2EffectRes extends CjsResource
   }
 
   /**
-   * Hydrate one exact permutation-table index and cache the resulting runtime
-   * graph for this payload.
-   *
-   * @param {number} index Exact permutation index.
-   * @returns {Tr2Shader|null} Canonical shader or null when reflection is absent.
-   */
-  /**
    * The container bytes this resource loaded, or null once released.
    *
    * The reader already holds them - a body cannot be read without the arena
@@ -222,10 +221,14 @@ export class Tr2EffectRes extends CjsResource
   }
 
   /**
-   * One of the effect's shaders by position.
+   * Hydrate one exact permutation-table index and cache the resulting runtime
+   * graph for this payload.
    *
-   * @param {number} index A non-negative index into the shader list.
-   * @returns {object|null} The shader, or null when the index is past the end.
+   * Returns null for an index at or beyond the variant count, or when no
+   * reader is retained. It never clamps and never falls back to index 0.
+   *
+   * @param {number} index Exact non-negative permutation index.
+   * @returns {Tr2Shader|null} The shader, or null when the index is past the end.
    */
   GetShaderByIndex(index)
   {

@@ -106,12 +106,11 @@ The optional neutral music library is a separate `CjsAudioMan` input, not a
 Wwise graph section. `CjsJukebox` sends selected song records to an injected
 loader, decodes bytes with the browser context, and uses an injected
 availability probe. It neither synthesizes Wwise events nor replaces
-`CjsMusicEngine`; see [Optional jukebox](guides/jukebox.md).
+`CjsMusicEngine`; its JSDoc covers the optional jukebox.
 
 ## Related documentation
 
 - [Browser playback guide](guides/browser-playback.md)
 - [Authored SFX programs](guides/sfx.md)
-- [Optional jukebox](guides/jukebox.md)
 - [API reference](reference/api.md)
 - [Carbon compatibility](reference/carbon-compatibility.md)

@@ -179,7 +179,13 @@ export class CjsPngFormat extends CjsImageFormat
     }
 
     /**
-     * One-shot PNG inspection.
+     * One-shot PNG inspection, without decoding pixels.
+     *
+     * Besides the header and chunk summary, reports the ancillary placement
+     * chunks when present, as raw PNG facts with no domain meaning assigned:
+     * `offset: { x, y, unit }` from `oFFs` (signed 32-bit) and
+     * `physicalPixelDimensions: { x, y, unit }` from `pHYs` (unsigned 32-bit);
+     * each is `null` when absent.
      *
      * @param {Uint8Array|ArrayBuffer|DataView} input PNG bytes.
      * @param {object} [options] Inspect options.

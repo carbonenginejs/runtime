@@ -1554,6 +1554,13 @@ export class CjsResMan
    * former canonical handle remains available. This is the explicit form of
    * `FetchResource(path, { reload: true })`.
    *
+   * Diverges from Carbon: `BlueAsyncRes::Reload` reloads the same object in
+   * place, so a failure can leave that handle bad. Here the last good handle
+   * stays canonical until a distinct candidate succeeds, and a failure leaves
+   * its state, payload and adapters in place. Existing references are never
+   * retargeted: they keep the displaced handle, while fresh lookups see the
+   * committed candidate.
+   *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Identity, source, format, and queue settings.
    * @returns {Promise<CjsResource>} Fully loaded committed replacement.

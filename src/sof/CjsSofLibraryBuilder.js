@@ -50,6 +50,16 @@ const CATALOGS = Object.freeze({
 /**
  * Builds and grows one serializable partial SOF catalog from individual Black
  * records, publishing each decoded record into an EveSOFDataMgr.
+ *
+ * It boots `generic.black` (and the generic wreck materials) once, then
+ * fetches only the records a DNA string needs: hulls, faction, race,
+ * materials, patterns, the faction's default pattern and materials, and the
+ * nested layout closure. Each record reaches the manager through its Carbon
+ * `Update*` method and is kept in `data` for `GetValues` persistence.
+ * Concurrent requests for one named record share a single in-flight
+ * operation; `{ force: true }` fetches and replaces a record already
+ * installed. A failed or rejected record rejects the request; no guessed or
+ * empty value is installed in its place.
  */
 export class CjsSofLibraryBuilder
 {

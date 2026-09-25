@@ -41,7 +41,7 @@ export function requireRefactoringAllowed(program, stage)
  * D3D11 arithmetic is NOT promised; `@invariant` instead guarantees identical
  * position results across the pipelines built from the same emitted WGSL,
  * which is the multi-pass invariance `precise` protects in these shaders.
- * See docs/reference/wgsl-compatibility.md ("precise" entry) before changing
+ * See docs/resource/formats/webgpu/reference/wgsl-compatibility.md ("precise" entry) before changing
  * this.
  *
  * @param {object} instruction Typed CJS shader IR instruction.

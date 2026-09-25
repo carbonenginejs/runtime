@@ -389,5 +389,4 @@ described above.
 - [Architecture and boundaries](../architecture.md)
 - [Browser playback guide](../guides/browser-playback.md)
 - [Authored SFX programs](../guides/sfx.md)
-- [Optional jukebox](../guides/jukebox.md)
 - [Carbon compatibility](carbon-compatibility.md)

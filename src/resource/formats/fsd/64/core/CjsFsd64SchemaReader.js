@@ -21,7 +21,13 @@ export class CjsFsd64SchemaReader
         return CjsFsd64SchemaDecoder.readJSON(bytes, this.constructor.getFsdSchema());
     }
 
-    /** Returns the binary-layout schema owned by a reader class. */
+    /**
+     * Returns the binary-layout schema owned by a reader class: the same
+     * validated JSON-shaped object on every call, defined inline on the
+     * subclass (for example `CjsFsd64SchemaRaces`) with no backing property.
+     * Named `getFsdSchema` so `schema`/`getSchema` stay free for the
+     * `CjsModel` schema namespace.
+     */
     static getFsdSchema()
     {
         throw new Error("FSD schema reader must define static getFsdSchema().");

@@ -103,11 +103,30 @@ function copyParameterValue(entry, constant)
 /**
  * Extract reflected, stage-local float constants from a Tr2Effect.
  * Dynamic parameters use CopyValueToEffect so rerouting and sRGB conversion
- * are preserved. Constant parameters are read from their stored vec4 values.
+ * are preserved. Constant parameters supply the requested prefix of their
+ * stored value. Only the reflected names are read, from `effect.parameters`
+ * and `effect.constParameters`.
+ *
+ * Fails closed, throwing an Error whose `code` names the failure:
+ * - `CJS_TRINITY_EFFECT_CONSTANT_INVALID`: missing effect or a malformed
+ *   parameter collection;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_REFLECTION`: empty reflection list, or a
+ *   malformed or duplicate reflected name;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_DUPLICATE`: a parameter name in both
+ *   collections, or twice in one;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_MISSING`: no parameter for a reflected name;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_LAYOUT`: reflected type or element count not
+ *   0, or dimension outside 1-4;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_UNSUPPORTED`: a non-numeric value, such as a
+ *   resource;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_DIMENSION`: wrong value count;
+ * - `CJS_TRINITY_EFFECT_CONSTANT_VALUE`: a value that is not a finite float32.
  *
  * @param {object} effect Tr2Effect-like material instance.
  * @param {object[]} reflectedConstants Reflected constants for one local buffer.
- * @returns {object} Frozen plain name-to-number-array values.
+ * @returns {object} Plain name-to-number-array values. Each property is
+ *   non-writable and non-configurable; the object is not frozen, and the
+ *   arrays are detached copies that stay mutable.
  */
 export function extractTr2EffectConstantValues(effect, reflectedConstants)
 {

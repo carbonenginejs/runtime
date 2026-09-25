@@ -142,7 +142,7 @@ export class Tr2PlatformInfo
     // The WebGL keys are SEPARATE keys, not a reinterpretation of the WebGPU
     // ones. `webgpu === false` states only that WebGPU is absent; it is not
     // evidence that WebGL2 is present, and a behavior selecting a WebGL engine
-    // needs the positive fact. docs/engine-backends-plan.md decision 7.
+    // needs the positive fact.
 
     /** Returns an immutable capability record suitable for CjsLibrary. */
     GetCapabilities()
@@ -203,7 +203,17 @@ export class Tr2PlatformInfo
         return ResolveEffectPath(path, { shaderModel: options.shaderModel, platformName: this.platformName });
     }
 
-    /** Detects privacy-safe browser and WebGPU capabilities. */
+    /**
+     * Detects privacy-safe browser and WebGPU capabilities.
+     *
+     * Uses an injected `adapter`, or requests one from an injected or global
+     * `navigator.gpu`, and never requests a GPUDevice. WebGL2 is probed
+     * beside it unless `webgl: false` is passed; an existing CjsWebGLProbe
+     * may be passed as `webgl` to reuse it. The report describes WebGPU when an
+     * adapter exists, otherwise WebGL when available, otherwise "none". Caps
+     * that browser-visible facts cannot establish stay false, and TAA is true
+     * only when `taa: true` is passed.
+     */
     static async Detect(options = {})
     {
         const navigatorObject = options.navigator ?? globalThis.navigator ?? null;

@@ -33,11 +33,26 @@ const FORMAT_NAME = "CjsHlslFormat";
  * The Cjs prefix marks this as a JavaScript format/construction boundary.
  * This format profile has no dependency on any DXBC/shader-bytecode decoder: shader
  * bodies stay as opaque bytes in the emitted graph. The public contract is
- * plain JSON data (`emit: "json"`, the default) — the documented effect
- * graph shape described in `docs/reference/json-graph.md`. `emit: "raw"`
- * exposes the internal
+ * plain JSON data (`emit: "json"`, the default) — the effect graph described
+ * by `HlslEffectJson` in `core/json.js`. `emit: "metadata"` is the compact,
+ * bytecode-free `HlslEffectMetadata` graph (`core/metadata.js`) for
+ * inspection and pipeline planning. `emit: "raw"` exposes the internal
  * HlslEffectRes graph directly; treat it as unstable, not schema-guaranteed
- * internals, useful mainly for resolving multiple permutations by hand.
+ * internals, useful mainly for resolving multiple permutations by hand. Raw
+ * stage and library inputs keep the authored `sourceConstantValueSize` /
+ * `sourceConstantValues` apart from the mutable `constantValues`.
+ *
+ * Reads container versions 8 through 15. A header that fails to load
+ * (unsupported version, invalid offsets, truncation) throws
+ * `HlslEffectReadError` with the source label; a selected body that fails to
+ * decode yields `effect: null`. An option value that matches no permutation
+ * option falls back to that axis's default.
+ *
+ * `read`, `inspect` and `toJSON` work on caller-supplied bytes only, with no
+ * filesystem access. This format reads the container; it does not compile
+ * HLSL, translate shader instructions, or build the canonical
+ * `Tr2EffectRes`/`Tr2Shader` resources (the resource layer reads the
+ * container itself).
  *
  * The `classes` option lets a caller register constructors for specific
  * node kinds in the emitted JSON graph (see `CjsHlslFormat.classKeys`);

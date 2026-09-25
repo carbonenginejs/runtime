@@ -26,8 +26,7 @@ import { PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js
 
 /**
  * The three-method-tier wave-3 ports - the three classes promoted out of
- * generated/ on 2026-09-06
- * (docs/research/ratchet-three-method-tier-2026-09-06.md).
+ * generated/ on 2026-09-06.
  */
 
 /** A 4x4 mask duck with red 255 only at (2,2), the Tr2ImageRes surface. */
