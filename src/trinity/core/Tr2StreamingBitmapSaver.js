@@ -16,6 +16,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat } from "#consts/render-context";
 import { ALResult } from "../../trinityal/ALResult.js";
+import "#blue/registerTrinityEnums";
 
 /** TGA image types (Tr2TgaHandler.cpp): raw RGB and raw greyscale. */
 const IMAGE_TYPE_RAW_RGB = 2;
@@ -40,7 +41,7 @@ export class Tr2StreamingBitmapSaver extends CjsModel
   /** m_format (Tr2RenderContextEnum::PixelFormat - enum PixelFormat) [READ] */
   @edit.read
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_width (uint32_t) [READ] */

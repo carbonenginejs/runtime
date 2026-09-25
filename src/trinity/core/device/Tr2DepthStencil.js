@@ -26,6 +26,7 @@ import { CjsModel } from "#model";
 import { ConvertDepthStencilFormat, DepthStencilFormat, ExFlag, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
+import "#blue/registerTrinityEnums";
 
 /** Holds the depth-stencil surface a pass renders into, with the parameters it was created with. */
 @type.define({ className: "Tr2DepthStencil", family: "trinityCore" })
@@ -60,7 +61,7 @@ export class Tr2DepthStencil extends CjsModel
 
   @edit.read
   @type.int32
-  @type.enum("DepthStencilFormat")
+  @type.enum("trinity.Tr2RenderContextEnum.DepthStencilFormat")
   format = 7;
 
   @edit.read

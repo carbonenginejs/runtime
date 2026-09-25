@@ -20,6 +20,7 @@ import { ALResult } from "#trinityal";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2MsaaDesc } from "../../../trinityal/Tr2HalHelperStructures/Tr2MsaaDesc.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import "#blue/registerTrinityEnums";
 
 /**
  * Carbon's anonymous `GetUsage` (`cpp:11-27`): a render target is always a
@@ -83,12 +84,12 @@ export class Tr2RenderTarget extends CjsModel
 
   @edit.read
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   @edit.read
   @type.int32
-  @type.enum("TextureType")
+  @type.enum("trinity.ImageIO.TextureType")
   type = 6;
 
   @edit.read

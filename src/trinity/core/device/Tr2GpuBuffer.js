@@ -5,6 +5,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { PixelFormat } from "#consts/render-context";
+import "#blue/registerTrinityEnums";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
 @type.define({ className: "Tr2GpuBuffer", family: "trinityCore" })
@@ -25,7 +26,7 @@ export class Tr2GpuBuffer extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   format = 0;
 
   /** m_count (uint32_t) [READWRITE, PERSIST, NOTIFY] */

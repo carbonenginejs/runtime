@@ -33,6 +33,7 @@ import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import "./EveSpaceScene.js";
 import { blue, EnumRegistrationType } from "#blue";
 import "../../postProcess/effect/Tr2PPEffect.js";
+import "#blue/registerTrinityEnums";
 
 /** Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame. */
 @type.define({ className: "EveSpaceSceneRenderDriver", family: "eve/scene", purpose: "Collects camera, quality, pass-toggle, overlay, background, and post-process state for driving an EVE space-scene frame." })
@@ -72,13 +73,13 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** m_customStencilFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   customStencilFormat = 0;
 
   /** m_internalPixelFormat (ImageIO::PixelFormat - enum PixelFormat) [READWRITE, ENUM] */
   @edit.readwrite
   @type.int32
-  @type.enum("PixelFormat")
+  @type.enum("trinity.ImageIO.PixelFormat")
   internalPixelFormat = 10;
 
   /** m_settings.volumetricQuality (Tr2VolumerticQuality - enum Tr2VolumerticQuality) [READWRITE, ENUM] */
