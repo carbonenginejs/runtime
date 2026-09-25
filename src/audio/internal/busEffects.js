@@ -1905,9 +1905,12 @@ function CreateBiquadFilter(context, band)
 /**
  * Creates a static, all-channel browser approximation of Wwise Flanger.
  *
- * Gain/Delay/Oscillator nodes approximate the unified comb. Every decoded
- * channel is processed despite authored Center/LFE bypass, and feedback is
- * clamped to +/-0.999.
+ * Gain/Delay/Oscillator nodes approximate the unified comb. With the LFO
+ * enabled and nonzero depth, the delay time is
+ * `D * (1 + (depth / 100) * sin(2 * pi * f * t))`; Blend, feedforward,
+ * feedback, Wet/Dry and output gain keep their authored placement. Every
+ * decoded channel is processed despite authored Center/LFE bypass, and
+ * feedback is clamped to +/-0.999.
  */
 function CreateWwiseFlangerApproximation(context, effect)
 {
@@ -2354,7 +2357,12 @@ export function parseStaticWwiseDelayBytes(
     };
 }
 
-/** Decodes the pinned-wwiser static v150 Wwise Flanger parameter block. */
+/**
+ * Decodes the pinned-wwiser static v150 Wwise Flanger parameter block.
+ *
+ * 59 bytes. Admits only the sine waveform (0) with zero phase offset and
+ * spread and phase mode 0 (Left-Right).
+ */
 export function parseStaticWwiseFlangerBytes(
     bytes,
     {
@@ -2472,6 +2480,8 @@ export function parseGraphStaticWwiseFlanger(effect, effectId, slotIndex)
  * Pinned wwiser identifies the plug-in and shows the corresponding modulation
  * and phase sequence inside Flanger, but does not decode Tremolo's own 38-byte
  * record. The EVE corpus supports this version- and shape-bounded inference.
+ * Waveform IDs 0, 1 and 2 are Sine, Square and Triangle, pinned by the
+ * authoring order and the corpus presets.
  */
 export function parseStaticWwiseTremoloBytes(
     bytes,
@@ -2612,7 +2622,12 @@ export function parseGraphStaticWwiseTremolo(effect, effectId, slotIndex)
     );
 }
 
-/** Decodes one source-proven static v150 Wwise Matrix Reverb block. */
+/**
+ * Decodes one source-proven static v150 Wwise Matrix Reverb block.
+ *
+ * Only the 29-byte default-delay form is accepted; custom delay mode appends
+ * one f32 per delay and is rejected by length and by the mode field.
+ */
 export function parseStaticWwiseMatrixReverbBytes(
     bytes,
     {
@@ -2722,8 +2737,10 @@ export function parseGraphStaticWwiseRoomVerb(effect, effectId, slotIndex)
 /**
  * Decodes the source-proven static v150 Guitar Distortion layout used by EVE.
  *
- * Pinned wwiser proves the six EQ-band records and trailing distortion fields.
- * It does not reveal the proprietary Heavy transfer curve, so the portable
+ * 126 bytes: three pre-EQ then three post-EQ 17-byte bands (the Parametric EQ
+ * band layout), then u32 distortion type and f32 Drive, Tone, Rectification,
+ * output gain dB and Wet/Dry. Pinned wwiser proves this layout but does not
+ * reveal the proprietary Heavy transfer curve, so the portable
  * record remains inert unless the host explicitly selects an approximation.
  */
 export function parseStaticWwiseGuitarDistortionBytes(
@@ -3126,6 +3143,8 @@ export function parseGraphFeedbackFreeMeter(
  * Admits static Parametric EQ, static Wwise Delay and a transparent Meter.
  * Compressor and Peak Limiter pass only under
  * `wwiseDynamics: "approximate-web-audio"`. Every other plug-in throws.
+ * Flanger and Tremolo stay source-local because their oscillators follow a
+ * scheduled source's lifetime, which a shared Bus does not have.
  */
 export function parseGraphSharedBusEffect(
     effect,

@@ -344,4 +344,6 @@ replaces the list.
   are ignored.
 - Music Pause/Resume must be game-object element or All (target 0) without
   flags, exceptions, delays, randomized transitions or probability. An event
-  that mixes them with Play, Stop or setters throws.
+  that mixes them with Play, Stop or setters throws. An element action whose
+  target is not a postable music root is dropped. Repeated actions are kept
+  in order, because their count sets the nested pause depth.

@@ -120,7 +120,13 @@ export class CjsAudioBackendSfxVoice
         this.offsetSeconds = 0;
     }
 
-    /** Starts voice-owned scheduled effect nodes at the first physical start. */
+    /**
+     * Starts voice-owned scheduled effect nodes at the first physical start.
+     *
+     * Flanger and Tremolo oscillators start once here and keep running, and
+     * so keep their phase, through pause and source recreation until
+     * `StopSourceEffects()`.
+     */
     StartSourceEffects(at)
     {
         if (this.sourceEffectsStarted) return;

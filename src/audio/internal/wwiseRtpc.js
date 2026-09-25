@@ -44,7 +44,12 @@ export function evaluateWwiseRtpcCurve(points, value, field = "value")
     return Number(last[field]) || 0;
 }
 
-/** Applies Wwise's dB curve scaling to one serialized RTPC output value. */
+/**
+ * Applies Wwise's dB curve scaling to one serialized RTPC output value.
+ *
+ * Wwise interpolates the raw curve values first and converts afterwards, so
+ * catalogs keep raw values and callers convert only the interpolated result.
+ */
 export function wwiseDbRtpcValueToDb(value)
 {
     const raw = Math.min(1, Math.max(-1, Number(value) || 0));

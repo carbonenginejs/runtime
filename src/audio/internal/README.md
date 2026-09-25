@@ -209,6 +209,11 @@ targeted by a retained Set/Reset Bus Volume action
 incoming duck target on the path also counts, although Wwise declares that
 rule on the separate source Bus. A Meter omission is not audible.
 
+Bus Volume actions stay route-local because they are scoped to one playing
+instance or game object. Driving the shared fader would change unrelated
+voices and music, and a gain before an audible effect would change only new
+input while, for example, a Delay tail kept the old gain.
+
 A route with an audible effect and any route control is blocked, with one
 exception. It is admitted when all of these hold:
 

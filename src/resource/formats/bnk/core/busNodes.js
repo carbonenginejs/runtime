@@ -2,6 +2,18 @@
 // supplied by inspect() starts after the object id. Records preserve authored
 // routing, bus policy, ducking, effect references, metadata, RTPCs, and state
 // without assigning runtime mixing or plug-in semantics.
+//
+// Payload prefix (little-endian):
+//   +0 u32 overrideBusId    parent Bus; 0 means root
+//   +4 u32 outputDeviceId   root only
+//   AkPropBundle: u8 count, u8 ids[count], u32 values[count]
+// The property count therefore sits at +4 on a child and +8 on a root. The
+// value array is parallel to the id array. Bus Volume (0x04), Make-Up Gain
+// (0x05) and Output Bus Volume (0x0d) are separate float32 properties; an
+// absent one projects as null, distinct from an authored 0. Any duplicate id,
+// non-finite gain, truncation or trailing byte rejects the typed record, and
+// the catalog reports it under `failed` while raw inspection keeps the entry.
+// Records carry no child list; consumers derive children from parent links.
 
 import {
     boundedCount,

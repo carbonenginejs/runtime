@@ -411,7 +411,13 @@ export class CjsBusDuckingController
         this.#listeners.clear();
     }
 
-    /** Evaluates one source-to-target duck envelope at a context time. */
+    /**
+     * Evaluates one source-to-target duck envelope at a context time.
+     *
+     * A start during Recovery cancels the pending release and keeps the
+     * current duck. A start during Fade In begins a new Fade Out from the
+     * current gain.
+     */
     #EvaluateTarget(source, target, at)
     {
         const events = [];

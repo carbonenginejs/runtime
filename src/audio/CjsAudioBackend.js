@@ -2755,7 +2755,14 @@ export class CjsAudioBackend
         this.#musicEngine?.RefreshBusVolumeGains?.();
     }
 
-    /** Applies one game-object Bus-target Voice Volume mutation. */
+    /**
+     * Applies one game-object Bus-target Voice Volume mutation.
+     *
+     * The value is stored on the posting emitter, keyed by target Bus, and
+     * every voice of that emitter reads the same map, including voices posted
+     * by a later event. Each voice applies it on its own gain before the
+     * route's Bus processing; it is Voice Volume, never Bus Volume.
+     */
     #ApplySfxBusVoiceVolume(action)
     {
         if (action.scope !== "game-object"
@@ -4527,7 +4534,15 @@ export class CjsAudioBackend
         };
     }
 
-    /** Gets or creates one graph-backed route branch within an emitter generation. */
+    /**
+     * Gets or creates one graph-backed route branch within an emitter generation.
+     *
+     * Branches are keyed by exact route handle and spatial mode: 3D voices on
+     * the same route share one panner, other routes get their own, and 2D
+     * uses a separate flat branch. A qualified branch feeds its own analyser
+     * and then the shared mixer entry; a blocked one feeds the emitter/SFX
+     * destination.
+     */
     #GetEmitterRouteBranch(
         emitterNodes,
         gameObjID,

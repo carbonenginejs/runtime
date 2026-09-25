@@ -4,10 +4,9 @@
 // `CjsBnkFormat.wwise` next to the event graph walk - interpretation over
 // `inspect()` results, never part of the format read path.
 //
-// Verified against EVE soundbanks (bank generator version 150 / Wwise
-// 2022.1): 2,484 tracks, 1,326 segments, 214 playlists, and 54 switch
-// containers across music.bnk + music_essential.bnk all decode with the
-// exact-end validation below (2026-07-19 corpus run).
+// Targets bank generator version 150 (Wwise 2022.1); every music node in
+// EVE's music.bnk and music_essential.bnk decodes with the exact-end
+// validation below.
 //
 // Approach: consumers of these nodes (music schedulers) only need the fields
 // AFTER the variable-length NodeBaseParams block - children, meter, stingers,
@@ -17,6 +16,12 @@
 // when it consumes the payload EXACTLY to its end. Track clips live at the
 // head (before NodeBaseParams) and the track's type block is tail-validated
 // the same way.
+//
+// Every record also returns its NodeBaseParams prefix as `nodeBase`, which
+// carries output-bus routing. Segment, playlist and switch decode it from
+// `[1, anchor)` (byte 0 is uFlags); a track from `[headEnd, typeAt)` or
+// `[headEnd, simpleAt)`. The range must decode exactly or the candidate
+// layout is rejected.
 
 import { WwiseCursor, parseNodeBaseRange } from "./nodeBase.js";
 

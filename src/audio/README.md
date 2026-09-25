@@ -30,6 +30,11 @@ geometry data, settings and refcounts still reach an injected backend.
 Playback imports the WEM format lazily, only when original WEM bytes need
 preparing.
 
+The application's SFX and music sliders are separate category gains
+(`CjsAudioBackend.SetSfxVolume`, `CjsMusicEngine.SetMusicVolume`, through
+`busMixer.SetCategoryVolume`). Bus Volume actions, Voice/Bus Volume RTPCs and
+Bus Volume States never move them.
+
 Owned elsewhere:
 - WEM, BNK, Ogg parsing and CPU conversion: `runtime/resource`;
 - exact-build acquisition, caches, prefetch, CLI and HTTP routes: tools-core,

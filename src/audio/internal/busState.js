@@ -51,7 +51,13 @@ export function busStatePathUses(catalog, busPathIds, property)
     return false;
 }
 
-/** Evaluates additive Immediate Bus State properties across a dry ancestry. */
+/**
+ * Evaluates additive Immediate Bus State properties across a dry ancestry.
+ *
+ * Every Bus and group adds its weighted state values; a current state with no
+ * authored case adds nothing. LPF/HPF sums stay signed and unclamped, so a
+ * negative value offsets another Bus before the caller's single clamp.
+ */
 export function evaluateBusStateProperties(
     catalog,
     busPathIds,
