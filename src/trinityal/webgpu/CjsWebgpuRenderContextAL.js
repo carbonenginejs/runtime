@@ -1025,14 +1025,11 @@ export class CjsWebgpuRenderContextAL
    * into its current texture, so there is nothing to do beyond ending the
    * frame's work.
    *
-   * AWAITS, because `EndScene` on this backend does. Returning its promise
-   * unawaited would hand a caller expecting a boolean something truthy that is
-   * not a result - the frame would still be encoding when presentation was
-   * reported complete.
+   * Synchronous, as `EndScene` is: the frame is submitted when this returns.
    *
-   * @returns {Promise<boolean>} True once the frame is submitted.
+   * @returns {boolean} True once the frame is submitted.
    */
-  async Present()
+  Present()
   {
     return this.EndScene();
   }

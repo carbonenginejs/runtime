@@ -34,7 +34,10 @@ export class Tr2BindingPoint extends CjsModel
   @type.string
   path = "";
 
+  // Every embedding owner exposes it READWRITE|PERSIST|NOTIFY
+  // (Tr2ActionSetValue_Blue.cpp:18, Tr2ActionAnimateValue_Blue.cpp:19).
   @edit.notify
+  @edit.readwrite
   @edit.persist
   @type.objectRef("IRoot")
   object = null;

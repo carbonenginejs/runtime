@@ -56,6 +56,8 @@ export class Tr2Light extends CjsModel
   @type.mat4
   boneTransform = mat4.create();
 
+  // Every subclass exposes it Be::READ (Tr2PointLight_Blue.cpp:44 and siblings).
+  @edit.read
   @type.objectRef("Tr2LightProfileRes")
   lightProfile = null;
 
