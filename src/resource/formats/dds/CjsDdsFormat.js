@@ -46,6 +46,12 @@ const LEGACY_PIXEL_FORMATS = {
  * support, and reads DDS bytes into raw, GPU-free texture, image, or
  * software-decoded RGBA and float payloads (BC1-BC5, BC7, and BC6H
  * included).
+ *
+ * The decoded `rgba`/`image` output is narrower than `texture`: it decodes only
+ * the first subresource (every slice of a volume, but no further mips, cube
+ * faces or array layers). BC1-BC5 and BC7 decode to RGBA8; BC6H decodes to
+ * linear `Float32Array` RGBA without clamping HDR values. A successful RGBA
+ * probe therefore says nothing about multi-subresource support.
  */
 export class CjsDdsFormat extends CjsImageFormat
 {

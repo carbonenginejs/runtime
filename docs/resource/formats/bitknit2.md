@@ -7,8 +7,8 @@ Summary: Normative decoding specification for Granny .gr2 section-compression fo
 
 This page specifies the BitKnit2 bitstream as interoperability facts so a
 decoder can be implemented from this document alone. It was derived by
-analyzing the behavior of the package's working decoder and is validated by a
-differential corpus harness (536 real streams, EVE build 3444265, byte-exact).
+analyzing the behavior of the package's working decoder and is validated
+byte-exact against real EVE `.gr2` streams.
 BitKnit is a RAD Game Tools codec; this document records the on-disk format
 only and contains no RAD source material.
 
@@ -215,7 +215,7 @@ coded quantum ending with neither entropy state equal to `0x10000`.
 
 ## Validation
 
-The normative oracle is the differential corpus harness: byte-exact equality
-over every BitKnit2 section payload and pointer-fixup stream extracted from
-the EVE `.gr2` corpus, plus synthetic raw-quantum streams. A decoder is not
+The normative oracle is byte-exact equality over every BitKnit2 section
+payload and pointer-fixup stream extracted from the EVE `.gr2` corpus, plus
+synthetic raw-quantum streams. A decoder is not
 conformant until it matches the corpus byte-for-byte.
