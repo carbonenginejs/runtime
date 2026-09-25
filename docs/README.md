@@ -7,7 +7,7 @@ Summary: Explains the consolidated private runtime and routes readers to its cur
 
 > **This PUBLIC documentation ships inside the npm artifact:** no machine
 > paths, credentials, or internal-only material. It owns the shipped package's
-> concepts, references, guides, roadmap, and supported or refused behavior.
+> concepts, references, guides, and supported or refused behavior.
 > Internal decisions, direction, and research live separately. The split is by
 > audience, not topic: check both trees before concluding a question has no owner.
 
@@ -17,30 +17,25 @@ Summary: Explains the consolidated private runtime and routes readers to its cur
 layer contract, and migration metadata. Maintained domains include the global
 foundation, resource/formats, Trinity/EVE graphs, standalone SOF,
 headless-by-default audio, CPU/data character with isolated appearance backends,
-GPU-free composition, browser platform snapshots, and host-window/input adapters.
+browser platform snapshots, and host-window/input adapters.
 WebGPU is an explicit opt-in subpath. The residual `/tools` surface owns
 browser-safe file-index helpers; demo UI and the realtime client moved to
-`@carbonenginejs/demos` (see the `src/tools/index.js` module comment).
+`@carbonenginejs/demos`.
 
 ## Use this package when
 
-Source consolidation completed on 2026-08-23. Maintainers use this repository
-to validate the combined layer graph and prepare the coordinated consumer,
-registry, and first-release cutover. Registry consumers continue using the
-published donor packages until that cutover.
-
-After cutover, consumers will use focused runtime subpaths for math, schemas,
-resources, Trinity graphs, SOF, audio, character behavior, input, composition,
-an explicitly selected renderer engine, or browser-safe tools.
+Use its focused subpaths for math, schemas, resources and formats, Trinity
+graphs, SOF, audio, character behavior, input, an explicitly selected renderer
+backend, or the file-index tools.
 
 ## Where it fits
 
-The dependency floor is `global`, including dependency-free nominal contracts.
-Resource and domain layers build above that floor. WebGPU and any future WebGL
-implementation are sibling engine layers below `core`; they may consume
-canonical resource and Trinity identities but never import `core`, browser
-tools, or one another. `core` composes the lower layers. Browser-safe `tools`
-sit at the top and remain off the default surface.
+The dependency floor is `global`. Resource and domain layers build above it;
+Trinity renders through the `trinityal` abstraction layer, headless on its stub
+until a backend such as `trinityal/webgpu` is installed. Backends may consume
+resource and Trinity identities but never import `core` or one another.
+`core` may import every layer; `tools` imports only `global/utils` and stays
+off the default surface. [Architecture](architecture.md) has the diagram.
 
 `@carbonenginejs/tools-core` stays separate because it owns Node.js and native
 build-time work. It may generate reviewed source artifacts for this package,
@@ -85,6 +80,7 @@ core, and tools.
 ## Documentation map
 
 - [Architecture and layer ownership](architecture.md)
+- [Resource formats: map, import rule, writers](resource/formats/README.md)
 - [SOF builder and data model](sof/README.md)
 - [Audio: browser playback](audio/guides/browser-playback.md)
 - [Character: runtime usage](character/guides/runtime-usage.md)
