@@ -7,7 +7,9 @@ const
  * Represents one structured operational failure with a stable CarbonEngineJS code.
  *
  * Programmer-contract violations should continue to use native error classes
- * such as `TypeError`, `RangeError`, and `SyntaxError`.
+ * such as `TypeError`, `RangeError`, and `SyntaxError`. An expected `Find*`
+ * miss returns `null`; a coded error is for acquisition, provider, state or
+ * resolution work that actually failed. `AggregateError` stays the aggregate.
  *
  * Each package owns its `CJS_*` codes; there is no central code registry, and
  * only the code's shape is validated. `details` is cloned and frozen but not

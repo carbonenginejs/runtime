@@ -7,7 +7,9 @@
  * - no import of another `@carbonenginejs/*` package or of a higher runtime
  *   layer (resource, trinity, trinityal, core, input, tools); focused
  *   browser-safe third-party primitives such as `gl-matrix` are allowed;
- * - no Node built-ins or Node-only globals;
+ * - no Node built-ins or Node-only globals; a helper that needs a platform API
+ *   (DecompressionStream and Response, TextEncoder and TextDecoder) throws an
+ *   unsupported-environment error when it is missing, never a Node fallback;
  * - every public subpath stays importable on its own, and module evaluation
  *   does no environment-specific work.
  *
