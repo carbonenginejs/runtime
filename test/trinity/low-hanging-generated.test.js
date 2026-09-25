@@ -12,6 +12,7 @@ import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { EveChildBulletStorm } from "../../npm/dist/trinity/eve/child/EveChildBulletStorm.js";
 import { EveChildExplosion } from "../../npm/dist/trinity/eve/child/EveChildExplosion.js";
+import { EveChildContainer } from "../../npm/dist/trinity/eve/child/EveChildContainer.js";
 import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveChildInstanceContainer.js";
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
@@ -430,28 +431,15 @@ test("EveChildBulletStorm rebuilds locator instances and transitions its clip sp
 
 test("EveChildExplosion schedules local and global Carbon explosion children", () =>
 {
-  const setups = [];
-
-  // A CLONE THAT LANDS IN `objects` HAS TO BE A CHILD. EveChildExplosion
-  // schedules its clones and then drives them with the four child verbs, so a
-  // bare literal only worked while those calls were hedged. Extending
-  // EveSpaceObjectChild inherits Carbon's do-nothing defaults for all four.
-  class ExplosionClone extends EveSpaceObjectChild
-  {
-    constructor(name, onSetup)
-    {
-      super();
-      this.name = name;
-      this.Setup = onSetup;
-    }
-  }
-
-  const makeEffect = name => ({
-    Clone: () => new ExplosionClone(name, (...args) => setups.push([ name, ...args ]))
-  });
+  // Both spawns copy their source through blue.classes.CopyTo (cpp:228, 474),
+  // so the sources are real registered children and the spawned ones are copies.
+  const local = new EveChildContainer();
+  local.name = "local";
+  const global = new EveChildContainer();
+  global.name = "global";
   const explosion = new EveChildExplosion();
-  explosion.localExplosion = makeEffect("local");
-  explosion.globalExplosion = makeEffect("global");
+  explosion.localExplosion = local;
+  explosion.globalExplosion = global;
   explosion.localExplosionInterval = 0;
   explosion.localDuration = 1;
   explosion.globalDuration = 1;
@@ -462,10 +450,14 @@ test("EveChildExplosion schedules local and global Carbon explosion children", (
   assert.equal(explosion.Play(), true);
   assert.equal(explosion.isPlaying, true);
   explosion.UpdateSyncronous({ GetDeltaT: () => 0.1 });
-  assert.equal(setups.length, 1);
-  assert.equal(setups[0][0], "local");
-  assert.deepEqual(Array.from(setups[0][3]), [5, 6, 7]);
+  const spawned = explosion.objects.find(object => object.name === "local");
+  assert.ok(spawned, "the local explosion was spawned");
+  assert.notEqual(spawned, local, "as a copy, not the source");
+  assert.deepEqual(Array.from(spawned.translation), [5, 6, 7], "and set up at the authored position");
+  assert.deepEqual(Array.from(local.translation), [0, 0, 0], "leaving the source untouched");
   assert.equal(explosion.globalExplosionInstances.length, 1);
+  assert.notEqual(explosion.globalExplosionInstances[0], global);
+  assert.equal(explosion.globalExplosionInstances[0].name, "global");
   assert.ok(explosion.generatedGlobalExplosions);
   explosion.Stop();
   assert.equal(explosion.isPlaying, false);

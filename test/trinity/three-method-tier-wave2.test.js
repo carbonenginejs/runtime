@@ -16,6 +16,7 @@ import { Tr2TexturePipelineStepPack, Tr2TexturePackChannel } from "../../npm/dis
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 
 /**
  * The three-method-tier wave-2 ports, each pinned to the donor body re-read
@@ -182,9 +183,19 @@ test("EveChildExplosion shares, aliases and rebases as Carbon's copier flow does
   explosion.localExplosionShared = sharedRoot;
 
   explosion.FindSharedObjects();
-  assert.equal(explosion.CopyElement(sharedRoot), sharedRoot, "the root is shared");
-  assert.equal(explosion.CopyElement(sharedThing), sharedThing, "reached through the persisted list");
-  assert.equal(explosion.CopyElement(new EveChildExplosion()), undefined, "anything else falls back to the copier");
+  assert.deepEqual(explosion.CopyElement(sharedRoot), { result: 0, dest: sharedRoot }, "the root is shared (SUCCESS)");
+  assert.deepEqual(explosion.CopyElement(sharedThing), { result: 0, dest: sharedThing }, "reached through the persisted list");
+  assert.deepEqual(explosion.CopyElement(new EveChildExplosion()), { result: 2 }, "anything else falls back to the copier");
+
+  // Through the real copier: a copied local explosion aliases the shared
+  // node and duplicates everything else.
+  const local = new EveChildExplosion();
+  const ownChild = new EveChildExplosion();
+  local.objects.push(sharedThing, ownChild);
+  const copy = blue.classes.CopyTo(local, null, from => explosion.CopyElement(from));
+  assert.notEqual(copy, local);
+  assert.equal(copy.objects[0], sharedThing, "shared node aliased");
+  assert.notEqual(copy.objects[1], ownChild, "own node copied");
 
   // UpdateEmitter: the donor's conj(rot)*p*rot sandwich - the INVERSE of
   // TriVectorRotateQuaternion - carried exactly. A -90-degree-about-Y

@@ -2,6 +2,7 @@
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildExplosion.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { blue, ICopier } from "#blue";
 import { EveChildContainer } from "./EveChildContainer.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -290,7 +291,13 @@ export class EveChildExplosion extends EveChildContainer
     const scale = mat4.getScaling(vec3.create(), transform);
     const rotation = mat4.getRotation(quat.create(), transform);
     const position = mat4.getTranslation(vec3.create(), transform);
-    const instance = this.#CopyLocalExplosion(source, { position, rotation });
+    const t = { position, rotation };
+    const instance = blue.classes.CopyTo(
+      source,
+      null,
+      from => this.CopyElement(from),
+      (from, dest) => EveChildExplosion.updateEmitter(dest, t)
+    );
     if (!instance) return;
     instance.Setup?.(scale, rotation, position, 0);
     this.objects.push(instance);
@@ -343,15 +350,17 @@ export class EveChildExplosion extends EveChildContainer
    * Carbon CopyElement (EveChildExplosion.cpp:401-421), the ICopier override:
    * a node in the shared set is ALIASED into the copy rather than duplicated
    * (Carbon relocks the pointer; JS aliases the reference), anything else
-   * falls back to the ordinary copier. Returns the object to use, or
-   * undefined for FALLBACK.
+   * falls back to the ordinary copier. Answers in the Copier override's
+   * `{ result, dest }` form.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's ICopier callback writes an out-pointer and returns an OverrideResult; JS returns the alias or undefined-for-FALLBACK.")
+  @impl.reason("Carbon's ICopier callback is static, takes the explosion as its void* context and writes an out-pointer; JS is bound to the explosion and returns { result, dest }.")
   CopyElement(source)
   {
-    return this.#sharedObjects.has(source) ? source : undefined;
+    return this.#sharedObjects.has(source)
+      ? { result: ICopier.OverrideResult.SUCCESS, dest: source }
+      : { result: ICopier.OverrideResult.FALLBACK };
   }
 
   /**
@@ -392,67 +401,7 @@ export class EveChildExplosion extends EveChildContainer
   }
 
   /**
-   * The CopyTo call SpawnLocalExplosion makes (cpp:474): a deep copy of the
-   * source graph in which CopyElement's shared aliases survive and every
-   * copied node passes through UpdateEmitter. CjsModel.Clone rehydrates
-   * through plain value bags and cannot alias, so the copy walks the schema
-   * directly: persisted reference fields recurse, everything else takes the
-   * clone-by-values path per node.
-   */
-  #CopyLocalExplosion(source, transform, copies = new Map())
-  {
-    if (!source || typeof source !== "object") return source;
-
-    const aliased = this.CopyElement(source);
-    if (aliased !== undefined) return aliased;
-    if (copies.has(source)) return copies.get(source);
-
-    if (typeof source.constructor !== "function" || !CjsSchema.getSchema(source.constructor)?.fields?.length)
-    {
-      // A schema-less duck (a host-supplied effect source) cannot be walked;
-      // its own Clone is the ordinary-copier arm for it, passthrough failing
-      // that. Shared aliasing above still applies to it.
-      return typeof source.Clone === "function" ? source.Clone() : source;
-    }
-
-    const copy = new source.constructor();
-    copies.set(source, copy);
-
-    for (const field of CjsSchema.getSchema(source.constructor).fields)
-    {
-      if (!field.edit?.persist) continue;
-      const kind = field.type?.kind;
-      const value = source[field.name];
-      if (value === undefined) continue;
-
-      if (kind === "model" || kind === "objectRef")
-      {
-        copy[field.name] = this.#CopyLocalExplosion(value, transform, copies);
-      }
-      else if (kind === "list" && Array.isArray(value))
-      {
-        copy[field.name] = value.map(item => this.#CopyLocalExplosion(item, transform, copies));
-      }
-      else if (ArrayBuffer.isView(value))
-      {
-        copy[field.name] = value.slice();
-      }
-      else if (Array.isArray(value))
-      {
-        copy[field.name] = value.map(item => ArrayBuffer.isView(item) ? item.slice() : item);
-      }
-      else
-      {
-        copy[field.name] = value;
-      }
-    }
-
-    EveChildExplosion.updateEmitter(copy, transform);
-    return copy;
-  }
-
-  /**
-   * Clones the global explosion sources into a newly positioned and scaled container child, tracks the instances, and adds the container to the objects.
+   * Copies the global explosion sources into a newly positioned and scaled container child, tracks the instances, and adds the container to the objects.
    */
   #SpawnGlobalExplosions()
   {
@@ -461,7 +410,8 @@ export class EveChildExplosion extends EveChildContainer
     container.Setup(this.globalScaling, quat.create(), this.globalExplosionOffset, 0);
     for (const source of sources)
     {
-      const instance = source?.Clone?.() ?? source;
+      // BeClasses->CopyTo with no callbacks (cpp:228, 265).
+      const instance = source ? blue.classes.CopyTo(source) : null;
       if (!instance) continue;
       container.objects.push(instance);
       this.globalExplosionInstances.push(instance);
