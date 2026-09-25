@@ -5,7 +5,7 @@ import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsResMan, RegisterTextureResources } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
-import { ALResult, Tr2BitmapDimensions } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 // Carbon creates a texture with one Tr2SubresourceData per (mip, layer),
@@ -57,8 +57,8 @@ function composed()
 function bc1Mips()
 {
   return [
-    { sysMem: new Uint8Array(32), sysMemPitch: 16, sysMemSlicePitch: 32 },
-    { sysMem: new Uint8Array(8), sysMemPitch: 8, sysMemSlicePitch: 8 }
+    new Tr2SubresourceData(new Uint8Array(32), 16, 32),
+    new Tr2SubresourceData(new Uint8Array(8), 8, 8)
   ];
 }
 
@@ -97,7 +97,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
 
-  texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ { sysMem: new Uint8Array(256), sysMemPitch: 32, sysMemSlicePitch: 256 } ] }, al);
+  texture.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { initialData: [ new Tr2SubresourceData(new Uint8Array(256), 32, 256) ] }, al);
 
   const linear = texture.GetDeviceTextureView("2d", 0);
   const srgb = texture.GetDeviceTextureView("2d", 1);
@@ -112,7 +112,7 @@ test("views are made per dimension and colour space, once each; sRGB reinterpret
   // A format with no sRGB sibling answers the linear view for both spaces.
   const single = new CjsWebgpuTextureAL();
 
-  single.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), { initialData: [ { sysMem: new Uint8Array(16), sysMemPitch: 16, sysMemSlicePitch: 16 } ] }, al);
+  single.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_BC5_UNORM), { initialData: [ new Tr2SubresourceData(new Uint8Array(16), 16, 16) ] }, al);
   assert.equal(single.GetDeviceTextureView("2d", 1).format, undefined);
   assert.equal(calls.textures[1].viewFormats, undefined);
 });
@@ -122,7 +122,7 @@ test("a cube uploads six layers in Carbon's mip + layer * mipCount order, and vi
   const { al, calls } = composed();
   const texture = new CjsWebgpuTextureAL();
   const desc = new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_CUBE, format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, width: 2, height: 2, depth: 1, mipCount: 1, arraySize: 6 });
-  const initialData = Array.from({ length: 6 }, (_, face) => ({ sysMem: new Uint8Array(16).fill(face), sysMemPitch: 8, sysMemSlicePitch: 16 }));
+  const initialData = Array.from({ length: 6 }, (_, face) => (new Tr2SubresourceData(new Uint8Array(16).fill(face), 8, 16)));
 
   assert.equal(texture.Create(desc, { initialData }, al), ALResult.S_OK);
   assert.deepEqual(calls.textures[0].size, { width: 2, height: 2, depthOrArrayLayers: 6 });
@@ -158,7 +158,7 @@ test("the context creates the backend's texture, and Create accepts Trinity's co
 {
   const { al } = composed();
   const desc = Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
-  const data = [ { sysMem: new Uint8Array(64), sysMemPitch: 16, sysMemSlicePitch: 64 } ];
+  const data = [ new Tr2SubresourceData(new Uint8Array(64), 16, 64) ];
 
   assert.ok(al.CreateTexture(desc, { initialData: data }) instanceof CjsWebgpuTextureAL);
   assert.equal(al.CreateTexture(desc, {}), null, "a refused create is null");
@@ -243,7 +243,7 @@ test("a CPU-writable texture maps for writing and uploads on unmap (Carbon's Map
   const texture = new CjsWebgpuTextureAL();
   // 4x2 RGBA32F, zero-filled, CPU read|write: Tr2DataTextureManager::OnPrepareResources.
   const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT);
-  const init = [ { sysMem: new Uint8Array(128), sysMemPitch: 64, sysMemSlicePitch: 128 } ];
+  const init = [ new Tr2SubresourceData(new Uint8Array(128), 64, 128) ];
 
   assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE, initialData: init }, al), ALResult.S_OK);
   assert.equal(calls.textures[0].format, "rgba32float");
@@ -269,7 +269,7 @@ test("MapForWriting refuses a texture without CPU write, and a box it cannot pre
   const { Tr2TextureSubresource } = await import("../../../npm/dist/trinityal/index.js");
   const { al } = composed();
   const desc = Tr2BitmapDimensions.texture2D(4, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
-  const init = [ { sysMem: new Uint8Array(32), sysMemPitch: 16, sysMemSlicePitch: 32 } ];
+  const init = [ new Tr2SubresourceData(new Uint8Array(32), 16, 32) ];
 
   const readOnly = new CjsWebgpuTextureAL();
   readOnly.Create(desc, { initialData: init }, al);

@@ -61,8 +61,8 @@ test("a texture payload describes Carbon's bitmap dimensions and subresource arr
   assert.equal(described.desc.GetType(), TextureType.TEX_TYPE_2D);
   assert.equal(described.desc.GetMipCount(), 2);
   assert.equal(described.initialData.length, 2);
-  assert.deepEqual([ described.initialData[0].sysMemPitch, described.initialData[0].sysMem.byteLength ], [ 16, 32 ]);
-  assert.equal(described.initialData[1].sysMem[0], 2, "the second mip's bytes, not the first's");
+  assert.deepEqual([ described.initialData[0].m_sysMemPitch, described.initialData[0].m_sysMem.byteLength ], [ 16, 32 ]);
+  assert.equal(described.initialData[1].m_sysMem[0], 2, "the second mip's bytes, not the first's");
 
   // A cube's subresources land at mip + layer * mipCount.
   const cube = DescribeTexturePayload({
@@ -79,7 +79,7 @@ test("a texture payload describes Carbon's bitmap dimensions and subresource arr
   const rgba = DescribeTexturePayload({ payloadType: "rgba", width: 2, height: 1, pixelFormat: "rgba8unorm", data: new Uint8Array(8), strideBytes: 8, origin: "top-left", colorSpace: "srgb", alphaMode: "straight" });
 
   assert.equal(rgba.desc.GetFormat(), PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB);
-  assert.equal(rgba.initialData[0].sysMemPitch, 8);
+  assert.equal(rgba.initialData[0].m_sysMemPitch, 8);
 
   assert.equal(DescribeTexturePayload({ payloadType: "video" }), null);
   assert.equal(DescribeTexturePayload({ payloadType: "texture", pixelFormat: "rgb8unorm", dimension: "2d", width: 1, height: 1 }), null, "a format Carbon cannot spell");

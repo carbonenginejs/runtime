@@ -15,6 +15,7 @@
 // the resource exactly where Carbon stores it. A resource not yet prepared
 // yields null, and the parameter binds Carbon's fallback instead.
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
+import { Tr2SubresourceData } from "#trinityal";
 import { PixelFormat, PixelFormatFromCanonical, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 
 
@@ -56,11 +57,11 @@ export function DescribeTexturePayload(payload)
         1,
         srgb ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB : PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM
       ),
-      initialData: [ {
-        sysMem: payload.data,
-        sysMemPitch: payload.strideBytes ?? payload.width * 4,
-        sysMemSlicePitch: payload.data.byteLength
-      } ]
+      initialData: [ new Tr2SubresourceData(
+        payload.data,
+        payload.strideBytes ?? payload.width * 4,
+        payload.data.byteLength
+      ) ]
     };
   }
 
@@ -100,11 +101,11 @@ export function DescribeTexturePayload(payload)
 
     if (index < 0 || index >= initialData.length) continue;
 
-    initialData[index] = {
-      sysMem: payload.data.subarray(subresource.offset, subresource.offset + subresource.byteLength),
-      sysMemPitch: subresource.rowPitch,
-      sysMemSlicePitch: subresource.slicePitch
-    };
+    initialData[index] = new Tr2SubresourceData(
+      payload.data.subarray(subresource.offset, subresource.offset + subresource.byteLength),
+      subresource.rowPitch,
+      subresource.slicePitch
+    );
   }
 
   return { desc, initialData };
@@ -139,11 +140,7 @@ export function DescribeBitmap(bitmap)
 
       const sysMemSlicePitch = bitmap.GetMipSize(mip);
 
-      initialData[mip + layer * mipCount] = {
-        sysMem,
-        sysMemPitch: bitmap.GetMipPitch(mip),
-        sysMemSlicePitch
-      };
+      initialData[mip + layer * mipCount] = new Tr2SubresourceData(sysMem, bitmap.GetMipPitch(mip), sysMemSlicePitch);
       memoryUse += sysMemSlicePitch;
     }
   }

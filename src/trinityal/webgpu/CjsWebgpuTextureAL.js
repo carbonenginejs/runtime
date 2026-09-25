@@ -68,7 +68,7 @@ export class CjsWebgpuTextureAL
    *
    * @param {object} desc A `Tr2BitmapDimensions`.
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`;
-   *   `initialData` is an array of `{ sysMem, sysMemPitch, sysMemSlicePitch }`
+   *   `initialData` is an array of `Tr2SubresourceData`
    *   indexed `mip + layer * mipCount`, as Carbon's is.
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
@@ -152,11 +152,11 @@ export class CjsWebgpuTextureAL
       {
         const subresource = initialData[mip + layer * mipCount];
 
-        if (!subresource || !subresource.sysMem) continue;
+        if (!subresource || !subresource.m_sysMem) continue;
 
-        const bytes = subresource.sysMem;
-        const pitch = subresource.sysMemPitch;
-        const slicePitch = subresource.sysMemSlicePitch || bytes.byteLength;
+        const bytes = subresource.m_sysMem;
+        const pitch = subresource.m_sysMemPitch;
+        const slicePitch = subresource.m_sysMemSlicePitch || bytes.byteLength;
         const depth = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetMipDepth(mip)) : 1;
 
         queue.writeTexture(

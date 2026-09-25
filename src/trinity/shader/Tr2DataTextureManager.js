@@ -18,6 +18,7 @@ import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Succeeded } from "../../trinityal/ALResult.js";
 import { Tr2TextureSubresource } from "../../trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
+import { Tr2SubresourceData } from "../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../core/device/TriDevice.js";
 import { Tr2TextureReference } from "../core/Tr2TextureReference.js";
@@ -142,11 +143,7 @@ export class Tr2DataTextureManager extends CjsModel
       {
         gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
         cpuUsage: Tr2CpuUsage.READ | Tr2CpuUsage.WRITE,
-        initialData: [ {
-          sysMem: new Uint8Array(zeros.buffer),
-          sysMemPitch: width * VEC4_BYTES,
-          sysMemSlicePitch: width * height * VEC4_BYTES
-        } ]
+        initialData: [ new Tr2SubresourceData(new Uint8Array(zeros.buffer), width * VEC4_BYTES, width * height * VEC4_BYTES) ]
       }
     );
     this._dataTexture.SetTexture(texture);
