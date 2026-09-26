@@ -37,6 +37,7 @@ import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
+import { Tr2TextureReference } from "./Tr2TextureReference.js";
 import { BLIT_EFFECT_PATH, BLIT_FILTERED_EFFECT_PATH } from "#consts/effectPaths";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";
 
@@ -93,6 +94,12 @@ export class Tr2Blitter
   /** m_screenVertexDecl - interned once, and -1 until it is. */
   #screenVertexDecl = -1;
 
+  /**
+   * Carbon's function-static CTr2TransientTextureReference in DrawHelper
+   * (`cpp:136`): the blitted texture is published through it, never bare.
+   */
+  #textureReference = new Tr2TextureReference();
+
   /** m_vertexBuffer - four Tr2ScreenVertex, rewritten per draw. */
   #vertexBuffer = null;
 
@@ -119,7 +126,12 @@ export class Tr2Blitter
    */
   constructor()
   {
-    Tr2VariableStore.GlobalStore().RegisterVariable(BLIT_SOURCE, null);
+    // Carbon registers a TYPED null, `static_cast<ITr2TextureProvider*>(
+    // nullptr )` (`cpp:20`), so the variable is a texture variable before
+    // anything is published. A JS null has no type and registered an INVALID
+    // variable whose binding was skipped, so every blit sampled nothing. The
+    // empty reference is the typed null: same type, no texture.
+    Tr2VariableStore.GlobalStore().RegisterVariable(BLIT_SOURCE, this.#textureReference);
 
     this.#blitEffect = new Tr2Effect();
     this.#blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
@@ -289,7 +301,11 @@ export class Tr2Blitter
     // inherit this one's texture.
     const blitSource = texture ? Tr2VariableStore.GlobalStore().GetVariable(BLIT_SOURCE) : null;
 
-    if (blitSource) blitSource.SetValue(texture);
+    if (blitSource)
+    {
+      this.#textureReference.SetTexture(texture);
+      blitSource.SetValue(this.#textureReference);
+    }
 
     const passCount = shader.GetPassCount(0);
 
@@ -304,7 +320,11 @@ export class Tr2Blitter
       renderContext.DrawPrimitive(0, 2);
     }
 
-    if (blitSource) blitSource.Clear();
+    if (blitSource)
+    {
+      this.#textureReference.SetTexture(null);
+      blitSource.Clear();
+    }
 
     return true;
   }

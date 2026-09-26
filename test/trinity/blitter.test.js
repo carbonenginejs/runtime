@@ -129,6 +129,28 @@ test("BlitSource is published for a textured blit and cleared afterwards", () =>
   assert.equal(blitSource.GetValue(), null);
 });
 
+test("BlitSource is a texture variable, and the draw sees the texture through a reference", () =>
+{
+  const context = stubContext();
+  const blitter = new Tr2Blitter();
+  const texture = { id: "source" };
+  const blitSource = Tr2VariableStore.GlobalStore().GetVariable("BlitSource");
+  const seen = [];
+  const drawing = material();
+
+  // Carbon registers a typed null (cpp:20). Registered untyped, the variable
+  // was INVALID, its SRV binding was skipped, and every blit sampled nothing:
+  // the post chain's final copy to the canvas came out black.
+  const textureType = blitSource.contentType;
+  drawing.ApplyMaterialDataForPass = () => seen.push(blitSource.GetValue()?.GetTexture());
+
+  blitter.Draw(context, drawing, texture);
+
+  assert.equal(textureType, blitSource.contentType, "the draw does not change the variable's type");
+  assert.equal(textureType, 2, "TRIVARIABLE_TEXTURE_RES");
+  assert.deepEqual(seen, [ texture ], "published as a reference whose GetTexture is the blitted texture");
+});
+
 test("resources are prepared once and released together", () =>
 {
   const context = stubContext();
