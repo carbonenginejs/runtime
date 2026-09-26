@@ -32,6 +32,7 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { EveSpaceScene } from "../eve/scene/EveSpaceScene.js";
 import { Tr2PPTonemappingEffect } from "./effect/Tr2PPTonemappingEffect.js";
+import { Tr2PPTaaEffect } from "./effect/Tr2PPTaaEffect.js";
 import { BlurContext } from "./BlurContext.js";
 import { GaussianData } from "./GaussianData.js";
 import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
@@ -307,7 +308,7 @@ export class Tr2PostProcessRenderer extends CjsModel
 
         if (taa && !upscalingInfo.temporal)
         {
-          this.RenderTaa(nonMsaaSource.Get(), velocity?.Get() ?? null, opaqueColor?.Get() ?? null, gpuResourcePool, renderContext, taa, dynamicExposure);
+          this.RenderTaa(nonMsaaSource.Get(), velocity?.Get() ?? null, opaqueColor?.Get() ?? null, gpuResourcePool, renderContext, taa, dynamicExposure, renderer);
           if (!upscalingContext)
           {
             velocity = release(velocity);
@@ -1206,12 +1207,110 @@ export class Tr2PostProcessRenderer extends CjsModel
     }
   }
 
-  /** Carbon RenderTaa (cpp:1435-1529). */
+  /**
+   * Temporal anti-aliasing (cpp:1435-1529): the current frame blended into a
+   * ping-ponged persistent accumulator, then copied back into `dest`.
+   *
+   * Adapted: the renderer is passed in for the blitter, as in Execute. The
+   * cooldown map's initial ClearUav of a texture is refused by the WebGPU AL,
+   * which does not change the result: WebGPU creates textures zeroed, the
+   * value Carbon clears to.
+   *
+   * @param {object} dest The scene colour, blended and written back.
+   * @param {object|null} velocity The velocity map.
+   * @param {object|null} opaqueColor The opaque colour copy; null at TAA low.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPTaaEffect} taa The post process's TAA settings.
+   * @param {Tr2PPDynamicExposureEffect|null} dynamicExposure Dynamic exposure, if on.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderTaa()
+  @impl.adapted
+  RenderTaa(dest, velocity, opaqueColor, gpuResourcePool, renderContext, taa, dynamicExposure, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderTaa is not ported yet.");
+    renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+
+    const al = renderContext.GetRenderContextAL();
+    const release = handle => Tr2PostProcessRenderer._release(gpuResourcePool, handle);
+    const clear = texture =>
+    {
+      al.SetRenderTarget(0, texture);
+      al.Clear({ clearColor: true, color: 0 });
+    };
+    const clearUav = texture => al.ClearUav(texture, new Uint32Array(4));
+    const persistent = (name, format, gpuUsage, initialize) => gpuResourcePool.GetPersistentTexture(name, {
+      type: TextureType.TEX_TYPE_2D,
+      width: dest.GetWidth(),
+      height: dest.GetHeight(),
+      depth: 1,
+      mipCount: 1,
+      format,
+      gpuUsage
+    }, initialize);
+
+    const accumulationBuffer0 = persistent("TAA Accumulation 0", PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, RENDER_TARGET, clear);
+    const accumulationBuffer1 = persistent("TAA Accumulation 1", PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, RENDER_TARGET, clear);
+    const cooldownBuffer = persistent("TAA Cooldown", PixelFormat.PIXEL_FORMAT_R32_UINT, Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE, clearUav);
+    const exposure = dynamicExposure ? this.GetExposureBuffer(gpuResourcePool) : null;
+
+    const frameCount = this._taaFrameCounter++;
+    const [ input, output ] = (frameCount & 1) === 0
+      ? [ accumulationBuffer0, accumulationBuffer1 ]
+      : [ accumulationBuffer1, accumulationBuffer0 ];
+
+    const effect = this.taaEffect;
+    const copy = this._taaCopyEffect;
+
+    for (const each of [ effect, copy ])
+    {
+      if (dynamicExposure)
+      {
+        each.SetParameter("ExposureAdjust", Math.pow(2, dynamicExposure.adjustment));
+        each.SetParameter("ExposureMiddleValue", dynamicExposure.middleValue);
+        each.SetParameter("ExposureInfluence", dynamicExposure.influence);
+        each.SetOption("DYNAMIC_EXPOSURE_TOGGLE", "DYNAMIC_EXPOSURE_ENABLED");
+      }
+      else
+      {
+        each.SetOption("DYNAMIC_EXPOSURE_TOGGLE", "DYNAMIC_EXPOSURE_DISABLED");
+      }
+    }
+
+    effect.SetParameter("FrameIndex", frameCount);
+    effect.SetParameter("EarlyOutThreshold", taa.earlyOutThreshold);
+    effect.SetOption("QUALITY", Tr2PostProcessRenderer.getTaaQualityShaderOptionValue(taa.quality));
+    effect.SetOption("DEBUG", Tr2PostProcessRenderer.getTaaDebugShaderOptionValue(taa.debug));
+
+    const MAX_WEIGHT = Math.fround(0.96);
+    effect.SetParameter("BlendWeight", Math.min(Math.fround(frameCount / (frameCount + 1)), MAX_WEIGHT));
+
+    try
+    {
+      effect.SetParameter("CurrentFrame", dest);
+      effect.SetParameter("CurrentFrameOpaque", opaqueColor);
+      effect.SetParameter("AccumulationBuffer", input.Get());
+      effect.SetParameter("CooldownMap", cooldownBuffer.Get());
+      effect.SetParameter("VelocityMap", velocity);
+      effect.SetParameter("Exposure", exposure?.Get() ?? null);
+      Tr2PostProcessRenderer.drawInto(output.Get(), Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
+
+      copy.SetParameter("AccumulationBuffer", output.Get());
+      copy.SetParameter("Exposure", exposure?.Get() ?? null);
+      Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, copy, renderContext, renderer);
+    }
+    finally
+    {
+      for (const name of [ "CurrentFrame", "CurrentFrameOpaque", "AccumulationBuffer", "CooldownMap", "VelocityMap", "Exposure" ])
+      {
+        effect.SetParameter(name, null);
+      }
+      copy.SetParameter("AccumulationBuffer", null);
+      copy.SetParameter("Exposure", null);
+
+      for (const handle of [ accumulationBuffer0, accumulationBuffer1, cooldownBuffer, exposure ]) release(handle);
+    }
   }
 
   /**
@@ -1439,6 +1538,22 @@ export class Tr2PostProcessRenderer extends CjsModel
     const side = value => Math.max(1, Math.trunc(Math.fround(Math.fround(value) * Math.fround(scale))));
 
     return { width: side(texture.GetWidth()), height: side(texture.GetHeight()) };
+  }
+
+  /** GetTaaQualityShaderOptionValue (cpp:97-110). */
+  static getTaaQualityShaderOptionValue(quality)
+  {
+    if (quality === Tr2PPTaaEffect.TAA_MEDIUM) return "QUALITY_MEDIUM";
+    if (quality === Tr2PPTaaEffect.TAA_HIGH) return "QUALITY_HIGH";
+    return "QUALITY_LOW";
+  }
+
+  /** GetTaaDebugShaderOptionValue (cpp:112-123). */
+  static getTaaDebugShaderOptionValue(debug)
+  {
+    if (debug === Tr2PPTaaEffect.Debug.TAA_DEBUG_MOTION_VECTORS) return "DEBUG_SHOW_MOTION_VECTORS";
+    if (debug === Tr2PPTaaEffect.Debug.TAA_DEBUG_EARLY_OUT_MASK) return "DEBUG_SHOW_EARLY_OUT_MASK";
+    return "DEBUG_NONE";
   }
 
   /**

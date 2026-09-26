@@ -248,5 +248,5 @@ test("maintained post-process renderer owns quality and a ported Execute", () =>
   assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "adapted");
   // The passes still to port stay explicit; each runs only when the scene's
   // post process enables it (post-process-renderer.test.js runs the chain).
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "RenderTaa")?.impl?.status, "notImplemented");
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "RenderUpscaling")?.impl?.status, "notImplemented");
 });

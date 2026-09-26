@@ -10,6 +10,7 @@ import {
   Tr2PPDepthOfFieldEffect,
   Tr2PPFogEffect,
   Tr2PPGodRaysEffect,
+  Tr2PPTaaEffect,
   Tr2PostProcess2,
   Tr2PostProcessRenderer
 } from "../../npm/dist/trinity/postProcess/index.js";
@@ -379,4 +380,38 @@ test("createBlurContext is Carbon's PostProcessBlur::CreateBlurContext", () =>
   assert.equal(BlurContext.createBlurContext().Hash(), new BlurContext().Hash(), "defaults match the struct's (h:46-57)");
   assert.equal(BlurContext.getBlurChannelOptionValue(BlurChannel.BC_r), "BLUR_CHANNEL_R");
   assert.equal(BlurContext.getFinalizeTypeOptionValue(BlurFinalize.BF_MaxOfAllChannels), "BLUR_FINALIZE_TYPE_MAX_OF_ALL_CHANNELS");
+});
+
+test("TAA ping-pongs its persistent accumulators and blends toward Carbon's 0.96 cap", () =>
+{
+  const taa = new Tr2PPTaaEffect();
+  const context = stubContext();
+  const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new Tr2Renderer();
+  const postProcess = new Tr2PostProcessRenderer();
+  const graph = new Tr2PostProcess2();
+
+  renderer.PrepareDeviceResources(context);
+  graph.taa = taa;
+
+  const destination = colour(pool, "destination", PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  const held = pool.GetHeldCount();
+  const inputs = [];
+  const weights = [];
+
+  for (let frame = 0; frame < 3; frame++)
+  {
+    context.GetEffectStateManager().SetRenderTarget(0, destination.Get());
+    postProcess.Execute(destination.Get(), colour(pool, "customBackBuffer"), null, null, null, { GetPostProcess: () => graph }, null, pool, context, renderer);
+    weights.push(postProcess.taaEffect.FindParameterByName("BlendWeight").value);
+    inputs.push(postProcess.taaEffect.FindParameterByName("FrameIndex").value);
+  }
+
+  // cpp:1476-1520: frame n reads accumulator n % 2 and weights n / (n + 1).
+  assert.deepEqual(inputs, [ 0, 1, 2 ]);
+  assert.deepEqual(weights, [ 0, 0.5, Math.fround(2 / 3) ]);
+  assert.equal(postProcess.taaEffect.GetOption("QUALITY"), "QUALITY_HIGH");
+  assert.equal(postProcess.taaEffect.GetOption("DEBUG"), "DEBUG_NONE");
+  assert.equal(postProcess.taaEffect.GetResourceByName("CurrentFrame").GetTextureProvider().GetTexture(), null, "TEMP_PARAM reset");
+  assert.equal(pool.GetHeldCount(), held, "no pool handle leaked across frames");
 });
