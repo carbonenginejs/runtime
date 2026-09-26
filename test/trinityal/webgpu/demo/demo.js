@@ -2080,7 +2080,10 @@ export async function RunDemo(canvas)
     const sample = async () =>
     {
       const textures = {};
-      for (const name of [ "velocityMap", "opaqueBackBuffer", "TAA Accumulation 0", "TAA Accumulation 1", "TAA Cooldown" ])
+      // "Pre-upscaling Composite" is TAA's dest: TaaCopy writes the resolved
+      // frame into it. Its centre texel moving between samples of a still
+      // scene means the jittered frame is getting through.
+      for (const name of [ "Pre-upscaling Composite", "velocityMap", "opaqueBackBuffer", "TAA Accumulation 0", "TAA Accumulation 1", "TAA Cooldown" ])
       {
         const texture = POOL_TEXTURES.get(name)?.m_texture;
         textures[name] = texture ? await CountNonZeroTexels(device, texture) : "not borrowed yet";
