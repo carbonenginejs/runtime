@@ -109,7 +109,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2SSAO } from "../../../../npm/dist/trinity/index.js";
+import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2PPTonemappingEffect, Tr2SSAO } from "../../../../npm/dist/trinity/index.js";
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
@@ -243,7 +243,10 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age })
+/** The tonemapping row's choices; see ApplyClientTonemapping. EVE uses Uncharted2 only (the operator); Carbon's ACES and AgX methods serve other titles. */
+const TONEMAP_CHOICES = [ "uncharted2", "template", "off" ];
+
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, tonemap })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -301,6 +304,12 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   const templates = choose([ [ "(none)", "" ], ...Object.keys(POST_TEMPLATES).map(name => [ name, name ]) ], initialTemplate);
   row("template", templates);
+
+  // The client's tonemapper. Carbon takes tonemapping ONLY from the scene's
+  // default post process (EveSpaceScene.cpp:391-398), so injecting one there
+  // is how the client adds it; "template" leaves the template's own.
+  const tonemapping = row("tonemapping", choose(TONEMAP_CHOICES.map(name => [ name, name ]), tonemap.current()));
+  tonemapping.addEventListener("change", () => tonemap.select(tonemapping.value));
 
   const { Quality, AntiAliasingQuality } = EveSpaceSceneRenderDriver;
   const quality = row("quality", choose([ [ "low", Quality.LOW ], [ "medium", Quality.MEDIUM ], [ "high", Quality.HIGH ] ], driver.postProcess.GetPostProcessingQuality()));
@@ -2558,6 +2567,10 @@ export async function RunDemo(canvas)
 
   let postTemplate = null;
 
+  // The client-side tonemapping choice (the settings panel's "tonemapping").
+  const tonemapState = { choice: new URLSearchParams(globalThis.location?.search ?? "").get("tonemap") ?? "uncharted2" };
+  const authoredTonemapping = new WeakMap();
+
   /**
    * Swaps the scene's post process for a template, or none for "". Also the
    * settings panel's template picker; the next frame reads the new one.
@@ -2565,6 +2578,32 @@ export async function RunDemo(canvas)
    * @param {string} name A template name, a resource path, or "".
    * @returns {Promise<object|null>} The loaded template record.
    */
+  /**
+   * The client's tonemapper on the scene's default post process, the only
+   * place Carbon reads tonemapping from (EveSpaceScene.cpp:391-398). The
+   * template's own effect is remembered so "template" restores it.
+   */
+  function ApplyClientTonemapping()
+  {
+    const postProcess = realScene?.postprocess;
+    if (!postProcess) return;
+    if (!authoredTonemapping.has(postProcess)) authoredTonemapping.set(postProcess, postProcess.tonemapping ?? null);
+
+    if (tonemapState.choice === "template")
+    {
+      postProcess.SetTonemapping(authoredTonemapping.get(postProcess));
+      return;
+    }
+    if (tonemapState.choice === "off")
+    {
+      postProcess.SetTonemapping(null);
+      return;
+    }
+    const effect = new Tr2PPTonemappingEffect();
+    effect.method = Tr2PPTonemappingEffect.Uncharted2;
+    postProcess.SetTonemapping(effect);
+  }
+
   async function SelectPostTemplate(name)
   {
     postTemplate = name ? await LoadPostTemplate(name) : null;
@@ -2574,6 +2613,7 @@ export async function RunDemo(canvas)
     // which Update merges into the combined one the driver reads; the driver's
     // PropagateSettings keeps TAA on it.
     if (realScene) realScene.postprocess = postTemplate?.postProcess ?? new Tr2PostProcess2();
+    ApplyClientTonemapping();
 
     if (postTemplate)
     {
@@ -2648,6 +2688,10 @@ export async function RunDemo(canvas)
     sun: SUN,
     flare,
     age: weeks => globalThis.demo.age(weeks),
+    tonemap: {
+      current: () => tonemapState.choice,
+      select: choice => { tonemapState.choice = choice; ApplyClientTonemapping(); }
+    },
     // The light travels from behind the hull toward the camera: the scene
     // direction is (eye - centre), so the sun sits beyond the hull on screen.
     // Geometric, so no axis or handedness convention is assumed.
