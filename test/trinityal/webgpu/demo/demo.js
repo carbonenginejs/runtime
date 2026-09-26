@@ -944,10 +944,41 @@ function OrbitCamera(bounds)
 
 
 /**
+ * Keeps the canvas's backing size equal to its displayed size.
+ *
+ * The page sizes the canvas once at load, and CSS then stretches it to the
+ * window, so a resize (or devtools opening) distorted the image. When the two
+ * differ this resizes the canvas, reconfigures the render target and updates
+ * the viewport constants.
+ *
+ * @param {HTMLCanvasElement} canvas The canvas.
+ * @param {object} renderTarget The canvas render target.
+ * @param {{vs: object, ps: object}} frame The per-frame blocks.
+ * @returns {void}
+ */
+function FitCanvas(canvas, renderTarget, frame)
+{
+  const width = Math.max(1, Math.round(canvas.clientWidth * devicePixelRatio));
+  const height = Math.max(1, Math.round(canvas.clientHeight * devicePixelRatio));
+  if (width === canvas.width && height === canvas.height) return;
+
+  canvas.width = width;
+  canvas.height = height;
+  renderTarget.Configure({ width, height });
+  for (const block of [ frame.vs, frame.ps ])
+  {
+    block.Set("TargetResolution", [ width, height ]);
+    block.Set("ViewportSize", [ width, height ]);
+  }
+}
+
+
+/**
  * Drags orbit the camera and the wheel dollies it, through Carbon's verbs.
  *
  * `OrbitParent` scales by the camera's `maxSpeed` (0.05 rad per unit), so
- * pixels are scaled down to keep a full-width drag near one turn.
+ * pixels are scaled down to keep a full-width drag near one turn. Both axes
+ * are inverted (operator preference): dragging moves the view the other way.
  *
  * @param {HTMLCanvasElement} canvas The canvas receiving input.
  * @param {EveCamera} camera The camera.
@@ -971,7 +1002,7 @@ function BindCameraInput(canvas, camera, bounds)
   canvas.addEventListener("pointermove", event =>
   {
     if (!last) return;
-    camera.OrbitParent((event.clientX - last[0]) * 0.1, (event.clientY - last[1]) * 0.1);
+    camera.OrbitParent((last[0] - event.clientX) * 0.1, (last[1] - event.clientY) * 0.1);
     last = [ event.clientX, event.clientY ];
   });
   canvas.addEventListener("wheel", event =>
@@ -1615,6 +1646,7 @@ export async function RunDemo(canvas)
     {
       try
       {
+        FitCanvas(canvas, renderTarget, frame);
         WriteCamera(frame, camera, canvas.width, canvas.height);
         if (spinning)
         {
