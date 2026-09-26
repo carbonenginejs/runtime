@@ -4,7 +4,7 @@ import { test } from "node:test";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuBufferAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { ALResult, Tr2BufferDescriptionAL } from "../../../npm/dist/trinityal/index.js";
-import { Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
 const BUFFER_USAGE = Object.freeze({ UNIFORM: 16, COPY_DST: 32, VERTEX: 64, INDEX: 128, STORAGE: 256, INDIRECT: 512 });
@@ -177,6 +177,22 @@ test("Carbon's create-time refusals are kept", () =>
   assert.equal(buffer.Create(quadDescription(), null, contextFor(webgpu, false)), ALResult.E_INVALIDCALL);
 
   assert.equal(buffer.IsValid(), false);
+});
+
+test("a CPU-readable typed UAV buffer is created as storage, as Carbon's exposure buffer is", () =>
+{
+  // Tr2PostProcessRenderer::GetExposureBuffer: R32_FLOAT x 8, SRV | UAV, CPU READ.
+  const { fake, context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  const description = Tr2BufferDescriptionAL.FromFormat(
+    PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8,
+    Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.READ);
+
+  assert.equal(buffer.Create(description, new Float32Array(8), context), ALResult.S_OK);
+  const [ , descriptor ] = fake.calls.find(call => call[0] === "createBuffer");
+  assert.equal(descriptor.size, 32);
+  assert.equal(descriptor.usage & BUFFER_USAGE.STORAGE, BUFFER_USAGE.STORAGE);
+  assert.equal(buffer.MapForReading().result, ALResult.E_INVALIDCALL);
 });
 
 test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>

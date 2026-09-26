@@ -123,9 +123,14 @@ export class CjsWebgpuBufferAL
 
     if (!writable && !initialData) return ALResult.E_INVALIDARG;
 
-    // DX12 refuses this pair outright (Tr2BufferALDx12.cpp:51-54) and we have
-    // no read path at all, so refusing is both faithful and honest.
-    if (HasFlag(desc.cpuUsage, Tr2CpuUsage.READ)) return ALResult.E_INVALIDARG;
+    // DX12 refuses READ together with WRITE_OFTEN (Tr2BufferALDx12.cpp:51-54),
+    // not READ alone: Carbon creates CPU-readable buffers, the post-process
+    // exposure buffer among them (Tr2PostProcessRenderer.cpp:1705). Creation
+    // follows that rule; MapForReading still refuses, as documented above.
+    if (HasFlag(desc.cpuUsage, Tr2CpuUsage.READ) && HasFlag(desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
+    {
+      return ALResult.E_INVALIDARG;
+    }
 
     // Trinity hands its own context, as Carbon's upcast lets it (`Tr2RingBuffer`,
     // `Tr2GpuResourcePool`); the AL behind it is what creates.

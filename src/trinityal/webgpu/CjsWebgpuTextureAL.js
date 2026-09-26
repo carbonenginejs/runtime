@@ -32,6 +32,21 @@ const VIEW_DIMENSION_OF_TYPE = Object.freeze({
   [TextureType.TEX_TYPE_3D]: "3d"
 });
 
+/**
+ * The formats core WebGPU accepts with STORAGE_BINDING (the WebGPU spec's
+ * texture format capabilities table). D3D lets far more formats be UAVs, so a
+ * Carbon UAV texture in any other format is created without storage usage and
+ * a storage binding of it falls back to the context dummy, where adding the
+ * flag would make texture creation fail outright.
+ */
+const STORAGE_FORMATS = new Set([
+  "rgba8unorm", "rgba8snorm", "rgba8uint", "rgba8sint",
+  "rgba16uint", "rgba16sint", "rgba16float",
+  "r32uint", "r32sint", "r32float",
+  "rg32uint", "rg32sint", "rg32float",
+  "rgba32uint", "rgba32sint", "rgba32float"
+]);
+
 
 /**
  * A `Tr2TextureAL` backed by a WebGPU `GPUTexture`, created with all of its data.
@@ -116,9 +131,12 @@ export class CjsWebgpuTextureAL
       usage |= usageFlags.RENDER_ATTACHMENT ?? 0;
     }
 
-    // An unordered-access texture is written by compute through a storage
-    // binding; D3D's UAV is WebGPU's STORAGE_BINDING.
-    if (HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) usage |= usageFlags.STORAGE_BINDING ?? 0;
+    // An unordered-access texture is written through a storage binding;
+    // D3D's UAV is WebGPU's STORAGE_BINDING, where the format allows one.
+    if (HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS) && STORAGE_FORMATS.has(format))
+    {
+      usage |= usageFlags.STORAGE_BINDING ?? 0;
+    }
 
     // A texture something renders or computes into is also a copy source, as
     // D3D resources are without a flag: CopySubresourceRegion reads it.
@@ -221,11 +239,11 @@ export class CjsWebgpuTextureAL
    *
    * @param {string} viewDimension The binding's `storageTexture.viewDimension`.
    * @param {number} mip The mip level.
-   * @returns {GPUTextureView|null} The view, or null before Create.
+   * @returns {GPUTextureView|null} The view, or null before Create or for a format WebGPU cannot store to.
    */
   GetDeviceStorageView(viewDimension, mip)
   {
-    if (!this.m_texture) return null;
+    if (!this.m_texture || !STORAGE_FORMATS.has(this.m_format)) return null;
 
     const key = `storage:${viewDimension}:${mip}`;
     let view = this.m_views.get(key) ?? null;
