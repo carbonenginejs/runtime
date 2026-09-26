@@ -20,7 +20,7 @@ import { requireRefactoringAllowed, validatePreciseInstruction } from "./precisi
 import { buildSelectionPlans, cloneWritten, terminatesAllPaths } from "./selectionPlans.js";
 import { computeVaryingValues, conditionIsUniform } from "./uniformity.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
-import { TYPED_VIEW_FORMATS } from "./wgslTypedViews.js";
+import { TYPED_VIEW_FORMATS, typedBufferLoad } from "./wgslTypedViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
@@ -1186,7 +1186,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             const address = source(1, 1);
             const symbol = textureBinding.generatedSymbol;
             const length = `arrayLength(&${symbol})`;
-            loaded = `select(${element}(), ${symbol}[min(${address}, ${length} - 1u)], ${address} < ${length})`;
+            loaded = typedBufferLoad(element, symbol, address, length);
         }
         else if (textureBinding.texture?.viewDimension === "2d")
         {

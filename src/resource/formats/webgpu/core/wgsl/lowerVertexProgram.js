@@ -9,6 +9,7 @@ import { lowerBindingLayout } from "./lowerBindingLayout.js";
 import { requireRefactoringAllowed, validatePreciseInstruction } from "./precisionControls.js";
 import { buildSelectionPlans, cloneWritten, terminatesAllPaths } from "./selectionPlans.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
+import { typedBufferLoad } from "./wgslTypedViews.js";
 
 function containsOutputAssignment(statements)
 {
@@ -861,7 +862,7 @@ function expressionFor(program, instruction, write, type, inputs, bindings)
         const address = source(1, 1);
         const symbol = bufferBinding.generatedSymbol;
         const length = `arrayLength(&${symbol})`;
-        const loaded = `select(${element}(), ${symbol}[min(${address}, ${length} - 1u)], ${address} < ${length})`;
+        const loaded = typedBufferLoad(element, symbol, address, length);
         const components = sourceComponents(resource, write.mask, count);
         return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
     }

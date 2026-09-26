@@ -35,6 +35,24 @@ const WGSL_RESERVED_IDENTIFIERS = new Set([
     "volatile", "wgsl", "where", "while", "with", "writeonly", "yield"
 ]);
 
+/**
+ * One assignment statement. WGSL cannot assign to a multi-component swizzle
+ * (`r0.yz = ...` is "cannot assign to value of type swizzle"), so a register
+ * write with a two- to four-lane mask evaluates once into a block-scoped
+ * temporary and writes each lane from it, in the mask's order.
+ */
+function valueAssignment(name, code)
+{
+    const swizzle = /^(.+)\.([xyzw]{2,4})$/u.exec(name);
+
+    if (!swizzle) return `${name} = ${code};`;
+
+    const [ , target, mask ] = swizzle;
+    const lanes = Array.from(mask, (lane, index) => `${target}.${lane} = lanes.${COMPONENTS[index]};`);
+
+    return `{ let lanes = ${code}; ${lanes.join(" ")} }`;
+}
+
 function attribute(field, invariantPosition = false)
 {
     if (field.attribute.kind !== "builtin")
@@ -456,7 +474,7 @@ export function buildWgsl(input, options = {})
         }
         else if (statement.kind === "value-assignment")
         {
-            lines.push(`${indent}${statement.name} = ${statement.expression.code};`);
+            lines.push(`${indent}${valueAssignment(statement.name, statement.expression.code)}`);
         }
         else if (statement.kind === "return")
         {

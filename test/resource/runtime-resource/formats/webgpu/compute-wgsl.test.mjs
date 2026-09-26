@@ -3866,10 +3866,14 @@ test("scalar-word profiles reject inconsistent declaration and binding return-ty
 
 test("canonical exact compute profiles preserve genuine baseline WGSL hashes", () =>
 {
+    // SortStep and SkinVertices re-baselined 2026-09-26: their multi-lane
+    // register writes (`r0.xy = vec2<u32>(...)`) are not legal WGSL ("cannot
+    // assign to value of type swizzle", seen on the GPU) and now emit per lane.
+    // The two profiles without such writes kept their hashes.
     const profiles = [
-        [ "SortStep SM5.0", sortStepIr(0), "95feed182ff7a2fd8d635c18e424b6294764a36f44e3a4b5f1c6d1fe8e07ad7e" ],
-        [ "SortStep SM5.1", sortStepIr(1), "95feed182ff7a2fd8d635c18e424b6294764a36f44e3a4b5f1c6d1fe8e07ad7e" ],
-        [ "SkinVertices", skinVerticesIr(), "83420c2ce44061829c2b63f710ded2f6c252da06cbed31213182f78e4dee9580" ],
+        [ "SortStep SM5.0", sortStepIr(0), "733b8d22a1a33c0accf27740e4785a3fd808086d9c0774a6d977524663b019f0" ],
+        [ "SortStep SM5.1", sortStepIr(1), "733b8d22a1a33c0accf27740e4785a3fd808086d9c0774a6d977524663b019f0" ],
+        [ "SkinVertices", skinVerticesIr(), "5fe867f13429c999af26860e995e73084f01c062638cf23bca013bc28070d20d" ],
         [
             "SetDrawParameters",
             CjsWebgpuFormat.buildShaderIr(
