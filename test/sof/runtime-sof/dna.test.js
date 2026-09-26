@@ -6642,3 +6642,23 @@ test("BuildChildValues emits the child booster set into the placement container"
   assert.equal(boosterSet.items[0].lightScale, 1.25);
   assert.ok(boosterSet.glows, "one glow sprite set rides along");
 });
+
+// A .black record stores only the fields that differ from the class default,
+// so an absent colour type is the constructor's value (EveSOFData.cpp:32,
+// 356-357), not 0 (Primary). Falling back to Primary gave every hull area the
+// faction's Primary colour as its glow - an ordinary colour, not the HDR one.
+test("absent glow and heat colour types project to Carbon's defaults: Hull, Booster, Reactor", () => {
+  const data = createData();
+  data.faction = [{ name: "gallentebase", areaTypes: { materials: { primary: { material1: "rust" }, glass: { colorType: 13 } } } }];
+  data.race = [{ name: "gallente" }];
+  const manager = new EveSOFDataMgr();
+  assert.equal(manager.SetData(data), true);
+
+  const faction = manager.GetFactionData("gallentebase").areaMaterials.glowColor;
+  assert.equal(faction.get("0:GeneralGlowColor"), 12, "primary area without colorType glows Hull");
+  assert.equal(faction.get("1:GeneralGlowColor"), 13, "an authored colorType is kept");
+
+  const race = manager.GetRaceData("gallente").areaMaterials.glowColor;
+  assert.equal(race.get("0:GeneralHeatGlowColor"), 16, "primary heat defaults to Booster");
+  assert.equal(race.get("3:GeneralHeatGlowColor"), 14, "reactor heat defaults to Reactor");
+});

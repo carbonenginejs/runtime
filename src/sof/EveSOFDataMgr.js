@@ -7,6 +7,16 @@ import { CjsModel } from "#model";
 import { CjsSchema, carbon, impl, type } from "#schema";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { EveSOFDataFactionColorSet } from "./faction/EveSOFDataFactionColorSet.js";
+
+// CARBON'S DEFAULTS FOR ABSENT COLOUR TYPES. A .black record stores only the
+// fields that differ from the class default, so a missing colour type means
+// the constructor's value, never 0 (Primary): EveSOFDataAreaMaterial's glow
+// is Hull (EveSOFData.cpp:32), EveSOFDataRace's heat glows Booster and
+// Reactor (EveSOFData.cpp:356-357). Falling back to 0 gave every hull area
+// the faction's Primary colour as its glow - an ordinary colour where an HDR
+// glow belongs, about ten times too dark.
+const { TYPE_HULL, TYPE_BOOSTER, TYPE_REACTOR } = EveSOFDataFactionColorSet.ColorType;
 
 const LOGO_KEYS = Object.freeze(["Primary", "Secondary", "Tertiary", "Marking_01", "Marking_02"]);
 
@@ -1260,8 +1270,8 @@ function projectFaction(value)
 function projectRace(value)
 {
   const areaMaterials = createAreaMaterialData();
-  areaMaterials.glowColor.set("0:GeneralHeatGlowColor", Number(value.hullPrimaryHeatColorType ?? 0));
-  areaMaterials.glowColor.set("3:GeneralHeatGlowColor", Number(value.hullReactorHeatColorType ?? 0));
+  areaMaterials.glowColor.set("0:GeneralHeatGlowColor", Number(value.hullPrimaryHeatColorType ?? TYPE_BOOSTER));
+  areaMaterials.glowColor.set("3:GeneralHeatGlowColor", Number(value.hullReactorHeatColorType ?? TYPE_REACTOR));
   return {
     ...value,
     areaMaterials,
@@ -1981,7 +1991,7 @@ function mergeAreaMaterial(result, value, areaType)
   ].forEach((name, materialIndex) => {
     if (name) result.materialNames.set(`${areaType}:${materialIndex}`, name);
   });
-  result.glowColor.set(`${areaType}:GeneralGlowColor`, Number(value.colorType ?? 0));
+  result.glowColor.set(`${areaType}:GeneralGlowColor`, Number(value.colorType ?? TYPE_HULL));
 }
 
 /**
