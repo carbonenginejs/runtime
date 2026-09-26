@@ -340,6 +340,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
 
+    // Step 1 of EveSpaceScene's driver order: the update context carries the
+    // frame's render context, whose view the scene's view-dependent updates
+    // read (billboards, the flare occluders' transforms).
+    this.scene.updateContext.renderContext = renderContext;
+
     // RENDERING DISABLED (cpp:408-419): camera onto the renderer and the scene
     // update, so simulation keeps running - and nothing else. No target borrow,
     // no clear, no camera update.

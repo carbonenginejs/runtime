@@ -69,6 +69,8 @@ function sceneRecording(calls)
     projectionLast: new Float32Array(16),
     jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
     postprocess: null,
+    // EveSpaceScene's m_updateContext; the driver stamps its render context.
+    updateContext: { renderContext: null },
     // No post-process effects: the chain runs copy, sharpening and tonemapping.
     GetPostProcess() { return null; }
   };
