@@ -41,6 +41,7 @@ function portableBinding(binding)
             }
             : {}),
         ...(Number.isInteger(binding.structureStride) ? { structureStride: binding.structureStride } : {}),
+        ...(binding.typedBufferView ? { typedBufferView: binding.typedBufferView } : {}),
         ...(binding.buffer ? { buffer: binding.buffer } : {}),
         ...(binding.texture ? { texture: binding.texture } : {}),
         ...(binding.sampler ? { sampler: binding.sampler } : {})
@@ -62,6 +63,8 @@ function fingerprint(binding)
  * @param {string[]} [options.sharedIdentities] D3D identities confirmed by
  * pass metadata/CjsLibrary to represent one resource across stages.
  * @param {object|null} [options.effectProfileProof] Opaque exact-effect proof.
+ * @param {Object<string, string>} [options.typedBufferViews] D3D identity to
+ * bound view format for typed buffers (`typedBufferViewsFor`).
  * @returns {object} Frozen pass-global binding plan.
  */
 export function buildWgslBindingPlan(programs, options = {})
@@ -103,10 +106,13 @@ export function buildWgslBindingPlan(programs, options = {})
             throw new Error(`BuildWgslBindingPlan contains multiple ${stage} programs for one pass`);
         }
         programStages.add(stage);
-        const layoutPolicy = particleClearSignedAtomicLayoutPolicy(
+        const profilePolicy = particleClearSignedAtomicLayoutPolicy(
             program,
             options.effectProfileProof ?? null
         ) ?? particleEmitSignedAtomicLayoutPolicy(program);
+        const layoutPolicy = options.typedBufferViews
+            ? { ...(profilePolicy ?? {}), typedBufferViews: options.typedBufferViews }
+            : profilePolicy;
         for (const binding of lowerBindingLayout(
             program,
             null,

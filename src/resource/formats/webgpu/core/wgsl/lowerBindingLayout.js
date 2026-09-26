@@ -1,4 +1,5 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
+import { TYPED_BUFFER_VIEW_FORMATS } from "./carbonTypedBufferViews.js";
 
 const KIND_ORDER = Object.freeze({
     "uniform-buffer": 0,
@@ -54,6 +55,7 @@ function bindingFingerprint(binding)
         transformId: binding.transformId ?? null,
         arrayLayerCount: binding.arrayLayerCount ?? null,
         structureStride: binding.structureStride ?? null,
+        typedBufferView: binding.typedBufferView ?? null,
         buffer: binding.buffer || null,
         texture: binding.texture || null,
         sampler: binding.sampler || null
@@ -171,22 +173,58 @@ function structuredBufferLayout(binding)
 }
 
 /**
+ * A typed buffer whose bound view format the policy names
+ * (`carbonTypedBufferViews.js`): a storage array of that format's element,
+ * which `ld` expands to D3D's four components. The declaration must agree
+ * with the format's component class, so a reused parameter name cannot read
+ * a buffer with the wrong element type.
+ */
+function typedBufferViewLayout(binding, format, access)
+{
+    const view = TYPED_BUFFER_VIEW_FORMATS[format];
+    const returns = binding.returnType?.returnTypeNames || [];
+    if (!view || returns.length !== 4 || returns.some((entry) => entry !== view.returnType))
+    {
+        throw new Error(`WGSL typed buffer ${binding.id} is declared ${returns.join(",") || "untyped"}, which does not match its bound ${format} view`);
+    }
+    return {
+        declaration: access === "read_write" ? "var<storage, read_write>" : "var<storage, read>",
+        type: `array<${view.element}>`,
+        typedBufferView: format,
+        buffer: {
+            type: access === "read_write" ? "storage" : "read-only-storage",
+            hasDynamicOffset: false,
+            minBindingSize: 4
+        }
+    };
+}
+
+/** The policy's view format for an identity, if it applies to this stage. */
+function viewFormatFor(program, policy, identity)
+{
+    const format = policy.typedBufferViews.get(identity);
+    if (!format) return null;
+    return TYPED_BUFFER_VIEW_FORMATS[format].renderStagesOnly && program.stage === "compute" ? null : format;
+}
+
+/**
  * Typed `Buffer` SRVs. A DXBC `dcl_resource` of dimension `buffer` declares
  * the component class `ld` returns but not the bound DXGI view's width or
  * conversion: one uniform-uint declaration may be bound as R32_UINT or
  * R32G32B32A32_UINT, and one WGSL element type would index one of them wrong.
- * Render stages therefore fail closed until trusted bound-view format metadata
- * is part of the binding policy, manifest and compatibility fingerprint; that
- * metadata would then supply element type, stride, missing-channel values,
- * conversion and `minBindingSize`. Compute admits only the bounded profiles'
+ * The view format therefore comes from the binding policy (Carbon's own
+ * buffer creation, recorded in the binding plan); without it a render stage
+ * fails closed. Compute otherwise admits only the bounded profiles'
  * separately validated scalar-word view (`array<i32|u32>`, 4-byte minimum).
  */
-function typedBufferLayout(program, binding)
+function typedBufferLayout(program, binding, policy)
 {
     if (binding.structureStride !== null && binding.structureStride !== undefined)
     {
         throw new Error(`WGSL typed buffer resource ${binding.id} has unexpected structured-resource metadata`);
     }
+    const format = viewFormatFor(program, policy, `sampled-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`);
+    if (format) return typedBufferViewLayout(binding, format, "read");
     const returns = binding.returnType?.returnTypeNames || [];
     if (program.stage === "compute")
     {
@@ -210,9 +248,9 @@ function typedBufferLayout(program, binding)
     throw new Error(`WGSL typed buffer resource ${binding.id} is not supported in the ${program.stage} stage without explicit bound-view format metadata`);
 }
 
-function sampledResourceLayout(program, binding)
+function sampledResourceLayout(program, binding, policy)
 {
-    if (binding.resourceDimension === "buffer") return typedBufferLayout(program, binding);
+    if (binding.resourceDimension === "buffer") return typedBufferLayout(program, binding, policy);
     return binding.structureStride === null || binding.structureStride === undefined
         ? textureLayout(program, binding)
         : structuredBufferLayout(binding);
@@ -263,6 +301,11 @@ function uavBufferLayout(program, binding, policy)
     // access to an atomic element, so compute profiles store with atomicStore.
     // The engine binds raw 4-byte words; no DXGI view conversion is reproduced.
     const identity = `storage-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`;
+    const viewFormat = viewFormatFor(program, policy, identity);
+    if (viewFormat && binding.resourceDimension === "buffer")
+    {
+        return typedBufferViewLayout(binding, viewFormat, "read_write");
+    }
     const signedAtomic = policy.signedAtomicI32Identities.has(identity);
     const scalar = signedAtomic ? "sint" : "uint";
     if (binding.resourceDimension !== "buffer"
@@ -353,7 +396,7 @@ function lowerOne(program, binding, bindingIndex, policy)
     }
     let layout;
     if (binding.resourceKind === "uniform-buffer") layout = uniformLayout(program, binding);
-    else if (binding.resourceKind === "sampled-resource") layout = sampledResourceLayout(program, binding);
+    else if (binding.resourceKind === "sampled-resource") layout = sampledResourceLayout(program, binding, policy);
     else if (binding.resourceKind === "sampler") layout = samplerLayout(program, binding);
     else if (binding.resourceKind === "storage-resource")
     {
@@ -540,28 +583,53 @@ function transformBindings(bindings, plan, stage)
     return output;
 }
 
+/**
+ * The layout policy: `signedAtomicI32Identities` (exact profiles only) and
+ * `typedBufferViews`, D3D identity to bound view format. Either may be
+ * absent; nothing else is accepted.
+ */
 function normalizeLayoutPolicy(value)
 {
     if (value === undefined || value === null)
     {
-        return { signedAtomicI32Identities: new Set() };
+        return { signedAtomicI32Identities: new Set(), typedBufferViews: new Map() };
     }
-    if (!value || typeof value !== "object" || Array.isArray(value)
-        || Object.keys(value).length !== 1
-        || !Array.isArray(value.signedAtomicI32Identities)
-        || value.signedAtomicI32Identities.some((identity) =>
+    const keys = value && typeof value === "object" && !Array.isArray(value) ? Object.keys(value) : null;
+    const atomics = value?.signedAtomicI32Identities ?? [];
+    if (!keys || keys.some((key) => key !== "signedAtomicI32Identities" && key !== "typedBufferViews")
+        || !Array.isArray(atomics)
+        || atomics.some((identity) =>
             typeof identity !== "string"
             || !/^storage-resource:\d+:\d+$/u.test(identity))
-        || new Set(value.signedAtomicI32Identities).size
-            !== value.signedAtomicI32Identities.length)
+        || new Set(atomics).size !== atomics.length)
     {
         throw new TypeError(
             "WGSL binding layout profile policy must contain unique signedAtomicI32Identities"
         );
     }
     return {
-        signedAtomicI32Identities: new Set(value.signedAtomicI32Identities)
+        signedAtomicI32Identities: new Set(atomics),
+        typedBufferViews: normalizeTypedBufferViews(value.typedBufferViews)
     };
+}
+
+function normalizeTypedBufferViews(value)
+{
+    const views = new Map();
+    if (value === undefined || value === null) return views;
+    if (typeof value !== "object" || Array.isArray(value))
+    {
+        throw new TypeError("WGSL typedBufferViews must map D3D identities to view formats");
+    }
+    for (const [ identity, format ] of Object.entries(value))
+    {
+        if (!/^(sampled-resource|storage-resource):\d+:\d+$/u.test(identity) || !TYPED_BUFFER_VIEW_FORMATS[format])
+        {
+            throw new TypeError(`WGSL typedBufferViews has an unsupported entry ${identity}: ${format}`);
+        }
+        views.set(identity, format);
+    }
+    return views;
 }
 
 /**
@@ -588,6 +656,12 @@ export function lowerBindingLayout(
     }
     const policy = normalizeLayoutPolicy(layoutPolicy);
     const planned = normalizeBindingPlan(bindingPlan, program.stage);
+    // A plan carries the view formats it was built with, so emitting from it
+    // reads each typed buffer the way the plan declared it.
+    for (const [ identity, entry ] of planned?.bindings || [])
+    {
+        if (entry.typedBufferView) policy.typedBufferViews.set(identity, entry.typedBufferView);
+    }
     const explicitTransforms = normalizeResourceTransformPlan(resourceTransformPlan);
     if (planned?.resourceTransformPlan && explicitTransforms
         && JSON.stringify(planned.resourceTransformPlan) !== JSON.stringify(explicitTransforms))

@@ -20,6 +20,7 @@ import { requireRefactoringAllowed, validatePreciseInstruction } from "./precisi
 import { buildSelectionPlans, cloneWritten, terminatesAllPaths } from "./selectionPlans.js";
 import { computeVaryingValues, conditionIsUniform } from "./uniformity.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
+import { TYPED_BUFFER_VIEW_FORMATS } from "./carbonTypedBufferViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
@@ -1089,7 +1090,18 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         const textureBinding = bindingForOperand(bindings, "sampled-resource", resource);
         if (!textureBinding) throw new Error(`WGSL fragment instruction ${instruction.index} has an unresolved load resource`);
         let loaded;
-        if (textureBinding.buffer && !Number.isInteger(textureBinding.structureStride))
+        const view = TYPED_BUFFER_VIEW_FORMATS[textureBinding.typedBufferView];
+        if (view)
+        {
+            // A typed buffer of a known view format: D3D returns the format's
+            // four components in bounds (missing channels 0, alpha 1) and all
+            // zeros out of bounds.
+            const address = source(1, 1);
+            const symbol = textureBinding.generatedSymbol;
+            const length = `arrayLength(&${symbol})`;
+            loaded = `select(vec4<${view.element}>(), ${view.expand(`${symbol}[min(${address}, ${length} - 1u)]`)}, ${address} < ${length})`;
+        }
+        else if (textureBinding.buffer && !Number.isInteger(textureBinding.structureStride))
         {
             // Typed Buffer SRV: storage-array element fetch. D3D ld returns
             // zero out of bounds. Clamp the eagerly evaluated WGSL load itself

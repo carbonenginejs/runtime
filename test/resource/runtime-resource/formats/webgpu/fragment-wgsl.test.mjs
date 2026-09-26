@@ -2588,6 +2588,50 @@ test("fragment typed Buffer SRVs require explicit bound-view format metadata", (
     }
 });
 
+test("fragment typed Buffer SRVs with a planned view format load D3D's four components", () =>
+{
+    const typedBufferProgram = (returnTypeName) => ({
+        program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [], output: [ signature("SV_Target", 0, 15) ] },
+        instructions: [
+            globalFlagsDeclaration(),
+            declaration(2, "dcl_resource", "resource", {
+                resourceDimensionName: "buffer",
+                returnType: { returnTypeNames: Array(4).fill(returnTypeName) }
+            }),
+            instruction(4, "ld", [
+                register("temp", 0, { mask: "xyzw" }),
+                immediate([ 3, 0, 0, 0 ]),
+                register("resource", 0, { swizzle: "xyzw" })
+            ]),
+            instruction(9, "mov", [
+                register("output", 0, { mask: "xyzw" }),
+                register("temp", 0, { swizzle: "xyzw" })
+            ]),
+            instruction(13, "ret", [])
+        ]
+    });
+    const views = { "sampled-resource:0:0": "R32_FLOAT" };
+
+    const ir = CjsWebgpuFormat.buildShaderIr(typedBufferProgram("float"));
+    const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedBufferViews: views });
+    assert.equal(bindingPlan.bindings[0].typedBufferView, "R32_FLOAT");
+    const shader = CjsWebgpuFormat.buildWgsl(ir, { bindingPlan });
+    const binding = shader.program.bindings.find((entry) => entry.generatedSymbol === "t0");
+    assert.equal(binding.declaration, "var<storage, read>");
+    assert.equal(binding.type, "array<f32>");
+    assert.deepEqual(binding.buffer, { type: "read-only-storage", hasDynamicOffset: false, minBindingSize: 4 });
+    assert.match(shader.code, /select\(vec4<f32>\(\), vec4<f32>\(t0\[min\(/u);
+    assert.match(shader.code, /, 0\.0, 0\.0, 1\.0\), /u);
+
+    // The declaration must agree with the named view's component class.
+    const uintIr = CjsWebgpuFormat.buildShaderIr(typedBufferProgram("uint"));
+    assert.throws(
+        () => CjsWebgpuFormat.buildWgslBindingPlan([ uintIr ], { typedBufferViews: views }),
+        /does not match its bound R32_FLOAT view/u
+    );
+});
+
 test("fragment lowering emits guarded storage atomics for typed uint buffer UAVs", () =>
 {
     const uav = { ...register("uav", 0), componentCount: 0 };
