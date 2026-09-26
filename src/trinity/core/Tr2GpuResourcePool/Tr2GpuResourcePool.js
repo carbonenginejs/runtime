@@ -154,20 +154,26 @@ export class Tr2GpuResourcePool
   /**
    * Borrows a persistent buffer, initializing it the first time only.
    *
+   * Carbon's BufferInitializer is a variant (`Tr2GpuResourcePool.cpp:240-250`):
+   * initial bytes go to `Create`, which a buffer the CPU cannot write needs,
+   * and a function runs on the created buffer.
+   *
    * @param {string} name A debug name.
    * @param {object} description A `Tr2BufferDescriptionAL`.
-   * @param {Function} [initialize] Called once, with the new buffer.
+   * @param {ArrayBufferView|Function|null} [initializer] Initial bytes, or a
+   *   function called once with the new buffer.
    * @returns {GpuResourceHandle} The buffer.
    */
-  GetPersistentBuffer(name, description, initialize = null)
+  GetPersistentBuffer(name, description, initializer = null)
   {
     const existing = this.#Find(this.#persistentBuffers, name, description, false);
 
     if (existing) return new GpuResourceHandle(existing);
 
-    const buffer = this.#CreateBuffer(description);
+    const initialData = ArrayBuffer.isView(initializer) ? initializer : null;
+    const buffer = this.#CreateBuffer(description, initialData);
 
-    if (initialize) initialize(buffer);
+    if (typeof initializer === "function") initializer(buffer);
 
     return new GpuResourceHandle(this.#Add(this.#persistentBuffers, name, description, buffer));
   }
@@ -274,7 +280,7 @@ export class Tr2GpuResourcePool
    * Creates a stub buffer from the description against the pool's render
    * context.
    */
-  #CreateBuffer(description)
+  #CreateBuffer(description, initialData = null)
   {
     if (!this.#renderContext) fail("a pool creates against a render context; none is bound");
 
@@ -283,7 +289,7 @@ export class Tr2GpuResourcePool
     // renderContext undefined and throwing a TypeError on the first line of
     // Create that touched it - which is why neither buffer accessor had ever
     // run. Both faults go together.
-    return this.#renderContext.CreateBuffer(description, null);
+    return this.#renderContext.CreateBuffer(description, initialData);
   }
 
   /**

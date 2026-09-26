@@ -235,7 +235,7 @@ test("maintained SSAO owns Carbon quality state and leaves filtering explicit", 
   nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /Tr2SSAO.Filter is not ported yet/u);
 });
 
-test("maintained post-process renderer owns quality while execution stays explicit", () =>
+test("maintained post-process renderer owns quality and a ported Execute", () =>
 {
   const renderer = new Tr2PostProcessRenderer();
   assertEquals(renderer.quality, Tr2PostProcessRenderer.Quality.HIGH);
@@ -245,9 +245,8 @@ test("maintained post-process renderer owns quality while execution stays explic
   assertEquals(renderer.GetPostProcessingQuality(), Tr2PostProcessRenderer.Quality.LOW);
   assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "GetPostProcessingQuality")?.impl?.status, "implemented");
   assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "SetPostProcessingQuality")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "notImplemented");
-  nodeAssert.throws(
-    () => renderer.Execute(null, null, null, null, null, null, null, null, null),
-    /Tr2PostProcessRenderer.Execute is not ported yet/u
-  );
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "Execute")?.impl?.status, "adapted");
+  // The passes still to port stay explicit; each runs only when the scene's
+  // post process enables it (post-process-renderer.test.js runs the chain).
+  assertEquals(CjsSchema.getMethod(Tr2PostProcessRenderer, "RenderBloom")?.impl?.status, "notImplemented");
 });

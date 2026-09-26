@@ -218,7 +218,7 @@ One post-process volume's contribution: a value and an enable flag per attribute
 <!-- class:Tr2PostProcessRenderer -->
 ## `Tr2PostProcessRenderer`
 
-Carbon's post-process renderer settings and physical execution obligation.
+Carbon's post-process renderer: the chain from the scene's colour buffer to the back buffer, driven by the scene's combined Tr2PostProcess2.
 
 - Export: `@carbonenginejs/runtime/trinity/postProcess`
 - Source: `src/trinity/postProcess/Tr2PostProcessRenderer.js`

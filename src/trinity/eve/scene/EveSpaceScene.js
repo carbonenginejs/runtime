@@ -1488,6 +1488,10 @@ export class EveSpaceScene extends CjsModel
 
   static EveVisualizeMethod = EveVisualizeMethod;
 
+  /** g_eveSpaceSceneGammaBrightness (TRI_REGISTER_SETTING "eveSpaceSceneGammaBrightness",
+   * cpp:102-103): the tonemapper's OutputGamma and the per-frame GammaBrightness. */
+  static eveSpaceSceneGammaBrightness = 1;
+
   static ShadowQuality = ShadowQuality;
 
   /**

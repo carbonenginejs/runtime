@@ -171,6 +171,18 @@ test("a persistent buffer is initialized once and kept", () =>
   assert.equal(first.Get(), second.Get());
 });
 
+test("initial bytes reach Create, which a buffer the CPU cannot write needs", () =>
+{
+  // Carbon's BufferInitializer variant (Tr2GpuResourcePool.cpp:240-250): bytes
+  // go to Create. Without them the backend refuses a read-only buffer
+  // (Tr2BufferALStub.cpp:34-37), as Tr2PostProcessRenderer's exposure buffer is.
+  const pool = pooled();
+  const description = Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8, Tr2GpuUsage.SHADER_RESOURCE, Tr2CpuUsage.READ);
+
+  assert.equal(pool.GetPersistentBuffer("no bytes", description).Get(), null);
+  assert.equal(pool.GetPersistentBuffer("zeroes", description, new Float32Array(8)).Get().IsValid(), true);
+});
+
 test("the pool creates through the bound backend rather than a named class", () =>
 {
   // It used to do `new Tr2TextureALStub()` regardless of what was bound, so
