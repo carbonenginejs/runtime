@@ -76,6 +76,15 @@ export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
 ]);
 
 /**
+ * The bound view format of a typed buffer or typed UAV texture, ordered so the
+ * wire value is stable; the first means none. The format comes from where
+ * Carbon creates the resource (`formats/webgpu/core/wgsl/carbonTypedViews.js`),
+ * and it is stored because the WGSL type cannot carry it: `array<u32>` is
+ * both an R32_UINT view and a compute raw-word buffer.
+ */
+export const CARBON_BACKEND_TYPED_VIEW = Object.freeze([ "", "R32_FLOAT", "R32_UINT" ]);
+
+/**
  * A texture binding's sample type, ordered so the wire value is stable. The
  * first is the default and what every non-texture binding writes.
  */
@@ -323,6 +332,12 @@ export function writeBackendBlock(block)
                 });
             }
             writer.u8(sampleType);
+            const typedView = CARBON_BACKEND_TYPED_VIEW.indexOf(binding.typedView ?? "");
+            if (typedView < 0)
+            {
+                throw new CjsFormatWriteError(`Unknown typed view "${binding.typedView}"`, { typedView: binding.typedView });
+            }
+            writer.u8(typedView);
             writeInlineString(writer, binding.type);
             writeInlineString(writer, binding.generatedSymbol);
             // A binding either carries a transform id or it does not; an empty
@@ -375,6 +390,13 @@ export function readBackendBlock(bytes, options = {})
                     source: options.source ?? "backend block"
                 });
             }
+            const typedView = CARBON_BACKEND_TYPED_VIEW[reader.ReadUint8()];
+            if (typedView === undefined)
+            {
+                throw new CjsFormatReadError("Backend block binding has an unknown typed view", {
+                    source: options.source ?? "backend block"
+                });
+            }
             const type = readInlineString(reader);
             const generatedSymbol = readInlineString(reader);
             const transformId = readInlineString(reader);
@@ -393,6 +415,7 @@ export function readBackendBlock(bytes, options = {})
                 scopeIdentity: `${identity}@${visibility[0]}`,
                 ...(structureStride === ABSENT ? {} : { structureStride }),
                 ...(arrayLayerCount === 0 ? {} : { arrayLayerCount }),
+                ...(typedView === "" ? {} : { typedView }),
                 ...(transformId === "" ? {} : { transformId })
             };
             bindings.push({ ...record, ...deriveBindingDescriptor({ ...record, textureSampleType }) });

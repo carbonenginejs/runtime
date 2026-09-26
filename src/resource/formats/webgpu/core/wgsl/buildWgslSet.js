@@ -127,6 +127,7 @@ function portableBinding(binding, visibility)
             }
             : {}),
         ...(Number.isInteger(binding.structureStride) ? { structureStride: binding.structureStride } : {}),
+        ...(binding.typedView ? { typedView: binding.typedView } : {}),
         ...(binding.buffer ? { buffer: clonePlain(binding.buffer) } : {}),
         ...(binding.texture ? { texture: clonePlain(binding.texture) } : {}),
         ...(binding.storageTexture ? { storageTexture: clonePlain(binding.storageTexture) } : {}),
@@ -154,6 +155,7 @@ function bindingFingerprint(binding)
         transformId: binding.transformId ?? null,
         arrayLayerCount: binding.arrayLayerCount ?? null,
         structureStride: binding.structureStride ?? null,
+        typedView: binding.typedView ?? null,
         buffer: binding.buffer || null,
         texture: binding.texture || null,
         storageTexture: binding.storageTexture || null,
