@@ -225,12 +225,31 @@ const POOL_TEXTURES = new Map();
 /** Bytes per texel for the formats the post chain uses. */
 const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4 };
 
+/** Decodes one IEEE-754 binary16 value. */
+function Half(bits)
+{
+  const exponent = (bits >> 10) & 0x1f, fraction = bits & 0x3ff, sign = bits & 0x8000 ? -1 : 1;
+  if (exponent === 0) return sign * 2 ** -14 * (fraction / 1024);
+  if (exponent === 31) return fraction ? NaN : sign * Infinity;
+  return sign * 2 ** (exponent - 15) * (1 + fraction / 1024);
+}
+
+/** Per format: reads the texel at a byte offset as [ r, g, b, a ]. */
+const TEXEL_DECODERS = {
+  "rgba16float": (view, at) => [ 0, 2, 4, 6 ].map(c => Half(view.getUint16(at + c, true))),
+  "bgra8unorm": (view, at) => [ 2, 1, 0, 3 ].map(c => view.getUint8(at + c) / 255),
+  "rgba8unorm": (view, at) => [ 0, 1, 2, 3 ].map(c => view.getUint8(at + c) / 255),
+  "rgba32float": (view, at) => [ 0, 4, 8, 12 ].map(c => view.getFloat32(at + c, true)),
+  "r32float": (view, at) => [ view.getFloat32(at, true), 0, 0, 0 ]
+};
+
 /**
- * Reads a texture back and counts texels whose bytes are not all zero.
+ * Reads a texture back and reports its colour: texels with non-zero RGB,
+ * mean and max RGBA, and the centre texel.
  *
  * @param {GPUDevice} device The device.
  * @param {GPUTexture} texture The texture.
- * @returns {Promise<object>} The texture's format, size and non-zero count.
+ * @returns {Promise<object>} The texture's format, size and colour statistics.
  */
 async function CountNonZeroTexels(device, texture)
 {
@@ -244,22 +263,39 @@ async function CountNonZeroTexels(device, texture)
   device.queue.submit([ encoder.finish() ]);
   await buffer.mapAsync(GPUMapMode.READ);
 
-  const bytes = new Uint8Array(buffer.getMappedRange());
+  // COLOUR, NOT BYTES. Counting any non-zero byte let an opaque black image
+  // (alpha 1, RGB 0) report as fully populated, so this decodes each texel to
+  // RGBA and counts only texels whose RGB is non-zero.
+  const view = new DataView(buffer.getMappedRange());
+  const decode = TEXEL_DECODERS[texture.format];
+  const sum = [ 0, 0, 0, 0 ], max = [ 0, 0, 0, 0 ];
   let nonZero = 0;
   for (let y = 0; y < texture.height; y++)
   {
     for (let x = 0; x < texture.width; x++)
     {
-      const at = y * bytesPerRow + x * texel;
-      for (let b = 0; b < texel; b++)
+      const rgba = decode(view, y * bytesPerRow + x * texel);
+      if (rgba[0] || rgba[1] || rgba[2]) nonZero++;
+      for (let c = 0; c < 4; c++)
       {
-        if (bytes[at + b] !== 0) { nonZero++; break; }
+        sum[c] += rgba[c];
+        if (rgba[c] > max[c]) max[c] = rgba[c];
       }
     }
   }
+  const count = texture.width * texture.height;
+  const round = values => values.map(value => Math.round(value * 1000) / 1000);
+  const centre = round(decode(view, (texture.height >> 1) * bytesPerRow + (texture.width >> 1) * texel));
   buffer.unmap();
   buffer.destroy();
-  return { format: texture.format, size: `${texture.width}x${texture.height}`, nonZeroTexels: nonZero };
+  return {
+    format: texture.format,
+    size: `${texture.width}x${texture.height}`,
+    nonZeroRgbTexels: nonZero,
+    meanRgba: round(sum.map(value => value / count)),
+    maxRgba: round(max),
+    centreRgba: centre
+  };
 }
 
 {
