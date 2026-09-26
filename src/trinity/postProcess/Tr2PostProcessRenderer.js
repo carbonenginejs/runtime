@@ -1217,6 +1217,19 @@ export class Tr2PostProcessRenderer extends CjsModel
    * which does not change the result: WebGPU creates textures zeroed, the
    * value Carbon clears to.
    *
+   * Adapted: without dynamic exposure Carbon binds `Tr2BufferAL{}` to
+   * "Exposure" (cpp:1516, 1526), and C++ picks the BUFFER overload from that
+   * type, so the slot it makes is a buffer slot. A JS null carries no type, and
+   * with no slot yet `Tr2Effect.SetParameter` makes a TEXTURE slot, which then
+   * shadows the buffer slot dynamic exposure adds later: TAA read exposure 0
+   * and drew black. So "Exposure" is sent a null only once a slot exists. The
+   * permutation that runs without dynamic exposure does not read the slot, so
+   * its absence draws what Carbon's empty buffer does. THIS IS A STOPGAP: the
+   * cause is spelling Carbon's typed empty buffer as an untyped null, which can
+   * misroute any buffer slot first set empty. The faithful fix is an uncreated
+   * AL buffer that `IsBufferAL` routes by its type, and neither backend exposes
+   * one neutrally yet.
+   *
    * @param {object} dest The scene colour, blended and written back.
    * @param {object|null} velocity The velocity map.
    * @param {object|null} opaqueColor The opaque colour copy; null at TAA low.
@@ -1288,6 +1301,12 @@ export class Tr2PostProcessRenderer extends CjsModel
     const MAX_WEIGHT = Math.fround(0.96);
     effect.SetParameter("BlendWeight", Math.min(Math.fround(frameCount / (frameCount + 1)), MAX_WEIGHT));
 
+    // The buffer overload's Tr2BufferAL{} as JS can say it; see the note above.
+    const setExposure = (target, buffer) =>
+    {
+      if (buffer || target.GetResourceByName("Exposure")) target.SetParameter("Exposure", buffer);
+    };
+
     try
     {
       effect.SetParameter("CurrentFrame", dest);
@@ -1295,21 +1314,22 @@ export class Tr2PostProcessRenderer extends CjsModel
       effect.SetParameter("AccumulationBuffer", input.Get());
       effect.SetParameter("CooldownMap", cooldownBuffer.Get());
       effect.SetParameter("VelocityMap", velocity);
-      effect.SetParameter("Exposure", exposure?.Get() ?? null);
+      setExposure(effect, exposure?.Get() ?? null);
       Tr2PostProcessRenderer.drawInto(output.Get(), Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
 
       copy.SetParameter("AccumulationBuffer", output.Get());
-      copy.SetParameter("Exposure", exposure?.Get() ?? null);
+      setExposure(copy, exposure?.Get() ?? null);
       Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, copy, renderContext, renderer);
     }
     finally
     {
-      for (const name of [ "CurrentFrame", "CurrentFrameOpaque", "AccumulationBuffer", "CooldownMap", "VelocityMap", "Exposure" ])
+      for (const name of [ "CurrentFrame", "CurrentFrameOpaque", "AccumulationBuffer", "CooldownMap", "VelocityMap" ])
       {
         effect.SetParameter(name, null);
       }
+      setExposure(effect, null);
       copy.SetParameter("AccumulationBuffer", null);
-      copy.SetParameter("Exposure", null);
+      setExposure(copy, null);
 
       for (const handle of [ accumulationBuffer0, accumulationBuffer1, cooldownBuffer, exposure ]) release(handle);
     }

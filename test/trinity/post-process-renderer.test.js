@@ -17,6 +17,7 @@ import {
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { float32ToBits } from "../../npm/dist/global/utils/bytes.js";
+import { Tr2GeometryBufferParameter } from "../../npm/dist/trinity/shader/index.js";
 
 /** A context with the stub backend: the device without webgpu or webgl. */
 function stubContext()
@@ -416,4 +417,38 @@ test("TAA ping-pongs its persistent accumulators and blends toward Carbon's 0.96
   assert.equal(postProcess.taaEffect.GetOption("DEBUG"), "DEBUG_NONE");
   assert.equal(postProcess.taaEffect.GetResourceByName("CurrentFrame").GetTextureProvider().GetTexture(), null, "TEMP_PARAM reset");
   assert.equal(pool.GetHeldCount(), held, "no pool handle leaked across frames");
+});
+
+test("TAA's Exposure slot stays a buffer slot when dynamic exposure arrives after TAA", () =>
+{
+  // Carbon binds Tr2BufferAL{} without dynamic exposure (cpp:1516, 1526): a
+  // buffer slot. A JS null made a TEXTURE slot that shadowed the buffer slot
+  // added later, so TAA read exposure 0 and drew black ("AA on, then post on").
+  const context = stubContext();
+  const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new Tr2Renderer();
+  const postProcess = new Tr2PostProcessRenderer();
+  const graph = new Tr2PostProcess2();
+
+  renderer.PrepareDeviceResources(context);
+  graph.taa = new Tr2PPTaaEffect();
+
+  const destination = colour(pool, "destination", PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  const frame = () =>
+  {
+    context.GetEffectStateManager().SetRenderTarget(0, destination.Get());
+    postProcess.Execute(destination.Get(), colour(pool, "customBackBuffer"), null, null, null, { GetPostProcess: () => graph }, null, pool, context, renderer);
+  };
+
+  frame();
+  graph.dynamicExposure = new Tr2PPDynamicExposureEffect();
+  frame();
+
+  for (const effect of [ postProcess.taaEffect, postProcess._taaCopyEffect ])
+  {
+    const slots = effect.resources.filter(resource => resource.name === "Exposure");
+
+    assert.equal(slots.length, 1, "one Exposure slot");
+    assert.ok(slots[0] instanceof Tr2GeometryBufferParameter, "the buffer overload's");
+  }
 });
