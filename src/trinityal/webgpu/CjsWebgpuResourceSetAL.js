@@ -104,13 +104,16 @@ export class CjsWebgpuResourceSetAL
       || description.m_samplers?.some(record => record.type === 2)) return ALResult.E_FAIL;
 
     const entries = new Map();
+    // The writable storage views bound so far, and the dummies handed out;
+    // see the storage-texture branch of _Resolve.
+    const storage = { written: new Set(), dummies: 0 };
 
     for (const binding of program.GetBindings())
     {
       // Constant buffers are not the set's; see the head note.
       if (binding.buffer && binding.buffer.type === "uniform") continue;
 
-      entries.set(`${binding.group}:${binding.binding}`, this._Resolve(description, binding, renderContext));
+      entries.set(`${binding.group}:${binding.binding}`, this._Resolve(description, binding, renderContext, storage));
     }
 
     this.m_entries = entries;
@@ -125,7 +128,7 @@ export class CjsWebgpuResourceSetAL
   /** One slot's resource, or the dummy Metal would put there. */
   @impl.adapted
   @impl.reason("Resolves dense native records to WebGPU views and buffers; a pending resource or empty slot uses the context dummy, following Metal.")
-  _Resolve(description, binding, renderContext)
+  _Resolve(description, binding, renderContext, storage)
   {
     if (binding.sampler)
     {
@@ -150,16 +153,31 @@ export class CjsWebgpuResourceSetAL
 
     // A storage texture is a UAV bound at one mip; the description keeps the mip
     // in the slot's colour-space word (Tr2ResourceSetDescriptionAL.SetUav).
+    //
+    // WEBGPU REFUSES TWO WRITABLE BINDINGS OF ONE SUBRESOURCE in a dispatch or
+    // draw, where D3D allows them: Carbon binds CORTAO's pack slots past the
+    // last mip to the last mip (Tr2SSAO.cpp:659-665), and the kernel never
+    // writes those slots. A repeat takes a dummy instead, as an empty slot
+    // does, and each dummy is the slot's own, so no two dummies alias either.
+    // A texture's storage view is cached per mip, so the view is the
+    // subresource's identity.
     if (binding.storageTexture)
     {
       const slot = SlotFor(description, "uav", binding);
       const texture = slot?.type === 2 ? slot.texture : null;
-      const { format, viewDimension } = binding.storageTexture;
+      const { format, viewDimension, access } = binding.storageTexture;
       const view = texture && typeof texture.GetDeviceStorageView === "function"
         ? texture.GetDeviceStorageView(viewDimension, slot.colorSpace)
         : null;
+      const writable = access !== "read-only";
 
-      return view ?? renderContext.GetDummyStorageTexture(format, viewDimension);
+      if (view && !(writable && storage.written.has(view)))
+      {
+        if (writable) storage.written.add(view);
+        return view;
+      }
+
+      return renderContext.GetDummyStorageTexture(format, viewDimension, storage.dummies++);
     }
 
     // A storage buffer: read-only ones are SRVs, writable ones UAVs.

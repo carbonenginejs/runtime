@@ -1703,6 +1703,8 @@ export class CjsWebgpuRenderContextAL
       const keyParts = [ program.GetIdentity(), group, setId ];
       const resolved = [];
       const dynamicOffsets = [];
+      // Each storage dummy in the group its own (GetDummyStorageTexture).
+      let storageDummies = 0;
 
       for (const binding of bindings)
       {
@@ -1742,7 +1744,7 @@ export class CjsWebgpuRenderContextAL
         else
         {
           resource = entries ? entries.get(`${group}:${binding.binding}`) ?? null : null;
-          resource ??= this._DummyFor(binding);
+          resource ??= this._DummyFor(binding, binding.storageTexture ? storageDummies++ : 0);
         }
 
         resolved.push({ binding: binding.binding, resource });
@@ -1865,12 +1867,12 @@ export class CjsWebgpuRenderContextAL
     return null;
   }
 
-  /** Metal's dummy for a slot no set filled. */
-  _DummyFor(binding)
+  /** Metal's dummy for a slot no set filled; `storageIndex` picks a storage dummy of its own. */
+  _DummyFor(binding, storageIndex = 0)
   {
     if (binding.sampler) return this.GetDummySampler();
     if (binding.texture) return this.GetDummyTexture(binding.texture.viewDimension ?? "2d");
-    if (binding.storageTexture) return this.GetDummyStorageTexture(binding.storageTexture.format, binding.storageTexture.viewDimension);
+    if (binding.storageTexture) return this.GetDummyStorageTexture(binding.storageTexture.format, binding.storageTexture.viewDimension, storageIndex);
 
     return { buffer: this.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
   }
@@ -1915,15 +1917,18 @@ export class CjsWebgpuRenderContextAL
    *
    * D3D binds a null UAV and drops its writes; WebGPU has no null binding and
    * checks the view's format against the layout, so the stand-in is one per
-   * format and dimension, written to and never read.
+   * format and dimension, written to and never read. And one per `index`:
+   * WebGPU refuses two writable bindings of one texture in a dispatch, so a
+   * set needing several asks for distinct ones.
    *
    * @param {string} format The binding's `storageTexture.format`.
    * @param {string} viewDimension The binding's `storageTexture.viewDimension`.
+   * @param {number} [index] Which of that kind, for a set needing several.
    * @returns {object} A `GPUTextureView`.
    */
-  GetDummyStorageTexture(format, viewDimension)
+  GetDummyStorageTexture(format, viewDimension, index = 0)
   {
-    const key = `${format}:${viewDimension}`;
+    const key = `${format}:${viewDimension}:${index}`;
     const existing = this._dummies.storageTextures.get(key);
 
     if (existing) return existing;

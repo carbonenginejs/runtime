@@ -166,3 +166,48 @@ test("WebGPU refuses unsupported heap views with the original status code", () =
   assert.equal(set.Create(description, program, al), ALResult.E_FAIL);
   assert.equal(set.IsValid(), false);
 });
+
+test("a writable storage view bound twice takes a dummy the second time, and every dummy is its slot's own", () =>
+{
+  // WebGPU refuses two writable bindings of one subresource in a dispatch;
+  // D3D allows them. Carbon binds CORTAO's pack slots past the last mip to
+  // the last mip (Tr2SSAO.cpp:659-665): the operator's "Writable storage
+  // texture binding aliasing ... base mipmap level: 6".
+  const { al, created } = composed();
+  const storage = registerIndex => ({
+    group: 0, binding: registerIndex, resourceKind: "storage-resource", registerSpace: 0, registerIndex,
+    visibility: [ "fragment" ], type: "texture_storage_2d<r32float, write>", generatedSymbol: `u${registerIndex}`
+  });
+  const program = programWith(al, [ storage(0), storage(1), storage(2) ]);
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+  const views = new Map();
+  const packed = {
+    GetDeviceStorageView(dimension, mip)
+    {
+      if (!views.has(mip)) views.set(mip, { kind: "view", dimension, mip });
+      return views.get(mip);
+    }
+  };
+
+  description.SetUav(ShaderType.PIXEL_SHADER, 0, packed, 6);
+  description.SetUav(ShaderType.PIXEL_SHADER, 1, packed, 6);
+  // Slot 2 left empty.
+
+  const set = new CjsWebgpuResourceSetAL();
+
+  assert.equal(set.Create(description, program, al), ALResult.S_OK);
+
+  const entries = set.GetEntries();
+
+  assert.equal(entries.get("0:0"), views.get(6), "the first binding of the mip keeps it");
+  assert.notEqual(entries.get("0:1"), views.get(6), "the repeat is not bound to it again");
+  assert.notEqual(entries.get("0:2"), entries.get("0:1"), "two dummies would alias each other");
+  assert.equal(created.textures, 2, "a dummy each");
+
+  // Different mips of one texture do not alias.
+  description.SetUav(ShaderType.PIXEL_SHADER, 1, packed, 5);
+  const distinct = new CjsWebgpuResourceSetAL();
+
+  distinct.Create(description, program, al);
+  assert.equal(distinct.GetEntries().get("0:1"), views.get(5));
+});
