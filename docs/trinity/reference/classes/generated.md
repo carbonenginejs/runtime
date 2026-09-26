@@ -10,6 +10,16 @@ behavior is still generator-owned. Package visibility is recorded from the
 actual export graph; a source-level `export class` alone does not make a class
 part of the public package API.
 
+<!-- class:Tr2GpuStructuredBuffer -->
+## `Tr2GpuStructuredBuffer`
+
+Describes the element count, stride, and creation flags of a GPU structured buffer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2GpuStructuredBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2ReflectionProbe -->
 ## `Tr2ReflectionProbe`
 
@@ -297,16 +307,6 @@ Carries nested GPU timing zones, frame fences, messages, and capture state for o
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/trinityCore/Tr2GpuProfiler.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:Tr2GpuStructuredBuffer -->
-## `Tr2GpuStructuredBuffer`
-
-Describes the element count, stride, and creation flags of a GPU structured buffer.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/trinityCore/Tr2GpuStructuredBuffer.js`
 - Visibility: Public
 - Kind: Carbon generated
 

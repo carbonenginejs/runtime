@@ -192,3 +192,52 @@ test("Clear drops records, not frustum state", () =>
   manager.Clear();
   assert.equal(manager.GetLightData().length, 0);
 });
+
+// The GPU half (Tr2LightManager.cpp:140-212, 370-440, 622-675). The light
+// lists are built on the CPU in computelightlists' own layout - three header
+// words per 16x16 tile, then [lightIndex, next] nodes, 0-based indices, 0
+// ending a list - with every tile sharing one chain.
+test("UpdateLists builds the shared chain in the light-list layout, 0-based, and clears when empty", async () =>
+{
+  const { Tr2RenderContext_GetMainThreadRenderContext } = await import("../../npm/dist/trinity/core/index.js");
+  const { Tr2VariableStore } = await import("../../npm/dist/trinity/core/index.js");
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+  renderContext.GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+
+  const manager = Tr2LightManager.getOrCreateInstance("res:/graphics/effect/managed/space/system/computelightlists.fx");
+  assert.equal(Tr2LightManager.getInstance(), manager);
+  assert.equal(Tr2LightManager.getOrCreateInstance("other"), manager, "one manager per process");
+
+  const store = Tr2VariableStore.GlobalStore();
+  assert.equal(store.FindVariable("LightBuffer").GetValue(), manager._lightBuffer);
+  assert.equal(store.FindVariable("LightIndexBuffer").GetValue(), manager._indexBuffer);
+
+  manager.Clear(renderContext);
+  manager.AddPointLight([ 0, 0, 0 ], 10, [ 1, 1, 1 ]);
+  manager.AddPointLight([ 5, 0, 0 ], 10, [ 1, 0, 0 ], 0, Tr2LightManager.Flags.AFFECTS_SURFACES | Tr2LightManager.Flags.AFFECTS_PARTICLES);
+  manager.ResolveLightData();
+  assert.equal(manager.GetLightCount(), 2);
+
+  // 32x16 pixels is two tiles: six header words, then the nodes.
+  const depthMap = { GetWidth: () => 32, GetHeight: () => 16 };
+  assert.equal(manager.UpdateLists(depthMap, renderContext), true);
+
+  const list = Array.from(manager._indexList.subarray(0, 6 + 4 + 2));
+  assert.deepEqual(list, [
+    6, 6, 10, // tile 0: list0 head, list1 head, particle head
+    6, 6, 10, // tile 1
+    0, 8,     // light 0, then the node at 8
+    1, 0,     // light 1, end
+    1, 0      // particle chain: light 1, end
+  ]);
+
+  // No lights: every head reads "none".
+  manager.Clear(renderContext);
+  manager.ResolveLightData();
+  assert.equal(manager.UpdateLists(depthMap, renderContext), true);
+  assert.ok(manager._indexList.every(word => word === 0));
+
+  Tr2LightManager.deleteInstance();
+  assert.equal(Tr2LightManager.getInstance(), null);
+  assert.notEqual(store.FindVariable("LightBuffer").GetValue(), manager._lightBuffer, "the globals stop naming the deleted manager's buffers");
+});

@@ -35,6 +35,12 @@ import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
 import { Tr2TextureArray } from "../Tr2TextureArray/index.js";
+import { Tr2GpuStructuredBuffer } from "../device/Tr2GpuStructuredBuffer.js";
+import { TriDevice } from "../device/TriDevice.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
+import { Succeeded } from "#trinityal";
 
 // Tr2LightManager.cpp:30-48 - copied verbatim; the buffer sizes are the ABI
 // the AL uploads against.
@@ -47,6 +53,13 @@ const HIGH_QUALITY_ATLAS_SIZE_LOG2 = 14;
 const HIGH_QUALITY_ATLAS_ENTRY_MAX_SIZE = 1 << 13;
 const INFINITE_SIZE_CLAMP = 1 << 14; // 1 << HIGH_QUALITY_ATLAS_SIZE_LOG2
 const FLOATS_PER_LIGHT = 12; // 48 bytes / 3 RGBA32 texels
+const BYTES_PER_LIGHT = FLOATS_PER_LIGHT * 4;
+// Tr2LightManager.cpp:39-40 - the light-list tiles, 16x16 pixels.
+const TILE_WIDTH = 16;
+const TILE_HEIGHT = 16;
+// Header words per tile: list0 head, list1 head, particle-list head
+// (computelightlists writes all three; the hull shaders read +0).
+const HEADER_WORDS_PER_TILE = 3;
 
 /** CCP_ALIGN: round up to a power-of-two alignment. */
 function align(value, alignment)
@@ -280,15 +293,19 @@ export class Tr2LightManager extends CjsModel
   }
 
   /**
-   * Carbon Clear (cpp:220-242), the CPU half: drops the frame's records and
-   * selections. The index-buffer UAV clear (cpp:224) is device work the AL
-   * performs when it consumes the frame.
+   * Carbon Clear (cpp:220-242): re-points the light-buffer globals, clears
+   * the light indices, and drops the frame's records and selections.
+   *
+   * Without a render context (a CPU-only caller) the index clear is skipped;
+   * there is no buffer to clear then.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("ClearLightIndices' UAV clear is AL realization; the vector clears are ported. The render-context parameter is accepted for signature parity and unused.")
-  Clear(_renderContext = null)
+  @impl.implemented
+  Clear(renderContext = null)
   {
+    this.SetVariableStore();
+    if (renderContext) this.ClearLightIndices(renderContext);
+
     this.#records.length = 0;
     this.#volumetricLights.length = 0;
     this.#shadowCastingLights.length = 0;
@@ -696,6 +713,303 @@ export class Tr2LightManager extends CjsModel
   // the renderer's clock, which is `gTriDev->GetAnimationTime()`, and they do
   // that here now. Nothing in src ever called the setter, so the five readers
   // had been sampling a constant zero.
+
+  /** Carbon m_effect's path, computelightlists (EveSpaceScene.cpp:1380). */
+  _effectPath = "";
+
+  /** m_lightBuffer (Tr2GpuStructuredBufferPtr): one PerLightData per light. */
+  _lightBuffer = new Tr2GpuStructuredBuffer();
+
+  /** m_indexBuffer (Tr2GpuStructuredBufferPtr): tile headers, then list nodes. */
+  _indexBuffer = new Tr2GpuStructuredBuffer();
+
+  /** m_lightBufferVariable / m_indexBufferVariable (TriVariableHandle). */
+  _lightBufferVariable = null;
+
+  _indexBufferVariable = null;
+
+  /** The CPU-built index list, reused across frames (see DoUpdateLists). */
+  _indexList = new Uint32Array(0);
+
+  /**
+   * Carbon's constructor half that makes this a device resource and
+   * publishes the globals (cpp:145-176): LightBuffer and LightIndexBuffer are
+   * registered once and pointed at the buffers, and the buffers are made
+   * when a device allows it. Carbon also publishes LightProfileArray; the JS
+   * texture array is not yet a texture provider, so it is not registered.
+   * Profile-less lights, most of them, never sample it.
+   *
+   * @param {string} effectPath The light-list compute effect.
+   * @returns {Tr2LightManager} This manager.
+   */
+  _InitializeDevice(effectPath)
+  {
+    this._effectPath = String(effectPath ?? "");
+    const store = Tr2VariableStore.GlobalStore();
+    this._lightBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, this._lightBuffer);
+    this._indexBufferVariable = store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, this._indexBuffer);
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+    return this;
+  }
+
+  /** Carbon GetOrCreateInstance (cpp:192-200): the process-wide manager. */
+  @carbon.method
+  @impl.implemented
+  static getOrCreateInstance(effectPath)
+  {
+    Tr2LightManager.#instance ??= new Tr2LightManager()._InitializeDevice(effectPath);
+    return Tr2LightManager.#instance;
+  }
+
+  /** Carbon GetInstance (cpp:202-205): the manager, or null when none exists. */
+  @carbon.method
+  @impl.implemented
+  static getInstance()
+  {
+    return Tr2LightManager.#instance;
+  }
+
+  /**
+   * Carbon DeleteInstance (cpp:207-212). The destructor's ResetVariableStore
+   * (cpp:174-190) republishes empty buffers, so the globals stop naming this
+   * manager's.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("JavaScript has no destructor: the manager unregisters from the device and resets the variable store here, where Carbon's destructor would.")
+  static deleteInstance()
+  {
+    const instance = Tr2LightManager.#instance;
+    if (!instance) return;
+    Tr2LightManager.#instance = null;
+    TriDevice.UnregisterResource(instance);
+    const store = Tr2VariableStore.GlobalStore();
+    store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, new Tr2GpuStructuredBuffer());
+    store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, new Tr2GpuStructuredBuffer());
+  }
+
+  static #instance = null;
+
+  /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
+  @carbon.method
+  @impl.implemented
+  SetVariableStore()
+  {
+    this._lightBufferVariable?.SetValue(this._lightBuffer);
+    this._indexBufferVariable?.SetValue(this._indexBuffer);
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed())
+    {
+      if (!this.OnPrepareResources()) return false;
+    }
+    return true;
+  }
+
+  /**
+   * Carbon OnPrepareResources (cpp:657-675): the light buffer, and the index
+   * buffer.
+   *
+   * The index buffer is sized by UpdateLists to what the CPU list needs, and
+   * created CPU-writable; see DoUpdateLists. Carbon makes it 8M elements,
+   * GPU-writable, for the compute kernel's allocator. The counter and the
+   * per-frame constants belong to that kernel and are not made.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The light lists are filled on the CPU, not by computelightlists, so the index buffer is CPU-writable and sized per screen; the kernel's counter and constants are not created.")
+  OnPrepareResources()
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    const { CPU_WRITABLE } = Tr2GpuStructuredBuffer.CreationFlag;
+    this._lightBuffer.Create(LIGHT_BUFFER_SIZE, BYTES_PER_LIGHT, CPU_WRITABLE, renderContext);
+    this._lightBuffer.SetName("Light buffer");
+    this._indexBuffer.SetName("Light indices");
+    this.ClearLightIndices(renderContext);
+    return true;
+  }
+
+  /** Carbon ReleaseResources (cpp:641-655): nothing of the light lists is released. */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources(_storage)
+  {
+  }
+
+  /**
+   * Carbon ClearLightIndices (cpp:370-378): zero indices, so every tile head
+   * reads "no lights".
+   *
+   * @param {Tr2RenderContext} renderContext The context to write through.
+   * @returns {boolean} Whether the clear was written.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon clears the whole buffer as a UAV; the CPU-written buffer is zeroed through a map.")
+  ClearLightIndices(renderContext)
+  {
+    const buffer = this._indexBuffer.GetGpuBuffer(0);
+    if (!buffer) return true;
+    this._indexList.fill(0);
+    return Tr2LightManager.#WriteMapped(buffer, null, renderContext);
+  }
+
+  /**
+   * Carbon UpdateLightBuffer (cpp:380-399): grows the light buffer to the
+   * frame's light count, then uploads the packed records.
+   *
+   * @param {Tr2RenderContext} renderContext The context to write through.
+   * @returns {boolean} Whether the upload succeeded.
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateLightBuffer(renderContext)
+  {
+    const count = this.#packedCount;
+    if (this._lightBuffer.GetCount() < count)
+    {
+      const grown = Math.max(this._lightBuffer.GetCount() + 1024, count);
+      this._lightBuffer.Create(grown, BYTES_PER_LIGHT, Tr2GpuStructuredBuffer.CreationFlag.CPU_WRITABLE, renderContext);
+      this._lightBuffer.SetName("Light buffer");
+    }
+    const buffer = this._lightBuffer.GetGpuBuffer(0);
+    if (!buffer) return false;
+    // cpp:393-396: a WRITE_OFTEN buffer is written through a map.
+    return Tr2LightManager.#WriteMapped(buffer, this.GetLightBufferData(), renderContext);
+  }
+
+  /**
+   * Carbon UpdateLists (cpp:622-639): the globals name the buffers, then the
+   * lists are built - or cleared when there are no lights or the build fails.
+   *
+   * @param {object} depthMap The scene depth, the render target's size.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {boolean} Whether the lists were built.
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateLists(depthMap, renderContext)
+  {
+    this.SetVariableStore();
+    if (this.#packedCount === 0)
+    {
+      this.ClearLightIndices(renderContext);
+      return true;
+    }
+    const built = this.DoUpdateLists(depthMap, renderContext);
+    if (!built) this.ClearLightIndices(renderContext);
+    return built;
+  }
+
+  /**
+   * Carbon DoUpdateLists (cpp:401-440) builds each 16x16 tile's light lists
+   * on the GPU with computelightlists. Here they are built on the CPU, in
+   * the kernel's own layout (decoded from build 3498825): three header words
+   * per tile - list0 head, list1 head, particle-list head - then
+   * [lightIndex, next] nodes, 0-based light indices, 0 ending a list.
+   *
+   * Every tile's heads point at one shared chain instead of a tile-culled
+   * one. The hull shaders test each light per pixel (dist < radius and
+   * FLAG_AFFECTS_SURFACES), so the picture is the same; only the tile cull's
+   * saving is lost. The particle list holds the lights flagged
+   * AFFECTS_PARTICLES.
+   *
+   * The tile count follows the render target, as the kernel's does; the
+   * depth map is that size.
+   *
+   * @param {object} depthMap The scene depth.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {boolean} Whether the lists were written.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("computelightlists does not translate to WebGPU yet (its UAV shapes); the lists are built on the CPU in the kernel's layout, every tile sharing one chain.")
+  DoUpdateLists(depthMap, renderContext)
+  {
+    if (!this.UpdateLightBuffer(renderContext)) return false;
+
+    const width = depthMap ? depthMap.GetWidth() : 0;
+    const height = depthMap ? depthMap.GetHeight() : 0;
+    if (!width || !height) return false;
+
+    const tiles = Math.ceil(width / TILE_WIDTH) * Math.ceil(height / TILE_HEIGHT);
+    const headerWords = tiles * HEADER_WORDS_PER_TILE;
+    const count = this.#packedCount;
+
+    let particleCount = 0;
+    for (let index = 0; index < count; index++)
+    {
+      if (this.#LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES) particleCount++;
+    }
+    const words = headerWords + 2 * (count + particleCount);
+
+    if (this._indexList.length < words) this._indexList = new Uint32Array(words);
+    if (this._indexBuffer.GetCount() < words)
+    {
+      this._indexBuffer.Create(words, 4, Tr2GpuStructuredBuffer.CreationFlag.CPU_WRITABLE, renderContext);
+      this._indexBuffer.SetName("Light indices");
+      this.SetVariableStore();
+    }
+    const list = this._indexList;
+    list.fill(0);
+
+    // The shared chain of every light, then the chain of particle lights.
+    let node = headerWords;
+    const surfaceHead = node;
+    for (let index = 0; index < count; index++, node += 2)
+    {
+      list[node] = index;
+      list[node + 1] = index + 1 < count ? node + 2 : 0;
+    }
+    const particleHead = particleCount ? node : 0;
+    for (let index = 0, seen = 0; index < count; index++)
+    {
+      if (!(this.#LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES)) continue;
+      seen++;
+      list[node] = index;
+      list[node + 1] = seen < particleCount ? node + 2 : 0;
+      node += 2;
+    }
+
+    for (let tile = 0; tile < tiles; tile++)
+    {
+      const header = tile * HEADER_WORDS_PER_TILE;
+      list[header] = surfaceHead;
+      list[header + 1] = surfaceHead;
+      list[header + 2] = particleHead;
+    }
+
+    const buffer = this._indexBuffer.GetGpuBuffer(0);
+    if (!buffer) return false;
+    return Tr2LightManager.#WriteMapped(buffer, list.subarray(0, words), renderContext);
+  }
+
+  /**
+   * MapForWriting, copy, UnmapForWriting - Carbon's upload for a
+   * CPU_WRITABLE (WRITE_OFTEN) buffer, which UpdateBuffer refuses. A null
+   * source zeroes the mapping.
+   */
+  static #WriteMapped(buffer, source, renderContext)
+  {
+    const { result, data } = buffer.MapForWriting(renderContext);
+    if (!Succeeded(result)) return false;
+    if (source) data.set(new Uint8Array(source.buffer, source.byteOffset, source.byteLength));
+    else data.fill(0);
+    buffer.UnmapForWriting(renderContext);
+    return true;
+  }
+
+  /** The packed flags of light `index`: the high 16 bits of row 1's w (contract). */
+  #LightFlags(index)
+  {
+    return this.#packedBits[index * FLOATS_PER_LIGHT + 7] >>> 16;
+  }
 
   /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
   @impl.custom

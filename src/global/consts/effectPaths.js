@@ -44,3 +44,6 @@ export const PostProcessEffectPaths = Object.freeze({
   TAACopy: POST_PROCESS + "TAACopy.fx",
   Blur: POST_PROCESS + "Blur.fx"
 });
+
+/** The light-list compute effect the light manager is created with (`EveSpaceScene.cpp:1380`). */
+export const COMPUTE_LIGHT_LISTS_EFFECT_PATH = "res:/graphics/effect/managed/space/system/computelightlists.fx";
