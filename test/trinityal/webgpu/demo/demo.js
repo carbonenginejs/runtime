@@ -412,6 +412,20 @@ const POOL_TEXTURES = new Map();
 }
 
 /**
+ * THE POOL'S PERSISTENT TEXTURES BY NAME, for `demo.taa()`: TAA's two
+ * accumulators and its cooldown map live across frames, not in the temp pool.
+ */
+{
+  const original = Tr2GpuResourcePool.prototype.GetPersistentTexture;
+  Tr2GpuResourcePool.prototype.GetPersistentTexture = function (name, ...rest)
+  {
+    const handle = original.call(this, name, ...rest);
+    POOL_TEXTURES.set(name, handle.Get());
+    return handle;
+  };
+}
+
+/**
  * THE POOL'S PERSISTENT BUFFERS BY NAME, for `demo.exposure()`: the
  * "Exposure Buffer" dynamic exposure measures into and tonemapping reads.
  */
@@ -450,7 +464,7 @@ async function ReadPoolBuffer(device, name)
 }
 
 /** Bytes per texel for the formats the post chain uses. */
-const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4 };
+const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4, "rg16float": 4, "r32uint": 4 };
 
 /** Decodes one IEEE-754 binary16 value. */
 function Half(bits)
@@ -467,7 +481,10 @@ const TEXEL_DECODERS = {
   "bgra8unorm": (view, at) => [ 2, 1, 0, 3 ].map(c => view.getUint8(at + c) / 255),
   "rgba8unorm": (view, at) => [ 0, 1, 2, 3 ].map(c => view.getUint8(at + c) / 255),
   "rgba32float": (view, at) => [ 0, 4, 8, 12 ].map(c => view.getFloat32(at + c, true)),
-  "r32float": (view, at) => [ view.getFloat32(at, true), 0, 0, 0 ]
+  "r32float": (view, at) => [ view.getFloat32(at, true), 0, 0, 0 ],
+  // TAA's velocity map (screen-space motion) and cooldown map (a counter).
+  "rg16float": (view, at) => [ Half(view.getUint16(at, true)), Half(view.getUint16(at + 2, true)), 0, 0 ],
+  "r32uint": (view, at) => [ view.getUint32(at, true), 0, 0, 0 ]
 };
 
 /**
@@ -2046,6 +2063,52 @@ export async function RunDemo(canvas)
     await new Promise(resolve => setTimeout(resolve, 1000));
     const second = await ReadPoolBuffer(device, "Exposure Buffer");
     return { first, second, settings: globalThis.demo.postProcess?.dynamicExposure ?? null };
+  };
+
+  // demo.taa(): whether TAA runs and converges. Two samples 500 ms apart of
+  // the frame counter (RenderTaa increments it per frame; Execute resets it to
+  // 0 whenever TAA is off), the shader state and refusals, the jitter, and the
+  // velocity map and both accumulators. A counter stuck at 0 means RenderTaa
+  // never ran; an effect that is not good means it drew nothing; accumulators
+  // that are both empty or identical between samples mean the history is not
+  // being written; a velocity map of zeros under a moving camera means the
+  // shaders do not write it.
+  globalThis.demo.taa = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const renderer = driver.postProcess;
+    const sample = async () =>
+    {
+      const textures = {};
+      for (const name of [ "velocityMap", "opaqueBackBuffer", "TAA Accumulation 0", "TAA Accumulation 1", "TAA Cooldown" ])
+      {
+        const texture = POOL_TEXTURES.get(name)?.m_texture;
+        textures[name] = texture ? await CountNonZeroTexels(device, texture) : "not borrowed yet";
+      }
+      const jittered = driver.scene.jitteredProjection;
+      return {
+        frameCounter: renderer._taaFrameCounter,
+        blendWeight: renderer.taaEffect.FindParameterByName("BlendWeight")?.value ?? null,
+        jitter: jittered ? [ jittered[12], jittered[13] ] : null,
+        textures
+      };
+    };
+    const first = await sample();
+    await new Promise(resolve => setTimeout(resolve, 500));
+    const second = await sample();
+    const counts = { ...DRAW_COUNTS };
+    for (const key of Object.keys(DRAW_COUNTS)) delete DRAW_COUNTS[key];
+    return {
+      antiAliasingQuality: driver.antiAliasingQuality,
+      taaInPostProcess: Boolean(driver.scene.GetPostProcess()?.GetTaaIfAvailable(renderer.GetPostProcessingQuality())),
+      taa: EffectState(renderer.taaEffect),
+      taaCopy: EffectState(renderer._taaCopyEffect),
+      options: { QUALITY: renderer.taaEffect.GetOption("QUALITY"), DEBUG: renderer.taaEffect.GetOption("DEBUG") },
+      lastPipelineFailure: al.m_pipelineFailure ?? null,
+      counts,
+      first,
+      second
+    };
   };
 
   globalThis.demo.post = () =>
