@@ -223,7 +223,27 @@ async function LoadPostTemplate(name)
  * @param {() => void} options.aimSun Puts the sun behind the hull, as the camera sees it.
  * @returns {void}
  */
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun })
+/**
+ * The ship's dirt level from the weeks since it was last cleaned.
+ *
+ * CLIENT LOGIC, NOT CARBON: Carbon has no such function; the EVE client
+ * computes the level and hands the engine m_dirtLevel. The formula came from
+ * the game's developers and was correct as of 2022, when it entered ccpwgl as
+ * EveSpaceObject2.getDirtLevelFromWeeks (1dade15b). It may have changed since;
+ * the quad shaders that read the level have not moved much. A disabled or
+ * non-numeric age gives 0.
+ *
+ * @param {number} weeks Weeks since the ship was last cleaned.
+ * @param {boolean} [isDisabled] Dirt switched off.
+ * @returns {number} The dirt level, never below 0.
+ */
+function DirtLevelFromWeeks(weeks, isDisabled = false)
+{
+  if (isDisabled || Number.isNaN(Number(weeks))) return 0;
+  return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
+}
+
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -288,6 +308,10 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const { AmbientOcclusionQuality } = EveSpaceSceneRenderDriver;
   const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
+
+  // Ship age in weeks since last cleaned; the dirt level follows the game's curve.
+  const shipAge = row("ship age (weeks)", Object.assign(document.createElement("input"), { type: "number", min: "0", step: "1", value: "0", style: "width: 60px" }));
+  shipAge.addEventListener("input", () => age(Number(shipAge.value)));
 
   // The sun as three numbers; a zero vector is ignored rather than normalised.
   const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "number", step: "0.1", value: String(Math.round(sun.direction[index] * 100) / 100) }));
@@ -2108,6 +2132,7 @@ export async function RunDemo(canvas)
       return { boosterGlow: data[0], activation: data[1], dirt: data[2], radius: data[3] };
     },
     dirt: value => realScene ? (ship.dirtLevel = value) : globalThis.demo.shipData({ dirt: value }),
+    age: weeks => globalThis.demo.dirt(DirtLevelFromWeeks(weeks)),
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
     ship,
     scene: realScene
@@ -2115,7 +2140,7 @@ export async function RunDemo(canvas)
   // Carbon writes the bounding radius into w every update (EveSpaceObject2.cpp:774);
   // the layout default of 1 was never overwritten here.
   if (!realScene) globalThis.demo.shipData({ radius: bounds.radius });
-  console.log(`console: demo.dirt(v), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
+  console.log(`console: demo.dirt(v), demo.age(weeks), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
 
   const depthFormat = "depth24plus";
   const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
@@ -2610,6 +2635,7 @@ export async function RunDemo(canvas)
     current: () => postTemplate,
     sun: SUN,
     flare,
+    age: weeks => globalThis.demo.age(weeks),
     // The light travels from behind the hull toward the camera: the scene
     // direction is (eye - centre), so the sun sits beyond the hull on screen.
     // Geometric, so no axis or handedness convention is assumed.
