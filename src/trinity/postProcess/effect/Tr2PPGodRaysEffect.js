@@ -27,6 +27,12 @@ export class Tr2PPGodRaysEffect extends Tr2PPEffect
   @type.string
   noiseTexturePath = "res:/Texture/Global/noise.dds";
 
+  /**
+   * grFactors: Carbon's const, never exposed (h:26, cpp:11). The renderer
+   * sets it on the god-ray effect every frame (Tr2PostProcessRenderer.cpp:1161).
+   */
+  grFactors = vec4.fromValues(1000, 0.2, 128, 2);
+
   /** Carbon Tr2PPGodRaysEffect::IsActive override. */
   IsActive()
   {
