@@ -2,6 +2,12 @@ import { CjsCarbonEffectWriter } from "./CjsCarbonEffectWriter.js";
 import { CjsCarbonEffectReader } from "./CjsCarbonEffectReader.js";
 import { HlslShaderStageNames } from "../../formats/hlsl/core/tr2/HlslRenderContextEnum.js";
 import { Tr2EffectDescription } from "../../shader/reflection/Tr2EffectDescription.js";
+import { Tr2EffectParameterAnnotation } from "../../shader/reflection/Tr2EffectParameterAnnotation.js";
+import {
+    CARBON_TYPED_VIEWS,
+    CARBON_VIEW_FORMAT_ANNOTATION,
+    annotatedViewFormat
+} from "../../formats/hlsl/core/carbonTypedViews.js";
 import { CjsFormatWriteError } from "../CjsFormatError.js";
 
 /**
@@ -126,7 +132,46 @@ function describeBody(reader, permutationIndex, passUnits, backend)
         }
     }
 
+    annotateTypedViews(effect);
+
     return effect.toCarbonBinary();
+}
+
+/**
+ * Writes each Carbon-identified typed view's format onto its parameter as a
+ * `CjsViewFormat` annotation (`formats/hlsl/core/carbonTypedViews.js`), so a
+ * container we emit carries the formats its translation used in Carbon's own
+ * annotation records. An annotation already present is left as it is.
+ *
+ * @param {Tr2EffectDescription} effect The body's description graph.
+ */
+function annotateTypedViews(effect)
+{
+    const names = new Set();
+    for (const technique of effect.techniques)
+    {
+        for (const pass of technique.passes)
+        {
+            for (const stage of pass.stageInputs)
+            {
+                if (!stage.exists) continue;
+                for (const resource of [ ...stage.resources.values(), ...stage.uavs.values() ])
+                {
+                    if (CARBON_TYPED_VIEWS[resource.name]) names.add(resource.name);
+                }
+            }
+        }
+    }
+    for (const name of names)
+    {
+        const annotations = effect.annotations.get(name) ?? [];
+        if (annotatedViewFormat(annotations)) continue;
+        const annotation = new Tr2EffectParameterAnnotation();
+        annotation.name = CARBON_VIEW_FORMAT_ANNOTATION;
+        annotation.type = Tr2EffectParameterAnnotation.Type.STRING;
+        annotation.stringValue = CARBON_TYPED_VIEWS[name];
+        effect.annotations.set(name, [ ...annotations, annotation ]);
+    }
 }
 
 /**

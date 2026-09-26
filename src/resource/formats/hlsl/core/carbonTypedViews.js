@@ -51,14 +51,40 @@ export const CARBON_VIEW_FORMATS = Object.freeze({
     R32_UINT: Object.freeze({ componentClass: "uint", channels: 1, bytesPerElement: 4 })
 });
 
+/**
+ * The effect-parameter annotation our containers carry the format in: a
+ * string annotation such as `CjsViewFormat = "R32_FLOAT"` on the parameter.
+ * Carbon's container already stores per-parameter annotations, so this adds a
+ * name, not a field, and any Carbon reader still parses the file. It is ours,
+ * hence the `Cjs` prefix; CCP's shipped effects never carry it, so for them
+ * the table above is the source.
+ */
+export const CARBON_VIEW_FORMAT_ANNOTATION = "CjsViewFormat";
+
+const STRING_ANNOTATION = 3;
+
+/**
+ * The view format a parameter's own annotation names, or null.
+ *
+ * @param {object[]} annotations The parameter's annotations (records or models).
+ * @returns {string|null} A known format, or null.
+ */
+export function annotatedViewFormat(annotations)
+{
+    const entry = (annotations || []).find((annotation) =>
+        annotation?.name === CARBON_VIEW_FORMAT_ANNOTATION && annotation.type === STRING_ANNOTATION);
+    return entry && CARBON_VIEW_FORMATS[entry.stringValue] ? entry.stringValue : null;
+}
+
 const SEMANTIC_KIND = Object.freeze({
     resource: "sampled-resource",
     uav: "storage-resource"
 });
 
 /**
- * The typed-view formats for one stage: D3D identity to view format, from the
- * stage's Carbon parameter names.
+ * The typed-view formats for one stage: D3D identity to view format. A
+ * parameter's `CjsViewFormat` annotation wins; otherwise its Carbon name is
+ * looked up in the table.
  *
  * @param {object[]} semanticBindings The stage's effect-description bindings.
  * @returns {Object<string, string>} `{ "sampled-resource:0:9": "R32_FLOAT" }`
@@ -70,7 +96,9 @@ export function typedViewsFor(semanticBindings)
     {
         const kind = SEMANTIC_KIND[binding?.kind];
         const name = binding?.metadataName ?? binding?.carbon?.name;
-        const format = kind && typeof name === "string" ? CARBON_TYPED_VIEWS[name] : undefined;
+        const format = kind && typeof name === "string"
+            ? annotatedViewFormat(binding.annotations) ?? CARBON_TYPED_VIEWS[name]
+            : undefined;
         if (!format) continue;
         views[`${kind}:${binding.registerSpace ?? 0}:${binding.registerIndex}`] = format;
     }
