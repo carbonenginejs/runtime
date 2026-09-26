@@ -2059,6 +2059,12 @@ export async function RunDemo(canvas)
   if (realScene)
   {
     realScene.envMapResPath = SCENE_NEBULA;
+    // THE CLIENT'S "dynamic lights" GRAPHICS SETTING: Carbon ships
+    // g_eveSpaceSceneDynamicLighting false (EveSpaceScene.cpp:109-110), and
+    // without it BeginRender deletes the light manager, so attachment lights
+    // (spotlights, planes, boosters, sprite sets) never reach a shader.
+    // ?dynamicLights=0 renders without them.
+    realScene.dynamicLightingEnabled = new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0";
     ship = await BuildSofShip(DNA);
 
     // THE CLIENT'S SPEED FEED: Carbon's m_speed is a TriFloat the client binds
