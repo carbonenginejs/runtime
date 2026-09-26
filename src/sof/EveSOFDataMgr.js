@@ -1946,8 +1946,21 @@ function selectNamedSlot(container, key, mapName)
   const slots = container[mapName];
   if (!slots) return null;
   const lowercase = key.toLowerCase();
-  if (slots instanceof Map) return slots.get(lowercase) ?? slots.get(key) ?? null;
-  return slots[lowercase] ?? slots[key] ?? null;
+  const direct = slots instanceof Map ? slots.get(lowercase) ?? slots.get(key) : slots[lowercase] ?? slots[key];
+  if (direct !== undefined && direct !== null) return direct;
+
+  // CASE-INSENSITIVE AGAINST THE SLOT KEYS. Carbon indexes a colour set by
+  // the type enum (EveSOF.cpp:1103-1108, 1287), so a name's casing never
+  // mattered there. Here the slot keys are camelCase ("primarySpotlight")
+  // and the requested names mix PascalCase and acronyms ("PrimarySpotlight",
+  // "PrimaryFx", "PrimaryAttackFX"); lower-casing only the request found
+  // single-word types and sent every multi-word one to the black default.
+  const entries = slots instanceof Map ? slots.entries() : Object.entries(slots);
+  for (const [ slotKey, value ] of entries)
+  {
+    if (String(slotKey).toLowerCase() === lowercase) return value ?? null;
+  }
+  return null;
 }
 
 function projectSingleAreaMaterial(value, areaType)
