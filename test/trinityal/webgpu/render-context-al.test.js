@@ -767,7 +767,8 @@ function boundTexture(name, format)
     GetHeight: () => 64,
     GetFormat: () => 10,
     GetDeviceFormat: () => format,
-    GetDeviceRenderTargetView: slice => `${name}:${slice}`
+    GetDeviceRenderTargetView: slice => `${name}:${slice}`,
+    EncodeDepthShadowCopy: () => false
   };
 }
 
@@ -959,4 +960,34 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
   assert.equal(al.ClearUav(histogram, [ -0, 0, 0, 0 ], true), false, "negative zero has other bits");
   assert.equal(al.ClearUav({ GetDeviceTextureView: () => null }, [ 0, 0, 0, 0 ]), false, "a texture");
   assert.equal(log.length, 4);
+});
+
+test("unbinding a sampled depth stencil refreshes its float shadow after its pass ends", () =>
+{
+  const { al, passes } = composedWithPasses();
+  const log = [];
+  const depth = {
+    ...boundTexture("depthBuffer", "depth32float"),
+    EncodeDepthShadowCopy: encoder =>
+    {
+      log.push(`copy after ${passes.length} pass(es)`);
+      return encoder !== null;
+    }
+  };
+
+  // EveSpaceSceneRenderDriver: the scene draws with depth, then the post
+  // process pushes a null depth stencil (Tr2PostProcessRenderer.cpp:676).
+  al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
+  al.SetDepthStencil(depth);
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+  al.SetDepthStencil(null);
+
+  assert.deepEqual(log, [ "copy after 1 pass(es)" ]);
+  assert.equal(al.DrainTransitions().some(event => event.type === "copy-depth-shadow"), true);
+
+  // Rebinding the same depth is not an unbind.
+  al.SetDepthStencil(depth);
+  al.SetDepthStencil(depth);
+  assert.equal(log.length, 1);
 });

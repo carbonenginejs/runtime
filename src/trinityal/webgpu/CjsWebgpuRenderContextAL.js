@@ -894,7 +894,13 @@ export class CjsWebgpuRenderContextAL
    */
   SetDepthStencil(depthStencil)
   {
+    const previous = this._depthStencil;
+
     this._Record(this._workQueue.SetDepthAttachment(depthStencil ?? null));
+
+    // Unbinding ends the pass that wrote the depth, so a sampled depth
+    // texture's float shadow is refreshed here (CjsWebgpuTextureAL._depthShadow).
+    if (previous && previous !== (depthStencil ?? null)) this._Record(this._workQueue.CopyDepthShadow(previous));
 
     if (this._depthStencil !== (depthStencil ?? null)) this._pipelineDirty = true;
 

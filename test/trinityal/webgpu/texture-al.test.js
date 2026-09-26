@@ -32,16 +32,17 @@ function composed()
         {
           calls.views.push(view);
 
-          return { kind: "view", ...view };
+          return { kind: "view", textureFormat: descriptor.format, ...view };
         }
       };
     },
+    createBuffer: descriptor => ({ kind: "buffer", descriptor, destroy() {} }),
     queue: { writeTexture(destination, data, layout, size) { calls.writes.push({ destination, bytes: data.byteLength, layout, size }); } },
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
     popErrorScope() { return Promise.resolve(null); }
   };
-  const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE, textureUsage: TEXTURE_USAGE });
+  const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE, textureUsage: TEXTURE_USAGE, bufferUsage: { COPY_SRC: 4, COPY_DST: 8 } });
   const al = new CjsWebgpuRenderContextAL({
     webgpu,
     dispatcher: { PrepareAccumulator: () => null, EncodeAccumulator() {} },
@@ -329,4 +330,37 @@ test("MapForWriting refuses a texture without CPU write, and a box it cannot pre
   const boxed = Tr2TextureSubresource.ForMipLevel(0);
   boxed.m_box.left = 1;
   assert.equal(writable.MapForWriting(boxed, al).result, ALResult.E_INVALIDARG);
+});
+
+test("a sampled depth texture is read through an r32float shadow copied via a row-aligned buffer", () =>
+{
+  const { al, calls } = composed();
+  const depth = new CjsWebgpuTextureAL();
+  const sampledDepth = Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE;
+
+  assert.equal(depth.Create(Tr2BitmapDimensions.texture2D(100, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: sampledDepth }, al), ALResult.S_OK);
+
+  // The attachment stays depth32float; the shader view is the shadow's.
+  const [ created, shadow ] = calls.textures.slice(-2);
+  assert.equal(created.format, "depth32float");
+  assert.equal(depth.GetDeviceFormat(), "depth32float");
+  assert.equal(shadow.format, "r32float");
+  assert.equal(depth.GetDeviceTextureView().textureFormat, "r32float", "sampled through the shadow");
+  assert.equal(depth.GetDeviceRenderTargetView(0).textureFormat, "depth32float", "attached as itself");
+
+  const copies = [];
+  const encoder = {
+    copyTextureToBuffer: (source, destination, size) => copies.push({ kind: "toBuffer", source, destination, size }),
+    copyBufferToTexture: (source, destination, size) => copies.push({ kind: "toTexture", source, destination, size })
+  };
+
+  assert.equal(depth.EncodeDepthShadowCopy(encoder), true);
+  assert.deepEqual(copies.map(copy => copy.kind), [ "toBuffer", "toTexture" ]);
+  assert.equal(copies[0].source.aspect, "depth-only");
+  assert.equal(copies[0].destination.bytesPerRow, 512, "100 x 4 bytes rounded up to 256");
+
+  // A depth texture nothing samples has no shadow and copies nothing.
+  const attachmentOnly = new CjsWebgpuTextureAL();
+  assert.equal(attachmentOnly.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, al), ALResult.S_OK);
+  assert.equal(attachmentOnly.EncodeDepthShadowCopy(encoder), false);
 });

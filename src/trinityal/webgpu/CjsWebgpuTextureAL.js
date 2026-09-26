@@ -167,6 +167,12 @@ export class CjsWebgpuTextureAL
       usage |= usageFlags.COPY_SRC ?? 0;
     }
 
+    // A sampled depth texture is copied into its float shadow (see _CreateDepthShadow).
+    const depthShadow = format === "depth32float" && HasFlag(gpuUsage, Tr2GpuUsage.DEPTH_STENCIL)
+      && HasFlag(gpuUsage, Tr2GpuUsage.SHADER_RESOURCE);
+
+    if (depthShadow) usage |= usageFlags.COPY_SRC ?? 0;
+
     this.m_texture = device.createTexture({
       label: this.m_name || "Tr2TextureAL",
       size: { width: desc.GetWidth(), height: desc.GetHeight(), depthOrArrayLayers: layers },
@@ -185,9 +191,73 @@ export class CjsWebgpuTextureAL
     this.m_cpuUsage = cpuUsage;
     this.m_webgpu = webgpu;
 
+    if (depthShadow) this._CreateDepthShadow(device, usageFlags);
     if (initialData) this._Upload(initialData, mipCount, type);
 
     return ALResult.S_OK;
+  }
+
+  /**
+   * The r32float copy a sampled depth texture is read through, or null.
+   *
+   * D3D creates Carbon's sampled depth as R32_TYPELESS, with the depth view in
+   * D32_FLOAT and the shader view in R32_FLOAT, so a shader samples depth as an
+   * ordinary float texture through any sampler. WebGPU binds depth32float only
+   * as "depth" or "unfilterable-float", and the translated shaders declare
+   * `texture_2d<f32>` in a filterable slot: the GPU refused the bind group.
+   * No view can reinterpret depth32float as r32float and a texture-to-texture
+   * copy needs matching formats, so the depth goes through a buffer:
+   * `EncodeDepthShadowCopy` copies depth into it and on into this texture,
+   * which is what the shader view returns. The context encodes that copy
+   * whenever the depth stencil is unbound, which is when its pass has ended.
+   */
+  _depthShadow = null;
+
+  /** Makes the float shadow and the row-aligned buffer the copy passes through. */
+  _CreateDepthShadow(device, usageFlags)
+  {
+    const width = this.m_desc.GetWidth();
+    const height = this.m_desc.GetHeight();
+    // copyTextureToBuffer rows are 256-byte aligned.
+    const bytesPerRow = Math.ceil((width * 4) / 256) * 256;
+    const bufferUsage = this.m_webgpu.GetBufferUsage();
+
+    this._depthShadow = {
+      bytesPerRow,
+      texture: device.createTexture({
+        label: `${this.m_name || "Tr2TextureAL"} depth shadow`,
+        size: { width, height, depthOrArrayLayers: 1 },
+        format: "r32float",
+        usage: usageFlags.TEXTURE_BINDING | usageFlags.COPY_DST
+      }),
+      buffer: device.createBuffer({
+        label: `${this.m_name || "Tr2TextureAL"} depth shadow`,
+        size: bytesPerRow * height,
+        usage: bufferUsage.COPY_SRC | bufferUsage.COPY_DST
+      })
+    };
+  }
+
+  /**
+   * Copies the depth into its float shadow, on the frame's command encoder
+   * and outside any pass. Nothing for a texture without one.
+   *
+   * @param {GPUCommandEncoder} commandEncoder The frame's encoder.
+   * @returns {boolean} Whether a copy was encoded.
+   */
+  EncodeDepthShadowCopy(commandEncoder)
+  {
+    const shadow = this._depthShadow;
+
+    if (!shadow || !commandEncoder) return false;
+
+    const size = { width: this.m_desc.GetWidth(), height: this.m_desc.GetHeight(), depthOrArrayLayers: 1 };
+    const layout = { offset: 0, bytesPerRow: shadow.bytesPerRow, rowsPerImage: size.height };
+
+    commandEncoder.copyTextureToBuffer({ texture: this.m_texture, aspect: "depth-only" }, { buffer: shadow.buffer, ...layout }, size);
+    commandEncoder.copyBufferToTexture({ buffer: shadow.buffer, ...layout }, { texture: shadow.texture }, size);
+
+    return true;
   }
 
   /** One `writeTexture` per subresource, Carbon's `mip + layer * mipCount` order. */
@@ -235,13 +305,15 @@ export class CjsWebgpuTextureAL
   {
     if (!this.m_texture) return null;
 
+    // A sampled depth texture is read through its float shadow.
+    const source = this._depthShadow ? this._depthShadow.texture : this.m_texture;
     const srgb = colorSpace !== 0 && this.m_srgbFormat !== null;
     const key = `${viewDimension}:${srgb ? "srgb" : "linear"}`;
     let view = this.m_views.get(key) ?? null;
 
     if (!view)
     {
-      view = this.m_texture.createView({
+      view = source.createView({
         label: `${this.m_name || "Tr2TextureAL"} ${key}`,
         dimension: viewDimension,
         ...(srgb ? { format: this.m_srgbFormat } : {})
@@ -653,6 +725,9 @@ export class CjsWebgpuTextureAL
   {
     this.m_texture?.destroy?.();
     this.m_texture = null;
+    this._depthShadow?.texture.destroy?.();
+    this._depthShadow?.buffer.destroy?.();
+    this._depthShadow = null;
     this.m_views = new Map();
     this._mappedData = null;
     this._mappedRegion = null;

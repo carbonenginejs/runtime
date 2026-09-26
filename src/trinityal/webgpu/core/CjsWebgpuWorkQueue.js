@@ -344,6 +344,26 @@ export class CjsWebgpuWorkQueue
   }
 
   /**
+   * Copies a sampled depth texture into its float shadow
+   * (`CjsWebgpuTextureAL.EncodeDepthShadowCopy`), on the command encoder and
+   * so outside any pass. There is no Metal counterpart: Metal and D3D sample
+   * depth through a view, which WebGPU cannot make.
+   *
+   * @param {object} texture The depth `Tr2TextureAL` that was just unbound.
+   * @returns {object[]} The transitions this required.
+   */
+  CopyDepthShadow(texture)
+  {
+    if (!this._inFrame || !this._commandEncoder) return this._Drain();
+
+    this._ReleaseEncoder();
+
+    if (texture.EncodeDepthShadowCopy(this._commandEncoder)) this._events.push({ type: "copy-depth-shadow" });
+
+    return this._Drain();
+  }
+
+  /**
    * Names the compute pipeline the next dispatch runs.
    *
    * @param {object} pipeline A `GPUComputePipeline`.
