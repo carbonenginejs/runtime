@@ -2114,6 +2114,33 @@ export async function RunDemo(canvas)
     };
   };
 
+  // demo.lut(): what tonemapping's four LUT slots actually hold. The LUT's
+  // own texels, upload and sampler check out on the CPU; this answers the one
+  // thing that cannot be read there: whether the loaded 3D texture is bound,
+  // or a stand-in (which samples black and darkens the frame to 0.3x at the
+  // 0.7 influence the shader lerps with).
+  globalThis.demo.lut = () =>
+  {
+    const effect = driver.postProcess.tonemappingEffect;
+    return {
+      option: effect.GetOption("LUT_TOGGLE"),
+      slots: [ 0, 1, 2, 3 ].map(index =>
+      {
+        const parameter = effect.GetResourceByName(`TexLUT_${index}`);
+        const influence = effect.FindParameterByName(`LUTInfluence_${index}`)?.value ?? null;
+        const resource = parameter?.GetResource?.() ?? null;
+        const texture = resource?.GetTexture?.() ?? null;
+        return {
+          path: parameter?.resourcePath ?? null,
+          influence,
+          prepared: resource?.IsPrepared?.() ?? null,
+          good: resource?.IsGood?.() ?? null,
+          texture: texture ? { width: texture.GetWidth(), height: texture.GetHeight(), depth: texture.GetDepth?.(), deviceFormat: texture.GetDeviceFormat?.() ?? null } : null
+        };
+      })
+    };
+  };
+
   globalThis.demo.post = () =>
   {
     const counts = { ...DRAW_COUNTS };
