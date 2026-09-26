@@ -1158,19 +1158,20 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Presents the frame.
+   * Presents the frame (`Tr2RenderContextMetal.mm:879-886`): the swap chain
+   * presents and the render targets reset. It does NOT end the scene. Carbon's
+   * TriDevice::HandleRenderTick presents the previous frame, which EndScene
+   * already submitted, before Render opens the next. This called EndScene, so
+   * a Present during an open frame closed it underneath its owner.
    *
    * The browser presents a configured canvas after the submission that drew
-   * into its current texture, so there is nothing to do beyond ending the
-   * frame's work.
+   * into its current texture, so the swap-chain half has nothing to do.
    *
-   * Synchronous, as `EndScene` is: the frame is submitted when this returns.
-   *
-   * @returns {boolean} True once the frame is submitted.
+   * @returns {boolean} True.
    */
   Present()
   {
-    return this.EndScene();
+    return this.ResetRenderTargets();
   }
 
   /**

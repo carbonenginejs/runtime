@@ -2599,6 +2599,12 @@ export async function RunDemo(canvas)
    */
   async function Frame()
   {
+    // BETWEEN FRAMES, AS CARBON'S MAIN LOOP PUMPS IT. The tick runs the
+    // device's own HandleRenderTick - Present, then Render, which begins and
+    // ends a scene on the main-thread context. That context is this backend,
+    // so pumping inside the demo's frame closed it underneath the driver.
+    blue.os.PumpOS();
+
     al.BeginScene();
 
     // BIND THE TARGETS SO `Clear` HAS SOMETHING TO CLEAR. The driver clears
@@ -2613,7 +2619,6 @@ export async function RunDemo(canvas)
     // is reported to the error scope and nowhere else, and the draw returns true.
     device.pushErrorScope("validation");
 
-    blue.os.PumpOS();
     PlaceSun();
     driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
 
@@ -2708,10 +2713,10 @@ export async function RunDemo(canvas)
 
         // Synchronous: the pixel readback in `Frame` is the only asynchronous
         // part and a live loop does not need it.
+        blue.os.PumpOS();
         al.BeginScene();
         al.SetRenderTarget(0, renderTarget);
         al.SetDepthStencil(renderTarget);
-        blue.os.PumpOS();
         PlaceSun();
         driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
         al.EndScene();

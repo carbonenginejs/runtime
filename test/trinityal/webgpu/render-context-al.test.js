@@ -1017,3 +1017,16 @@ test("Clear honours Carbon's flags and clears one colour slot", () =>
   al.SetDepthStencil(null);
   assert.equal(al.Clear({ clearDepth: true, depth: 0 }), false);
 });
+
+test("Present does not end the frame: it resets the targets, as Metal's does (Tr2RenderContextMetal.mm:879-886)", () =>
+{
+  const al = ready();
+
+  // TriDevice::HandleRenderTick presents before Render opens the next scene;
+  // a Present that ended the scene closed whatever frame was open.
+  assert.equal(al.Present(), true);
+  assert.equal(al.GetWorkQueue()._inFrame, true);
+
+  al.EndScene();
+  assert.equal(al.GetWorkQueue()._inFrame, false);
+});

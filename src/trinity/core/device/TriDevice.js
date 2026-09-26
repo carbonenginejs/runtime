@@ -358,7 +358,7 @@ export class TriDevice extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The clock half only. Carbon's OnTick also sets a crash key, schedules the next event, and runs Update, HandleRenderTick, the main-thread actions and the resource-pool sweep; none of those are ported. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
+  @impl.reason("Carbon's OnTick also sets a crash key, schedules the next event, and runs the main-thread actions and the resource-pool sweep; none of those are ported. The clock, Update and HandleRenderTick are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
