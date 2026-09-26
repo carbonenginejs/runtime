@@ -47,5 +47,6 @@ export function StubContext({ width = 64, height = 64 } = {})
  */
 export function StubTarget(width = 64, height = 64)
 {
-  return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height };
+  // GetFormat is what a destination answers for the post process's final target.
+  return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height, GetFormat: () => 87 };
 }

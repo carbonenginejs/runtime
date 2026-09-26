@@ -54,7 +54,9 @@ function sceneRecording(calls)
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
-    StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); }
+    StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
+    // No post-process effects: the chain runs copy, sharpening and tonemapping.
+    GetPostProcess() { return null; }
   };
 }
 
@@ -113,7 +115,7 @@ test("the frame runs Carbon's order", () =>
   const calls = [];
   const driver = driverOver(calls);
 
-  assert.equal(driver.Execute([ { id: "target" } ], null, 1, 2, null, StubContext()), true);
+  assert.equal(driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext()), true);
 
   assert.deepEqual(calls.map(([ name ]) => name), [
     "StampFrameContext",
@@ -205,4 +207,19 @@ test("the collect sees the render context it will be submitted through", () =>
   const [ , , passed ] = calls.find(([ name ]) => name === "Collect");
 
   assert.equal(passed, context);
+});
+
+test("with a destination, the scene renders off-screen and the post process draws it in", () =>
+{
+  // Carbon renders into customBackBuffer and depthBuffer (cpp:461, 471), then
+  // binds the destination and runs the post process into it (cpp:602-609).
+  const context = StubContext();
+  const target = StubTarget();
+  const driver = driverOver([]);
+
+  driver.Execute([ target ], null, 0, 0, null, context);
+
+  const tonemapping = driver.postProcess.tonemappingEffect;
+  assert.equal(tonemapping.GetOption("TONE_MAPPING_METHOD"), "TONE_MAPPING_DISABLED", "the tonemapper ran");
+  assert.equal(context.GetRenderTarget(0), target, "the destination is bound when the frame ends");
 });

@@ -1593,7 +1593,9 @@ export async function RunDemo(canvas)
     UpdateFogSettings: () => {},
     GetPerFrameVSData: () => frame.vs,
     GetPerFramePSData: () => frame.ps,
-    GetRenderables: out => { out.push(renderable); return out; }
+    GetRenderables: out => { out.push(renderable); return out; },
+    // No post-process effects yet: the chain copies, sharpens and tonemaps.
+    GetPostProcess: () => null
   };
 
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping

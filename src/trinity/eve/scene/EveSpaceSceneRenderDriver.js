@@ -21,7 +21,7 @@
 // the driver it describes.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { PixelFormat } from "#consts/render-context";
+import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
@@ -29,6 +29,9 @@ import { TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
 import { BindPerFramePSData, BindPerFrameVSData } from "../../core/rawData/Tr2ConstantBufferFormats.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
+import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import "./EveSpaceScene.js";
 import { blue, EnumRegistrationType } from "#blue";
@@ -175,10 +178,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   @type.string
   depthPassTechnique = "Depth";
 
-  /** m_postProcess (Tr2PostProcessRendererPtr) [READ] */
+  /** m_postProcess (Tr2PostProcessRendererPtr) [READ], created in the constructor (cpp:151). */
   @edit.read
   @type.objectRef("Tr2PostProcessRenderer")
-  postProcess = null;
+  postProcess = new Tr2PostProcessRenderer();
 
   /** m_settings.showFPS (bool) [READWRITE] */
   @edit.readwrite
@@ -219,6 +222,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
   /** Collects renderables into batches; composed, so the caller owns its producers. */
   #batchManager = null;
+
+  /** m_gpuResourcePool: the scene's colour and depth, and every post-process target. */
+  #gpuResourcePool = new Tr2GpuResourcePool();
+
+  /** Carbon's Tr2Renderer is static; ours is an instance, prepared per context. */
+  #renderer = new Tr2Renderer();
+
+  #preparedContext = null;
 
   /**
    * The batch types this driver submits, in submission order.
@@ -285,7 +296,8 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    * insertion into this same sequence: the background node, the reflection
    * pass, the depth prepass, shadows, SSAO, the light-list update, distortion
    * and velocity maps, transparent and additive submission, the scene overlay,
-   * lensflare occlusion queries, post-process and 3D UI.
+   * lensflare occlusion queries and 3D UI. The scene renders into its own
+   * colour and depth and the post process draws it into the destination.
    *
    * Rendering-disabled is not a no-op in Carbon either: the scene still
    * updates, so simulation keeps running while nothing is drawn (cpp:408-419).
@@ -304,13 +316,27 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
 
-    if (target) renderContext.SetRenderTarget(0, target);
+    // THE SCENE RENDERS INTO ITS OWN COLOUR AND DEPTH (cpp:461, 471), and the
+    // post process draws the result into the destination (cpp:602-609).
+    // Carbon always has a destination; a null one - which tests use - keeps
+    // drawing into whatever is bound, with no post process.
+    const offscreen = target ? this.#BeginOffscreen(target, renderContext) : null;
+
+    if (offscreen)
+    {
+      renderContext.SetRenderTarget(0, offscreen.color.Get());
+      renderContext.SetDepthStencil(offscreen.depth.Get());
+    }
 
     renderContext.Clear({ color: this.clearColor ?? null, depth: 1 });
 
     this.scene.Update(realTime, simTime);
 
-    if (!this.enableRendering) return false;
+    if (!this.enableRendering)
+    {
+      if (offscreen) this.#EndOffscreen(offscreen);
+      return false;
+    }
 
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
     // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
@@ -335,7 +361,64 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     BindPerFrameVSData(typeof scene.GetPerFrameVSData === "function" ? scene.GetPerFrameVSData() : null, renderContext);
     BindPerFramePSData(typeof scene.GetPerFramePSData === "function" ? scene.GetPerFramePSData() : null, renderContext);
 
-    return this.#Submit(map, renderContext);
+    const submitted = this.#Submit(map, renderContext);
+
+    if (offscreen) this.#PostProcess(target, offscreen, renderContext);
+
+    return submitted;
+  }
+
+  /**
+   * Borrows the scene's colour and depth (cpp:461, 471): the internal pixel
+   * format at the destination's size, and a 32-bit float depth.
+   */
+  #BeginOffscreen(target, renderContext)
+  {
+    const pool = this.#gpuResourcePool;
+
+    if (this.#preparedContext !== renderContext)
+    {
+      pool.SetRenderContext(renderContext);
+      this.#renderer.PrepareDeviceResources(renderContext);
+      this.#preparedContext = renderContext;
+    }
+
+    const size = { width: target.GetWidth(), height: target.GetHeight() };
+    const texture = (name, format, gpuUsage) => pool.GetTempTexture(name, {
+      type: TextureType.TEX_TYPE_2D,
+      width: size.width,
+      height: size.height,
+      depth: 1,
+      mipCount: 1,
+      format,
+      gpuUsage
+    });
+
+    return {
+      color: texture("customBackBuffer", this.internalPixelFormat, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE),
+      depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE)
+    };
+  }
+
+  /** Returns the scene's colour and depth when the frame ends without a post process. */
+  #EndOffscreen(offscreen)
+  {
+    this.#gpuResourcePool.Free(offscreen.color);
+    this.#gpuResourcePool.Free(offscreen.depth);
+  }
+
+  /**
+   * Binds the destination and runs the post process into it (cpp:602-609).
+   * Execute owns and frees both handles, as Carbon moves them into it.
+   */
+  #PostProcess(target, offscreen, renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.SetRenderTarget(0, target);
+    esm.SetDepthStencilBuffer(null);
+
+    this.postProcess.Execute(target, offscreen.color, offscreen.depth, null, null, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
   }
 
   /**
