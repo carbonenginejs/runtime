@@ -18,6 +18,7 @@ import { Tr2ColorAttachment, Tr2BufferDescriptionAL, Tr2SubresourceData } from "
 import {
   INVALID_UPSCALING_CONTEXT_ID,
   PixelFormat,
+  ShaderType,
   TextureType,
   Tr2CpuUsage,
   Tr2GpuUsage,
@@ -31,6 +32,13 @@ import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { EveSpaceScene } from "../eve/scene/EveSpaceScene.js";
 import { Tr2PPTonemappingEffect } from "./effect/Tr2PPTonemappingEffect.js";
+import { BlurContext } from "./BlurContext.js";
+import { GaussianData } from "./GaussianData.js";
+import { Tr2PPBloomEffect } from "./effect/Tr2PPBloomEffect.js";
+import { FillAndSetConstants } from "../core/Tr2RenderUtils.js";
+import { vec2 } from "#math/vec2";
+import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import "./effect/Tr2PPEffect.js";
 
 /** `RENDER_TARGET` in Carbon's anonymous namespace (cpp:150). */
@@ -38,6 +46,11 @@ const RENDER_TARGET = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE;
 
 /** `MAX_LUTS` (Tr2PostProcessRenderer.h). */
 const MAX_LUTS = 4;
+
+/** Carbon's histogram tiling for dynamic exposure (cpp:33-35). */
+const HISTOGRAM_TILE_SIZE_X = 16;
+const HISTOGRAM_TILE_SIZE_Y = 16;
+const NUM_TILES_PER_THREAD_GROUP = 256;
 
 /** Carbon's thread-group edge for the CAS dispatch (cpp:865). */
 const CAS_THREAD_GROUP_WORK_REGION_DIM = 16;
@@ -174,6 +187,12 @@ export class Tr2PostProcessRenderer extends CjsModel
   @type.boolean
   useNewBloom = true;
 
+  /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
+  _blurEffects = new Map();
+
+  /** m_bloomConstantBuffer (h:166): created empty on first use, sized by FillAndSetConstants. */
+  _bloomConstantBuffer = null;
+
   _taaFrameCounter = 0;
 
   _bokehFrameCounter = 0;
@@ -267,20 +286,20 @@ export class Tr2PostProcessRenderer extends CjsModel
         if (genericEffect) this.RenderGenericEffect(nonMsaaSource.Get(), source, renderContext, genericEffect, renderer);
 
         const fog = postProcess.GetFogIfAvailable(this.quality);
-        if (fog) this.RenderFog(nonMsaaSource.Get(), source, gpuResourcePool, renderContext, fog);
+        if (fog) this.RenderFog(nonMsaaSource.Get(), source, gpuResourcePool, renderContext, fog, renderer);
       }
       sourceBuffer = release(sourceBuffer);
 
       if (postProcess)
       {
         const godrays = postProcess.GetGodRaysIfAvailable(this.quality);
-        if (godrays) this.RenderGodRays(nonMsaaSource.Get(), depthMap?.Get() ?? null, gpuResourcePool, renderContext, godrays);
+        if (godrays) this.RenderGodRays(nonMsaaSource.Get(), depthMap?.Get() ?? null, gpuResourcePool, renderContext, godrays, renderer);
 
         const dof = postProcess.GetDepthOfFieldIfAvailable(this.quality);
         if (dof)
         {
           const temporal = upscalingInfo.temporal || postProcess.GetTaaIfAvailable(this.quality) !== null;
-          this.RenderDepthOfField(nonMsaaSource.Get(), gpuResourcePool, renderContext, dof, temporal, upscalingInfo.upscalingAmount);
+          this.RenderDepthOfField(nonMsaaSource.Get(), gpuResourcePool, renderContext, dof, temporal, upscalingInfo.upscalingAmount, renderer);
         }
 
         dynamicExposure = postProcess.GetDynamicExposureIfAvailable(this.quality);
@@ -337,7 +356,7 @@ export class Tr2PostProcessRenderer extends CjsModel
         if (bloom)
         {
           release(bloomTexture);
-          bloomTexture = this.RenderBloom(upscaledSource, gpuResourcePool, renderContext, bloom, dynamicExposure);
+          bloomTexture = this.RenderBloom(upscaledSource, gpuResourcePool, renderContext, bloom, dynamicExposure, renderer);
         }
       }
 
@@ -658,28 +677,460 @@ export class Tr2PostProcessRenderer extends CjsModel
 
   // THE PASSES NOT PORTED YET. Each runs only when the post process enables it.
 
-  /** Carbon RenderBloom (cpp:957-1113). */
+  /**
+   * Carbon Blur (cpp:893-946): a horizontal then a vertical pass of Blur.fx,
+   * each effect pair built once per BlurContext hash and cached.
+   *
+   * Takes ownership of `src` and frees it after the first pass, as Carbon's
+   * `src = {}` does (cpp:940).
+   *
+   * @param {GpuResourceHandle} src The texture to blur, owned from here on.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {BlurContext} blurContext The blur variant.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {GpuResourceHandle} The blurred texture.
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderBloom()
+  @impl.adapted
+  Blur(src, gpuResourcePool, renderContext, blurContext, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderBloom is not ported yet.");
+    const hash = blurContext.Hash();
+    let effects = this._blurEffects.get(hash);
+
+    if (!effects)
+    {
+      // Horizontal and vertical, IN THAT ORDER (cpp:899).
+      effects = [ new Tr2Effect(), new Tr2Effect() ];
+      const [ horizontal, vertical ] = effects;
+
+      horizontal.StartUpdate();
+      horizontal.SetEffectPathName(PostProcessEffectPaths.Blur);
+      vertical.StartUpdate();
+      vertical.SetEffectPathName(PostProcessEffectPaths.Blur);
+      vertical.SetParameter("Direction", vec2.fromValues(0, 1));
+
+      const blurTypeOption = BlurContext.getBlurTypeOptionValue(blurContext.type);
+      horizontal.SetOption("BLUR_TYPE", blurTypeOption);
+      vertical.SetOption("BLUR_TYPE", blurTypeOption);
+
+      const blurChannelOption = BlurContext.getBlurChannelOptionValue(blurContext.channel);
+      horizontal.SetOption("BLUR_CHANNEL", blurChannelOption);
+      vertical.SetOption("BLUR_CHANNEL", blurChannelOption);
+
+      const processOption = BlurContext.getProcessTypeOptionValue(blurContext.process);
+      horizontal.SetOption("BLUR_PROCESS_TYPE", processOption);
+      vertical.SetOption("BLUR_PROCESS_TYPE", processOption);
+
+      horizontal.SetOption("BLUR_FINALIZE_TYPE", BlurContext.getFinalizeTypeOptionValue(BlurContext.BlurFinalize.BF_None));
+      vertical.SetOption("BLUR_FINALIZE_TYPE", BlurContext.getFinalizeTypeOptionValue(blurContext.finalize));
+
+      horizontal.EndUpdate();
+      vertical.EndUpdate();
+      this._blurEffects.set(hash, effects);
+    }
+
+    const [ horizontal, vertical ] = effects;
+    const source = src.Get();
+
+    const rt2 = this._Temp(gpuResourcePool, "Blur Temp 1", { width: source.GetWidth(), height: source.GetHeight() }, source.GetFormat(), RENDER_TARGET);
+    horizontal.SetParameter("BlitCurrent", source);
+    try
+    {
+      Tr2PostProcessRenderer.drawInto(rt2.Get(), Tr2LoadAction.DONT_CARE, horizontal, renderContext, renderer);
+    }
+    finally
+    {
+      horizontal.SetParameter("BlitCurrent", null);
+      Tr2PostProcessRenderer._release(gpuResourcePool, src);
+    }
+
+    const second = rt2.Get();
+    const rt1 = this._Temp(gpuResourcePool, "Blur Temp 2", { width: second.GetWidth(), height: second.GetHeight() }, second.GetFormat(), RENDER_TARGET);
+    vertical.SetParameter("BlitCurrent", second);
+    try
+    {
+      Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, vertical, renderContext, renderer);
+    }
+    finally
+    {
+      vertical.SetParameter("BlitCurrent", null);
+      Tr2PostProcessRenderer._release(gpuResourcePool, rt2);
+    }
+
+    return rt1;
   }
 
-  /** Carbon RenderGodRays (cpp:1146-1171). */
+  /**
+   * Carbon RenderBloom (cpp:957-1113). The new bloom (the default, `g_newBloom`)
+   * downsamples the scene through up to six half-size steps, then walks back
+   * up: a horizontal gaussian into each step's upsample texture, and a
+   * vertical gaussian that adds the previous (coarser) result, tinted per
+   * step, back into the step's downsample texture. The finest step is the
+   * bloom texture tonemapping reads as `BlitCurrent`. The old bloom is a
+   * high-pass at half size and one Blur.
+   *
+   * Carbon's per-pass constants (DownsampleData, GaussianData) go through
+   * FillAndSetConstants into `m_bloomConstantBuffer` at the per-object PS
+   * register; so do these.
+   *
+   * @param {GpuResourceHandle} dest The scene colour to bloom (not consumed).
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPBloomEffect} bloom The bloom settings.
+   * @param {Tr2PPDynamicExposureEffect|null} dynamicExposure The exposure settings, if any.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {GpuResourceHandle} The bloom texture, owned by the caller.
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderGodRays()
+  @impl.adapted
+  RenderBloom(dest, gpuResourcePool, renderContext, bloom, dynamicExposure, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderGodRays is not ported yet.");
+    const esm = renderContext.GetEffectStateManager();
+    const release = handle => Tr2PostProcessRenderer._release(gpuResourcePool, handle);
+    const destination = dest.Get();
+    const destinationSize = { width: destination.GetWidth(), height: destination.GetHeight() };
+
+    esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+
+    const hasDynamicExposure = dynamicExposure !== null;
+    const exposureDependant = bloom.exposureDependency && hasDynamicExposure;
+
+    if (!this.useNewBloom)
+    {
+      const highPass = this.bloomHighPassFilter;
+      highPass.SetParameter("LuminanceThreshold", Math.max(0, bloom.luminanceThreshold));
+      highPass.SetParameter("LuminanceScale", bloom.luminanceScale);
+      highPass.SetParameter("ExposureDependency", exposureDependant ? 1 : 0);
+
+      const rt1 = this._Temp(gpuResourcePool, "Bloom", Tr2PostProcessRenderer.scaledSize(destination, 0.5), destination.GetFormat(), RENDER_TARGET);
+      const exposure = this.GetExposureBuffer(gpuResourcePool);
+      highPass.SetParameter("BlitCurrent", destination);
+      highPass.SetParameter("Exposure", exposure.Get());
+      try
+      {
+        Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, highPass, renderContext, renderer);
+      }
+      finally
+      {
+        highPass.SetParameter("BlitCurrent", null);
+        highPass.SetParameter("Exposure", null);
+        release(exposure);
+      }
+
+      return this.Blur(rt1, gpuResourcePool, renderContext, new BlurContext(), renderer);
+    }
+
+    const MAX_BLOOM_STEPS = Tr2PPBloomEffect.MAX_BLOOM_STEPS;
+    const black = this.GetBlackTexture(gpuResourcePool);
+    const minDim = Math.min(destinationSize.width, destinationSize.height);
+    let currentSize = 0.5;
+    let depth = 0;
+
+    this._downSamplerLuminancePreserve.SetOption("EXPOSURE_DEPENDANCE", hasDynamicExposure ? "EXPOSURE_DEPENDANCE_ON" : "EXPOSURE_DEPENDANCE_OFF");
+    this._downSamplerLuminancePreserve.SetParameter("LuminanceThreshold", bloom.luminanceThreshold);
+
+    const downsampleTexture = new Array(MAX_BLOOM_STEPS).fill(null);
+    const upsampleTexture = new Array(MAX_BLOOM_STEPS).fill(null);
+    let result = null;
+
+    try
+    {
+      for (let i = 0; i < MAX_BLOOM_STEPS; ++i)
+      {
+        if (Math.trunc(minDim * currentSize) === 0) break;
+
+        const size = Tr2PostProcessRenderer.scaledSize(destination, currentSize);
+        downsampleTexture[i] = this._Temp(gpuResourcePool, `Downsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
+        upsampleTexture[i] = this._Temp(gpuResourcePool, `Upsample_${i}`, size, destination.GetFormat(), RENDER_TARGET);
+
+        // The debug views (cpp:1006-1010) need RenderBloomDebug, not ported.
+        if (this.bloomDebugMode !== BloomDebugMode.BLOOM_DEBUG_NONE)
+        {
+          throw new Error("Tr2PostProcessRenderer: bloom debug (RenderBloomDebug) is not ported yet.");
+        }
+
+        currentSize *= 0.5;
+        ++depth;
+      }
+
+      const pixelShaderMask = 1 << ShaderType.PIXEL_SHADER;
+      const perObjectRegister = renderer.GetPerObjectPSStartRegister();
+
+      // Downsample (cpp:1016-1039).
+      let lastRt = destination;
+      for (let i = 0; i < depth; ++i)
+      {
+        const rt = downsampleTexture[i].Get();
+        const effect = i === 0 && bloom.luminanceThreshold > -1 ? this._downSamplerLuminancePreserve : this._downSampler;
+        const exposure = this.GetExposureBuffer(gpuResourcePool);
+
+        // DownsampleData: Vector2 invSourceSize + two floats of padding (h:139-144).
+        const downsampleInfo = new Float32Array([ 1 / lastRt.GetWidth(), 1 / lastRt.GetHeight(), 0, 0 ]);
+
+        effect.SetParameter("BlitCurrent", lastRt);
+        effect.SetParameter("Exposure", exposure.Get());
+        try
+        {
+          FillAndSetConstants(this._BloomConstantBuffer(renderContext), downsampleInfo, downsampleInfo.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+          Tr2PostProcessRenderer.drawInto(rt, Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
+        }
+        finally
+        {
+          effect.SetParameter("BlitCurrent", null);
+          effect.SetParameter("Exposure", null);
+          release(exposure);
+        }
+
+        lastRt = rt;
+      }
+
+      // Upsample (cpp:1041-1105): every horizontal pass, then every vertical.
+      const tintScale = (1 / MAX_BLOOM_STEPS) * bloom.brightness;
+      const directionalWeight = [ Math.max(bloom.directionalWeight, 0), Math.abs(bloom.directionalWeight) ];
+      const gaussianBytes = new Uint8Array(GaussianData.byteSize);
+      const stepSize = i => bloom[`step${i + 1}Size`];
+      const stepTint = i => bloom[`step${i + 1}Tint`];
+
+      for (let i = depth - 1; i >= 0; --i)
+      {
+        const currentMip = downsampleTexture[i].Get();
+        const currentUpsampled = upsampleTexture[i].Get();
+        const radiusInPixels = Math.max(currentMip.GetWidth(), currentMip.GetHeight()) * bloom.sizeScale * stepSize(i) * 0.01;
+        const invTexelSizeX = 1 / currentMip.GetWidth();
+
+        this._upsamplerHorizontal.SetParameter("BlitCurrent", currentMip);
+        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, vec3.fromValues(1, 1, 1), vec2.fromValues(1, 0));
+        GaussianData.pack(gaussianOutput, gaussianBytes);
+        FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+        Tr2PostProcessRenderer.drawInto(currentUpsampled, Tr2LoadAction.DONT_CARE, this._upsamplerHorizontal, renderContext, renderer);
+      }
+
+      let lastHandle = null;
+      for (let i = depth - 1; i >= 0; --i)
+      {
+        if (i === depth - 1) lastRt = black.Get();
+
+        const currentMip = downsampleTexture[i].Get();
+        const currentUpsampled = upsampleTexture[i].Get();
+        const radiusInPixels = Math.max(currentMip.GetWidth(), currentMip.GetHeight()) * bloom.sizeScale * stepSize(i) * 0.01;
+        const invTexelSizeY = 1 / currentMip.GetHeight();
+
+        // The horizontally blurred mip, plus the coarser result below it.
+        this._upsamplerVertical.SetParameter("BlitCurrent", currentUpsampled);
+        this._upsamplerVertical.SetParameter("LastMip", lastRt);
+
+        const tint = vec4.scale(vec4.create(), stepTint(i), tintScale);
+        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[1], invTexelSizeY, vec3.fromValues(tint[0], tint[1], tint[2]), vec2.fromValues(0, 1));
+        GaussianData.pack(gaussianOutput, gaussianBytes);
+        FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
+
+        // Into the downsample texture, which is not read again (cpp:1100).
+        Tr2PostProcessRenderer.drawInto(currentMip, Tr2LoadAction.DONT_CARE, this._upsamplerVertical, renderContext, renderer);
+
+        lastRt = currentMip;
+        lastHandle = downsampleTexture[i];
+      }
+
+      // Carbon returns lastRt, the finest downsample texture; with no step at
+      // all it is `dest` itself (cpp:1016, 1112), which the caller still owns,
+      // so the bloom is then the black texture instead.
+      result = lastHandle ?? black;
+      return result;
+    }
+    finally
+    {
+      this._upsamplerHorizontal.SetParameter("BlitCurrent", null);
+      this._upsamplerVertical.SetParameter("BlitCurrent", null);
+      this._upsamplerVertical.SetParameter("LastMip", null);
+
+      for (const handle of [ ...downsampleTexture, ...upsampleTexture, black ])
+      {
+        if (handle && handle !== result) release(handle);
+      }
+    }
   }
 
-  /** Carbon RenderDynamicExposure (cpp:1182-1241). */
+  /**
+   * God rays (cpp:1146-1171): half-resolution depth, the rays drawn into a
+   * cleared half-resolution target, then added onto `dest`.
+   *
+   * Adapted: the renderer is passed in for the blitter, as in Execute.
+   *
+   * @param {object} dest The colour texture the rays are added to.
+   * @param {object} depth The scene depth.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPGodRaysEffect} godrays The post process's god-ray settings.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderDynamicExposure()
+  @impl.adapted
+  RenderGodRays(dest, depth, gpuResourcePool, renderContext, godrays, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderDynamicExposure is not ported yet.");
+    const esm = renderContext.GetEffectStateManager();
+    const effect = this.godrayEffect;
+
+    esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+
+    const rt1 = this.DownSampleDepth(depth, gpuResourcePool, renderContext, renderer);
+    const rt2 = this._Temp(gpuResourcePool, "God rays", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
+
+    try
+    {
+      esm.PushRenderTarget(rt2.Get());
+      // The clear is needed because the god-ray vertex shader can opt out of rendering (cpp:1157).
+      renderContext.Clear({ clearColor: true, color: 0 });
+
+      const color = godrays.godRayColor;
+      effect.SetParameter("Color", [ color[0], color[1], color[2], color[3] ]);
+      effect.SetParameter("Intensity", [ godrays.intensity, 0, 1, 1 ]);
+      effect.SetParameter("grFactors", godrays.grFactors);
+      effect.SetResourceTexture2D("NoiseTexMap", godrays.noiseTexturePath);
+      effect.SetParameter("DepthMap", rt1.Get());
+      try
+      {
+        renderer.DrawScreenQuad(renderContext, effect);
+      }
+      finally
+      {
+        effect.SetParameter("DepthMap", null);
+        esm.PopRenderTarget();
+      }
+
+      esm.ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+      Tr2PostProcessRenderer.drawTextureInto(dest, Tr2LoadAction.LOAD, rt2.Get(), renderContext, renderer);
+    }
+    finally
+    {
+      Tr2PostProcessRenderer._release(gpuResourcePool, rt1);
+      Tr2PostProcessRenderer._release(gpuResourcePool, rt2);
+    }
+  }
+
+  /**
+   * Half-resolution R32_FLOAT depth (cpp:948-954).
+   *
+   * @param {object} depth The scene depth.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {GpuResourceHandle} The down-sampled depth; the caller frees it.
+   */
+  @carbon.method
+  @impl.adapted
+  DownSampleDepth(depth, gpuResourcePool, renderContext, renderer)
+  {
+    const effect = this._downsampleDepthEffect;
+    const destination = this._Temp(
+      gpuResourcePool,
+      "Down-sampled Depth",
+      Tr2PostProcessRenderer.scaledSize(depth, 0.5),
+      PixelFormat.PIXEL_FORMAT_R32_FLOAT,
+      Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE
+    );
+
+    effect.SetParameter("DepthMap", depth);
+    try
+    {
+      Tr2PostProcessRenderer.drawInto(destination.Get(), Tr2LoadAction.DONT_CARE, effect, renderContext, renderer);
+    }
+    finally
+    {
+      effect.SetParameter("DepthMap", null);
+    }
+
+    return destination;
+  }
+
+  /**
+   * Carbon RenderDynamicExposure (cpp:1182-1241): three compute passes. Each
+   * 16 x 16 tile builds a local luminance histogram, the tiles merge into one
+   * 65-bin histogram, and one thread measures it and moves the persistent
+   * exposure buffer towards the target at the increase/decrease speeds.
+   * Tonemapping (and exposure-dependent bloom) read that buffer.
+   *
+   * @param {object} source The scene colour texture.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPDynamicExposureEffect} dynamicExposure The exposure settings.
+   * @returns {GpuResourceHandle} The merged histogram, owned by the caller.
+   */
+  @carbon.method
+  @impl.adapted
+  RenderDynamicExposure(source, gpuResourcePool, renderContext, dynamicExposure)
+  {
+    const tilesX = Math.floor(source.GetWidth() / HISTOGRAM_TILE_SIZE_X) + 1;
+    const tilesY = Math.floor(source.GetHeight() / HISTOGRAM_TILE_SIZE_Y) + 1;
+    const localHistogramCount = tilesX * tilesY * 16;
+    const uav = Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS;
+
+    const localHistograms = gpuResourcePool.GetTempBuffer(
+      "LocalHistograms",
+      Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT, localHistogramCount, uav, Tr2CpuUsage.NONE)
+    );
+    const histogram = gpuResourcePool.GetTempBuffer(
+      "Histogram",
+      Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R32_UINT, 65, uav, Tr2CpuUsage.NONE)
+    );
+    const exposure = this.GetExposureBuffer(gpuResourcePool);
+
+    const create = this.dynamicExposureCreateHistogramShader;
+    const merge = this.dynamicExposureMergeHistogramShader;
+    const measure = this.dynamicExposureMeasureExposureShader;
+
+    create.SetParameter("ScreenTilesX", tilesX);
+    create.SetParameter("BlitOriginal", source);
+    create.SetParameter("LocalHistograms", localHistograms.Get());
+    merge.SetParameter("ScreenTilesX", tilesX);
+    merge.SetParameter("ScreenTilesY", tilesY);
+    merge.SetParameter("LocalHistograms", localHistograms.Get());
+    merge.SetParameter("Histogram", histogram.Get());
+
+    try
+    {
+      const zero = new Uint32Array(4);
+      renderContext.ClearUav(localHistograms.Get(), zero);
+      renderContext.ClearUav(histogram.Get(), zero);
+
+      // Create histograms.
+      create.SetParameter("MinLuminance", Math.log(dynamicExposure.minLuminance));
+      create.SetParameter("MaxLuminance", Math.log(dynamicExposure.maxLuminance));
+      create.SetParameter("MinBrightness", dynamicExposure.minBrightness);
+      create.SetParameter("MaxBrightness", dynamicExposure.maxBrightness);
+      Tr2Renderer.runComputeShader(create, tilesX, tilesY, 1, renderContext);
+
+      // Merge histogram.
+      const mergeHistogramXDim = Math.floor((tilesX * tilesY) / NUM_TILES_PER_THREAD_GROUP) + 1;
+      Tr2Renderer.runComputeShader(merge, mergeHistogramXDim, 1, 1, renderContext);
+
+      // Measure histogram.
+      measure.SetParameter("MinLuminance", Math.log(dynamicExposure.minLuminance));
+      measure.SetParameter("MaxLuminance", Math.log(dynamicExposure.maxLuminance));
+      measure.SetParameter("MinBrightness", dynamicExposure.minBrightness);
+      measure.SetParameter("MaxBrightness", dynamicExposure.maxBrightness);
+      measure.SetParameter("IncreaseSpeed", dynamicExposure.increaseSpeed);
+      measure.SetParameter("DecreaseSpeed", dynamicExposure.decreaseSpeed);
+      measure.SetParameter("MinExposure", dynamicExposure.minExposure);
+      measure.SetParameter("MaxExposure", dynamicExposure.maxExposure);
+      measure.SetParameter("Histogram", histogram.Get());
+      measure.SetParameter("Exposure", exposure.Get());
+      Tr2Renderer.runComputeShader(measure, 1, 1, 1, renderContext);
+    }
+    finally
+    {
+      create.SetParameter("BlitOriginal", null);
+      create.SetParameter("LocalHistograms", null);
+      merge.SetParameter("LocalHistograms", null);
+      merge.SetParameter("Histogram", null);
+      measure.SetParameter("Histogram", null);
+      measure.SetParameter("Exposure", null);
+      Tr2PostProcessRenderer._release(gpuResourcePool, localHistograms);
+      Tr2PostProcessRenderer._release(gpuResourcePool, exposure);
+    }
+
+    return histogram;
   }
 
   /** Carbon RenderUpscaling (cpp:1287-1390). */
@@ -690,12 +1141,69 @@ export class Tr2PostProcessRenderer extends CjsModel
     throw new Error("Tr2PostProcessRenderer.RenderUpscaling is not ported yet.");
   }
 
-  /** Carbon RenderFog (cpp:1406-1433). */
+  /**
+   * Environment fog (cpp:1406-1433): the fog colour at half resolution,
+   * blurred, then composited over `dest` with the scene colour as the original.
+   *
+   * Adapted: the renderer is passed in for the blitter, as in Execute.
+   *
+   * @param {object} dest The colour texture fog is composited into.
+   * @param {object} source The scene colour before post-processing.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPFogEffect} fog The post process's fog settings.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderFog()
+  @impl.adapted
+  RenderFog(dest, source, gpuResourcePool, renderContext, fog, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderFog is not ported yet.");
+    renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+
+    // Fog colour.
+    const colorEffect = this.fogColorEffect;
+    const rt1 = this._Temp(gpuResourcePool, "Fog Color", Tr2PostProcessRenderer.scaledSize(dest, 0.5), dest.GetFormat(), RENDER_TARGET);
+    const color = fog.color;
+
+    colorEffect.SetParameter("BlitCurrent", dest);
+    colorEffect.SetParameter("Params", [ fog.nebulaInfluence, fog.nebulaBlur, fog.originalBrightenOnly, fog.colorInfluence ]);
+    colorEffect.SetParameter("Color", [ color[0], color[1], color[2], color[3] ]);
+    try
+    {
+      Tr2PostProcessRenderer.drawInto(rt1.Get(), Tr2LoadAction.DONT_CARE, colorEffect, renderContext, renderer);
+    }
+    finally
+    {
+      colorEffect.SetParameter("BlitCurrent", null);
+    }
+
+    // Blur; Blur takes rt1 over (cpp:1420 moves it).
+    const blurred = this.Blur(rt1, gpuResourcePool, renderContext, new BlurContext(), renderer);
+
+    // Final composite.
+    const composite = this.fogCompositeEffect;
+    const { areaSize, areaScale, areaCenter } = fog;
+
+    composite.SetParameter("FogParameters", [ fog.totalAmount, fog.totalPower, fog.backgroundOcclusion, fog.intensity ]);
+    composite.SetParameter("BrightnessAdjustment", [ fog.brightnessThreshold0, fog.brightnessThreshold1, fog.brightnessAdjustmentAmount, 0 ]);
+    composite.SetParameter("BlendFunction0", [ fog.blendDistance0, fog.blendBias0, fog.blendAmount0, fog.blendPower0 ]);
+    composite.SetParameter("BlendFunction1", [ fog.blendDistance1, fog.blendBias1, fog.blendAmount1, fog.blendPower1 ]);
+    composite.SetParameter("BlendFunction2", [ fog.blendDistance2, fog.blendBias2, fog.blendAmount2, fog.blendPower2 ]);
+    composite.SetParameter("AreaSize", [ areaSize[0], areaSize[1], areaSize[2], areaScale[0] ]);
+    composite.SetParameter("AreaCenter", [ areaCenter[0], areaCenter[1], areaCenter[2], areaScale[1] ]);
+    composite.SetParameter("BlitCurrent", blurred.Get());
+    composite.SetParameter("BlitOriginal", source);
+    try
+    {
+      Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, composite, renderContext, renderer);
+    }
+    finally
+    {
+      composite.SetParameter("BlitCurrent", null);
+      composite.SetParameter("BlitOriginal", null);
+      Tr2PostProcessRenderer._release(gpuResourcePool, blurred);
+    }
   }
 
   /** Carbon RenderTaa (cpp:1435-1529). */
@@ -706,12 +1214,155 @@ export class Tr2PostProcessRenderer extends CjsModel
     throw new Error("Tr2PostProcessRenderer.RenderTaa is not ported yet.");
   }
 
-  /** Carbon RenderDepthOfField (cpp:1598-1698). */
+  /**
+   * Depth of field (cpp:1598-1698): the circle of confusion, blurred to its
+   * maximum when the foreground blurs too, then either the TAA-friendly bokeh
+   * and a copy back, or the bokeh blend and fill.
+   *
+   * Adapted: the renderer is passed in for the blitter, as in Execute.
+   *
+   * @param {object} dest The colour texture to blur.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The frame's pool.
+   * @param {Tr2RenderContext} renderContext The context to render with.
+   * @param {Tr2PPDepthOfFieldEffect} depthOfField The post process's DoF settings.
+   * @param {boolean} temporal Whether TAA or a temporal upscaler follows.
+   * @param {number} upscalingAmount The upscaler's ratio, 1 without one.
+   * @param {Tr2Renderer} renderer The renderer owning the blitter.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.notImplemented
-  RenderDepthOfField()
+  @impl.adapted
+  RenderDepthOfField(dest, gpuResourcePool, renderContext, depthOfField, temporal, upscalingAmount, renderer)
   {
-    throw new Error("Tr2PostProcessRenderer.RenderDepthOfField is not ported yet.");
+    renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+
+    const release = handle => Tr2PostProcessRenderer._release(gpuResourcePool, handle);
+    const shape = depthOfField.GetBokehShapeString();
+    const cocShader = this.depthOfFieldCoCShader;
+    const cocSize = Tr2PostProcessRenderer.scaledSize(dest, depthOfField.cocScale);
+    let coc = null;
+    let blur = null;
+
+    cocShader.SetParameter("FocalInfo", [ depthOfField.focalDistance, depthOfField.focalLength, depthOfField.scale, 0 ]);
+    cocShader.SetOption("COC_OUTPUT_CHANNEL_COUNT", depthOfField.foregroundBlurNeeded ? "COC_OUTPUT_CHANNEL_COUNT_2" : "COC_OUTPUT_CHANNEL_COUNT_1");
+
+    try
+    {
+      if (!depthOfField.foregroundBlurNeeded)
+      {
+        coc = this._Temp(gpuResourcePool, "CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8_UNORM, RENDER_TARGET);
+        Tr2PostProcessRenderer.drawInto(coc.Get(), Tr2LoadAction.DONT_CARE, cocShader, renderContext, renderer);
+      }
+      else
+      {
+        const coc2 = this._Temp(gpuResourcePool, "CoC", cocSize, PixelFormat.PIXEL_FORMAT_R8G8_UNORM, RENDER_TARGET);
+        const { BlurType, BlurChannel, BlurProcess, BlurFinalize } = BlurContext;
+
+        Tr2PostProcessRenderer.drawInto(coc2.Get(), Tr2LoadAction.DONT_CARE, cocShader, renderContext, renderer);
+        coc = this.Blur(
+          coc2,
+          gpuResourcePool,
+          renderContext,
+          BlurContext.createBlurContext(BlurType.BT_Big, BlurChannel.BC_r, BlurProcess.BP_Maximum, BlurFinalize.BF_MaxOfAllChannels),
+          renderer
+        );
+      }
+
+      const adjustedScale = Math.fround(depthOfField.scale / upscalingAmount);
+
+      blur = this._Temp(gpuResourcePool, "Bokeh Blend", { width: dest.GetWidth(), height: dest.GetHeight() }, dest.GetFormat(), RENDER_TARGET);
+
+      if (depthOfField.useTAAFriendlyBokeh)
+      {
+        const GOLDEN_ANGLE = Math.fround(Math.PI * (3 - Math.sqrt(5)));
+        let angle = 0;
+        let samplesPerPixel = 2 / 5;
+
+        if (temporal)
+        {
+          // Four rotations, the same period as the TAA jitter, so TAA can
+          // detect and remove some flickering (cpp:1650-1651).
+          if ((this._bokehFrameCounter & 1) !== 0) angle += Math.PI;
+          if ((this._bokehFrameCounter & 2) !== 0) angle += 0.5 * GOLDEN_ANGLE;
+          this._bokehFrameCounter++;
+
+          // Fewer samples per frame; the rotations accumulate four times as many (cpp:1658-1659).
+          samplesPerPixel = 1 / 5;
+        }
+
+        const bokeh = this._depthOfFieldBokehTAAShader;
+
+        bokeh.SetOption("BOKEH_SHAPE", shape);
+        bokeh.SetParameter("BlitCurrent", dest);
+        bokeh.SetParameter("CoCMap", coc.Get());
+        bokeh.SetParameter("BokehInfo", [ adjustedScale, angle, samplesPerPixel, 0 ]);
+        try
+        {
+          Tr2PostProcessRenderer.drawInto(blur.Get(), Tr2LoadAction.DONT_CARE, bokeh, renderContext, renderer);
+        }
+        finally
+        {
+          bokeh.SetParameter("BlitCurrent", null);
+          bokeh.SetParameter("CoCMap", null);
+        }
+
+        // Copy back.
+        Tr2PostProcessRenderer.drawTextureInto(dest, Tr2LoadAction.DONT_CARE, blur.Get(), renderContext, renderer);
+      }
+      else
+      {
+        const blend = this.depthOfFieldBokehBlurShader;
+
+        blend.SetParameter("BlitCurrent", dest);
+        blend.SetParameter("CoCMap", coc.Get());
+        blend.SetParameter("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
+        blend.SetOption("BOKEH_SHAPE", shape);
+        try
+        {
+          Tr2PostProcessRenderer.drawInto(blur.Get(), Tr2LoadAction.DONT_CARE, blend, renderContext, renderer);
+        }
+        finally
+        {
+          blend.SetParameter("BlitCurrent", null);
+          blend.SetParameter("CoCMap", null);
+        }
+
+        const fill = this.depthOfFieldBokehFillShader;
+
+        fill.SetParameter("BlitCurrent", blur.Get());
+        fill.SetParameter("CoCMap", coc.Get());
+        fill.SetParameter("BokehInfo", [ adjustedScale, 0, 0, 0 ]);
+        fill.SetOption("BOKEH_SHAPE", shape);
+        try
+        {
+          Tr2PostProcessRenderer.drawInto(dest, Tr2LoadAction.DONT_CARE, fill, renderContext, renderer);
+        }
+        finally
+        {
+          fill.SetParameter("BlitCurrent", null);
+          fill.SetParameter("CoCMap", null);
+        }
+      }
+    }
+    finally
+    {
+      release(coc);
+      release(blur);
+    }
+  }
+
+  /**
+   * m_bloomConstantBuffer, created empty on first use. Carbon default-constructs
+   * the member (cpp:565) and FillAndSetConstants sizes it; our constant
+   * buffers come from the render context, which the constructor has not got.
+   *
+   * @param {Tr2RenderContext} renderContext The context to create against.
+   * @returns {object} A `Tr2ConstantBufferAL`.
+   */
+  _BloomConstantBuffer(renderContext)
+  {
+    this._bloomConstantBuffer ??= renderContext.CreateConstantBuffer();
+    return this._bloomConstantBuffer;
   }
 
   /** A pool temp texture of Carbon's `GetTempTexture( name, size, format, usage )` form. */
@@ -750,6 +1401,44 @@ export class Tr2PostProcessRenderer extends CjsModel
     {
       esm.PopRenderTarget();
     }
+  }
+
+  /**
+   * DrawInto for a texture (cpp:38-44): hint the load action, push the target,
+   * blit the texture, pop. Carbon overloads DrawInto; the texture form is
+   * named here.
+   *
+   * @returns {void}
+   */
+  static drawTextureInto(dest, loadAction, src, renderContext, renderer)
+  {
+    const esm = renderContext.GetEffectStateManager();
+
+    renderContext.RenderPassHint(new Tr2ColorAttachment(loadAction, Tr2StoreAction.STORE), null);
+    esm.PushRenderTarget(dest);
+    try
+    {
+      renderer.DrawTexture(renderContext, src);
+    }
+    finally
+    {
+      esm.PopRenderTarget();
+    }
+  }
+
+  /**
+   * `TextureSize2D( texture.GetDesc() ) * scale` (Tr2GpuResourcePool.h:34-37):
+   * each side scaled in float, truncated, and at least one.
+   *
+   * @param {object} texture A texture answering GetWidth and GetHeight.
+   * @param {number} scale The scale.
+   * @returns {{width: number, height: number}} The size.
+   */
+  static scaledSize(texture, scale)
+  {
+    const side = value => Math.max(1, Math.trunc(Math.fround(Math.fround(value) * Math.fround(scale))));
+
+    return { width: side(texture.GetWidth()), height: side(texture.GetHeight()) };
   }
 
   /**

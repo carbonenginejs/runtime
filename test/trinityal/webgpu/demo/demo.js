@@ -160,7 +160,7 @@ const POST_TEMPLATE = POST_OFF ? "" : POST_PARAMETER;
  * loaded template and names them, so the ported passes can be seen working on
  * a real template before the rest exist. Remove a slot here as its pass lands.
  */
-const UNPORTED_POST_SLOTS = [ "bloom", "godRays", "fog", "dynamicExposure", "depthOfField", "taa" ];
+const UNPORTED_POST_SLOTS = [ "taa" ];
 
 /**
  * Reads a post-process template and empties the slots whose pass is not
