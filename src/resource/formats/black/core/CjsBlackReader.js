@@ -773,7 +773,9 @@ export class CjsBlackReader extends CjsBlueReader
         // field (EveSOFDataArea's "Glass" into `materials`). Carbon's
         // MAP_ATTRIBUTE("color1", m_params.colors[1]) records index 1 too, but
         // "color1" is its own attribute, so indexing it would read a colour
-        // back as [ , colour ].
+        // back as [ , colour ]. A compact spec with no `field` defaults its
+        // fieldName to the Black name (CjsBlackSchemaRegistry.normalizeCompactSpec),
+        // which is what makes this comparison tell the two cases apart.
         const hasIndex = Boolean(blackField.indexToken || blackField.indexKey !== undefined) && fieldName !== blackName;
         const storageKey = hasIndex
             ? blackField.indexKey ?? CjsBlackReader.normalizeIndexedKey(blackField.indexToken, field)

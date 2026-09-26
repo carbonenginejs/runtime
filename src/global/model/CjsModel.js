@@ -1529,8 +1529,8 @@ export function importSourceValue(value, field = null, options = {})
     // An instance of any registered class is a live object too - the Black
     // reader builds a TriGeometryRes for Tr2InstancedMesh's IROOTPTR
     // instanceGeometryResource - and Carbon's reader assigns that pointer.
-    // Only a struct position copies.
-    if (schemaType?.kind !== "struct" && isRegisteredInstance(value)) return value;
+    // Only a struct or raw-struct position copies.
+    if (schemaType?.kind !== "struct" && schemaType?.kind !== "rawStruct" && isRegisteredInstance(value)) return value;
 
     if (isReferenceValue(value))
     {
