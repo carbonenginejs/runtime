@@ -284,6 +284,43 @@ export class CjsWebgpuWorkQueue
   }
 
   /**
+   * Copies one texture subresource region into another: Metal's
+   * `MetalWorkQueue::CopyTextureToTexture` (`MetalWorkQueue.mm:1381-1405`),
+   * which records a blit and releases the encoder. WebGPU copies on the
+   * command encoder itself, so the open pass is released first, as
+   * `GenerateMipMaps` does.
+   *
+   * @param {GPUTexture} source The texture to read.
+   * @param {number} sourceSlice The source array layer.
+   * @param {number} sourceMip The source mip level.
+   * @param {{x: number, y: number, z: number}} sourceOrigin The source origin.
+   * @param {{width: number, height: number, depthOrArrayLayers: number}} size The copy size.
+   * @param {GPUTexture} destination The texture to write.
+   * @param {number} destinationSlice The destination array layer.
+   * @param {number} destinationMip The destination mip level.
+   * @param {{x: number, y: number, z: number}} destinationOrigin The destination origin.
+   * @returns {object[]} The transitions this required.
+   */
+  CopyTextureToTexture(source, sourceSlice, sourceMip, sourceOrigin, size, destination, destinationSlice, destinationMip, destinationOrigin)
+  {
+    if (!this._inFrame) fail("CopyTextureToTexture outside a frame");
+
+    this._ReleaseEncoder();
+    this._events.push({ type: "copy-texture" });
+
+    if (this._commandEncoder)
+    {
+      this._commandEncoder.copyTextureToTexture(
+        { texture: source, mipLevel: sourceMip, origin: { x: sourceOrigin.x, y: sourceOrigin.y, z: sourceOrigin.z + sourceSlice } },
+        { texture: destination, mipLevel: destinationMip, origin: { x: destinationOrigin.x, y: destinationOrigin.y, z: destinationOrigin.z + destinationSlice } },
+        size
+      );
+    }
+
+    return this._Drain();
+  }
+
+  /**
    * Names the compute pipeline the next dispatch runs.
    *
    * @param {object} pipeline A `GPUComputePipeline`.

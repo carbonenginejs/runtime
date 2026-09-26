@@ -338,7 +338,7 @@ Where one consumer's rows landed, this frame and last.
 <!-- class:Tr2RuntimeGpuBuffer -->
 ## `Tr2RuntimeGpuBuffer`
 
-Tr2RuntimeGpuBuffer (trinityCore) - generated from schema shapeHash 0cb23744....
+An ITr2GpuBuffer over one runtime AL buffer: what `Tr2Effect::SetParameter` wraps a `Tr2BufferAL` in so a buffer parameter can hold it.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/device/Tr2RuntimeGpuBuffer.js`

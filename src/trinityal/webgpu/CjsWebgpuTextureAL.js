@@ -19,8 +19,8 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType, Tr2MsaaDesc } from "#trinityal";
-import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
+import { ALResult, CopyRegion, Crop, Tr2ALMemoryType, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
+import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
@@ -453,10 +453,52 @@ export class CjsWebgpuTextureAL
     return ALResult.S_OK;
   }
 
-  /** Needs a command encoder the AL is not handed here; refused by name. */
-  CopySubresourceRegion()
+  /**
+   * Copies a region of another texture into this one, as Metal does
+   * (`Tr2TextureALMetal.mm:744-791`): validate, crop both regions against their
+   * textures, then one work-queue copy per slice and mip.
+   *
+   * @param {Tr2TextureSubresource} destSubresource The region to write.
+   * @param {CjsWebgpuTextureAL} source The texture to read.
+   * @param {Tr2TextureSubresource} sourceSubresource The region to read.
+   * @param {object} renderContext The context whose work queue records it.
+   * @returns {number} An `ALResult` value.
+   */
+  CopySubresourceRegion(destSubresource, source, sourceSubresource, renderContext)
   {
-    return ALResult.E_FAIL;
+    if (!this.IsValid() || !renderContext?.IsValid()) return ALResult.E_INVALIDCALL;
+    if (!source?.IsValid()) return ALResult.E_INVALIDARG;
+    if (!HasFlag(this.m_cpuUsage, Tr2CpuUsage.WRITE) && !IsWritable(this.m_gpuUsage)) return ALResult.E_INVALIDCALL;
+
+    // Carbon takes both regions by value and Crop mutates them.
+    const src = CopyRegion(sourceSubresource);
+    const dst = CopyRegion(destSubresource);
+
+    if (!Crop(src, source.m_desc, dst, this.m_desc)) return ALResult.E_FAIL;
+
+    const queue = RenderContextALOf(renderContext).GetWorkQueue();
+    const slices = src.m_endFace - src.m_startFace;
+    const mips = src.m_endMipLevel - src.m_startMipLevel;
+
+    for (let slice = 0; slice < slices; ++slice)
+    {
+      for (let mip = 0; mip < mips; ++mip)
+      {
+        queue.CopyTextureToTexture(
+          source.m_texture,
+          src.m_startFace + slice,
+          src.m_startMipLevel + mip,
+          { x: src.m_box.left, y: src.m_box.top, z: src.m_box.front },
+          { width: src.GetWidth(), height: src.GetHeight(), depthOrArrayLayers: src.GetDepth() },
+          this.m_texture,
+          dst.m_startFace + slice,
+          dst.m_startMipLevel + mip,
+          { x: dst.m_box.left, y: dst.m_box.top, z: dst.m_box.front }
+        );
+      }
+    }
+
+    return ALResult.S_OK;
   }
 
   /**
@@ -483,9 +525,23 @@ export class CjsWebgpuTextureAL
     return ALResult.S_OK;
   }
 
-  /** Multisample resolve, which this backend has no multisampled textures for. */
-  Resolve()
+  /**
+   * Resolves into `destination`. With one sample every Carbon backend falls
+   * back to a plain copy (`Tr2TextureALMetal.mm:807-812`,
+   * `Tr2TextureALDx11.cpp:1183-1186`); this backend has no multisampled
+   * textures, so the multisample arm fails.
+   *
+   * @param {CjsWebgpuTextureAL} destination The texture to resolve into.
+   * @param {object} renderContext The context whose work queue records it.
+   * @returns {number} An `ALResult` value.
+   */
+  Resolve(destination, renderContext)
   {
+    if ((this.m_msaa?.samples ?? 1) <= 1)
+    {
+      return destination.CopySubresourceRegion(new Tr2TextureSubresource(), this, new Tr2TextureSubresource(), renderContext);
+    }
+
     return ALResult.E_FAIL;
   }
 

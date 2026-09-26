@@ -284,3 +284,33 @@ test("generating mips ends the open pass first, then encodes the chain", () =>
   assert.deepEqual(events.map(event => event.type), [ "close", "generate-mips" ]);
   assert.equal(queue.GetCurrentEncoderType(), EncoderType.NONE);
 });
+
+test("a texture copy closes the open pass and records on the command encoder", () =>
+{
+  // Metal's CopyTextureToTexture records a blit and releases the encoder
+  // (MetalWorkQueue.mm:1381-1405). WebGPU copies on the command encoder, so the
+  // open render pass must end first; the array slice rides in origin.z.
+  const calls = [];
+  const commandEncoder = {
+    beginRenderPass: () => ({ end: () => calls.push("end") }),
+    copyTextureToTexture: (source, destination, size) => calls.push({ source, destination, size })
+  };
+  const queue = new CjsWebgpuWorkQueue();
+
+  queue.SetCommandEncoder(commandEncoder, () => ({}));
+  queue.BeginFrame();
+  queue.RequireRenderPass();
+
+  const src = { id: "src" };
+  const dst = { id: "dst" };
+  const events = queue.CopyTextureToTexture(src, 2, 1, { x: 4, y: 5, z: 0 }, { width: 8, height: 9, depthOrArrayLayers: 1 }, dst, 3, 0, { x: 0, y: 0, z: 0 });
+
+  assert.equal(calls[0], "end", "the render pass ended before the copy");
+  assert.deepEqual(calls[1], {
+    source: { texture: src, mipLevel: 1, origin: { x: 4, y: 5, z: 2 } },
+    destination: { texture: dst, mipLevel: 0, origin: { x: 0, y: 0, z: 3 } },
+    size: { width: 8, height: 9, depthOrArrayLayers: 1 }
+  });
+  assert.ok(events.some(event => event.type === "copy-texture"));
+  assert.equal(queue.GetRenderPass(), null);
+});

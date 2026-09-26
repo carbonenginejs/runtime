@@ -21,6 +21,7 @@ import { Tr2ShaderOption } from "./reflection/Tr2ShaderOption.js";
 import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { ITriEffectResourceParameter } from "./parameter/ITriEffectResourceParameter.js";
 import { ITriReroutable } from "../core/ITriReroutable.js";
+import { Tr2RuntimeGpuBuffer } from "../core/device/Tr2RuntimeGpuBuffer.js";
 import { Tr2RuntimeTextureParameter } from "./parameter/Tr2RuntimeTextureParameter.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
 import { Tr2Vector3Parameter } from "./parameter/Tr2Vector3Parameter.js";
@@ -45,6 +46,18 @@ function requireShader(shader)
 }
 
 /** Whether a value is a texture rather than a number or vector. */
+/**
+ * Whether a value is an AL buffer: Carbon's `Tr2BufferAL` overload
+ * (`Tr2Effect.h:102`), chosen here by the class's declared Carbon identity since
+ * JavaScript has no static overloads. Every backend's buffer declares it.
+ */
+function IsBufferAL(value)
+{
+  return typeof value === "object"
+    && value !== null
+    && CjsSchema.getSchema(value.constructor)?.carbon === "Tr2BufferAL";
+}
+
 function IsTextureLike(value)
 {
   return typeof value === "object"
@@ -1054,6 +1067,14 @@ export class Tr2Effect extends Tr2Material
   {
     const parameterName = String(name ?? "");
 
+    // Carbon resets a slot with a default-constructed value of the SAME type
+    // (TEMP_PARAM in Tr2PostProcessRenderer.cpp:132-150). Null is that value
+    // for both overloads, so it clears a buffer slot when one holds the name.
+    if (IsBufferAL(value) || (value === null && CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter)))
+    {
+      return this.#SetBufferParameter(parameterName, value);
+    }
+
     // A TEXTURE IS NOT A PARAMETER HERE, it is a resource, so Carbon's texture
     // overload (`Tr2Effect.h:94`) routes to the runtime texture slot instead.
     // Null clears it, which is what Carbon's `Tr2TextureAL{}` does.
@@ -1088,6 +1109,39 @@ export class Tr2Effect extends Tr2Material
 
     parameter.SetValue(value);
     this.RebuildCachedDataInternal();
+  }
+
+  /**
+   * Carbon's buffer overload (`Tr2Effect.cpp:2228-2255`): a named geometry
+   * buffer parameter holding a runtime GPU buffer, reused when the slot exists.
+   */
+  #SetBufferParameter(parameterName, buffer)
+  {
+    // Carbon casts both (BlueCastPtr, cpp:2231, 2234).
+    const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2GeometryBufferParameter);
+    const held = CjsSchema.cast(parameter?.GetGpuBuffer(), Tr2RuntimeGpuBuffer);
+
+    if (held)
+    {
+      held.SetGpuBuffer(buffer);
+      return;
+    }
+
+    const runtimeBuffer = new Tr2RuntimeGpuBuffer();
+
+    runtimeBuffer.SetGpuBuffer(buffer);
+
+    if (parameter)
+    {
+      parameter.SetGpuBuffer(runtimeBuffer);
+      return;
+    }
+
+    const created = new Tr2GeometryBufferParameter();
+
+    created.name = parameterName;
+    created.SetGpuBuffer(runtimeBuffer);
+    this.AddResource(created);
   }
 
   /** Carbon's texture overload: a named slot fed by a live texture. */
