@@ -1580,6 +1580,10 @@ export class EveSpaceScene extends CjsModel
       if (accumulator) renderContext.RenderBatches(accumulator, techniqueName);
     }
 
+    // Metal supports render-pass hints, so the hinted pass ends here
+    // (cpp:2310-2314); without a normal map Carbon's Metal branch only pops.
+    if (normalMap) renderContext.EndRenderPassHint();
+
     esm.PopRenderTarget();
     esm.SetRenderTarget(1, null);
     esm.EndManagedRendering();

@@ -314,3 +314,48 @@ test("a texture copy closes the open pass and records on the command encoder", (
   assert.ok(events.some(event => event.type === "copy-texture"));
   assert.equal(queue.GetRenderPass(), null);
 });
+
+test("a clear runs on the attachments bound when it was made, before they change", () =>
+{
+  // Metal's ClearAttachment puts the clear on the CURRENT descriptor, and
+  // SetRenderAttachments runs it (FlushOutstandingOperations) before changing
+  // the attachment (mm:380-405, 2000-2012, 2845-2881). The space scene clears
+  // its colour, then the depth pass binds the normal map: the clear must land
+  // on the colour, not on the normal map.
+  const queue = started();
+  const color = { id: "customBackBuffer" };
+  const normal = { id: "normalMap" };
+
+  queue.SetRenderAttachments(color, 0);
+  queue.ClearAttachment([ clear() ], new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0));
+  assert.equal(queue.GetPassCount(), 0, "a clear on its own encodes nothing");
+
+  const events = queue.SetRenderAttachments(normal, 0);
+  const opened = events.find(event => event.type === "open");
+
+  assert.equal(queue.GetPassCount(), 1, "the clear ran in a pass of its own");
+  assert.equal(opened.attachments.colors[0].loadOp, "clear");
+  assert.ok(events.findIndex(event => event.type === "close") > events.indexOf(opened));
+
+  // The normal map's pass loads: the clear was consumed.
+  const next = queue.SetCurrentEncoder(EncoderType.RENDER);
+  assert.equal(next.find(event => event.type === "open").attachments, null);
+});
+
+test("a clear is ignored while a hint is pending, and a hint survives an attachment change", () =>
+{
+  // mm:2850-2853: the pending hint's actions govern. FlushOutstandingOperations
+  // backs the hint up and restores it (mm:397-404).
+  const queue = started();
+
+  queue.SetRenderAttachments({ id: "a" }, 0);
+  queue.RenderPassHint([ keep() ]);
+  queue.ClearAttachment([ clear() ]);
+  queue.SetRenderAttachments({ id: "b" }, 0);
+
+  assert.equal(queue.GetPassCount(), 0, "no clear to flush");
+  assert.equal(queue.HasPendingRenderPassHint(), true);
+
+  const opened = queue.SetCurrentEncoder(EncoderType.RENDER).find(event => event.type === "open");
+  assert.equal(opened.attachments.colors[0].loadOp, "load");
+});

@@ -84,6 +84,12 @@ export class CjsWebgpuWorkQueue
   /** m_pendingRenderPassHint / m_hasPendingRenderPassHint */
   _pendingRenderPassHint = null;
 
+  /**
+   * m_pendingClear, with the clear actions Metal writes into its pass
+   * descriptor (`ClearAttachment`), in the hint's `{ colors, depth }` form.
+   */
+  _pendingClear = null;
+
   /** Transitions since the last drain, in order. */
   _events = [];
 
@@ -135,6 +141,7 @@ export class CjsWebgpuWorkQueue
 
     this._inFrame = true;
     this._passCount = 0;
+    this._pendingClear = null;
     // Nothing named last frame is wanted this frame until a verb names it.
     this._pending = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
     this._events.push({ type: "begin-frame" });
@@ -152,7 +159,7 @@ export class CjsWebgpuWorkQueue
   {
     if (!this._inFrame) fail("EndFrame without BeginFrame");
 
-    if (this._pendingRenderPassHint) this._GetRenderEncoder();
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
 
     this._ReleaseEncoder();
     this._inFrame = false;
@@ -195,11 +202,55 @@ export class CjsWebgpuWorkQueue
    */
   EndRenderPassHint()
   {
-    if (this._pendingRenderPassHint) this._GetRenderEncoder();
+    if (this._pendingRenderPassHint || this._pendingClear) this._GetRenderEncoder();
 
     this._ReleaseEncoder();
 
     return this._Drain();
+  }
+
+  /**
+   * Carbon's `ClearAttachment` (`MetalWorkQueue.mm:2845-2881`): the clear
+   * goes on the attachments bound NOW, as the load actions of the next pass
+   * over them. Ignored while a hint is pending, whose actions govern that
+   * pass; any open encoder is ended first, so the clear starts a pass.
+   *
+   * Changing an attachment runs a pending clear before the change
+   * (`_FlushOutstandingOperations`), so a clear never lands on the targets
+   * bound after it: that is the difference from a hint.
+   *
+   * @param {object[]} colors `Tr2ColorAttachment`s for the bound slots, in order.
+   * @param {object|null} depth A `Tr2DepthAttachment`, or null.
+   * @returns {object[]} The transitions this required.
+   */
+  ClearAttachment(colors, depth = null)
+  {
+    if (this._pendingRenderPassHint) return this._Drain();
+
+    this._FlushOutstandingOperations();
+    this._pendingClear = { colors, depth };
+
+    return this._Drain();
+  }
+
+  /**
+   * Carbon's `FlushOutstandingOperations` (`MetalWorkQueue.mm:380-405`):
+   * ends the open encoder, then runs a pending clear in a pass of its own
+   * over the current attachments. A pending hint is set aside for that pass
+   * and stays pending, as Metal backs it up and restores it.
+   */
+  _FlushOutstandingOperations()
+  {
+    this._ReleaseEncoder();
+
+    if (!this._pendingClear || !this._inFrame) return;
+
+    const hint = this._pendingRenderPassHint;
+
+    this._pendingRenderPassHint = null;
+    this._GetRenderEncoder();
+    this._ReleaseEncoder();
+    this._pendingRenderPassHint = hint;
   }
 
   /** Carbon's `EndCurrentRenderPass`. @returns {object[]} The transitions. */
@@ -437,7 +488,7 @@ export class CjsWebgpuWorkQueue
 
     if (current?.texture === (texture ?? null)) return this._Drain();
 
-    this._ReleaseEncoder();
+    this._FlushOutstandingOperations();
 
     this._colorAttachments[index] = texture
       ? { texture, slice, loadOp: "load", storeOp: "store" }
@@ -456,7 +507,7 @@ export class CjsWebgpuWorkQueue
   {
     if (this._depthAttachment?.texture === (texture ?? null)) return this._Drain();
 
-    this._ReleaseEncoder();
+    this._FlushOutstandingOperations();
 
     this._depthAttachment = texture ? { texture, loadOp: "load", storeOp: "store" } : null;
 
@@ -772,10 +823,14 @@ export class CjsWebgpuWorkQueue
   {
     this._ReleaseEncoder();
 
-    const hint = this._pendingRenderPassHint;
+    // A hint's actions win over a pending clear's, as Metal applies the hint
+    // over a descriptor already holding the clear; opening the pass consumes
+    // both (`ApplyRenderPassHint`, then `ResetClearState`).
+    const hint = this._pendingRenderPassHint ?? this._pendingClear;
     const attachments = ApplyRenderPassHint(hint);
 
     this._pendingRenderPassHint = null;
+    this._pendingClear = null;
     this._passCount += 1;
     this._currentEncoderType = EncoderType.RENDER;
     this._events.push({ type: "open", encoderType: EncoderType.RENDER, attachments });

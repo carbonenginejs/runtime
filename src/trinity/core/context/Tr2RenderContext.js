@@ -511,6 +511,19 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Ends the pass a hint declared, so the next work opens a new one; a
+   * pending hint or clear still runs, in a pass of its own. Forwards, as
+   * RenderPassHint does (Carbon calls it where the platform supports hints,
+   * `EveSpaceScene.cpp:2311-2313`).
+   *
+   * @returns {*} Whatever the backend reports.
+   */
+  EndRenderPassHint()
+  {
+    return this.#requireAL("EndRenderPassHint").EndRenderPassHint();
+  }
+
+  /**
    * The projection with its depth range reversed.
    *
    * Carbon `Tr2Renderer::GetReversedDepthProjectionTransform`

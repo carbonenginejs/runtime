@@ -992,9 +992,11 @@ export class CjsWebgpuRenderContextAL
    * Clears the bound attachments.
    *
    * A CLEAR IS A LOAD OPERATION, not a command. WebGPU has no mid-pass clear,
-   * so this ends the current pass and declares the next one's load actions -
-   * which is the same thing `RenderPassHint` does, arrived at from the other
-   * direction. Carbon's Metal backend folds a clear the same way.
+   * so this ends the current pass and makes the clear the next one's load
+   * actions, ON THE ATTACHMENTS BOUND NOW: Metal's `ClearAttachment`
+   * (`MetalWorkQueue.mm:2845-2881`). Binding other targets first runs the
+   * clear in a pass of its own, so it never lands on them; a pending hint
+   * wins, and the clear is ignored.
    *
    * CARBON'S FLAGS AND SLOT (`Tr2RenderContextMetal.mm:297-351`): the colour
    * clear names ONE slot, and depth is cleared only when asked. Every other
@@ -1034,7 +1036,7 @@ export class CjsWebgpuRenderContextAL
         : new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE))
       : null;
 
-    this._workQueue.RenderPassHint(colors, depth);
+    this._Record(this._workQueue.ClearAttachment(colors, depth));
 
     return true;
   }
