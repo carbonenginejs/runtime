@@ -17,3 +17,4 @@ export * from "./shader/index.js";
 export * from "./d3d/index.js";
 export * from "./blue.js";
 export * from "./trinity.js";
+export * from "./effectPaths.js";

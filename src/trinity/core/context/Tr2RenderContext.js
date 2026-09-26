@@ -23,7 +23,7 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ALResult, Failed } from "../../../trinityal/ALResult.js";
-import { ConstantBufferSlot } from "#consts/render-context";
+import { ConstantBufferSlot, TextureAddressMode, TextureFilter } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
 import { Tr2VariableStore } from "../variable/Tr2VariableStore.js";
 import { TriPoolAllocator } from "../rawData/TriPoolAllocator.js";
@@ -133,21 +133,11 @@ export class Tr2RenderContext extends CjsModel
 
   #debugRenderer = null;
 
-  static TextureFilter = Object.freeze({
-    TF_NONE: 0,
-    TF_POINT: 1,
-    TF_LINEAR: 2,
-    TF_ANISOTROPIC: 3,
-    TF_COMPARISON: 0x80
-  });
+  // Tr2RenderContextEnum's filter and address modes, from global/consts: one
+  // identity for every layer, not a second copy on the class.
+  static TextureFilter = TextureFilter;
 
-  static TextureAddressMode = Object.freeze({
-    TA_WRAP: 1,
-    TA_MIRROR: 2,
-    TA_CLAMP: 3,
-    TA_BORDER: 4,
-    TA_MIRROR_ONCE: 5
-  });
+  static TextureAddressMode = TextureAddressMode;
 
   /**
    * Installs a nominal step executor; null restores the shared

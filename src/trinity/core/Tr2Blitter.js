@@ -36,12 +36,11 @@ import { Tr2BufferDescriptionAL } from "../../trinityal/stub/Tr2BufferALStub.js"
 import { Tr2VertexDefinition } from "./vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
+import { Tr2Effect } from "../shader/Tr2Effect.js";
+import { BLIT_EFFECT_PATH, BLIT_FILTERED_EFFECT_PATH } from "#consts/effectPaths";
 import { SCREEN_QUAD_FLOATS, SCREEN_VERTEX_BYTES, SetupScreenQuad, SetupScreenQuadInCameraSpace } from "./Tr2RenderUtils.js";
 
 
-/** Carbon's two blit effect paths (`Tr2Blitter.cpp:11-12`). */
-export const BLIT_EFFECT_PATH = "res:/Graphics/Effect/Managed/space/system/Blit.fx";
-export const BLIT_FILTERED_EFFECT_PATH = "res:/Graphics/Effect/Managed/space/system/BlitFiltered.fx";
 
 
 /** Carbon `Tr2Blitter::Filtering`. */
@@ -100,30 +99,36 @@ export class Tr2Blitter
   /** The quad staged on the CPU before it goes into the buffer. */
   #quad = new Float32Array(SCREEN_QUAD_FLOATS);
 
-  /** m_blitEffect / m_blitFilteredEffect, set by the host that owns loading. */
+  /** m_blitEffect / m_blitFilteredEffect. */
   #blitEffect = null;
 
   #blitFilteredEffect = null;
 
   /**
-   * Registers `BlitSource` on the global store, as Carbon's constructor does
-   * (`Tr2Blitter.cpp:21`). The blit shaders sample it by name, so it has to
-   * exist before the first draw rather than be created by one.
+   * Registers `BlitSource` on the global store and creates the two blit
+   * effects, as Carbon's constructor does (`Tr2Blitter.cpp:17-26`). The blit
+   * shaders sample `BlitSource` by name, so it has to exist before the first
+   * draw rather than be created by one.
+   *
+   * THE EFFECTS ARE CREATED HERE, AS CARBON'S ARE. They load asynchronously,
+   * and a draw with an unloaded effect draws nothing - the same as every other
+   * effect Trinity creates from a path (Tr2PostProcessRenderer, Tr2Denoiser).
+   * Until 2026-09-26 they were left for a host to inject, nothing ever did,
+   * and every DrawTexture returned false: the post process drew nothing into
+   * the back buffer.
    */
   constructor()
   {
     Tr2VariableStore.GlobalStore().RegisterVariable(BLIT_SOURCE, null);
+
+    this.#blitEffect = new Tr2Effect();
+    this.#blitEffect.SetEffectPathName(BLIT_EFFECT_PATH);
+    this.#blitFilteredEffect = new Tr2Effect();
+    this.#blitFilteredEffect.SetEffectPathName(BLIT_FILTERED_EFFECT_PATH);
   }
 
   /**
-   * Installs the two blit materials.
-   *
-   * CARBON CONSTRUCTS THESE ITSELF, from `BLIT_EFFECT_PATH` and
-   * `BLIT_FILTERED_EFFECT_PATH` (`Tr2Blitter.cpp:22-26`). It can, because
-   * `Tr2Effect::SetEffectPathName` reaches a synchronous resource manager.
-   * Loading here is asynchronous and belongs to whoever owns the resource
-   * manager, so the blitter is given its materials rather than fetching them.
-   * The paths are exported above so a host uses Carbon's, not its own.
+   * Replaces the two blit materials; tests stand fakes in with it.
    *
    * @param {object} blitEffect The point-sampled blit material.
    * @param {object} [blitFilteredEffect] The linear-sampled one.

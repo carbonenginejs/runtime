@@ -2,7 +2,7 @@
 // Hand-maintained from Tr2Effect.cpp's Blue structure definition and defaults.
 import { edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { Tr2RenderContext } from "../../core/context/Tr2RenderContext.js";
+import { TextureAddressMode, TextureFilter } from "#consts/render-context";
 
 /** Overrides one named sampler's address, filtering, LOD-bias, mip, and anisotropy settings. */
 @type.define({ className: "Tr2SamplerOverride", family: "shader" })
@@ -68,8 +68,8 @@ export class Tr2SamplerOverride extends CjsModel
   @type.uint32
   maxAnisotropy = 4;
 
-  static TextureAddressMode = Tr2RenderContext.TextureAddressMode;
+  static TextureAddressMode = TextureAddressMode;
 
-  static TextureFilter = Tr2RenderContext.TextureFilter;
+  static TextureFilter = TextureFilter;
 
 }

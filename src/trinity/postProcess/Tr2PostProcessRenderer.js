@@ -26,13 +26,12 @@ import {
   UpscalingTechnique
 } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
+import { PostProcessEffectPaths } from "#consts/effectPaths";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { EveSpaceScene } from "../eve/scene/EveSpaceScene.js";
 import { Tr2PPTonemappingEffect } from "./effect/Tr2PPTonemappingEffect.js";
 import "./effect/Tr2PPEffect.js";
-
-const EFFECTS = "res:/Graphics/Effect/Managed/Space/PostProcess/";
 
 /** `RENDER_TARGET` in Carbon's anonymous namespace (cpp:150). */
 const RENDER_TARGET = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE;
@@ -44,18 +43,18 @@ const MAX_LUTS = 4;
 const CAS_THREAD_GROUP_WORK_REGION_DIM = 16;
 
 /** Builds one effect pointed at its path, with options set inside Start/EndUpdate. */
-function effectAt(name, options = null)
+function effectAt(path, options = null)
 {
   const effect = new Tr2Effect();
 
   if (!options)
   {
-    effect.SetEffectPathName(EFFECTS + name);
+    effect.SetEffectPathName(path);
     return effect;
   }
 
   effect.StartUpdate();
-  effect.SetEffectPathName(EFFECTS + name);
+  effect.SetEffectPathName(path);
   for (const [ option, value ] of Object.entries(options)) effect.SetOption(option, value);
   effect.EndUpdate();
   return effect;
@@ -85,81 +84,81 @@ export class Tr2PostProcessRenderer extends CjsModel
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  tonemappingEffect = effectAt("ToneMapping.fx");
+  tonemappingEffect = effectAt(PostProcessEffectPaths.ToneMapping);
 
-  _reactiveMaskEffect = effectAt("ReactiveMask.fx");
+  _reactiveMaskEffect = effectAt(PostProcessEffectPaths.ReactiveMask);
 
-  _transparencyMaskEffect = effectAt("TransparencyMask.fx");
-
-  @edit.readwrite
-  @type.objectRef("Tr2Effect")
-  bloomHighPassFilter = effectAt("HighPassFilter.fx");
-
-  _downSamplerLuminancePreserve = effectAt("Downsample.fx", { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_ON" });
-
-  _downSampler = effectAt("Downsample.fx", { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_OFF" });
-
-  _upsamplerHorizontal = effectAt("Upsample.fx");
-
-  _upsamplerVertical = effectAt("Upsample.fx", { UPSAMPLING_STEP: "UPSAMPLING_STEP_SECOND" });
+  _transparencyMaskEffect = effectAt(PostProcessEffectPaths.TransparencyMask);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  dynamicExposureToTextureShader = effectAt("ExposureToTexture.fx");
+  bloomHighPassFilter = effectAt(PostProcessEffectPaths.HighPassFilter);
+
+  _downSamplerLuminancePreserve = effectAt(PostProcessEffectPaths.Downsample, { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_ON" });
+
+  _downSampler = effectAt(PostProcessEffectPaths.Downsample, { LUNINANCE_PRESERVE: "LUNINANCE_PRESERVE_OFF" });
+
+  _upsamplerHorizontal = effectAt(PostProcessEffectPaths.Upsample);
+
+  _upsamplerVertical = effectAt(PostProcessEffectPaths.Upsample, { UPSAMPLING_STEP: "UPSAMPLING_STEP_SECOND" });
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  dynamicExposureCreateHistogramShader = effectAt("CreateHistograms.fx");
+  dynamicExposureToTextureShader = effectAt(PostProcessEffectPaths.ExposureToTexture);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  dynamicExposureMergeHistogramShader = effectAt("MergeHistograms.fx");
+  dynamicExposureCreateHistogramShader = effectAt(PostProcessEffectPaths.CreateHistograms);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  dynamicExposureMeasureExposureShader = effectAt("MeasureExposure.fx");
-
-  _fidelityFxCasShader = effectAt("CAS.fx");
-
-  _downsampleDepthEffect = effectAt("DownsampleDepth.fx");
+  dynamicExposureMergeHistogramShader = effectAt(PostProcessEffectPaths.MergeHistograms);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  fogColorEffect = effectAt("EnvironmentFogColor.fx");
+  dynamicExposureMeasureExposureShader = effectAt(PostProcessEffectPaths.MeasureExposure);
+
+  _fidelityFxCasShader = effectAt(PostProcessEffectPaths.CAS);
+
+  _downsampleDepthEffect = effectAt(PostProcessEffectPaths.DownsampleDepth);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  fogCompositeEffect = effectAt("EnvironmentFogComposit.fx");
+  fogColorEffect = effectAt(PostProcessEffectPaths.EnvironmentFogColor);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  depthOfFieldBokehBlurShader = effectAt("Bokeh.fx", { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_AVERAGE" });
+  fogCompositeEffect = effectAt(PostProcessEffectPaths.EnvironmentFogComposit);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  depthOfFieldBokehFillShader = effectAt("Bokeh.fx", { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_MAX" });
-
-  _depthOfFieldBokehTAAShader = effectAt("BokehTAA.fx");
+  depthOfFieldBokehBlurShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_AVERAGE" });
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  depthOfFieldCoCShader = effectAt("CircleOfConfusion.fx");
+  depthOfFieldBokehFillShader = effectAt(PostProcessEffectPaths.Bokeh, { BOKEH_PIXEL_METHOD: "BOKEH_PIXEL_MAX" });
+
+  _depthOfFieldBokehTAAShader = effectAt(PostProcessEffectPaths.BokehTAA);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  godrayEffect = effectAt("Godrays.fx");
+  depthOfFieldCoCShader = effectAt(PostProcessEffectPaths.CircleOfConfusion);
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  signalLossEffect = effectAt("SignalLoss.fx");
+  godrayEffect = effectAt(PostProcessEffectPaths.Godrays);
+
+  @edit.readwrite
+  @type.objectRef("Tr2Effect")
+  signalLossEffect = effectAt(PostProcessEffectPaths.SignalLoss);
 
   _grainShader = Tr2PostProcessRenderer._createGrainShader();
 
   @edit.readwrite
   @type.objectRef("Tr2Effect")
-  taaEffect = effectAt("TAA.fx");
+  taaEffect = effectAt(PostProcessEffectPaths.TAA);
 
-  _taaCopyEffect = effectAt("TAACopy.fx");
+  _taaCopyEffect = effectAt(PostProcessEffectPaths.TAACopy);
 
   /** Created on first use by RenderBloomDebug (cpp:1115-1144). */
   @edit.readwrite
@@ -1013,7 +1012,7 @@ export class Tr2PostProcessRenderer extends CjsModel
     const effect = new Tr2Effect();
 
     effect.StartUpdate();
-    effect.SetEffectPathName(EFFECTS + "FilmGrain.fx");
+    effect.SetEffectPathName(PostProcessEffectPaths.FilmGrain);
     effect.AddResourceTexture2D("NoiseTexture", "res:/texture/global/film_grain_noise.png");
     effect.EndUpdate();
     return effect;
