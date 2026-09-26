@@ -58,7 +58,8 @@ test("GetBatches emits one descriptor batch per displayed, materialled area", ()
 
   const [ first ] = batches;
   assert.equal(first.material, effect);
-  assert.equal(first.shader, effect, "the effect stands in as the shader key");
+  // TriRenderBatch.cpp:75-79: the shader is the material's shader-state interface.
+  assert.equal(first.shader, effect.GetShaderStateInterface(), "the batch keys on the material's shader");
   assert.equal(first.objectData, perObjectData);
   assert.equal(first.pickingData, (3 << 8) | 2);
   assert.deepEqual(

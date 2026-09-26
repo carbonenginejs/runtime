@@ -187,7 +187,8 @@ test("UpdateVolumetricLightmap: budget contract and slice arithmetic (cpp:319-38
   const cloud = new EveChildCloud2();
   vec3.set(cloud.scaling, 1, 1, 1);
   cloud.UpdateAsyncronous(null, { localToWorldTransform: mat4.create() });
-  cloud.effect = FixtureEffect();
+  // Starts as a still-loading effect: no shader resolved yet.
+  cloud.effect = FixtureEffect({ GetShaderStateInterface: () => null });
   cloud.lightmapSizeScale = 0.25;
 
   // lightmapWidth 0 fail-closes (cpp:325).

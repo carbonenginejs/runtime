@@ -11,10 +11,14 @@
 // every one of those fixtures throw at once, which is the useful version of the
 // same fact.
 //
-// `GetShaderStateInterface` returning null is CORRECT here, not a shortcut: it
-// is what a real `Tr2Effect` returns before a shader is resolved, and the batch
-// then keys on the material itself. The fixtures were already relying on that
-// path; they just were not entitled to it.
+// THE FIXTURE IS A LOADED MATERIAL. Carbon's `SetMaterial` sets
+// `m_shader = material->GetShaderStateInterface()` (`TriRenderBatch.cpp:75-79`)
+// and a batch with no shader is invalid, so `TriRenderBatchAccumulator.Commit`
+// drops it. These fixtures stand for materials whose shader has resolved, so
+// each one answers with its own stand-in shader: one object per fixture, the
+// same object on every call, because binning and sorting compare shaders by
+// identity. A test that needs a still-loading material passes its own
+// `GetShaderStateInterface: () => null`, which is kept.
 
 /**
  * Makes an object answer the material contract a batch asks for.
@@ -39,7 +43,8 @@ export function FixtureEffect(values = {})
   // value - and overwriting that would quietly change what the test proves.
   if (typeof values.GetShaderStateInterface !== "function")
   {
-    values.GetShaderStateInterface = () => null;
+    const shader = { fixtureShaderOf: values };
+    values.GetShaderStateInterface = () => shader;
   }
 
   if (typeof values.CompatibleWithGdr !== "function")

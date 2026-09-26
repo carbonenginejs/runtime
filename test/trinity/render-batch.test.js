@@ -52,21 +52,27 @@ test("a fresh batch is invalid; SetMaterial with a shader makes it valid", () =>
   assert.equal(batch.topology, Topology.TOP_TRIANGLES);
   assert.equal(batch.groupCount, 1);
 
-  // GPU-free: a material without a realized shader still yields a valid batch,
-  // keyed on the material/effect itself (the effect stands in for the shader).
+  // Carbon: m_shader = material->GetShaderStateInterface() (TriRenderBatch.cpp:75-79).
+  // A material with no resolved shader leaves the batch invalid; the material
+  // never stands in as the shader.
   const effect = makeMaterial(null);
   batch.SetMaterial(effect);
-  assert.equal(batch.IsValid(), true);
-  assert.equal(batch.shader, effect, "effect stands in as the shader key");
+  assert.equal(batch.IsValid(), false);
+  assert.equal(batch.shader, null, "no shader-state interface means no shader");
+  assert.equal(batch.material, effect);
 
-  // A realized shader takes precedence when the material exposes one.
+  // A material that exposes a shader makes the batch valid, keyed on that shader.
   const shader = {};
-  batch.SetMaterial(makeMaterial(shader));
+  const shaded = makeMaterial(shader);
+  batch.SetMaterial(shaded);
   assert.equal(batch.IsValid(), true);
   assert.equal(batch.shader, shader);
+  assert.equal(batch.material, shaded);
 
-  // Only a batch with no material at all is invalid.
-  assert.equal(new Tr2RenderBatch().IsValid(), false);
+  // A null material is invalid too.
+  const unset = new Tr2RenderBatch();
+  unset.SetMaterial(null);
+  assert.equal(unset.IsValid(), false);
 });
 
 test("SetPickingData supports the direct and (meshIndex, areaIndex) forms", () =>

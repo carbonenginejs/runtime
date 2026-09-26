@@ -144,7 +144,12 @@ export class Tr2RenderBatch
   SetMaterial(material)
   {
     this.material = material ?? null;
-    this.shader = material?.GetShaderStateInterface() ?? material ?? null;
+    // Carbon: m_shader = material->GetShaderStateInterface() (TriRenderBatch.cpp:
+    // 75-79) - null while the effect is still loading, which makes the batch
+    // invalid and keeps it out of the accumulator. Falling back to the material
+    // itself put a Tr2Effect where the draw walk expects a shader
+    // ("shader.GetTechniqueIndex is not a function" on a SOF ship's first frame).
+    this.shader = material ? material.GetShaderStateInterface() : null;
   }
 
   /** Sets the outermost sort key; lower priorities sort first. */
