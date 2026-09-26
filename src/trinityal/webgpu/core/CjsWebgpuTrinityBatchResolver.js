@@ -238,7 +238,8 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
 
     if (!setup) fail("pass resolves to no render state");
 
-    const projected = setup.GetWebgpuRecipe({ depthFormat: this._depthFormat });
+    // The authored blend and colour write mask are the projection's `target`.
+    const { target: authored, ...projected } = setup.GetWebgpuRecipe({ depthFormat: this._depthFormat });
 
     // The geometry decides the vertex layout, and CreateDraw requires the
     // pipeline's layout to equal the geometry's exactly, so it is realized here
@@ -250,7 +251,7 @@ export class CjsWebgpuTrinityBatchResolver extends CjsTrinityBatchResolver
       recipe: {
         ...projected,
         vertex: { buffers: geometry.vertexBufferLayouts },
-        fragment: { targets: this._targets.map(target => ({ ...target, blend: projected.blend ?? undefined })) }
+        fragment: { targets: this._targets.map(target => ({ ...target, ...authored })) }
       }
     };
   }

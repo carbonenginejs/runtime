@@ -115,14 +115,18 @@ export class CjsWebgpuPsoDescription
       invertedCullMode: !!this.renderStateOverrides?.invertedCullMode
     });
 
+    // The authored blend and colour write mask are the projection's `target`
+    // (Tr2RenderStateSetup.GetWebgpuRecipe); each colour target carries them.
+    const { target, ...state } = projected;
+
     return {
-      ...projected,
+      ...state,
       primitive: { ...projected.primitive, topology: TOPOLOGIES[this.topology] },
       vertex: { buffers: this.vertexBufferLayouts },
       fragment: {
         // An unbound slot between bound ones is a null target, as it is a null
         // colour attachment in the pass.
-        targets: this.colorFormats.map(format => (format ? { format, blend: projected.blend ?? undefined } : null))
+        targets: this.colorFormats.map(format => (format ? { format, ...target } : null))
       },
       multisample: { count: this.sampleCount }
     };

@@ -124,3 +124,35 @@ test("a fill mode WebGPU cannot rasterize refuses at the projection", () =>
 
   assert.throws(() => description({ renderStateSetup: setup }).BuildRecipe(), /fill mode/u);
 });
+
+test("the authored blend and colour write mask reach every colour target", () =>
+{
+  // RM_ALPHA_ADDITIVE's shape: one + one, add. Until 2026-09-26 both pipeline
+  // builders read `projected.blend`, which the projection never sets (it is
+  // `projected.target.blend`), so every WebGPU pipeline was opaque with all
+  // channels written. God rays' additive composite replaced the scene instead.
+  const setup = emptySetup();
+
+  setup.blend = {
+    color: { src: "one", dst: "one", op: "add" },
+    alpha: { src: "one", dst: "one", op: "add" },
+    constant: null
+  };
+  setup.colorWrite = { red: true, green: true, blue: true, alpha: false };
+
+  const recipe = description({ renderStateSetup: setup, colorFormats: [ "rgba16float", null, "r32float" ] }).BuildRecipe();
+  const [ first, gap, third ] = recipe.fragment.targets;
+  const additive = { srcFactor: "one", dstFactor: "one", operation: "add" };
+
+  assert.deepEqual(first, { format: "rgba16float", writeMask: 0x7, blend: { color: additive, alpha: additive } });
+  assert.equal(gap, null);
+  assert.equal(third.format, "r32float");
+  assert.equal("target" in recipe, false, "the projection's target is folded into the targets");
+
+  // An opaque setup writes all channels and has no blend.
+  const opaque = description().BuildRecipe().fragment.targets[0];
+  assert.deepEqual(opaque, { format: "bgra8unorm", writeMask: 0xf });
+
+  // And the keys differ because the pipelines differ.
+  assert.notEqual(description({ renderStateSetup: setup }).GetKey(), description().GetKey());
+});
