@@ -281,16 +281,28 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       return;
     }
 
-    const saved = {};
-    for (const slot of record.populated)
+    // READ THE SLOTS NOW, not the list taken at load: in the browser some
+    // effects were attached after LoadPostTemplate listed them (ghostworld
+    // listed three of seven while all seven ran), so the load-time list hid
+    // switches for effects that were drawing.
+    const live = [
+      "colorCorrection", "tonemapping", "lut", "luts", "desaturate", "vignette", "fade", "filmGrain", "signalLoss",
+      "bloom", "godRays", "fog", "dynamicExposure", "depthOfField", "taa"
+    ].filter(slot => Array.isArray(record.postProcess[slot]) ? record.postProcess[slot].length : record.postProcess[slot]);
+
+    // The template's own effects, kept on the record so a rebuild after a
+    // switch was turned off still offers it back.
+    const saved = record.saved ??= {};
+    for (const slot of live) saved[slot] ??= record.postProcess[slot];
+
+    for (const slot of new Set([ ...record.populated, ...Object.keys(saved) ]))
     {
       const unported = record.skipped.includes(slot);
-      const toggle = Object.assign(document.createElement("input"), { type: "checkbox", checked: !unported, disabled: unported });
+      const toggle = Object.assign(document.createElement("input"), { type: "checkbox", checked: !unported && record.postProcess[slot] === saved[slot], disabled: unported });
       const label = document.createElement("label");
       label.append(unported ? `${slot} (not ported)` : slot, toggle);
       effects.append(label);
 
-      saved[slot] = record.postProcess[slot];
       toggle.addEventListener("change", () =>
       {
         record.postProcess[slot] = toggle.checked ? saved[slot] : (Array.isArray(saved[slot]) ? [] : null);
@@ -313,10 +325,13 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     {
       templates.disabled = false;
       RebuildEffects();
+      setTimeout(RebuildEffects, 1500);
     }
   });
 
   RebuildEffects();
+  setTimeout(RebuildEffects, 1500);
+  panel.addEventListener("toggle", () => { if (panel.open) RebuildEffects(); });
 }
 
 /**
