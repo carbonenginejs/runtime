@@ -25,6 +25,7 @@ import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
@@ -1143,6 +1144,23 @@ export class EveSpaceScene extends CjsModel
   GetPerFramePSData()
   {
     return this.#perFramePS;
+  }
+
+  /**
+   * Carbon RunLensflareOcclusionQueries (cpp:2782-2789): every lensflare's
+   * foreground occlusion queries, then the occlusion buffer's per-frame
+   * compute - unconditionally, as Carbon runs it with no lensflares too.
+   *
+   * @param {object} _depthMap The scene depth; unused by Carbon's body too.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  RunLensflareOcclusionQueries(_depthMap, renderContext)
+  {
+    for (const lensflare of this.lensflares) lensflare.RunOcclusionQueries(renderContext, this.updateContext);
+    Tr2OcclusionBuffer.getInstance().ProcessBuffer(renderContext);
   }
 
   /** The Tr2LightManager GatherLights last ran with; see #EngineFrameState. */

@@ -4,7 +4,8 @@
 // class and calls the AL from it.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { PixelFormat } from "#consts/render-context";
+import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { ALResult, Tr2BufferDescriptionAL } from "#trinityal";
 import "#blue/registerTrinityEnums";
 
 /** Tr2GpuBuffer (trinityCore) - generated from schema shapeHash 7a225a45.... */
@@ -58,6 +59,100 @@ export class Tr2GpuBuffer extends CjsModel
   GetName()
   {
     return this.#name;
+  }
+
+  /** m_buffer: the AL buffer, null until CreateBuffer succeeds. */
+  #buffer = null;
+
+  /**
+   * Carbon Create (Tr2GpuBuffer.cpp:100-108): records the element count,
+   * format and flags, then builds the AL buffer.
+   *
+   * The render context is an ADDED argument. Carbon's CreateBuffer reaches the
+   * main-thread context through USE_MAIN_THREAD_RENDER_CONTEXT; every caller
+   * here holds its frame's context, which is the one the backend lives on,
+   * so it is passed down as that macro's own header asks.
+   *
+   * @param {number} count Element count.
+   * @param {number} format A `PixelFormat`.
+   * @param {number} creationFlags `Tr2GpuBuffer.CreationFlags` bits.
+   * @param {Tr2RenderContext} renderContext The context to create on.
+   * @returns {number} An `ALResult`.
+   */
+  @carbon.method
+  @impl.adapted
+  Create(count, format, creationFlags, renderContext)
+  {
+    this.count = count;
+    this.format = format;
+    this.creationFlags = creationFlags;
+    return this.CreateBuffer(renderContext);
+  }
+
+  /**
+   * Carbon CreateBuffer (cpp:142-176): SHADER_RESOURCE always, UNORDERED_ACCESS
+   * when GPU-writable, CPU WRITE when CPU-writable, DRAW_INDIRECT_ARGS for
+   * indirect draws; CPU READ always. A zero count or unknown format refuses.
+   *
+   * @param {Tr2RenderContext} renderContext The context to create on.
+   * @returns {number} An `ALResult`.
+   */
+  @carbon.method
+  @impl.adapted
+  CreateBuffer(renderContext)
+  {
+    this.#buffer = null;
+    this.isValid = false;
+
+    if (!this.count || this.format === PixelFormat.PIXEL_FORMAT_UNKNOWN) return ALResult.E_INVALIDARG;
+
+    const { CPU_WRITABLE, GPU_WRITABLE, DRAW_INDIRECT } = Tr2GpuBuffer.CreationFlags;
+    let gpuUsage = Tr2GpuUsage.SHADER_RESOURCE;
+    let cpuUsage = Tr2CpuUsage.READ;
+
+    if (this.creationFlags & GPU_WRITABLE) gpuUsage |= Tr2GpuUsage.UNORDERED_ACCESS;
+    else if (this.creationFlags & CPU_WRITABLE) cpuUsage |= Tr2CpuUsage.WRITE;
+    if (this.creationFlags & DRAW_INDIRECT) gpuUsage |= Tr2GpuUsage.DRAW_INDIRECT_ARGS;
+
+    const buffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromFormat(this.format, this.count, gpuUsage, cpuUsage), null);
+
+    if (!buffer) return ALResult.E_FAIL;
+
+    if (this.#name) buffer.SetName(this.#name);
+    this.#buffer = buffer;
+    this.isValid = true;
+    return ALResult.S_OK;
+  }
+
+  /**
+   * Carbon GetGpuBuffer (cpp:118-121), the ITr2GpuBuffer face a GPUBUFFER
+   * variable binds through. Carbon returns its member, invalid until created;
+   * here that is null, which the backend binds as its null buffer.
+   *
+   * @param {number} [_index] Unused, as in Carbon.
+   * @returns {object|null} The AL buffer.
+   */
+  @carbon.method
+  @impl.implemented
+  GetGpuBuffer(_index = 0)
+  {
+    return this.#buffer;
+  }
+
+  /** Carbon IsValid (cpp:130-133). */
+  @carbon.method
+  @impl.implemented
+  IsValid()
+  {
+    return this.#buffer !== null;
+  }
+
+  /** Carbon GetCount (cpp:190-193): the created buffer's element count. */
+  @carbon.method
+  @impl.implemented
+  GetCount()
+  {
+    return this.#buffer ? this.#buffer.GetDesc().count : 0;
   }
 
   /** Carbon method __init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */

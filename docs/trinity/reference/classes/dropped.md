@@ -171,15 +171,6 @@ Retains the rejected generic key-template identity whose unresolved value type i
 - Visibility: Internal
 - Kind: Carbon dropped
 
-<!-- class:Tr2OcclusionBuffer -->
-## `Tr2OcclusionBuffer`
-
-Retains the native GPU occlusion-buffer service identity whose allocation and effect processing belong to a renderer backend.
-
-- Source: `src/trinity/dropped/Tr2OcclusionBuffer.js`
-- Visibility: Internal
-- Kind: Carbon dropped
-
 <!-- class:Tr2ParticleStreamIterator -->
 ## `Tr2ParticleStreamIterator`
 
@@ -260,3 +251,13 @@ Retains the native double-precision four-component value identity represented at
 - Source: `src/trinity/dropped/Vector4d.js`
 - Visibility: Internal
 - Kind: Carbon dropped
+
+<!-- class:Tr2OcclusionBuffer -->
+## `Tr2OcclusionBuffer`
+
+Allocates GPU slots for lens-flare occlusion and runs the buffer's per-frame compute.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/effect/lensflare/Tr2OcclusionBuffer.js`
+- Visibility: Public
+- Kind: Carbon

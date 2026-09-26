@@ -63,6 +63,7 @@ function sceneRecording(calls)
     // with the matrices the driver hands in and out around them.
     Jitter() { calls.push([ "Jitter" ]); },
     EndRender() { calls.push([ "EndRender" ]); },
+    RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
     viewLast: new Float32Array(16),
     projectionLast: new Float32Array(16),
     jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
@@ -148,7 +149,10 @@ test("the frame runs Carbon's order", () =>
     // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
     // blocks, the vertex one for compute too.
     "ApplyPerFrameData",
-    // After the main pass: the last-frame store (cpp:2866-2868, driver :597-598).
+    // After the main pass, on the scene target with read-only depth: lens-flare
+    // occlusion and the occlusion buffer's compute (driver cpp:587-592).
+    "RunLensflareOcclusionQueries",
+    // Then the last-frame store (cpp:2866-2868, driver :597-598).
     "EndRender"
   ]);
 });

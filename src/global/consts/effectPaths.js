@@ -9,6 +9,9 @@
 export const BLIT_EFFECT_PATH = "res:/Graphics/Effect/Managed/space/system/Blit.fx";
 export const BLIT_FILTERED_EFFECT_PATH = "res:/Graphics/Effect/Managed/space/system/BlitFiltered.fx";
 
+/** The lens-flare occlusion buffer's compute effect (`EveOccluder.cpp:18`): Clear and CopyCounters. */
+export const OCCLUDER_MANAGEMENT_EFFECT_PATH = "res:/Graphics/Effect/Managed/Space/SpecialFX/Lensflares/OccluderManagement.fx";
+
 const POST_PROCESS = "res:/Graphics/Effect/Managed/Space/PostProcess/";
 
 /**

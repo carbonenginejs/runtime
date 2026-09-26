@@ -33,7 +33,6 @@ Every quarantined file has an explicit disposition:
 | `Tr2DebugColor.js` | Native debug-renderer value struct, not persisted graph state. | Plain engine/debug-adapter record when a renderer needs it. |
 | `Tr2DebugObjectReference.js` | Native debug-renderer reference struct, not persisted graph state. | Plain engine/debug-adapter record when a renderer needs it. |
 | `Tr2Key.js` | Generic C++ key template with unresolved value type `T`. | Concrete maintained key classes such as `Tr2CurveScalarKey`. |
-| `Tr2OcclusionBuffer.js` | Native singleton `Tr2DeviceResource` that allocates GPU offsets and processes an effect-backed occlusion buffer; it is not a Blue graph class. | Renderer-owned occlusion-buffer service associated with scene graph objects outside persisted state. |
 | `Tr2ParticleStreamIterator.js` | Internal C++ template that advances typed pointers through particle buffers; the scanner exposed its stride local as model state. | Plain typed-array indexing inside maintained CPU particle simulation code. |
 | `Tr2RaytracingMeshArea.js` | Native per-area BLAS/cache helper with device acceleration structures; it has no `BLUE_CLASS` declaration and the emitted `true` field is a method literal. | Raytracing engine backend area state associated with the maintained graph/resource owner. |
 | `Tr2Rect.js` | Native integer rectangle record, not a persisted Blue object. | Plain `{ left, top, right, bottom }` records at adapter boundaries. |

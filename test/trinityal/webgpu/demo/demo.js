@@ -155,6 +155,9 @@ const POST_OFF = POST_PARAMETER === "off";
  */
 const POST_TEMPLATE = POST_OFF ? "" : POST_PARAMETER;
 
+/** `?flare=<name>`: the sun lens flare, from res:/fisfx/lensflare/; `off` for none. */
+const FLARE = new URLSearchParams(globalThis.location?.search ?? "").get("flare") || "yellow";
+
 /**
  * The Tr2PostProcess2 slots whose render pass Tr2PostProcessRenderer does not
  * port yet: each throws by name when reached. The demo empties them on the
@@ -227,6 +230,10 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     #settings select { max-width: 150px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
     #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
     #settings .note { color: #8a93a3; }
+    #settings .fields { margin: 0 0 4px 10px; color: #aab3c2; }
+    #settings .fields summary { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
+    #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings { max-height: calc(100vh - 24px); overflow: auto; }
   `;
   document.head.append(style);
 
@@ -306,7 +313,60 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       {
         record.postProcess[slot] = toggle.checked ? saved[slot] : (Array.isArray(saved[slot]) ? [] : null);
       });
+
+      // PER-EFFECT SETTINGS: the effect's own numbers, switches and vectors,
+      // edited in place on the object the renderer reads next frame.
+      const effect = saved[slot];
+      if (effect && !Array.isArray(effect) && !unported) effects.append(EffectFields(effect));
     }
+  };
+
+  /**
+   * An editable view of one post-process effect's plain fields: numbers,
+   * booleans, and numeric vectors of up to four components.
+   *
+   * @param {object} effect A Tr2PP*Effect.
+   * @returns {HTMLElement} The fields, collapsed.
+   */
+  const EffectFields = effect =>
+  {
+    const details = document.createElement("details");
+    details.className = "fields";
+    details.append(Object.assign(document.createElement("summary"), { textContent: "settings" }));
+
+    for (const key of Object.keys(effect))
+    {
+      if (key.startsWith("_") || key === "display") continue;
+      const value = effect[key];
+      const isVector = value && typeof value.length === "number" && value.length >= 2 && value.length <= 4 && typeof value[0] === "number";
+      if (typeof value !== "number" && typeof value !== "boolean" && !isVector) continue;
+
+      const input = document.createElement("input");
+      if (typeof value === "boolean")
+      {
+        Object.assign(input, { type: "checkbox", checked: value });
+        input.addEventListener("change", () => { effect[key] = input.checked; });
+      }
+      else if (typeof value === "number")
+      {
+        Object.assign(input, { type: "number", step: "any", value: String(Math.round(value * 1e4) / 1e4) });
+        input.addEventListener("change", () => { const v = Number(input.value); if (Number.isFinite(v)) effect[key] = v; });
+      }
+      else
+      {
+        Object.assign(input, { type: "text", value: Array.from(value, v => Math.round(v * 1e4) / 1e4).join(", ") });
+        input.addEventListener("change", () =>
+        {
+          const parts = input.value.split(",").map(Number);
+          if (parts.length === value.length && parts.every(Number.isFinite)) for (let i = 0; i < parts.length; i++) value[i] = parts[i];
+        });
+      }
+
+      const label = document.createElement("label");
+      label.append(key, input);
+      details.append(label);
+    }
+    return details;
   };
 
   templates.addEventListener("change", async () =>
@@ -2213,6 +2273,25 @@ export async function RunDemo(canvas)
   // template's own TAA slot is not what Carbon reads, so it stays emptied.
   perFrameScene.postprocess = new Tr2PostProcess2();
   const taaOnlyPostProcess = new Tr2PostProcess2();
+
+  // THE SUN'S LENS FLARE. Carbon draws no god rays without one: the rays read
+  // FlareOcclusionBuffer at the flare's background slot (LensflareFxOccScale.y),
+  // which the flare allocates and the occlusion buffer Clears to 1.0. EVE
+  // carries the system sun as an EveLensflare in scene.lensflares.
+  // `?flare=<name>` picks one of res:/fisfx/lensflare/*.black; `?flare=off` none.
+  if (FLARE !== "off")
+  {
+    try
+    {
+      const lensflare = CjsBlackFormat.read(await ResourceBytes(`fisfx/lensflare/${FLARE}.black`), { emit: "runtime" }).root;
+      perFrameScene.lensflares.push(lensflare);
+      console.log(`lens flare res:/fisfx/lensflare/${FLARE}.black: ${lensflare.constructor.name}, ${lensflare.occluders.length} occluder(s)`);
+    }
+    catch (error)
+    {
+      console.error(`lens flare ${FLARE}: ${error.message}`);
+    }
+  }
   const lastFrameScratch = mat4.create();
 
   driver.scene = {
@@ -2250,7 +2329,10 @@ export async function RunDemo(canvas)
     viewLast: perFrameScene.viewLast,
     projectionLast: perFrameScene.projectionLast,
     postprocess: perFrameScene.postprocess,
-    Update: () => {},
+    // The lens flares are the one part of the real scene's update the demo runs:
+    // Update writes LensflareFxOccScale from the flare's slots (cpp:168-171).
+    Update: (realTime, simTime) => { for (const lensflare of perFrameScene.lensflares) lensflare.Update(realTime, simTime); },
+    RunLensflareOcclusionQueries: (depthMap, renderContext) => perFrameScene.RunLensflareOcclusionQueries(depthMap, renderContext),
     BlendLightingOverrides: () => {},
     UpdateFogSettings: () => {},
     GetPerFrameVSData: () => frame.vs,

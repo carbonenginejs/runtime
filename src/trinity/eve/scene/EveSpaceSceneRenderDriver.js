@@ -403,6 +403,18 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
       const submitted = this.#RenderMainPass(renderContext, offscreen);
 
+      // LENS-FLARE OCCLUSION (cpp:587-592), after the main pass on the scene
+      // target with read-only depth: each lensflare's queries, then the
+      // occlusion buffer's Clear/CopyCounters compute - which the god rays
+      // read through FlareOcclusionBuffer.
+      if (offscreen)
+      {
+        this.#BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
+        renderContext.SetReadOnlyDepth(true);
+        this.scene.RunLensflareOcclusionQueries(offscreen.depth.Get(), renderContext);
+        renderContext.SetReadOnlyDepth(false);
+      }
+
       // EndRender's last-frame store, handed back out to this driver (cpp:597-598).
       this.scene.EndRender(renderContext);
       mat4.copy(this._viewLast, this.scene.viewLast);

@@ -6,6 +6,11 @@ import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
+import { Tr2OcclusionBuffer } from "./Tr2OcclusionBuffer.js";
+
+/** The float whose bits are `value`: Carbon's `*reinterpret_cast<float*>( &offset )` (cpp:170). */
+const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
 
 /** Represents a lens-flare graph with CPU-side visibility and controller state. */
 @type.define({ className: "EveLensflare", family: "eve/effect" })
@@ -137,11 +142,22 @@ export class EveLensflare extends CjsModel
   sunSize = 0;
 
   /** m_occlusionOffset / m_backgroundOcclusionOffset (EveLensflare.h:140-141) -
-   * Tr2OcclusionBuffer offsets the ENGINE allocates and stamps (cpp:332-368).
-   * null until an engine provides them; Carbon's null case uploads 0. */
+   * Tr2OcclusionBuffer slots this lensflare allocates on its first occlusion
+   * query (RunOcclusionQueries, cpp:330-337). null until then; Carbon's null
+   * case uploads 0. */
   occlusionOffset = null;
 
   backgroundOcclusionOffset = null;
+
+  /** m_directionVar: the global "LensflareFxDirectionScale" (cpp:72). */
+  #directionVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxDirectionScale", [ 0, 0, 0, 1 ]);
+
+  /**
+   * m_occScaleVar: the global "LensflareFxOccScale" (cpp:73), (1, 0, 0, 0)
+   * until the first Update. x and y carry the foreground and background slot
+   * bases as float BITS; the god rays read FlareOcclusionBuffer at y.
+   */
+  #occScaleVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxOccScale", [ 1, 0, 0, 0 ]);
 
   /** m_transform (EveLensflare.h:102; ctor identity, cpp:74) - stamped by
    * PrepareRender, forwarded to the flare children as their parent. */
@@ -151,11 +167,10 @@ export class EveLensflare extends CjsModel
    * translation curve, the sun-size curve of very old magic numbers
    * (1.5 / ln(d_AU + 2.71), 0.1495978707e12 metres per AU; no curve means
    * sunSize 1, not the constructed 0), then curve sets and controllers.
-   * Carbon's occlusion upload (cpp:169-171, the uint32 offsets bit-cast into
-   * m_occScaleVar) is NOT re-derived here: the engine stamps
-   * occlusionOffset/backgroundOcclusionOffset (see the field comment above)
-   * and GetPerObjectData already ships them through the per-object indices,
-   * so repeating it in Update would double-write the same seam. The curve is
+   * Then Carbon's occlusion upload (cpp:168-171): the slot bases bit-cast into
+   * the global LensflareFxOccScale. It is not a duplicate of the per-object
+   * indices GetPerObjectData ships: the flare mesh reads those, but the god
+   * rays read this GLOBAL, and until 2026-09-26 it was never written. The curve is
    * called out-last (Update(simTime, position)) per the org convention -
    * Carbon's is out-first. */
   @carbon.method
@@ -174,6 +189,13 @@ export class EveLensflare extends CjsModel
     {
       this.sunSize = 1;
     }
+
+    this.#occScaleVar.SetValue([
+      bitsAsFloat(this.occlusionOffset ?? 0),
+      bitsAsFloat(this.backgroundOcclusionOffset ?? 0),
+      0,
+      0
+    ]);
 
     for (const curveSet of this.curveSets)
     {
@@ -207,6 +229,57 @@ export class EveLensflare extends CjsModel
     {
       flare?.UpdateVisibility(updateContext, this.transform);
     }
+  }
+
+  /**
+   * Carbon RunOcclusionQueries (cpp:323-347): allocates this lensflare's
+   * foreground and background slots on first call - a new slot is Cleared to
+   * visibility 1.0 - then runs each foreground occluder's query into its
+   * counters.
+   *
+   * PARTIAL: EveOccluder.RunQuery (EveOccluder.cpp:150-185) is not ported, so
+   * the occluders do not run and the slots keep visibility 1.0 - the flare
+   * reads unoccluded. That is reported once rather than skipped silently.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {EveUpdateContext} _updateContext The occluders' context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  RunOcclusionQueries(renderContext, _updateContext)
+  {
+    if (!this.display) return;
+
+    const occlusionBuffer = Tr2OcclusionBuffer.getInstance();
+    if (this.occlusionOffset === null) this.occlusionOffset = occlusionBuffer.AllocateOffset(renderContext);
+    if (this.backgroundOcclusionOffset === null) this.backgroundOcclusionOffset = occlusionBuffer.AllocateOffset(renderContext);
+
+    if (this.occluders.length) EveLensflare.#WarnOccludersUnported();
+  }
+
+  /**
+   * Carbon RunBackgroundOcclusionQueries (cpp:359-379): the background slot,
+   * then the background occluders. Carbon calls it from the background pass,
+   * only for scenes with planets (EveSpaceScene.cpp:2153-2170). PARTIAL for the
+   * same reason as RunOcclusionQueries.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {EveUpdateContext} _updateContext The occluders' context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  RunBackgroundOcclusionQueries(renderContext, _updateContext)
+  {
+    if (!this.display) return;
+
+    if (this.backgroundOcclusionOffset === null)
+    {
+      this.backgroundOcclusionOffset = Tr2OcclusionBuffer.getInstance().AllocateOffset(renderContext);
+    }
+
+    if (this.backgroundOccluders.length) EveLensflare.#WarnOccludersUnported();
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -289,5 +362,15 @@ export class EveLensflare extends CjsModel
 
     return data;
   }
+
+  /** Reports, once per page, that occluders are present but EveOccluder.RunQuery is not ported. */
+  static #WarnOccludersUnported()
+  {
+    if (EveLensflare.#occludersWarned) return;
+    EveLensflare.#occludersWarned = true;
+    console.warn("EveLensflare: EveOccluder.RunQuery is not ported; lens flares read unoccluded (visibility 1.0).");
+  }
+
+  static #occludersWarned = false;
 
 }
