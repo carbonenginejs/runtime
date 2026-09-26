@@ -213,9 +213,15 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   if (!document) return;
 
   const style = document.createElement("style");
+  // EVE's own UI face, straight from the client (res:/ui/fonts) through the
+  // runner's resource proxy: CCP's font is read, never copied into this repo.
   style.textContent = `
+    @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-regular.otf") format("opentype"); font-weight: 400; }
+    @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-bold.otf") format("opentype"); font-weight: 700; }
     #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: 260px; padding: 8px 10px;
-                background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; font: 12px/1.6 ui-monospace, monospace; color: #cfd6e4; }
+                background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
+                font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
+    #settings summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     #settings summary { cursor: pointer; }
     #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
     #settings select { max-width: 150px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
@@ -1519,8 +1525,16 @@ export async function RunDemo(canvas)
   // reflection probe's main filter writes seven cube mips in one dispatch
   // (ReflectionFilterActivision128), and WebGPU's default is four.
   const storageTextures = Math.min(8, adapter.limits.maxStorageTexturesPerShaderStage);
+  // FILTERABLE 32-BIT FLOAT, when the adapter has it. D3D11 samples R32_FLOAT
+  // through any sampler, and Carbon's post process does (the down-sampled depth
+  // god rays read); core WebGPU refuses an r32float in a filterable slot.
+  const filterableFloat32 = adapter.features.has("float32-filterable");
+  const requiredFeatures = [
+    ...(compressed ? [ "texture-compression-bc" ] : []),
+    ...(filterableFloat32 ? [ "float32-filterable" ] : [])
+  ];
   const device = await adapter.requestDevice({
-    ...(compressed ? { requiredFeatures: [ "texture-compression-bc" ] } : {}),
+    ...(requiredFeatures.length ? { requiredFeatures } : {}),
     requiredLimits: { maxStorageTexturesPerShaderStage: storageTextures }
   });
   const context = canvas.getContext("webgpu");
