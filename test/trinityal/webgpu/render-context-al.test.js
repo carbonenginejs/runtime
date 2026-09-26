@@ -759,7 +759,7 @@ test("an incomplete description says what is missing rather than building on a g
 
 // A texture bound as a render target: the device format it was created in,
 // and a view per slice, as CjsWebgpuTextureAL answers.
-function boundTexture(name, format)
+function boundTexture(name, format, unormSubstitute = false)
 {
   return {
     name,
@@ -768,7 +768,8 @@ function boundTexture(name, format)
     GetFormat: () => 10,
     GetDeviceFormat: () => format,
     GetDeviceRenderTargetView: slice => `${name}:${slice}`,
-    EncodeDepthShadowCopy: () => false
+    EncodeDepthShadowCopy: () => false,
+    IsUnormSubstitute: () => unormSubstitute
   };
 }
 

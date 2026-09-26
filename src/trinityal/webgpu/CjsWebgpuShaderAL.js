@@ -32,7 +32,7 @@
 import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
-import { readBackendBlock } from "#resource/format";
+import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE, readBackendBlock } from "#resource/format";
 
 /**
  * The entry point every stage in a Carbon WebGPU container has.
@@ -94,6 +94,21 @@ function FragmentOutputLocations(source)
   const direct = /@fragment[^{]*->\s*@location\((\d+)\)/u.exec(source);
 
   return direct ? [ Number(direct[1]) ] : [];
+}
+
+/**
+ * The colour locations whose UNORM override a fragment stage declares
+ * (CARBON_BACKEND_UNORM_TARGET_OVERRIDE). A pipeline may set only overrides
+ * the module declares, so a hand-written stage without them gets none.
+ *
+ * @param {string} source The stage's WGSL.
+ * @returns {number[]} The locations, ascending.
+ */
+function UnormTargetOverrides(source)
+{
+  const pattern = new RegExp(`override\\s+${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}(\\d+)\\s*:`, "gu");
+
+  return Array.from(source.matchAll(pattern), match => Number(match[1])).sort((a, b) => a - b);
 }
 
 /**
@@ -180,6 +195,9 @@ export class CjsWebgpuShaderAL
   /** The colour locations a pixel stage writes (FragmentOutputLocations). */
   m_outputs = [];
 
+  /** The colour locations whose UNORM override the stage declares. */
+  m_unormOverrides = [];
+
   m_webgpu = null;
 
   /**
@@ -244,8 +262,20 @@ export class CjsWebgpuShaderAL
     this.m_bindings = bindings;
     this.m_inputs = Array.isArray(signature?.pipelineInputs) ? signature.pipelineInputs.slice() : [];
     this.m_outputs = type === ShaderType.PIXEL_SHADER ? FragmentOutputLocations(this.m_source) : [];
+    this.m_unormOverrides = type === ShaderType.PIXEL_SHADER ? UnormTargetOverrides(this.m_source) : [];
 
     return ALResult.S_OK;
+  }
+
+  /**
+   * The colour locations whose UNORM override a pixel stage declares; empty
+   * for any other stage, and for a hand-written one without them.
+   *
+   * @returns {number[]} The locations, ascending.
+   */
+  GetUnormTargetOverrides()
+  {
+    return this.m_unormOverrides;
   }
 
   /**
@@ -320,6 +350,7 @@ export class CjsWebgpuShaderAL
     this.m_bindings = [];
     this.m_inputs = [];
     this.m_outputs = [];
+    this.m_unormOverrides = [];
   }
 
   /**

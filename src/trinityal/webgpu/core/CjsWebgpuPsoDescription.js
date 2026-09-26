@@ -41,6 +41,7 @@
 // overrides while doing it, and refuses a fill mode WebGPU cannot rasterize. A
 // second translator is the mistake this whole lane exists to undo.
 import { CjsSchema } from "#schema";
+import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
 import { RenderPipelineKey } from "./CjsWebgpuPipelineCache.js";
 import { TOPOLOGIES } from "./topology.js";
 
@@ -77,6 +78,12 @@ export class CjsWebgpuPsoDescription
 
   /** m_sampleDesc, reduced to the one field WebGPU exposes. */
   sampleCount = 1;
+
+  /**
+   * Per colour slot, whether the bound target is a float stand-in for a
+   * 16-bit UNORM format (CjsWebgpuTextureAL.IsUnormSubstitute).
+   */
+  unormTargets = [];
 
   /**
    * RS_DEPTH_CLIP_ENABLE off, where the device can honour it: WebGPU's
@@ -142,6 +149,20 @@ export class CjsWebgpuPsoDescription
       return { format, ...target };
     };
 
+    // A FLOAT STAND-IN FOR A UNORM TARGET stores what UNORM would: the
+    // shader's per-target override clamps the output to [0, 1] and makes NaN 0,
+    // as D3D does writing to UNORM. TAA's R16G16B16A16_UNORM history kept a
+    // NaN forever without it. Only overrides the module declares may be set.
+    const overrides = typeof this.shaderProgram.GetUnormTargetOverrides === "function"
+      ? this.shaderProgram.GetUnormTargetOverrides()
+      : [];
+    const constants = {};
+
+    for (const location of overrides)
+    {
+      if (this.unormTargets[location]) constants[`${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${location}`] = 1;
+    }
+
     return {
       ...state,
       primitive: {
@@ -153,7 +174,8 @@ export class CjsWebgpuPsoDescription
       fragment: {
         // An unbound slot between bound ones is a null target, as it is a null
         // colour attachment in the pass.
-        targets: this.colorFormats.map(colourTarget)
+        targets: this.colorFormats.map(colourTarget),
+        ...(Object.keys(constants).length ? { constants } : {})
       },
       multisample: { count: this.sampleCount }
     };

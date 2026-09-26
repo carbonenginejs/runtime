@@ -93,6 +93,15 @@ export const CARBON_BACKEND_TYPED_VIEW = Object.freeze([ "", "R32_FLOAT", "R32_U
 export const CARBON_BACKEND_ADDRESS_MODES_SYMBOL = "cjsAddressModes";
 
 /**
+ * The prefix of a pixel shader's per-target UNORM override, `cjsUnormTarget<N>`
+ * for the output at location N. The backend sets it on a pipeline whose target
+ * N is a float stand-in for a 16-bit UNORM format, and the output is then
+ * stored as D3D stores to UNORM: clamped to [0, 1], NaN as 0. It travels in the
+ * WGSL, so it lives here, beside the rest of the wire.
+ */
+export const CARBON_BACKEND_UNORM_TARGET_OVERRIDE = "cjsUnormTarget";
+
+/**
  * A texture binding's sample type, ordered so the wire value is stable. The
  * first is the default and what every non-texture binding writes.
  */

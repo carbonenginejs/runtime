@@ -1,4 +1,5 @@
 import { EmulatedAddressingHelpers } from "./emulatedAddressing.js";
+import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "../../../../format/carbonEffect/carbonEffectBackendBlock.js";
 import { lowerDxbcToIr } from "../ir/lowerDxbcToIr.js";
 import { lowerComputeProgram } from "./lowerComputeProgram.js";
 import { lowerFragmentProgram } from "./lowerFragmentProgram.js";
@@ -396,6 +397,19 @@ export function buildWgsl(input, options = {})
     const hasInputs = interfaceInputs.length > 0;
     if (hasInputs) emitStruct(lines, `${prefix}Input`, interfaceInputs);
     if (!compute) emitStruct(lines, `${prefix}Output`, interfaceOutputs, program.stage === "vertex");
+
+    // D3D stores a float written to a UNORM target clamped to [0, 1], NaN as
+    // 0. WebGPU has no 16-bit UNORM the backend can render and filter, so it
+    // renders those into float stand-ins and sets this override on the
+    // pipeline to store the same values (CARBON_BACKEND_UNORM_TARGET_OVERRIDE).
+    const unormOutputs = program.stage === "fragment"
+        ? interfaceOutputs.filter((field) => field.attribute.kind !== "builtin" && /f32/u.test(field.type))
+        : [];
+    for (const field of unormOutputs)
+    {
+        lines.push(`override ${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${field.attribute.index}: bool = false;`);
+    }
+    if (unormOutputs.length) lines.push("");
     if (program.immediateConstantBuffer?.length) emitImmediateConstantBuffer(lines, program.immediateConstantBuffer);
     if (program.constTables?.length) emitConstTables(lines, program.constTables);
     const workgroupDeclarations = computeWorkgroupVariableDeclarations(program);
@@ -467,6 +481,16 @@ export function buildWgsl(input, options = {})
         }
         else if (statement.kind === "return")
         {
+            // NaN is found by its bits: WGSL lets a compiler assume floats are
+            // never NaN, so `v != v` may fold to false.
+            for (const field of unormOutputs)
+            {
+                const value = `output.${field.name}`;
+                const zero = `${field.type}(0.0)`;
+                const bits = field.type.replace("f32", "u32");
+                const nan = `(bitcast<${bits}>(${value}) & ${bits}(0x7fffffffu)) > ${bits}(0x7f800000u)`;
+                lines.push(`${indent}if (${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${field.attribute.index}) { ${value} = clamp(select(${value}, ${zero}, ${nan}), ${zero}, ${field.type}(1.0)); }`);
+            }
             lines.push(compute ? `${indent}return;` : `${indent}return output;`);
         }
         else if (statement.kind === "discard")

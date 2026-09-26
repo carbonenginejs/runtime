@@ -172,3 +172,32 @@ test("a bound target the pixel shader does not write gets writeMask 0", () =>
   const [ , quadVelocity ] = description({ shaderProgram: quadV5, colorFormats: formats }).BuildRecipe().fragment.targets;
   assert.deepEqual(quadVelocity, { format: "rg16float", writeMask: 0xf }, "a writer takes target 0's state");
 });
+
+test("a float stand-in for a UNORM target sets the shader's UNORM override for its slot", () =>
+{
+  // D3D stores a float written to R16G16B16A16_UNORM clamped to [0, 1], NaN as
+  // 0; WebGPU renders it into rgba16float. TAA's history kept a NaN forever
+  // (the operator's AA-then-post black screen) until the pipeline told the
+  // shader to store as UNORM does.
+  const program = {
+    IsValid: () => true,
+    id: "program",
+    GetFragmentOutputs: () => [ 0, 1 ],
+    GetUnormTargetOverrides: () => [ 0 ]
+  };
+  const pso = description({ shaderProgram: program, colorFormats: [ "rgba16float", "rgba16float" ] });
+
+  // No stand-in bound: no constants.
+  assert.equal(pso.BuildRecipe().fragment.constants, undefined);
+
+  // Both slots stand-ins, but only slot 0's override is declared.
+  pso.unormTargets = [ true, true ];
+  assert.deepEqual(pso.BuildRecipe().fragment.constants, { cjsUnormTarget0: 1 });
+
+  // The constants are part of the pipeline's identity.
+  assert.notEqual(pso.GetKey(), description({ shaderProgram: program, colorFormats: [ "rgba16float", "rgba16float" ] }).GetKey());
+
+  // A hand-written program declares none, so none is set.
+  pso.shaderProgram = { IsValid: () => true, id: "hand", GetFragmentOutputs: () => [ 0 ], GetUnormTargetOverrides: () => [] };
+  assert.equal(pso.BuildRecipe().fragment.constants, undefined);
+});

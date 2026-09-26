@@ -188,6 +188,19 @@ export class CjsWebgpuUtils
   }
 
   /**
+   * Whether a Carbon pixel format is a UNORM format stored in a float
+   * stand-in (PIXEL_FORMATS), so a pipeline rendering to it must store as
+   * UNORM does: clamped to [0, 1], NaN as 0. WebGPU-only, as the stand-ins are.
+   *
+   * @param {number} pixelFormat A Carbon `PixelFormat`.
+   * @returns {boolean} True for the 16-bit UNORM formats.
+   */
+  IsUnormSubstitute(pixelFormat)
+  {
+    return UPLOAD_CONVERSIONS.has(pixelFormat);
+  }
+
+  /**
    * The format of a texture's sRGB view, the format half of
    * `MetalContext::CreateSRGBViewOfMetalTexture` (`MetalContext.mm:342-357`).
    * WebGPU must list a view format when the texture is created, so the format

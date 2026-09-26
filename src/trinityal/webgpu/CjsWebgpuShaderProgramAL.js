@@ -277,6 +277,19 @@ export class CjsWebgpuShaderProgramAL
     return pixel ? pixel.GetOutputs() : null;
   }
 
+  /**
+   * The colour locations whose UNORM override the pixel stage declares
+   * (CjsWebgpuShaderAL.GetUnormTargetOverrides), empty without a pixel stage.
+   *
+   * @returns {number[]} The locations.
+   */
+  GetUnormTargetOverrides()
+  {
+    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+
+    return pixel ? pixel.GetUnormTargetOverrides() : [];
+  }
+
   /** One `GPUBindGroupLayout` per group, contiguous from zero. */
   GetBindGroupLayouts()
   {

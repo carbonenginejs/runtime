@@ -2097,7 +2097,14 @@ export class CjsWebgpuRenderContextAL
       ...(recipe.depthStencil ? { depthStencil: recipe.depthStencil } : {}),
       ...(recipe.multisample ? { multisample: recipe.multisample } : {}),
       ...(fragmentModule
-        ? { fragment: { module: fragmentModule, entryPoint: WEBGPU_ENTRY_POINT, targets: recipe.fragment.targets } }
+        ? {
+          fragment: {
+            module: fragmentModule,
+            entryPoint: WEBGPU_ENTRY_POINT,
+            targets: recipe.fragment.targets,
+            ...(recipe.fragment.constants ? { constants: recipe.fragment.constants } : {})
+          }
+        }
         : {})
     };
 
@@ -2128,12 +2135,14 @@ export class CjsWebgpuRenderContextAL
       if (!this._renderTarget)
       {
         this._psoDescription.colorFormats = [];
+        this._psoDescription.unormTargets = [];
         this._psoDescription.depthFormat = null;
         this._psoDescription.sampleCount = 1;
         return;
       }
 
       this._psoDescription.colorFormats = [ this._renderTarget.GetFormat() ];
+      this._psoDescription.unormTargets = [];
       this._psoDescription.depthFormat = this._renderTarget.GetDepthFormat();
       this._psoDescription.sampleCount = this._renderTarget.GetSampleCount();
       return;
@@ -2144,6 +2153,7 @@ export class CjsWebgpuRenderContextAL
     while (formats.length && !formats[formats.length - 1]) formats.pop();
 
     this._psoDescription.colorFormats = formats;
+    this._psoDescription.unormTargets = this._boundRenderTargets.map(target => Boolean(target && target.IsUnormSubstitute()));
     this._psoDescription.depthFormat = this._depthStencil ? this._depthStencil.GetDeviceFormat() : null;
     this._psoDescription.sampleCount = 1;
   }

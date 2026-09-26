@@ -79,6 +79,19 @@ export class CjsWebgpuTextureAL
   /** The `GPUTexture`, or null before Create. */
   m_texture = null;
 
+  /** Whether the texture is a float stand-in for a UNORM format (CjsWebgpuUtils.IsUnormSubstitute). */
+  m_unormSubstitute = false;
+
+  /**
+   * Whether a pipeline rendering to this texture must store as UNORM does.
+   *
+   * @returns {boolean} True for a float stand-in for a 16-bit UNORM format.
+   */
+  IsUnormSubstitute()
+  {
+    return this.m_unormSubstitute;
+  }
+
   /** The `GPUTextureFormat` it was created with. */
   m_format = null;
 
@@ -193,6 +206,7 @@ export class CjsWebgpuTextureAL
     });
     this.m_format = format;
     this.m_srgbFormat = srgbFormat;
+    this.m_unormSubstitute = al.m_utils.IsUnormSubstitute(desc.GetFormat());
     this.m_desc = desc;
     this.m_msaa = msaa;
     this.m_gpuUsage = gpuUsage;
