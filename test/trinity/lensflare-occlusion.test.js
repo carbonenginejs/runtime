@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { EveLensflare, Tr2OcclusionBuffer } from "../../npm/dist/trinity/index.js";
+import { EveLensflare, EveOccluder, Tr2OcclusionBuffer } from "../../npm/dist/trinity/index.js";
 import { Tr2VariableStore } from "../../npm/dist/trinity/core/index.js";
 import { StubContext } from "../support/stubContext.js";
 
@@ -56,4 +56,70 @@ test("a destroyed lens flare returns its slots, as Carbon's Offset deleter does"
   assert.equal(occlusionBuffer.free.length, freeBefore + 2);
   assert.deepEqual(occlusionBuffer.free.slice(-2), taken);
   assert.equal(lensflare.occlusionOffset, null);
+});
+
+// EveOccluder.RunQuery (EveOccluder.cpp:150-185): the counter slot and the fog
+// weight are published, then each sprite's renderables draw as opaque batches.
+function RecordingSprite(log)
+{
+  const renderable = {
+    GetPerObjectData: () => ({ id: "perObject" }),
+    GetBatches: (_batches, batchType, perObjectData) => log.push(`batches:${batchType}:${perObjectData.id}`)
+  };
+  return {
+    UpdateSyncronous: () => log.push("sync"),
+    UpdateVisibility: (_context, transform) => log.push(`visibility:${transform.length}`),
+    GetRenderables: out => { out.push(renderable); return out; }
+  };
+}
+
+const floatBits = value => new Uint32Array(Float32Array.of(value).buffer)[0];
+
+test("EveOccluder.RunQuery publishes the slot as float bits and the fog weight, then draws its sprites opaque", () =>
+{
+  const log = [];
+  const occluder = new EveOccluder();
+  occluder.sprites.push(RecordingSprite(log));
+  const context = StubContext();
+  const render = context.RenderBatches.bind(context);
+  context.RenderBatches = batches => { log.push("render"); return render(batches); };
+
+  occluder.RunQuery(context, null, new Float32Array(16), 44, 1);
+
+  const store = Tr2VariableStore.GlobalStore();
+  assert.equal(floatBits(store.FindVariable("OcclusionBufferOffset").GetValue()), 44);
+  assert.equal(store.FindVariable("OcclusionFogWeight").GetValue(), 1);
+  // TRIBATCHTYPE_OPAQUE is 0.
+  assert.deepEqual(log, [ "sync", "visibility:16", "batches:0:perObject", "render" ]);
+});
+
+test("a hidden EveOccluder runs no query", () =>
+{
+  const log = [];
+  const occluder = new EveOccluder();
+  occluder.display = false;
+  occluder.sprites.push(RecordingSprite(log));
+
+  occluder.RunQuery(StubContext(), null, new Float32Array(16), 44, 1);
+
+  assert.deepEqual(log, []);
+});
+
+test("a lens flare runs its occluders at consecutive counter slots: fog weight 1 foreground, 0 background (EveLensflare.cpp:343-346, 375-378)", () =>
+{
+  const calls = [];
+  const occluder = () => Object.assign(new EveOccluder(), {
+    RunQuery: (_context, _update, _transform, offset, fogWeight) => calls.push([ offset, fogWeight ])
+  });
+  const lensflare = new EveLensflare();
+  lensflare.occluders.push(occluder(), occluder());
+  lensflare.backgroundOccluders.push(occluder());
+  const context = StubContext();
+
+  lensflare.RunOcclusionQueries(context, null);
+  lensflare.RunBackgroundOcclusionQueries(context, null);
+
+  const fg = lensflare.occlusionOffset;
+  const bg = lensflare.backgroundOcclusionOffset;
+  assert.deepEqual(calls, [ [ fg + 5, 1 ], [ fg + 7, 1 ], [ bg + 5, 0 ] ]);
 });

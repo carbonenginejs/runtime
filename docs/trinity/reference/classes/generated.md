@@ -20,6 +20,16 @@ Filters a cube into the prefiltered HDR reflection cube Eve's scene binds as its
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:EveOccluder -->
+## `EveOccluder`
+
+A lens flare's occlusion test: sprites drawn against the scene depth whose shader counts, into the flare's FlareOcclusionBuffer slot, how many of their pixels pass.
+
+- Export: `@carbonenginejs/runtime/trinity/eve`
+- Source: `src/trinity/eve/effect/lensflare/EveOccluder.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:EveCloudEditableVolume -->
 ## `EveCloudEditableVolume`
 
@@ -27,16 +37,6 @@ Holds the editable voxel dimensions, bitmap and texture backing, control balls, 
 
 - Export: `@carbonenginejs/runtime/trinity/generated`
 - Source: `src/trinity/generated/eve/child/EveCloudEditableVolume.js`
-- Visibility: Public
-- Kind: Carbon generated
-
-<!-- class:EveOccluder -->
-## `EveOccluder`
-
-Groups sprite occlusion elements that can be displayed as one named EVE scene effect.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/eve/effect/EveOccluder.js`
 - Visibility: Public
 - Kind: Carbon generated
 

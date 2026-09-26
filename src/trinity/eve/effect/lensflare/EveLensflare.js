@@ -239,19 +239,15 @@ export class EveLensflare extends CjsModel
    * Carbon RunOcclusionQueries (cpp:323-347): allocates this lensflare's
    * foreground and background slots on first call - a new slot is Cleared to
    * visibility 1.0 - then runs each foreground occluder's query into its
-   * counters.
-   *
-   * PARTIAL: EveOccluder.RunQuery (EveOccluder.cpp:150-185) is not ported, so
-   * the occluders do not run and the slots keep visibility 1.0 - the flare
-   * reads unoccluded. That is reported once rather than skipped silently.
+   * counters, with fog weight 1.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
-   * @param {EveUpdateContext} _updateContext The occluders' context.
+   * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
   @carbon.method
-  @impl.adapted
-  RunOcclusionQueries(renderContext, _updateContext)
+  @impl.implemented
+  RunOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
 
@@ -259,22 +255,25 @@ export class EveLensflare extends CjsModel
     if (this.occlusionOffset === null) this.occlusionOffset = occlusionBuffer.AllocateOffset(renderContext);
     if (this.backgroundOcclusionOffset === null) this.backgroundOcclusionOffset = occlusionBuffer.AllocateOffset(renderContext);
 
-    if (this.occluders.length) EveLensflare.#WarnOccludersUnported();
+    let index = 0;
+    for (const occluder of this.occluders)
+    {
+      occluder.RunQuery(renderContext, updateContext, this.transform, Tr2OcclusionBuffer.getOccluderOffset(this.occlusionOffset, index++), 1);
+    }
   }
 
   /**
    * Carbon RunBackgroundOcclusionQueries (cpp:359-379): the background slot,
    * then the background occluders. Carbon calls it from the background pass,
-   * only for scenes with planets (EveSpaceScene.cpp:2153-2170). PARTIAL for the
-   * same reason as RunOcclusionQueries.
+   * only for scenes with planets (EveSpaceScene.cpp:2153-2170). Fog weight 0.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
-   * @param {EveUpdateContext} _updateContext The occluders' context.
+   * @param {EveUpdateContext} updateContext The occluders' context.
    * @returns {void}
    */
   @carbon.method
-  @impl.adapted
-  RunBackgroundOcclusionQueries(renderContext, _updateContext)
+  @impl.implemented
+  RunBackgroundOcclusionQueries(renderContext, updateContext)
   {
     if (!this.display) return;
 
@@ -283,7 +282,11 @@ export class EveLensflare extends CjsModel
       this.backgroundOcclusionOffset = Tr2OcclusionBuffer.getInstance().AllocateOffset(renderContext);
     }
 
-    if (this.backgroundOccluders.length) EveLensflare.#WarnOccludersUnported();
+    let index = 0;
+    for (const occluder of this.backgroundOccluders)
+    {
+      occluder.RunQuery(renderContext, updateContext, this.transform, Tr2OcclusionBuffer.getOccluderOffset(this.backgroundOcclusionOffset, index++), 0);
+    }
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -458,14 +461,5 @@ export class EveLensflare extends CjsModel
     this.backgroundOcclusionOffset = null;
   }
 
-  /** Reports, once per page, that occluders are present but EveOccluder.RunQuery is not ported. */
-  static #WarnOccludersUnported()
-  {
-    if (EveLensflare.#occludersWarned) return;
-    EveLensflare.#occludersWarned = true;
-    console.warn("EveLensflare: EveOccluder.RunQuery is not ported; lens flares read unoccluded (visibility 1.0).");
-  }
-
-  static #occludersWarned = false;
 
 }
