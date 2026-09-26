@@ -33,6 +33,8 @@ import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
+import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
 import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
@@ -234,6 +236,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
   #preparedContext = null;
 
+  /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
+  #depthMapReference = new Tr2TextureReference();
+
   /**
    * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
    * previous frame's camera. The driver owns them, not the scene, because
@@ -386,6 +391,16 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
       this.scene.Update(realTime, simTime);
 
+      // THE SCENE DEPTH IS A GLOBAL, "DepthMap" (cpp:494): TAA, the circle of
+      // confusion and the fog composite sample it by name. A texture variable
+      // holds a provider, not a bare AL texture, so the depth goes in through
+      // this driver's reference, as the blitter publishes BlitSource.
+      if (offscreen)
+      {
+        this.#depthMapReference.SetTexture(offscreen.depth.Get());
+        Tr2VariableStore.GlobalStore().RegisterVariable("DepthMap", this.#depthMapReference);
+      }
+
       const submitted = this.#RenderMainPass(renderContext, offscreen);
 
       // EndRender's last-frame store, handed back out to this driver (cpp:597-598).
@@ -407,6 +422,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       esm.PopRenderTarget(1);
       esm.PopRenderTarget(0);
       esm.SetInvertedDepthTest(false);
+
+      // Carbon empties the global at the frame's end (cpp:626); the pool
+      // reclaims the depth texture after this.
+      this.#depthMapReference.SetTexture(null);
 
       if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
     }

@@ -300,6 +300,16 @@ export class TriVariable extends CjsModel
     const byteLimit = Number.isFinite(size) ? Math.max(0, size) : Infinity;
     const count = Math.min(destination.length, source.length, Math.floor(byteLimit / 4));
 
+    // A MATRIX IS TRANSPOSED on the way in: "column_major for shaders"
+    // (TriVariable.cpp:127-133, TriMatrixTranspose clamped to the register
+    // size). Copied straight, every matrix a shader bound through the global
+    // store - ViewMat, ProjectionMat, ViewProjectionMat - arrived flipped.
+    if (this.contentType === TriVariableContentType.TRIVARIABLE_FLOAT4X4)
+    {
+      for (let i = 0; i < count; i++) destination[i] = source[(i % 4) * 4 + Math.floor(i / 4)];
+      return count > 0;
+    }
+
     for (let i = 0; i < count; i++) destination[i] = source[i];
 
     return count > 0;

@@ -1427,6 +1427,40 @@ export class Tr2RenderContext extends CjsModel
       this.#inverseViewTransform[14]
     );
     this.#hasViewMatrix = true;
+
+    // Carbon Tr2Renderer::SetViewTransform (cpp:566-576) keeps the global
+    // variable store aware of the view: effects bind ViewMat / ViewInvMat by
+    // name.
+    const variables = Tr2RenderContext.#CameraVariables();
+    variables.ViewMat.SetValue(this.#viewTransform);
+    variables.ViewInvMat.SetValue(this.#inverseViewTransform);
+    this.#UpdateViewProjectionTransform();
+  }
+
+  /**
+   * Carbon's UpdateViewProjectionTransform (Tr2Renderer.cpp:155-184): the
+   * view-projection global and the six frustum planes Carbon derives from it.
+   * Carbon's row-major `_rc` and gl-matrix's column-major array share one byte
+   * layout, so `_13` is index 2, `_43` index 14, and `view * proj` is
+   * gl-matrix `multiply(proj, view)`.
+   */
+  #UpdateViewProjectionTransform()
+  {
+    if (!this.#projection) return;
+
+    const variables = Tr2RenderContext.#CameraVariables();
+    const m = mat4.multiply(Tr2RenderContext.#viewProjectionScratch, this.#projection, this.#viewTransform);
+    const column = (c, sign = 0) => sign === 0
+      ? [ m[c], m[4 + c], m[8 + c], m[12 + c] ]
+      : [ m[3] + sign * m[c], m[7] + sign * m[4 + c], m[11] + sign * m[8 + c], m[15] + sign * m[12 + c] ];
+
+    variables.ViewProjectionMat.SetValue(m);
+    variables.FrustumPlane0.SetValue(column(2));
+    variables.FrustumPlane1.SetValue(column(0, 1));
+    variables.FrustumPlane2.SetValue(column(1, -1));
+    variables.FrustumPlane3.SetValue(column(0, -1));
+    variables.FrustumPlane4.SetValue(column(1, 1));
+    variables.FrustumPlane5.SetValue(column(2, 1));
   }
 
   /**
@@ -1552,8 +1586,58 @@ export class Tr2RenderContext extends CjsModel
     this.#fieldOfView = fieldOfView === undefined
       ? (projection[5] ? 2 * Math.atan(1 / projection[5]) : 0)
       : Number(fieldOfView);
+
+    // Carbon SetProjectionDerivedValues (Tr2Renderer.cpp:195-207): "Ensure
+    // TriVariable store is aware of the projection transform" - ProjectionMat
+    // and its inverse by name, then the view-projection. Effects such as the
+    // god rays read ProjectionMat from the store; unregistered, it bound zeros.
+    const variables = Tr2RenderContext.#CameraVariables();
+    const inverse = mat4.invert(Tr2RenderContext.#inverseProjectionScratch, this.#projection) ?? mat4.identity(Tr2RenderContext.#inverseProjectionScratch);
+    variables.ProjectionMat.SetValue(this.#projection);
+    variables.ProjectionInvMat.SetValue(inverse);
+    this.#UpdateViewProjectionTransform();
     return true;
   }
+
+  /**
+   * Carbon Tr2Renderer::Initialize's camera variables (Tr2Renderer.cpp:331-343),
+   * registered once on the global store. `Time` is Tr2Renderer's own
+   * (BeginFrame); WorldMat is registered as Carbon does and stays identity,
+   * because no JS caller sets a renderer world transform.
+   *
+   * @returns {Record<string, TriVariable>} The variables by name.
+   */
+  static #CameraVariables()
+  {
+    if (!Tr2RenderContext.#cameraVariables)
+    {
+      const store = Tr2VariableStore.GlobalStore();
+      const matrix = name => store.RegisterVariable(name, mat4.create());
+      const plane = name => store.RegisterVariable(name, [ 0, 0, 1, 0 ]);
+
+      Tr2RenderContext.#cameraVariables = {
+        WorldMat: matrix("WorldMat"),
+        ViewMat: matrix("ViewMat"),
+        ViewInvMat: matrix("ViewInvMat"),
+        ProjectionMat: matrix("ProjectionMat"),
+        ProjectionInvMat: matrix("ProjectionInvMat"),
+        ViewProjectionMat: matrix("ViewProjectionMat"),
+        FrustumPlane0: plane("FrustumPlane0"),
+        FrustumPlane1: plane("FrustumPlane1"),
+        FrustumPlane2: plane("FrustumPlane2"),
+        FrustumPlane3: plane("FrustumPlane3"),
+        FrustumPlane4: plane("FrustumPlane4"),
+        FrustumPlane5: plane("FrustumPlane5")
+      };
+    }
+    return Tr2RenderContext.#cameraVariables;
+  }
+
+  static #cameraVariables = null;
+
+  static #viewProjectionScratch = mat4.create();
+
+  static #inverseProjectionScratch = mat4.create();
 
   /**
    * Sets a single render state, as `TriStepSetRenderState` does
