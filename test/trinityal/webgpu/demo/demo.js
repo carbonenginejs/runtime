@@ -262,6 +262,18 @@ async function CountNonZeroTexels(device, texture)
   return { format: texture.format, size: `${texture.width}x${texture.height}`, nonZeroTexels: nonZero };
 }
 
+{
+  // A refused pipeline returns false from the draw and records its reason in
+  // m_pipelineFailure; counting the reasons shows a draw that silently skipped.
+  const original = CjsWebgpuRenderContextAL.prototype._RefusePipeline;
+  CjsWebgpuRenderContextAL.prototype._RefusePipeline = function (reason)
+  {
+    const key = `pipelineRefused:${reason}`;
+    DRAW_COUNTS[key] = (DRAW_COUNTS[key] ?? 0) + 1;
+    return original.call(this, reason);
+  };
+}
+
 /** One effect's load state, for `demo.post()`. */
 function EffectState(effect)
 {
