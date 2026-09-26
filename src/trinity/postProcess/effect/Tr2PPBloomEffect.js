@@ -117,4 +117,7 @@ export class Tr2PPBloomEffect extends Tr2PPEffect
   @type.float32
   luminanceThreshold = -1;
 
+  /** `Bloom::MAX_BLOOM_STEPS` (h:9): the step count Carbon's arrays are sized to. */
+  static MAX_BLOOM_STEPS = 6;
+
 }
