@@ -54,7 +54,7 @@ test("the screen-vertex declaration is built, and its ledger matches the stride"
   const items = definition.items;
 
   assert.equal(items.length, 2);
-  assert.deepEqual(items.map(item => item.usage), [ "POSITION", "TEXCOORD" ]);
+  assert.deepEqual(items.map(item => item.usage), [ 0, 5 ], "Carbon UsageCode POSITION, TEXCOORD");
   assert.deepEqual(items.map(item => item.type), [ "FLOAT32_4", "FLOAT32_2" ]);
 
   // The offsets come from the ledger, not from arithmetic in this file.

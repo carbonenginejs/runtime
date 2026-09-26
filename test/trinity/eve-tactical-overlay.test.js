@@ -234,7 +234,7 @@ test("EveTacticalOverlay emits exact anchor, connector and velocity instance rec
   // A definition is a Tr2VertexDefinition now, not a bare array: its elements
   // are the Carbon m_items ledger, built by Add rather than declared.
   assert.deepEqual(anchor.definition.items.map(({ usage, usageIndex, stream }) =>
-    [ usage, usageIndex, stream ]), [ [ "TEXCOORD", 5, 0 ], [ "TEXCOORD", 0, 1 ] ]);
+    [ usage, usageIndex, stream ]), [ [ 5, 5, 0 ], [ 5, 0, 1 ] ]);
   assert.equal(connector.definition.items[2].offset, 16);
   assert.equal(velocity.definition.items[2].type, "FLOAT32_4");
 

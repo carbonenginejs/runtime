@@ -8,18 +8,18 @@
 // parked under this class's name until 2026-09-06, before it had its real
 // Carbon surface.
 
+import { Tr2VertexUsageCode } from "../usageCode.js";
 
 /**
  * One vertex element (Carbon Tr2VertexDefinition::Item, h:123-141).
  *
- * Carbon's usage and data type are bit-coded enums; the runtime's element
- * vocabulary is the string names throughout (payload readers, the quad
- * renderer, the AL's binding-plan matcher), so the item carries the names
- * and the byte arithmetic derives from them.
+ * The usage is Carbon's numeric UsageCode (h:128), which is what the AL's
+ * binding-plan matcher compares against a shader input's usage. The data type
+ * stays a name ("FLOAT32_4"); the byte arithmetic derives from it.
  */
 export class Tr2VertexDefinitionItem
 {
-    usage = "POSITION";
+    usage = Tr2VertexUsageCode.POSITION;
 
     usageIndex = 0;
 

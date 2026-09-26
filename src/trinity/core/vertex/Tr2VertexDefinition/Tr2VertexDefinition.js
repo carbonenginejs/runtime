@@ -12,7 +12,10 @@ import { Tr2VertexUsageCode } from "../usageCode.js";
 
 
 /** A mesh's vertex element list (Carbon trinityal/Tr2VertexDefinition.h). */
-const USAGE_NAMES = Object.keys(Tr2VertexUsageCode);
+// Carbon's Add and Find take a UsageCode; the name form ("POSITION") is
+// accepted and resolved to that code, so every item holds the number Carbon
+// stores and a shader input's numeric usage matches it directly.
+const usageCodeOf = usage => typeof usage === "number" ? usage : Tr2VertexUsageCode[usage];
 
 const DATA_TYPE_BASE_BYTES = {
     BYTE: 1, UBYTE: 1,
@@ -54,7 +57,7 @@ export class Tr2VertexDefinition
   Add(type, usage, usageIndex = 0, stream = 0, stepRate = 0)
   {
     const item = new Tr2VertexDefinitionItem();
-    item.usage = typeof usage === "number" ? USAGE_NAMES[usage] : String(usage);
+    item.usage = usageCodeOf(usage);
     item.usageIndex = usageIndex;
     item.type = String(type);
     item.offset = this.nextOffset[stream] ?? 0;
@@ -71,10 +74,10 @@ export class Tr2VertexDefinition
    */
   Find(usage, usageIndex = null)
   {
-    const name = typeof usage === "number" ? USAGE_NAMES[usage] : String(usage);
+    const code = usageCodeOf(usage);
     for (const item of this.items)
     {
-      if (item.usage === name && (usageIndex === null || item.usageIndex === usageIndex))
+      if (item.usage === code && (usageIndex === null || item.usageIndex === usageIndex))
       {
         return item;
       }

@@ -151,7 +151,7 @@ test("the authoring half builds items with Carbon's automatic per-stream offsets
   assert.equal(
     Tr2EffectStateManager.getVertexDeclarationHandle(definition),
     Tr2EffectStateManager.getVertexDeclarationHandle(twin));
-  assert.equal(findInputElement(definition, { usage: "COLOR", usageIndex: 1 }).offset, 28);
+  assert.equal(findInputElement(definition, { usage: Usage.COLOR, usageIndex: 1 }).offset, 28);
 });
 
 test("definition equality compares the ledger as well as the items", () =>
@@ -172,4 +172,21 @@ test("definition equality compares the ledger as well as the items", () =>
   assert.notEqual(
     Tr2EffectStateManager.getVertexDeclarationHandle(definition),
     Tr2EffectStateManager.getVertexDeclarationHandle(twin));
+});
+
+test("a definition built from usage names resolves against numeric shader inputs", () =>
+{
+  // Carbon's Item holds a UsageCode (h:128) and a shader input carries the
+  // same number. Items holding the NAME matched no input, so every WebGPU
+  // pipeline over an Add-built declaration was refused (the blitter's
+  // fullscreen quad: "a vertex element for input 0:0, 5:0").
+  const definition = new Tr2VertexDefinition();
+  definition.Add("FLOAT32_4", "POSITION");
+  definition.Add("FLOAT32_2", "TEXCOORD");
+
+  assert.deepEqual(definition.items.map(item => item.usage), [ Usage.POSITION, Usage.TEXCOORD ]);
+
+  const plan = resolveBindingPlan(definition, [ input(Usage.POSITION, 0), input(Usage.TEXCOORD, 0) ]);
+  assert.equal(plan.complete, true);
+  assert.equal(plan.entries[1].element.offset, 16);
 });
