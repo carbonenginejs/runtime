@@ -4,8 +4,9 @@ import { CARBON_VIEW_FORMATS } from "../../../hlsl/core/carbonTypedViews.js";
  * What each Carbon view format (`hlsl/core/carbonTypedViews.js`) means to WGSL:
  * the storage element, the WebGPU storage-texture format, and the
  * four-component value D3D11 returns for an in-bounds element (missing
- * channels 0, alpha 1). Both are single-channel 32-bit formats, which WebGPU
- * allows as read-write storage textures.
+ * channels 0, alpha 1). The two single-channel 32-bit formats are ones WebGPU
+ * allows as read-write storage textures; a `writeOnly` format is a write-only
+ * storage texture and never a typed buffer.
  *
  * A uint view applies to render stages only: compute already reads uint
  * buffers as raw words and writes uint UAVs atomically, in the audited
@@ -25,6 +26,17 @@ export const TYPED_VIEW_FORMATS = Object.freeze({
         storageTextureFormat: "r32uint",
         renderStagesOnly: true,
         expand: (value) => `vec4<u32>(${value}, 0u, 0u, 1u)`
+    }),
+    // Four channels: a write-only storage texture and nothing else. Core
+    // WebGPU has no read-write rgba8snorm, and no typed buffer takes it, since
+    // an array element cannot hold four packed snorm bytes.
+    R8G8B8A8_SNORM: Object.freeze({
+        returnType: CARBON_VIEW_FORMATS.R8G8B8A8_SNORM.componentClass,
+        element: "f32",
+        storageTextureFormat: "rgba8snorm",
+        renderStagesOnly: false,
+        writeOnly: true,
+        expand: (value) => value
     })
 });
 

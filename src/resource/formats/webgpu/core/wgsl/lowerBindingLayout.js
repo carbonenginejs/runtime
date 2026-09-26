@@ -202,6 +202,10 @@ function typedBufferViewLayout(binding, format, access)
     {
         throw new Error(`WGSL typed buffer ${binding.id} is declared ${returns.join(",") || "untyped"}, which does not match its bound ${format} view`);
     }
+    if (view.writeOnly)
+    {
+        throw new Error(`WGSL typed buffer ${binding.id} names ${format}, which is a storage-texture format only`);
+    }
     return {
         declaration: access === "read_write" ? "var<storage, read_write>" : "var<storage, read>",
         type: `array<${view.element}>`,
@@ -387,6 +391,10 @@ function namedStorageTextureLayout(program, binding, dimension, returns, format)
     const loaded = program.instructions.some((instruction) => !instruction.isDeclaration
         && instruction.opcodeName === "ld_uav_typed"
         && instruction.operands?.some((operand) => operand?.typeName === "uav" && operand.registerIndex === register));
+    if (loaded && view.writeOnly)
+    {
+        throw new Error(`WGSL storage texture ${binding.id} is loaded, and its bound ${format} view is write-only in WebGPU`);
+    }
     const access = loaded ? "read-write" : "write-only";
     return {
         declaration: "var",

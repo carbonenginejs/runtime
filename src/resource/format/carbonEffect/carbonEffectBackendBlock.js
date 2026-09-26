@@ -82,7 +82,7 @@ export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
  * and it is stored because the WGSL type cannot carry it: `array<u32>` is
  * both an R32_UINT view and a compute raw-word buffer.
  */
-export const CARBON_BACKEND_TYPED_VIEW = Object.freeze([ "", "R32_FLOAT", "R32_UINT" ]);
+export const CARBON_BACKEND_TYPED_VIEW = Object.freeze([ "", "R32_FLOAT", "R32_UINT", "R8G8B8A8_SNORM" ]);
 
 /**
  * A texture binding's sample type, ordered so the wire value is stable. The

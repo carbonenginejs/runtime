@@ -231,8 +231,61 @@ test("maintained SSAO owns Carbon quality state and leaves filtering explicit", 
   assertEquals(ssao.downsampled, true);
   assertEquals(CjsSchema.getMethod(Tr2SSAO, "Enable")?.impl?.status, "implemented");
   assertEquals(CjsSchema.getMethod(Tr2SSAO, "SetQuality")?.impl?.status, "implemented");
-  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Filter")?.impl?.status, "notImplemented");
-  nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /Tr2SSAO.Filter is not ported yet/u);
+  assertEquals(CjsSchema.getMethod(Tr2SSAO, "Filter")?.impl?.status, "adapted");
+
+  // Disabled: Carbon's empty texture (Tr2SSAO.cpp:87-90).
+  assertEquals(ssao.Filter(null, null, null, null, false).IsValid(), false);
+
+  // CORTAO off is the CACAO path, which is refused rather than skipped.
+  ssao.Enable(true);
+  ssao.cortaoEnabled = false;
+  nodeAssert.throws(() => ssao.Filter(null, null, null, null, false), /CACAO path \(PerformPass\) is not ported/u);
+});
+
+test("CORTAO's constants follow Carbon's lock block (Tr2SSAO.cpp:569-636)", () =>
+{
+  const ssao = new Tr2SSAO();
+  const near = 1;
+  const far = 1000;
+  // A right-handed [0, 1] projection, Carbon's PerspectiveFovMatrix, in the
+  // shared byte layout: _33 at 10 and _43 at 14.
+  const yScale = 1 / Math.tan(Math.PI / 8);
+  const projection = new Float32Array([
+    yScale / 2, 0, 0, 0,
+    0, yScale, 0, 0,
+    0, 0, far / (near - far), -1,
+    0, 0, (near * far) / (near - far), 0
+  ]);
+  // A view turning x into y, Carbon row-vector bytes, with a translation the
+  // normal matrix must drop.
+  const view = new Float32Array([
+    0, 1, 0, 0,
+    -1, 0, 0, 0,
+    0, 0, 1, 0,
+    5, 6, 7, 1
+  ]);
+  const bytes = new Uint8Array(176);
+  const data = new DataView(bytes.buffer);
+
+  ssao._FillCortaoPerObjectData(data, 1920, 1080, 6, false, { GetViewTransform: () => view, GetProjection: () => projection });
+
+  const float = offset => data.getFloat32(offset, true);
+
+  assertVector([ float(0), float(4), float(8), float(12) ], [ 1920, 1080, 1 / 1920, 1 / 1080 ]);
+  // Near and far are read from the back and front clip, so a reversed depth
+  // linearises as 1/z = d * (1/near - 1/far) + 1/far.
+  assertAlmostEquals(float(48), 1 / near - 1 / far, 1e-6);
+  assertAlmostEquals(float(52), 1 / far, 1e-9);
+  assertEquals(float(56), ssao.cortaoRadius);
+  assertAlmostEquals(float(68), ssao.cortaoMipBias + Math.log2(projection[0] * 1920 * 0.5), 1e-5);
+
+  // The shader decodes a [0, 1] normal with dot( float4( n, 1 ), row ) over
+  // rows 6..8 (bytes 96..143): the encoded +x normal must come out as +y.
+  const encoded = [ 1, 0.5, 0.5, 1 ];
+  const row = offset => encoded.reduce((sum, value, index) => sum + value * float(offset + index * 4), 0);
+
+  assertVector([ row(96), row(112), row(128) ], [ 0, 1, 0 ], 1e-6);
+  assertEquals(data.getUint32(160, true), 6);
 });
 
 test("maintained post-process renderer owns quality and a ported Execute", () =>

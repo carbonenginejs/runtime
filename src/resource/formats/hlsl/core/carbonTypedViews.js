@@ -27,6 +27,16 @@
  *   UAV and SRV usage (Tr2PostProcessRenderer.cpp:1463-1469), bound to the TAA
  *   effect at :1514; the medium and high quality tiers read and write it from
  *   the pixel stage.
+ * - `PackedOutputBuffer0`..`15` are the mips of CORTAO's "cortao_packed"
+ *   texture, `PIXEL_FORMAT_R32_FLOAT` with UAV and SRV usage
+ *   (trinity/Tr2SSAO.cpp:557-558). Carbon binds 0..7 (:661-665) and leaves
+ *   8..15 unbound; the Pack kernel writes a mip only below the mip count,
+ *   which Carbon caps at 8 (:547-555).
+ * - `OutputBuffer` (CORTAO's main pass) and `SSAOOutputBuffer` (its blur) are
+ *   "cortao_output" and "cortao_blur", `PIXEL_FORMAT_R8G8B8A8_SNORM` with UAV
+ *   and SRV usage while the bent normal is on, Carbon's default
+ *   (Tr2SSAO.cpp:643-644, 686-687). With it off they are R8_UNORM, which this
+ *   table cannot express: the format follows a shader option, not the name.
  *
  * A name missing here leaves the format unknown, and each backend decides what
  * that means. A backend must also reject a declaration whose component class
@@ -38,7 +48,10 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
     ExposureBuffer: "R32_FLOAT",
     Histogram: "R32_UINT",
     FlareOcclusionBuffer: "R32_UINT",
-    CooldownMap: "R32_UINT"
+    CooldownMap: "R32_UINT",
+    ...Object.fromEntries(Array.from({ length: 16 }, (_unused, mip) => [ `PackedOutputBuffer${mip}`, "R32_FLOAT" ])),
+    OutputBuffer: "R8G8B8A8_SNORM",
+    SSAOOutputBuffer: "R8G8B8A8_SNORM"
 });
 
 /**
@@ -48,7 +61,8 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
  */
 export const CARBON_VIEW_FORMATS = Object.freeze({
     R32_FLOAT: Object.freeze({ componentClass: "float", channels: 1, bytesPerElement: 4 }),
-    R32_UINT: Object.freeze({ componentClass: "uint", channels: 1, bytesPerElement: 4 })
+    R32_UINT: Object.freeze({ componentClass: "uint", channels: 1, bytesPerElement: 4 }),
+    R8G8B8A8_SNORM: Object.freeze({ componentClass: "float", channels: 4, bytesPerElement: 4 })
 });
 
 /**

@@ -228,7 +228,7 @@ Carbon's post-process renderer: the chain from the scene's colour buffer to the 
 <!-- class:Tr2SSAO -->
 ## `Tr2SSAO`
 
-Carbon's authored SSAO settings and quality controls.
+Carbon's SSAO: its authored settings and quality controls, and the CORTAO filter that turns the depth and normal maps into the SSAOMap.
 
 - Export: `@carbonenginejs/runtime/trinity/postProcess`
 - Source: `src/trinity/postProcess/Tr2SSAO.js`
