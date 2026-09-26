@@ -733,6 +733,9 @@ async function CountNonZeroTexels(device, texture)
 {
   const texel = TEXEL_BYTES[texture.format];
   if (!texel) return { format: texture.format, skipped: "format not counted" };
+  // A sampled-only texture (uploaded data, the 4x4 black) cannot be a copy
+  // source; copying it is a validation error that voids the whole submit.
+  if (!(texture.usage & GPUTextureUsage.COPY_SRC)) return { format: texture.format, skipped: "not a copy source" };
   const bytesPerRow = Math.ceil(texture.width * texel / 256) * 256;
   const buffer = device.createBuffer({ size: bytesPerRow * texture.height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
   const encoder = device.createCommandEncoder();
