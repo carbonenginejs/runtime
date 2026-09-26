@@ -139,6 +139,9 @@ function StageBindings(type, signature)
         resourceKind: binding.resourceKind,
         registerIndex: binding.registerIndex,
         registerSpace: binding.registerSpace,
+        // The backend tells a binding it fills itself by its symbol: the
+        // emulated-addressing modes buffer (CARBON_BACKEND_ADDRESS_MODES_SYMBOL).
+        generatedSymbol: binding.generatedSymbol,
         // Exactly one of these is present, already in GPUBindGroupLayoutEntry
         // form - the reader derives it from the WGSL type text.
         buffer: binding.buffer,

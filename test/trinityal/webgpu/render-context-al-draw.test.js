@@ -466,3 +466,48 @@ test("inputs the mesh lacks read a constant dummy stream, as Metal's do", () =>
   assert.equal(created.buffers.filter(descriptor => descriptor.label === "Tr2RenderContextAL dummy vertex stream").length, 1);
   assert.equal(created.buffers.find(descriptor => descriptor.label === "Tr2RenderContextAL dummy vertex stream").size, 16);
 });
+
+test("a draw fills the emulated-addressing modes buffer from the bound sampler states", () =>
+{
+  // WebGPU has no border address mode; the translated shader tests it from
+  // cjsAddressModes, which the backend recognises by its symbol and fills per
+  // draw. The shader stage used to drop the symbol, so the buffer bound empty
+  // and decals kept their clamp-to-edge smear.
+  const { al } = composed();
+  const block = writeBackendBlock({
+    bindGroups: [ { group: 0, bindings: [
+      {
+        group: 0, binding: 0, resourceKind: "uniform-buffer", registerSpace: 0, registerIndex: 8,
+        visibility: [ "fragment" ], type: "array<vec4<f32>, 4>", generatedSymbol: "cjsAddressModes"
+      },
+      {
+        group: 0, binding: 1, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 3,
+        visibility: [ "fragment" ], type: "texture_2d<f32>", generatedSymbol: "t3"
+      },
+      {
+        group: 0, binding: 2, resourceKind: "sampler", registerSpace: 0, registerIndex: 3,
+        visibility: [ "fragment" ], type: "sampler", generatedSymbol: "s3"
+      }
+    ] } ],
+    transforms: []
+  });
+  const program = programFor(al, { block });
+  const decal = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 4, addressV: 4, addressW: 3 });
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+
+  description.SetSampler(ShaderType.PIXEL_SHADER, 3, decal);
+  description.SetSrv(ShaderType.PIXEL_SHADER, 3, { GetDeviceTextureView: dimension => ({ kind: "view", dimension, id: "decal" }) });
+
+  const set = al.CreateResourceSet(description, program);
+
+  bindGeometry(al, program);
+  al.SetResourceSet(set);
+
+  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.notEqual(al._addressModes, null, "the backend recognised the buffer");
+
+  const modes = new Float32Array(al._addressModes.m_shadowCopy.buffer, 0, 16);
+
+  assert.deepEqual([ ...modes.slice(12, 16) ], [ 4, 4, 3, 0 ], "s3: border U and V, clamp W");
+  assert.deepEqual([ ...modes.slice(0, 12) ], new Array(12).fill(0), "s0..s2: nothing to emulate");
+});
