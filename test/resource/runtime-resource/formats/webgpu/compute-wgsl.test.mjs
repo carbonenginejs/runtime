@@ -2406,7 +2406,7 @@ test("create-histograms compute fails closed on both schedules, numeric modifier
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
 });
 
 test("create-histograms compute validates the exact texture and atomic-buffer binding plan", () =>
@@ -2872,7 +2872,7 @@ test("merge-histograms compute profile fails closed on declarations, body, barri
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
 });
 
 test("merge-histograms compute validates exact binding plans and finite raw ranges", () =>
@@ -3245,7 +3245,7 @@ test("chunk-sort compute profile fails closed on declarations, body, barriers, r
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
 });
 
 test("chunk-sort compute validates exact binding plans and finite raw ranges", () =>
@@ -3470,7 +3470,7 @@ test("sort-inner compute profile fails closed on declarations, body, barriers, r
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
 });
 
 test("sort-inner compute validates exact binding plans and finite raw ranges", () =>
@@ -6238,6 +6238,94 @@ test("general compute lowers group-shared memory and a Carbon-named float typed-
     assert.match(shader.code, /select\(0u, g0\[min\(/u);
     assert.match(shader.code, /var<storage, read_write> u0: array<f32>;/u);
     assert.match(shader.code, /u0\[store_address\d+\] = /u);
+});
+
+test("general compute reads and writes a raw-word uint UAV atomically, syncs, and loads group-shared words by literal index", () =>
+{
+  // occludermanagement.sm_depth's CopyCounters shape (the lensflare
+  // FlareOcclusionBuffer): ld_uav_typed and store_uav_typed on an R32_UINT
+  // typed buffer, which compute lays out array<atomic<u32>>; sync with
+  // threads_in_group|thread_group_shared_memory; ld_structured at l(1).
+  const shared = register("thread_group_shared_memory", 0, { componentCount: 0 });
+  const program = {
+    program: { programType: 5, programTypeName: "compute", majorVersion: 5, minorVersion: 0 },
+    signatures: { input: [], output: [], patch: [] },
+    instructions: [
+      declaration(2, "dcl_global_flags", { globalFlags: 1 << 11, refactoringAllowed: true }),
+      declaration(3, "dcl_unordered_access_view_typed", {
+        resourceDimensionName: "buffer",
+        globallyCoherent: false,
+        returnType: typedReturn("uint"),
+        registerIndex: 0
+      }, register("uav", 0, { componentCount: 0 })),
+      declaration(7, "dcl_temps", { tempCount: 1 }),
+      declaration(9, "dcl_thread_group_shared_memory_structured", { registerIndex: 0, structureStride: 4, structureCount: 4 }, shared),
+      declaration(13, "dcl_thread_group", { threadGroupX: 1, threadGroupY: 1, threadGroupZ: 1 }),
+      instruction(16, "mov", [ register("temp", 0, { mask: "x" }), immediate([ 3 ]) ]),
+      instruction(18, "ld_uav_typed", [
+        register("temp", 0, { mask: "y" }),
+        register("temp", 0, { swizzle: "xxxx" }),
+        register("uav", 0, { swizzle: "xxxx" })
+      ]),
+      instruction(24, "store_structured", [
+        register("thread_group_shared_memory", 0, { mask: "x" }),
+        immediate([ 1 ]),
+        immediate([ 0 ]),
+        register("temp", 0, { selected: "y" })
+      ]),
+      instruction(30, "sync", [], { syncFlags: 3, syncFlagNames: [ "threads_in_group", "thread_group_shared_memory" ] }),
+      instruction(31, "ld_structured", [
+        register("temp", 0, { mask: "z" }),
+        immediate([ 1 ]),
+        immediate([ 0 ]),
+        register("thread_group_shared_memory", 0, { swizzle: "xxxx" })
+      ]),
+      store(37, 2, register("temp", 0, { swizzle: "zzzz" })),
+      instruction(41, "ret", [])
+    ]
+  };
+  const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-occluder-management" });
+  const shader = CjsWebgpuFormat.buildWgsl(ir);
+
+  assert.match(shader.code, /var<storage, read_write> u0: array<atomic<u32>>;/u);
+  assert.match(shader.code, /atomicLoad\(&u0\[min\(/u, "an atomic element is read only through atomicLoad");
+  assert.match(shader.code, /atomicStore\(&u0\[store_address\d+\], /u);
+  assert.match(shader.code, /workgroupBarrier\(\);/u);
+  assert.doesNotMatch(shader.code, /storageBarrier/u, "no UAV-memory flag, no storage barrier");
+  assert.match(shader.code, /g0\[min\(\(\(0x00000001u\)/u, "the literal structure index");
+});
+
+test("a pixel-stage R32_UINT typed UAV that an atomic touches is laid out atomic", () =>
+{
+  // lensflareoccludert.sm_depth counts into FlareOcclusionBuffer with
+  // atomic_iadd from the pixel stage; its R32_UINT view alone chose array<u32>,
+  // which WGSL atomics cannot address.
+  const target = {
+    semanticName: "SV_Target", semanticIndex: 0, systemValueType: 1, componentType: 3, componentTypeName: "float32",
+    registerIndex: 0, mask: 15, readWriteMask: 15, stream: 0, minPrecision: 0
+  };
+  const program = {
+    program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+    signatures: { input: [], output: [ target ], patch: [] },
+    instructions: [
+      declaration(2, "dcl_global_flags", { globalFlags: 1 << 11, refactoringAllowed: true }),
+      declaration(3, "dcl_unordered_access_view_typed", {
+        resourceDimensionName: "buffer",
+        globallyCoherent: false,
+        returnType: typedReturn("uint"),
+        registerIndex: 1
+      }, register("uav", 1, { componentCount: 0 })),
+      instruction(9, "atomic_iadd", [ register("uav", 1, { mask: "x" }), immediate([ 4 ]), immediate([ 1 ]) ]),
+      instruction(13, "mov", [ register("output", 0, { mask: "xyzw" }), replicated(0) ]),
+      instruction(19, "ret", [])
+    ]
+  };
+  const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-flare-occluder" });
+  const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedViews: { "storage-resource:0:1": "R32_UINT" } });
+  const shader = CjsWebgpuFormat.buildWgsl(ir, { bindingPlan });
+
+  assert.match(shader.code, /var<storage, read_write> u1: array<atomic<u32>>;/u);
+  assert.match(shader.code, /atomicAdd\(&u1\[/u);
 });
 
 test("system/crash is refused by path at every tier and backend directory", async () =>

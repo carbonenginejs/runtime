@@ -31,7 +31,7 @@ const SUPPORTED_OPCODES = new Set([
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
-    "sample_l", "sincos", "sqrt", "store_structured", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
+    "sample_l", "sincos", "sqrt", "store_structured", "sync", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
@@ -848,7 +848,11 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
         throw new Error(`WGSL fragment structured load ${instruction.index} requires four operands`);
     }
     const addressOperand = instruction.operands[1];
-    if (!COMPONENTS.includes(addressOperand?.selected) || (addressOperand.modifierName || "none") !== "none")
+    // A literal structure index (`ld_structured r0.y, l(1), l(0), g0.x`) is as
+    // scalar as a selected register component; occludermanagement's
+    // CopyCounters reads its four group-shared words that way.
+    const immediateAddress = addressOperand?.typeName === "immediate32" && addressOperand.immediateValues?.length === 1;
+    if ((!immediateAddress && !COMPONENTS.includes(addressOperand?.selected)) || (addressOperand.modifierName || "none") !== "none")
     {
         throw new Error(`WGSL fragment structured load ${instruction.index} requires one unmodified scalar address`);
     }
@@ -1144,6 +1148,19 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             const length = `arrayLength(&${symbol})`;
             const element = bufferView.expand(`${symbol}[min(${address}, ${length} - 1u)]`);
             const loaded = `select(vec4<${bufferView.element}>(), ${element}, ${address} < ${length})`;
+            const components = rawSelectedComponents(uav, mask, count);
+            return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
+        }
+        if (binding?.type === "array<atomic<u32>>")
+        {
+            // A raw-word typed buffer UAV (lowerBindingLayout's atomic layout,
+            // e.g. the lensflare FlareOcclusionBuffer in compute). WGSL reads an
+            // atomic element only through atomicLoad; the word is D3D's single
+            // R32_UINT component, (x, 0, 0, 1), zero out of bounds.
+            const address = source(1, 1);
+            const symbol = binding.generatedSymbol;
+            const length = `arrayLength(&${symbol})`;
+            const loaded = `select(vec4<u32>(), vec4<u32>(atomicLoad(&${symbol}[min(${address}, ${length} - 1u)]), 0u, 0u, 1u), ${address} < ${length})`;
             const components = rawSelectedComponents(uav, mask, count);
             return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
         }
@@ -1482,6 +1499,41 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
             }
         ];
     }
+    if (binding?.type === "array<atomic<u32>>")
+    {
+        // A raw-word typed buffer UAV: the first component's 32 bits stored
+        // with atomicStore (the only write WGSL allows on an atomic element),
+        // dropped out of bounds as D3D drops it. The bits are stored as they
+        // are: Carbon writes float 1.0 and integer counters into the same
+        // R32_UINT buffer (occludermanagement Clear/CopyCounters).
+        const name = `store_address${instruction.index}`;
+        const symbol = binding.generatedSymbol;
+        return [
+            {
+                kind: "let",
+                name,
+                type: "u32",
+                instructionIndex: instruction.index,
+                dxbcOffset: instruction.dxbcOffset,
+                expression: { code: operandExpression(program, instruction, 1, "x", 1, "uint32", inputs, bindings), type: "u32" }
+            },
+            {
+                kind: "if",
+                instructionIndex: instruction.index,
+                dxbcOffset: instruction.dxbcOffset,
+                condition: { code: `${name} < arrayLength(&${symbol})`, type: "bool" },
+                statements: [ {
+                    kind: "call",
+                    instructionIndex: instruction.index,
+                    dxbcOffset: instruction.dxbcOffset,
+                    expression: {
+                        code: `atomicStore(&${symbol}[${name}], ${operandLaneExpression(program, instruction, 2, "xyzw", 0, "uint32", inputs, bindings, true)})`,
+                        type: "void"
+                    }
+                } ]
+            }
+        ];
+    }
     if (!binding?.storageTexture)
     {
         throw new Error(`WGSL store_uav_typed instruction ${instruction.index} requires a storage-texture UAV`);
@@ -1604,6 +1656,32 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
             condition: { code: `${condition} ${projection === "zero" ? "==" : "!="} 0u`, type: "bool" },
             statements: [ { kind: "discard" } ]
         };
+    }
+    if (instruction.opcodeName === "sync")
+    {
+        // D3D's sync flags to WGSL's barriers, compute only. Every WGSL barrier
+        // also synchronizes the workgroup's invocations, so a memory-only
+        // fence (no threads_in_group) has no equivalent and is refused rather
+        // than turned into a barrier the shader did not ask for.
+        // workgroupBarrier covers group-shared memory, storageBarrier UAV
+        // memory; D3D's device-wide UAV scope is wider than WGSL can express
+        // within one dispatch.
+        const flags = instruction.syncFlagNames ?? [];
+        if (program.stage !== "compute" || !flags.includes("threads_in_group"))
+        {
+            throw new Error(`WGSL sync instruction ${instruction.index} (${flags.join("|") || "no flags"}) has no WGSL barrier equivalent in the ${program.stage} stage`);
+        }
+        const uav = flags.includes("thread_group_uav_memory") || flags.includes("global_uav_memory");
+        const shared = flags.includes("thread_group_shared_memory") || !uav;
+        return [
+            ...(shared ? [ "workgroupBarrier()" ] : []),
+            ...(uav ? [ "storageBarrier()" ] : [])
+        ].map(code => ({
+            kind: "call",
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            expression: { code, type: "void" }
+        }));
     }
     if (instruction.opcodeName === "atomic_iadd")
     {

@@ -112,6 +112,21 @@ const UNFILTERED_TEXTURE_OPCODES = new Set([ "ld", "ld_ms", "resinfo" ]);
  * @param {number} registerIndex The texture register.
  * @returns {boolean} True when every use is a load or a size query.
  */
+/**
+ * Whether any atomic instruction addresses this UAV register. WGSL applies
+ * atomic builtins only to `atomic<T>` elements, so a typed buffer an atomic
+ * touches must be laid out atomic, whatever its view format would otherwise
+ * choose.
+ */
+function isAtomicallyAccessed(program, registerIndex)
+{
+    return program.instructions.some((instruction) =>
+        !instruction.isDeclaration
+        && /^(imm_)?atomic_/u.test(instruction.opcodeName)
+        && instruction.operands?.[0]?.typeName === "uav"
+        && instruction.operands[0].registerIndex === registerIndex);
+}
+
 function isOnlyLoaded(program, registerIndex)
 {
     let used = false;
@@ -303,7 +318,12 @@ function uavBufferLayout(program, binding, policy)
     // The engine binds raw 4-byte words; no DXGI view conversion is reproduced.
     const identity = `storage-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`;
     const viewFormat = viewFormatFor(program, policy, identity);
-    if (viewFormat && binding.resourceDimension === "buffer")
+    // An R32_UINT view that an atomic touches is the same 4-byte words laid
+    // out atomic (the lensflare occluder's pixel stage counts into
+    // FlareOcclusionBuffer with atomic_iadd); loads and stores then go through
+    // atomicLoad/atomicStore.
+    const atomicView = viewFormat === "R32_UINT" && isAtomicallyAccessed(program, bindingRegister(binding));
+    if (viewFormat && binding.resourceDimension === "buffer" && !atomicView)
     {
         return typedBufferViewLayout(binding, viewFormat, "read_write");
     }
