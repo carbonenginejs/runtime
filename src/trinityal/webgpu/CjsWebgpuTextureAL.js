@@ -34,10 +34,7 @@ const VIEW_DIMENSION_OF_TYPE = Object.freeze({
 
 /**
  * The formats core WebGPU accepts with STORAGE_BINDING (the WebGPU spec's
- * texture format capabilities table). D3D lets far more formats be UAVs, so a
- * Carbon UAV texture in any other format is created without storage usage and
- * a storage binding of it falls back to the context dummy, where adding the
- * flag would make texture creation fail outright.
+ * texture format capabilities table). D3D lets far more formats be UAVs.
  */
 const STORAGE_FORMATS = new Set([
   "rgba8unorm", "rgba8snorm", "rgba8uint", "rgba8sint",
@@ -46,6 +43,23 @@ const STORAGE_FORMATS = new Set([
   "rg32uint", "rg32sint", "rg32float",
   "rgba32uint", "rgba32sint", "rgba32float"
 ]);
+
+/**
+ * The format a UAV texture is created in when WebGPU cannot store to the one
+ * Carbon asked for. An sRGB format takes its linear sibling (same bytes; the
+ * sRGB format stays a sampling view); anything else takes rgba16float, the
+ * substitute Carbon's own DX12 path chooses for a non-UAV-compatible target
+ * (Tr2ReflectionProbe.cpp:235-236).
+ *
+ * @param {string} format The requested `GPUTextureFormat`.
+ * @returns {string} A storage-capable format.
+ */
+function StorageFormatFor(format)
+{
+  if (STORAGE_FORMATS.has(format)) return format;
+  const linear = format.replace(/-srgb$/u, "");
+  return STORAGE_FORMATS.has(linear) ? linear : "rgba16float";
+}
 
 
 /**
@@ -112,16 +126,27 @@ export class CjsWebgpuTextureAL
 
     if (!writable && !initialData) return ALResult.E_INVALIDARG;
 
-    const format = al.m_utils.GetGPUTextureFormat(desc.GetFormat());
+    const requestedFormat = al.m_utils.GetGPUTextureFormat(desc.GetFormat());
 
-    if (!format) return ALResult.E_INVALIDARG;
+    if (!requestedFormat) return ALResult.E_INVALIDARG;
+
+    // A UAV texture is created in a format WebGPU can store to. Only a
+    // same-bytes sibling keeps initial data valid; pixels laid out for the
+    // requested format cannot be uploaded into rgba16float, so that pairing
+    // is refused rather than uploaded wrong.
+    const format = HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS) ? StorageFormatFor(requestedFormat) : requestedFormat;
+    const sameBytes = format === requestedFormat || format === requestedFormat.replace(/-srgb$/u, "");
+
+    if (initialData && !sameBytes) return ALResult.E_INVALIDARG;
 
     const webgpu = al.GetWebgpu();
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const device = webgpu.GetDevice();
     const usageFlags = webgpu.GetTextureUsage();
-    const srgbFormat = al.m_utils.GetSRGBViewFormat(format);
+    const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
+      ? requestedFormat
+      : al.m_utils.GetSRGBViewFormat(format);
     const mipCount = Math.max(1, desc.GetTrueMipCount());
     const layers = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetDepth()) : Math.max(1, desc.GetArraySize());
     let usage = usageFlags.TEXTURE_BINDING | usageFlags.COPY_DST;
@@ -133,10 +158,7 @@ export class CjsWebgpuTextureAL
 
     // An unordered-access texture is written through a storage binding;
     // D3D's UAV is WebGPU's STORAGE_BINDING, where the format allows one.
-    if (HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS) && STORAGE_FORMATS.has(format))
-    {
-      usage |= usageFlags.STORAGE_BINDING ?? 0;
-    }
+    if (HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) usage |= usageFlags.STORAGE_BINDING ?? 0;
 
     // A texture something renders or computes into is also a copy source, as
     // D3D resources are without a flag: CopySubresourceRegion reads it.
@@ -239,11 +261,12 @@ export class CjsWebgpuTextureAL
    *
    * @param {string} viewDimension The binding's `storageTexture.viewDimension`.
    * @param {number} mip The mip level.
-   * @returns {GPUTextureView|null} The view, or null before Create or for a format WebGPU cannot store to.
+   * @returns {GPUTextureView|null} The view, or null before Create or for a texture created without UAV usage.
    */
   GetDeviceStorageView(viewDimension, mip)
   {
-    if (!this.m_texture || !STORAGE_FORMATS.has(this.m_format)) return null;
+    // Only a texture created with UNORDERED_ACCESS carries STORAGE_BINDING.
+    if (!this.m_texture || !HasFlag(this.m_gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)) return null;
 
     const key = `storage:${viewDimension}:${mip}`;
     let view = this.m_views.get(key) ?? null;
@@ -260,6 +283,18 @@ export class CjsWebgpuTextureAL
     }
 
     return view;
+  }
+
+  /**
+   * The `GPUTextureFormat` the texture was created in. A UAV texture may differ
+   * from its Carbon format (see `StorageFormatFor`), so a render pass or
+   * pipeline targeting it reads this, not the description's format.
+   *
+   * @returns {string|null} The format, or null before Create.
+   */
+  GetDeviceFormat()
+  {
+    return this.m_format;
   }
 
   /** The `GPUTexture`; Metal's `GetMetalTexture` under this backend's name. */

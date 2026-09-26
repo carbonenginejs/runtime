@@ -62,6 +62,35 @@ function bc1Mips()
   ];
 }
 
+test("a UAV texture WebGPU cannot store to is created in a storage-capable format", () =>
+{
+  const { al, calls } = composed();
+  const uav = Tr2GpuUsage.UNORDERED_ACCESS | Tr2GpuUsage.SHADER_RESOURCE;
+
+  // R11G11B10 takes rgba16float, Carbon's own DX12 substitute.
+  const packed = new CjsWebgpuTextureAL();
+  assert.equal(packed.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), { gpuUsage: uav }, al), ALResult.S_OK);
+  assert.equal(calls.textures.at(-1).format, "rgba16float");
+  assert.equal(packed.GetDeviceFormat(), "rgba16float");
+  assert.notEqual(packed.GetDeviceStorageView("2d", 0), null);
+
+  // An sRGB format takes its linear sibling and keeps the sRGB view.
+  const srgb = new CjsWebgpuTextureAL();
+  assert.equal(srgb.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB), { gpuUsage: uav }, al), ALResult.S_OK);
+  assert.equal(calls.textures.at(-1).format, "rgba8unorm");
+  assert.deepEqual(calls.textures.at(-1).viewFormats, [ "rgba8unorm-srgb" ]);
+
+  // Pixels laid out for R11G11B10 cannot go into rgba16float.
+  const seeded = new CjsWebgpuTextureAL();
+  const initialData = [ new Tr2SubresourceData(new Uint8Array(64), 16, 64) ];
+  assert.equal(seeded.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R11G11B10_FLOAT), { gpuUsage: uav, initialData }, al), ALResult.E_INVALIDARG);
+
+  // A texture without UAV usage has no storage view.
+  const sampled = new CjsWebgpuTextureAL();
+  assert.equal(sampled.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R32_FLOAT), { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
+  assert.equal(sampled.GetDeviceStorageView("2d", 0), null);
+});
+
 test("Create makes the texture with its sRGB sibling declared and uploads one write per subresource", () =>
 {
   const { al, calls } = composed();
