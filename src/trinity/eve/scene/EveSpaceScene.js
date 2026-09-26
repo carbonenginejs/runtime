@@ -6,7 +6,7 @@
 // additions are the per-frame update driver ported from Carbon
 // EveSpaceScene::Update and the scene-owned EveUpdateContext member (Carbon
 // m_updateContext - protected, so absent from the Blue schema scan).
-import { carbon, impl, edit, type } from "#schema";
+import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -1307,6 +1307,20 @@ export class EveSpaceScene extends CjsModel
     {
       this.#envMapTextureRes = this.#staticEnvMapTextureRes;
     }
+
+    // cpp:3247-3257: every object entity joins the scene's component registry
+    // - its light owners, post-process owners, shadow casters - and so does
+    // the camera attachment parent. Without it GatherLights finds no owners
+    // and no attachment light reaches a shader. The quad-renderer
+    // registration beside it is not ported, nor is the list-insert
+    // registration (OnListChanged, cpp:3465-3470): objects pushed after
+    // Initialize join through ReregisterEntities.
+    // Carbon's BlueCastPtr<EveEntity> is CjsSchema.cast.
+    for (const object of this.objects)
+    {
+      CjsSchema.cast(object, EveEntity)?.Register(this.componentRegistry);
+    }
+    CjsSchema.cast(this.cameraAttachmentParent, EveEntity)?.Register(this.componentRegistry);
 
     return true;
   }
