@@ -37,6 +37,8 @@ function composed()
       };
     },
     createBuffer: descriptor => ({ kind: "buffer", descriptor, destroy() {} }),
+    // WebGPU's default texture limits (the spec's supported-limits table).
+    limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048 },
     queue: { writeTexture(destination, data, layout, size) { calls.writes.push({ destination, bytes: data.byteLength, layout, size }); } },
     createShaderModule: descriptor => ({ kind: "module", descriptor }),
     pushErrorScope() {},
@@ -394,4 +396,37 @@ test("R16_UNORM data uploads into r16float as half floats, so it can be filtered
   const halves = new Uint16Array(written[0].buffer);
   // 0, 1.0 and 0.5 (32768 / 65535 rounds to binary16's 0.5).
   assert.deepEqual([ ...halves ], [ 0x0000, 0x3c00, 0x3800 ]);
+});
+
+test("a texture past the device's size limit is refused rather than made invalid", () =>
+{
+  // Carbon's cascaded shadow atlas is 16384 x 4096 at its default cell
+  // (Tr2ShadowMap.h:14); an invalid GPUTexture would fail every submit using it.
+  const { al, calls } = composed();
+  const atlas = new CjsWebgpuTextureAL();
+  const before = calls.textures.length;
+
+  assert.equal(atlas.Create(Tr2BitmapDimensions.texture2D(16384, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.E_INVALIDARG);
+  assert.equal(calls.textures.length, before, "nothing was created");
+  assert.equal(atlas.Create(Tr2BitmapDimensions.texture2D(8192, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+});
+
+test("depth clip off becomes unclippedDepth only on a device with depth-clip-control", () =>
+{
+  // Carbon draws its shadow cascades with RS_DEPTH_CLIP_ENABLE off
+  // (EveSpaceScene.cpp:748); WebGPU spells that primitive.unclippedDepth.
+  const { al } = composed();
+  const device = al.GetWebgpu().GetDevice();
+
+  device.features = new Set();
+  al.SetRenderState(61, 0);
+  assert.equal(al.GetPsoDescription().unclippedDepth, false, "not without the feature");
+
+  al.SetRenderState(61, 1);
+  device.features = new Set([ "depth-clip-control" ]);
+  al.SetRenderState(61, 0);
+  assert.equal(al.GetPsoDescription().unclippedDepth, true);
+
+  al.SetRenderState(61, 1);
+  assert.equal(al.GetPsoDescription().unclippedDepth, false, "back on");
 });

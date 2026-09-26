@@ -22,7 +22,7 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
-import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { PixelFormat, RenderState, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
@@ -38,7 +38,10 @@ import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
-import { ShadowQuality } from "../../generated/trinityCore/enums.js";
+import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enums.js";
+import { TriFrustum } from "../../core/view/TriFrustum.js";
+import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
+import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { blue, EnumRegistrationType } from "#blue";
 import "./EveSpaceSceneRenderDriver.js";
 
@@ -80,6 +83,17 @@ const SHADOW_CLIP_TO_UV = mat4.fromValues(
 // EveSpaceScene.cpp:1441 `const Matrix& identity = IdentityMatrix()`). Module
 // const, NEVER mutated - objects in m_objects are scene roots.
 const IDENTITY = mat4.create();
+
+/** Carbon's default-constructed EveSpaceScene::ShadowResources: every texture empty. */
+function EmptyShadowResources()
+{
+  return {
+    shadowMap: new GpuResourceHandle(),
+    cascadedShadowDepth: new GpuResourceHandle(),
+    pointLightShadowMap: new GpuResourceHandle(),
+    pointLightShadowDepth: new GpuResourceHandle()
+  };
+}
 
 // ---------------------------------------------------------------------------
 // DRIVER-ORDER CONTRACT (per frame) - the CPU visibility/gather drive.
@@ -1587,6 +1601,220 @@ export class EveSpaceScene extends CjsModel
     esm.PopRenderTarget();
     esm.SetRenderTarget(1, null);
     esm.EndManagedRendering();
+  }
+
+  /** m_enableShadows: C++-only, set in the constructor and never cleared (EveSpaceScene.cpp:180). */
+  _enableShadows = true;
+
+  /**
+   * m_shadowBatches: one accumulator per cascade split (cpp:245-250). Carbon
+   * gives each its own pool allocator; ours draw from the context's.
+   */
+  _shadowBatches = Array.from({ length: CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT }, () => new TriRenderBatchAccumulator(EffectKeyGenerator));
+
+  /** The shadow pass's per-frame vertex block, of which only ViewProjectionMat is set (cpp:764-765). */
+  _shadowPerFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
+
+  /** m_shadowPerFrameVSBuffer */
+  _shadowPerFrameVSBuffer = null;
+
+  /**
+   * Carbon EveSpaceScene::RenderShadows (cpp:2618-2676): the cascaded shadow
+   * map at LOW or HIGH shadow quality.
+   *
+   * Adapted: the renderer is passed in for the resolve's blitter, as
+   * `Tr2ShadowMap.DrawToShadowMapResult` takes it. Not ported, each a later
+   * insertion here: the raytraced branch (no Tr2RaytracingManager), and the
+   * point and spot light shadow atlas (the light manager's shadow maps).
+   *
+   * @param {object} depthMap The scene depth.
+   * @param {object|null} normalMap The depth pass's normal map (the raytraced branch reads it).
+   * @param {object} gpuResourcePool The driver's pool.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {object} renderer The renderer owning the blitter.
+   * @returns {object} ShadowResources: `shadowMap`, `cascadedShadowDepth`,
+   *   `pointLightShadowMap`, `pointLightShadowDepth`, each a GpuResourceHandle,
+   *   empty when absent.
+   */
+  @carbon.method
+  @impl.adapted
+  RenderShadows(depthMap, normalMap, gpuResourcePool, renderContext, renderer)
+  {
+    if (!this.display || !this._enableShadows) return EmptyShadowResources();
+
+    if (this.cascadedShadowMap
+      && (this.shadowQualitySetting === ShadowQuality.SHADOW_LOW || this.shadowQualitySetting === ShadowQuality.SHADOW_HIGH))
+    {
+      return this.SetupCascadedShadows(Tr2RenderReason.TR2RENDERREASON_NORMAL, this.cascadedShadowMap, this.updateContext.GetFrustum(), depthMap, gpuResourcePool, renderContext, renderer);
+    }
+
+    return EmptyShadowResources();
+  }
+
+  /**
+   * Carbon EveSpaceScene::SetupCascadedShadows (cpp:608-798): splits the view
+   * into cascades, finds each one's shadow casters, draws them with their
+   * "Shadow" technique into the cascade's cell of the depth atlas, then
+   * resolves the atlas against the scene depth into a screen-space shadow
+   * factor.
+   *
+   * Adapted: Carbon reads the camera off Tr2Renderer's statics, which the
+   * render context holds here, and finds casters and gathers batches in
+   * parallel, which runs in order here. Not ported, each a later insertion:
+   * the instanced mesh manager's shadow batches, the planets as shadow
+   * casters, and the volumetrics' shadows.
+   *
+   * @param {number} renderReason A `Tr2RenderReason`.
+   * @param {Tr2ShadowMap} shadowMap The scene's cascaded shadow map.
+   * @param {TriFrustum} viewFrustum The camera frustum.
+   * @param {object} depthMap The scene depth.
+   * @param {object} gpuResourcePool The driver's pool.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {object} renderer The renderer owning the blitter.
+   * @returns {object} ShadowResources, as RenderShadows.
+   */
+  @carbon.method
+  @impl.adapted
+  SetupCascadedShadows(renderReason, shadowMap, viewFrustum, depthMap, gpuResourcePool, renderContext, renderer)
+  {
+    if (!this.componentRegistry) return EmptyShadowResources();
+
+    const shadowCasters = this.componentRegistry.GetComponents(EveComponentType.ShadowCaster);
+    const volumetricCount = this.componentRegistry.ComponentCount(EveComponentType.VolumetricRenderable);
+    const fogCount = this.componentRegistry.ComponentCount(EveComponentType.FroxelFogSettings);
+
+    if (shadowCasters.length + volumetricCount + fogCount === 0) return EmptyShadowResources();
+
+    shadowMap.UpdateSplitValues(renderContext.GetFrontClip(), renderContext.GetBackClip());
+
+    const shadowMapSize = shadowMap.GetShadowMapSize();
+    const splitCount = CjsPerFrameLayouts.SHADOW_FRUSTUM_COUNT;
+
+    // The frustum's left, right, top and bottom over the near plane, from the
+    // projection (cpp:633-644); Carbon's _11, _22, _31 and _32 are 0, 5, 8, 9.
+    const projection = renderContext.GetProjection();
+    const rightMinusLeft = 2 / projection[0];
+    const bottomMinusTop = 2 / -projection[5];
+    const left = (projection[8] - 1) / 2 * rightMinusLeft;
+    const top = (-projection[9] - 1) / 2 * bottomMinusTop;
+    const right = rightMinusLeft + left;
+    const bottom = bottomMinusTop + top;
+    const sunDir = this.sunDirection;
+    const cameraFrustums = [];
+    const shadowFrustums = [];
+    const splitSetups = [];
+
+    for (let splitIndex = 0; splitIndex < splitCount; ++splitIndex)
+    {
+      const splitSetup = shadowMap.SetupShadowSplit(splitIndex, renderContext.GetInverseViewTransform(), sunDir, viewFrustum.zNear, left, right, top, bottom);
+
+      // The split's slice of the camera frustum, for half-space culling of
+      // casters. Only the planes are read, so they are all that is made.
+      const cameraFrustum = new TriFrustum();
+
+      cameraFrustum.ExtractFrustum(mat4.invert(mat4.create(), splitSetup.invViewProj));
+      cameraFrustums.push(cameraFrustum);
+      shadowFrustums.push(new TriShadowOrthoFrustum(splitSetup.shadowFrustum, shadowMapSize, sunDir));
+      splitSetups.push(splitSetup);
+    }
+
+    // Without the atlas there is nothing to draw into (cpp:661-665).
+    const cascadedShadowDepth = shadowMap.PrepareShadowRendering(gpuResourcePool, renderContext);
+
+    if (!cascadedShadowDepth || !cascadedShadowDepth.IsValid()) return EmptyShadowResources();
+
+    const allocator = renderContext.GetTriPoolAllocator();
+
+    for (let frustumIndex = 0; frustumIndex < splitCount; ++frustumIndex)
+    {
+      const batches = this._shadowBatches[frustumIndex];
+      const shadowCasterInfo = [];
+
+      if (allocator) batches.SetTriPoolAllocator(allocator);
+
+      for (const caster of shadowCasters)
+      {
+        const radius = [ 0 ];
+
+        if (caster.IsCastingShadow(cameraFrustums[frustumIndex], shadowFrustums[frustumIndex], renderReason, radius))
+        {
+          shadowCasterInfo.push({ radius: radius[0], caster, perObjectData: null });
+        }
+      }
+
+      for (const info of shadowCasterInfo) info.perObjectData = info.caster.GetShadowPerObjectData(batches);
+      for (const info of shadowCasterInfo) info.caster.GetShadowBatches(batches, info.perObjectData, info.radius);
+
+      batches.Finalize();
+    }
+
+    const esm = renderContext.GetEffectStateManager();
+    const shaderTypeMask = renderContext.GetRenderContextAL().constructor.SHADER_TYPE_MASK;
+    const perFrameVsMask = (1 << ShaderType.VERTEX_SHADER) | (shaderTypeMask & (
+      (1 << ShaderType.COMPUTE_SHADER)
+      | (1 << ShaderType.GEOMETRY_SHADER)
+      | (1 << ShaderType.HULL_SHADER)
+      | (1 << ShaderType.DOMAIN_SHADER)
+    ));
+
+    renderContext.SetRenderState(RenderState.RS_DEPTH_CLIP_ENABLE, 0);
+
+    try
+    {
+      for (let splitIndex = 0; splitIndex < splitCount; ++splitIndex)
+      {
+        const batches = this._shadowBatches[splitIndex];
+
+        if (batches.GetBatchCount() === 0)
+        {
+          batches.Clear();
+          continue;
+        }
+
+        shadowMap.BeginShadowRendering(renderContext, splitIndex);
+
+        // column_major for shaders: Carbon stores Transpose(lightViewProjection).
+        this._shadowPerFrameVS.SetAndTranspose("ViewProjectionMat", splitSetups[splitIndex].lightViewProjection);
+        this._shadowPerFrameVSBuffer ??= renderContext.CreateConstantBuffer();
+
+        const data = this._shadowPerFrameVS.GetData();
+
+        FillAndSetConstants(this._shadowPerFrameVSBuffer, data, data.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+
+        // The atlas is a forward-depth surface cleared to 1 (PrepareShadowRendering).
+        esm.SetInvertedDepthTest(false);
+
+        try
+        {
+          esm.ApplyStandardStates(RenderingMode.RM_OPAQUE);
+          renderContext.RenderBatches(batches, "Shadow");
+        }
+        finally
+        {
+          esm.SetInvertedDepthTest(true);
+        }
+
+        batches.Clear();
+      }
+
+      shadowMap.EndShadowRendering(renderContext);
+    }
+    finally
+    {
+      renderContext.SetRenderState(RenderState.RS_DEPTH_CLIP_ENABLE, 1);
+    }
+
+    this.PopulatePerFramePSData(renderContext, {}, shadowMap);
+    this.ApplyPerFrameData(renderContext);
+
+    const result = shadowMap.DrawToShadowMapResult(renderContext, gpuResourcePool, depthMap, cascadedShadowDepth.Get(), this.upscalingAmount, renderer);
+
+    return {
+      shadowMap: result ?? new GpuResourceHandle(),
+      cascadedShadowDepth,
+      pointLightShadowMap: new GpuResourceHandle(),
+      pointLightShadowDepth: new GpuResourceHandle()
+    };
   }
 
   /**

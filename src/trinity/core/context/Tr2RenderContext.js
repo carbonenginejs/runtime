@@ -551,6 +551,42 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * The front clip, Carbon `Tr2Renderer::GetFrontClip` (`Tr2Renderer.cpp:510-513`),
+   * derived from the projection as `UpdateProjectionParameters` derives it
+   * (`Tr2Renderer.cpp:81`): `_43 / _33`, zero when `_33` is. Relocated here
+   * with the projection it is read from. For a reversed-depth projection the
+   * formula yields the far plane, which is why CORTAO reads its near plane
+   * from the BACK clip.
+   *
+   * @returns {number} The front clip, or zero before a projection is set.
+   */
+  GetFrontClip()
+  {
+    const projection = this.#projection;
+
+    if (!projection) return 0;
+
+    // Carbon's _33 and _43 are 10 and 14 in column-major.
+    return projection[10] ? projection[14] / projection[10] : 0;
+  }
+
+  /**
+   * The back clip, Carbon `Tr2Renderer::GetBackClip` (`Tr2Renderer.cpp:515-518`),
+   * derived as `UpdateProjectionParameters` does (`Tr2Renderer.cpp:82`):
+   * `_43 / ( 1 + _33 )`.
+   *
+   * @returns {number} The back clip, or zero before a projection is set.
+   */
+  GetBackClip()
+  {
+    const projection = this.#projection;
+
+    if (!projection) return 0;
+
+    return projection[14] / (1 + projection[10]);
+  }
+
+  /**
    * What the installed backend can do.
    *
    * Carbon reaches capabilities through the context and nowhere else

@@ -143,6 +143,14 @@ export class CjsWebgpuTextureAL
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const device = webgpu.GetDevice();
+
+    // A size past the device's limit is refused here: createTexture would make
+    // an invalid texture, and every command buffer using it would fail to
+    // submit. Carbon's cascaded shadow atlas is 16384 wide at its default
+    // 2048 cell (Tr2ShadowMap.h:14, eight cells a row).
+    const maxDimension = type === TextureType.TEX_TYPE_3D ? device.limits.maxTextureDimension3D : device.limits.maxTextureDimension2D;
+
+    if (desc.GetWidth() > maxDimension || desc.GetHeight() > maxDimension) return ALResult.E_INVALIDARG;
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
       ? requestedFormat

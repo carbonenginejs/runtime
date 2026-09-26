@@ -73,7 +73,7 @@
 
 import { CjsSchema, impl } from "#schema";
 import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { PixelFormat, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
+import { PixelFormat, RenderState, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
@@ -1344,6 +1344,14 @@ export class CjsWebgpuRenderContextAL
 
     this._renderStates.set(key, value >>> 0);
     this._pipelineDirty = true;
+
+    // Depth clip is honoured where the device can: the shadow cascades draw
+    // with it off, so a caster in front of the light's near plane still
+    // writes depth. Without depth-clip-control it stays on.
+    if (key === RenderState.RS_DEPTH_CLIP_ENABLE)
+    {
+      this._psoDescription.unclippedDepth = value === 0 && this._webgpu.GetDevice().features.has("depth-clip-control");
+    }
 
     return true;
   }

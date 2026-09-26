@@ -66,6 +66,7 @@ function sceneRecording(calls)
     EndRender() { calls.push([ "EndRender" ]); },
     RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
     RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName ]); },
+    RenderShadows() { calls.push([ "RenderShadows" ]); return null; },
     UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
     viewLast: new Float32Array(16),
     projectionLast: new Float32Array(16),
@@ -158,6 +159,8 @@ test("the frame runs Carbon's order", () =>
     "ApplyPerFrameData",
     // The depth pass (driver cpp:514-521), before SSAO and the main pass.
     "RenderDepthPass",
+    // The shadows, after the depth pass and before SSAO (driver cpp:529-532).
+    "RenderShadows",
     // After the main pass, on the scene target with read-only depth: lens-flare
     // occlusion and the occlusion buffer's compute (driver cpp:587-592).
     "RunLensflareOcclusionQueries",

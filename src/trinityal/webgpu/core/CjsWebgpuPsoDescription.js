@@ -79,6 +79,13 @@ export class CjsWebgpuPsoDescription
   sampleCount = 1;
 
   /**
+   * RS_DEPTH_CLIP_ENABLE off, where the device can honour it: WebGPU's
+   * `primitive.unclippedDepth`, behind the depth-clip-control feature. Carbon
+   * turns depth clip off to draw its shadow cascades (EveSpaceScene.cpp:748).
+   */
+  unclippedDepth = false;
+
+  /**
    * Whether the description names everything a pipeline needs.
    *
    * Carbon's `GetPipelineState` returns null and `SetAllState` fails
@@ -137,7 +144,11 @@ export class CjsWebgpuPsoDescription
 
     return {
       ...state,
-      primitive: { ...projected.primitive, topology: TOPOLOGIES[this.topology] },
+      primitive: {
+        ...projected.primitive,
+        topology: TOPOLOGIES[this.topology],
+        ...(this.unclippedDepth ? { unclippedDepth: true } : {})
+      },
       vertex: { buffers: this.vertexBufferLayouts },
       fragment: {
         // An unbound slot between bound ones is a null target, as it is a null

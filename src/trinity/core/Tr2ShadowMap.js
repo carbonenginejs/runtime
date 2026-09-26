@@ -508,9 +508,14 @@ export class Tr2ShadowMap extends CjsModel
   @impl.implemented
   PrepareShadowRendering(gpuResourcePool, renderContext)
   {
+    // Carbon's GetTempTexture( name, width, height, format, usage ) overload:
+    // a 2D texture of one mip.
     const cascadedShadowDepth = gpuResourcePool.GetTempTexture("cascadedShadowDepth", {
+      type: TextureType.TEX_TYPE_2D,
       width: this.size * this.#width,
       height: this.size * this.#height,
+      depth: 1,
+      mipCount: 1,
       format: PixelFormat.PIXEL_FORMAT_D32_FLOAT,
       gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE
     });

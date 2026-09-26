@@ -424,3 +424,116 @@ test("resolving every frame does not grow the effect resource list", () =>
 
   assert.deepEqual(counts, [ 2, 2, 2, 2, 2 ]);
 });
+
+/** A shadow caster with the component bookkeeping EveEntity gives a real one. */
+function shadowCaster(methods)
+{
+  const state = new Map();
+
+  return {
+    GetComponentIndex: bit => state.get(bit),
+    SetComponentState: (bit, index) => state.set(bit, index),
+    RemoveComponentState: bit => state.delete(bit),
+    ...methods
+  };
+}
+
+/** A space scene with a camera on a stub context, ready for its shadow pass. */
+function shadowScene(shadowQuality)
+{
+  const context = stubShadowContext();
+  const pool = new core.Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new core.Tr2Renderer();
+  const scene = new trinity.EveSpaceScene();
+  const projection = new trinity.TriProjection();
+  const view = mat4.create();
+  const frustum = new trinity.TriFrustum();
+
+  renderer.PrepareDeviceResources(context);
+  projection.PerspectiveFov(Math.PI / 4, 1, 1, 100000);
+  context.SetProjection(projection.GetTransform());
+  context.SetViewTransform(view);
+  context.SetTriPoolAllocator({ Allocate: () => ({}), Clear() {} });
+  frustum.DeriveFrustum(view, vec3.create(), projection.GetTransform(), { x: 0, y: 0, width: 256, height: 256 });
+  scene.StampFrameContext({ frustum });
+
+  scene.cascadedShadowMap = new core.Tr2ShadowMap();
+  scene.cascadedShadowMap.Setup(64, 16, false);
+  scene.shadowQualitySetting = shadowQuality;
+
+  return { context, pool, renderer, scene };
+}
+
+test("EveSpaceScene.RenderShadows draws each cascade's casters with the Shadow technique, then resolves (EveSpaceScene.cpp:608-798)", () =>
+{
+  const { ShadowQuality } = trinity.EveSpaceSceneRenderDriver;
+  const { context, pool, renderer, scene } = shadowScene(ShadowQuality.SHADOW_HIGH);
+  const calls = [];
+  const drawn = [];
+  const depthMap = poolSurface(pool, "depth", 128, 64);
+
+  context.RenderBatches = (batches, technique) => { drawn.push(technique); return true; };
+
+  // A caster in two cascades. Batches are what a real object would commit;
+  // here the count stands in for them.
+  const caster = shadowCaster({
+    IsCastingShadow: (camera, shadowFrustum, reason, radius) =>
+    {
+      calls.push("IsCastingShadow");
+      radius[0] = 20;
+      return true;
+    },
+    GetShadowPerObjectData: () => { calls.push("GetShadowPerObjectData"); return { id: "caster" }; },
+    GetShadowBatches: (batches, perObjectData, radius) =>
+    {
+      calls.push(`GetShadowBatches:${perObjectData.id}:${radius}`);
+      if (scene._shadowBatches.indexOf(batches) < 2) batches.GetBatchCount = () => 1;
+    }
+  });
+
+  scene.componentRegistry.RegisterComponent("ShadowCaster", caster);
+
+  const result = scene.RenderShadows(depthMap, null, pool, context, renderer);
+
+  // Every cascade asks the caster (cpp:700-707), then its data and batches.
+  assert.equal(calls.filter(call => call === "IsCastingShadow").length, 16);
+  assert.equal(calls.filter(call => call === "GetShadowBatches:caster:20").length, 16);
+  // Only cascades with batches are drawn, with the Shadow technique (cpp:772).
+  assert.deepEqual(drawn, [ "Shadow", "Shadow" ]);
+  assert.equal(result.cascadedShadowDepth.IsValid(), true);
+  assert.equal(result.cascadedShadowDepth.Get().GetWidth(), 64 * 8, "the atlas is eight cells a row");
+  assert.equal(result.shadowMap.IsValid(), true);
+  assert.equal(result.shadowMap.Get().GetWidth(), 128, "the factor is screen-space");
+  assert.equal(result.pointLightShadowMap.IsValid(), false);
+
+  // Depth clip is back on after the cascades (cpp:748-749).
+  assert.equal(context.GetRenderContextAL()._renderStates?.get(consts.RenderState.RS_DEPTH_CLIP_ENABLE) ?? 1, 1);
+});
+
+test("EveSpaceScene.RenderShadows draws nothing without a cascaded map, at DISABLED, or undisplayed (cpp:2620-2629)", () =>
+{
+  const { ShadowQuality } = trinity.EveSpaceSceneRenderDriver;
+
+  for (const [ quality, prepare ] of [
+    [ ShadowQuality.SHADOW_DISABLED, () => {} ],
+    [ ShadowQuality.SHADOW_HIGH, scene => { scene.cascadedShadowMap = null; } ],
+    [ ShadowQuality.SHADOW_HIGH, scene => { scene.display = false; } ]
+  ])
+  {
+    const { context, pool, renderer, scene } = shadowScene(quality);
+    let asked = false;
+
+    prepare(scene);
+    scene.componentRegistry.RegisterComponent("ShadowCaster", shadowCaster({
+      IsCastingShadow: () => { asked = true; return true; },
+      GetShadowPerObjectData: () => null,
+      GetShadowBatches: () => {}
+    }));
+
+    const result = scene.RenderShadows(poolSurface(pool, "depth", 64, 64), null, pool, context, renderer);
+
+    assert.equal(asked, false);
+    assert.equal(result.shadowMap.IsValid(), false);
+    assert.equal(result.cascadedShadowDepth.IsValid(), false);
+  }
+});

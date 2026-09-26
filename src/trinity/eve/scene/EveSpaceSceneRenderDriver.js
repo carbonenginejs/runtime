@@ -34,6 +34,7 @@ import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
@@ -421,8 +422,8 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         Tr2VariableStore.GlobalStore().RegisterVariable("DepthMap", this.#depthMapReference);
       }
 
-      // cpp:550 - the shadow pass's textures as globals. No shadow pass is
-      // ported, so every resource is empty and the white fallbacks go in.
+      // The shadow globals start empty, with the white fallbacks: the shadow
+      // pass fills them for the main pass only (cpp:550, 557).
       EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
 
       const submitted = this.#RenderMainPass(renderContext, offscreen);
@@ -473,6 +474,12 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       {
         this.#gpuResourcePool.Free(offscreen.normal);
         offscreen.normal = null;
+      }
+
+      // So are the shadow resources (cpp:526).
+      for (const handle of Object.values(offscreen?.shadows ?? {}))
+      {
+        if (handle.IsValid()) this.#gpuResourcePool.Free(handle);
       }
 
       if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
@@ -627,11 +634,18 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // (cpp:527).
     if (!this.mainPassRenderingEnabled || this.scene.display === false) return false;
 
-    // SSAO (cpp:534-537), after the depth pass and before the main pass
-    // samples SSAOMap. No shadow pass runs before it here.
+    // SHADOWS (cpp:529-532), after the depth pass: the cascaded shadow map and
+    // its screen-space factor, held until the frame ends.
+    if (offscreen) offscreen.shadows = this.scene.RenderShadows(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, this.#gpuResourcePool, renderContext, this.#renderer);
+
+    // SSAO (cpp:534-537), after the shadows and before the main pass samples
+    // SSAOMap.
     if (offscreen) this.#RegisterSSAOMap(this._RenderSSAO(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, renderContext));
 
     if (offscreen) offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
+
+    // cpp:550 - the shadow pass's textures as globals, for the main pass.
+    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(offscreen.shadows, this.#gpuResourcePool);
 
     const velocity = offscreen?.velocity?.Get() ?? null;
     const opaque = offscreen?.opaque?.Get() ?? null;
@@ -697,6 +711,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // the opaque copy and this (cpp:2752-2757); none of those are ported.
     submitted = this.#SubmitTransparent(map, renderContext) || submitted;
 
+    // cpp:557 - the shadow globals are emptied after the main pass.
+    if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
+
     return submitted;
   }
 
@@ -730,6 +747,19 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         postprocess.GetTaaIfAvailable().quality = this.antiAliasingQuality;
       }
     }
+
+    // Shadow quality (cpp:233-255): the cascaded shadow map exists at LOW and
+    // HIGH. Carbon's raytracing manager is not ported, so RAYTRACED has none.
+    if (this.shadowQuality === ShadowQuality.SHADOW_DISABLED || this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED)
+    {
+      this.scene.cascadedShadowMap = null;
+    }
+    else if (!this.scene.cascadedShadowMap)
+    {
+      this.scene.cascadedShadowMap = new Tr2ShadowMap();
+    }
+
+    this.scene.shadowQualitySetting = this.shadowQuality;
 
     if (this.SSAO)
     {
@@ -900,7 +930,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       velocity: null,
       opaque: null,
       // Borrowed for the depth pass when AO needs it; the driver's to free.
-      normal: null
+      normal: null,
+      // The shadow pass's ShadowResources; the driver's to free.
+      shadows: null
     };
   }
 
