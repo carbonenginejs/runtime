@@ -1400,6 +1400,48 @@ export async function RunDemo(canvas)
     ps: RawData.create("EveSpaceObjectPSData")
   };
   const renderable = HullRenderable(areas, geometry, perObject);
+
+  // CONSOLE ACCESS, for editing values live. There is no EveShip2 here: the
+  // "ship" is the SOF document, one Tr2Effect per area, the mesh and the ship's
+  // per-object data. `demo.param("area_hull", "Mat1DiffuseColor")` finds a
+  // material parameter; edit its `value` in place.
+  globalThis.demo = {
+    sof,
+    areas,
+    materials: Object.fromEntries(areas.map(area => [ area.name, area.material ])),
+    renderable,
+    perObject,
+    camera,
+    frame,
+    SetWorld: world => SetWorld(perObject, world),
+    param: (areaName, parameterName) => areas
+      .find(area => area.name === areaName)?.material.parameters
+      .find(parameter => parameter.name === parameterName) ?? null,
+    params: areaName => areas
+      .find(area => area.name === areaName)?.material.parameters
+      .map(parameter => parameter.name) ?? [],
+    // shipData is one register of four unrelated floats, and Carbon writes the
+    // same value into both halves (EveSpaceObject2.cpp:666-671, :769-776):
+    // x booster glow, y activation strength, z dirt level, w bounding radius.
+    shipData: (values = {}) =>
+    {
+      const data = Array.from(perObject.ps.Get("shipData"));
+      if (values.boosterGlow !== undefined) data[0] = values.boosterGlow;
+      if (values.activation !== undefined) data[1] = values.activation;
+      if (values.dirt !== undefined) data[2] = values.dirt;
+      if (values.radius !== undefined) data[3] = values.radius;
+      perObject.ps.Set("shipData", data);
+      perObject.vs.Set("shipData", data);
+      return { boosterGlow: data[0], activation: data[1], dirt: data[2], radius: data[3] };
+    },
+    dirt: value => globalThis.demo.shipData({ dirt: value }),
+    activation: value => globalThis.demo.shipData({ activation: value })
+  };
+  // Carbon writes the bounding radius into w every update (EveSpaceObject2.cpp:774);
+  // the layout default of 1 was never overwritten here.
+  globalThis.demo.shipData({ radius: bounds.radius });
+  console.log(`console: demo.dirt(v), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
+
   const depthFormat = "depth24plus";
   const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
     canvas,
