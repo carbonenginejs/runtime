@@ -175,6 +175,19 @@ export class CjsWebgpuRenderTarget
     return this._height;
   }
 
+  /**
+   * The canvas target is bound as a depth stencil too (its own depth), so it
+   * answers the depth-shadow copy the context requests on unbind
+   * (`CjsWebgpuTextureAL.EncodeDepthShadowCopy`): nothing samples the canvas
+   * depth, so there is nothing to copy.
+   *
+   * @returns {boolean} False; no copy was encoded.
+   */
+  EncodeDepthShadowCopy()
+  {
+    return false;
+  }
+
   /** The multisample count every attachment is created with. */
   GetSampleCount()
   {

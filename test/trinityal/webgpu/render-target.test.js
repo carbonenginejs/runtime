@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
-import { CjsWebgpuRenderTarget } from "../../../npm/dist/trinityal/webgpu/internal.js";
+import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../npm/dist/trinityal/webgpu/internal.js";
 
 const TEXTURE_USAGE = Object.freeze({ RENDER_ATTACHMENT: 16, TEXTURE_BINDING: 4, COPY_DST: 8 });
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
@@ -241,4 +241,25 @@ test("CjsWebgpuRenderTarget releases what it created and leaves the canvas alone
   assert.deepEqual(created.map(texture => texture.destroyed), [ 1, 1 ]);
   assert.equal(context.unconfigured, 1);
   assert.equal(canvas.width, 64, "the canvas belongs to the caller and is left as it was");
+});
+
+test("the canvas target bound as the depth stencil can be unbound: it has no depth shadow to copy", () =>
+{
+  const { device, target } = fakeSetup({ depthFormat: "depth24plus" });
+
+  target.Configure({ width: 64, height: 64 });
+  device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish: () => "command-buffer" });
+
+  const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
+  const offscreenDepth = { GetDeviceFormat: () => "depth32float", EncodeDepthShadowCopy: () => false };
+
+  // The demo's frame: the canvas is bound as its own depth stencil, then the
+  // driver binds the off-screen depth. Unbinding the canvas asked it for a
+  // depth-shadow copy it did not answer: "EncodeDepthShadowCopy is not a function".
+  al.CreateDevice();
+  al.BeginScene();
+  al.SetRenderTarget(0, target);
+  al.SetDepthStencil(target);
+  assert.doesNotThrow(() => al.SetDepthStencil(offscreenDepth));
+  assert.equal(target.EncodeDepthShadowCopy(), false);
 });
