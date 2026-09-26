@@ -108,7 +108,12 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import "../../../../npm/dist/audio/index.js";
+import { EveSOF } from "../../../../npm/dist/sof/index.js";
+import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
+import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
+import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
@@ -711,6 +716,38 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
  */
 const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "af1_t1:amarrbase:amarr";
 
+/**
+ * `?scene=stub` keeps the hand-built hull and the stand-in scene; the default
+ * builds the ship through EveSOF into a real EveSpaceScene, so every area
+ * Trinity collects - decals, boosters, attachments - reaches the driver.
+ */
+const SCENE_MODE = new URLSearchParams(globalThis.location?.search ?? "").get("scene") === "stub" ? "stub" : "sof";
+
+/** The nebula a real scene loads as its environment map (envMapResPath). */
+const SCENE_NEBULA = "res:/dx9/scene/universe/a01_cube.dds";
+
+/**
+ * Builds the ship through the runtime's own EveSOF, reading SOF's data files
+ * lazily from tools-core through the runner's resource route - only the
+ * handful a DNA touches, not the 184 MB data.black. The build is the runtime
+ * in this tree, not tools-core's published one.
+ *
+ * @param {string} dna The ship DNA.
+ * @returns {Promise<EveShip2>} The ship.
+ */
+async function BuildSofShip(dna)
+{
+  const sof = new EveSOF().Register({
+    lazyData: { source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")) }
+  });
+
+  await sof.InitializeAsync();
+  const values = await sof.BuildValuesFromDNAAsync(dna);
+  const diagnostics = sof.GetBuildDiagnostics();
+  if (diagnostics?.length) console.warn(`SOF ${dna}: ${JSON.stringify(diagnostics).slice(0, 400)}`);
+  return EveShip2.from(values);
+}
+
 
 /**
  * Rest-pose bones for skinned hulls: every bone identity, so a vertex stays
@@ -1310,6 +1347,11 @@ RegisterSolidColorTexture(blue.resMan);
 RegisterTextureArray(blue.resMan);
 RegisterTexturePack(blue.resMan);
 RegisterShaderResources(blue.resMan, { translator: CjsWebgpuFormat });
+// A SOF ship's Tr2Mesh asks the manager for its .gr2 as GEOMETRY.
+RegisterGeometryResources(blue.resMan);
+// Effects resolve their platform path when they hydrate, so the defaults are
+// set before any SOF ship is built.
+SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
 
 /**
  * A scene texture's path: a client file, or a flat colour as Carbon's
@@ -1899,56 +1941,112 @@ export async function RunDemo(canvas)
   };
 
   const webgpu = new CjsWebgpuDevice({ device, shaderStage: GPUShaderStage });
-  const sof = await SofDocument(DNA);
-  // The document names the geometry; the default hull only when it cannot be had.
-  const HULL = sof?.mesh?.geometryResPath?.replace(/^res:\//u, "") || DEFAULT_HULL;
-  const documentAreas = sof?.mesh?.opaqueAreas ?? [];
-  const hullBytes = await ResourceBytes(HULL);
-  const mesh = Unpack(HullMesh(hullBytes), ReadsPackedTangents(documentAreas));
-  const bounds = Bounds(mesh);
-  const geometry = GeometryResource(mesh, `res:/${HULL}`);
+  let sof = null;
+  let HULL = null;
+  let hullBytes = null;
+  let mesh = null;
+  let bounds = null;
+  let geometry = null;
+  let ship = null;
   const textures = { loaded: 0, failed: [] };
 
-  // EACH AREA GETS ITS OWN SHADER. `area_hull` names `quadv5` and `area_booster`
-  // names `quadheatv5`; one material for both meant the booster ran the hull's
-  // shader, which is why it showed texture and no heat.
+  // EACH AREA GETS ITS OWN SHADER. The report and the console read areas as
+  // { material, path, name, index, count } in both modes.
   const areas = [];
 
-  for (const declared of documentAreas)
+  // THE REAL SCENE: a SOF-built ship in an EveSpaceScene, which owns its
+  // per-frame data, its global textures and its lens flares. Built before the
+  // render context exists; its BoneTransforms ring is registered and its
+  // materials rebuilt once the context does (scene.Initialize below).
+  const realScene = SCENE_MODE === "sof" ? new EveSpaceScene() : null;
+
+  if (realScene)
   {
-    const effect = DETAIL_TEST && declared.name === "area_hull" && declared.effect
-      ? WithDetailMaps(declared.effect)
-      : declared.effect ?? null;
-    const path = effect?.effectFilePath ? EffectPath(effect.effectFilePath) : EFFECT;
-    const material = await Material(`res:/${path}`, effect);
+    realScene.envMapResPath = SCENE_NEBULA;
+    ship = await BuildSofShip(DNA);
+    realScene.objects.push(ship);
 
-    // The scene's share of the texture slots, before the material is applied
-    // and its resource set laid out. Added as ordinary named parameters,
-    // because that is how a material finds a texture: by the name the shader
-    // declares. Every area needs its own - a resource set is per material.
-    for (const scene of SCENE_TEXTURES)
+    // INTERIM, DEMO-ONLY: EveSpaceObjectDecal and EveBoosterSet2Renderable
+    // GetBatches are not ported and throw inside the batch collect, which
+    // would end every frame. They are dropped from the gather, and named once,
+    // until their ports land. Remove this when they do.
+    const unbatched = new Set([ "EveSpaceObjectDecal", "EveBoosterSet2Renderable" ]);
+    const dropped = new Set();
+    const getRenderables = realScene.GetRenderables.bind(realScene);
+    realScene.GetRenderables = (out = []) =>
     {
-      const parameter = new TriTextureParameter();
+      const all = getRenderables([]);
+      for (const renderable of all)
+      {
+        const name = renderable?.constructor?.name;
+        if (unbatched.has(name))
+        {
+          if (!dropped.has(name)) { dropped.add(name); console.warn(`demo: ${name} dropped from the gather - its GetBatches is not ported yet`); }
+          continue;
+        }
+        out.push(renderable);
+      }
+      return out;
+    };
+    HULL = ship.mesh?.geometryResPath?.replace(/^res:\/+/u, "") ?? "";
+    bounds = { centre: vec3.clone(ship.boundingSphereCenter), radius: ship.boundingSphereRadius || 1 };
+    for (const area of ship.mesh?.opaqueAreas ?? [])
+    {
+      areas.push({ material: area.effect, path: area.effect?.effectFilePath ?? "", name: area.name, index: area.index ?? 0, count: area.count ?? 1 });
+    }
+  }
+  else
+  {
+      sof = await SofDocument(DNA);
+    // The document names the geometry; the default hull only when it cannot be had.
+    HULL = sof?.mesh?.geometryResPath?.replace(/^res:\//u, "") || DEFAULT_HULL;
+    const documentAreas = sof?.mesh?.opaqueAreas ?? [];
+    hullBytes = await ResourceBytes(HULL);
+    mesh = Unpack(HullMesh(hullBytes), ReadsPackedTangents(documentAreas));
+    bounds = Bounds(mesh);
+    geometry = GeometryResource(mesh, `res:/${HULL}`);
 
-      parameter.name = scene.name;
-      parameter.SetResourcePath(SceneTexturePath(scene));
-      material.resources.push(parameter);
+    // EACH AREA GETS ITS OWN SHADER. `area_hull` names `quadv5` and `area_booster`
+    // names `quadheatv5`; one material for both meant the booster ran the hull's
+    // shader, which is why it showed texture and no heat.
+
+    for (const declared of documentAreas)
+    {
+      const effect = DETAIL_TEST && declared.name === "area_hull" && declared.effect
+        ? WithDetailMaps(declared.effect)
+        : declared.effect ?? null;
+      const path = effect?.effectFilePath ? EffectPath(effect.effectFilePath) : EFFECT;
+      const material = await Material(`res:/${path}`, effect);
+
+      // The scene's share of the texture slots, before the material is applied
+      // and its resource set laid out. Added as ordinary named parameters,
+      // because that is how a material finds a texture: by the name the shader
+      // declares. Every area needs its own - a resource set is per material.
+      for (const scene of SCENE_TEXTURES)
+      {
+        const parameter = new TriTextureParameter();
+
+        parameter.name = scene.name;
+        parameter.SetResourcePath(SceneTexturePath(scene));
+        material.resources.push(parameter);
+      }
+
+      material.RebuildCachedData();
+
+      const loaded = await LoadTextures(material);
+
+      textures.loaded += loaded.loaded;
+      textures.failed.push(...loaded.failed);
+
+      areas.push({
+        material,
+        path,
+        name: declared.name,
+        index: declared.index ?? 0,
+        count: declared.count ?? 1
+      });
     }
 
-    material.RebuildCachedData();
-
-    const loaded = await LoadTextures(material);
-
-    textures.loaded += loaded.loaded;
-    textures.failed.push(...loaded.failed);
-
-    areas.push({
-      material,
-      path,
-      name: declared.name,
-      index: declared.index ?? 0,
-      count: declared.count ?? 1
-    });
   }
 
   if (!areas.length) throw new Error("the SOF document declares no opaque areas");
@@ -1975,7 +2073,7 @@ export async function RunDemo(canvas)
     vs: RawData.create("EveSpaceObjectVSData"),
     ps: RawData.create("EveSpaceObjectPSData")
   };
-  const renderable = HullRenderable(areas, geometry, perObject);
+  const renderable = realScene ? ship : HullRenderable(areas, geometry, perObject);
 
   // CONSOLE ACCESS, for editing values live. There is no EveShip2 here: the
   // "ship" is the SOF document, one Tr2Effect per area, the mesh and the ship's
@@ -2010,12 +2108,14 @@ export async function RunDemo(canvas)
       perObject.vs.Set("shipData", data);
       return { boosterGlow: data[0], activation: data[1], dirt: data[2], radius: data[3] };
     },
-    dirt: value => globalThis.demo.shipData({ dirt: value }),
-    activation: value => globalThis.demo.shipData({ activation: value })
+    dirt: value => realScene ? (ship.dirtLevel = value) : globalThis.demo.shipData({ dirt: value }),
+    activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
+    ship,
+    scene: realScene
   };
   // Carbon writes the bounding radius into w every update (EveSpaceObject2.cpp:774);
   // the layout default of 1 was never overwritten here.
-  globalThis.demo.shipData({ radius: bounds.radius });
+  if (!realScene) globalThis.demo.shipData({ radius: bounds.radius });
   console.log(`console: demo.dirt(v), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
 
   const depthFormat = "depth24plus";
@@ -2136,20 +2236,30 @@ export async function RunDemo(canvas)
   // and a register maps to a variable only if it is registered at mapping, so
   // they are rebuilt. Uploaded once: a rest pose never changes, and nothing
   // here drives the ring's per-frame fence.
-  const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
-  const boneOffsets = new Tr2RingBufferOffsets();
+  if (realScene)
+  {
+    // The real scene registers its BoneTransforms ring and loads its nebula
+    // (Initialize), then the ship's materials map the globals that now exist.
+    realScene.Initialize(renderContext);
+    ship.RebuildCachedData();
+  }
+  else
+  {
+    const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
+    const boneOffsets = new Tr2RingBufferOffsets();
 
-  bones.SetName("BoneTransformsBuffer");
-  Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
-  boneOffsets.UploadTransforms(bones, RestPoseBones(REST_POSE_BONES), REST_POSE_BONES);
-  bones.PrepareBuffer(renderContext);
-  perObject.vs.Set("boneOffsets", [ boneOffsets.GetCurrentFrameOffset(), boneOffsets.GetPreviousFrameOffset(), REST_POSE_BONES, 0 ]);
+    bones.SetName("BoneTransformsBuffer");
+    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+    boneOffsets.UploadTransforms(bones, RestPoseBones(REST_POSE_BONES), REST_POSE_BONES);
+    bones.PrepareBuffer(renderContext);
+    perObject.vs.Set("boneOffsets", [ boneOffsets.GetCurrentFrameOffset(), boneOffsets.GetPreviousFrameOffset(), REST_POSE_BONES, 0 ]);
 
-  for (const area of areas) area.material.RebuildCachedData();
+    for (const area of areas) area.material.RebuildCachedData();
 
-  // ?probe=copy: the first step of Carbon's reflection probe, run on the GPU.
-  if (PROBE_MODE === "copy" || PROBE_MODE === "mips") await ProbeCopyCube(renderContext, al, areas);
-  else if (PROBE_MODE !== "off") await ReflectionProbe(renderContext, al, areas);
+    // ?probe=copy: the first step of Carbon's reflection probe, run on the GPU.
+    if (PROBE_MODE === "copy" || PROBE_MODE === "mips") await ProbeCopyCube(renderContext, al, areas);
+    else if (PROBE_MODE !== "off") await ReflectionProbe(renderContext, al, areas);
+  }
 
   {
     const esm = renderContext.GetEffectStateManager();
@@ -2298,6 +2408,11 @@ export async function RunDemo(canvas)
     postTemplate = name ? await LoadPostTemplate(name) : null;
     globalThis.demo.postProcess = postTemplate?.postProcess ?? null;
 
+    // A REAL SCENE'S TEMPLATE IS ITS DEFAULT POST PROCESS (m_sceneDefaultPostProcess),
+    // which Update merges into the combined one the driver reads; the driver's
+    // PropagateSettings keeps TAA on it.
+    if (realScene) realScene.postprocess = postTemplate?.postProcess ?? new Tr2PostProcess2();
+
     if (postTemplate)
     {
       console.log(`post template ${postTemplate.path}: populates ${postTemplate.populated.join(", ") || "(nothing)"}`
@@ -2321,7 +2436,7 @@ export async function RunDemo(canvas)
   // stamps Time from the animation clock when it populates (cpp:3066, 3118).
   // The demo's blocks are copied into a real scene's records and applied
   // there, so the binding is the scene's own code rather than a copy of it.
-  const perFrameScene = new EveSpaceScene();
+  const perFrameScene = realScene ?? new EveSpaceScene();
   const clockStart = globalThis.performance?.now() ?? 0;
 
   // TAA LIVES ON THE SCENE'S DEFAULT POST PROCESS: the driver's
@@ -2384,7 +2499,7 @@ export async function RunDemo(canvas)
   const sunScratch = vec3.create();
   const lastFrameScratch = mat4.create();
 
-  driver.scene = {
+  const standIn = {
     ApplyPerFrameData: renderContext =>
     {
       const time = ((globalThis.performance?.now() ?? 0) - clockStart) / 1000;
@@ -2454,6 +2569,32 @@ export async function RunDemo(canvas)
     }
   };
 
+  driver.scene = realScene ?? standIn;
+
+  /**
+   * THE SUN, FOR A REAL SCENE: its sunDirection, and each lens flare kept at
+   * its authored distance but moved along the way to the sun (EveLensflare's
+   * direction is Normalize(-position), so the flare sits at -direction). The
+   * stand-in does the same inside its Update shim.
+   */
+  const PlaceSun = () =>
+  {
+    if (!realScene) return;
+    vec3.copy(realScene.sunDirection, SUN.direction);
+    vec3.normalize(sunScratch, SUN.direction);
+    for (const lensflare of realScene.lensflares)
+    {
+      vec3.scale(lensflare.position, sunScratch, -(vec3.length(lensflare.position) || 1.4959787e11));
+    }
+  };
+
+  // THE ANIMATION CLOCK, Carbon's way: blue.os ticks the device, which advances
+  // the animation time and frame counter the scene's per-frame fills read
+  // (Tr2Renderer.GetAnimationTime / GetCurrentFrameCounter). The demo pumps
+  // blue.os once per animation frame, as Carbon's main loop pumps the OS.
+  blue.os.RegisterForTicks(gTriDev.device, TriDevice.TICK_COOKIE);
+  const clock = () => performance.now() / 1000;
+
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
   // the clear black made "drew nothing" and "drew black" the same reading.
   driver.clearColor = [ 0.07, 0.09, 0.14, 1 ];
@@ -2483,7 +2624,9 @@ export async function RunDemo(canvas)
     // is reported to the error scope and nowhere else, and the draw returns true.
     device.pushErrorScope("validation");
 
-    driver.Execute(postState.off ? null : [ renderTarget ], null, 0, 0, null, renderContext);
+    blue.os.PumpOS();
+    PlaceSun();
+    driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
 
     al.EndScene();
 
@@ -2577,7 +2720,9 @@ export async function RunDemo(canvas)
         al.BeginScene();
         al.SetRenderTarget(0, renderTarget);
         al.SetDepthStencil(renderTarget);
-        driver.Execute(postState.off ? null : [ renderTarget ], null, 0, 0, null, renderContext);
+        blue.os.PumpOS();
+        PlaceSun();
+        driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
         al.EndScene();
         al.DrainTransitions();
 
@@ -2625,20 +2770,21 @@ export async function RunDemo(canvas)
     areas: areas.map(a => `${a.name}[${a.index}+${a.count}] -> ${a.path.split("/").pop()}`),
     hull: HULL,
     effectAreas: areas.length,
-    hullBytes: hullBytes.length,
+    scene: SCENE_MODE,
+    hullBytes: hullBytes?.length ?? null,
     wgsl: stages,
     techniques: shader.GetEffect().techniques.map(technique => technique.name),
     renderStateHandle: pass.renderStates,
     shaderProgramHandle: pass.shaderProgram,
-    declaration: mesh.decl.map(element => `${element.usage}${element.usageIndex}:${element.type}x${element.elementCount}`),
-    areas: mesh.lods[0].areas.length,
-    triangles: mesh.lods[0].areas.reduce((total, area) => total + (area.elementCount ?? 0), 0),
+    declaration: mesh ? mesh.decl.map(element => `${element.usage}${element.usageIndex}:${element.type}x${element.elementCount}`) : null,
+    meshAreas: mesh ? mesh.lods[0].areas.length : ship?.mesh?.opaqueAreas?.length ?? null,
+    triangles: mesh ? mesh.lods[0].areas.reduce((total, area) => total + (area.elementCount ?? 0), 0) : null,
     radius: Number(bounds.radius.toFixed(3)),
     drawnBatches: al.GetDrawnBatchCount(),
     pipelineFailure: al.m_pipelineFailure ?? null,
     events: events.map(event => event.type + (event.encoderType ? `:${event.encoderType}` : "")),
     targetFormat: renderTarget.GetFormat(),
-    sof: sof ? "loaded" : "unavailable",
+    sof: realScene ? "EveSOF (lazy, this runtime)" : sof ? "loaded" : "unavailable",
     textureCompression: compressed ? "bc" : "decoded to rgba8",
     texturesLoaded: textures.loaded,
     deviceTextures: madeTextures,
