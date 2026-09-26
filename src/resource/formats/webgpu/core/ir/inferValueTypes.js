@@ -69,6 +69,10 @@ function ruleFor(opcodeName, program, instruction)
         if (opcodeName === "sample_d") Object.assign(sourceByOperand, { 4: "float32", 5: "float32" });
         return { name: "sample-resource", destination: sampleResultType(program, instruction), sourceByOperand };
     }
+    if (opcodeName === "gather4")
+    {
+        return { name: "gather-resource", destination: sampleResultType(program, instruction), sourceByOperand: { 1: "float32" } };
+    }
     if (opcodeName === "resinfo")
     {
         return {

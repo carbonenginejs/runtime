@@ -26,7 +26,7 @@ const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
     "add", "and", "atomic_iadd", "bfi", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
     "deriv_rty_coarse", "deriv_rtx_fine", "deriv_rty_fine", "discard", "div",
-    "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi",
+    "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi", "gather4",
     "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imul",
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
@@ -1174,6 +1174,34 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         }
         const components = rawSelectedComponents(resource, mask, count);
         return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
+    }
+    if (op === "gather4")
+    {
+        // D3D11 gathers the channel the sampler operand selects (s0.y gathers
+        // green) from the four texels in (umin,vmax), (umax,vmax),
+        // (umax,vmin), (umin,vmin) order, which is textureGather's order; the
+        // resource swizzle then applies to that vec4. No derivatives are
+        // involved, so compute may gather. Only 2D textures, and not under
+        // emulated addressing, are admitted.
+        const resource = validateFixedHandleOperand(instruction, 2, "resource", "fragment");
+        const sampler = validateFixedHandleOperand(instruction, 3, "sampler", "fragment");
+        const textureBinding = bindingForOperand(bindings, "sampled-resource", resource);
+        const samplerBinding = bindingForOperand(bindings, "sampler", sampler);
+        if (!textureBinding || !samplerBinding) throw new Error(`WGSL fragment instruction ${instruction.index} has unresolved gather bindings`);
+        if (textureBinding.texture?.viewDimension !== "2d")
+        {
+            throw new Error(`WGSL gather4 instruction ${instruction.index} supports only 2d textures`);
+        }
+        if (program.emulatedAddressing?.samplerModes?.[sampler.registerIndex])
+        {
+            throw new Error(`WGSL gather4 instruction ${instruction.index} cannot gather under emulated sampler addressing`);
+        }
+        const channel = COMPONENTS.indexOf(sampler.selected || "x");
+        if (channel < 0) throw new Error(`WGSL gather4 instruction ${instruction.index} has no gather channel`);
+        const offsetArg = sampleOffsetArgument(instruction, "2d");
+        const gathered = `textureGather(${channel}, ${textureBinding.generatedSymbol}, ${samplerBinding.generatedSymbol}, ${source(1, 2)}${offsetArg})`;
+        const components = rawSelectedComponents(resource, mask, count);
+        return count === 4 && components.join("") === "xyzw" ? gathered : `${gathered}.${components.join("")}`;
     }
     if (op === "sample" || op === "sample_b" || op === "sample_l" || op === "sample_d")
     {

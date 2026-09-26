@@ -2475,6 +2475,36 @@ test("fragment lowering reads a dynamically indexed immediate constant buffer", 
     assert.match(shader.code, /icb\[[^\]]+\]\.x/u);
 });
 
+test("fragment lowering gathers the sampler-selected channel with textureGather", () =>
+{
+    const program = {
+        program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [ signature("TEXCOORD", 1, 3) ], output: [ signature("SV_Target", 0, 15) ] },
+        instructions: [
+            globalFlagsDeclaration(),
+            declaration(2, "dcl_sampler", "sampler", { samplerModeName: "default" }),
+            declaration(4, "dcl_resource", "resource", {
+                resourceDimensionName: "texture2d",
+                returnType: { returnTypeNames: [ "float", "float", "float", "float" ] }
+            }),
+            {
+                offset: 6, opcode: 0, opcodeName: "dcl_input_ps", isDeclaration: true,
+                declaration: { registerIndex: 1, interpolationModeName: "linear" },
+                operands: [ register("input", 1) ]
+            },
+            instruction(9, "gather4", [
+                register("output", 0, { mask: "xyzw" }),
+                register("input", 1, { swizzle: "xyxx" }),
+                register("resource", 0, { swizzle: "xywz" }),
+                register("sampler", 0, { selected: "y" })
+            ]),
+            instruction(15, "ret", [])
+        ]
+    };
+    const shader = CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-gather" });
+    assert.match(shader.code, /textureGather\(1, t0, s0, vec2<f32>\([^)]+\)\)\.xywz/u);
+});
+
 test("fragment lowering emits bfi and ubfe with D3D's five-bit width and offset", () =>
 {
     const program = {
