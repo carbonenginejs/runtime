@@ -6184,3 +6184,69 @@ test("particle emit CPU oracles cover TGSM, signed pop, OOB loads, and record st
         );
     }
 });
+
+test("general compute lowers group-shared memory and a Carbon-named float typed-buffer UAV", () =>
+{
+    const shared = register("thread_group_shared_memory", 0, { componentCount: 0 });
+    const program = {
+        program: { programType: 5, programTypeName: "compute", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [], output: [], patch: [] },
+        instructions: [
+            declaration(2, "dcl_global_flags", { globalFlags: 1 << 11, refactoringAllowed: true }),
+            declaration(3, "dcl_unordered_access_view_typed", {
+                resourceDimensionName: "buffer",
+                globallyCoherent: false,
+                returnType: typedReturn("float"),
+                registerIndex: 0
+            }, register("uav", 0, { componentCount: 0 })),
+            declaration(7, "dcl_temps", { tempCount: 1 }),
+            declaration(9, "dcl_thread_group_shared_memory_structured", {
+                registerIndex: 0,
+                structureStride: 4,
+                structureCount: 8
+            }, shared),
+            declaration(13, "dcl_thread_group", { threadGroupX: 1, threadGroupY: 1, threadGroupZ: 1 }),
+            instruction(16, "mov", [ register("temp", 0, { mask: "x" }), immediate([ 0x40400000 ]) ]),
+            instruction(18, "mov", [ register("temp", 0, { mask: "z" }), immediate([ 2 ]) ]),
+            instruction(20, "store_structured", [
+                register("thread_group_shared_memory", 0, { mask: "x" }),
+                register("temp", 0, { selected: "z" }),
+                immediate([ 0 ]),
+                register("temp", 0, { selected: "x" })
+            ]),
+            instruction(26, "ld_structured", [
+                register("temp", 0, { mask: "y" }),
+                register("temp", 0, { selected: "z" }),
+                immediate([ 0 ]),
+                register("thread_group_shared_memory", 0, { swizzle: "xxxx" })
+            ]),
+            store(32, 1, register("temp", 0, { swizzle: "yyyy" })),
+            instruction(36, "ret", [])
+        ]
+    };
+    const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-group-shared" });
+    const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedViews: { "storage-resource:0:0": "R32_FLOAT" } });
+    const shader = CjsWebgpuFormat.buildWgsl(ir, { bindingPlan });
+
+    assert.match(shader.code, /var<workgroup> g0: array<u32, 8>;/u);
+    assert.match(shader.code, /if \(store_index\d+ < 8u\)/u);
+    assert.match(shader.code, /g0\[\(store_index\d+ \* 1u\) \+ 0u\] = /u);
+    assert.match(shader.code, /select\(0u, g0\[min\(/u);
+    assert.match(shader.code, /var<storage, read_write> u0: array<f32>;/u);
+    assert.match(shader.code, /u0\[store_address\d+\] = /u);
+});
+
+test("system/crash is refused by path at every tier and backend directory", async () =>
+{
+    const { rejectRefusedEffect } = await import("../../../../../src/resource/formats/webgpu/core/packageEffect.js");
+    for (const path of [
+        "res:/graphics/effect.dx11/managed/space/system/crash.sm_depth",
+        "res:/Graphics/Effect.DX12/Managed/Space/System/Crash.sm_hi",
+        "res:/graphics/effect.webgpu/managed/space/system/crash.sm_lo"
+    ])
+    {
+        assert.throws(() => rejectRefusedEffect(path), /refuses .*system\/crash never terminates/iu, path);
+    }
+    assert.doesNotThrow(() => rejectRefusedEffect("res:/graphics/effect.dx11/managed/space/system/crashsite.sm_depth"));
+    assert.doesNotThrow(() => rejectRefusedEffect("res:/graphics/effect.dx11/managed/space/postprocess/tonemapping.sm_depth"));
+});

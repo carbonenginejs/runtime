@@ -46,7 +46,10 @@ where its ranges are finite and canonical; DX12 bindless ranges are
 comparison-only. Compute programs go first to the exact profiles routed by
 `core/wgsl/lowerComputeProgram.js`; a compute program no profile claims lowers
 through the fragment lowerer's general instruction set
-(`lowerGeneralComputeProgram`) and fails closed on anything outside it.
+(`lowerGeneralComputeProgram`), including structured group-shared memory, and
+fails closed on anything outside it. `system/crash` is refused by path before
+any translation (`rejectRefusedEffect` in `core/packageEffect.js`), so a wider
+general path can never let it through.
 
 Unsupported semantics fail with an explicit diagnostic rather than a partially
 translated pass. Rejected inputs:

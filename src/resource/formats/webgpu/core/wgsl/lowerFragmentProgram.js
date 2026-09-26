@@ -31,7 +31,7 @@ const SUPPORTED_OPCODES = new Set([
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
-    "sample_l", "sincos", "sqrt", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
+    "sample_l", "sincos", "sqrt", "store_structured", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
@@ -861,16 +861,34 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
     {
         throw new Error(`WGSL fragment structured load ${instruction.index} requires an immediate DWORD byte offset`);
     }
-    const resource = validateFixedHandleOperand(instruction, 3, "resource", "fragment");
-    const binding = bindingForOperand(bindings, "sampled-resource", resource);
-    if (!binding?.buffer || !Number.isInteger(binding.structureStride))
+    let resource;
+    let strideBytes;
+    let symbol;
+    let wordCount;
+    if (instruction.operands[3]?.typeName === "thread_group_shared_memory")
     {
-        throw new Error(`WGSL fragment structured load ${instruction.index} has no structured buffer binding`);
+        // Group-shared memory: a fixed-size workgroup array, so its length is
+        // a constant rather than arrayLength.
+        resource = instruction.operands[3];
+        const shared = groupSharedMemory(program, resource.registerIndex, instruction);
+        strideBytes = shared.strideBytes;
+        symbol = shared.name;
+        wordCount = `${shared.elementCount}u`;
     }
-    const strideWords = binding.structureStride / 4;
+    else
+    {
+        resource = validateFixedHandleOperand(instruction, 3, "resource", "fragment");
+        const binding = bindingForOperand(bindings, "sampled-resource", resource);
+        if (!binding?.buffer || !Number.isInteger(binding.structureStride))
+        {
+            throw new Error(`WGSL fragment structured load ${instruction.index} has no structured buffer binding`);
+        }
+        strideBytes = binding.structureStride;
+        symbol = binding.generatedSymbol;
+        wordCount = `arrayLength(&${symbol})`;
+    }
+    const strideWords = strideBytes / 4;
     const firstWord = byteOffset / 4;
-    const symbol = binding.generatedSymbol;
-    const wordCount = `arrayLength(&${symbol})`;
     const addressInRange = `${address} < (${wordCount} / ${strideWords}u)`;
     const swizzle = rawSelectedComponents(resource, write.mask, count);
     const selected = swizzle.map((component) =>
@@ -879,7 +897,7 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
         const word = firstWord + index;
         if (index < 0 || word >= strideWords)
         {
-            throw new Error(`WGSL fragment structured load ${instruction.index} exceeds its ${binding.structureStride}-byte stride`);
+            throw new Error(`WGSL fragment structured load ${instruction.index} exceeds its ${strideBytes}-byte stride`);
         }
         const wordAddress = `((${address}) * ${strideWords}u) + ${word}u`;
         const safeWordAddress = `min(${wordAddress}, ${wordCount} - 1u)`;
@@ -1116,6 +1134,19 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         // so WGSL never forms an invalid access, then zero is selected.
         const uav = validateFixedHandleOperand(instruction, 2, "uav", "fragment");
         const binding = bindingForOperand(bindings, "storage-resource", uav);
+        const bufferView = binding?.buffer ? TYPED_VIEW_FORMATS[binding.typedView] : null;
+        if (bufferView)
+        {
+            // A typed buffer of a known view: the element expanded to D3D's four
+            // components, zero out of bounds.
+            const address = source(1, 1);
+            const symbol = binding.generatedSymbol;
+            const length = `arrayLength(&${symbol})`;
+            const element = bufferView.expand(`${symbol}[min(${address}, ${length} - 1u)]`);
+            const loaded = `select(vec4<${bufferView.element}>(), ${element}, ${address} < ${length})`;
+            const components = rawSelectedComponents(uav, mask, count);
+            return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
+        }
         if (binding?.storageTexture?.access !== "read-write" || binding.storageTexture.viewDimension !== "2d")
         {
             throw new Error(`WGSL ld_uav_typed instruction ${instruction.index} requires a read-write 2d storage texture`);
@@ -1309,6 +1340,100 @@ function applyResultBitcast(instruction, write, expression, type)
 }
 
 /**
+ * A structured group-shared memory declaration (`dcl_thread_group_shared_memory_structured`)
+ * as the workgroup array it lowers to: `g<register>`, one u32 per DWORD.
+ */
+function groupSharedMemory(program, registerIndex, instruction)
+{
+    const declaration = program.declarations.find((entry) =>
+        entry.opcodeName === "dcl_thread_group_shared_memory_structured"
+        && entry.data?.registerIndex === registerIndex);
+    const stride = declaration?.data?.structureStride;
+    const count = declaration?.data?.structureCount;
+    if (!Number.isInteger(stride) || stride < 4 || stride % 4 !== 0 || !Number.isInteger(count) || count < 1)
+    {
+        throw new Error(`WGSL instruction ${instruction.index} uses group-shared memory g${registerIndex} with no structured declaration`);
+    }
+    return { name: `g${registerIndex}`, strideBytes: stride, elementCount: (stride / 4) * count };
+}
+
+/** The workgroup arrays a compute program's group-shared declarations need. */
+function computeWorkgroupVariables(program)
+{
+    const variables = program.declarations
+        .filter((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_structured")
+        .map((entry) =>
+        {
+            const shared = groupSharedMemory(program, entry.data?.registerIndex, entry);
+            return { name: shared.name, elementType: "u32", elementCount: shared.elementCount };
+        });
+    if (program.declarations.some((entry) => entry.opcodeName === "dcl_thread_group_shared_memory_raw"))
+    {
+        throw new Error("WGSL compute lowering supports only structured group-shared memory");
+    }
+    return variables.length ? { workgroupVariables: variables } : {};
+}
+
+/**
+ * `store_structured` into group-shared memory: one u32 word per written lane,
+ * the value's bits unchanged. The whole store is skipped when the structure
+ * index is out of range, where D3D leaves the result undefined; an offset plus
+ * lane beyond the stride fails closed.
+ */
+function lowerGroupSharedStore(program, instruction, inputs, bindings)
+{
+    const target = instruction.operands[0];
+    if (target?.typeName !== "thread_group_shared_memory" || instruction.operands.length !== 4)
+    {
+        throw new Error(`WGSL store_structured instruction ${instruction.index} supports only group-shared memory`);
+    }
+    const shared = groupSharedMemory(program, target.registerIndex, instruction);
+    const byteOffset = instruction.operands[2]?.immediateValues?.[0]?.uint32;
+    if (instruction.operands[2]?.typeName !== "immediate32" || !Number.isInteger(byteOffset) || byteOffset % 4 !== 0)
+    {
+        throw new Error(`WGSL store_structured instruction ${instruction.index} requires an immediate DWORD byte offset`);
+    }
+    const strideWords = shared.strideBytes / 4;
+    const mask = target.mask || "x";
+    const name = `store_index${instruction.index}`;
+    const writes = Array.from(mask).map((component, laneIndex) =>
+    {
+        const word = (byteOffset / 4) + COMPONENTS.indexOf(component);
+        if (word >= strideWords)
+        {
+            throw new Error(`WGSL store_structured instruction ${instruction.index} exceeds its ${shared.strideBytes}-byte stride`);
+        }
+        return {
+            kind: "value-assignment",
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            name: `${shared.name}[(${name} * ${strideWords}u) + ${word}u]`,
+            expression: {
+                code: operandLaneExpression(program, instruction, 3, mask, laneIndex, "uint32", inputs, bindings, true),
+                type: "u32"
+            }
+        };
+    });
+    return [
+        {
+            kind: "let",
+            name,
+            type: "u32",
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            expression: { code: operandExpression(program, instruction, 1, "x", 1, "uint32", inputs, bindings), type: "u32" }
+        },
+        {
+            kind: "if",
+            instructionIndex: instruction.index,
+            dxbcOffset: instruction.dxbcOffset,
+            condition: { code: `${name} < ${shared.elementCount / strideWords}u`, type: "bool" },
+            statements: writes
+        }
+    ];
+}
+
+/**
  * `store_uav_typed` into a storage texture: `textureStore` at the address's
  * texel (and layer), guarded, because D3D drops an out-of-bounds typed-UAV
  * write and WGSL does not promise to.
@@ -1321,6 +1446,42 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
         throw new Error(`WGSL store_uav_typed instruction ${instruction.index} has an unsupported operand shape`);
     }
     const binding = bindingForOperand(bindings, "storage-resource", uav);
+    const bufferView = binding?.buffer ? TYPED_VIEW_FORMATS[binding.typedView] : null;
+    if (bufferView)
+    {
+        // A typed buffer of a known single-channel view: D3D writes the first
+        // component converted to the view format, and drops an out-of-bounds
+        // write, which WGSL does not promise to.
+        const name = `store_address${instruction.index}`;
+        const symbol = binding.generatedSymbol;
+        const valueType = bufferView.returnType === "uint" ? "uint32" : "float32";
+        return [
+            {
+                kind: "let",
+                name,
+                type: "u32",
+                instructionIndex: instruction.index,
+                dxbcOffset: instruction.dxbcOffset,
+                expression: { code: operandExpression(program, instruction, 1, "x", 1, "uint32", inputs, bindings), type: "u32" }
+            },
+            {
+                kind: "if",
+                instructionIndex: instruction.index,
+                dxbcOffset: instruction.dxbcOffset,
+                condition: { code: `${name} < arrayLength(&${symbol})`, type: "bool" },
+                statements: [ {
+                    kind: "value-assignment",
+                    instructionIndex: instruction.index,
+                    dxbcOffset: instruction.dxbcOffset,
+                    name: `${symbol}[${name}]`,
+                    expression: {
+                        code: operandLaneExpression(program, instruction, 2, "xyzw", 0, valueType, inputs, bindings, true),
+                        type: bufferView.element
+                    }
+                } ]
+            }
+        ];
+    }
     if (!binding?.storageTexture)
     {
         throw new Error(`WGSL store_uav_typed instruction ${instruction.index} requires a storage-texture UAV`);
@@ -1479,6 +1640,10 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
     if (instruction.opcodeName === "store_uav_typed")
     {
         return lowerStorageTextureStore(program, instruction, inputs, bindings);
+    }
+    if (instruction.opcodeName === "store_structured")
+    {
+        return lowerGroupSharedStore(program, instruction, inputs, bindings);
     }
     const writes = instruction.dataflow.writes;
     if (!writes.length) throw new Error(`WGSL fragment instruction ${instruction.index} has no result write`);
@@ -2206,6 +2371,7 @@ function lowerProgramBody(program, options, compute)
             entryPoint: "main",
             threadGroupSize: computeThreadGroupSize(program),
             ...computeBuiltinInputs(program),
+            ...computeWorkgroupVariables(program),
             bindings,
             immediateConstantBuffer: program.immediateConstantBuffer || null,
             constTables: program.constTables || null,

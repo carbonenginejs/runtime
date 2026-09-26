@@ -40,6 +40,27 @@ import {
 } from "./packageEffectSelection.js";
 
 /**
+ * Effects this backend refuses by name, whatever the translator can lower.
+ *
+ * `system/crash` must never run: without its sentinel its loop visits all
+ * 2^32 indices and never terminates, and several workgroups race where it
+ * expects exactly one; an iteration cap would change what it does, and the
+ * package proves neither premise (`lowerComputeProgram.js`). It is refused
+ * here by path, for every tier and backend directory, so a wider general
+ * compute path can never let it through.
+ */
+const REFUSED_EFFECTS = Object.freeze([
+    { pattern: /\/managed\/space\/system\/crash\.[^/]*$/iu, reason: "system/crash never terminates without its sentinel and races across workgroups" }
+]);
+
+/** Throws for an effect this backend refuses by name. */
+export function rejectRefusedEffect(source)
+{
+    const refused = REFUSED_EFFECTS.find((entry) => entry.pattern.test(String(source ?? "")));
+    if (refused) throw new Error(`WebGPU refuses ${source}: ${refused.reason}`);
+}
+
+/**
  * Build one structurally valid Carbon WebGPU package from compiled Tr2 effect bytes.
  *
  * The version-15 build result retains every unique body's portable source
@@ -86,6 +107,7 @@ export function buildEffectPackage(input, options = {})
 {
     const mode = normalizeMode(options.mode, options.allPermutations);
     const source = normalizeSource(options.source);
+    rejectRefusedEffect(source);
     // Resolved once, up front, so an unwritable request fails before any
     // translation work is done rather than at the final assembly step. The
     // reported value is what was actually emitted, never the constant.
