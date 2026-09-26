@@ -1608,7 +1608,8 @@ function BindCameraInput(canvas, camera, bounds)
   canvas.addEventListener("pointermove", event =>
   {
     if (!last) return;
-    camera.OrbitParent((last[0] - event.clientX) * 0.1, (last[1] - event.clientY) * 0.1);
+    // Vertical drag is inverted at the operator's preference.
+    camera.OrbitParent((last[0] - event.clientX) * 0.1, (event.clientY - last[1]) * 0.1);
     last = [ event.clientX, event.clientY ];
   });
   canvas.addEventListener("wheel", event =>
