@@ -364,3 +364,14 @@ test("a sampled depth texture is read through an r32float shadow copied via a ro
   assert.equal(attachmentOnly.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL }, al), ALResult.S_OK);
   assert.equal(attachmentOnly.EncodeDepthShadowCopy(encoder), false);
 });
+
+test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", () =>
+{
+  // rgba16unorm is not core WebGPU; Carbon's TAA accumulators use it
+  // (Tr2PostProcessRenderer.cpp:1450-1463).
+  const { al, calls } = composed();
+  const accumulator = new CjsWebgpuTextureAL();
+
+  assert.equal(accumulator.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+  assert.equal(calls.textures.at(-1).format, "rgba16float");
+});

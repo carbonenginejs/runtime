@@ -23,6 +23,9 @@ const { PIXEL_FORMAT_SENTINEL } = PixelFormat;
  * depth format behind an optional feature), the entry is absent, which is
  * Metal's `MTLPixelFormatInvalid`: the texture is refused.
  *
+ * R16G16B16A16_UNORM is the one such format substituted rather than refused,
+ * because TAA renders into it; see its entry.
+ *
  * One entry differs from Metal on purpose. Metal maps `D24_UNORM_S8_UINT` to
  * `Depth32Float` because Apple GPUs lack a 24-bit depth format; WebGPU has
  * `depth24plus-stencil8` in core, which keeps the stencil.
@@ -32,6 +35,12 @@ const PIXEL_FORMATS = [
   [ PixelFormat.PIXEL_FORMAT_R32G32B32A32_UINT, "rgba32uint" ],
   [ PixelFormat.PIXEL_FORMAT_R32G32B32A32_SINT, "rgba32sint" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_FLOAT, "rgba16float" ],
+  // DIVERGENCE: rgba16unorm is not core WebGPU (Metal has RGBA16Unorm). Carbon
+  // renders TAA's accumulators in it (Tr2PostProcessRenderer.cpp:1450-1463);
+  // rgba16float holds every 16-bit unorm value's range, a little less exactly
+  // near 1. A render target only: 16-bit unorm pixel data uploaded into it
+  // would be read as halves.
+  [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, "rgba16float" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UINT, "rgba16uint" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_SINT, "rgba16sint" ],
   [ PixelFormat.PIXEL_FORMAT_R32G32_FLOAT, "rg32float" ],
