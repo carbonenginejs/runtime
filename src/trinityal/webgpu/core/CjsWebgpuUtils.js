@@ -26,6 +26,11 @@ const { PIXEL_FORMAT_SENTINEL } = PixelFormat;
  * R16G16B16A16_UNORM is the one such format substituted rather than refused,
  * because TAA renders into it; see its entry.
  *
+ * R16_UNORM is mapped to Metal's own `R16Unorm` equivalent, which WebGPU has
+ * only behind the `texture-formats-tier1` device feature (see
+ * `FORMAT_FEATURES`). CORTAO's lookup table is R16_UNORM data
+ * (`Tr2SSAO.cpp:112`).
+ *
  * One entry differs from Metal on purpose. Metal maps `D24_UNORM_S8_UINT` to
  * `Depth32Float` because Apple GPUs lack a 24-bit depth format; WebGPU has
  * `depth24plus-stencil8` in core, which keeps the stencil.
@@ -67,6 +72,7 @@ const PIXEL_FORMATS = [
   [ PixelFormat.PIXEL_FORMAT_R8G8_SNORM, "rg8snorm" ],
   [ PixelFormat.PIXEL_FORMAT_R8G8_SINT, "rg8sint" ],
   [ PixelFormat.PIXEL_FORMAT_R16_FLOAT, "r16float" ],
+  [ PixelFormat.PIXEL_FORMAT_R16_UNORM, "r16unorm" ],
   [ PixelFormat.PIXEL_FORMAT_D16_UNORM, "depth16unorm" ],
   [ PixelFormat.PIXEL_FORMAT_R16_UINT, "r16uint" ],
   [ PixelFormat.PIXEL_FORMAT_R16_SINT, "r16sint" ],
@@ -98,6 +104,15 @@ const PIXEL_FORMATS = [
   [ PixelFormat.PIXEL_FORMAT_BC7_UNORM, "bc7-rgba-unorm" ],
   [ PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB, "bc7-rgba-unorm-srgb" ]
 ];
+
+/**
+ * The device feature a mapped format needs, for the formats core WebGPU lacks.
+ * A texture in one of them is refused on a device without the feature, where
+ * Metal has the format natively.
+ */
+const FORMAT_FEATURES = new Map([
+  [ "r16unorm", "texture-formats-tier1" ]
+]);
 
 /**
  * The linear formats Metal makes an sRGB view of, and the view's format
@@ -137,6 +152,18 @@ export class CjsWebgpuUtils
     return pixelFormat >= 0 && pixelFormat < PIXEL_FORMAT_SENTINEL
       ? this._pixelFormatConversionTable[pixelFormat]
       : null;
+  }
+
+  /**
+   * The device feature a `GPUTextureFormat` needs, or null for a core format.
+   * WebGPU-only: every format in Metal's table is native to Metal.
+   *
+   * @param {string} format A `GPUTextureFormat`.
+   * @returns {string|null} The `GPUFeatureName`, or null.
+   */
+  GetRequiredFeature(format)
+  {
+    return FORMAT_FEATURES.get(format) ?? null;
   }
 
   /**

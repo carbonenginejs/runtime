@@ -143,6 +143,12 @@ export class CjsWebgpuTextureAL
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const device = webgpu.GetDevice();
+
+    // A format behind a device feature is refused here when the device lacks
+    // it, rather than left to fail inside createTexture.
+    const feature = al.m_utils.GetRequiredFeature(format);
+
+    if (feature && !device.features.has(feature)) return ALResult.E_INVALIDARG;
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
       ? requestedFormat
