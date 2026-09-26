@@ -109,7 +109,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
@@ -1933,6 +1933,13 @@ export async function RunDemo(canvas)
   const madeTextures = [];
   const createTexture = device.createTexture.bind(device);
 
+  // READABLE STORAGE BUFFERS, for the demo's readbacks (demo.flare(),
+  // demo.exposure()). A buffer is a copy source only when its CPU usage says
+  // READ, which the GPU-written ones never do. Diagnostic only.
+  const createBuffer = device.createBuffer.bind(device);
+  device.createBuffer = descriptor => createBuffer(
+    (descriptor.usage & GPUBufferUsage.STORAGE) ? { ...descriptor, usage: descriptor.usage | GPUBufferUsage.COPY_SRC } : descriptor);
+
   device.createTexture = descriptor =>
   {
     const layers = descriptor.size?.[2] ?? descriptor.size?.depthOrArrayLayers ?? 1;
@@ -2281,6 +2288,78 @@ export async function RunDemo(canvas)
   // What dynamic exposure measured: the persistent 8-float buffer the measure
   // pass writes and tonemapping reads (Tr2PostProcessRenderer GetExposureBuffer).
   // Twice, a second apart, so a value that never moves is visible.
+  // demo.flare(): whether lens-flare occlusion runs. Over half a second it
+  // counts each occluder's RunQuery calls and the batches its sprites commit,
+  // lists the sprites (mesh, areas, effect state), then reads the flare's two
+  // FlareOcclusionBuffer slots: words 0-4 are visibilities (floats, 1.0 after
+  // Clear; word 0 is their product), words 5-12 the per-occluder counter
+  // pairs (total, visible*100). Queries with no commits means the sprites
+  // never reach a batch; commits with zero counters means the occluder
+  // shader draws nothing; counters with word 0 still 1.0 means CopyCounters
+  // does not run.
+  globalThis.demo.flare = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const report = [];
+    for (const lensflare of realScene?.lensflares ?? [])
+    {
+      const watched = [ ...lensflare.occluders, ...lensflare.backgroundOccluders ].map(occluder =>
+      {
+        const counts = { queries: 0, commits: 0 };
+        const commit = occluder._batches.Commit.bind(occluder._batches);
+        const query = occluder.RunQuery.bind(occluder);
+        occluder._batches.Commit = batch => { counts.commits += 1; return commit(batch); };
+        occluder.RunQuery = (...args) => { counts.queries += 1; return query(...args); };
+        return { occluder, counts, restore: () => { delete occluder._batches.Commit; delete occluder.RunQuery; } };
+      });
+      await new Promise(resolve => setTimeout(resolve, 500));
+      for (const entry of watched) entry.restore();
+
+      const gpuBuffer = Tr2OcclusionBuffer.getInstance().buffer.GetGpuBuffer(0)?.GetDeviceBuffer?.() ?? null;
+      let words = null;
+      if (gpuBuffer)
+      {
+        const staging = device.createBuffer({ size: gpuBuffer.size, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+        const encoder = device.createCommandEncoder();
+        encoder.copyBufferToBuffer(gpuBuffer, 0, staging, 0, gpuBuffer.size);
+        device.queue.submit([ encoder.finish() ]);
+        await staging.mapAsync(GPUMapMode.READ);
+        words = new Uint32Array(staging.getMappedRange().slice(0));
+        staging.unmap();
+        staging.destroy();
+      }
+      const slot = offset =>
+      {
+        if (!words || offset === null) return null;
+        const view = words.slice(offset, offset + 13);
+        const floats = new Float32Array(view.buffer);
+        return { visibility: Array.from(floats.slice(0, 5)), counters: Array.from(view.slice(5, 13)) };
+      };
+
+      report.push({
+        position: Array.from(lensflare.position),
+        display: lensflare.display,
+        foreground: { offset: lensflare.occlusionOffset, ...slot(lensflare.occlusionOffset) },
+        background: { offset: lensflare.backgroundOcclusionOffset, ...slot(lensflare.backgroundOcclusionOffset) },
+        occluders: watched.map(({ occluder, counts }) => ({
+          name: occluder.name,
+          display: occluder.display,
+          ...counts,
+          sprites: occluder.sprites.map(sprite => ({
+            name: sprite.name,
+            display: sprite.display,
+            modifier: sprite.modifier,
+            mesh: Boolean(sprite.mesh),
+            opaqueAreas: sprite.mesh?.opaqueAreas?.length ?? 0,
+            effect: EffectState(sprite.mesh?.opaqueAreas?.[0]?.effect ?? null)
+          }))
+        })),
+        bufferReadable: Boolean(gpuBuffer)
+      });
+    }
+    return report;
+  };
+
   globalThis.demo.exposure = async () =>
   {
     const device = al.GetWebgpu().GetDevice();
