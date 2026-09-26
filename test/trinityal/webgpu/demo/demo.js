@@ -2582,10 +2582,10 @@ export async function RunDemo(canvas)
    * templates carries tonemapping and many carry no dynamic exposure, yet the
    * game shows both, so the client supplies them. The client's own values are
    * not available: an absent slot gets a Carbon-default effect, and a slot
-   * the template authors is never touched. Without them asteroid_ice_field
-   * with the sun ahead had 88% of pixels at white; with them, under 1%
-   * (measured in ccpwgl, b04958e4). Switching off restores what the template
-   * authored.
+   * the template authors is never touched. EVE's composite has its curve
+   * built in (no TONE_MAPPING_METHOD axis), so the injected tonemapping
+   * effect contributes its curve parameters only. The exposure is the part
+   * that dims the frame. Switching off restores what the template authored.
    */
   function ApplyClientDefaults()
   {
