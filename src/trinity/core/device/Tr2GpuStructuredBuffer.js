@@ -68,7 +68,8 @@ export class Tr2GpuStructuredBuffer extends CjsModel
   /**
    * Carbon CreateBuffer (cpp:118-149): SHADER_RESOURCE always, plus
    * UNORDERED_ACCESS when GPU-writable; CPU READ, or WRITE_OFTEN when
-   * CPU-writable. A zero count or stride refuses.
+   * CPU-writable. A zero count or stride refuses and keeps the current
+   * buffer; a failed create leaves none.
    *
    * @param {Tr2RenderContext} renderContext The context to create on.
    * @returns {number} An `ALResult`.
@@ -77,8 +78,8 @@ export class Tr2GpuStructuredBuffer extends CjsModel
   @impl.adapted
   CreateBuffer(renderContext)
   {
-    this._buffer = null;
     if (!this.count || !this.stride) return ALResult.E_INVALIDARG;
+    this._buffer = null;
 
     const { CPU_WRITABLE, GPU_WRITABLE } = Tr2GpuStructuredBuffer.CreationFlag;
     let gpuUsage = Tr2GpuUsage.SHADER_RESOURCE;
@@ -124,12 +125,12 @@ export class Tr2GpuStructuredBuffer extends CjsModel
     return this._buffer !== null;
   }
 
-  /** Carbon GetCount (cpp:173-175). */
+  /** Carbon GetCount (cpp:173-175): the created buffer's element count, 0 without one. */
   @carbon.method
   @impl.implemented
   GetCount()
   {
-    return this.count;
+    return this._buffer ? this._buffer.GetDesc().count : 0;
   }
 
   /** Carbon method __init__ -> py__init__ (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
