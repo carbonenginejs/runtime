@@ -503,6 +503,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
+    // "The lensflares need a special pre-render update" (cpp:1419-1422): after
+    // the gather and lights, before the per-frame fills, against this frame's
+    // frustum.
+    for (const lensflare of this.scene.lensflares ?? []) lensflare.PrepareRender(this.#frustum, renderContext);
+
     // Carbon populates per-frame data AFTER the gather, because the blended sun
     // colour is only current once lights have been gathered (cpp:1396-1426),
     // and BEFORE the render job's steps draw the batches. RenderBatches draws

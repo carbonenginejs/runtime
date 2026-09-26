@@ -5,9 +5,13 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
+import { vec4 } from "#math/vec4";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2VariableStore } from "../../../core/variable/Tr2VariableStore.js";
 import { Tr2OcclusionBuffer } from "./Tr2OcclusionBuffer.js";
+
+/** Scratch for PrepareRender's negated vectors. */
+const prepareScratch = vec3.create();
 
 /** The float whose bits are `value`: Carbon's `*reinterpret_cast<float*>( &offset )` (cpp:170). */
 const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).buffer)[0];
@@ -315,6 +319,80 @@ export class EveLensflare extends CjsModel
   StartControllers()
   {
     for (const controller of this.controllers) controller?.Start();
+  }
+
+  /**
+   * Carbon PrepareRender (cpp:192-266): the per-frame placement that needs
+   * this frame's frustum. The direction to the sun (from the camera when the
+   * flare has no position), a transform that turns the flare geometry toward
+   * it and parks it `cameraFactor` in front of the camera, the
+   * LensflareFxDirectionScale global, and the sun's screen position driving
+   * the edge, centre, angle and x/y curves before the bindings copy.
+   *
+   * Carbon's row-vector `Transform( v, M )` over a row-major matrix is
+   * gl-matrix `transformMat4` over the same bytes.
+   *
+   * The render context is an ADDED argument: Carbon reads the view from
+   * Tr2Renderer::GetViewTransform, a static this runtime keeps on the context.
+   *
+   * @param {TriFrustum} frustum This frame's frustum.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  PrepareRender(frustum, renderContext)
+  {
+    if (!this.display) return;
+
+    if (vec3.squaredLength(this.position) === 0) vec3.normalize(this.direction, vec3.negate(prepareScratch, frustum.viewPos));
+    else vec3.normalize(this.direction, vec3.negate(prepareScratch, this.position));
+
+    const cameraSpacePos = vec3.scaleAndAdd(vec3.create(), frustum.viewPos, frustum.viewDir, -this.cameraFactor);
+
+    mat4.arcFromForward(this.transform, vec3.negate(prepareScratch, this.direction));
+    this.transform[12] = cameraSpacePos[0];
+    this.transform[13] = cameraSpacePos[1];
+    this.transform[14] = cameraSpacePos[2];
+    this.transform[15] = 1;
+
+    this.#directionVar.SetValue([ this.direction[0], this.direction[1], this.direction[2], this.sunSize ]);
+
+    const direction = vec4.fromValues(this.direction[0], this.direction[1], this.direction[2], 0);
+    vec4.transformMat4(direction, direction, renderContext.GetViewTransform());
+    vec4.transformMat4(direction, direction, frustum.projectionMatrix);
+    direction[0] /= direction[3];
+    direction[1] /= direction[3];
+
+    const distanceToEdge = 1 - Math.min(1 - Math.abs(direction[0]), 1 - Math.abs(direction[1]));
+    const distanceToCenter = Math.hypot(direction[0], direction[1]);
+    const radialAngle = Math.atan2(direction[1], direction[0]) + Math.PI;
+
+    for (const curve of this.distanceToEdgeCurves) curve.UpdateValue(distanceToEdge);
+    for (const curve of this.distanceToCenterCurves) curve.UpdateValue(distanceToCenter);
+    for (const curve of this.radialAngleCurves) curve.UpdateValue(radialAngle);
+    for (const curve of this.xDistanceToCenter) curve.UpdateValue(direction[0] + 10);
+    for (const curve of this.yDistanceToCenter) curve.UpdateValue(direction[1] + 10);
+    for (const binding of this.bindings) binding.CopyValue();
+  }
+
+  /**
+   * Carbon GetRenderables (cpp:278-296): nothing unless displayed and visible;
+   * each flare child's renderables, then this lensflare itself for its mesh.
+   *
+   * @param {TriFrustum} _frustum This frame's frustum (unused, as in Carbon).
+   * @param {Array} renderables Out: the renderables.
+   * @returns {Array} `renderables`.
+   */
+  @carbon.method
+  @impl.implemented
+  GetRenderables(_frustum, renderables = [])
+  {
+    if (!this.display || !this.isVisible) return renderables;
+
+    for (const flare of this.flares) flare.GetRenderables(renderables, null);
+    if (this.mesh) renderables.push(this);
+    return renderables;
   }
 
   /** Carbon EveLensflare::GetBatches delegates the selected mesh areas (cpp:381-387). */
