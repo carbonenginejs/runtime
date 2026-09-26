@@ -6,6 +6,7 @@ import { CjsParameter } from "./CjsParameter.js";
 import { ITriEffectResourceParameter } from "./ITriEffectResourceParameter.js";
 import { ResourceFlags } from "./ITr2EffectValue.js";
 import { Tr2ColorSpace } from "#consts/render-context";
+import { RealizeTexture } from "../../core/Tr2ImageIOHelpers.js";
 
 
 /**
@@ -117,21 +118,43 @@ export class Tr2RuntimeTextureParameter extends CjsParameter
    * provider's texture as a shader resource. With none, a null binding, which
    * a backend fills with its placeholder as Carbon's fallback texture.
    *
+   * Adapted: a provider that is a loaded texture resource has its texture
+   * made here, on first bind, through the trailing `renderContext`
+   * (`RealizeTexture`), as `TriTextureParameter` and `TriVariable` do; Carbon
+   * made it at load. Without this, a `TriTextureRes` handed to
+   * `Tr2Effect.SetParameter` (CORTAO's lookup table) bound the placeholder
+   * forever.
+   *
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @param {object} [renderContext] The context a resource's texture is made through.
    * @returns {boolean} Whether the slot took the binding.
    */
   @carbon.method
-  @impl.implemented
-  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  @impl.adapted
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
       ? Tr2ColorSpace.COLOR_SPACE_SRGB
       : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-    return resourceDesc.SetSrv(stage, registerIndex, this.texture ? this.texture.GetTexture() : null, colorSpace);
+    return resourceDesc.SetSrv(stage, registerIndex, this._Texture(renderContext), colorSpace);
+  }
+
+  /** The provider's texture, realized through the context if it is a resource that has loaded but not yet been created; null otherwise. */
+  _Texture(renderContext)
+  {
+    const provider = this.texture;
+
+    if (!provider) return null;
+
+    const texture = provider.GetTexture();
+
+    if (texture || !renderContext || typeof provider.IsPrepared !== "function") return texture;
+
+    return RealizeTexture(provider, renderContext);
   }
 
   /**

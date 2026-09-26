@@ -191,3 +191,40 @@ test("dynamic:/texturearray stacks separate images as the layers of one array", 
   assert.equal(bitmap.GetTrueMipCount(), 2, "a mip chain per layer");
   assert.equal(resMan.GetResource("dynamic:/texturearray/res:/x/detail1.dds;res:/x/detail2.dds"), texture, "the string is the identity");
 });
+
+test("a loaded texture resource handed to a runtime texture parameter is made on first bind", async () =>
+{
+  // CORTAO's lookup table: Tr2SSAO passes its TriTextureRes to
+  // Tr2Effect.SetParameter, which holds it in a Tr2RuntimeTextureParameter.
+  // Our resources make their texture on first bind (Tr2ImageIOHelpers), so
+  // that parameter must realize it, as TriTextureParameter does; it bound
+  // the placeholder instead ("lookupTable ... texture: false").
+  const { Tr2RuntimeTextureParameter } = await import("../../npm/dist/trinity/index.js");
+  const { Tr2TexturePipeline, Tr2TexturePipelineStepLoad } = await import("../../npm/dist/resource/index.js");
+  const { StubContext } = await import("../support/stubContext.js");
+  const resMan = new CjsResMan();
+  resMan.Register({ source: { Read: () => Promise.resolve(legacyDds(2, 1, [ 0, 0, 200, 255, 0, 0, 100, 255 ])) } });
+  RegisterTextureResources(resMan);
+
+  const load = new Tr2TexturePipelineStepLoad();
+  load.path = "res:/texture/ssao/lookup.dds";
+  const pipeline = new Tr2TexturePipeline();
+  pipeline.steps = [ load ];
+
+  const resource = new TriTextureRes();
+  assert.equal(await resource.LoadPipeline(pipeline, resMan), true);
+  assert.equal(resource.GetTexture(), null, "loaded, not yet made");
+
+  const parameter = new Tr2RuntimeTextureParameter();
+  parameter.Create("LookupTable", resource);
+  let bound;
+  const description = { SetSrv: (_stage, _register, texture) => { bound = texture; return true; } };
+
+  // No context: nothing to make it through, so the placeholder.
+  parameter.CopyToResourceSet(description, 5, 2, 0);
+  assert.equal(bound, null);
+
+  parameter.CopyToResourceSet(description, 5, 2, 0, StubContext());
+  assert.notEqual(bound, null);
+  assert.equal(resource.GetTexture(), bound, "made once, kept on the resource");
+});
