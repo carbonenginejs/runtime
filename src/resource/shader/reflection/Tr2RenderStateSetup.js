@@ -213,20 +213,6 @@ const WEBGPU_BLEND_OP = Object.freeze({
 });
 
 /**
- * Depth-format mantissa widths, for the WebGPU bias conversion.
- *
- * A UNORM depth buffer's smallest increment is `1 / (2^bits - 1)`, so a float
- * bias multiplies by that many units. `depth32float` has no fixed increment -
- * WebGPU defines the unit as format-dependent and implementation-chosen there -
- * so a float bias cannot be converted exactly and is refused.
- */
-const WEBGPU_DEPTH_UNORM_BITS = Object.freeze({
-  depth16unorm: 16,
-  depth24plus: 24,
-  "depth24plus-stencil8": 24
-});
-
-/**
  * WebGPU front-face winding, stated once.
  *
  * Carbon runs D3D's default rasterizer state, in which a clockwise winding is
@@ -682,18 +668,13 @@ export class Tr2RenderStateSetup
 
     const hasBias = this.depth.bias !== 0 || this.depth.slopeScaledBias !== 0;
 
-    let depthBias = 0;
-    if (depthFormat !== null && this.depth.bias !== 0)
-    {
-      const bits = WEBGPU_DEPTH_UNORM_BITS[depthFormat];
-      if (bits === undefined)
-      {
-        throw new RangeError(
-          `Carbon's fractional depth bias cannot be converted for depth format "${depthFormat}"`
-        );
-      }
-      depthBias = Math.round(this.depth.bias * (2 ** bits - 1));
-    }
+    // Carbon's DX11 backend truncates the authored float to D3D's integer
+    // DepthBias (`Tr2RenderContextDx11.cpp:1831-1839`; DX12 assigns it to the
+    // same INT field), and WebGPU's depthBias is that integer in D3D's units,
+    // for float and UNORM depth formats alike. The shadow technique's 1.0 is a
+    // bias of 1. Metal keeps a fraction (its setDepthBias takes a float);
+    // WebGPU's is an integer, so a fraction truncates as it does on DX11.
+    const depthBias = depthFormat === null ? 0 : Math.trunc(this.depth.bias);
 
     // The channel bits are the same in both vocabularies, so the mask is rebuilt
     // through the shared flags rather than through literals.

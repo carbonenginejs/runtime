@@ -324,11 +324,13 @@ test("the colour write mask passes through as WebGPU channel bits", () =>
   assert.equal(webgpuOf([ [ RS_COLORWRITEENABLE, 0b0111 ] ]).target.writeMask, 0b0111);
 });
 
-test("depth bias converts into the depth format's integer units", () =>
+test("depth bias truncates to D3D's integer units, as Carbon's DX11 backend does", () =>
 {
+  // Tr2RenderContextDx11.cpp:1831-1839: rs.DepthBias = static_cast<INT>( float ).
+  // It is not scaled by the format: the shadow technique's 1.0 is a bias of 1.
   const recipe = webgpuOf(
     [
-      [ RS_DEPTHBIAS, bitsOf(1 / (2 ** 24 - 1)) ],
+      [ RS_DEPTHBIAS, bitsOf(1.9) ],
       [ RS_SLOPESCALEDEPTHBIAS, bitsOf(-1.5) ]
     ],
     { depthFormat: "depth24plus" }
@@ -341,8 +343,7 @@ test("depth bias converts into the depth format's integer units", () =>
 
 test("a slope-scaled bias alone needs no format conversion", () =>
 {
-  // The decal case: WebGPU takes the slope scale as a float, so a float depth
-  // format is only refused when there is a constant bias to convert.
+  // The decal case: WebGPU takes the slope scale as a float.
   const recipe = webgpuOf(
     [ [ RS_SLOPESCALEDEPTHBIAS, bitsOf(-1.5) ] ],
     { depthFormat: "depth32float" }
@@ -352,12 +353,18 @@ test("a slope-scaled bias alone needs no format conversion", () =>
   assert.equal(recipe.depthStencil.depthBiasSlopeScale, -1.5);
 });
 
-test("a float depth format cannot carry a fractional constant bias", () =>
+test("a float depth format carries the constant bias too, and a fraction truncates", () =>
 {
-  assert.throws(
-    () => webgpuOf([ [ RS_DEPTHBIAS, bitsOf(0.0001) ] ], { depthFormat: "depth32float" }),
-    /cannot be converted for depth format "depth32float"/
+  // The cascaded shadow atlas is D32_FLOAT and the Shadow technique authors
+  // bias 1.0; refusing it here left every shadow draw undrawn.
+  const shadow = webgpuOf(
+    [ [ RS_DEPTHBIAS, bitsOf(1) ], [ RS_SLOPESCALEDEPTHBIAS, bitsOf(1) ] ],
+    { depthFormat: "depth32float" }
   );
+
+  assert.equal(shadow.depthStencil.depthBias, 1);
+  assert.equal(shadow.depthStencil.depthBiasSlopeScale, 1);
+  assert.equal(webgpuOf([ [ RS_DEPTHBIAS, bitsOf(0.0001) ] ], { depthFormat: "depth32float" }).depthStencil.depthBias, 0);
 });
 
 test("a setup with no depth attachment omits depth state", () =>

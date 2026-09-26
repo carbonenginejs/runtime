@@ -15,9 +15,9 @@
 //
 //   Tr2RenderStateSetup maps them to its depth.bias and depth.slopeScaledBias,
 //   and GetWebgpuRecipe projects all three onto the pipeline's depthStencil
-//   state as depthBias, depthBiasSlopeScale and depthBiasClamp. It also converts
-//   Carbon's FRACTIONAL bias into WebGPU's integer units using the depth
-//   format's UNORM bit count, and refuses formats it cannot convert for.
+//   state as depthBias, depthBiasSlopeScale and depthBiasClamp. The constant
+//   bias is truncated to an integer, as Carbon's DX11 backend does
+//   (Tr2RenderContextDx11.cpp:1831-1839), for every depth format.
 //
 // depthBiasClamp is projected as 0 because Carbon's render-state vocabulary has
 // no clamp slot at all - Metal's struct carries one only because Metal's API
