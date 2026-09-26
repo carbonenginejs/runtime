@@ -18,12 +18,12 @@
 //      because `Unpack` threw - see its note - and one throw ended the loop
 //      silently. The loop now survives a failed frame and records why.
 //
-// THE LIT-PIXEL COUNT IS STILL NOT EVIDENCE. Chrome warns "Destroyed texture
-// used in a submit" when the readback copies the presented image, because the
-// swap-chain texture is gone by then, so the count reads zero even in a window
-// where the hull is plainly visible. Headless is worse: its screenshot is pure
-// black, not even the clear colour. THE CANVAS IS THE ORACLE. Do not read a zero
-// here as proof of nothing; a correct count needs an offscreen target.
+// THE LIT-PIXEL COUNT WAS NOT EVIDENCE until 2026-09-26: the readback was
+// submitted after an await, by which time the canvas had presented and the
+// swap-chain texture was destroyed ("Destroyed texture used in a submit"), so it
+// read zero with the hull on screen. `Frame` now submits the copy first. That
+// fix is unverified on a real adapter; until it is, THE CANVAS IS THE ORACLE,
+// and headless screenshots are pure black regardless.
 //
 // Measured correct, on a real adapter, as of 2026-09-10:
 //
@@ -1583,11 +1583,18 @@ export async function RunDemo(canvas)
 
     driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
 
-    await al.EndScene();
+    al.EndScene();
+
+    // THE READBACK IS SUBMITTED BEFORE ANYTHING AWAITS. A real await ends the
+    // task, the canvas presents, and the swap-chain texture is destroyed, so a
+    // copy submitted after popErrorScope failed with "Destroyed texture used in
+    // a submit" and the count read zero. CountDrawnPixels records and submits
+    // its copy synchronously, before its own first await.
+    const litPixels = CountDrawnPixels(device, presented, canvas);
 
     return {
       validation: (await device.popErrorScope())?.message ?? null,
-      litPixels: await CountDrawnPixels(device, presented, canvas)
+      litPixels: await litPixels
     };
   }
 
