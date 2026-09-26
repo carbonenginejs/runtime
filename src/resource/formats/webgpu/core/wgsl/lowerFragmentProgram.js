@@ -31,7 +31,7 @@ const SUPPORTED_OPCODES = new Set([
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
-    "sample_l", "sincos", "sqrt", "store_structured", "sync", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
+    "sample_l", "sincos", "sqrt", "store_structured", "sync", "udiv", "uge", "ubfe", "ibfe", "countbits", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
@@ -44,7 +44,9 @@ const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_ret
 const COMPUTE_BUILTINS = Object.freeze({
     "input_thread_id[]": Object.freeze({ builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" }),
     "input_thread_id_in_group[]": Object.freeze({ builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" }),
-    "input_thread_group_id[]": Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" })
+    "input_thread_group_id[]": Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" }),
+    // SV_GroupIndex, a scalar: read without a component suffix.
+    "input_thread_id_in_group_flattened[]": Object.freeze({ builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" })
 });
 const SAMPLE_OFFSET_OPCODES = new Set([ "sample", "sample_b", "sample_d", "sample_l" ]);
 const NUMERIC_CONVERSIONS = Object.freeze({
@@ -296,7 +298,8 @@ function valueReference(program, ref, inputs)
     {
         const builtin = COMPUTE_BUILTINS[value.register];
         const target = value.componentTypes?.[ref.component];
-        return reinterpretCode(`${builtin.name}.${ref.component}`, "uint32", target, 1, `${value.register}.${ref.component}`);
+        const code = builtin.type === "u32" ? builtin.name : `${builtin.name}.${ref.component}`;
+        return reinterpretCode(code, "uint32", target, 1, `${value.register}.${ref.component}`);
     }
     if (value.origin === "program-input")
     {
@@ -1001,6 +1004,24 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         const parts = Array.from({ length: count }, (_, index) =>
             `extractBits(${value(index)}, ${offset(index)} & 31u, ${width(index)} & 31u)`);
         return vectorCode(parts, "uint32");
+    }
+    // D3D countbits is WGSL countOneBits, component-wise on u32.
+    if (op === "countbits") return `countOneBits(${source(1)})`;
+    if (op === "ibfe")
+    {
+        // ubfe's signed twin. D3D11 masks width and offset to five bits, yields
+        // 0 for width 0, sign-extends the field from its top bit, and when the
+        // field runs past bit 31 is an arithmetic shift right by offset. WGSL's
+        // i32 extractBits clamps count to 32 - offset and sign-extends from
+        // the last extracted bit: the same field.
+        // All three sources are signed here (inferValueTypes' INT_OPS); width
+        // and offset become the u32 counts extractBits takes.
+        const lanes = [ source(1), source(2), source(3) ].map((code) =>
+            (index) => (count === 1 ? `(${code})` : `(${code})[${index}]`));
+        const [ width, offset, value ] = lanes;
+        const parts = Array.from({ length: count }, (_, index) =>
+            `extractBits(${value(index)}, u32(${offset(index)}) & 31u, u32(${width(index)}) & 31u)`);
+        return vectorCode(parts, "int32");
     }
     if (op === "imul" || op === "umul")
     {
@@ -2057,7 +2078,7 @@ function computeBuiltinInputs(program)
     const used = new Set(program.values
         .filter((value) => value.origin === "program-input" && COMPUTE_BUILTINS[value.register])
         .map((value) => value.register));
-    const order = [ "input_thread_group_id[]", "input_thread_id_in_group[]", "input_thread_id[]" ];
+    const order = [ "input_thread_group_id[]", "input_thread_id_in_group[]", "input_thread_id[]", "input_thread_id_in_group_flattened[]" ];
     const builtinInputs = order.filter((register) => used.has(register))
         .map((register) => ({ ...COMPUTE_BUILTINS[register] }));
     return builtinInputs.length ? { builtinInputs } : {};

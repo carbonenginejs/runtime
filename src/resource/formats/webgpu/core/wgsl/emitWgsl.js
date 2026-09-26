@@ -217,42 +217,31 @@ export function computeEntryPointParameters(program)
         builtins.add(input.builtin);
         names.add(input.name);
     }
-    const signature = inputs.map((input) =>
-        `${input.builtin}:${input.name}:${input.type}`).join("|");
-    if (signature === "global_invocation_id:dispatch_thread_id:vec3<u32>")
+    // A CLOSED SCHEMA: every input is one of these, with exactly this name and
+    // type, and they arrive in this order (the lowering's own order). Any
+    // subset in that order is accepted; CORTAO's Pack pass, for one, reads
+    // SV_GroupIndex beside the group and thread IDs.
+    let previous = -1;
+    for (const input of inputs)
     {
-        return "@builtin(global_invocation_id) dispatch_thread_id: vec3<u32>";
+        const index = COMPUTE_BUILTIN_SCHEMA.findIndex((entry) =>
+            entry.builtin === input.builtin && entry.name === input.name && entry.type === input.type);
+        if (index <= previous)
+        {
+            throw new Error("WGSL compute builtinInputs contains an unsupported ordered schema");
+        }
+        previous = index;
     }
-    if (signature === "local_invocation_id:local_invocation_id:vec3<u32>")
-    {
-        return "@builtin(local_invocation_id) local_invocation_id: vec3<u32>";
-    }
-    if (signature === "local_invocation_index:local_invocation_index:u32")
-    {
-        return "@builtin(local_invocation_index) local_invocation_index: u32";
-    }
-    if (signature === "local_invocation_id:local_invocation_id:vec3<u32>|"
-        + "global_invocation_id:dispatch_thread_id:vec3<u32>")
-    {
-        return "@builtin(local_invocation_id) local_invocation_id: vec3<u32>, "
-            + "@builtin(global_invocation_id) dispatch_thread_id: vec3<u32>";
-    }
-    if (signature === "workgroup_id:workgroup_id:vec3<u32>|"
-        + "local_invocation_id:local_invocation_id:vec3<u32>")
-    {
-        return "@builtin(workgroup_id) workgroup_id: vec3<u32>, "
-            + "@builtin(local_invocation_id) local_invocation_id: vec3<u32>";
-    }
-    if (signature === "workgroup_id:workgroup_id:vec3<u32>|"
-        + "local_invocation_id:local_invocation_id:vec3<u32>|"
-        + "global_invocation_id:dispatch_thread_id:vec3<u32>")
-    {
-        return "@builtin(workgroup_id) workgroup_id: vec3<u32>, "
-            + "@builtin(local_invocation_id) local_invocation_id: vec3<u32>, "
-            + "@builtin(global_invocation_id) dispatch_thread_id: vec3<u32>";
-    }
-    throw new Error("WGSL compute builtinInputs contains an unsupported ordered schema");
+    return inputs.map((input) => `@builtin(${input.builtin}) ${input.name}: ${input.type}`).join(", ");
 }
+
+/** The compute builtins the lowering emits, in their fixed order. */
+const COMPUTE_BUILTIN_SCHEMA = Object.freeze([
+    Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" }),
+    Object.freeze({ builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" }),
+    Object.freeze({ builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" }),
+    Object.freeze({ builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" })
+]);
 
 function collectStatementNames(statements, names)
 {

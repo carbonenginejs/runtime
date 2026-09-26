@@ -2406,7 +2406,7 @@ test("create-histograms compute fails closed on both schedules, numeric modifier
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
 });
 
 test("create-histograms compute validates the exact texture and atomic-buffer binding plan", () =>
@@ -2872,7 +2872,7 @@ test("merge-histograms compute profile fails closed on declarations, body, barri
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
 });
 
 test("merge-histograms compute validates exact binding plans and finite raw ranges", () =>
@@ -3245,7 +3245,7 @@ test("chunk-sort compute profile fails closed on declarations, body, barriers, r
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
 });
 
 test("chunk-sort compute validates exact binding plans and finite raw ranges", () =>
@@ -3470,7 +3470,7 @@ test("sort-inner compute profile fails closed on declarations, body, barriers, r
     assert.throws(() => lowerComputeProgram(siblingBody),
         // No profile claims the damaged program, so the general compute lowering
         // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision uav handle)/u);
+        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
 });
 
 test("sort-inner compute validates exact binding plans and finite raw ranges", () =>
@@ -6341,4 +6341,37 @@ test("system/crash is refused by path at every tier and backend directory", asyn
     }
     assert.doesNotThrow(() => rejectRefusedEffect("res:/graphics/effect.dx11/managed/space/system/crashsite.sm_depth"));
     assert.doesNotThrow(() => rejectRefusedEffect("res:/graphics/effect.dx11/managed/space/postprocess/tonemapping.sm_depth"));
+});
+
+test("general compute lowers SV_GroupIndex, countbits and ibfe (CORTAO's Pack and Blur)", () =>
+{
+  // cortao.sm_depth reads SV_GroupIndex (WGSL's scalar local_invocation_index)
+  // and countbits; its blur.sm_depth sign-extracts with ibfe.
+  const flattened = register("input_thread_id_in_group_flattened", null, { mask: "x" });
+  const program = {
+    program: { programType: 5, programTypeName: "compute", majorVersion: 5, minorVersion: 0 },
+    signatures: { input: [], output: [], patch: [] },
+    instructions: [
+      declaration(2, "dcl_global_flags", { globalFlags: 1 << 11, refactoringAllowed: true }),
+      declaration(3, "dcl_unordered_access_view_typed", {
+        resourceDimensionName: "buffer",
+        globallyCoherent: false,
+        returnType: typedReturn("uint"),
+        registerIndex: 0
+      }, register("uav", 0, { componentCount: 0 })),
+      declaration(7, "dcl_input", { registerIndex: null, operandType: 36, operandTypeName: "input_thread_id_in_group_flattened" }, flattened),
+      declaration(9, "dcl_temps", { tempCount: 1 }),
+      declaration(11, "dcl_thread_group", { threadGroupX: 8, threadGroupY: 1, threadGroupZ: 1 }),
+      instruction(14, "countbits", [ register("temp", 0, { mask: "x" }), register("input_thread_id_in_group_flattened", null, { selected: "x" }) ]),
+      instruction(18, "ibfe", [ register("temp", 0, { mask: "y" }), immediate([ 4 ]), immediate([ 2 ]), register("temp", 0, { selected: "x" }) ]),
+      store(24, 0, register("temp", 0, { swizzle: "yyyy" })),
+      instruction(28, "ret", [])
+    ]
+  };
+  const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-cortao-ops" });
+  const shader = CjsWebgpuFormat.buildWgsl(ir);
+
+  assert.match(shader.code, /@builtin\(local_invocation_index\) local_invocation_index: u32/u);
+  assert.match(shader.code, /countOneBits\(local_invocation_index\)/u, "a scalar builtin, read without a component");
+  assert.match(shader.code, /extractBits\([^;]*, u32\([^;]*\) & 31u, u32\([^;]*\) & 31u\)/u);
 });
