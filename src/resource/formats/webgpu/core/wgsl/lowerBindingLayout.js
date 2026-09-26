@@ -1,5 +1,5 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
-import { TYPED_VIEW_FORMATS } from "./carbonTypedViews.js";
+import { TYPED_VIEW_FORMATS } from "./wgslTypedViews.js";
 
 const KIND_ORDER = Object.freeze({
     "uniform-buffer": 0,
@@ -174,7 +174,7 @@ function structuredBufferLayout(binding)
 
 /**
  * A typed buffer whose bound view format the policy names
- * (`carbonTypedViews.js`): a storage array of that format's element,
+ * (`hlsl/core/carbonTypedViews.js`, mapped by `wgslTypedViews.js`): a storage array of that format's element,
  * which `ld` expands to D3D's four components. The declaration must agree
  * with the format's component class, so a reused parameter name cannot read
  * a buffer with the wrong element type.

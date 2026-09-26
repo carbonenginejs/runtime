@@ -4,7 +4,7 @@ import { buildEffectAnalysis } from "./helpers.js";
 import { normalizeBytecodeBytes } from "./effectAnalysis.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
-import { typedViewsFor } from "./wgsl/carbonTypedViews.js";
+import { typedViewsFor } from "../../hlsl/core/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";

@@ -63,7 +63,7 @@ translated pass. Rejected inputs:
 - render-stage typed `Buffer` SRVs, non-uint typed buffer UAVs, and
   pixel-stage or read-write UAV textures, whose bound format is not known. The
   format comes from where Carbon creates the resource, by effect parameter
-  name (`core/wgsl/carbonTypedViews.js`), and travels in the binding plan;
+  name (`../hlsl/core/carbonTypedViews.js`, backend-neutral; the WGSL mapping is `core/wgsl/wgslTypedViews.js`), and travels in the binding plan;
   anything not listed there stays rejected (`typedBufferLayout` and
   `storageTextureLayout` in `core/wgsl/lowerBindingLayout.js`);
 - immediate offsets outside the 2D `sample`/`sample_b`/`sample_d`/`sample_l`

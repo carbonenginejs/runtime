@@ -78,7 +78,7 @@ export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
 /**
  * The bound view format of a typed buffer or typed UAV texture, ordered so the
  * wire value is stable; the first means none. The format comes from where
- * Carbon creates the resource (`formats/webgpu/core/wgsl/carbonTypedViews.js`),
+ * Carbon creates the resource (`formats/hlsl/core/carbonTypedViews.js`),
  * and it is stored because the WGSL type cannot carry it: `array<u32>` is
  * both an R32_UINT view and a compute raw-word buffer.
  */

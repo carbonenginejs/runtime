@@ -20,7 +20,7 @@ import { requireRefactoringAllowed, validatePreciseInstruction } from "./precisi
 import { buildSelectionPlans, cloneWritten, terminatesAllPaths } from "./selectionPlans.js";
 import { computeVaryingValues, conditionIsUniform } from "./uniformity.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
-import { TYPED_VIEW_FORMATS } from "./carbonTypedViews.js";
+import { TYPED_VIEW_FORMATS } from "./wgslTypedViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
