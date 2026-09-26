@@ -23,6 +23,8 @@ import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { ShaderType } from "#consts/render-context";
+import { RenderingMode, TriBatchType } from "#consts/graphics";
+import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
@@ -1329,13 +1331,17 @@ export class EveSpaceScene extends CjsModel
   }
 
   /**
-   * The last-frame store of Carbon's EveSpaceScene::EndRender
-   * (cpp:2866-2868): this frame's view, and its UNJITTERED projection, become
-   * next frame's viewLast and projectionLast, which the per-frame vertex block
-   * hands the velocity shaders.
+   * Carbon's EveSpaceScene::EndRender, two parts of it:
+   * - the lens flares (cpp:2839-2859): each flare's renderables drawn
+   *   additively into the scene target, with depth read-only, after the main
+   *   pass - so after TAA's opaque copy, which excludes them as Carbon's does;
+   * - the last-frame store (cpp:2866-2868): this frame's view, and its
+   *   UNJITTERED projection, become next frame's viewLast and projectionLast,
+   *   which the per-frame vertex block hands the velocity shaders.
    *
-   * Adapted: the rest of Carbon's EndRender (lensflares, batch clearing, the
-   * variable store) belongs to passes this runtime's driver does not run.
+   * Adapted: the rest of Carbon's EndRender (the secondary transparent and
+   * additive gathers, batch clearing, the variable store) belongs to passes
+   * this runtime's driver does not run yet.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {void}
@@ -1344,8 +1350,82 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   EndRender(renderContext)
   {
+    if (this.lensflares.length)
+    {
+      const visible = [];
+
+      for (const lensflare of this.lensflares) lensflare.GetRenderables(this.updateContext.GetFrustum(), visible);
+
+      if (visible.length)
+      {
+        renderContext.SetReadOnlyDepth(true);
+        this.RenderRenderables(visible, this.#secondaryAdditiveBatches, TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
+        renderContext.SetReadOnlyDepth(false);
+      }
+    }
+
     mat4.copy(this.viewLast, renderContext.GetViewTransform());
     mat4.copy(this.projectionLast, this.projection);
+  }
+
+  /** m_secondaryBatches[TRIBATCHTYPE_ADDITIVE]: the accumulator EndRender's
+   * lens flares are gathered into (effect-sorted, as every non-transparent
+   * batch type is). */
+  #secondaryAdditiveBatches = new TriRenderBatchAccumulator(EffectKeyGenerator);
+
+  /**
+   * Carbon EveSpaceScene::RenderRenderables (cpp:1065-1085): each renderable's
+   * per-object data and batches into the accumulator, then RenderBatch. No
+   * pool allocator, no draw, as in Carbon.
+   *
+   * @param {Array} renderables The renderables to draw.
+   * @param {object} batch The accumulator to gather into.
+   * @param {number} batchType The TriBatchType to gather.
+   * @param {number} rm The RenderingMode to draw with.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {number} [reason] The render reason.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  RenderRenderables(renderables, batch, batchType, rm, renderContext, reason = undefined)
+  {
+    const allocator = renderContext.GetTriPoolAllocator();
+
+    if (!allocator) return;
+
+    batch.SetTriPoolAllocator(allocator);
+
+    for (const renderable of renderables)
+    {
+      const objectData = renderable.GetPerObjectData(batch);
+      renderable.GetBatches(batch, batchType, objectData, reason);
+    }
+
+    this.RenderBatch(batch, rm, renderContext);
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderBatch (cpp:1095-1115): finalize, apply the
+   * rendering mode's standard states, draw, clear.
+   *
+   * Adapted: Carbon draws through the scene's visualizer effect (a pixel-shader
+   * replacement, or none for the ordinary view); visualizer effects are not
+   * ported, so this always draws the ordinary view.
+   *
+   * @param {object} batch The accumulator to draw.
+   * @param {number} rm The RenderingMode.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  RenderBatch(batch, rm, renderContext)
+  {
+    batch.Finalize();
+    renderContext.GetEffectStateManager().ApplyStandardStates(rm);
+    renderContext.RenderBatches(batch);
+    batch.Clear();
   }
 
   /**

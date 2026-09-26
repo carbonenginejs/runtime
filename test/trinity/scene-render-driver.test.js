@@ -11,7 +11,7 @@ import {
   TriProjection,
   TriView
 } from "../../npm/dist/trinity/index.js";
-import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { RenderingMode, TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
 
 /**
@@ -404,4 +404,47 @@ test("Jitter offsets the projection by Carbon's 4-sample pattern with TAA, and n
   context.SetViewTransform(identity);
   scene.EndRender(context);
   assert.deepEqual(Array.from(scene.projectionLast), Array.from(identity));
+});
+
+test("EndRender draws the lens flares additively with depth read-only, then stores the last frame (cpp:2839-2868)", async () =>
+{
+  const { EveSpaceScene } = await import("../../npm/dist/trinity/index.js");
+  const scene = new EveSpaceScene();
+  const context = StubContext();
+  const calls = [];
+  const identity = Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+
+  context.SetViewTransform(identity);
+  context.SetTriPoolAllocator({ Allocate: () => ({}), Clear() {} });
+
+  const readOnly = context.SetReadOnlyDepth.bind(context);
+  context.SetReadOnlyDepth = enable => { calls.push(`readOnly:${enable}`); return readOnly(enable); };
+  context.RenderBatches = batches => { calls.push(`render:${batches.constructor.name}`); return true; };
+  const esm = context.GetEffectStateManager();
+  const apply = esm.ApplyStandardStates.bind(esm);
+  esm.ApplyStandardStates = mode => { calls.push(`states:${mode}`); return apply(mode); };
+
+  const renderable = {
+    GetPerObjectData: () => { calls.push("perObject"); return { id: "flare" }; },
+    GetBatches: (_batches, batchType) => calls.push(`batches:${batchType}`)
+  };
+  scene.lensflares.push({ GetRenderables: (_frustum, visible) => { visible.push(renderable); return visible; } });
+
+  scene.EndRender(context);
+
+  assert.deepEqual(calls, [
+    "readOnly:true",
+    "perObject",
+    `batches:${TriBatchType.TRIBATCHTYPE_ADDITIVE}`,
+    `states:${RenderingMode.RM_ALPHA_ADDITIVE}`,
+    "render:TriRenderBatchAccumulator",
+    "readOnly:false"
+  ]);
+
+  // No flare, no draw; the last-frame store still runs.
+  calls.length = 0;
+  scene.lensflares.length = 0;
+  scene.EndRender(context);
+  assert.deepEqual(calls, []);
+  assert.deepEqual(Array.from(scene.viewLast), Array.from(identity));
 });
