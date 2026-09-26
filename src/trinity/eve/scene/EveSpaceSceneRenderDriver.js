@@ -251,7 +251,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   #normalMapReference = new Tr2TextureReference();
 
   /** The provider "EveSpaceSceneOpaqueMap" is registered with: the opaque colour copy. */
-  #opaqueMapReference = new Tr2TextureReference();
+  _opaqueMapReference = new Tr2TextureReference();
 
   /**
    * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
@@ -266,7 +266,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /**
    * The opaque family, in submission order: Carbon's RenderOpaqueBatches
    * draws OPAQUE then DECAL (EveSpaceScene.cpp:1124-1150). The transparent
-   * family follows after the opaque copy; see #SubmitTransparent.
+   * family follows after the opaque copy; see _SubmitTransparent.
    */
   static SubmittedBatchTypes = Object.freeze([
     TriBatchType.TRIBATCHTYPE_OPAQUE,
@@ -728,14 +728,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         esm.PopDepthStencilBuffer();
       }
 
-      this.#opaqueMapReference.SetTexture(opaque);
-      Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this.#opaqueMapReference);
+      this._opaqueMapReference.SetTexture(opaque);
+      Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this._opaqueMapReference);
     }
 
     // THE TRANSPARENT FAMILY (EveSpaceScene.cpp:2758). Carbon runs subsurface
     // scattering, the jittered-projection refresh and the volumetrics between
     // the opaque copy and this (cpp:2752-2757); none of those are ported.
-    submitted = this.#SubmitTransparent(map, renderContext) || submitted;
+    submitted = this._SubmitTransparent(map, renderContext) || submitted;
 
     // cpp:557 - the shadow globals are emptied after the main pass.
     if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
@@ -1048,7 +1048,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    * @param {object} renderContext Recording render context.
    * @returns {boolean} Whether anything was submitted.
    */
-  #SubmitTransparent(map, renderContext)
+  _SubmitTransparent(map, renderContext)
   {
     if (!map) return false;
 
@@ -1058,7 +1058,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     renderContext.SetReadOnlyDepth(true);
     try
     {
-      for (const [ batchType, renderingMode ] of EveSpaceSceneRenderDriver.#transparentFamily)
+      for (const [ batchType, renderingMode ] of EveSpaceSceneRenderDriver._transparentFamily)
       {
         const accumulator = map.GetAccumulator(batchType);
         if (!accumulator) continue;
@@ -1076,7 +1076,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   }
 
   /** The transparent family and the standard states each is drawn under (cpp:1170-1173). */
-  static #transparentFamily = Object.freeze([
+  static _transparentFamily = Object.freeze([
     [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, RenderingMode.RM_ALPHA ],
     [ TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE ]
   ]);

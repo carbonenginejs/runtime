@@ -127,34 +127,34 @@ export class Tr2LightManager extends CjsModel
   // Carbon m_lightData after the TLS flatten: the frame's accepted records,
   // plain-object copies (every producer reuses a static scratch record, so
   // AddLight copies by value exactly as std::vector::push_back does).
-  #records = [];
+  _records = [];
 
-  // Carbon m_volumetricLights / m_shadowCastingLights: indices into #records.
-  #volumetricLights = [];
+  // Carbon m_volumetricLights / m_shadowCastingLights: indices into _records.
+  _volumetricLights = [];
 
-  #shadowCastingLights = [];
+  _shadowCastingLights = [];
 
   // Carbon m_frustum, by reference (SetFrustum copies by value in C++; the
   // stamped frame frustum is not mutated during the gather, so a reference
   // carries the same guarantee here).
-  #frustum = null;
+  _frustum = null;
 
   // Carbon m_adjustedCutoff (cpp:249-252).
-  #adjustedCutoff = CUTOFF_PIXEL_SIZE;
+  _adjustedCutoff = CUTOFF_PIXEL_SIZE;
 
   // Carbon m_currentSpaceSceneShadowQuality (h:197).
-  #currentSpaceSceneShadowQuality = ShadowQuality.SHADOW_DISABLED;
+  _currentSpaceSceneShadowQuality = ShadowQuality.SHADOW_DISABLED;
 
   // Carbon nextFrameShadowQuality (h:196) - a bitmask collecting every
   // scene's requested quality during the current frame.
-  #nextFrameShadowQuality = 0;
+  _nextFrameShadowQuality = 0;
 
   // Carbon m_currentFrameCounter (h:198; ctor sets -1, cpp:164).
-  #currentFrameCounter = -1;
+  _currentFrameCounter = -1;
 
   // Carbon's anonymous m_ShadowMap block (h:200-205): the atlas settings,
   // the guillotine node tree, and the quality the atlas was last sized for.
-  #shadowMap = {
+  _shadowMap = {
     atlasSettings: calculateShadowMapAtlasSettings(ShadowQuality.SHADOW_DISABLED),
     atlasNodes: [],
     qualityUsedByAtlas: ShadowQuality.SHADOW_DISABLED
@@ -163,18 +163,18 @@ export class Tr2LightManager extends CjsModel
   // Non-Carbon: profile-object -> slice index, assigned on first sight. The
   // slot registry is description-side (Carbon assigns slices through the
   // manager-owned Tr2TextureArray, cpp:682-686, whose realization is AL).
-  #profileSlots = new Map();
+  _profileSlots = new Map();
 
   // The packed PerLightData buffer (contract: 48 bytes / 3 RGBA32 texels per
   // light), built by ResolveLightData, uploaded by the AL.
-  #packed = new Float32Array(LIGHT_BUFFER_SIZE * FLOATS_PER_LIGHT);
+  _packed = new Float32Array(LIGHT_BUFFER_SIZE * FLOATS_PER_LIGHT);
 
-  #packedBits = new Uint32Array(this.#packed.buffer);
+  _packedBits = new Uint32Array(this._packed.buffer);
 
-  #packedCount = 0;
+  _packedCount = 0;
 
   // Non-Carbon: bumped by ResolveLightData so the AL can skip re-uploads.
-  #revision = 0;
+  _revision = 0;
 
   /** Tr2LightManager.h:100-105 - the light flag bits, Carbon's raw uint16 spelling. */
   static Flags = Object.freeze({
@@ -229,37 +229,37 @@ export class Tr2LightManager extends CjsModel
   SetShadowQuality(quality, frameCounter = 0)
   {
     const shadowQuality = Number(quality) || 0;
-    this.#currentSpaceSceneShadowQuality = shadowQuality;
+    this._currentSpaceSceneShadowQuality = shadowQuality;
 
-    if (this.#currentFrameCounter !== frameCounter)
+    if (this._currentFrameCounter !== frameCounter)
     {
       if (!Tr2LightManager.useDynamicLightsShadows)
       {
-        this.#nextFrameShadowQuality = 0;
+        this._nextFrameShadowQuality = 0;
       }
 
-      if (this.#nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_HIGH))
+      if (this._nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_HIGH))
       {
-        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_HIGH;
+        this._shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_HIGH;
       }
-      else if (this.#nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_LOW))
+      else if (this._nextFrameShadowQuality & (1 << ShadowQuality.SHADOW_LOW))
       {
-        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_LOW;
+        this._shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_LOW;
       }
       else
       {
-        this.#shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_DISABLED;
+        this._shadowMap.qualityUsedByAtlas = ShadowQuality.SHADOW_DISABLED;
       }
-      this.#nextFrameShadowQuality = 1 << shadowQuality;
-      this.#currentFrameCounter = frameCounter;
+      this._nextFrameShadowQuality = 1 << shadowQuality;
+      this._currentFrameCounter = frameCounter;
     }
 
-    this.#nextFrameShadowQuality |= 1 << shadowQuality;
+    this._nextFrameShadowQuality |= 1 << shadowQuality;
 
-    const clamped = Math.min(shadowQuality, this.#shadowMap.qualityUsedByAtlas);
-    this.#shadowMap.atlasSettings = calculateShadowMapAtlasSettings(clamped);
-    this.#shadowMap.atlasSettings.actualTextureSize =
-      calculateShadowMapAtlasSettings(this.#shadowMap.qualityUsedByAtlas).size;
+    const clamped = Math.min(shadowQuality, this._shadowMap.qualityUsedByAtlas);
+    this._shadowMap.atlasSettings = calculateShadowMapAtlasSettings(clamped);
+    this._shadowMap.atlasSettings.actualTextureSize =
+      calculateShadowMapAtlasSettings(this._shadowMap.qualityUsedByAtlas).size;
   }
 
   /** Carbon GetShadowMapAtlasSettings (cpp:708-711). */
@@ -267,7 +267,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetShadowMapAtlasSettings()
   {
-    return this.#shadowMap.atlasSettings;
+    return this._shadowMap.atlasSettings;
   }
 
   /**
@@ -282,7 +282,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetUnpackedShadowMapData(record, out = {})
   {
-    const shift = this.#shadowMap.atlasSettings.entryMinSizeLog2;
+    const shift = this._shadowMap.atlasSettings.entryMinSizeLog2;
     out.shadowMapScale = (record.shadowMapScale ?? 0) << shift;
     out.shadowMapOffsetX = (record.shadowMapOffsetX ?? 0) << shift;
     out.shadowMapOffsetY = (record.shadowMapOffsetY ?? 0) << shift;
@@ -304,13 +304,13 @@ export class Tr2LightManager extends CjsModel
     this.SetVariableStore();
     if (renderContext) this.ClearLightIndices(renderContext);
 
-    this.#records.length = 0;
-    this.#volumetricLights.length = 0;
-    this.#shadowCastingLights.length = 0;
+    this._records.length = 0;
+    this._volumetricLights.length = 0;
+    this._shadowCastingLights.length = 0;
 
-    const size = this.#shadowMap.atlasSettings.size;
-    this.#shadowMap.atlasNodes.length = 0;
-    this.#shadowMap.atlasNodes.push({ children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: size, height: size });
+    const size = this._shadowMap.atlasSettings.size;
+    this._shadowMap.atlasNodes.length = 0;
+    this._shadowMap.atlasNodes.push({ children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: size, height: size });
   }
 
   /** Carbon SetFrustum (cpp:244-247). */
@@ -318,7 +318,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   SetFrustum(frustum)
   {
-    this.#frustum = frustum ?? null;
+    this._frustum = frustum ?? null;
   }
 
   /** Carbon AdjustLightCutoff (cpp:249-252): the cull threshold is 7px * lodFactor. */
@@ -326,7 +326,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   AdjustLightCutoff(lodFactor)
   {
-    this.#adjustedCutoff = CUTOFF_PIXEL_SIZE * (Number(lodFactor) || 0);
+    this._adjustedCutoff = CUTOFF_PIXEL_SIZE * (Number(lodFactor) || 0);
   }
 
   /**
@@ -346,11 +346,11 @@ export class Tr2LightManager extends CjsModel
     const brightness = Math.max(color[0], color[1], color[2]);
     if (!(brightness > 0)) return;
 
-    const dimming = this.#CullAndDim(position, radius);
+    const dimming = this._CullAndDim(position, radius);
     if (dimming <= 0) return;
 
     const scale = radius * dimming;
-    this.#records.push({
+    this._records.push({
       owner: null,
       lightData: null,
       lightProfile: null,
@@ -384,24 +384,24 @@ export class Tr2LightManager extends CjsModel
     const brightness = Math.max(record.color[0], record.color[1], record.color[2]);
     if (!(brightness > 0) || !(record.radius > 0)) return;
 
-    const dimming = this.#CullAndDim(record.position, record.radius);
+    const dimming = this._CullAndDim(record.position, record.radius);
     if (dimming <= 0) return;
 
     // Carbon's conditional strip (cpp:359-365): shadows survive only when
     // the setting is on, the scene quality is not DISABLED, and a shadow-map
     // quality has an atlas actually sized for it (qualityUsedByAtlas lags a
     // frame behind). Always taken under the shipping default.
-    const usingShadowMap = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
-      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH;
-    if (this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED
-      || (usingShadowMap && this.#shadowMap.qualityUsedByAtlas === ShadowQuality.SHADOW_DISABLED)
+    const usingShadowMap = this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
+      || this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH;
+    if (this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED
+      || (usingShadowMap && this._shadowMap.qualityUsedByAtlas === ShadowQuality.SHADOW_DISABLED)
       || !Tr2LightManager.useDynamicLightsShadows)
     {
       record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
     }
 
     const scale = record.radius * dimming;
-    this.#records.push({
+    this._records.push({
       owner: record.owner ?? null,
       lightData: record.lightData ?? null,
       lightProfile: record.lightProfile ?? null,
@@ -432,27 +432,27 @@ export class Tr2LightManager extends CjsModel
   ResolveLightData()
   {
     const volumetric = [];
-    for (let i = 0; i < this.#records.length; i++)
+    for (let i = 0; i < this._records.length; i++)
     {
-      if (this.#records[i].flags & Tr2LightManager.Flags.IS_VOLUMETRIC)
+      if (this._records[i].flags & Tr2LightManager.Flags.IS_VOLUMETRIC)
       {
-        const size = this.#ScreenSize(this.#records[i]);
+        const size = this._ScreenSize(this._records[i]);
         volumetric.push([ i, Math.min(size, INFINITE_SIZE_CLAMP) ]);
       }
     }
     volumetric.sort((a, b) => b[1] - a[1]);
 
-    this.#volumetricLights.length = 0;
+    this._volumetricLights.length = 0;
     for (let i = 0; i < volumetric.length; i++)
     {
-      if (i < MAX_NUM_VOLUMETRIC_LIGHTS) this.#volumetricLights.push(volumetric[i][0]);
-      else this.#records[volumetric[i][0]].flags &= ~Tr2LightManager.Flags.IS_VOLUMETRIC;
+      if (i < MAX_NUM_VOLUMETRIC_LIGHTS) this._volumetricLights.push(volumetric[i][0]);
+      else this._records[volumetric[i][0]].flags &= ~Tr2LightManager.Flags.IS_VOLUMETRIC;
     }
 
-    this.#ResolveShadowCasters();
+    this._ResolveShadowCasters();
 
-    this.#Pack();
-    this.#revision += 1;
+    this._Pack();
+    this._revision += 1;
   }
 
   /**
@@ -465,22 +465,22 @@ export class Tr2LightManager extends CjsModel
    * strip FLAG_CASTS_SHADOWS from the losers, assign raytracing masks by
    * rank under SHADOW_RAYTRACED, and pack the atlas for LOW/HIGH.
    */
-  #ResolveShadowCasters()
+  _ResolveShadowCasters()
   {
-    this.#shadowCastingLights.length = 0;
+    this._shadowCastingLights.length = 0;
     if (!Tr2LightManager.useDynamicLightsShadows
-      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED)
+      || this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_DISABLED)
     {
       return;
     }
 
     const lightTuples = [];
-    for (let i = 0; i < this.#records.length; i++)
+    for (let i = 0; i < this._records.length; i++)
     {
-      if ((this.#records[i].flags & Tr2LightManager.Flags.CASTS_SHADOWS) !== 0)
+      if ((this._records[i].flags & Tr2LightManager.Flags.CASTS_SHADOWS) !== 0)
       {
-        let sizeAcross = this.#frustum
-          ? this.#frustum.GetPixelSizeAccrossEst(this.#records[i].position, this.#records[i].radius)
+        let sizeAcross = this._frustum
+          ? this._frustum.GetPixelSizeAccrossEst(this._records[i].position, this._records[i].radius)
           : 0;
         if (!Number.isFinite(sizeAcross)) sizeAcross = 1 << HIGH_QUALITY_ATLAS_SIZE_LOG2;
         lightTuples.push({ lightIndex: i, sizeAcross });
@@ -489,20 +489,20 @@ export class Tr2LightManager extends CjsModel
 
     lightTuples.sort((a, b) => b.sizeAcross - a.sizeAcross);
 
-    const raytraced = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED;
+    const raytraced = this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED;
     const numShadowCastingLights = Math.min(MAX_NUM_SHADOWCASTING_LIGHTS, lightTuples.length);
     let i = 0;
     for (; i < numShadowCastingLights; i++)
     {
-      this.#shadowCastingLights.push(lightTuples[i].lightIndex);
+      this._shadowCastingLights.push(lightTuples[i].lightIndex);
       if (raytraced)
       {
-        this.#records[lightTuples[i].lightIndex].raytracingShadowMask = 1 << i;
+        this._records[lightTuples[i].lightIndex].raytracingShadowMask = 1 << i;
       }
     }
     for (; i < lightTuples.length; i++)
     {
-      const record = this.#records[lightTuples[i].lightIndex];
+      const record = this._records[lightTuples[i].lightIndex];
       record.flags &= ~Tr2LightManager.Flags.CASTS_SHADOWS;
       if (raytraced)
       {
@@ -510,10 +510,10 @@ export class Tr2LightManager extends CjsModel
       }
     }
 
-    if (this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
-      || this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH)
+    if (this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_LOW
+      || this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_HIGH)
     {
-      this.#CreateShadowMapAtlas(numShadowCastingLights, lightTuples);
+      this._CreateShadowMapAtlas(numShadowCastingLights, lightTuples);
     }
   }
 
@@ -526,9 +526,9 @@ export class Tr2LightManager extends CjsModel
    * scale in entry-min-size units into the record's 10-bit fields; failures
    * zero them.
    */
-  #CreateShadowMapAtlas(numShadowCastingLights, lightTuples)
+  _CreateShadowMapAtlas(numShadowCastingLights, lightTuples)
   {
-    const settings = this.#shadowMap.atlasSettings;
+    const settings = this._shadowMap.atlasSettings;
     const entry = { x: 0, y: 0 };
     let everythingFit = false;
     for (let j = 0; j < 5 && !everythingFit; j++)
@@ -537,8 +537,8 @@ export class Tr2LightManager extends CjsModel
       const entryInverseScaleFactorLog2 = settings.entryInverseScaleFactorLog2 + j;
       const entryMaxSize = settings.entryMaxSize >> j;
 
-      this.#shadowMap.atlasNodes.length = 0;
-      this.#shadowMap.atlasNodes.push({
+      this._shadowMap.atlasNodes.length = 0;
+      this._shadowMap.atlasNodes.push({
         children: [ -1, -1 ],
         lightIndex: -1,
         x: 0,
@@ -550,7 +550,7 @@ export class Tr2LightManager extends CjsModel
       for (let i = 0; i < numShadowCastingLights; i++)
       {
         const lightIndex = lightTuples[i].lightIndex;
-        const record = this.#records[lightIndex];
+        const record = this._records[lightIndex];
 
         let size = (lightTuples[i].sizeAcross >>> 0) >>> entryInverseScaleFactorLog2;
         size = Math.min(Math.max(size, settings.entryMinSize), entryMaxSize);
@@ -570,7 +570,7 @@ export class Tr2LightManager extends CjsModel
           height = size;
         }
 
-        if (this.#GetShadowMapAtlasEntry(lightIndex, width, height, entry))
+        if (this._GetShadowMapAtlasEntry(lightIndex, width, height, entry))
         {
           record.shadowMapOffsetX = entry.x >>> settings.entryMinSizeLog2;
           record.shadowMapOffsetY = entry.y >>> settings.entryMinSizeLog2;
@@ -593,17 +593,17 @@ export class Tr2LightManager extends CjsModel
    * success - the out object is untouched on failure, exactly as Carbon
    * leaves its out-references.
    */
-  #GetShadowMapAtlasEntry(lightIndex, width, height, out)
+  _GetShadowMapAtlasEntry(lightIndex, width, height, out)
   {
-    const settings = this.#shadowMap.atlasSettings;
+    const settings = this._shadowMap.atlasSettings;
     width = align(width, settings.entryMinSize);
     height = align(height, settings.entryMinSize);
 
-    const nodeId = this.#InsertAtlasNode(this.#shadowMap.atlasNodes, 0, lightIndex, width, height);
+    const nodeId = this._InsertAtlasNode(this._shadowMap.atlasNodes, 0, lightIndex, width, height);
     if (nodeId !== -1)
     {
-      out.x = this.#shadowMap.atlasNodes[nodeId].x;
-      out.y = this.#shadowMap.atlasNodes[nodeId].y;
+      out.x = this._shadowMap.atlasNodes[nodeId].x;
+      out.y = this._shadowMap.atlasNodes[nodeId].y;
     }
     return nodeId !== -1;
   }
@@ -615,17 +615,17 @@ export class Tr2LightManager extends CjsModel
    * fits, otherwise split along the larger remainder axis and recurse into
    * the first child.
    */
-  #InsertAtlasNode(atlasNodes, nodeId, lightIndex, width, height)
+  _InsertAtlasNode(atlasNodes, nodeId, lightIndex, width, height)
   {
     const node = atlasNodes[nodeId];
     if (node.children[0] !== -1 || node.children[1] !== -1)
     {
-      const newNode = this.#InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
+      const newNode = this._InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
       if (newNode !== -1)
       {
         return newNode;
       }
-      return this.#InsertAtlasNode(atlasNodes, node.children[1], lightIndex, width, height);
+      return this._InsertAtlasNode(atlasNodes, node.children[1], lightIndex, width, height);
     }
 
     if (node.lightIndex !== -1)
@@ -674,7 +674,7 @@ export class Tr2LightManager extends CjsModel
       child1.height = node.height - height;
     }
 
-    return this.#InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
+    return this._InsertAtlasNode(atlasNodes, node.children[0], lightIndex, width, height);
   }
 
   /** Carbon GetCurrentSpaceSceneShadowQuality (cpp:713-716): a bare field read; every record producer asks it before building. */
@@ -682,7 +682,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetCurrentSpaceSceneShadowQuality()
   {
-    return this.#currentSpaceSceneShadowQuality;
+    return this._currentSpaceSceneShadowQuality;
   }
 
   /** Carbon GetLightData (cpp:695-698): the frame's resolved records, borrowed. */
@@ -690,7 +690,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetLightData()
   {
-    return this.#records;
+    return this._records;
   }
 
   /** Carbon GetVolumetricLights (cpp:707-710): indices into GetLightData, borrowed. */
@@ -698,7 +698,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetVolumetricLights()
   {
-    return this.#volumetricLights;
+    return this._volumetricLights;
   }
 
   /** Carbon GetShadowCastingLights (cpp:688-691): empty under the shipping pin, kept for signature parity. */
@@ -706,7 +706,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   GetShadowCastingLights()
   {
-    return this.#shadowCastingLights;
+    return this._shadowCastingLights;
   }
 
   // The frame clock used to be threaded through here, as a non-Carbon seam:
@@ -760,8 +760,8 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   static getOrCreateInstance(effectPath)
   {
-    Tr2LightManager.#instance ??= new Tr2LightManager()._InitializeDevice(effectPath);
-    return Tr2LightManager.#instance;
+    Tr2LightManager._instance ??= new Tr2LightManager()._InitializeDevice(effectPath);
+    return Tr2LightManager._instance;
   }
 
   /** Carbon GetInstance (cpp:202-205): the manager, or null when none exists. */
@@ -769,7 +769,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   static getInstance()
   {
-    return Tr2LightManager.#instance;
+    return Tr2LightManager._instance;
   }
 
   /**
@@ -786,16 +786,16 @@ export class Tr2LightManager extends CjsModel
   @impl.adapted
   static deleteInstance()
   {
-    const instance = Tr2LightManager.#instance;
+    const instance = Tr2LightManager._instance;
     if (!instance) return;
-    Tr2LightManager.#instance = null;
+    Tr2LightManager._instance = null;
     TriDevice.UnregisterResource(instance);
     const store = Tr2VariableStore.GlobalStore();
     store.RegisterVariable(Tr2LightManager.LIGHT_BUFFER_NAME, new Tr2GpuStructuredBuffer());
     store.RegisterVariable(Tr2LightManager.LIGHT_INDEX_BUFFER_NAME, new Tr2GpuStructuredBuffer());
   }
 
-  static #instance = null;
+  static _instance = null;
 
   /** Carbon SetVariableStore (cpp:214-218): the globals name this manager's buffers. */
   @carbon.method
@@ -868,7 +868,7 @@ export class Tr2LightManager extends CjsModel
     const buffer = this._indexBuffer.GetGpuBuffer(0);
     if (!buffer) return true;
     this._indexList.fill(0);
-    return Tr2LightManager.#WriteMapped(buffer, null, renderContext);
+    return Tr2LightManager._WriteMapped(buffer, null, renderContext);
   }
 
   /**
@@ -882,7 +882,7 @@ export class Tr2LightManager extends CjsModel
   @impl.implemented
   UpdateLightBuffer(renderContext)
   {
-    const count = this.#packedCount;
+    const count = this._packedCount;
     if (this._lightBuffer.GetCount() < count)
     {
       const grown = Math.max(this._lightBuffer.GetCount() + 1024, count);
@@ -892,7 +892,7 @@ export class Tr2LightManager extends CjsModel
     const buffer = this._lightBuffer.GetGpuBuffer(0);
     if (!buffer) return false;
     // cpp:393-396: a WRITE_OFTEN buffer is written through a map.
-    return Tr2LightManager.#WriteMapped(buffer, this.GetLightBufferData(), renderContext);
+    return Tr2LightManager._WriteMapped(buffer, this.GetLightBufferData(), renderContext);
   }
 
   /**
@@ -908,7 +908,7 @@ export class Tr2LightManager extends CjsModel
   UpdateLists(depthMap, renderContext)
   {
     this.SetVariableStore();
-    if (this.#packedCount === 0)
+    if (this._packedCount === 0)
     {
       this.ClearLightIndices(renderContext);
       return true;
@@ -953,12 +953,12 @@ export class Tr2LightManager extends CjsModel
 
     const tiles = Math.ceil(width / TILE_WIDTH) * Math.ceil(height / TILE_HEIGHT);
     const headerWords = tiles * HEADER_WORDS_PER_TILE;
-    const count = this.#packedCount;
+    const count = this._packedCount;
 
     let particleCount = 0;
     for (let index = 0; index < count; index++)
     {
-      if (this.#LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES) particleCount++;
+      if (this._LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES) particleCount++;
     }
     const words = headerWords + 2 * (count + particleCount);
 
@@ -983,7 +983,7 @@ export class Tr2LightManager extends CjsModel
     const particleHead = particleCount ? node : 0;
     for (let index = 0, seen = 0; index < count; index++)
     {
-      if (!(this.#LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES)) continue;
+      if (!(this._LightFlags(index) & Tr2LightManager.Flags.AFFECTS_PARTICLES)) continue;
       seen++;
       list[node] = index;
       list[node + 1] = seen < particleCount ? node + 2 : 0;
@@ -1000,7 +1000,7 @@ export class Tr2LightManager extends CjsModel
 
     const buffer = this._indexBuffer.GetGpuBuffer(0);
     if (!buffer) return false;
-    return Tr2LightManager.#WriteMapped(buffer, list.subarray(0, words), renderContext);
+    return Tr2LightManager._WriteMapped(buffer, list.subarray(0, words), renderContext);
   }
 
   /**
@@ -1008,7 +1008,7 @@ export class Tr2LightManager extends CjsModel
    * CPU_WRITABLE (WRITE_OFTEN) buffer, which UpdateBuffer refuses. A null
    * source zeroes the mapping.
    */
-  static #WriteMapped(buffer, source, renderContext)
+  static _WriteMapped(buffer, source, renderContext)
   {
     const { result, data } = buffer.MapForWriting(renderContext);
     if (!Succeeded(result)) return false;
@@ -1019,9 +1019,9 @@ export class Tr2LightManager extends CjsModel
   }
 
   /** The packed flags of light `index`: the high 16 bits of row 1's w (contract). */
-  #LightFlags(index)
+  _LightFlags(index)
   {
-    return this.#packedBits[index * FLOATS_PER_LIGHT + 7] >>> 16;
+    return this._packedBits[index * FLOATS_PER_LIGHT + 7] >>> 16;
   }
 
   /** The packed PerLightData bytes for the AL to upload, borrowed (contract layout, 3 RGBA32 texels per light). */
@@ -1029,7 +1029,7 @@ export class Tr2LightManager extends CjsModel
   @impl.reason("AL seam: Trinity owns the packed description bytes; the AL realizes LightBuffer from this view. Carbon has no such seam; Tr2DataTextureManager now writes its own texture, so this has no precedent.")
   GetLightBufferData()
   {
-    return this.#packed.subarray(0, this.#packedCount * FLOATS_PER_LIGHT);
+    return this._packed.subarray(0, this._packedCount * FLOATS_PER_LIGHT);
   }
 
   /** The number of packed lights in GetLightBufferData. */
@@ -1037,7 +1037,7 @@ export class Tr2LightManager extends CjsModel
   @impl.reason("AL seam companion to GetLightBufferData.")
   GetLightCount()
   {
-    return this.#packedCount;
+    return this._packedCount;
   }
 
   /** Monotonic revision of the packed data, bumped by ResolveLightData, so the AL can skip unchanged re-uploads. */
@@ -1045,29 +1045,29 @@ export class Tr2LightManager extends CjsModel
   @impl.reason("Non-Carbon extension: cheaper than the AL diffing a typed array; Carbon re-uploads unconditionally.")
   GetDataRevision()
   {
-    return this.#revision;
+    return this._revision;
   }
 
   /** Frustum cull + pixel-size cutoff, returning the fade-band dimming factor (0 = rejected). Cull applies only when a frustum was set. */
-  #CullAndDim(position, radius)
+  _CullAndDim(position, radius)
   {
-    if (!this.#frustum) return 1;
-    if (!this.#frustum.IsSphereVisible(position, radius)) return 0;
-    const size = this.#frustum.GetPixelSizeAccross(position, radius);
-    if (!(size > this.#adjustedCutoff)) return 0;
+    if (!this._frustum) return 1;
+    if (!this._frustum.IsSphereVisible(position, radius)) return 0;
+    const size = this._frustum.GetPixelSizeAccross(position, radius);
+    if (!(size > this._adjustedCutoff)) return 0;
     // Contract §"Colour carries the radius": the fade band sits ABOVE the
     // cutoff - absent at the cutoff, full brightness FADE_SIZE above it.
-    return Math.min((size - this.#adjustedCutoff) / FADE_SIZE, 1);
+    return Math.min((size - this._adjustedCutoff) / FADE_SIZE, 1);
   }
 
   /**
    * Returns the light's projected pixel size, or its radius when no frustum is
    * set.
    */
-  #ScreenSize(record)
+  _ScreenSize(record)
   {
-    if (!this.#frustum) return record.radius;
-    return this.#frustum.GetPixelSizeAccross(record.position, record.radius);
+    if (!this._frustum) return record.radius;
+    return this._frustum.GetPixelSizeAccross(record.position, record.radius);
   }
 
   /**
@@ -1087,7 +1087,7 @@ export class Tr2LightManager extends CjsModel
    * The first-sight map remains only for foreign profile objects that
    * expose no GetTextureIndex.
    */
-  #ProfileSlot(profile)
+  _ProfileSlot(profile)
   {
     if (!profile) return 0;
     if (typeof profile.GetTextureIndex === "function")
@@ -1109,11 +1109,11 @@ export class Tr2LightManager extends CjsModel
       }
       return index >= 0 ? index + 1 : 0;
     }
-    let slot = this.#profileSlots.get(profile);
+    let slot = this._profileSlots.get(profile);
     if (slot === undefined)
     {
-      slot = this.#profileSlots.size;
-      this.#profileSlots.set(profile, slot);
+      slot = this._profileSlots.size;
+      this._profileSlots.set(profile, slot);
     }
     return slot + 1;
   }
@@ -1133,53 +1133,53 @@ export class Tr2LightManager extends CjsModel
    */
   static getLightProfileArray()
   {
-    if (!Tr2LightManager.#lightProfileArray)
+    if (!Tr2LightManager._lightProfileArray)
     {
-      Tr2LightManager.#lightProfileArray = new Tr2TextureArray();
+      Tr2LightManager._lightProfileArray = new Tr2TextureArray();
     }
-    return Tr2LightManager.#lightProfileArray;
+    return Tr2LightManager._lightProfileArray;
   }
 
-  static #lightProfileArray = null;
+  static _lightProfileArray = null;
 
-  /** Packs #records into the 48-byte-per-light buffer per the contract layout. */
-  #Pack()
+  /** Packs _records into the 48-byte-per-light buffer per the contract layout. */
+  _Pack()
   {
-    const count = Math.min(this.#records.length, LIGHT_BUFFER_SIZE);
+    const count = Math.min(this._records.length, LIGHT_BUFFER_SIZE);
     for (let i = 0; i < count; i++)
     {
-      const record = this.#records[i];
+      const record = this._records[i];
       const f = i * FLOATS_PER_LIGHT;
 
       // Texel 0: position + radius, four f32.
-      this.#packed[f] = record.position[0];
-      this.#packed[f + 1] = record.position[1];
-      this.#packed[f + 2] = record.position[2];
-      this.#packed[f + 3] = record.radius;
+      this._packed[f] = record.position[0];
+      this._packed[f + 1] = record.position[1];
+      this._packed[f + 2] = record.position[2];
+      this._packed[f + 3] = record.radius;
 
       // Texel 1: colour (premultiplied at Add time) + the packed word -
       // innerRadius f16 low, flags u16 high with the biased profile slot in
       // bits 4-15 (contract §"The packed flag word").
-      this.#packed[f + 4] = record.color[0];
-      this.#packed[f + 5] = record.color[1];
-      this.#packed[f + 6] = record.color[2];
-      const flagsWord = (record.flags & 0xF) | (this.#ProfileSlot(record.lightProfile) << 4);
-      this.#packedBits[f + 7] = toHalf(record.innerRadius) | ((flagsWord & 0xFFFF) << 16);
+      this._packed[f + 4] = record.color[0];
+      this._packed[f + 5] = record.color[1];
+      this._packed[f + 6] = record.color[2];
+      const flagsWord = (record.flags & 0xF) | (this._ProfileSlot(record.lightProfile) << 4);
+      this._packedBits[f + 7] = toHalf(record.innerRadius) | ((flagsWord & 0xFFFF) << 16);
 
       // Texel 2: direction as three f16, projectionPlaneDistance, the two
       // angles, then the shadow union (h:70-84, MSVC low-bit-first layout:
       // bits 0-1 padding, 2-11 scale, 12-21 offsetX, 22-31 offsetY; the
       // raytraced mask shares the word - the paths are exclusive by
       // quality). All zeros under the shipping pin, exactly as before.
-      this.#packedBits[f + 8] = toHalf(record.direction[0]) | (toHalf(record.direction[1]) << 16);
-      this.#packedBits[f + 9] = toHalf(record.direction[2]) | (toHalf(record.projectionPlaneDistance) << 16);
-      this.#packedBits[f + 10] = toHalf(record.outerAngle) | (toHalf(record.innerAngle) << 16);
-      this.#packedBits[f + 11] = this.#currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED
+      this._packedBits[f + 8] = toHalf(record.direction[0]) | (toHalf(record.direction[1]) << 16);
+      this._packedBits[f + 9] = toHalf(record.direction[2]) | (toHalf(record.projectionPlaneDistance) << 16);
+      this._packedBits[f + 10] = toHalf(record.outerAngle) | (toHalf(record.innerAngle) << 16);
+      this._packedBits[f + 11] = this._currentSpaceSceneShadowQuality === ShadowQuality.SHADOW_RAYTRACED
         ? (record.raytracingShadowMask ?? 0) & 0xFFFF
         : (((record.shadowMapScale ?? 0) & 0x3FF) << 2)
           | (((record.shadowMapOffsetX ?? 0) & 0x3FF) << 12)
           | (((record.shadowMapOffsetY ?? 0) & 0x3FF) << 22);
     }
-    this.#packedCount = count;
+    this._packedCount = count;
   }
 }

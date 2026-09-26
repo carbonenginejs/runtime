@@ -47,6 +47,11 @@ export class EveOccluder extends CjsModel
    * The sprites' shader (lensflareoccluder) adds each covered pixel, and each
    * pixel with nothing in front, into the two counters at the slot.
    *
+   * Adapted in two places: the accumulator's pool allocator is bound per
+   * call from the render context (Carbon's constructor takes Tr2Renderer's,
+   * cpp:136-137), and the float globals are set through _RegisterFloat,
+   * because our store refuses to re-register a whole float.
+   *
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @param {EveUpdateContext} updateContext The scene's update context.
    * @param {Float32Array} transform The lensflare's transform.
@@ -55,21 +60,21 @@ export class EveOccluder extends CjsModel
    * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   RunQuery(renderContext, updateContext, transform, bufferOffset, fogWeight)
   {
     if (!this.display) return;
 
     const store = Tr2VariableStore.GlobalStore();
-    EveOccluder.#RegisterFloat(store, "OcclusionBufferOffset", bitsAsFloat(bufferOffset));
-    EveOccluder.#RegisterFloat(store, "OcclusionFogWeight", fogWeight);
+    EveOccluder._RegisterFloat(store, "OcclusionBufferOffset", bitsAsFloat(bufferOffset));
+    EveOccluder._RegisterFloat(store, "OcclusionFogWeight", fogWeight);
 
     renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
 
     // The sprites' own view update goes through the parent transform; the
     // synchronous pass gets an empty context, as Carbon's dummyContext.
     const renderables = [];
-    const dummyContext = EveOccluder.#dummyContext;
+    const dummyContext = EveOccluder._dummyContext;
     for (const sprite of this.sprites)
     {
       sprite.UpdateSyncronous(dummyContext);
@@ -98,12 +103,12 @@ export class EveOccluder extends CjsModel
    * whole (0, 1) reads as an int to TriVariable.getVariableType and the
    * re-registration is refused, so the existing variable takes the value.
    */
-  static #RegisterFloat(store, name, value)
+  static _RegisterFloat(store, name, value)
   {
     if (!store.RegisterVariable(name, value)) store.FindVariable(name).SetValue(value);
   }
 
   /** Carbon's stack-local `EveUpdateContext dummyContext` (cpp:166). */
-  static #dummyContext = new EveUpdateContext();
+  static _dummyContext = new EveUpdateContext();
 
 }
