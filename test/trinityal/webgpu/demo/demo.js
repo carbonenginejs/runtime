@@ -636,6 +636,72 @@ const POOL_TEXTURES = new Map();
 }
 
 /**
+ * THE CASCADES' DRAWS, for `demo.shadows()`: every RenderBatches with the
+ * "Shadow" technique since the last report, and the batches they walked.
+ */
+const SHADOW_DRAWS = { calls: 0, batches: 0 };
+{
+  const original = Tr2RenderContext.prototype.RenderBatches;
+  Tr2RenderContext.prototype.RenderBatches = function (batches, techniqueName, ...rest)
+  {
+    if (techniqueName === "Shadow")
+    {
+      SHADOW_DRAWS.calls += 1;
+      SHADOW_DRAWS.batches += batches?.GetBatchCount?.() ?? 0;
+    }
+    return original.call(this, batches, techniqueName, ...rest);
+  };
+}
+
+/**
+ * What reached the cascaded atlas: per cell of its 8 x 2 grid, the texels
+ * nearer than the clear (depth below 1) and the nearest depth. Read from the
+ * float copy's staging buffer (CjsWebgpuTextureAL._depthShadow), which holds
+ * the atlas as it was when the shadow pass unbound it.
+ *
+ * @param {GPUDevice} device The device.
+ * @param {object} atlas The atlas's CjsWebgpuTextureAL.
+ * @returns {Promise<object>} Per-cell coverage, or why there is none.
+ */
+async function ReadAtlasCoverage(device, atlas)
+{
+  const shadow = atlas?._depthShadow;
+  if (!shadow) return "no float copy of the atlas";
+
+  const width = atlas.GetWidth();
+  const height = atlas.GetHeight();
+  const staging = device.createBuffer({ size: shadow.buffer.size, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+  const encoder = device.createCommandEncoder();
+  encoder.copyBufferToBuffer(shadow.buffer, 0, staging, 0, shadow.buffer.size);
+  device.queue.submit([ encoder.finish() ]);
+  await staging.mapAsync(GPUMapMode.READ);
+
+  const depths = new Float32Array(staging.getMappedRange());
+  const stride = shadow.bytesPerRow / 4;
+  const cellWidth = width / 8;
+  const cellHeight = height / 2;
+  const cells = Array.from({ length: 16 }, () => ({ written: 0, nearest: 1 }));
+
+  for (let y = 0; y < height; y += 1)
+  {
+    const row = y * stride;
+    const cellRow = Math.floor(y / cellHeight) * 8;
+    for (let x = 0; x < width; x += 1)
+    {
+      const depth = depths[row + x];
+      if (!(depth < 1)) continue;
+      const cell = cells[cellRow + Math.floor(x / cellWidth)];
+      cell.written += 1;
+      if (depth < cell.nearest) cell.nearest = depth;
+    }
+  }
+
+  staging.unmap();
+  staging.destroy();
+  return { size: `${width}x${height}`, cells: cells.map((cell, index) => `${index}: ${cell.written} texels, nearest ${cell.nearest.toFixed(4)}`) };
+}
+
+/**
  * THE POOL'S PERSISTENT TEXTURES BY NAME, for `demo.taa()`: TAA's two
  * accumulators and its cooldown map live across frames, not in the temp pool.
  */
@@ -2636,13 +2702,19 @@ export async function RunDemo(canvas)
   {
     const device = al.GetWebgpu().GetDevice();
     const factor = POOL_TEXTURES.get("shadowMapResult")?.m_texture;
+    const atlas = POOL_TEXTURES.get("cascadedShadowDepth") ?? null;
+    const shadowDraws = { ...SHADOW_DRAWS };
+    SHADOW_DRAWS.calls = 0;
+    SHADOW_DRAWS.batches = 0;
     return {
       shadowQuality: driver.shadowQuality,
       cascadedShadowMap: Boolean(driver.scene.cascadedShadowMap),
       maxTextureDimension2D: device.limits.maxTextureDimension2D,
       depthClipControl: device.features.has("depth-clip-control"),
       casters: driver.scene.componentRegistry?.ComponentCount("ShadowCaster") ?? 0,
-      atlas: POOL_TEXTURES.has("cascadedShadowDepth") ? "borrowed" : "never borrowed",
+      // Since the last report: RenderBatches calls with "Shadow", and batches walked.
+      shadowDraws,
+      atlas: atlas ? await ReadAtlasCoverage(device, atlas) : "never borrowed",
       factor: factor ? await CountNonZeroTexels(device, factor) : "never borrowed",
       lastPipelineFailure: al.m_pipelineFailure ?? null
     };
