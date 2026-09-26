@@ -136,6 +136,55 @@ import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js"
  */
 const TIER = new URLSearchParams(globalThis.location?.search ?? "").get("tier") || "depth";
 
+/**
+ * `?post=off` draws the scene straight into the canvas, as before the post
+ * process was wired: a null destination keeps the driver's direct path. It
+ * splits "the scene does not draw" from "the post process does not".
+ */
+const POST_OFF = new URLSearchParams(globalThis.location?.search ?? "").get("post") === "off";
+
+/**
+ * DIAGNOSTIC COUNTS for `demo.post()`. Tr2Renderer's draw verbs return
+ * whether they drew; an effect that has not loaded, or a blit with no
+ * material, returns false and throws nothing - which is how a black canvas
+ * with no error happens. Counting them per verb says which step drew nothing.
+ */
+const DRAW_COUNTS = {};
+for (const verb of [ "DrawScreenQuad", "DrawTexture" ])
+{
+  const original = Tr2Renderer.prototype[verb];
+  Tr2Renderer.prototype[verb] = function (...args)
+  {
+    const result = original.apply(this, args);
+    const key = `${verb}:${result ? "drew" : "nothing"}`;
+    DRAW_COUNTS[key] = (DRAW_COUNTS[key] ?? 0) + 1;
+    return result;
+  };
+}
+{
+  const original = Tr2Renderer.runComputeShader;
+  Tr2Renderer.runComputeShader = function (...args)
+  {
+    const result = original.apply(this, args);
+    const key = `runComputeShader:${result ? "dispatched" : "nothing"}`;
+    DRAW_COUNTS[key] = (DRAW_COUNTS[key] ?? 0) + 1;
+    return result;
+  };
+}
+
+/** One effect's load state, for `demo.post()`. */
+function EffectState(effect)
+{
+  if (!effect) return "none";
+  const res = effect.GetEffectRes();
+  return {
+    path: effect.GetEffectPathName(),
+    resolved: effect.actualEffectFilePath,
+    resource: res ? { state: res.state, good: res.IsGood() } : null,
+    shader: Boolean(effect.GetShaderStateInterface())
+  };
+}
+
 
 /** Used only when the SOF document cannot be had; see `EffectPath`. */
 const EFFECT = EffectPath("res:/graphics/effect/managed/space/spaceobject/v5/quad/quadv5.fx");
@@ -1584,6 +1633,22 @@ export async function RunDemo(canvas)
 
   const driver = new EveSpaceSceneRenderDriver().SetBatchManager(batchManager);
 
+  // demo.post(): which post-process effects loaded, and what each draw verb
+  // did since the last call. A "nothing" count with no error is the black
+  // canvas's cause.
+  globalThis.demo.post = () =>
+  {
+    const counts = { ...DRAW_COUNTS };
+    for (const key of Object.keys(DRAW_COUNTS)) delete DRAW_COUNTS[key];
+    return {
+      postOff: POST_OFF,
+      counts,
+      tonemapping: EffectState(driver.postProcess.tonemappingEffect),
+      cas: EffectState(driver.postProcess._fidelityFxCasShader),
+      material: EffectState(areas[0].material)
+    };
+  };
+
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
   // purpose: this demo proves the draw path, and a fog or lighting blend it does
   // not use would be scenery pretending to be a test.
@@ -1625,7 +1690,7 @@ export async function RunDemo(canvas)
     // is reported to the error scope and nowhere else, and the draw returns true.
     device.pushErrorScope("validation");
 
-    driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
+    driver.Execute(POST_OFF ? null : [ renderTarget ], null, 0, 0, null, renderContext);
 
     al.EndScene();
 
@@ -1717,7 +1782,7 @@ export async function RunDemo(canvas)
         al.BeginScene();
         al.SetRenderTarget(0, renderTarget);
         al.SetDepthStencil(renderTarget);
-        driver.Execute([ renderTarget ], null, 0, 0, null, renderContext);
+        driver.Execute(POST_OFF ? null : [ renderTarget ], null, 0, 0, null, renderContext);
         al.EndScene();
         al.DrainTransitions();
 
