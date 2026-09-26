@@ -4,7 +4,7 @@ import { buildEffectAnalysis } from "./helpers.js";
 import { normalizeBytecodeBytes } from "./effectAnalysis.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
-import { typedBufferViewsFor } from "./wgsl/carbonTypedBufferViews.js";
+import { typedViewsFor } from "./wgsl/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
@@ -184,14 +184,14 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
     );
     const proof = irEntries.find((entry) => entry.effectProfileProof)
         ?.effectProfileProof ?? null;
-    const typedBufferViews = Object.assign({}, ...irEntries.map((entry) => typedBufferViewsFor(entry.semanticBindings)));
+    const typedViews = Object.assign({}, ...irEntries.map((entry) => typedViewsFor(entry.semanticBindings)));
     const plan = buildWgslBindingPlan(
         irEntries.map((entry) => entry.ir),
         {
             ...(bindingPolicy ?? {}),
             ...(proof ? { effectProfileProof: proof } : {}),
             ...(resourceTransformPlan ? { resourceTransformPlan } : {}),
-            ...(Object.keys(typedBufferViews).length ? { typedBufferViews } : {})
+            ...(Object.keys(typedViews).length ? { typedViews } : {})
         }
     );
 

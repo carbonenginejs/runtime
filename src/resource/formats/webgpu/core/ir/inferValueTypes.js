@@ -86,6 +86,14 @@ function ruleFor(opcodeName, program, instruction)
             sourceByOperand: { 1: "uint32" }
         };
     }
+    if (opcodeName === "ld_uav_typed")
+    {
+        return {
+            name: "typed-uav-load",
+            destination: bindingResultType(program, instruction, "uav", "storage-resource"),
+            sourceByOperand: { 1: "uint32" }
+        };
+    }
     if (opcodeName === "atomic_iadd")
     {
         return {

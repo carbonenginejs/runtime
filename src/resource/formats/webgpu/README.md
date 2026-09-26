@@ -60,11 +60,12 @@ translated pass. Rejected inputs:
   be dynamic);
 - non-immediate `resinfo` mips; texture dimensions other than 2D, cube, 3D and
   2D array (for example cube arrays and MSAA) in sampled layouts;
-- render-stage typed `Buffer` SRVs, and non-uint typed buffer UAVs, whose
-  bound view format is not known. The format comes from where Carbon creates
-  the buffer, by effect parameter name (`core/wgsl/carbonTypedBufferViews.js`),
-  and travels in the binding plan; anything not listed there stays rejected
-  (`typedBufferLayout` in `core/wgsl/lowerBindingLayout.js`);
+- render-stage typed `Buffer` SRVs, non-uint typed buffer UAVs, and
+  pixel-stage or read-write UAV textures, whose bound format is not known. The
+  format comes from where Carbon creates the resource, by effect parameter
+  name (`core/wgsl/carbonTypedViews.js`), and travels in the binding plan;
+  anything not listed there stays rejected (`typedBufferLayout` and
+  `storageTextureLayout` in `core/wgsl/lowerBindingLayout.js`);
 - immediate offsets outside the 2D `sample`/`sample_b`/`sample_d`/`sample_l`
   family, including offset `ld` and non-2D sampling;
 - mutable relative `indexable_temp` registers, and subroutine control flow

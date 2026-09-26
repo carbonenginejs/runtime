@@ -3,7 +3,7 @@ import { buildEffectAnalysis, inspectWithValues } from "./helpers.js";
 import { buildCarbonEffectContainer } from "./buildCarbonEffectContainer.js";
 import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
-import { typedBufferViewsFor } from "./wgsl/carbonTypedBufferViews.js";
+import { typedViewsFor } from "./wgsl/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
@@ -186,7 +186,7 @@ export function buildEffectPackage(input, options = {})
         const proof = entries.find((entry) => entry.effectProfileProof)
             ?.effectProfileProof ?? null;
         const resourceTransformPlan = resourceTransformPlans.get(key);
-        const typedBufferViews = Object.assign({}, ...entries.map((entry) => typedBufferViewsFor(entry.semanticBindings)));
+        const typedViews = Object.assign({}, ...entries.map((entry) => typedViewsFor(entry.semanticBindings)));
         return [
             key,
             buildWgslBindingPlan(
@@ -195,7 +195,7 @@ export function buildEffectPackage(input, options = {})
                     ...(options.bindingPolicy ?? {}),
                     ...(proof ? { effectProfileProof: proof } : {}),
                     ...(resourceTransformPlan ? { resourceTransformPlan } : {}),
-                    ...(Object.keys(typedBufferViews).length ? { typedBufferViews } : {})
+                    ...(Object.keys(typedViews).length ? { typedViews } : {})
                 }
             )
         ];

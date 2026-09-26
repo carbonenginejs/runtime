@@ -20,7 +20,7 @@ import { requireRefactoringAllowed, validatePreciseInstruction } from "./precisi
 import { buildSelectionPlans, cloneWritten, terminatesAllPaths } from "./selectionPlans.js";
 import { computeVaryingValues, conditionIsUniform } from "./uniformity.js";
 import { validateFixedHandleBinding, validateFixedHandleOperand } from "./validateHandleOperand.js";
-import { TYPED_BUFFER_VIEW_FORMATS } from "./carbonTypedBufferViews.js";
+import { TYPED_VIEW_FORMATS } from "./carbonTypedViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
@@ -28,7 +28,7 @@ const SUPPORTED_OPCODES = new Set([
     "deriv_rty_coarse", "deriv_rtx_fine", "deriv_rty_fine", "discard", "div",
     "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi",
     "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imul",
-    "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "log", "lt",
+    "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
     "sample_l", "sincos", "sqrt", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
@@ -1109,6 +1109,25 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         });
         return vectorCode(parts, modifier === "uint" ? "uint32" : "float32");
     }
+    if (op === "ld_uav_typed")
+    {
+        // A read-write storage texture load. D3D returns zero for an
+        // out-of-bounds typed UAV read; the address is clamped before the load
+        // so WGSL never forms an invalid access, then zero is selected.
+        const uav = validateFixedHandleOperand(instruction, 2, "uav", "fragment");
+        const binding = bindingForOperand(bindings, "storage-resource", uav);
+        if (binding?.storageTexture?.access !== "read-write" || binding.storageTexture.viewDimension !== "2d")
+        {
+            throw new Error(`WGSL ld_uav_typed instruction ${instruction.index} requires a read-write 2d storage texture`);
+        }
+        const element = TYPED_VIEW_FORMATS[binding.typedView].element;
+        const address = source(1, 2);
+        const symbol = binding.generatedSymbol;
+        const dimensions = `textureDimensions(${symbol})`;
+        const loaded = `select(vec4<${element}>(), textureLoad(${symbol}, min(${address}, ${dimensions} - vec2<u32>(1u))), all(${address} < ${dimensions}))`;
+        const components = rawSelectedComponents(uav, mask, count);
+        return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
+    }
     if (op === "ld_structured") return structuredLoadExpression(program, instruction, write, valueType(program, write), inputs, bindings);
     if (op === "ld")
     {
@@ -1116,7 +1135,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         const textureBinding = bindingForOperand(bindings, "sampled-resource", resource);
         if (!textureBinding) throw new Error(`WGSL fragment instruction ${instruction.index} has an unresolved load resource`);
         let loaded;
-        const view = TYPED_BUFFER_VIEW_FORMATS[textureBinding.typedBufferView];
+        const view = TYPED_VIEW_FORMATS[textureBinding.typedView];
         if (view)
         {
             // A typed buffer of a known view format: D3D returns the format's
@@ -1281,7 +1300,10 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
     const arrayed = binding.storageTexture.viewDimension === "2d-array";
     const lanes = arrayed ? 3 : 2;
     const address = operandExpression(program, instruction, 1, arrayed ? "xyz" : "xy", lanes, "uint32", inputs, bindings);
-    const value = operandExpression(program, instruction, 2, "xyzw", 4, "float32", inputs, bindings);
+    // A Carbon-named format stores its own component type (r32uint takes
+    // vec4<u32>); an unnamed storage texture is rgba16float.
+    const valueType = TYPED_VIEW_FORMATS[binding.typedView]?.returnType === "uint" ? "uint32" : "float32";
+    const value = operandExpression(program, instruction, 2, "xyzw", 4, valueType, inputs, bindings);
     const name = `store_address${instruction.index}`;
     const symbol = binding.generatedSymbol;
     const inBounds = arrayed

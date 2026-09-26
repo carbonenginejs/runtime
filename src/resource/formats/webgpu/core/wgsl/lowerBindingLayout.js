@@ -1,5 +1,5 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
-import { TYPED_BUFFER_VIEW_FORMATS } from "./carbonTypedBufferViews.js";
+import { TYPED_VIEW_FORMATS } from "./carbonTypedViews.js";
 
 const KIND_ORDER = Object.freeze({
     "uniform-buffer": 0,
@@ -55,7 +55,7 @@ function bindingFingerprint(binding)
         transformId: binding.transformId ?? null,
         arrayLayerCount: binding.arrayLayerCount ?? null,
         structureStride: binding.structureStride ?? null,
-        typedBufferView: binding.typedBufferView ?? null,
+        typedView: binding.typedView ?? null,
         buffer: binding.buffer || null,
         texture: binding.texture || null,
         sampler: binding.sampler || null
@@ -174,14 +174,14 @@ function structuredBufferLayout(binding)
 
 /**
  * A typed buffer whose bound view format the policy names
- * (`carbonTypedBufferViews.js`): a storage array of that format's element,
+ * (`carbonTypedViews.js`): a storage array of that format's element,
  * which `ld` expands to D3D's four components. The declaration must agree
  * with the format's component class, so a reused parameter name cannot read
  * a buffer with the wrong element type.
  */
 function typedBufferViewLayout(binding, format, access)
 {
-    const view = TYPED_BUFFER_VIEW_FORMATS[format];
+    const view = TYPED_VIEW_FORMATS[format];
     const returns = binding.returnType?.returnTypeNames || [];
     if (!view || returns.length !== 4 || returns.some((entry) => entry !== view.returnType))
     {
@@ -190,7 +190,7 @@ function typedBufferViewLayout(binding, format, access)
     return {
         declaration: access === "read_write" ? "var<storage, read_write>" : "var<storage, read>",
         type: `array<${view.element}>`,
-        typedBufferView: format,
+        typedView: format,
         buffer: {
             type: access === "read_write" ? "storage" : "read-only-storage",
             hasDynamicOffset: false,
@@ -202,9 +202,9 @@ function typedBufferViewLayout(binding, format, access)
 /** The policy's view format for an identity, if it applies to this stage. */
 function viewFormatFor(program, policy, identity)
 {
-    const format = policy.typedBufferViews.get(identity);
+    const format = policy.typedViews.get(identity);
     if (!format) return null;
-    return TYPED_BUFFER_VIEW_FORMATS[format].renderStagesOnly && program.stage === "compute" ? null : format;
+    return TYPED_VIEW_FORMATS[format].renderStagesOnly && program.stage === "compute" ? null : format;
 }
 
 /**
@@ -294,7 +294,8 @@ function uavBufferLayout(program, binding, policy)
     const storageTexture = STORAGE_TEXTURE_DIMENSIONS[binding.resourceDimension];
     if (storageTexture)
     {
-        return storageTextureLayout(program, binding, storageTexture, returns);
+        return storageTextureLayout(program, binding, storageTexture, returns,
+            policy.typedViews.get(`storage-resource:${bindingSpace(binding)}:${bindingRegister(binding)}`));
     }
     // Typed buffer UAVs become `array<atomic<u32>>` (atomic i32 only for an
     // effect-proven signed counter): WGSL requires atomic builtins for every
@@ -345,8 +346,43 @@ const STORAGE_TEXTURE_DIMENSIONS = Object.freeze({
 
 const STORAGE_TEXTURE_FORMAT = "rgba16float";
 
-function storageTextureLayout(program, binding, dimension, returns)
+/**
+ * A typed UAV texture whose Carbon format the policy names: that exact
+ * storage format, in the pixel or compute stage, read-write when the program
+ * loads it (WebGPU allows read-write access on single-channel 32-bit formats).
+ * The declaration must agree with the format's component class.
+ */
+function namedStorageTextureLayout(program, binding, dimension, returns, format)
 {
+    const view = TYPED_VIEW_FORMATS[format];
+    if (program.stage !== "compute" && program.stage !== "pixel")
+    {
+        throw new Error(`WGSL storage texture ${binding.id} is not supported in the ${program.stage} stage`);
+    }
+    if (returns.length !== 4 || returns.some((entry) => entry !== view.returnType))
+    {
+        throw new Error(`WGSL storage texture ${binding.id} is declared ${returns.join(",") || "untyped"}, which does not match its bound ${format} view`);
+    }
+    const register = bindingRegister(binding);
+    const loaded = program.instructions.some((instruction) => !instruction.isDeclaration
+        && instruction.opcodeName === "ld_uav_typed"
+        && instruction.operands?.some((operand) => operand?.typeName === "uav" && operand.registerIndex === register));
+    const access = loaded ? "read-write" : "write-only";
+    return {
+        declaration: "var",
+        type: `${dimension.type}<${view.storageTextureFormat}, ${loaded ? "read_write" : "write"}>`,
+        typedView: format,
+        storageTexture: {
+            access,
+            format: view.storageTextureFormat,
+            viewDimension: dimension.viewDimension
+        }
+    };
+}
+
+function storageTextureLayout(program, binding, dimension, returns, format)
+{
+    if (format) return namedStorageTextureLayout(program, binding, dimension, returns, format);
     if (program.stage !== "compute")
     {
         throw new Error(`WGSL storage texture ${binding.id} is supported only in the compute stage`);
@@ -585,18 +621,18 @@ function transformBindings(bindings, plan, stage)
 
 /**
  * The layout policy: `signedAtomicI32Identities` (exact profiles only) and
- * `typedBufferViews`, D3D identity to bound view format. Either may be
+ * `typedViews`, D3D identity to bound view format. Either may be
  * absent; nothing else is accepted.
  */
 function normalizeLayoutPolicy(value)
 {
     if (value === undefined || value === null)
     {
-        return { signedAtomicI32Identities: new Set(), typedBufferViews: new Map() };
+        return { signedAtomicI32Identities: new Set(), typedViews: new Map() };
     }
     const keys = value && typeof value === "object" && !Array.isArray(value) ? Object.keys(value) : null;
     const atomics = value?.signedAtomicI32Identities ?? [];
-    if (!keys || keys.some((key) => key !== "signedAtomicI32Identities" && key !== "typedBufferViews")
+    if (!keys || keys.some((key) => key !== "signedAtomicI32Identities" && key !== "typedViews")
         || !Array.isArray(atomics)
         || atomics.some((identity) =>
             typeof identity !== "string"
@@ -609,7 +645,7 @@ function normalizeLayoutPolicy(value)
     }
     return {
         signedAtomicI32Identities: new Set(atomics),
-        typedBufferViews: normalizeTypedBufferViews(value.typedBufferViews)
+        typedViews: normalizeTypedBufferViews(value.typedViews)
     };
 }
 
@@ -619,13 +655,13 @@ function normalizeTypedBufferViews(value)
     if (value === undefined || value === null) return views;
     if (typeof value !== "object" || Array.isArray(value))
     {
-        throw new TypeError("WGSL typedBufferViews must map D3D identities to view formats");
+        throw new TypeError("WGSL typedViews must map D3D identities to view formats");
     }
     for (const [ identity, format ] of Object.entries(value))
     {
-        if (!/^(sampled-resource|storage-resource):\d+:\d+$/u.test(identity) || !TYPED_BUFFER_VIEW_FORMATS[format])
+        if (!/^(sampled-resource|storage-resource):\d+:\d+$/u.test(identity) || !TYPED_VIEW_FORMATS[format])
         {
-            throw new TypeError(`WGSL typedBufferViews has an unsupported entry ${identity}: ${format}`);
+            throw new TypeError(`WGSL typedViews has an unsupported entry ${identity}: ${format}`);
         }
         views.set(identity, format);
     }
@@ -660,7 +696,7 @@ export function lowerBindingLayout(
     // reads each typed buffer the way the plan declared it.
     for (const [ identity, entry ] of planned?.bindings || [])
     {
-        if (entry.typedBufferView) policy.typedBufferViews.set(identity, entry.typedBufferView);
+        if (entry.typedView) policy.typedViews.set(identity, entry.typedView);
     }
     const explicitTransforms = normalizeResourceTransformPlan(resourceTransformPlan);
     if (planned?.resourceTransformPlan && explicitTransforms

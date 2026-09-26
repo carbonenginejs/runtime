@@ -39,9 +39,9 @@ function sampleGradientLanes(instruction, program)
  * buffer, x/y for a 2D texture, x/y and the layer (or depth) for an array or
  * volume.
  */
-function storeAddressLanes(instruction, program)
+function storeAddressLanes(instruction, program, uavOperandIndex = 0)
 {
-    const uav = instruction.operands?.[0];
+    const uav = instruction.operands?.[uavOperandIndex];
     const reference = uav?.resourceReference;
     const binding = (program?.bindings || []).find((entry) => entry.resourceKind === "storage-resource"
         && (reference?.rangeId !== null && reference?.rangeId !== undefined
@@ -76,6 +76,8 @@ export function fixedSourceLanes(instruction, operandIndex, program = null)
     if (dot && operandIndex > 0) return dot;
     if (instruction.opcodeName === "ld" && operandIndex === 1) return loadAddressLanes(instruction, program);
     if (instruction.opcodeName === "store_uav_typed" && operandIndex === 1) return storeAddressLanes(instruction, program);
+    // A typed UAV load addresses the same texel lanes as a store to it.
+    if (instruction.opcodeName === "ld_uav_typed" && operandIndex === 1) return storeAddressLanes(instruction, program, 2);
     if (instruction.opcodeName === "ld_structured" && operandIndex === 1) return [ "x" ];
     if (instruction.opcodeName === "store_structured")
     {

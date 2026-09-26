@@ -1,11 +1,10 @@
 /**
- * Bound-view formats of the typed buffers Carbon's renderer creates and binds
- * by effect parameter name.
+ * Bound-view formats of the typed buffers and typed UAV textures Carbon's
+ * renderer creates and binds by effect parameter name.
  *
- * A DXBC `dcl_resource`/`dcl_uav_typed` of dimension `buffer` records only the
- * component class `ld` returns, never the DXGI view the C++ binds, so the
- * format cannot come from the shader. It comes from where Carbon creates the
- * buffer:
+ * A DXBC typed resource or UAV declaration records only the component class a
+ * load returns, never the DXGI format the C++ binds, so the format cannot come
+ * from the shader. It comes from where Carbon creates the resource:
  *
  * - `Exposure` (and `ExposureBuffer` on the exposure-to-texture pass) is
  *   `Tr2PostProcessRenderer::GetExposureBuffer`, a `Tr2BufferDescriptionAL` of
@@ -21,6 +20,10 @@
  * - `FlareOcclusionBuffer` is `Tr2OcclusionBuffer`'s `PIXEL_FORMAT_R32_UINT`
  *   buffer, registered as a global variable under that name
  *   (Eve/EveOccluder.cpp:21, created at :110).
+ * - `CooldownMap` is the "TAA Cooldown" texture, `PIXEL_FORMAT_R32_UINT` with
+ *   UAV and SRV usage (Tr2PostProcessRenderer.cpp:1463-1469), bound to the TAA
+ *   effect at :1514; the medium and high quality tiers read and write it from
+ *   the pixel stage.
  *
  * A uint view applies to render stages only: compute already reads uint
  * buffers as raw words and writes uint UAVs atomically, in the audited
@@ -31,27 +34,32 @@
  * by `lowerBindingLayout`, so a different effect reusing the name cannot be
  * read with the wrong element type.
  */
-export const CARBON_TYPED_BUFFER_VIEWS = Object.freeze({
+export const CARBON_TYPED_VIEWS = Object.freeze({
     Exposure: "R32_FLOAT",
     ExposureBuffer: "R32_FLOAT",
     Histogram: "R32_UINT",
-    FlareOcclusionBuffer: "R32_UINT"
+    FlareOcclusionBuffer: "R32_UINT",
+    CooldownMap: "R32_UINT"
 });
 
 /**
  * What each supported view format means to WGSL: the storage element, the
- * DXBC component class it must be declared with, and the four-component value
- * D3D11 returns for an in-bounds element (missing channels read 0, alpha 1).
+ * WebGPU storage-texture format, the DXBC component class it must be declared
+ * with, and the four-component value D3D11 returns for an in-bounds element
+ * (missing channels read 0, alpha 1). Both are single-channel 32-bit formats,
+ * which WebGPU allows as read-write storage textures.
  */
-export const TYPED_BUFFER_VIEW_FORMATS = Object.freeze({
+export const TYPED_VIEW_FORMATS = Object.freeze({
     R32_FLOAT: Object.freeze({
         element: "f32",
+        storageTextureFormat: "r32float",
         returnType: "float",
         renderStagesOnly: false,
         expand: (value) => `vec4<f32>(${value}, 0.0, 0.0, 1.0)`
     }),
     R32_UINT: Object.freeze({
         element: "u32",
+        storageTextureFormat: "r32uint",
         returnType: "uint",
         renderStagesOnly: true,
         expand: (value) => `vec4<u32>(${value}, 0u, 0u, 1u)`
@@ -64,20 +72,20 @@ const SEMANTIC_KIND = Object.freeze({
 });
 
 /**
- * The typed-buffer view policy for one stage: D3D identity to view format,
+ * The typed-view policy for one stage: D3D identity to view format,
  * from the stage's Carbon parameter names.
  *
  * @param {object[]} semanticBindings The stage's effect-description bindings.
  * @returns {Object<string, string>} `{ "sampled-resource:0:9": "R32_FLOAT" }`
  */
-export function typedBufferViewsFor(semanticBindings)
+export function typedViewsFor(semanticBindings)
 {
     const views = {};
     for (const binding of semanticBindings || [])
     {
         const kind = SEMANTIC_KIND[binding?.kind];
         const name = binding?.metadataName ?? binding?.carbon?.name;
-        const format = kind && typeof name === "string" ? CARBON_TYPED_BUFFER_VIEWS[name] : undefined;
+        const format = kind && typeof name === "string" ? CARBON_TYPED_VIEWS[name] : undefined;
         if (!format) continue;
         views[`${kind}:${binding.registerSpace ?? 0}:${binding.registerIndex}`] = format;
     }

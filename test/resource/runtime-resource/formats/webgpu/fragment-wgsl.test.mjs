@@ -2648,8 +2648,8 @@ test("fragment typed Buffer SRVs with a planned view format load D3D's four comp
     const views = { "sampled-resource:0:0": "R32_FLOAT" };
 
     const ir = CjsWebgpuFormat.buildShaderIr(typedBufferProgram("float"));
-    const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedBufferViews: views });
-    assert.equal(bindingPlan.bindings[0].typedBufferView, "R32_FLOAT");
+    const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedViews: views });
+    assert.equal(bindingPlan.bindings[0].typedView, "R32_FLOAT");
     const shader = CjsWebgpuFormat.buildWgsl(ir, { bindingPlan });
     const binding = shader.program.bindings.find((entry) => entry.generatedSymbol === "t0");
     assert.equal(binding.declaration, "var<storage, read>");
@@ -2661,9 +2661,42 @@ test("fragment typed Buffer SRVs with a planned view format load D3D's four comp
     // The declaration must agree with the named view's component class.
     const uintIr = CjsWebgpuFormat.buildShaderIr(typedBufferProgram("uint"));
     assert.throws(
-        () => CjsWebgpuFormat.buildWgslBindingPlan([ uintIr ], { typedBufferViews: views }),
+        () => CjsWebgpuFormat.buildWgslBindingPlan([ uintIr ], { typedViews: views }),
         /does not match its bound R32_FLOAT view/u
     );
+});
+
+test("fragment lowering reads and writes a Carbon-named r32uint storage texture", () =>
+{
+    const uav = { ...register("uav", 0), componentCount: 0 };
+    const program = {
+        program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [ signature("SV_Position", 0, 3) ], output: [ signature("SV_Target", 0, 15) ] },
+        instructions: [
+            globalFlagsDeclaration(),
+            declaration(2, "dcl_unordered_access_view_typed", "uav", {
+                resourceDimensionName: "texture2d",
+                returnType: { returnTypeNames: [ "uint", "uint", "uint", "uint" ] }
+            }),
+            instruction(4, "ftou", [ register("temp", 0, { mask: "xy" }), register("input", 0, { swizzle: "xyxx" }) ]),
+            instruction(8, "ld_uav_typed", [
+                register("temp", 1, { mask: "y" }), register("temp", 0, { swizzle: "xyyy" }), { ...uav, swizzle: "yxzw" }
+            ]),
+            instruction(12, "store_uav_typed", [ uav, register("temp", 0, { swizzle: "xyyy" }), register("temp", 1, { swizzle: "yyyy" }) ]),
+            instruction(16, "utof", [ register("output", 0, { mask: "xyzw" }), register("temp", 1, { swizzle: "yyyy" }) ]),
+            instruction(20, "ret", [])
+        ]
+    };
+    const ir = CjsWebgpuFormat.buildShaderIr(program);
+    assert.throws(() => CjsWebgpuFormat.buildWgsl(ir), /supported only in the compute stage/u);
+
+    const bindingPlan = CjsWebgpuFormat.buildWgslBindingPlan([ ir ], { typedViews: { "storage-resource:0:0": "R32_UINT" } });
+    const shader = CjsWebgpuFormat.buildWgsl(ir, { bindingPlan });
+    const binding = shader.program.bindings.find((entry) => entry.generatedSymbol === "u0");
+    assert.deepEqual(binding.storageTexture, { access: "read-write", format: "r32uint", viewDimension: "2d" });
+    assert.match(shader.code, /var u0: texture_storage_2d<r32uint, read_write>;/u);
+    assert.match(shader.code, /select\(vec4<u32>\(\), textureLoad\(u0, min\(/u);
+    assert.match(shader.code, /textureStore\(u0, store_address\d+, vec4<u32>\(/u);
 });
 
 test("fragment lowering emits guarded storage atomics for typed uint buffer UAVs", () =>

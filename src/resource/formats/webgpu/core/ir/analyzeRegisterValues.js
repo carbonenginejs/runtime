@@ -30,7 +30,7 @@ const NO_DESTINATION = new Set([
 
 const DUAL_DESTINATION = new Set([ "sincos", "imul", "umul", "udiv", "swapc" ]);
 const FULL_SOURCE_LANES = new Set([
-    "ld", "ld_ms", "resinfo"
+    "ld", "ld_ms", "ld_uav_typed", "resinfo"
 ]);
 
 function operandComponents(operand, destination = false, activeComponents = null)
