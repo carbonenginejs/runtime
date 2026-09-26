@@ -620,7 +620,7 @@ async function ReadPoolBuffer(device, name)
 }
 
 /** Bytes per texel for the formats the post chain uses. */
-const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4, "rg16float": 4, "r32uint": 4 };
+const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4, "rg16float": 4, "r32uint": 4, "rgba8snorm": 4, "rgb10a2unorm": 4 };
 
 /** Decodes one IEEE-754 binary16 value. */
 function Half(bits)
@@ -640,7 +640,15 @@ const TEXEL_DECODERS = {
   "r32float": (view, at) => [ view.getFloat32(at, true), 0, 0, 0 ],
   // TAA's velocity map (screen-space motion) and cooldown map (a counter).
   "rg16float": (view, at) => [ Half(view.getUint16(at, true)), Half(view.getUint16(at + 2, true)), 0, 0 ],
-  "r32uint": (view, at) => [ view.getUint32(at, true), 0, 0, 0 ]
+  "r32uint": (view, at) => [ view.getUint32(at, true), 0, 0, 0 ],
+  // CORTAO's output and blur (bent normal in RGB, occlusion in A), and the
+  // depth pass's normal map.
+  "rgba8snorm": (view, at) => [ 0, 1, 2, 3 ].map(c => Math.max(view.getInt8(at + c) / 127, -1)),
+  "rgb10a2unorm": (view, at) =>
+  {
+    const bits = view.getUint32(at, true);
+    return [ (bits & 0x3ff) / 1023, ((bits >>> 10) & 0x3ff) / 1023, ((bits >>> 20) & 0x3ff) / 1023, (bits >>> 30) / 3 ];
+  }
 };
 
 /**
@@ -2502,16 +2510,25 @@ export async function RunDemo(canvas)
   // thing that cannot be read there: whether the loaded 3D texture is bound,
   // or a stand-in (which samples black and darkens the frame to 0.3x at the
   // 0.7 influence the shader lerps with).
-  // demo.ssao(): what ambient occlusion needs from this device, and whether
-  // CORTAO's effects and lookup table loaded. The Pack kernel binds sixteen
-  // storage textures and the lookup table is R16_UNORM; either missing stops
-  // the pass, and the frame then samples the white empty SSAO.
-  globalThis.demo.ssao = () =>
+  // demo.ssao(): what ambient occlusion needs from this device, whether
+  // CORTAO's effects and lookup table loaded, and what each stage's texture
+  // holds, in pipeline order: the depth pass's normal map, the packed depth
+  // (mip 0), the main pass's output and the blur's intermediate. The first
+  // that reads empty is the stage that did nothing. The lookup table is
+  // R16_UNORM, which needs texture-formats-tier1.
+  globalThis.demo.ssao = async () =>
   {
     const device = al.GetWebgpu().GetDevice();
     const ssao = driver.SSAO;
     const table = ssao._cortaoLookupTable;
+    const textures = {};
+    for (const name of [ "normalMap", "cortao_packed", "cortao_output", "cortao_blur" ])
+    {
+      const gpuTexture = POOL_TEXTURES.get(name)?.m_texture;
+      textures[name] = gpuTexture ? await CountNonZeroTexels(device, gpuTexture) : "never borrowed";
+    }
     return {
+      textures,
       aoQuality: driver.aoQuality,
       enabled: ssao.enabled,
       quality: ssao.quality,
