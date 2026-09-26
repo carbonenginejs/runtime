@@ -30,8 +30,11 @@ test("an integer vertex input moved into a temporary value-converts into its com
     assert.doesNotMatch(source, /floatBitsToUint\(r0\.x\)/);
 });
 
-test("stages without integer system inputs or packed lights keep no integer companions", () =>
+// Every stage keeps integer companions, not only the vertex-id and packed-light
+// ones: ANGLE/D3D11 flushes the denormal bit patterns of small integers held in
+// float temporaries, in any stage (the shield impact's pixel-stage hit loop).
+test("every stage keeps integer companions for its temporaries", () =>
 {
     const { source } = CjsWebglFormat.emitGlsl(buildMinimalVertexDxbc());
-    assert.doesNotMatch(source, /cjsBitsR/);
+    assert.match(source, /uvec4 cjsBitsR0;/);
 });

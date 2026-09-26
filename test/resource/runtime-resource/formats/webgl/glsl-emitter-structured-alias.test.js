@@ -50,7 +50,8 @@ test("a structured load whose destination aliases its address reads the address 
     assert.equal(hoists.length, 1, "the aliased address is hoisted exactly once");
 
     // All four components still load, and each reads the hoisted temporary.
-    const loads = source.split("\n").filter(line => /^\s*r\d+\.[xyzw]\s*=/.test(line) && /cjsSbAddr/.test(line));
+    // Each load lands in the temporary's integer companion first.
+    const loads = source.split("\n").filter(line => /^\s*(?:r|cjsBitsR)\d+\.[xyzw]\s*=/.test(line) && /cjsSbAddr/.test(line));
     assert.equal(loads.length, 4, "every masked component is still loaded, from the hoisted address");
 });
 

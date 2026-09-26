@@ -530,25 +530,21 @@ export class DxbcGlslEmitter
         // Register -> GLSL integer built-in (`gl_VertexID`/`gl_InstanceID`) for
         // system-value inputs; filled by _declareSystemInput.
         state.systemIntegerInputs = new Map();
-        // Integer companions for temporaries. Small integers held as float bit
-        // patterns are denormals, and ANGLE/D3D11 hardware does not preserve
-        // them in float storage: a vertex-id corner index `r0.x = uintBitsToFloat(id & 3u)`
-        // reads back 0 for ids 1..3, collapsing every quad (plane sets, the sprite
-        // pool). Packed-light shaders need the same companions for their words.
+        // Integer companions for temporaries, in EVERY stage. Small integers held
+        // as float bit patterns are denormals, and ANGLE/D3D11 hardware flushes
+        // them in float storage: a vertex-id corner index reads back 0 for ids
+        // 1..3 (plane sets, the sprite pool), and a pixel shader's loop counter,
+        // texelFetch coordinate or integer literal collapses the same way (the
+        // shield impact's hit loop rendered its whole shell white). SwiftShader
+        // preserves denormals, which is why headless runs never showed it.
+        // Every temporary write therefore also writes its uint companion, and
+        // integer reads come from the companion; float reads still use the vec4.
         //
         // Integer vertex inputs arrive as float VALUES (see _declareVertexInput);
         // a move into a temporary must value-convert into the companion, or a later
         // `floatBitsToInt(r#)` reads the bits of 3.0 instead of 3 (the haze-set box
         // corner index, TEXCOORD7).
-        const integerVertexInputRegisters = new Set(program.programTypeName !== "vertex" ? [] : (raw.inputSignature?.elements || [])
-            .filter((element) => element.componentTypeName === "uint32" || element.componentTypeName === "int32")
-            .map((element) => element.registerIndex));
-        state.integerTemps = !!state.lightPackedTexture || state.decoder.instructions.some((instruction) =>
-            ((instruction.opcodeName === "dcl_input_sgv" || instruction.opcodeName === "dcl_input_ps_sgv")
-                && (instruction.declaration?.systemValueName === "vertex_id" || instruction.declaration?.systemValueName === "instance_id"))
-            || ((instruction.opcodeName === "mov" || instruction.opcodeName === "movc")
-                && instruction.operands[0]?.type === 0
-                && instruction.operands.slice(1).some((operand) => operand.type === 1 && integerVertexInputRegisters.has(operand.registerIndex))));
+        state.integerTemps = true;
 
         state.formatter = new DxbcGlslOperandFormatter({
             // Populated during vertex-input declaration (the declaration loop

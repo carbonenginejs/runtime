@@ -200,7 +200,10 @@ test("lightConstantBuffer lowers light index structured loads to a cb-backed lin
 
     assert.match(result.source, /uniform vec4 cb6\[13\];/);
     assert.match(result.source, /uint cjsLocalLightIndexLoad\(int element\)/);
-    assert.match(result.source, /r0\.x = uintBitsToFloat\(cjsLocalLightIndexLoad\(7\)\);/);
+    // The index word goes into the temporary's integer companion, and the
+    // float register is its bit pattern.
+    assert.match(result.source, /cjsBitsR0\.x = cjsLocalLightIndexLoad\(7\);/);
+    assert.match(result.source, /r0\.x = uintBitsToFloat\(cjsBitsR0\.x\);/);
     assert.doesNotMatch(result.source, /usampler2D sb11/);
     assert.ok(result.bindings.some((b) =>
         b.kind === "constantBuffer" &&
