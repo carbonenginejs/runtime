@@ -211,3 +211,27 @@ test("a writable storage view bound twice takes a dummy the second time, and eve
   distinct.Create(description, program, al);
   assert.equal(distinct.GetEntries().get("0:1"), views.get(5));
 });
+
+test("a set reports its pixel samplers' authored address modes, for the emulated-addressing buffer", () =>
+{
+  // The shader tests border and mirror-once from a buffer the backend fills
+  // per draw from the bound sampler states, one vec4 per sampler register.
+  const { al } = composed();
+  const program = programWith(al, [
+    { group: 0, binding: 0, resourceKind: "sampler", registerSpace: 0, registerIndex: 0, visibility: [ "fragment" ], type: "sampler", generatedSymbol: "s0" },
+    { group: 0, binding: 1, resourceKind: "sampler", registerSpace: 0, registerIndex: 2, visibility: [ "fragment" ], type: "sampler", generatedSymbol: "s2" }
+  ]);
+  const description = new Tr2ResourceSetDescriptionAL({ program });
+  const decal = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 4, addressV: 4, addressW: 3 });
+
+  description.SetSampler(ShaderType.PIXEL_SHADER, 2, decal);
+
+  const set = new CjsWebgpuResourceSetAL();
+
+  assert.equal(set.Create(description, program, al), ALResult.S_OK);
+  assert.deepEqual([ ...set.GetAddressModes(3) ], [
+    0, 0, 0, 0,   // s0: nothing bound, nothing to emulate
+    0, 0, 0, 0,   // s1: not declared
+    4, 4, 3, 0    // s2: border U and V, clamp W
+  ]);
+});

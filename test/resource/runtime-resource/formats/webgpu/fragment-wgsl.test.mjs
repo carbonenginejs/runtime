@@ -2782,3 +2782,30 @@ test("fragment lowering fails closed on non-uint typed buffer UAVs", () =>
         () => CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-uav-float" }),
         /only typed uint buffer UAVs are supported/u);
 });
+
+test("a sampler authored with border addressing samples through the modes buffer, keyed by sampler register", async () =>
+{
+  // WebGPU has no border address mode; decalv5's five decal maps share one
+  // bordered sampler and smeared their edge texels (clamp-to-edge) until the
+  // emulation was wired. docs/contracts/webgl2-emulated-addressing.md.
+  const { withEmulatedAddressing, ADDRESS_MODES_SYMBOL } = await import("../../../../../src/resource/formats/webgpu/core/wgsl/emulatedAddressing.js");
+  const ir = CjsWebgpuFormat.buildShaderIr(fragmentFixture(), { source: "synthetic-border-sample" });
+  const bordered = (addressU, addressV) => [ {
+    kind: "sampler",
+    registerIndex: 0,
+    registerSpace: 0,
+    carbon: { sampler: { addressU, addressV, addressW: 3, borderColor: [ 1, 1, 1, 1 ] } }
+  } ];
+
+  // Wrap and clamp are the sampler's own: nothing added.
+  assert.equal(withEmulatedAddressing(ir, bordered(1, 3)), ir);
+
+  const program = withEmulatedAddressing(ir, bordered(4, 4));
+  const code = CjsWebgpuFormat.buildWgsl(program).code;
+
+  assert.match(code, new RegExp(`var<uniform> ${ADDRESS_MODES_SYMBOL}: array<vec4<f32>, 1>`, "u"));
+  assert.ok(code.includes(`${ADDRESS_MODES_SYMBOL}[0].xy`), "indexed by the sampler's register");
+  assert.match(code, /cjsAddressBorder2\(textureSample\(/u);
+  assert.match(code, /vec4<f32>\(1\.0, 1\.0, 1\.0, 1\.0\)/u, "the authored border colour, baked");
+  assert.equal(code.match(/cjsAddressBorder2\(textureSample/gu).length, 2, "both samples");
+});

@@ -21,6 +21,8 @@
 // declare a W mode - eight shipped samplers declare border on W - which must
 // not be tested against a component that does not exist.
 
+import { CARBON_BACKEND_ADDRESS_MODES_SYMBOL } from "../../../../format/carbonEffect/carbonEffectBackendBlock.js";
+
 /** Helper names, so the emitter and its tests cannot disagree about spelling. */
 export const ADDRESS_COORD_2 = "cjsAddressCoord2";
 
@@ -157,11 +159,11 @@ export function BorderColorLiteral(color)
  * the player can still change. The GLSL emitter reads them for the same reason:
  * it "is what lets an override correct a container that is wrong".
  *
- * Indexed by RESOURCE register, not sampler register: several textures share
- * one sampler and still resolve to different modes.
+ * The WebGL2 path indexes by resource register; this one passes the SAMPLER
+ * register, as Carbon's overrides key the sampler (withEmulatedAddressing).
  *
  * @param {string} bufferSymbol Generated symbol of the modes buffer.
- * @param {number} resourceRegister Texture register being sampled.
+ * @param {number} resourceRegister The register the buffer is indexed by.
  * @param {number} components 2 or 3.
  * @returns {string} A `vec2<f32>` or `vec3<f32>` expression.
  */
@@ -201,4 +203,105 @@ export function ModesExpression(bufferSymbol, resourceRegister, components)
 export function ShouldEmulate(modes, forced)
 {
     return NeedsEmulation(modes) || Boolean(forced);
+}
+
+/**
+ * The constant-buffer register the modes buffer takes, as the WebGL2 path's
+ * `emulatedAddressingRegister` (docs/contracts/webgl2-emulated-addressing.md).
+ */
+export const ADDRESS_MODES_REGISTER = 8;
+
+/**
+ * The modes buffer's WGSL symbol. It is not `cb8`, so the backend can tell
+ * this buffer, which it fills itself, from a constant buffer the effect binds.
+ */
+export const ADDRESS_MODES_SYMBOL = CARBON_BACKEND_ADDRESS_MODES_SYMBOL;
+
+/** The sample forms the fragment lowering emulates addressing for. */
+const SAMPLE_OPCODES = new Set([ "sample", "sample_b", "sample_l", "sample_d" ]);
+
+/**
+ * The pixel program with emulated addressing switched on: when one of its
+ * samples goes through a sampler whose AUTHORED state has a border or
+ * mirror-once axis, the program gains the modes buffer as a uniform binding
+ * at `ADDRESS_MODES_REGISTER`, and `emulatedAddressing` names those samplers.
+ *
+ * KEYED BY SAMPLER REGISTER, as Carbon keys an override: its
+ * `Tr2Effect::RebuildSamplerOverrides` writes the sampler register, so every
+ * texture on a shared sampler changes together. The backend fills
+ * `modes[samplerRegister]` from the sampler state actually bound there, so an
+ * override that keeps an emulated mode is honoured; one that adds border to a
+ * sampler the container did not author with it is not gated here.
+ *
+ * @param {object} program Frozen CJS shader IR.
+ * @param {object[]} semanticBindings The stage's effect-description bindings.
+ * @returns {object} The program, or a copy with emulated addressing.
+ */
+export function withEmulatedAddressing(program, semanticBindings)
+{
+    if (program.stage !== "pixel") return program;
+
+    const samplerModes = {};
+
+    for (const binding of semanticBindings || [])
+    {
+        const state = binding?.kind === "sampler" && (binding.registerSpace ?? 0) === 0 ? binding.carbon?.sampler : null;
+        if (!state) continue;
+
+        const axes = [ state.addressU, state.addressV, state.addressW ];
+        if (!NeedsEmulation(axes)) continue;
+
+        samplerModes[binding.registerIndex] = Object.freeze({
+            u: axes[0],
+            v: axes[1],
+            w: axes[2],
+            borderColor: Object.freeze([ ...(state.borderColor ?? [ 0, 0, 0, 0 ]) ])
+        });
+    }
+
+    const registers = Object.keys(samplerModes).map(Number);
+    const sampled = program.instructions.some((instruction) => SAMPLE_OPCODES.has(instruction.opcodeName)
+        && registers.includes(instruction.operands?.[3]?.registerIndex));
+
+    if (!sampled) return program;
+
+    if (program.bindings.some((binding) => binding.resourceKind === "uniform-buffer"
+        && (binding.range?.registerSpace ?? 0) === 0
+        && (binding.range?.lowerBound ?? binding.registerIndex) === ADDRESS_MODES_REGISTER))
+    {
+        throw new Error(`WGSL emulated addressing needs constant-buffer register ${ADDRESS_MODES_REGISTER}, which the shader already declares`);
+    }
+
+    const modesBuffer = Object.freeze({
+        kind: "binding",
+        id: `uniform-buffer:space0:range${ADDRESS_MODES_REGISTER}`,
+        resourceKind: "uniform-buffer",
+        operandType: "constant_buffer",
+        declarationOffset: -1,
+        registerIndex: ADDRESS_MODES_REGISTER,
+        range: Object.freeze({
+            bindingModel: "sm5.0-register",
+            rangeId: null,
+            lowerBound: ADDRESS_MODES_REGISTER,
+            upperBound: ADDRESS_MODES_REGISTER,
+            unbounded: false,
+            registerCount: 1,
+            registerSpace: 0
+        }),
+        accessPattern: "dynamic_indexed",
+        resourceDimension: null,
+        structureStride: null,
+        returnType: null,
+        synthetic: "emulated-addressing"
+    });
+
+    return Object.freeze({
+        ...program,
+        bindings: Object.freeze([ ...program.bindings, modesBuffer ]),
+        emulatedAddressing: Object.freeze({
+            samplerModes: Object.freeze(samplerModes),
+            bufferRegister: ADDRESS_MODES_REGISTER,
+            sizeInVec4: Math.max(...registers) + 1
+        })
+    });
 }

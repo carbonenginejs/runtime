@@ -189,6 +189,30 @@ export class CjsWebgpuResourceSetAL
     return { buffer: buffer ?? renderContext.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
   }
 
+  /**
+   * The authored address modes of this set's pixel-stage sampler states, one
+   * `vec4` (U, V, W, 0) per sampler register, for the emulated-addressing
+   * modes buffer (`CARBON_BACKEND_ADDRESS_MODES_SYMBOL`). Zero where no state
+   * is bound, which the shader reads as "nothing to emulate".
+   *
+   * @param {number} registerCount How many sampler registers the buffer covers.
+   * @returns {Float32Array} The buffer's contents.
+   */
+  GetAddressModes(registerCount)
+  {
+    const modes = new Float32Array(registerCount * 4);
+
+    for (let registerIndex = 0; registerIndex < registerCount; registerIndex += 1)
+    {
+      const slot = this.m_description ? SlotFor(this.m_description, "sampler", { visibility: 2, registerIndex }) : null;
+      const description = slot?.type === 1 ? slot.sampler.GetDescription() : null;
+
+      if (description) modes.set([ description.addressU, description.addressV, description.addressW, 0 ], registerIndex * 4);
+    }
+
+    return modes;
+  }
+
   /** The resolved entries by `"group:binding"`. @returns {Map<string, object>} */
   GetEntries()
   {

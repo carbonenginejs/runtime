@@ -79,6 +79,7 @@ import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
+import { CARBON_BACKEND_ADDRESS_MODES_SYMBOL } from "#resource/format";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
 import { CjsWebgpuTextureAL } from "./CjsWebgpuTextureAL.js";
@@ -1722,7 +1723,9 @@ export class CjsWebgpuRenderContextAL
           // drawn through one program share one bind group and differ only in
           // their offsets, which is the whole economy of the arena.
           const size = binding.buffer.minBindingSize ?? 16;
-          const constantBuffer = this._ConstantBufferFor(binding);
+          const constantBuffer = binding.generatedSymbol === CARBON_BACKEND_ADDRESS_MODES_SYMBOL
+            ? this._AddressModesBuffer(entries ? set : null, size)
+            : this._ConstantBufferFor(binding);
 
           if (constantBuffer)
           {
@@ -1866,6 +1869,38 @@ export class CjsWebgpuRenderContextAL
 
     return null;
   }
+
+  /**
+   * The emulated-addressing modes buffer: WebGPU has no border or mirror-once
+   * address mode, so a translated shader tests them from this buffer
+   * (`emulatedAddressing.js`). It is the backend's own, not the effect's, and
+   * is filled here, per draw, from the sampler states the resource set binds,
+   * so an override that rebinds a sampler is what the shader reads.
+   *
+   * @param {object|null} set The draw's `CjsWebgpuResourceSetAL`, or null.
+   * @param {number} size The binding's size in bytes, a vec4 per sampler register.
+   * @returns {object} The constant buffer, filled.
+   */
+  _AddressModesBuffer(set, size)
+  {
+    if (!this._addressModes?.IsValid() || this._addressModes.GetSize() < size)
+    {
+      this._addressModes = new CjsWebgpuConstantBufferAL();
+      this._addressModes.Create(size, Tr2ConstantUsageAL.REUSABLE, null, this);
+    }
+
+    const { data } = this._addressModes.Lock(this);
+    const modes = set ? set.GetAddressModes(size / 16) : new Float32Array(size / 4);
+
+    data.fill(0);
+    data.set(new Uint8Array(modes.buffer, modes.byteOffset, modes.byteLength));
+    this._addressModes.Unlock(this);
+
+    return this._addressModes;
+  }
+
+  /** The emulated-addressing modes buffer, made on first need. */
+  _addressModes = null;
 
   /** Metal's dummy for a slot no set filled; `storageIndex` picks a storage dummy of its own. */
   _DummyFor(binding, storageIndex = 0)

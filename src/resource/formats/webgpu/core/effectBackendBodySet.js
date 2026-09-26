@@ -7,6 +7,7 @@ import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
 import { typedViewsFor } from "../../hlsl/core/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
 import { withoutUnboundUavs } from "./wgsl/wgslTypedViews.js";
+import { withEmulatedAddressing } from "./wgsl/emulatedAddressing.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
 import { sha256Bytes, sha256Utf8 } from "../../../format/effect/sha256.js";
@@ -172,7 +173,7 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
 {
     const irEntries = pass.stages.map((stage) => ({
         key: stage.key,
-        ir: withoutUnboundUavs(programForKey(stage.bytecodeKey), stage.semanticBindings),
+        ir: withEmulatedAddressing(withoutUnboundUavs(programForKey(stage.bytecodeKey), stage.semanticBindings), stage.semanticBindings),
         semanticBindings: stage.semanticBindings,
         effectProfileProof: stage.effectProfileProof
     }));

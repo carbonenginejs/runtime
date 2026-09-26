@@ -1,5 +1,6 @@
 import { normalizeResourceTransformPlan } from "./buildResourceTransformPlan.js";
 import { TYPED_VIEW_FORMATS } from "./wgslTypedViews.js";
+import { ADDRESS_MODES_SYMBOL } from "./emulatedAddressing.js";
 
 const KIND_ORDER = Object.freeze({
     "uniform-buffer": 0,
@@ -69,8 +70,11 @@ function declarationFor(program, binding)
 
 function uniformLayout(program, binding)
 {
-    const declaration = declarationFor(program, binding);
-    const sizeInVec4 = declaration?.data?.sizeInVec4;
+    // The emulated-addressing modes buffer has no DXBC declaration; its size
+    // is the program's (withEmulatedAddressing).
+    const sizeInVec4 = binding.synthetic === "emulated-addressing"
+        ? program.emulatedAddressing?.sizeInVec4
+        : declarationFor(program, binding)?.data?.sizeInVec4;
     if (!Number.isInteger(sizeInVec4) || sizeInVec4 < 1)
     {
         throw new Error(`WGSL uniform ${binding.id} has no positive vec4 size`);
@@ -476,7 +480,9 @@ function lowerOne(program, binding, bindingIndex, policy)
         identity,
         scopeIdentity: `${identity}@${visibility}`,
         resourceKind: binding.resourceKind,
-        generatedSymbol: `${KIND_PREFIX[binding.resourceKind]}${registerIndex}${registerSpace ? `_space${registerSpace}` : ""}`,
+        generatedSymbol: binding.synthetic === "emulated-addressing"
+            ? ADDRESS_MODES_SYMBOL
+            : `${KIND_PREFIX[binding.resourceKind]}${registerIndex}${registerSpace ? `_space${registerSpace}` : ""}`,
         registerSpace,
         registerIndex,
         rangeId: binding.range?.rangeId ?? null,

@@ -1319,15 +1319,19 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         // is why this must happen in the emitter: the caller knows the modes
         // and not the mapping, and DXBC carries no sampler state.
         const profile = program.emulatedAddressing ?? null;
-        const declared = profile?.samplerModes?.[sampler] ?? null;
+        const declared = profile?.samplerModes?.[sampler.registerIndex] ?? null;
         const axes = [ declared?.u, declared?.v, declared?.w ];
-        const forced = profile?.textures?.find((entry) => entry.registerIndex === resource) ?? null;
-        const emulated = Boolean(profile) && !transformed && ShouldEmulate(axes, forced);
+        const forced = profile?.textures?.find((entry) => entry.registerIndex === resource.registerIndex) ?? null;
+        // Not a cube: its coordinate is a direction, where a [0, 1] border test
+        // is meaningless (decalholev5 samples its interior cube through the
+        // decals' bordered sampler). The WebGL2 emitter refuses it the same way.
+        const emulated = Boolean(profile) && !transformed && viewDimension !== "cube" && ShouldEmulate(axes, forced);
         let modes = null;
 
         if (emulated)
         {
-            const modesBuffer = bindingForOperand(bindings, "uniform-buffer", profile.bufferRegister ?? 8);
+            const modesBuffer = bindings.find((entry) => entry.resourceKind === "uniform-buffer"
+                && entry.registerIndex === (profile.bufferRegister ?? 8)) ?? null;
 
             if (!modesBuffer)
             {
@@ -1337,7 +1341,8 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
                 );
             }
 
-            modes = ModesExpression(modesBuffer.generatedSymbol, resource, coordComponents);
+            // By sampler register, as withEmulatedAddressing lays the buffer out.
+            modes = ModesExpression(modesBuffer.generatedSymbol, sampler.registerIndex, coordComponents);
             coord = `${coordComponents === 2 ? ADDRESS_COORD_2 : ADDRESS_COORD_3}(${coord}, ${modes})`;
         }
 
@@ -1352,7 +1357,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         // form above rather than needing a variant of each.
         const bordered = emulated
             ? `${coordComponents === 2 ? ADDRESS_BORDER_2 : ADDRESS_BORDER_3}(${sampled}, ${coord}, `
-                + `${modes}, ${BorderColorLiteral(forced?.borderColor)})`
+                + `${modes}, ${BorderColorLiteral(forced?.borderColor ?? declared?.borderColor)})`
             : sampled;
         const components = rawSelectedComponents(resource, mask, count);
         return count === 4 && components.join("") === "xyzw" ? bordered : `${bordered}.${components.join("")}`;

@@ -85,6 +85,14 @@ export const CARBON_BACKEND_RESOURCE_KIND = Object.freeze([
 export const CARBON_BACKEND_TYPED_VIEW = Object.freeze([ "", "R32_FLOAT", "R32_UINT", "R8G8B8A8_SNORM" ]);
 
 /**
+ * The generated symbol of the emulated-addressing modes buffer, a uniform
+ * binding the translator adds (webgpu/core/wgsl/emulatedAddressing.js) and the
+ * backend fills itself from the bound sampler states. It travels as the
+ * binding's symbol, so it lives here, beside the rest of the wire.
+ */
+export const CARBON_BACKEND_ADDRESS_MODES_SYMBOL = "cjsAddressModes";
+
+/**
  * A texture binding's sample type, ordered so the wire value is stable. The
  * first is the default and what every non-texture binding writes.
  */
