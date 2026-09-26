@@ -412,6 +412,44 @@ const POOL_TEXTURES = new Map();
   };
 }
 
+/**
+ * THE POOL'S PERSISTENT BUFFERS BY NAME, for `demo.exposure()`: the
+ * "Exposure Buffer" dynamic exposure measures into and tonemapping reads.
+ */
+const POOL_BUFFERS = new Map();
+{
+  const original = Tr2GpuResourcePool.prototype.GetPersistentBuffer;
+  Tr2GpuResourcePool.prototype.GetPersistentBuffer = function (name, ...rest)
+  {
+    const handle = original.call(this, name, ...rest);
+    POOL_BUFFERS.set(name, handle.Get());
+    return handle;
+  };
+}
+
+/**
+ * Reads a pool buffer's current GPU contents as 32-bit floats.
+ *
+ * @param {GPUDevice} device The device.
+ * @param {string} name The pool name, e.g. "Exposure Buffer".
+ * @returns {Promise<number[]|string>} The floats, or why there are none.
+ */
+async function ReadPoolBuffer(device, name)
+{
+  const buffer = POOL_BUFFERS.get(name)?.GetDeviceBuffer?.();
+  if (!buffer) return `no GPU buffer named ${name} yet`;
+
+  const staging = device.createBuffer({ size: buffer.size, usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST });
+  const encoder = device.createCommandEncoder();
+  encoder.copyBufferToBuffer(buffer, 0, staging, 0, buffer.size);
+  device.queue.submit([ encoder.finish() ]);
+  await staging.mapAsync(GPUMapMode.READ);
+  const values = Array.from(new Float32Array(staging.getMappedRange().slice(0)));
+  staging.unmap();
+  staging.destroy();
+  return values;
+}
+
 /** Bytes per texel for the formats the post chain uses. */
 const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4 };
 
@@ -1985,6 +2023,18 @@ export async function RunDemo(canvas)
       report[name] = gpuTexture ? await CountNonZeroTexels(device, gpuTexture) : "no GPU texture";
     }
     return report;
+  };
+
+  // What dynamic exposure measured: the persistent 8-float buffer the measure
+  // pass writes and tonemapping reads (Tr2PostProcessRenderer GetExposureBuffer).
+  // Twice, a second apart, so a value that never moves is visible.
+  globalThis.demo.exposure = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const first = await ReadPoolBuffer(device, "Exposure Buffer");
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    const second = await ReadPoolBuffer(device, "Exposure Buffer");
+    return { first, second, settings: globalThis.demo.postProcess?.dynamicExposure ?? null };
   };
 
   globalThis.demo.post = () =>
