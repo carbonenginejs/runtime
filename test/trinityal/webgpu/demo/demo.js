@@ -2668,8 +2668,10 @@ export async function RunDemo(canvas)
 
   const validation = asAuthored.validation ?? inverted?.validation ?? null;
   const events = al.DrainTransitions();
+  // In SOF mode the first area is the ship's own effect, whose shader may still
+  // be loading after the first frame; the readout reports nulls until it is.
   const shader = material.GetShaderStateInterface();
-  const pass = shader.GetEffect().techniques[0].passes[0];
+  const pass = shader ? shader.GetEffect().techniques[0].passes[0] : {};
   const stages = (pass.stageInputs ?? [])
     .filter(stage => stage?.sourceProgram?.bytes?.length)
     .map(stage => `stage${stage.stageType}:${stage.sourceProgram.bytes.length}B`);
@@ -2773,7 +2775,7 @@ export async function RunDemo(canvas)
     scene: SCENE_MODE,
     hullBytes: hullBytes?.length ?? null,
     wgsl: stages,
-    techniques: shader.GetEffect().techniques.map(technique => technique.name),
+    techniques: shader ? shader.GetEffect().techniques.map(technique => technique.name) : null,
     renderStateHandle: pass.renderStates,
     shaderProgramHandle: pass.shaderProgram,
     declaration: mesh ? mesh.decl.map(element => `${element.usage}${element.usageIndex}:${element.type}x${element.elementCount}`) : null,
