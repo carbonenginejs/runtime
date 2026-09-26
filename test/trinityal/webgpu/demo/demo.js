@@ -108,7 +108,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveSpaceSceneRenderDriver, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import { EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
@@ -2091,7 +2091,24 @@ export async function RunDemo(canvas)
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
   // purpose: this demo proves the draw path, and a fog or lighting blend it does
   // not use would be scenery pretending to be a test.
+  // THE PER-FRAME BLOCKS GO THROUGH A REAL SCENE'S APPLY. EveSpaceScene binds
+  // its vertex block for compute as well as vertex (ApplyPerFrameData), and
+  // stamps Time from the animation clock when it populates (cpp:3066, 3118).
+  // The demo's blocks are copied into a real scene's records and applied
+  // there, so the binding is the scene's own code rather than a copy of it.
+  const perFrameScene = new EveSpaceScene();
+  const clockStart = globalThis.performance?.now() ?? 0;
+
   driver.scene = {
+    ApplyPerFrameData: renderContext =>
+    {
+      const time = ((globalThis.performance?.now() ?? 0) - clockStart) / 1000;
+      frame.vs.Set("Time", time);
+      frame.ps.Set("Time", time);
+      perFrameScene.GetPerFrameVSData().CopyFrom(frame.vs);
+      perFrameScene.GetPerFramePSData().CopyFrom(frame.ps);
+      perFrameScene.ApplyPerFrameData(renderContext);
+    },
     Update: () => {},
     BlendLightingOverrides: () => {},
     UpdateFogSettings: () => {},

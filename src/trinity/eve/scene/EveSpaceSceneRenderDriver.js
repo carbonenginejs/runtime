@@ -21,13 +21,13 @@
 // the driver it describes.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { vec4 } from "#math/vec4";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
-import { TriBatchType } from "#consts/graphics";
+import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
-import { BindPerFramePSData, BindPerFrameVSData } from "../../core/rawData/Tr2ConstantBufferFormats.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
@@ -122,10 +122,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   @type.objectRef("TriView")
   view = null;
 
-  /** m_settings.clearColor (Settings) [READWRITE] */
+  /** m_settings.clearColor (Color) [READWRITE]; Carbon's default is opaque black (EveSpaceSceneRenderDriver.h:59). */
   @edit.readwrite
-  @type.rawStruct("Settings")
-  clearColor = null;
+  @type.color
+  clearColor = vec4.fromValues(0, 0, 0, 1);
 
   /** m_distortionEffect (Tr2EffectPtr) [READ] */
   @edit.read
@@ -244,6 +244,12 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     TriBatchType.TRIBATCHTYPE_DECAL
   ]);
 
+  /** The standard states Carbon applies before each accumulator (EveSpaceScene.cpp:1139-1142). */
+  static #standardStatesFor = Object.freeze({
+    [TriBatchType.TRIBATCHTYPE_OPAQUE]: RenderingMode.RM_OPAQUE,
+    [TriBatchType.TRIBATCHTYPE_DECAL]: RenderingMode.RM_DECAL
+  });
+
   /**
    * Supplies the batch manager this driver collects through.
    *
@@ -308,13 +314,21 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   {
     if (!renderContext || !this.Validate()) return false;
 
-    this.camera?.Update(simTime);
-
-    // Carbon sets the camera onto the renderer before the scene updates, so the
-    // scene's own update reads this frame's view (cpp:476 -> 479).
-    this.#SetCameraToRenderer(renderContext);
-
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
+
+    // RENDERING DISABLED (cpp:408-419): camera onto the renderer and the scene
+    // update, so simulation keeps running - and nothing else. No target borrow,
+    // no clear, no camera update.
+    if (!this.enableRendering)
+    {
+      this.#SetCameraToRenderer(renderContext);
+      this.scene.Update(realTime, simTime);
+      return false;
+    }
+
+    // Carbon's camera reads gTriDev->AspectRatio() (EveCamera.cpp:507); the
+    // destination's is the equivalent here.
+    this.camera?.Update(simTime, target ? target.GetWidth() / target.GetHeight() : 1, realTime);
 
     // THE SCENE RENDERS INTO ITS OWN COLOUR AND DEPTH (cpp:461, 471), and the
     // post process draws the result into the destination (cpp:602-609).
@@ -322,22 +336,52 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // drawing into whatever is bound, with no post process.
     const offscreen = target ? this.#BeginOffscreen(target, renderContext) : null;
 
-    if (offscreen)
+    // Carbon's pool handles are RAII locals (cpp:461, 471) and release on any
+    // exit; the post process owns them once it is called (cpp:608).
+    let handedOff = false;
+
+    try
     {
-      renderContext.SetRenderTarget(0, offscreen.color.Get());
-      renderContext.SetDepthStencil(offscreen.depth.Get());
+      if (offscreen)
+      {
+        renderContext.SetRenderTarget(0, offscreen.color.Get());
+        renderContext.SetDepthStencil(offscreen.depth.Get());
+      }
+
+      renderContext.Clear({ color: this.clearColor, depth: 1 });
+
+      // AFTER the scene target is bound (cpp:473-476), because the projection
+      // and frustum read the bound viewport; BEFORE the update, so the scene's
+      // own update reads this frame's view (cpp:476 -> 479).
+      this.#SetCameraToRenderer(renderContext);
+
+      this.scene.Update(realTime, simTime);
+
+      const submitted = this.#RenderMainPass(renderContext);
+
+      if (offscreen)
+      {
+        handedOff = true;
+        this.#PostProcess(target, offscreen, renderContext);
+      }
+
+      return submitted;
     }
-
-    renderContext.Clear({ color: this.clearColor ?? null, depth: 1 });
-
-    this.scene.Update(realTime, simTime);
-
-    if (!this.enableRendering)
+    finally
     {
-      if (offscreen) this.#EndOffscreen(offscreen);
-      return false;
+      if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
     }
+  }
 
+  /**
+   * The gather and main pass of one frame: BeginRender's CPU half, the
+   * per-frame blocks, and the opaque family's submission.
+   *
+   * @param {object} renderContext Recording render context.
+   * @returns {boolean} Whether anything was submitted.
+   */
+  #RenderMainPass(renderContext)
+  {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
     // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
     if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
@@ -351,21 +395,24 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // colour is only current once lights have been gathered (cpp:1396-1426),
     // and BEFORE the render job's steps draw the batches. RenderBatches draws
     // immediately now - Carbon's shape - so the blocks must be populated AND
-    // BOUND here, between the gather and the submission. They are bound the
-    // way Carbon binds them (Tr2ConstantBufferFormats.cpp:54-66); until
-    // 2026-09-10 nothing bound them at all on this path.
-    this.scene.PopulatePerFramePSData?.(renderContext, null, null);
-    this.scene.PopulatePerFrameVSData?.(renderContext, null);
-    const scene = this.scene;
+    // BOUND here, between the gather and the submission.
+    //
+    // No explicit null for the fills' `frame`: a default parameter replaces only
+    // undefined, and with null both fills threw on their first field read, so
+    // every frame of a real EveSpaceScene died here.
+    this.scene.PopulatePerFramePSData?.(renderContext);
+    this.scene.PopulatePerFrameVSData?.(renderContext);
 
-    BindPerFrameVSData(typeof scene.GetPerFrameVSData === "function" ? scene.GetPerFrameVSData() : null, renderContext);
-    BindPerFramePSData(typeof scene.GetPerFramePSData === "function" ? scene.GetPerFramePSData() : null, renderContext);
+    // The scene's own apply (EveSpaceScene::ApplyPerFrameData, cpp:818-828),
+    // not the generic Tr2BindPerFrame*Data: the space scene binds its vertex
+    // block for compute as well, which dynamic exposure reads Time from.
+    this.scene.ApplyPerFrameData(renderContext);
 
-    const submitted = this.#Submit(map, renderContext);
+    // Carbon gates the main pass on the scene's display flag AND this switch
+    // (cpp:527).
+    if (!this.mainPassRenderingEnabled || this.scene.display === false) return false;
 
-    if (offscreen) this.#PostProcess(target, offscreen, renderContext);
-
-    return submitted;
+    return this.#Submit(map, renderContext);
   }
 
   /**
@@ -457,7 +504,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       // An empty accumulator is submitted anyway. Carbon does not test one, and
       // a pass that draws nothing is still a pass; skipping it here would move a
       // frame-planning decision into the driver.
-      if (accumulator) submitted = renderContext.RenderBatches(accumulator) || submitted;
+      if (!accumulator) continue;
+
+      // Carbon applies the accumulator's standard states first
+      // (EveSpaceScene.cpp:1139-1142): a batch whose own mode is RM_ANY would
+      // otherwise inherit whatever was last applied - after one frame, the
+      // post process's RM_FULLSCREEN.
+      renderContext.GetEffectStateManager().ApplyStandardStates(EveSpaceSceneRenderDriver.#standardStatesFor[batchType]);
+      submitted = renderContext.RenderBatches(accumulator) || submitted;
     }
 
     // Transparent, additive and distortion submission belongs here, after the

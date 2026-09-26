@@ -54,6 +54,7 @@ function sceneRecording(calls)
     GetRenderables(out) { calls.push([ "GetRenderables" ]); return out; },
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
+    ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
     StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
     // No post-process effects: the chain runs copy, sharpening and tonemapping.
     GetPostProcess() { return null; }
@@ -128,7 +129,10 @@ test("the frame runs Carbon's order", () =>
     // AFTER the gather: the blended sun colour is only current once lights have
     // been gathered (EveSpaceScene.cpp:1396-1426).
     "PopulatePerFramePSData",
-    "PopulatePerFrameVSData"
+    "PopulatePerFrameVSData",
+    // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
+    // blocks, the vertex one for compute too.
+    "ApplyPerFrameData"
   ]);
 });
 

@@ -22,6 +22,9 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
+import { ShaderType } from "#consts/render-context";
+import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
+import { PER_FRAME_PS, PER_FRAME_VS } from "../../core/Tr2Renderer.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
@@ -1123,6 +1126,48 @@ export class EveSpaceScene extends CjsModel
   GetPerFramePSData()
   {
     return this.#perFramePS;
+  }
+
+  /** Carbon m_perFrameVSBuffer / m_perFramePSBuffer: created empty on first apply, sized by FillAndSetConstants. */
+  #perFrameVSBuffer = null;
+
+  #perFramePSBuffer = null;
+
+  /**
+   * Carbon EveSpaceScene::ApplyPerFrameData (cpp:818-828): uploads and binds
+   * both per-frame blocks. The VERTEX block is bound for every non-pixel
+   * stage the backend has - vertex always, compute, geometry, hull and domain
+   * where SHADER_TYPE_EXISTS - because compute passes read it too: dynamic
+   * exposure's measure pass reads Time (register 45.x) to advance its
+   * adaptation, and with the block bound for vertex only it read zero and
+   * exposure never left its initial 0.
+   *
+   * The buffers come from the render context on first use, as Carbon's
+   * default-constructed members are sized by FillAndSetConstants.
+   *
+   * @param {Tr2RenderContext} renderContext The context to bind on.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  ApplyPerFrameData(renderContext)
+  {
+    const shaderTypeMask = renderContext.GetRenderContextAL().constructor.SHADER_TYPE_MASK;
+    const perFrameVsMask = (1 << ShaderType.VERTEX_SHADER) | (shaderTypeMask & (
+      (1 << ShaderType.COMPUTE_SHADER)
+      | (1 << ShaderType.GEOMETRY_SHADER)
+      | (1 << ShaderType.HULL_SHADER)
+      | (1 << ShaderType.DOMAIN_SHADER)
+    ));
+
+    this.#perFrameVSBuffer ??= renderContext.CreateConstantBuffer();
+    this.#perFramePSBuffer ??= renderContext.CreateConstantBuffer();
+
+    const vs = this.#perFrameVS.GetData();
+    const ps = this.#perFramePS.GetData();
+
+    FillAndSetConstants(this.#perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+    FillAndSetConstants(this.#perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
   }
 
   /**
