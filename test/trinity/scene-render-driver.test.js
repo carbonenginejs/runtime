@@ -6,6 +6,7 @@ import { test } from "node:test";
 
 import {
   EveSpaceSceneRenderDriver,
+  Tr2PostProcess2,
   Tr2RenderContext,
   TriProjection,
   TriView
@@ -58,6 +59,14 @@ function sceneRecording(calls)
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
     StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
+    // BeginRender's jitter and EndRender's last-frame store (cpp:1329, 2866-2868),
+    // with the matrices the driver hands in and out around them.
+    Jitter() { calls.push([ "Jitter" ]); },
+    EndRender() { calls.push([ "EndRender" ]); },
+    viewLast: new Float32Array(16),
+    projectionLast: new Float32Array(16),
+    jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
+    postprocess: null,
     // No post-process effects: the chain runs copy, sharpening and tonemapping.
     GetPostProcess() { return null; }
   };
@@ -125,6 +134,8 @@ test("the frame runs Carbon's order", () =>
   assert.deepEqual(calls.map(([ name ]) => name), [
     "StampFrameContext",
     "Update",
+    // BeginRender jitters first (EveSpaceScene.cpp:1329), then blends lighting (:1360).
+    "Jitter",
     "BlendLightingOverrides",
     "UpdateFogSettings",
     "UpdateVisibility",
@@ -136,7 +147,9 @@ test("the frame runs Carbon's order", () =>
     "PopulatePerFrameVSData",
     // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
     // blocks, the vertex one for compute too.
-    "ApplyPerFrameData"
+    "ApplyPerFrameData",
+    // After the main pass: the last-frame store (cpp:2866-2868, driver :597-598).
+    "EndRender"
   ]);
 });
 
@@ -276,4 +289,112 @@ test("rendering disabled updates the scene and borrows, binds and clears nothing
   // Carbon's disabled branch (cpp:408-419): camera to renderer, scene update.
   assert.deepEqual(calls.map(([ name ]) => name), [ "StampFrameContext", "Update" ]);
   assert.equal(cleared, 0);
+});
+
+/** Runs one off-screen frame at an anti-aliasing quality, recording what the post process received. */
+function taaFrame(antiAliasingQuality)
+{
+  const calls = [];
+  const driver = driverOver(calls);
+  const received = [];
+
+  driver.scene.postprocess = new Tr2PostProcess2();
+  driver.antiAliasingQuality = antiAliasingQuality;
+
+  const execute = driver.postProcess.Execute.bind(driver.postProcess);
+
+  driver.postProcess.Execute = (...args) =>
+  {
+    received.push({ velocity: args[3]?.Get() ?? null, opaque: args[4]?.Get() ?? null });
+    return execute(...args);
+  };
+
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+
+  return { driver, received };
+}
+
+test("PropagateSettings puts TAA on the scene's default post process at the setting's quality", () =>
+{
+  // cpp:212-231: created when absent, its quality the AntiAliasingQuality value.
+  const { driver } = taaFrame(3);
+  const taa = driver.scene.postprocess.GetTaaIfAvailable();
+
+  assert.notEqual(taa, null);
+  assert.equal(taa.quality, 3);
+
+  // Disabled removes it.
+  driver.antiAliasingQuality = 0;
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+  assert.equal(driver.scene.postprocess.GetTaaIfAvailable(), null);
+});
+
+test("anti-aliasing borrows the velocity map, and from Medium the opaque copy, for the post process", () =>
+{
+  // Off: neither (GetVelocityMapIfNeeded cpp:653-668, GetOpaqueColorMapIfNeeded cpp:702-719).
+  assert.deepEqual(taaFrame(0).received, [ { velocity: null, opaque: null } ]);
+
+  // Low: velocity only, R16G16_FLOAT.
+  const [ low ] = taaFrame(1).received;
+  assert.notEqual(low.velocity, null);
+  assert.equal(low.opaque, null);
+
+  // Medium and above: both.
+  const [ high ] = taaFrame(3).received;
+  assert.notEqual(high.velocity, null);
+  assert.notEqual(high.opaque, null);
+});
+
+test("the last frame's camera is handed to the scene and back, around EndRender", () =>
+{
+  // cpp:431-432 in, 597-598 out: the driver owns viewLast/projectionLast.
+  const calls = [];
+  const driver = driverOver(calls);
+  const stored = Float32Array.of(2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 2, 0, 0, 0, 0, 1);
+
+  driver.scene.EndRender = () => driver.scene.viewLast.set(stored);
+  driver.Execute(null, null, 0, 0, null, StubContext());
+  assert.deepEqual(Array.from(driver._viewLast), Array.from(stored), "handed out after EndRender");
+
+  driver.scene.viewLast.fill(0);
+  driver.scene.EndRender = () => {};
+  driver.Execute(null, null, 0, 0, null, StubContext());
+  assert.deepEqual(Array.from(driver.scene.viewLast), Array.from(stored), "handed in at the next frame");
+});
+
+test("Jitter offsets the projection by Carbon's 4-sample pattern with TAA, and not without", async () =>
+{
+  const { EveSpaceScene } = await import("../../npm/dist/trinity/index.js");
+  const scene = new EveSpaceScene();
+  const context = StubContext();
+  const esm = context.GetEffectStateManager();
+  const identity = Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1);
+
+  context.SetProjection(identity);
+  esm.renderTargetWidth = 200;
+  esm.renderTargetHeight = 100;
+
+  // No TAA: identity jitter, the projection unchanged (cpp:1285-1290).
+  scene.Jitter(context);
+  assert.deepEqual(Array.from(scene.jitteredProjection), Array.from(identity));
+  assert.equal(scene.jitter[0], 0);
+
+  // TAA on the default post process: sample frame % 4, 2 * sample / size (cpp:1265-1283).
+  scene.postprocess = new Tr2PostProcess2();
+  scene.postprocess.SetTaa(new (await import("../../npm/dist/trinity/postProcess/index.js")).Tr2PPTaaEffect());
+  scene.Jitter(context);
+
+  const sample = [ [ 0.125, -0.375 ], [ -0.125, 0.375 ], [ 0.375, 0.125 ], [ -0.375, -0.125 ] ][context.GetRecordingFrameNumber() % 4];
+  const [ jx, jy ] = [ Math.fround(2 * sample[0] / 200), Math.fround(2 * sample[1] / 100) ];
+
+  assert.equal(scene.jitter[0], jx);
+  assert.equal(scene.jitter[1], jy);
+  // A clip-space translation applied after the projection: column-major [12], [13].
+  assert.equal(scene.jitteredProjection[12], jx);
+  assert.equal(scene.jitteredProjection[13], jy);
+
+  // EndRender stores the UNJITTERED projection for next frame (cpp:2867-2868).
+  context.SetViewTransform(identity);
+  scene.EndRender(context);
+  assert.deepEqual(Array.from(scene.projectionLast), Array.from(identity));
 });

@@ -22,7 +22,9 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
-import { PixelFormat, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { mat4 } from "#math/mat4";
+import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
@@ -32,6 +34,7 @@ import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
+import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import "./EveSpaceScene.js";
 import { blue, EnumRegistrationType } from "#blue";
@@ -232,6 +235,16 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   #preparedContext = null;
 
   /**
+   * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
+   * previous frame's camera. The driver owns them, not the scene, because
+   * several drivers can render one scene; they are handed in at the start of
+   * Execute and back out after the main pass (cpp:431-432, 597-598).
+   */
+  _viewLast = mat4.create();
+
+  _projectionLast = mat4.create();
+
+  /**
    * The batch types this driver submits, in submission order.
    *
    * Carbon's main pass draws OPAQUE then DECAL (EveSpaceScene.cpp:2725/2731),
@@ -300,10 +313,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    *
    * The spine of Carbon's Execute, in Carbon's order. NOT here, each an
    * insertion into this same sequence: the background node, the reflection
-   * pass, the depth prepass, shadows, SSAO, the light-list update, distortion
-   * and velocity maps, transparent and additive submission, the scene overlay,
+   * pass, the depth prepass, shadows, SSAO, the light-list update, the
+   * distortion map, transparent and additive submission, the scene overlay,
    * lensflare occlusion queries and 3D UI. The scene renders into its own
-   * colour and depth and the post process draws it into the destination.
+   * colour and depth, plus TAA's velocity map and opaque copy when
+   * anti-aliasing is on, and the post process draws it into the destination.
    *
    * Rendering-disabled is not a no-op in Carbon either: the scene still
    * updates, so simulation keeps running while nothing is drawn (cpp:408-419).
@@ -326,9 +340,15 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       return false;
     }
 
+    // The previous frame's camera, for motion vectors (cpp:431-432).
+    mat4.copy(this.scene.viewLast, this._viewLast);
+    mat4.copy(this.scene.projectionLast, this._projectionLast);
+
     // Carbon's camera reads gTriDev->AspectRatio() (EveCamera.cpp:507); the
     // destination's is the equivalent here.
     this.camera?.Update(simTime, target ? target.GetWidth() / target.GetHeight() : 1, realTime);
+
+    this._PropagateSettings();
 
     // THE SCENE RENDERS INTO ITS OWN COLOUR AND DEPTH (cpp:461, 471), and the
     // post process draws the result into the destination (cpp:602-609).
@@ -366,7 +386,12 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
       this.scene.Update(realTime, simTime);
 
-      const submitted = this.#RenderMainPass(renderContext);
+      const submitted = this.#RenderMainPass(renderContext, offscreen);
+
+      // EndRender's last-frame store, handed back out to this driver (cpp:597-598).
+      this.scene.EndRender(renderContext);
+      mat4.copy(this._viewLast, this.scene.viewLast);
+      mat4.copy(this._projectionLast, this.scene.projectionLast);
 
       if (offscreen)
       {
@@ -419,19 +444,33 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    * The gather and main pass of one frame: BeginRender's CPU half, the
    * per-frame blocks, and the opaque family's submission.
    *
+   * With an off-screen target it also borrows the TAA maps, as Carbon's
+   * Execute does around BeginRender and RenderMainPass (cpp:501, 549): the
+   * velocity map after BeginRender, the opaque colour copy only when the main
+   * pass runs. They land on `offscreen` so the post process receives them and
+   * an early exit frees them.
+   *
    * @param {object} renderContext Recording render context.
+   * @param {object|null} offscreen The scene's borrowed targets, if any.
    * @returns {boolean} Whether anything was submitted.
    */
-  #RenderMainPass(renderContext)
+  #RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
     // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
     if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
+
+    // BeginRender jitters the camera's projection and draws with the result
+    // (EveSpaceScene.cpp:1329-1331).
+    this.scene.Jitter(renderContext);
+    renderContext.SetProjection(this.scene.jitteredProjection);
     this.scene.BlendLightingOverrides();
     this.scene.UpdateFogSettings();
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
     const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
+
+    if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
     // Carbon populates per-frame data AFTER the gather, because the blended sun
     // colour is only current once lights have been gathered (cpp:1396-1426),
@@ -454,7 +493,141 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // (cpp:527).
     if (!this.mainPassRenderingEnabled || this.scene.display === false) return false;
 
-    return this.#Submit(map, renderContext);
+    if (offscreen) offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
+
+    const velocity = offscreen?.velocity?.Get() ?? null;
+    const opaque = offscreen?.opaque?.Get() ?? null;
+    const esm = renderContext.GetEffectStateManager();
+    let submitted;
+
+    // THE VELOCITY SCOPE (EveSpaceScene.cpp:2715-2735): the velocity map is
+    // colour slot 1 for the opaque family, cleared by the pass hint to (0, 0);
+    // slot 0 and depth load and store. There is no background pass, so it is
+    // never already dirty. Shaders that do not write SV_Target1 leave it
+    // alone (the AL masks the target off).
+    //
+    // Without velocity Carbon hints the colour LOAD/STORE and the depth
+    // LOAD/DONT_CARE (cpp:2733); that hint is not ported, because this frame's
+    // post process still reads the depth the pass would discard.
+    if (velocity)
+    {
+      esm.PushRenderTarget(velocity, 1);
+      try
+      {
+        renderContext.RenderPassHint(
+          new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
+          new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
+          new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
+        );
+        submitted = this.#Submit(map, renderContext);
+      }
+      finally
+      {
+        esm.PopRenderTarget(1);
+      }
+    }
+    else
+    {
+      submitted = this.#Submit(map, renderContext);
+    }
+
+    // THE OPAQUE COLOUR COPY (EveSpaceScene.cpp:2738-2750): the scene colour
+    // after the opaque family, which TAA reads as CurrentFrameOpaque. Carbon
+    // also publishes it as EveSpaceSceneOpaqueMap in the global variable store
+    // for transparent shaders; nothing here submits those yet, so it is not.
+    if (opaque)
+    {
+      renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
+      esm.PushDepthStencilBuffer(null);
+      esm.PushRenderTarget(opaque);
+      try
+      {
+        esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+        this.#renderer.DrawTexture(renderContext, offscreen.color.Get());
+      }
+      finally
+      {
+        esm.PopRenderTarget();
+        esm.PopDepthStencilBuffer();
+      }
+    }
+
+    return submitted;
+  }
+
+  /**
+   * Carbon's private PropagateSettings (cpp:212-231), the anti-aliasing part: the
+   * setting creates, updates or removes the TAA effect on the scene's default
+   * post process, whose quality is the setting's value.
+   *
+   * Adapted: Carbon's shadow, AO, volumetric and upscaling propagation follows
+   * in the same method; none of those passes run in this driver yet.
+   *
+   * @returns {void}
+   */
+  _PropagateSettings()
+  {
+    const postprocess = this.scene.postprocess;
+
+    if (!postprocess) return;
+
+    if (this.antiAliasingQuality === AntiAliasingQuality.Disabled)
+    {
+      postprocess.SetTaa(null);
+      return;
+    }
+
+    if (!postprocess.GetTaaIfAvailable()) postprocess.SetTaa(new Tr2PPTaaEffect());
+
+    postprocess.GetTaaIfAvailable().quality = this.antiAliasingQuality;
+  }
+
+  /**
+   * Carbon's GetVelocityMapIfNeeded (cpp:653-668): an R16G16_FLOAT map while
+   * anti-aliasing is on, or when forced.
+   *
+   * Adapted: Carbon also allocates it for a temporal upscaler and for a named
+   * render-job output; neither exists here.
+   *
+   * @param {{width: number, height: number}} size The render size.
+   * @returns {GpuResourceHandle|null} The map, or null.
+   */
+  _GetVelocityMapIfNeeded(size)
+  {
+    if (this.antiAliasingQuality === AntiAliasingQuality.Disabled && !this.forceVelocityMap) return null;
+
+    return this.#TempTexture("velocityMap", size, PixelFormat.PIXEL_FORMAT_R16G16_FLOAT);
+  }
+
+  /**
+   * Carbon's GetOpaqueColorMapIfNeeded (cpp:702-719): a copy of the scene
+   * colour at anti-aliasing Medium and above, or when forced.
+   *
+   * Adapted: Carbon also allocates it for an upscaler, a named output, and a
+   * frame with SSSSS opaque batches; none exists here.
+   *
+   * @param {{width: number, height: number}} size The render size.
+   * @returns {GpuResourceHandle|null} The copy, or null.
+   */
+  _GetOpaqueColorMapIfNeeded(size)
+  {
+    if (this.antiAliasingQuality < AntiAliasingQuality.Medium && !this.forceOpaqueBuffer) return null;
+
+    return this.#TempTexture("opaqueBackBuffer", size, this.internalPixelFormat);
+  }
+
+  /** A render-target pool texture of the scene's size. */
+  #TempTexture(name, size, format, gpuUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE)
+  {
+    return this.#gpuResourcePool.GetTempTexture(name, {
+      type: TextureType.TEX_TYPE_2D,
+      width: size.width,
+      height: size.height,
+      depth: 1,
+      mipCount: 1,
+      format,
+      gpuUsage
+    });
   }
 
   /**
@@ -484,16 +657,22 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     });
 
     return {
+      size,
       color: texture("customBackBuffer", this.internalPixelFormat, Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE),
-      depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE)
+      depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE),
+      // Borrowed by the main pass when TAA needs them (#RenderMainPass).
+      velocity: null,
+      opaque: null
     };
   }
 
-  /** Returns the scene's colour and depth when the frame ends without a post process. */
+  /** Returns the scene's targets when the frame ends without a post process. */
   #EndOffscreen(offscreen)
   {
-    this.#gpuResourcePool.Free(offscreen.color);
-    this.#gpuResourcePool.Free(offscreen.depth);
+    for (const handle of [ offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque ])
+    {
+      if (handle) this.#gpuResourcePool.Free(handle);
+    }
   }
 
   /**
@@ -507,7 +686,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     esm.SetRenderTarget(0, target);
     esm.SetDepthStencilBuffer(null);
 
-    this.postProcess.Execute(target, offscreen.color, offscreen.depth, null, null, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
+    this.postProcess.Execute(target, offscreen.color, offscreen.depth, offscreen.velocity, offscreen.opaque, this.scene, null, this.#gpuResourcePool, renderContext, this.#renderer);
   }
 
   /**

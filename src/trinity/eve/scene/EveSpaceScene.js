@@ -46,6 +46,14 @@ const perFrameLastProjectionScratch = mat4.create();
 
 const ZERO_JITTER = vec4.create();
 
+/** Jitter's TAA sampling pattern, in pixels (EveSpaceScene.cpp:1269-1272). */
+const JITTER_SAMPLING_PATTERNS = Object.freeze([
+  Object.freeze([ 0.125, -0.375 ]),
+  Object.freeze([ -0.125, 0.375 ]),
+  Object.freeze([ 0.375, 0.125 ]),
+  Object.freeze([ -0.375, -0.125 ])
+]);
+
 // EveSpaceScene.cpp:3196-3199 - the four froxel-fog slice distances, constant
 // every frame.
 const VOLUMETRIC_SLICES = Object.freeze([1000, 10000, 100000, 1000000]);
@@ -552,12 +560,16 @@ export class EveSpaceScene extends CjsModel
   // offset. The per-frame pixel block reports only whether it is non-zero.
   jitter = vec4.create();
 
-  // NOTHING IN THIS RUNTIME WRITES viewLast, projectionLast, jitterMatrix OR
-  // jitter. Carbon advances them in Jitter and EndRender (cpp:1262-1287,
-  // 2867-2868) and EveSpaceSceneRenderDriver::Execute (cpp:431-432); this
-  // scene has neither method and the JS driver does not copy them. A host that
-  // wants motion vectors or jitter writes them each frame; otherwise they stay
-  // identity/zero.
+  // Jitter writes jitterMatrix and jitter each frame, EndRender stores
+  // viewLast and projectionLast, and EveSpaceSceneRenderDriver hands the
+  // last-frame pair in and out around them (cpp:431-432, 597-598).
+
+  // Carbon m_projection (the camera's unjittered projection, which EndRender
+  // stores as next frame's projectionLast) and m_jitteredProjection (what the
+  // frame draws with), both written by Jitter.
+  projection = mat4.create();
+
+  jitteredProjection = mat4.create();
 
   // Carbon m_upscalingAmount (EveSpaceScene.h:623, =1 by default at cpp:221).
   // Reset by the per-frame pixel fill and raised by an upscaler, if any.
@@ -1132,6 +1144,66 @@ export class EveSpaceScene extends CjsModel
   #perFrameVSBuffer = null;
 
   #perFramePSBuffer = null;
+
+  /**
+   * Carbon EveSpaceScene::Jitter (cpp:1253-1291), called from BeginRender
+   * (cpp:1329): the frame's sub-pixel projection offset for TAA.
+   *
+   * With TAA on the scene's default post process, a FIXED 4-SAMPLE PATTERN
+   * (not Halton) indexed by the recording frame number, scaled to clip space
+   * by the bound target's size; otherwise identity. Carbon's
+   * `m_projection * m_jitterMatrix` is row-vector, so gl-matrix multiplies the
+   * other way round: the offset is applied after the projection.
+   *
+   * Adapted: Carbon's first branch takes a temporal upscaler's jitter
+   * (cpp:1257-1264). No upscaler is ported, so it is absent.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  Jitter(renderContext)
+  {
+    mat4.copy(this.projection, renderContext.GetProjection());
+
+    if (this.postprocess && this.postprocess.GetTaaIfAvailable() !== null)
+    {
+      const esm = renderContext.GetEffectStateManager();
+      const sample = JITTER_SAMPLING_PATTERNS[renderContext.GetRecordingFrameNumber() % JITTER_SAMPLING_PATTERNS.length];
+
+      this.jitter[0] = Math.fround(2 * sample[0] / esm.renderTargetWidth);
+      this.jitter[1] = Math.fround(2 * sample[1] / esm.renderTargetHeight);
+      mat4.fromTranslation(this.jitterMatrix, [ this.jitter[0], this.jitter[1], 0 ]);
+      mat4.multiply(this.jitteredProjection, this.jitterMatrix, this.projection);
+      return;
+    }
+
+    mat4.identity(this.jitterMatrix);
+    mat4.copy(this.jitteredProjection, this.projection);
+    this.jitter[0] = 0;
+    this.jitter[1] = 0;
+  }
+
+  /**
+   * The last-frame store of Carbon's EveSpaceScene::EndRender
+   * (cpp:2866-2868): this frame's view, and its UNJITTERED projection, become
+   * next frame's viewLast and projectionLast, which the per-frame vertex block
+   * hands the velocity shaders.
+   *
+   * Adapted: the rest of Carbon's EndRender (lensflares, batch clearing, the
+   * variable store) belongs to passes this runtime's driver does not run.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  EndRender(renderContext)
+  {
+    mat4.copy(this.viewLast, renderContext.GetViewTransform());
+    mat4.copy(this.projectionLast, this.projection);
+  }
 
   /**
    * Carbon EveSpaceScene::ApplyPerFrameData (cpp:818-828): uploads and binds
