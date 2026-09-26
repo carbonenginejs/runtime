@@ -201,6 +201,8 @@ async function LoadPostTemplate(name)
  *   the slot, on puts the template's own effect back.
  * - anti-aliasing: the driver's antiAliasingQuality, which Carbon turns into a
  *   TAA effect on the scene's default post process (PropagateSettings).
+ * - sun: the scene's sun direction (the way the light travels), live.
+ * - flare: the sun's lens flare, any of res:/fisfx/lensflare/*.black, or off.
  *
  * @param {object} options
  * @param {EveSpaceSceneRenderDriver} options.driver The demo's driver.
@@ -208,9 +210,12 @@ async function LoadPostTemplate(name)
  * @param {string} options.initialTemplate The `?post=` template, if any.
  * @param {(name: string) => Promise<object|null>} options.select Loads a template.
  * @param {() => object|null} options.current The loaded template record.
+ * @param {{direction: Float32Array}} options.sun The demo's one sun.
+ * @param {{current: string, select: (name: string) => Promise<void>}} options.flare The lens flare.
+ * @param {() => void} options.aimSun Puts the sun behind the hull, as the camera sees it.
  * @returns {void}
  */
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -234,6 +239,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     #settings .fields summary { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
     #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
     #settings { max-height: calc(100vh - 24px); overflow: auto; }
+    #settings .sun input { width: 46px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
   `;
   document.head.append(style);
 
@@ -270,6 +276,43 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   const antiAliasing = row("anti-aliasing", choose(Object.entries(AntiAliasingQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.antiAliasingQuality));
   antiAliasing.addEventListener("change", () => { driver.antiAliasingQuality = Number(antiAliasing.value); });
+
+  // The sun as three numbers; a zero vector is ignored rather than normalised.
+  const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "number", step: "0.1", value: String(Math.round(sun.direction[index] * 100) / 100) }));
+  const sunFields = Object.assign(document.createElement("span"), { className: "sun" });
+  sunFields.append(...sunInputs);
+  row("sun", sunFields);
+
+  // Behind the hull from where the camera is now: the one placement that is
+  // certainly on screen, which god rays need.
+  const aim = Object.assign(document.createElement("button"), { type: "button", textContent: "behind hull" });
+  aim.addEventListener("click", () =>
+  {
+    aimSun();
+    sunInputs.forEach((input, index) => { input.value = String(Math.round(sun.direction[index] * 100) / 100); });
+  });
+  row("sun", aim);
+  for (const input of sunInputs)
+  {
+    input.addEventListener("input", () =>
+    {
+      const values = sunInputs.map(element => Number(element.value));
+      if (values.every(Number.isFinite) && values.some(value => value !== 0)) sun.direction.set(values);
+    });
+  }
+
+  // The flare list is the client's own folder, read through the resource proxy.
+  const flares = row("flare", choose([ [ "off", "off" ], [ flare.current, flare.current ] ], flare.current));
+  flares.addEventListener("change", () => flare.select(flares.value));
+  fetch("/resource/fisfx/lensflare/")
+    .then(response => response.json())
+    .then(listing =>
+    {
+      const names = listing.children.map(child => child.name).filter(name => name.endsWith(".black")).map(name => name.slice(0, -".black".length));
+      flares.replaceChildren(...[ "off", ...names ].map(name => new Option(name, name)));
+      flares.value = flare.current;
+    })
+    .catch(error => console.error(`lens flare list: ${error.message}`));
 
   const effects = document.createElement("div");
   effects.className = "effects";
@@ -1061,16 +1104,38 @@ async function Material(path, values = null)
  * the reflection should be, and a dull disc where the sun should be mirrored,
  * which is what the operator saw and named before I did.
  *
- * The scene direction is straight down, (0, -1, 0), through that same
- * negate-and-normalise - a top-down sun, which is the easiest one to read a
- * hull under. ccpwgl's own default is (1, -1, 1).
+ * The scene direction defaults to straight down, (0, -1, 0) - a top-down sun,
+ * which is the easiest one to read a hull under; ccpwgl's own default is
+ * (1, -1, 1). `?sun=x,y,z` sets it, and the settings panel moves it live.
+ *
+ * @returns {number[]} The toward-sun unit vector for `Sun.DirWorld`.
  */
-const SUN_DIRECTION = (() =>
+function SunDirWorld()
 {
-  const direction = vec3.negate(vec3.create(), vec3.fromValues(0, -1, 0));
+  const direction = vec3.negate(vec3.create(), SUN.direction);
 
   return Array.from(vec3.normalize(direction, direction));
-})();
+}
+
+/**
+ * THE ONE SUN, in the scene's convention: `direction` is the way the light
+ * TRAVELS, as EveSpaceScene.sunDirection is. Everything that shows the sun
+ * reads it every frame - the per-frame blocks (through SunDirWorld), the
+ * scene's sunDirection, and the lens flare's position - so moving it moves
+ * the lighting, the flare and the god rays together. God rays draw only while
+ * the sun is in front of the camera: their vertex stage opts out otherwise.
+ */
+const SUN = { direction: ParseSunDirection(new URLSearchParams(globalThis.location?.search ?? "").get("sun")) };
+
+/** `?sun=x,y,z` as a direction, or straight down for anything unusable. */
+function ParseSunDirection(text)
+{
+  const parts = String(text ?? "").split(",").map(Number);
+
+  return parts.length === 3 && parts.every(Number.isFinite) && parts.some(value => value !== 0)
+    ? vec3.fromValues(parts[0], parts[1], parts[2])
+    : vec3.fromValues(0, -1, 0);
+}
 
 
 /**
@@ -1523,12 +1588,12 @@ function PerFrameData(width, height)
   const vs = RawData.create("EveSpaceScenePerFrameVSData");
   const ps = RawData.create("EveSpaceScenePerFramePSData");
 
-  vs.Set("Sun.DirWorld", SUN_DIRECTION);
+  vs.Set("Sun.DirWorld", SunDirWorld());
   vs.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   vs.Set("TargetResolution", [ width, height ]);
   vs.Set("ViewportSize", [ width, height ]);
 
-  ps.Set("Sun.DirWorld", SUN_DIRECTION);
+  ps.Set("Sun.DirWorld", SunDirWorld());
   ps.Set("Sun.DiffuseColor", [ 1, 1, 1, 1 ]);
   // ccpwgl's own scene defaults rather than invented numbers: ambient and fog
   // both 0.25 grey, sun diffuse white (`EveSpaceScene.js:187,225,286`).
@@ -2247,13 +2312,6 @@ export async function RunDemo(canvas)
 
   const postState = { off: POST_OFF };
 
-  BuildSettingsPanel({
-    driver,
-    postState,
-    initialTemplate: POST_TEMPLATE,
-    select: SelectPostTemplate,
-    current: () => postTemplate
-  });
 
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
   // purpose: this demo proves the draw path, and a fog or lighting blend it does
@@ -2279,19 +2337,50 @@ export async function RunDemo(canvas)
   // which the flare allocates and the occlusion buffer Clears to 1.0. EVE
   // carries the system sun as an EveLensflare in scene.lensflares.
   // `?flare=<name>` picks one of res:/fisfx/lensflare/*.black; `?flare=off` none.
-  if (FLARE !== "off")
-  {
-    try
+  // Swapping flares leaves the previous one's occlusion-buffer slots allocated;
+  // Tr2OcclusionBuffer has no release, and a demo swaps a handful of times.
+  const flare = {
+    current: FLARE,
+    async select(name)
     {
-      const lensflare = CjsBlackFormat.read(await ResourceBytes(`fisfx/lensflare/${FLARE}.black`), { emit: "runtime" }).root;
-      perFrameScene.lensflares.push(lensflare);
-      console.log(`lens flare res:/fisfx/lensflare/${FLARE}.black: ${lensflare.constructor.name}, ${lensflare.occluders.length} occluder(s)`);
+      flare.current = name;
+      perFrameScene.lensflares.length = 0;
+      if (name === "off") return;
+      try
+      {
+        const lensflare = CjsBlackFormat.read(await ResourceBytes(`fisfx/lensflare/${name}.black`), { emit: "runtime" }).root;
+        if (flare.current !== name) return;
+        perFrameScene.lensflares.push(lensflare);
+        console.log(`lens flare res:/fisfx/lensflare/${name}.black: ${lensflare.constructor.name}, ${lensflare.occluders.length} occluder(s)`);
+      }
+      catch (error)
+      {
+        console.error(`lens flare ${name}: ${error.message}`);
+      }
     }
-    catch (error)
+  };
+  await flare.select(FLARE);
+
+  BuildSettingsPanel({
+    driver,
+    postState,
+    initialTemplate: POST_TEMPLATE,
+    select: SelectPostTemplate,
+    current: () => postTemplate,
+    sun: SUN,
+    flare,
+    // The light travels from behind the hull toward the camera: the scene
+    // direction is (eye - centre), so the sun sits beyond the hull on screen.
+    // Geometric, so no axis or handedness convention is assumed.
+    aimSun: () =>
     {
-      console.error(`lens flare ${FLARE}: ${error.message}`);
+      const world = mat4.invert(mat4.create(), camera.GetViewMatrix().transform);
+      const direction = vec3.subtract(vec3.create(), vec3.fromValues(world[12], world[13], world[14]), bounds.centre);
+      if (vec3.length(direction) > 0) SUN.direction.set(vec3.normalize(direction, direction));
     }
-  }
+  });
+
+  const sunScratch = vec3.create();
   const lastFrameScratch = mat4.create();
 
   driver.scene = {
@@ -2300,6 +2389,8 @@ export async function RunDemo(canvas)
       const time = ((globalThis.performance?.now() ?? 0) - clockStart) / 1000;
       frame.vs.Set("Time", time);
       frame.ps.Set("Time", time);
+      frame.vs.Set("Sun.DirWorld", SunDirWorld());
+      frame.ps.Set("Sun.DirWorld", SunDirWorld());
       perFrameScene.GetPerFrameVSData().CopyFrom(frame.vs);
       perFrameScene.GetPerFramePSData().CopyFrom(frame.ps);
 
@@ -2331,7 +2422,19 @@ export async function RunDemo(canvas)
     postprocess: perFrameScene.postprocess,
     // The lens flares are the one part of the real scene's update the demo runs:
     // Update writes LensflareFxOccScale from the flare's slots (cpp:168-171).
-    Update: (realTime, simTime) => { for (const lensflare of perFrameScene.lensflares) lensflare.Update(realTime, simTime); },
+    Update: (realTime, simTime) =>
+    {
+      // The one sun: the scene's direction, and each flare kept at its authored
+      // distance but moved along the way to the sun. EveLensflare's direction
+      // is Normalize(-position), so the flare sits at -direction.
+      vec3.copy(perFrameScene.sunDirection, SUN.direction);
+      vec3.normalize(sunScratch, SUN.direction);
+      for (const lensflare of perFrameScene.lensflares)
+      {
+        vec3.scale(lensflare.position, sunScratch, -(vec3.length(lensflare.position) || 1.4959787e11));
+        lensflare.Update(realTime, simTime);
+      }
+    },
     RunLensflareOcclusionQueries: (depthMap, renderContext) => perFrameScene.RunLensflareOcclusionQueries(depthMap, renderContext),
     BlendLightingOverrides: () => {},
     UpdateFogSettings: () => {},
