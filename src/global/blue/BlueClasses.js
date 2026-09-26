@@ -162,6 +162,10 @@ export class BlueClasses extends IBlueClasses
    * Copies `source` into `dest`, or into a new instance of its class when
    * `dest` is null, through a fresh Copier (BlueClasses.cpp:498-510).
    *
+   * Adapted: Carbon returns bool and writes the destination through an
+   * IRoot**, and each callback carries a void* context; JavaScript returns the
+   * destination or null, and closures carry their own context.
+   *
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
    * @param {Function|null} [copyOverride=null] See `Copier.SetCopyOverrideCallback`.
@@ -178,6 +182,9 @@ export class BlueClasses extends IBlueClasses
 
   /**
    * Copies preserving topology, through a fresh Copier (BlueClasses.cpp:512-516).
+   *
+   * Adapted: Carbon returns bool and writes the destination through an
+   * IRoot**; JavaScript returns the destination or null.
    *
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
@@ -218,8 +225,8 @@ CjsSchema.define(BlueClasses, {
     QueryThisInterface: [ carbon.method, impl.notImplemented, NOT_YET ],
     FindVariable: [ carbon.method, impl.notImplemented, NOT_YET ],
     UpdateObjectCount: [ carbon.method, impl.notImplemented, NOT_YET ],
-    CopyTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**, and each callback carries a void* context; JavaScript returns the destination or null, and closures carry their own context.") ],
-    CloneTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**; JavaScript returns the destination or null.") ],
+    CopyTo: [ carbon.method, impl.adapted ],
+    CloneTo: [ carbon.method, impl.adapted ],
     ProcessPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
     ProcessAllPendingDeletes: [ carbon.method, impl.notImplemented, NOT_YET ],
     SetPendingDeletesEnabled: [ carbon.method, impl.notImplemented, NOT_YET ],

@@ -48,7 +48,9 @@ export class EveTurretSet extends EveEntity
   @type.enum("trinity.ImpactBehaviour")
   impactBehaviour = 0;
 
-  /** m_firingEffect (EveTurretFiringFXPtr) [HIDDEN] */
+  /** m_firingEffect (EveTurretFiringFXPtr) [HIDDEN] plus MAP_PROPERTY [READWRITE] (EveTurretSet_Blue.cpp:103-104) */
+  @edit.readwrite
+  @edit.hidden
   @type.objectRef("EveTurretFiringFX")
   firingEffect = null;
 

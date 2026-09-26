@@ -352,10 +352,13 @@ export class EveChildExplosion extends EveChildContainer
    * (Carbon relocks the pointer; JS aliases the reference), anything else
    * falls back to the ordinary copier. Answers in the Copier override's
    * `{ result, dest }` form.
+   *
+   * Adapted: Carbon's ICopier callback is static, takes the explosion as its
+   * void* context and writes an out-pointer; this is bound to the explosion
+   * and returns `{ result, dest }`.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's ICopier callback is static, takes the explosion as its void* context and writes an out-pointer; JS is bound to the explosion and returns { result, dest }.")
   CopyElement(source)
   {
     return this.#sharedObjects.has(source)

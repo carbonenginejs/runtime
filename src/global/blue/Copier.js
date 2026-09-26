@@ -66,6 +66,10 @@ export class Copier extends ICopier
    * `{ result, dest }`: SUCCESS with the object to use, FAILURE, or FALLBACK
    * to let the copier copy it.
    *
+   * Adapted: Carbon passes a C callback and a void* context; a JavaScript
+   * closure carries its own context, and the callback returns
+   * `{ result, dest }` in place of an out-pointer.
+   *
    * @param {((source: object, dest: object|null, copier: Copier) => {result: number, dest?: object|null})|null} copyOverride
    */
   SetCopyOverrideCallback(copyOverride)
@@ -77,6 +81,9 @@ export class Copier extends ICopier
    * Installs the post-copy callback (Copier.cpp:30-34), called with the source
    * and the destination after every successful copy, nested ones included.
    *
+   * Adapted: Carbon passes a C callback and a void* context; a JavaScript
+   * closure carries its own context.
+   *
    * @param {((source: object, dest: object, copier: Copier) => void)|null} postCopy
    */
   SetPostCopyCallback(postCopy)
@@ -87,6 +94,10 @@ export class Copier extends ICopier
   /**
    * Copies `source` into `dest`, or into a new instance of its class when
    * `dest` is null (Copier.cpp:46-120).
+   *
+   * Adapted: Carbon returns bool and writes the destination through an
+   * IRoot**; JavaScript returns the destination or null, as the Python CopyTo
+   * returns the copy.
    *
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
@@ -145,6 +156,9 @@ export class Copier extends ICopier
 
   /**
    * Copies preserving topology - which `CopyTo` already does (Copier.cpp:36-40).
+   *
+   * Adapted: Carbon returns bool and writes the destination through an
+   * IRoot**; JavaScript returns the destination or null.
    *
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
@@ -292,9 +306,9 @@ CjsSchema.define(Copier, {
   family: "blue",
   fields: {},
   methods: {
-    SetCopyOverrideCallback: [ carbon.method, impl.adapted, impl.reason("Carbon passes a C callback and a void* context; a JavaScript closure carries its own context, and the callback returns { result, dest } in place of an out-pointer.") ],
-    SetPostCopyCallback: [ carbon.method, impl.adapted, impl.reason("Carbon passes a C callback and a void* context; a JavaScript closure carries its own context.") ],
-    CopyTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**; JavaScript returns the destination or null, as the Python CopyTo returns the copy.") ],
-    CloneTo: [ carbon.method, impl.adapted, impl.reason("Carbon returns bool and writes the destination through an IRoot**; JavaScript returns the destination or null.") ]
+    SetCopyOverrideCallback: [ carbon.method, impl.adapted ],
+    SetPostCopyCallback: [ carbon.method, impl.adapted ],
+    CopyTo: [ carbon.method, impl.adapted ],
+    CloneTo: [ carbon.method, impl.adapted ]
   }
 });
