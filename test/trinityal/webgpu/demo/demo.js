@@ -1695,7 +1695,7 @@ export async function RunDemo(canvas)
 
     // The loop stopped dead after about a dozen frames with nothing in the
     // console, so it reports its own state rather than being guessed at again.
-    const loop = { ticks: 0, drawn: 0, error: null, deviceLost: null };
+    const loop = { ticks: 0, drawn: 0, error: null, firstError: null, deviceLost: null };
 
     globalThis.__demoLoop = loop;
     device.lost.then(info => { loop.deviceLost = `${info.reason}: ${info.message}`; });
@@ -1730,6 +1730,24 @@ export async function RunDemo(canvas)
         // end the animation - that is what made this look like the browser
         // losing interest rather than the engine failing.
         loop.error = `${error.message}\n${error.stack ?? ""}`;
+
+        // THE FIRST ERROR IS THE CAUSE. A throw between BeginScene and EndScene
+        // leaves the work queue mid-frame, and every later tick then fails with
+        // "BeginFrame without EndFrame", which overwrote the real error. Keep the
+        // first, and close the failed frame so the next one can start.
+        if (!loop.firstError)
+        {
+          loop.firstError = loop.error;
+          console.error(`demo loop: first failed frame: ${loop.error}`);
+        }
+        try
+        {
+          al.EndScene();
+        }
+        catch
+        {
+          // Closing is best effort; the error above is the one that matters.
+        }
       }
 
       globalThis.requestAnimationFrame(tick);
