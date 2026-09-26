@@ -209,6 +209,8 @@ async function LoadPostTemplate(name)
  *   TAA effect on the scene's default post process (PropagateSettings).
  * - ambient occlusion: the driver's aoQuality, which enables the driver's
  *   Tr2SSAO at a quality and gives the depth pass a normal map.
+ * - shadows: the driver's shadowQuality; low and high give the scene its
+ *   cascaded shadow map (PropagateSettings).
  * - sun: the scene's sun direction (the way the light travels), live.
  * - flare: the sun's lens flare, any of res:/fisfx/lensflare/*.black, or off.
  *
@@ -317,6 +319,11 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const { AmbientOcclusionQuality } = EveSpaceSceneRenderDriver;
   const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
+
+  const { ShadowQuality } = EveSpaceSceneRenderDriver;
+  const shadowChoices = [ [ "disabled", ShadowQuality.SHADOW_DISABLED ], [ "low", ShadowQuality.SHADOW_LOW ], [ "high", ShadowQuality.SHADOW_HIGH ] ];
+  const shadows = row("shadows", choose(shadowChoices, driver.shadowQuality));
+  shadows.addEventListener("change", () => { driver.shadowQuality = Number(shadows.value); });
 
   // Ship speed, normalized: 0 stopped, 1 at the booster set's maxVel, up to 2
   // (the booster intensity is capped at 2). The boosters' glow and the hull's
@@ -632,7 +639,7 @@ async function ReadPoolBuffer(device, name)
 }
 
 /** Bytes per texel for the formats the post chain uses. */
-const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4, "rg16float": 4, "r32uint": 4, "rgba8snorm": 4, "rgb10a2unorm": 4 };
+const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4, "rg16float": 4, "r32uint": 4, "rgba8snorm": 4, "rgb10a2unorm": 4, "r8unorm": 1 };
 
 /** Decodes one IEEE-754 binary16 value. */
 function Half(bits)
@@ -653,6 +660,8 @@ const TEXEL_DECODERS = {
   // TAA's velocity map (screen-space motion) and cooldown map (a counter).
   "rg16float": (view, at) => [ Half(view.getUint16(at, true)), Half(view.getUint16(at + 2, true)), 0, 0 ],
   "r32uint": (view, at) => [ view.getUint32(at, true), 0, 0, 0 ],
+  // The shadow pass's screen-space factor (1 lit, 0 shadowed).
+  "r8unorm": (view, at) => [ view.getUint8(at) / 255, 0, 0, 0 ],
   // CORTAO's output and blur (bent normal in RGB, occlusion in A), and the
   // depth pass's normal map.
   "rgba8snorm": (view, at) => [ 0, 1, 2, 3 ].map(c => Math.max(view.getInt8(at + c) / 127, -1)),
@@ -1848,13 +1857,22 @@ export async function RunDemo(canvas)
   // through any sampler, and Carbon's post process does (the down-sampled depth
   // god rays read); core WebGPU refuses an r32float in a filterable slot.
   const filterableFloat32 = adapter.features.has("float32-filterable");
+  // UNCLIPPED DEPTH, when the adapter has it: Carbon draws its shadow cascades
+  // with depth clip off (EveSpaceScene.cpp:748).
+  const depthClipControl = adapter.features.has("depth-clip-control");
+  // 16384-WIDE TEXTURES, or as wide as the adapter allows: Carbon's cascaded
+  // shadow atlas is 16384 x 4096 at its default cell (Tr2ShadowMap.h:14), and
+  // WebGPU's default limit is 8192. Narrower, the atlas is refused and the
+  // frame has no shadows; demo.shadows() reports the limit.
+  const textureDimension = Math.min(16384, adapter.limits.maxTextureDimension2D);
   const requiredFeatures = [
     ...(compressed ? [ "texture-compression-bc" ] : []),
-    ...(filterableFloat32 ? [ "float32-filterable" ] : [])
+    ...(filterableFloat32 ? [ "float32-filterable" ] : []),
+    ...(depthClipControl ? [ "depth-clip-control" ] : [])
   ];
   const device = await adapter.requestDevice({
     ...(requiredFeatures.length ? { requiredFeatures } : {}),
-    requiredLimits: { maxStorageTexturesPerShaderStage: storageTextures }
+    requiredLimits: { maxStorageTexturesPerShaderStage: storageTextures, maxTextureDimension2D: textureDimension }
   });
   const context = canvas.getContext("webgpu");
 
@@ -2532,6 +2550,26 @@ export async function RunDemo(canvas)
   // (mip 0), the main pass's output and the blur's intermediate. The first
   // that reads empty is the stage that did nothing. The lookup table is
   // R16_UNORM data in an r16float texture (CjsWebgpuUtils).
+  // demo.shadows(): whether the cascaded shadow pass can run on this device,
+  // and what it produced: the screen-space factor, where 1 is lit and 0 is
+  // shadowed. A factor that is all 1 with casters in view means nothing drew
+  // into the atlas.
+  globalThis.demo.shadows = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const factor = POOL_TEXTURES.get("shadowMapResult")?.m_texture;
+    return {
+      shadowQuality: driver.shadowQuality,
+      cascadedShadowMap: Boolean(driver.scene.cascadedShadowMap),
+      maxTextureDimension2D: device.limits.maxTextureDimension2D,
+      depthClipControl: device.features.has("depth-clip-control"),
+      casters: driver.scene.componentRegistry?.ComponentCount("ShadowCaster") ?? 0,
+      atlas: POOL_TEXTURES.has("cascadedShadowDepth") ? "borrowed" : "never borrowed",
+      factor: factor ? await CountNonZeroTexels(device, factor) : "never borrowed",
+      lastPipelineFailure: al.m_pipelineFailure ?? null
+    };
+  };
+
   globalThis.demo.ssao = async () =>
   {
     const device = al.GetWebgpu().GetDevice();
