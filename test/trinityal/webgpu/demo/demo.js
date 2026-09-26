@@ -782,7 +782,7 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
  * The DNA whose built SOF document names this hull's maps, constants and
  * geometry. `?dna=` picks another, e.g. `?dna=at1_t1:amarrbase:amarr`.
  */
-const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "gb1_t1:gallentebase:gallente";
+const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "gb2_t1:gallentebase:gallente";
 
 /**
  * `?scene=stub` keeps the hand-built hull and the stand-in scene; the default
