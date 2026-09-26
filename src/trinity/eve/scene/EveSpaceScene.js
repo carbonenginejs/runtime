@@ -24,7 +24,7 @@ import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
-import { PER_FRAME_PS, PER_FRAME_VS } from "../../core/Tr2Renderer.js";
+import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
@@ -1061,6 +1061,11 @@ export class EveSpaceScene extends CjsModel
    */
   GatherLights(lightManager)
   {
+    // Kept for the PS fill's shadow-atlas settings: Carbon reads them from the
+    // Tr2LightManager singleton (cpp:3126-3137), which is not ported; the
+    // manager this scene last gathered with is the same one.
+    this.#lightManager = lightManager ?? null;
+
     if (!lightManager || !this.display)
     {
       return;
@@ -1138,6 +1143,48 @@ export class EveSpaceScene extends CjsModel
   GetPerFramePSData()
   {
     return this.#perFramePS;
+  }
+
+  /** The Tr2LightManager GatherLights last ran with; see #EngineFrameState. */
+  #lightManager = null;
+
+  /**
+   * The engine state Carbon's per-frame fills read from Tr2Renderer statics
+   * and the effect state manager (EveSpaceScene.cpp:3018-3205): render-target
+   * size and device viewport (3045-3046, 3060), animation time (3066, 3118),
+   * frame counter (3121), gamma (3099), the non-reversed projection and
+   * aspect ratio for FovXY (3049-3050; s_aspectRatio is _22/_11,
+   * Tr2Renderer.cpp:80), the scene post process's mip bias (3161-3164) and
+   * the light manager's shadow atlas (3126-3137).
+   *
+   * The fills keep a `frame` argument whose fields OVERRIDE these, for
+   * callers that drive a frame without a live device; with none passed, every
+   * value is the engine's, as Carbon's is. Until 2026-09-26 the driver passed
+   * nothing and every field fell to zero: Time and FrameIndex frozen,
+   * GammaBrightness 0, FovXY and TargetResolution 0.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {object} The frame fields.
+   */
+  #EngineFrameState(renderContext)
+  {
+    const esm = renderContext.GetEffectStateManager();
+    const projection = renderContext.GetProjection();
+    const atlas = this.#lightManager ? this.#lightManager.GetShadowMapAtlasSettings() : null;
+
+    return {
+      renderTargetWidth: esm.renderTargetWidth,
+      renderTargetHeight: esm.renderTargetHeight,
+      deviceViewport: esm.GetDeviceViewport(),
+      animationTime: Tr2Renderer.GetAnimationTime(),
+      frameIndex: Number(Tr2Renderer.GetCurrentFrameCounter()) >>> 0,
+      gammaBrightness: EveSpaceScene.eveSpaceSceneGammaBrightness,
+      projectionTransform: projection,
+      aspectRatio: projection && projection[0] ? projection[5] / projection[0] : 1,
+      sceneMipLodBias: this.postprocess ? this.postprocess.GetMipLodBias() : 0,
+      inverseShadowMapAtlasSize: atlas && atlas.actualTextureSize > 0 ? 1 / atlas.actualTextureSize : 0,
+      shadowMapAtlasEntryMinSizeLog2: atlas ? atlas.entryMinSizeLog2 : 0
+    };
   }
 
   /** Carbon m_perFrameVSBuffer / m_perFramePSBuffer: created empty on first apply, sized by FillAndSetConstants. */
@@ -1275,6 +1322,7 @@ export class EveSpaceScene extends CjsModel
   @impl.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")
   PopulatePerFrameVSData(renderContext, frame = {}, out = this.#perFrameVS)
   {
+    frame = { ...this.#EngineFrameState(renderContext), ...frame };
     const view = renderContext.GetViewTransform();
     // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
     // projection (cpp:3022), matching the inverted depth test and the clear to
@@ -1373,6 +1421,7 @@ export class EveSpaceScene extends CjsModel
   @impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
   PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this.#perFramePS)
   {
+    frame = { ...this.#EngineFrameState(renderContext), ...frame };
     if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
     {
       throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");

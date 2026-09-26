@@ -671,3 +671,22 @@ test("the env-map rotation reaches the shader as a transposed rotation matrix", 
     Array.from(expected)
   );
 });
+
+test("with no frame supplied, the fills read the engine state Carbon's statics hold", () =>
+{
+  // The driver passes nothing. Carbon's fills read Tr2Renderer statics and the
+  // ESM (EveSpaceScene.cpp:3018-3205); with zeros instead, GammaBrightness was
+  // 0, Time and FrameIndex frozen, FovXY and TargetResolution zero.
+  const scene = new EveSpaceScene();
+  const projection = mat4.perspectiveNO(mat4.create(), Math.PI / 2, 1.5, 1, 1000);
+  const context = makeContext({ projection });
+
+  const ps = scene.PopulatePerFramePSData(context, undefined, null);
+  const vs = scene.PopulatePerFrameVSData(context);
+
+  assertClose(ps.Copy("GammaBrightness", new Float32Array(1)), [ EveSpaceScene.eveSpaceSceneGammaBrightness ], "gamma is g_eveSpaceSceneGammaBrightness");
+
+  const fov = Array.from(vs.Copy("FovXY", new Float32Array(2)));
+  assert.ok(Math.abs(fov[1] - Math.PI / 2) < 1e-5, "vertical FOV from the context's projection");
+  assert.ok(Math.abs(fov[0] - fov[1] * 1.5) < 1e-5, "times the projection's aspect, _22/_11");
+});
