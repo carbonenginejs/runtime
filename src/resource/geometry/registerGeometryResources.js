@@ -30,7 +30,13 @@ export function RegisterGeometryResources(resourceManager)
     throw new TypeError("RegisterGeometryResources requires a CjsResMan.");
   }
 
-  const loader = bytes => CjsCmfFormat.loadShared(CjsGr2Format.read(bytes));
+  // BOUNDS FROM THE VERTICES. A granny file carries no mesh-level box, and
+  // Carbon's TriGeometryRes::SetupModels starts each mesh's box empty and
+  // accumulates it from the vertices (TriGeometryRes.cpp:1016-1017). Without
+  // the rebuild every mesh read as a zero box, a zero-radius sphere and zero
+  // pixels on screen, so EveTransform culled it: the lens-flare occluder
+  // sprites (zsprite.gr2) never drew, and the flare shone through hulls.
+  const loader = bytes => CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true }));
 
   for (const extension of GeometryResourceExtensions)
   {
