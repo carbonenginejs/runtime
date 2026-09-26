@@ -239,6 +239,19 @@ export class CjsWebgpuShaderProgramAL
     return this.m_inputs;
   }
 
+  /**
+   * The colour locations the pixel stage writes, or null without a pixel
+   * stage (a depth-only program has no fragment targets at all).
+   *
+   * @returns {number[]|null} The written locations.
+   */
+  GetFragmentOutputs()
+  {
+    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+
+    return pixel ? pixel.GetOutputs() : null;
+  }
+
   /** One `GPUBindGroupLayout` per group, contiguous from zero. */
   GetBindGroupLayouts()
   {

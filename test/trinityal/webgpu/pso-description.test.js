@@ -156,3 +156,19 @@ test("the authored blend and colour write mask reach every colour target", () =>
   // And the keys differ because the pipelines differ.
   assert.notEqual(description({ renderStateSetup: setup }).GetKey(), description().GetKey());
 });
+
+test("a bound target the pixel shader does not write gets writeMask 0", () =>
+{
+  // The velocity scope: colour at 0, velocity at 1. A decal writes only
+  // SV_Target0; D3D11 leaves RTV 1 untouched, WebGPU needs its mask at 0.
+  const decal = { IsValid: () => true, GetIdentity: () => "decal", GetFragmentOutputs: () => [ 0 ] };
+  const quadV5 = { IsValid: () => true, GetIdentity: () => "quadv5", GetFragmentOutputs: () => [ 0, 1 ] };
+  const formats = [ "rgba16float", "rg16float" ];
+
+  const [ decalColour, decalVelocity ] = description({ shaderProgram: decal, colorFormats: formats }).BuildRecipe().fragment.targets;
+  assert.deepEqual(decalColour, { format: "rgba16float", writeMask: 0xf });
+  assert.deepEqual(decalVelocity, { format: "rg16float", writeMask: 0 }, "same format, nothing written");
+
+  const [ , quadVelocity ] = description({ shaderProgram: quadV5, colorFormats: formats }).BuildRecipe().fragment.targets;
+  assert.deepEqual(quadVelocity, { format: "rg16float", writeMask: 0xf }, "a writer takes target 0's state");
+});

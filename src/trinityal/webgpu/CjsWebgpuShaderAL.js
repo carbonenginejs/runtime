@@ -76,6 +76,27 @@ function wgslFrom(bytecode)
 }
 
 /**
+ * The colour locations a fragment stage writes, from its WGSL: the
+ * `@location(N)` members of the `FragmentOutput` struct our lowering emits
+ * (`SV_TargetN` -> `@location(N)`). D3D keeps the same fact in the pixel
+ * shader's OSGN; the WGSL is what this stage already holds.
+ *
+ * @param {string} source The stage's WGSL.
+ * @returns {number[]} The written locations, ascending.
+ */
+function FragmentOutputLocations(source)
+{
+  const struct = /struct\s+FragmentOutput\s*\{([^}]*)\}/u.exec(source);
+
+  if (struct) return Array.from(struct[1].matchAll(/@location\((\d+)\)/gu), match => Number(match[1])).sort((a, b) => a - b);
+
+  // A hand-written stage may return its one output directly: `-> @location(0) vec4f`.
+  const direct = /@fragment[^{]*->\s*@location\((\d+)\)/u.exec(source);
+
+  return direct ? [ Number(direct[1]) ] : [];
+}
+
+/**
  * The bind-group declarations visible to one stage, decoded from the block on
  * its signature.
  *
@@ -153,6 +174,9 @@ export class CjsWebgpuShaderAL
   /** The compiled module, or null before Create. */
   m_module = null;
 
+  /** The colour locations a pixel stage writes (FragmentOutputLocations). */
+  m_outputs = [];
+
   m_webgpu = null;
 
   /**
@@ -216,8 +240,19 @@ export class CjsWebgpuShaderAL
     this.m_signature = signature;
     this.m_bindings = bindings;
     this.m_inputs = Array.isArray(signature?.pipelineInputs) ? signature.pipelineInputs.slice() : [];
+    this.m_outputs = type === ShaderType.PIXEL_SHADER ? FragmentOutputLocations(this.m_source) : [];
 
     return ALResult.S_OK;
+  }
+
+  /**
+   * The colour locations a pixel stage writes; empty for any other stage.
+   *
+   * @returns {number[]} The written locations, ascending.
+   */
+  GetOutputs()
+  {
+    return this.m_outputs;
   }
 
   /** This stage's bind-group declarations. @returns {object[]} */
@@ -281,6 +316,7 @@ export class CjsWebgpuShaderAL
     this.m_source = "";
     this.m_bindings = [];
     this.m_inputs = [];
+    this.m_outputs = [];
   }
 
   /**

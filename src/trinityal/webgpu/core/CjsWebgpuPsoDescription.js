@@ -116,8 +116,24 @@ export class CjsWebgpuPsoDescription
     });
 
     // The authored blend and colour write mask are the projection's `target`
-    // (Tr2RenderStateSetup.GetWebgpuRecipe); each colour target carries them.
+    // (Tr2RenderStateSetup.GetWebgpuRecipe); each colour target carries them,
+    // as D3D11's non-independent blend gives every RTV RenderTarget[0]'s state
+    // (Tr2RenderContextDx11.cpp:784-785).
     const { target, ...state } = projected;
+
+    // A BOUND TARGET THE PIXEL SHADER DOES NOT WRITE gets writeMask 0 and no
+    // blend. D3D11 leaves such an RTV untouched; WebGPU rejects the pipeline
+    // unless its mask is 0. That is what lets the velocity target stay bound at
+    // slot 1 through opaque draws whose shaders never output SV_Target1.
+    const outputs = typeof this.shaderProgram.GetFragmentOutputs === "function"
+      ? this.shaderProgram.GetFragmentOutputs()
+      : null;
+    const colourTarget = (format, index) =>
+    {
+      if (!format) return null;
+      if (outputs && !outputs.includes(index)) return { format, writeMask: 0 };
+      return { format, ...target };
+    };
 
     return {
       ...state,
@@ -126,7 +142,7 @@ export class CjsWebgpuPsoDescription
       fragment: {
         // An unbound slot between bound ones is a null target, as it is a null
         // colour attachment in the pass.
-        targets: this.colorFormats.map(format => (format ? { format, ...target } : null))
+        targets: this.colorFormats.map(colourTarget)
       },
       multisample: { count: this.sampleCount }
     };

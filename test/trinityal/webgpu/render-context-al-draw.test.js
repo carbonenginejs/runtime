@@ -401,3 +401,21 @@ test("releasing device resources drops the resolved pipelines", () =>
   al.DrawIndexedInstanced(36, 1);
   assert.equal(pipelines.length, 2, "the same state resolves afresh after a release");
 });
+
+test("a pixel stage reports the colour locations its WGSL writes", () =>
+{
+  const { al } = composed();
+  const signature = { registers: [], pipelineInputs: [], backendBlock: null };
+  const outputs = source => al.CreateShader(ShaderType.PIXEL_SHADER, source, signature, "f.wgsl").GetOutputs();
+
+  // Our lowering's struct (SV_TargetN -> @location(N)), and a direct return.
+  assert.deepEqual(outputs("struct FragmentOutput\n{\n    @location(1) output1: vec2<f32>,\n    @location(0) output0: vec4<f32>,\n};\n@fragment fn main() -> FragmentOutput { var output: FragmentOutput; return output; }"), [ 0, 1 ]);
+  assert.deepEqual(outputs(FRAGMENT_WGSL), [ 0 ]);
+
+  // A depth-only stage writes no colour location.
+  assert.deepEqual(outputs("struct FragmentOutput\n{\n    @builtin(frag_depth) depth: f32,\n};\n@fragment fn main() -> FragmentOutput { var output: FragmentOutput; return output; }"), []);
+
+  // And the program answers for its pixel stage, or null without one.
+  assert.deepEqual(programFor(al).GetFragmentOutputs(), [ 0 ]);
+  assert.equal(programFor(al, { fragment: false }).GetFragmentOutputs(), null);
+});
