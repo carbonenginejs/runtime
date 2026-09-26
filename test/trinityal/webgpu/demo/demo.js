@@ -108,7 +108,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import { EveSpaceScene, EveSpaceSceneRenderDriver, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
@@ -262,8 +262,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   quality.addEventListener("change", () => driver.postProcess.SetPostProcessingQuality(Number(quality.value)));
 
   const antiAliasing = row("anti-aliasing", choose(Object.entries(AntiAliasingQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.antiAliasingQuality));
-  antiAliasing.disabled = true;
-  antiAliasing.title = "TAA needs the scene's velocity pass, which is not ported yet";
+  antiAliasing.addEventListener("change", () => { driver.antiAliasingQuality = Number(antiAliasing.value); });
 
   const effects = document.createElement("div");
   effects.className = "effects";
@@ -1551,11 +1550,16 @@ function WriteCamera(frame, camera, width, height)
  * names, and Carbon fills both - a pixel stage that reconstructs world position
  * needs them as much as the vertex stage does.
  *
+ * worldTransformLast is the PREVIOUS frame's world, which the velocity
+ * shaders difference against (Carbon sets it from the outgoing transform at
+ * the start of UpdateWorldTransform, EveSpaceObject2.cpp:3060-3061).
+ *
  * @param {object} perObject A `{ vs, ps }` pair of `RawData`.
  * @param {Float32Array} world The world transform.
+ * @param {Float32Array} [last] Last frame's world; a still object passes none.
  * @returns {void}
  */
-function SetWorld(perObject, world)
+function SetWorld(perObject, world, last = world)
 {
   const inverse = mat4.invert(mat4.create(), world);
 
@@ -1564,7 +1568,7 @@ function SetWorld(perObject, world)
     if (!block) continue;
 
     block.SetAndTranspose("worldTransform", world);
-    block.SetAndTranspose("worldTransformLast", world);
+    block.SetAndTranspose("worldTransformLast", last);
     block.SetAndTranspose("invWorldTransform", inverse);
   }
 }
@@ -2106,6 +2110,15 @@ export async function RunDemo(canvas)
   const perFrameScene = new EveSpaceScene();
   const clockStart = globalThis.performance?.now() ?? 0;
 
+  // TAA LIVES ON THE SCENE'S DEFAULT POST PROCESS: the driver's
+  // PropagateSettings puts it there from antiAliasingQuality, and the real
+  // scene copies it into the combined post process each frame
+  // (EveSpaceScene.cpp, SetTaa( postprocess->GetTaaIfAvailable() )). A
+  // template's own TAA slot is not what Carbon reads, so it stays emptied.
+  perFrameScene.postprocess = new Tr2PostProcess2();
+  const taaOnlyPostProcess = new Tr2PostProcess2();
+  const lastFrameScratch = mat4.create();
+
   driver.scene = {
     ApplyPerFrameData: renderContext =>
     {
@@ -2114,16 +2127,48 @@ export async function RunDemo(canvas)
       frame.ps.Set("Time", time);
       perFrameScene.GetPerFrameVSData().CopyFrom(frame.vs);
       perFrameScene.GetPerFramePSData().CopyFrom(frame.ps);
+
+      // WHAT EveSpaceScene.PopulatePerFrameVSData WRITES FOR TAA, which this
+      // stand-in otherwise skips: the JITTERED reversed-depth projection the
+      // driver set (Jitter, cpp:1329-1331; reversal cpp:3022), and last
+      // frame's view and projection with this frame's jitter (cpp:3029-3032).
+      // Carbon's row-vector products swap operands in gl-matrix.
+      const vs = perFrameScene.GetPerFrameVSData();
+      const projection = renderContext.GetReversedDepthProjectionTransform();
+      const view = renderContext.GetViewTransform();
+
+      vs.SetAndTranspose("ProjectionMat", projection);
+      vs.SetAndTranspose("ViewProjectionMat", mat4.multiply(lastFrameScratch, projection, view));
+      mat4.multiply(lastFrameScratch, perFrameScene.jitterMatrix, perFrameScene.projectionLast);
+      vs.SetAndTranspose("ProjLast", lastFrameScratch);
+      vs.SetAndTranspose("ViewLast", perFrameScene.viewLast);
+      vs.SetAndTranspose("ViewProjectionLast", mat4.multiply(lastFrameScratch, lastFrameScratch, perFrameScene.viewLast));
+      perFrameScene.GetPerFramePSData().Set("Jittering", perFrameScene.jitter[0] !== 0 || perFrameScene.jitter[1] !== 0 ? 1 : 0);
+
       perFrameScene.ApplyPerFrameData(renderContext);
     },
+    Jitter: renderContext => perFrameScene.Jitter(renderContext),
+    EndRender: renderContext => perFrameScene.EndRender(renderContext),
+    get jitteredProjection() { return perFrameScene.jitteredProjection; },
+    viewLast: perFrameScene.viewLast,
+    projectionLast: perFrameScene.projectionLast,
+    postprocess: perFrameScene.postprocess,
     Update: () => {},
     BlendLightingOverrides: () => {},
     UpdateFogSettings: () => {},
     GetPerFrameVSData: () => frame.vs,
     GetPerFramePSData: () => frame.ps,
     GetRenderables: out => { out.push(renderable); return out; },
-    // With no `?post=<template>` the chain copies, sharpens and tonemaps only.
-    GetPostProcess: () => postTemplate?.postProcess ?? null
+    // With no `?post=<template>` the chain copies, sharpens and tonemaps only,
+    // plus TAA when anti-aliasing is on.
+    GetPostProcess: () =>
+    {
+      const taa = perFrameScene.postprocess.GetTaaIfAvailable();
+      const combined = postTemplate?.postProcess ?? (taa ? taaOnlyPostProcess : null);
+
+      if (combined) combined.SetTaa(taa);
+      return combined;
+    }
   };
 
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
@@ -2220,6 +2265,7 @@ export async function RunDemo(canvas)
   if (parameters.get("still") !== "1")
   {
     const spin = mat4.create();
+    const spinLast = mat4.create();
     const spinning = parameters.get("spin") === "1";
     const start = performance.now();
 
@@ -2238,8 +2284,9 @@ export async function RunDemo(canvas)
         WriteCamera(frame, camera, canvas.width, canvas.height);
         if (spinning)
         {
+          mat4.copy(spinLast, spin);
           mat4.fromYRotation(spin, (performance.now() - start) / 4000);
-          SetWorld(perObject, spin);
+          SetWorld(perObject, spin, spinLast);
         }
 
         // Synchronous: the pixel readback in `Frame` is the only asynchronous
