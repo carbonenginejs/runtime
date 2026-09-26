@@ -991,3 +991,29 @@ test("unbinding a sampled depth stencil refreshes its float shadow after its pas
   al.SetDepthStencil(depth);
   assert.equal(log.length, 1);
 });
+
+test("Clear honours Carbon's flags and clears one colour slot", () =>
+{
+  const { al, passes } = composedWithPasses();
+
+  // The main pass's velocity scope: scene colour at 0, velocity at 1, depth.
+  al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
+  al.SetRenderTarget(1, boundTexture("velocity", "rg16float"));
+  al.SetDepthStencil(boundTexture("depthBuffer", "depth32float"));
+
+  // CLEARFLAGS_TARGET at slot 1 only (EveSpaceScene.cpp:2057 clears velocity to 0).
+  assert.equal(al.Clear({ clearColor: true, color: 0, slot: 1 }), true);
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  const [ colour, velocity ] = passes[0].colorAttachments;
+  assert.equal(colour.loadOp, "load", "slot 0 is left alone");
+  assert.equal(velocity.loadOp, "clear");
+  assert.deepEqual(velocity.clearValue, { r: 0, g: 0, b: 0, a: 0 });
+  assert.equal(passes[0].depthStencilAttachment.depthLoadOp, "load", "depth was not flagged");
+
+  // Metal refuses a flagged clear of something unbound (Tr2RenderContextMetal.mm:311-331).
+  assert.equal(al.Clear({ clearColor: true, slot: 3 }), false);
+  al.SetDepthStencil(null);
+  assert.equal(al.Clear({ clearDepth: true, depth: 0 }), false);
+});

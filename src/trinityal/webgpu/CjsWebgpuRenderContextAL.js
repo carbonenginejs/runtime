@@ -981,17 +981,42 @@ export class CjsWebgpuRenderContextAL
    * which is the same thing `RenderPassHint` does, arrived at from the other
    * direction. Carbon's Metal backend folds a clear the same way.
    *
-   * @param {object} [options] `{ color, depth, stencil }` values.
-   * @returns {boolean} True.
+   * CARBON'S FLAGS AND SLOT (`Tr2RenderContextMetal.mm:297-351`): the colour
+   * clear names ONE slot, and depth is cleared only when asked. Every other
+   * attached colour slot loads, so clearing the velocity target at slot 1
+   * leaves slot 0 alone. `clearColor`/`clearDepth`/`clearStencil` are
+   * CLEARFLAGS_TARGET/ZBUFFER/STENCIL; a call naming none of them clears the
+   * target and depth, which is what every caller without flags meant. As in
+   * Metal, a cleared target or depth that is not bound is E_INVALIDCALL.
+   *
+   * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
+   * @returns {boolean} Whether the clear was declared.
    */
   Clear(options = {})
   {
+    const flagged = "clearColor" in options || "clearDepth" in options || "clearStencil" in options;
+    const clearTarget = flagged ? !!options.clearColor : true;
+    const clearDepth = flagged ? !!(options.clearDepth || options.clearStencil) : true;
+    const slot = options.slot ?? 0;
     const attachments = this._workQueue.GetAttachments();
-    const colors = attachments.colors
-      .filter(Boolean)
-      .map(() => new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, options.color ?? 0));
+
+    if (clearTarget && !attachments.colors[slot]) return false;
+    if (flagged && clearDepth && !attachments.depth) return false;
+
+    const colors = [];
+
+    attachments.colors.forEach((attachment, index) =>
+    {
+      if (!attachment) return;
+      colors.push(clearTarget && index === slot
+        ? new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, options.color ?? 0)
+        : new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE));
+    });
+
     const depth = attachments.depth
-      ? new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, options.depth ?? 1)
+      ? (clearDepth
+        ? new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, Number(options.depth ?? 1))
+        : new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE))
       : null;
 
     this._workQueue.RenderPassHint(colors, depth);
