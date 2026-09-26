@@ -99,6 +99,7 @@
 // inputs, the draw arguments from the LOD's areas, the render states the effect
 // authors, the resource set laid out against the program's bindings.
 
+import { Tr2GpuResourcePool } from "../../../../npm/dist/trinity/core/index.js";
 import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
@@ -203,6 +204,62 @@ if (STAGE === "notonemap" || STAGE === "raw")
       esm.PopRenderTarget();
     }
   };
+}
+
+/**
+ * THE POOL'S TEXTURES BY NAME, for `demo.readback()`: the last texture each
+ * name was borrowed as. The pool keeps them after they are freed, so their
+ * contents from the last frame can still be read.
+ */
+const POOL_TEXTURES = new Map();
+{
+  const original = Tr2GpuResourcePool.prototype.GetTempTexture;
+  Tr2GpuResourcePool.prototype.GetTempTexture = function (name, description)
+  {
+    const handle = original.call(this, name, description);
+    POOL_TEXTURES.set(name, handle.Get());
+    return handle;
+  };
+}
+
+/** Bytes per texel for the formats the post chain uses. */
+const TEXEL_BYTES = { "rgba16float": 8, "bgra8unorm": 4, "rgba8unorm": 4, "rgba32float": 16, "r32float": 4 };
+
+/**
+ * Reads a texture back and counts texels whose bytes are not all zero.
+ *
+ * @param {GPUDevice} device The device.
+ * @param {GPUTexture} texture The texture.
+ * @returns {Promise<object>} The texture's format, size and non-zero count.
+ */
+async function CountNonZeroTexels(device, texture)
+{
+  const texel = TEXEL_BYTES[texture.format];
+  if (!texel) return { format: texture.format, skipped: "format not counted" };
+  const bytesPerRow = Math.ceil(texture.width * texel / 256) * 256;
+  const buffer = device.createBuffer({ size: bytesPerRow * texture.height, usage: GPUBufferUsage.COPY_DST | GPUBufferUsage.MAP_READ });
+  const encoder = device.createCommandEncoder();
+
+  encoder.copyTextureToBuffer({ texture }, { buffer, bytesPerRow }, { width: texture.width, height: texture.height });
+  device.queue.submit([ encoder.finish() ]);
+  await buffer.mapAsync(GPUMapMode.READ);
+
+  const bytes = new Uint8Array(buffer.getMappedRange());
+  let nonZero = 0;
+  for (let y = 0; y < texture.height; y++)
+  {
+    for (let x = 0; x < texture.width; x++)
+    {
+      const at = y * bytesPerRow + x * texel;
+      for (let b = 0; b < texel; b++)
+      {
+        if (bytes[at + b] !== 0) { nonZero++; break; }
+      }
+    }
+  }
+  buffer.unmap();
+  buffer.destroy();
+  return { format: texture.format, size: `${texture.width}x${texture.height}`, nonZeroTexels: nonZero };
 }
 
 /** One effect's load state, for `demo.post()`. */
@@ -1669,6 +1726,21 @@ export async function RunDemo(canvas)
   // demo.post(): which post-process effects loaded, and what each draw verb
   // did since the last call. A "nothing" count with no error is the black
   // canvas's cause.
+  // demo.readback(): non-zero texel counts for every pool texture the post
+  // chain borrowed, by name. The first one that reads zero is the stage that
+  // lost the image.
+  globalThis.demo.readback = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const report = {};
+    for (const [ name, texture ] of POOL_TEXTURES)
+    {
+      const gpuTexture = texture?.m_texture;
+      report[name] = gpuTexture ? await CountNonZeroTexels(device, gpuTexture) : "no GPU texture";
+    }
+    return report;
+  };
+
   globalThis.demo.post = () =>
   {
     const counts = { ...DRAW_COUNTS };
