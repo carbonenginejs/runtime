@@ -40,9 +40,10 @@
 // are dx11:431-433 and metal:302-306. The decision was right; the citation
 // pointed at a branch that did not demonstrate it.
 //
-// NOT IMPLEMENTED: MapForReading. Reading a buffer back needs MAP_READ, a
-// separate staging buffer and an await, and nothing asks for it yet. It
-// refuses by name rather than returning empty bytes.
+// MapForReading IS ONE FRAME LATE. Metal copies into a staging buffer and
+// waits for the GPU (Tr2BufferALMetal.mm:131-160); WebGPU cannot wait, so each
+// call starts a copy and mapAsync and answers with the last copy that has
+// completed. See MapForReading.
 //
 // THREE OF CARBON'S BUFFER METHODS ARE NOT HERE, AND SHOULD NOT BE.
 // `GetGpuResource` (DX) and `GetMetalBuffer` (Metal) are the SAME accessor
@@ -76,6 +77,12 @@ function gpuBufferUsage(gpuUsage, usage)
   return mask;
 }
 
+/** The staging copy a CPU read needs: the buffer must be a copy source. */
+function cpuReadUsage(cpuUsage, usage)
+{
+  return HasFlag(cpuUsage, Tr2CpuUsage.READ) ? (usage.COPY_SRC ?? 0) : 0;
+}
+
 
 /**
  * A `Tr2BufferAL` backed by a real `GPUBuffer`.
@@ -100,6 +107,12 @@ export class CjsWebgpuBufferAL
 
   /** Whether a map is open, so a double map is caught rather than silently nested. */
   _mapped = false;
+
+  /** The last completed read-back copy, or null. */
+  _readback = null;
+
+  /** Whether a read-back copy is in flight. */
+  _readbackPending = false;
 
   /**
    * Creates the buffer against a device.
@@ -126,7 +139,7 @@ export class CjsWebgpuBufferAL
     // DX12 refuses READ together with WRITE_OFTEN (Tr2BufferALDx12.cpp:51-54),
     // not READ alone: Carbon creates CPU-readable buffers, the post-process
     // exposure buffer among them (Tr2PostProcessRenderer.cpp:1705). Creation
-    // follows that rule; MapForReading still refuses, as documented above.
+    // follows that rule; MapForReading answers one frame late (see there).
     if (HasFlag(desc.cpuUsage, Tr2CpuUsage.READ) && HasFlag(desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN))
     {
       return ALResult.E_INVALIDARG;
@@ -144,8 +157,9 @@ export class CjsWebgpuBufferAL
     const size = desc.GetSizeInBytes();
     if (size === 0) return ALResult.E_INVALIDARG;
 
-    const mask = gpuBufferUsage(desc.gpuUsage, webgpu.GetBufferUsage());
-    if (mask === 0) return ALResult.E_INVALIDARG;
+    const gpuMask = gpuBufferUsage(desc.gpuUsage, webgpu.GetBufferUsage());
+    if (gpuMask === 0) return ALResult.E_INVALIDARG;
+    const mask = gpuMask | cpuReadUsage(desc.cpuUsage, webgpu.GetBufferUsage());
 
     this._handle = webgpu.CreateDeviceBuffer({ label: desc.label ?? "Tr2BufferAL", size, usage: mask });
     this._webgpu = webgpu;
@@ -283,17 +297,73 @@ export class CjsWebgpuBufferAL
     this._desc = null;
     this._shadow = null;
     this._mapped = false;
+    this._readback = null;
   }
 
-  /** REFUSED: reading back needs MAP_READ, a staging buffer and an await. */
-  MapForReading()
+  /**
+   * Reads the buffer back to the CPU, ONE FRAME LATE.
+   *
+   * Carbon's Metal backend copies into a staging buffer and waits for the GPU
+   * (`Tr2BufferALMetal.mm:131-160`). WebGPU has no synchronous wait, so this
+   * starts a copy into a MAP_READ staging buffer and a `mapAsync`, and answers
+   * with the most recent copy that has completed. Frame work is submitted at
+   * EndScene, so that copy holds the previous frame's contents. Until a first
+   * copy completes it answers E_FAIL, which Carbon's caller treats as "no data
+   * this frame" (`Tr2PostProcessRenderer.cpp:1272`, the exposure debug view).
+   * Validation follows Metal: a buffer without CPU READ is E_INVALIDCALL, an
+   * empty or out-of-range span E_INVALIDARG.
+   *
+   * @param {number} [offset] Byte offset.
+   * @param {number} [size] Byte count; the rest of the buffer when omitted.
+   * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
+   */
+  MapForReading(offset = 0, size = undefined)
   {
-    return { result: ALResult.E_INVALIDCALL, data: null };
+    if (!this._handle || !this._desc) return { result: ALResult.E_INVALIDCALL, data: null };
+
+    const total = this._desc.GetSizeInBytes();
+    const span = size ?? (total - offset);
+    if (span <= 0 || offset < 0 || offset + span > total) return { result: ALResult.E_INVALIDARG, data: null };
+    if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null };
+
+    this._StartReadback(total);
+
+    if (!this._readback) return { result: ALResult.E_FAIL, data: null };
+
+    return { result: ALResult.S_OK, data: this._readback.slice(offset, offset + span) };
   }
 
-  /** @see MapForReading */
+  /** Nothing to release: MapForReading hands out a copy. */
   UnmapForReading()
   {
+  }
+
+
+  /** Copies the whole buffer into a staging buffer and maps it, once at a time. */
+  _StartReadback(total)
+  {
+    if (this._readbackPending) return;
+
+    const device = this._webgpu.GetDevice();
+    const usage = this._webgpu.GetBufferUsage();
+    const source = this.GetDeviceBuffer();
+    if (!device || !source || !usage.MAP_READ) return;
+
+    const staging = device.createBuffer({ label: "Tr2BufferAL readback", size: total, usage: usage.MAP_READ | usage.COPY_DST });
+    const encoder = device.createCommandEncoder({ label: "Tr2BufferAL readback" });
+    encoder.copyBufferToBuffer(source, 0, staging, 0, total);
+    device.queue.submit([ encoder.finish() ]);
+
+    this._readbackPending = true;
+    staging.mapAsync(globalThis.GPUMapMode?.READ ?? 1).then(() =>
+    {
+      this._readback = new Uint8Array(staging.getMappedRange()).slice();
+      staging.unmap();
+    }, () => {}).finally(() =>
+    {
+      staging.destroy();
+      this._readbackPending = false;
+    });
   }
 
   /**

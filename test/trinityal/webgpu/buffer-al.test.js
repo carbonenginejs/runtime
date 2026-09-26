@@ -192,7 +192,57 @@ test("a CPU-readable typed UAV buffer is created as storage, as Carbon's exposur
   const [ , descriptor ] = fake.calls.find(call => call[0] === "createBuffer");
   assert.equal(descriptor.size, 32);
   assert.equal(descriptor.usage & BUFFER_USAGE.STORAGE, BUFFER_USAGE.STORAGE);
-  assert.equal(buffer.MapForReading().result, ALResult.E_INVALIDCALL);
+  // No MAP_READ in this device's usage table, so no read-back can start.
+  assert.equal(buffer.MapForReading().result, ALResult.E_FAIL);
+});
+
+test("MapForReading answers one frame late from a completed staging copy", async () =>
+{
+  const usage = { ...BUFFER_USAGE, COPY_SRC: 4, MAP_READ: 1 };
+  const calls = [];
+  const device = {
+    queue: { writeBuffer() {}, submit(buffers) { calls.push([ "submit", buffers.length ]); } },
+    createBuffer(descriptor)
+    {
+      const bytes = new Uint8Array(descriptor.size);
+      if (descriptor.usage & usage.MAP_READ) bytes.set([ 1, 2, 3, 4 ]);
+      const value = {
+        descriptor,
+        destroy() { calls.push([ "destroy" ]); },
+        mapAsync: () => Promise.resolve(),
+        getMappedRange: () => bytes.buffer,
+        unmap() {}
+      };
+      calls.push([ "createBuffer", descriptor ]);
+      return value;
+    },
+    createCommandEncoder: () => ({
+      copyBufferToBuffer(...args) { calls.push([ "copy", args[4] ]); },
+      finish: () => ({ kind: "commands" })
+    }),
+    createShaderModule(descriptor) { return { descriptor }; },
+    pushErrorScope() {},
+    popErrorScope() { return Promise.resolve(null); }
+  };
+  const webgpu = new CjsWebgpuDevice({ device, shaderStage: SHADER_STAGE, bufferUsage: usage });
+  const buffer = new CjsWebgpuBufferAL();
+  const description = Tr2BufferDescriptionAL.FromFormat(
+    PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8,
+    Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.READ);
+
+  assert.equal(buffer.Create(description, new Float32Array(8), contextFor(webgpu)), ALResult.S_OK);
+  assert.equal(calls.find(call => call[0] === "createBuffer")[1].usage & usage.COPY_SRC, usage.COPY_SRC, "a CPU-readable buffer is a copy source");
+
+  // First call: the copy is only started.
+  assert.equal(buffer.MapForReading().result, ALResult.E_FAIL);
+  assert.ok(calls.some(call => call[0] === "copy" && call[1] === 32));
+  await new Promise(resolve => setTimeout(resolve, 0));
+
+  // Next call: the completed copy, sliced to the span asked for.
+  const read = buffer.MapForReading(1, 2);
+  assert.equal(read.result, ALResult.S_OK);
+  assert.deepEqual(Array.from(read.data), [ 2, 3 ]);
+  assert.equal(buffer.MapForReading(4, 64).result, ALResult.E_INVALIDARG);
 });
 
 test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>
