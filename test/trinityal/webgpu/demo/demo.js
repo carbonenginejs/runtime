@@ -101,7 +101,8 @@
 
 import { Tr2GpuResourcePool } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../../npm/dist/trinity/core/context/Tr2RenderContext.js";
-import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { EveComponentType } from "../../../../npm/dist/trinity/eve/EveComponentTypes.js";
+import { CjsBatchManager, Tr2LightManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
 import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
@@ -2482,6 +2483,25 @@ export async function RunDemo(canvas)
       });
     }
     return report;
+  };
+
+  // demo.lights(): whether attachment lights reach the frame. The scene's
+  // registered light owners and how many lights each holds, the light
+  // manager's resolved count after its cull, and the first tile headers (a
+  // non-zero head means the tile has a light list).
+  globalThis.demo.lights = () =>
+  {
+    const manager = Tr2LightManager.getInstance();
+    const owners = realScene?.componentRegistry?.GetComponents(EveComponentType.LightOwner) ?? [];
+    return {
+      dynamicLightingEnabled: realScene?.dynamicLightingEnabled ?? null,
+      manager: Boolean(manager),
+      resolvedLights: manager ? manager.GetLightCount() : null,
+      lightBufferValid: manager ? manager._lightBuffer.IsValid() : null,
+      indexBufferValid: manager ? manager._indexBuffer.IsValid() : null,
+      firstTileHeads: manager ? Array.from(manager._indexList.subarray(0, 6)) : null,
+      owners: owners.map(owner => ({ type: owner?.constructor?.name, lights: owner?.lights?.length ?? null }))
+    };
   };
 
   globalThis.demo.exposure = async () =>
