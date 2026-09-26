@@ -980,6 +980,10 @@ export class CjsWebgpuRenderContextAL
   {
     this._viewport = viewport ? { ...viewport } : null;
 
+    // Metal hands every viewport to its work queue (`Tr2RenderContextMetal.mm:1180-1186`).
+    // A viewport without depth bounds has Tr2Viewport's defaults, 0 and 1.
+    if (viewport) this._workQueue.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height, viewport.minZ ?? 0, viewport.maxZ ?? 1);
+
     return true;
   }
 

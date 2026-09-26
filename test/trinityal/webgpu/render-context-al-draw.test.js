@@ -23,10 +23,12 @@ const FRAGMENT_WGSL = "@fragment fn main() -> @location(0) vec4f { return vec4f(
 function composed()
 {
   const log = [];
+  const viewports = [];
   const pipelines = [];
   const pass = {
     setPipeline: pipeline => log.push(`setPipeline:${pipeline.id}`),
     setBindGroup: (index, group, offsets) => log.push(`setBindGroup:${index}:${group.id}:${(offsets ?? []).join("/")}`),
+    setViewport: (...args) => viewports.push(args),
     setVertexBuffer: (slot, buffer, offset) => log.push(`setVertexBuffer:${slot}:${buffer}:${offset}`),
     setIndexBuffer: (buffer, format, offset) => log.push(`setIndexBuffer:${buffer}:${format}:${offset}`),
     drawIndexed: (...args) => log.push(`drawIndexed:${args.join(",")}`),
@@ -101,7 +103,7 @@ function composed()
   al.BeginScene();
   al.DrainTransitions();
 
-  return { al, log, pipelines, bindGroups, created };
+  return { al, log, viewports, pipelines, bindGroups, created };
 }
 
 /** A linked program; `block` puts bind-group declarations on both stages. */
@@ -178,6 +180,20 @@ test("a draw resolves a pipeline from bound state once, and the next draw reuses
   assert.deepEqual(descriptor.fragment.targets.map(target => target.format), [ "bgra8unorm" ]);
   assert.equal(descriptor.primitive.topology, "triangle-list");
   assert.equal(descriptor.depthStencil.format, "depth24plus");
+});
+
+test("SetViewport reaches the pass at the draw, as Metal's work queue applies it", () =>
+{
+  // Tr2RenderContextMetal.mm:1180-1186 hands the viewport to the work queue,
+  // which sets it on the encoder before the draw. It used to be stored and
+  // never applied, so a shadow cascade drew over the whole atlas.
+  const { al, viewports } = composed();
+
+  bindGeometry(al, programFor(al));
+  al.SetViewport({ x: 640, y: 0, width: 320, height: 360, minZ: 0, maxZ: 1 });
+  al.DrawIndexedInstanced(36, 1);
+
+  assert.deepEqual(viewports.at(-1), [ 640, 0, 320, 360, 0, 1 ]);
 });
 
 test("a state change dirties the pipeline and the next draw resolves a second one", () =>

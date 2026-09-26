@@ -359,3 +359,44 @@ test("a clear is ignored while a hint is pending, and a hint survives an attachm
   const opened = queue.SetCurrentEncoder(EncoderType.RENDER).find(event => event.type === "open");
   assert.equal(opened.attachments.colors[0].loadOp, "load");
 });
+
+test("a viewport reaches the pass at the next draw, again in every new pass, cut to the attachment", () =>
+{
+  // Metal holds the viewport and sets it from EmitRenderEncoderState, and a
+  // new encoder dirties everything (MetalWorkQueue.mm:1786-1795, 2166-2171).
+  // The shadow atlas depends on it: each cascade draws into its own cell.
+  const calls = [];
+  const pass = () => ({
+    setViewport: (...args) => calls.push([ "viewport", ...args ]),
+    draw: () => calls.push([ "draw" ]),
+    end() {}
+  });
+  const atlas = { GetWidth: () => 4096, GetHeight: () => 1024 };
+  const queue = new CjsWebgpuWorkQueue();
+
+  queue.SetCommandEncoder({ beginRenderPass: pass }, () => ({}));
+  queue.BeginFrame();
+  queue.SetDepthAttachment(atlas);
+
+  queue.DrawPrimitives(3, 1, 0, 0);
+  assert.deepEqual(calls, [ [ "draw" ] ], "no viewport is applied before one is set");
+
+  calls.length = 0;
+  queue.SetViewport(1024, 0, 512, 512, 0, 1);
+  queue.DrawPrimitives(3, 1, 0, 0);
+  queue.DrawPrimitives(3, 1, 0, 0);
+  assert.deepEqual(calls, [ [ "viewport", 1024, 0, 512, 512, 0, 1 ], [ "draw" ], [ "draw" ] ], "set once, before the draw");
+
+  calls.length = 0;
+  queue.RenderPassHint([], null);
+  queue.DrawPrimitives(3, 1, 0, 0);
+  assert.deepEqual(calls, [ [ "viewport", 1024, 0, 512, 512, 0, 1 ], [ "draw" ] ], "a new pass is told again");
+
+  // WebGPU refuses a viewport outside the attachment, where D3D11 clips.
+  calls.length = 0;
+  queue.SetViewport(3584, -8, 1024, 2048, 0, 1);
+  queue.DrawPrimitives(3, 1, 0, 0);
+  assert.deepEqual(calls[0], [ "viewport", 3584, 0, 512, 1024, 0, 1 ]);
+
+  queue.EndFrame();
+});

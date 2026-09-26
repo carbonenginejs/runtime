@@ -580,6 +580,28 @@ export class CjsWebgpuWorkQueue
   _encoderState = { pipeline: null, vertexBuffers: [], indexBuffer: null, bindGroups: [] };
 
   /**
+   * m_viewport, null until one is set (m_validViewport). It outlives passes
+   * and frames, as Metal's does, and every new encoder applies it again.
+   */
+  _viewport = null;
+
+  /**
+   * Metal's `SetViewport` (`MetalWorkQueue.mm:2166-2171`): held until the next
+   * draw, like the bindings above.
+   *
+   * @param {number} originX Left edge, in pixels.
+   * @param {number} originY Top edge, in pixels.
+   * @param {number} width Width, in pixels.
+   * @param {number} height Height, in pixels.
+   * @param {number} znear Depth the near plane maps to.
+   * @param {number} zfar Depth the far plane maps to.
+   */
+  SetViewport(originX, originY, width, height, znear, zfar)
+  {
+    this._viewport = { originX, originY, width, height, znear, zfar };
+  }
+
+  /**
    * Names the bind group for one group index.
    *
    * @param {number} index The group index.
@@ -637,6 +659,12 @@ export class CjsWebgpuWorkQueue
       live.pipeline = want.pipeline;
     }
 
+    if (this._viewport && live.viewport !== this._viewport)
+    {
+      this._EmitViewport(pass, this._viewport);
+      live.viewport = this._viewport;
+    }
+
     want.bindGroups.forEach((entry, index) =>
     {
       if (!entry) return;
@@ -675,6 +703,37 @@ export class CjsWebgpuWorkQueue
 
     pass.setIndexBuffer(entry.buffer, entry.format, entry.offset);
     live.indexBuffer = entry;
+  }
+
+  /**
+   * Applies a viewport to the open pass (`MetalWorkQueue.mm:1786-1795`).
+   *
+   * WebGPU refuses a viewport reaching outside the attachments, where D3D11
+   * and Metal clip to them, so it is cut to the attachment rectangle first. A
+   * viewport that only fits a previous, larger target is thereby rescaled
+   * rather than clipped; one inside the attachments is unchanged.
+   *
+   * @param {object} pass The open `GPURenderPassEncoder`.
+   * @param {object} viewport The held viewport.
+   */
+  _EmitViewport(pass, viewport)
+  {
+    const attachment = this._colorAttachments.find(Boolean) ?? this._depthAttachment;
+    const width = attachment ? attachment.texture.GetWidth() : Infinity;
+    const height = attachment ? attachment.texture.GetHeight() : Infinity;
+    const x = Math.min(Math.max(viewport.originX, 0), width);
+    const y = Math.min(Math.max(viewport.originY, 0), height);
+    const minDepth = Math.min(Math.max(viewport.znear, 0), 1);
+    const maxDepth = Math.min(Math.max(viewport.zfar, minDepth), 1);
+
+    pass.setViewport(
+      x,
+      y,
+      Math.max(Math.min(viewport.originX + viewport.width, width) - x, 0),
+      Math.max(Math.min(viewport.originY + viewport.height, height) - y, 0),
+      minDepth,
+      maxDepth
+    );
   }
 
   /**

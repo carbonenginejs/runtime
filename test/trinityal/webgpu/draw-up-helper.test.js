@@ -26,6 +26,7 @@ function composed()
   const pass = {
     setPipeline: pipeline => log.push(`setPipeline:${pipeline.id}`),
     setBindGroup: () => {},
+    setViewport: () => {},
     setVertexBuffer: (slot, buffer, offset) => log.push(`setVertexBuffer:${slot}:${buffer.descriptor.label}:${offset}`),
     setIndexBuffer: (buffer, format, offset) => log.push(`setIndexBuffer:${buffer.descriptor.label}:${format}:${offset}`),
     drawIndexed: (...args) => log.push(`drawIndexed:${args.join(",")}`),

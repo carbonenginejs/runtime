@@ -531,7 +531,7 @@ export class Tr2ShadowMap extends CjsModel
     // whole shadow pass, which is what this line used to do.
     esm.PushViewport();
     esm.PushRenderTarget(null);
-    esm.PushDepthStencilBuffer(cascadedShadowDepth);
+    esm.PushDepthStencilBuffer(cascadedShadowDepth.Get());
     esm.UpdateRenderTargetViewport(cascadedShadowDepth.Get().GetWidth(), cascadedShadowDepth.Get().GetHeight());
 
     // Carbon wants a clean depth buffer for this pass and says so.
