@@ -107,7 +107,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveSpaceSceneRenderDriver } from "../../../../npm/dist/trinity/index.js";
+import { EveSpaceSceneRenderDriver, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
@@ -169,6 +169,39 @@ for (const verb of [ "DrawScreenQuad", "DrawTexture" ])
     const key = `runComputeShader:${result ? "dispatched" : "nothing"}`;
     DRAW_COUNTS[key] = (DRAW_COUNTS[key] ?? 0) + 1;
     return result;
+  };
+}
+
+/**
+ * `?stage=` SKIPS POST-PROCESS STAGES to find the one that writes black.
+ * nosharpen: CAS is skipped. notonemap: tonemapping becomes a plain copy of
+ * its input (the texture it would read as BlitOriginal). raw: both.
+ */
+const STAGE = new URLSearchParams(globalThis.location?.search ?? "").get("stage") ?? "";
+if (STAGE === "nosharpen" || STAGE === "raw")
+{
+  const original = Tr2PostProcessRenderer.prototype.RenderSharpening;
+  Tr2PostProcessRenderer.prototype.RenderSharpening = function (_enable, ...args)
+  {
+    return original.call(this, false, ...args);
+  };
+}
+if (STAGE === "notonemap" || STAGE === "raw")
+{
+  Tr2PostProcessRenderer.prototype.RenderTonemapping = function (dest, _postprocess, renderContext, renderer)
+  {
+    const source = this.tonemappingEffect.GetResourceByName("BlitOriginal").GetTextureProvider().GetTexture();
+    const esm = renderContext.GetEffectStateManager();
+
+    esm.PushRenderTarget(dest);
+    try
+    {
+      renderer.DrawTexture(renderContext, source);
+    }
+    finally
+    {
+      esm.PopRenderTarget();
+    }
   };
 }
 
@@ -1642,6 +1675,7 @@ export async function RunDemo(canvas)
     for (const key of Object.keys(DRAW_COUNTS)) delete DRAW_COUNTS[key];
     return {
       postOff: POST_OFF,
+      stage: STAGE || "all",
       counts,
       tonemapping: EffectState(driver.postProcess.tonemappingEffect),
       cas: EffectState(driver.postProcess._fidelityFxCasShader),
