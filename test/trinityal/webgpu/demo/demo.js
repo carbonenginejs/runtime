@@ -318,14 +318,15 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
 
-  // Ship speed in m/s. The boosters' glow and the hull's engine heat follow it;
-  // the booster set reaches full intensity at its maxVel (250).
-  const shipSpeed = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "300", step: "1", value: "0" });
+  // Ship speed, normalized: 0 stopped, 1 at the booster set's maxVel, up to 2
+  // (the booster intensity is capped at 2). The boosters' glow and the hull's
+  // engine heat follow it.
+  const shipSpeed = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "2", step: "0.01", value: "0" });
   const shipSpeedReadout = document.createElement("output");
   const shipSpeedField = Object.assign(document.createElement("span"), { className: "slider" });
   shipSpeedField.append(shipSpeed, shipSpeedReadout);
   row("speed", shipSpeedField);
-  const showSpeed = () => { shipSpeedReadout.value = `${shipSpeed.value} m/s`; };
+  const showSpeed = () => { shipSpeedReadout.value = Number(shipSpeed.value).toFixed(2); };
   shipSpeed.addEventListener("input", () => { speed(Number(shipSpeed.value)); showSpeed(); });
   showSpeed();
 
@@ -2175,7 +2176,8 @@ export async function RunDemo(canvas)
     },
     dirt: value => realScene ? (ship.dirtLevel = value) : globalThis.demo.shipData({ dirt: value }),
     age: weeks => globalThis.demo.dirt(DirtLevelFromWeeks(weeks)),
-    speed: value => { if (ship?.speed) ship.speed.value = Number(value) || 0; },
+    // Normalized speed: the booster set divides the ship's speed by its maxVel.
+    speed: value => { if (ship?.speed) ship.speed.value = (Number(value) || 0) * (ship.boosters?.maxVel ?? 1); },
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
     ship,
     scene: realScene
