@@ -533,7 +533,46 @@ for (const verb of [ "DrawScreenQuad", "DrawTexture" ])
     const result = original.apply(this, args);
     const key = `${verb}:${result ? "drew" : "nothing"}`;
     DRAW_COUNTS[key] = (DRAW_COUNTS[key] ?? 0) + 1;
+    if (verb === "DrawScreenQuad") CaptureExposureBinding(args[1]);
     return result;
+  };
+}
+
+/**
+ * WHAT TAA AND TAACOPY BIND FOR "Exposure", captured at the draw (RenderTaa
+ * nulls the parameter right after). Both shaders divide by an exposure read
+ * from that buffer; the black frame reads as exposure 0, while the pool's
+ * "Exposure Buffer" holds a measured value. This says which buffer the draw
+ * really had: the parameter's, the description's, and the bind group's.
+ */
+const EXPOSURE_BINDINGS = {};
+
+function CaptureExposureBinding(effect)
+{
+  const path = effect?.GetEffectPathName?.() ?? "";
+  const name = /\/taacopy\.fx$/iu.test(path) ? "taaCopy" : /\/taa\.fx$/iu.test(path) ? "taa" : null;
+  if (!name) return;
+
+  const pool = POOL_BUFFERS.get("Exposure Buffer") ?? null;
+  const poolDevice = pool?.GetDeviceBuffer?.() ?? null;
+  const held = effect.GetResourceByName("Exposure")?.gpuBuffer?.GetGpuBuffer?.() ?? null;
+  const passes = [];
+
+  (effect.parametersForPasses ?? []).forEach((technique, techniqueIndex) => (technique?.passes ?? []).forEach((pass, passIndex) =>
+  {
+    const srvBuffers = (pass.resourceSetDesc?.m_srv ?? []).filter(record => record.type === 1).map(record => record.buffer === pool ? "pool Exposure Buffer" : record.buffer ? "another buffer" : "null");
+    const entries = pass.resourceSet?.m_resourceSet?.implementation?.m_entries ?? null;
+    const bound = entries
+      ? [ ...entries ].filter(([ , entry ]) => entry?.buffer).map(([ key, entry ]) => ({ slot: key, buffer: entry.buffer === poolDevice ? "pool Exposure Buffer" : `${entry.buffer.label || "unlabelled"} (${entry.buffer.size} B)` }))
+      : "no resource set";
+    passes.push({ technique: techniqueIndex, pass: passIndex, srvBuffers, bound });
+  }));
+
+  EXPOSURE_BINDINGS[name] = {
+    option: effect.GetOption("DYNAMIC_EXPOSURE_TOGGLE"),
+    parameterHoldsPoolBuffer: pool ? held === pool : "no pool buffer yet",
+    poolHasDeviceBuffer: Boolean(poolDevice),
+    passes
   };
 }
 {
@@ -2567,6 +2606,7 @@ export async function RunDemo(canvas)
       taa: EffectState(renderer.taaEffect),
       taaCopy: EffectState(renderer._taaCopyEffect),
       options: { QUALITY: renderer.taaEffect.GetOption("QUALITY"), DEBUG: renderer.taaEffect.GetOption("DEBUG") },
+      exposureBindings: EXPOSURE_BINDINGS,
       lastPipelineFailure: al.m_pipelineFailure ?? null,
       counts,
       first,
@@ -2664,6 +2704,49 @@ export async function RunDemo(canvas)
       cas: EffectState(driver.postProcess._fidelityFxCasShader),
       material: EffectState(areas[0].material)
     };
+  };
+
+  // demo.getReport(): the settings this page is running with, then every
+  // report above, in one object to paste. Each report is caught on its own, so
+  // one that throws leaves the rest. Takes a few seconds: exposure, taa and
+  // flare each sample twice.
+  globalThis.demo.getReport = async () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const info = device.adapterInfo ?? null;
+    const settings = {
+      url: globalThis.location?.search ?? "",
+      tier: TIER,
+      dna: DNA,
+      stage: STAGE || "all",
+      flare: flare.current,
+      shadowsOffered: SHADOWS_OPT_IN,
+      postOff: postState.off,
+      postTemplate: postTemplate?.path ?? null,
+      clientDefaults: clientState.enabled,
+      postProcessingQuality: driver.postProcess.GetPostProcessingQuality(),
+      antiAliasingQuality: driver.antiAliasingQuality,
+      aoQuality: driver.aoQuality,
+      shadowQuality: driver.shadowQuality,
+      adapter: info ? { vendor: info.vendor, architecture: info.architecture, device: info.device, description: info.description } : null,
+      features: [ ...device.features ].sort()
+    };
+    const reports = {};
+
+    // taa before post: both hand back the draw counts and reset them.
+    for (const name of [ "taa", "exposure", "post", "shadows", "ssao", "lut", "lights", "flare", "readback" ])
+    {
+      try
+      {
+        reports[name] = await globalThis.demo[name]();
+      }
+      catch (error)
+      {
+        reports[name] = { error: String(error?.stack ?? error) };
+      }
+    }
+
+    return { settings, reports };
   };
 
   let postTemplate = null;
