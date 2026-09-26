@@ -24,13 +24,14 @@ import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment } from "#trinityal";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
 import { TriFrustum } from "../../core/view/TriFrustum.js";
+import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
@@ -38,7 +39,8 @@ import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
 import { Tr2PPTaaEffect } from "../../postProcess/effect/Tr2PPTaaEffect.js";
 import "../../core/volumetrics/Tr2VolumetricsRenderer.js";
-import "./EveSpaceScene.js";
+// A cycle with EveSpaceScene.js; each side reads the other only inside methods.
+import { EveSpaceScene } from "./EveSpaceScene.js";
 import { blue, EnumRegistrationType } from "#blue";
 import "../../postProcess/effect/Tr2PPEffect.js";
 import "#blue/registerTrinityEnums";
@@ -239,6 +241,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
   #depthMapReference = new Tr2TextureReference();
 
+  /** The provider "SSAOMap" is registered with: the empty SSAO, or nothing. */
+  #ssaoMapReference = new Tr2TextureReference();
+
   /**
    * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
    * previous frame's camera. The driver owns them, not the scene, because
@@ -355,6 +360,13 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     this._PropagateSettings();
 
+    this.#PrepareContext(renderContext);
+
+    // cpp:444 - the white "EmptySSAO" until an SSAO pass replaces it. None is
+    // ported, so it is what the main pass samples, as when Carbon's SSAO is
+    // off (RenderSSAO, cpp:360-381).
+    this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
+
     // THE SCENE RENDERS INTO ITS OWN COLOUR AND DEPTH (cpp:461, 471), and the
     // post process draws the result into the destination (cpp:602-609).
     // Carbon always has a destination; a null one - which tests use - keeps
@@ -401,7 +413,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         Tr2VariableStore.GlobalStore().RegisterVariable("DepthMap", this.#depthMapReference);
       }
 
+      // cpp:550 - the shadow pass's textures as globals. No shadow pass is
+      // ported, so every resource is empty and the white fallbacks go in.
+      EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
+
       const submitted = this.#RenderMainPass(renderContext, offscreen);
+
+      // cpp:565 - SSAOMap is emptied after the main pass.
+      this.#RegisterSSAOMap(null);
 
       // LENS-FLARE OCCLUSION (cpp:587-592), after the main pass on the scene
       // target with read-only depth: each lensflare's queries, then the
@@ -435,13 +454,58 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       esm.PopRenderTarget(0);
       esm.SetInvertedDepthTest(false);
 
-      // Carbon empties the global at the frame's end (cpp:626); the pool
-      // reclaims the depth texture after this.
+      // Carbon restores the empty SSAO and empties DepthMap at the frame's end
+      // (cpp:625-626); the pool reclaims the depth texture after this.
+      this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
       this.#depthMapReference.SetTexture(null);
 
       if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
     }
   }
+
+  /**
+   * GlobalStore().RegisterVariable( "SSAOMap", texture ): the texture goes in
+   * through this driver's reference, and a null is Carbon's typed-null
+   * Tr2TextureAL{}. A pool handle is released once its texture is taken, as
+   * Carbon's temporary does at the end of the statement.
+   */
+  #RegisterSSAOMap(handle)
+  {
+    this.#ssaoMapReference.SetTexture(handle ? handle.Get() : null);
+    if (handle) this.#gpuResourcePool.Free(handle);
+    Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", this.#ssaoMapReference);
+  }
+
+  /**
+   * Carbon's anonymous-namespace GetEmptySSAO (cpp:40-46): a persistent white
+   * 1x1 RGBA8, "no occlusion", for frames without an SSAO pass.
+   *
+   * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
+   * @returns {GpuResourceHandle} The texture.
+   */
+  @carbon.method
+  @impl.implemented
+  static getEmptySSAO(gpuResourcePool)
+  {
+    return gpuResourcePool.GetPersistentTexture("EmptySSAO", {
+      type: TextureType.TEX_TYPE_2D,
+      width: 1,
+      height: 1,
+      depth: 1,
+      mipCount: 1,
+      format: PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM,
+      gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
+      initialData: [ new Tr2SubresourceData(new Uint8Array([ 255, 255, 255, 255 ]), 4, 4) ]
+    });
+  }
+
+  /** EveSpaceScene::ShadowResources with every texture empty: no shadow pass is ported. */
+  static #noShadowResources = {
+    shadowMap: new GpuResourceHandle(),
+    cascadedShadowDepth: new GpuResourceHandle(),
+    pointLightShadowMap: new GpuResourceHandle(),
+    pointLightShadowDepth: new GpuResourceHandle()
+  };
 
   /**
    * Carbon's anonymous-namespace BeginRenderPass (cpp:23-38): binds the colour
@@ -673,6 +737,20 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   }
 
   /**
+   * Binds the pool and prepares the renderer against the frame's context, once
+   * per context. Carbon's pool and renderer are device resources, ready before
+   * any frame; ours are handed the context here instead.
+   */
+  #PrepareContext(renderContext)
+  {
+    if (this.#preparedContext === renderContext) return;
+
+    this.#gpuResourcePool.SetRenderContext(renderContext);
+    this.#renderer.PrepareDeviceResources(renderContext);
+    this.#preparedContext = renderContext;
+  }
+
+  /**
    * Borrows the scene's colour and depth (cpp:461, 471): the internal pixel
    * format at the destination's size, and a 32-bit float depth.
    */
@@ -680,12 +758,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   {
     const pool = this.#gpuResourcePool;
 
-    if (this.#preparedContext !== renderContext)
-    {
-      pool.SetRenderContext(renderContext);
-      this.#renderer.PrepareDeviceResources(renderContext);
-      this.#preparedContext = renderContext;
-    }
+    this.#PrepareContext(renderContext);
 
     const size = { width: target.GetWidth(), height: target.GetHeight() };
     const texture = (name, format, gpuUsage) => pool.GetTempTexture(name, {

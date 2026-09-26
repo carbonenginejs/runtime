@@ -22,7 +22,8 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
-import { ShaderType } from "#consts/render-context";
+import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
@@ -1184,6 +1185,73 @@ export class EveSpaceScene extends CjsModel
 
   /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
   #ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
+
+  /**
+   * Carbon's free function RegisterWithVariableStore (EveSpaceScene.cpp:4253-4266,
+   * declared EveSpaceScene.h:725): publishes the shadow pass's four textures as
+   * globals. Where a pass produced no screen-space shadow, a persistent white
+   * 1x1 R8 "EmptyShadow" stands in, and a white R8_UINT "EmptyShadowUint" for
+   * the point-light indices, so an unshadowed frame samples "fully lit"
+   * rather than the backend's zero dummy. The two depth atlases go in as they
+   * are, empty included.
+   *
+   * A texture variable holds a provider here, not a bare AL texture, so each
+   * name is published through its own Tr2TextureReference, as the driver
+   * publishes DepthMap.
+   *
+   * @param {object} shadowResources Carbon's EveSpaceScene::ShadowResources:
+   *   `shadowMap`, `cascadedShadowDepth`, `pointLightShadowMap` and
+   *   `pointLightShadowDepth`, each a GpuResourceHandle, empty when absent.
+   * @param {Tr2GpuResourcePool} gpuResourcePool The driver's pool.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  static registerWithVariableStore(shadowResources, gpuResourcePool)
+  {
+    const store = Tr2VariableStore.GlobalStore();
+    const references = EveSpaceScene.#shadowReferences;
+
+    const publish = (name, texture) =>
+    {
+      references[name].SetTexture(texture);
+      store.RegisterVariable(name, references[name]);
+    };
+
+    const emptyShadow = (name, format) =>
+    {
+      const handle = gpuResourcePool.GetPersistentTexture(name, {
+        type: TextureType.TEX_TYPE_2D,
+        width: 1,
+        height: 1,
+        depth: 1,
+        mipCount: 1,
+        format,
+        gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
+        initialData: [ new Tr2SubresourceData(new Uint8Array([ 255 ]), 1, 1) ]
+      });
+      const texture = handle.Get();
+      gpuResourcePool.Free(handle);
+      return texture;
+    };
+
+    publish("EveSpaceSceneShadowMap", shadowResources.shadowMap.IsValid()
+      ? shadowResources.shadowMap.Get()
+      : emptyShadow("EmptyShadow", PixelFormat.PIXEL_FORMAT_R8_UNORM));
+    publish("EveSpaceSceneCascadedShadowMap", shadowResources.cascadedShadowDepth.Get());
+    publish("EveSpaceSceneDynamicShadowMap", shadowResources.pointLightShadowMap.IsValid()
+      ? shadowResources.pointLightShadowMap.Get()
+      : emptyShadow("EmptyShadowUint", PixelFormat.PIXEL_FORMAT_R8_UINT));
+    publish("ShadowMapAtlas", shadowResources.pointLightShadowDepth.Get());
+  }
+
+  /** The providers registerWithVariableStore publishes through, one per name. */
+  static #shadowReferences = {
+    EveSpaceSceneShadowMap: new Tr2TextureReference(),
+    EveSpaceSceneCascadedShadowMap: new Tr2TextureReference(),
+    EveSpaceSceneDynamicShadowMap: new Tr2TextureReference(),
+    ShadowMapAtlas: new Tr2TextureReference()
+  };
 
   /** m_envMapTextureRes / m_staticEnvMapTextureRes, set by Initialize. */
   #envMapTextureRes = null;

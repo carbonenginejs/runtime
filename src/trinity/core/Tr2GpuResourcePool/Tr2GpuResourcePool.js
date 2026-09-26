@@ -342,6 +342,11 @@ function SameDescription(left, right)
 
   for (const key of keys)
   {
+    // Carbon matches a persistent texture on its dimensions, GPU usage and
+    // name (Tr2GpuResourcePool.cpp:161-163), never on the initializer. Callers
+    // build a fresh initialData array per call, so comparing it made every
+    // call a miss and created a new texture each time.
+    if (key === "initialData") continue;
     if (left[key] !== right[key]) return false;
   }
 
