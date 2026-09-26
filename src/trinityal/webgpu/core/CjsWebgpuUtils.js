@@ -12,6 +12,7 @@
 // write) belong here as they are needed.
 import { CjsSchema } from "#schema";
 import { PixelFormat } from "#consts/render-context";
+import { num } from "#math/num";
 
 const { PIXEL_FORMAT_SENTINEL } = PixelFormat;
 
@@ -23,13 +24,9 @@ const { PIXEL_FORMAT_SENTINEL } = PixelFormat;
  * depth format behind an optional feature), the entry is absent, which is
  * Metal's `MTLPixelFormatInvalid`: the texture is refused.
  *
- * R16G16B16A16_UNORM is the one such format substituted rather than refused,
- * because TAA renders into it; see its entry.
- *
- * R16_UNORM is mapped to Metal's own `R16Unorm` equivalent, which WebGPU has
- * only behind the `texture-formats-tier1` device feature (see
- * `FORMAT_FEATURES`). CORTAO's lookup table is R16_UNORM data
- * (`Tr2SSAO.cpp:112`).
+ * The 16-bit unorm formats are substituted rather than refused: TAA renders
+ * into R16G16B16A16_UNORM, and CORTAO's lookup table is R16_UNORM data
+ * (`Tr2SSAO.cpp:108`). See their entries and `UPLOAD_CONVERSIONS`.
  *
  * One entry differs from Metal on purpose. Metal maps `D24_UNORM_S8_UINT` to
  * `Depth32Float` because Apple GPUs lack a 24-bit depth format; WebGPU has
@@ -43,8 +40,7 @@ const PIXEL_FORMATS = [
   // DIVERGENCE: rgba16unorm is not core WebGPU (Metal has RGBA16Unorm). Carbon
   // renders TAA's accumulators in it (Tr2PostProcessRenderer.cpp:1450-1463);
   // rgba16float holds every 16-bit unorm value's range, a little less exactly
-  // near 1. A render target only: 16-bit unorm pixel data uploaded into it
-  // would be read as halves.
+  // near 1. Pixel data uploaded into it is converted (UPLOAD_CONVERSIONS).
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, "rgba16float" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UINT, "rgba16uint" ],
   [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_SINT, "rgba16sint" ],
@@ -72,7 +68,10 @@ const PIXEL_FORMATS = [
   [ PixelFormat.PIXEL_FORMAT_R8G8_SNORM, "rg8snorm" ],
   [ PixelFormat.PIXEL_FORMAT_R8G8_SINT, "rg8sint" ],
   [ PixelFormat.PIXEL_FORMAT_R16_FLOAT, "r16float" ],
-  [ PixelFormat.PIXEL_FORMAT_R16_UNORM, "r16unorm" ],
+  // DIVERGENCE, as R16G16B16A16_UNORM: r16unorm needs texture-formats-tier1
+  // and even then cannot be filtered, where D3D and Metal filter it and
+  // CORTAO samples its lookup table linearly.
+  [ PixelFormat.PIXEL_FORMAT_R16_UNORM, "r16float" ],
   [ PixelFormat.PIXEL_FORMAT_D16_UNORM, "depth16unorm" ],
   [ PixelFormat.PIXEL_FORMAT_R16_UINT, "r16uint" ],
   [ PixelFormat.PIXEL_FORMAT_R16_SINT, "r16sint" ],
@@ -106,12 +105,33 @@ const PIXEL_FORMATS = [
 ];
 
 /**
- * The device feature a mapped format needs, for the formats core WebGPU lacks.
- * A texture in one of them is refused on a device without the feature, where
- * Metal has the format natively.
+ * A 16-bit unorm texel stream as half floats, same size and layout. A half
+ * holds every unorm16 value in [0, 1] to within 2^-11.
+ *
+ * @param {Uint8Array} bytes The unorm16 data.
+ * @returns {Uint8Array} The same texels as binary16.
  */
-const FORMAT_FEATURES = new Map([
-  [ "r16unorm", "texture-formats-tier1" ]
+function Unorm16ToHalf(bytes)
+{
+  const source = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const out = new Uint8Array(bytes.byteLength);
+  const target = new DataView(out.buffer);
+
+  for (let at = 0; at + 1 < bytes.byteLength; at += 2)
+  {
+    target.setUint16(at, num.toHalfFloat(source.getUint16(at, true) / 65535), true);
+  }
+
+  return out;
+}
+
+/**
+ * Carbon pixel formats whose data is converted on upload, because the
+ * texture is created in a substitute format (PIXEL_FORMATS).
+ */
+const UPLOAD_CONVERSIONS = new Map([
+  [ PixelFormat.PIXEL_FORMAT_R16_UNORM, Unorm16ToHalf ],
+  [ PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM, Unorm16ToHalf ]
 ]);
 
 /**
@@ -155,15 +175,16 @@ export class CjsWebgpuUtils
   }
 
   /**
-   * The device feature a `GPUTextureFormat` needs, or null for a core format.
-   * WebGPU-only: every format in Metal's table is native to Metal.
+   * How a Carbon pixel format's data is converted for its substitute texture
+   * format, or null when it uploads as it is. WebGPU-only: Metal has every
+   * format in its table natively.
    *
-   * @param {string} format A `GPUTextureFormat`.
-   * @returns {string|null} The `GPUFeatureName`, or null.
+   * @param {number} pixelFormat A Carbon `PixelFormat`.
+   * @returns {Function|null} Bytes in, converted bytes out.
    */
-  GetRequiredFeature(format)
+  GetUploadConversion(pixelFormat)
   {
-    return FORMAT_FEATURES.get(format) ?? null;
+    return UPLOAD_CONVERSIONS.get(pixelFormat) ?? null;
   }
 
   /**

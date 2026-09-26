@@ -1848,13 +1848,9 @@ export async function RunDemo(canvas)
   // through any sampler, and Carbon's post process does (the down-sampled depth
   // god rays read); core WebGPU refuses an r32float in a filterable slot.
   const filterableFloat32 = adapter.features.has("float32-filterable");
-  // 16-BIT NORM TEXTURES, when the adapter has them: CORTAO's lookup table is
-  // R16_UNORM, which core WebGPU lacks.
-  const textureFormatsTier1 = adapter.features.has("texture-formats-tier1");
   const requiredFeatures = [
     ...(compressed ? [ "texture-compression-bc" ] : []),
-    ...(filterableFloat32 ? [ "float32-filterable" ] : []),
-    ...(textureFormatsTier1 ? [ "texture-formats-tier1" ] : [])
+    ...(filterableFloat32 ? [ "float32-filterable" ] : [])
   ];
   const device = await adapter.requestDevice({
     ...(requiredFeatures.length ? { requiredFeatures } : {}),
@@ -2535,7 +2531,7 @@ export async function RunDemo(canvas)
   // holds, in pipeline order: the depth pass's normal map, the packed depth
   // (mip 0), the main pass's output and the blur's intermediate. The first
   // that reads empty is the stage that did nothing. The lookup table is
-  // R16_UNORM, which needs texture-formats-tier1.
+  // R16_UNORM data in an r16float texture (CjsWebgpuUtils).
   globalThis.demo.ssao = async () =>
   {
     const device = al.GetWebgpu().GetDevice();
@@ -2553,7 +2549,6 @@ export async function RunDemo(canvas)
       enabled: ssao.enabled,
       quality: ssao.quality,
       maxStorageTexturesPerShaderStage: device.limits.maxStorageTexturesPerShaderStage,
-      textureFormatsTier1: device.features.has("texture-formats-tier1"),
       cortao: EffectState(ssao._cortaoEffect),
       blur: EffectState(ssao._cortaoBlurEffect),
       lookupTable: table ? { state: table.state, good: table.IsGood(), texture: Boolean(table.GetTexture()) } : null,

@@ -143,12 +143,6 @@ export class CjsWebgpuTextureAL
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const device = webgpu.GetDevice();
-
-    // A format behind a device feature is refused here when the device lacks
-    // it, rather than left to fail inside createTexture.
-    const feature = al.m_utils.GetRequiredFeature(format);
-
-    if (feature && !device.features.has(feature)) return ALResult.E_INVALIDARG;
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
       ? requestedFormat
@@ -198,7 +192,9 @@ export class CjsWebgpuTextureAL
     this.m_webgpu = webgpu;
 
     if (depthShadow) this._CreateDepthShadow(device, usageFlags);
-    if (initialData) this._Upload(initialData, mipCount, type);
+    // A substitute format's data is converted as it uploads (16-bit unorm to
+    // half floats; CjsWebgpuUtils.UPLOAD_CONVERSIONS).
+    if (initialData) this._Upload(initialData, mipCount, type, al.m_utils.GetUploadConversion(desc.GetFormat()));
 
     return ALResult.S_OK;
   }
@@ -266,8 +262,11 @@ export class CjsWebgpuTextureAL
     return true;
   }
 
-  /** One `writeTexture` per subresource, Carbon's `mip + layer * mipCount` order. */
-  _Upload(initialData, mipCount, type)
+  /**
+   * One `writeTexture` per subresource, Carbon's `mip + layer * mipCount`
+   * order, each through `convert` when the format needs one.
+   */
+  _Upload(initialData, mipCount, type, convert = null)
   {
     const desc = this.m_desc;
     const queue = this.m_webgpu.GetDevice().queue;
@@ -281,7 +280,7 @@ export class CjsWebgpuTextureAL
 
         if (!subresource || !subresource.m_sysMem) continue;
 
-        const bytes = subresource.m_sysMem;
+        const bytes = convert ? convert(subresource.m_sysMem) : subresource.m_sysMem;
         const pitch = subresource.m_sysMemPitch;
         const slicePitch = subresource.m_sysMemSlicePitch || bytes.byteLength;
         const depth = type === TextureType.TEX_TYPE_3D ? Math.max(1, desc.GetMipDepth(mip)) : 1;

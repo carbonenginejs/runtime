@@ -375,3 +375,23 @@ test("TAA's R16G16B16A16_UNORM accumulator renders into rgba16float", () =>
   assert.equal(accumulator.Create(Tr2BitmapDimensions.texture2D(8, 8, 1, PixelFormat.PIXEL_FORMAT_R16G16B16A16_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
   assert.equal(calls.textures.at(-1).format, "rgba16float");
 });
+
+test("R16_UNORM data uploads into r16float as half floats, so it can be filtered", () =>
+{
+  // CORTAO samples its R16_UNORM lookup table linearly (Tr2SSAO.cpp:108), as
+  // D3D and Metal filter it; WebGPU's r16unorm needs texture-formats-tier1
+  // and even then is unfilterable ("None of the supported sample types
+  // (UnfilterableFloat) ... match the expected sample types (Float)").
+  const { al } = composed();
+  const written = [];
+  al.GetWebgpu().GetDevice().queue.writeTexture = (destination, data) => written.push(new Uint8Array(data.buffer, data.byteOffset, data.byteLength).slice());
+  const lookup = new CjsWebgpuTextureAL();
+  const texels = new Uint8Array(new Uint16Array([ 0, 65535, 32768 ]).buffer);
+
+  assert.equal(lookup.Create(Tr2BitmapDimensions.texture2D(3, 1, 1, PixelFormat.PIXEL_FORMAT_R16_UNORM), { initialData: [ new Tr2SubresourceData(texels, 6, 6) ] }, al), ALResult.S_OK);
+  assert.equal(lookup.GetDeviceFormat(), "r16float");
+
+  const halves = new Uint16Array(written[0].buffer);
+  // 0, 1.0 and 0.5 (32768 / 65535 rounds to binary16's 0.5).
+  assert.deepEqual([ ...halves ], [ 0x0000, 0x3c00, 0x3800 ]);
+});
