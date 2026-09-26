@@ -2085,11 +2085,14 @@ export async function RunDemo(canvas)
         const texture = POOL_TEXTURES.get(name)?.m_texture;
         textures[name] = texture ? await CountNonZeroTexels(device, texture) : "not borrowed yet";
       }
-      const jittered = driver.scene.jitteredProjection;
+      // The scene's clip-space offset itself. A perspective projection shows
+      // it in column 2, not in the translation column, so reading [12]/[13]
+      // of the jittered projection reported [0, 0] while the ship shook.
+      const jitter = driver.scene.jitter;
       return {
         frameCounter: renderer._taaFrameCounter,
         blendWeight: renderer.taaEffect.FindParameterByName("BlendWeight")?.value ?? null,
-        jitter: jittered ? [ jittered[12], jittered[13] ] : null,
+        jitter: jitter ? [ jitter[0], jitter[1] ] : null,
         textures
       };
     };
@@ -2213,6 +2216,7 @@ export async function RunDemo(canvas)
     Jitter: renderContext => perFrameScene.Jitter(renderContext),
     EndRender: renderContext => perFrameScene.EndRender(renderContext),
     get jitteredProjection() { return perFrameScene.jitteredProjection; },
+    get jitter() { return perFrameScene.jitter; },
     viewLast: perFrameScene.viewLast,
     projectionLast: perFrameScene.projectionLast,
     postprocess: perFrameScene.postprocess,
