@@ -8,6 +8,13 @@ import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { TR2SHADERMODEL } from "../../../generated/trinityCore/enums.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { TriBatchType } from "#consts/graphics";
+// A cycle with EveBoosterSet2.js; each side reads the other only inside methods.
+import { EveBoosterSet2 } from "./EveBoosterSet2.js";
 
 
 /**
@@ -125,6 +132,18 @@ export class EveBoosterSet2Renderable extends CjsModel
   #trailsOffsetAccu = vec3.create();
 
   #trailsTimeToNext = 0;
+
+  /**
+   * Reserves the quad-list index buffer for the shader model's shape, as
+   * Carbon's constructor does (EveBoosterSet2.cpp:77-78). Before a device
+   * exists this is a no-op, and Tr2Renderer.PrepareDeviceResources reserves
+   * 128 quads later (Tr2Renderer.cpp:1301).
+   */
+  constructor()
+  {
+    super();
+    Tr2Renderer.ReserveQuadListIndexBuffer(EveBoosterSet2Renderable.#planesCount[EveBoosterSet2Renderable.#Shape()]);
+  }
 
   /**
    * Binds this instance to the booster set whose authored placements, colours
@@ -312,13 +331,66 @@ export class EveBoosterSet2Renderable extends CjsModel
     return 1;
   }
 
-  /** Carbon EveBoosterSet2Renderable::GetBatches submits the instanced booster geometry (GPU-backed). */
+  /**
+   * Commits the instanced booster draw (Carbon EveBoosterSet2Renderable::GetBatches,
+   * EveBoosterSet2.cpp:174-240): additive only; the set's box or star on
+   * stream 0, its instance buffer on stream 1, the shared quad-list index
+   * buffer, 3 * 2 * planes indices per booster instance.
+   */
   @carbon.method
-  @impl.notImplemented
-  GetBatches(_accumulator, _batchType, _perObjectData, _reason)
+  @impl.adapted
+  @impl.reason("The trail half (cpp:222-239) forwards to EveTrailsSet::GetBatches, which is not ported, so trails do not draw.")
+  GetBatches(batches, batchType, perObjectData, _reason)
   {
-    throw new Error("EveBoosterSet2Renderable.GetBatches is not implemented in CarbonEngineJS.");
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
+
+    const boosterSet = this.#boosterSet;
+    if (!boosterSet.display) return;
+    if (!boosterSet._instanceBuffer.IsValid()) return;
+    if (boosterSet._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
+
+    if (this.boostersVisible)
+    {
+      const shape = EveBoosterSet2Renderable.#Shape();
+      const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
+      if (!indexBuffer.IsValid()) return;
+
+      const batch = new Tr2RenderBatch();
+      batch.SetMaterial((this.boosterHighLod || !boosterSet.effectFar) ? boosterSet.effect : boosterSet.effectFar);
+      batch.SetPerObjectData(perObjectData);
+      batch.SetVertexDeclaration(boosterSet._vertexDeclHandle);
+
+      // Made by the same device prepare that set the declaration handle
+      // checked above, so it exists here (see Tr2ProceduralBuffer).
+      const vb = boosterSet._vertexBuffer.GetSharedResource();
+      batch.SetStreamSource(0, vb.GetBuffer(), vb.GetStride());
+
+      // Carbon's SetStreamSource( index, Allocation& ) and SetInidices(
+      // Allocation& ) overloads take the buffer and stride from the allocation.
+      const instanceBuffer = boosterSet._instanceBuffer;
+      batch.SetStreamSource(1, instanceBuffer.GetBuffer(), instanceBuffer.GetStride());
+      batch.SetIndices(indexBuffer.GetBuffer(), indexBuffer.GetStride());
+
+      batch.SetDrawIndexedInstanced(
+        3 * 2 * EveBoosterSet2Renderable.#planesCount[shape],
+        boosterSet._singleBoosters.length,
+        indexBuffer.GetStartIndex(),
+        vb.GetOffset() / vb.GetStride(),
+        instanceBuffer.GetOffset() / instanceBuffer.GetStride());
+      batches.Commit(batch);
+    }
   }
+
+  /** The shape every booster site picks from the shader model (cpp:77, :196, :929). */
+  static #Shape()
+  {
+    return Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI
+      ? EveBoosterSet2.Shape.BOX
+      : EveBoosterSet2.Shape.STAR;
+  }
+
+  /** EVE_BOOSTER_PLANES_COUNT (EveBoosterSet2.cpp:27), indexed by EveBoosterSet2.Shape. */
+  static #planesCount = [ 4, 6 ];
 
   /** Carbon EveBoosterSet2Renderable::GetPerObjectData (cpp:260-289): the
    * EveBoosterSetPerObjectData composite - a VertexShaderData + PixelShaderData

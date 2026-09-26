@@ -100,6 +100,7 @@
 // authors, the resource set laid out against the program's bindings.
 
 import { Tr2GpuResourcePool } from "../../../../npm/dist/trinity/core/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
@@ -1966,28 +1967,6 @@ export async function RunDemo(canvas)
     ship = await BuildSofShip(DNA);
     realScene.objects.push(ship);
 
-    // INTERIM, DEMO-ONLY: EveBoosterSet2Renderable GetBatches is not ported
-    // and throws inside the batch collect, which would end every frame. It is
-    // dropped from the gather, and named once, until its port lands. Remove
-    // this when it does. (EveSpaceObjectDecal's port has landed.)
-    const unbatched = new Set([ "EveBoosterSet2Renderable" ]);
-    const dropped = new Set();
-    const getRenderables = realScene.GetRenderables.bind(realScene);
-    realScene.GetRenderables = (out = []) =>
-    {
-      const all = getRenderables([]);
-      for (const renderable of all)
-      {
-        const name = renderable?.constructor?.name;
-        if (unbatched.has(name))
-        {
-          if (!dropped.has(name)) { dropped.add(name); console.warn(`demo: ${name} dropped from the gather - its GetBatches is not ported yet`); }
-          continue;
-        }
-        out.push(renderable);
-      }
-      return out;
-    };
     HULL = ship.mesh?.geometryResPath?.replace(/^res:\/+/u, "") ?? "";
     bounds = { centre: vec3.clone(ship.boundingSphereCenter), radius: ship.boundingSphereRadius || 1 };
     for (const area of ship.mesh?.opaqueAreas ?? [])
@@ -2226,7 +2205,11 @@ export async function RunDemo(canvas)
   // ApplyStandardStates entirely, so no mode block is ever laid down.
   const renderModes = [];
 
-  const renderContext = new Tr2RenderContext();
+  // THE MAIN-THREAD CONTEXT, which is the one Carbon's TriDevice renders
+  // through. Device resources made outside a frame - the quad-list index
+  // buffer, the booster and decal allocations - are made through it, and
+  // Tr2Renderer.IsResourceCreationAllowed asks whether it has a device.
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
 
   renderContext.SetRenderContextAL(al);
 
@@ -2242,6 +2225,12 @@ export async function RunDemo(canvas)
     // (Initialize), then the ship's materials map the globals that now exist.
     realScene.Initialize(renderContext);
     ship.RebuildCachedData();
+
+    // What TriDevice.CreateDevice does once the device is up
+    // (TriDevice.cpp:1038-1059): prepare every registered device resource. The
+    // ship was built before there was a device, so its booster sets and the
+    // procedural booster box are made here.
+    gTriDev.device.PrepareDeviceResources();
   }
   else
   {

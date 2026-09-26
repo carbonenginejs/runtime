@@ -37,6 +37,9 @@ import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { gTriDev } from "./device/gTriDev.js";
+import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/index.js";
+import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
+import { TR2SHADERMODEL } from "../generated/trinityCore/enums.js";
 import { ShaderType } from "#consts/render-context";
 
 
@@ -221,19 +224,23 @@ export class Tr2Renderer
    * That holds for us too - there is always a device by this point, the stub
    * backend included, which is a real device and not an absence.
    *
-   * Carbon also allocates its quad vertex and index buffers and its debug line
-   * set here. Those are not ported; this creates the blitter only.
+   * Carbon also allocates its quad vertex buffer and its debug line set here.
+   * Those are not ported; this creates the blitter and reserves the quad-list
+   * index buffer.
    *
    * @param {object} [renderContext] The context to prepare the blitter against.
    * @returns {Tr2Blitter} The renderer's blitter.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon also allocates the quad vertex and index buffers and the debug line set here; only the blitter is ported.")
+  @impl.reason("Carbon also allocates the quad vertex buffer and the debug line set here; only the blitter and the quad-list index buffer are ported.")
   PrepareDeviceResources(renderContext = null)
   {
     this.#blitter ??= new Tr2Blitter();
     if (renderContext) this.#blitter.PrepareResources(renderContext);
+
+    // "just call the Get* function, it will do the alloc" (cpp:1300-1301).
+    Tr2Renderer.ReserveQuadListIndexBuffer(128);
     return this.#blitter;
   }
 
@@ -507,33 +514,115 @@ export class Tr2Renderer
   }
 
   /**
-   * Grows the shared quad-list index buffer to hold `numOfQuads` quads.
+   * The shader model the renderer runs, which picks tier-dependent geometry
+   * such as the booster box or star (`Tr2Renderer.cpp:1147-1150`).
+   *
+   * @returns {number} A `TR2SHADERMODEL` value.
+   */
+  @carbon.method
+  @impl.implemented
+  static GetShaderModel()
+  {
+    return Tr2Renderer.#shaderModel;
+  }
+
+  /**
+   * Sets the renderer's shader model.
+   *
+   * @param {number} shaderModel A `TR2SHADERMODEL` value.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon also requests a device reset on change (Tr2Renderer.cpp:1126-1145); no device reset is ported, so nothing rebuilds tier-dependent resources.")
+  static SetShaderModel(shaderModel)
+  {
+    Tr2Renderer.#shaderModel = shaderModel;
+  }
+
+  /**
+   * Whether device resources may be created now: the main-thread context has
+   * a backend with a device (`Tr2Renderer.cpp:1393-1397`).
+   *
+   * @returns {boolean} True when creation is allowed.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Carbon also ANDs s_isResourceCreationAllowed, which TriDevice clears during a reset (TriDevice.cpp:886); no device reset is ported, so the flag has nothing to clear it.")
+  static IsResourceCreationAllowed()
+  {
+    return Tr2RenderContext_GetMainThreadRenderContext().IsValid();
+  }
+
+  /**
+   * Grows the shared quad-list index buffer to hold `numOfQuads` quads
+   * (`Tr2Renderer.cpp:1229-1266`). Sixteen-bit indices while every index
+   * fits, thirty-two-bit beyond.
    *
    * @param {number} [numOfQuads] Quads the caller needs indices for.
    * @returns {void}
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The early-outs are ported because TriDevice::Render calls this with zero every frame, and Carbon returns immediately for that. Actually growing the buffer needs CreateIndexBuffer and a Tr2SuballocatedBuffer allocation, neither of which is reachable yet, so it refuses rather than pretending. Carbon's IsResourceCreationAllowed guard has no counterpart here either.")
+  @impl.implemented
   static ReserveQuadListIndexBuffer(numOfQuads = 0)
   {
+    if (!Tr2Renderer.IsResourceCreationAllowed()) return;
+
     let requested = Math.max(Number(numOfQuads) || 0, 0);
 
-    if (requested <= Tr2Renderer.#quadListSize && Tr2Renderer.#quadListIndexBuffer) return;
+    if (requested <= Tr2Renderer.#quadListSize && Tr2Renderer.#quadListIndexBuffer.IsValid()) return;
 
     requested = Math.max(requested, Tr2Renderer.#quadListSize);
     if (requested === 0) return;
 
-    throw new Error(
-      "Tr2Renderer.ReserveQuadListIndexBuffer cannot grow the quad-list index buffer: " +
-      "index-buffer creation through Tr2SuballocatedBuffer is not implemented in CarbonEngineJS."
-    );
+    const Typed = requested <= Math.floor(0xffff / 6) ? Uint16Array : Uint32Array;
+
+    if (Tr2Renderer.#CreateIndexBuffer(Typed, requested))
+    {
+      Tr2Renderer.#quadListSize = requested;
+    }
+  }
+
+  /**
+   * Carbon's file-static `CreateIndexBuffer<T>` (`Tr2Renderer.cpp:293-323`):
+   * two triangles per quad, (0,2,1) and (0,3,2), into the shared geometry
+   * buffer. Carbon frees the previous allocation first; `Tr2SuballocatedBuffer`
+   * has no Free, so a regrow abandons it.
+   */
+  static #CreateIndexBuffer(Typed, count)
+  {
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    const indices = new Typed(count * 6);
+
+    for (let quad = 0, at = 0; quad < count; quad++, at += 6)
+    {
+      const base = 4 * quad;
+      indices[at] = base;
+      indices[at + 1] = base + 2;
+      indices[at + 2] = base + 1;
+      indices[at + 3] = base;
+      indices[at + 4] = base + 3;
+      indices[at + 5] = base + 2;
+    }
+
+    const allocation = SharedGeometryBuffer(renderContext).Allocate(Typed.BYTES_PER_ELEMENT, count * 6, indices, renderContext);
+
+    if (!allocation)
+    {
+      console.error(`Tr2Renderer: CreateIndexBuffer failed to create an index buffer for ${count} quads`);
+      return false;
+    }
+
+    Tr2Renderer.#quadListIndexBuffer = allocation;
+    return true;
   }
 
   /**
    * The shared quad-list index buffer allocation (`Tr2Renderer.cpp:1267-1270`).
+   * Invalid until `ReserveQuadListIndexBuffer` has made one, as Carbon's
+   * default-constructed allocation is.
    *
-   * @returns {object|null} The allocation, or null while none has been made.
+   * @returns {Tr2SuballocatedBufferAllocation} The allocation.
    */
   @carbon.method
   @impl.implemented
@@ -638,11 +727,14 @@ export class Tr2Renderer
     return true;
   }
 
+  /** Carbon s_shaderModel (`Tr2Renderer.cpp:34`). */
+  static #shaderModel = TR2SHADERMODEL.TR2SM_3_0_HI;
+
   /** Carbon s_quadListSize. */
   static #quadListSize = 0;
 
   /** Carbon s_quadListIndexBuffer. */
-  static #quadListIndexBuffer = null;
+  static #quadListIndexBuffer = new Tr2SuballocatedBufferAllocation();
 
   /**
    * Carbon's `s_renderTimeVar`, registered once and assigned every frame.

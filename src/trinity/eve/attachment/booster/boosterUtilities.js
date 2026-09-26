@@ -11,6 +11,8 @@
 // (EveBoosterUtilities.cpp:139-146) - do not "fix" it into an eager init or
 // a per-set table.
 import { vec3 } from "#math/vec3";
+import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2ProceduralBuffer } from "../../../core/Tr2ProceduralBuffer.js";
 
 const LIGHT_NOISE_SIZE = 128;
 const LIGHT_NOISE = new Float32Array(LIGHT_NOISE_SIZE);
@@ -23,11 +25,9 @@ const LIGHT_POSITION_SCRATCH = vec3.create();
 const LIGHT_COLOR_SCRATCH = new Float32Array(4);
 
 // The shared procedural vertex-buffer identities and CPU vertex data
-// (EveBoosterUtilities.cpp:23-104). Buffer allocation/upload is backend
-// work; only the names and the authored vertices are CPU truth. The box is
-// 6 quads of 4 vertices (position only); the star is 4 crossed quads with
-// texcoords. Carbon's non-child box variant shares these positions and
-// leaves its texcoords uninitialized.
+// (EveBoosterUtilities.cpp:23-104). The box is 6 quads of 4 vertices; the star
+// is 4 crossed quads with texcoords. Carbon's non-child box variant shares
+// these positions and leaves its texcoords uninitialized.
 export const CHILD_BOOSTER_BOX_BUFFER_NAME = "ChildBoosterBoxVB";
 export const BOOSTER_BOX_BUFFER_NAME = "BoosterBoxVB";
 export const BOOSTER_STAR_BUFFER_NAME = "BoosterStarVB";
@@ -57,6 +57,48 @@ export const BOOSTER_STAR_VERTICES = Object.freeze((() =>
   }
   return vertices;
 })());
+
+/**
+ * Carbon's GetBoxVB<Vertex> (cpp:23-58): the box positions in a vertex of
+ * `floatsPerVertex` floats - five for EveBoosterVertex (position, texcoord),
+ * three for EveChildBoosterVertex. Carbon leaves the texcoords uninitialized;
+ * they are zero here, and the booster VS never reads them.
+ */
+function GetBoxVB(floatsPerVertex, renderContext)
+{
+  const vertices = new Float32Array(24 * floatsPerVertex);
+  for (let vertex = 0; vertex < 24; vertex++)
+  {
+    vertices[vertex * floatsPerVertex] = BOOSTER_BOX_POSITIONS[vertex * 3];
+    vertices[vertex * floatsPerVertex + 1] = BOOSTER_BOX_POSITIONS[vertex * 3 + 1];
+    vertices[vertex * floatsPerVertex + 2] = BOOSTER_BOX_POSITIONS[vertex * 3 + 2];
+  }
+  return SharedGeometryBuffer(renderContext).Allocate(floatsPerVertex * 4, 24, vertices, renderContext);
+}
+
+/** Carbon GetStarVB (cpp:62-87): 16 EveBoosterVertex records. */
+function GetStarVB(renderContext)
+{
+  return SharedGeometryBuffer(renderContext).Allocate(20, 16, new Float32Array(BOOSTER_STAR_VERTICES), renderContext);
+}
+
+/** Carbon MakeChildBoosterBoxBuffer (cpp:91-94). */
+export function MakeChildBoosterBoxBuffer()
+{
+  return new Tr2ProceduralBuffer(CHILD_BOOSTER_BOX_BUFFER_NAME, renderContext => GetBoxVB(3, renderContext));
+}
+
+/** Carbon MakeBoosterBoxBuffer (cpp:96-99). */
+export function MakeBoosterBoxBuffer()
+{
+  return new Tr2ProceduralBuffer(BOOSTER_BOX_BUFFER_NAME, renderContext => GetBoxVB(5, renderContext));
+}
+
+/** Carbon MakeBoosterStarBuffer (cpp:101-104). */
+export function MakeBoosterStarBuffer()
+{
+  return new Tr2ProceduralBuffer(BOOSTER_STAR_BUFFER_NAME, GetStarVB);
+}
 
 /**
  * Adds the three flare sprites Carbon authors per booster - the glow, the

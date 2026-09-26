@@ -1096,6 +1096,15 @@ Tr2MaterialParameterStore (trinityCore) - generated from schema shapeHash 119f32
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2ProceduralBuffer -->
+## `Tr2ProceduralBuffer`
+
+A named procedural vertex or index allocation shared by every holder of the same name, made once a device exists.
+
+- Source: `src/trinity/core/Tr2ProceduralBuffer.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:Tr2QuadRenderer -->
 ## `Tr2QuadRenderer`
 

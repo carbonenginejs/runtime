@@ -11,10 +11,20 @@ import { EveEntity } from "../../EveEntity.js";
 import { EveBoosterSet2Item } from "./EveBoosterSet2Item.js";
 import { EveBoosterSet2Renderable } from "./EveBoosterSet2Renderable.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
+import { TriStorageFlags } from "#consts/graphics";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
+import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { TR2SHADERMODEL } from "../../../generated/trinityCore/enums.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import {
   AddBoosterLights,
   CreateBoosterFlares,
-  GenerateBoosterLightPhase
+  GenerateBoosterLightPhase,
+  MakeBoosterBoxBuffer,
+  MakeBoosterStarBuffer
 } from "./boosterUtilities.js";
 
 
@@ -274,7 +284,17 @@ export class EveBoosterSet2 extends EveEntity
   @type.list("EveBoosterSet2Item")
   items = [];
 
-  #singleBoosters = [];
+  /** m_singleBoosters (h:284); read by the friend EveBoosterSet2Renderable. */
+  _singleBoosters = [];
+
+  /** m_vertexDeclHandle (h:304) */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+
+  /** m_vertexBuffer (h:306): the box, as Carbon's constructor makes it (cpp:613). */
+  _vertexBuffer = MakeBoosterBoxBuffer();
+
+  /** m_instanceBuffer (h:307): invalid until RebuildInstanceData. */
+  _instanceBuffer = new Tr2SuballocatedBufferAllocation();
 
   #revision = 0;
 
@@ -282,8 +302,21 @@ export class EveBoosterSet2 extends EveEntity
   #glowsVisible = true;
 
   /**
-   * Derives the runtime boosters, flares and trails from the authored items and
-   * binds every renderable instance back to this set.
+   * Registers with the device, as Carbon's Tr2DeviceResource base does
+   * (Tr2DeviceResource.cpp:10-13), so a set built before the device exists is
+   * prepared when it comes up. JavaScript has no destructor, so the set is
+   * never unregistered.
+   */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Derives the runtime boosters, flares and trails from the authored items,
+   * binds every renderable instance back to this set, and prepares the device
+   * resources (Carbon Initialize, cpp:654-658).
    */
   @carbon.method
   @impl.adapted
@@ -295,8 +328,108 @@ export class EveBoosterSet2 extends EveEntity
       renderable?.SetBoosterSet?.(this);
     }
     this.#revision++;
+    this.PrepareResources();
     return true;
   }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed())
+    {
+      if (!this.OnPrepareResources()) return false;
+    }
+    return true;
+  }
+
+  /** Carbon EveBoosterSet2::ReleaseResources (cpp:891-895). */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2SuballocatedBuffer has no Free, so the instance allocation is dropped rather than returned to the shared buffer.")
+  ReleaseResources(_storage)
+  {
+    this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+  }
+
+  /**
+   * Carbon EveBoosterSet2::OnPrepareResources (cpp:902-950): the instanced
+   * vertex declaration, the box or star by shader model, and the instance
+   * buffer.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("The trail set's PrepareResources (cpp:945-948) is not called: EveTrailsSet has no device half yet.")
+  OnPrepareResources()
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2.#BoosterInstancedVertex());
+    if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;
+
+    this._vertexBuffer = Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI
+      ? MakeBoosterBoxBuffer()
+      : MakeBoosterStarBuffer();
+
+    this.RebuildInstanceData(Tr2RenderContext_GetMainThreadRenderContext());
+    return true;
+  }
+
+  /**
+   * Carbon EveBoosterSet2::RebuildInstanceData (cpp:955-985): one 92-byte
+   * InstanceVertex per booster (h:221-228) - transform, functionality,
+   * wavePhase, atlasIndex0, atlasIndex1. Carbon's Matrix and gl-matrix share
+   * the byte layout, so the transform copies straight across.
+   */
+  @carbon.method
+  @impl.adapted
+  @impl.reason("Tr2SuballocatedBuffer has no Free, so the previous allocation is dropped rather than returned.")
+  RebuildInstanceData(renderContext)
+  {
+    this._instanceBuffer = new Tr2SuballocatedBufferAllocation();
+
+    const boosterCount = this._singleBoosters.length;
+    if (!boosterCount) return;
+
+    const vertices = new Float32Array(boosterCount * 23);
+    for (let index = 0; index < boosterCount; index++)
+    {
+      const booster = this._singleBoosters[index];
+      const at = index * 23;
+      vertices.set(booster.transform, at);
+      vertices.set(booster.functionality, at + 16);
+      // (float)rand() / (float)RAND_MAX
+      vertices[at + 20] = Math.random();
+      vertices[at + 21] = booster.atlasIndex0;
+      vertices[at + 22] = booster.atlasIndex1;
+    }
+
+    const allocation = SharedGeometryBuffer(renderContext).Allocate(92, boosterCount, vertices, renderContext);
+    if (allocation) this._instanceBuffer = allocation;
+  }
+
+  /** Carbon's function-local static s_boosterInstancedVertex (cpp:906-919). */
+  static #BoosterInstancedVertex()
+  {
+    if (!EveBoosterSet2.#boosterInstancedVertex)
+    {
+      const vd = new Tr2VertexDefinition();
+      vd.Add("FLOAT32_3", "POSITION");
+      vd.Add("FLOAT32_2", "TEXCOORD", 0);
+      // stream 1
+      vd.Add("FLOAT32_4", "TEXCOORD", 1, 1, 1);
+      vd.Add("FLOAT32_4", "TEXCOORD", 2, 1, 1);
+      vd.Add("FLOAT32_4", "TEXCOORD", 3, 1, 1);
+      vd.Add("FLOAT32_4", "TEXCOORD", 4, 1, 1);
+      vd.Add("FLOAT32_4", "TEXCOORD", 5, 1, 1);
+      vd.Add("FLOAT32_1", "TEXCOORD", 6, 1, 1);
+      vd.Add("FLOAT32_2", "TEXCOORD", 7, 1, 1);
+      EveBoosterSet2.#boosterInstancedVertex = vd;
+    }
+    return EveBoosterSet2.#boosterInstancedVertex;
+  }
+
+  static #boosterInstancedVertex = null;
 
   /**
    * Applies the changed member's native flare/trail consequence, plus the
@@ -308,7 +441,13 @@ export class EveBoosterSet2 extends EveEntity
   @impl.invalidates("#revision")
   OnModified(propertyName)
   {
-    if (propertyName === "items") EveBoosterSet2.#RebuildItems(this);
+    // Persisted items stand in for Carbon's Clear / Add... / PrepareResources
+    // sequence (EveShip2.cpp:234-259), so the prepare lands here.
+    if (propertyName === "items")
+    {
+      EveBoosterSet2.#RebuildItems(this);
+      this.PrepareResources();
+    }
     if (this.glows)
     {
       if (propertyName === "glowScale" || propertyName === "haloScaleX"
@@ -317,7 +456,7 @@ export class EveBoosterSet2 extends EveEntity
         || propertyName === "haloColor" || propertyName === "warpHaloColor")
       {
         this.glows.Clear();
-        for (const booster of this.#singleBoosters)
+        for (const booster of this._singleBoosters)
         {
           CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
         }
@@ -429,6 +568,8 @@ export class EveBoosterSet2 extends EveEntity
   {
     this.items.length = 0;
     EveBoosterSet2.#ClearRuntimeItems(this);
+    // cpp:765 - also release the resources.
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
     this.#revision++;
   }
 
@@ -471,7 +612,7 @@ export class EveBoosterSet2 extends EveEntity
    */
   static #ClearRuntimeItems(owner)
   {
-    owner.#singleBoosters.length = 0;
+    owner._singleBoosters.length = 0;
     owner.glows?.Clear();
     owner.trails?.Clear();
     vec3.set(owner.boosterBoundingSphereCenter, 0, 0, 0);
@@ -521,7 +662,7 @@ export class EveBoosterSet2 extends EveEntity
       atlasIndex1: item.atlasIndex1,
       hasTrail: item.hasTrail
     };
-    owner.#singleBoosters.push(booster);
+    owner._singleBoosters.push(booster);
 
     if (owner.glows)
     {
@@ -675,7 +816,7 @@ export class EveBoosterSet2 extends EveEntity
   @impl.adapted
   GetBoosterData()
   {
-    return this.#singleBoosters.map(booster => ({
+    return this._singleBoosters.map(booster => ({
       transform: mat4.clone(booster.transform),
       functionality: vec4.clone(booster.functionality),
       lightPosition: vec3.clone(booster.lightPosition),
@@ -843,7 +984,7 @@ export class EveBoosterSet2 extends EveEntity
         continue;
       }
       AddBoosterLights(
-        lightManager, this.#singleBoosters, transform,
+        lightManager, this._singleBoosters, transform,
         renderable.overallIntensity, this.warpIntensity, params, time);
     }
   }
