@@ -2475,6 +2475,40 @@ test("fragment lowering reads a dynamically indexed immediate constant buffer", 
     assert.match(shader.code, /icb\[[^\]]+\]\.x/u);
 });
 
+test("fragment lowering emits bfi and ubfe with D3D's five-bit width and offset", () =>
+{
+    const program = {
+        program: { programType: 0, programTypeName: "pixel", majorVersion: 5, minorVersion: 0 },
+        signatures: { input: [ signature("TEXCOORD", 1, 15) ], output: [ signature("SV_Target", 0, 15) ] },
+        instructions: [
+            globalFlagsDeclaration(),
+            {
+                offset: 2, opcode: 0, opcodeName: "dcl_input_ps", isDeclaration: true,
+                declaration: { registerIndex: 1, interpolationModeName: "linear" },
+                operands: [ register("input", 1) ]
+            },
+            instruction(5, "ftou", [ register("temp", 0, { mask: "xy" }), register("input", 1, { swizzle: "xyxx" }) ]),
+            instruction(9, "bfi", [
+                register("temp", 0, { mask: "z" }), immediate([ 1 ]), immediate([ 0 ]),
+                register("temp", 0, { selected: "x" }), register("temp", 0, { selected: "y" })
+            ]),
+            instruction(15, "ubfe", [
+                register("temp", 0, { mask: "w" }), immediate([ 3 ]), immediate([ 1 ]),
+                register("temp", 0, { selected: "x" })
+            ]),
+            instruction(21, "utof", [ register("temp", 2, { mask: "xy" }), register("temp", 0, { swizzle: "zwzz" }) ]),
+            instruction(25, "add", [
+                register("output", 0, { mask: "xyzw" }), register("input", 1, { swizzle: "xyzw" }),
+                register("temp", 2, { swizzle: "xyxy" })
+            ]),
+            instruction(39, "ret", [])
+        ]
+    };
+    const shader = CjsWebgpuFormat.buildWgsl(program, { source: "synthetic-bit-fields" });
+    assert.match(shader.code, /insertBits\(\([^)]+\), \([^)]+\), \(0x00000000u\) & 31u, \(0x00000001u\) & 31u\)/u);
+    assert.match(shader.code, /extractBits\(\([^)]+\), \(0x00000001u\) & 31u, \(0x00000003u\) & 31u\)/u);
+});
+
 test("fragment lowering emits gradient sampling, ceil, shifts, and integer min/max", () =>
 {
     const program = {

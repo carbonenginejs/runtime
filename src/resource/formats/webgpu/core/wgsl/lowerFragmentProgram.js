@@ -24,14 +24,14 @@ import { TYPED_BUFFER_VIEW_FORMATS } from "./carbonTypedBufferViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 const SUPPORTED_OPCODES = new Set([
-    "add", "and", "atomic_iadd", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
+    "add", "and", "atomic_iadd", "bfi", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
     "deriv_rty_coarse", "deriv_rtx_fine", "deriv_rty_fine", "discard", "div",
     "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi",
     "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imul",
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "log", "lt",
     "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
-    "sample_l", "sincos", "sqrt", "udiv", "uge", "ult", "umax", "umin", "ushr",
+    "sample_l", "sincos", "sqrt", "udiv", "uge", "ubfe", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
@@ -954,6 +954,32 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
             : `(pack2x16float(vec2<f32>(${lane(index)}, 0.0)) & 0xffffu)`));
         return vectorCode(parts, op === "f16tof32" ? "float32" : "uint32");
     }
+    if (op === "bfi")
+    {
+        // D3D11 masks width and offset to five bits and truncates the
+        // insertion mask at bit 32; insertBits clamps count to 32 - offset,
+        // which is the same truncation. WGSL takes a scalar offset and count,
+        // so each lane is lowered on its own.
+        const lanes = [ source(1), source(2), source(3), source(4) ].map((code) =>
+            (index) => (count === 1 ? `(${code})` : `(${code})[${index}]`));
+        const [ width, offset, insert, base ] = lanes;
+        const parts = Array.from({ length: count }, (_, index) =>
+            `insertBits(${base(index)}, ${insert(index)}, ${offset(index)} & 31u, ${width(index)} & 31u)`);
+        return vectorCode(parts, "uint32");
+    }
+    if (op === "ubfe")
+    {
+        // D3D11 masks width and offset to five bits, yields 0 for width 0 and
+        // stops at bit 31; extractBits clamps count to 32 - offset and yields
+        // 0 for count 0, which is the same field. Scalar offset and count, so
+        // lowered per lane.
+        const lanes = [ source(1), source(2), source(3) ].map((code) =>
+            (index) => (count === 1 ? `(${code})` : `(${code})[${index}]`));
+        const [ width, offset, value ] = lanes;
+        const parts = Array.from({ length: count }, (_, index) =>
+            `extractBits(${value(index)}, ${offset(index)} & 31u, ${width(index)} & 31u)`);
+        return vectorCode(parts, "uint32");
+    }
     if (op === "imul" || op === "umul")
     {
         if (write.operandIndex !== 1)
@@ -1516,6 +1542,24 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
                 });
             }
             const immediateSource = instruction.operands[1];
+            if (instruction.opcodeName === "mov" && localSsaDestination && !instruction.saturate
+                && immediateSource?.typeName !== "immediate32")
+            {
+                // A register mov moves bits, so each lane reads its source
+                // component as its own resolved type (a float bit pattern
+                // beside uint lanes in FidelityFX CAS, for one).
+                return Array.from(write.mask).map((component, laneIndex) => ({
+                    kind: "let",
+                    instructionIndex: instruction.index,
+                    dxbcOffset: instruction.dxbcOffset,
+                    name: `${write.valueId}_${component}`,
+                    type: scalarTypeName(mixedTypes[laneIndex]),
+                    expression: {
+                        code: operandLaneExpression(program, instruction, 1, write.mask, laneIndex, mixedTypes[laneIndex], inputs, bindings, true),
+                        type: scalarTypeName(mixedTypes[laneIndex])
+                    }
+                }));
+            }
             if (instruction.opcodeName !== "mov" || instruction.saturate
                 || !localSsaDestination || immediateSource?.typeName !== "immediate32")
             {

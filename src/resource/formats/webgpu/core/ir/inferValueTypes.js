@@ -17,7 +17,7 @@ const FLOAT_COMPARE = new Set([ "eq", "ge", "lt", "ne" ]);
 const INT_OPS = new Set([ "iadd", "imad", "imax", "imin", "imul", "ineg", "ishl", "ishr" ]);
 const INT_COMPARE = new Set([ "ieq", "ige", "ilt", "ine" ]);
 const UINT_OPS = new Set([
-    "countbits", "firstbit_hi", "firstbit_lo", "firstbit_shi", "uaddc",
+    "bfi", "countbits", "firstbit_hi", "firstbit_lo", "firstbit_shi", "uaddc",
     "ubfe", "udiv", "umad", "umax", "umin", "umul", "ushr", "usubb"
 ]);
 const UINT_COMPARE = new Set([ "uge", "ult" ]);
