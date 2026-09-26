@@ -165,7 +165,7 @@ const EFFECT = EffectPath("res:/graphics/effect/managed/space/spaceobject/v5/qua
 function EffectPath(effectFilePath)
 {
   return ResolveEffectPath(effectFilePath, { platformName: "webgpu", shaderModel: TIER })
-    .replace(/^res://u, "");
+    .replace(/^res:\/+/u, "");
 }
 
 /** An Amarr frigate. Real geometry, real declaration, real packed tangents. */
