@@ -1509,7 +1509,14 @@ function WriteCamera(frame, camera, width, height)
 
   const { vs, ps, viewProjection } = frame;
   const view = camera.GetViewMatrix().transform;
-  const projection = camera.GetProjection().transform;
+
+  // REVERSE-Z, as EveSpaceScene's fills give it (cpp:3022): the driver inverts
+  // the depth test and clears depth to 0, so the shaders get Carbon's
+  // reversed-depth projection - Tr2Renderer::GetReversedDepthProjectionTransform
+  // (Tr2Renderer.cpp:477-483), _33 -> -_33 - 1 and _43 -> -_43, at 10 and 14.
+  const projection = mat4.copy(mat4.create(), camera.GetProjection().transform);
+  projection[10] = -projection[10] - 1;
+  projection[14] = -projection[14];
 
   mat4.multiply(viewProjection, projection, view);
 
@@ -2122,8 +2129,10 @@ export async function RunDemo(canvas)
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
   // the clear black made "drew nothing" and "drew black" the same reading.
   driver.clearColor = [ 0.07, 0.09, 0.14, 1 ];
-  driver.view = frame.viewProjection;
-  driver.projection = frame.viewProjection;
+  // The camera's own holders, as Carbon's SetCameraToRenderer reads them
+  // (TriView / TriProjection, cpp:384-391); the demo updates the camera itself.
+  driver.view = camera.GetViewMatrix();
+  driver.projection = camera.GetProjection();
 
   /**
    * Runs one frame and counts what reached the canvas.

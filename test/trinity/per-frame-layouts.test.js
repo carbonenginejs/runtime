@@ -108,6 +108,19 @@ function readUint(record, offset)
 }
 
 
+/**
+ * Tr2Renderer::GetReversedDepthProjectionTransform (Tr2Renderer.cpp:477-483):
+ * what the space scene's fills hand the shaders, since Carbon's frame is
+ * reverse-Z (EveSpaceScene.cpp:3022, 3143, 3196).
+ */
+function reversedDepth(projection)
+{
+  const out = mat4.copy(mat4.create(), projection);
+  out[10] = -out[10] - 1;
+  out[14] = -out[14];
+  return out;
+}
+
 function makeContext({ view = mat4.create(), projection = mat4.create(), viewport = null } = {})
 {
   const context = new Tr2RenderContext();
@@ -214,7 +227,8 @@ test("the vertex fill stores the camera transposed, and the inverse view as-is",
   );
 
   // Carbon: view * proj in row-vector order, which gl-matrix writes reversed.
-  const viewProjection = mat4.multiply(mat4.create(), projection, view);
+  // The reversed-depth projection, as the fill takes it (cpp:3022).
+  const viewProjection = mat4.multiply(mat4.create(), reversedDepth(projection), view);
   assert.deepEqual(
     Array.from(record.Copy("ViewProjectionMat", new Float32Array(16))),
     Array.from(mat4.transpose(mat4.create(), viewProjection)),
@@ -379,7 +393,7 @@ test("the engine-supplied frame state lands where Carbon's statics did", () =>
   // cpp:3140-3142 - the reversed-depth projection's _43 and _33.
   assertClose(
     ps.Copy("ProjectionToView", new Float32Array(2)),
-    [ projection[14], projection[10] ],
+    [ reversedDepth(projection)[14], reversedDepth(projection)[10] ],
     "projection to view"
   );
 
@@ -593,7 +607,8 @@ test("projection inverse is derived logically before RawData's sole transpose", 
   const record = new EveSpaceScene().PopulatePerFramePSData(makeContext({ projection }));
   const expectedStored = mat4.transpose(
     mat4.create(),
-    mat4.invert(mat4.create(), projection)
+    // Carbon inverts the REVERSED-depth projection (cpp:3196).
+    mat4.invert(mat4.create(), reversedDepth(projection))
   );
   assertClose(
     record.Copy("ProjectionInverseMat", new Float32Array(16)),

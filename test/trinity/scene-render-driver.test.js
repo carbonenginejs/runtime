@@ -6,7 +6,9 @@ import { test } from "node:test";
 
 import {
   EveSpaceSceneRenderDriver,
-  Tr2RenderContext
+  Tr2RenderContext,
+  TriProjection,
+  TriView
 } from "../../npm/dist/trinity/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
@@ -87,8 +89,10 @@ function driverOver(calls, { enableRendering = true } = {})
   const driver = new EveSpaceSceneRenderDriver();
 
   driver.scene = sceneRecording(calls);
-  driver.view = { GetView: () => null };
-  driver.projection = { GetProjection: () => null };
+  // Carbon's holders (SetCameraToRenderer, cpp:384-391), not stand-ins: the
+  // driver reads their transforms.
+  driver.view = new TriView();
+  driver.projection = new TriProjection();
   driver.enableRendering = enableRendering;
   driver.SetBatchManager(batchManager(calls));
 
@@ -220,10 +224,56 @@ test("with a destination, the scene renders off-screen and the post process draw
   const context = StubContext();
   const target = StubTarget();
   const driver = driverOver([]);
+  const before = context.GetRenderTarget(0);
 
   driver.Execute([ target ], null, 0, 0, null, context);
 
   const tonemapping = driver.postProcess.tonemappingEffect;
   assert.equal(tonemapping.GetOption("TONE_MAPPING_METHOD"), "TONE_MAPPING_DISABLED", "the tonemapper ran");
-  assert.equal(context.GetRenderTarget(0), target, "the destination is bound when the frame ends");
+
+  // Carbon pushes RT0, RT1 and the depth stencil for the frame and pops them
+  // on every exit (cpp:450-457): the caller's binding comes back, not the
+  // destination the post process drew into.
+  assert.equal(context.GetRenderTarget(0), before, "the caller's target is restored when the frame ends");
+});
+
+test("the frame is reverse-Z: depth clears to 0 under an inverted depth test, restored after", () =>
+{
+  const driver = driverOver([]);
+  const context = StubContext();
+  const al = context.GetRenderContextAL();
+  const esm = context.GetEffectStateManager();
+  const clears = [];
+  const clear = al.Clear.bind(al);
+
+  al.Clear = options =>
+  {
+    clears.push({ depth: options?.depth, inverted: esm.IsDepthTestInverted() });
+    return clear(options);
+  };
+
+  driver.Execute([ StubTarget() ], null, 1, 2, null, context);
+
+  // Carbon: SetInvertedDepthTest( true ) for the frame (cpp:446-447) and the
+  // scene target cleared to depth 0 (cpp:474).
+  assert.deepEqual(clears[0], { depth: 0, inverted: true });
+  assert.equal(esm.IsDepthTestInverted(), false, "restored on exit");
+});
+
+test("rendering disabled updates the scene and borrows, binds and clears nothing", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls, { enableRendering: false });
+  const context = StubContext();
+  const al = context.GetRenderContextAL();
+  let cleared = 0;
+  const clear = al.Clear.bind(al);
+
+  al.Clear = options => { cleared++; return clear(options); };
+
+  assert.equal(driver.Execute([ StubTarget() ], null, 1, 2, null, context), false);
+
+  // Carbon's disabled branch (cpp:408-419): camera to renderer, scene update.
+  assert.deepEqual(calls.map(([ name ]) => name), [ "StampFrameContext", "Update" ]);
+  assert.equal(cleared, 0);
 });

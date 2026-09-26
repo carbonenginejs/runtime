@@ -1204,7 +1204,10 @@ export class EveSpaceScene extends CjsModel
   PopulatePerFrameVSData(renderContext, frame = {}, out = this.#perFrameVS)
   {
     const view = renderContext.GetViewTransform();
-    const projection = renderContext.GetProjection();
+    // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
+    // projection (cpp:3022), matching the inverted depth test and the clear to
+    // 0 the driver sets. The forward one here put depth the other way round.
+    const projection = renderContext.GetReversedDepthProjectionTransform();
 
     // column_major for shaders
     out.SetAndTranspose("ViewMat", view);
@@ -1302,7 +1305,8 @@ export class EveSpaceScene extends CjsModel
     {
       throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");
     }
-    const projection = renderContext.GetProjection();
+    // The reversed-depth projection, as the vertex fill (cpp:3140).
+    const projection = renderContext.GetReversedDepthProjectionTransform();
 
     out.SetAndTranspose("ViewMat", renderContext.GetViewTransform());
 

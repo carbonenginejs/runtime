@@ -340,15 +340,24 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // exit; the post process owns them once it is called (cpp:608).
     let handedOff = false;
 
+    // The caller's targets are saved for the frame and restored on every exit
+    // (cpp:450-457): colour slots 0 and 1, and the depth stencil.
+    const esm = renderContext.GetEffectStateManager();
+
+    // REVERSE-Z FOR THE WHOLE FRAME (cpp:446-447): the depth test is inverted
+    // and depth clears to 0, and the scene hands shaders the reversed-depth
+    // projection. Carbon's post passes (fog, depth of field, god rays) read
+    // the depth buffer under that convention.
+    esm.SetInvertedDepthTest(true);
+    esm.PushRenderTarget(undefined, 0);
+    esm.PushRenderTarget(undefined, 1);
+    esm.PushDepthStencilBuffer();
+
     try
     {
-      if (offscreen)
-      {
-        renderContext.SetRenderTarget(0, offscreen.color.Get());
-        renderContext.SetDepthStencil(offscreen.depth.Get());
-      }
+      if (offscreen) this.#BeginRenderPass(esm, [ offscreen.color.Get() ], offscreen.depth.Get());
 
-      renderContext.Clear({ color: this.clearColor, depth: 1 });
+      renderContext.Clear({ color: this.clearColor, depth: 0 });
 
       // AFTER the scene target is bound (cpp:473-476), because the projection
       // and frustum read the bound viewport; BEFORE the update, so the scene's
@@ -369,8 +378,41 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     }
     finally
     {
+      esm.PopDepthStencilBuffer();
+      esm.PopRenderTarget(1);
+      esm.PopRenderTarget(0);
+      esm.SetInvertedDepthTest(false);
+
       if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
     }
+  }
+
+  /**
+   * Carbon's anonymous-namespace BeginRenderPass (cpp:23-38): binds the colour
+   * attachments through the effect state manager, unbinds the slots after
+   * them, binds the depth, and sets the full-screen viewport - which the
+   * projection and frustum then read.
+   *
+   * QUIRK, reproduced: Carbon's clearing loop increments `index` twice per
+   * iteration (`SetRenderTarget( index++, ... )` inside `for( ; ...; ++index )`),
+   * so after one attachment it unbinds slots 1 and 3 and leaves slot 2 bound.
+   *
+   * @param {Tr2EffectStateManager} esm The context's effect state manager.
+   * @param {object[]} colorAttachments Colour targets for slots 0..n-1.
+   * @param {object|null} depthAttachment The depth stencil.
+   * @returns {void}
+   */
+  #BeginRenderPass(esm, colorAttachments, depthAttachment)
+  {
+    let index = 0;
+    for (const colorAttachment of colorAttachments) esm.SetRenderTarget(index++, colorAttachment);
+
+    // Generously assuming max 4 render targets, as Carbon's comment says.
+    const maxRenderTargets = 4;
+    for (; index < maxRenderTargets; ++index) esm.SetRenderTarget(index++, null);
+
+    esm.SetDepthStencilBuffer(depthAttachment);
+    esm.SetFullScreenViewport();
   }
 
   /**
@@ -533,46 +575,28 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    */
   #SetCameraToRenderer(renderContext)
   {
-    // Resolved explicitly rather than with ??, because a holder whose getter
-    // returns null must yield NULL - coalescing would fall back to the holder
-    // itself and hand a wrapper object to SetProjection.
-    const projection = this.#Resolve(this.projection, "GetProjection");
-    const view = this.#Resolve(this.camera, "GetView") ?? this.#Resolve(this.view, "GetView");
+    // Carbon (cpp:384-391): the camera's TriProjection and TriView when there
+    // is a camera, else this driver's own pair - Validate guarantees one.
+    //
+    // Carbon calls projection->SetProjection( renderContext ), which also
+    // folds the bound viewport into the projection (TriProjection.cpp:71-106);
+    // that adjustment is not ported, so the projection's transform is set as
+    // it stands.
+    const projection = (this.camera ? this.camera.GetProjection() : this.projection).GetTransform();
+    const view = (this.camera ? this.camera.GetViewMatrix() : this.view).GetTransform();
 
-    if (projection) renderContext.SetProjection?.(projection);
-    if (view) renderContext.SetViewTransform?.(view);
+    renderContext.SetProjection(projection);
+    renderContext.SetViewTransform(view);
 
-    // Derived only when there is something to derive from. Validate accepts a
-    // camera OR a view/projection pair, and a holder can still yield null, so a
-    // frame can legitimately reach here with nothing to cull against - that is
-    // an empty frustum, not an exception thrown out of matrix code.
-    const viewport = renderContext.GetViewport?.() ?? null;
+    // Against the viewport the scene target just bound (the camera is set
+    // after BeginOffscreen, as Carbon's is after BeginRenderPass).
+    // Carbon always has a device viewport; ours is null until something binds
+    // a target, as on the disabled path or a frame with no destination.
+    const viewport = renderContext.GetViewport();
 
-    if (view && projection && viewport)
-    {
-      this.#frustum.DeriveFrustum(
-        view,
-        renderContext.GetViewPosition() ?? null,
-        projection,
-        viewport
-      );
-    }
+    if (viewport) this.#frustum.DeriveFrustum(view, renderContext.GetViewPosition() ?? null, projection, viewport);
 
     this.scene.StampFrameContext?.({ frustum: this.#frustum });
-  }
-
-  /**
-   * Unwraps a holder through its getter, or takes it as the value itself.
-   *
-   * @param {object|null} holder Camera, view or projection holder.
-   * @param {string} getter Accessor name.
-   * @returns {object|null} The resolved value.
-   */
-  #Resolve(holder, getter)
-  {
-    if (!holder) return null;
-
-    return typeof holder[getter] === "function" ? holder[getter]() ?? null : holder;
   }
 
   static AmbientOcclusionQuality = AmbientOcclusionQuality;
