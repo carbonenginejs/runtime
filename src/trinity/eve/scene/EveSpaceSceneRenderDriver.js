@@ -247,6 +247,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** The provider "SpaceSceneNormalMap" is registered with: the depth pass's normals. */
   #normalMapReference = new Tr2TextureReference();
 
+  /** The provider "EveSpaceSceneOpaqueMap" is registered with: the opaque colour copy. */
+  #opaqueMapReference = new Tr2TextureReference();
+
   /**
    * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
    * previous frame's camera. The driver owns them, not the scene, because
@@ -258,12 +261,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   _projectionLast = mat4.create();
 
   /**
-   * The batch types this driver submits, in submission order.
-   *
-   * Carbon's main pass draws OPAQUE then DECAL (EveSpaceScene.cpp:2725/2731),
-   * with transparent and additive following in the same pass (:2758). Only the
-   * first two are submitted here; the rest are a later insertion at the marked
-   * point in #Submit.
+   * The opaque family, in submission order: Carbon's RenderOpaqueBatches
+   * draws OPAQUE then DECAL (EveSpaceScene.cpp:1124-1150). The transparent
+   * family follows after the opaque copy; see #SubmitTransparent.
    */
   static SubmittedBatchTypes = Object.freeze([
     TriBatchType.TRIBATCHTYPE_OPAQUE,
@@ -326,8 +326,8 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    *
    * The spine of Carbon's Execute, in Carbon's order. NOT here, each an
    * insertion into this same sequence: the background node, the reflection
-   * pass, shadows, the light-list update, the distortion map, transparent and
-   * additive submission, the scene overlay and 3D UI. The scene renders into
+   * pass, shadows, the light-list update, the distortion map, the scene
+   * overlay and 3D UI. The scene renders into
    * its own colour and depth, plus the depth pass's normal map when ambient
    * occlusion is on and TAA's velocity map and opaque copy when
    * anti-aliasing is on, and the post process draws it into the destination.
@@ -670,9 +670,8 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     }
 
     // THE OPAQUE COLOUR COPY (EveSpaceScene.cpp:2738-2750): the scene colour
-    // after the opaque family, which TAA reads as CurrentFrameOpaque. Carbon
-    // also publishes it as EveSpaceSceneOpaqueMap in the global variable store
-    // for transparent shaders; nothing here submits those yet, so it is not.
+    // after the opaque family, which TAA reads as CurrentFrameOpaque and
+    // transparent shaders read as the global EveSpaceSceneOpaqueMap.
     if (opaque)
     {
       renderContext.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.DONT_CARE, Tr2StoreAction.STORE), null);
@@ -688,7 +687,15 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         esm.PopRenderTarget();
         esm.PopDepthStencilBuffer();
       }
+
+      this.#opaqueMapReference.SetTexture(opaque);
+      Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneOpaqueMap", this.#opaqueMapReference);
     }
+
+    // THE TRANSPARENT FAMILY (EveSpaceScene.cpp:2758). Carbon runs subsurface
+    // scattering, the jittered-projection refresh and the volumetrics between
+    // the opaque copy and this (cpp:2752-2757); none of those are ported.
+    submitted = this.#SubmitTransparent(map, renderContext) || submitted;
 
     return submitted;
   }
@@ -966,11 +973,55 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       submitted = renderContext.RenderBatches(accumulator) || submitted;
     }
 
-    // Transparent, additive and distortion submission belongs here, after the
-    // opaque family and before the overlay, exactly as Carbon orders them.
+    return submitted;
+  }
+
+  /**
+   * Carbon's RenderTransparentBatches (EveSpaceScene.cpp:1156-1178): the
+   * transparent accumulator under RM_ALPHA, then the additive one under
+   * RM_ALPHA_ADDITIVE. Transparent batches were sorted back to front at
+   * collection. Carbon's whole colour pass runs with read-only depth
+   * (cpp:2710, 2771); ours makes the transparent family read-only, so these
+   * test against the scene depth without writing it.
+   *
+   * Distortion (cpp:2759-2762) follows in Carbon and is not ported.
+   *
+   * @param {object|null} map The batch map `#Collect` produced.
+   * @param {object} renderContext Recording render context.
+   * @returns {boolean} Whether anything was submitted.
+   */
+  #SubmitTransparent(map, renderContext)
+  {
+    if (!map) return false;
+
+    const esm = renderContext.GetEffectStateManager();
+    let submitted = false;
+
+    renderContext.SetReadOnlyDepth(true);
+    try
+    {
+      for (const [ batchType, renderingMode ] of EveSpaceSceneRenderDriver.#transparentFamily)
+      {
+        const accumulator = map.GetAccumulator(batchType);
+        if (!accumulator) continue;
+
+        esm.ApplyStandardStates(renderingMode);
+        submitted = renderContext.RenderBatches(accumulator) || submitted;
+      }
+    }
+    finally
+    {
+      renderContext.SetReadOnlyDepth(false);
+    }
 
     return submitted;
   }
+
+  /** The transparent family and the standard states each is drawn under (cpp:1170-1173). */
+  static #transparentFamily = Object.freeze([
+    [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, RenderingMode.RM_ALPHA ],
+    [ TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE ]
+  ]);
 
   /**
    * Puts this frame's projection and view onto the render context, and derives

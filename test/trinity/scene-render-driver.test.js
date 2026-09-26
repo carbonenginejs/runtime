@@ -191,6 +191,42 @@ test("opaque and decal are submitted, in that order", () =>
   assert.deepEqual(submissions.map(call => call.batches.id), [ "opaque", "decal" ]);
 });
 
+test("transparent then additive follow the opaque family, under RM_ALPHA and RM_ALPHA_ADDITIVE with read-only depth (EveSpaceScene.cpp:1156-1178)", () =>
+{
+  const { context, calls } = recordingContext();
+  const driver = driverOver([]);
+  const accumulators = new Map([
+    [ OPAQUE, { id: "opaque", GetBatches: () => [] } ],
+    [ DECAL, { id: "decal", GetBatches: () => [] } ],
+    [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, { id: "transparent", GetBatches: () => [] } ],
+    [ TriBatchType.TRIBATCHTYPE_ADDITIVE, { id: "additive", GetBatches: () => [] } ]
+  ]);
+  driver.SetBatchManager({ Collect() {}, GetBatchMap: () => ({ GetAccumulator: type => accumulators.get(type) ?? null }) });
+
+  const esm = context.GetEffectStateManager();
+  const apply = esm.ApplyStandardStates.bind(esm);
+  esm.ApplyStandardStates = mode => { calls.push({ type: "states", mode }); return apply(mode); };
+  const readOnly = context.SetReadOnlyDepth.bind(context);
+  context.SetReadOnlyDepth = enable => { calls.push({ type: "readOnly", enable }); return readOnly(enable); };
+
+  driver.Execute(null, null, 0, 0, null, context);
+
+  const trace = calls.map(call =>
+    call.type === "render-batches" ? call.batches.id
+      : call.type === "states" ? `states:${call.mode}`
+        : call.type === "readOnly" ? `readOnly:${call.enable}` : null).filter(Boolean);
+  const afterDecal = trace.slice(trace.indexOf("decal") + 1);
+
+  assert.deepEqual(afterDecal.slice(0, 6), [
+    "readOnly:true",
+    `states:${RenderingMode.RM_ALPHA}`,
+    "transparent",
+    `states:${RenderingMode.RM_ALPHA_ADDITIVE}`,
+    "additive",
+    "readOnly:false"
+  ]);
+});
+
 test("the target and a clear are recorded before anything is submitted", () =>
 {
   const { context, calls } = recordingContext();
