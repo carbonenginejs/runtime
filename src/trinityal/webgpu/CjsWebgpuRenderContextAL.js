@@ -1078,23 +1078,37 @@ export class CjsWebgpuRenderContextAL
   /**
    * Clears an unordered-access resource.
    *
-   * REFUSES RATHER THAN PRETENDS. Carbon's Metal backend clears through
-   * `MetalWorkQueue::ClearBuffer`/`ClearTexture`
-   * (`Tr2RenderContextMetal.mm:237-280`); this work queue has neither, and
-   * WebGPU's own equivalents - `clearBuffer` on the command encoder, a
-   * clear-load render pass for a texture - are not wired to it. Reporting
-   * success would leave a caller reading stale contents it believes are zero,
-   * which is exactly the failure a compute pass cannot detect. Carbon's stub
-   * refuses the same way (`Tr2RenderContextALStub.ClearUav`).
+   * A BUFFER CLEARED TO ZERO is encoded: Metal's `ClearUav` hands it to
+   * `MetalWorkQueue::ClearBuffer` (`Tr2RenderContextMetal.mm:237-257`), whose
+   * zero fast path is a blit fill (`MetalWorkQueue.mm:1216-1225`), and WebGPU's
+   * `clearBuffer` is that fill. A float zero is the same bits, so it takes the
+   * same path; negative zero does not.
    *
-   * @param {object} _resource The buffer or texture to clear.
-   * @param {number[]} _value The clear value, four components.
+   * EVERYTHING ELSE REFUSES RATHER THAN PRETENDS: a non-zero value needs
+   * Metal's clear compute shader, and a texture needs `ClearTexture`, neither
+   * of which exists here. Reporting success would leave a caller reading stale
+   * contents it believes are cleared, which a compute pass cannot detect.
+   * Carbon's stub refuses the same way (`Tr2RenderContextALStub.ClearUav`).
+   *
+   * @param {object} resource The buffer or texture to clear.
+   * @param {number[]} value The clear value, four components.
    * @param {boolean} [_clearWithFloat] Whether the value is float or integer.
-   * @returns {boolean} False; the clear is not encoded.
+   * @returns {boolean} Whether the clear was encoded.
    */
-  ClearUav(_resource, _value, _clearWithFloat = false)
+  ClearUav(resource, value, _clearWithFloat = false)
   {
-    return false;
+    const buffer = DeviceBufferOf(resource);
+
+    if (!buffer) return false;
+
+    for (let index = 0; index < 4; index += 1)
+    {
+      if (!Object.is(Number(value?.[index] ?? 0), 0)) return false;
+    }
+
+    this._Record(this._workQueue.ClearBuffer(buffer));
+
+    return true;
   }
 
   /**

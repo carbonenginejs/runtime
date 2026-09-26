@@ -910,3 +910,53 @@ test("a packed clear colour is Carbon's ARGB word", () =>
   assert.equal(clear.g, 0);
   assert.equal(clear.a, 128 / 255);
 });
+
+test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses what it cannot encode", () =>
+{
+  const log = [];
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: {
+      GetDevice: () => ({
+        createCommandEncoder: () => ({
+          beginRenderPass()
+          {
+            log.push("beginRenderPass");
+            return { end: () => log.push("pass.end") };
+          },
+          clearBuffer: buffer => log.push(`clearBuffer:${buffer}`),
+          finish: () => "command-buffer"
+        })
+      }),
+      Submit() {}
+    },
+    renderTarget: {
+      AcquireFrame: () => ({ id: "frame" }),
+      CreateRenderPassDescriptor: () => ({ label: "canvas" }),
+      GetWidth: () => 8,
+      GetHeight: () => 8,
+      GetFormat: () => "bgra8unorm",
+      GetDepthFormat: () => null,
+      GetSampleCount: () => 1
+    }
+  });
+  const histogram = { GetDeviceBuffer: () => "histogram" };
+
+  al.CreateDevice();
+  al.BeginScene();
+  al.SetShaderProgram({ id: "program" });
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  // Tr2PostProcessRenderer's histogram clears (cpp:1210-1215): uint zeros.
+  assert.equal(al.ClearUav(histogram, new Uint32Array(4)), true);
+  assert.equal(al.ClearUav(histogram, [ 0, 0, 0, 0 ], true), true, "float zero is the same bits");
+
+  // The open pass ends first: clearBuffer is a command-encoder verb.
+  assert.deepEqual(log, [ "beginRenderPass", "pass.end", "clearBuffer:histogram", "clearBuffer:histogram" ]);
+
+  // Metal clears these through a compute shader or ClearTexture, which this has not.
+  assert.equal(al.ClearUav(histogram, [ 1, 0, 0, 0 ]), false, "a non-zero value");
+  assert.equal(al.ClearUav(histogram, [ -0, 0, 0, 0 ], true), false, "negative zero has other bits");
+  assert.equal(al.ClearUav({ GetDeviceTextureView: () => null }, [ 0, 0, 0, 0 ]), false, "a texture");
+  assert.equal(log.length, 4);
+});

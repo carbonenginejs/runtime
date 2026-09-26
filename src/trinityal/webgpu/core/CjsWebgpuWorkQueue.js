@@ -321,6 +321,29 @@ export class CjsWebgpuWorkQueue
   }
 
   /**
+   * Fills a buffer with zeros: the fast path of Metal's
+   * `MetalWorkQueue::ClearBuffer` (`MetalWorkQueue.mm:1216-1225`), a blit
+   * `fillBuffer` that then releases the encoder. WebGPU's `clearBuffer` is on
+   * the command encoder, so the open pass is released first, as
+   * `CopyTextureToTexture` does. Only zero is expressible; Metal's other
+   * values go through a compute shader this queue does not have.
+   *
+   * @param {GPUBuffer} buffer The buffer to zero, whole.
+   * @returns {object[]} The transitions this required.
+   */
+  ClearBuffer(buffer)
+  {
+    if (!this._inFrame) fail("ClearBuffer outside a frame");
+
+    this._ReleaseEncoder();
+    this._events.push({ type: "clear-buffer" });
+
+    if (this._commandEncoder) this._commandEncoder.clearBuffer(buffer);
+
+    return this._Drain();
+  }
+
+  /**
    * Names the compute pipeline the next dispatch runs.
    *
    * @param {object} pipeline A `GPUComputePipeline`.
