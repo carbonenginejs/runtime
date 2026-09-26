@@ -11,7 +11,14 @@ import { carbon, edit, impl, type } from "#schema";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { BuildDecalGeometry, BuildStaticDecalGeometry } from "./decalIndices.js";
+import { MeshDecalData } from "#resource/geometry";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { Tr2PickType } from "../../../core/view/Tr2PickType.js";
+import { BuildDecalGeometry, BuildStaticDecalGeometry, FindCachedDecalGeometry } from "./decalIndices.js";
 import "#blue/registerTrinityEnums";
 
 
@@ -131,6 +138,11 @@ export class EveSpaceObjectDecal extends CjsModel
    * The instance buffer itself is not ported yet; the graph only needs to know
    * whether one is attached. */
   #instanceData = null;
+
+  /** m_vertexDeclarationOverride (h:211) - UNINITIALIZED_DECLARATION until
+   * GetInstancedRenderables (cpp:227-234, not ported) stamps the instanced
+   * mesh's declaration. */
+  #vertexDeclarationOverride = Tr2EffectStateManager.Unknown;
 
   /** Carbon m_invParentBoneMatrix (h:191) is declared but never assigned; the
    * value the shader sees is recomputed per fill (cpp:366), so this port keeps
@@ -690,7 +702,6 @@ export class EveSpaceObjectDecal extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity selects the LOD and builds the index list; the engine owns the device index buffer, so validity is judged on the built list rather than on a GPU allocation.")
   GetRenderables(out = [], _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
     if (this.#isVisible <= 0 || !geometryResource) return false;
@@ -706,7 +717,10 @@ export class EveSpaceObjectDecal extends CjsModel
 
     const mesh = geometryResource.GetMeshData(0);
 
-    if (!this.#decalGeometry || (mesh && mesh.lodMask !== this.#decalGeometry.lodMask))
+    // The decoded payload carries no lodMask; the build stores `?? 0`, so the
+    // comparison defaults the same way. Comparing the raw undefined rebuilt the
+    // geometry on every call, which leaks now that a build allocates.
+    if (!this.#decalGeometry || (mesh && (mesh.lodMask ?? 0) !== this.#decalGeometry.lodMask))
     {
       this.#decalGeometry = this.#BuildGeometry(mesh);
     }
@@ -717,11 +731,11 @@ export class EveSpaceObjectDecal extends CjsModel
       ? 0
       : geometryResource.GetLodIndexForScreenSize(0, screenSize);
 
-    const lod = this.#decalGeometry.lods?.[this.#geometryLodIndex];
+    const lod = this.#decalGeometry.lods[this.#geometryLodIndex];
 
-    // A LOD the decal does not reach carries zero primitives, which is how
-    // Carbon says "not covered here" - hence testing the count, not the buffer.
-    if (!lod || !lod.primitiveCount) return false;
+    // cpp:216-220: an out-of-range LOD, an invalid index buffer, or a LOD the
+    // decal does not reach (zero primitives).
+    if (!lod || !this.#decalGeometry.indexBuffer.IsValid() || !lod.primitiveCount) return false;
 
     out.push(this);
 
@@ -735,12 +749,26 @@ export class EveSpaceObjectDecal extends CjsModel
    * on a shipped hull arrives with them, and triangle selection sits behind the
    * g_buildDecalBuffers global for decals placed at runtime (cpp:196-207).
    *
-   * @param {object} mesh Decoded mesh data.
-   * @returns {object|null} Built geometry, or null when there is nothing to draw.
+   * Carbon's CreateStaticIndexBuffers / CreateDecalIndexBuffers tails
+   * (cpp:848-904, cpp:627-631, :801): the built geometry is CACHED ON THE MESH,
+   * keyed by the inverse decal matrix, so every ship sharing a hull shares one
+   * index allocation; the indices go into the shared geometry buffer, always
+   * 32-bit, where the hull's LODs live.
+   *
+   * Divergence kept from before this port: Carbon runs triangle selection only
+   * behind g_buildDecalBuffers (default false, cpp:22-23, :203-206); this runs
+   * it whenever there are no static lists. Shipped hull decals all carry them.
+   *
+   * @param {object} mesh Decoded mesh data (Carbon's TriGeometryResMeshData).
+   * @returns {MeshDecalData|null} Built geometry, or null when there is nothing to draw.
    */
   #BuildGeometry(mesh)
   {
     if (!mesh) return null;
+
+    mesh.decals ??= [];
+    const cached = FindCachedDecalGeometry(mesh.decals, this.#inverseDecalMatrix);
+    if (cached) return cached;
 
     const built = this.HasStaticIndexBuffers()
       ? BuildStaticDecalGeometry(mesh, this.staticIndexBuffers)
@@ -748,12 +776,20 @@ export class EveSpaceObjectDecal extends CjsModel
 
     if (!built.indices.length) return null;
 
-    return {
-      inverseDecalMatrix: mat4.clone(this.#inverseDecalMatrix),
-      lodMask: mesh.lodMask ?? 0,
-      lods: built.lods,
-      indices: built.indices
-    };
+    const decalGeometry = new MeshDecalData();
+    mat4.copy(decalGeometry.inverseDecalMatrix, this.#inverseDecalMatrix);
+    decalGeometry.lodMask = mesh.lodMask ?? 0;
+    decalGeometry.lods = built.lods;
+
+    // USE_MAIN_THREAD_RENDER_CONTEXT, then g_sharedBuffer.Allocate( 4, ... ).
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+    decalGeometry.indexBuffer = SharedGeometryBuffer(renderContext).Allocate(4, built.indices.length, built.indices, renderContext);
+
+    // A failed allocation returns before the cache push, as Carbon's does.
+    if (!decalGeometry.indexBuffer) return null;
+
+    mesh.decals.push(decalGeometry);
+    return decalGeometry;
   }
 
   /** Carbon EveSpaceObjectDecal::SetHighDetailDecalState (cpp:514-517). */
@@ -765,22 +801,85 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
-  /** Carbon EveSpaceObjectDecal::GetBatches (cpp:250-331) submits the packed
-   * decal index buffers against the device geometry resource. */
+  /**
+   * Commits the decal draw: the hull LOD's vertex allocation with the decal's
+   * own 32-bit index allocation (Carbon EveSpaceObjectDecal::GetBatches,
+   * cpp:250-331).
+   *
+   * Adapted in one respect: the decoded payload keeps no interned
+   * m_vertexDeclarationHandle on the mesh, so the handle is computed from the
+   * mesh's elements exactly as Tr2MeshBase.CreateGeometryBatch computes it for
+   * the hull (Tr2MeshBase.js:474-488), which bins the hull and decal batches
+   * together as Carbon's shared handle does. The instanced branch is ported but
+   * unreachable until GetInstancedRenderables is: nothing assigns #instanceData.
+   *
+   * @param {object} batches The accumulator batches are committed to.
+   * @param {number} batchType The batch type being collected.
+   * @param {object} perObjectData This decal's per-object data.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.notImplemented
-  GetBatches(_batches, _batchType, _perObjectData, _reason)
+  @impl.adapted
+  GetBatches(batches, batchType, perObjectData, _reason)
   {
-    throw new Error("EveSpaceObjectDecal.GetBatches is not implemented in CarbonEngineJS.");
+    if (batchType !== this.batchType) return;
+    if (!this.#baseGeometryResource || !this.decalEffect) return;
+    if (!this.display) return;
+    if (!this.#baseGeometryResource.IsGood()) return;
+    if (this.#baseGeometryResource.GetMeshCount() < 1) return;
+
+    const decalGeometry = this.#decalGeometry;
+    if (!decalGeometry || !decalGeometry.indexBuffer.IsValid()) return;
+
+    // cpp:283-287: Carbon's out-of-range index compares against size(); the
+    // undefined lookup is the same refusal.
+    const decalLod = decalGeometry.lods[this.#geometryLodIndex];
+    if (!decalLod || !decalLod.primitiveCount) return;
+
+    // Carbon GetMeshLod( 0, int ) is the index overload.
+    const lod = this.#baseGeometryResource.GetMeshLodByIndex(0, this.#geometryLodIndex);
+    if (!lod.allocationsValid) return;
+
+    const batch = new Tr2RenderBatch();
+    batch.SetPriority(this.#priority);
+    batch.SetMaterial(this.decalEffect);
+
+    const declaration = this.#vertexDeclarationOverride !== Tr2EffectStateManager.Unknown
+      ? this.#vertexDeclarationOverride
+      : Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(this.#baseGeometryResource.GetMeshVertexElements(0)));
+
+    batch.SetGeometryFromAllocations(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
+    batch.SetPerObjectData(perObjectData);
+
+    const indexCount = decalLod.primitiveCount * 3;
+    const startIndex = decalGeometry.indexBuffer.GetStartIndex() + decalLod.startIndex;
+    const baseVertex = lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride();
+
+    if (this.#instanceData)
+    {
+      const data = this.#instanceData.GetInstanceData(0, EveSpaceObjectDecal.#floatMax);
+      batch.SetDrawIndexedInstanced(indexCount, data.count, startIndex, baseVertex, data.offset / data.stride);
+      // Carbon writes m_vertexStreams[1] / m_stride[1] directly (cpp:312-313).
+      batch.SetStreamSource(1, data.buffer, data.stride);
+    }
+    else
+    {
+      batch.SetDrawIndexedInstanced(indexCount, 1, startIndex, baseVertex, 0);
+    }
+
+    // Carbon's `if( batch )` is the batch's validity (it has a shader).
+    if (batch.IsValid()) batches.Commit(batch);
   }
 
-  /** Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926) forwards to
-   * GetBatches once the attachment pick-type mask passes. */
+  /** Carbon EveSpaceObjectDecal::GetPickingBatches (cpp:919-926): the
+   * attachment pick type, then the ordinary batches. */
   @carbon.method
-  @impl.notImplemented
-  GetPickingBatches(_batches, _pickTypes, _perObjectData)
+  @impl.implemented
+  GetPickingBatches(batches, pickTypes, perObjectData)
   {
-    throw new Error("EveSpaceObjectDecal.GetPickingBatches is not implemented in CarbonEngineJS.");
+    if ((pickTypes & Tr2PickType.PICK_TYPE_ATTACHMENTS) === 0) return;
+
+    this.GetBatches(batches, this.batchType, perObjectData);
   }
 
   /**
@@ -792,6 +891,9 @@ export class EveSpaceObjectDecal extends CjsModel
     mat4.fromRotationTranslationScale(this.#decalMatrix, this.rotation, this.position, this.scaling);
     return !!mat4.invert(this.#inverseDecalMatrix, this.#decalMatrix);
   }
+
+  /** std::numeric_limits<float>::max(), the instanced draw's distance (cpp:305). */
+  static #floatMax = 3.4028234663852886e38;
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static #boundsScratch = box3.create();

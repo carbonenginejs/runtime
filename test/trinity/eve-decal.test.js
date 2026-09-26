@@ -4,6 +4,13 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveSpaceObjectDecal, IEveSpaceObject2ParentData } from "../../npm/dist/trinity/index.js";
 import { TriFrustum } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/index.js";
+import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
+
+// A decal allocates its indices through the main-thread context
+// (USE_MAIN_THREAD_RENDER_CONTEXT, EveSpaceObjectDecal.cpp:898). In production
+// that context's backend has a device; headless, its stub needs one first.
+Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
 
 
 test("EveSpaceObjectDecal fills the Carbon { vs, ps } per-object composite (cpp:346-386)", () =>
@@ -340,4 +347,116 @@ test("SetHighDetailDecalState pins the decal to LOD zero (cpp:514-517)", () =>
   decal.SetHighDetailDecalState(true);
 
   assert.equal(decal.GetRenderables([], null, hull, 100), true, "frozen ignores the screen size");
+});
+
+// The device half (cpp:250-331, :848-904): the decal's own 32-bit index
+// allocation in the shared geometry buffer, cached on the mesh, and the draw.
+
+
+/** Counts shared-buffer allocations made while `body` runs. */
+function countAllocations(body)
+{
+  const context = Tr2RenderContext_GetMainThreadRenderContext();
+  const shared = SharedGeometryBuffer(context);
+  const allocate = shared.Allocate;
+  let count = 0;
+
+  shared.Allocate = function (...args)
+  {
+    count += 1;
+    return allocate.apply(this, args);
+  };
+  try
+  {
+    body();
+  }
+  finally
+  {
+    shared.Allocate = allocate;
+  }
+  return count;
+}
+
+test("a mesh with no lodMask builds the decal once, not on every call", () =>
+{
+  // The decoded payload carries no lodMask. Comparing the raw undefined with
+  // the stored `?? 0` rebuilt the geometry on every call (measured: every
+  // GetRenderables), which leaks once each build allocates. A fresh mesh
+  // object per call also defeats the mesh cache, so only the fix keeps this at one.
+  const decal = visibleDecal();
+
+  decal.SetIndices([ [ 0, 1, 2 ] ]);
+
+  const hull = { GetMeshData: () => ({ lods: [ {} ] }), GetLodIndexForScreenSize: () => 0 };
+  const allocations = countAllocations(() =>
+  {
+    for (let frame = 0; frame < 5; frame++) assert.equal(decal.GetRenderables([], null, hull, 100), true);
+  });
+
+  assert.equal(allocations, 1);
+});
+
+test("decals sharing a hull mesh and a decal matrix share one index allocation (cpp:852-856)", () =>
+{
+  const mesh = { lodMask: 1, lods: [ {} ] };
+  const hull = { GetMeshData: () => mesh, GetLodIndexForScreenSize: () => 0 };
+  const first = visibleDecal();
+  const second = visibleDecal();
+
+  first.SetIndices([ [ 0, 1, 2 ] ]);
+  second.SetIndices([ [ 0, 1, 2 ] ]);
+
+  const allocations = countAllocations(() =>
+  {
+    assert.equal(first.GetRenderables([], null, hull, 100), true);
+    assert.equal(second.GetRenderables([], null, hull, 100), true);
+  });
+
+  assert.equal(allocations, 1, "the second decal found the first's geometry on the mesh");
+  assert.equal(mesh.decals.length, 1);
+});
+
+test("GetBatches commits the hull LOD's vertices with the decal's own indices (cpp:250-331)", () =>
+{
+  const decal = visibleDecal();
+  const shader = { id: "decalv5" };
+
+  decal.decalEffect = { GetShaderStateInterface: () => shader };
+  decal.batchType = 1;
+  decal.SetIndices([ [ 3, 4, 5, 6, 7, 8 ] ]);
+
+  const vertexAllocation = { GetBuffer: () => "hull-vb", GetStride: () => 28, GetOffset: () => 28 * 100, IsValid: () => true };
+  const hull = {
+    GetMeshData: () => ({ lodMask: 1, lods: [ {} ] }),
+    GetLodIndexForScreenSize: () => 0,
+    IsGood: () => true,
+    GetMeshCount: () => 1,
+    GetMeshLodByIndex: () => ({ allocationsValid: true, vertexAllocation }),
+    GetMeshVertexElements: () => []
+  };
+
+  assert.equal(decal.GetRenderables([], null, hull, 100), true);
+
+  const committed = [];
+  const perObjectData = { id: "per-object" };
+
+  decal.GetBatches({ Commit: batch => committed.push(batch) }, 1, perObjectData);
+
+  assert.equal(committed.length, 1);
+  const [ batch ] = committed;
+
+  assert.equal(batch.shader, shader);
+  assert.equal(batch.vertexStreams[0], "hull-vb");
+  assert.equal(batch.stride[0], 28);
+  assert.equal(batch.indexStride, 4, "decal indices are always 32-bit (cpp:898)");
+  assert.equal(batch.objectData, perObjectData);
+  assert.equal(batch.indexCountPerInstance, 6, "two triangles");
+  assert.equal(batch.instanceCount, 1);
+  assert.equal(batch.baseVertexLocation, 100, "the hull LOD's vertex offset in the shared buffer");
+
+  // Another batch type, or a hull whose LOD allocations are not valid yet, commits nothing.
+  decal.GetBatches({ Commit: batch => committed.push(batch) }, 0, perObjectData);
+  hull.GetMeshLodByIndex = () => ({ allocationsValid: false, vertexAllocation });
+  decal.GetBatches({ Commit: batch => committed.push(batch) }, 1, perObjectData);
+  assert.equal(committed.length, 1);
 });
