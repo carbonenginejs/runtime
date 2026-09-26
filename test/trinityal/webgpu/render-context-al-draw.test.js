@@ -368,9 +368,11 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   assert.equal(al.DrawIndexedInstanced(36, 1), false);
   assert.match(al.m_pipelineFailure, /index format for a 3-byte stride/);
 
-  // A declaration whose element type this backend cannot name.
+  // A declaration whose element type this backend cannot name: WebGPU has no
+  // three-component 8-bit format. (FLOAT32_3 is Carbon's own DataType name and
+  // IS nameable - float32x3.)
   al.SetIndices(deviceBuffer("ib"), 2);
-  al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "FLOAT32_3", offset: 0 } ]));
+  al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "UBYTE_3", offset: 0 } ]));
   assert.equal(al.DrawIndexedInstanced(36, 1), false);
   assert.match(al.m_pipelineFailure, /vertex format for stream 0/);
 

@@ -40,9 +40,41 @@ const ELEMENT_TYPES = Object.freeze({
 });
 
 
+// Carbon's own element vocabulary: Tr2VertexDefinition::DataType
+// (Tr2VertexDefinition.h:30-120), named "<U?><BASE>_<count>[_NORM]" with the
+// component count inside the name. A Tr2VertexDefinition item carries these
+// (the blitter's screen quad, sprite and spotlight pools), a geometry payload
+// the names above. UFLOAT16/UFLOAT32 are still floats; the unsigned bit only
+// means something to the integer bases.
+const CARBON_DATA_TYPE = /^(U?)(BYTE|SHORT|INT32|FLOAT16|FLOAT32)_([1-4])(_NORM)?$/u;
+const CARBON_BASE_BITS = Object.freeze({ BYTE: 8, SHORT: 16, INT32: 32, FLOAT16: 16, FLOAT32: 32 });
+
+
+/**
+ * Decomposes a Carbon DataType name, or returns null for any other name.
+ *
+ * @param {string} type Element type name.
+ * @returns {{base: string, bits: number, count: number, normalized: boolean, bytes: number}|null}
+ */
+function CarbonDataType(type)
+{
+  const match = CARBON_DATA_TYPE.exec(String(type));
+
+  if (!match) return null;
+
+  const [ , unsigned, name, members, norm ] = match;
+  const bits = CARBON_BASE_BITS[name];
+  const count = Number(members);
+  const base = name.startsWith("FLOAT") ? "float" : unsigned ? "uint" : "sint";
+
+  return { base, bits, count, normalized: Boolean(norm), bytes: bits / 8 * count };
+}
+
+
 /**
  * Decomposes one declaration element into the facts a vertex format is built
- * from.
+ * from. Both vocabularies are accepted: a geometry payload's type plus
+ * `elementCount`, or a Carbon DataType name that carries its own count.
  *
  * `bits` comes from the encoded byte width rather than from a second table, so
  * the two can never disagree.
@@ -54,6 +86,10 @@ const ELEMENT_TYPES = Object.freeze({
 export function VertexElementType(element)
 {
   const type = element?.type;
+  const carbon = CarbonDataType(type);
+
+  if (carbon) return carbon;
+
   const described = ELEMENT_TYPES[type];
 
   if (!described)
@@ -85,5 +121,5 @@ export function VertexElementType(element)
  */
 export function IsVertexElementType(type)
 {
-  return Object.hasOwn(ELEMENT_TYPES, type);
+  return Object.hasOwn(ELEMENT_TYPES, type) || CARBON_DATA_TYPE.test(String(type));
 }

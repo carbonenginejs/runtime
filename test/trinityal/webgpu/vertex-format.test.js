@@ -97,3 +97,18 @@ test("an empty binding plan is a layout with no attributes, not a throw", () =>
 {
   assert.deepEqual(WebgpuVertexBufferLayout(0, null), { arrayStride: 0, stepMode: "vertex", attributes: [] });
 });
+
+test("Carbon DataType names carry their own count and resolve to the same formats", () =>
+{
+  // Tr2VertexDefinition items (the blitter's screen quad, sprite pools) carry
+  // Carbon's DataType names (Tr2VertexDefinition.h:30-120), not the payload's.
+  const carbon = type => ({ type, offset: 0 });
+  assert.equal(WebgpuVertexFormat(carbon("FLOAT32_4")), "float32x4");
+  assert.equal(WebgpuVertexFormat(carbon("FLOAT32_1")), "float32");
+  assert.equal(WebgpuVertexFormat(carbon("FLOAT16_2")), "float16x2");
+  assert.equal(WebgpuVertexFormat(carbon("UBYTE_4_NORM")), "unorm8x4");
+  assert.equal(WebgpuVertexFormat(carbon("SHORT_2")), "sint16x2");
+  assert.equal(WebgpuVertexFormat(carbon("UINT32_3")), "uint32x3");
+  assert.deepEqual(VertexElementType(carbon("FLOAT16_4")),
+    { base: "float", bits: 16, count: 4, normalized: false, bytes: 8 });
+});
