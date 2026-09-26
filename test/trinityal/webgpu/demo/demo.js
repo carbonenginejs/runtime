@@ -114,6 +114,7 @@ import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/in
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
+import { POST_TEMPLATES } from "./postTemplates.js";
 import { blue } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
@@ -183,6 +184,133 @@ async function LoadPostTemplate(name)
   for (const slot of skipped) postProcess[slot] = null;
 
   return { postProcess, path: `res:/${path}`, populated, skipped };
+}
+
+/**
+ * THE SETTINGS PANEL: live controls over what the post process runs, so a
+ * pass can be switched on and off against the same frame without a reload.
+ *
+ * - post: on, or off (the driver's direct path, as `?post=off`).
+ * - template: any shipped environment template, or none.
+ * - quality: Tr2PostProcessRenderer's PostProcess::Quality; each effect has
+ *   its own minimum (Tr2PostProcess2 GetXIfAvailable).
+ * - effects: one switch per slot the loaded template populates; off empties
+ *   the slot, on puts the template's own effect back.
+ * - anti-aliasing: the driver's antiAliasingQuality, which Carbon turns into a
+ *   TAA effect on the scene's default post process (PropagateSettings).
+ *
+ * @param {object} options
+ * @param {EveSpaceSceneRenderDriver} options.driver The demo's driver.
+ * @param {{off: boolean}} options.postState The frame loop's post switch.
+ * @param {string} options.initialTemplate The `?post=` template, if any.
+ * @param {(name: string) => Promise<object|null>} options.select Loads a template.
+ * @param {() => object|null} options.current The loaded template record.
+ * @returns {void}
+ */
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current })
+{
+  const document = globalThis.document;
+  if (!document) return;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: 260px; padding: 8px 10px;
+                background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; font: 12px/1.6 ui-monospace, monospace; color: #cfd6e4; }
+    #settings summary { cursor: pointer; }
+    #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    #settings select { max-width: 150px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
+    #settings .note { color: #8a93a3; }
+  `;
+  document.head.append(style);
+
+  const panel = document.createElement("details");
+  panel.id = "settings";
+  panel.open = true;
+  panel.innerHTML = `<summary>Settings</summary>`;
+  document.body.append(panel);
+
+  const row = (label, control) =>
+  {
+    const element = document.createElement("label");
+    element.append(label, control);
+    panel.append(element);
+    return control;
+  };
+  const choose = (options, value) =>
+  {
+    const control = document.createElement("select");
+    for (const [ text, optionValue ] of options) control.append(new Option(text, String(optionValue)));
+    control.value = String(value);
+    return control;
+  };
+
+  const postToggle = row("post", Object.assign(document.createElement("input"), { type: "checkbox", checked: !postState.off }));
+  postToggle.addEventListener("change", () => { postState.off = !postToggle.checked; });
+
+  const templates = choose([ [ "(none)", "" ], ...Object.keys(POST_TEMPLATES).map(name => [ name, name ]) ], initialTemplate);
+  row("template", templates);
+
+  const { Quality, AntiAliasingQuality } = EveSpaceSceneRenderDriver;
+  const quality = row("quality", choose([ [ "low", Quality.LOW ], [ "medium", Quality.MEDIUM ], [ "high", Quality.HIGH ] ], driver.postProcess.GetPostProcessingQuality()));
+  quality.addEventListener("change", () => driver.postProcess.SetPostProcessingQuality(Number(quality.value)));
+
+  const antiAliasing = row("anti-aliasing", choose(Object.entries(AntiAliasingQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.antiAliasingQuality));
+  antiAliasing.disabled = true;
+  antiAliasing.title = "TAA needs the scene's velocity pass, which is not ported yet";
+
+  const effects = document.createElement("div");
+  effects.className = "effects";
+  panel.append(effects);
+
+  // One switch per populated slot; the template's own effect is kept aside so
+  // switching back on restores exactly what the file held.
+  const RebuildEffects = () =>
+  {
+    effects.replaceChildren();
+    const record = current();
+    if (!record)
+    {
+      effects.append(Object.assign(document.createElement("div"), { className: "note", textContent: "no template: copy, sharpen, tonemap" }));
+      return;
+    }
+
+    const saved = {};
+    for (const slot of record.populated)
+    {
+      const unported = record.skipped.includes(slot);
+      const toggle = Object.assign(document.createElement("input"), { type: "checkbox", checked: !unported, disabled: unported });
+      const label = document.createElement("label");
+      label.append(unported ? `${slot} (not ported)` : slot, toggle);
+      effects.append(label);
+
+      saved[slot] = record.postProcess[slot];
+      toggle.addEventListener("change", () =>
+      {
+        record.postProcess[slot] = toggle.checked ? saved[slot] : (Array.isArray(saved[slot]) ? [] : null);
+      });
+    }
+  };
+
+  templates.addEventListener("change", async () =>
+  {
+    templates.disabled = true;
+    try
+    {
+      await select(templates.value);
+    }
+    catch (error)
+    {
+      console.error(`template ${templates.value}: ${error.message}`);
+    }
+    finally
+    {
+      templates.disabled = false;
+      RebuildEffects();
+    }
+  });
+
+  RebuildEffects();
 }
 
 /**
@@ -1835,7 +1963,7 @@ export async function RunDemo(canvas)
     const counts = { ...DRAW_COUNTS };
     for (const key of Object.keys(DRAW_COUNTS)) delete DRAW_COUNTS[key];
     return {
-      postOff: POST_OFF,
+      postOff: postState.off,
       template: postTemplate ? { path: postTemplate.path, populated: postTemplate.populated, skipped: postTemplate.skipped } : null,
       stage: STAGE || "all",
       counts,
@@ -1847,15 +1975,39 @@ export async function RunDemo(canvas)
 
   let postTemplate = null;
 
-  if (POST_TEMPLATE)
+  /**
+   * Swaps the scene's post process for a template, or none for "". Also the
+   * settings panel's template picker; the next frame reads the new one.
+   *
+   * @param {string} name A template name, a resource path, or "".
+   * @returns {Promise<object|null>} The loaded template record.
+   */
+  async function SelectPostTemplate(name)
   {
-    postTemplate = await LoadPostTemplate(POST_TEMPLATE);
-    console.log(`post template ${postTemplate.path}: populates ${postTemplate.populated.join(", ") || "(nothing)"}`
-      + (postTemplate.skipped.length ? `; skipped, pass not ported: ${postTemplate.skipped.join(", ")}` : ""));
+    postTemplate = name ? await LoadPostTemplate(name) : null;
+    globalThis.demo.postProcess = postTemplate?.postProcess ?? null;
+
+    if (postTemplate)
+    {
+      console.log(`post template ${postTemplate.path}: populates ${postTemplate.populated.join(", ") || "(nothing)"}`
+        + (postTemplate.skipped.length ? `; skipped, pass not ported: ${postTemplate.skipped.join(", ")}` : ""));
+    }
+    return postTemplate;
   }
 
   // The loaded Tr2PostProcess2, for editing live: demo.postProcess.colorCorrection.
-  globalThis.demo.postProcess = postTemplate?.postProcess ?? null;
+  globalThis.demo.postProcess = null;
+  if (POST_TEMPLATE) await SelectPostTemplate(POST_TEMPLATE);
+
+  const postState = { off: POST_OFF };
+
+  BuildSettingsPanel({
+    driver,
+    postState,
+    initialTemplate: POST_TEMPLATE,
+    select: SelectPostTemplate,
+    current: () => postTemplate
+  });
 
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
   // purpose: this demo proves the draw path, and a fog or lighting blend it does
@@ -1898,7 +2050,7 @@ export async function RunDemo(canvas)
     // is reported to the error scope and nowhere else, and the draw returns true.
     device.pushErrorScope("validation");
 
-    driver.Execute(POST_OFF ? null : [ renderTarget ], null, 0, 0, null, renderContext);
+    driver.Execute(postState.off ? null : [ renderTarget ], null, 0, 0, null, renderContext);
 
     al.EndScene();
 
@@ -1990,7 +2142,7 @@ export async function RunDemo(canvas)
         al.BeginScene();
         al.SetRenderTarget(0, renderTarget);
         al.SetDepthStencil(renderTarget);
-        driver.Execute(POST_OFF ? null : [ renderTarget ], null, 0, 0, null, renderContext);
+        driver.Execute(postState.off ? null : [ renderTarget ], null, 0, 0, null, renderContext);
         al.EndScene();
         al.DrainTransitions();
 
