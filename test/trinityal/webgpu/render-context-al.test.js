@@ -992,6 +992,42 @@ test("unbinding a sampled depth stencil refreshes its float shadow after its pas
   assert.equal(log.length, 1);
 });
 
+test("turning read-only depth on refreshes the bound depth's float shadow", () =>
+{
+  const { al, passes } = composedWithPasses();
+  const log = [];
+  const depth = {
+    ...boundTexture("depthBuffer", "depth32float"),
+    EncodeDepthShadowCopy: encoder =>
+    {
+      log.push(`copy after ${passes.length} pass(es)`);
+      return encoder !== null;
+    }
+  };
+
+  // EveSpaceSceneRenderDriver.RenderSSAO (cpp:365-372): the depth pass has
+  // drawn, and SSAO reads the depth with it still bound, read-only.
+  al.SetRenderTarget(0, boundTexture("normalMap", "rgb10a2unorm"));
+  al.SetDepthStencil(depth);
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+  al.SetReadOnlyDepth(true);
+
+  assert.deepEqual(log, [ "copy after 1 pass(es)" ]);
+  assert.equal(al.GetReadOnlyDepth(), true);
+
+  // Already read-only, or turned off: no copy.
+  al.SetReadOnlyDepth(true);
+  al.SetReadOnlyDepth(false);
+  assert.equal(log.length, 1);
+
+  // Nothing bound: nothing to refresh.
+  al.SetDepthStencil(null);
+  log.length = 0;
+  al.SetReadOnlyDepth(true);
+  assert.deepEqual(log, []);
+});
+
 test("Clear honours Carbon's flags and clears one colour slot", () =>
 {
   const { al, passes } = composedWithPasses();

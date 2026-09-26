@@ -109,7 +109,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer } from "../../../../npm/dist/trinity/index.js";
+import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2SSAO } from "../../../../npm/dist/trinity/index.js";
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
@@ -207,6 +207,8 @@ async function LoadPostTemplate(name)
  *   the slot, on puts the template's own effect back.
  * - anti-aliasing: the driver's antiAliasingQuality, which Carbon turns into a
  *   TAA effect on the scene's default post process (PropagateSettings).
+ * - ambient occlusion: the driver's aoQuality, which enables the driver's
+ *   Tr2SSAO at a quality and gives the depth pass a normal map.
  * - sun: the scene's sun direction (the way the light travels), live.
  * - flare: the sun's lens flare, any of res:/fisfx/lensflare/*.black, or off.
  *
@@ -282,6 +284,10 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   const antiAliasing = row("anti-aliasing", choose(Object.entries(AntiAliasingQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.antiAliasingQuality));
   antiAliasing.addEventListener("change", () => { driver.antiAliasingQuality = Number(antiAliasing.value); });
+
+  const { AmbientOcclusionQuality } = EveSpaceSceneRenderDriver;
+  const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
+  ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
 
   // The sun as three numbers; a zero vector is ignored rather than normalised.
   const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "number", step: "0.1", value: String(Math.round(sun.direction[index] * 100) / 100) }));
@@ -1771,17 +1777,23 @@ export async function RunDemo(canvas)
   // family only behind this feature; a device without it decodes to RGBA8
   // instead, so the demo runs either way and reports which happened.
   const compressed = adapter.features.has("texture-compression-bc");
-  // EIGHT STORAGE TEXTURES PER STAGE, when the adapter has them: the
-  // reflection probe's main filter writes seven cube mips in one dispatch
-  // (ReflectionFilterActivision128), and WebGPU's default is four.
-  const storageTextures = Math.min(8, adapter.limits.maxStorageTexturesPerShaderStage);
+  // SIXTEEN STORAGE TEXTURES PER STAGE, or as many as the adapter has:
+  // CORTAO's Pack kernel declares sixteen packed mips (PackedOutputBuffer0..15),
+  // the reflection probe's main filter seven cube mips, and WebGPU's default
+  // is four. With fewer than sixteen the Pack pipeline is refused, and
+  // demo.ssao() reports the limit.
+  const storageTextures = Math.min(16, adapter.limits.maxStorageTexturesPerShaderStage);
   // FILTERABLE 32-BIT FLOAT, when the adapter has it. D3D11 samples R32_FLOAT
   // through any sampler, and Carbon's post process does (the down-sampled depth
   // god rays read); core WebGPU refuses an r32float in a filterable slot.
   const filterableFloat32 = adapter.features.has("float32-filterable");
+  // 16-BIT NORM TEXTURES, when the adapter has them: CORTAO's lookup table is
+  // R16_UNORM, which core WebGPU lacks.
+  const textureFormatsTier1 = adapter.features.has("texture-formats-tier1");
   const requiredFeatures = [
     ...(compressed ? [ "texture-compression-bc" ] : []),
-    ...(filterableFloat32 ? [ "float32-filterable" ] : [])
+    ...(filterableFloat32 ? [ "float32-filterable" ] : []),
+    ...(textureFormatsTier1 ? [ "texture-formats-tier1" ] : [])
   ];
   const device = await adapter.requestDevice({
     ...(requiredFeatures.length ? { requiredFeatures } : {}),
@@ -2267,6 +2279,10 @@ export async function RunDemo(canvas)
 
   const driver = new EveSpaceSceneRenderDriver().SetBatchManager(batchManager);
 
+  // The driver's m_ssao is set from outside in Carbon too; aoQuality (the
+  // settings panel's "ambient occlusion") enables it.
+  driver.SSAO = new Tr2SSAO();
+
   // demo.post(): which post-process effects loaded, and what each draw verb
   // did since the last call. A "nothing" count with no error is the black
   // canvas's cause.
@@ -2444,6 +2460,28 @@ export async function RunDemo(canvas)
   // thing that cannot be read there: whether the loaded 3D texture is bound,
   // or a stand-in (which samples black and darkens the frame to 0.3x at the
   // 0.7 influence the shader lerps with).
+  // demo.ssao(): what ambient occlusion needs from this device, and whether
+  // CORTAO's effects and lookup table loaded. The Pack kernel binds sixteen
+  // storage textures and the lookup table is R16_UNORM; either missing stops
+  // the pass, and the frame then samples the white empty SSAO.
+  globalThis.demo.ssao = () =>
+  {
+    const device = al.GetWebgpu().GetDevice();
+    const ssao = driver.SSAO;
+    const table = ssao._cortaoLookupTable;
+    return {
+      aoQuality: driver.aoQuality,
+      enabled: ssao.enabled,
+      quality: ssao.quality,
+      maxStorageTexturesPerShaderStage: device.limits.maxStorageTexturesPerShaderStage,
+      textureFormatsTier1: device.features.has("texture-formats-tier1"),
+      cortao: EffectState(ssao._cortaoEffect),
+      blur: EffectState(ssao._cortaoBlurEffect),
+      lookupTable: table ? { state: table.state, good: table.IsGood(), texture: Boolean(table.GetTexture()) } : null,
+      lastPipelineFailure: al.m_pipelineFailure ?? null
+    };
+  };
+
   globalThis.demo.lut = () =>
   {
     const effect = driver.postProcess.tonemappingEffect;

@@ -26,7 +26,7 @@ import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
-import { ShadowQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
+import { ShadowQuality, SSAOQuality, TR2SHADERMODEL, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";
@@ -241,8 +241,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
   #depthMapReference = new Tr2TextureReference();
 
-  /** The provider "SSAOMap" is registered with: the empty SSAO, or nothing. */
+  /** The provider "SSAOMap" is registered with: the SSAO, the empty SSAO, or nothing. */
   #ssaoMapReference = new Tr2TextureReference();
+
+  /** The provider "SpaceSceneNormalMap" is registered with: the depth pass's normals. */
+  #normalMapReference = new Tr2TextureReference();
 
   /**
    * m_viewLast / m_projectionLast (EveSpaceSceneRenderDriver.h:147-149): the
@@ -323,10 +326,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    *
    * The spine of Carbon's Execute, in Carbon's order. NOT here, each an
    * insertion into this same sequence: the background node, the reflection
-   * pass, the depth prepass, shadows, SSAO, the light-list update, the
-   * distortion map, transparent and additive submission, the scene overlay,
-   * lensflare occlusion queries and 3D UI. The scene renders into its own
-   * colour and depth, plus TAA's velocity map and opaque copy when
+   * pass, shadows, the light-list update, the distortion map, transparent and
+   * additive submission, the scene overlay and 3D UI. The scene renders into
+   * its own colour and depth, plus the depth pass's normal map when ambient
+   * occlusion is on and TAA's velocity map and opaque copy when
    * anti-aliasing is on, and the post process draws it into the destination.
    *
    * Rendering-disabled is not a no-op in Carbon either: the scene still
@@ -464,6 +467,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       this.#RegisterSSAOMap(EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool));
       this.#depthMapReference.SetTexture(null);
 
+      // The normal map is an Execute local in Carbon (cpp:514), never handed
+      // to the post process.
+      if (offscreen?.normal)
+      {
+        this.#gpuResourcePool.Free(offscreen.normal);
+        offscreen.normal = null;
+      }
+
       if (offscreen && !handedOff) this.#EndOffscreen(offscreen);
     }
   }
@@ -600,9 +611,25 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // block for compute as well, which dynamic exposure reads Time from.
     this.scene.ApplyPerFrameData(renderContext);
 
+    // THE DEPTH PASS (cpp:514-521): depth and, when AO or a forced map wants
+    // it, the normal map, before shadows and SSAO read them. The depth
+    // buffer stays bound; the scene colour is back in slot 0 afterwards.
+    if (offscreen && map)
+    {
+      offscreen.normal = this._GetNormalMapIfNeeded(offscreen.size);
+      this.scene.RenderDepthPass(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, null, renderContext, this.depthPassTechnique, map);
+    }
+
+    this.#normalMapReference.SetTexture(offscreen?.normal?.Get() ?? null);
+    Tr2VariableStore.GlobalStore().RegisterVariable("SpaceSceneNormalMap", this.#normalMapReference);
+
     // Carbon gates the main pass on the scene's display flag AND this switch
     // (cpp:527).
     if (!this.mainPassRenderingEnabled || this.scene.display === false) return false;
+
+    // SSAO (cpp:534-537), after the depth pass and before the main pass
+    // samples SSAOMap. No shadow pass runs before it here.
+    if (offscreen) this.#RegisterSSAOMap(this._RenderSSAO(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, renderContext));
 
     if (offscreen) offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
 
@@ -667,12 +694,15 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   }
 
   /**
-   * Carbon's private PropagateSettings (cpp:212-231), the anti-aliasing part: the
-   * setting creates, updates or removes the TAA effect on the scene's default
-   * post process, whose quality is the setting's value.
+   * Carbon's private PropagateSettings (cpp:212-280), the anti-aliasing and
+   * ambient-occlusion parts. Anti-aliasing creates, updates or removes the TAA
+   * effect on the scene's default post process, whose quality is the
+   * setting's value. Ambient occlusion enables the SSAO, when there is one,
+   * at the quality the setting maps to.
    *
-   * Adapted: Carbon's shadow, AO, volumetric and upscaling propagation follows
-   * in the same method; none of those passes run in this driver yet.
+   * Adapted: Carbon's shadow propagation sits between the two, and its
+   * post-process quality, volumetric and upscaling propagation follow; none
+   * of those passes run in this driver yet.
    *
    * @returns {void}
    */
@@ -680,17 +710,96 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   {
     const postprocess = this.scene.postprocess;
 
-    if (!postprocess) return;
-
-    if (this.antiAliasingQuality === AntiAliasingQuality.Disabled)
+    if (postprocess)
     {
-      postprocess.SetTaa(null);
-      return;
+      if (this.antiAliasingQuality === AntiAliasingQuality.Disabled)
+      {
+        postprocess.SetTaa(null);
+      }
+      else
+      {
+        if (!postprocess.GetTaaIfAvailable()) postprocess.SetTaa(new Tr2PPTaaEffect());
+
+        postprocess.GetTaaIfAvailable().quality = this.antiAliasingQuality;
+      }
     }
 
-    if (!postprocess.GetTaaIfAvailable()) postprocess.SetTaa(new Tr2PPTaaEffect());
+    if (this.SSAO)
+    {
+      if (this.aoQuality === AmbientOcclusionQuality.Disabled)
+      {
+        this.SSAO.Enable(false);
+      }
+      else
+      {
+        this.SSAO.Enable(true);
 
-    postprocess.GetTaaIfAvailable().quality = this.antiAliasingQuality;
+        switch (this.aoQuality)
+        {
+          case AmbientOcclusionQuality.Low:
+            this.SSAO.SetQuality(SSAOQuality.LOW, true);
+            break;
+          case AmbientOcclusionQuality.Medium:
+            this.SSAO.SetQuality(SSAOQuality.MEDIUM, false);
+            break;
+          default:
+            this.SSAO.SetQuality(SSAOQuality.HIGHEST, false);
+            break;
+        }
+      }
+    }
+  }
+
+  /**
+   * Carbon's private RenderSSAO (cpp:360-382): the SSAO filtered from the
+   * depth and normal maps with depth bound read-only, or the empty SSAO when
+   * there is none.
+   *
+   * Adapted: Carbon's `temporal` is also true under a temporal upscaler,
+   * which is not ported, so only the post process's TAA sets it.
+   *
+   * @param {object} depthMap The scene depth.
+   * @param {object|null} normalMap The depth pass's normal map.
+   * @param {object} renderContext The frame's context.
+   * @returns {GpuResourceHandle} The SSAO texture.
+   */
+  _RenderSSAO(depthMap, normalMap, renderContext)
+  {
+    let ssao = new GpuResourceHandle();
+
+    if (this.scene.display && this.SSAO)
+    {
+      renderContext.SetReadOnlyDepth(true);
+
+      const scenePostProcess = this.scene.postprocess;
+      const temporal = scenePostProcess !== null && scenePostProcess.GetTaaIfAvailable() !== null;
+
+      ssao = this.SSAO.Filter(depthMap, normalMap, this.#gpuResourcePool, renderContext, temporal);
+      renderContext.SetReadOnlyDepth(false);
+    }
+
+    return ssao.IsValid() ? ssao : EveSpaceSceneRenderDriver.getEmptySSAO(this.#gpuResourcePool);
+  }
+
+  /**
+   * Carbon's GetNormalMapIfNeeded (cpp:672-685): an R10G10B10A2_UNORM map
+   * when ambient occlusion or ray-traced shadows want normals, on any shader
+   * model but the lowest, or when forced.
+   *
+   * Adapted: Carbon also allocates it for a named render-job output; none
+   * exists here.
+   *
+   * @param {{width: number, height: number}} size The render size.
+   * @returns {GpuResourceHandle|null} The map, or null.
+   */
+  _GetNormalMapIfNeeded(size)
+  {
+    const wanted = (this.aoQuality !== AmbientOcclusionQuality.Disabled || this.shadowQuality === ShadowQuality.SHADOW_RAYTRACED)
+      && Tr2Renderer.GetShaderModel() !== TR2SHADERMODEL.TR2SM_3_0_LO;
+
+    if (!wanted && !this.forceNormalMap) return null;
+
+    return this.#TempTexture("normalMap", size, PixelFormat.PIXEL_FORMAT_R10G10B10A2_UNORM);
   }
 
   /**
@@ -782,7 +891,9 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       depth: texture("depthBuffer", PixelFormat.PIXEL_FORMAT_D32_FLOAT, Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE),
       // Borrowed by the main pass when TAA needs them (#RenderMainPass).
       velocity: null,
-      opaque: null
+      opaque: null,
+      // Borrowed for the depth pass when AO needs it; the driver's to free.
+      normal: null
     };
   }
 

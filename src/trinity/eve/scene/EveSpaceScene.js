@@ -22,8 +22,8 @@ import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
 import { CjsPerFrameLayouts } from "../../core/rawData/CjsPerFrameLayouts.js";
-import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage } from "#consts/render-context";
-import { Tr2SubresourceData } from "#trinityal";
+import { PixelFormat, ShaderType, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
@@ -1494,6 +1494,95 @@ export class EveSpaceScene extends CjsModel
     renderContext.GetEffectStateManager().ApplyStandardStates(rm);
     renderContext.RenderBatches(batch);
     batch.Clear();
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderDepthPass (cpp:2201-2356): the opaque, decal
+   * and depth batches drawn with the depth technique into the bound depth
+   * buffer, and into the normal map and custom stencil when they are given.
+   * Both targets and the depth are cleared to zero, reverse-Z's far.
+   *
+   * Carbon's Metal branch is the one taken (cpp:2255-2259, 2319-2321): with
+   * no normal map, colour slot 0 is unbound for the pass rather than left on
+   * the scene colour.
+   *
+   * Adapted. The batches come in as `batchMap`: Carbon draws its own
+   * m_primaryBatches, and the gather that fills them is the driver's here.
+   * Not ported, each a later insertion at its place in this order: the
+   * mesh-morph update before the pass (cpp:2212-2228; nothing registers an
+   * ITr2MeshMorph), the planets' z-only areas (cpp:2285-2308; EvePlanet has no
+   * GetZOnlyRenderables), and the volumetrics sun angle and planet shadow
+   * casters after it (cpp:2328-2355).
+   *
+   * @param {object} depthMap The scene depth; the caller has bound it.
+   * @param {object|null} normalMap The normal map, or null.
+   * @param {object|null} customStencil The custom stencil target, or null.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {string} techniqueName The depth technique ("Depth" from the driver).
+   * @param {object} batchMap The frame's batch map.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName, batchMap)
+  {
+    if (!this.display) return;
+
+    const esm = renderContext.GetEffectStateManager();
+    const clearAndStore = () => new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE);
+    const clearDepth = new Tr2DepthAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0);
+    let renderingMode;
+
+    esm.BeginManagedRendering();
+    esm.SetRenderTarget(1, customStencil);
+    esm.PushRenderTarget();
+
+    if (normalMap)
+    {
+      esm.SetRenderTarget(0, normalMap);
+      if (customStencil)
+      {
+        renderContext.RenderPassHint(clearAndStore(), clearAndStore(), clearDepth);
+        renderContext.Clear({ clearColor: true, color: [ 0, 0, 0, 0 ], slot: 1 });
+      }
+      else
+      {
+        renderContext.RenderPassHint(clearAndStore(), clearDepth);
+      }
+      renderContext.Clear({ clearColor: true, clearDepth: true, color: [ 0, 0, 0, 0 ], depth: 0 });
+      renderingMode = RenderingMode.RM_OPAQUE;
+    }
+    else
+    {
+      esm.SetRenderTarget(0, null);
+      if (customStencil)
+      {
+        renderContext.RenderPassHint(new Tr2ColorAttachment(), clearAndStore(), clearDepth);
+        renderContext.Clear({ clearColor: true, color: [ 0, 0, 0, 0 ], slot: 1 });
+        renderingMode = RenderingMode.RM_OPAQUE;
+      }
+      else
+      {
+        renderContext.RenderPassHint(new Tr2ColorAttachment(), clearDepth);
+        renderingMode = RenderingMode.RM_DEPTH_ONLY;
+      }
+      renderContext.Clear({ clearDepth: true, depth: 0 });
+    }
+
+    this.ApplyPerFrameData(renderContext);
+
+    for (const batchType of [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_DEPTH ])
+    {
+      esm.ApplyStandardStates(renderingMode);
+
+      const accumulator = batchMap.GetAccumulator(batchType);
+
+      if (accumulator) renderContext.RenderBatches(accumulator, techniqueName);
+    }
+
+    esm.PopRenderTarget();
+    esm.SetRenderTarget(1, null);
+    esm.EndManagedRendering();
   }
 
   /**

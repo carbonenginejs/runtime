@@ -8,6 +8,7 @@ import {
   EveSpaceSceneRenderDriver,
   Tr2PostProcess2,
   Tr2RenderContext,
+  Tr2SSAO,
   TriProjection,
   TriView
 } from "../../npm/dist/trinity/index.js";
@@ -64,6 +65,7 @@ function sceneRecording(calls)
     Jitter() { calls.push([ "Jitter" ]); },
     EndRender() { calls.push([ "EndRender" ]); },
     RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
+    RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName ]); },
     UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
     viewLast: new Float32Array(16),
     projectionLast: new Float32Array(16),
@@ -154,6 +156,8 @@ test("the frame runs Carbon's order", () =>
     // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
     // blocks, the vertex one for compute too.
     "ApplyPerFrameData",
+    // The depth pass (driver cpp:514-521), before SSAO and the main pass.
+    "RenderDepthPass",
     // After the main pass, on the scene target with read-only depth: lens-flare
     // occlusion and the occlusion buffer's compute (driver cpp:587-592).
     "RunLensflareOcclusionQueries",
@@ -323,6 +327,47 @@ function taaFrame(antiAliasingQuality)
   return { driver, received };
 }
 
+test("ambient occlusion: the depth pass gets a normal map, and the SSAO filters it", () =>
+{
+  const calls = [];
+  const driver = driverOver(calls);
+  const filtered = [];
+
+  driver.scene.display = true;
+  driver.SSAO = new Tr2SSAO();
+  // The filter's own work is Tr2SSAO's; here, only what the driver hands it.
+  // An invalid answer is Carbon's failed filter: the empty SSAO goes in.
+  driver.SSAO.Filter = (depth, normal, pool, renderContext, temporal) =>
+  {
+    filtered.push({ normal, temporal, enabled: driver.SSAO.enabled, quality: driver.SSAO.quality });
+    return { IsValid: () => false };
+  };
+
+  // High (cpp:257-280): enabled at HIGHEST, full resolution, and a normal map
+  // for the depth pass (GetNormalMapIfNeeded, cpp:672-685).
+  driver.aoQuality = EveSpaceSceneRenderDriver.AmbientOcclusionQuality.High;
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+
+  const [ , normalMap, techniqueName ] = calls.find(([ name ]) => name === "RenderDepthPass");
+
+  assert.notEqual(normalMap, null);
+  assert.equal(techniqueName, "Depth");
+  assert.deepEqual(filtered, [ { normal: normalMap, temporal: false, enabled: true, quality: Tr2SSAO.SSAOQuality.HIGHEST } ]);
+
+  // Low: LOW, downsampled.
+  driver.aoQuality = EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Low;
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+  assert.equal(driver.SSAO.quality, Tr2SSAO.SSAOQuality.LOW);
+  assert.equal(driver.SSAO.downsampled, true);
+
+  // Disabled: the SSAO is switched off and the depth pass draws depth only.
+  calls.length = 0;
+  driver.aoQuality = EveSpaceSceneRenderDriver.AmbientOcclusionQuality.Disabled;
+  driver.Execute([ StubTarget() ], null, 0, 0, null, StubContext());
+  assert.equal(driver.SSAO.enabled, false);
+  assert.equal(calls.find(([ name ]) => name === "RenderDepthPass")[1], null);
+});
+
 test("PropagateSettings puts TAA on the scene's default post process at the setting's quality", () =>
 {
   // cpp:212-231: created when absent, its quality the AntiAliasingQuality value.
@@ -449,4 +494,51 @@ test("EndRender draws the lens flares additively with depth read-only, then stor
   scene.EndRender(context);
   assert.deepEqual(calls, []);
   assert.deepEqual(Array.from(scene.viewLast), Array.from(identity));
+});
+
+test("RenderDepthPass draws opaque, decal and depth with the depth technique (EveSpaceScene.cpp:2201-2326)", async () =>
+{
+  const { EveSpaceScene } = await import("../../npm/dist/trinity/index.js");
+  const scene = new EveSpaceScene();
+  const context = StubContext();
+  const esm = context.GetEffectStateManager();
+  const color = StubTarget();
+  const depth = StubTarget();
+  const normal = StubTarget();
+  const calls = [];
+  const batchMap = { GetAccumulator: type => ({ type }) };
+
+  esm.SetRenderTarget(0, color);
+  esm.SetDepthStencilBuffer(depth);
+
+  context.RenderBatches = (accumulator, techniqueName) => { calls.push(`render:${accumulator.type}:${techniqueName}`); return true; };
+  const apply = esm.ApplyStandardStates.bind(esm);
+  esm.ApplyStandardStates = mode => { calls.push(`states:${mode}`); return apply(mode); };
+
+  // With a normal map: it is slot 0 for the pass, drawn RM_OPAQUE.
+  let boundDuringPass = null;
+  const render = context.RenderBatches;
+  context.RenderBatches = (...args) => { boundDuringPass ??= context.GetRenderTarget(0); return render(...args); };
+
+  scene.RenderDepthPass(depth, normal, null, context, "Depth", batchMap);
+
+  const opaque = RenderingMode.RM_OPAQUE;
+  assert.deepEqual(calls, [
+    `states:${opaque}`, `render:${TriBatchType.TRIBATCHTYPE_OPAQUE}:Depth`,
+    `states:${opaque}`, `render:${TriBatchType.TRIBATCHTYPE_DECAL}:Depth`,
+    `states:${opaque}`, `render:${TriBatchType.TRIBATCHTYPE_DEPTH}:Depth`
+  ]);
+  assert.equal(boundDuringPass, normal);
+  assert.equal(context.GetRenderTarget(0), color, "the scene colour is back in slot 0");
+
+  // Without one: depth only.
+  calls.length = 0;
+  scene.RenderDepthPass(depth, null, null, context, "Depth", batchMap);
+  assert.equal(calls[0], `states:${RenderingMode.RM_DEPTH_ONLY}`);
+
+  // Not displayed: nothing.
+  calls.length = 0;
+  scene.display = false;
+  scene.RenderDepthPass(depth, normal, null, context, "Depth", batchMap);
+  assert.deepEqual(calls, []);
 });

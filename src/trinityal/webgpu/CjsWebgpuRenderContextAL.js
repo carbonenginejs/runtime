@@ -2452,15 +2452,25 @@ export class CjsWebgpuRenderContextAL
   /**
    * Binds depth read-only, so it can be sampled while still testing.
    *
-   * STORED, NOT YET APPLIED. WebGPU expresses this as `depthReadOnly` on the
-   * render-pass descriptor, which `_Descriptor` builds; wiring it there is a
-   * pass-descriptor change rather than a state one, and the flag has to exist
-   * before it can be read.
+   * TURNING IT ON REFRESHES THE BOUND DEPTH'S FLOAT SHADOW. Carbon enables it
+   * exactly where a pass is about to read the depth it has written with the
+   * depth still bound: SSAO, the light lists, the lens-flare queries
+   * (EveSpaceSceneRenderDriver.cpp:365, 543, 589). Shaders here read the
+   * r32float shadow (`CjsWebgpuTextureAL._depthShadow`), which otherwise
+   * refreshes only when the depth is unbound (`SetDepthStencil`), so without
+   * this they read the previous frame's depth. The copy ends the open pass.
+   *
+   * The flag itself is STORED, NOT YET APPLIED. WebGPU expresses it as
+   * `depthReadOnly` on the render-pass descriptor, which `_Descriptor`
+   * builds; wiring it there is a pass-descriptor change rather than a state
+   * one, and the flag has to exist before it can be read.
    *
    * @param {boolean} enable Whether depth is read-only.
    */
   SetReadOnlyDepth(enable)
   {
+    if (enable && !this._readOnlyDepth && this._depthStencil) this._Record(this._workQueue.CopyDepthShadow(this._depthStencil));
+
     this._readOnlyDepth = !!enable;
   }
 
