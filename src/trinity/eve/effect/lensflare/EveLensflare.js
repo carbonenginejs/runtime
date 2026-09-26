@@ -363,6 +363,23 @@ export class EveLensflare extends CjsModel
     return data;
   }
 
+  /**
+   * Returns this lensflare's occlusion-buffer slots. Carbon holds them as
+   * Tr2OcclusionBuffer::Offset shared_ptrs whose deleter frees the slot when
+   * the lensflare is destroyed (EveOccluder.cpp:36, 70-74); JavaScript has no
+   * destructor, so the owner removing a lensflare calls this.
+   *
+   * @returns {void}
+   */
+  Destroy()
+  {
+    const occlusionBuffer = Tr2OcclusionBuffer.getInstance();
+    occlusionBuffer.DestroyOffset(this.occlusionOffset);
+    occlusionBuffer.DestroyOffset(this.backgroundOcclusionOffset);
+    this.occlusionOffset = null;
+    this.backgroundOcclusionOffset = null;
+  }
+
   /** Reports, once per page, that occluders are present but EveOccluder.RunQuery is not ported. */
   static #WarnOccludersUnported()
   {

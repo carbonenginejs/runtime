@@ -2337,13 +2337,14 @@ export async function RunDemo(canvas)
   // which the flare allocates and the occlusion buffer Clears to 1.0. EVE
   // carries the system sun as an EveLensflare in scene.lensflares.
   // `?flare=<name>` picks one of res:/fisfx/lensflare/*.black; `?flare=off` none.
-  // Swapping flares leaves the previous one's occlusion-buffer slots allocated;
-  // Tr2OcclusionBuffer has no release, and a demo swaps a handful of times.
+  // A swapped-out flare returns its occlusion-buffer slots (EveLensflare.Destroy,
+  // Carbon's destructor releasing its Offset handles).
   const flare = {
     current: FLARE,
     async select(name)
     {
       flare.current = name;
+      for (const old of perFrameScene.lensflares) old.Destroy();
       perFrameScene.lensflares.length = 0;
       if (name === "off") return;
       try

@@ -41,3 +41,19 @@ test("FlareOcclusionBuffer is registered as a GPU-buffer global by the occlusion
   const variable = Tr2VariableStore.GlobalStore().FindVariable("FlareOcclusionBuffer");
   assert.equal(variable.GetValue(), Tr2OcclusionBuffer.getInstance().buffer);
 });
+
+test("a destroyed lens flare returns its slots, as Carbon's Offset deleter does", () =>
+{
+  const occlusionBuffer = Tr2OcclusionBuffer.getInstance();
+  const lensflare = new EveLensflare();
+
+  lensflare.RunOcclusionQueries(StubContext(), null);
+  const taken = [ lensflare.occlusionOffset, lensflare.backgroundOcclusionOffset ];
+  const freeBefore = occlusionBuffer.free.length;
+
+  lensflare.Destroy();
+
+  assert.equal(occlusionBuffer.free.length, freeBefore + 2);
+  assert.deepEqual(occlusionBuffer.free.slice(-2), taken);
+  assert.equal(lensflare.occlusionOffset, null);
+});
