@@ -419,3 +419,48 @@ test("a pixel stage reports the colour locations its WGSL writes", () =>
   assert.deepEqual(programFor(al).GetFragmentOutputs(), [ 0 ]);
   assert.equal(programFor(al, { fragment: false }).GetFragmentOutputs(), null);
 });
+
+test("inputs the mesh lacks read a constant dummy stream, as Metal's do", () =>
+{
+  // quadv5 declares POSITION0, BLENDINDICES0 (UINT) and TANGENT0; a mesh with
+  // only a position used to be refused ("a vertex element for input 6:0, ...").
+  // Metal feeds each missing input from one non-stepping dummy stream at offset
+  // 0, format by declared type (Tr2VertexLayoutALMetal.mm:145-165).
+  const { al, log, pipelines, created } = composed();
+  const signature = {
+    registers: [],
+    pipelineInputs: [
+      { usage: 0, usageIndex: 0, registerIndex: 0, type: 0 },
+      { usage: 6, usageIndex: 0, registerIndex: 1, type: 2 },
+      { usage: 5, usageIndex: 0, registerIndex: 2, type: 0 },
+      { usage: 5, usageIndex: 1, registerIndex: 3, type: 1 }
+    ],
+    backendBlock: null
+  };
+  const program = al.CreateShaderProgram([
+    al.CreateShader(ShaderType.VERTEX_SHADER, VERTEX_WGSL, signature, "v.wgsl"),
+    al.CreateShader(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signature, "f.wgsl")
+  ]);
+
+  bindGeometry(al, program);
+
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), true, al.m_pipelineFailure ?? "drew");
+
+  const buffers = pipelines[0].descriptor.vertex.buffers;
+
+  assert.deepEqual(buffers[0].attributes, [ { shaderLocation: 0, offset: 0, format: "float32x3" } ], "the mesh's own stream");
+  assert.deepEqual(buffers[1], {
+    arrayStride: 0,
+    stepMode: "vertex",
+    attributes: [
+      { shaderLocation: 1, offset: 0, format: "uint8x4" },
+      { shaderLocation: 2, offset: 0, format: "float32x4" },
+      { shaderLocation: 3, offset: 0, format: "sint8x4" }
+    ]
+  });
+
+  // The dummy stream is bound at the next slot, to one 16-byte zeroed buffer.
+  assert.ok(log.some(entry => /^setVertexBuffer:1:\[object Object\]:0$/u.test(entry)), log.join(" | "));
+  assert.equal(created.buffers.filter(descriptor => descriptor.label === "Tr2RenderContextAL dummy vertex stream").length, 1);
+  assert.equal(created.buffers.find(descriptor => descriptor.label === "Tr2RenderContextAL dummy vertex stream").size, 16);
+});

@@ -164,6 +164,21 @@ const VERTICES_PER_PRIMITIVE = Object.freeze({
 /** Carbon's `MAX_RENDER_TARGET`; the bound-target array is fixed width. */
 const MAX_RENDER_TARGET = 8;
 
+/**
+ * The dummy vertex element's format for a missing input, by the input's
+ * declared Tr2ShaderPipelineInputAL::Type (FLOAT 0, INT 1, UINT 2; the string
+ * form is vertexLayoutMatch's FALLBACK_INPUT_TYPE): Metal's Char4 / UChar4 /
+ * Float4 (Tr2VertexLayoutALMetal.mm:147-156).
+ */
+const DUMMY_VERTEX_FORMAT = Object.freeze({
+  0: "float32x4",
+  1: "sint8x4",
+  2: "uint8x4",
+  FLOAT: "float32x4",
+  INT: "sint8x4",
+  UINT: "uint8x4"
+});
+
 
 /**
  * The Carbon pixel format behind each format a canvas can be configured with.
@@ -1509,6 +1524,12 @@ export class CjsWebgpuRenderContextAL
     {
       if (!layouts[slot]) continue;
 
+      if (slot === this._dummyVertexStream)
+      {
+        this._workQueue.SetVertexBuffer(slot, this._DummyVertexBuffer(), 0);
+        continue;
+      }
+
       const stream = this._streams[slot];
       const buffer = DeviceBufferOf(stream?.buffer);
 
@@ -1563,10 +1584,7 @@ export class CjsWebgpuRenderContextAL
     // ported, the draw says which input it cannot feed.
     const missing = plan.entries.filter(entry => !entry.element);
 
-    if (missing.length)
-    {
-      return `a vertex element for input ${missing.map(entry => `${entry.usage}:${entry.usageIndex}`).join(", ")}`;
-    }
+    this._dummyVertexStream = null;
 
     for (const entry of plan.entries)
     {
@@ -1578,9 +1596,7 @@ export class CjsWebgpuRenderContextAL
       byStream.get(stream).push(entry);
     }
 
-    if (!byStream.size) return [];
-
-    const layouts = new Array(Math.max(...byStream.keys()) + 1).fill(null);
+    const layouts = new Array(byStream.size ? Math.max(...byStream.keys()) + 1 : 0).fill(null);
 
     for (const [ stream, entries ] of byStream)
     {
@@ -1598,7 +1614,47 @@ export class CjsWebgpuRenderContextAL
       }
     }
 
+    // AN INPUT THE DECLARATION LACKS READS A CONSTANT DUMMY STREAM, as Metal's
+    // does (Tr2VertexLayoutALMetal.mm:145-165): every missing input at offset
+    // 0 of one stream that does not step, in a format from the input's
+    // declared type - INT char4, UINT uchar4, anything else float4. WebGPU
+    // spells "does not step" as arrayStride 0, and requires every vertex-stage
+    // location to be fed, so leaving the hole is an invalid pipeline. The
+    // stream takes the first slot after the mesh's own.
+    if (missing.length)
+    {
+      this._dummyVertexStream = layouts.length;
+      layouts.push({
+        arrayStride: 0,
+        stepMode: "vertex",
+        attributes: missing
+          .map(entry => ({ shaderLocation: entry.registerIndex, offset: 0, format: DUMMY_VERTEX_FORMAT[entry.fallbackType] ?? "float32x4" }))
+          .sort((a, b) => a.shaderLocation - b.shaderLocation)
+      });
+    }
+
     return layouts;
+  }
+
+  /** The slot of the constant dummy vertex stream this layout added, or null. */
+  _dummyVertexStream = null;
+
+  /**
+   * Metal's dummy vertex buffer (the METAL_VERTEX_STREAM_DUMMY stream): 16
+   * zero bytes, the widest dummy element, read by every missing input.
+   * WebGPU zero-fills a new buffer.
+   */
+  _DummyVertexBuffer()
+  {
+    const usage = this._webgpu.GetBufferUsage();
+
+    this._dummies.vertexBuffer ??= this._webgpu.GetDevice().createBuffer({
+      label: "Tr2RenderContextAL dummy vertex stream",
+      size: 16,
+      usage: usage.VERTEX | usage.COPY_DST
+    });
+
+    return this._dummies.vertexBuffer;
   }
 
   /**
@@ -1817,7 +1873,7 @@ export class CjsWebgpuRenderContextAL
   }
 
   /** The dummies, created once each: `MetalContext::m_dummyTexture[]`, `m_dummySampler`. */
-  _dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map() };
+  _dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map(), vertexBuffer: null };
 
   /**
    * A 1x1 texture view of the given dimension, for a slot nothing filled.
