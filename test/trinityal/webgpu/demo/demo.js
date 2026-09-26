@@ -113,6 +113,7 @@ import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
 import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.js";
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
+import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
 import { blue } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
@@ -142,7 +143,47 @@ const TIER = new URLSearchParams(globalThis.location?.search ?? "").get("tier") 
  * process was wired: a null destination keeps the driver's direct path. It
  * splits "the scene does not draw" from "the post process does not".
  */
-const POST_OFF = new URLSearchParams(globalThis.location?.search ?? "").get("post") === "off";
+const POST_PARAMETER = new URLSearchParams(globalThis.location?.search ?? "").get("post") ?? "";
+const POST_OFF = POST_PARAMETER === "off";
+
+/**
+ * `?post=<template>` hands the driver a shipped Tr2PostProcess2 as the scene's
+ * post process: a bare name reads `res:/dx9/postprocess/environmenttemplate/
+ * <name>.black` (the 177 environment templates), a name with a slash is a
+ * resource path of its own.
+ */
+const POST_TEMPLATE = POST_OFF ? "" : POST_PARAMETER;
+
+/**
+ * The Tr2PostProcess2 slots whose render pass Tr2PostProcessRenderer does not
+ * port yet: each throws by name when reached. The demo empties them on the
+ * loaded template and names them, so the ported passes can be seen working on
+ * a real template before the rest exist. Remove a slot here as its pass lands.
+ */
+const UNPORTED_POST_SLOTS = [ "bloom", "godRays", "fog", "dynamicExposure", "depthOfField", "taa" ];
+
+/**
+ * Reads a post-process template and empties the slots whose pass is not
+ * ported, reporting both halves.
+ *
+ * @param {string} name A template name or a resource path.
+ * @returns {Promise<{postProcess: object, path: string, populated: string[], skipped: string[]}>}
+ */
+async function LoadPostTemplate(name)
+{
+  const path = name.includes("/") ? name.replace(/^res:\/+/u, "") : `dx9/postprocess/environmenttemplate/${name}.black`;
+  const postProcess = CjsBlackFormat.read(await ResourceBytes(path), { emit: "runtime" }).root;
+  const slots = [
+    "colorCorrection", "tonemapping", "lut", "luts", "desaturate", "vignette", "fade", "filmGrain", "signalLoss",
+    ...UNPORTED_POST_SLOTS
+  ];
+  const populated = slots.filter(slot => Array.isArray(postProcess[slot]) ? postProcess[slot].length : postProcess[slot]);
+  const skipped = populated.filter(slot => UNPORTED_POST_SLOTS.includes(slot));
+
+  for (const slot of skipped) postProcess[slot] = null;
+
+  return { postProcess, path: `res:/${path}`, populated, skipped };
+}
 
 /**
  * DIAGNOSTIC COUNTS for `demo.post()`. Tr2Renderer's draw verbs return
@@ -1795,6 +1836,7 @@ export async function RunDemo(canvas)
     for (const key of Object.keys(DRAW_COUNTS)) delete DRAW_COUNTS[key];
     return {
       postOff: POST_OFF,
+      template: postTemplate ? { path: postTemplate.path, populated: postTemplate.populated, skipped: postTemplate.skipped } : null,
       stage: STAGE || "all",
       counts,
       tonemapping: EffectState(driver.postProcess.tonemappingEffect),
@@ -1802,6 +1844,18 @@ export async function RunDemo(canvas)
       material: EffectState(areas[0].material)
     };
   };
+
+  let postTemplate = null;
+
+  if (POST_TEMPLATE)
+  {
+    postTemplate = await LoadPostTemplate(POST_TEMPLATE);
+    console.log(`post template ${postTemplate.path}: populates ${postTemplate.populated.join(", ") || "(nothing)"}`
+      + (postTemplate.skipped.length ? `; skipped, pass not ported: ${postTemplate.skipped.join(", ")}` : ""));
+  }
+
+  // The loaded Tr2PostProcess2, for editing live: demo.postProcess.colorCorrection.
+  globalThis.demo.postProcess = postTemplate?.postProcess ?? null;
 
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
   // purpose: this demo proves the draw path, and a fog or lighting blend it does
@@ -1813,8 +1867,8 @@ export async function RunDemo(canvas)
     GetPerFrameVSData: () => frame.vs,
     GetPerFramePSData: () => frame.ps,
     GetRenderables: out => { out.push(renderable); return out; },
-    // No post-process effects yet: the chain copies, sharpens and tonemaps.
-    GetPostProcess: () => null
+    // With no `?post=<template>` the chain copies, sharpens and tonemaps only.
+    GetPostProcess: () => postTemplate?.postProcess ?? null
   };
 
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
