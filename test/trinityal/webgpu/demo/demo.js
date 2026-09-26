@@ -267,7 +267,11 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     #settings .fields summary { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
     #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
     #settings { max-height: calc(100vh - 24px); overflow: auto; }
-    #settings .sun input { width: 46px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings .sun { display: flex; gap: 4px; }
+    #settings .sun input[type=range] { width: 50px; margin: 0; }
+    #settings .slider { display: flex; gap: 6px; align-items: center; }
+    #settings .slider input[type=range] { width: 100px; margin: 0; }
+    #settings .slider output { width: 70px; text-align: right; font-size: 11px; color: #aab3c2; }
   `;
   document.head.append(style);
 
@@ -309,12 +313,20 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
 
-  // Ship age in weeks since last cleaned; the dirt level follows the game's curve.
-  const shipAge = row("ship age (weeks)", Object.assign(document.createElement("input"), { type: "number", min: "0", step: "1", value: "0", style: "width: 60px" }));
-  shipAge.addEventListener("input", () => age(Number(shipAge.value)));
+  // Ship age in weeks since last cleaned; the dirt level follows the game's
+  // curve, which is flat past a few years, so the slider stops at five.
+  const shipAge = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "260", step: "1", value: "0" });
+  const shipAgeReadout = document.createElement("output");
+  const shipAgeField = Object.assign(document.createElement("span"), { className: "slider" });
+  shipAgeField.append(shipAge, shipAgeReadout);
+  row("ship age", shipAgeField);
+  const showAge = () => { shipAgeReadout.value = `${shipAge.value}w · ${DirtLevelFromWeeks(Number(shipAge.value)).toFixed(2)}`; };
+  shipAge.addEventListener("input", () => { age(Number(shipAge.value)); showAge(); });
+  showAge();
 
-  // The sun as three numbers; a zero vector is ignored rather than normalised.
-  const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "number", step: "0.1", value: String(Math.round(sun.direction[index] * 100) / 100) }));
+  // The sun as three sliders, x y z on one line; a zero vector is ignored
+  // rather than normalised.
+  const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "range", min: "-1", max: "1", step: "0.01", title: "xyz"[index], value: String(Math.round(sun.direction[index] * 100) / 100) }));
   const sunFields = Object.assign(document.createElement("span"), { className: "sun" });
   sunFields.append(...sunInputs);
   row("sun", sunFields);
