@@ -103,7 +103,7 @@ import { CjsBatchManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Rendere
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
 import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
-import { SetEffectPathDefaults } from "../../../../npm/dist/global/utils/effectPath.js";
+import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/global/utils/effectPath.js";
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
@@ -128,21 +128,30 @@ import { EveCamera } from "../../../../npm/dist/trinity/eve/camera/EveCamera.js"
 import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js";
 
 
+/**
+ * The shader quality tier. TESTING ALWAYS USES `.sm_depth` (operator rule,
+ * 2026-09-26): it is the HIGHEST tier - not a depth pass - the one carrying the
+ * local lights, and the largest instruction set the translator must cover.
+ * `?tier=hi` or `?tier=lo` picks another tier for comparison only.
+ */
+const TIER = new URLSearchParams(globalThis.location?.search ?? "").get("tier") || "depth";
+
+
 /** Used only when the SOF document cannot be had; see `EffectPath`. */
-const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/quadv5.sm_hi";
+const EFFECT = EffectPath("res:/graphics/effect/managed/space/spaceobject/v5/quad/quadv5.fx");
 
 
 /**
- * Turns a SOF effect path into the container this backend loads. No prebuilt
- * overlay is needed: the byte source reads the shipped dx11 container for it
- * and `RegisterShaderResources` translates in memory (byte-identical to a
- * prebuilt one, measured 2026-09-26).
+ * Turns a SOF effect path into the container this backend loads, through the
+ * runtime's own resolver (`ResolveEffectPath`, which Carbon does in
+ * `Tr2Effect` with the platform name and the tier). No prebuilt overlay is
+ * needed: the byte source reads the shipped dx11 container for it and
+ * `RegisterShaderResources` translates in memory.
  *
  * A SOF DOCUMENT NAMES NO BACKEND. It carries
- * `res:/graphics/effect/.../quadv5.fx` - the neutral path - and a loader
+ * `res:/graphics/effect/.../quadv5.fx` - the neutral path - and the resolver
  * substitutes the backend tree and the quality tier: `/effect/` becomes
- * `/effect.webgpu/` and `.fx` becomes `.sm_hi` (`.sm_depth` is the higher tier,
- * and is not built into the overlay this demo reads).
+ * `/effect.webgpu/` and `.fx` becomes the tier's suffix.
  *
  * AND THE NAME DOES NOT CHANGE. Every variant of a shader shares one name; the
  * VARIANT is chosen by the effect's `options`, which the document also carries,
@@ -155,10 +164,8 @@ const EFFECT = "graphics/effect.webgpu/managed/space/spaceobject/v5/quad/quadv5.
  */
 function EffectPath(effectFilePath)
 {
-  return effectFilePath
-    .replace(/^res:\//u, "")
-    .replace("/effect/", "/effect.webgpu/")
-    .replace(/\.fx$/u, ".sm_hi");
+  return ResolveEffectPath(effectFilePath, { platformName: "webgpu", shaderModel: TIER })
+    .replace(/^res://u, "");
 }
 
 /** An Amarr frigate. Real geometry, real declaration, real packed tangents. */
@@ -599,7 +606,7 @@ const COPY_CUBE = "res:/graphics/effect/managed/space/System/Reflection/CopyCube
  */
 async function ReflectionProbe(renderContext, al, areas)
 {
-  SetEffectPathDefaults({ platformName: "webgpu" });
+  SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
 
   const envPath = SCENE_TEXTURES.find(scene => scene.name === "EveSpaceSceneEnvMap").path;
   const nebula = blue.resMan.GetResource(`res:/${envPath}`, { requirement: ResourceRequirement.TEXTURE });
@@ -638,7 +645,7 @@ async function ReflectionProbe(renderContext, al, areas)
 
 async function ProbeCopyCube(renderContext, al, areas)
 {
-  SetEffectPathDefaults({ platformName: "webgpu" });
+  SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
 
   const envPath = SCENE_TEXTURES.find(scene => scene.name === "EveSpaceSceneEnvMap").path;
   const nebula = blue.resMan.GetResource(`res:/${envPath}`, { requirement: ResourceRequirement.TEXTURE });
