@@ -36,6 +36,10 @@
  *   and SRV usage while the bent normal is on, Carbon's default
  *   (Tr2SSAO.cpp:643-644, 686-687). With it off they are R8_UNORM, which this
  *   table cannot express: the format follows a shader option, not the name.
+ * - `LightIndexCount` is `Tr2LightManager`'s index counter, a one-element
+ *   `PIXEL_FORMAT_R32_SINT` buffer, GPU-writable (Tr2LightManager.cpp:665),
+ *   bound to computelightlists at :670; the tiling kernel allocates index
+ *   ranges from it with an atomic add.
  *
  * A name missing here leaves the format unknown, and each backend decides what
  * that means. A backend must also reject a declaration whose component class
@@ -50,7 +54,8 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
     CooldownMap: "R32_UINT",
     ...Object.fromEntries(Array.from({ length: 8 }, (_unused, mip) => [ `PackedOutputBuffer${mip}`, "R32_FLOAT" ])),
     OutputBuffer: "R8G8B8A8_SNORM",
-    SSAOOutputBuffer: "R8G8B8A8_SNORM"
+    SSAOOutputBuffer: "R8G8B8A8_SNORM",
+    LightIndexCount: "R32_SINT"
 });
 
 /**
@@ -93,6 +98,7 @@ export function unboundUavRegistersFor(semanticBindings)
 export const CARBON_VIEW_FORMATS = Object.freeze({
     R32_FLOAT: Object.freeze({ componentClass: "float", channels: 1, bytesPerElement: 4 }),
     R32_UINT: Object.freeze({ componentClass: "uint", channels: 1, bytesPerElement: 4 }),
+    R32_SINT: Object.freeze({ componentClass: "sint", channels: 1, bytesPerElement: 4 }),
     R8G8B8A8_SNORM: Object.freeze({ componentClass: "float", channels: 4, bytesPerElement: 4 })
 });
 

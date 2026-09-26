@@ -55,6 +55,13 @@ export const TYPED_VIEW_FORMATS = Object.freeze({
         renderStagesOnly: true,
         expand: (value) => `vec4<u32>(${value}, 0u, 0u, 1u)`
     }),
+    R32_SINT: Object.freeze({
+        returnType: CARBON_VIEW_FORMATS.R32_SINT.componentClass,
+        element: "i32",
+        storageTextureFormat: "r32sint",
+        renderStagesOnly: true,
+        expand: (value) => `vec4<i32>(${value}, 0i, 0i, 1i)`
+    }),
     // Four channels: a write-only storage texture and nothing else. Core
     // WebGPU has no read-write rgba8snorm, and no typed buffer takes it, since
     // an array element cannot hold four packed snorm bytes.

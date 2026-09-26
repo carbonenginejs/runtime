@@ -330,12 +330,14 @@ function uavBufferLayout(program, binding, policy)
     // out atomic (the lensflare occluder's pixel stage counts into
     // FlareOcclusionBuffer with atomic_iadd); loads and stores then go through
     // atomicLoad/atomicStore.
-    const atomicView = viewFormat === "R32_UINT" && isAtomicallyAccessed(program, bindingRegister(binding));
+    const atomicView = (viewFormat === "R32_UINT" || viewFormat === "R32_SINT") && isAtomicallyAccessed(program, bindingRegister(binding));
     if (viewFormat && binding.resourceDimension === "buffer" && !atomicView)
     {
         return typedBufferViewLayout(binding, viewFormat, "read_write");
     }
-    const signedAtomic = policy.signedAtomicI32Identities.has(identity);
+    // A buffer Carbon creates R32_SINT (the typed-view table) is the signed
+    // atomic words, in every stage: the render-stage view is only for loads.
+    const signedAtomic = policy.signedAtomicI32Identities.has(identity) || policy.typedViews.get(identity) === "R32_SINT";
     const scalar = signedAtomic ? "sint" : "uint";
     if (binding.resourceDimension !== "buffer"
         || returns.length !== 4 || returns.some((entry) => entry !== scalar))
@@ -345,6 +347,7 @@ function uavBufferLayout(program, binding, policy)
             + (signedAtomic
                 ? "the exact profile requires a uniform sint typed buffer UAV"
                 : "only typed uint buffer UAVs are supported")
+            + ` (dimension ${binding.resourceDimension}, returns ${JSON.stringify(returns)}, view ${viewFormat ?? "none"})`
         );
     }
     return {
