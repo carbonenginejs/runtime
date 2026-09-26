@@ -642,8 +642,12 @@ export class Tr2RenderStateSetup
    *
    * `depthStencil` is null when there is no depth attachment, because a WebGPU
    * pipeline may not declare depth state without one. Pass `depthFormat` as
-   * null to say so; a setup that authored a depth bias then fails rather than
-   * losing it silently.
+   * null to say so. AUTHORED DEPTH STATE IS THEN DROPPED, as D3D11 drops it:
+   * with no depth-stencil view bound, the output merger neither tests nor
+   * writes depth. Carbon relies on that. Its post process runs with a null
+   * depth stencil (Tr2PostProcessRenderer.cpp:676), and passes such as TAA's
+   * author depth state anyway. Refusing them, as this once did, left every TAA
+   * draw undrawn.
    *
    * `invertedDepthTest` and `invertedCullMode` are Carbon's two render-state
    * overrides, which it installs on the state manager rather than authoring per
@@ -677,13 +681,9 @@ export class Tr2RenderStateSetup
       : this.depth.compare;
 
     const hasBias = this.depth.bias !== 0 || this.depth.slopeScaledBias !== 0;
-    if (depthFormat === null && (this.depth.test || this.depth.write || hasBias))
-    {
-      throw new Error("pass authors depth state but no depth attachment was supplied");
-    }
 
     let depthBias = 0;
-    if (this.depth.bias !== 0)
+    if (depthFormat !== null && this.depth.bias !== 0)
     {
       const bits = WEBGPU_DEPTH_UNORM_BITS[depthFormat];
       if (bits === undefined)

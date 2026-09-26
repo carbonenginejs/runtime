@@ -367,12 +367,15 @@ test("a setup with no depth attachment omits depth state", () =>
   assert.equal(recipe.depthStencil, null);
 });
 
-test("depth state with no depth attachment fails rather than being dropped", () =>
+test("depth state with no depth attachment is dropped, as D3D11 drops it", () =>
 {
-  assert.throws(
-    () => webgpuOf([ [ RS_ZWRITEENABLE, 1 ] ], { depthFormat: null }),
-    /no depth attachment was supplied/
-  );
+  // Carbon's post process runs with a null depth stencil
+  // (Tr2PostProcessRenderer.cpp:676) and TAA's pass authors depth state: D3D11
+  // neither tests nor writes depth with no DSV bound. Refusing here left every
+  // TAA draw undrawn on WebGPU (the operator's demo.taa(), 803 refusals).
+  const recipe = webgpuOf([ [ RS_ZENABLE, 1 ], [ RS_ZWRITEENABLE, 1 ], [ RS_DEPTHBIAS, bitsOf(0.0001) ] ], { depthFormat: null });
+
+  assert.equal(recipe.depthStencil, null);
 });
 
 test("a non-solid fill mode fails", () =>
