@@ -27,11 +27,10 @@
  *   UAV and SRV usage (Tr2PostProcessRenderer.cpp:1463-1469), bound to the TAA
  *   effect at :1514; the medium and high quality tiers read and write it from
  *   the pixel stage.
- * - `PackedOutputBuffer0`..`15` are the mips of CORTAO's "cortao_packed"
+ * - `PackedOutputBuffer0`..`7` are the mips of CORTAO's "cortao_packed"
  *   texture, `PIXEL_FORMAT_R32_FLOAT` with UAV and SRV usage
- *   (trinity/Tr2SSAO.cpp:557-558). Carbon binds 0..7 (:661-665) and leaves
- *   8..15 unbound; the Pack kernel writes a mip only below the mip count,
- *   which Carbon caps at 8 (:547-555).
+ *   (trinity/Tr2SSAO.cpp:557-558), bound at :661-665. 8..15 are never
+ *   bound: see `CARBON_UNBOUND_UAVS`.
  * - `OutputBuffer` (CORTAO's main pass) and `SSAOOutputBuffer` (its blur) are
  *   "cortao_output" and "cortao_blur", `PIXEL_FORMAT_R8G8B8A8_SNORM` with UAV
  *   and SRV usage while the bent normal is on, Carbon's default
@@ -49,10 +48,42 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
     Histogram: "R32_UINT",
     FlareOcclusionBuffer: "R32_UINT",
     CooldownMap: "R32_UINT",
-    ...Object.fromEntries(Array.from({ length: 16 }, (_unused, mip) => [ `PackedOutputBuffer${mip}`, "R32_FLOAT" ])),
+    ...Object.fromEntries(Array.from({ length: 8 }, (_unused, mip) => [ `PackedOutputBuffer${mip}`, "R32_FLOAT" ])),
     OutputBuffer: "R8G8B8A8_SNORM",
     SSAOOutputBuffer: "R8G8B8A8_SNORM"
 });
+
+/**
+ * UAVs a shipped effect declares and Carbon's renderer never binds, so on
+ * D3D11 the slot is empty: a write to it is dropped.
+ *
+ * - `PackedOutputBuffer8`..`15`: CORTAO's Pack kernel declares sixteen packed
+ *   mips, and Tr2SSAO binds eight (Tr2SSAO.cpp:659-665) because it makes at
+ *   most eight (:547-555). The kernel writes a mip only below the mip count,
+ *   so the unbound eight are never written either. Declared, they would need
+ *   sixteen storage textures in one stage, twice WebGPU's common limit.
+ *
+ * A backend may leave these out of its binding layout, with their writes.
+ */
+export const CARBON_UNBOUND_UAVS = Object.freeze(new Set(
+    Array.from({ length: 8 }, (_unused, index) => `PackedOutputBuffer${index + 8}`)
+));
+
+/**
+ * The registers of one stage's never-bound UAVs (`CARBON_UNBOUND_UAVS`), in
+ * register space 0, ascending.
+ *
+ * @param {object[]} semanticBindings The stage's effect-description bindings.
+ * @returns {number[]} The UAV registers.
+ */
+export function unboundUavRegistersFor(semanticBindings)
+{
+    return (semanticBindings || [])
+        .filter((binding) => binding?.kind === "uav" && (binding.registerSpace ?? 0) === 0
+            && CARBON_UNBOUND_UAVS.has(binding.metadataName ?? binding.carbon?.name))
+        .map((binding) => binding.registerIndex)
+        .sort((left, right) => left - right);
+}
 
 /**
  * The formats named above, in backend-neutral terms: the DXBC component class

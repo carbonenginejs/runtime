@@ -36,6 +36,8 @@ function composed()
   const writes = [];
   const device = {
     createShaderModule: descriptor => ({ kind: "module", label: descriptor.label }),
+    // WebGPU's default per-stage limits (the spec's supported-limits table).
+    limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
     createBindGroupLayout: descriptor => ({ kind: "bind-group-layout", descriptor }),
     createPipelineLayout: descriptor => ({ kind: "pipeline-layout", descriptor }),
     createBindGroup: descriptor => ({ id: 1, descriptor }),

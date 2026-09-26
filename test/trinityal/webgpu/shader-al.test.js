@@ -28,6 +28,8 @@ function fakeDevice()
     createBuffer(descriptor) { return { kind: "buffer", descriptor, destroy() {} }; },
     // A program builds its pipeline layout at Create, as DX12 builds its root
     // signature there; a program with no bindings still creates an empty one.
+    // WebGPU's default per-stage limits (the spec's supported-limits table).
+    limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
     createBindGroupLayout(descriptor) { return { kind: "bind-group-layout", descriptor }; },
     createPipelineLayout(descriptor) { return { kind: "pipeline-layout", descriptor }; },
     queue: { writeBuffer() {} },

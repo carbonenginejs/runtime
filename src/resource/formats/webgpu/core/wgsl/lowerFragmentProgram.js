@@ -1483,6 +1483,11 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
     {
         throw new Error(`WGSL store_uav_typed instruction ${instruction.index} has an unsupported operand shape`);
     }
+    // A UAV Carbon never binds (withoutUnboundUavs): D3D11 drops the write.
+    if (!Number.isInteger(uav.resourceReference?.rangeId) && program.unboundUavRegisters?.includes(uav.registerIndex))
+    {
+        return [];
+    }
     const binding = bindingForOperand(bindings, "storage-resource", uav);
     const bufferView = binding?.buffer ? TYPED_VIEW_FORMATS[binding.typedView] : null;
     if (bufferView)

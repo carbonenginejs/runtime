@@ -28,6 +28,8 @@ function fakeDevice()
 
       return { kind: "shader-module", descriptor };
     },
+    // WebGPU's default per-stage limits (the spec's supported-limits table).
+    limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
     createBindGroupLayout(descriptor)
     {
       calls.bindGroupLayouts.push(descriptor);
@@ -152,6 +154,26 @@ test("a program merges its stages into one pipeline layout, as DX12 merges a roo
   program.Destroy();
   assert.equal(program.GetIdentity(), null);
   assert.equal(program.GetPipelineLayout(), null);
+});
+
+test("a layout past a per-stage limit is refused at Create, before any device object", () =>
+{
+  // WebGPU would make an invalid bind group layout, and every command buffer
+  // holding a pipeline built on it would fail to submit: the whole frame.
+  const { device, renderContext } = context();
+  const textures = count => Array.from({ length: count }, (_unused, index) => ({
+    group: 0, binding: index, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: index,
+    visibility: [ "fragment" ], type: "texture_2d<f32>", generatedSymbol: `t${index}`
+  }));
+  const vertex = stage(ShaderType.VERTEX_SHADER, VERTEX_WGSL, null, renderContext).shader;
+  const atLimit = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signatureWith(blockBytes(textures(16))), renderContext).shader;
+  const pastLimit = stage(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signatureWith(blockBytes(textures(17))), renderContext).shader;
+
+  assert.equal(new CjsWebgpuShaderProgramAL().Create([ vertex, atLimit ], renderContext), ALResult.S_OK);
+  assert.equal(device.calls.bindGroupLayouts.length, 1);
+
+  assert.equal(new CjsWebgpuShaderProgramAL().Create([ vertex, pastLimit ], renderContext), ALResult.E_INVALIDARG);
+  assert.equal(device.calls.bindGroupLayouts.length, 1, "nothing made for the refused one");
 });
 
 test("a program without blocks has an empty layout rather than none", () =>

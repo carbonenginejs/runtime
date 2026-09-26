@@ -5,6 +5,7 @@ import { lowerDxbcToIr } from "./ir/lowerDxbcToIr.js";
 import { buildWgslBindingPlan } from "./wgsl/buildWgslBindingPlan.js";
 import { typedViewsFor } from "../../hlsl/core/carbonTypedViews.js";
 import { buildWgsl } from "./wgsl/emitWgsl.js";
+import { withoutUnboundUavs } from "./wgsl/wgslTypedViews.js";
 import { buildWgslSet } from "./wgsl/buildWgslSet.js";
 import { buildResourceTransformPlan } from "./wgsl/buildResourceTransformPlan.js";
 import {
@@ -181,6 +182,7 @@ export function buildEffectPackage(input, options = {})
             stage.key
         )
     }));
+    for (const entry of irEntries) entry.ir = withoutUnboundUavs(entry.ir, entry.semanticBindings);
     const programsByPass = new Map();
 
     for (const entry of irEntries)

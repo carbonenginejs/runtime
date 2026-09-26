@@ -1,4 +1,32 @@
-import { CARBON_VIEW_FORMATS } from "../../../hlsl/core/carbonTypedViews.js";
+import { CARBON_VIEW_FORMATS, unboundUavRegistersFor } from "../../../hlsl/core/carbonTypedViews.js";
+
+/**
+ * The shader program without the UAVs Carbon never binds
+ * (`CARBON_UNBOUND_UAVS`): their bindings leave the binding list, and
+ * `unboundUavRegisters` names their registers, whose stores then lower to
+ * nothing, as D3D11 drops a write to an empty UAV slot. The instructions and
+ * blocks are untouched, so every position the program records still holds.
+ *
+ * @param {object} program Frozen CJS shader IR.
+ * @param {object[]} semanticBindings The stage's effect-description bindings.
+ * @returns {object} The program, or a copy without those UAVs.
+ */
+export function withoutUnboundUavs(program, semanticBindings)
+{
+    const registers = unboundUavRegistersFor(semanticBindings);
+    if (!registers.length) return program;
+
+    const unbound = new Set(registers);
+    const bindings = program.bindings.filter((binding) => !(binding.resourceKind === "storage-resource"
+        && (binding.range?.registerSpace ?? 0) === 0
+        && unbound.has(binding.range?.lowerBound ?? binding.registerIndex)));
+
+    return Object.freeze({
+        ...program,
+        bindings: Object.freeze(bindings),
+        unboundUavRegisters: Object.freeze(registers)
+    });
+}
 
 /**
  * What each Carbon view format (`hlsl/core/carbonTypedViews.js`) means to WGSL:

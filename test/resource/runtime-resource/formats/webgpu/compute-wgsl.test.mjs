@@ -19,6 +19,7 @@ import {
     sha256Utf8
 } from "../../../../../src/resource/formats/webgpu/core/wgsl/particleEmitSemanticDigest.js";
 import { sha256Bytes } from "../../../../../src/resource/format/effect/sha256.js";
+import { withoutUnboundUavs } from "../../../../../src/resource/formats/webgpu/core/wgsl/wgslTypedViews.js";
 
 function register(typeName, registerIndex, {
     componentCount = 4,
@@ -6374,4 +6375,53 @@ test("general compute lowers SV_GroupIndex, countbits and ibfe (CORTAO's Pack an
   assert.match(shader.code, /@builtin\(local_invocation_index\) local_invocation_index: u32/u);
   assert.match(shader.code, /countOneBits\(local_invocation_index\)/u, "a scalar builtin, read without a component");
   assert.match(shader.code, /extractBits\([^;]*, u32\([^;]*\) & 31u, u32\([^;]*\) & 31u\)/u);
+});
+
+test("a UAV Carbon never binds leaves the layout, and its writes are dropped as D3D11 drops them", () =>
+{
+  // CORTAO's Pack declares PackedOutputBuffer0..15; Tr2SSAO binds 0..7
+  // (Tr2SSAO.cpp:659-665). Sixteen would exceed WebGPU's common limit of
+  // eight storage textures a stage.
+  const uav = (offset, registerIndex) => declaration(offset, "dcl_unordered_access_view_typed", {
+    resourceDimensionName: "buffer",
+    globallyCoherent: false,
+    returnType: typedReturn("uint"),
+    registerIndex
+  }, register("uav", registerIndex, { componentCount: 0 }));
+  const program = {
+    program: { programType: 5, programTypeName: "compute", majorVersion: 5, minorVersion: 0 },
+    signatures: { input: [], output: [], patch: [] },
+    instructions: [
+      declaration(2, "dcl_global_flags", { globalFlags: 1 << 11, refactoringAllowed: true }),
+      uav(3, 0),
+      uav(5, 1),
+      // A builtin input puts it on the general path CORTAO's Pack takes.
+      declaration(7, "dcl_input", { registerIndex: null, operandType: 36, operandTypeName: "input_thread_id_in_group_flattened" },
+        register("input_thread_id_in_group_flattened", null, { mask: "x" })),
+      declaration(9, "dcl_temps", { tempCount: 1 }),
+      declaration(11, "dcl_thread_group", { threadGroupX: 8, threadGroupY: 1, threadGroupZ: 1 }),
+      store(14, 0, register("input_thread_id_in_group_flattened", null, { selected: "x" })),
+      instruction(18, "store_uav_typed", [ register("uav", 1, { mask: "xyzw" }), replicated(0), replicated(9) ]),
+      instruction(22, "ret", [])
+    ]
+  };
+  const ir = CjsWebgpuFormat.buildShaderIr(program, { source: "synthetic-unbound-uav" });
+  const semanticBindings = [
+    { kind: "uav", registerSpace: 0, registerIndex: 0, metadataName: "SomeOutput" },
+    { kind: "uav", registerSpace: 0, registerIndex: 1, metadataName: "PackedOutputBuffer8" }
+  ];
+
+  // Negative control: as declared, both are bound and both written.
+  const declared = CjsWebgpuFormat.buildWgsl(ir).code;
+  assert.match(declared, /var<storage, read_write> u1/u);
+  assert.equal(declared.match(/atomicStore\(/gu).length, 2);
+
+  const code = CjsWebgpuFormat.buildWgsl(withoutUnboundUavs(ir, semanticBindings)).code;
+
+  assert.match(code, /var<storage, read_write> u0/u);
+  assert.doesNotMatch(code, /\bu1\b/u);
+  assert.equal(code.match(/atomicStore\(/gu).length, 1);
+
+  // Nothing named: the program itself, untouched.
+  assert.equal(withoutUnboundUavs(ir, semanticBindings.slice(0, 1)), ir);
 });

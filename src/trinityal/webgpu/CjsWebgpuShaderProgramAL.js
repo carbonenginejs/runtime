@@ -17,6 +17,18 @@ import { WEBGPU_STAGE_NAME } from "./CjsWebgpuShaderAL.js";
  */
 const STAGE_VISIBILITY = Object.freeze({ vertex: 1, fragment: 2, compute: 4 });
 
+/**
+ * WebGPU's per-stage binding limits, each with the layout entries that count
+ * toward it (the WebGPU spec's "exceeds the binding slot limits").
+ */
+const PER_STAGE_LIMITS = Object.freeze([
+  [ "maxSampledTexturesPerShaderStage", binding => Boolean(binding.texture) ],
+  [ "maxSamplersPerShaderStage", binding => Boolean(binding.sampler) ],
+  [ "maxStorageTexturesPerShaderStage", binding => Boolean(binding.storageTexture) ],
+  [ "maxStorageBuffersPerShaderStage", binding => binding.buffer?.type === "storage" || binding.buffer?.type === "read-only-storage" ],
+  [ "maxUniformBuffersPerShaderStage", binding => Boolean(binding.buffer) && (binding.buffer.type ?? "uniform") === "uniform" ]
+]);
+
 /** A monotonic program identity, for the pipeline cache. */
 let nextProgramId = 1;
 
@@ -166,6 +178,19 @@ export class CjsWebgpuShaderProgramAL
     if (!webgpu) return ALResult.E_INVALIDCALL;
 
     const device = webgpu.GetDevice();
+
+    // A LAYOUT THE DEVICE CANNOT HOLD IS REFUSED HERE. WebGPU would make an
+    // invalid bind group layout, and every command buffer holding a pipeline
+    // built on it fails to submit: the whole frame, not the one draw.
+    for (const stage of Object.values(STAGE_VISIBILITY))
+    {
+      for (const [ limit, counts ] of PER_STAGE_LIMITS)
+      {
+        const used = bindings.filter(binding => (binding.visibility & stage) !== 0 && counts(binding)).length;
+
+        if (used > device.limits[limit]) return ALResult.E_INVALIDARG;
+      }
+    }
 
     const bindGroupLayouts = [];
 
