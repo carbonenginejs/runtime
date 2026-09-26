@@ -22,6 +22,7 @@ import { Tr2SamplerOverride } from "./sampler/Tr2SamplerOverride.js";
 import { ITriEffectResourceParameter } from "./parameter/ITriEffectResourceParameter.js";
 import { ITriReroutable } from "../core/ITriReroutable.js";
 import { Tr2RuntimeGpuBuffer } from "../core/device/Tr2RuntimeGpuBuffer.js";
+import { Tr2TextureReference } from "../core/Tr2TextureReference.js";
 import { Tr2RuntimeTextureParameter } from "./parameter/Tr2RuntimeTextureParameter.js";
 import { Tr2Vector2Parameter } from "./parameter/Tr2Vector2Parameter.js";
 import { Tr2Vector3Parameter } from "./parameter/Tr2Vector3Parameter.js";
@@ -56,6 +57,14 @@ function IsBufferAL(value)
   return typeof value === "object"
     && value !== null
     && CjsSchema.getSchema(value.constructor)?.carbon === "Tr2BufferAL";
+}
+
+/** Whether a value is an AL texture: Carbon's `Tr2TextureAL` overload (`Tr2Effect.h:101`). */
+function IsTextureAL(value)
+{
+  return typeof value === "object"
+    && value !== null
+    && CjsSchema.getSchema(value.constructor)?.carbon === "Tr2TextureAL";
 }
 
 function IsTextureLike(value)
@@ -1075,6 +1084,15 @@ export class Tr2Effect extends Tr2Material
       return this.#SetBufferParameter(parameterName, value);
     }
 
+    // A RAW AL TEXTURE IS WRAPPED (Tr2Effect.cpp:2191-2226): the slot holds a
+    // Tr2TextureReference, reused while it exists, never the texture itself,
+    // because the slot reads through a provider's GetTexture(). Null clears
+    // that reference when the slot already holds one - TEMP_PARAM's reset.
+    if (IsTextureAL(value) || (value === null && this.#HeldTextureReference(parameterName)))
+    {
+      return this.#SetTextureALParameter(parameterName, value, uavMipLevel);
+    }
+
     // A TEXTURE IS NOT A PARAMETER HERE, it is a resource, so Carbon's texture
     // overload (`Tr2Effect.h:94`) routes to the runtime texture slot instead.
     // Null clears it, which is what Carbon's `Tr2TextureAL{}` does.
@@ -1142,6 +1160,51 @@ export class Tr2Effect extends Tr2Material
     created.name = parameterName;
     created.SetGpuBuffer(runtimeBuffer);
     this.AddResource(created);
+  }
+
+  /** The Tr2TextureReference a runtime texture slot holds, or null. */
+  #HeldTextureReference(parameterName)
+  {
+    const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2RuntimeTextureParameter);
+
+    return parameter ? CjsSchema.cast(parameter.GetTextureProvider(), Tr2TextureReference) : null;
+  }
+
+  /** Carbon's Tr2TextureAL overload (`Tr2Effect.cpp:2191-2226`). */
+  #SetTextureALParameter(parameterName, texture, uavMipLevel)
+  {
+    const parameter = CjsSchema.cast(this.GetResourceByName(parameterName), Tr2RuntimeTextureParameter);
+
+    if (parameter)
+    {
+      parameter.SetUavMipLevel(uavMipLevel);
+
+      const held = CjsSchema.cast(parameter.GetTextureProvider(), Tr2TextureReference);
+
+      if (held)
+      {
+        if (held.GetTexture() === texture) return;
+        held.SetTexture(texture);
+        return;
+      }
+    }
+
+    const reference = new Tr2TextureReference();
+
+    reference.SetTexture(texture);
+
+    if (parameter)
+    {
+      parameter.SetTextureProvider(reference);
+    }
+    else
+    {
+      const created = new Tr2RuntimeTextureParameter();
+
+      created.Create(parameterName, reference, uavMipLevel);
+      this.AddResource(created);
+    }
+    this.RebuildCachedDataInternal();
   }
 
   /** Carbon's texture overload: a named slot fed by a live texture. */

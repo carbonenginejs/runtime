@@ -63,7 +63,8 @@ test("Execute runs copy, sharpening and tonemapping for a scene without a post p
   // TEMP_PARAM's resets: the tonemapper holds none of the frame's resources.
   for (const name of [ "BlitCurrent", "BlitOriginal" ])
   {
-    assert.equal(effect.GetResourceByName(name).GetTextureProvider() ?? null, null, `${name} reset`);
+    // Carbon keeps the slot's Tr2TextureReference and empties it (cpp:2199-2206).
+    assert.equal(effect.GetResourceByName(name).GetTextureProvider().GetTexture(), null, `${name} reset`);
   }
   assert.equal(effect.GetResourceByName("Exposure").GetGpuBuffer().GetGpuBuffer(0), null, "Exposure reset");
 

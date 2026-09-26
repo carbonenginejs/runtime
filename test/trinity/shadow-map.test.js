@@ -324,7 +324,7 @@ test("the shadow effect does not keep the atlas or the scene depth bound", () =>
 
   // The effect already had a res-path TriTextureParameter of each name from its
   // constructor, and Carbon does NOT replace that - it adds a runtime slot
-  // alongside (cpp:2085-2099). So the cleared value lives on the runtime one.
+  // alongside (cpp:2191-2226). So the cleared value lives on the runtime one.
   for (const name of [ "EveSpaceSceneCascadedShadowMap", "DepthMap" ])
   {
     const runtime = shadowMap.cascadeEffect.resources.filter(
@@ -332,7 +332,9 @@ test("the shadow effect does not keep the atlas or the scene depth bound", () =>
     );
 
     assert.equal(runtime.length, 1, `${name} should have exactly one runtime slot`);
-    assert.equal(runtime[0].GetTextureProvider(), null, `${name} should be cleared`);
+    // Carbon's Tr2TextureAL overload keeps the slot's Tr2TextureReference and
+    // empties it (Tr2Effect.cpp:2199-2206).
+    assert.equal(runtime[0].GetTextureProvider().GetTexture(), null, `${name} should be cleared`);
   }
 });
 
