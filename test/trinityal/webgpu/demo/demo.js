@@ -109,7 +109,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2PPDynamicExposureEffect, Tr2PPTonemappingEffect, Tr2SSAO } from "../../../../npm/dist/trinity/index.js";
+import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2PPDynamicExposureEffect, Tr2PPTonemappingEffect, Tr2SSAO, TriFloat } from "../../../../npm/dist/trinity/index.js";
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
@@ -243,7 +243,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -317,6 +317,17 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const { AmbientOcclusionQuality } = EveSpaceSceneRenderDriver;
   const ambientOcclusion = row("ambient occlusion", choose(Object.entries(AmbientOcclusionQuality).map(([ name, value ]) => [ name.toLowerCase(), value ]), driver.aoQuality));
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
+
+  // Ship speed in m/s. The boosters' glow and the hull's engine heat follow it;
+  // the booster set reaches full intensity at its maxVel (250).
+  const shipSpeed = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "300", step: "1", value: "0" });
+  const shipSpeedReadout = document.createElement("output");
+  const shipSpeedField = Object.assign(document.createElement("span"), { className: "slider" });
+  shipSpeedField.append(shipSpeed, shipSpeedReadout);
+  row("speed", shipSpeedField);
+  const showSpeed = () => { shipSpeedReadout.value = `${shipSpeed.value} m/s`; };
+  shipSpeed.addEventListener("input", () => { speed(Number(shipSpeed.value)); showSpeed(); });
+  showSpeed();
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -2034,6 +2045,12 @@ export async function RunDemo(canvas)
   {
     realScene.envMapResPath = SCENE_NEBULA;
     ship = await BuildSofShip(DNA);
+
+    // THE CLIENT'S SPEED FEED: Carbon's m_speed is a TriFloat the client binds
+    // to the ball's velocity, and UpdateBoosters hands its value to the
+    // booster set (EveShip2.cpp:55-64). Unbound, the ship reads as stationary
+    // and its boosters and engine heat stay dark.
+    ship.speed = new TriFloat();
     realScene.objects.push(ship);
 
     HULL = ship.mesh?.geometryResPath?.replace(/^res:\/+/u, "") ?? "";
@@ -2158,6 +2175,7 @@ export async function RunDemo(canvas)
     },
     dirt: value => realScene ? (ship.dirtLevel = value) : globalThis.demo.shipData({ dirt: value }),
     age: weeks => globalThis.demo.dirt(DirtLevelFromWeeks(weeks)),
+    speed: value => { if (ship?.speed) ship.speed.value = Number(value) || 0; },
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
     ship,
     scene: realScene
@@ -2165,7 +2183,7 @@ export async function RunDemo(canvas)
   // Carbon writes the bounding radius into w every update (EveSpaceObject2.cpp:774);
   // the layout default of 1 was never overwritten here.
   if (!realScene) globalThis.demo.shipData({ radius: bounds.radius });
-  console.log(`console: demo.dirt(v), demo.age(weeks), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
+  console.log(`console: demo.dirt(v), demo.age(weeks), demo.speed(v), demo.activation(v), demo.shipData({...}); demo.materials has ${areas.map(area => area.name).join(", ")}; demo.params(area) lists parameters`);
 
   const depthFormat = "depth24plus";
   const renderTarget = new CjsWebgpuRenderTarget(webgpu, {
@@ -2702,6 +2720,7 @@ export async function RunDemo(canvas)
     sun: SUN,
     flare,
     age: weeks => globalThis.demo.age(weeks),
+    speed: value => globalThis.demo.speed(value),
     clientDefaults: {
       enabled: () => clientState.enabled,
       set: enabled => { clientState.enabled = enabled; ApplyClientDefaults(); }
