@@ -138,10 +138,17 @@ export function DescribeBitmap(bitmap)
 
       if (!sysMem) return null;
 
-      const sysMemSlicePitch = bitmap.GetMipSize(mip);
+      // A volume's slice pitch is ONE depth slice: CreateVolumeTexture divides
+      // the mip by its depth (cpp:71). Every other type uses the whole mip
+      // (cpp:31, 116). The whole mip as a volume's slice pitch made WebGPU
+      // read each 64^3 LUT slice as 4096 rows and refuse the upload.
+      const mipSize = bitmap.GetMipSize(mip);
+      const sysMemSlicePitch = bitmap.GetType() === TextureType.TEX_TYPE_3D
+        ? mipSize / Math.max(bitmap.GetMipDepth(mip), 1)
+        : mipSize;
 
       initialData[mip + layer * mipCount] = new Tr2SubresourceData(sysMem, bitmap.GetMipPitch(mip), sysMemSlicePitch);
-      memoryUse += sysMemSlicePitch;
+      memoryUse += mipSize;
     }
   }
 

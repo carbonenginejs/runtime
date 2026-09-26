@@ -213,6 +213,14 @@ export class TriTextureParameter extends CjsParameter
     // fallback, and this parameter re-dirties its materials when the resource
     // completes, so the real texture replaces it on the next apply.
     const resource = this.GetResource();
+
+    // NO RESOURCE AT ALL - an empty path, as Tonemapping::ApplyLuts gives its
+    // unused LUT slots. Carbon binds Tr2Renderer::GetFallbackTexture here
+    // (cpp:371-379), a static we cannot reach (see
+    // Tr2TextureAnimationParameter.CopyToResourceSet); an empty srv, which the
+    // backend fills with its dummy texture, is the same degraded bind.
+    if (!resource) return resourceDesc.SetSrv(stage, registerIndex, null, colorSpace);
+
     const texture = RealizeTexture(resource, renderContext);
 
     if (!texture) this.#ArmCompletion(resource);
