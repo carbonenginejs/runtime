@@ -26,6 +26,10 @@ import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
+import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
+import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
+import { Tr2RingBuffer } from "../../core/device/Tr2RingBuffer/Tr2RingBuffer.js";
+import { ResourceRequirement } from "#resource";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
@@ -1161,6 +1165,80 @@ export class EveSpaceScene extends CjsModel
   {
     for (const lensflare of this.lensflares) lensflare.RunOcclusionQueries(renderContext, this.updateContext);
     Tr2OcclusionBuffer.getInstance().ProcessBuffer(renderContext);
+  }
+
+  // THE SCENE'S GLOBAL TEXTURES (EveSpaceScene.cpp:252-261). Carbon registers
+  // each with a TYPED null - `(ITr2TextureProvider*)nullptr` - so the name is a
+  // texture variable before anything fills it; a JS null has no type, so an
+  // empty Tr2TextureReference stands for it (as the blitter's BlitSource).
+  // Effects bind these by name when their materials map, so they exist from
+  // construction.
+
+  /** m_envMapHandle: "EveSpaceSceneEnvMap", the reflection (probe or nebula). */
+  #envMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
+
+  /** m_staticEnvMapHandle: "EveSpaceSceneStaticEnvMap", the nebula itself. */
+  #staticEnvMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
+
+  /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
+  #ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
+
+  /** m_envMapTextureRes / m_staticEnvMapTextureRes, set by Initialize. */
+  #envMapTextureRes = null;
+
+  #staticEnvMapTextureRes = null;
+
+  /**
+   * Carbon Initialize (cpp:3207-3226), with the constructor's ring-buffer
+   * registrations (cpp:257-258) moved here. The nebula loads from
+   * envMapResPath; the reflection is the probe's cube when the scene has a
+   * valid probe, else the nebula.
+   *
+   * The render context is an ADDED argument: Carbon's constructor reaches the
+   * BoneTransforms ring through the process-wide context, and a JS scene is
+   * constructed before any context exists, so the ring is registered here.
+   *
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {boolean} True.
+   */
+  @carbon.method
+  @impl.adapted
+  Initialize(renderContext)
+  {
+    const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
+    bones.SetName("BoneTransformsBuffer");
+    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+
+    this.#staticEnvMapTextureRes = this.envMapResPath
+      ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
+      : null;
+
+    if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
+    {
+      this.#envMapTextureRes = this.reflectionProbe.GetReflection();
+      this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
+      this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
+    }
+    else
+    {
+      this.#envMapTextureRes = this.#staticEnvMapTextureRes;
+    }
+
+    return true;
+  }
+
+  /**
+   * Carbon UpdateVariableStore's environment-map half (cpp:2984-2993): the
+   * nebula and the reflection go through the global store each frame.
+   *
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  UpdateVariableStore()
+  {
+    this.#staticEnvMapHandle.SetValue(this.#staticEnvMapTextureRes);
+    this.#envMapHandle.SetValue(this.#envMapTextureRes);
   }
 
   /** The Tr2LightManager GatherLights last ran with; see #EngineFrameState. */

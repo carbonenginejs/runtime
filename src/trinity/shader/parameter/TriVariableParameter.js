@@ -151,9 +151,9 @@ export class TriVariableParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
-    return this.variable?.CopyToResourceSet(resourceDesc, stage, registerIndex, flags) ?? false;
+    return this.variable?.CopyToResourceSet(resourceDesc, stage, registerIndex, flags, renderContext) ?? false;
   }
 
   /**

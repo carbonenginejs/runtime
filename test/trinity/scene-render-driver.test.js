@@ -64,6 +64,7 @@ function sceneRecording(calls)
     Jitter() { calls.push([ "Jitter" ]); },
     EndRender() { calls.push([ "EndRender" ]); },
     RunLensflareOcclusionQueries() { calls.push([ "RunLensflareOcclusionQueries" ]); },
+    UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
     viewLast: new Float32Array(16),
     projectionLast: new Float32Array(16),
     jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
@@ -142,6 +143,8 @@ test("the frame runs Carbon's order", () =>
     "UpdateVisibility",
     "GetRenderables",
     "Collect",
+    // After the gather: the scene's global textures (cpp:1390-1397).
+    "UpdateVariableStore",
     // AFTER the gather: the blended sun colour is only current once lights have
     // been gathered (EveSpaceScene.cpp:1396-1426).
     "PopulatePerFramePSData",

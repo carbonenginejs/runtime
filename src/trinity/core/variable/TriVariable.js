@@ -5,6 +5,7 @@ import { CjsModel } from "#model";
 import { Tr2ColorSpace } from "#consts/render-context";
 import { ResourceFlags } from "../../shader/parameter/ITr2EffectValue.js";
 import { TriVariableContentType } from "../../generated/trinityCore/enums.js";
+import { RealizeTexture } from "../Tr2ImageIOHelpers.js";
 
 
 /**
@@ -131,11 +132,15 @@ export class TriVariable extends CjsModel
    * @param {number} stage A `ShaderType`.
    * @param {number} registerIndex The register.
    * @param {number} [flags] A `ResourceFlags` word; bit 0 is sRGB.
+   * @param {object} [renderContext] The binding context, an ADDED argument as
+   *   on TriTextureParameter: a texture resource here creates its texture at
+   *   first bind (Carbon creates it in DoPrepare), so a provider that has
+   *   resolved but not yet realized is realized through the context.
    * @returns {boolean} Whether the slot took the binding.
    */
   @carbon.method
-  @impl.implemented
-  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
+  @impl.adapted
+  CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0, renderContext = null)
   {
     if (this.contentType === TriVariableContentType.TRIVARIABLE_TEXTURE_RES)
     {
@@ -143,7 +148,7 @@ export class TriVariable extends CjsModel
         ? Tr2ColorSpace.COLOR_SPACE_SRGB
         : Tr2ColorSpace.COLOR_SPACE_LINEAR;
 
-      return resourceDesc.SetSrv(stage, registerIndex, this.#Texture(), colorSpace);
+      return resourceDesc.SetSrv(stage, registerIndex, this.#Texture(renderContext), colorSpace);
     }
 
     if (this.contentType === TriVariableContentType.TRIVARIABLE_GPUBUFFER)
@@ -182,12 +187,18 @@ export class TriVariable extends CjsModel
     return false;
   }
 
-  /** The provider's texture, or null when it has not resolved one. */
-  #Texture()
+  /** The provider's texture, realized through the context if it has resolved but not yet been created; null otherwise. */
+  #Texture(renderContext = null)
   {
     const provider = this.value;
 
-    return typeof provider?.GetTexture === "function" ? provider.GetTexture() : null;
+    if (typeof provider?.GetTexture !== "function") return null;
+
+    const texture = provider.GetTexture();
+
+    if (texture || !renderContext || typeof provider.IsPrepared !== "function") return texture;
+
+    return RealizeTexture(provider, renderContext);
   }
 
   /** The provider's first buffer, which is the index Carbon passes. */

@@ -491,6 +491,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
     if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
 
+
     // BeginRender jitters the camera's projection and draws with the result
     // (EveSpaceScene.cpp:1329-1331).
     this.scene.Jitter(renderContext);
@@ -500,6 +501,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
     const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
+
+    // After the gather, the scene's global textures - the nebula and the
+    // reflection - go through the variable store (UpdateVariableStore,
+    // EveSpaceScene.cpp:1390-1397).
+    this.scene.UpdateVariableStore();
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
