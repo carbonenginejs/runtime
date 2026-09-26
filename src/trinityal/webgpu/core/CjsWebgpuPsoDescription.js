@@ -120,7 +120,9 @@ export class CjsWebgpuPsoDescription
       primitive: { ...projected.primitive, topology: TOPOLOGIES[this.topology] },
       vertex: { buffers: this.vertexBufferLayouts },
       fragment: {
-        targets: this.colorFormats.map(format => ({ format, blend: projected.blend ?? undefined }))
+        // An unbound slot between bound ones is a null target, as it is a null
+        // colour attachment in the pass.
+        targets: this.colorFormats.map(format => (format ? { format, blend: projected.blend ?? undefined } : null))
       },
       multisample: { count: this.sampleCount }
     };

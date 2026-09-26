@@ -286,6 +286,38 @@ export class CjsWebgpuTextureAL
   }
 
   /**
+   * The view a render pass attaches: mip zero of one slice, in the created
+   * format. Metal attaches the texture with a `slice` on the pass descriptor
+   * (`MetalWorkQueue.mm:2000-2014`); a WebGPU attachment view must name exactly
+   * one mip and one layer instead.
+   *
+   * @param {number} [slice] The array slice or cube face.
+   * @returns {GPUTextureView|null} The view, or null before Create.
+   */
+  GetDeviceRenderTargetView(slice = 0)
+  {
+    if (!this.m_texture) return null;
+
+    const key = `attachment:${slice}`;
+    let view = this.m_views.get(key) ?? null;
+
+    if (!view)
+    {
+      view = this.m_texture.createView({
+        label: `${this.m_name || "Tr2TextureAL"} ${key}`,
+        dimension: "2d",
+        baseMipLevel: 0,
+        mipLevelCount: 1,
+        baseArrayLayer: slice,
+        arrayLayerCount: 1
+      });
+      this.m_views.set(key, view);
+    }
+
+    return view;
+  }
+
+  /**
    * The `GPUTextureFormat` the texture was created in. A UAV texture may differ
    * from its Carbon format (see `StorageFormatFor`), so a render pass or
    * pipeline targeting it reads this, not the description's format.

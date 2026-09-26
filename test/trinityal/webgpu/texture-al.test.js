@@ -91,6 +91,26 @@ test("a UAV texture WebGPU cannot store to is created in a storage-capable forma
   assert.equal(sampled.GetDeviceStorageView("2d", 0), null);
 });
 
+test("a render-target view names one mip and one slice, and is cached", () =>
+{
+  const { al, calls } = composed();
+  const depth = new CjsWebgpuTextureAL();
+
+  assert.equal(depth.GetDeviceRenderTargetView(), null, "nothing before Create");
+  assert.equal(depth.Create(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
+  assert.equal(depth.GetDeviceFormat(), "depth32float");
+
+  const view = depth.GetDeviceRenderTargetView(0);
+
+  assert.equal(view.dimension, "2d");
+  assert.equal(view.baseMipLevel, 0);
+  assert.equal(view.mipLevelCount, 1);
+  assert.equal(view.baseArrayLayer, 0);
+  assert.equal(view.arrayLayerCount, 1);
+  assert.equal(depth.GetDeviceRenderTargetView(0), view);
+  assert.equal(calls.views.length, 1);
+});
+
 test("Create makes the texture with its sRGB sibling declared and uploads one write per subresource", () =>
 {
   const { al, calls } = composed();

@@ -756,3 +756,157 @@ test("an incomplete description says what is missing rather than building on a g
   assert.deepEqual(composedAl.GetPsoDescription().colorFormats, [ "bgra8unorm" ]);
   assert.equal(composedAl.GetPsoDescription().GetMissing(), null);
 });
+
+// A texture bound as a render target: the device format it was created in,
+// and a view per slice, as CjsWebgpuTextureAL answers.
+function boundTexture(name, format)
+{
+  return {
+    name,
+    GetWidth: () => 64,
+    GetHeight: () => 64,
+    GetFormat: () => 10,
+    GetDeviceFormat: () => format,
+    GetDeviceRenderTargetView: slice => `${name}:${slice}`
+  };
+}
+
+function composedWithPasses()
+{
+  const passes = [];
+  const al = new CjsWebgpuRenderContextAL({
+    webgpu: {
+      GetDevice: () => ({
+        createCommandEncoder: () => ({
+          beginRenderPass(descriptor)
+          {
+            passes.push(descriptor);
+            return { end() {} };
+          },
+          finish: () => "command-buffer"
+        })
+      }),
+      Submit() {}
+    },
+    renderTarget: {
+      AcquireFrame: () => ({ id: "frame" }),
+      CreateRenderPassDescriptor: () => ({ label: "canvas" }),
+      GetWidth: () => 1280,
+      GetHeight: () => 720,
+      GetFormat: () => "bgra8unorm",
+      GetDepthFormat: () => "depth24plus",
+      GetSampleCount: () => 1
+    }
+  });
+
+  al.CreateDevice();
+  al.BeginScene();
+
+  // A stand-in program: the draw is refused, but Metal opens the pass first.
+  al.SetShaderProgram({ id: "program" });
+
+  return { al, passes };
+}
+
+test("a texture target's pass attaches the texture and the bound depth stencil", () =>
+{
+  const { al, passes } = composedWithPasses();
+  const colour = boundTexture("customBackBuffer", "rgba16float");
+  const depth = boundTexture("depthBuffer", "depth32float");
+
+  // EveSpaceSceneRenderDriver's off-screen begin: colour, depth, then a clear.
+  al.SetRenderTarget(0, colour);
+  al.SetDepthStencil(depth);
+  al.Clear({ color: [ 0, 0, 0, 1 ], depth: 1 });
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  // Until 2026-09-26 every pass was the canvas's, whatever was bound, so the
+  // scene drew into the canvas and the post process then sampled an empty
+  // texture: a black frame with no error.
+  assert.equal(passes.length, 1);
+  assert.deepEqual(passes[0].colorAttachments, [
+    { view: "customBackBuffer:0", loadOp: "clear", storeOp: "store", clearValue: { r: 0, g: 0, b: 0, a: 1 } }
+  ]);
+  assert.deepEqual(passes[0].depthStencilAttachment, {
+    view: "depthBuffer:0",
+    depthLoadOp: "clear",
+    depthStoreOp: "store",
+    depthClearValue: 1
+  });
+});
+
+test("the pipeline description takes device formats from the bound textures", () =>
+{
+  const { al } = composedWithPasses();
+
+  al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
+  al.SetDepthStencil(boundTexture("depthBuffer", "depth32float"));
+
+  // GetFormat is Carbon's PixelFormat number (10 here); a pipeline needs the
+  // GPUTextureFormat the texture was created in.
+  const description = al.GetPsoDescription();
+
+  assert.deepEqual(description.colorFormats, [ "rgba16float" ]);
+  assert.equal(description.depthFormat, "depth32float");
+  assert.equal(description.sampleCount, 1);
+
+  // A texture target with no depth stencil has no depth in the pipeline.
+  al.SetDepthStencil(null);
+  assert.equal(al.GetPsoDescription().depthFormat, null);
+});
+
+test("an unbound slot between bound ones is a null attachment and a null target", () =>
+{
+  const { al, passes } = composedWithPasses();
+
+  al.SetRenderTarget(0, boundTexture("first", "rgba8unorm"));
+  al.SetRenderTarget(2, boundTexture("third", "r32float"));
+
+  assert.deepEqual(al.GetPsoDescription().colorFormats, [ "rgba8unorm", null, "r32float" ]);
+
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  // Unhinted: every attachment loads and stores.
+  assert.deepEqual(passes[0].colorAttachments.map(attachment => attachment?.view ?? null), [ "first:0", null, "third:0" ]);
+  assert.equal(passes[0].colorAttachments[0].loadOp, "load");
+  assert.equal("depthStencilAttachment" in passes[0], false);
+});
+
+test("the canvas pass is unchanged, and rebinding it after a texture pass returns to it", () =>
+{
+  const { al, passes } = composedWithPasses();
+
+  al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  // The post chain's final blit: the canvas, no depth stencil.
+  al.SetRenderTarget(0, al.GetDefaultBackBuffer());
+  al.SetDepthStencil(null);
+
+  assert.deepEqual(al.GetPsoDescription().colorFormats, [ "bgra8unorm" ]);
+  assert.equal(al.GetPsoDescription().depthFormat, "depth24plus");
+
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  assert.equal(passes.length, 2);
+  assert.equal(passes[1].label, "canvas");
+});
+
+test("a packed clear colour is Carbon's ARGB word", () =>
+{
+  const { al, passes } = composedWithPasses();
+
+  al.SetRenderTarget(0, boundTexture("target", "rgba8unorm"));
+  al.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0x80ff0000), null);
+  al.SetIndices({ id: "indices" }, 2);
+  al.DrawIndexedInstanced(3, 1, 0, 0, 0);
+
+  const clear = passes[0].colorAttachments[0].clearValue;
+
+  assert.equal(clear.r, 1);
+  assert.equal(clear.g, 0);
+  assert.equal(clear.a, 128 / 255);
+});

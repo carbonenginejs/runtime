@@ -113,6 +113,29 @@ function DeviceBufferOf(bound)
 }
 
 
+/**
+ * A clear colour as a `GPUColor`. `Tr2ColorAttachment.clearColor` is Carbon's
+ * packed ARGB word (`Color_inline.h:15-22`); Trinity's clears also pass a
+ * four-float colour, which is taken as r, g, b, a.
+ */
+function gpuColor(value)
+{
+  if (typeof value === "number")
+  {
+    return {
+      r: ((value >>> 16) & 0xff) / 255,
+      g: ((value >>> 8) & 0xff) / 255,
+      b: (value & 0xff) / 255,
+      a: ((value >>> 24) & 0xff) / 255
+    };
+  }
+
+  if (value && value.length >= 4) return { r: value[0], g: value[1], b: value[2], a: value[3] };
+
+  return value ?? { r: 0, g: 0, b: 0, a: 0 };
+}
+
+
 function fail(message)
 {
   const error = new Error(`CjsWebgpuRenderContextAL: ${message}`);
@@ -628,6 +651,8 @@ export class CjsWebgpuRenderContextAL
    */
   _Descriptor(attachments)
   {
+    if (!this._IsCanvasPass()) return this._TextureDescriptor(attachments);
+
     // First pass of the scene acquires; later passes share the one view.
     this._frame ??= this._renderTarget.AcquireFrame();
 
@@ -638,6 +663,60 @@ export class CjsWebgpuRenderContextAL
       clearColor: clear?.loadOp === "clear" ? clear.clearValue : undefined,
       clearDepth: attachments?.depth?.loadOp === "clear" ? attachments.depth.clearValue : undefined
     });
+  }
+
+  /**
+   * The render-pass descriptor when textures are bound: every bound colour
+   * slot and the bound depth stencil, as Metal's pass descriptor holds the
+   * textures `SetRenderAttachments` and `SetDepthAttachment` put there
+   * (`MetalWorkQueue.mm:2000-2096`). Unhinted attachments LOAD and STORE, the
+   * backend default the canvas path also keeps. The hint's colours are the
+   * bound slots in order, which is how `Clear` builds them.
+   */
+  _TextureDescriptor(attachments)
+  {
+    const bound = this._workQueue.GetAttachments();
+    const hinted = attachments?.colors ?? [];
+    let next = 0;
+
+    const colorAttachments = bound.colors.map(color =>
+    {
+      if (!color) return null;
+
+      const hint = hinted[next++] ?? null;
+      const clear = hint?.loadOp === "clear";
+
+      return {
+        view: color.texture.GetDeviceRenderTargetView(color.slice),
+        loadOp: clear ? "clear" : "load",
+        storeOp: hint?.storeOp ?? "store",
+        ...(clear ? { clearValue: gpuColor(hint.clearValue) } : {})
+      };
+    });
+
+    while (colorAttachments.length && !colorAttachments[colorAttachments.length - 1]) colorAttachments.pop();
+
+    const descriptor = { label: `pass ${this._workQueue.GetPassCount()}`, colorAttachments };
+    const depth = bound.depth?.texture ?? null;
+
+    if (depth)
+    {
+      const hint = attachments?.depth ?? null;
+      const clear = hint?.loadOp === "clear";
+      const stencil = depth.GetDeviceFormat().includes("stencil");
+
+      descriptor.depthStencilAttachment = {
+        view: depth.GetDeviceRenderTargetView(0),
+        depthLoadOp: clear ? "clear" : "load",
+        depthStoreOp: hint?.storeOp ?? "store",
+        ...(clear ? { depthClearValue: hint.clearValue } : {}),
+        ...(stencil
+          ? { stencilLoadOp: clear ? "clear" : "load", stencilStoreOp: "store", ...(clear ? { stencilClearValue: 0 } : {}) }
+          : {})
+      };
+    }
+
+    return descriptor;
   }
 
   /**
@@ -1885,29 +1964,50 @@ export class CjsWebgpuRenderContextAL
    */
   _RefreshAttachmentFormats()
   {
-    const primary = this._boundRenderTargets[0];
+    // THE DESCRIPTION DESCRIBES THE PASS `_Descriptor` OPENS, as Metal's
+    // pipeline key reads the formats off the pass descriptor's own textures
+    // (`MetalWorkQueue.mm:1681-1698`). With the canvas at slot zero the pass is
+    // the canvas's, depth included; otherwise it is the bound textures and the
+    // bound depth stencil, each in the format it was CREATED in. A texture's
+    // `GetFormat` is Carbon's PixelFormat number, not a GPUTextureFormat, and a
+    // UAV texture may have been created in a substitute (`GetDeviceFormat`).
+    if (this._IsCanvasPass())
+    {
+      if (!this._renderTarget)
+      {
+        this._psoDescription.colorFormats = [];
+        this._psoDescription.depthFormat = null;
+        this._psoDescription.sampleCount = 1;
+        return;
+      }
 
-    // Only the render target answers GetFormat today. A bound colour target in
-    // any other slot is a Tr2TextureAL this backend does not have yet, so its
-    // format is unknown rather than assumed - and GetMissing reports an
-    // incomplete description instead of a pipeline built on a guess.
-    this._psoDescription.colorFormats = primary && typeof primary.GetFormat === "function"
-      ? [ primary.GetFormat() ]
-      : [];
+      this._psoDescription.colorFormats = [ this._renderTarget.GetFormat() ];
+      this._psoDescription.depthFormat = this._renderTarget.GetDepthFormat();
+      this._psoDescription.sampleCount = this._renderTarget.GetSampleCount();
+      return;
+    }
 
-    // DEPTH FOLLOWS THE PASS DESCRIPTOR, NOT THE BOUND DEPTH STENCIL. The work
-    // queue's pass is built by the render target, which attaches its own depth
-    // whenever it has one (`core/renderTarget.js:311-320`) and never consults
-    // `SetDepthStencil`. A description that read the bound depth stencil said
-    // "no depth" for every pass after BeginScene's reset, the recipe refused,
-    // and nothing drew. The description must describe the pass the queue will
-    // actually open; the bound depth stencil not reaching that pass is the
-    // open defect, recorded in the handover, and it is fixed THERE, not by
-    // letting the two halves disagree here.
-    const renderTargetBound = this._renderTarget !== null && primary === this._renderTarget;
+    const formats = this._boundRenderTargets.map(target => (target ? target.GetDeviceFormat() : null));
 
-    this._psoDescription.depthFormat = renderTargetBound ? this._renderTarget.GetDepthFormat() : null;
-    this._psoDescription.sampleCount = renderTargetBound ? this._renderTarget.GetSampleCount() : 1;
+    while (formats.length && !formats[formats.length - 1]) formats.pop();
+
+    this._psoDescription.colorFormats = formats;
+    this._psoDescription.depthFormat = this._depthStencil ? this._depthStencil.GetDeviceFormat() : null;
+    this._psoDescription.sampleCount = 1;
+  }
+
+  /**
+   * Whether the next pass is the canvas's: the canvas render target at slot
+   * zero, or nothing bound at all (the canvas stays the pass of last resort,
+   * as it was before textures could be targets).
+   */
+  _IsCanvasPass()
+  {
+    const primary = this._boundRenderTargets[0] ?? null;
+
+    if (primary) return primary === this._renderTarget;
+
+    return !this._depthStencil && !this._boundRenderTargets.some(Boolean);
   }
 
   /**
