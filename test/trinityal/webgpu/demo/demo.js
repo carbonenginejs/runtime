@@ -1966,11 +1966,11 @@ export async function RunDemo(canvas)
     ship = await BuildSofShip(DNA);
     realScene.objects.push(ship);
 
-    // INTERIM, DEMO-ONLY: EveSpaceObjectDecal and EveBoosterSet2Renderable
-    // GetBatches are not ported and throw inside the batch collect, which
-    // would end every frame. They are dropped from the gather, and named once,
-    // until their ports land. Remove this when they do.
-    const unbatched = new Set([ "EveSpaceObjectDecal", "EveBoosterSet2Renderable" ]);
+    // INTERIM, DEMO-ONLY: EveBoosterSet2Renderable GetBatches is not ported
+    // and throws inside the batch collect, which would end every frame. It is
+    // dropped from the gather, and named once, until its port lands. Remove
+    // this when it does. (EveSpaceObjectDecal's port has landed.)
+    const unbatched = new Set([ "EveBoosterSet2Renderable" ]);
     const dropped = new Set();
     const getRenderables = realScene.GetRenderables.bind(realScene);
     realScene.GetRenderables = (out = []) =>
