@@ -16,6 +16,7 @@ import {
 } from "../../npm/dist/trinity/postProcess/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import { float32ToBits } from "../../npm/dist/global/utils/bytes.js";
 
 /** A context with the stub backend: the device without webgpu or webgl. */
 function stubContext()
@@ -408,7 +409,8 @@ test("TAA ping-pongs its persistent accumulators and blends toward Carbon's 0.96
   }
 
   // cpp:1476-1520: frame n reads accumulator n % 2 and weights n / (n + 1).
-  assert.deepEqual(inputs, [ 0, 1, 2 ]);
+  // FrameIndex is a uint32_t, so its BITS are the frame (Tr2Effect.cpp:2103-2120).
+  assert.deepEqual(inputs.map(float32ToBits), [ 0, 1, 2 ]);
   assert.deepEqual(weights, [ 0, 0.5, Math.fround(2 / 3) ]);
   assert.equal(postProcess.taaEffect.GetOption("QUALITY"), "QUALITY_HIGH");
   assert.equal(postProcess.taaEffect.GetOption("DEBUG"), "DEBUG_NONE");

@@ -3,6 +3,8 @@ import assert from "node:assert/strict";
 
 import { Tr2Denoiser, Tr2GpuResourcePool, Tr2RenderContext, Tr2Renderer } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2Effect } from "../../npm/dist/trinity/shader/index.js";
+import { float32ToBits } from "../../npm/dist/global/utils/bytes.js";
 import { PixelFormat, TextureType, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 
 /** A context with the stub backend, which is the device without webgpu or webgl. */
@@ -106,6 +108,38 @@ test("the pass bracket is balanced however Apply leaves", () =>
   denoiser.Apply({ IsValid: () => false, Get: () => null }, { IsValid: () => false }, null, [], 1, pool, context, renderer);
 
   assert.deepEqual([ context.GetStackSizeRT(), context.GetStackSizeDS() ], before);
+});
+
+test("Radius goes through the uint32 overload: its bits, not a float", () =>
+{
+  // Tr2Effect.cpp:2103-2120 stores a uint32 by reinterpreting its bits, and
+  // Denoise1D loops from -Radius to +Radius on those bits read as an int. As
+  // the float 5.0 it read 1084227584, and the loop hung the GPU.
+  const context = stubContext();
+  const pool = new Tr2GpuResourcePool().SetRenderContext(context);
+  const renderer = new Tr2Renderer();
+  const denoiser = new Tr2Denoiser();
+  const radii = [];
+  const original = Tr2Effect.prototype.SetParameter;
+
+  renderer.PrepareDeviceResources(context);
+  Tr2Effect.prototype.SetParameter = function (name, value, ...rest)
+  {
+    if (name === "Radius") radii.push(value);
+    return original.call(this, name, value, ...rest);
+  };
+
+  try
+  {
+    denoiser.Apply(surface(pool, "source"), surface(pool, "depth").Get(), null, new Array(16).fill(0), 1, pool, context, renderer);
+  }
+  finally
+  {
+    Tr2Effect.prototype.SetParameter = original;
+  }
+
+  assert.ok(radii.length > 0, "the blur passes were given a radius");
+  assert.deepEqual(radii.map(float32ToBits), radii.map(() => 5), "Carbon's default m_radius, as integer bits");
 });
 
 test("SetRadius and OnModified both re-arm the parameter send", () =>

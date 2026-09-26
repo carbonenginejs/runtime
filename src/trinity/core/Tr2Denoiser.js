@@ -27,6 +27,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec2 } from "#math/vec2";
 import { vec4 } from "#math/vec4";
+import { float32FromBits } from "#utils/bytes";
 import { Tr2Effect } from "../shader/Tr2Effect.js";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
 import { RenderingMode } from "#consts/graphics";
@@ -311,7 +312,11 @@ export class Tr2Denoiser extends CjsModel
 
     // Carbon's `max(uint32_t(radius / upscaling + 0.5f), 2u)`: round to nearest,
     // and never below two, or the blur would sample only itself.
-    effect.SetParameter("Radius", Math.max(Math.trunc(this.radius / upscaling + 0.5), 2));
+    // THE UINT32 OVERLOAD STORES THE INTEGER'S BITS (Tr2Effect.cpp:2103-2120),
+    // and Denoise1D loops from -Radius to +Radius on those bits read as an int.
+    // Passed as the float 5.0 it read 1084227584: two billion iterations per
+    // pixel, which hung the GPU.
+    effect.SetParameter("Radius", float32FromBits(Math.max(Math.trunc(this.radius / upscaling + 0.5), 2)));
 
     effect.SetParameter("ProjectionInv", projection);
     // Carbon's Vector2( projection._43, projection._33 ); column-major puts

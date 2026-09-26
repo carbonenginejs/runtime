@@ -40,6 +40,7 @@ import { FillAndSetConstants } from "../core/Tr2RenderUtils.js";
 import { vec2 } from "#math/vec2";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { float32FromBits } from "#utils/bytes";
 import "./effect/Tr2PPEffect.js";
 
 /** `RENDER_TARGET` in Carbon's anonymous namespace (cpp:150). */
@@ -1278,7 +1279,8 @@ export class Tr2PostProcessRenderer extends CjsModel
       }
     }
 
-    effect.SetParameter("FrameIndex", frameCount);
+    // frame_count is a uint32_t, and that overload stores its bits (Tr2Effect.cpp:2103-2120).
+    effect.SetParameter("FrameIndex", float32FromBits(frameCount));
     effect.SetParameter("EarlyOutThreshold", taa.earlyOutThreshold);
     effect.SetOption("QUALITY", Tr2PostProcessRenderer.getTaaQualityShaderOptionValue(taa.quality));
     effect.SetOption("DEBUG", Tr2PostProcessRenderer.getTaaDebugShaderOptionValue(taa.debug));
