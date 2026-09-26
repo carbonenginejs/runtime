@@ -26,6 +26,15 @@ const BLOCK = {
                     format: "RGBA32F",
                     width: 2048,
                     returnTypes: [ "float", "float", "float", "float" ]
+                },
+                {
+                    // A Carbon-named uint view (Histogram, R32_UINT) keeps its format.
+                    kind: "bufferTexture",
+                    registerIndex: 6,
+                    name: "bt6",
+                    format: "R32UI",
+                    width: 2048,
+                    returnTypes: [ "uint", "uint", "uint", "uint" ]
                 }
             ],
             stageInputs: [

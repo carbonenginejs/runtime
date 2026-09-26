@@ -2,6 +2,7 @@ import CjsDxbcFormat from "../../../dxbc/index.js";
 import { WebglReadError } from "../WebglReadError.js";
 import { DxbcGlslOperandFormatter } from "./DxbcGlslOperandFormatter.js";
 import { DxbcGlslHelperRegistry } from "./DxbcGlslHelperRegistry.js";
+import { CARBON_VIEW_FORMATS } from "../../../hlsl/core/carbonTypedViews.js";
 
 const COMPONENTS = [ "x", "y", "z", "w" ];
 
@@ -24,6 +25,15 @@ const MAX_MAP_STYLE_UAV_OUTPUTS = 8;
  * cube coordinate is a direction, so a [0,1] range test is meaningless there.
  */
 const CUBE_DIMENSION = 6;
+
+/**
+ * The data texture a Carbon-named Buffer<> view becomes: a one-channel texture
+ * of the view's format, so texelFetch returns D3D's (x, 0, 0, 1).
+ */
+const BUFFER_TEXTURE_BY_VIEW = Object.freeze({
+    R32_FLOAT: Object.freeze({ format: "R32F", sampler: "sampler2D", componentClass: CARBON_VIEW_FORMATS.R32_FLOAT.componentClass }),
+    R32_UINT: Object.freeze({ format: "R32UI", sampler: "usampler2D", componentClass: CARBON_VIEW_FORMATS.R32_UINT.componentClass })
+});
 
 const SAMPLER_TYPE_BY_DIMENSION = {
     2: "sampler2D",
@@ -143,6 +153,11 @@ export class DxbcGlslEmitter
             // and is still honoured; this one carries the rest - Frontier's
             // roughness, atlas and dirt families among them.
             textureArrayFamilies: [],
+            // Buffer<> registers whose bound view format Carbon names, as
+            // { registerIndex, format } (`hlsl/core/carbonTypedViews.js`).
+            // The data texture then takes that format; a register not listed
+            // keeps the RGBA32F data texture.
+            typedViewFormats: [],
             // Which end of the source clip range is NEAR, and therefore which
             // form the depth-range fixup takes.
             //
@@ -442,6 +457,7 @@ export class DxbcGlslEmitter
             inputNames: new Map(),
             outputNames: new Map(),
             resourceDimensions: new Map(),
+            bufferTextureFormats: new Map(),
             resourceNames: new Map(),
             ...(() =>
             {
@@ -1480,17 +1496,33 @@ export class DxbcGlslEmitter
                 }
                 if (declaration.resourceDimension === 1)
                 {
-                    // Buffer<> texel buffers (post-processing) become float data textures
+                    // Buffer<> texel buffers (post-processing) become data textures
                     // read via width-wrapped texelFetch; no samplerBuffer in WebGL2.
+                    // A Carbon-named view format picks a one-channel texture, whose
+                    // texelFetch returns D3D's (x, 0, 0, 1); a uint view reads
+                    // through a usampler2D. Otherwise the texture is RGBA32F.
                     const name = `bt${register}`;
+                    const viewFormat = this.profile.typedViewFormats
+                        .find((entry) => entry.registerIndex === register)?.format ?? null;
+                    const texture = BUFFER_TEXTURE_BY_VIEW[viewFormat ?? ""] ?? null;
+                    if (viewFormat && !texture)
+                    {
+                        throw new Error(`DxbcGlslEmitter: buffer t${register} has unsupported view format ${viewFormat}`);
+                    }
+                    const returns = declaration.returnType?.returnTypeNames || [];
+                    if (texture && returns.some((entry) => entry !== texture.componentClass))
+                    {
+                        throw new Error(`DxbcGlslEmitter: buffer t${register} is declared ${returns.join(",")}, which does not match its bound ${viewFormat} view`);
+                    }
                     state.resourceDimensions.set(register, 1);
                     state.resourceNames.set(register, name);
-                    state.declarationLines.push(`uniform highp sampler2D ${name};`);
+                    state.bufferTextureFormats.set(register, texture?.format ?? "RGBA32F");
+                    state.declarationLines.push(`uniform highp ${texture?.sampler ?? "sampler2D"} ${name};`);
                     state.bindings.push({
                         kind: "bufferTexture",
                         registerIndex: register,
                         name,
-                        format: "RGBA32F",
+                        format: texture?.format ?? "RGBA32F",
                         width: this.profile.dataTextureWidth,
                         returnTypes: declaration.returnType?.returnTypeNames || null
                     });
@@ -2969,6 +3001,8 @@ export class DxbcGlslEmitter
             const widthMask = this.profile.dataTextureWidth - 1;
             const widthShift = Math.log2(this.profile.dataTextureWidth);
             call = `texelFetch(${texName}, ivec2((${index}) & ${widthMask}, (${index}) >> ${widthShift}), 0)`;
+            // A uint view is sampled as usampler2D; temporaries hold float bits.
+            if (state.bufferTextureFormats.get(texOperand.registerIndex) === "R32UI") call = `uintBitsToFloat(${call})`;
         }
         else
         {

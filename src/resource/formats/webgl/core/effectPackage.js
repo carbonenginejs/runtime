@@ -1,6 +1,7 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsHlslFormat } from "../../hlsl/index.js";
 import { HlslEffectBindingManifest } from "../../hlsl/core/tr2/shader/HlslEffectBindingManifest.js";
+import { HlslEffectResource } from "../../hlsl/core/tr2/shader/HlslEffectResource.js";
 import { HlslRenderContextEnum, hlslShaderStageName } from "../../hlsl/core/tr2/HlslRenderContextEnum.js";
 
 import {
@@ -12,6 +13,7 @@ import { emitGlslWithOptions } from "./helpers.js";
 import { inspectGlslEffectContainer } from "./inspectGlslEffectContainer.js";
 import { inspectRasterCompleteness } from "./glslEffectCompleteness.js";
 import { recogniseTextureArrayFamilies } from "../../hlsl/core/textureArrayFamilies.js";
+import { viewFormatForParameter } from "../../hlsl/core/carbonTypedViews.js";
 import {
     recogniseLocalLightFamily,
     stripLocalLightBindings
@@ -157,6 +159,7 @@ export function buildEffectPackage(input, options = {})
                 stringTableOffset: stage.bytecode.stringTableOffset,
                 bytes: stage.bytecode.bytes,
                 textureArrays: stage.textureArrays,
+                typedViewFormats: stage.typedViewFormats,
                 emulatedAddressing: stage.emulatedAddressing,
                 localLights: stage.localLights,
                 contracts: [ {
@@ -676,7 +679,10 @@ function collectStages(effectDescription, selection)
                     // the emitter, which is the only thing that knows from the
                     // DXBC which resource each sampler serves.
                     emulatedAddressing: recogniseEmulatedAddressing(mapToJson(stageInput.samplers), mapToJson(stageInput.resources)),
-                    localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources))
+                    localLights: recogniseLocalLightFamily(mapToJson(stageInput.resources)),
+                    // Buffer<> registers whose view format Carbon names, from the
+                    // parameter's CjsViewFormat annotation or the shared table.
+                    typedViewFormats: typedViewFormatsFor(mapToJson(stageInput.resources), effectDescription)
                 });
             }
 
@@ -849,6 +855,7 @@ function translateStages(shaderMap, stageMap, values)
                 ...(record.emulatedAddressing
                     ? { emulatedAddressing: record.emulatedAddressing }
                     : {}),
+                ...(record.typedViewFormats?.length ? { typedViewFormats: record.typedViewFormats } : {}),
                 ...(localLightEmitterOptions(record.localLights, values.localLights) ?? {}),
                 ...(profileNeutral ?? {})
             });
@@ -986,6 +993,18 @@ function cloneJson(value)
     }
 
     return JSON.parse(JSON.stringify(value));
+}
+
+/** Buffer<> resources with a known Carbon view format, as { registerIndex, format }. */
+function typedViewFormatsFor(resources, effectDescription)
+{
+    return resources
+        .filter((resource) => resource.type === HlslEffectResource.Type.BUFFER)
+        .map((resource) => ({
+            registerIndex: resource.registerIndex,
+            format: viewFormatForParameter(resource.name, effectDescription.annotations?.get(resource.name))
+        }))
+        .filter((entry) => entry.format);
 }
 
 function mapToJson(map)

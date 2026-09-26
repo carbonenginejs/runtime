@@ -141,9 +141,15 @@ const SHADOW_SAMPLER_TYPE_BY_DIMENSION = Object.freeze({
 
 /** Texel formats a synthesised data texture always uses, by binding kind. */
 const DATA_TEXTURE_FORMAT = Object.freeze({
-    bufferTexture: "RGBA32F",
     structuredTexture: "RGBA32UI"
 });
+
+/**
+ * A Buffer<> data texture's format, ordered so the wire value is stable:
+ * RGBA32F unless Carbon names the buffer's view (`hlsl/core/carbonTypedViews.js`),
+ * which the host must upload the buffer in.
+ */
+export const GLSL_BACKEND_BUFFER_TEXTURE_FORMAT = Object.freeze([ "RGBA32F", "R32F", "R32UI" ]);
 
 /** Marks an absent optional `u8`. */
 const ABSENT_U8 = 0xff;
@@ -275,10 +281,17 @@ function writeBindingBody(writer, binding)
             for (const register of paired) writer.u8(register);
             break;
         }
-        case "bufferTexture":
+        case "bufferTexture": {
+            const format = GLSL_BACKEND_BUFFER_TEXTURE_FORMAT.indexOf(binding.format ?? "RGBA32F");
+            if (format < 0)
+            {
+                throw new CjsFormatWriteError(`Unknown buffer texture format "${binding.format}"`, { format: binding.format });
+            }
+            writer.u8(format);
             writer.u16(binding.width);
             writeStringList(writer, binding.returnTypes);
             break;
+        }
         case "structuredTexture":
             writer.u32(binding.strideBytes ?? 0);
             writer.u16(binding.width);
@@ -355,12 +368,20 @@ function readBindingBody(reader, kind)
                 ...(comparison ? { comparison: true, samplerRegisterIndices } : {})
             };
         }
-        case "bufferTexture":
+        case "bufferTexture": {
+            const format = GLSL_BACKEND_BUFFER_TEXTURE_FORMAT[reader.ReadUint8()];
+            if (!format)
+            {
+                throw new CjsFormatReadError("GLSL backend block has an unknown buffer texture format", {
+                    source: "glsl backend block"
+                });
+            }
             return {
-                format: DATA_TEXTURE_FORMAT.bufferTexture,
+                format,
                 width: reader.ReadUint16(),
                 returnTypes: readStringList(reader)
             };
+        }
         case "structuredTexture": {
             const strideBytes = reader.ReadUint32();
             const width = reader.ReadUint16();

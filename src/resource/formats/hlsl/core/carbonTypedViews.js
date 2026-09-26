@@ -76,6 +76,18 @@ export function annotatedViewFormat(annotations)
     return entry && CARBON_VIEW_FORMATS[entry.stringValue] ? entry.stringValue : null;
 }
 
+/**
+ * One parameter's view format: its own annotation, else the table.
+ *
+ * @param {string} name The Carbon parameter name.
+ * @param {object[]} [annotations] The parameter's annotations.
+ * @returns {string|null} The format, or null when unknown.
+ */
+export function viewFormatForParameter(name, annotations)
+{
+    return annotatedViewFormat(annotations) ?? CARBON_TYPED_VIEWS[name] ?? null;
+}
+
 const SEMANTIC_KIND = Object.freeze({
     resource: "sampled-resource",
     uav: "storage-resource"
@@ -97,8 +109,8 @@ export function typedViewsFor(semanticBindings)
         const kind = SEMANTIC_KIND[binding?.kind];
         const name = binding?.metadataName ?? binding?.carbon?.name;
         const format = kind && typeof name === "string"
-            ? annotatedViewFormat(binding.annotations) ?? CARBON_TYPED_VIEWS[name]
-            : undefined;
+            ? viewFormatForParameter(name, binding.annotations)
+            : null;
         if (!format) continue;
         views[`${kind}:${binding.registerSpace ?? 0}:${binding.registerIndex}`] = format;
     }
