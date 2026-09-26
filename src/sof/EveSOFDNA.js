@@ -1229,7 +1229,9 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   CastShadow()
   {
-    return this.hullDatas[0]?.castShadow === true;
+    // EveSOFDataHull defaults m_castShadow to true (EveSOFData.cpp:347), and a
+    // .black record omits a field at its default: absent means true.
+    return this.hullDatas[0]?.castShadow !== false;
   }
 
   /**
@@ -1531,7 +1533,7 @@ function createCustomHullData(source, variant)
     isSkinned: source?.isSkinned === true,
     isUsingDecalSets: false,
     enableDynamicBoundingSphere: source?.enableDynamicBoundingSphere === true,
-    castShadow: source?.castShadow === true,
+    castShadow: source?.castShadow !== false,
     sof6: false,
     audioPosition: copyArrayValue(source?.audioPosition, [0, 0, 0]),
     spriteSets: [],

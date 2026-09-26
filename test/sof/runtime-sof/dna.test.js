@@ -6662,3 +6662,21 @@ test("absent glow and heat colour types project to Carbon's defaults: Hull, Boos
   assert.equal(race.get("0:GeneralHeatGlowColor"), 16, "primary heat defaults to Booster");
   assert.equal(race.get("3:GeneralHeatGlowColor"), 14, "reactor heat defaults to Reactor");
 });
+
+// EveSOFDataHull defaults m_castShadow to true (EveSOFData.cpp:347). A hull
+// record without the field casts shadows; only an authored false turns it off.
+test("a hull that leaves castShadow out casts shadows, as Carbon's default", () => {
+  const data = createData();
+  data.hull = [{ name: "defaulted", opaqueAreas: [] }, { name: "authored", castShadow: false, opaqueAreas: [] }];
+  data.faction = [{ name: "minmatar" }];
+  const manager = new EveSOFDataMgr();
+  assert.equal(manager.SetData(data), true);
+
+  const defaulted = new EveSOFDNA();
+  defaulted.Setup("defaulted:minmatar:minmatar", manager);
+  assert.equal(defaulted.CastShadow(), true);
+
+  const authored = new EveSOFDNA();
+  authored.Setup("authored:minmatar:minmatar", manager);
+  assert.equal(authored.CastShadow(), false);
+});
