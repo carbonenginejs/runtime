@@ -1093,7 +1093,7 @@ export class EveSpaceScene extends CjsModel
       return;
     }
 
-    lightManager.SetShadowQuality(this.shadowQualitySetting);
+    lightManager.SetShadowQuality(this.shadowQualitySetting, this.updateContext.renderContext.GetRecordingFrameNumber());
     lightManager.Clear(this.updateContext.renderContext);
     lightManager.SetFrustum(this.updateContext.GetFrustum());
     lightManager.AdjustLightCutoff(this.updateContext.GetLodFactor());

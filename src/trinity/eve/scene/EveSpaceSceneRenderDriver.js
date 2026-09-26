@@ -35,6 +35,8 @@ import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHand
 import { Tr2GpuResourcePool } from "../../core/Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
+import { Tr2LightManager } from "../../core/lighting/Tr2LightManager.js";
+import { COMPUTE_LIGHT_LISTS_EFFECT_PATH } from "#consts/effectPaths";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2PostProcessRenderer } from "../../postProcess/Tr2PostProcessRenderer.js";
@@ -585,6 +587,17 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     renderContext.SetProjection(this.scene.jitteredProjection);
     this.scene.BlendLightingOverrides();
     this.scene.UpdateFogSettings();
+
+    // The light manager exists only while dynamic lighting is on
+    // (EveSpaceScene.cpp:1378-1388), and publishes its buffers before the gather.
+    if (this.scene.dynamicLightingEnabled)
+    {
+      Tr2LightManager.getOrCreateInstance(COMPUTE_LIGHT_LISTS_EFFECT_PATH).SetVariableStore();
+    }
+    else
+    {
+      Tr2LightManager.deleteInstance();
+    }
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
     const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
@@ -593,6 +606,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // reflection - go through the variable store (UpdateVariableStore,
     // EveSpaceScene.cpp:1390-1397).
     this.scene.UpdateVariableStore();
+
+    // The dynamic lights, after the gather (EveSpaceScene.cpp:1398-1416).
+    const lightManager = Tr2LightManager.getInstance();
+
+    if (lightManager) this.scene.GatherLights(lightManager);
 
     if (offscreen) offscreen.velocity = this._GetVelocityMapIfNeeded(offscreen.size);
 
@@ -641,6 +659,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // SSAO (cpp:534-537), after the shadows and before the main pass samples
     // SSAOMap.
     if (offscreen) this.#RegisterSSAOMap(this._RenderSSAO(offscreen.depth.Get(), offscreen.normal?.Get() ?? null, renderContext));
+
+    // The light lists, against this frame's depth read-only (cpp:539-546).
+    if (offscreen && lightManager)
+    {
+      renderContext.SetReadOnlyDepth(true);
+      lightManager.UpdateLists(offscreen.depth.Get(), renderContext);
+      renderContext.SetReadOnlyDepth(false);
+    }
 
     if (offscreen) offscreen.opaque = this._GetOpaqueColorMapIfNeeded(offscreen.size);
 

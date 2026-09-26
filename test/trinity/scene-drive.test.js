@@ -502,13 +502,17 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
   const scene = new EveSpaceScene();
   const { frustum } = MakeCamera();
   scene.StampFrameContext({ frustum, lodFactor: 2 });
+  // The driver stamps the frame's render context; Carbon passes its recording
+  // frame number to SetShadowQuality (cpp:1403).
+  const renderContext = { GetRecordingFrameNumber: () => 7 };
+  scene.updateContext.renderContext = renderContext;
 
   const calls = [];
   const manager = new (class extends Tr2LightManager
   {
-    SetShadowQuality(quality)
+    SetShadowQuality(quality, frameCounter)
     {
-      calls.push(["SetShadowQuality", quality]);
+      calls.push(["SetShadowQuality", quality, frameCounter]);
     }
     Clear()
     {
@@ -543,7 +547,7 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
   scene.GatherLights(manager);
 
   assert.deepEqual(calls, [
-    ["SetShadowQuality", 3],
+    ["SetShadowQuality", 3, 7],
     ["Clear"],
     ["SetFrustum", frustum],
     ["AdjustLightCutoff", 2],
@@ -554,6 +558,7 @@ test("GatherLights drives the manager duck in Carbon's exact order", () =>
 
   // Zero owners: Clear/Resolve still run (stale lights must drop).
   const emptyScene = new EveSpaceScene();
+  emptyScene.updateContext.renderContext = renderContext;
   calls.length = 0;
   emptyScene.GatherLights(manager);
   assert.deepEqual(calls.map(call => call[0]), [
