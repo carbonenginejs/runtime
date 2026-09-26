@@ -2,12 +2,10 @@
 //
 // The local-light manager: collects per-light records from every
 // ITr2LightOwner during the scene gather, culls and premultiplies them,
-// selects the volumetric set, and owns the PACKED light buffer bytes the
-// abstraction layer uploads. Description-building throughout - under the
-// engine-means-AL vocabulary (docs c5a4b66) everything here is Trinity's;
-// only realizing LightBuffer/LightIndexBuffer into device objects, the
-// tiling compute dispatch, the shadow atlas textures and the raytraced
-// path are the AL's, and all of those are deferred below.
+// selects the volumetric set, packs the light buffer, and uploads it with
+// the light lists into the LightBuffer/LightIndexBuffer globals. The lists
+// are built on the CPU (DoUpdateLists) until computelightlists translates;
+// the shadow atlas texture and the raytraced path are not made.
 //
 // SHIPPING BEHAVIOUR PIN: Carbon ships with g_useDynamicLightsShadows =
 // false (cpp:21-22, a TRI_REGISTER_SETTING - runtime-mutable, hence the
@@ -21,9 +19,8 @@
 //
 // Carbon's thread-local gather vectors (safe under Tr2ParallelFor,
 // EveSpaceScene.cpp:1410) collapse to one array: the JS gather is
-// sequential. Carbon's file-static singleton (GetOrCreateInstance) is NOT
-// ported - the runtime injects a manager into GatherLights, which is the
-// shape every call site and test already has.
+// sequential. The file-static singleton is getOrCreateInstance; a manager
+// can still be constructed directly for CPU-only use and tests.
 //
 // docs/contracts/carbon-light-data.md owns the PerLightData layout, the
 // packed flag word, the premultiply and the fade band; the packing below
@@ -294,7 +291,8 @@ export class Tr2LightManager extends CjsModel
 
   /**
    * Carbon Clear (cpp:220-242): re-points the light-buffer globals, clears
-   * the light indices, and drops the frame's records and selections.
+   * the light indices, drops the frame's records and selections, and resets
+   * the atlas to one empty root node.
    *
    * Without a render context (a CPU-only caller) the index clear is skipped;
    * there is no buffer to clear then.
@@ -309,6 +307,10 @@ export class Tr2LightManager extends CjsModel
     this.#records.length = 0;
     this.#volumetricLights.length = 0;
     this.#shadowCastingLights.length = 0;
+
+    const size = this.#shadowMap.atlasSettings.size;
+    this.#shadowMap.atlasNodes.length = 0;
+    this.#shadowMap.atlasNodes.push({ children: [ -1, -1 ], lightIndex: -1, x: 0, y: 0, width: size, height: size });
   }
 
   /** Carbon SetFrustum (cpp:244-247). */
@@ -774,10 +776,14 @@ export class Tr2LightManager extends CjsModel
    * Carbon DeleteInstance (cpp:207-212). The destructor's ResetVariableStore
    * (cpp:174-190) republishes empty buffers, so the globals stop naming this
    * manager's.
+   *
+   * Adapted: JavaScript has no destructor, so the manager unregisters from
+   * the device and resets the variable store here. ResetVariableStore's
+   * LightProfileArray and ShadowMapAtlas re-registrations are not made; the
+   * manager does not publish either.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("JavaScript has no destructor: the manager unregisters from the device and resets the variable store here, where Carbon's destructor would.")
   static deleteInstance()
   {
     const instance = Tr2LightManager.#instance;
@@ -820,10 +826,13 @@ export class Tr2LightManager extends CjsModel
    * created CPU-writable; see DoUpdateLists. Carbon makes it 8M elements,
    * GPU-writable, for the compute kernel's allocator. The counter and the
    * per-frame constants belong to that kernel and are not made.
+   *
+   * Adapted: the light lists are filled on the CPU, not by
+   * computelightlists, so the index buffer is CPU-writable and sized per
+   * screen.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The light lists are filled on the CPU, not by computelightlists, so the index buffer is CPU-writable and sized per screen; the kernel's counter and constants are not created.")
   OnPrepareResources()
   {
     const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
@@ -846,12 +855,14 @@ export class Tr2LightManager extends CjsModel
    * Carbon ClearLightIndices (cpp:370-378): zero indices, so every tile head
    * reads "no lights".
    *
+   * Adapted: Carbon clears the whole buffer as a UAV; the CPU-written buffer
+   * is zeroed through a map.
+   *
    * @param {Tr2RenderContext} renderContext The context to write through.
    * @returns {boolean} Whether the clear was written.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon clears the whole buffer as a UAV; the CPU-written buffer is zeroed through a map.")
   ClearLightIndices(renderContext)
   {
     const buffer = this._indexBuffer.GetGpuBuffer(0);
@@ -923,13 +934,15 @@ export class Tr2LightManager extends CjsModel
    * The tile count follows the render target, as the kernel's does; the
    * depth map is that size.
    *
+   * Adapted: computelightlists does not translate to WebGPU yet (its UAV
+   * shapes), so the CPU builds the lists.
+   *
    * @param {object} depthMap The scene depth.
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {boolean} Whether the lists were written.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("computelightlists does not translate to WebGPU yet (its UAV shapes); the lists are built on the CPU in the kernel's layout, every tile sharing one chain.")
   DoUpdateLists(depthMap, renderContext)
   {
     if (!this.UpdateLightBuffer(renderContext)) return false;
