@@ -2345,14 +2345,32 @@ export async function RunDemo(canvas)
           name: occluder.name,
           display: occluder.display,
           ...counts,
-          sprites: occluder.sprites.map(sprite => ({
-            name: sprite.name,
-            display: sprite.display,
-            modifier: sprite.modifier,
-            mesh: Boolean(sprite.mesh),
-            opaqueAreas: sprite.mesh?.opaqueAreas?.length ?? 0,
-            effect: EffectState(sprite.mesh?.opaqueAreas?.[0]?.effect ?? null)
-          }))
+          sprites: occluder.sprites.map(sprite =>
+          {
+            // Visibility as the last query left it: GetRenderables appends
+            // the sprite only when UpdateVisibility accepted it.
+            const sphere = new Float32Array(4);
+            const sphereValid = sprite.GetBoundingSphere(sphere);
+            const frustum = driver.GetFrustum();
+            const geometry = sprite.mesh?.GetGeometryResource?.() ?? null;
+            return {
+              name: sprite.name,
+              display: sprite.display,
+              modifier: sprite.modifier,
+              mesh: Boolean(sprite.mesh),
+              geometryResPath: sprite.mesh?.geometryResPath ?? null,
+              geometry: geometry ? { good: geometry.IsGood?.() ?? null, meshes: geometry.GetMeshCount?.() ?? null } : null,
+              opaqueAreas: sprite.mesh?.opaqueAreas?.length ?? 0,
+              effect: EffectState(sprite.mesh?.opaqueAreas?.[0]?.effect ?? null),
+              visibilityThreshold: sprite.visibilityThreshold,
+              sphereValid,
+              sphere: Array.from(sphere),
+              inFrustum: sphereValid ? frustum.IsSphereVisible(sphere) : null,
+              pixelSize: sphereValid ? frustum.GetPixelSizeAccross(sphere) : null,
+              renderable: sprite.GetRenderables([]).length > 0,
+              worldTranslation: Array.from(sprite.worldTransform.slice(12, 15))
+            };
+          })
         })),
         bufferReadable: Boolean(gpuBuffer)
       });
