@@ -312,10 +312,15 @@ export class Tr2Material extends CjsModel
     for (const parameter of [ ...input.shaderParameters, ...input.shaderParametersWithNotification ])
     {
       // The register index is a BYTE OFFSET into the mirror, and the count a
-      // byte size. Carbon indexes the raw pointer with both.
+      // byte size. Carbon indexes the raw pointer with both and memcpys FLOAT
+      // bytes into it; the parameters here write components with `dest[i] =`,
+      // so they must be handed a FLOAT view of those bytes. Handed the byte
+      // mirror itself, each float landed as one truncated byte over the
+      // container default - every dynamic parameter on every effect ran at its
+      // default (film grain: intensity 0.05 and modifier +3 for 0.0008 and -3).
       parameter.sourceValue?.CopyValueToEffect(
         shaderType,
-        mirror.subarray(parameter.registerIndex),
+        new Float32Array(mirror.buffer, mirror.byteOffset + parameter.registerIndex, parameter.registerCount >> 2),
         parameter.registerCount,
         renderContext
       );
