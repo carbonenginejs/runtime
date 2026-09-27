@@ -28,7 +28,7 @@ import { Tr2ConstantUsageAL } from "../stub/Tr2ConstantBufferALStub.js";
 /**
  * A constant buffer on a WebGL2 device.
  */
-export class Tr2ConstantBufferALWebgl extends Tr2DeviceResourceAL
+export class Tr2ConstantBufferALWebgl2 extends Tr2DeviceResourceAL
 {
   /** m_buffer: the `WebGLBuffer`, or null for `ONE_SHOT`. */
   _buffer = null;
@@ -63,7 +63,7 @@ export class Tr2ConstantBufferALWebgl extends Tr2DeviceResourceAL
     this._Reset();
 
     const al = RenderContextALOf(renderContext);
-    if (!al || !al.GetWebgl()) return ALResult.E_FAIL;
+    if (!al || !al.GetWebgl2()) return ALResult.E_FAIL;
 
     if (usage === Tr2ConstantUsageAL.IMMUTABLE && !initialData) return ALResult.E_INVALIDARG;
 
@@ -76,7 +76,7 @@ export class Tr2ConstantBufferALWebgl extends Tr2DeviceResourceAL
 
     if (usage !== Tr2ConstantUsageAL.ONE_SHOT)
     {
-      const gl = al.GetWebgl();
+      const gl = al.GetWebgl2();
       const buffer = gl.createBuffer();
       if (!buffer) return ALResult.E_OUTOFMEMORY;
 
@@ -253,4 +253,4 @@ export class Tr2ConstantBufferALWebgl extends Tr2DeviceResourceAL
   }
 }
 
-CjsSchema.define(Tr2ConstantBufferALWebgl, { className: "Tr2ConstantBufferALWebgl", carbon: "Tr2ConstantBufferAL" });
+CjsSchema.define(Tr2ConstantBufferALWebgl2, { className: "Tr2ConstantBufferALWebgl2", carbon: "Tr2ConstantBufferAL" });

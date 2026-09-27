@@ -14,7 +14,11 @@ const ENUMS = [
     "VERTEX_ARRAY_BINDING", "ARRAY_BUFFER_BINDING", "TEXTURE_BINDING_2D",
     "TEXTURE_2D", "TEXTURE_MIN_FILTER", "TEXTURE_MAG_FILTER", "NEAREST",
     "R32F", "RED", "FLOAT", "R32UI", "RED_INTEGER", "UNSIGNED_INT", "R32I", "INT",
-    "RGBA32F", "RGBA", "RGBA32UI", "RGBA_INTEGER"
+    "RGBA32F", "RGBA", "RGBA32UI", "RGBA_INTEGER",
+    "REPEAT", "MIRRORED_REPEAT", "CLAMP_TO_EDGE", "LINEAR",
+    "NEAREST_MIPMAP_NEAREST", "NEAREST_MIPMAP_LINEAR", "LINEAR_MIPMAP_NEAREST", "LINEAR_MIPMAP_LINEAR",
+    "TEXTURE_WRAP_S", "TEXTURE_WRAP_T", "TEXTURE_WRAP_R", "TEXTURE_MIN_LOD", "TEXTURE_MAX_LOD",
+    "TEXTURE_COMPARE_MODE", "TEXTURE_COMPARE_FUNC", "COMPARE_REF_TO_TEXTURE"
 ];
 
 /**
@@ -22,7 +26,7 @@ const ENUMS = [
  *
  * @returns {{gl: object, calls: Array}} The context and its call log.
  */
-export function FakeWebgl()
+export function FakeWebgl2()
 {
     const calls = [];
     const bindings = new Map();
@@ -79,6 +83,16 @@ export function FakeWebgl()
         },
         texImage2D(...args) { calls.push([ "texImage2D", bindings.get(gl.TEXTURE_2D), ...args ]); },
         texParameteri(...args) { calls.push([ "texParameteri", ...args ]); },
+        createSampler()
+        {
+            const sampler = { kind: "sampler", parameters: new Map() };
+            calls.push([ "createSampler", sampler ]);
+            return sampler;
+        },
+        deleteSampler(sampler) { calls.push([ "deleteSampler", sampler ]); },
+        samplerParameteri(sampler, name, value) { sampler.parameters.set(name, value); },
+        samplerParameterf(sampler, name, value) { sampler.parameters.set(name, value); },
+        getExtension(name) { return gl.extensions?.[name] ?? null; },
         bindVertexArray(array)
         {
             vertexArray = array;
@@ -106,5 +120,5 @@ export function FakeWebgl()
  */
 export function FakeRenderContext(gl, valid = true)
 {
-    return { IsValid: () => valid, GetWebgl: () => gl };
+    return { IsValid: () => valid, GetWebgl2: () => gl };
 }

@@ -1,15 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2ConstantBufferALWebgl } from "../../../npm/dist/trinityal/webgl/index.js";
+import { Tr2ConstantBufferALWebgl2 } from "../../../npm/dist/trinityal/webgl2/index.js";
 import { ALResult, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
-import { FakeRenderContext, FakeWebgl } from "./fakeWebgl.js";
+import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
 
 test("a ONE_SHOT constant buffer is only a CPU mirror, as in dx11", () =>
 {
-    const { gl, calls } = FakeWebgl();
+    const { gl, calls } = FakeWebgl2();
     const context = FakeRenderContext(gl);
-    const buffer = new Tr2ConstantBufferALWebgl();
+    const buffer = new Tr2ConstantBufferALWebgl2();
 
     assert.equal(buffer.Create(64, Tr2ConstantUsageAL.ONE_SHOT, null, context), ALResult.S_OK);
     assert.equal(buffer.IsValid(), true);
@@ -24,9 +24,9 @@ test("a ONE_SHOT constant buffer is only a CPU mirror, as in dx11", () =>
 
 test("a REUSABLE constant buffer is a uniform buffer, orphaned and refilled on Unlock", () =>
 {
-    const { gl, calls } = FakeWebgl();
+    const { gl, calls } = FakeWebgl2();
     const context = FakeRenderContext(gl);
-    const buffer = new Tr2ConstantBufferALWebgl();
+    const buffer = new Tr2ConstantBufferALWebgl2();
 
     assert.equal(buffer.Create(16, Tr2ConstantUsageAL.REUSABLE, null, context), ALResult.S_OK);
     assert.ok(buffer.GetGpuResource());
@@ -43,8 +43,8 @@ test("a REUSABLE constant buffer is a uniform buffer, orphaned and refilled on U
 
 test("an IMMUTABLE constant buffer needs its data at Create", () =>
 {
-    const { gl } = FakeWebgl();
-    const buffer = new Tr2ConstantBufferALWebgl();
+    const { gl } = FakeWebgl2();
+    const buffer = new Tr2ConstantBufferALWebgl2();
 
     assert.equal(buffer.Create(16, Tr2ConstantUsageAL.IMMUTABLE, null, FakeRenderContext(gl)), ALResult.E_INVALIDARG);
     assert.equal(buffer.IsValid(), false);

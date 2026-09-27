@@ -107,7 +107,7 @@ export function DataTextureLayout(gl, format, structured)
 /**
  * A buffer on a WebGL2 device.
  */
-export class Tr2BufferALWebgl extends Tr2DeviceResourceAL
+export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
 {
   /** m_buffer: the `WebGLBuffer`, or null. */
   _buffer = null;
@@ -175,7 +175,7 @@ export class Tr2BufferALWebgl extends Tr2DeviceResourceAL
 
     if (isImmutable && !initialData) return ALResult.E_INVALIDARG;
 
-    const gl = al.GetWebgl();
+    const gl = al.GetWebgl2();
     const size = stride * desc.count;
     const usage = isImmutable ? gl.STATIC_DRAW
       : HasFlag(desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN) ? gl.DYNAMIC_DRAW
@@ -630,4 +630,4 @@ export class Tr2BufferALWebgl extends Tr2DeviceResourceAL
 // The donor is NAMED: Carbon calls every backend's class `Tr2BufferAL` and
 // carries the backend in the file name; we ship backends together, so the
 // backend moves onto the class name (see Tr2BufferALStub.js).
-CjsSchema.define(Tr2BufferALWebgl, { className: "Tr2BufferALWebgl", carbon: "Tr2BufferAL" });
+CjsSchema.define(Tr2BufferALWebgl2, { className: "Tr2BufferALWebgl2", carbon: "Tr2BufferAL" });

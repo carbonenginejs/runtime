@@ -7,6 +7,7 @@
 // research page `docs/research/webgl-trinityal-backend.md`.
 //
 // Every class here reaches its WebGL2 context through the render context:
-// `RenderContextALOf(renderContext).GetWebgl()`.
-export * from "./Tr2BufferALWebgl.js";
-export * from "./Tr2ConstantBufferALWebgl.js";
+// `RenderContextALOf(renderContext).GetWebgl2()`.
+export * from "./Tr2BufferALWebgl2.js";
+export * from "./Tr2ConstantBufferALWebgl2.js";
+export * from "./Tr2SamplerStateALWebgl2.js";

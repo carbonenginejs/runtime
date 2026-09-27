@@ -1,19 +1,19 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { Tr2BufferALWebgl, DATA_TEXTURE_WIDTH } from "../../../npm/dist/trinityal/webgl/index.js";
+import { Tr2BufferALWebgl2, DATA_TEXTURE_WIDTH } from "../../../npm/dist/trinityal/webgl2/index.js";
 import { ALResult, Tr2BufferDescriptionAL } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
-import { FakeRenderContext, FakeWebgl } from "./fakeWebgl.js";
+import { FakeRenderContext, FakeWebgl2 } from "./fakeWebgl2.js";
 
 const floats = values => new Float32Array(values);
 const bytesOf = view => new Uint8Array(view.buffer, view.byteOffset, view.byteLength);
 
 function created(desc, initialData = null)
 {
-    const { gl, calls } = FakeWebgl();
+    const { gl, calls } = FakeWebgl2();
     const context = FakeRenderContext(gl);
-    const buffer = new Tr2BufferALWebgl();
+    const buffer = new Tr2BufferALWebgl2();
     const result = buffer.Create(desc, initialData, context);
     return { gl, calls, context, buffer, result };
 }
@@ -50,11 +50,11 @@ test("an immutable vertex buffer uploads its contents STATIC_DRAW through the co
 test("an index buffer fixes its type with no vertex array bound, then restores it", () =>
 {
     const desc = Tr2BufferDescriptionAL.FromFormat(PixelFormat.PIXEL_FORMAT_R16_UINT, 3, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE);
-    const { gl, calls } = FakeWebgl();
+    const { gl, calls } = FakeWebgl2();
     const vao = { kind: "vao" };
     gl.bindVertexArray(vao);
 
-    const buffer = new Tr2BufferALWebgl();
+    const buffer = new Tr2BufferALWebgl2();
     assert.equal(buffer.Create(desc, new Uint16Array([ 0, 1, 2 ]), FakeRenderContext(gl)), ALResult.S_OK);
 
     const vertexArrays = calls.filter(call => call[0] === "bindVertexArray").map(call => call[1]);
