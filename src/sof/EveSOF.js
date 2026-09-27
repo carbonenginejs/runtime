@@ -1236,7 +1236,7 @@ export class EveSOF extends CjsModel
     const rotation = quat.create();
     const translation = vec3.create();
     const scaling = vec3.create();
-    decomposeCarbonMatrix(transform, rotation, translation, scaling);
+    mat4.decomposeCarbon(transform, rotation, translation, scaling);
 
     let placementRef = null;
     let placementFields = null;
@@ -2158,7 +2158,7 @@ export class EveSOF extends CjsModel
     const ignoredScale = vec3.create();
     const parentRotation = quat.create();
     const ignoredTranslation = vec3.create();
-    decomposeCarbonMatrix(
+    mat4.decomposeCarbon(
       arrayValue(parentOffset, identityMatrix()),
       parentRotation,
       ignoredTranslation,
@@ -2497,7 +2497,7 @@ export class EveSOF extends CjsModel
           const rotation = quat.create();
           const translation = vec3.create();
           const ignoredScale = vec3.create();
-          decomposeCarbonMatrix(occurrence.transform, rotation, translation, ignoredScale);
+          mat4.decomposeCarbon(occurrence.transform, rotation, translation, ignoredScale);
           const childFields = {
             name: "Hull",
             ...(hasPartTag ? { partTag: fixedPartTag } : {}),
@@ -2742,7 +2742,7 @@ export class EveSOF extends CjsModel
         const ignoredScale = vec3.create();
         const rotation = quat.create();
         const position = vec3.create();
-        decomposeCarbonMatrix(
+        mat4.decomposeCarbon(
           arrayValue(item.transform, identityMatrix()),
           rotation,
           position,
@@ -3322,7 +3322,7 @@ export class EveSOF extends CjsModel
                 const position = vec3.create();
                 const rotation = quat.create();
                 const scaling = vec3.create();
-                decomposeCarbonMatrix(transform, rotation, position, scaling);
+                mat4.decomposeCarbon(transform, rotation, position, scaling);
                 const scale = Array.from(scaling, Math.abs);
                 const angle = scale[2] > 0
                   ? Math.atan(Math.max(scale[0], scale[1]) / (2 * scale[2])) * 180 / Math.PI
@@ -3464,7 +3464,7 @@ export class EveSOF extends CjsModel
             const position = vec3.create();
             const rotation = quat.create();
             const ignoredScale = vec3.create();
-            decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+            mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
 
             let color;
             if (dna.UsingSof6())
@@ -3618,7 +3618,7 @@ export class EveSOF extends CjsModel
             const position = vec3.create();
             const rotation = quat.create();
             const ignoredScale = vec3.create();
-            decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+            mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
             const line = {
               blinkPhase: Number(item.blinkPhase ?? 0),
               blinkPhaseShift: Number(item.blinkPhaseShift ?? 0),
@@ -3765,7 +3765,7 @@ export class EveSOF extends CjsModel
             const position = vec3.create();
             const rotation = quat.create();
             const ignoredScale = vec3.create();
-            decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+            mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
             if (dna.UsingSof6()) color = saturateColor(color, item.saturation);
 
             hazes.push(document.AddNode("EveHazeSetItem", {
@@ -4027,7 +4027,7 @@ export class EveSOF extends CjsModel
             const position = vec3.create();
             const rotation = quat.create();
             const ignoredScale = vec3.create();
-            decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+            mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
 
             // Flattened emission (2026-07-23 LightData flatten decision): the
             // Tr2 light classes persist the Blue-mapped LightData members as
@@ -4233,7 +4233,7 @@ export class EveSOF extends CjsModel
             const position = vec3.create();
             const rotation = quat.create();
             const ignoredScale = vec3.create();
-            decomposeCarbonMatrix(composed, rotation, position, ignoredScale);
+            mat4.decomposeCarbon(composed, rotation, position, ignoredScale);
             locatorRefs.push(document.AddNode("Locator", {
               position: Array.from(position),
               direction: Array.from(rotation),
@@ -4410,7 +4410,7 @@ function composeChildPlacement(source, offset)
   const position = vec3.create();
   const rotation = quat.create();
   const ignoredScale = vec3.create();
-  decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+  mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
   return {
     translation: Array.from(position),
     rotation: Array.from(rotation),
@@ -4512,41 +4512,6 @@ function identityMatrix()
     0, 0, 1, 0,
     0, 0, 0, 1
   ];
-}
-
-function decomposeCarbonMatrix(matrix, rotation, translation, scaling)
-{
-  const scaleX = Math.hypot(matrix[0], matrix[1], matrix[2]);
-  const scaleY = Math.hypot(matrix[4], matrix[5], matrix[6]);
-  const scaleZ = Math.hypot(matrix[8], matrix[9], matrix[10]);
-  scaling[0] = scaleX;
-  scaling[1] = scaleY;
-  scaling[2] = scaleZ;
-  translation[0] = matrix[12];
-  translation[1] = matrix[13];
-  translation[2] = matrix[14];
-
-  if (scaleX === 0 || scaleY === 0 || scaleZ === 0)
-  {
-    rotation[0] = 0;
-    rotation[1] = 0;
-    rotation[2] = 0;
-    rotation[3] = 1;
-    return matrix;
-  }
-
-  const normalized = mat4.create();
-  normalized[0] = matrix[0] / scaleX;
-  normalized[1] = matrix[1] / scaleX;
-  normalized[2] = matrix[2] / scaleX;
-  normalized[4] = matrix[4] / scaleY;
-  normalized[5] = matrix[5] / scaleY;
-  normalized[6] = matrix[6] / scaleY;
-  normalized[8] = matrix[8] / scaleZ;
-  normalized[9] = matrix[9] / scaleZ;
-  normalized[10] = matrix[10] / scaleZ;
-  mat4.getRotation(rotation, normalized);
-  return matrix;
 }
 
 function addOffset(target, value)
@@ -4709,7 +4674,7 @@ function addBannerItem(document, source, hullOffset, offset)
   const position = vec3.create();
   const rotation = quat.create();
   const ignoredScale = vec3.create();
-  decomposeCarbonMatrix(transform, rotation, position, ignoredScale);
+  mat4.decomposeCarbon(transform, rotation, position, ignoredScale);
   return {
     ref: document.AddNode("EveBannerItem", {
       bone: Number(source.bone ?? -1),
