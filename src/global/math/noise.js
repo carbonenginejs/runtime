@@ -7,6 +7,12 @@ export const noise = {};
 /**
  * Generates turbulent noise
  *
+ * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:55-123
+ * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:151-177
+ * Carbon: Noise4D; Tr2ParticleTurbulenceForce::GetForce
+ * Adapted: Accumulates scaled XYZ into an output array. Initialization uses
+ * Math.random; coordinate conversion and numeric precision differ from native.
+ *
  * @param {vec4} out
  * @param {number} pos_0
  * @param {number} pos_1
@@ -26,6 +32,11 @@ noise.turbulence = (function()
 
     /**
      * Initializes noise
+     *
+     * Source: trinity/trinity/Particle/Tr2ParticleTurbulenceForce.cpp:16-44
+     * Carbon: InitializeNoise::InitializeNoise; s_rand
+     * Adapted: Initializes lazily using Math.random instead of native static rand.
+     *
      */
     function initialize()
     {
@@ -133,6 +144,12 @@ noise.turbulence = (function()
  * `std::mt19937`, sampling uses Carbon's cubic S-curve, and the returned
  * object owns the native class's otherwise-private gradient table.
  *
+ * Source: trinity/trinity/Include/TriMath.h:256-295
+ * Source: trinity/trinity/TriMath.cpp:1021-1061
+ * Carbon: TriPerlinNoise::TriPerlinNoise; TriPerlinNoise::operator(); TriPerlinNoise::FractalSum
+ * Adapted: Returns closures; the optional seed uses Math.random instead of
+ * std::random_device, and octave arguments are sanitized as JavaScript numbers.
+ *
  * @param {number} [seed]
  * @returns {{ sample: (x: number) => number, fractalSum: (x: number, octaves: number, amplitudeScale?: number, frequencyScale?: number) => number }}
  */
@@ -144,6 +161,13 @@ noise.createPerlinNoise1D = function(seed = Math.floor(Math.random() * 0x1000000
         () => ((next() % 512) - 256) / 256
     );
 
+    /**
+     * Samples the native one-dimensional gradient curve.
+     * Source: trinity/trinity/TriMath.cpp:1014-1017
+     * Source: trinity/trinity/TriMath.cpp:1034-1046
+     * Carbon: SCurve; TriPerlinNoise::operator()(double x) const
+     * Adapted: Captures the gradient array in a closure.
+     */
     const sample = x =>
     {
         const floor = Math.floor(x),
@@ -157,6 +181,13 @@ noise.createPerlinNoise1D = function(seed = Math.floor(Math.random() * 0x1000000
 
         return value0 + curve * (value1 - value0);
     };
+
+    /**
+     * Sums successively scaled samples.
+     * Source: trinity/trinity/TriMath.cpp:1048-1061
+     * Carbon: TriPerlinNoise::FractalSum
+     * Adapted: Sanitizes and truncates the JavaScript octave argument.
+     */
     const fractalSum = (x, octaves, amplitudeScale = 0.5, frequencyScale = 2) =>
     {
         let sum = 0,
@@ -179,6 +210,10 @@ const s_fixedPerlinNoise1D = noise.createPerlinNoise1D(0);
 
 /**
  * Evaluates Carbon's global fixed-seed `PerlinNoise1D` function.
+ *
+ * Source: trinity/trinity/TriMath.cpp:1063-1067
+ * Carbon: PerlinNoise1D
+ * Adapted: Delegates to the closure-based TriPerlinNoise adapter.
  *
  * @param {number} x
  * @param {number} inverseAmplitude

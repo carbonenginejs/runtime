@@ -173,6 +173,10 @@ tri3.fromVertices = function(out, v1, v2, v3)
  * touching the box still passes. Carbon uses it as the broad phase in front of
  * the oriented-box test (BoundingBox.cpp:569-588) and so should any caller.
  *
+ * Source: trinity/trinity/Utilities/BoundingBox.cpp:569-588
+ * Carbon: IntersectTriangleAABB (five-argument overload)
+ * Adapted: Reads three vertices from one packed triangle array.
+ *
  * @param {tri3} a
  * @param {vec3} min
  * @param {vec3} max
@@ -206,6 +210,10 @@ tri3.intersectsBounds = function(a, min, max)
  * and a "corrected" test would silently disagree with the client about where a
  * decal reaches.
  *
+ * Source: trinity/trinity/Utilities/BoundingBox.cpp:626-734
+ * Carbon: IntersectTriangleOrientedBox (four-argument overload)
+ * Adapted: Uses a packed triangle, gl-matrix transforms and shared scratch arrays.
+ *
  * @param {tri3} a
  * @param {mat4} invOrientedBox inverse of the box transform
  * @returns {boolean} true when no separating axis was found
@@ -234,9 +242,12 @@ tri3.intersectsOrientedBox = (function()
         [ e[2], v[0], v[1], v[0], v[1], v[1], v[2] ]
     ];
 
-    // A separating plane at the cross product of a triangle edge and a unit-box
-    // axis. The box half-extent is 1 on every axis, so the radius is just
-    // |a| + |b| (Carbon's AxisTest, BoundingBox.cpp:601-611).
+    /**
+     * Tests a triangle-edge/box-axis separating plane for a unit-half-extent box.
+     * Source: trinity/trinity/Utilities/BoundingBox.cpp:602-612
+     * Carbon: AxisTest
+     * Adapted: Receives packed vertex arrays and explicit component indices.
+     */
     function axisTest(ca, cb, fa, fb, p, q, axis0, axis1)
     {
         let p0 = ca * p[axis0] + cb * p[axis1];

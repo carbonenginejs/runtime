@@ -1,4 +1,5 @@
-// Source: math/include/Color.h + Color_inline.h
+// Source: math/include/Color.h
+// Source: math/include/Color_inline.h
 //
 // Carbon's Color - the ONE color type it has: four floats r, g, b, a. There
 // is no Color3 anywhere in Carbon's math; rgb data converts at the edges.
@@ -7,8 +8,8 @@
 // in this representation and is not ported as a function.
 //
 // Everything in this namespace is componentwise, so none of the row-vector /
-// column-vector operand-order hazards of matrix work apply; bodies port from
-// the donor in source order.
+// column-vector operand-order hazards of matrix work apply. Per-function notes
+// distinguish native formulas, gl-matrix equivalents and custom conversions.
 import * as glVec4 from "gl-matrix/esm/vec4.js";
 import { num } from "./num.js";
 
@@ -18,8 +19,13 @@ export const color = {};
 
 /**
  * Creates a color, zeroed INCLUDING alpha - Carbon's default constructor is
- * transparent black (Color_inline.h:6-12), not the opaque black that
+ * transparent black, not the opaque black that
  * `color.createLinear` gives.
+ *
+ * Source: math/include/Color_inline.h:6-12
+ * Carbon: Color::Color()
+ * Adapted: Uses a zeroed Float32Array in place of a native Color object.
+ *
  * @returns {color}
  */
 color.create = function()
@@ -28,7 +34,12 @@ color.create = function()
 };
 
 /**
- * Creates a color from components (Color_inline.h:33-40).
+ * Creates a color from components.
+ *
+ * Source: math/include/Color_inline.h:34-40
+ * Carbon: Color::Color(float r, float g, float b, float a)
+ * Adapted: Delegates component storage to gl-matrix vec4.fromValues.
+ *
  * @param {Number} r
  * @param {Number} g
  * @param {Number} b
@@ -71,9 +82,13 @@ color.copy = glVec4.copy;
 color.set = glVec4.set;
 
 /**
- * Decodes a packed ARGB word - Carbon Color(uint32_t)
- * (Color_inline.h:15-22): a in bits 24-31, r in 16-23, g in 8-15, b in 0-7,
+ * Decodes a packed ARGB word: a in bits 24-31, r in 16-23, g in 8-15, b in 0-7,
  * each byte scaled by 1/255.
+ *
+ * Source: math/include/Color_inline.h:15-22
+ * Carbon: Color::Color(uint32_t argb)
+ * Adapted: Writes unpacked components into a caller-provided array.
+ *
  * @param {color} out
  * @param {Number} argb
  * @returns {color} out
@@ -89,9 +104,13 @@ color.fromARGB = function(out, argb)
 };
 
 /**
- * Encodes to a packed ARGB word - Carbon operator uint32_t
- * (Color_inline.h:43-52): each channel clamped to [0,1] then scaled by 255
+ * Encodes a packed ARGB word: each channel is clamped to [0,1] then scaled by 255
  * with +0.5 rounding.
+ *
+ * Source: math/include/Color_inline.h:43-51
+ * Carbon: Color::operator uint32_t() const
+ * Adapted: Uses unsigned JS bit operations and JS number intermediates.
+ *
  * @param {color} a
  * @returns {Number} The ARGB word, unsigned.
  */
@@ -102,7 +121,12 @@ color.toARGB = function(a)
 };
 
 /**
- * Adds two colors, alpha included (Color_inline.h:110-113).
+ * Adds two colors, alpha included.
+ *
+ * Source: math/include/Color_inline.h:113-116
+ * Carbon: Color::operator+(const Color&) const
+ * Adapted: Uses gl-matrix vec4.add for the native componentwise operation.
+ *
  * @param {color} out
  * @param {color} a
  * @param {color} b
@@ -111,7 +135,12 @@ color.toARGB = function(a)
 color.add = glVec4.add;
 
 /**
- * Subtracts a color from another, alpha included (Color_inline.h:116-119).
+ * Subtracts a color from another, alpha included.
+ *
+ * Source: math/include/Color_inline.h:119-122
+ * Carbon: Color::operator-(const Color&) const
+ * Adapted: Uses gl-matrix vec4.subtract for the native componentwise operation.
+ *
  * @param {color} out
  * @param {color} a
  * @param {color} b
@@ -120,7 +149,12 @@ color.add = glVec4.add;
 color.subtract = glVec4.subtract;
 
 /**
- * Scales a color by a scalar, alpha included (Color_inline.h:122-125).
+ * Scales a color by a scalar, alpha included.
+ *
+ * Source: math/include/Color_inline.h:125-128
+ * Carbon: Color::operator*(float) const
+ * Adapted: Uses gl-matrix vec4.scale for the native componentwise operation.
+ *
  * @param {color} out
  * @param {color} a
  * @param {Number} s
@@ -129,7 +163,12 @@ color.subtract = glVec4.subtract;
 color.scale = glVec4.scale;
 
 /**
- * Negates a color - Carbon's unary minus (Color_inline.h:104-107).
+ * Negates a color - Carbon's unary minus.
+ *
+ * Source: math/include/Color_inline.h:107-110
+ * Carbon: Color::operator-() const
+ * Adapted: Uses gl-matrix vec4.negate for the native componentwise operation.
+ *
  * @param {color} out
  * @param {color} a
  * @returns {color} out
@@ -137,9 +176,13 @@ color.scale = glVec4.scale;
 color.negate = glVec4.negate;
 
 /**
- * Whether two colors are bit-exactly equal - Carbon's operator== compares
- * exactly (Color_inline.h:133-136), so this is gl-matrix's exactEquals, not
- * its epsilon compare.
+ * Compares floating-point components with exact equality, matching Carbon's
+ * operator==. Signed zeros compare equal; NaNs do not.
+ *
+ * Source: math/include/Color_inline.h:137-140
+ * Carbon: Color::operator==(const Color&) const
+ * Adapted: Uses gl-matrix vec4.exactEquals for exact component comparison.
+ *
  * @param {color} a
  * @param {color} b
  * @returns {Boolean}
@@ -147,8 +190,12 @@ color.negate = glVec4.negate;
 color.exactEquals = glVec4.exactEquals;
 
 /**
- * Lerps between two colors, alpha included - Carbon's free Lerp
- * (Color_inline.h:152-155): v1 + (v2 - v1) * s.
+ * Lerps between two colors, alpha included: v1 + (v2 - v1) * s.
+ *
+ * Source: math/include/Color_inline.h:155-158
+ * Carbon: Lerp(const Color&, const Color&, float)
+ * Adapted: Uses gl-matrix vec4.lerp; intermediate precision differs from native.
+ *
  * @param {color} out
  * @param {color} a
  * @param {color} b
@@ -158,12 +205,16 @@ color.exactEquals = glVec4.exactEquals;
 color.lerp = glVec4.lerp;
 
 /**
- * Adjusts a color's saturation - Carbon's free Saturate
- * (Color_inline.h:158-169): lerp from perceived-intensity grey toward the
+ * Adjusts saturation by interpolating from perceived-intensity grey toward the
  * color by max(0, saturation), alpha untouched. A grey-to-color blend, NOT
  * the HLSL clamp; saturation 1 is a plain copy. The intensity weights are
  * Carbon's own eye-response constants and the arithmetic keeps float32
  * rounding.
+ *
+ * Source: math/include/Color_inline.h:161-172
+ * Carbon: Saturate(const Color&, float)
+ * Adapted: Uses array storage and explicit float32 intermediate rounding.
+ *
  * @param {color} out
  * @param {color} a
  * @param {Number} saturation
@@ -337,6 +388,12 @@ color.srgbFromLinear = function(out, linear)
 /**
  * Converts rgb channels from linear to Carbon gamma 2.2 - writes ONLY
  * [0..2], leaving alpha untouched.
+ *
+ * Source: trinity/trinity/TriUtil.h:119-125
+ * Carbon: TriLinearToGamma(const Color&) (counterpart)
+ * Adapted: Applies the scalar helper to RGB, leaving output alpha untouched;
+ * the native Color overload copies input alpha into its return value.
+ *
  * @param {color|vec3} out
  * @param {color|vec3} linear
  * @returns {color|vec3} out
@@ -352,6 +409,12 @@ color.linearToGamma = function(out, linear)
 /**
  * Converts rgb channels from Carbon gamma 2.2 to linear - writes ONLY
  * [0..2], leaving alpha untouched.
+ *
+ * Source: trinity/trinity/TriUtil.h:196-201
+ * Carbon: TriGammaToLinear(const Color&) (counterpart)
+ * Adapted: Applies the scalar helper to RGB, leaving output alpha untouched;
+ * the native Color overload copies input alpha into its return value.
+ *
  * @param {color|vec3} out
  * @param {color|vec3} gamma
  * @returns {color|vec3} out

@@ -74,6 +74,12 @@ quat.fromUnitVectors = function(out, from, to)
 /**
  * Creates a Carbon yaw/pitch/roll quaternion.
  *
+ * Source: math/include/Quaternion.h:57
+ * Source: math/src/Quaternion.cpp:60-81
+ * Carbon: RotationQuaternion(float yaw, float pitch, float roll)
+ * Adapted: Uses the native Apple scalar formula with JS intermediates and a
+ * gl-matrix output quaternion; native other-platform builds use DirectXMath.
+ *
  * @param {quat} out
  * @param {number} yaw
  * @param {number} pitch
@@ -102,6 +108,11 @@ quat.fromYawPitchRoll = function(out, yaw, pitch, roll)
  * Normalizes both directions, then takes the native quaternion square root.
  * The antiparallel fallback is always a half-turn about X, even for an X input
  * axis; this native quirk differs from gl-matrix rotationTo.
+ *
+ * Source: trinity/trinity/TriMath.cpp:263-339
+ * Carbon: TriQuaternionRotationArc; TriQuaternionDirVector; TriQuaternionSqrt
+ * Adapted: Combines the native helpers using gl-matrix storage and reversed
+ * quaternion composition order. JS intermediates are not float-bit equivalent.
  *
  * @param {Float32Array} out Destination quaternion.
  * @param {ArrayLike<number>} from Starting direction.

@@ -566,6 +566,10 @@ vec3.isEmpty = function (a)
  * of two vectors. Carbon spells it `MaxVectorComponent`, and uses it to reduce a
  * colour to the single value that decides how bright it counts as.
  *
+ * Source: trinity/trinity/Tr2ShLightingManager.cpp:385-388
+ * Carbon: MaxVectorComponent(const Vector3& v)
+ * Adapted: Math.max replaces nested std::max; NaN behavior can differ.
+ *
  * @param {vec3} a
  * @returns {Number}
  */

@@ -1,6 +1,7 @@
 // Source: trinity/trinity/TriMath.cpp
-//   trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
+// Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp
 //
+// These are Carbon usage sites, not the generator implementation.
 // Carbon reaches for the C++ standard library's Mersenne Twister directly -
 // `std::mt19937 randGen( seed )` in TriPerlinNoise's constructor (TriMath.cpp:
 // 1023), and `std::default_random_engine`, which is mt19937 under MSVC, in
@@ -20,6 +21,13 @@ const TWIST_OFFSET = 397;
 
 /**
  * Builds a seeded MT19937 engine.
+ *
+ * Source: trinity/trinity/TriMath.cpp:1021-1027 (usage)
+ * Source: trinity/trinity/Curves/Tr2CurveRandomAxisRotation.cpp:122-135 (usage)
+ * Carbon: TriPerlinNoise::TriPerlinNoise; Tr2CurveRandomAxisRotation::SeedChanged (consumers)
+ * Adapted: Implements the standard-library std::mt19937 engine in JavaScript.
+ * The donor sites consume an engine; neither defines the generator algorithm.
+ * The std::default_random_engine selection is platform-specific.
  *
  * @param {number} seed Unsigned 32-bit seed.
  * @returns {() => number} Returns the next 32-bit unsigned value on each call.

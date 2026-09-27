@@ -500,6 +500,12 @@ num.strictNegative = function (s)
 /**
  * Evaluates cubic Hermite interpolation using Carbon argument order.
  *
+ * Source: math/include/Vector3_inline.h:235-246 (basis reference)
+ * Carbon: Hermite(const Vector3&, const Vector3&, const Vector3&, const Vector3&, float)
+ * Custom: Scalar specialization of the same basis and argument order. The native
+ * scalar Hermite in trinity/trinity/TriMath.cpp:928-949 additionally accepts dt;
+ * this helper uses normalized duration 1.
+ *
  * @param {number} startValue
  * @param {number} startTangent
  * @param {number} endValue
@@ -527,6 +533,10 @@ num.cubicHermite = function (startValue, startTangent, endValue, endTangent, amo
 /**
  * Evaluates the derivative of cubic Hermite interpolation using Carbon
  * argument order.
+ *
+ * Reference: math/include/Vector3_inline.h:235-246, Hermite basis.
+ * Custom: Analytic derivative of num.cubicHermite; no native derivative symbol
+ * has been established. The shared argument order is not a direct-port claim.
  *
  * @param {number} startValue
  * @param {number} startTangent
@@ -730,6 +740,11 @@ num.linearFromSRGB = function (a)
 
 /**
  * Converts from linear color space to Carbon gamma 2.2 color space
+ *
+ * Source: trinity/trinity/TriUtil.h:58-61
+ * Carbon: TriLinearToGamma(float)
+ * Adapted: Math.pow uses JavaScript number intermediates instead of native float.
+ *
  * @param {Number} a
  * @returns {Number}
  */
@@ -740,6 +755,11 @@ num.linearToGamma = function (a)
 
 /**
  * Converts from Carbon gamma 2.2 color space to linear color space
+ *
+ * Source: trinity/trinity/TriUtil.h:136-139
+ * Carbon: TriGammaToLinear(float)
+ * Adapted: Math.pow uses JavaScript number intermediates instead of native float.
+ *
  * @param {Number} a
  * @returns {Number}
  */
