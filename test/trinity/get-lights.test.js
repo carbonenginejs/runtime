@@ -7,6 +7,7 @@
 // EveBannerSet.cpp:164-183/466-491), EveBoosterSet2::GetLights
 // (cpp:1287-1319), and the owner loops (EveSpaceObject2.cpp:3536-3555,
 // EveChildMesh.cpp:1638-1652).
+import { TriTextureRes } from "../../npm/dist/resource/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
@@ -34,6 +35,13 @@ import {
 
 
 const EPSILON = 1e-5;
+
+function AverageTexture(r, g, b, a)
+{
+  const texture = new TriTextureRes();
+  texture.SetAverageColor(r, g, b, a);
+  return texture;
+}
 
 function assertClose(actual, expected, message, epsilon = EPSILON)
 {
@@ -290,7 +298,7 @@ test("EveHazeSet/EveSpotlightSet: boosterGainInfluence multiply and the spot con
 test("EvePlaneSet: average-color multiply, saturate, fade - stored items unmutated (cpp:544-568)", () =>
 {
   const planes = new EvePlaneSet();
-  planes.imageMapParameter = { GetResource: () => ({ GetAverageColor: () => [0.5, 0.5, 0.5, 1] }) };
+  planes.imageMapParameter = { GetResource: () => AverageTexture(0.5, 0.5, 0.5, 1) };
   // The other three maps default to white (missing resource).
   const authored = MakeLightData({ brightness: 2, color: [1, 0.5, 0.25, 1], fadeType: 0 });
   planes.lights.push({
@@ -330,7 +338,7 @@ test("EveBannerSet: color REPLACED by the saturated average, zero-alpha and disp
   banners.GetLights(gated);
   assert.equal(gated.added.length, 0, "missing texture -> zero alpha -> nothing");
 
-  banners.primaryTextureParameter = { GetResource: () => ({ GetAverageColor: () => [0.25, 0.5, 0.75, 1] }) };
+  banners.primaryTextureParameter = { GetResource: () => AverageTexture(0.25, 0.5, 0.75, 1) };
   const manager = MakeLightManager();
   banners.GetLights(manager);
   // The authored (9,9,9) is REPLACED by the average, not multiplied.

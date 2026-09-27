@@ -315,6 +315,10 @@ export class TriTextureRes extends CjsResource
 
     if (bitmap) {
       this.CreateFromHostBitmap(bitmap);
+      // A loaded image caches its average colour (TriTextureRes.cpp:627-629).
+      // Carbon's out-parameters stay untouched when the bitmap declines.
+      const average = bitmap.GetAverageColor();
+      if (average) this.SetAverageColor(average.r, average.g, average.b, average.a);
       super.SetPayload(bitmap, options);
       if (options) this.SetValues(options);
       if (bitmap.metadata?.cutout) this.SetCutout(bitmap.metadata.cutout);
@@ -385,6 +389,31 @@ export class TriTextureRes extends CjsResource
    */
   GetMipCount() {
     return this.GetPayload()?.mipCount || this.cpuMip || 0;
+  }
+
+  /**
+   * The image's average colour, cached when the bitmap loads or pushed by a
+   * video source (`TriTextureRes.h:61-64`, `m_averageColor`). Banners, planes,
+   * screens and textured lights take their light colour from it.
+   *
+   * @returns {number[]} `[r, g, b, a]`, zero until something sets it.
+   */
+  GetAverageColor() {
+    return this.averageColor;
+  }
+
+  /**
+   * Carbon's `SetAverageColor` (`TriTextureRes.cpp:862-865`), the hook a video
+   * source pushes each frame's average through (`VideoPlayer.cpp:179`, reset to
+   * zero at :269).
+   *
+   * @param {number} red
+   * @param {number} green
+   * @param {number} blue
+   * @param {number} alpha
+   */
+  SetAverageColor(red, green, blue, alpha) {
+    this.averageColor = [ red, green, blue, alpha ];
   }
 
   /**

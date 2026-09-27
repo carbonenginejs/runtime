@@ -5,8 +5,9 @@ import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, type } from "#schema";
+import { CjsSchema, carbon, edit, impl, type } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
+import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EveBannerItem } from "./EveBannerItem.js";
 import { EveBannerLight } from "./EveBannerLight.js";
@@ -870,22 +871,25 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * parameter's average color, (0,0,0,0) when the map or resource is
    * missing (contrast EvePlaneSet's white default and four-map product). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, zero when absent.")
   GetAverageColor(out = new Float32Array(4))
   {
-    const average = this.primaryTextureParameter?.GetResource?.()?.GetAverageColor?.();
-    if (average)
-    {
-      out[0] = average[0];
-      out[1] = average[1];
-      out[2] = average[2];
-      out[3] = average[3];
-    }
-    else
+    const parameter = this.primaryTextureParameter;
+    if (!parameter || !parameter.GetResource())
     {
       out.fill(0);
+      return out;
     }
+    const resource = CjsSchema.cast(parameter.GetResource(), TriTextureRes);
+    if (!resource)
+    {
+      out.fill(0);
+      return out;
+    }
+    const average = resource.GetAverageColor();
+    out[0] = average[0];
+    out[1] = average[1];
+    out[2] = average[2];
+    out[3] = average[3];
     return out;
   }
 

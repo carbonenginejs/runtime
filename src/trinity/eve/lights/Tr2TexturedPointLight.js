@@ -99,20 +99,13 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   /**
    * Carbon Update (cpp:51-56): the light colour becomes the texture's
    * average colour run through Carbon's Saturate - the grey-to-colour lerp
-   * (Color_inline.h:161), not a clamp. The average is a resource
-   * capability, read as a GetAverageColor duck exactly as EveBannerSet
-   * does; a resource without it (or not yet loaded) leaves the colour
-   * untouched, matching Carbon's null-texture early-out.
+   * (Color_inline.h:161), not a clamp. TriTextureRes caches the average when
+   * its image loads; without a texture the colour is left as it is.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("TriTextureRes precomputes m_averageColor at bitmap load; the runtime resource exposes it as a GetAverageColor capability where an adapter provides one, so absence leaves the colour untouched exactly like Carbon's null texture.")
   Update()
   {
-    const texture = this.texture;
-    if (!texture || typeof texture.GetAverageColor !== "function") return;
-    const average = texture.GetAverageColor();
-    if (!average) return;
-    color.saturate(this.color, average, this.#saturation);
+    if (!this.texture) return;
+    color.saturate(this.color, this.texture.GetAverageColor(), this.#saturation);
   }
 }

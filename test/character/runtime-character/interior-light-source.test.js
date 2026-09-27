@@ -1,3 +1,4 @@
+import { TriTextureRes } from "../../../npm/dist/resource/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -5,6 +6,13 @@ import {
     Tr2InteriorPerObjectLightData
 } from "../../../npm/dist/character/index.js";
 import { Tr2KelvinColor, TriFrustum, Tr2TexturedPointLight } from "../../../npm/dist/trinity/index.js";
+
+function AverageTexture(r, g, b, a)
+{
+  const texture = new TriTextureRes();
+  texture.SetAverageColor(r, g, b, a);
+  return texture;
+}
 
 /**
  * Tr2InteriorLightSource.cpp behaviours: PopulateLightData (cpp:100-138),
@@ -102,7 +110,7 @@ test("Update forwards time to every curve set", () =>
 test("the textured point light saturates the texture's average colour", () =>
 {
     const light = new Tr2TexturedPointLight();
-    light.texture = { GetAverageColor: () => [ 1, 0, 0, 1 ] };
+    light.texture = AverageTexture(1, 0, 0, 1);
     light.SetSaturation(0.5);
     light.Update();
 
@@ -112,9 +120,9 @@ test("the textured point light saturates the texture's average colour", () =>
     assert.ok(Math.abs(light.color[1] - (grey + (0 - grey) * 0.5)) < 1e-6);
     assert.equal(light.color[3], 1, "alpha carries through the grey endpoint");
 
-    // No texture, or a resource without the capability: colour untouched.
+    // No texture: colour untouched (Tr2TexturedPointLight.cpp:53).
     const before = [ ...light.color ];
-    light.texture = {};
+    light.texture = null;
     light.Update();
     assert.deepEqual([ ...light.color ], before);
 });

@@ -3,7 +3,8 @@
 import { box3 } from "#math/box3";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { mat4 } from "#math/mat4";
-import { carbon, edit, impl, type } from "#schema";
+import { CjsSchema, carbon, edit, impl, type } from "#schema";
+import { TriTextureRes } from "#resource";
 import { IEveSpaceObjectAttachment } from "../IEveSpaceObjectAttachment.js";
 import { EvePlaneLight } from "./EvePlaneLight.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
@@ -456,8 +457,6 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * product of the four texture parameters' average colors, each defaulting
    * to white when the map or its resource is missing. */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The texture average color is a resource capability - read as a GetAverageColor duck on the parameter's resource, white when absent.")
   GetAverageColor(out = new Float32Array(4))
   {
     const layer1 = EvePlaneSet.#MapAverageColor(this.layerMap1Parameter);
@@ -480,7 +479,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * Fade(fadeType, ...) (cpp:558-564); point conversion on the bone matrix. */
   @carbon.method
   @impl.adapted
-  @impl.reason("the texture average colors and profile packing follow the adapted ducks above.")
+  @impl.reason("Light-profile packing follows the adapted light-manager surface.")
   GetLights(lightManager)
   {
     const features = EvePlaneSet.#features;
@@ -521,8 +520,11 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    */
   static #MapAverageColor(parameter)
   {
-    const average = parameter?.GetResource?.()?.GetAverageColor?.();
-    return average ?? WHITE;
+    // Carbon: white when the map or its TriTextureRes is missing (cpp:516-527).
+    if (!parameter || !parameter.GetResource()) return WHITE;
+    const resource = CjsSchema.cast(parameter.GetResource(), TriTextureRes);
+    if (!resource) return WHITE;
+    return resource.GetAverageColor();
   }
 
   static #features = { parentBrightness: 0, parentScale: 1 };
