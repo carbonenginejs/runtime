@@ -5,17 +5,17 @@
  */
 export class CjsCharacterAppearanceManager
 {
-    #adapter;
+    _adapter;
 
-    #capabilities;
+    _capabilities;
 
-    #committed = null;
+    _committed = null;
 
-    #committedConstruction = null;
+    _committedConstruction = null;
 
-    #lastResult = null;
+    _lastResult = null;
 
-    #metrics = {
+    _metrics = {
         requests: 0,
         prepares: 0,
         commits: 0,
@@ -30,15 +30,15 @@ export class CjsCharacterAppearanceManager
         peakQueueDepth: 0
     };
 
-    #requestedRevision = 0;
+    _requestedRevision = 0;
 
-    #tail = Promise.resolve();
+    _tail = Promise.resolve();
 
     /** Creates a CPU lifecycle coordinator with an optional realization AL. */
     constructor({ adapter = null, capabilities = null } = {})
     {
         this.SetAdapter(adapter);
-        this.#capabilities = NormalizeCapabilities(capabilities);
+        this._capabilities = NormalizeCapabilities(capabilities);
     }
 
     /** Replaces the appearance realization AL before work is queued. */
@@ -54,23 +54,23 @@ export class CjsCharacterAppearanceManager
                 + "Commit(stage, context), and Release(stage, context)"
             );
         }
-        if (this.#metrics.queueDepth)
+        if (this._metrics.queueDepth)
         {
             throw new Error("Cannot replace the character appearance AL while work is queued");
         }
-        if (this.#committed)
+        if (this._committed)
         {
             throw new Error("Release the committed appearance before replacing its AL");
         }
 
-        this.#adapter = adapter;
+        this._adapter = adapter;
         return this;
     }
 
     /** Replaces the renderer-supplied capability description. */
     SetCapabilities(capabilities = null)
     {
-        this.#capabilities = NormalizeCapabilities(capabilities);
+        this._capabilities = NormalizeCapabilities(capabilities);
         return this;
     }
 
@@ -78,8 +78,8 @@ export class CjsCharacterAppearanceManager
     GetCapabilities()
     {
         const result = {
-            ...this.#capabilities,
-            adapterConnected: this.#adapter !== null
+            ...this._capabilities,
+            adapterConnected: this._adapter !== null
         };
         const maximumBones = result.maximumBones;
         const requiredBones = result.requiredBones;
@@ -95,59 +95,59 @@ export class CjsCharacterAppearanceManager
     {
         return {
             ...this.GetCapabilities(),
-            lastResult: this.#lastResult ? { ...this.#lastResult } : null,
-            metrics: { ...this.#metrics }
+            lastResult: this._lastResult ? { ...this._lastResult } : null,
+            metrics: { ...this._metrics }
         };
     }
 
     /** Warms immutable configured-model templates when the current AL supports it. */
     WarmConfiguredModelTemplates(paths)
     {
-        if (typeof this.#adapter?.WarmConfiguredModelTemplates !== "function")
+        if (typeof this._adapter?.WarmConfiguredModelTemplates !== "function")
         {
             return Promise.resolve({
                 status: "unavailable",
                 reason: "adapter-warm-unavailable"
             });
         }
-        return this.#adapter.WarmConfiguredModelTemplates(paths);
+        return this._adapter.WarmConfiguredModelTemplates(paths);
     }
 
     /** Requests an AL-specific configured-part visibility diagnostic. */
     SetConfiguredPartDisplay(partSourceRecordID, display)
     {
-        if (!this.#committed)
+        if (!this._committed)
         {
             throw new Error("Character appearance manager has no committed appearance");
         }
-        if (typeof this.#adapter?.SetConfiguredPartDisplay !== "function")
+        if (typeof this._adapter?.SetConfiguredPartDisplay !== "function")
         {
             throw new Error("Character appearance AL cannot isolate configured parts");
         }
 
-        const result = this.#adapter.SetConfiguredPartDisplay(
-            this.#committed,
+        const result = this._adapter.SetConfiguredPartDisplay(
+            this._committed,
             partSourceRecordID,
             display
         );
-        this.#RefreshCommittedDiagnostics();
+        this._RefreshCommittedDiagnostics();
         return result;
     }
 
     /** Requests an AL-specific foundation visibility diagnostic. */
     SetFoundationDisplay(role, display)
     {
-        if (!this.#committed)
+        if (!this._committed)
         {
             throw new Error("Character appearance manager has no committed appearance");
         }
-        if (typeof this.#adapter?.SetFoundationDisplay !== "function")
+        if (typeof this._adapter?.SetFoundationDisplay !== "function")
         {
             throw new Error("Character appearance AL cannot isolate foundations");
         }
 
-        const result = this.#adapter.SetFoundationDisplay(this.#committed, role, display);
-        this.#RefreshCommittedDiagnostics();
+        const result = this._adapter.SetFoundationDisplay(this._committed, role, display);
+        this._RefreshCommittedDiagnostics();
         return result;
     }
 
@@ -163,27 +163,27 @@ export class CjsCharacterAppearanceManager
             );
         }
 
-        const requestRevision = ++this.#requestedRevision;
-        this.#metrics.requests++;
-        this.#metrics.queueDepth++;
-        this.#metrics.peakQueueDepth = Math.max(
-            this.#metrics.peakQueueDepth,
-            this.#metrics.queueDepth
+        const requestRevision = ++this._requestedRevision;
+        this._metrics.requests++;
+        this._metrics.queueDepth++;
+        this._metrics.peakQueueDepth = Math.max(
+            this._metrics.peakQueueDepth,
+            this._metrics.queueDepth
         );
 
-        const operation = this.#tail.then(() => this.#Apply(
+        const operation = this._tail.then(() => this._Apply(
             construction,
             requestRevision,
             options
         ));
         const tracked = operation.finally(() =>
         {
-            this.#metrics.queueDepth = Math.max(0, this.#metrics.queueDepth - 1);
+            this._metrics.queueDepth = Math.max(0, this._metrics.queueDepth - 1);
         });
-        this.#tail = tracked.catch(() => undefined);
+        this._tail = tracked.catch(() => undefined);
         return tracked.then(result =>
         {
-            this.#lastResult = result;
+            this._lastResult = result;
             return result;
         });
     }
@@ -191,22 +191,22 @@ export class CjsCharacterAppearanceManager
     /** Releases the current stage through the serialized lifecycle. */
     ReleaseCommitted({ reason = "released", source = this } = {})
     {
-        const revision = ++this.#requestedRevision;
-        const operation = this.#tail.then(async () =>
+        const revision = ++this._requestedRevision;
+        const operation = this._tail.then(async () =>
         {
-            const committed = this.#committed;
-            this.#committed = null;
-            this.#committedConstruction = null;
+            const committed = this._committed;
+            this._committed = null;
+            this._committedConstruction = null;
             if (committed)
             {
-                await this.#Release(committed, { reason, revision, source });
+                await this._Release(committed, { reason, revision, source });
             }
 
             const result = { status: "released", revision };
-            this.#lastResult = result;
+            this._lastResult = result;
             return result;
         });
-        this.#tail = operation.catch(() => undefined);
+        this._tail = operation.catch(() => undefined);
         return operation;
     }
 
@@ -216,20 +216,20 @@ export class CjsCharacterAppearanceManager
      */
     Dispose({ reason = "disposed", source = this } = {})
     {
-        const revision = ++this.#requestedRevision;
-        const committed = this.#committed;
-        this.#committed = null;
-        this.#committedConstruction = null;
+        const revision = ++this._requestedRevision;
+        const committed = this._committed;
+        this._committed = null;
+        this._committedConstruction = null;
 
         const result = {
             status: "disposed",
             revision,
             released: Boolean(committed)
         };
-        this.#lastResult = result;
-        if (!committed || typeof this.#adapter?.Release !== "function") return result;
+        this._lastResult = result;
+        if (!committed || typeof this._adapter?.Release !== "function") return result;
 
-        const completion = this.#adapter.Release(committed, { reason, revision, source });
+        const completion = this._adapter.Release(committed, { reason, revision, source });
         if (completion && typeof completion.catch === "function")
         {
             completion.catch(() => undefined);
@@ -241,18 +241,18 @@ export class CjsCharacterAppearanceManager
      * Applies the current appearance revision, reusing compatible state and
      * releasing superseded or failed preparations.
      */
-    async #Apply(construction, requestRevision, options)
+    async _Apply(construction, requestRevision, options)
     {
-        if (requestRevision !== this.#requestedRevision)
+        if (requestRevision !== this._requestedRevision)
         {
-            this.#metrics.staleBeforePrepare++;
+            this._metrics.staleBeforePrepare++;
             return {
                 status: "stale",
                 revision: requestRevision,
                 skippedBeforePrepare: true
             };
         }
-        if (!this.#adapter)
+        if (!this._adapter)
         {
             return {
                 status: "deferred",
@@ -264,7 +264,7 @@ export class CjsCharacterAppearanceManager
 
         const constructionState = DescribeConstruction(construction);
         const appearanceChange = ApplyConstructionDomainInvalidations(
-            CompareConstructionStates(this.#committedConstruction, constructionState),
+            CompareConstructionStates(this._committedConstruction, constructionState),
             options.invalidateDomains
         );
         const context = {
@@ -273,11 +273,11 @@ export class CjsCharacterAppearanceManager
             source: options.source ?? this,
             construction,
             appearanceChange,
-            previousAppearance: this.#committed
+            previousAppearance: this._committed
         };
 
-        if (this.#committed
-            && requestRevision === this.#requestedRevision
+        if (this._committed
+            && requestRevision === this._requestedRevision
             && appearanceChange.identical)
         {
             const result = {
@@ -287,29 +287,29 @@ export class CjsCharacterAppearanceManager
                 reuseRule: "identical-construction",
                 appearanceChange
             };
-            this.#metrics.reused++;
-            this.#AppendDiagnostics(result, this.#committed);
+            this._metrics.reused++;
+            this._AppendDiagnostics(result, this._committed);
             return result;
         }
 
-        if (this.#committed
+        if (this._committed
             && appearanceChange.dirtyDomains.length === 1
             && appearanceChange.dirtyDomains[0] === "morphs"
-            && typeof this.#adapter.UpdateMorphTargets === "function")
+            && typeof this._adapter.UpdateMorphTargets === "function")
         {
-            if (requestRevision !== this.#requestedRevision)
+            if (requestRevision !== this._requestedRevision)
             {
                 return { status: "stale", revision: requestRevision };
             }
 
-            const update = await this.#adapter.UpdateMorphTargets(
-                this.#committed,
+            const update = await this._adapter.UpdateMorphTargets(
+                this._committed,
                 construction.morphTargets ?? [],
                 context
             );
-            this.#metrics.morphUpdates++;
-            this.#committedConstruction = constructionState;
-            if (requestRevision !== this.#requestedRevision)
+            this._metrics.morphUpdates++;
+            this._committedConstruction = constructionState;
+            if (requestRevision !== this._requestedRevision)
             {
                 return { status: "stale", revision: requestRevision };
             }
@@ -322,59 +322,59 @@ export class CjsCharacterAppearanceManager
                 appearanceChange,
                 update
             };
-            this.#AppendDiagnostics(result, this.#committed);
+            this._AppendDiagnostics(result, this._committed);
             return result;
         }
 
-        this.#metrics.prepares++;
+        this._metrics.prepares++;
         let staged;
         try
         {
-            staged = await this.#adapter.Prepare(construction, context);
+            staged = await this._adapter.Prepare(construction, context);
         }
         catch (error)
         {
-            this.#metrics.failures++;
+            this._metrics.failures++;
             throw error;
         }
 
-        if (requestRevision !== this.#requestedRevision)
+        if (requestRevision !== this._requestedRevision)
         {
-            this.#metrics.staleAfterPrepare++;
-            await this.#Release(staged, { ...context, reason: "stale" });
+            this._metrics.staleAfterPrepare++;
+            await this._Release(staged, { ...context, reason: "stale" });
             return { status: "stale", revision: requestRevision };
         }
 
-        const previous = this.#committed;
+        const previous = this._committed;
         try
         {
-            if (previous && typeof this.#adapter.Handoff === "function")
+            if (previous && typeof this._adapter.Handoff === "function")
             {
-                await this.#adapter.Handoff(previous, staged, context);
-                this.#metrics.handoffs++;
+                await this._adapter.Handoff(previous, staged, context);
+                this._metrics.handoffs++;
             }
             else
             {
-                await this.#adapter.Commit(staged, context);
-                this.#metrics.commits++;
+                await this._adapter.Commit(staged, context);
+                this._metrics.commits++;
             }
-            this.#committed = staged;
-            this.#committedConstruction = constructionState;
+            this._committed = staged;
+            this._committedConstruction = constructionState;
         }
         catch (error)
         {
-            this.#metrics.failures++;
-            await this.#Release(staged, { ...context, reason: "commit-failed" });
+            this._metrics.failures++;
+            await this._Release(staged, { ...context, reason: "commit-failed" });
             throw error;
         }
 
         if (previous && previous !== staged)
         {
-            await this.#Release(previous, { ...context, reason: "replaced" });
+            await this._Release(previous, { ...context, reason: "replaced" });
         }
 
         const result = { status: "committed", revision: requestRevision };
-        this.#AppendDiagnostics(result, staged);
+        this._AppendDiagnostics(result, staged);
         return result;
     }
 
@@ -382,30 +382,30 @@ export class CjsCharacterAppearanceManager
      * Releases an appearance through the configured adapter and counts completed
      * releases.
      */
-    async #Release(value, context)
+    async _Release(value, context)
     {
-        if (value && typeof this.#adapter?.Release === "function")
+        if (value && typeof this._adapter?.Release === "function")
         {
-            await this.#adapter.Release(value, context);
-            this.#metrics.releases++;
+            await this._adapter.Release(value, context);
+            this._metrics.releases++;
         }
     }
 
     /** Adds adapter diagnostics to the result when the adapter provides them. */
-    #AppendDiagnostics(result, appearance)
+    _AppendDiagnostics(result, appearance)
     {
-        if (typeof this.#adapter?.GetDiagnostics === "function")
+        if (typeof this._adapter?.GetDiagnostics === "function")
         {
-            result.details = this.#adapter.GetDiagnostics(appearance);
+            result.details = this._adapter.GetDiagnostics(appearance);
         }
     }
 
     /** Refreshes diagnostics on the last committed result. */
-    #RefreshCommittedDiagnostics()
+    _RefreshCommittedDiagnostics()
     {
-        if (this.#lastResult?.status === "committed")
+        if (this._lastResult?.status === "committed")
         {
-            this.#AppendDiagnostics(this.#lastResult, this.#committed);
+            this._AppendDiagnostics(this._lastResult, this._committed);
         }
     }
 }

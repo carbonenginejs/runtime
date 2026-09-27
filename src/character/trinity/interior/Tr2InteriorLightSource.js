@@ -102,9 +102,9 @@ export class Tr2InteriorLightSource extends CjsModel
   // m_worldBoundingBox - protected, not Blue-exposed, so constructor-derived
   // instance state rather than a schema field (class-shape rules). The ctor
   // default is the (-1,-1,-1)..(1,1,1) unit box (cpp:37).
-  #boundsMin = vec3.fromValues(-1, -1, -1);
+  _boundsMin = vec3.fromValues(-1, -1, -1);
 
-  #boundsMax = vec3.fromValues(1, 1, 1);
+  _boundsMax = vec3.fromValues(1, 1, 1);
 
   /** Carbon method IsSpotLight (MAP_METHOD_AND_WRAP, h:90-93). */
   @carbon.method
@@ -119,7 +119,7 @@ export class Tr2InteriorLightSource extends CjsModel
   @impl.implemented
   Initialize()
   {
-    this.#RebuildWorldBoundingBox();
+    this._RebuildWorldBoundingBox();
     return true;
   }
 
@@ -133,7 +133,7 @@ export class Tr2InteriorLightSource extends CjsModel
   @impl.reason("CjsModel notifications expose settled state rather than Be::Var identity; Carbon's two OnModified branches perform the same rebuild, so no per-member dispatch is needed.")
   OnModified()
   {
-    this.#RebuildWorldBoundingBox();
+    this._RebuildWorldBoundingBox();
   }
 
   /**
@@ -220,15 +220,15 @@ export class Tr2InteriorLightSource extends CjsModel
   {
     if (!this.primaryLighting) return false;
     if (outObjectToWorld) mat4.fromTranslation(outObjectToWorld, this.position);
-    return frustum.IsBoxVisible(this.#boundsMin, this.#boundsMax);
+    return frustum.IsBoxVisible(this._boundsMin, this._boundsMax);
   }
 
   /** cpp:61 / cpp:81-91: the axis-aligned box at position ± radius, raw radius. */
-  #RebuildWorldBoundingBox()
+  _RebuildWorldBoundingBox()
   {
     const r = this.radius;
-    vec3.set(this.#boundsMin, this.position[0] - r, this.position[1] - r, this.position[2] - r);
-    vec3.set(this.#boundsMax, this.position[0] + r, this.position[1] + r, this.position[2] + r);
+    vec3.set(this._boundsMin, this.position[0] - r, this.position[1] - r, this.position[2] - r);
+    vec3.set(this._boundsMax, this.position[0] + r, this.position[1] + r, this.position[2] + r);
   }
 
 }

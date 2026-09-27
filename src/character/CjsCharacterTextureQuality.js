@@ -15,7 +15,7 @@ export class CjsCharacterTextureQuality
         "256"
     ];
 
-    static #extensionOrder = {
+    static _extensionOrder = {
         "4k": [ "png", "dds" ],
         standard: [ "dds", "png" ],
         "512": [ "png", "dds" ],
@@ -75,7 +75,7 @@ export class CjsCharacterTextureQuality
         for (const quality of this.levels.slice(start))
         {
             const atQuality = paths.filter(path => this.getQuality(path) === quality);
-            for (const extension of this.#extensionOrder[quality])
+            for (const extension of this._extensionOrder[quality])
             {
                 const selected = atQuality.find(path => String(path).toLowerCase()
                     .endsWith(`.${extension}`));
@@ -107,7 +107,7 @@ export class CjsCharacterTextureQuality
         for (const quality of this.levels.slice(0, start).reverse())
         {
             const atQuality = paths.filter(path => this.getQuality(path) === quality);
-            for (const extension of this.#extensionOrder[quality])
+            for (const extension of this._extensionOrder[quality])
             {
                 const higher = atQuality.find(path => String(path).toLowerCase()
                     .endsWith(`.${extension}`));

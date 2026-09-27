@@ -9,17 +9,17 @@ const IDENTITY_PALETTE = [
 /** CPU-only mapping from animation-rig world transforms to a render-rig skinning palette. */
 export class CjsCharacterRigBinding
 {
-    #animationBoneNames = [];
+    _animationBoneNames = [];
 
-    #bound = false;
+    _bound = false;
 
-    #mapping = new Int32Array();
+    _mapping = new Int32Array();
 
-    #palette = new Float32Array();
+    _palette = new Float32Array();
 
-    #renderJoints = [];
+    _renderJoints = [];
 
-    #revision = 0;
+    _revision = 0;
 
     /** Binds exact animation-bone names to render joints and resets the palette to bind pose. */
     Bind(renderJoints, animationBoneNames)
@@ -27,9 +27,9 @@ export class CjsCharacterRigBinding
         const nextRenderJoints = ReadRenderJoints(renderJoints);
         const nextAnimationBoneNames = ReadBoneNames(animationBoneNames, "animation rig");
 
-        if (this.#bound
-            && JointsEqual(this.#renderJoints, nextRenderJoints)
-            && NamesEqual(this.#animationBoneNames, nextAnimationBoneNames))
+        if (this._bound
+            && JointsEqual(this._renderJoints, nextRenderJoints)
+            && NamesEqual(this._animationBoneNames, nextAnimationBoneNames))
         {
             return false;
         }
@@ -38,90 +38,90 @@ export class CjsCharacterRigBinding
         const mapping = Int32Array.from(nextAnimationBoneNames,
             name => renderIndices.has(name) ? renderIndices.get(name) : -1);
 
-        this.#renderJoints = nextRenderJoints;
-        this.#animationBoneNames = nextAnimationBoneNames;
-        this.#mapping = mapping;
-        this.#palette = CreateIdentityPalette(mapping.length);
-        this.#bound = true;
-        this.#revision++;
+        this._renderJoints = nextRenderJoints;
+        this._animationBoneNames = nextAnimationBoneNames;
+        this._mapping = mapping;
+        this._palette = CreateIdentityPalette(mapping.length);
+        this._bound = true;
+        this._revision++;
         return true;
     }
 
     /** Rebuilds the palette from animation-rig world transforms, or identity bind pose for null. */
     Update(animationTransforms)
     {
-        if (!this.#bound)
+        if (!this._bound)
         {
             throw new Error("Character rig binding must be bound before it can be updated");
         }
 
         if (animationTransforms === null || animationTransforms === undefined)
         {
-            this.#palette = CreateIdentityPalette(this.#mapping.length);
+            this._palette = CreateIdentityPalette(this._mapping.length);
             return;
         }
 
         if (!Array.isArray(animationTransforms)
-            || animationTransforms.length !== this.#animationBoneNames.length)
+            || animationTransforms.length !== this._animationBoneNames.length)
         {
             throw new TypeError(
-                `Character rig update requires ${this.#animationBoneNames.length} animation transforms`
+                `Character rig update requires ${this._animationBoneNames.length} animation transforms`
             );
         }
 
         const transforms = animationTransforms.map((value, index) =>
             ReadMatrix(value, `animation transform ${index}`));
-        const palette = CreateIdentityPalette(this.#mapping.length);
+        const palette = CreateIdentityPalette(this._mapping.length);
         const final = mat4.create();
 
         for (let index = 0; index < transforms.length; index++)
         {
-            const renderIndex = this.#mapping[index];
+            const renderIndex = this._mapping[index];
 
             if (renderIndex < 0)
             {
                 continue;
             }
 
-            mat4.multiply(final, transforms[index], this.#renderJoints[renderIndex].inverseWorldTransform);
+            mat4.multiply(final, transforms[index], this._renderJoints[renderIndex].inverseWorldTransform);
             WritePaletteMatrix(palette, index, final);
         }
 
-        this.#palette = palette;
+        this._palette = palette;
     }
 
     /** Returns a detached 3x4 palette with one entry per animation-rig bone. */
     GetPalette()
     {
-        return new Float32Array(this.#palette);
+        return new Float32Array(this._palette);
     }
 
     /** Returns detached animation-rig to render-rig joint indices; -1 means unmapped. */
     GetAnimationToRenderMapping()
     {
-        return new Int32Array(this.#mapping);
+        return new Int32Array(this._mapping);
     }
 
     /** Returns a value that changes only when the rig binding changes or is reset. */
     GetRevision()
     {
-        return this.#revision;
+        return this._revision;
     }
 
     /** Clears the rig binding and palette. */
     Reset()
     {
-        if (!this.#bound)
+        if (!this._bound)
         {
             return false;
         }
 
-        this.#animationBoneNames = [];
-        this.#renderJoints = [];
-        this.#mapping = new Int32Array();
-        this.#palette = new Float32Array();
-        this.#bound = false;
-        this.#revision++;
+        this._animationBoneNames = [];
+        this._renderJoints = [];
+        this._mapping = new Int32Array();
+        this._palette = new Float32Array();
+        this._bound = false;
+        this._revision++;
         return true;
     }
 }

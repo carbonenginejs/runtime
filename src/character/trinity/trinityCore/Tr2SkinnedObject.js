@@ -26,15 +26,15 @@ export class Tr2SkinnedObject extends CjsModel
 {
 
   lod = new Tr2SkinnedObjectLod();
-  #lastUpdateTime = 0;
+  _lastUpdateTime = 0;
 
-  #skeletonTag = 0;
+  _skeletonTag = 0;
 
-  #boneList = [];
+  _boneList = [];
 
-  #boneListSource = null;
+  _boneListSource = null;
 
-  #rigBinding = new CjsCharacterRigBinding();
+  _rigBinding = new CjsCharacterRigBinding();
 
   /** m_skinningMatrixFrameDelay (unsigned int) [READ] */
   @edit.read
@@ -276,7 +276,7 @@ export class Tr2SkinnedObject extends CjsModel
       this.skinningMatrixCount = 0;
       if (typeof this.UpdateBones === "function")
       {
-        this.UpdateBones(this.#lastUpdateTime, null);
+        this.UpdateBones(this._lastUpdateTime, null);
       }
     }
   }
@@ -305,7 +305,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.implemented
   GetSkeletonTag()
   {
-    return this.#skeletonTag;
+    return this._skeletonTag;
   }
 
   /** Carbon native method UpdateBones. */
@@ -345,20 +345,20 @@ export class Tr2SkinnedObject extends CjsModel
     }
 
     const source = usesAnimationRig ? "animation" : "render";
-    const sourceChanged = source !== this.#boneListSource;
+    const sourceChanged = source !== this._boneListSource;
 
-    if (sourceChanged || !NamesEqual(this.#boneList, boneNames))
+    if (sourceChanged || !NamesEqual(this._boneList, boneNames))
     {
-      this.#boneList = boneNames;
-      this.#boneListSource = source;
+      this._boneList = boneNames;
+      this._boneListSource = source;
     }
     else
     {
-      boneNames = this.#boneList;
+      boneNames = this._boneList;
     }
 
     const countChanged = this.skinningMatrixCount !== boneNames.length;
-    const bindingChanged = this.#rigBinding.Bind(renderJoints, boneNames);
+    const bindingChanged = this._rigBinding.Bind(renderJoints, boneNames);
     const rebuildMapping = sourceChanged || countChanged || bindingChanged;
 
     if (typeof model.BindToRig === "function")
@@ -368,7 +368,7 @@ export class Tr2SkinnedObject extends CjsModel
 
     if (rebuildMapping)
     {
-      this.#skeletonTag = (this.#skeletonTag + 1) >>> 0;
+      this._skeletonTag = (this._skeletonTag + 1) >>> 0;
       this.skinningMatrixCount = boneNames.length;
       model.ResetBindings?.();
     }
@@ -380,7 +380,7 @@ export class Tr2SkinnedObject extends CjsModel
       transforms = this.animationUpdater.GetAnimationTransforms();
     }
 
-    this.#rigBinding.Update(transforms);
+    this._rigBinding.Update(transforms);
   }
 
   /** Carbon native method GetSkinningMatrices. */
@@ -389,7 +389,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.reason("Returns a detached immediate CPU palette rather than a pointer into the native delayed skinning queue.")
   GetSkinningMatrices()
   {
-    return this.#rigBinding.GetPalette();
+    return this._rigBinding.GetPalette();
   }
 
   /** Carbon method GetBoneIndex (MAP_METHOD_AND_WRAP). */

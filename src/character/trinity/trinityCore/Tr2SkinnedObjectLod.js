@@ -21,8 +21,8 @@ export class Tr2SkinnedObjectLod
   lowDetailProxy = null;
   mediumDetailProxy = null;
 
-  #allowLodSelection = false;
-  #currentLod = -1;
+  _allowLodSelection = false;
+  _currentLod = -1;
 
   /**
    * Repopulates availability when one of the three owned proxy references
@@ -46,7 +46,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   PopulateLods()
   {
-    this.#allowLodSelection = !!(
+    this._allowLodSelection = !!(
       this.highDetailProxy
       || this.mediumDetailProxy
       || this.lowDetailProxy
@@ -61,7 +61,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   SetLOD(_frustum, estimatedPixelDiameter)
   {
-    if (!this.#allowLodSelection)
+    if (!this._allowLodSelection)
     {
       return null;
     }
@@ -77,23 +77,23 @@ export class Tr2SkinnedObjectLod
     {
       if (proxy?.IsTemporary())
       {
-        stickyLod = this.#currentLod;
+        stickyLod = this._currentLod;
       }
     }
 
     let choices = [ 0, 1, 2 ];
     if (stickyLod === 2
-      || (this.#currentLod >= 2
+      || (this._currentLod >= 2
         && estimatedPixelDiameter <= LOW_DETAIL_THRESHOLD + MEDIUM_LOW_MARGIN)
-      || (this.#currentLod < 2
+      || (this._currentLod < 2
         && estimatedPixelDiameter <= LOW_DETAIL_THRESHOLD - MEDIUM_LOW_MARGIN))
     {
       choices = [ 2, 1, 0 ];
     }
     else if (stickyLod === 1
-      || (this.#currentLod >= 1
+      || (this._currentLod >= 1
         && estimatedPixelDiameter <= MEDIUM_DETAIL_THRESHOLD + HIGH_MEDIUM_MARGIN)
-      || (this.#currentLod < 1
+      || (this._currentLod < 1
         && estimatedPixelDiameter <= MEDIUM_DETAIL_THRESHOLD - HIGH_MEDIUM_MARGIN))
     {
       choices = [ 1, 2, 0 ];
@@ -114,10 +114,10 @@ export class Tr2SkinnedObjectLod
       }
     }
 
-    if (model && this.#currentLod !== selectedLod && selectedLod !== -1)
+    if (model && this._currentLod !== selectedLod && selectedLod !== -1)
     {
-      this.#currentLod = selectedLod;
-      proxies[this.#currentLod].OnSelected();
+      this._currentLod = selectedLod;
+      proxies[this._currentLod].OnSelected();
     }
 
     return model;
@@ -167,14 +167,14 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   UnloadLodIfNeeded(time, deltaTime)
   {
-    if (!this.#allowLodSelection || Number(deltaTime) > UNLOAD_MAX_FRAME_TIME)
+    if (!this._allowLodSelection || Number(deltaTime) > UNLOAD_MAX_FRAME_TIME)
     {
       return false;
     }
 
-    this.highDetailProxy?.Update(time, this.#currentLod === 0 ? 0 : RESOURCE_UNLOAD_TIME);
-    this.mediumDetailProxy?.Update(time, this.#currentLod === 1 ? 0 : RESOURCE_UNLOAD_TIME);
-    this.lowDetailProxy?.Update(time, this.#currentLod === 2 ? 0 : RESOURCE_UNLOAD_TIME);
+    this.highDetailProxy?.Update(time, this._currentLod === 0 ? 0 : RESOURCE_UNLOAD_TIME);
+    this.mediumDetailProxy?.Update(time, this._currentLod === 1 ? 0 : RESOURCE_UNLOAD_TIME);
+    this.lowDetailProxy?.Update(time, this._currentLod === 2 ? 0 : RESOURCE_UNLOAD_TIME);
 
     // The maintained native implementation always returns false, despite the
     // older header comment describing a possible true result.
@@ -189,7 +189,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   SetCurrentLod(lod)
   {
-    this.#currentLod = lod;
+    this._currentLod = lod;
   }
 
   /** Returns the selected whole-model detail index, or -1 before selection. */
@@ -197,7 +197,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   GetCurrentLod()
   {
-    return this.#currentLod;
+    return this._currentLod;
   }
 
   /** Reports whether at least one detail proxy permits whole-model selection. */
@@ -205,7 +205,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   HaveLodSetup()
   {
-    return this.#allowLodSelection;
+    return this._allowLodSelection;
   }
 
   /** Allows shadow casting without selection or only for the high-detail model. */
@@ -213,7 +213,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   IsCastingShadow()
   {
-    return !this.#allowLodSelection || this.#currentLod === 0;
+    return !this._allowLodSelection || this._currentLod === 0;
   }
 
   /**
@@ -224,7 +224,7 @@ export class Tr2SkinnedObjectLod
   @impl.implemented
   IsSimulatingCloth(maxClothLod)
   {
-    return !this.#allowLodSelection || this.#currentLod <= maxClothLod;
+    return !this._allowLodSelection || this._currentLod <= maxClothLod;
   }
 
   /**
@@ -242,7 +242,7 @@ export class Tr2SkinnedObjectLod
     }
 
     const rawModel = typeof model.GetRawRoot === "function" ? model.GetRawRoot() : model;
-    switch (this.#currentLod)
+    switch (this._currentLod)
     {
       case 0:
         if (this.highDetailProxy)

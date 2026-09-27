@@ -29,25 +29,25 @@ const DOCUMENT_DEFINITIONS = [
 @type.define({ className: "CjsCharacterLibraryDocuments", family: "character" })
 export class CjsCharacterLibraryDocuments extends CjsModel
 {
-    #documentRevisions = new Map();
+    _documentRevisions = new Map();
 
     /** Revision of library-owned list mutations, independent of edit settling. */
     GetDocumentRevision(name)
     {
-        return this.#documentRevisions.get(name) ?? 0;
+        return this._documentRevisions.get(name) ?? 0;
     }
 
     /** Advances the revision of the document list that was mutated. */
     @impl.custom
     @impl.reason("JS character library lookup indexes must observe same-length list replacements, including deferred edits.")
-    @impl.invalidates("#documentRevisions")
+    @impl.invalidates("_documentRevisions")
     OnListModified(_event, _key, _key2, _value, list)
     {
         for (const [name] of DOCUMENT_DEFINITIONS)
         {
             if (this[name] === list)
             {
-                this.#documentRevisions.set(name, this.GetDocumentRevision(name) + 1);
+                this._documentRevisions.set(name, this.GetDocumentRevision(name) + 1);
             }
         }
     }

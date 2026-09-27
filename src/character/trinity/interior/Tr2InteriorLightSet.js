@@ -8,14 +8,14 @@ import { Tr2InteriorPerObjectLightData } from "../../generated/interior/Tr2Inter
 export class Tr2InteriorLightSet extends CjsModel
 {
 
-  #lightInstances = [];
+  _lightInstances = [];
 
   /** Adds one native light identity to the transient active-light set. */
   @carbon.method
   @impl.implemented
   AddLight(lightSource, _viewPosition)
   {
-    this.#lightInstances.push({
+    this._lightInstances.push({
       lightSource,
       lightDataValid: false,
       lightData: new Tr2InteriorPerObjectLightData()
@@ -27,7 +27,7 @@ export class Tr2InteriorLightSet extends CjsModel
   @impl.implemented
   Clear()
   {
-    this.#lightInstances.length = 0;
+    this._lightInstances.length = 0;
   }
 
   /** Returns the source-backed active-light count. */
@@ -35,7 +35,7 @@ export class Tr2InteriorLightSet extends CjsModel
   @impl.implemented
   GetNumOfActiveLights()
   {
-    return this.#lightInstances.length;
+    return this._lightInstances.length;
   }
 
   /** Requires the maintained light-data population contract before it can run. */

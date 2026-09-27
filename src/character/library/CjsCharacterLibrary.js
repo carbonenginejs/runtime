@@ -19,11 +19,11 @@ import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRela
 export class CjsCharacterLibrary extends CjsModel
 {
 
-    #documentIndexes = new Map();
+    _documentIndexes = new Map();
 
-    #textureMetadataRequests = new Map();
+    _textureMetadataRequests = new Map();
 
-    #resourceManager = null;
+    _resourceManager = null;
 
     /**
      * The source relationships between documents: owning document, path to
@@ -315,7 +315,7 @@ export class CjsCharacterLibrary extends CjsModel
         }
 
         const record = this.documents.Create(key, values, options);
-        this.#documentIndexes.delete(key);
+        this._documentIndexes.delete(key);
         EmitRecordEvent(this, "recordadded", key, record, options);
         return record;
     }
@@ -333,7 +333,7 @@ export class CjsCharacterLibrary extends CjsModel
         }
 
         this.documents.Add(key, record, options);
-        this.#documentIndexes.delete(key);
+        this._documentIndexes.delete(key);
         EmitRecordEvent(this, "recordadded", key, record, options);
         return record;
     }
@@ -347,7 +347,7 @@ export class CjsCharacterLibrary extends CjsModel
 
         if (removed)
         {
-            this.#documentIndexes.delete(key);
+            this._documentIndexes.delete(key);
             EmitRecordEvent(this, "recordremoved", key, record, options);
         }
         return removed;
@@ -362,7 +362,7 @@ export class CjsCharacterLibrary extends CjsModel
 
         if (deleted)
         {
-            this.#documentIndexes.delete(key);
+            this._documentIndexes.delete(key);
             EmitRecordEvent(this, "recordremoved", key, record, options);
             EmitRecordEvent(this, "recorddeleted", key, record, options);
         }
@@ -378,7 +378,7 @@ export class CjsCharacterLibrary extends CjsModel
 
         if (cleared)
         {
-            this.#documentIndexes.delete(key);
+            this._documentIndexes.delete(key);
             EmitRecordEvent(this, "documentcleared", key, null, options, { count });
         }
         return cleared;
@@ -401,7 +401,7 @@ export class CjsCharacterLibrary extends CjsModel
                 ));
             }
 
-            this.#documentIndexes = indexes;
+            this._documentIndexes = indexes;
             return this;
         }
 
@@ -418,7 +418,7 @@ export class CjsCharacterLibrary extends CjsModel
             CjsCharacterLibraryDocuments.getDocumentType(key),
                 this.documents.GetDocumentRevision(key)
         );
-        this.#documentIndexes.set(key, entry);
+        this._documentIndexes.set(key, entry);
         return this;
     }
 
@@ -457,7 +457,7 @@ export class CjsCharacterLibrary extends CjsModel
 
         const identity = NormalizeLookupRecordID(recordID);
 
-        let entry = this.#documentIndexes.get(key);
+        let entry = this._documentIndexes.get(key);
 
         if (!entry || entry.document !== document || entry.length !== document.length
             || entry.revision !== this.documents.GetDocumentRevision(key))
@@ -468,7 +468,7 @@ export class CjsCharacterLibrary extends CjsModel
                 CjsCharacterLibraryDocuments.getDocumentType(key),
                 this.documents.GetDocumentRevision(key)
             );
-            this.#documentIndexes.set(key, entry);
+            this._documentIndexes.set(key, entry);
         }
 
         let record = entry.records.get(identity) ?? null;
@@ -487,7 +487,7 @@ export class CjsCharacterLibrary extends CjsModel
                 this.documents.GetDocumentRevision(key)
             );
             entry.misses.add(identity);
-            this.#documentIndexes.set(key, entry);
+            this._documentIndexes.set(key, entry);
             record = entry.records.get(identity) ?? null;
         }
 
@@ -502,7 +502,7 @@ export class CjsCharacterLibrary extends CjsModel
             throw new TypeError("Character library resource manager must expose GetObject");
         }
 
-        this.#resourceManager = resMan;
+        this._resourceManager = resMan;
         return this;
     }
 
@@ -516,7 +516,7 @@ export class CjsCharacterLibrary extends CjsModel
      * `Create`, so it raises the ordinary `recordadded` event.
      */
     async InspectResourceForData(resourcePath, {
-        resMan = this.#resourceManager,
+        resMan = this._resourceManager,
         source = this
     } = {})
     {
@@ -529,7 +529,7 @@ export class CjsCharacterLibrary extends CjsModel
             throw new TypeError("Character resource inspection requires resMan.GetObject");
         }
 
-        if (!this.#textureMetadataRequests.has(identity))
+        if (!this._textureMetadataRequests.has(identity))
         {
             const request = (async () =>
             {
@@ -545,12 +545,12 @@ export class CjsCharacterLibrary extends CjsModel
                 );
                 return this.Get("characterTextureMetadata", identity)
                     ?? this.Create("characterTextureMetadata", values, { source });
-            })().finally(() => this.#textureMetadataRequests.delete(identity));
+            })().finally(() => this._textureMetadataRequests.delete(identity));
 
-            this.#textureMetadataRequests.set(identity, request);
+            this._textureMetadataRequests.set(identity, request);
         }
 
-        return this.#textureMetadataRequests.get(identity);
+        return this._textureMetadataRequests.get(identity);
     }
 
 }

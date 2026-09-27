@@ -12,13 +12,13 @@ import { BLUELISTEVENT } from "#consts/blue";
 export class Tr2SkinnedModel extends Tr2Model
 {
 
-  #areAllMeshesBound = false;
+  _areAllMeshesBound = false;
 
-  #boneList = null;
+  _boneList = null;
 
-  #skeletonIndex = -1;
+  _skeletonIndex = -1;
 
-  #skeletonResource = null;
+  _skeletonResource = null;
 
   /** m_geometryResPath (std::string) [READWRITE, NOTIFY, PERSIST] */
   @edit.notify
@@ -62,11 +62,11 @@ export class Tr2SkinnedModel extends Tr2Model
   @carbon.method
   @impl.adapted
   @impl.reason("Character resource acquisition remains host-owned. Resets native skeleton/binding state and resolves against the supplied geometry; native resource subscription/acquisition is not implemented here.")
-  @impl.invalidates("#areAllMeshesBound")
+  @impl.invalidates("_areAllMeshesBound")
   Initialize()
   {
-    this.#skeletonIndex = -1;
-    this.#areAllMeshesBound = false;
+    this._skeletonIndex = -1;
+    this._areAllMeshesBound = false;
     this.RebuildCachedData(this.geometryRes);
     return true;
   }
@@ -74,10 +74,10 @@ export class Tr2SkinnedModel extends Tr2Model
   /** Invalidates mesh binding completion when a mesh is inserted. */
   @carbon.method
   @impl.implemented
-  @impl.invalidates("#areAllMeshesBound")
+  @impl.invalidates("_areAllMeshesBound")
   OnListModified(event)
   {
-    if (event === BLUELISTEVENT.BELIST_INSERTED) this.#areAllMeshesBound = false;
+    if (event === BLUELISTEVENT.BELIST_INSERTED) this._areAllMeshesBound = false;
   }
 
   /** Carbon resource-notify hook: clears the selected skeleton index. */
@@ -85,7 +85,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @impl.implemented
   ReleaseCachedData(_resource = null)
   {
-    this.#skeletonIndex = -1;
+    this._skeletonIndex = -1;
   }
 
   /** Carbon resource-notify hook: selects the exact named skeleton. */
@@ -94,8 +94,8 @@ export class Tr2SkinnedModel extends Tr2Model
   @impl.reason("Consumes the structural TriGeometryRes skeleton-query surface supplied by an outer resource adapter.")
   RebuildCachedData(resource = this.geometryRes)
   {
-    this.#skeletonIndex = -1;
-    this.#skeletonResource = resource ?? null;
+    this._skeletonIndex = -1;
+    this._skeletonResource = resource ?? null;
 
     if (!resource
       || typeof resource.GetSkeletonCount !== "function"
@@ -118,7 +118,7 @@ export class Tr2SkinnedModel extends Tr2Model
 
       if (name === this.skeletonName)
       {
-        this.#skeletonIndex = index;
+        this._skeletonIndex = index;
         break;
       }
     }
@@ -130,14 +130,14 @@ export class Tr2SkinnedModel extends Tr2Model
   @impl.reason("Returns the selected structural geometry-resource skeleton object rather than a native pointer.")
   GetSkeleton()
   {
-    if (this.#skeletonIndex < 0
-      || !this.#skeletonResource
-      || typeof this.#skeletonResource.GetSkeletonData !== "function")
+    if (this._skeletonIndex < 0
+      || !this._skeletonResource
+      || typeof this._skeletonResource.GetSkeletonData !== "function")
     {
       return null;
     }
 
-    return this.#skeletonResource.GetSkeletonData(this.#skeletonIndex) ?? null;
+    return this._skeletonResource.GetSkeletonData(this._skeletonIndex) ?? null;
   }
 
   /** Carbon native method BindToRig. */
@@ -146,7 +146,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @impl.reason("Uses JavaScript bone-name arrays and structural mesh BindToRig methods instead of native string pointers and mesh objects.")
   BindToRig(boneList, numBones = boneList?.length ?? 0, forceRebind = false)
   {
-    if (!forceRebind && boneList === this.#boneList && this.#areAllMeshesBound)
+    if (!forceRebind && boneList === this._boneList && this._areAllMeshesBound)
     {
       return;
     }
@@ -160,8 +160,8 @@ export class Tr2SkinnedModel extends Tr2Model
 
     if (boneList === null || boneList === undefined)
     {
-      this.#boneList = null;
-      this.#areAllMeshesBound = false;
+      this._boneList = null;
+      this._areAllMeshesBound = false;
       return;
     }
 
@@ -177,8 +177,8 @@ export class Tr2SkinnedModel extends Tr2Model
       throw new TypeError("Tr2SkinnedModel.BindToRig received an invalid bone count");
     }
 
-    const rebind = forceRebind || !this.#areAllMeshesBound;
-    this.#areAllMeshesBound = true;
+    const rebind = forceRebind || !this._areAllMeshesBound;
+    this._areAllMeshesBound = true;
 
     for (const mesh of this.meshes)
     {
@@ -186,11 +186,11 @@ export class Tr2SkinnedModel extends Tr2Model
         || typeof mesh.BindToRig !== "function"
         || mesh.BindToRig(boneList, count, skeleton, rebind) === false)
       {
-        this.#areAllMeshesBound = false;
+        this._areAllMeshesBound = false;
       }
     }
 
-    this.#boneList = boneList;
+    this._boneList = boneList;
   }
 
   /** Carbon native method ResetBindings. */
@@ -198,7 +198,7 @@ export class Tr2SkinnedModel extends Tr2Model
   @impl.implemented
   ResetBindings()
   {
-    this.#areAllMeshesBound = false;
+    this._areAllMeshesBound = false;
   }
 
   /** Carbon method ResetAnimationBindings -> ResetBindings (MAP_METHOD_AND_WRAP). */

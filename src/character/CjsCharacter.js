@@ -8,21 +8,21 @@ import { CjsCharacterDiagnostics } from "./CjsCharacterDiagnostics.js";
 @compose.notify
 export class CjsCharacter
 {
-    #appearanceManager;
+    _appearanceManager;
 
-    #appearanceResolver;
+    _appearanceResolver;
 
-    #construction = null;
+    _construction = null;
 
-    #constructionResolver;
+    _constructionResolver;
 
-    #libraryManager;
+    _libraryManager;
 
-    #paperdoll = null;
+    _paperdoll = null;
 
-    #plan = null;
+    _plan = null;
 
-    #revision = 0;
+    _revision = 0;
 
     /** Creates a character state coordinator around injected neutral services. */
     constructor({
@@ -54,52 +54,52 @@ export class CjsCharacter
             );
         }
 
-        this.#libraryManager = libraryManager;
-        this.#appearanceResolver = appearanceResolver;
-        this.#constructionResolver = constructionResolver;
-        this.#appearanceManager = appearanceManager;
+        this._libraryManager = libraryManager;
+        this._appearanceResolver = appearanceResolver;
+        this._constructionResolver = constructionResolver;
+        this._appearanceManager = appearanceManager;
     }
 
     /** Returns the installed character-library manager. */
     GetLibraryManager()
     {
-        return this.#libraryManager;
+        return this._libraryManager;
     }
 
     /** Returns the selectable paper-doll records from the installed library. */
     GetPaperdolls()
     {
-        return this.#libraryManager.GetDocument("paperdolls") ?? [];
+        return this._libraryManager.GetDocument("paperdolls") ?? [];
     }
 
     /** Returns the selected paper doll, if any. */
     GetPaperdoll()
     {
-        return this.#paperdoll;
+        return this._paperdoll;
     }
 
     /** Returns the current neutral appearance plan, if any. */
     GetAppearancePlan()
     {
-        return this.#plan;
+        return this._plan;
     }
 
     /** Returns the current renderer-neutral construction sequence, if any. */
     GetConstructionSequence()
     {
-        return this.#construction;
+        return this._construction;
     }
 
     /** Returns the optional realization lifecycle manager. */
     GetAppearanceManager()
     {
-        return this.#appearanceManager;
+        return this._appearanceManager;
     }
 
     /** Returns the monotonically increasing selected-appearance revision. */
     GetRevision()
     {
-        return this.#revision;
+        return this._revision;
     }
 
     /** Resolves one library-owned paper doll into the current plan and construction state. */
@@ -111,26 +111,26 @@ export class CjsCharacter
             throw new TypeError("Paper-doll record ID must be a non-empty string");
         }
 
-        const paperdoll = this.#libraryManager.Get("paperdolls", identity);
+        const paperdoll = this._libraryManager.Get("paperdolls", identity);
         if (!paperdoll)
         {
             throw new Error(`Unknown paper-doll record ${JSON.stringify(identity)}`);
         }
 
-        const library = this.#libraryManager.GetLibrary();
-        const plan = this.#appearanceResolver.resolvePaperdoll(library, paperdoll, {
+        const library = this._libraryManager.GetLibrary();
+        const plan = this._appearanceResolver.resolvePaperdoll(library, paperdoll, {
             requestedLod: 0
         });
-        const construction = this.#constructionResolver.Resolve(paperdoll, plan, library);
+        const construction = this._constructionResolver.Resolve(paperdoll, plan, library);
 
-        this.#paperdoll = paperdoll;
-        this.#plan = plan;
-        this.#construction = construction;
-        this.#revision += 1;
+        this._paperdoll = paperdoll;
+        this._plan = plan;
+        this._construction = construction;
+        this._revision += 1;
         this.EmitEvent("appearancechanged", {
             type: "appearancechanged",
             source: this,
-            revision: this.#revision
+            revision: this._revision
         });
         return plan;
     }
@@ -138,13 +138,13 @@ export class CjsCharacter
     /** Applies the current construction through the injected lifecycle manager. */
     ApplyAppearance(options = {})
     {
-        if (!this.#plan || !this.#construction)
+        if (!this._plan || !this._construction)
         {
             return Promise.reject(
                 new Error("Character has no resolved appearance and construction state")
             );
         }
-        if (!this.#appearanceManager)
+        if (!this._appearanceManager)
         {
             return Promise.resolve({
                 status: "deferred",
@@ -152,8 +152,8 @@ export class CjsCharacter
             });
         }
 
-        return this.#appearanceManager.ApplyConstruction(this.#construction, {
-            appearancePlan: this.#plan,
+        return this._appearanceManager.ApplyConstruction(this._construction, {
+            appearancePlan: this._plan,
             source: options.source ?? this,
             invalidateDomains: options.invalidateDomains ?? []
         });

@@ -5,15 +5,15 @@ import { normalizeResourcePath } from "#utils/path";
 export class CjsCharacterLibraryManager
 {
 
-    #library = new CjsCharacterLibrary();
+    _library = new CjsCharacterLibrary();
 
-    #resourceLoader = null;
+    _resourceLoader = null;
 
-    #resourceManager = null;
+    _resourceManager = null;
 
-    #loadOperations = new Map();
+    _loadOperations = new Map();
 
-    #installGeneration = 0;
+    _installGeneration = 0;
 
     /** Creates a manager from an optional combined library and structural loader. */
     constructor(library = null, options = {})
@@ -46,7 +46,7 @@ export class CjsCharacterLibraryManager
             throw new TypeError("Character library resource loader must be a function or null");
         }
 
-        this.#resourceLoader = loader;
+        this._resourceLoader = loader;
         return this;
     }
 
@@ -58,8 +58,8 @@ export class CjsCharacterLibraryManager
             throw new TypeError("Character library resource manager must expose GetObject");
         }
 
-        this.#resourceManager = resMan;
-        this.#library.SetResourceManager(resMan);
+        this._resourceManager = resMan;
+        this._library.SetResourceManager(resMan);
         return this;
     }
 
@@ -67,28 +67,28 @@ export class CjsCharacterLibraryManager
     InstallLibrary(value)
     {
         const installed = PrepareLibrary(value);
-        this.#installGeneration += 1;
-        installed.SetResourceManager(this.#resourceManager);
-        this.#library = installed;
+        this._installGeneration += 1;
+        installed.SetResourceManager(this._resourceManager);
+        this._library = installed;
         return installed;
     }
 
     /** Returns the currently installed combined library. */
     GetLibrary()
     {
-        return this.#library;
+        return this._library;
     }
 
     /** Loads and installs a combined library through the configured synchronous loader. */
     LoadLibrary(filePath)
     {
-        if (!this.#resourceLoader)
+        if (!this._resourceLoader)
         {
             return false;
         }
 
         const path = NormalizeLibraryPath(filePath);
-        const value = this.#resourceLoader(path);
+        const value = this._resourceLoader(path);
 
         if (value && typeof value.then === "function")
         {
@@ -107,7 +107,7 @@ export class CjsCharacterLibraryManager
     /** Loads and installs one combined library while deduplicating equivalent in-flight paths. */
     async LoadLibraryAsync(filePath)
     {
-        const loader = this.#resourceLoader;
+        const loader = this._resourceLoader;
 
         if (!loader)
         {
@@ -115,14 +115,14 @@ export class CjsCharacterLibraryManager
         }
 
         const path = NormalizeLibraryPath(filePath);
-        const existing = this.#loadOperations.get(path);
+        const existing = this._loadOperations.get(path);
 
         if (existing)
         {
             return existing;
         }
 
-        const generation = ++this.#installGeneration;
+        const generation = ++this._installGeneration;
         const operation = Promise.resolve()
             .then(() => loader(path))
             .then(value =>
@@ -134,22 +134,22 @@ export class CjsCharacterLibraryManager
 
                 const installed = PrepareLibrary(value);
 
-                if (this.#installGeneration !== generation)
+                if (this._installGeneration !== generation)
                 {
                     return false;
                 }
 
-                installed.SetResourceManager(this.#resourceManager);
-                this.#library = installed;
+                installed.SetResourceManager(this._resourceManager);
+                this._library = installed;
                 return true;
             });
-        this.#loadOperations.set(path, operation);
+        this._loadOperations.set(path, operation);
 
         const clear = () =>
         {
-            if (this.#loadOperations.get(path) === operation)
+            if (this._loadOperations.get(path) === operation)
             {
-                this.#loadOperations.delete(path);
+                this._loadOperations.delete(path);
             }
         };
 
@@ -160,74 +160,74 @@ export class CjsCharacterLibraryManager
     /** Hydrates and adds one item to the installed editor library. */
     Create(documentName, values = {}, options = {})
     {
-        return this.#library.Create(documentName, values, options);
+        return this._library.Create(documentName, values, options);
     }
 
     /** Adds one already-hydrated item to the installed editor library. */
     Add(documentName, record, options = {})
     {
-        return this.#library.Add(documentName, record, options);
+        return this._library.Add(documentName, record, options);
     }
 
     /** Detaches one item from the installed editor library. */
     Remove(documentName, record, options = {})
     {
-        return this.#library.Remove(documentName, record, options);
+        return this._library.Remove(documentName, record, options);
     }
 
     /** Deletes one item from the installed editor library. */
     Delete(documentName, record, options = {})
     {
-        return this.#library.Delete(documentName, record, options);
+        return this._library.Delete(documentName, record, options);
     }
 
     /** Clears one document in the installed editor library. */
     Clear(documentName, options = {})
     {
-        return this.#library.Clear(documentName, options);
+        return this._library.Clear(documentName, options);
     }
 
     /** Returns one installed library document collection. */
     GetDocument(name)
     {
-        return this.#library.GetDocument(name);
+        return this._library.GetDocument(name);
     }
 
     /** Returns one installed record by document name and named record identity. */
     Get(documentName, recordID)
     {
-        return this.#library.Get(documentName, recordID);
+        return this._library.Get(documentName, recordID);
     }
 
     /** Returns the installed library's unresolved relationship for one member, or null. */
     GetUnresolvedRelationship(documentName, recordID, field)
     {
-        return this.#library.GetUnresolvedRelationship(documentName, recordID, field);
+        return this._library.GetUnresolvedRelationship(documentName, recordID, field);
     }
 
     /** Lists the installed combined-library document collections. */
     ListDocuments()
     {
-        return this.#library.ListDocuments();
+        return this._library.ListDocuments();
     }
 
     /** Returns whether the installed library contains one named record. */
     Has(documentName, recordID)
     {
-        return this.#library.Has(documentName, recordID);
+        return this._library.Has(documentName, recordID);
     }
 
     /** Rebuilds one or every installed private record index after editor mutation. */
     Reindex(documentName = null)
     {
-        this.#library.Reindex(documentName);
+        this._library.Reindex(documentName);
         return this;
     }
 
     /** Returns or discovers extension-neutral character data for one resource path. */
     InspectResourceForData(resourcePath, options = {})
     {
-        return this.#library.InspectResourceForData(resourcePath, options);
+        return this._library.InspectResourceForData(resourcePath, options);
     }
 
 }
