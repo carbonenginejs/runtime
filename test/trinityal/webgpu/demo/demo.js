@@ -1048,6 +1048,16 @@ async function BuildSofShip(dna)
 {
   const sof = new EveSOF().Register({
     lazyData: { source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")) },
+    // THE HOST'S OBJECT LOADER, so the async build inlines each effect child
+    // as Carbon's SOF does (BeResMan->LoadObject, EveSOF.cpp:2005, 2168)
+    // instead of emitting an EveChildRef: the file's root as model values.
+    resources: {
+      getObject: async path =>
+      {
+        const read = CjsBlackFormat.read(await ResourceBytes(String(path).replace(/^res:\/+/u, "")), { emit: "json" });
+        return (read.root ?? read).object ?? null;
+      }
+    },
     // The EVE client's volumetricTrailPath (Carbon registers the setting
     // empty, EveSOF.cpp:64-65, and the client fills it): the one generic
     // booster trail mesh in the client's resources.
