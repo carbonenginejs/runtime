@@ -50,7 +50,7 @@ export class Tr2Controller extends EveThrottleable
 
   #updateables = new Set();
 
-  #callbacks = [];
+  _callbacks = [];
 
   #variableView = [];
 
@@ -69,25 +69,18 @@ export class Tr2Controller extends EveThrottleable
 
   #currentFrameTime = 0;
 
-  #callbackCount = 0;
-
-  /**
-   * Number of named callbacks currently registered; kept as a field so schema
-   * consumers can observe registration without walking the private list.
-   */
+  /** Number of registered callbacks, exposed read-only as in Carbon. */
   get callbackCount()
   {
-    return this.#callbackCount;
+    return this.GetCallbackCount();
   }
 
-  /**
-   * Number of named callbacks currently registered; mirrored as a field so
-   * consumers can observe registration without walking the private callback
-   * list.
-   */
-  set callbackCount(value)
+  /** Returns the current callback-vector size (Tr2Controller.h:63-66). */
+  @carbon.method
+  @impl.implemented
+  GetCallbackCount()
   {
-    this.#callbackCount = value;
+    return this._callbacks.length;
   }
 
   /**
@@ -489,21 +482,33 @@ export class Tr2Controller extends EveThrottleable
 
   /**
    * Runs callbacks registered for a named callback.
+   *
+   * Adapted: Invokes stored JavaScript functions and reports exceptions through
+   * console.error, preserving Carbon's continuation after a failed callback.
+   * Returns whether a matching callback was invoked; native returns void.
    */
   @carbon.method
   @impl.adapted
   Callback(callbackName)
   {
-    if (!this.isPlaying || !this.#callbacks.length)
+    if (!this.isPlaying || !this._callbacks.length)
     {
       return false;
     }
     let called = false;
-    for (const entry of this.#callbacks)
+    for (const entry of this._callbacks)
     {
       if (entry.name === callbackName)
       {
-        entry.callback();
+        try
+        {
+          entry.callback();
+        }
+        catch (error)
+        {
+          // Carbon CallVoid().ReportException() reports and continues dispatch.
+          console.error("Controller callback failed", callbackName, error);
+        }
         called = true;
       }
     }
@@ -511,21 +516,19 @@ export class Tr2Controller extends EveThrottleable
   }
 
   /**
-   * Registers a named callback.
+   * Registers a named callback, including an empty name.
+   *
+   * Adapted: Stores a JavaScript function in place of BlueScriptCallback and
+   * returns true after registration; native returns void.
    */
   @carbon.method
   @impl.adapted
   RegisterCallback(callbackName, callback)
   {
-    if (!callbackName)
-    {
-      return false;
-    }
-    this.#callbacks.push({
+    this._callbacks.push({
       name: callbackName,
       callback
     });
-    this.callbackCount = this.#callbacks.length;
     return true;
   }
 
@@ -536,8 +539,7 @@ export class Tr2Controller extends EveThrottleable
   @impl.implemented
   ClearCallbacks()
   {
-    this.#callbacks = [];
-    this.callbackCount = 0;
+    this._callbacks = [];
   }
 
   /**

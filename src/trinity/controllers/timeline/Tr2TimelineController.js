@@ -279,6 +279,10 @@ export class Tr2TimelineController extends EveThrottleable
 
   /**
    * Invokes callbacks registered for a name.
+   *
+   * Adapted: Invokes stored JavaScript functions and reports exceptions through
+   * console.error, preserving Carbon's continuation after a failed callback.
+   * Returns whether a matching callback was invoked; native returns void.
    */
   @carbon.method
   @impl.adapted
@@ -293,7 +297,15 @@ export class Tr2TimelineController extends EveThrottleable
     {
       if (entry.name === callbackName)
       {
-        entry.callback();
+        try
+        {
+          entry.callback();
+        }
+        catch (error)
+        {
+          // Carbon CallVoid().ReportException() reports and continues dispatch.
+          console.error("Controller callback failed", callbackName, error);
+        }
         called = true;
       }
     }

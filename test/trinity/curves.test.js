@@ -206,7 +206,7 @@ test("curve methods expose source-backed Carbon metadata", () =>
   const jsOnlyMethods = [[TriEventCurve, "FireKey"], [TriCurveSet, "UpdateAt"], [TriCurveSet, "IsUsingSimTimeRebase"], [TriCurveSet, "ApplyTimeRange"], [TriCurveSet, "CallStopCallback"], [TriCurveSet, "DestroyStopCallback"], [Tr2TranslationAdapter, "GetLocalTime"], [Tr2TranslationAdapter, "GetStartAwareLocalTime"], [Tr2RotationAdapter, "GetLocalTime"], [Tr2RotationAdapter, "GetStartAwareLocalTime"], [Tr2ObjectFollowCurveKey, "GetLocator"], [Tr2ObjectFollowCurveKey, "GetRotation"], [Tr2ObjectFollowCurveKey, "GetWorldPosition"], [Tr2ObjectFollowCurveKey, "TransformByRotation"], [Tr2FollowCurve, "Sort"], [Tr2FollowCurve, "GetSegmentValue"], [Tr2FollowCurve, "GetHermiteSegmentValue"], [Tr2CurveVector3Lerp, "LerpToFirstKey"], [Tr2CurveScalar, "GetScaledTime"], [Tr2CurveScalar, "GetLocalTime"], [Tr2CurveScalar, "FindSegment"], [Tr2CurveScalar, "rasterize"], [Tr2CurveRandomAxisRotation, "Evaluate"], [Tr2CurveQuaternion, "GetName"], [Tr2CurveQuaternion, "SetName"], [Tr2CurveQuaternion, "GetLocalTime"], [Tr2CurveQuaternion, "FindSegment"], [Tr2CurveQuaternion, "Evaluate"], [Tr2CurveQuaternion, "GetSegmentValue"]];
   for (const [ctor, methodName] of jsOnlyMethods)
   {
-    assertEquals(CjsSchema.getMethod(ctor, methodName), null);
+    assertEquals(CjsSchema.getMethod(ctor, methodName)?.carbon?.method, undefined);
   }
   assertEquals(CjsSchema.getMethod(Function, "Rasterize"), null);
 });

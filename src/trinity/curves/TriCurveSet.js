@@ -517,35 +517,48 @@ export class TriCurveSet extends CjsModel
   /**
    * Invokes the registered stop callback exactly once and releases it, accepting
    * either a plain function or a Carbon callable that is called and then
-   * destroyed.
+   * destroyed. Custom: Extracts the native update-site call and cleanup into a
+   * helper. JavaScript exceptions are reported with console.error
+   * so playback still stops. Cleanup releases the current callback slot, even
+   * if invocation replaced it (TriCurveSet.cpp:144-150).
    */
+  @impl.custom
   CallStopCallback()
   {
     if (!this._callback)
     {
       return;
     }
-    if (typeof this._callback === "function")
+    try
     {
-      this._callback();
+      if (typeof this._callback === "function")
+      {
+        this._callback();
+      }
+      else
+      {
+        this._callback.CallVoid();
+      }
     }
-    else
+    catch (error)
     {
-      this._callback.CallVoid?.();
-      this._callback.Destroy?.();
+      // Native BlueScriptCallbackStatus reports on destruction without throwing.
+      console.error("Curve-set stop callback failed", error);
     }
-    this._callback = null;
+    this.DestroyStopCallback();
   }
 
   /**
    * Releases the registered stop callback without invoking it, destroying it
-   * when it is a Carbon callable.
+   * when it is a Carbon callable. Custom: Extracts native callback disposal into
+   * a shared helper for stop and destruction paths.
    */
+  @impl.custom
   DestroyStopCallback()
   {
     if (this._callback && typeof this._callback !== "function")
     {
-      this._callback.Destroy?.();
+      this._callback.Destroy();
     }
     this._callback = null;
   }

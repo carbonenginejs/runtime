@@ -9,17 +9,14 @@
 // PyObject* type, value and traceback, and lets the caller choose between
 // MuteException and ReportException before the destructor reports it.
 //
-// JavaScript has ONE exception mechanism for both sides of that boundary. A
-// throwing callback propagates to its caller unchanged, so there is nothing for
-// a status object to carry and no decision for it to defer. CjsScriptCallback
-// therefore returns the callback's own value, and records that divergence with
-// @impl.reason on both call methods.
+// JavaScript carries callback failures as thrown values. CjsScriptCallback returns
+// the callback's value and documents exception propagation on Call and CallVoid.
+// Controller and curve-set delivery sites catch/report failures to reproduce
+// native report-and-continue behavior without changing that general call contract.
 //
-// WHAT WOULD BRING IT BACK: a caller that must SUPPRESS a failing callback
-// rather than propagate it - Carbon's MuteException - or one that needs to
-// report the failure somewhere other than the throw site. Neither exists here
-// today. If one appears, this is a real port of the class below and not a flag
-// on CjsScriptCallback.
+// This remains a non-exported, non-instantiable disposition record. Reconsider a
+// live status object only if a consumer needs a deferred transferable call outcome
+// rather than local try/catch; ordinary synchronous reporting does not require it.
 import { type } from "#schema";
 import { CjsModel } from "#model";
 

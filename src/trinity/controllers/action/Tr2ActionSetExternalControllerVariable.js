@@ -47,7 +47,7 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   @type.boolean
   startControllers = false;
 
-  #controller = null;
+  _controller = null;
 
 
   /**
@@ -57,8 +57,8 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   @impl.adapted
   Link(controller)
   {
-    this.#controller = controller;
-    this.#linkToDestinationOwner();
+    this._controller = controller;
+    this._linkToDestinationOwner();
   }
 
   /**
@@ -69,26 +69,29 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
   Unlink()
   {
     this.destination = null;
-    this.#controller = null;
+    this._controller = null;
   }
 
   /**
-   * Sets the external controller variable.
+   * Starts the destination if requested, then samples and writes its variable.
+   *
+   * Adapted: Uses the existing JavaScript owner-binding adapter rather than native
+   * interface casts. A supplied controller refreshes the stored link. Missing
+   * source values use the authored constant; nonfinite source values are copied.
    */
   @carbon.method
   @impl.adapted
-  Start(controller = this.#controller)
+  Start(controller = this._controller)
   {
     if (!controller)
     {
       return;
     }
-    this.#controller = controller;
+    this._controller = controller;
     if (!this.destination)
     {
-      this.#linkToDestinationOwner();
+      this._linkToDestinationOwner();
     }
-    const value = this.sourceVariable ? ITr2ControllerAction.toNumber(this.#controller?.GetFloatVariableByName?.(this.sourceVariable), this.value) : this.value;
     if (!this.IsDestinationValid())
     {
       return;
@@ -97,18 +100,20 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
     {
       ITr2ControllerAction.callTarget(this.destination, "StartControllers");
     }
-    Tr2ActionSetExternalControllerVariable.#setControllerVariable(this.destination, this.variable, value);
+    const value = this.sourceVariable ? this._controller.GetFloatVariableByName(this.sourceVariable) ?? this.value : this.value;
+    Tr2ActionSetExternalControllerVariable._setControllerVariable(this.destination, this.variable, value);
   }
 
   /**
    * Relinks the destination on the native destinationOwner notification.
+   *
+   * Adapted: Dispatches the native member notification by exposed property name.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
-    if (propertyName === "destinationOwner") this.#linkToDestinationOwner();
+    if (propertyName === "destinationOwner") this._linkToDestinationOwner();
     return true;
   }
 
@@ -134,15 +139,15 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
    * Resolves `destination` by case-insensitively matching destinationOwner
    * against the owner's binding roots.
    */
-  #linkToDestinationOwner()
+  _linkToDestinationOwner()
   {
     this.destination = null;
-    if (!this.#controller)
+    if (!this._controller)
     {
       return;
     }
-    const owner = ITr2ControllerAction.getOwner(this.#controller);
-    const roots = Tr2ActionSetExternalControllerVariable.#getBindingRoots(owner);
+    const owner = ITr2ControllerAction.getOwner(this._controller);
+    const roots = Tr2ActionSetExternalControllerVariable._getBindingRoots(owner);
     const destinationOwner = this.destinationOwner.toLowerCase();
     if (!destinationOwner)
     {
@@ -160,12 +165,11 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
 
   /**
    * Writes the value through the destination's SetControllerVariable, returning
-   * false when the destination or variable name is missing or the method is
-   * absent.
+   * false when the destination or the method is absent. Empty names are forwarded.
    */
-  static #setControllerVariable(destination, variable, value)
+  static _setControllerVariable(destination, variable, value)
   {
-    if (!destination || !variable)
+    if (!destination)
     {
       return false;
     }
@@ -181,7 +185,7 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
    * Normalizes an owner's binding roots into name/value pairs, accepting an
    * array, a Map, a `bindingRoots` property or a plain object.
    */
-  static #getBindingRoots(owner)
+  static _getBindingRoots(owner)
   {
     const roots = ITr2ControllerAction.callTarget(owner, "GetBindingRoots");
     if (Array.isArray(roots))
