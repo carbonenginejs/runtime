@@ -590,7 +590,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
     // The light manager exists only while dynamic lighting is on
     // (EveSpaceScene.cpp:1378-1388), and publishes its buffers before the gather.
-    if (this.scene.dynamicLightingEnabled)
+    if (EveSpaceScene.eveSpaceSceneDynamicLighting)
     {
       Tr2LightManager.getOrCreateInstance(COMPUTE_LIGHT_LISTS_EFFECT_PATH).SetVariableStore();
     }

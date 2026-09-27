@@ -17,7 +17,8 @@ import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
 import { Tr2DataTextureManager } from "../../shader/Tr2DataTextureManager.js";
-import { EveComponentType } from "../EveComponentTypes.js";
+import { EveComponentType, GetReflectionSetting, ReflectionSetting, SetReflectionSetting } from "../EveComponentTypes.js";
+import { TriSettingsRegistrar } from "../../core/TriSettingsRegistrar.js";
 import { EveUpdateContext } from "../EveUpdateContext.js";
 import { EveEffectRoot2 } from "../spaceObject/EveEffectRoot2.js";
 import { EveCamera } from "../camera/EveCamera.js";
@@ -35,8 +36,8 @@ import { Tr2RingBuffer } from "../../core/device/Tr2RingBuffer/Tr2RingBuffer.js"
 import { ResourceRequirement } from "#resource";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
-import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
+import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enums.js";
@@ -598,16 +599,6 @@ export class EveSpaceScene extends CjsModel
   // Reset by the per-frame pixel fill and raised by an upscaler, if any.
   upscalingAmount = 1;
 
-  // Carbon g_eveSpaceSceneDynamicLighting (registered setting
-  // "eveSpaceSceneDynamicLighting", cpp:109-110, default false) - scoped to
-  // the scene instead of a module global.
-  dynamicLightingEnabled = false;
-
-  // Carbon g_enablePostProcessDebugging (registered setting
-  // "enablePostProcessDebugging", cpp:118-119, default false) - scoped to the
-  // scene instead of a module global.
-  enablePostProcessDebugging = false;
-
   /**
    * Stamps the per-frame frustum/threshold/LOD state onto the scene-owned
    * update context (Carbon EveSpaceScene::Update cpp:475-484, identical to the
@@ -616,7 +607,8 @@ export class EveSpaceScene extends CjsModel
    * divided by m_upscalingAmount (=1 by default, cpp:221); in CarbonEngineJS
    * the driver derives the frustum from the same renderContext state it
    * stamped and supplies the thresholds explicitly (pre-divided if it ever
-   * upscales). Defaults are the Carbon console-var defaults (cpp:75-84).
+   * upscales). An omitted threshold or LOD factor is the registered setting
+   * divided by upscalingAmount, as Carbon's Update computes it (cpp:455-459).
    * The raytracing flag is Carbon's `m_shadowQuality == SHADOW_RAYTRACED &&
    * m_enableShadows` (cpp:457/484) - the driver computes it; the scene does
    * not. Stamps unconditionally: Carbon's same-frame fast path restamps
@@ -633,11 +625,11 @@ export class EveSpaceScene extends CjsModel
    */
   StampFrameContext({
     frustum = null,
-    visibilityThreshold = 5,
-    lowDetailThreshold = 100,
-    mediumDetailThreshold = 400,
-    highDetailThreshold = 800,
-    lodFactor = 1,
+    visibilityThreshold = EveSpaceScene.eveSpaceSceneVisibilityThreshold / this.upscalingAmount,
+    lowDetailThreshold = EveSpaceScene.eveSpaceSceneLowDetailThreshold / this.upscalingAmount,
+    mediumDetailThreshold = EveSpaceScene.eveSpaceSceneMediumDetailThreshold / this.upscalingAmount,
+    highDetailThreshold = EveSpaceScene.eveSpaceSceneHighDetailThreshold / this.upscalingAmount,
+    lodFactor = EveSpaceScene.eveSpaceSceneLODFactor / this.upscalingAmount,
     raytracingEnabled = false
   } = {})
   {
@@ -901,10 +893,12 @@ export class EveSpaceScene extends CjsModel
    * attribute (the whole tie group is normalized together); only MaxWeight
    * ties at exactly equal weight (string paths / bools / DoF shape) could
    * differ from C++.
+   *
+   * Adapted: the debug payload is a plain object, null while the
+   * enablePostProcessDebugging setting is off.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's g_enablePostProcessDebugging global becomes the scene-scoped enablePostProcessDebugging field; the debug payload is a plain object, null when off.")
   UpdatePostProcessAttributes()
   {
     if (!this.display)
@@ -939,7 +933,7 @@ export class EveSpaceScene extends CjsModel
 
       sources.sort((a, b) => b.priority - a.priority);
 
-      if (this.enablePostProcessDebugging)
+      if (EveSpaceScene.enablePostProcessDebugging)
       {
         const observer = Tr2PostProcessAttributes.CreateDebugObserver();
         Tr2PostProcessAttributes.MergeInto(this.#combinedPostProcess, sources, observer);
@@ -1024,7 +1018,7 @@ export class EveSpaceScene extends CjsModel
 
     // Baseline (cpp:1342-1357): the scene's own sun/nebula/reflection state,
     // sun color normalized by its max channel (all four components scaled).
-    const sunColorSource = this.useSunDiffuseColorWithDynamicLights && this.dynamicLightingEnabled
+    const sunColorSource = this.useSunDiffuseColorWithDynamicLights && EveSpaceScene.eveSpaceSceneDynamicLighting
       ? this.sunDiffuseColorWithDynamicLights
       : this.sunDiffuseColor;
     const sunIntensity = Math.max(sunColorSource[0], sunColorSource[1], sunColorSource[2]);
@@ -1311,21 +1305,21 @@ export class EveSpaceScene extends CjsModel
 
     // cpp:3247-3263: every object entity joins the scene's component registry
     // - its light owners, post-process owners, shadow casters - and so does
-    const quadRenderer = Tr2QuadRenderer.Instance();
     // the camera attachment parent. Without it GatherLights finds no owners
     // and no attachment light reaches a shader. Each also registers its quad
     // effects (sprite and spotlight sets), and so do the UI objects. The
-      object?.RegisterWithQuadRenderer(quadRenderer);
     // list-insert registration (OnListChanged, cpp:3455-3470) is not ported:
     // objects pushed after Initialize join through ReregisterEntities.
-    this.cameraAttachmentParent?.RegisterWithQuadRenderer(quadRenderer);
-    for (const object of this.uiObjects) object?.RegisterWithQuadRenderer(quadRenderer);
     // Carbon's BlueCastPtr<EveEntity> is CjsSchema.cast.
+    const quadRenderer = Tr2QuadRenderer.Instance();
     for (const object of this.objects)
     {
       CjsSchema.cast(object, EveEntity)?.Register(this.componentRegistry);
+      object?.RegisterWithQuadRenderer(quadRenderer);
     }
     CjsSchema.cast(this.cameraAttachmentParent, EveEntity)?.Register(this.componentRegistry);
+    this.cameraAttachmentParent?.RegisterWithQuadRenderer(quadRenderer);
+    for (const object of this.uiObjects) object?.RegisterWithQuadRenderer(quadRenderer);
 
     return true;
   }
@@ -1427,14 +1421,14 @@ export class EveSpaceScene extends CjsModel
 
     mat4.identity(this.jitterMatrix);
     mat4.copy(this.jitteredProjection, this.projection);
-   * - the quad renderer's DoneRendering (cpp:2806), which fences the ring
-   *   region this frame's quads were uploaded into;
     this.jitter[0] = 0;
     this.jitter[1] = 0;
   }
 
   /**
    * Carbon's EveSpaceScene::EndRender, two parts of it:
+   * - the quad renderer's DoneRendering (cpp:2806), which fences the ring
+   *   region this frame's quads were uploaded into;
    * - the lens flares (cpp:2839-2859): each flare's renderables drawn
    *   additively into the scene target, with depth read-only, after the main
    *   pass - so after TAA's opaque copy, which excludes them as Carbon's does;
@@ -1447,16 +1441,16 @@ export class EveSpaceScene extends CjsModel
    * this runtime's driver does not run yet.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
-    if (!this.display) return;
-
-    Tr2QuadRenderer.Instance().DoneRendering(renderContext);
-
    * @returns {void}
    */
   @carbon.method
   @impl.adapted
   EndRender(renderContext)
   {
+    if (!this.display) return;
+
+    Tr2QuadRenderer.Instance().DoneRendering(renderContext);
+
     if (this.lensflares.length)
     {
       const visible = [];
@@ -1469,6 +1463,12 @@ export class EveSpaceScene extends CjsModel
         this.RenderRenderables(visible, this.#secondaryAdditiveBatches, TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
         renderContext.SetReadOnlyDepth(false);
       }
+    }
+
+    mat4.copy(this.viewLast, renderContext.GetViewTransform());
+    mat4.copy(this.projectionLast, this.projection);
+  }
+
   /**
    * Carbon UpdateQuadRenderer (cpp:1715-1733): every object adds its quads for
    * the frame, then the renderer merges and uploads them. Carbon runs the adds
@@ -1496,12 +1496,6 @@ export class EveSpaceScene extends CjsModel
   GetQuadRenderer()
   {
     return Tr2QuadRenderer.Instance();
-  }
-
-    }
-
-    mat4.copy(this.viewLast, renderContext.GetViewTransform());
-    mat4.copy(this.projectionLast, this.projection);
   }
 
   /** m_secondaryBatches[TRIBATCHTYPE_ADDITIVE]: the accumulator EndRender's
@@ -2279,7 +2273,36 @@ export class EveSpaceScene extends CjsModel
 
   /** g_eveSpaceSceneGammaBrightness (TRI_REGISTER_SETTING "eveSpaceSceneGammaBrightness",
    * cpp:102-103): the tonemapper's OutputGamma and the per-frame GammaBrightness. */
+  @edit.setting("eveSpaceSceneGammaBrightness")
   static eveSpaceSceneGammaBrightness = 1;
+
+  /** g_eveSpaceSceneDynamicLighting ("eveSpaceSceneDynamicLighting", cpp:109-110): local lights, off as Carbon ships it. */
+  @edit.setting("eveSpaceSceneDynamicLighting")
+  static eveSpaceSceneDynamicLighting = false;
+
+  /** g_enablePostProcessDebugging ("enablePostProcessDebugging", cpp:118-119): records how the post-process attributes combined. */
+  @edit.setting("enablePostProcessDebugging")
+  static enablePostProcessDebugging = false;
+
+  /** g_eveSpaceSceneVisibilityThreshold ("eveSpaceSceneVisibilityThreshold", cpp:75-76), in pixels. */
+  @edit.setting("eveSpaceSceneVisibilityThreshold")
+  static eveSpaceSceneVisibilityThreshold = 5;
+
+  /** g_eveSpaceSceneLowDetailThreshold ("eveSpaceSceneLowDetailThreshold", cpp:81, 87). */
+  @edit.setting("eveSpaceSceneLowDetailThreshold")
+  static eveSpaceSceneLowDetailThreshold = 100;
+
+  /** g_eveSpaceSceneMediumDetailThreshold ("eveSpaceSceneMediumDetailThreshold", cpp:82, 88). */
+  @edit.setting("eveSpaceSceneMediumDetailThreshold")
+  static eveSpaceSceneMediumDetailThreshold = 400;
+
+  /** g_eveSpaceSceneHighDetailThreshold ("eveSpaceSceneHighDetailThreshold", cpp:83, 89). */
+  @edit.setting("eveSpaceSceneHighDetailThreshold")
+  static eveSpaceSceneHighDetailThreshold = 800;
+
+  /** g_eveSpaceSceneLODFactor ("eveSpaceSceneLODFactor", cpp:84, 90). */
+  @edit.setting("eveSpaceSceneLODFactor")
+  static eveSpaceSceneLODFactor = 1;
 
   static ShadowQuality = ShadowQuality;
 
@@ -2369,3 +2392,11 @@ blue.enums.RegisterEnum("trinity.EveSpaceScene.EveVisualizeMethod", EveSpaceScen
     { name: "LightCount", value: EveSpaceScene.EveVisualizeMethod.VW_LIGHT_COUNT, description: "" }
   ]
 });
+
+// TRI_REGISTER_SETTING( "eveReflectionSetting", g_eveReflectionMode )
+// (cpp:112-113). The value is EveComponentTypes' module variable, not a class
+// static, so it is registered here through its accessors.
+new TriSettingsRegistrar("eveReflectionSetting", {
+  get eveReflectionSetting() { return GetReflectionSetting(); },
+  set eveReflectionSetting(value) { SetReflectionSetting(value); }
+}, "eveReflectionSetting", { enum: ReflectionSetting, carbon: true });

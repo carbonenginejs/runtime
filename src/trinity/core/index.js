@@ -8,6 +8,7 @@ export * from "./Tr2GpuResourcePool/index.js";
 export * from "./Tr2ShadowMap.js";
 export * from "./PriorityBlend.js";
 export * from "./TriSettings.js";
+export * from "./TriSettingsRegistrar.js";
 export * from "./animation/index.js";
 export * from "./batch/index.js";
 export * from "./binding/index.js";

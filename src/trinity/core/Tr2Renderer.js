@@ -33,6 +33,7 @@
 
 import { carbon, impl, type } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
+import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
 import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
@@ -387,6 +388,22 @@ export class Tr2Renderer
   // while the retired graph/realization split was in force, so a static had
   // nothing to act on and the behaviour migrated to the instance that did.
   // ------------------------------------------------------------------------
+
+  /**
+   * Carbon GetSettings (Tr2Renderer.cpp:1387-1391): the engine settings every
+   * `TRI_REGISTER_SETTING` registers into.
+   *
+   * Adapted: the registry is held by TriSettingsRegistrar, so classes can
+   * register without importing the renderer.
+   *
+   * @returns {TriSettings} The renderer's settings.
+   */
+  @carbon.method
+  @impl.adapted
+  static getSettings()
+  {
+    return TriSettingsRegistrar.getSettings();
+  }
 
   /**
    * The animation clock, in seconds (`Tr2Renderer.cpp:1030-1033`).

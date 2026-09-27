@@ -17,7 +17,12 @@ import { carbonPerlin1D } from "#math/noise";
 })
 export class TriPerlinCurve extends CjsModel
 {
-  /** Mirrors Carbon's process setting used for deterministic expression previews. */
+  /**
+   * Carbon g_expressionCurveFakeRandom (Tr2CurveScalarExpression.cpp:11, the
+   * "expressionCurveFakeRandom" setting, default false): a deterministic
+   * random for expression previews. It is held here, on its only reader.
+   */
+  @edit.setting("expressionCurveFakeRandom")
   static expressionCurveFakeRandom = false;
 
   static #triRandState = 1234;

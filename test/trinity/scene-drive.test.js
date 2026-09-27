@@ -316,11 +316,11 @@ test("UpdatePostProcessAttributes: descending priority-weight blend, copy-throug
   assertClose(scene.combinedPostProcessAttributes.bloomBrightness, 0.75, "re-exported bloom");
   assert.equal(scene.postProcessDebug, null, "no debug payload while debugging is off");
 
-  scene.enablePostProcessDebugging = true;
+  EveSpaceScene.enablePostProcessDebugging = true;
   scene.UpdatePostProcessAttributes();
   assert.ok(scene.postProcessDebug && typeof scene.postProcessDebug === "object", "debug dict when enabled");
   assert.ok("bloomBrightness" in scene.postProcessDebug);
-  scene.enablePostProcessDebugging = false;
+  EveSpaceScene.enablePostProcessDebugging = false;
 
   // display gate (cpp:348): no re-blend, GetPostProcess() answers null.
   scene.display = false;
@@ -486,13 +486,14 @@ test("BlendLightingOverrides picks the dynamic-lights sun color only when both f
   vec4.set(scene.sunDiffuseColorWithDynamicLights, 0, 1, 0, 1);
 
   scene.useSunDiffuseColorWithDynamicLights = true;
-  scene.dynamicLightingEnabled = false;
+  EveSpaceScene.eveSpaceSceneDynamicLighting = false;
   scene.BlendLightingOverrides();
   assertVecClose(scene.currentSunColor, [1, 0, 0, 1], "setting off: plain sun color");
 
-  scene.dynamicLightingEnabled = true;
+  EveSpaceScene.eveSpaceSceneDynamicLighting = true;
   scene.BlendLightingOverrides();
   assertVecClose(scene.currentSunColor, [0, 1, 0, 1], "both flags on: dynamic-lights color");
+  EveSpaceScene.eveSpaceSceneDynamicLighting = false;
 });
 
 // --- Fixture 6: GatherLights contract ---------------------------------------

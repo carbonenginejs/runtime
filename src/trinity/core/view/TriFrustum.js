@@ -9,6 +9,7 @@
 // are omitted. Matrix element mapping: Carbon row-major _rc lands at flat
 // index (r-1)*4+(c-1), which is the SAME flat index in the shared gl-matrix
 // byte layout, so every _rc below is ported as m[(r-1)*4+(c-1)] unchanged.
+import { edit } from "#schema";
 import { box3 } from "#math/box3";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -442,6 +443,7 @@ export class TriFrustum
 
   /** g_frustumCullingDisabled (TRI_REGISTER_SETTING "frustumCullingDisabled",
    * cpp:9-10) - debug escape hatch that forces every sphere test to pass. */
+  @edit.setting("frustumCullingDisabled")
   static frustumCullingDisabled = false;
 
   static #boxCenterScratch = vec3.create();

@@ -396,6 +396,38 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     })
     .catch(error => console.error(`lens flare list: ${error.message}`));
 
+  // The engine's registered settings (Tr2Renderer.getSettings(), Carbon's
+  // trinity.settings), one control per setting, written straight through.
+  const engineSettings = document.createElement("details");
+  engineSettings.innerHTML = `<summary>engine settings</summary>`;
+  panel.append(engineSettings);
+  const registry = Tr2Renderer.getSettings();
+  for (const name of registry.GetNames())
+  {
+    const { valueType, applies, enum: enumType, values, carbon } = registry.FindSetting(name);
+    const value = registry.GetValue(name);
+    const enumValues = typeof enumType === "string" ? blue.enums.GetEnum(enumType) : enumType;
+    const options = enumValues
+      ? Object.entries(enumValues).filter(([ , optionValue ]) => typeof optionValue === "number")
+      : values?.map(optionValue => [ String(optionValue), optionValue ]);
+    const control = options
+      ? choose(options, value)
+      : valueType === "boolean"
+        ? Object.assign(document.createElement("input"), { type: "checkbox", checked: value })
+        : Object.assign(document.createElement("input"), { type: valueType === "number" ? "number" : "text", value: String(value), step: "any" });
+    control.addEventListener("change", () =>
+    {
+      const next = valueType === "boolean" ? control.checked : valueType === "number" ? Number(control.value) : control.value;
+      registry.SetValue(name, next);
+    });
+    // A change to a "create" or "load" setting shows only on the next object
+    // made or the next ship built. A setting Carbon does not have is marked.
+    const element = document.createElement("label");
+    const label = `${name}${carbon ? "" : " (ours)"}${applies === "always" ? "" : ` (next ${applies})`}`;
+    element.append(label, control);
+    engineSettings.append(element);
+  }
+
   const effects = document.createElement("div");
   effects.className = "effects";
   panel.append(effects);
@@ -2182,7 +2214,7 @@ export async function RunDemo(canvas)
     // without it BeginRender deletes the light manager, so attachment lights
     // (spotlights, planes, boosters, sprite sets) never reach a shader.
     // ?dynamicLights=0 renders without them.
-    realScene.dynamicLightingEnabled = new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0";
+    Tr2Renderer.getSettings().SetValue("eveSpaceSceneDynamicLighting", new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0");
     ship = await BuildSofShip(DNA);
 
     // THE CLIENT'S SPEED FEED: Carbon's m_speed is a TriFloat the client binds
@@ -2386,6 +2418,25 @@ export async function RunDemo(canvas)
     }
   });
 
+  // THE QUAD STEP OF CARBON'S GatherBatches (EveSpaceScene.cpp:1512-1514):
+  // after the renderables' batches and before FinalizeBatches, the scene's
+  // objects add their sprite and spotlight quads, the quad renderer uploads
+  // them, and its batches join the opaque and additive lists. The batch
+  // manager's collector is where that step runs here.
+  batchManager.RegisterCollector("Tr2QuadRenderer", {
+    Collect: (_renderables, batchMap) =>
+    {
+      if (!realScene) return;
+
+      const context = realScene.updateContext;
+      realScene.UpdateQuadRenderer(context.GetFrustum(), realScene.objects, context.renderContext);
+
+      const quads = Tr2QuadRenderer.Instance();
+      quads.GetBatches(TriBatchType.TRIBATCHTYPE_OPAQUE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_OPAQUE));
+      quads.GetBatches(TriBatchType.TRIBATCHTYPE_ADDITIVE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+    }
+  });
+
   batchManager.Initialize();
 
   const al = new CjsWebgpuRenderContextAL({ webgpu, renderTarget });
@@ -2413,25 +2464,6 @@ export async function RunDemo(canvas)
   const dummies = [];
   const createResourceSet = al.CreateResourceSet.bind(al);
   const getDummyTexture = al.GetDummyTexture.bind(al);
-  // THE QUAD STEP OF CARBON'S GatherBatches (EveSpaceScene.cpp:1512-1514):
-  // after the renderables' batches and before FinalizeBatches, the scene's
-  // objects add their sprite and spotlight quads, the quad renderer uploads
-  // them, and its batches join the opaque and additive lists. The batch
-  // manager's collector is where that step runs here.
-  batchManager.RegisterCollector("Tr2QuadRenderer", {
-    Collect: (_renderables, batchMap) =>
-    {
-      if (!realScene) return;
-
-      const context = realScene.updateContext;
-      realScene.UpdateQuadRenderer(context.GetFrustum(), realScene.objects, context.renderContext);
-
-      const quads = Tr2QuadRenderer.Instance();
-      quads.GetBatches(TriBatchType.TRIBATCHTYPE_OPAQUE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_OPAQUE));
-      quads.GetBatches(TriBatchType.TRIBATCHTYPE_ADDITIVE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_ADDITIVE));
-    }
-  });
-
 
   al.GetDummyTexture = dimension => { dummies.push(dimension); return getDummyTexture(dimension); };
   al.CreateResourceSet = (description, program, implementationOnly = false) =>
@@ -2639,7 +2671,7 @@ export async function RunDemo(canvas)
     const manager = Tr2LightManager.getInstance();
     const owners = realScene?.componentRegistry?.GetComponents(EveComponentType.LightOwner) ?? [];
     return {
-      dynamicLightingEnabled: realScene?.dynamicLightingEnabled ?? null,
+      eveSpaceSceneDynamicLighting: Tr2Renderer.getSettings().GetValue("eveSpaceSceneDynamicLighting"),
       manager: Boolean(manager),
       resolvedLights: manager ? manager.GetLightCount() : null,
       lightBufferValid: manager ? manager._lightBuffer.IsValid() : null,

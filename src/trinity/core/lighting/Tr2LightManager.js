@@ -27,7 +27,7 @@
 // cites it rather than re-deriving it.
 
 import { CjsModel } from "#model";
-import { carbon, impl, type } from "#schema";
+import { carbon, edit, impl, type } from "#schema";
 import { num } from "#math/num";
 import { vec3 } from "#math/vec3";
 import { ShadowQuality } from "../../generated/trinityCore/enums.js";
@@ -199,6 +199,7 @@ export class Tr2LightManager extends CjsModel
    * exercises the ported path (the tests do), and shipping behaviour is
    * unchanged while it stays false.
    */
+  @edit.setting("useDynamicLightsShadows")
   static useDynamicLightsShadows = false;
 
   /** The atlas-settings derivation, exposed for tests (Carbon cpp:92-122). */

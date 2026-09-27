@@ -72,6 +72,15 @@ Engine-owned WebGPU device boundary.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsWebgpuFenceAL -->
+## `CjsWebgpuFenceAL`
+
+A frame fence: reached once the frame it was put in has been submitted.
+
+- Source: `src/trinityal/webgpu/CjsWebgpuFenceAL.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:CjsWebgpuPackage -->
 ## `CjsWebgpuPackage`
 

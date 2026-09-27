@@ -183,11 +183,11 @@ export class Tr2PostProcessRenderer extends CjsModel
   /** Created while the exposure debug is on (cpp:1256-1260), dropped when off. */
   _dynamicExposureDebugShader = null;
 
-  /** m_useNewBloom, from g_newBloom, which defaults true (cpp:23). */
+  /** m_useNewBloom, from the newBloom setting at construction (cpp:525). */
   @edit.notify
   @edit.readwrite
   @type.boolean
-  useNewBloom = true;
+  useNewBloom = Tr2PostProcessRenderer.newBloom;
 
   /** m_blurEffects: the horizontal/vertical Blur.fx pair per BlurContext hash (cpp:897-931). */
   _blurEffects = new Map();
@@ -1499,6 +1499,10 @@ export class Tr2PostProcessRenderer extends CjsModel
       gpuUsage
     });
   }
+
+  /** g_newBloom ("newBloom", cpp:23-24): the bloom a new renderer starts with. */
+  @edit.setting("newBloom", { applies: edit.setting.CREATE })
+  static newBloom = true;
 
   // CARBON'S ANONYMOUS-NAMESPACE HELPERS (cpp:31-150, 301-509).
 

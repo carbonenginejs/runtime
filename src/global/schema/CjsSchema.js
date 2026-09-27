@@ -11,6 +11,7 @@ import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
+import { TriSettingNames } from "../consts/trinity.js";
 
 
 const CLASS_SCHEMA = new WeakMap();
@@ -25,6 +26,16 @@ const FIELD_DECLARATION_METADATA = new WeakMap();
 let SCHEMA_GENERATION = 0;
 
 const CONSTRUCTOR_BY_NAME = new Map();
+
+// Statics described by edit.setting, in definition order (see getSettings).
+// Declared before the class body, which reads SETTING_DECORATOR.
+const SETTINGS = [];
+const CARBON_SETTING_NAMES = new Set(TriSettingNames);
+const SETTING_APPLIES = Object.freeze({ ALWAYS: "always", CREATE: "create", LOAD: "load" });
+const SETTING_DECORATOR = Object.freeze(Object.assign(
+    (name, options) => settingDecorator(name, options),
+    SETTING_APPLIES
+));
 const STAGE3_FIELD_METADATA = Symbol("carbonenginejs.schema.stage3Fields");
 
 // Declared here rather than beside describeDecorator: the CjsSchema class body
@@ -163,6 +174,17 @@ export class CjsSchema
     {
         defineMethodMetadata(Constructor, methodName, namespace, value);
         return this;
+    }
+
+    /**
+     * Every static described by `edit.setting`, in definition order, as
+     * `{ name, owner, key, applies, enum, values, carbon }`. The list only grows.
+     *
+     * @returns {ReadonlyArray<object>} The described settings.
+     */
+    static getSettings()
+    {
+        return SETTINGS;
     }
 
     /** Returns resolved schema metadata for a named field. */
@@ -728,6 +750,21 @@ export class CjsSchema
 
         flags: fieldDecorator("edit", { flags: true }),
         enum: fieldDecorator("edit", { enum: true }),
+
+        /**
+         * Marks a static field as the value behind a named engine setting,
+         * Carbon's `TRI_REGISTER_SETTING` or one of ours. It only describes:
+         * the renderer's settings read the described statics from
+         * `CjsSchema.getSettings()`, and each entry records whether the name
+         * is one Carbon registers.
+         *
+         * `applies` is when a change takes effect: `edit.setting.ALWAYS` (read
+         * every frame), `CREATE` (copied when an object is made) or `LOAD`
+         * (read while something is built or loaded). `enum` is the enum a
+         * numeric setting takes its values from, as the enum object or its
+         * registered name; `values` lists the values any other setting takes.
+         */
+        setting: SETTING_DECORATOR,
 
         // PERSISTONLY = HIDDEN | PERSIST, for hidden attributes.
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
@@ -1321,6 +1358,54 @@ function getDecoratorMetadata(candidate)
     return typeof candidate === "function" ? candidate[DECORATOR_METADATA] || null : null;
 }
 
+function settingDecorator(name, { applies = SETTING_APPLIES.ALWAYS, enum: enumType = null, values = null } = {})
+{
+    if (typeof name !== "string" || !name)
+    {
+        throw new TypeError("CjsSchema.edit.setting requires a setting name.");
+    }
+    if (!Object.values(SETTING_APPLIES).includes(applies))
+    {
+        throw new TypeError(`CjsSchema.edit.setting "${name}": applies must be edit.setting.ALWAYS, CREATE or LOAD.`);
+    }
+    if (enumType !== null && values !== null)
+    {
+        throw new TypeError(`CjsSchema.edit.setting "${name}": give enum or values, not both.`);
+    }
+    if (values !== null && !Array.isArray(values))
+    {
+        throw new TypeError(`CjsSchema.edit.setting "${name}": values must be an array.`);
+    }
+    const carbon = CARBON_SETTING_NAMES.has(name);
+    const value = { setting: { name, applies, enum: enumType, values, carbon } };
+
+    return describeDecorator(function schemaSettingDecorator(_, context)
+    {
+        if (context?.kind !== "field" || !context.static)
+        {
+            throw new TypeError(`CjsSchema.edit.setting "${name}" only describes a static class field.`);
+        }
+
+        // A static field's returned initializer runs once, at class
+        // definition, with the class as `this`.
+        return function initializeSetting(initialValue)
+        {
+            // The same class loaded twice (two bundles) describes it again;
+            // the later copy is the one in use. A second field is a mistake.
+            const entry = { name, owner: this, key: context.name, applies, enum: enumType, values, carbon };
+            const index = SETTINGS.findIndex(existing => existing.name === name);
+            if (index >= 0 && SETTINGS[index].key !== entry.key)
+            {
+                throw new TypeError(`CjsSchema.edit.setting "${name}" is described on two fields.`);
+            }
+            if (index >= 0) SETTINGS[index] = entry;
+            else SETTINGS.push(entry);
+            getOrCreateClassSchema(this).settings.push(entry);
+            return initialValue;
+        };
+    }, "carbon", value);
+}
+
 function fieldDecorator(namespace, value)
 {
     return describeDecorator(function schemaFieldDecorator(targetOrValue, contextOrFieldName)
@@ -1909,7 +1994,8 @@ function getOrCreateClassSchema(Constructor)
             fieldsByName: new Map(),
             hiddenInherited: new Set(),
             methods: [],
-            methodsByName: new Map()
+            methodsByName: new Map(),
+            settings: []
         };
         CLASS_SCHEMA.set(Constructor, schema);
     }

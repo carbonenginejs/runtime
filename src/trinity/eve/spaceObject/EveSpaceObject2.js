@@ -493,7 +493,8 @@ export class EveSpaceObject2 extends EveEntity
    * setting defaulting to 0.3. It scales this hull's bounding radius into the
    * cutoff below which a secondary light source is too small to matter.
    */
-  static SECONDARY_LIGHTING_RADIUS_CUTOFF_FACTOR = 0.3;
+  @edit.setting("secondaryLightingRadiusCutoffFactor")
+  static secondaryLightingRadiusCutoffFactor = 0.3;
 
   /** Scratch for the per-frame shader-data fill; never allocate in it. */
   static #clipSphereCenterScratch = vec3.create();
@@ -1070,7 +1071,7 @@ export class EveSpaceObject2 extends EveEntity
     manager.GetLighting(
       this.worldPosition,
       intensity,
-      this.boundingSphereRadius * EveSpaceObject2.SECONDARY_LIGHTING_RADIUS_CUTOFF_FACTOR,
+      this.boundingSphereRadius * EveSpaceObject2.secondaryLightingRadiusCutoffFactor,
       coefficients
     );
 
@@ -1414,7 +1415,6 @@ export class EveSpaceObject2 extends EveEntity
     return this.isVisible;
   }
 
-  /** Collects the hull and explicitly owned Carbon child/decal renderables. */
   /**
    * Carbon RegisterWithQuadRenderer (EveSpaceObject2.cpp:2224-2234): the
    * effect children and the attachments (sprite and spotlight sets) register
@@ -1459,6 +1459,7 @@ export class EveSpaceObject2 extends EveEntity
     }
   }
 
+  /** Collects the hull and explicitly owned Carbon child/decal renderables. */
   @carbon.method
   @impl.adapted
   @impl.reason("Impostor submission and decal mesh caches are not ported yet; Trinity returns the backend-neutral renderable graph.")

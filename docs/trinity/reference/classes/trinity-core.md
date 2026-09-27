@@ -295,6 +295,36 @@ Holds the depth-stencil surface a pass renders into, with the parameters it was 
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2DynamicRingBuffer -->
+## `Tr2DynamicRingBuffer`
+
+Carbon `Tr2DynamicRingBuffer`: the base of the vertex and index rings.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2DynamicRingBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RingIndexBuffer -->
+## `Tr2RingIndexBuffer`
+
+Carbon `Tr2RingIndexBuffer`: the ring as an index buffer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2DynamicRingBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RingVertexBuffer -->
+## `Tr2RingVertexBuffer`
+
+Carbon `Tr2RingVertexBuffer`: the ring as a vertex buffer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2DynamicRingBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2GpuBuffer -->
 ## `Tr2GpuBuffer`
 
@@ -1202,6 +1232,16 @@ A registry of named boolean, number and string settings with type-checked reads 
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/TriSettings.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:TriSettingsRegistrar -->
+## `TriSettingsRegistrar`
+
+Carbon's `TRI_REGISTER_SETTING( name, value )` is a file-scope `static TriSettingsRegistrar` that registers a global with the renderer's settings.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/TriSettingsRegistrar.js`
 - Visibility: Public
 - Kind: Carbon
 
