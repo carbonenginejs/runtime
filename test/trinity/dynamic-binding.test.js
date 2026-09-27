@@ -15,6 +15,7 @@ import {
   Tr2FloatParameter,
   Tr2PyValueBinding,
   Tr2Vector3Parameter,
+  TriTextureParameter,
   TriValueBinding
 } from "../../npm/dist/trinity/index.js";
 
@@ -299,6 +300,20 @@ test("Tr2ExternalParameter validates types and exposes schema entries", () =>
   invalid.SetDestinationObject({ label: "value" });
   invalid.SetDestinationAttribute("label.x");
   assert.equal(invalid.IsValid(), false);
+});
+
+
+test("Tr2ExternalParameter binds a path-typed member, as SOF's banner parameters do", () =>
+{
+  // EveSOF points AllianceLogoResPath at a TriTextureParameter's resourcePath,
+  // a path field; Carbon binds any member (Tr2ExternalParameter.cpp:88-108).
+  const target = new TriTextureParameter();
+  const external = new Tr2ExternalParameter();
+  external.SetDestinationObject(target);
+  external.SetDestinationAttribute("resourcePath");
+  assert.equal(external.IsValid(), true);
+  external.SetValue("res:/ui/texture/alliance.png");
+  assert.equal(target.resourcePath, "res:/ui/texture/alliance.png");
 });
 
 

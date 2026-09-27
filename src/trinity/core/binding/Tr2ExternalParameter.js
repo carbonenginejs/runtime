@@ -252,7 +252,10 @@ export class Tr2ExternalParameter extends CjsModel
     {
       return { category: "boolean", kind: "boolean" };
     }
-    if (kind === "string" || (kind === null && typeof value === "string"))
+    // Carbon binds any member (Tr2ExternalParameter.cpp:88-108); path and
+    // expression fields are strings too. SOF's banner parameters bind a
+    // TriTextureParameter's path-typed resourcePath.
+    if (kind === "string" || kind === "path" || kind === "expression" || (kind === null && typeof value === "string"))
     {
       return { category: "string", kind: "string" };
     }

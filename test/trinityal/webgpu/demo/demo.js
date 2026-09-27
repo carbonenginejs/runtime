@@ -1079,6 +1079,52 @@ async function SofDocument(dna)
 
 
 /**
+ * PLACEHOLDER ALLIANCE AND CORP LOGOS. The client points a ship's banner
+ * external parameters (named by EveSOF, EveSOF.cpp:1682-1696) at the owning
+ * alliance's and corporation's images at runtime; the demo has neither, so it
+ * points them at two local images the runner serves from CJS_DEMO_BANNER_DIR.
+ * Temporary: remove once the demo can name a real alliance.
+ */
+const DEMO_BANNERS = Object.freeze({
+  AllianceLogoResPath: "res:/cjsdemo/banner/alliance.png",
+  CorpLogoResPath: "res:/cjsdemo/banner/corporation.png"
+});
+
+/**
+ * Points a ship's alliance and corp banner parameters at the placeholders.
+ *
+ * @param {EveShip2} ship The built ship.
+ * @returns {string[]} The parameters set.
+ */
+function ApplyDemoBanners(ship)
+{
+  const set = [];
+  for (const parameter of ship.externalParameters)
+  {
+    const path = DEMO_BANNERS[parameter.name];
+    if (!path) continue;
+    parameter.SetValue(path);
+    set.push(parameter.name);
+  }
+  return set;
+}
+
+/**
+ * Fetches one placeholder banner image from the runner.
+ *
+ * @param {string} name `alliance.png` or `corporation.png`.
+ * @returns {Promise<Uint8Array>} The bytes.
+ */
+async function DemoBannerBytes(name)
+{
+  const response = await fetch(`/demo-banner/${name}`);
+
+  if (!response.ok) throw new Error(`demo banner ${name}: ${response.status} ${response.statusText}`);
+
+  return new Uint8Array(await response.arrayBuffer());
+}
+
+/**
  * Fetches one client resource through the runner's proxy.
  *
  * @param {string} path Logical resource path, without the `res:/` prefix.
@@ -1566,7 +1612,13 @@ const SCENE_TEXTURES = Object.freeze([
 // container, and `RegisterShaderResources` converts it. No prebuilt overlay.
 blue.resMan.Register({
   source: {
-    Read: path => ResourceBytes(String(path).replace(/^res:\//u, "").replace("graphics/effect.webgpu/", "graphics/effect.dx11/"))
+    Read: path =>
+    {
+      const logical = String(path).replace(/^res:\//u, "");
+      // The placeholder banners (see DEMO_BANNERS) come from the runner.
+      if (logical.startsWith("cjsdemo/banner/")) return DemoBannerBytes(logical.slice("cjsdemo/banner/".length));
+      return ResourceBytes(logical.replace("graphics/effect.webgpu/", "graphics/effect.dx11/"));
+    }
   }
 });
 RegisterTextureResources(blue.resMan);
@@ -2216,6 +2268,8 @@ export async function RunDemo(canvas)
     // ?dynamicLights=0 renders without them.
     Tr2Renderer.getSettings().SetValue("eveSpaceSceneDynamicLighting", new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0");
     ship = await BuildSofShip(DNA);
+    const banners = ApplyDemoBanners(ship);
+    if (banners.length) console.info(`demo banners: ${banners.join(", ")}`);
 
     // THE CLIENT'S SPEED FEED: Carbon's m_speed is a TriFloat the client binds
     // to the ball's velocity, and UpdateBoosters hands its value to the
