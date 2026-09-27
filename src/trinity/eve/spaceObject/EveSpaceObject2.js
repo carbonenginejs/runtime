@@ -3300,6 +3300,15 @@ export class EveSpaceObject2 extends EveEntity
     return this.estimatedPixelDiameter;
   }
 
+  /** Carbon EveSpaceObject2::GetWorldVelocity (cpp:3014-3017): the ball's velocity. */
+  @carbon.method
+  @impl.implemented
+  GetWorldVelocity(velocity)
+  {
+    vec3.copy(velocity, this.worldVelocity);
+    return velocity;
+  }
+
   /** Reports the result of the latest Carbon visibility update. */
   @carbon.method
   @impl.implemented

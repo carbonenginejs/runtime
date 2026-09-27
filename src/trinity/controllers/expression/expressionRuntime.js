@@ -7,6 +7,51 @@
 // that file's head comment for the constraint that forces an AST walk.
 import { CjsControllerExpressionCompileError } from "./CjsControllerExpressionCompileError.js";
 import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionEvaluateError.js";
+import { CjsSchema } from "#schema";
+import { blue } from "#blue";
+import { vec3 } from "#math/vec3";
+
+/**
+ * Carbon's BlueCastPtr on a controller's owner, the class asked of Blue by its
+ * Carbon name, so the controllers do not import Eve. An unregistered class
+ * throws: Carbon's cast target always exists.
+ */
+function CastOwner(owner, className)
+{
+  const registration = blue.classes.GetClassRegistration(className);
+  if (!registration) throw new Error(`ShipSpeed/ShipMaxSpeed: class ${className} is not registered with Blue`);
+  return CjsSchema.cast(owner, registration.type);
+}
+
+const SPEED_SCRATCH = vec3.create();
+
+/**
+ * Carbon ShipSpeed (Controllers/Tr2ControllerExpression.cpp:142-160): the
+ * owner's world-velocity length, for a space object or a child container.
+ * Adapted: the controllerFunctionOverrideEnabled override (cpp:144-147) is not
+ * ported; no class registers that setting yet.
+ */
+function ShipSpeedOf(owner)
+{
+  const spaceObject = CastOwner(owner, "EveSpaceObject2") ?? CastOwner(owner, "EveChildContainer");
+  if (!spaceObject) return 0;
+  vec3.set(SPEED_SCRATCH, 0, 0, 0);
+  spaceObject.GetWorldVelocity(SPEED_SCRATCH);
+  return vec3.length(SPEED_SCRATCH);
+}
+
+/**
+ * Carbon ShipMaxSpeed (cpp:180-201): the ship's GetMaxSpeed, or a child or
+ * instance container's GetOwnerMaxSpeed; 1 when unset or for anything else.
+ * Adapted: the override (cpp:182-185) is not ported, as above.
+ */
+function ShipMaxSpeedOf(owner)
+{
+  const ship = CastOwner(owner, "EveShip2");
+  const container = ship ? null : (CastOwner(owner, "EveChildContainer") ?? CastOwner(owner, "EveChildInstanceContainer"));
+  const speed = ship ? ship.GetMaxSpeed() : container ? container.GetOwnerMaxSpeed() : 0;
+  return speed > 0 ? speed : 1;
+}
 
 export const BLOCKED_IDENTIFIERS = new Set(["__proto__", "prototype", "constructor", "Function", "eval", "process", "global", "globalThis", "window", "document", "this"]);
 export const CONSTANTS = {
@@ -401,8 +446,8 @@ export const DEFAULT_FUNCTIONS = {
   AnimationTime: (ctx, name) => CallContextFunction(ctx, "AnimationTime", name),
   IsAnimationPlaying: (ctx, name) => CallContextFunction(ctx, "IsAnimationPlaying", name),
   GetExternalControllerVariable: (ctx, name, fallback = 0) => GetExternalControllerVariable(ctx, name, fallback),
-  ShipSpeed: ctx => CallContextFunction(ctx, "ShipSpeed"),
-  ShipMaxSpeed: ctx => CallContextFunction(ctx, "ShipMaxSpeed", undefined, 1),
+  ShipSpeed: ctx => ShipSpeedOf(ctx.owner),
+  ShipMaxSpeed: ctx => ShipMaxSpeedOf(ctx.owner),
   ShipBoosterIntensity: ctx => CallContextFunction(ctx, "ShipBoosterIntensity"),
   KillCount: ctx => CallContextFunction(ctx, "KillCount"),
   BoundingSphereRadius: ctx => CallContextFunction(ctx, "BoundingSphereRadius"),

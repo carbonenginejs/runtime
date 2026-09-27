@@ -92,6 +92,14 @@ export class EveChildInstanceContainer extends EveChildTransform
   @type.enum("trinity.EveSpaceObjectChild.Origin")
   origin = 0;
 
+  /** Carbon EveChildInstanceContainer::GetOwnerMaxSpeed (cpp:362-365). */
+  @carbon.method
+  @impl.implemented
+  GetOwnerMaxSpeed()
+  {
+    return this.#ownerMaxSpeed;
+  }
+
   /** Propagates the owning space object to the source and live instances. */
   @carbon.method
   @impl.implemented
