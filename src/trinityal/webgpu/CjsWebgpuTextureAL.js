@@ -164,6 +164,16 @@ export class CjsWebgpuTextureAL
     const maxDimension = type === TextureType.TEX_TYPE_3D ? device.limits.maxTextureDimension3D : device.limits.maxTextureDimension2D;
 
     if (desc.GetWidth() > maxDimension || desc.GetHeight() > maxDimension) return ALResult.E_INVALIDARG;
+
+    // WebGPU takes a BC-compressed 3D texture only behind
+    // texture-compression-bc-sliced-3d; D3D11 has no such split, and the impact
+    // effects' volume maps are BC3. Made without it, the texture is invalid and
+    // so is every command buffer that binds it: the whole frame is dropped.
+    // Refused instead, so the parameter keeps its fallback.
+    if (type === TextureType.TEX_TYPE_3D && format.startsWith("bc") && !device.features.has("texture-compression-bc-sliced-3d"))
+    {
+      return ALResult.E_INVALIDARG;
+    }
     const usageFlags = webgpu.GetTextureUsage();
     const srgbFormat = requestedFormat !== format && requestedFormat.endsWith("-srgb")
       ? requestedFormat

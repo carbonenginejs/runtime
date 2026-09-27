@@ -411,6 +411,25 @@ test("a texture past the device's size limit is refused rather than made invalid
   assert.equal(atlas.Create(Tr2BitmapDimensions.texture2D(8192, 4096, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL | Tr2GpuUsage.SHADER_RESOURCE }, al), ALResult.S_OK);
 });
 
+test("a BC 3D texture is made only on a device with texture-compression-bc-sliced-3d", () =>
+{
+  // The impact effects' volume maps (fisfx/impact/3dfx_*.dds) are BC3. Without
+  // the feature the GPUTexture is invalid and every submit binding it fails.
+  const { al, calls } = composed();
+  const volume = () => new Tr2BitmapDimensions({ type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_BC3_UNORM, width: 4, height: 4, depth: 4, mipCount: 1 });
+  const data = [ new Tr2SubresourceData(new Uint8Array(64), 16, 16) ];
+
+  al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc" ]);
+  const before = calls.textures.length;
+  assert.equal(new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), ALResult.E_INVALIDARG);
+  assert.equal(calls.textures.length, before, "nothing was created");
+
+  al.GetWebgpu().GetDevice().features = new Set([ "texture-compression-bc", "texture-compression-bc-sliced-3d" ]);
+  assert.equal(new CjsWebgpuTextureAL().Create(volume(), { gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, initialData: data }, al), ALResult.S_OK);
+  assert.equal(calls.textures.at(-1).format, "bc3-rgba-unorm");
+  assert.equal(calls.textures.at(-1).dimension, "3d");
+});
+
 test("depth clip off becomes unclippedDepth only on a device with depth-clip-control", () =>
 {
   // Carbon draws its shadow cascades with RS_DEPTH_CLIP_ENABLE off

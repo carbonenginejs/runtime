@@ -2078,6 +2078,10 @@ export async function RunDemo(canvas)
   // family only behind this feature; a device without it decodes to RGBA8
   // instead, so the demo runs either way and reports which happened.
   const compressed = adapter.features.has("texture-compression-bc");
+  // BC VOLUMES are a second feature: the impact effects' 3D maps are BC3, and
+  // WebGPU refuses a BC 3D texture without it (the AL then refuses it too, and
+  // the effect samples its fallback).
+  const compressed3d = compressed && adapter.features.has("texture-compression-bc-sliced-3d");
   // SIXTEEN STORAGE TEXTURES PER STAGE, or as many as the adapter has:
   // CORTAO's Pack kernel declares sixteen packed mips (PackedOutputBuffer0..15),
   // the reflection probe's main filter seven cube mips, and WebGPU's default
@@ -2098,6 +2102,7 @@ export async function RunDemo(canvas)
   const textureDimension = Math.min(16384, adapter.limits.maxTextureDimension2D);
   const requiredFeatures = [
     ...(compressed ? [ "texture-compression-bc" ] : []),
+    ...(compressed3d ? [ "texture-compression-bc-sliced-3d" ] : []),
     ...(filterableFloat32 ? [ "float32-filterable" ] : []),
     ...(depthClipControl ? [ "depth-clip-control" ] : [])
   ];
