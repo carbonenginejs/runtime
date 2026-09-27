@@ -38,8 +38,8 @@ test("an uncomposed paths service answers rather than refusing", () =>
   assert.equal(blue.paths.FileExistsLocally("res:/model/ship.gr2"), false);
 
   // What it genuinely cannot do without a file system is still refused.
-  assert.throws(() => blue.paths.GetDirectoryContents("res:/model/"),
-    /^Error: CjsBluePaths does not implement IBluePaths\.GetDirectoryContents\.$/u);
+  assert.throws(() => blue.paths.ResolvePath("res:/model/ship.gr2"),
+    /^Error: CjsBluePaths does not implement IBluePaths\.ResolvePath\.$/u);
 });
 
 test("an implementation is installed into the holder, never captured from it", () =>

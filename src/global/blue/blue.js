@@ -48,10 +48,10 @@ export const blue = {
   resMan: new CjsResMan(),
 
   // Paths differs from the manager: an uncomposed one can still answer its
-  // main question truthfully - no, that file is not here - which is what
-  // Carbon returns for a file absent from the local machine, and what every
-  // caller is already written for. The verbs it cannot answer without a real
-  // file system stay refused. See CjsBluePaths.
+  // questions truthfully - no, that file is not here - which is what Carbon
+  // returns on an empty machine, and what every caller is already written for.
+  // The host installs a local file system and a remote file cache. See
+  // CjsBluePaths.
   /** `BePaths` (IBluePaths.h:49) - search paths, resolution, existence and streams. */
   paths: new CjsBluePaths(),
 
@@ -72,15 +72,3 @@ export const blue = {
 // The manager ticks with the OS, as Carbon's constructor registers itself
 // (BlueResMan.cpp:113); done here because the manager cannot import this file.
 blue.os.RegisterForTicks(blue.resMan);
-
-// "Local" in a browser means ALREADY FETCHED. Carbon's FileExistsLocally asks
-// whether a file is on this machine rather than only reachable through the
-// remote cache, and callers use it to pick something already present over
-// something that must be downloaded (Tr2Mesh's low-detail swap). A browser has
-// no disk; what it has is the manager's own holdings. A Node wrapper replaces
-// this with a predicate that asks its disk (data-supply mode 4).
-blue.paths.SetResourceFileIndex(path =>
-{
-  const resource = blue.resMan.Lookup(path);
-  return resource !== null && resource.HasPayload();
-});

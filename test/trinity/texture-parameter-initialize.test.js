@@ -5,17 +5,18 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { ResourceRequirement } from "../../npm/dist/resource/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { composeStubResMan } from "../support/stubResMan.js";
+import { localFileSystem } from "../support/localFileSystem.js";
 
 // Carbon TriTextureParameter::Initialize (TriTextureParameter.cpp:198-240):
 // a path change fetches the texture through BeResMan, and a missing authored
 // file with a local `_lowdetail` sibling renders the sibling until the
 // authored resource is ready (GetResource, cpp:271-290).
 
-/** Runs with a stub manager and a paths predicate answering from `local`. */
+/** Runs with a stub manager and a local file system holding `local`. */
 function withManager(local, run)
 {
   const stub = composeStubResMan();
-  blue.paths.SetResourceFileIndex(path => local.has(path));
+  blue.paths.SetLocalFileSystem(localFileSystem(local));
   try
   {
     return run(stub);
@@ -23,11 +24,7 @@ function withManager(local, run)
   finally
   {
     stub.restore();
-    blue.paths.SetResourceFileIndex(path =>
-    {
-      const resource = blue.resMan.Lookup(path);
-      return resource !== null && resource.HasPayload();
-    });
+    blue.paths.SetLocalFileSystem(null);
   }
 }
 

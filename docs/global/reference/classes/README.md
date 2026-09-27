@@ -25,6 +25,16 @@ Summary: Catalogs maintained named classes in the consolidated runtime foundatio
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:BlueResFileSystemRemote -->
+## `BlueResFileSystemRemote`
+
+`BlueResFileSystemRemote` - a `RemoteFileCache` as a res file system.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/BlueResFileSystemRemote.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:CcpDateTime -->
 ## `CcpDateTime`
 
@@ -48,7 +58,7 @@ Carbon's `BeOS`, as much of it as is honest: the clock and the pump.
 <!-- class:CjsBluePaths -->
 ## `CjsBluePaths`
 
-Browser paths service: res-file-index existence, with the file-system verbs still refused.
+`BluePaths` - res file systems asked in turn, and the remote cache for listed-versus-here.
 
 - Export: `@carbonenginejs/runtime/blue`
 - Source: `src/global/blue/CjsBluePaths.js`
@@ -122,6 +132,16 @@ Combines Carbon enum registration and BlueEnum lookup in a dependency-free regis
 
 - Export: `@carbonenginejs/runtime/blue`
 - Source: `src/global/blue/IBluePaths.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueResFileSystem -->
+## `IBlueResFileSystem`
+
+`IBlueResFileSystem` - one source of res files, per blue/include/IBlueResFileSystem.h.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IBlueResFileSystem.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -202,6 +222,16 @@ Combines Carbon enum registration and BlueEnum lookup in a dependency-free regis
 
 - Export: `@carbonenginejs/runtime/blue`
 - Source: `src/global/blue/IVariableTicker.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:RemoteFileCache -->
+## `RemoteFileCache`
+
+`RemoteFileCache` - a build's file index, and the downloads and local cache it drives.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/RemoteFileCache.js`
 - Visibility: Public
 - Kind: Carbon
 

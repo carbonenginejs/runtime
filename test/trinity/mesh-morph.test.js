@@ -4,6 +4,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { EveChildMesh } from "../../npm/dist/trinity/eve/child/EveChildMesh.js";
 import { Tr2Mesh } from "../../npm/dist/trinity/core/mesh/Tr2Mesh.js";
 import { Tr2SerializedMorphAnimation } from "../../npm/dist/trinity/core/mesh/Tr2SerializedMorphAnimation.js";
+import { localFileSystem } from "../support/localFileSystem.js";
 
 function CreateGeometry(names, baked = names.map(() => false))
 {
@@ -207,7 +208,7 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
   };
 
   composeStubResMan(answer);
-  blue.paths.SetResourceFileIndex([ "res:/hull_lowdetail.gr2" ]);
+  blue.paths.SetLocalFileSystem(localFileSystem([ "res:/hull_lowdetail.gr2" ]));
   try
   {
     const mesh = new Tr2Mesh();
@@ -224,23 +225,23 @@ test("a missing mesh falls back to its _lowdetail sibling when the index has one
     finishAuthored("completed", mesh.geometry);
     assert.equal(mesh.lowResGeometry, null, "the stand-in outlived the authored mesh");
 
-    // Negative control: when the index says the authored file IS there, no
+    // Negative control: when the authored file IS here, no
     // sibling is looked for at all.
     requested.length = 0;
-    blue.paths.SetResourceFileIndex([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]);
+    blue.paths.SetLocalFileSystem(localFileSystem([ "res:/present.gr2", "res:/present_lowdetail.gr2" ]));
     new Tr2Mesh().SetMeshResPath("res:/present.gr2");
     assert.deepEqual(requested, [ "res:/present.gr2" ]);
 
-    // Second control: with no index installed nothing is presumed to exist, so
-    // the authored path is requested alone.
+    // Second control: with no local file system installed nothing is presumed
+    // to exist, so the authored path is requested alone.
     requested.length = 0;
-    blue.paths.SetResourceFileIndex(null);
+    blue.paths.SetLocalFileSystem(null);
     new Tr2Mesh().SetMeshResPath("res:/hull.gr2");
     assert.deepEqual(requested, [ "res:/hull.gr2" ]);
   }
   finally
   {
-    blue.paths.SetResourceFileIndex(null);
+    blue.paths.SetLocalFileSystem(null);
     blue.resMan = previousManager;
   }
 });

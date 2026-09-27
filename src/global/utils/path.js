@@ -59,6 +59,54 @@ export function normalizeResourcePath(value)
     return normalizePath(value, { lowerCase: true });
 }
 
+/**
+ * Carbon's `NormalizeResPath` (`blue/src/BlueFileUtil.cpp:25-117`), for the
+ * callers that need its validity answer as well as its result: lowercase,
+ * backslashes to slashes, repeated slashes dropped, `.` removed and `..`
+ * resolved. A `dynamic:` path takes the same exemption as
+ * {@link normalizeResourcePath}.
+ *
+ * Carbon returns false for a path that is not `res:/` or `dynamic:/`, or whose
+ * `..` climbs above the root; this returns `null` in both cases, where Carbon
+ * copies the input to its out-parameter. Lowercasing is `toLowerCase`, where
+ * Carbon calls `std::tolower` per character; the two agree on ASCII, which is
+ * all a res path holds.
+ *
+ * @param {string} path Res path.
+ * @returns {string|null} The normalized path, or `null` when Carbon returns false.
+ */
+export function normalizeResPath(path)
+{
+    if (typeof path !== "string") return null;
+    if (path.startsWith("dynamic:/") || path.startsWith("dynamic:\\")) return normalizeResourcePath(path);
+    if (!path.startsWith("res:/") && !path.startsWith("res:\\")) return null;
+
+    // Carbon keeps the result length before each component so `..` can
+    // truncate back to it (cpp:85-93).
+    let result = "res:/";
+    const components = [];
+    let start = 5;
+    for (let index = 5; index <= path.length; index++)
+    {
+        const character = path[index];
+        if (index !== path.length && character !== "/" && character !== "\\") continue;
+        const component = path.slice(start, index);
+        start = index + 1;
+        if (component === "" || component === ".") continue;
+        if (component === "..")
+        {
+            if (components.length === 0) return null;
+            result = result.slice(0, components.pop());
+            continue;
+        }
+        const previousLength = result.length;
+        if (components.length !== 0) result += "/";
+        result += component.toLowerCase();
+        components.push(previousLength);
+    }
+    return result;
+}
+
 /** Returns the normalized extension of a URI-style resource path. */
 export function getResourceExtension(value)
 {
