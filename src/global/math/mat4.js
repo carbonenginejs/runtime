@@ -17,6 +17,14 @@ import { pool } from "./pool.js";
 
 const mat4 = { ...glMat4 };
 
+// XMMatrixDecompose scratch is private to synchronous calls in this module.
+// Reflections negate the largest scale axis (X, then Y, then Z on ties),
+// whereas mat4.decompose always negates X. Keep these policies separate.
+const DIRECTX_DECOMPOSE_BASIS = [new Float32Array(3), new Float32Array(3), new Float32Array(3)];
+const DIRECTX_DECOMPOSE_CANONICAL = [new Float32Array([1, 0, 0]), new Float32Array([0, 1, 0]), new Float32Array([0, 0, 1])];
+const DIRECTX_DECOMPOSE_CROSS = new Float32Array(3);
+const DIRECTX_DECOMPOSE_EPSILON = Math.fround(0.0001);
+
 export { mat4 };
 
 /**
@@ -193,6 +201,147 @@ mat4.decompose = function (m, rotation, translation, scaling)
     }
 
     return m;
+};
+
+/**
+ * Decomposes with DirectXMath's signed-scale and degenerate-basis policy.
+ * Unlike mat4.decompose's negative-X convention, reflected bases negate their
+ * largest scale axis and its basis vector. Axes shorter than 0.0001 are repaired
+ * before the handedness test. This is XMMatrixDecompose, not Carbon's separate
+ * Decompose function in math/src/Matrix.cpp, which keeps positive scale lengths.
+ *
+ * Source: DirectXMath/Inc/DirectXMathMatrix.inl:971-1101
+ * Source: DirectXMath/Inc/DirectXMathMisc.inl:572-623
+ * Carbon: XMMatrixDecompose (usage: trinity/trinity/Particle/Tr2GpuUniqueEmitter.cpp:35)
+ * Adapted: Caller-owned gl-matrix outputs and module scratch replace native
+ * SIMD values; scalar intermediates use JavaScript numbers. No per-call arrays
+ * or vectors are allocated. Outputs must not alias the input or one another.
+ *
+ * @param {mat4} m Source affine transform, in the shared native/GL byte layout.
+ * @param {quat} rotation Receives rotation only on success; unchanged on failure.
+ * @param {vec3} translation Receives translation even on failure.
+ * @param {vec3} scaling Receives signed scale even on failure.
+ * @returns {boolean} False for a normalized basis whose determinant differs
+ * from unity enough to fail DirectXMath's SRT check.
+ */
+mat4.decomposeDirectX = function (m, rotation, translation, scaling)
+{
+    const basis = DIRECTX_DECOMPOSE_BASIS;
+    for (let axis = 0; axis < 3; axis++)
+    {
+        const value = basis[axis];
+        value[0] = m[axis * 4];
+        value[1] = m[axis * 4 + 1];
+        value[2] = m[axis * 4 + 2];
+        scaling[axis] = Math.hypot(value[0], value[1], value[2]);
+        translation[axis] = m[12 + axis];
+    }
+
+    const sx = scaling[0], sy = scaling[1], sz = scaling[2];
+    let a, b, c;
+    if (sx < sy)
+    {
+        if (sy < sz)
+        {
+            a = 2; b = 1; c = 0;
+        }
+        else if (sx < sz)
+        {
+            a = 1; b = 2; c = 0;
+        }
+        else
+        {
+            a = 1; b = 0; c = 2;
+        }
+    }
+    else
+    {
+        if (sx < sz)
+        {
+            a = 2; b = 0; c = 1;
+        }
+        else if (sy < sz)
+        {
+            a = 0; b = 2; c = 1;
+        }
+        else
+        {
+            a = 0; b = 1; c = 2;
+        }
+    }
+
+    if (scaling[a] < DIRECTX_DECOMPOSE_EPSILON) basis[a].set(DIRECTX_DECOMPOSE_CANONICAL[a]);
+    normalizeVec3(basis[a], basis[a]);
+    if (scaling[b] < DIRECTX_DECOMPOSE_EPSILON)
+    {
+        const x = Math.abs(basis[a][0]), y = Math.abs(basis[a][1]), z = Math.abs(basis[a][2]);
+        // Last-ranked component, preserving XM3RANKDECOMPOSE's strict ties.
+        const least = x < y ? (x < z ? 0 : 2) : (y < z ? 1 : 2);
+        crossVec3(basis[b], basis[a], DIRECTX_DECOMPOSE_CANONICAL[least]);
+    }
+    normalizeVec3(basis[b], basis[b]);
+    if (scaling[c] < DIRECTX_DECOMPOSE_EPSILON) crossVec3(basis[c], basis[a], basis[b]);
+    normalizeVec3(basis[c], basis[c]);
+
+    let det = dotVec3(basis[0], crossVec3(DIRECTX_DECOMPOSE_CROSS, basis[1], basis[2]));
+    if (det < 0)
+    {
+        scaling[a] = -scaling[a];
+        basis[a][0] = -basis[a][0];
+        basis[a][1] = -basis[a][1];
+        basis[a][2] = -basis[a][2];
+        det = -det;
+    }
+    if ((det - 1) * (det - 1) > DIRECTX_DECOMPOSE_EPSILON) return false;
+
+    // XMQuaternionRotationMatrix selects the largest quaternion component.
+    // Shared matrix bytes need neither a transpose nor a composition reversal.
+    const x = basis[0], y = basis[1], z = basis[2];
+    if (z[2] <= 0)
+    {
+        const difference = y[1] - x[0];
+        if (difference <= 0)
+        {
+            const square = 1 - z[2] - difference;
+            const factor = 0.5 / Math.sqrt(square);
+            rotation[0] = square * factor;
+            rotation[1] = (x[1] + y[0]) * factor;
+            rotation[2] = (x[2] + z[0]) * factor;
+            rotation[3] = (y[2] - z[1]) * factor;
+        }
+        else
+        {
+            const square = 1 - z[2] + difference;
+            const factor = 0.5 / Math.sqrt(square);
+            rotation[0] = (x[1] + y[0]) * factor;
+            rotation[1] = square * factor;
+            rotation[2] = (y[2] + z[1]) * factor;
+            rotation[3] = (z[0] - x[2]) * factor;
+        }
+    }
+    else
+    {
+        const sum = y[1] + x[0];
+        if (sum <= 0)
+        {
+            const square = 1 + z[2] - sum;
+            const factor = 0.5 / Math.sqrt(square);
+            rotation[0] = (x[2] + z[0]) * factor;
+            rotation[1] = (y[2] + z[1]) * factor;
+            rotation[2] = square * factor;
+            rotation[3] = (x[1] - y[0]) * factor;
+        }
+        else
+        {
+            const square = 1 + z[2] + sum;
+            const factor = 0.5 / Math.sqrt(square);
+            rotation[0] = (y[2] - z[1]) * factor;
+            rotation[1] = (z[0] - x[2]) * factor;
+            rotation[2] = (x[1] - y[0]) * factor;
+            rotation[3] = square * factor;
+        }
+    }
+    return true;
 };
 
 /**
@@ -933,6 +1082,7 @@ export const {
     copy,
     create,
     decompose,
+    decomposeDirectX,
     determinant,
     equals,
     exactEquals,

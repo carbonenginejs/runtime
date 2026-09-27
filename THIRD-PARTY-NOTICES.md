@@ -8,6 +8,15 @@ matrix containers with CarbonEngineJS helpers.
 - Project: <https://github.com/toji/gl-matrix>
 - License: MIT
 
+## DirectXMath decomposition
+
+`src/global/math/mat4.js` adapts `XMMatrixDecompose` and its scalar quaternion
+extraction from DirectXMath for `decomposeDirectX`.
+
+- Project: <https://github.com/microsoft/DirectXMath>
+- Copyright (c) Microsoft Corporation.
+- License: MIT; terms reproduced below
+
 ## Resource format dependencies and retained notices
 
 The CMF reader depends on `meshoptimizer`, and the YAML reader depends on
@@ -61,7 +70,7 @@ attributing conversions to Three.js authors.
 derived from observed EVE/Carbon shader behavior and generated test vectors.
 No Fenris Creations (CCP Games) shader source, tools, or assets are included.
 
-## MIT terms for ccpwgl and Three.js material
+## MIT terms for ccpwgl, Three.js and DirectXMath material
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of
 this software and associated documentation files (the "Software"), to deal in
