@@ -668,6 +668,20 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // block for compute as well, which dynamic exposure reads Time from.
     this.scene.ApplyPerFrameData(renderContext);
 
+    // THE BACKGROUND PASS (cpp:502-511): the nebula and the rest of the
+    // background, into the scene colour before the depth pass, with the
+    // velocity map in slot 1 when there is one. Background distortion is
+    // applied at once, and the depth buffer rebound.
+    if (offscreen)
+    {
+      const hasBackgroundDistortionBatches = this.scene.RenderBackgroundPass(offscreen.depth.Get(), offscreen.distortion?.Get() ?? null, offscreen.velocity?.Get() ?? null, renderContext, this.#renderer);
+      if (this.enableDistortion && hasBackgroundDistortionBatches && offscreen.distortion)
+      {
+        this._ApplyDistortion(offscreen.color.Get(), offscreen.distortion.Get(), renderContext);
+        renderContext.GetEffectStateManager().SetDepthStencilBuffer(offscreen.depth.Get());
+      }
+    }
+
     // THE DEPTH PASS (cpp:514-521): depth and, when AO or a forced map wants
     // it, the normal map, before shadows and SSAO read them. The depth
     // buffer stays bound; the scene colour is back in slot 0 afterwards.
@@ -711,10 +725,13 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     let submitted;
 
     // THE VELOCITY SCOPE (EveSpaceScene.cpp:2715-2735): the velocity map is
-    // colour slot 1 for the opaque family, cleared by the pass hint to (0, 0);
-    // slot 0 and depth load and store. There is no background pass, so it is
-    // never already dirty. Shaders that do not write SV_Target1 leave it
-    // alone (the AL masks the target off).
+    // colour slot 1 for the opaque family, cleared by the pass hint to (0, 0)
+    // unless the background pass already wrote it this frame
+    // (m_velocityMapDirty), in which case it loads; slot 0 and depth load and
+    // store. Carbon's extra ClearRenderTargetIfNoBatches (cpp:2721-2724) is
+    // for platforms that drop the hint's clear when nothing is drawn; ours
+    // always honours the hint, so it is not ported. Shaders that do not write
+    // SV_Target1 leave it alone (the AL masks the target off).
     //
     // Without velocity Carbon hints the colour LOAD/STORE and the depth
     // LOAD/DONT_CARE (cpp:2733); that hint is not ported, because this frame's
@@ -726,10 +743,11 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       {
         renderContext.RenderPassHint(
           new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
-          new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
+          new Tr2ColorAttachment(this.scene._velocityMapDirty ? Tr2LoadAction.LOAD : Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
           new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
         );
         submitted = this.#Submit(map, renderContext);
+        this.scene._velocityMapDirty = true;
       }
       finally
       {

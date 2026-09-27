@@ -59,6 +59,7 @@ function sceneRecording(calls)
     PopulatePerFramePSData() { calls.push([ "PopulatePerFramePSData" ]); },
     PopulatePerFrameVSData() { calls.push([ "PopulatePerFrameVSData" ]); },
     ApplyPerFrameData() { calls.push([ "ApplyPerFrameData" ]); },
+    RenderBackgroundPass() { calls.push([ "RenderBackgroundPass" ]); return false; },
     StampFrameContext(values) { calls.push([ "StampFrameContext", values ]); },
     // BeginRender's jitter and EndRender's last-frame store (cpp:1329, 2866-2868),
     // with the matrices the driver hands in and out around them.
@@ -157,6 +158,8 @@ test("the frame runs Carbon's order", () =>
     // EveSpaceScene::ApplyPerFrameData (cpp:818-828): the scene binds its own
     // blocks, the vertex one for compute too.
     "ApplyPerFrameData",
+    // The background pass (driver cpp:502-511): the nebula, before the depth pass.
+    "RenderBackgroundPass",
     // The depth pass (driver cpp:514-521), before SSAO and the main pass.
     "RenderDepthPass",
     // The shadows, after the depth pass and before SSAO (driver cpp:529-532).

@@ -1033,8 +1033,13 @@ const KILLS = DemoKillCount(new URLSearchParams(globalThis.location?.search ?? "
  */
 const SCENE_MODE = new URLSearchParams(globalThis.location?.search ?? "").get("scene") === "stub" ? "stub" : "sof";
 
-/** The nebula a real scene loads as its environment map (envMapResPath). */
-const SCENE_NEBULA = "res:/dx9/scene/universe/a01_cube.dds";
+/**
+ * The universe scene the demo loads as its EveSpaceScene, as the client loads
+ * one per system: its background effect (the visible nebula), environment
+ * maps, nebula intensity, ambient colour and fog. `?nebula=` picks another of
+ * the client's res:/dx9/scene/universe/*_cube files, e.g. `?nebula=c07`.
+ */
+const SCENE_UNIVERSE = `res:/dx9/scene/universe/${new URLSearchParams(globalThis.location?.search ?? "").get("nebula") || "a01"}_cube.black`;
 
 /**
  * Builds the ship through the runtime's own EveSOF, reading SOF's data files
@@ -2377,11 +2382,29 @@ export async function RunDemo(canvas)
   // per-frame data, its global textures and its lens flares. Built before the
   // render context exists; its BoneTransforms ring is registered and its
   // materials rebuilt once the context does (scene.Initialize below).
+  //
+  // The universe scene's values - its background effect, environment maps,
+  // nebula intensity, ambient colour and fog - go onto the scene as values.
+  // Loading it as an object would run its Initialize now, and Initialize needs
+  // the device, which this demo only creates later (al.CreateDevice); the
+  // client has its device before it loads a scene. Initialize runs below, once
+  // the device exists.
   const realScene = SCENE_MODE === "sof" ? new EveSpaceScene() : null;
+  if (realScene)
+  {
+    const universe = CjsBlackFormat.read(await ResourceBytes(SCENE_UNIVERSE.replace(/^res:\/+/u, "")), { emit: "json" }).object;
+    if (universe._type !== "EveSpaceScene") throw new Error(`demo: ${SCENE_UNIVERSE} is a ${universe._type}, not an EveSpaceScene`);
+    realScene.SetValues(universe);
+  }
 
   if (realScene)
   {
-    if (!ALPHA) realScene.envMapResPath = SCENE_NEBULA;
+    // ?alpha=1 keeps the canvas clear: no background pass and no nebula.
+    if (ALPHA)
+    {
+      realScene.backgroundRenderingEnabled = false;
+      realScene.envMapResPath = "";
+    }
     // THE CLIENT'S "dynamic lights" GRAPHICS SETTING: Carbon ships
     // g_eveSpaceSceneDynamicLighting false (EveSpaceScene.cpp:109-110), and
     // without it BeginRender deletes the light manager, so attachment lights
@@ -2492,6 +2515,7 @@ export async function RunDemo(canvas)
   // per-object data. `demo.param("area_hull", "Mat1DiffuseColor")` finds a
   // material parameter; edit its `value` in place.
   globalThis.demo = {
+    scene: realScene,
     sof,
     areas,
     materials: Object.fromEntries(areas.map(area => [ area.name, area.material ])),

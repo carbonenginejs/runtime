@@ -29,6 +29,9 @@ import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { EffectKeyGenerator, TriRenderBatchAccumulator } from "../../core/batch/TriRenderBatch/index.js";
 import { FillAndSetConstants } from "../../core/Tr2RenderUtils.js";
 import { PER_FRAME_PS, PER_FRAME_VS, Tr2Renderer } from "../../core/Tr2Renderer.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
+import { BackgroundRenderingReason } from "../../generated/eve/enums.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
 import { Tr2OcclusionBuffer } from "../effect/lensflare/Tr2OcclusionBuffer.js";
 import { Tr2VariableStore } from "../../core/variable/Tr2VariableStore.js";
 import { Tr2TextureReference } from "../../core/Tr2TextureReference.js";
@@ -1005,7 +1008,8 @@ export class EveSpaceScene extends CjsModel
    * cpp:1343) - so it always sits last. Scalar/color math only - no matrix
    * compositions, no row-vector swaps anywhere in this method. Same
    * stable-sort note as UpdatePostProcessAttributes - here fully benign, the
-   * blend is symmetric within a tie group.
+   * blend is symmetric within a tie group. The velocity map's dirty flag is
+   * cleared first, as Carbon's BeginRender clears it just before (cpp:1334).
    */
   BlendLightingOverrides()
   {
@@ -1013,6 +1017,7 @@ export class EveSpaceScene extends CjsModel
     {
       return;
     }
+    this._velocityMapDirty = false;
 
     const overrides = [];
     for (const component of this.componentRegistry?.GetComponents(EveComponentType.EveLightingOverride) ?? [])
@@ -1200,6 +1205,31 @@ export class EveSpaceScene extends CjsModel
   /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
   #ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
 
+  /** m_envMap1Var / m_envMap2Var: "EnvMap1" and "EnvMap2" (cpp:188-189). */
+  _envMap1Handle = Tr2VariableStore.GlobalStore().RegisterVariable("EnvMap1", new Tr2TextureReference());
+
+  _envMap2Handle = Tr2VariableStore.GlobalStore().RegisterVariable("EnvMap2", new Tr2TextureReference());
+
+  /** m_reflectionMapVar / m_reflectionMaskMapVar: the same two maps under "ReflectionMap" and "ReflectionMaskMap" (cpp:190-191). */
+  _reflectionMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("ReflectionMap", new Tr2TextureReference());
+
+  _reflectionMaskMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("ReflectionMaskMap", new Tr2TextureReference());
+
+  /** m_nebulaIntensityVar: "NebulaIntensity" (cpp:202), which the background effect reads. */
+  _nebulaIntensityHandle = Tr2VariableStore.GlobalStore().RegisterVariable("NebulaIntensity", 1);
+
+  /**
+   * m_velocityMapDirty (EveSpaceScene.h:476): whether the background pass has
+   * already drawn into the velocity map this frame, so the main pass loads it
+   * instead of clearing it. Cleared per frame by BlendLightingOverrides
+   * (Carbon's BeginRender, cpp:1334). The driver reads it, because our main
+   * pass runs there.
+   */
+  _velocityMapDirty = false;
+
+  /** Scene parts the background pass does not draw yet, each warned once. */
+  _warnedBackgroundParts = new Set();
+
   /**
    * Carbon's free function RegisterWithVariableStore (EveSpaceScene.cpp:4253-4266,
    * declared EveSpaceScene.h:725): publishes the shadow pass's four textures as
@@ -1281,13 +1311,16 @@ export class EveSpaceScene extends CjsModel
    * The render context is an ADDED argument: Carbon's constructor reaches the
    * BoneTransforms ring through the process-wide context, and a JS scene is
    * constructed before any context exists, so the ring is registered here.
+   * It defaults to the main-thread context, which is what Carbon reaches, so a
+   * reader that initializes the scene after loading it (BlackReader.cpp:394-403)
+   * calls it with no argument, as Carbon's Initialize() is called.
    *
-   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Tr2RenderContext} [renderContext] The frame's context.
    * @returns {boolean} True.
    */
   @carbon.method
   @impl.adapted
-  Initialize(renderContext)
+  Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
     const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
     bones.SetName("BoneTransformsBuffer");
@@ -1306,6 +1339,20 @@ export class EveSpaceScene extends CjsModel
     else
     {
       this.#envMapTextureRes = this.#staticEnvMapTextureRes;
+    }
+
+    // cpp:3228-3239: the scene's extra environment maps.
+    if (this.envMap1ResPath)
+    {
+      this.envMap1 = blue.resMan.GetResource(this.envMap1ResPath, { requirement: ResourceRequirement.TEXTURE });
+    }
+    if (this.envMap2ResPath)
+    {
+      this.envMap2 = blue.resMan.GetResource(this.envMap2ResPath, { requirement: ResourceRequirement.TEXTURE });
+    }
+    if (this.envMap3ResPath)
+    {
+      this.envMap3 = blue.resMan.GetResource(this.envMap3ResPath, { requirement: ResourceRequirement.TEXTURE });
     }
 
     // cpp:3247-3263: every object entity joins the scene's component registry
@@ -1340,6 +1387,11 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   UpdateVariableStore()
   {
+    this._envMap1Handle.SetValue(this.envMap1);
+    this._envMap2Handle.SetValue(this.envMap2);
+    this._reflectionMapHandle.SetValue(this.envMap1);
+    this._reflectionMaskMapHandle.SetValue(this.envMap2);
+    this._nebulaIntensityHandle.SetValue(this.currentNebulaIntensity);
     this.#staticEnvMapHandle.SetValue(this.#staticEnvMapTextureRes);
     this.#envMapHandle.SetValue(this.#envMapTextureRes);
   }
@@ -1563,6 +1615,136 @@ export class EveSpaceScene extends CjsModel
     renderContext.RenderBatches(batch);
     batch.Clear();
   }
+
+  /**
+   * Carbon EveSpaceScene::RenderBackgroundPass (cpp:2005-2073): the nebula and
+   * the rest of the background, drawn before the depth pass into the bound
+   * scene colour. With a velocity map, it is bound in slot 1 and cleared (or
+   * loaded, if already written this frame), and the pass marks it dirty for
+   * the main pass.
+   *
+   * Adapted: the renderer is an added argument, as for RenderShadows, because
+   * DrawCameraSpaceScreenQuad is an instance method here where Carbon's is a
+   * static. Carbon clears the velocity map with an explicit Clear after its
+   * pass hint; here the hint's CLEAR does it, as in our main pass. The planet
+   * LOD and visibility update (cpp:2023-2045) is not ported: a scene with
+   * planets logs a warning once.
+   *
+   * @param {object|null} depthMap The scene depth.
+   * @param {object|null} distortionMap The distortion map, if distortion is on.
+   * @param {object|null} velocityMap The velocity map, if one is rendered.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Tr2Renderer} renderer The renderer that draws screen quads.
+   * @returns {boolean} Whether any background distortion batches were drawn.
+   */
+  @carbon.method
+  @impl.adapted
+  RenderBackgroundPass(depthMap, distortionMap, velocityMap, renderContext, renderer)
+  {
+    let hasBackgroundDistortionBatches = false;
+
+    if (!this.backgroundRenderingEnabled)
+    {
+      return hasBackgroundDistortionBatches;
+    }
+    if (!this.display)
+    {
+      return hasBackgroundDistortionBatches;
+    }
+
+    if (this.planets.length) this._WarnBackgroundPart("planets", "EvePlanet LOD, visibility and rendering in the background pass");
+
+    const esm = renderContext.GetEffectStateManager();
+    if (velocityMap)
+    {
+      esm.PushRenderTarget(velocityMap, 1);
+      try
+      {
+        renderContext.RenderPassHint(
+          new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
+          new Tr2ColorAttachment(this._velocityMapDirty ? Tr2LoadAction.LOAD : Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0),
+          new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
+        );
+        hasBackgroundDistortionBatches = this.RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_COLOR);
+        this._velocityMapDirty = true;
+      }
+      finally
+      {
+        esm.PopRenderTarget(1);
+      }
+    }
+    else
+    {
+      renderContext.RenderPassHint(
+        new Tr2ColorAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE),
+        new Tr2DepthAttachment(Tr2LoadAction.LOAD, Tr2StoreAction.STORE)
+      );
+      hasBackgroundDistortionBatches = this.RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_COLOR);
+    }
+
+    esm.EndManagedRendering();
+    return hasBackgroundDistortionBatches;
+  }
+
+  /**
+   * Carbon EveSpaceScene::RenderBackgroundPassObjects (cpp:2082-2195): the
+   * nebula - the background effect drawn as a camera-space screen quad with
+   * opaque states - then the starfield, background objects, planets and warp
+   * tunnel. For a reflection render the nebula intensity is swapped for the
+   * background reflection intensity around the draw.
+   *
+   * Adapted: only the nebula is ported. The starfield (EveStarfield is an
+   * unported shell), background objects, planets and the warp tunnel each log
+   * a warning once when the scene has them, rather than being skipped
+   * silently, so this never reports distortion batches yet.
+   *
+   * @param {object|null} depthMap The scene depth.
+   * @param {object|null} distortionMap The distortion map.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @param {Tr2Renderer} renderer The renderer that draws screen quads.
+   * @param {number} reason An EveSpaceScene.BackgroundRenderingReason value.
+   * @returns {boolean} Whether any background distortion batches were drawn.
+   */
+  @carbon.method
+  @impl.adapted
+  RenderBackgroundPassObjects(depthMap, distortionMap, renderContext, renderer, reason)
+  {
+    const hasBackgroundDistortionBatches = false;
+
+    if (this.backgroundEffect)
+    {
+      if (reason === EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_REFLECTION)
+      {
+        this._nebulaIntensityHandle.SetValue(this.backgroundReflectionIntensity);
+      }
+
+      renderContext.GetEffectStateManager().ApplyStandardStates(RenderingMode.RM_OPAQUE);
+      renderer.DrawCameraSpaceScreenQuad(renderContext, this.backgroundEffect.GetShaderStateInterface(), this.backgroundEffect);
+
+      if (reason === EveSpaceScene.BackgroundRenderingReason.BACKGROUND_RENDER_REFLECTION)
+      {
+        this._nebulaIntensityHandle.SetValue(this.currentNebulaIntensity);
+      }
+    }
+
+    if (this.starfield) this._WarnBackgroundPart("starfield", "EveStarfield in the background pass");
+    if (this.backgroundObjects.length) this._WarnBackgroundPart("backgroundObjects", "background objects in the background pass");
+    if (this.warpTunnel) this._WarnBackgroundPart("warpTunnel", "the warp tunnel in the background pass");
+
+    renderContext.GetEffectStateManager().EndManagedRendering();
+    return hasBackgroundDistortionBatches;
+  }
+
+  /** Logs once per scene that part of Carbon's background pass is not drawn yet. */
+  _WarnBackgroundPart(key, what)
+  {
+    if (this._warnedBackgroundParts.has(key)) return;
+    this._warnedBackgroundParts.add(key);
+    CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s", `EveSpaceScene: ${what} is not ported yet; it is not drawn.`);
+  }
+
+  /** Carbon EveSpaceScene::BackgroundRenderingReason (EveSpaceScene.h:613-616). */
+  static BackgroundRenderingReason = BackgroundRenderingReason;
 
   /**
    * Carbon EveSpaceScene::RenderDepthPass (cpp:2201-2356): the opaque, decal
