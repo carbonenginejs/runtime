@@ -13,7 +13,12 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
   @type.typedArray("Uint32Array")
   indexBuffer = new Uint32Array(0);
 
-  /** Carbon method AddIndex (MAP_METHOD_AND_WRAP). */
+  /**
+   * Appends one unsigned index.
+   *
+   * @param {number} index Unsigned 32-bit index.
+   * @returns {void}
+   */
   @carbon.method
   @impl.implemented
   AddIndex(index)
@@ -23,10 +28,13 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
     next.set(source);
     next[source.length] = Number(index) >>> 0;
     this.indexBuffer = next;
-    // Carbon: void AddIndex(uint32_t) (EveSOFData.h:1276) - no return value.
   }
 
-  /** Carbon method GetIndices (MAP_METHOD_AND_WRAP). */
+  /**
+   * Returns a copy of the unsigned indices.
+   *
+   * @returns {number[]} Copied indices.
+   */
   @carbon.method
   @impl.implemented
   GetIndices()
@@ -34,18 +42,23 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
     return Array.from(this.indexBuffer ?? [], value => Number(value) >>> 0);
   }
 
-  // The ICustomPersist contract (EveSOFData.h:1300, cpp:958-978): the loader
-  // sizes the buffer, blits into it, then truncates to what it actually used.
+  // ICustomPersist interface (EveSOFData.h:1314-1318, cpp:958-978):
+  // allocate storage, fill it, then retain the used prefix.
 
   /**
-   * Carbon AllocateReadBuffer (cpp:975): size the store to byteSize/4
-   * elements and return the storage the loader blits into.
+   * Replaces the index storage with a zeroed buffer sized for the requested bytes.
    *
-   * @param {number} byteSize
-   * @returns {Uint32Array} The backing store.
+   * Adapted: Carbon resizes its vector, preserving existing elements in the
+   * retained range, and returns a byte pointer (EveSOFData.cpp:975-978).
+   * JavaScript allocates a fresh Uint32Array and returns it directly; the unused
+   * native member-name argument is omitted. An empty typed array also avoids
+   * the donor's unguarded element-zero access when the resulting vector is empty.
+   *
+   * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
+   * @returns {Uint32Array} New backing storage.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   AllocateReadBuffer(byteSize)
   {
     this.indexBuffer = new Uint32Array(Math.floor(byteSize / 4));
@@ -53,16 +66,17 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
   }
 
   /**
-   * Carbon GetWriteBufferAndSize (cpp:958): the raw storage and its byte
-   * size. The donor indexes element [0] without guarding an empty vector;
-   * a typed array has no such hazard, so the empty case returns the empty
-   * store rather than reproducing undefined behaviour.
+   * Returns the retained index storage and its byte size.
    *
-   * @returns {{buffer: Uint32Array, byteSize: number}}
+   * Adapted: Carbon writes a raw pointer and size to output parameters; JavaScript
+   * returns a record and omits the unused property-name argument. An empty typed
+   * array avoids the donor's unguarded element-zero access on an empty vector
+   * (EveSOFData.cpp:958-962). The returned buffer shares the current storage.
+   *
+   * @returns {{buffer: Uint32Array, byteSize: number}} Storage and byte count.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon out-params a raw byte pointer and size; JS returns them as a record, and a typed array cannot reproduce the donor's unguarded [0] on empty.")
   GetWriteBufferAndSize()
   {
     const buffer = this.indexBuffer ?? new Uint32Array(0);
@@ -70,9 +84,10 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
   }
 
   /**
-   * Carbon ReleaseWriteBuffer (cpp:964): EMPTY body - the vector owns its
-   * memory, so the contract's release step frees nothing. An empty
-   * implementation is not absence; the persist flow calls it.
+   * Completes a write without releasing the owned index storage.
+   * Carbon also has an empty release body (EveSOFData.cpp:964-966).
+   *
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -81,16 +96,20 @@ export class EveSOFDataDecalIndexBuffer extends CjsModel
   }
 
   /**
-   * Carbon SetBufferAndSize (cpp:968): TRUNCATE ONLY. The donor's own
-   * comment says the set buffer is always within the previously allocated
-   * read buffer, so the incoming pointer is deliberately ignored and the
-   * store just shrinks to byteSize/4 elements - preserved exactly.
+   * Copies the retained prefix into storage capped at the requested byte size.
+   *
+   * Adapted: Carbon ignores the supplied pointer and resizes its vector, expecting
+   * the result to fit in the previously allocated buffer (EveSOFData.cpp:968-973).
+   * JavaScript clamps the result to the existing length and copies it into a new
+   * array; it cannot grow the store as vector.resize can. The unused native
+   * property-name argument is omitted. Previously returned arrays are not updated.
    *
    * @param {*} _buffer Ignored, as in Carbon.
-   * @param {number} byteSize
+   * @param {number} byteSize Nonnegative byte count; incomplete uint32 bytes are discarded.
+   * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetBufferAndSize(_buffer, byteSize)
   {
     const elements = Math.floor(byteSize / 4);

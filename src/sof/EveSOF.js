@@ -84,16 +84,16 @@ const BANNER_EXTERNAL_PARAMETER_NAMES = Object.freeze([
 
 const MIN_MESH_SCREEN_SIZE = 2.5;
 
-// Tr2Lod value stamped on distortion areas after fill (EveSOF.cpp:2149-2153);
+// Tr2Lod value stamped on distortion areas after fill (EveSOF.cpp:2379);
 // The SOF layer stays free of a Trinity-layer import, so the enum value from
 // Tr2LodResource.h is mirrored here.
 const TR2_LOD_HIGH = 2;
 
 // Carbon validates every resolved resource root against the interface its
 // role requires before attaching it: children must cast to EveTransform or
-// IEveSpaceObjectChild (EveSOF.cpp:1786-1844,1949-2004), controllers load as
-// ITr2Controller (2014-2033), and model curves load as ITriQuaternionFunction
-// / ITriVectorFunction (1668-1691). The GPU-free builder has no class
+// IEveSpaceObjectChild (EveSOF.cpp:2069,2229), controllers load as
+// ITr2Controller (2241-2261), and model curves load as ITriQuaternionFunction
+// / ITriVectorFunction (1895-1917). The GPU-free builder has no class
 // registry, so conformance comes from the descriptor's explicit `implements`
 // claim or from these Carbon-source kind inventories.
 const CHILD_TRANSFORM_KINDS = new Set([
@@ -333,8 +333,8 @@ export class EveSOF extends CjsModel
   #sofLibraryBuilder = null;
 
   // Build-scope counterpart of Carbon's CCP_LOGERR sites: records in
-  // layoutPlanner diagnostic shape ({ code, ...context }), reset by each
-  // every values or deprecated document build and readable through
+  // layoutPlanner diagnostic shape ({ code, ...context }), reset by
+  // BuildFromDNA and appended to by modular-child builds; readable through
   // GetBuildDiagnostics().
   #buildDiagnostics = [];
 
@@ -621,12 +621,15 @@ export class EveSOF extends CjsModel
    *
    * Visibility groups are how a faction turns hull attachment sets on and off,
    * so this answers which groups the selected hulls author, which the faction
-   * declares, and therefore which sets a build emits. Carbon keeps only the
+   * declares, and which sets pass the visibility-group test. Carbon keeps only the
    * FNV1 hashes at runtime (EveSOFDataMgr.cpp:1301-1310) and has no equivalent
    * query; the names come from the catalog projection.
+   *
+   * Custom: Reports authored group names and faction membership from the catalog.
+   * Carbon exposes no equivalent query. Other build filters can still exclude sets
+   * whose visibility group is enabled.
    */
-  @carbon.method
-  @impl.adapted
+  @impl.custom
   GetDnaVisibilityGroups(dnaString)
   {
     const dna = this.CreateDna(dnaString);
@@ -702,10 +705,14 @@ export class EveSOF extends CjsModel
 
   /**
    * Builds the legacy `carbon.document` compatibility form.
+   *
+   * Adapted: Returns internal carbon.document assembly instead of Carbon’s live
+   * space-object instance. Three-name DNA construction and delegation follow Carbon.
+   *
    * @deprecated Use BuildValues(...).
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Build(hullName, factionName, raceName)
   {
     return this.BuildFromDNA(`${hullName}:${factionName}:${raceName}`);
@@ -720,7 +727,12 @@ export class EveSOF extends CjsModel
     return this.BuildFromDNAAsync(`${hullName}:${factionName}:${raceName}`, options);
   }
 
-  /** Returns diagnostics from the most recent values build or deprecated document build. */
+  /**
+   * Returns shallow copies of accumulated build diagnostics.
+   * BuildFromDNA resets the collection; modular-child builds can append to it.
+   *
+   * @returns {object[]} Diagnostic records with nested values retained.
+   */
   GetBuildDiagnostics()
   {
     return this.#buildDiagnostics.map(entry => ({ ...entry }));
@@ -772,16 +784,26 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Builds one modular hull into an existing space-object values graph.
+   * Builds a modular hull into an existing space-object values graph or model.
    *
-   * Carbon mutates a live EveSpaceObject2. The device-free runtime keeps the
-   * same owner-first and boolean contract while composing through its canonical
-   * model-values boundary; a live CjsModel owner is exported, composed, then
-   * populated through SetValues without importing Trinity into SOF.
+   * Adapted: Carbon mutates a live EveSpaceObject2 and accepts an armor-damage
+   * effect cache. This method composes model values without importing Trinity.
+   * A CjsModel owner is exported and repopulated through SetValues; an object
+   * values root has its enumerable fields replaced. The owner object is retained,
+   * but existing nested identities are not guaranteed. Invalid DNA returns false
+   * before applying the composed graph. Errors during hydration or replacement
+   * can leave the owner partially updated.
+   *
+   * @param {CjsModel|object} owner Supported self-describing space-object root.
+   * @param {string} dnaString Modular hull DNA.
+   * @param {number} partTag Value coerced and validated as a uint32 part tag.
+   * @param {ArrayLike<number>} [transform] Placement matrix; defaults to identity.
+   * @param {object} [options={}] Layout/projection options; hydration and registry options are forwarded to SetValues.
+   * @returns {boolean} Whether the composed values were applied.
+   * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build and hydration errors also propagate.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Runtime SOF remains Trinity-free, so Carbon's live EveSpaceObject2 mutation is performed through the caller-supplied model-values contract.")
   BuildChild(owner, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     const isModel = owner instanceof CjsModel;
@@ -806,17 +828,24 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Returns a new space-object values graph with one Carbon modular hull
-   * contribution. Invalid DNA returns null without changing the input graph.
+   * Returns a new space-object values graph with one modular hull contribution.
+   * Invalid DNA returns null without changing the input graph.
    *
-   * The part tag is stamped on the placement container or child mesh it
-   * adds and on the shared instanced mesh (`partTags`). The root's bounding
-   * sphere and shape ellipsoid are set to the part hull's values under
-   * `transform`. Hydration into Trinity and live removal belong to the
-   * caller; SOF only builds the device-free graph.
+   * Custom: Imports the self-describing owner graph, adds the child contribution,
+   * and projects new mutable values for composition before hydration. It does
+   * not construct Trinity objects or freeze the result. Emitted placement children
+   * and shared instanced meshes carry part tags; a zero-area nonanimated mesh
+   * need not emit a mesh. Bounds are set from the part hull under the transform.
+   *
+   * @param {object} ownerValues Self-describing space-object values root.
+   * @param {string} dnaString Modular hull DNA.
+   * @param {number} partTag Value coerced and validated as a uint32 part tag.
+   * @param {ArrayLike<number>} [transform] Sixteen finite matrix values; defaults to identity.
+   * @param {object} [options={}] Layout and values-projection options.
+   * @returns {object|null} New mutable values, or null for invalid DNA.
+   * @throws {TypeError|RangeError} If the owner, part tag or transform is invalid; downstream build errors also propagate.
    */
   @impl.custom
-  @impl.reason("Provides the immutable values form needed to compose a modular graph before optional Trinity hydration.")
   BuildChildValues(ownerValues, dnaString, partTag, transform = identityMatrix(), options = {})
   {
     if (!ownerValues || typeof ownerValues !== "object" || Array.isArray(ownerValues))
@@ -865,7 +894,7 @@ export class EveSOF extends CjsModel
    * The catalog is mandatory - a factory without its data is useless. The
    * file list is the sole build-time resource dependency (resPathInsert
    * existence); without it every insert lookup reports missing and texture
-   * paths fall back to their base values, with a one-time console warning.
+   * paths fall back to their base values, with a console warning on each such Create call.
    * The factory never fetches, never parses index formats, and never touches
    * the network: callers hand it bytes or data they acquired however they
    * chose.
@@ -1070,9 +1099,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Returns Carbon's layout selection and transform work as a detached CPU plan. */
-  @carbon.method
-  @impl.adapted
+  /**
+   * Returns Carbon's layout selection and transform work as a detached CPU plan.
+   *
+   * Custom: Exposes the JavaScript layout planner as a detached CPU plan. Carbon
+   * performs selection and placement during assembly, without an equivalent query.
+   */
+  @impl.custom
   PlanLayoutFromDNA(dnaString, options = {})
   {
     const dna = this.CreateDna(dnaString);
@@ -1085,10 +1118,14 @@ export class EveSOF extends CjsModel
    * intermediate to the supported output. Layout options may be passed
    * directly or under an `options.layout` object.
    *
+   * Adapted: Records assembly stages as document nodes and references for values
+   * projection. Live object construction, resource realization and initialization
+   * are deferred to the consumer; layout options configure document assembly.
+   *
    * @deprecated Use BuildValuesFromDNA(...).
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   BuildFromDNA(dnaString, options = {})
   {
     this.#buildDiagnostics = [];
@@ -1340,9 +1377,14 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon's special extension-root path through a fake solo placement. */
-  @carbon.method
-  @impl.adapted
+  /**
+   * Emits Carbon's special extension-root path through a fake solo placement.
+   *
+   * Custom: Extracts extension-root assembly into a document helper with a
+   * synthetic solo placement and extension container. Carbon performs this work through
+   * BuildFromDNA and CreatePlacement, without a method of this name.
+   */
+  @impl.custom
   SetupExtensionBuild(document, rootFields, dna, layoutOptions = {})
   {
     const extensionFields = {
@@ -1417,9 +1459,15 @@ export class EveSOF extends CjsModel
     return child;
   }
 
-  /** Creates the base Tr2Mesh graph and populates its SOF shader areas. */
+  /**
+   * Creates the base Tr2Mesh graph and populates its SOF shader areas.
+   *
+   * Adapted: Creates a Tr2Mesh document node and shader-area references instead of
+   * allocating a live mesh. Transparent-area records feed depth generation; missing
+   * shader records produce build diagnostics.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   CreateMesh(dna, document)
   {
     const fields = {
@@ -1432,15 +1480,21 @@ export class EveSOF extends CjsModel
     };
     const transparent = [];
     // Carbon's CreateMesh never fails: missing shader records degrade to
-    // partially filled area vectors with a build diagnostic (EveSOF.cpp:500-515).
+    // partially filled area vectors with a build diagnostic (EveSOF.cpp:726-740).
     this.SetupShaders(dna, document, fields, transparent);
     this.GenerateDepthFromAreaVector(document, fields.depthAreas, transparent, dna);
     return document.AddNode("Tr2Mesh", fields);
   }
 
-  /** Populates all five Carbon hull-area categories in source order. */
+  /**
+   * Populates all five Carbon hull-area categories in source order.
+   *
+   * Adapted: Populates document area-reference arrays and collects transparent-area
+   * records for depth generation. Category order and accumulated mesh-index offsets
+   * follow Carbon; the method returns true instead of void.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupShaders(dna, document, meshFields, transparent)
   {
     let meshIndexOffset = 0;
@@ -1465,9 +1519,15 @@ export class EveSOF extends CjsModel
     return true;
   }
 
-  /** Converts one Carbon HullAreas vector into Tr2MeshArea/effect graph nodes. */
+  /**
+   * Converts one Carbon HullAreas vector into Tr2MeshArea/effect graph nodes.
+   *
+   * Adapted: Creates mesh-area and effect nodes and returns build records alongside
+   * the source count. Missing shaders produce diagnostics; already produced areas are
+   * retained while that source contributes zero count. Missing source vectors are empty.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   FillMeshAreaVector(target, batchType, dna, hullIndex, meshIndexOffset, document)
   {
     // A missing source vector cannot occur in Carbon (hull area vectors always
@@ -1482,7 +1542,7 @@ export class EveSOF extends CjsModel
       {
         // Carbon logs and returns zero for this source, keeping the areas it
         // already appended and continuing with the remaining batches and
-        // hulls (EveSOF.cpp:564-569); the build itself never aborts.
+        // hulls (EveSOF.cpp:790-795); the build itself never aborts.
         this.#buildDiagnostics.push({
           code: "missing-generic-shader",
           batchType,
@@ -1513,9 +1573,15 @@ export class EveSOF extends CjsModel
     return { count: source.length, areas: pending };
   }
 
-  /** Emits depth clones for transparent areas requesting Carbon depth generation. */
+  /**
+   * Emits depth clones for transparent areas requesting Carbon depth generation.
+   *
+   * Adapted: Creates depth-area and effect nodes from transparent-area records
+   * instead of copying live objects through Carbon’s class system. The depth effect
+   * retains the transparency-resource reference selected by the generic depth shader.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GenerateDepthFromAreaVector(document, depthAreas, transparentAreas, dna)
   {
     const depthShader = dna.GetGenericAreaShaderData("depthonlyv5.fx");
@@ -1541,7 +1607,12 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits enabled pattern projections as EveCustomMask graph nodes. */
+  /**
+   * Emits enabled pattern projections as EveCustomMask graph nodes.
+   *
+   * Adapted: Emits mask nodes and fields instead of constructing live masks and
+   * calling their Setup method.
+   */
   @carbon.method
   @impl.adapted
   SetupCustomMask(document, rootFields, dna)
@@ -1569,7 +1640,12 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon decal sets and records private static indices for SOF hydration. */
+  /**
+   * Emits Carbon decal sets and static index buffers for SOF hydration.
+   *
+   * Adapted: Emits decal/effect nodes and staticIndexBuffers for hydration instead
+   * of constructing live decals and calling their initialization methods.
+   */
   @carbon.method
   @impl.adapted
   SetupDecalSets(document, rootFields, dna)
@@ -1679,7 +1755,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon's CPU-side armor, hull, flicker, and shield impact graph. */
+  /**
+   * Emits Carbon's CPU-side armor, hull, flicker, and shield impact graph.
+   *
+   * Adapted: Emits effect, emitter and overlay nodes instead of creating live
+   * Trinity objects or preparing GPU resources. Space-object initialization derives
+   * the damage-locator count after hydration.
+   */
   @carbon.method
   @impl.adapted
   SetupImpactEffects(document, rootFields, dna)
@@ -1757,7 +1839,12 @@ export class EveSOF extends CjsModel
     });
   }
 
-  /** Selects Carbon's legacy or SOF6 effect-child path. */
+  /**
+   * Selects Carbon's legacy or SOF6 effect-child path.
+   *
+   * Adapted: Selects the legacy or SOF6 branch using document field owners in place
+   * of live object interfaces.
+   */
   @carbon.method
   @impl.adapted
   SetupEffects(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
@@ -1772,7 +1859,14 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits legacy path-resolved children and Carbon's authored animation graph. */
+  /**
+   * Emits legacy path-resolved children and Carbon's authored animation graph.
+   *
+   * Adapted: Imports child graphs through the synchronous resource adapter instead
+   * of blocking BeResMan loads. Without a resolver, emits deferred EveChildRef nodes;
+   * emitter-rate bindings into unloaded children are diagnosed rather than constructed.
+   * Curves and bindings are data for later initialization.
+   */
   @carbon.method
   @impl.adapted
   SetupChildrenAndAnimations(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
@@ -1786,7 +1880,7 @@ export class EveSOF extends CjsModel
       const descriptor = this.#resolveChildResource(child.redFilePath, child, false);
       // Carbon returns from SetupChildrenAndAnimations on a wrong-type child,
       // skipping the remaining children AND the animation pass (EveSOF.cpp:
-      // 1840-1844); an unresolvable resource only skips the one child (1779-1783).
+      // 2069); an unresolvable resource only skips the one child (2008).
       if (descriptor === WRONG_TYPE_CHILD) return;
       if (!descriptor) continue;
       // Emitter rate bindings reach INTO the loaded child's graph; a deferred
@@ -1865,7 +1959,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits SOF6 child sets after visibility and build-filter selection. */
+  /**
+   * Emits SOF6 child sets after visibility and build-filter selection.
+   *
+   * Adapted: Imports resolved child graphs or emits deferred references instead of
+   * loading live objects. Placement is stored in node fields; visibility/build filtering
+   * and wrong-type early termination follow Carbon.
+   */
   @carbon.method
   @impl.adapted
   SetupEffectChildren(document, objectFields, childOwnerFields, dna, offsets = [identityMatrix()], buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
@@ -1878,7 +1978,7 @@ export class EveSOF extends CjsModel
         if (((Number(child.buildFilter) >>> 0) & (Number(buildFlags) >>> 0)) === 0) continue;
         const descriptor = this.#resolveChildResource(child.redFilePath, child, true);
         // Carbon returns from SetupEffectChildren entirely on a wrong-type
-        // child, skipping the remaining child sets (EveSOF.cpp:2000-2004).
+        // child, skipping the remaining child sets (EveSOF.cpp:2229).
         if (descriptor === WRONG_TYPE_CHILD) return;
         if (!descriptor) continue;
         for (const offset of offsets)
@@ -1890,9 +1990,10 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Normalizes a child resource into an embeddable descriptor, preserving
-   * resolver-free builds as EveChildRef nodes and rejecting roots outside
-   * Carbon's child interfaces.
+   * Normalizes a synchronous child-resource result into an import descriptor.
+   * Without a resolver, returns an EveChildRef descriptor. Unresolved resources
+   * return null; roots outside the required child interfaces return the
+   * WRONG_TYPE_CHILD sentinel. Malformed descriptors and Promises throw.
    */
   #resolveChildResource(redFilePath, child, sof6)
   {
@@ -1926,7 +2027,7 @@ export class EveSOF extends CjsModel
     if (descriptor === null || descriptor === undefined)
     {
       // Carbon: CCP_LOGERR("resource file %s is invalid!") and the child is
-      // skipped (EveSOF.cpp:1779-1783,1942-1946).
+      // skipped (EveSOF.cpp:2008,2171).
       this.#buildDiagnostics.push({
         code: "unresolved-child-resource",
         reason: "not-resolved",
@@ -1983,7 +2084,7 @@ export class EveSOF extends CjsModel
     // Carbon casts the loaded root: EveTransform joins the children list,
     // IEveSpaceObjectChild joins the effect children, and anything else logs
     // "not of correct type" and aborts the surrounding setup pass
-    // (EveSOF.cpp:1786-1844,1949-2004).
+    // (EveSOF.cpp:2069,2229).
     if (target === "children" ? !isTransform : !isSpaceObjectChild)
     {
       this.#buildDiagnostics.push({
@@ -2047,7 +2148,13 @@ export class EveSOF extends CjsModel
     return ref;
   }
 
-  /** Emits local observers while retaining audio-backend construction intent. */
+  /**
+   * Emits local observers while retaining audio-backend construction intent.
+   *
+   * Adapted: Emits TriObserverLocal and AudEmitter nodes with placement and attenuation
+   * values instead of constructing and initializing audio interfaces. Hydration and
+   * audio realization remain caller-owned.
+   */
   @carbon.method
   @impl.adapted
   SetupAudio(document, rootFields, dna, parentOffset = identityMatrix())
@@ -2100,7 +2207,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Loads filtered controller graph resources through the CPU document seam. */
+  /**
+   * Loads filtered controller graph resources through the CPU document seam.
+   *
+   * Adapted: Uses the synchronous resolver for typed controller data. Without a
+   * resolver, emits Tr2ControllerReference. Unresolved or incompatible resolved roots
+   * are diagnosed and skipped.
+   */
   @carbon.method
   @impl.adapted
   SetupControllers(document, rootFields, dna, buildFlags = EveSOFDataHull.BuildFilter.STANDALONE)
@@ -2113,7 +2226,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Loads authored model curve resources after legacy animation bindings. */
+  /**
+   * Loads authored model curve resources after legacy animation bindings.
+   *
+   * Adapted: Imports typed curve graphs through the resolver. Without a resolver,
+   * emits CjsExternalRef nodes carrying the required interface instead of loading typed
+   * resources immediately.
+   */
   @carbon.method
   @impl.adapted
   SetupModelCurves(document, rootFields, dna)
@@ -2132,7 +2251,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon's first-hull instanced attachment container and child meshes. */
+  /**
+   * Emits Carbon's first-hull instanced attachment container and child meshes.
+   *
+   * Adapted: Emits instance rows, bounds, shader descriptions and child nodes instead
+   * of allocating runtime instance buffers and preparing effects. Identity/general
+   * transform paths retain Carbon’s different auxiliary-matrix orientations.
+   */
   @carbon.method
   @impl.adapted
   SetupInstancedMeshes(document, rootFields, dna, offsets = [identityMatrix()])
@@ -2209,7 +2334,13 @@ export class EveSOF extends CjsModel
     return meshContainer;
   }
 
-  /** Creates the CPU-document half of Carbon's Tr2InstancedMesh pair. */
+  /**
+   * Creates the CPU-document half of Carbon's Tr2InstancedMesh pair.
+   *
+   * Adapted: Stores the instance layout, rows and bounds in document nodes instead
+   * of copying records into Tr2RuntimeInstanceData and uploading them. Empty input
+   * returns null.
+   */
   @carbon.method
   @impl.adapted
   CreateInstancedMesh(document, instances, resourcePath)
@@ -2241,7 +2372,15 @@ export class EveSOF extends CjsModel
     return { ref, instanceData, opaqueAreas, bounds, maxScale };
   }
 
-  /** Emits Carbon layout placement batches from the deterministic CPU plan. */
+  /**
+   * Emits Carbon layout placement batches from the deterministic CPU plan.
+   *
+   * Adapted: Emits placements from the deterministic layout plan instead of building
+   * objects while consuming Carbon’s global random generator. Shared meshes are reused
+   * within this document; resource and animation realization follow hydration. Ordinary
+   * builds omit Carbon’s incrementing per-placement tags; modular builds supply a fixed
+   * part tag through buildContext.
+   */
   @carbon.method
   @impl.adapted
   SetupLayout(document, rootFields, dna, options = {}, targetFields = null, buildContext = {})
@@ -2471,9 +2610,14 @@ export class EveSOF extends CjsModel
     return plan;
   }
 
-  /** Creates typed effect-area records for EveChildInstancedMeshes.meshes. */
-  @carbon.method
-  @impl.adapted
+  /**
+   * Creates typed effect-area records for EveChildInstancedMeshes.meshes.
+   *
+   * Custom: Extracts shared-mesh area construction from Carbon’s CreatePlacement
+   * branches into a document helper. Preserves batch routing, instanced shader options,
+   * area ranges and cutout/winding flags.
+   */
+  @impl.custom
   CreateSharedLayoutAreas(document, dna)
   {
     const result = [];
@@ -2526,9 +2670,13 @@ export class EveSOF extends CjsModel
     return result;
   }
 
-  /** Converts a placement transform batch into Carbon's non-shared instanced mesh graph. */
-  @carbon.method
-  @impl.adapted
+  /**
+   * Converts a placement transform batch into Carbon's non-shared instanced mesh graph.
+   *
+   * Custom: Combines document mesh/shader construction with emitted instance data
+   * for the non-shared instanced branch of Carbon’s CreatePlacement.
+   */
+  @impl.custom
   CreateLayoutInstancedMesh(document, dna, instances)
   {
     if (!instances.length) return null;
@@ -2558,7 +2706,13 @@ export class EveSOF extends CjsModel
     return { ref, instanceData, bounds };
   }
 
-  /** Emits Carbon's ship-only booster graph and booster locator records. */
+  /**
+   * Emits Carbon's ship-only booster graph and booster locator records.
+   *
+   * Adapted: Emits booster effects, items, trails and locators instead of populating
+   * live sets and preparing resources. Multi-hull offsets accumulate; the last hull
+   * supplies alwaysOn, and any hull can enable trails.
+   */
   @carbon.method
   @impl.adapted
   SetupBoosters(document, rootFields, dna)
@@ -2699,12 +2853,16 @@ export class EveSOF extends CjsModel
 
   /**
    * Emits the child-graph booster set into a placement container (Carbon
-   * EveSOF::SetupChildBoosters, EveSOF.cpp:3049-3132): per-hull
+   * EveSOF::SetupChildBoosters, EveSOF.cpp:3069-3150): first-hull
    * driveName/effectPath/parameter/texture overrides with the
    * EveChildBoosterSet defaults as fallback, the LOD effect pair, one glow
    * sprite set, and every hull's items with the cumulative multi-hull
    * offset. Quad-renderer registration and PrepareResources are engine
    * realizations; the booster set node carries everything else.
+   *
+   * Adapted: Emits the child booster graph for later hydration and resource
+   * preparation. The first hull supplies the drive name, shader path, parameter and
+   * texture overrides for the whole set; all hulls contribute items with offsets.
    */
   @carbon.method
   @impl.adapted
@@ -2793,8 +2951,10 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Normalizes a controller or model-curve resource, retaining resolver-free
-   * references and enforcing the Carbon interface required by its role.
+   * Normalizes a synchronous controller or model-curve resource result.
+   * Without a resolver, controllers use Tr2ControllerReference and curves use
+   * the CarbonEngineJS CjsExternalRef descriptor. Unresolved or incompatible
+   * roots return null with diagnostics; malformed descriptors and Promises throw.
    */
   #resolveObjectResource(path, role)
   {
@@ -2840,7 +3000,7 @@ export class EveSOF extends CjsModel
     if (descriptor === null || descriptor === undefined)
     {
       // Carbon: controllers log "controller resource file %s is invalid!"
-      // (EveSOF.cpp:2028-2031); model curves skip silently (1672-1690).
+      // (EveSOF.cpp:2257); model curves skip silently (1895-1917).
       this.#buildDiagnostics.push({
         code: "unresolved-object-resource",
         reason: "not-resolved",
@@ -2888,7 +3048,7 @@ export class EveSOF extends CjsModel
     }
     // Carbon loads these roles through typed LoadObject calls, so a root that
     // does not implement the role's interface never attaches: controllers log
-    // and skip (EveSOF.cpp:2024-2031); model curves skip (1672-1690).
+    // and skip (EveSOF.cpp:2257); model curves skip (1895-1917).
     const gate = OBJECT_RESOURCE_ROLE_GATES[role];
     if (gate && !gate.kinds.has(kind) && !descriptorClaimsInterface(descriptor, gate.interfaceName))
     {
@@ -2932,7 +3092,13 @@ export class EveSOF extends CjsModel
     return ref;
   }
 
-  /** Emits the currently maintained Carbon attachment stages in source order. */
+  /**
+   * Emits the currently maintained Carbon attachment stages in source order.
+   *
+   * Adapted: Emits document nodes in Carbon stage order and uses the presence of
+   * externalParameters to select banner-capable roots. The native instanced-placement
+   * build flag is a boolean here. Sprite and sprite-line effects share within this call.
+   */
   @carbon.method
   @impl.adapted
   SetupAttachments(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
@@ -2956,7 +3122,13 @@ export class EveSOF extends CjsModel
     this.SetupLights(document, rootFields, dna, offsets);
   }
 
-  /** Emits visible EveSpriteSet attachments and their SOF6 lights. */
+  /**
+   * Emits visible EveSpriteSet attachments and their SOF6 lights.
+   *
+   * Adapted: Emits sprite, effect and light descriptors without native resource
+   * acquisition or set rebuilding. The supplied sharedEffect carries document-local
+   * effect identity, and light timestamps use the injected buildTime.
+   */
   @carbon.method
   @impl.adapted
   SetupSpriteSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
@@ -3060,7 +3232,12 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon spotlight geometry, effects, and authored SOF6 light descriptors. */
+  /**
+   * Emits Carbon spotlight geometry, effects, and authored SOF6 light descriptors.
+   *
+   * Adapted: Emits effect, texture, spotlight and light descriptors instead of
+   * constructing and rebuilding native attachments. Light timestamps use buildTime.
+   */
   @carbon.method
   @impl.adapted
   SetupSpotlightSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
@@ -3209,7 +3386,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon plane-set effects, items, and authored SOF6 lights. */
+  /**
+   * Emits Carbon plane-set effects, items, and authored SOF6 lights.
+   *
+   * Adapted: Emits plane, effect, texture and light descriptors, preserving texture
+   * references for light-driven planes without native effect updates or set rebuilding.
+   * Light timestamps use the injected buildTime.
+   */
   @carbon.method
   @impl.adapted
   SetupPlaneSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
@@ -3397,7 +3580,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon sprite-line geometry and authored SOF6 per-sprite lights. */
+  /**
+   * Emits Carbon sprite-line geometry and authored SOF6 per-sprite lights.
+   *
+   * Adapted: Emits sprite-line and per-sprite light descriptors, stores light-profile
+   * paths instead of acquiring resources, and uses the supplied document-local effect.
+   * Light timestamps use the injected buildTime.
+   */
   @carbon.method
   @impl.adapted
   SetupSpriteLineSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false, sharedEffect = { ref: null })
@@ -3522,15 +3711,20 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon haze geometry and authored SOF6 point-light descriptors. */
+  /**
+   * Emits Carbon haze geometry and authored SOF6 point-light descriptors.
+   *
+   * Adapted: Emits haze and light descriptors without native resource acquisition
+   * or set rebuilding. Effects share by path within this call instead of being retained
+   * on the EveSOF instance. Light timestamps use the injected buildTime.
+   */
   @carbon.method
   @impl.adapted
   SetupHazeSets(document, rootFields, dna, offsets = [identityMatrix()], isInstancedPlacement = false)
   {
     const hullOffset = [0, 0, 0];
-    // Carbon keeps three haze effects on the EveSOF instance. The document
-    // contract shares by path only inside this build, matching its identity
-    // boundary while the effects remain immutable.
+    // Carbon retains three effects on the EveSOF instance; these mutable
+    // document nodes share by path only within this SetupHazeSets call.
     const effects = new Map();
     const getEffect = (path) =>
     {
@@ -3666,7 +3860,14 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon's legacy per-item-visible banner groups. */
+  /**
+   * Emits Carbon's legacy per-item-visible banner groups.
+   *
+   * Adapted: Emits banner, light, effect and external-parameter descriptors; native
+   * effect updates, set rebuilding and parameter initialization are deferred to the
+   * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
+   * Carbon can retain an empty set and external parameter for visible authored items.
+   */
   @carbon.method
   @impl.adapted
   SetupBanners(document, rootFields, dna, offsets = [identityMatrix()])
@@ -3722,7 +3923,14 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon's SOF6 visibility-grouped banner sets. */
+  /**
+   * Emits Carbon's SOF6 visibility-grouped banner sets.
+   *
+   * Adapted: Emits banner, light, effect and external-parameter descriptors; native
+   * effect updates, set rebuilding and parameter initialization are deferred to the
+   * consumer. Light timestamps use buildTime. Explicit empty offsets emit no set here;
+   * Carbon can retain an empty set and external parameter for visible authored items.
+   */
   @carbon.method
   @impl.adapted
   SetupBannerSets(document, rootFields, dna, offsets = [identityMatrix()])
@@ -3799,7 +4007,13 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Emits Carbon hull lights with faction visibility, color, and multi-hull transforms. */
+  /**
+   * Emits Carbon hull lights with faction visibility, color, and multi-hull transforms.
+   *
+   * Adapted: Emits flattened light descriptors instead of constructing native lights
+   * and calling SetLightData. Timestamps use buildTime; unsupported light kinds and
+   * missing colors are skipped without native error logging.
+   */
   @carbon.method
   @impl.adapted
   SetupLights(document, rootFields, dna, offsets = [identityMatrix()])
@@ -3880,9 +4094,14 @@ export class EveSOF extends CjsModel
     }
   }
 
-  /** Adds turret and last-hull audio locators with Carbon multi-hull offsets. */
+  /**
+   * Adds turret and last-hull audio locators with Carbon multi-hull offsets.
+   *
+   * Adapted: Appends document references instead of constructing native EveLocator2
+   * objects; hull selection and translation offsets follow Carbon.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupLocators(document, rootFields, dna)
   {
     const hullOffset = [0, 0, 0];
@@ -3916,9 +4135,16 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Builds the armour-damage shader effect node, or null when the DNA lacks
-   * damage data (Carbon EveSOF.cpp:2579-2603 CreateArmorDamageEffect; the
-   * ArmorDamageEffectCache keyed on race+animated is a performance follow-up).
+   * Builds an armor-damage effect node, or null when damage data is absent.
+   *
+   * Adapted: Ports the file-local CreateArmorDamageEffect helper
+   * (EveSOF.cpp:2595-2618) as a document builder. Each call emits a fresh effect;
+   * the native race-and-animation cache is not reproduced, so shared identity
+   * also differs, not just allocation cost.
+   *
+   * @param {object} document Target document builder.
+   * @param {EveSOFDNA} dna Resolved DNA.
+   * @returns {object|null} Effect node reference or null.
    */
   @carbon.method
   @impl.adapted
@@ -3939,9 +4165,13 @@ export class EveSOF extends CjsModel
    * Emits the hull's locator sets UNTRANSFORMED - only the multi-hull offset
    * applied - for a placement child to own, so the object merges them at
    * runtime through the child's live transform and skeleton (Carbon
-   * EveSOF.cpp:3384-3432 BuildHullLocalLocatorSets). Same-name sets across
+   * EveSOF.cpp:3400-3445 BuildHullLocalLocatorSets). Same-name sets across
    * hulls merge into one node; bone indices stay authored because they
    * address the CHILD's skeleton.
+   *
+   * Adapted: Returns document references for merged locator sets instead of native
+   * EveLocatorSets instances. Hull-local positions, authored scale and bone indices
+   * remain available to the placement child.
    */
   @carbon.method
   @impl.adapted
@@ -3982,9 +4212,15 @@ export class EveSOF extends CjsModel
     return result;
   }
 
-  /** Merges same-name locator sets across all hulls in Carbon map order. */
+  /**
+   * Merges same-name locator sets across all hulls in Carbon map order.
+   *
+   * Adapted: Emits and merges document locator nodes. Omitted, empty or non-array
+   * offsets use one identity placement; Carbon does not populate locators in its explicit
+   * empty-offset branch. Optional part tags are normalized to uint32 here.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupLocatorSets(document, rootFields, dna, offsets = [identityMatrix()], partTag = null)
   {
     const transforms = Array.isArray(offsets) && offsets.length !== 0
@@ -4039,9 +4275,12 @@ export class EveSOF extends CjsModel
    * Overwrites turret shader constants or vector parameters with the
    * turret-area material selected by a faction catalog entry (Carbon
    * EveSOF.cpp:4260-4269).
+   *
+   * Adapted: Delegates effect traversal and mutation through the supplied turret’s
+   * ApplySofTurretMaterial interface instead of walking Trinity objects inside SOF.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupTurretMaterialFromFaction(turretSet, factionName)
   {
     const factionData = this.dataMgr.GetFactionData(factionName);
@@ -4050,11 +4289,16 @@ export class EveSOF extends CjsModel
   }
 
   /**
-   * Overrides turret shader parameters with a faction's turret-area material
-   * (Carbon EveSOF.cpp:4201-4254). Carbon receives the Tr2Effect; here the
-   * turret that owns the effects receives the resolved values, because SOF
-   * cannot import the Trinity layer that walks a Tr2Effect.
-   * @param {Object} turret - an EveTurretSet or EveChildTurret
+   * Resolves faction turret parameters and forwards them to the turret.
+   *
+   * Adapted: Delegates effect traversal and updates to the supplied turret's
+   * ApplySofTurretMaterial method, keeping SOF independent of Trinity classes
+   * (EveSOF.cpp:4201-4254).
+   *
+   * @param {object} turret Turret exposing ApplySofTurretMaterial.
+   * @param {object} genericData Generic turret material configuration.
+   * @param {object} factionData Faction material and color configuration.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -4071,9 +4315,12 @@ export class EveSOF extends CjsModel
   /**
    * Applies a faction's turret-area material to every opaque area of a child
    * turret's mesh (Carbon EveSOF.cpp:4271-4298).
+   *
+   * Adapted: Delegates opaque mesh-area traversal and mutation through the child
+   * turret’s ApplySofTurretMaterial interface instead of walking Trinity objects in SOF.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupChildTurretMaterialFromFaction(childTurret, factionName)
   {
     const factionData = this.dataMgr.GetFactionData(factionName);
@@ -4084,9 +4331,12 @@ export class EveSOF extends CjsModel
   /**
    * Parses the parent DNA and applies its faction turret values to matching
    * shader constants or vector parameters.
+   *
+   * Adapted: Delegates effect traversal and mutation through the turret’s
+   * ApplySofTurretMaterial interface. Invalid DNA returns without Carbon’s error log.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetupTurretMaterialFromDNA(turretSet, dnaString)
   {
     const dna = this.CreateDna(dnaString);
@@ -4648,7 +4898,7 @@ function buildMeshArea(document, dna, area, shaderData, batchType, meshIndexOffs
     useSHLighting: false,
     castsShadows,
     generateDepthArea: Boolean(shaderData.doGenerateDepthArea),
-    // Carbon limits distortion areas to high LOD after fill (EveSOF.cpp:2149-2153).
+    // Carbon limits distortion areas to high LOD after fill (EveSOF.cpp:2379).
     minLod: batchType === TriBatchType.TRIBATCHTYPE_DISTORTION ? TR2_LOD_HIGH : -1,
     effect
   };
@@ -5135,8 +5385,8 @@ function createInstancedMeshArea(document, dna, source, shaderData, resolveTextu
   });
 }
 
-// Carbon EveSOF::CreateBoosterEffect (EveSOF.cpp:2853-2899, EveSOF.h:145):
-// the path defaults to the ship booster shader, and per-hull DNA parameters
+// Carbon EveSOF::CreateBoosterEffect (EveSOF.cpp:2869, EveSOF.h:145):
+// the path defaults to the ship booster shader, and caller-supplied DNA parameters
 // are added BEFORE the race-shape parameters, matching Carbon's insertion
 // order. Only SetupChildBoosters passes overrides (with
 // EveChildBoosterSet.DEFAULT_EFFECT_PATH as its own fallback); ship boosters
@@ -5309,9 +5559,9 @@ function createImpactEmitter(document, values)
 /**
  * Counts how many times each node is reached from a starting reference.
  *
- * Recursion stops at a node already seen, so a cycle terminates and every node
- * on it still records more than one visit — which is exactly the condition for
- * giving it an identity.
+ * Recursion stops at a node already seen. A cycle therefore terminates at a
+ * repeated node, which receives an identity so projection can emit a back
+ * reference. Other nodes on the cycle need not have multiple visits.
  */
 function CountDocumentVisits(value, nodeById, visits)
 {
