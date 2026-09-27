@@ -24,7 +24,8 @@ import { CjsModel } from "#model";
 import { vec4 } from "#math/vec4";
 import { mat4 } from "#math/mat4";
 import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } from "#consts/render-context";
-import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData } from "#trinityal";
+import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource } from "#trinityal";
+import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, SSAOQuality, TR2SHADERMODEL, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
 import { Quality } from "../../generated/postProcess/enums.js";
@@ -239,6 +240,19 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   /** Carbon's Tr2Renderer is static; ours is an instance, prepared per context. */
   #renderer = new Tr2Renderer();
 
+  /**
+   * m_distortionEffect: the full-screen pass that warps the scene colour by the
+   * distortion map, pointed at its path in the constructor (cpp:148-149).
+   */
+  #distortionEffect = EveSpaceSceneRenderDriver.#CreateDistortionEffect();
+
+  static #CreateDistortionEffect()
+  {
+    const effect = new Tr2Effect();
+    effect.SetEffectPathName("res:/graphics/effect/managed/space/postprocess/distortion.fx");
+    return effect;
+  }
+
   #preparedContext = null;
 
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
@@ -428,7 +442,17 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       // pass fills them for the main pass only (cpp:550, 557).
       EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
 
+      // THE DISTORTION MAP (cpp:551-562): borrowed before the main pass, which
+      // draws the DISTORTION batches into it, then applied to the scene colour
+      // when the setting is on and anything was drawn.
+      if (offscreen) offscreen.distortion = this._GetDistortionMapIfNeeded(offscreen.size);
+
       const submitted = this.#RenderMainPass(renderContext, offscreen);
+
+      if (offscreen?.distortion && this.enableDistortion && offscreen.hasDistortion)
+      {
+        this._ApplyDistortion(offscreen.color.Get(), offscreen.distortion.Get(), renderContext);
+      }
 
       // cpp:565 - SSAOMap is emptied after the main pass.
       this.#RegisterSSAOMap(null);
@@ -476,6 +500,13 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       {
         this.#gpuResourcePool.Free(offscreen.normal);
         offscreen.normal = null;
+      }
+
+      // So is the distortion map (cpp:499, 552).
+      if (offscreen?.distortion)
+      {
+        this.#gpuResourcePool.Free(offscreen.distortion);
+        offscreen.distortion = null;
       }
 
       // So are the shadow resources (cpp:526).
@@ -737,6 +768,21 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     // the opaque copy and this (cpp:2752-2757); none of those are ported.
     submitted = this._SubmitTransparent(map, renderContext) || submitted;
 
+    // THE DISTORTION BATCHES (EveSpaceScene.cpp:2759-2765), into the distortion
+    // map with the depth read-only, as Carbon's whole colour pass holds it.
+    if (offscreen?.distortion && map)
+    {
+      renderContext.SetReadOnlyDepth(true);
+      try
+      {
+        offscreen.hasDistortion = this.scene.RenderDistortionBatches(map, offscreen.distortion.Get(), offscreen.depth.Get(), renderContext);
+      }
+      finally
+      {
+        renderContext.SetReadOnlyDepth(false);
+      }
+    }
+
     // cpp:557 - the shadow globals are emptied after the main pass.
     if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
 
@@ -899,6 +945,62 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     return this.#TempTexture("opaqueBackBuffer", size, this.internalPixelFormat);
   }
 
+  /**
+   * Carbon's GetDistortionMapIfNeeded (cpp:644-651): a B8G8R8A8_UNORM target
+   * while distortion is enabled.
+   *
+   * @param {{width: number, height: number}} size The render size.
+   * @returns {GpuResourceHandle|null} The map, or null.
+   */
+  _GetDistortionMapIfNeeded(size)
+  {
+    if (!this.enableDistortion) return null;
+
+    return this.#TempTexture("distortionMap", size, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
+  }
+
+  /**
+   * Carbon's ApplyDistortion (cpp:58-70): copies the destination, then draws
+   * Distortion.fx over it full screen, reading the copy as BlitCurrent at the
+   * offsets the distortion map holds (TexDistortion).
+   *
+   * @param {object} destination The scene colour.
+   * @param {object} distortion The distortion map.
+   * @param {object} renderContext The frame's context.
+   * @returns {void}
+   */
+  _ApplyDistortion(destination, distortion, renderContext)
+  {
+    const effect = this.#distortionEffect;
+    const backBufferCopy = this.#gpuResourcePool.GetTempTexture("backBufferCopy", {
+      type: TextureType.TEX_TYPE_2D,
+      width: destination.GetWidth(),
+      height: destination.GetHeight(),
+      depth: 1,
+      mipCount: 1,
+      format: this.internalPixelFormat,
+      gpuUsage: Tr2GpuUsage.COPY_DESTINATION | Tr2GpuUsage.SHADER_RESOURCE
+    });
+
+    try
+    {
+      backBufferCopy.Get().CopySubresourceRegion(new Tr2TextureSubresource(), destination, new Tr2TextureSubresource(), renderContext);
+
+      const esm = renderContext.GetEffectStateManager();
+      this.#BeginRenderPass(esm, [ destination ], null);
+      esm.ApplyStandardStates(RenderingMode.RM_FULLSCREEN);
+      effect.SetParameter("BlitCurrent", backBufferCopy.Get());
+      effect.SetParameter("TexDistortion", distortion);
+      this.#renderer.DrawFullScreenWithShader(renderContext, effect);
+      effect.SetParameter("BlitCurrent", null);
+      effect.SetParameter("TexDistortion", null);
+    }
+    finally
+    {
+      this.#gpuResourcePool.Free(backBufferCopy);
+    }
+  }
+
   /** A render-target pool texture of the scene's size. */
   #TempTexture(name, size, format, gpuUsage = Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE)
   {
@@ -958,7 +1060,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       // Borrowed for the depth pass when AO needs it; the driver's to free.
       normal: null,
       // The shadow pass's ShadowResources; the driver's to free.
-      shadows: null
+      shadows: null,
+      // The distortion map and whether the main pass drew into it.
+      distortion: null,
+      hasDistortion: false
     };
   }
 
@@ -1042,7 +1147,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    * (cpp:2710, 2771); ours makes the transparent family read-only, so these
    * test against the scene depth without writing it.
    *
-   * Distortion (cpp:2759-2762) follows in Carbon and is not ported.
+   * Distortion (cpp:2759-2762) follows, in #RenderMainPass.
    *
    * @param {object|null} map The batch map `#Collect` produced.
    * @param {object} renderContext Recording render context.

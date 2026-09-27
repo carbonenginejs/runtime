@@ -1653,6 +1653,48 @@ export class EveSpaceScene extends CjsModel
     esm.EndManagedRendering();
   }
 
+  /**
+   * Carbon RenderDistortionBatches (EveSpaceScene.cpp:1224-1250): draws the
+   * DISTORTION batches additively into the distortion map, tested against the
+   * scene depth. The map clears to Carbon's 0x007f7f00 (ARGB: red and green
+   * 0x7f), the "no offset" value the Distortion.fx apply reads. The caller
+   * holds the depth read-only, as Carbon's whole colour pass does.
+   *
+   * @param {object} batches The frame's batch map.
+   * @param {object} distortionMap The B8G8R8A8 target.
+   * @param {object|null} depthMap The scene depth, or null.
+   * @param {object} renderContext The frame's context.
+   * @returns {boolean} Whether any distortion batch was drawn.
+   */
+  @carbon.method
+  @impl.implemented
+  RenderDistortionBatches(batches, distortionMap, depthMap, renderContext)
+  {
+    const accumulator = batches.GetAccumulator(TriBatchType.TRIBATCHTYPE_DISTORTION);
+    if (!accumulator?.GetBatchCount()) return false;
+
+    const esm = renderContext.GetEffectStateManager();
+    esm.PushRenderTarget(distortionMap);
+    esm.PushDepthStencilBuffer();
+    try
+    {
+      if (depthMap) esm.SetDepthStencilBuffer(depthMap);
+
+      renderContext.Clear({ clearColor: true, color: [ 0x7f / 255, 0x7f / 255, 0, 0 ] });
+
+      this.ApplyPerFrameData(renderContext);
+
+      esm.ApplyStandardStates(RenderingMode.RM_ALPHA_ADDITIVE);
+      renderContext.RenderBatches(accumulator);
+    }
+    finally
+    {
+      esm.PopDepthStencilBuffer();
+      esm.PopRenderTarget();
+    }
+    return true;
+  }
+
   /** m_enableShadows: C++-only, set in the constructor and never cleared (EveSpaceScene.cpp:180). */
   _enableShadows = true;
 

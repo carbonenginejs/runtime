@@ -335,6 +335,10 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const shadows = row("shadows", choose(shadowChoices, driver.shadowQuality));
   shadows.addEventListener("change", () => { driver.shadowQuality = Number(shadows.value); });
 
+  // Distortion: the DISTORTION batches warp the scene colour (Distortion.fx).
+  const distortion = row("distortion", Object.assign(document.createElement("input"), { type: "checkbox", checked: driver.enableDistortion }));
+  distortion.addEventListener("change", () => { driver.enableDistortion = distortion.checked; });
+
   // Ship speed, normalized: 0 stopped, 1 at the booster set's maxVel, up to 2
   // (the booster intensity is capped at 2). The boosters' glow and the hull's
   // engine heat follow it.
@@ -2557,7 +2561,9 @@ export async function RunDemo(canvas)
     // accumulators to draw: no sprite, glow, booster or other additive batch
     // ever reached the screen. The transparent list keeps insertion order
     // (Carbon's TriRenderBatchAccumulator<>), the gather's back-to-front order.
-    batchTypes: [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ],
+    // DISTORTION is the fifth list (EveSpaceScene.cpp:227): the driver draws it
+    // into the distortion map (the cloak's fxcloakdistortionv5).
+    batchTypes: [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE, TriBatchType.TRIBATCHTYPE_DISTORTION ],
     // THE ACCUMULATOR CARRIES THE RENDERING MODE, and nothing was setting it.
     // `TriRenderBatchAccumulator.Commit` stamps its mode onto every batch, and
     // the walk skips `ApplyStandardStates` for RM_ANY - so with the default no
@@ -2578,7 +2584,9 @@ export async function RunDemo(canvas)
       const mode = {
         [TriBatchType.TRIBATCHTYPE_DECAL]: RenderingMode.RM_DECAL,
         [TriBatchType.TRIBATCHTYPE_TRANSPARENT]: RenderingMode.RM_ALPHA,
-        [TriBatchType.TRIBATCHTYPE_ADDITIVE]: RenderingMode.RM_ALPHA_ADDITIVE
+        [TriBatchType.TRIBATCHTYPE_ADDITIVE]: RenderingMode.RM_ALPHA_ADDITIVE,
+        // RenderDistortionBatches draws under RM_ALPHA_ADDITIVE (cpp:1248).
+        [TriBatchType.TRIBATCHTYPE_DISTORTION]: RenderingMode.RM_ALPHA_ADDITIVE
       }[batchType] ?? RenderingMode.RM_OPAQUE;
 
       // `Clear` resets the mode back to RM_ANY every frame, so it has to be
@@ -2735,6 +2743,10 @@ export async function RunDemo(canvas)
   // The driver's m_ssao is set from outside in Carbon too; aoQuality (the
   // settings panel's "ambient occlusion") enables it.
   driver.SSAO = new Tr2SSAO();
+
+  // Carbon defaults m_settings.enableDistortion off; the client turns it on,
+  // and the settings panel's "distortion" toggles it.
+  driver.enableDistortion = true;
 
   // demo.post(): which post-process effects loaded, and what each draw verb
   // did since the last call. A "nothing" count with no error is the black

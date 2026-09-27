@@ -134,10 +134,9 @@ export class CjsWebgpuTextureAL
 
     // Carbon's own rule (the stub's last check): a texture nothing can ever
     // write that arrives with no pixels samples black forever. Refused.
-    const writable = HasFlag(gpuUsage, Tr2GpuUsage.RENDER_TARGET) || HasFlag(gpuUsage, Tr2GpuUsage.UNORDERED_ACCESS)
-      || HasFlag(gpuUsage, Tr2GpuUsage.DEPTH_STENCIL) || HasFlag(cpuUsage, Tr2CpuUsage.WRITE);
-
-    if (!writable && !initialData) return ALResult.E_INVALIDARG;
+    // IsWritable counts a copy destination too (stub cpp:84): the distortion
+    // pass's back-buffer copy is COPY_DESTINATION | SHADER_RESOURCE, no data.
+    if (!IsWritable(gpuUsage) && !HasFlag(cpuUsage, Tr2CpuUsage.WRITE) && !initialData) return ALResult.E_INVALIDARG;
 
     const requestedFormat = al.m_utils.GetGPUTextureFormat(desc.GetFormat());
 
