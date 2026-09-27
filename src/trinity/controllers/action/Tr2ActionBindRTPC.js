@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
+import { blue } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -76,7 +77,7 @@ export class Tr2ActionBindRTPC extends CjsModel
       return;
     }
     this.#runtime.controller = controller;
-    this.#runtime.startTime = ITr2ControllerAction.getTime(controller);
+    this.#runtime.startTime = blue.os.GetCurrentFrameTime();
     this.#runtime.lastTime = this.#runtime.startTime;
     this.#emitter = ITr2ControllerAction.findSoundEmitter(ITr2ControllerAction.getOwner(controller), this.emitter);
     controller.RegisterUpdateable?.(this);

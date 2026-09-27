@@ -3,7 +3,8 @@
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, edit, type } from "#schema";
-import { GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds } from "../contracts.js";
+import { blue, TimeAsFloat } from "#blue";
+import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
 /**
@@ -168,7 +169,9 @@ export class Tr2ActionPython extends CjsModel
   }
 
   /**
-   * Starts the action and registers for updates when the host instance supports them.
+   * Starts the action and registers for updates when the host instance supports
+   * them. The host OnStart is queued on the main-thread queue, and the previous
+   * times are Blue's actual and frame times in ticks (`Tr2ActionPython.cpp:98-114`).
    */
   @carbon.method
   @impl.adapted
@@ -185,13 +188,21 @@ export class Tr2ActionPython extends CjsModel
     {
       controller.RegisterUpdateable?.(this);
     }
-    instance?.OnStart?.(controller.GetOwner() ?? null, controller);
-    this.#prevRealTime = GetControllerActualTimeSeconds();
-    this.#prevSimTime = GetControllerFrameTimeSeconds();
+    if (instance?.OnStart)
+    {
+      const owner = controller.GetOwner() ?? null;
+      ContinueOnMainThread(() =>
+      {
+        instance.OnStart(owner, controller);
+      });
+    }
+    this.#prevRealTime = blue.os.GetActualTime();
+    this.#prevSimTime = blue.os.GetCurrentFrameTime();
   }
 
   /**
-   * Stops the action and unregisters updates.
+   * Stops the action and unregisters updates; the host OnStop is queued on the
+   * main-thread queue (`Tr2ActionPython.cpp:116-127`).
    */
   @carbon.method
   @impl.adapted
@@ -203,11 +214,22 @@ export class Tr2ActionPython extends CjsModel
     }
     this.#isPlaying = false;
     controller.UnRegisterUpdateable?.(this);
-    this.#instance?.OnStop?.(controller.GetOwner() ?? null, controller);
+    const instance = this.#instance;
+    if (!instance?.OnStop)
+    {
+      return;
+    }
+    const owner = controller.GetOwner() ?? null;
+    ContinueOnMainThread(() =>
+    {
+      instance.OnStop(owner, controller);
+    });
   }
 
   /**
-   * Updates the host instance with Carbon-style real and simulation deltas.
+   * Queues the host OnUpdate with the real and simulation deltas since the
+   * previous update, converted from Blue ticks with TimeAsFloat
+   * (`Tr2ActionPython.cpp:129-141`).
    */
   @carbon.method
   @impl.adapted
@@ -219,9 +241,13 @@ export class Tr2ActionPython extends CjsModel
     {
       return;
     }
-    const realDt = realTime - this.#prevRealTime;
-    const simDt = simTime - this.#prevSimTime;
-    instance.OnUpdate(controller.GetOwner() ?? null, controller, realDt, simDt);
+    const owner = controller.GetOwner() ?? null;
+    const realDt = TimeAsFloat(realTime - this.#prevRealTime);
+    const simDt = TimeAsFloat(simTime - this.#prevSimTime);
+    ContinueOnMainThread(() =>
+    {
+      instance.OnUpdate(owner, controller, realDt, simDt);
+    });
     this.#prevRealTime = realTime;
     this.#prevSimTime = simTime;
   }

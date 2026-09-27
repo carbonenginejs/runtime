@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { GetControllerTimeSeconds } from "../contracts.js";
+import { blue, TimeAsFloat } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -44,8 +44,9 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   /**
    * Plays the configured curve set and optionally tracks its range iterations.
    *
-   * Adapted: Uses the runtime owner adapter and seconds-based frame-clock helper
-   * instead of Carbon's owner cast and BeOS clock.
+   * Adapted: Uses the runtime owner adapter instead of Carbon's owner cast. The
+   * start time is Blue's per-frame time in ticks, as Carbon's BeOS clock is
+   * (`Tr2ActionPlayCurveSet.cpp:21-36`).
    */
   @carbon.method
   @impl.adapted
@@ -61,7 +62,7 @@ export class Tr2ActionPlayCurveSet extends CjsModel
     if (this.syncToRange && this.rangeName)
     {
       this._duration = this._getRangeDuration(owner);
-      this._startTime = GetControllerTimeSeconds();
+      this._startTime = blue.os.GetCurrentFrameTime();
       this._prevTime = this._startTime;
       controller.RegisterUpdateable(this);
     }
@@ -101,38 +102,37 @@ export class Tr2ActionPlayCurveSet extends CjsModel
 
   /**
    * Allows transition when the frame clock crosses a synced range iteration.
-   * Iteration conversion truncates toward zero, including before the start time.
-   *
-   * Adapted: Uses the seconds-based frame-clock helper in place of BeOS.
+   * Iteration conversion truncates toward zero, including before the start time
+   * (`Tr2ActionPlayCurveSet.cpp:53-67`). Blue's frame time is held for the whole
+   * frame, so a probe in the frame the action started returns true.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   CanTransition()
   {
     if (!this.syncToRange || this._duration <= 0)
     {
       return true;
     }
-    const now = GetControllerTimeSeconds();
+    const now = blue.os.GetCurrentFrameTime();
     if (now === this._startTime)
     {
       return true;
     }
-    const previous = Math.trunc((this._prevTime - this._startTime) / this._duration);
-    const current = Math.trunc((now - this._startTime) / this._duration);
+    const previous = Math.trunc(TimeAsFloat(this._prevTime - this._startTime) / this._duration);
+    const current = Math.trunc(TimeAsFloat(now - this._startTime) / this._duration);
     return previous !== current;
   }
 
   /**
-   * Records the frame clock for synced transitions, ignoring the update arguments.
-   *
-   * Adapted: Uses the seconds-based frame-clock helper in place of BeOS.
+   * Records the frame clock for synced transitions, ignoring the update arguments
+   * (`Tr2ActionPlayCurveSet.cpp:69-72`).
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Update(_realTime, _simTime)
   {
-    this._prevTime = GetControllerTimeSeconds();
+    this._prevTime = blue.os.GetCurrentFrameTime();
   }
 
   /**

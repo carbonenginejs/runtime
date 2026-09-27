@@ -3,7 +3,8 @@
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "../contracts.js";
+import { blue, TimeAsFloat } from "#blue";
+import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "../contracts.js";
 
 
 /**
@@ -71,8 +72,8 @@ export class Tr2StateMachine extends CjsModel
             state.Stop();
           }
           this.currentState = this.startState;
-          this._stateStartTime = GetControllerTimeSeconds();
-          this.currentState?.Start(this._controller);
+          this._stateStartTime = blue.os.GetCurrentFrameTime();
+          this.currentState?.Start();
           state.Unlink();
         }
         break;
@@ -157,14 +158,14 @@ export class Tr2StateMachine extends CjsModel
       return;
     }
     this.currentState = this.startState;
-    const now = GetControllerTimeSeconds();
+    const now = blue.os.GetCurrentFrameTime();
     this._machineStartTime = now;
     this._stateStartTime = now;
     if (!this.currentState)
     {
       return;
     }
-    this.currentState.Start(this._controller);
+    this.currentState.Start();
     this._followTransitions(TR2_DIRTY_ALL);
   }
 
@@ -177,7 +178,7 @@ export class Tr2StateMachine extends CjsModel
   {
     if (this.currentState)
     {
-      this.currentState.Stop(this._controller);
+      this.currentState.Stop();
       this.currentState = null;
     }
     this._machineStartTime = 0;
@@ -234,23 +235,24 @@ export class Tr2StateMachine extends CjsModel
   }
 
   /**
-   * Gets seconds since this state machine started.
+   * Gets seconds since this state machine started: the Blue frame-time
+   * difference in ticks, converted with TimeAsFloat (`Tr2StateMachine.cpp:206-209`).
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   GetMachineRunTime()
   {
-    return this._machineStartTime ? GetControllerTimeSeconds() - this._machineStartTime : 0;
+    return this._machineStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._machineStartTime) : 0;
   }
 
   /**
-   * Gets seconds since the current state started.
+   * Gets seconds since the current state started (`Tr2StateMachine.cpp:211-214`).
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   GetStateRunTime()
   {
-    return this._stateStartTime ? GetControllerTimeSeconds() - this._stateStartTime : 0;
+    return this._stateStartTime ? TimeAsFloat(blue.os.GetCurrentFrameTime() - this._stateStartTime) : 0;
   }
 
   /**
@@ -287,6 +289,7 @@ export class Tr2StateMachine extends CjsModel
           found.count++;
           if (found.count > 20)
           {
+            console.error(`Tr2StateMachine: infinite loop in state machine ${this.name} detected`); // CCP_LOGERR Tr2StateMachine.cpp:136
             return;
           }
         }
@@ -296,8 +299,8 @@ export class Tr2StateMachine extends CjsModel
         }
       }
       this.currentState = next;
-      this.currentState.Start(this._controller);
-      this._stateStartTime = GetControllerTimeSeconds();
+      this.currentState.Start();
+      this._stateStartTime = blue.os.GetCurrentFrameTime();
       next = this.currentState.Update(TR2_DIRTY_ALL) ?? null;
     }
   }

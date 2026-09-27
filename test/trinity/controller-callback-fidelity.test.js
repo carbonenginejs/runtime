@@ -4,6 +4,7 @@ import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.
 import { Tr2TimelineController } from "../../npm/dist/trinity/controllers/timeline/Tr2TimelineController.js";
 import { Tr2ActionSetExternalControllerVariable } from "../../npm/dist/trinity/controllers/action/Tr2ActionSetExternalControllerVariable.js";
 import { TriCurveSet } from "../../npm/dist/trinity/curves/TriCurveSet.js";
+import { CjsScriptCallback } from "../../npm/dist/global/blue/index.js";
 
 for (const Constructor of [Tr2Controller, Tr2TimelineController])
 {
@@ -53,32 +54,29 @@ test("callback count is computed and read-only", () =>
 
 for (const wrapped of [false, true])
 {
-  test(`curve-set stop cleans up a throwing ${wrapped ? "wrapper" : "function"} and completes playback`, t =>
+  test(`curve-set stop cleans up a throwing ${wrapped ? "CjsScriptCallback" : "function"} and completes playback`, t =>
   {
     const reports = [];
     t.mock.method(console, "error", (...args) => reports.push(args));
-    let calls = 0, destroys = 0;
+    let calls = 0;
     const callback = () =>
     {
       calls++;
       throw false;
     };
+    const argument = wrapped ? new CjsScriptCallback(callback) : callback;
     const value = new TriCurveSet();
     value.PlayFrom(0);
-    value.StopAfterWithCallback(1, wrapped ? {
-      CallVoid: callback,
-      Destroy()
-      {
-        destroys++;
-      }
-    } : callback);
+    value.StopAfterWithCallback(1, argument);
     value.Update(30);
     value.Update(32);
     value.Update(33);
     assert.equal(calls, 1);
-    assert.equal(destroys, wrapped ? 1 : 0);
     assert.equal(value.IsPlaying(), false);
-    assert.equal(value._callback, null);
+    // The slot is a BlueScriptCallback copy (TriCurveSet.cpp:249): destroying
+    // it leaves the caller's own callback valid.
+    assert.equal(value._callback.IsValid(), false);
+    if (wrapped) assert.equal(argument.IsValid(), true);
     assert.equal(value._stopOnNextFrame, false);
     assert.equal(reports.length, 1);
     assert.equal(reports[0].at(-1), false);
@@ -88,27 +86,46 @@ for (const wrapped of [false, true])
 test("curve stop releases a replacement callback installed during invocation", () =>
 {
   const value = new TriCurveSet();
-  let invoked = 0, destroyed = 0;
+  let invoked = 0;
+  const replacement = {
+    Call()
+    {
+      invoked++;
+    },
+    CallVoid()
+    {
+      invoked++;
+    }
+  };
   value.PlayFrom(0);
   value.StopAfterWithCallback(1, () =>
   {
-    value.StopAfterWithCallback(10, {
-      CallVoid()
-      {
-        invoked++;
-      },
-      Destroy()
-      {
-        destroyed++;
-      }
-    });
+    value.StopAfterWithCallback(10, replacement);
   });
   value.Update(30);
   value.Update(32);
+  // TriCurveSet.cpp:146-147 destroys the CURRENT slot after the call, which
+  // is the replacement.
   assert.equal(invoked, 0);
-  assert.equal(destroyed, 1);
-  assert.equal(value._callback, null);
+  assert.equal(value._callback.IsValid(), false);
   assert.equal(value.IsPlaying(), false);
+});
+
+test("curve-set callback slot is always a CjsScriptCallback, so Destroy is always valid", () =>
+{
+  const value = new TriCurveSet();
+  assert.equal(value._callback.IsValid(), false);
+  value.DestroyStopCallback();
+  // PlayFrom destroys unconditionally (TriCurveSet.cpp:228), valid or not.
+  value.PlayFrom(0);
+  value.StopAfterWithCallback(1, null);
+  assert.equal(value._callback.IsValid(), false);
+  value.StopAfterWithCallback(1, () => {});
+  assert.equal(value._callback.IsValid(), true);
+  value.PlayFrom(0);
+  assert.equal(value._callback.IsValid(), false);
+  // A value that is not a callback is refused where it enters, not later in Update.
+  assert.throws(() => value.StopAfterWithCallback(1, { CallVoid() {} }), TypeError);
 });
 
 test("external variable action starts before sampling and forwards empty variable names", () =>

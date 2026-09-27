@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { Tr2ControllerReference, Tr2SyncToAnimation, Tr2TimelineController, Tr2StateMachineTransition, Tr2StateMachineState, Tr2StateMachine, Tr2Controller, Tr2ActionPlayCurveSet, TriCurveSet, TriRigidOrientation, TriTorque } from "../../npm/dist/trinity/index.js";
 
 test("animation finalizer preserves the native remaining-time comparison", () =>
@@ -113,8 +114,10 @@ test("transition activation requires linking and name edits refresh the destinat
 
 test("range playback uses one frame clock and truncates negative iterations", t =>
 {
-  let milliseconds = 10000;
-  t.mock.method(performance, "now", () => milliseconds);
+  // Blue frame time in 100ns ticks, as Tr2ActionPlayCurveSet.cpp:31,59 read it.
+  const start = 133000000000000000;
+  let ticks = start;
+  t.mock.method(blue.os, "GetCurrentFrameTime", () => ticks);
   const owner = { PlayCurveSet() {}, GetRangeDuration: () => 2 };
   const controller = { GetOwner: () => owner, GetTime: () => 999, RegisterUpdateable() {} };
   const action = new Tr2ActionPlayCurveSet();
@@ -122,9 +125,9 @@ test("range playback uses one frame clock and truncates negative iterations", t 
   action.rangeName = "range";
   action.Start(controller);
   assert.equal(action.CanTransition(), true);
-  milliseconds = 9000;
+  ticks = start - 10000000;
   assert.equal(action.CanTransition(), false);
-  milliseconds = 12000;
+  ticks = start + 20000000;
   assert.equal(action.CanTransition(), true);
   action.Update(300, 500);
   assert.equal(action.CanTransition(), false);

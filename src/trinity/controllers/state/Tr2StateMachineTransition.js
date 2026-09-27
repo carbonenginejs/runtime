@@ -50,7 +50,10 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     this.Unlink();
     this._source = state;
-    this._destination = this._resolveDestination();
+    if (this._source.GetStateMachine())
+    {
+      this._updateDestination();
+    }
   }
 
   /**
@@ -88,7 +91,7 @@ export class Tr2StateMachineTransition extends CjsModel
       this.Compile();
       this._source.UpdateVariableMask();
     }
-    else if (propertyName === "name") this._destination = this._resolveDestination();
+    else if (propertyName === "name") this._updateDestination();
     return true;
   }
 
@@ -297,18 +300,19 @@ export class Tr2StateMachineTransition extends CjsModel
   }
 
   /**
-   * Looks up the destination state by this transition's `name` on the source
-   * state's machine; the authored name is the destination state name, not a
-   * label for the edge.
+   * Carbon's private UpdateDestination (`Tr2StateMachineTransition.cpp:63-70`):
+   * looks up the destination state by this transition's `name` on the source
+   * state's machine and logs when none matches. The authored name is the
+   * destination state name, not a label for the edge; an empty name is looked
+   * up like any other, as in the donor.
    */
-  _resolveDestination()
+  _updateDestination()
   {
-    const stateMachine = this._source?.GetStateMachine?.() ?? null;
-    if (!stateMachine || !this.name)
+    this._destination = this._source.GetStateMachine().GetStateByName(this.name);
+    if (!this._destination)
     {
-      return null;
+      console.error(`Invalid destination state name ${this.name} for state machine transition`); // CCP_LOGERR Tr2StateMachineTransition.cpp:66-69
     }
-    return stateMachine.GetStateByName?.(this.name) ?? null;
   }
 
   /**

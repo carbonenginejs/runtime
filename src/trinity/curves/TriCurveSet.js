@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
+import { CjsScriptCallback } from "#blue";
 
 
 /**
@@ -87,7 +88,8 @@ export class TriCurveSet extends CjsModel
 
   _timeRangeMax = 0;
 
-  _callback = null;
+  /** Carbon's `m_callback`: a BlueScriptCallback value member, invalid until set. */
+  _callback = new CjsScriptCallback();
 
   /**
    * Updates playback using a single time value or Carbon's real/sim overload.
@@ -273,14 +275,22 @@ export class TriCurveSet extends CjsModel
   }
 
   /**
-   * Stops playback after the supplied seconds and invokes a callback.
+   * Stops playback after the supplied seconds and invokes a callback
+   * (`TriCurveSet.cpp:246-250`).
+   *
+   * Adapted: Carbon copies a BlueScriptCallback into its value member. The
+   * argument is adapted once through CjsScriptCallback.from (a function, a
+   * CjsScriptCallback, or a Call/CallVoid host object; null stores an invalid
+   * callback) and held in a fresh CjsScriptCallback, so the stored slot is a
+   * copy: destroying it later leaves the caller's own callback valid, as
+   * destroying Carbon's copy does.
    */
   @carbon.method
   @impl.adapted
   StopAfterWithCallback(seconds, callback)
   {
     this.StopAfter(seconds);
-    this._callback = callback;
+    this._callback = new CjsScriptCallback(CjsScriptCallback.from(callback));
   }
 
   /**
@@ -515,51 +525,43 @@ export class TriCurveSet extends CjsModel
   }
 
   /**
-   * Invokes the registered stop callback exactly once and releases it, accepting
-   * either a plain function or a Carbon callable that is called and then
-   * destroyed. Custom: Extracts the native update-site call and cleanup into a
-   * helper. JavaScript exceptions are reported with console.error
-   * so playback still stops. Cleanup releases the current callback slot, even
-   * if invocation replaced it (TriCurveSet.cpp:144-150).
+   * Invokes the stored stop callback when it is valid, then destroys the
+   * current slot (`TriCurveSet.cpp:144-148`). The slot destroyed is whatever
+   * it holds after the call, so a replacement installed by the callback itself
+   * is released, as in the donor.
+   *
+   * Custom: Extracts the native update-site call and cleanup into a helper.
+   * JavaScript exceptions are reported with console.error so playback still
+   * stops; Carbon's BlueScriptCallbackStatus reports without throwing.
    */
   @impl.custom
   CallStopCallback()
   {
-    if (!this._callback)
+    if (!this._callback.IsValid())
     {
       return;
     }
     try
     {
-      if (typeof this._callback === "function")
-      {
-        this._callback();
-      }
-      else
-      {
-        this._callback.CallVoid();
-      }
+      this._callback.CallVoid();
     }
     catch (error)
     {
-      // Native BlueScriptCallbackStatus reports on destruction without throwing.
       console.error("Curve-set stop callback failed", error);
     }
     this.DestroyStopCallback();
   }
 
   /**
-   * Releases the registered stop callback without invoking it, destroying it
-   * when it is a Carbon callable. Custom: Extracts native callback disposal into
-   * a shared helper for stop and destruction paths.
+   * Destroys the stored stop callback without invoking it, leaving the slot
+   * invalid (`m_callback.Destroy()`, `TriCurveSet.cpp:147,228`).
+   *
+   * Custom: Extracts native callback disposal into a shared helper for the
+   * stop and PlayFrom paths.
    */
   @impl.custom
   DestroyStopCallback()
   {
-    if (this._callback && typeof this._callback !== "function")
-    {
-      this._callback.Destroy();
-    }
-    this._callback = null;
+    this._callback.Destroy();
   }
 }

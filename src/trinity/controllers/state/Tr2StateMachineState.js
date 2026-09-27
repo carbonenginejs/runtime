@@ -4,6 +4,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "../contracts.js";
+import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
 /**
@@ -164,51 +165,72 @@ export class Tr2StateMachineState extends CjsModel
   }
 
   /**
-   * Starts all actions.
+   * Marks the state active and queues each action's Start on the main-thread
+   * queue (`Tr2StateMachineState.cpp:268-291`). The actions start when
+   * ExecuteMainThreadActions drains, so a transition chain followed in the
+   * same update sees the new state before its actions have started. Each
+   * queued call re-reads the state machine and skips the action if the state
+   * was unlinked before the drain, as the donor's lambda does.
    */
   @carbon.method
-  @impl.adapted
-  Start(controller = this._getController())
+  @impl.implemented
+  Start()
   {
     if (this._isActive)
     {
       return;
     }
-    if (!controller)
+    if (this._stateMachine)
     {
-      return;
+      for (const action of this.actions)
+      {
+        ContinueOnMainThread(() =>
+        {
+          if (this._stateMachine && action)
+          {
+            action.Start(this._stateMachine.GetController());
+          }
+        });
+      }
+      this._isActive = true;
+      this._isFinalizing = false;
+      this._hasBeenVetoed = false;
     }
-    for (const action of this.actions)
-    {
-      action.Start(controller);
-    }
-    this._isActive = true;
-    this._isFinalizing = false;
-    this._hasBeenVetoed = false;
   }
 
   /**
-   * Stops all actions.
+   * Queues each action's Stop on the main-thread queue, then asks the
+   * finalizer whether the state may leave (`Tr2StateMachineState.cpp:293-321`).
+   * The finalizer is consulted before the queued Stops run, as in the donor.
    */
   @carbon.method
-  @impl.adapted
-  Stop(controller = this._getController())
+  @impl.implemented
+  Stop()
   {
     if (!this._isActive || this._isFinalizing)
     {
       return;
     }
-    if (controller)
+    if (this._stateMachine)
     {
       for (const action of this.actions)
       {
-        action.Stop(controller);
+        ContinueOnMainThread(() =>
+        {
+          if (this._stateMachine && action)
+          {
+            action.Stop(this._stateMachine.GetController());
+          }
+        });
       }
-    }
-    if (this.finalizer && controller && !this.finalizer.CanTransition(controller))
-    {
-      this._isFinalizing = true;
-      return;
+      if (this.finalizer)
+      {
+        if (!this.finalizer.CanTransition(this._stateMachine.GetController()))
+        {
+          this._isFinalizing = true;
+          return;
+        }
+      }
     }
     this._isActive = false;
   }
@@ -235,7 +257,7 @@ export class Tr2StateMachineState extends CjsModel
       if (!next)
       {
         this._isActive = false;
-        this.Start(controller);
+        this.Start();
       }
       if (!this.finalizer || this.finalizer.CanTransition(controller))
       {
@@ -265,7 +287,7 @@ export class Tr2StateMachineState extends CjsModel
             return null;
           }
         }
-        this.Stop(controller);
+        this.Stop();
         if (this._isFinalizing)
         {
           return null;

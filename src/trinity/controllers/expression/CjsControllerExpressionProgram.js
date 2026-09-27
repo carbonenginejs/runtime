@@ -19,6 +19,7 @@
 // and no Tr2ExpressionProgram runtime class. That is true of trinity/ and
 // false of Carbon: CcpParser lives in the parser repo. It was read as evidence
 // of invention during the 2026-09-04 fidelity audit. Carbon is 32 repositories.
+import { TimeAsDouble, TimeAsFloat } from "#blue";
 import { CjsControllerExpressionParser } from "./CjsControllerExpressionParser.js";
 import { DaysSinceServerTime, EvaluateNode, GetExternalControllerVariable, HasFunction, HasProperty, IsFunctionPure, ToBoolean, ToNumber } from "./expressionRuntime.js";
 const CONTROLLER_EXPRESSION_TERMS = [
@@ -234,12 +235,14 @@ export class CjsControllerExpressionProgram
 
   /**
    * Builds the evaluation context for an action, deriving `stateTime` from the
-   * runtime state's start and last times and delegating to the controller's own
-   * GetExpressionContext when it has one.
+   * runtime state's start and last Blue frame times (ticks) with TimeAsFloat,
+   * as Carbon's actions do (`Tr2ActionAnimateValue.cpp:97`), and delegating to
+   * the controller's own GetExpressionContext when it has one. The fallback
+   * `time` is the last frame time in seconds.
    */
   static makeActionContext(controller, owner, state, extra = {})
   {
-    const stateTime = state.lastTime - state.startTime;
+    const stateTime = TimeAsFloat(state.lastTime - state.startTime);
     if (controller?.GetExpressionContext)
     {
       return controller.GetExpressionContext(owner, null, { ...extra, stateTime });
@@ -249,7 +252,7 @@ export class CjsControllerExpressionProgram
       controller: controller ?? undefined,
       owner,
       stateTime,
-      time: state.lastTime
+      time: TimeAsDouble(state.lastTime)
     };
   }
 

@@ -2,7 +2,9 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, GetControllerActualTimeSeconds, GetControllerFrameTimeSeconds, GetControllerTimeSeconds, TR2_DIRTY_ALL } from "./contracts.js";
+import { blue, TimeAsDouble } from "#blue";
+import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "./contracts.js";
+import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
 import { ITr2ActionController } from "./ITr2Controller/index.js";
 import { Tr2ControllerEventHandler } from "./Tr2ControllerEventHandler.js";
@@ -66,8 +68,6 @@ export class Tr2Controller extends EveThrottleable
   #owner = null;
 
   #time = 0;
-
-  #currentFrameTime = 0;
 
   /** Number of registered callbacks, exposed read-only as in Carbon. */
   get callbackCount()
@@ -211,7 +211,6 @@ export class Tr2Controller extends EveThrottleable
       this.Stop();
     }
     this.#dirtyVariables.value = TR2_DIRTY_ALL;
-    this.#currentFrameTime = GetControllerFrameTimeSeconds();
     for (const stateMachine of this.stateMachines)
     {
       stateMachine.Start();
@@ -238,7 +237,14 @@ export class Tr2Controller extends EveThrottleable
   }
 
   /**
-   * Updates state machines and registered updateables.
+   * Updates state machines, then queues each registered updateable's Update on
+   * the main-thread queue with Blue's actual and frame times in ticks
+   * (`Tr2Controller.cpp:230-270`).
+   *
+   * Adapted: The throttle is handed Blue's actual time in seconds, because the
+   * JS EveThrottleable takes the clock as an argument where Carbon's reads
+   * BeOS itself. GetTime's frame time is refreshed here for the JS expression
+   * context.
    */
   @carbon.method
   @impl.adapted
@@ -248,13 +254,12 @@ export class Tr2Controller extends EveThrottleable
     {
       return;
     }
-    const actualTime = GetControllerActualTimeSeconds();
-    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, actualTime))
+    if (this.ShouldSkipUpdate(normalizedUpdateFrequency, TimeAsDouble(blue.os.GetActualTime())))
     {
       return;
     }
-    this.#currentFrameTime = GetControllerFrameTimeSeconds();
-    this.#time = this.#currentFrameTime;
+    const currentTime = blue.os.GetActualTime();
+    this.#time = TimeAsDouble(blue.os.GetCurrentFrameTime());
     const dirtyVariables = this.#dirtyVariables.value;
     this.#dirtyVariables.value = 0n;
     for (const stateMachine of this.stateMachines)
@@ -263,9 +268,13 @@ export class Tr2Controller extends EveThrottleable
     }
     if (this.#updateables.size)
     {
+      const simTime = blue.os.GetCurrentFrameTime();
       for (const updateable of this.#updateables)
       {
-        updateable.Update(actualTime, this.#currentFrameTime);
+        ContinueOnMainThread(() =>
+        {
+          updateable.Update(currentTime, simTime);
+        });
       }
     }
   }
@@ -311,19 +320,12 @@ export class Tr2Controller extends EveThrottleable
   }
 
   /**
-   * Gets elapsed controller time in seconds.
+   * Gets Blue's frame time in seconds, as sampled by the last Update that was
+   * not throttled.
    */
   GetTime()
   {
     return this.#time;
-  }
-
-  /**
-   * Gets the current frame simulation time for JS action adapters.
-   */
-  CjsGetCurrentFrameTime()
-  {
-    return this.#currentFrameTime || GetControllerTimeSeconds();
   }
 
   /**

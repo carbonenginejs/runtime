@@ -16,6 +16,7 @@ import { TriViewport } from "../view/TriViewport.js";
 import { Tr2RenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { ExecuteMainThreadActions } from "../continueOnMainThread.js";
 import "#blue/registerTrinityEnums";
 
 /** TriDevice (trinityCore) - generated from schema shapeHash 1db3a492.... */
@@ -358,7 +359,7 @@ export class TriDevice extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's OnTick also sets a crash key, schedules the next event, and runs the main-thread actions and the resource-pool sweep; none of those are ported. The clock, Update and HandleRenderTick are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
+  @impl.reason("Carbon's OnTick also sets a crash key, schedules the next event, and runs the resource-pool sweep; none of those are ported. The clock, Update, HandleRenderTick and the main-thread action drain are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
@@ -386,11 +387,13 @@ export class TriDevice extends CjsModel
     this.simTime = Number(simTime) || 0;
     this.realTime = Number(realTime) || 0;
 
-    // cpp:840-845. ExecuteMainThreadActions and
-    // Tr2GpuResourcePool::ClearAllUnusedResources close Carbon's tick; neither
-    // is ported, and both are named here rather than silently absent.
+    // cpp:840-845. ExecuteMainThreadActions closes Carbon's tick after the
+    // render tick. Tr2GpuResourcePool::ClearAllUnusedResources follows it there
+    // and is not ported; it is named here rather than silently absent.
     this.Update(this.realTime, this.simTime);
     this.HandleRenderTick(this.realTime, this.simTime);
+
+    ExecuteMainThreadActions();
 
     return this;
   }

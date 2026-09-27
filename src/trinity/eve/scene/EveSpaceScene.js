@@ -46,6 +46,7 @@ import { TriFrustum } from "../../core/view/TriFrustum.js";
 import { TriShadowOrthoFrustum } from "./shadows/TriShadowOrthoFrustum.js";
 import { GpuResourceHandle } from "../../core/Tr2GpuResourcePool/GpuResourceHandle.js";
 import { blue, EnumRegistrationType } from "#blue";
+import { ExecuteMainThreadActions } from "../../core/continueOnMainThread.js";
 import "./EveSpaceSceneRenderDriver.js";
 
 
@@ -735,8 +736,11 @@ export class EveSpaceScene extends CjsModel
       object?.UpdateAsyncronous(context);
     }
 
-    // Combine the post-process attributes (Carbon cpp:584, after the async
-    // pass + ExecuteMainThreadActions cpp:581 and before the sun read).
+    // Drain the actions the updates queued (EveSpaceScene.cpp:584), after the
+    // async pass and before the post-process combine and the sun read.
+    ExecuteMainThreadActions();
+
+    // Combine the post-process attributes (Carbon cpp:587).
     this.UpdatePostProcessAttributes();
 
     // Sun direction from the sun ball: the normalized sun position, negated

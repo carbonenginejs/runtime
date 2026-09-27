@@ -100,20 +100,6 @@ export class ITr2ControllerAction
   }
 
   /**
-   * Gets the controller's current frame time in seconds, preferring the JS-only
-   * CjsGetCurrentFrameTime hook and falling back to GetTime, then to the
-   * supplied fallback.
-   */
-  static getTime(controller, fallback = 0)
-  {
-    if (controller?.CjsGetCurrentFrameTime)
-    {
-      return this.toNumber(controller.CjsGetCurrentFrameTime(), fallback);
-    }
-    return this.toNumber(controller?.GetTime?.(), fallback);
-  }
-
-  /**
    * Calls a method on a duck-typed target if it exists, returning undefined
    * rather than throwing when the target does not implement it.
    */

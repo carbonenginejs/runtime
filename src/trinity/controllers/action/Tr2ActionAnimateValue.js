@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
+import { blue } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
@@ -105,7 +106,7 @@ export class Tr2ActionAnimateValue extends CjsModel
     {
       return;
     }
-    this.#runtime.startTime = ITr2ControllerAction.getTime(controller);
+    this.#runtime.startTime = blue.os.GetCurrentFrameTime();
     this.#runtime.lastTime = this.#runtime.startTime;
     controller.RegisterUpdateable?.(this);
   }

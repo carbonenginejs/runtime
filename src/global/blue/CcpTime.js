@@ -73,6 +73,19 @@ export function TimeAsDouble(time)
   return seconds + (remainder / TICKS_PER_SECOND);
 }
 
+/**
+ * `TimeAsFloat` - Blue ticks as single-precision seconds
+ * (`core/CcpTime.cpp:250-253`): TimeAsDouble narrowed to float, which is how
+ * Carbon converts a tick DIFFERENCE, such as a controller's elapsed state time.
+ *
+ * @param {number} time Blue time, in 100ns ticks.
+ * @returns {number} Seconds, rounded to float32.
+ */
+export function TimeAsFloat(time)
+{
+  return Math.fround(TimeAsDouble(time));
+}
+
 
 /**
  * `TimeAsDateTime` - a Blue timestamp broken into UTC calendar fields.
