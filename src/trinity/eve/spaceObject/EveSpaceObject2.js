@@ -17,6 +17,7 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
+import { ccpHashFnv1 } from "#utils";
 import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
@@ -471,6 +472,11 @@ export class EveSpaceObject2 extends EveEntity
   // (EveSpaceObject2.cpp:208); SOF's eager RunDamageLocatorFilter was removed
   // upstream (ae5680b3), so filtering runs only when requested or auto-enabled.
   #damageFilterState = 0;
+
+  // Carbon m_oldClipSphereFactor/2: the last notified clip factors, so
+  // OnModified switches SPACE_OBJECT_CLIPPING only on crossing zero.
+  #oldClipSphereFactor = 0;
+  #oldClipSphereFactor2 = 0;
 
   // Carbon m_localAabbMin/Max: cached so GetLocalBoundingBox can answer before
   // LOD selection assigns a mesh (at worst it lags one frame).
@@ -3442,6 +3448,77 @@ export class EveSpaceObject2 extends EveEntity
       if (overlay) out.push([ overlay, range.start ]);
     }
     return out;
+  }
+
+  /**
+   * Carbon INotify::OnModified (EveSpaceObject2.cpp:2455-2496). Crossing
+   * between no clipping and clipping switches every shader's
+   * SPACE_OBJECT_CLIPPING option, so the hull only clips (a cloak dissolving
+   * it) once a clip factor turns non-zero.
+   *
+   * @param {string|null} [propertyName] The changed member's exposed name.
+   * @returns {boolean} Always true.
+   */
+  @carbon.method
+  @impl.implemented
+  OnModified(propertyName = null)
+  {
+    switch (propertyName)
+    {
+      case "dirtLevel":
+        this.SetControllerVariable("DirtLevel", this.dirtLevel);
+        break;
+
+      case "clipSphereFactor":
+      case "clipSphereFactor2":
+      {
+        const clipping = this.clipSphereFactor !== 0 || this.clipSphereFactor2 !== 0;
+        const oldClipping = this.#oldClipSphereFactor !== 0 || this.#oldClipSphereFactor2 !== 0;
+        if (clipping !== oldClipping)
+        {
+          this.SetShaderOption("SPACE_OBJECT_CLIPPING", clipping ? "SOC_ENABLED" : "SOC_DISABLED");
+        }
+        this.#oldClipSphereFactor = this.clipSphereFactor;
+        this.#oldClipSphereFactor2 = this.clipSphereFactor2;
+        this.SetControllerVariable("ClipSphereFactor", this.clipSphereFactor);
+        this.SetControllerVariable("ClipSphereFactor2", this.clipSphereFactor2);
+        break;
+      }
+
+      case "reflectionMode":
+      case "display":
+      case "castShadow":
+        this.ReRegister();
+        break;
+
+      case "name":
+        this.impactOverlay?.SetSeed(ccpHashFnv1(this.name));
+        break;
+
+      case "mute":
+        this.SetMute(this.mute);
+        break;
+
+      case "damageLocatorAutoFilterEnabled":
+        if (this.#damageFilterState === 0) this.#damageFilterState = 1;
+        break;
+    }
+    return true;
+  }
+
+  /**
+   * Sets a shader option on the mesh, overlay effects, decals, attachments and
+   * effect children (EveSpaceObject2.cpp:4358-4388).
+   */
+  @carbon.method
+  @impl.implemented
+  SetShaderOption(name, value)
+  {
+    this.mesh?.SetShaderOption(name, value);
+    for (const overlay of this.overlayEffects) overlay.SetShaderOption(name, value);
+    for (const decal of this.decals) decal.SetShaderOption(name, value);
+    for (const attachment of this.attachments) attachment.SetShaderOption(name, value);
+    for (const child of this.effectChildren) child.SetShaderOption(name, value);
   }
 
   /**

@@ -52,6 +52,28 @@ function fold(hash, byte)
 }
 
 /**
+ * Carbon's `CcpHashFNV1` over bytes, exactly (core/CcpHash.cpp:17-30): each
+ * byte is read as `int8_t`, so a byte at or above 0x80 folds in sign-extended.
+ * A string is hashed as its UTF-8 bytes, as Carbon hashes a `c_str()`. Unlike
+ * the in-process family below, its values match Carbon's.
+ *
+ * @param {Uint8Array|string} input The bytes, or a string to encode as UTF-8.
+ * @param {number} [hash] The hash so far.
+ * @returns {number} An unsigned 32-bit hash.
+ */
+export function ccpHashFnv1(input, hash = FNV1_INITIAL)
+{
+  const bytes = typeof input === "string" ? new TextEncoder().encode(input) : input;
+
+  for (let index = 0; index < bytes.length; index++)
+  {
+    hash = (Math.imul(hash, PRIME) ^ (bytes[index] << 24 >> 24)) >>> 0;
+  }
+
+  return hash >>> 0;
+}
+
+/**
  * FNV-1 over a string's UTF-16 code units, two bytes each, little-endian.
  *
  * @param {string} text The text to fold in.

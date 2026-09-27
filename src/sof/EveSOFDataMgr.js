@@ -1,4 +1,5 @@
 import { normalizeResourcePath } from "#utils/path";
+import { ccpHashFnv1 } from "#utils";
 
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.h
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOFDataMgr.cpp
@@ -692,7 +693,7 @@ function projectHullChildren(values)
 function projectHullChildSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     // Carbon hashes the group and keeps no name; the catalog retains it so
     // callers can report which groups a hull offers (never emitted in a document).
@@ -865,7 +866,7 @@ function projectHullBanners(values)
     const light = value.lightOverride ?? {};
     groups.get(usage).items.push({
       item: projectBannerItem(value, reference++),
-      visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+      visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
       visibilityGroupName: String(value.visibilityGroup ?? "primary"),
       bannerLight: {
         radiusMultiplier: Number(light.radiusMultiplier ?? 1),
@@ -900,7 +901,7 @@ function projectHullBannerSets(values)
       });
     }
     result.push({
-      visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+      visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
       visibilityGroupName: String(value.visibilityGroup ?? "primary"),
       bannerTypes: new Map([...groups.entries()].sort(([left], [right]) => left - right))
     });
@@ -926,7 +927,7 @@ function projectHullHazeSets(values)
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     hazeType: Number(value.hazeType ?? 0),
     skinned: value.skinned === true,
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       colorType: Number(item.colorType ?? 0),
@@ -949,7 +950,7 @@ function projectHullSpriteLineSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     skinned: value.skinned === true,
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       blinkPhaseShift: Number(item.blinkPhaseShift ?? 0),
@@ -978,7 +979,7 @@ function projectHullPlaneSets(values)
     layer1MapResPath: String(value.layer1MapResPath ?? ""),
     layer2MapResPath: String(value.layer2MapResPath ?? ""),
     maskMapResPath: String(value.maskMapResPath ?? ""),
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     atlasSize: Number(value.atlasSize ?? 1) >>> 0,
     atlasAspectRatio: copyArray(value.atlasAspectRatio, [1, 1]),
@@ -1013,7 +1014,7 @@ function projectHullSpotlightSets(values)
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     skinned: value.skinned === true,
     zOffset: Number(value.zOffset ?? 0),
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     coneTextureResPath: String(value.coneTextureResPath ?? ""),
     glowTextureResPath: String(value.glowTextureResPath ?? ""),
@@ -1055,7 +1056,7 @@ function projectHullSpriteSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
     skinned: value.skinned === true,
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(item => ({
       position: copyArray(item.position, [0, 0, 0]),
@@ -1093,7 +1094,7 @@ function projectPointLightAttachment(value)
 function projectHullLightSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(projectHullLightSetItem)
   }));
@@ -1163,7 +1164,7 @@ function projectLocatorSet(value, target, state)
 function projectHullDecalSets(values)
 {
   return (Array.isArray(values) ? values : []).filter(Boolean).map(value => ({
-    visibilityGroup: fnv1(String(value.visibilityGroup ?? "primary")),
+    visibilityGroup: ccpHashFnv1(String(value.visibilityGroup ?? "primary")),
     visibilityGroupName: String(value.visibilityGroup ?? "primary"),
     items: (Array.isArray(value.items) ? value.items : []).filter(Boolean).map(projectHullDecalSetItem)
   }));
@@ -1207,7 +1208,7 @@ function projectFaction(value)
   const visibilityGroups = (Array.isArray(value.visibilityGroupSet?.visibilityGroups)
     ? value.visibilityGroupSet.visibilityGroups
     : []).map(item => String(item?.str ?? ""));
-  const visibilityData = new Set(visibilityGroups.map(name => fnv1(name)));
+  const visibilityData = new Set(visibilityGroups.map(name => ccpHashFnv1(name)));
   const spotlightSetsColors = new Map();
   for (const set of Array.isArray(value.spotlightSets) ? value.spotlightSets : [])
   {
@@ -2055,13 +2056,3 @@ function identityMatrix()
   ];
 }
 
-function fnv1(value)
-{
-  let hash = 2166136261;
-  for (const byte of new TextEncoder().encode(value))
-  {
-    hash = Math.imul(hash, 16777619);
-    hash ^= byte > 127 ? byte - 256 : byte;
-  }
-  return hash >>> 0;
-}
