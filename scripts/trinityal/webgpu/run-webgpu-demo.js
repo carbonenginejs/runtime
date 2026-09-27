@@ -47,12 +47,6 @@ const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3498
 /** The target root behind the resource route, for the other tools-core paths. */
 const TOOLS_CORE_ROOT = TOOLS_CORE.replace(/resources\/?$/u, "");
 
-// Placeholder alliance and corp logos, alliance.png and corporation.png, read
-// from the local `res/` folder beside this checkout (outside every repository,
-// so client images are never committed), or from CJS_DEMO_BANNER_DIR.
-const BANNER_DIR = process.env.CJS_DEMO_BANNER_DIR ?? resolve(ROOT, "../res");
-const DEMO_BANNERS = { "alliance.png": join(BANNER_DIR, "alliance.png"), "corporation.png": join(BANNER_DIR, "corporation.png") };
-
 const server = createServer(async (request, response) =>
 {
   const requested = new URL(request.url, "http://localhost");
@@ -76,32 +70,6 @@ const server = createServer(async (request, response) =>
     catch (error)
     {
       response.writeHead(502).end(`sof proxy: ${error.message}`);
-    }
-
-    return;
-  }
-
-  // PLACEHOLDER BANNERS: the client sets a ship's alliance and corp logos
-  // through its external parameters at runtime; the demo has no alliance, so
-  // it serves two fixed local images. Only these two files are served.
-  if (requested.pathname.startsWith("/demo-banner/"))
-  {
-    const file = DEMO_BANNERS[requested.pathname.slice("/demo-banner/".length)];
-
-    if (!file)
-    {
-      response.writeHead(404).end("no such demo banner");
-      return;
-    }
-
-    try
-    {
-      response.writeHead(200, { "content-type": "image/png" });
-      response.end(await readFile(file));
-    }
-    catch (error)
-    {
-      response.writeHead(502).end(`demo banner: ${error.message}`);
     }
 
     return;

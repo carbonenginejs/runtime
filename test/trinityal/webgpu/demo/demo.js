@@ -1082,8 +1082,7 @@ async function SofDocument(dna)
  * PLACEHOLDER ALLIANCE AND CORP LOGOS. The client points a ship's banner
  * external parameters (named by EveSOF, EveSOF.cpp:1682-1696) at the owning
  * alliance's and corporation's images at runtime; the demo has neither, so it
- * points them at two local images the runner serves from the `res/` folder
- * beside the checkout.
+ * points them at two public images shipped beside the demo, in `banners/`.
  * Temporary: remove once the demo can name a real alliance.
  */
 const DEMO_BANNERS = Object.freeze({
@@ -1111,14 +1110,14 @@ function ApplyDemoBanners(ship)
 }
 
 /**
- * Fetches one placeholder banner image from the runner.
+ * Fetches one placeholder banner image from the demo folder.
  *
  * @param {string} name `alliance.png` or `corporation.png`.
  * @returns {Promise<Uint8Array>} The bytes.
  */
 async function DemoBannerBytes(name)
 {
-  const response = await fetch(`/demo-banner/${name}`);
+  const response = await fetch(`/test/trinityal/webgpu/demo/banners/${name}`);
 
   if (!response.ok) throw new Error(`demo banner ${name}: ${response.status} ${response.statusText}`);
 
