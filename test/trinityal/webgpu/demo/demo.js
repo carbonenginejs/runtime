@@ -2720,6 +2720,35 @@ export async function RunDemo(canvas)
   // registered light owners and how many lights each holds, the light
   // manager's resolved count after its cull, and the first tile headers (a
   // non-zero head means the tile has a light list).
+  // demo.banners(): each banner set on the ship, and each gate its GetBatches
+  // checks - display, visibility, effect, vertex buffer, and a primary texture
+  // with a resource - plus how many additive batches it commits right now.
+  globalThis.demo.banners = ({ rebuild = false } = {}) => (ship?.attachments ?? [])
+    .filter(attachment => attachment?.constructor?.name === "EveBannerSet")
+    .map(set =>
+    {
+      const creationAllowed = Tr2Renderer.IsResourceCreationAllowed();
+      if (rebuild) { set.Rebuild(); set.PrepareResources(); }
+      const texture = set.primaryTextureParameter;
+      const resource = texture?.GetResource?.() ?? null;
+      let batches = 0;
+      set.GetBatches({ Commit: () => { batches++; } }, TriBatchType.TRIBATCHTYPE_ADDITIVE, null);
+      return {
+        key: set.key,
+        display: set.display,
+        visible: set.GetVisibility(),
+        banners: set.banners.length,
+        effect: set.effect?.effectFilePath ?? null,
+        creationAllowed,
+        vertexBuffer: Boolean(set._vertexBuffer),
+        declaration: set._vertexDeclaration ?? null,
+        texturePath: texture?.resourcePath ?? null,
+        textureResource: Boolean(resource),
+        textureGood: resource?.IsGood?.() ?? null,
+        batches
+      };
+    });
+
   globalThis.demo.lights = () =>
   {
     const manager = Tr2LightManager.getInstance();
