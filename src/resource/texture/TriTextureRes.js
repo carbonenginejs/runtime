@@ -403,20 +403,6 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Carbon's `SetAverageColor` (`TriTextureRes.cpp:862-865`), the hook a video
-   * source pushes each frame's average through (`VideoPlayer.cpp:179`, reset to
-   * zero at :269).
-   *
-   * @param {number} red
-   * @param {number} green
-   * @param {number} blue
-   * @param {number} alpha
-   */
-  SetAverageColor(red, green, blue, alpha) {
-    this.averageColor = [ red, green, blue, alpha ];
-  }
-
-  /**
    * Return the multisample type for this texture.
    *
    * @returns {number}
@@ -586,7 +572,9 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Store the average color reported by decoded texture data.
+   * Store the average color reported by decoded texture data: Carbon's
+   * `SetAverageColor` (`TriTextureRes.cpp:862-865`), also the hook a video
+   * source pushes each frame's average through (`VideoPlayer.cpp:179`).
    *
    * @param {number} red
    * @param {number} green
@@ -690,6 +678,7 @@ CjsSchema.define(TriTextureRes, {
     HasALObject: [ carbon.method, impl.adapted ],
     GetPipeline: [ carbon.method, impl.adapted ],
     GetOriginalMemoryUsage: [ carbon.method, impl.adapted ],
+    GetAverageColor: [ carbon.method, impl.implemented ],
     SetAverageColor: [ carbon.method, impl.adapted ],
     UpdateSubresource: [ carbon.method, impl.notSupported ],
     PrepareResources: [ carbon.method, impl.adapted ]
