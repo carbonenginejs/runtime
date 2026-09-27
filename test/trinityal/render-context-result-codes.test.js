@@ -15,6 +15,8 @@ import { fileURLToPath } from "node:url";
 
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
+import { Tr2RenderContextALWebgl2 } from "../../npm/dist/trinityal/webgl2/index.js";
+import { FakeWebgl2 } from "./webgl2/fakeWebgl2.js";
 
 /**
  * The verbs Carbon's render context returns an ALResult from
@@ -28,7 +30,7 @@ const VERBS = [
   [ "SetVertexLayout", null ],
   [ "SetShaderProgram", null ],
   [ "SetResourceSet", null ],
-  [ "SetConstants", null, 0, 0 ],
+  [ "SetConstants", { GetUsage: () => 0, GetSize: () => 0, GetMirror: () => new Uint8Array(0) }, 0, 0 ],
   [ "SetRenderState", 0, 0 ],
   [ "SetRenderStates", null ],
   [ "SetRenderTarget", 0, null ],
@@ -54,7 +56,8 @@ const VERBS = [
 /** Each backend that can be constructed without a device. */
 const BACKENDS = [
   [ "stub", () => new Tr2RenderContextALStub() ],
-  [ "webgpu", () => new CjsWebgpuRenderContextAL() ]
+  [ "webgpu", () => new CjsWebgpuRenderContextAL() ],
+  [ "webgl2", () => new Tr2RenderContextALWebgl2({ gl: FakeWebgl2().gl }) ]
 ];
 
 for (const [ backend, make ] of BACKENDS)

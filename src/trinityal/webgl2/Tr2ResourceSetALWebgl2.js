@@ -66,7 +66,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
 {
   /**
    * m_stages: per shader stage, `{ resources, samplers }` by register, with
-   * dx11's offsets and counts. A resource is `{ resource, colorSpace }`, where
+   * dx11's offsets and counts. A resource is `{ resource, colorSpace, isBuffer }`, where
    * `resource` is a `Tr2BufferALWebgl2` or `Tr2TextureALWebgl2`; a sampler is a
    * `Tr2SamplerStateALWebgl2`.
    */
@@ -142,10 +142,10 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
         switch (desc.type)
         {
           case RESOURCE_BUFFER:
-            stage.resources[registerIndex] = { resource: desc.buffer, colorSpace: 0 };
+            stage.resources[registerIndex] = { resource: desc.buffer, colorSpace: 0, isBuffer: true };
             break;
           case RESOURCE_TEXTURE:
-            stage.resources[registerIndex] = { resource: desc.texture, colorSpace: desc.colorSpace };
+            stage.resources[registerIndex] = { resource: desc.texture, colorSpace: desc.colorSpace, isBuffer: false };
             break;
           case RESOURCE_NONE:
             continue;
@@ -261,6 +261,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
         unit: texture.unit,
         resource: slot?.resource ?? null,
         colorSpace: slot?.colorSpace ?? 0,
+        isBuffer: slot?.isBuffer ?? false,
         sampler,
         samplerConflict: texture.samplerConflict
       };
@@ -269,7 +270,7 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
 
   /**
    * The program's texture units and what fills each, in unit order:
-   * `{ unit, resource, colorSpace, sampler, samplerConflict }`. The render
+   * `{ unit, resource, colorSpace, isBuffer, sampler, samplerConflict }`. The render
    * context binds `resource.GetShaderResourceTexture(colorSpace)` and
    * `sampler.GetGpuResource()` to `unit`; a null resource or sampler leaves
    * the unit empty, as dx11 binds a null view. `samplerConflict` marks a

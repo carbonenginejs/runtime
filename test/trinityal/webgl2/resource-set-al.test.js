@@ -91,8 +91,8 @@ test("each texture unit gets its register's resource and its paired sampler", ()
     assert.equal(result, ALResult.S_OK);
     assert.equal(set.IsValid(), true);
     assert.deepEqual(set.GetUnits(), [
-        { unit: 0, resource: texture, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, sampler: first, samplerConflict: false },
-        { unit: 1, resource: buffer, colorSpace: 0, sampler: second, samplerConflict: true }
+        { unit: 0, resource: texture, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, isBuffer: false, sampler: first, samplerConflict: false },
+        { unit: 1, resource: buffer, colorSpace: 0, isBuffer: true, sampler: second, samplerConflict: true }
     ]);
 });
 

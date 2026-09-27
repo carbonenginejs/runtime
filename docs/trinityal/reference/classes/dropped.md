@@ -163,6 +163,16 @@ A pipeline statistics query on a WebGL2 device, which cannot be created.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2RenderContextALWebgl2 -->
+## `Tr2RenderContextALWebgl2`
+
+A render context on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2RenderContextALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2ResourceSetALWebgl2 -->
 ## `Tr2ResourceSetALWebgl2`
 

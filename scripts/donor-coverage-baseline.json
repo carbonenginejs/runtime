@@ -108,6 +108,7 @@
   "trinity/trinity/Tr2SolidSet.h#TriangleData": "No exact live class declaration for struct TriangleData (trinity/trinity/Tr2SolidSet.h:10); review missing port or explicit JS equivalent.",
   "trinity/trinity/Tr2SolidSet.h#TriangleVertex": "No exact live class declaration for struct TriangleVertex (trinity/trinity/Tr2SolidSet.h:22); review missing port or explicit JS equivalent.",
   "trinity/trinity/TriDevice.h#TriDeviceLock": "No exact live class declaration for class TriDeviceLock (trinity/trinity/TriDevice.h:355); review missing port or explicit JS equivalent.",
+  "trinity/trinityal/dx11/Tr2PrimaryRenderContextDx11.h#Tr2PrimaryRenderContextAL": "No exact live class declaration for class Tr2PrimaryRenderContextAL (trinity/trinityal/dx11/Tr2PrimaryRenderContextDx11.h:22); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/Tr2ShaderAL.h#Tr2ShaderBytecodeAL": "No exact live class declaration for struct Tr2ShaderBytecodeAL (trinity/trinityal/include/Tr2ShaderAL.h:12); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/Tr2ShaderAL.h#Tr2ShaderPipelineInputAL": "No exact live class declaration for struct Tr2ShaderPipelineInputAL (trinity/trinityal/include/Tr2ShaderAL.h:31); review missing port or explicit JS equivalent.",
   "trinity/trinityal/include/Tr2ShaderAL.h#Tr2ShaderRegisterAL": "No exact live class declaration for struct Tr2ShaderRegisterAL (trinity/trinityal/include/Tr2ShaderAL.h:54); review missing port or explicit JS equivalent.",

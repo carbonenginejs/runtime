@@ -226,12 +226,27 @@ export function FakeWebgl2()
     const syncs = new Set();
     const activeQueries = new Map();
 
+    // The canvas the drawing buffer belongs to, and context loss, which a test
+    // may set.
+    gl.canvas = { width: 300, height: 150 };
+    gl.lost = false;
+    gl.isContextLost = () => gl.lost;
+    Object.defineProperty(gl, "drawingBufferWidth", { get: () => gl.canvas.width });
+    Object.defineProperty(gl, "drawingBufferHeight", { get: () => gl.canvas.height });
+
     // Any other upper-case constant the backend reads gets its own stable value,
-    // so tests need not list every enum a texture path touches.
+    // so tests need not list every enum a texture path touches. Any other
+    // lower-case method is recorded and does nothing, so state-setting calls
+    // (enable, blendFuncSeparate, viewport...) can be asserted from the log.
     const withEnums = new Proxy(gl, {
         get(target, name)
         {
             if (!(name in target) && typeof name === "string" && /^[A-Z][A-Z0-9_]*$/u.test(name)) target[name] = nextEnum++;
+            // "then" stays absent, or anything awaiting the context would hang.
+            if (!(name in target) && typeof name === "string" && name !== "then" && name !== "toJSON" && /^[a-z][A-Za-z0-9]*$/u.test(name))
+            {
+                target[name] = (...args) => { calls.push([ name, ...args ]); };
+            }
             return target[name];
         }
     });
