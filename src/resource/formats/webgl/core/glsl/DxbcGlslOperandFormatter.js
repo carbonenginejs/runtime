@@ -82,6 +82,8 @@ export class DxbcGlslOperandFormatter
    * @param {object} [options] Formatting context.
    * @param {string} [options.destMask] Destination write mask driving swizzle selection.
    * @param {"float"|"int"|"uint"} [options.as] Type the consuming instruction reads.
+   * @param {boolean} [options.rawMove] A bit-copying move (movc via the uint
+   *   companion): float modifiers apply to the sign bit.
    * @returns {string} GLSL expression.
    */
     sourceExpression(operand, options = {})
@@ -115,8 +117,15 @@ export class DxbcGlslOperandFormatter
         //   sources) and must wrap the float expression INSIDE the bitcast:
         //   `abs(floatBitsToUint(x))` is invalid GLSL ES 3.00 (abs is
         //   undefined for genUType) and failed the whole effect at compile.
+        //
+        // - a RAW MOVE (movc through the uint companion) copies bits, and its
+        //   modifiers are DXBC's FLOAT modifiers: they act on the sign bit
+        //   (neg ^, abs &, absneg |), as the WGSL emitter's modifierOnStorage
+        //   does. Two's-complement negation of a float's bits turned -1.0
+        //   into 4.0 and split every mirrored hull's tangent frame.
         const modifierName = operand.modifierName;
-        const floatSpaceModifier = as === "float" || modifierName === "abs" || modifierName === "absneg";
+        const rawMove = options.rawMove === true && as === "uint";
+        const floatSpaceModifier = !rawMove && (as === "float" || modifierName === "abs" || modifierName === "absneg");
         if (floatSpaceModifier)
         {
             if (modifierName === "neg")
@@ -169,7 +178,19 @@ export class DxbcGlslOperandFormatter
                 expression = `${BITCAST_FROM_FLOAT[as]}(${expression})`;
             }
 
-            if (modifierName === "neg")
+            if (rawMove && modifierName === "neg")
+            {
+                expression = `(${expression} ^ 0x80000000u)`;
+            }
+            else if (rawMove && modifierName === "abs")
+            {
+                expression = `(${expression} & 0x7FFFFFFFu)`;
+            }
+            else if (rawMove && modifierName === "absneg")
+            {
+                expression = `(${expression} | 0x80000000u)`;
+            }
+            else if (modifierName === "neg")
             {
                 // Integer negation of the typed read (two's complement).
                 expression = `(-${expression})`;

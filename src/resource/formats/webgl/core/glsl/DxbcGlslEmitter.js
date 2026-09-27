@@ -2522,8 +2522,8 @@ export class DxbcGlslEmitter
         {
             const condition = state.formatter.sourceExpression(instruction.operands[1], { destMask: component, as: "int" });
             const as = rawMove ? "uint" : "float";
-            const ifTrue = state.formatter.sourceExpression(instruction.operands[2], { destMask: component, as });
-            const ifFalse = state.formatter.sourceExpression(instruction.operands[3], { destMask: component, as });
+            const ifTrue = state.formatter.sourceExpression(instruction.operands[2], { destMask: component, as, rawMove });
+            const ifFalse = state.formatter.sourceExpression(instruction.operands[3], { destMask: component, as, rawMove });
             const lvalue = aliases
                 ? `hlslcc_movcTemp.${component}`
                 : this._destComponentRef(state, destOperand, target, component);

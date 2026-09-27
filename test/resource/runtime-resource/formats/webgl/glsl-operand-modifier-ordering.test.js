@@ -99,3 +99,24 @@ test("a float abs forces the float register even under integer preservation", ()
     const text = formatter.sourceExpression(tempOperand("abs"), { destMask: "x", as: "uint" });
     assert.equal(text, "floatBitsToUint(abs(r0.x))");
 });
+
+test("a raw move's modifiers are float sign-bit operations on the companion", () =>
+{
+    // movc r2.xyz, r3.x, r2.xyz, -r2.xyz: the mirrored-hull tangent handedness
+    // select. Under integer companions movc copies bits, and its neg is DXBC's
+    // FLOAT negate - a sign flip. Two's-complement negation of the bits turned
+    // -1.0 into 4.0 and split every mirrored hull's shading (c0221bcf).
+    const formatter = new DxbcGlslOperandFormatter({ integerTemps: true });
+    const raw = { destMask: "x", as: "uint", rawMove: true };
+    assert.equal(formatter.sourceExpression(tempOperand("neg"), raw), "(cjsBitsR0.x ^ 0x80000000u)");
+    assert.equal(formatter.sourceExpression(tempOperand("abs"), raw), "(cjsBitsR0.x & 0x7FFFFFFFu)");
+    assert.equal(formatter.sourceExpression(tempOperand("absneg"), raw), "(cjsBitsR0.x | 0x80000000u)");
+    assert.equal(formatter.sourceExpression(tempOperand(undefined), raw), "cjsBitsR0.x");
+
+    // The sign flip is exact on the bits: -1.0 back from 1.0.
+    const bits = new Uint32Array(new Float32Array([ 1 ]).buffer)[0];
+    assert.equal(new Float32Array(new Uint32Array([ (bits ^ 0x80000000) >>> 0 ]).buffer)[0], -1);
+
+    // An integer instruction's neg is still two's complement.
+    assert.equal(formatter.sourceExpression(tempOperand("neg"), { destMask: "x", as: "int" }), "(-int(cjsBitsR0.x))");
+});
