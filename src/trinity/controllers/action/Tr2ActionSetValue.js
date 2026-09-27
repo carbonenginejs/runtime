@@ -4,8 +4,11 @@ import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { CjsControllerExpressionEvaluateError } from "../expression/CjsControllerExpressionEvaluateError.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 
+
+/** @typedef {import("../expression/CjsControllerExpressionCompileError.js").CjsControllerExpressionCompileError} CjsControllerExpressionCompileError */
 
 /**
  * Controller action that evaluates a value expression once on start and writes
@@ -48,22 +51,26 @@ export class Tr2ActionSetValue extends CjsModel
   @type.string
   path = "";
 
-  #bindingPoint = null;
+  _bindingPoint = null;
 
-  #expression = {
+  _expression = {
     program: null,
     source: ""
   };
-  #controller = null;
+  _controller = null;
 
   /**
    * Links the destination when this action does not use delayed binding.
+   *
+   * Adapted: The existing JS binding adapter resolves the destination; an AST
+   * program replaces native bytecode and is retained until a value notification,
+   * relink or unlink.
    */
   @carbon.method
   @impl.adapted
   Link(controller)
   {
-    this.#controller = controller;
+    this._controller = controller;
     if (!this.HasDelayedBinding())
     {
       this.LinkDestination(controller);
@@ -78,59 +85,62 @@ export class Tr2ActionSetValue extends CjsModel
   @impl.implemented
   Unlink()
   {
-    this.#bindingPoint?.Unlink();
-    this.#expression = {
+    this._bindingPoint?.Unlink();
+    this._expression = {
       program: null,
       source: ""
     };
-    this.#controller = null;
+    this._controller = null;
   }
 
   /**
-   * Evaluates the value expression and writes it to the destination binding.
+   * Evaluates the retained value expression and writes a successful result.
+   *
+   * Adapted: Uses the AST compiled for the linked controller; Start's controller
+   * is used only for destination binding. Evaluation failures skip the write,
+   * while successful NaN and infinity results are preserved as in native code.
    */
   @carbon.method
   @impl.adapted
-  Start(controller = this.#controller)
+  Start(controller = this._controller)
   {
     if (!controller)
     {
       return;
     }
-    const owner = ITr2ControllerAction.getOwner(controller);
-    this.#controller = controller;
     if (this.HasDelayedBinding())
     {
-      this.LinkDestination(controller, owner);
+      this.LinkDestination(controller);
     }
     if (!this.IsBindingValid())
     {
       return;
     }
-    const value = this.#evaluateValue(controller, owner);
+    const value = this._evaluateValue();
     if (value === null)
     {
       return;
     }
-    this.GetBindingPoint().SetValue(value, controller, owner);
+    this._bindingPoint.SetValue(value);
   }
 
   /**
    * Relinks or recompiles when authored fields change.
+   *
+   * Adapted: Selects native member notifications by exposed property name.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
-    if (!this.#controller) return true;
+    if (!this._controller) return true;
     if (propertyName === "path" || propertyName === "attribute" || propertyName === "destination" || propertyName === "delayBinding")
     {
-      if (!this.HasDelayedBinding()) this.LinkDestination(this.#controller);
+      if (!this.HasDelayedBinding()) this.LinkDestination(this._controller);
     }
     else if (propertyName === "value")
     {
-      this.#expression.program = null;
+      this._expression.program = null;
       this.CompileExpression();
     }
     return true;
@@ -143,17 +153,17 @@ export class Tr2ActionSetValue extends CjsModel
   @impl.implemented
   IsBindingValid()
   {
-    return !!this.#bindingPoint?.IsValid();
+    return !!this._bindingPoint?.IsValid();
   }
 
   /**
-   * Checks whether the value expression compiles.
+   * Reports retained compilation validity without compiling or rebinding.
    */
   @carbon.method
   @impl.implemented
   IsExpressionValid()
   {
-    return this.CompileExpression().IsValid();
+    return !!this._expression.program?.IsValid();
   }
 
   /**
@@ -173,7 +183,7 @@ export class Tr2ActionSetValue extends CjsModel
    */
   @carbon.method
   @impl.implemented
-  GetDestination(controller = this.#controller, owner = ITr2ControllerAction.getOwner(controller))
+  GetDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().GetBoundObject(controller, owner);
   }
@@ -187,76 +197,97 @@ export class Tr2ActionSetValue extends CjsModel
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    this.#controller?.GetExpressionTermInfo?.(result);
+    this._controller?.GetExpressionTermInfo?.(result);
     return result;
   }
 
   /**
-   * Evaluates an expression against this action's controller context.
+   * Evaluates an expression against this action's linked controller.
+   *
+   * Adapted: Returns a number and throws typed JS errors instead of BlueStdResult
+   * and an output argument. The shared AST parser still differs from native
+   * variable binding, arithmetic and float32 evaluation; this is a lifecycle port.
+   *
+   * @param {string} expression Source text.
+   * @returns {number} Successful result, including nonfinite values.
+   * @throws {CjsControllerExpressionCompileError} If parsing fails.
+   * @throws {CjsControllerExpressionEvaluateError} If unlinked or evaluation fails.
    */
   @carbon.method
   @impl.adapted
   EvaluateExpression(expression)
   {
-    const state = {
-      program: null,
-      source: ""
-    };
-    const program = CjsControllerExpressionProgram.compileCached(state, expression, 0);
+    if (!this._controller)
+    {
+      throw new CjsControllerExpressionEvaluateError({ expression, reason: "controller needs to be running when evaluating expressions" });
+    }
+    const program = CjsControllerExpressionProgram.Compile(expression, { allowEmpty: false });
     if (!program.IsValid())
     {
-      return 0;
+      // Preserve the parser's typed error and source position.
+      program.Evaluate();
     }
-    const controller = this.#controller;
-    const owner = ITr2ControllerAction.getOwner(controller);
-    const runtime = controller;
-    return Number(program.Evaluate(runtime?.GetExpressionContext?.(owner, null, {
-      action: this
-    }) ?? {
-      controller: controller ?? undefined,
-      owner,
-      action: this
-    })) || 0;
+    try
+    {
+      return Number(program.Evaluate(this._getExpressionContext()));
+    }
+    catch (cause)
+    {
+      const error = new CjsControllerExpressionEvaluateError({ expression, reason: cause?.message ?? String(cause) });
+      error.cause = cause;
+      throw error;
+    }
   }
 
   /**
-   * Compiles the authored value expression, reusing the cached program while the
-   * expression text is unchanged.
+   * Compiles and retains the authored expression for the linked controller.
+   * Custom: Extracts native SetExpr calls used by Link and value notification;
+   * blank source is invalid. Other expression consumers keep their own policy.
    */
+  @impl.custom
   CompileExpression()
   {
-    return CjsControllerExpressionProgram.compileCached(this.#expression, this.value, 0);
+    this._expression = {
+      source: this.value,
+      program: this._controller ? CjsControllerExpressionProgram.Compile(this.value, { allowEmpty: false }) : null
+    };
+    return this._expression.program;
   }
 
   /**
-   * Evaluates the value expression against the controller context, returning 0
-   * when it does not compile or does not produce a finite number.
+   * Evaluates the retained program, returning zero on unavailable evaluation.
+   * Custom: Retains the existing numeric convenience accessor on this action.
    */
-  GetValue(controller = this.#controller, owner = ITr2ControllerAction.getOwner(controller))
+  @impl.custom
+  GetValue()
   {
-    return this.#evaluateValue(controller, owner) ?? 0;
+    return this._evaluateValue() ?? 0;
   }
 
-  /**
-   * Evaluates the value expression, returning null rather than 0 when it fails
-   * to compile or yields a non-finite number so the caller can skip the write.
-   */
-  #evaluateValue(controller, owner)
+  /** Evaluates retained state, returning null on failure so Start skips its write. */
+  _evaluateValue()
   {
-    const program = this.CompileExpression();
-    if (!program.IsValid())
+    const program = this._expression.program;
+    if (!this._controller || !program?.IsValid())
     {
       return null;
     }
-    const runtime = controller;
-    const value = Number(program.Evaluate(runtime?.GetExpressionContext?.(owner, null, {
-      action: this
-    }) ?? {
-      controller: controller ?? undefined,
-      owner,
-      action: this
-    }));
-    return Number.isFinite(value) ? value : null;
+    try
+    {
+      return Number(program.Evaluate(this._getExpressionContext()));
+    }
+    catch
+    {
+      return null;
+    }
+  }
+
+  /** Builds the existing JS expression context using the compilation controller. */
+  _getExpressionContext()
+  {
+    const controller = this._controller;
+    const owner = ITr2ControllerAction.getOwner(controller);
+    return controller.GetExpressionContext ? controller.GetExpressionContext(owner, null, { action: this }) : { controller, owner, action: this };
   }
 
   /**
@@ -265,21 +296,21 @@ export class Tr2ActionSetValue extends CjsModel
    */
   GetBindingPoint()
   {
-    if (!this.#bindingPoint)
+    if (!this._bindingPoint)
     {
-      this.#bindingPoint = new Tr2BindingPoint();
+      this._bindingPoint = new Tr2BindingPoint();
     }
-    this.#bindingPoint.path = this.path;
-    this.#bindingPoint.object = this.destination;
-    this.#bindingPoint.attribute = this.attribute;
-    return this.#bindingPoint;
+    this._bindingPoint.path = this.path;
+    this._bindingPoint.object = this.destination;
+    this._bindingPoint.attribute = this.attribute;
+    return this._bindingPoint;
   }
 
   /**
    * Resolves the binding point against the controller's binding roots and its
    * owner.
    */
-  LinkDestination(controller = this.#controller, owner = ITr2ControllerAction.getOwner(controller))
+  LinkDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().Link(controller, owner);
   }
