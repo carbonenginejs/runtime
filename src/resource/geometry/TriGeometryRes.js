@@ -39,6 +39,7 @@ const edgeAC = [ 0, 0, 0 ];
  * Geometry inspection composes the generic math supplied by the runtime global layer
  * with resource-specific payload traversal.
  */
+
 export class TriGeometryRes extends CjsResource
 {
   forceLod = false;
@@ -331,8 +332,12 @@ export class TriGeometryRes extends CjsResource
   GetBoundingSphere(meshIndex = 0, out = null)
   {
     const payload = this.GetPayload();
-    const sphere = TriGeometryRes.getSphere(payload?.meshes?.[meshIndex])
-      || TriGeometryRes.getSphere(payload);
+    const mesh = payload?.meshes?.[meshIndex];
+    let sphere = TriGeometryRes.getSphere(mesh) || TriGeometryRes.getSphere(payload);
+    // Carbon (TriGeometryRes.cpp:439-450) answers for any existing mesh with the
+    // sphere it holds; a granny mesh holds zero until RecalculateBoundingSphere
+    // (cpp:1019-1020). Returning nothing made EveChildInstanceMeshRenderer throw.
+    if (!sphere && mesh) sphere = [ 0, 0, 0, 0 ];
     if (!out) return sphere;
     if (!sphere) return false;
     vec4.copy(out, sphere);

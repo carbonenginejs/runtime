@@ -206,6 +206,122 @@ sph3.fromBox3 = function(out, b)
 };
 
 /**
+ * Carbon's BoundingSphereFromPoints (trinity/Utilities/BoundingSphere.cpp:
+ * 200-353): the smallest enclosing sphere by move-to-front recursion (Welzl),
+ * in double precision, each radius padded by 1e-4. Up to four points solve
+ * directly; a degenerate three or four falls back to one point fewer, as
+ * Carbon does (it logs a warning there). Recursion depth is bounded by the
+ * four support points, not by the point count.
+ *
+ * Reorders `points` in place, as Carbon's pointer array is.
+ *
+ * @param {sph3} out
+ * @param {Array<ArrayLike<number>>} points Each an [x, y, z].
+ * @returns {sph3}
+ */
+sph3.fromPoints = function(out, points)
+{
+    const sphere = sphereFromSupport(points, 0, points.length);
+    out[0] = sphere[0];
+    out[1] = sphere[1];
+    out[2] = sphere[2];
+    out[3] = sphere[3];
+    return out;
+};
+
+const SPHERE_EPSILON = 1e-4;
+
+/** BoundingSphereFromPoints for 0-4 points starting at `start` (cpp:285-353). */
+function sphereFromSupport(p, start, count)
+{
+    const at = i => p[start + i];
+    switch (count)
+    {
+        case 0:
+            return [ 0, 0, 0, 0 ];
+        case 1:
+            return [ at(0)[0], at(0)[1], at(0)[2], SPHERE_EPSILON ];
+        case 2:
+        {
+            const a = [ 0, 1, 2 ].map(k => 0.5 * (at(1)[k] - at(0)[k]));
+            return [ a[0] + at(0)[0], a[1] + at(0)[1], a[2] + at(0)[2], Math.hypot(a[0], a[1], a[2]) + SPHERE_EPSILON ];
+        }
+        case 3:
+        {
+            const a = [ 0, 1, 2 ].map(k => at(1)[k] - at(0)[k]);
+            const b = [ 0, 1, 2 ].map(k => at(2)[k] - at(0)[k]);
+            const axb = cross(a, b);
+            const denom = 2 * dot(axb, axb);
+            if (denom === 0) return sphereFromSupport(p, start, 2);
+            const axbxa = cross(axb, a);
+            const bxaxb = cross(b, axb);
+            const a2 = dot(a, a);
+            const b2 = dot(b, b);
+            const o = [ 0, 1, 2 ].map(k => (b2 * axbxa[k] + a2 * bxaxb[k]) / denom);
+            return [ o[0] + at(0)[0], o[1] + at(0)[1], o[2] + at(0)[2], Math.hypot(o[0], o[1], o[2]) + SPHERE_EPSILON ];
+        }
+        case 4:
+        {
+            const a = [ 0, 1, 2 ].map(k => at(1)[k] - at(0)[k]);
+            const b = [ 0, 1, 2 ].map(k => at(2)[k] - at(0)[k]);
+            const c = [ 0, 1, 2 ].map(k => at(3)[k] - at(0)[k]);
+            const denom = 2 * (a[0] * (b[1] * c[2] - c[1] * b[2]) - b[0] * (a[1] * c[2] - c[1] * a[2]) + c[0] * (a[1] * b[2] - b[1] * a[2]));
+            if (denom === 0) return sphereFromSupport(p, start, 3);
+            const a2 = dot(a, a);
+            const b2 = dot(b, b);
+            const c2 = dot(c, c);
+            const axb = cross(a, b);
+            const cxa = cross(c, a);
+            const bxc = cross(b, c);
+            const o = [ 0, 1, 2 ].map(k => (c2 * axb[k] + b2 * cxa[k] + a2 * bxc[k]) / denom);
+            return [ o[0] + at(0)[0], o[1] + at(0)[1], o[2] + at(0)[2], Math.hypot(o[0], o[1], o[2]) + SPHERE_EPSILON ];
+        }
+        default:
+            return recurSphere(p, 0, count, 0);
+    }
+}
+
+/**
+ * recurBoundingSphereCreate (cpp:203-258): `p[offset .. offset+len)` are the
+ * points still to test; the `b` entries before `offset` are the support set.
+ */
+function recurSphere(p, offset, len, b)
+{
+    let mb = b === 0 ? [ 0, 0, 0, 0 ] : sphereFromSupport(p, offset - b, b);
+    if (b === 4) return mb;
+
+    for (let i = 0; i < len; i++)
+    {
+        const point = p[offset + i];
+        const dx = point[0] - mb[0], dy = point[1] - mb[1], dz = point[2] - mb[2];
+        if (dx * dx + dy * dy + dz * dz > mb[3] * mb[3] + SPHERE_EPSILON)
+        {
+            let isDuplicate = false;
+            for (let j = 0; j < b; j++)
+            {
+                const q = p[offset - j - 1];
+                if (q[0] === point[0] && q[1] === point[1] && q[2] === point[2]) { isDuplicate = true; break; }
+            }
+            if (!isDuplicate)
+            {
+                for (let j = i; j > 0; j--)
+                {
+                    const swap = p[offset + j];
+                    p[offset + j] = p[offset + j - 1];
+                    p[offset + j - 1] = swap;
+                }
+                mb = recurSphere(p, offset + 1, i, b + 1);
+            }
+        }
+    }
+    return mb;
+}
+
+function dot(a, b) { return a[0] * b[0] + a[1] * b[1] + a[2] * b[2]; }
+
+function cross(a, b) { return [ a[1] * b[2] - a[2] * b[1], a[2] * b[0] - a[0] * b[2], a[0] * b[1] - a[1] * b[0] ]; }
+
+/**
  * Sets a sphere from a box's bounds
  *
  * @param {sph3} out
@@ -740,6 +856,7 @@ export const {
     extract,
     fromBox3,
     fromBounds,
+    fromPoints,
     fromPositionRadius,
     from,
     fromTranslationRadius,
