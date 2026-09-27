@@ -130,7 +130,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
         this._view.setUint16(base + 22, num.toHalfFloat(line.falloff), true);
         this._buffer.set(color, base + 24);
         this._buffer.set(color, base + 28);
-        this._spriteData.push({ position, boneIndex: line.boneIndex | 0 });
+        this._spriteData.push({ position, boneIndex: line.boneIndex >>> 0 });
         at++;
       });
     }

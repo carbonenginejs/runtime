@@ -78,6 +78,11 @@ export class CjsWebgpuFenceAL
    * Metal's `IsReached` (`mm:53-64`). Carbon's out-parameter is returned in
    * the stub's `{ result, isReached }` shape.
    *
+   * Adapted: Metal compares against frames the GPU has COMPLETED; ours are
+   * frames SUBMITTED (GetRenderedFrameNumber), because WebGPU reports
+   * completion only through a promise. A later writeBuffer is ordered after
+   * every earlier submit, so a submitted frame's region is safe to rewrite.
+   *
    * @param {object} renderContext The context whose frames are counted.
    * @returns {{result: number, isReached: boolean}} The answer.
    */

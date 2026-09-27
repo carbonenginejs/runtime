@@ -103,9 +103,12 @@ export class Tr2QuadRenderer extends CjsModel
 
   /**
    * Drops a registered effect and the quads accumulated for it.
+   *
+   * Custom: Carbon declares UnregisterEffect (Tr2QuadRenderer.h) and never
+   * defines it; this is the evident intent.
    */
   @carbon.method
-  @impl.implemented
+  @impl.custom
   UnregisterEffect(key)
   {
     this._effects.delete(key);

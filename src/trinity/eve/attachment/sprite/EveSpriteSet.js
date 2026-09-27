@@ -304,7 +304,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       }
       this.#spriteData[i] = {
         position: sprite.position,
-        boneIndex: sprite.boneIndex | 0
+        // uint32_t (EveSpriteSet.h:73): a negative index wraps and misses every bone.
+        boneIndex: sprite.boneIndex >>> 0
       };
     }
 

@@ -17,7 +17,7 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
   Create(bufferSize)
   {
     this.ReleaseResources();
-    this.m_bufferSize = bufferSize >>> 0;
+    this._bufferSize = bufferSize >>> 0;
 
     return this.PrepareResources();
   }
@@ -27,12 +27,12 @@ export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
   @impl.implemented
   CreateBuffer(size)
   {
-    this.m_buffer?.Destroy();
-    this.m_buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
+    this._buffer?.Destroy();
+    this._buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
       Tr2BufferDescriptionAL.FromStride(1, size, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
       null
     );
 
-    return this.m_buffer ? ALResult.S_OK : ALResult.E_FAIL;
+    return this._buffer ? ALResult.S_OK : ALResult.E_FAIL;
   }
 }

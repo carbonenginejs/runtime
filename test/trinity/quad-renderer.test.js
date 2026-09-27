@@ -4,6 +4,9 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   EveSmartLightQuad,
+  EveShip2,
+  EveSpaceScene,
+  EveSpriteSet,
   Tr2QuadRenderer,
   Tr2Effect,
   Tr2VertexDefinition,
@@ -133,4 +136,23 @@ test("EveSmartLightQuad packs Carbon's 108-byte mixed-width instance record", ()
   assert.equal(view.getUint16(102, true), toHalfFloat(1), "color.a is float16");
   assert.equal(view.getUint16(104, true), toHalfFloat(2.5), "brightness is float16");
   assert.equal(view.getUint16(106, true), toHalfFloat(0), "brightness padding is float16 zero");
+});
+
+test("an object pushed after Initialize registers its quad effects through ReregisterEntities", () =>
+{
+  // Carbon registers on list insert (EveSpaceScene.cpp:3455-3470); our arrays
+  // have no insert event, so ReregisterEntities is where late objects join.
+  const scene = new EveSpaceScene();
+  scene.Initialize(Tr2RenderContext_GetMainThreadRenderContext());
+
+  const ship = new EveShip2();
+  const sprites = new EveSpriteSet();
+  sprites.effect = FixtureEffect({ GetHashValue: () => 0x5a1e });
+  sprites.Rebuild();
+  ship.attachments.push(sprites);
+  scene.objects.push(ship);
+
+  assert.equal(Tr2QuadRenderer.Instance().GetEffectRecords().has(0x5a1e), false);
+  scene.ReregisterEntities();
+  assert.equal(Tr2QuadRenderer.Instance().GetEffectRecords().has(0x5a1e), true);
 });

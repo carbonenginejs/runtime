@@ -156,7 +156,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
         half(glow, base + 64 + c * 2, item.spriteScale[c]);
       }
 
-      return { transform: item.transform, boneIndex: item.boneIndex | 0, boosterGainInfluence: item.boosterGainInfluence ? 1 : 0 };
+      return { transform: item.transform, boneIndex: item.boneIndex >>> 0, boosterGainInfluence: item.boosterGainInfluence ? 1 : 0 };
     });
 
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);

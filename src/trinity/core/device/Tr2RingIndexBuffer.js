@@ -11,8 +11,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2Rende
 /** Carbon `Tr2RingIndexBuffer`: the ring as an index buffer. */
 export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
 {
-  /** m_indexSize */
-  m_indexSize = 4;
+  /** _indexSize */
+  _indexSize = 4;
 
   /** Carbon Create (cpp:440-447). */
   @carbon.method
@@ -20,8 +20,8 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   Create(numberOfIndices, indexSize)
   {
     this.ReleaseResources();
-    this.m_indexSize = indexSize;
-    this.m_bufferSize = numberOfIndices * this.m_indexSize;
+    this._indexSize = indexSize;
+    this._bufferSize = numberOfIndices * this._indexSize;
 
     return this.PrepareResources();
   }
@@ -31,12 +31,12 @@ export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
   @impl.implemented
   CreateBuffer(size)
   {
-    this.m_buffer?.Destroy();
-    this.m_buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
-      Tr2BufferDescriptionAL.FromStride(this.m_indexSize, size / this.m_indexSize, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
+    this._buffer?.Destroy();
+    this._buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
+      Tr2BufferDescriptionAL.FromStride(this._indexSize, size / this._indexSize, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
       null
     );
 
-    return this.m_buffer ? ALResult.S_OK : ALResult.E_FAIL;
+    return this._buffer ? ALResult.S_OK : ALResult.E_FAIL;
   }
 }

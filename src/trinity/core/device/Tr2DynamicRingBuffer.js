@@ -19,32 +19,32 @@ function Align(offset, alignment)
 /**
  * Carbon `Tr2DynamicRingBuffer`: the base of the vertex and index rings.
  *
- * Carbon's `Tr2BufferAL m_buffer` is a value that is empty until created; here
+ * Carbon's `Tr2BufferAL _buffer` is a value that is empty until created; here
  * it is null until created. `PutData` returns `{ result, offset }` for
  * Carbon's out-parameter.
  */
 export class Tr2DynamicRingBuffer
 {
-  /** m_bufferSize - bytes. */
-  m_bufferSize = 0;
+  /** _bufferSize - bytes. */
+  _bufferSize = 0;
 
-  /** m_regions - `{ offset, length, fence }`, oldest first. */
-  m_regions = [];
+  /** _regions - `{ offset, length, fence }`, oldest first. */
+  _regions = [];
 
-  /** m_sizeIncrement */
-  m_sizeIncrement = 0;
+  /** _sizeIncrement */
+  _sizeIncrement = 0;
 
-  /** m_lastPutSucceeded */
-  m_lastPutSucceeded = false;
+  /** _lastPutSucceeded */
+  _lastPutSucceeded = false;
 
-  /** m_availableFences */
-  m_availableFences = [];
+  /** _availableFences */
+  _availableFences = [];
 
-  /** m_buffer */
-  m_buffer = null;
+  /** _buffer */
+  _buffer = null;
 
-  /** m_name */
-  m_name = "";
+  /** _name */
+  _name = "";
 
   /**
    * Carbon's aligned PutData (cpp:50-117). Its three-argument overload is this
@@ -60,7 +60,7 @@ export class Tr2DynamicRingBuffer
   @impl.adapted
   PutData(data, size, alignment, renderContext)
   {
-    this.m_lastPutSucceeded = false;
+    this._lastPutSucceeded = false;
     this.TrimUnusedRegions(renderContext);
 
     if (!size) return { result: ALResult.S_OK, offset: 0 };
@@ -72,25 +72,25 @@ export class Tr2DynamicRingBuffer
     if (allocationOffset === null)
     {
       allocationOffset = 0;
-      this.RemoveRegions(0, this.m_regions.length);
+      this.RemoveRegions(0, this._regions.length);
 
       let newSize;
-      if (this.m_bufferSize < allocationSize + this.m_sizeIncrement) newSize = allocationSize + this.m_sizeIncrement;
-      else if (this.m_sizeIncrement) newSize = this.m_bufferSize + this.m_sizeIncrement;
-      else newSize = this.m_bufferSize * 2;
+      if (this._bufferSize < allocationSize + this._sizeIncrement) newSize = allocationSize + this._sizeIncrement;
+      else if (this._sizeIncrement) newSize = this._bufferSize + this._sizeIncrement;
+      else newSize = this._bufferSize * 2;
 
       const created = this.CreateBuffer(newSize);
       if (Failed(created)) return { result: created, offset: 0 };
-      if (this.m_name) this.m_buffer.SetName(this.m_name);
-      this.m_bufferSize = newSize;
+      if (this._name) this._buffer.SetName(this._name);
+      this._bufferSize = newSize;
     }
 
     const bufferOffset = Align(allocationOffset, alignment);
     const updated = this.UpdateBuffer(data, bufferOffset, size, renderContext);
     if (Failed(updated)) return { result: updated, offset: 0 };
 
-    this.m_regions.push({ offset: allocationOffset, length: allocationSize, fence: this.AllocateFence() });
-    this.m_lastPutSucceeded = true;
+    this._regions.push({ offset: allocationOffset, length: allocationSize, fence: this.AllocateFence() });
+    this._lastPutSucceeded = true;
 
     return { result: ALResult.S_OK, offset: bufferOffset };
   }
@@ -104,15 +104,15 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   DoneUsingData(renderContext)
   {
-    if (!this.m_lastPutSucceeded) return;
+    if (!this._lastPutSucceeded) return;
 
-    const last = this.m_regions.at(-1);
+    const last = this._regions.at(-1);
     if (last?.fence && Failed(last.fence.PutFence(renderContext)))
     {
       this.DeallocateFence(last.fence);
       last.fence = null;
     }
-    this.m_lastPutSucceeded = false;
+    this._lastPutSucceeded = false;
   }
 
   /** Carbon IsRegionUsedByGpu (cpp:151-160). */
@@ -133,7 +133,7 @@ export class Tr2DynamicRingBuffer
   TrimUnusedRegions(renderContext)
   {
     let used = 0;
-    while (used < this.m_regions.length && !this.IsRegionUsedByGpu(this.m_regions[used], renderContext)) used++;
+    while (used < this._regions.length && !this.IsRegionUsedByGpu(this._regions[used], renderContext)) used++;
 
     this.RemoveRegions(0, used);
   }
@@ -149,13 +149,13 @@ export class Tr2DynamicRingBuffer
   @impl.adapted
   GetUnusedRegion(minSize)
   {
-    const totalSize = this.m_bufferSize;
+    const totalSize = this._bufferSize;
 
-    if (!this.m_regions.length) return minSize <= totalSize ? 0 : null;
+    if (!this._regions.length) return minSize <= totalSize ? 0 : null;
 
-    const last = this.m_regions.at(-1);
+    const last = this._regions.at(-1);
     const offset = last.offset + last.length;
-    const endOffset = this.m_regions[0].offset;
+    const endOffset = this._regions[0].offset;
 
     if (endOffset < offset)
     {
@@ -172,11 +172,11 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   ReleaseResources(_storage)
   {
-    this.m_buffer?.Destroy();
-    this.m_buffer = null;
-    this.RemoveRegions(0, this.m_regions.length);
-    for (const fence of this.m_availableFences) fence.Destroy();
-    this.m_availableFences.length = 0;
+    this._buffer?.Destroy();
+    this._buffer = null;
+    this.RemoveRegions(0, this._regions.length);
+    for (const fence of this._availableFences) fence.Destroy();
+    this._availableFences.length = 0;
   }
 
   /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
@@ -192,9 +192,9 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   OnPrepareResources()
   {
-    if (!this.m_bufferSize) return true;
+    if (!this._bufferSize) return true;
 
-    return !Failed(this.CreateBuffer(this.m_bufferSize));
+    return !Failed(this.CreateBuffer(this._bufferSize));
   }
 
   /** Carbon AllocateFence (cpp:260-277): a recycled fence, or a new one. */
@@ -202,7 +202,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   AllocateFence()
   {
-    if (this.m_availableFences.length) return this.m_availableFences.pop();
+    if (this._availableFences.length) return this._availableFences.pop();
 
     return Tr2RenderContext_GetMainThreadRenderContext().CreateFence();
   }
@@ -212,7 +212,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   DeallocateFence(fence)
   {
-    if (fence) this.m_availableFences.push(fence);
+    if (fence) this._availableFences.push(fence);
   }
 
   /**
@@ -225,9 +225,9 @@ export class Tr2DynamicRingBuffer
   @impl.adapted
   RemoveRegions(begin, end)
   {
-    for (let index = begin; index < end; index++) this.DeallocateFence(this.m_regions[index].fence);
+    for (let index = begin; index < end; index++) this.DeallocateFence(this._regions[index].fence);
 
-    this.m_regions.splice(begin, end - begin);
+    this._regions.splice(begin, end - begin);
   }
 
   /** Carbon SetSizeIncrement (cpp:312-315). */
@@ -235,7 +235,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   SetSizeIncrement(sizeIncrement)
   {
-    this.m_sizeIncrement = sizeIncrement >>> 0;
+    this._sizeIncrement = sizeIncrement >>> 0;
   }
 
   /** Carbon GetBufferSize (cpp:321-324). */
@@ -243,7 +243,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   GetBufferSize()
   {
-    return this.m_bufferSize;
+    return this._bufferSize;
   }
 
   /** Carbon SetName (cpp:326-333). */
@@ -251,8 +251,8 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   SetName(name)
   {
-    this.m_name = String(name ?? "");
-    if (this.IsValid()) this.m_buffer.SetName(this.m_name);
+    this._name = String(name ?? "");
+    if (this.IsValid()) this._buffer.SetName(this._name);
   }
 
   /** Carbon IsValid (cpp:342-345). */
@@ -260,7 +260,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   IsValid()
   {
-    return Boolean(this.m_buffer?.IsValid());
+    return Boolean(this._buffer?.IsValid());
   }
 
   /** Carbon GetBuffer (cpp:353-356): the AL buffer, null before creation. */
@@ -268,7 +268,7 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   GetBuffer()
   {
-    return this.m_buffer;
+    return this._buffer;
   }
 
   /**
@@ -294,12 +294,12 @@ export class Tr2DynamicRingBuffer
   @impl.implemented
   UpdateBuffer(data, offset, size, renderContext)
   {
-    const { result, data: mapped } = this.m_buffer.MapForWriting(renderContext);
+    const { result, data: mapped } = this._buffer.MapForWriting(renderContext);
     if (Failed(result)) return result;
     if (!mapped) return ALResult.E_FAIL;
 
     mapped.set(new Uint8Array(data.buffer, data.byteOffset, size), offset);
-    this.m_buffer.UnmapForWriting(renderContext);
+    this._buffer.UnmapForWriting(renderContext);
 
     return ALResult.S_OK;
   }

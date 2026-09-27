@@ -37,6 +37,7 @@ import { ResourceRequirement } from "#resource";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
@@ -1308,8 +1309,9 @@ export class EveSpaceScene extends CjsModel
     // the camera attachment parent. Without it GatherLights finds no owners
     // and no attachment light reaches a shader. Each also registers its quad
     // effects (sprite and spotlight sets), and so do the UI objects. The
-    // list-insert registration (OnListChanged, cpp:3455-3470) is not ported:
-    // objects pushed after Initialize join through ReregisterEntities.
+    // list-insert registration (OnListChanged, cpp:3455-3470) has no array
+    // event to hang on: objects pushed after Initialize join through
+    // ReregisterEntities, which does both registrations.
     // Carbon's BlueCastPtr<EveEntity> is CjsSchema.cast.
     const quadRenderer = Tr2QuadRenderer.Instance();
     for (const object of this.objects)
@@ -2214,8 +2216,14 @@ export class EveSpaceScene extends CjsModel
   /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).
    * Guarded no-op after ClearComponentRegistry has nulled the registry
    * (destroy-only path; Carbon would never call this afterwards). */
+  //
+  // Adapted: Carbon's list-insert handler registers every inserted object with
+  // the quad renderer (cpp:3455-3470). Our object lists are plain arrays with
+  // no insert event, and this method is where late objects join, so the
+  // objects register their quad effects here too. RegisterEffect ignores a key
+  // it already has, so registering again is harmless.
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   ReregisterEntities()
   {
     if (!this.componentRegistry)
@@ -2223,10 +2231,13 @@ export class EveSpaceScene extends CjsModel
       return;
     }
 
+    const quadRenderer = Tr2QuadRenderer.Instance();
     for (const collection of [this.objects, this.backgroundObjects, this.planets])
     {
       for (const object of collection)
       {
+        // Carbon casts to IEveSpaceObject2 (BlueCastPtr, cpp:3462).
+        CjsSchema.cast(object, IEveSpaceObject2)?.RegisterWithQuadRenderer(quadRenderer);
         if (object instanceof EveEntity)
         {
           this.componentRegistry.ReRegister(object);

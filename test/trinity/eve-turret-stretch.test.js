@@ -7,6 +7,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
+import { Tr2Renderer, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/core/index.js";
 import {
   EveFiringEffectElementContainer,
   IEveFiringEffectElement,
@@ -124,6 +125,10 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
   const batches = { Commit(batch) { committed.push(batch); return true; } };
   stretch.effect = FixtureEffect({ name: "stretchEffect" });
   assert.equal(stretch.GetBatches(batches, TriBatchType.TRIBATCHTYPE_TRANSPARENT, data, 0), false);
+  // The draw binds the renderer's quad-list index buffer (EveStretch2.cpp:343-347),
+  // which exists once a device does and quads are reserved.
+  Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+  Tr2Renderer.ReserveQuadListIndexBuffer(EveStretch2.MAX_QUAD_COUNT);
   assert.equal(stretch.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, data, 0), true);
   assert.equal(stretch.HasTransparentBatches(), false);
   assert.equal(stretch.GetSortValue(), 0);
