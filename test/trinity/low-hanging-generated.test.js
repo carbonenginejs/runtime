@@ -17,6 +17,7 @@ import { EveChildInstanceContainer } from "../../npm/dist/trinity/eve/child/EveC
 import { EveChildPlug } from "../../npm/dist/trinity/eve/child/EveChildPlug.js";
 import { EveChildParticleSphere } from "../../npm/dist/trinity/eve/child/EveChildParticleSphere.js";
 import { EveChildRef } from "../../npm/dist/trinity/eve/child/EveChildRef.js";
+import { blue } from "../../npm/dist/global/blue/index.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
 import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
 import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";
@@ -465,7 +466,7 @@ test("EveChildExplosion schedules local and global Carbon explosion children", (
   assert.equal(explosion.globalExplosionInstances.length, 0);
 });
 
-test("generated child wrappers propagate Carbon controller and socket calls", () =>
+test("generated child wrappers propagate Carbon controller and socket calls", async () =>
 {
   const calls = [];
   const child = Object.assign(new EveSpaceObjectChild(), {
@@ -510,8 +511,20 @@ test("generated child wrappers propagate Carbon controller and socket calls", ()
   calls.length = 0;
   const ref = new EveChildRef();
   ref.resPath = "res:/child.red";
-  ref.resourceLoader = new TestEveChildResourceLoader(() => child);
-  assert.equal(ref.Reload(), true);
+  // Carbon's LoadChild goes through BeResMan->LoadObject (EveChildRef.cpp:349);
+  // ours resolves later, so the child joins after the load settles.
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = () => Promise.resolve(child);
+  try
+  {
+    ref.Reload();
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  finally
+  {
+    blue.resMan.LoadObject = loadObject;
+  }
+  assert.equal(ref.child, child);
   ref.StartControllers();
   assert.deepEqual(calls[0], ["start"]);
 

@@ -114,6 +114,7 @@ import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer,
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
+import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
 import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
 import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
@@ -1217,6 +1218,10 @@ async function DemoBannerBytes(name)
  */
 async function ResourceBytes(path)
 {
+  // The client ships red files compiled: a .red is read as its .black, as
+  // Carbon's file system swaps it (SubstituteBlackForRedInFilename,
+  // blue/src/BlueFileUtil.cpp:374-387).
+  path = String(path).replace(/.red$/u, ".black");
   const response = await fetch(`/resource/${path}`);
 
   if (!response.ok) throw new Error(`${path}: ${response.status} ${response.statusText}`);
@@ -1713,6 +1718,8 @@ RegisterTexturePack(blue.resMan);
 RegisterShaderResources(blue.resMan, { translator: CjsWebgpuFormat });
 // A SOF ship's Tr2Mesh asks the manager for its .gr2 as GEOMETRY.
 RegisterGeometryResources(blue.resMan);
+// Red and black object files, which an EveChildRef loads by path.
+RegisterObjectResources(blue.resMan);
 // Effects resolve their platform path when they hydrate, so the defaults are
 // set before any SOF ship is built.
 SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
