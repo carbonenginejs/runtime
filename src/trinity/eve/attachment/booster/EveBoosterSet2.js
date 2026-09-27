@@ -317,6 +317,22 @@ export class EveBoosterSet2 extends EveEntity
   @edit.setting("eveSpaceObjectTrailsEnabled")
   static eveSpaceObjectTrailsEnabled = true;
 
+  /** g_eveSpaceObjectTrailsMinLength (cpp:34-35): below this trail length, in metres, a trail is not drawn. */
+  @edit.setting("eveSpaceObjectTrailsMinLength")
+  static eveSpaceObjectTrailsMinLength = 200;
+
+  /** g_eveSpaceObjectTrailsMinLengthFade (cpp:36-37): the length over which a trail fades in above the minimum. */
+  @edit.setting("eveSpaceObjectTrailsMinLengthFade")
+  static eveSpaceObjectTrailsMinLengthFade = 1000;
+
+  /** g_eveSpaceObjectTrailsMaxLength (cpp:39-40): above this trail length a trail is not drawn. */
+  @edit.setting("eveSpaceObjectTrailsMaxLength")
+  static eveSpaceObjectTrailsMaxLength = 50000;
+
+  /** g_eveSpaceObjectTrailsMaxLengthFade (cpp:41-42): the length over which a trail fades out below the maximum. */
+  @edit.setting("eveSpaceObjectTrailsMaxLengthFade")
+  static eveSpaceObjectTrailsMaxLengthFade = 20000;
+
   /**
    * Derives the runtime boosters, flares and trails from the authored items,
    * binds every renderable instance back to this set, and prepares the device

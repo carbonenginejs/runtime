@@ -242,26 +242,26 @@ export class EveBoosterSet2Renderable extends CjsModel
     this.#CalculateSplineData(deltaTime);
 
     const length = this.trailsTotalLength;
-    if (length > EveBoosterSet2Renderable.#trailMinLength &&
-      length < EveBoosterSet2Renderable.#trailMinLength +
-        EveBoosterSet2Renderable.#trailMinLengthFade)
+    if (length > EveBoosterSet2.eveSpaceObjectTrailsMinLength &&
+      length < EveBoosterSet2.eveSpaceObjectTrailsMinLength +
+        EveBoosterSet2.eveSpaceObjectTrailsMinLengthFade)
     {
       this.trailIntensity = EveBoosterSet2Renderable.#SinSmooth(
-        (length - EveBoosterSet2Renderable.#trailMinLength) /
-          EveBoosterSet2Renderable.#trailMinLengthFade
+        (length - EveBoosterSet2.eveSpaceObjectTrailsMinLength) /
+          EveBoosterSet2.eveSpaceObjectTrailsMinLengthFade
       );
     }
-    else if (length > EveBoosterSet2Renderable.#trailMaxLength -
-      EveBoosterSet2Renderable.#trailMaxLengthFade &&
-      length < EveBoosterSet2Renderable.#trailMaxLength)
+    else if (length > EveBoosterSet2.eveSpaceObjectTrailsMaxLength -
+      EveBoosterSet2.eveSpaceObjectTrailsMaxLengthFade &&
+      length < EveBoosterSet2.eveSpaceObjectTrailsMaxLength)
     {
       this.trailIntensity = EveBoosterSet2Renderable.#SinSmooth(
-        (EveBoosterSet2Renderable.#trailMaxLength - length) /
-          EveBoosterSet2Renderable.#trailMaxLengthFade
+        (EveBoosterSet2.eveSpaceObjectTrailsMaxLength - length) /
+          EveBoosterSet2.eveSpaceObjectTrailsMaxLengthFade
       );
     }
-    else if (length < EveBoosterSet2Renderable.#trailMinLength ||
-      length > EveBoosterSet2Renderable.#trailMaxLength)
+    else if (length < EveBoosterSet2.eveSpaceObjectTrailsMinLength ||
+      length > EveBoosterSet2.eveSpaceObjectTrailsMaxLength)
     {
       this.trailIntensity = 0;
     }
@@ -856,14 +856,6 @@ export class EveBoosterSet2Renderable extends CjsModel
   static #positionOffsetCount = 300;
 
   static #positionOffsetDelta = 0.0167;
-
-  static #trailMinLength = 200;
-
-  static #trailMinLengthFade = 1000;
-
-  static #trailMaxLength = 50000;
-
-  static #trailMaxLengthFade = 20000;
 
   static #floatMax = 3.4028234663852886e38;
 

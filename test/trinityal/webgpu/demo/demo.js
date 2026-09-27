@@ -2781,6 +2781,30 @@ export async function RunDemo(canvas)
       };
     });
 
+  // demo.trails(): what gates each booster renderable's trail (Carbon
+  // EveBoosterSet2.cpp:221-232 and 326, 364-386) - the setting, the booster
+  // set's trail and physics flags, the parent speed, the accumulated length
+  // against the length settings, the intensity, and the LOD visibility.
+  globalThis.demo.trails = () =>
+  {
+    const boosters = ship?.boosters ?? null;
+    const settings = Tr2Renderer.getSettings();
+    return {
+      enabled: settings.GetValue("eveSpaceObjectTrailsEnabled"),
+      minLength: settings.GetValue("eveSpaceObjectTrailsMinLength"),
+      maxLength: settings.GetValue("eveSpaceObjectTrailsMaxLength"),
+      hasTrails: Boolean(boosters?.trails),
+      physicsUpdate: boosters?.physicsUpdate ?? null,
+      maxVel: boosters?.maxVel ?? null,
+      instances: (boosters?.instances ?? []).map(renderable => ({
+        parentSpeed: renderable.parentSpeed,
+        trailsTotalLength: renderable.trailsTotalLength,
+        trailIntensity: renderable.trailIntensity,
+        trailsVisible: renderable.trailsVisible
+      }))
+    };
+  };
+
   globalThis.demo.lights = () =>
   {
     const manager = Tr2LightManager.getInstance();
