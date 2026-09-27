@@ -78,6 +78,8 @@ directly. See [geometry interchange](geometry-interchange.md).
 
 | Format | Class | Import |
 |---|---|---|
+| Resource index CSV | `CjsResFileIndexFormat` | `@carbonenginejs/runtime/resource/formats/resfileindex` |
+| ResourceGroup JSON / YAML interchange | `CjsResourceGroupFormat` | `@carbonenginejs/runtime/resource/formats/resourcegroup` |
 | Black (`.black`) | `CjsBlackFormat` | `@carbonenginejs/runtime/resource/formats/black` |
 | Wwise soundbank (`.bnk`) | `CjsBnkFormat` | `@carbonenginejs/runtime/resource/formats/bnk` |
 | CMF (`.cmf`) | `CjsCmfFormat` | `@carbonenginejs/runtime/resource/formats/cmf` |
@@ -119,3 +121,5 @@ Byte-level specifications that span several modules:
 [BitKnit2](bitknit2.md) and
 [Carbon WebGPU WGSL set](webgpu/formats/carbon-webgpu.md). Donor licensing is
 recorded in `format-notices/`.
+
+The resource-index CSV, ResourceGroup YAML and their JSON persistence are specified in [resource-index formats](resource-index.md).

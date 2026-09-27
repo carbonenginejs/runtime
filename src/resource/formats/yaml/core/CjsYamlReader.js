@@ -73,7 +73,8 @@ export class CjsYamlReader extends CjsReader
             lineCounter: this.lineCounter,
             prettyErrors: true,
             strict: true,
-            uniqueKeys: this.options.uniqueKeys
+            uniqueKeys: this.options.uniqueKeys,
+            intAsBigInt: this.options.intAsBigInt
         });
         this.inventory = this.BuildInventory();
     }

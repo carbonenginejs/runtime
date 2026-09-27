@@ -1327,6 +1327,26 @@ Reads a Red (YAML) object graph.
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
+<!-- class:CjsResFileIndexFormat -->
+## `CjsResFileIndexFormat`
+
+Carbon resfileindex wire records to plain JSON-safe resource-group documents.
+
+- Export: `@carbonenginejs/runtime/resource/formats/resfileindex`
+- Source: `src/resource/formats/resfileindex/CjsResFileIndexFormat.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsResourceGroupFormat -->
+## `CjsResourceGroupFormat`
+
+ResourceGroup JSON persistence and native YAML interchange, with lossless integer fields.
+
+- Export: `@carbonenginejs/runtime/resource/formats/resourcegroup`
+- Source: `src/resource/formats/resourcegroup/CjsResourceGroupFormat.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:CjsSchemaBoundFormat -->
 ## `CjsSchemaBoundFormat`
 

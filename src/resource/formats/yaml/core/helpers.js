@@ -15,6 +15,7 @@ export const DEFAULT_VALUES = Object.freeze({
     sourceName: null,
     maxAliasCount: 100,
     uniqueKeys: true,
+    intAsBigInt: false,
     idField: "$yamlId",
     refField: "$yamlRef",
     valuesField: "$yamlValues",
@@ -167,6 +168,10 @@ export function normalizeValues(base, options = {}, readerName = "CjsYamlFormat"
         }
         values.maxAliasCount = options.maxAliasCount;
     }
+    if (Object.hasOwn(options, "intAsBigInt"))
+    {
+        values.intAsBigInt = normalizeBoolean(options.intAsBigInt, "intAsBigInt", readerName);
+    }
     if (Object.hasOwn(options, "uniqueKeys"))
     {
         values.uniqueKeys = normalizeBoolean(options.uniqueKeys, "uniqueKeys", readerName);
@@ -205,6 +210,7 @@ export function toJsonGraph(value, options)
 
     const encode = (node) =>
     {
+        if (typeof node === "bigint") return node.toString();
         if (node === null || typeof node !== "object") return node;
         if (ArrayBuffer.isView(node)) return Array.from(node, encode);
         if (node instanceof Date) return node.toISOString();

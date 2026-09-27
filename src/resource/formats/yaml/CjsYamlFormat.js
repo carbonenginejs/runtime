@@ -18,7 +18,9 @@ const FORMAT_NAME = "CjsYamlFormat";
 /**
  * YAML format profile that parses YAML text or strict UTF-8 bytes into payload,
  * JSON-graph, raw, or document output with configurable tag policies, alias
- * limits, and identity/reference markers.
+ * limits, and identity/reference markers. With intAsBigInt enabled, raw output
+ * retains integer scalars as bigint; payload/JSON output uses decimal strings.
+ * The default remains Number conversion for compatibility.
  */
 export class CjsYamlFormat extends CjsFormat
 {
