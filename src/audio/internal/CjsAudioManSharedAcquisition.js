@@ -6,15 +6,15 @@ import { throwIfAborted } from "#utils/errors";
 /** Owns one shared acquisition, its caller leases, and orphan cancellation. */
 export class CjsAudioManSharedAcquisition
 {
-    #controller = new AbortController();
+    _controller = new AbortController();
 
-    #evict = null;
+    _evict = null;
 
-    #leases = 0;
+    _leases = 0;
 
-    #pending = true;
+    _pending = true;
 
-    #promise = null;
+    _promise = null;
 
     /** Starts one acquisition and installs its retention/eviction policy. */
     constructor({ start, evict, retain = true } = {})
@@ -28,19 +28,19 @@ export class CjsAudioManSharedAcquisition
             throw new TypeError("Shared audio acquisition requires an eviction function");
         }
 
-        this.#evict = evict;
+        this._evict = evict;
         let operation;
 
         try
         {
-            operation = start(this.#controller.signal);
+            operation = start(this._controller.signal);
         }
         catch (error)
         {
             operation = Promise.reject(error);
         }
 
-        this.#promise = Promise.resolve(operation)
+        this._promise = Promise.resolve(operation)
             .then(value =>
             {
                 const retained = typeof retain === "function"
@@ -60,7 +60,7 @@ export class CjsAudioManSharedAcquisition
             })
             .finally(() =>
             {
-                this.#pending = false;
+                this._pending = false;
             });
     }
 
@@ -68,13 +68,13 @@ export class CjsAudioManSharedAcquisition
     Subscribe(signal)
     {
         throwIfAborted(signal, "Audio media load aborted");
-        throwIfAborted(this.#controller.signal, "Audio media load aborted");
-        this.#leases++;
+        throwIfAborted(this._controller.signal, "Audio media load aborted");
+        this._leases++;
 
         return new Promise((resolve, reject) =>
         {
             let settled = false;
-            const sharedSignal = this.#controller.signal;
+            const sharedSignal = this._controller.signal;
             const finish = (callback, value) =>
             {
                 if (settled)
@@ -84,7 +84,7 @@ export class CjsAudioManSharedAcquisition
                 settled = true;
                 signal?.removeEventListener?.("abort", onCallerAbort);
                 sharedSignal.removeEventListener?.("abort", onSharedAbort);
-                this.#Release(value);
+                this._Release(value);
                 callback(value);
             };
             const onCallerAbort = () =>
@@ -112,7 +112,7 @@ export class CjsAudioManSharedAcquisition
                 onSharedAbort();
                 return;
             }
-            this.#promise.then(
+            this._promise.then(
                 value => finish(resolve, value),
                 error => finish(reject, error),
             );
@@ -122,9 +122,9 @@ export class CjsAudioManSharedAcquisition
     /** Aborts pending shared work without affecting an already settled result. */
     Abort(reason = undefined)
     {
-        if (this.#pending && !this.#controller.signal.aborted)
+        if (this._pending && !this._controller.signal.aborted)
         {
-            this.#controller.abort(reason);
+            this._controller.abort(reason);
             return true;
         }
         return false;
@@ -133,14 +133,14 @@ export class CjsAudioManSharedAcquisition
     /** Removes this entry from its owning cache when it is still current. */
     Evict()
     {
-        this.#evict?.();
+        this._evict?.();
     }
 
     /** Releases one lease and cancels shared work after the final orphan. */
-    #Release(reason)
+    _Release(reason)
     {
-        this.#leases = Math.max(0, this.#leases - 1);
-        if (this.#pending && this.#leases === 0)
+        this._leases = Math.max(0, this._leases - 1);
+        if (this._pending && this._leases === 0)
         {
             this.Evict();
             this.Abort(reason);

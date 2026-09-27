@@ -42,21 +42,21 @@ function PreserveAuthoredPitch(source, target)
 /** Owns speculative SFX selection leases, snapshots, and settlement. */
 class CjsSfxEngineSelectionTransactionLedger
 {
-    #activeTransaction = null;
+    _activeTransaction = null;
 
-    #continuousSequencePositions = null;
+    _continuousSequencePositions = null;
 
-    #leasedTokens = new WeakMap();
+    _leasedTokens = new WeakMap();
 
-    #preparingToken = null;
+    _preparingToken = null;
 
-    #randomHistory = null;
+    _randomHistory = null;
 
-    #selectionReservations = new Map();
+    _selectionReservations = new Map();
 
-    #sequencePositions = null;
+    _sequencePositions = null;
 
-    #shufflePools = null;
+    _shufflePools = null;
 
     /** Creates a ledger over the engine's mutable selection state maps. */
     constructor({
@@ -66,22 +66,22 @@ class CjsSfxEngineSelectionTransactionLedger
         continuousSequencePositions,
     })
     {
-        this.#randomHistory = randomHistory;
-        this.#shufflePools = shufflePools;
-        this.#sequencePositions = sequencePositions;
-        this.#continuousSequencePositions = continuousSequencePositions;
+        this._randomHistory = randomHistory;
+        this._shufflePools = shufflePools;
+        this._sequencePositions = sequencePositions;
+        this._continuousSequencePositions = continuousSequencePositions;
     }
 
     /** Rejects nested preparations and duplicate leases in historical order. */
     AssertCanPrepare(token)
     {
-        if (this.#activeTransaction)
+        if (this._activeTransaction)
         {
             throw new Error(
                 "CjsSfxEngine cannot nest speculative continuation selection",
             );
         }
-        if (this.#leasedTokens.has(token))
+        if (this._leasedTokens.has(token))
         {
             throw new Error(
                 "CjsSfxEngine continuation token is already being prepared",
@@ -92,8 +92,8 @@ class CjsSfxEngineSelectionTransactionLedger
     /** Rejects use of an unsettled token outside its synchronous preparation. */
     AssertContinuationAvailable(token)
     {
-        if (this.#leasedTokens.has(token)
-            && this.#preparingToken !== token)
+        if (this._leasedTokens.has(token)
+            && this._preparingToken !== token)
         {
             throw new Error(
                 "CjsSfxEngine continuation token is being prepared",
@@ -116,9 +116,9 @@ class CjsSfxEngineSelectionTransactionLedger
         let program;
         let afterToken;
 
-        this.#leasedTokens.set(token, transaction);
-        this.#activeTransaction = transaction;
-        this.#preparingToken = token;
+        this._leasedTokens.set(token, transaction);
+        this._activeTransaction = transaction;
+        this._preparingToken = token;
         try
         {
             program = resolve();
@@ -126,17 +126,17 @@ class CjsSfxEngineSelectionTransactionLedger
         }
         catch (error)
         {
-            this.#leasedTokens.delete(token);
+            this._leasedTokens.delete(token);
             throw error;
         }
         finally
         {
-            this.#preparingToken = null;
-            this.#activeTransaction = null;
+            this._preparingToken = null;
+            this._activeTransaction = null;
             RestoreContinuationToken(token, beforeToken);
             RestoreSelectionChanges(transaction.snapshots);
         }
-        this.#ReserveSelectionOperations(transaction);
+        this._ReserveSelectionOperations(transaction);
 
         let settled = false;
 
@@ -147,21 +147,21 @@ class CjsSfxEngineSelectionTransactionLedger
                 if (!settled)
                 {
                     settled = true;
-                    this.#leasedTokens.delete(token);
-                    this.#ReleaseSelectionReservations(transaction);
+                    this._leasedTokens.delete(token);
+                    this._ReleaseSelectionReservations(transaction);
                     if (!isCurrent() || transaction.invalidated)
                     {
                         return;
                     }
                     CommitContinuationToken(token, beforeToken, afterToken);
-                    this.#CommitSelectionOperations(transaction.operations);
+                    this._CommitSelectionOperations(transaction.operations);
                 }
             },
             rollback: () =>
             {
                 settled = true;
-                this.#leasedTokens.delete(token);
-                this.#ReleaseSelectionReservations(transaction);
+                this._leasedTokens.delete(token);
+                this._ReleaseSelectionReservations(transaction);
             },
         };
     }
@@ -169,16 +169,16 @@ class CjsSfxEngineSelectionTransactionLedger
     /** Captures one selection-state key before speculative mutation. */
     TrackMutation(map, key)
     {
-        if (!this.#activeTransaction)
+        if (!this._activeTransaction)
         {
             return;
         }
-        let mutations = this.#activeTransaction.snapshots.get(map);
+        let mutations = this._activeTransaction.snapshots.get(map);
 
         if (!mutations)
         {
             mutations = new Map();
-            this.#activeTransaction.snapshots.set(map, mutations);
+            this._activeTransaction.snapshots.set(map, mutations);
         }
         if (!mutations.has(key))
         {
@@ -189,14 +189,14 @@ class CjsSfxEngineSelectionTransactionLedger
     /** Records one mergeable selection effect for speculative commit. */
     RecordOperation(operation)
     {
-        this.#activeTransaction?.operations.push(operation);
+        this._activeTransaction?.operations.push(operation);
     }
 
     /** Returns speculative random children reserved on one state key. */
     ReservedRandomSelections(key)
     {
         return new Set(
-            (this.#selectionReservations.get(`random\0${key}`) ?? [])
+            (this._selectionReservations.get(`random\0${key}`) ?? [])
                 .map(value => value.selected),
         );
     }
@@ -204,11 +204,11 @@ class CjsSfxEngineSelectionTransactionLedger
     /** Clears reservations and every selection-state map for engine Reset. */
     Reset()
     {
-        this.#selectionReservations.clear();
-        this.#randomHistory.clear();
-        this.#shufflePools.clear();
-        this.#sequencePositions.clear();
-        this.#continuousSequencePositions.clear();
+        this._selectionReservations.clear();
+        this._randomHistory.clear();
+        this._shufflePools.clear();
+        this._sequencePositions.clear();
+        this._continuousSequencePositions.clear();
     }
 
     /** Invalidates reserved work and clears one game object's selection state. */
@@ -218,7 +218,7 @@ class CjsSfxEngineSelectionTransactionLedger
         const prefix = `o:${id}\0`;
         const invalidated = new Set();
 
-        for (const reservations of this.#selectionReservations.values())
+        for (const reservations of this._selectionReservations.values())
         {
             for (const { transaction } of reservations)
             {
@@ -231,17 +231,17 @@ class CjsSfxEngineSelectionTransactionLedger
         for (const transaction of invalidated)
         {
             transaction.invalidated = true;
-            this.#leasedTokens.delete(transaction.token);
-            this.#ReleaseSelectionReservations(transaction);
+            this._leasedTokens.delete(transaction.token);
+            this._ReleaseSelectionReservations(transaction);
         }
-        DeleteKeysWithPrefix(this.#randomHistory, prefix);
-        DeleteKeysWithPrefix(this.#shufflePools, prefix);
-        DeleteKeysWithPrefix(this.#sequencePositions, prefix);
-        DeleteKeysWithPrefix(this.#continuousSequencePositions, prefix);
+        DeleteKeysWithPrefix(this._randomHistory, prefix);
+        DeleteKeysWithPrefix(this._shufflePools, prefix);
+        DeleteKeysWithPrefix(this._sequencePositions, prefix);
+        DeleteKeysWithPrefix(this._continuousSequencePositions, prefix);
     }
 
     /** Reserves speculative random choices against concurrent preparations. */
-    #ReserveSelectionOperations(transaction)
+    _ReserveSelectionOperations(transaction)
     {
         for (const operation of transaction.operations)
         {
@@ -255,36 +255,36 @@ class CjsSfxEngineSelectionTransactionLedger
                 selected: operation.selected,
                 advance: operation.advance ?? 0,
             };
-            const reservations = this.#selectionReservations.get(key) ?? [];
+            const reservations = this._selectionReservations.get(key) ?? [];
 
             reservations.push(reservation);
-            this.#selectionReservations.set(key, reservations);
+            this._selectionReservations.set(key, reservations);
             transaction.reservations.push({ key, reservation });
         }
     }
 
     /** Removes every pending choice owned by one settled transaction. */
-    #ReleaseSelectionReservations(transaction)
+    _ReleaseSelectionReservations(transaction)
     {
         for (const { key, reservation } of transaction.reservations)
         {
-            const reservations = this.#selectionReservations.get(key)
+            const reservations = this._selectionReservations.get(key)
                 ?.filter(value => value !== reservation) ?? [];
 
             if (reservations.length)
             {
-                this.#selectionReservations.set(key, reservations);
+                this._selectionReservations.set(key, reservations);
             }
             else
             {
-                this.#selectionReservations.delete(key);
+                this._selectionReservations.delete(key);
             }
         }
         transaction.reservations.length = 0;
     }
 
     /** Merges heard speculative choices into current shared selection state. */
-    #CommitSelectionOperations(operations)
+    _CommitSelectionOperations(operations)
     {
         for (const operation of operations)
         {
@@ -293,15 +293,15 @@ class CjsSfxEngineSelectionTransactionLedger
                 if (operation.historyLength > 0)
                 {
                     const history = [
-                        ...(this.#randomHistory.get(operation.key) ?? []),
+                        ...(this._randomHistory.get(operation.key) ?? []),
                         operation.selected,
                     ].slice(-operation.historyLength);
 
-                    this.#randomHistory.set(operation.key, history);
+                    this._randomHistory.set(operation.key, history);
                 }
                 if (operation.shuffle)
                 {
-                    let pool = this.#shufflePools.get(operation.key);
+                    let pool = this._shufflePools.get(operation.key);
 
                     if (!pool?.length)
                     {
@@ -320,27 +320,27 @@ class CjsSfxEngineSelectionTransactionLedger
                     {
                         pool.splice(index, 1);
                     }
-                    this.#shufflePools.set(operation.key, pool);
+                    this._shufflePools.set(operation.key, pool);
                 }
             }
             else if (operation.kind === "sequence")
             {
-                const position = this.#sequencePositions.get(
+                const position = this._sequencePositions.get(
                     operation.key,
                 ) ?? 0;
 
-                this.#sequencePositions.set(
+                this._sequencePositions.set(
                     operation.key,
                     position + operation.advance,
                 );
             }
             else if (operation.kind === "continuous-sequence")
             {
-                const position = this.#continuousSequencePositions.get(
+                const position = this._continuousSequencePositions.get(
                     operation.key,
                 ) ?? 0;
 
-                this.#continuousSequencePositions.set(
+                this._continuousSequencePositions.set(
                     operation.key,
                     position + operation.advance,
                 );
@@ -364,33 +364,33 @@ class CjsSfxEngineSelectionTransactionLedger
  */
 export class CjsSfxEngine
 {
-    #graph = null;
+    _graph = null;
 
-    #random = null;
+    _random = null;
 
-    #randomHistory = new Map();
+    _randomHistory = new Map();
 
-    #shufflePools = new Map();
+    _shufflePools = new Map();
 
-    #sequencePositions = new Map();
+    _sequencePositions = new Map();
 
-    #continuousSequencePositions = new Map();
+    _continuousSequencePositions = new Map();
 
-    #continuousSessions = new WeakSet();
+    _continuousSessions = new WeakSet();
 
-    #selectionGeneration = 0;
+    _selectionGeneration = 0;
 
-    #selectionLedger = null;
+    _selectionLedger = null;
 
-    #releasedGameObjGenerations = new Map();
+    _releasedGameObjGenerations = new Map();
 
-    #tokenGenerations = new WeakMap();
+    _tokenGenerations = new WeakMap();
 
-    #voiceLowPassTargets = new Set();
+    _voiceLowPassTargets = new Set();
 
-    #voiceHighPassTargets = new Set();
+    _voiceHighPassTargets = new Set();
 
-    #busVoiceVolumeTargets = new Set();
+    _busVoiceVolumeTargets = new Set();
 
     /**
      * Creates an interpreter for an installed, validated SFX graph.
@@ -406,15 +406,15 @@ export class CjsSfxEngine
             throw new TypeError("CjsSfxEngine random must be a function");
         }
 
-        this.#graph = graph;
-        this.#random = random;
-        this.#selectionLedger =
+        this._graph = graph;
+        this._random = random;
+        this._selectionLedger =
             new CjsSfxEngineSelectionTransactionLedger({
-                randomHistory: this.#randomHistory,
-                shufflePools: this.#shufflePools,
-                sequencePositions: this.#sequencePositions,
+                randomHistory: this._randomHistory,
+                shufflePools: this._shufflePools,
+                sequencePositions: this._sequencePositions,
                 continuousSequencePositions:
-                    this.#continuousSequencePositions,
+                    this._continuousSequencePositions,
             });
         for (const program of Object.values(graph.programs ?? {}))
         {
@@ -422,15 +422,15 @@ export class CjsSfxEngine
             {
                 if (action.kind === "set-voice-low-pass")
                 {
-                    this.#voiceLowPassTargets.add(String(action.targetId));
+                    this._voiceLowPassTargets.add(String(action.targetId));
                 }
                 else if (action.kind === "set-voice-high-pass")
                 {
-                    this.#voiceHighPassTargets.add(String(action.targetId));
+                    this._voiceHighPassTargets.add(String(action.targetId));
                 }
                 else if (action.kind === "set-bus-voice-volume")
                 {
-                    this.#busVoiceVolumeTargets.add(
+                    this._busVoiceVolumeTargets.add(
                         String(action.targetId),
                     );
                 }
@@ -443,14 +443,14 @@ export class CjsSfxEngine
     {
         const name = String(eventName);
 
-        return Array.isArray(this.#graph.events?.[name])
-            || Array.isArray(this.#graph.programs?.[name]);
+        return Array.isArray(this._graph.events?.[name])
+            || Array.isArray(this._graph.programs?.[name]);
     }
 
     /** Returns whether one authored event program contains a Stop action. */
     HasStopAction(eventName)
     {
-        return this.#graph.programs?.[String(eventName)]
+        return this._graph.programs?.[String(eventName)]
             ?.some(action => action.kind === "stop") === true;
     }
 
@@ -491,8 +491,8 @@ export class CjsSfxEngine
     ResolveProgram(eventName, controls = {})
     {
         const name = String(eventName);
-        const roots = this.#graph.events?.[name] ?? [];
-        const program = this.#graph.programs?.[name] ?? null;
+        const roots = this._graph.events?.[name] ?? [];
+        const program = this._graph.programs?.[name] ?? null;
 
         if (!Array.isArray(roots)
             || (program !== null && !Array.isArray(program)))
@@ -520,7 +520,7 @@ export class CjsSfxEngine
             continuousBranches,
         ) =>
         {
-            this.#ResolveChild(
+            this._ResolveChild(
                 child,
                 resolvedControls,
                 {
@@ -571,7 +571,7 @@ export class CjsSfxEngine
                 const programBatchId =
                     `${programSlotId}:b${branch.token.batchIndex++}`;
                 const hasMore = switchSession
-                    || this.#ContinuousHasMore(branch.token);
+                    || this._ContinuousHasMore(branch.token);
 
                 branch.token.actionIndex = actionIndex;
                 branch.token.programSlotId = programSlotId;
@@ -582,7 +582,7 @@ export class CjsSfxEngine
                         programBatchId,
                     })));
                 const continuation = nestedSession
-                    ? this.#DescribeNestedContinuation(
+                    ? this._DescribeNestedContinuation(
                         branch.token,
                         hasMore,
                     )
@@ -604,7 +604,7 @@ export class CjsSfxEngine
                                 branch.token.node.continuous.transition,
                             )
                             && hasMore
-                            ? this.#SampleContinuousTransition(
+                            ? this._SampleContinuousTransition(
                                 branch.token,
                             )
                             : 0),
@@ -686,7 +686,7 @@ export class CjsSfxEngine
                     || action.kind === "resume")
                 {
                     const playbackControl =
-                        this.#ResolvePlaybackControlAction(
+                        this._ResolvePlaybackControlAction(
                         action,
                         actionIndex,
                     );
@@ -700,7 +700,7 @@ export class CjsSfxEngine
                     || action.kind === "reset-voice-volume"
                     || action.kind === "set-bus-voice-volume")
                 {
-                    const volume = this.#ResolveVoiceVolumeAction(
+                    const volume = this._ResolveVoiceVolumeAction(
                         action,
                         actionIndex,
                     );
@@ -714,7 +714,7 @@ export class CjsSfxEngine
                     || action.kind === "reset-bus-volume")
                 {
                     operations.push(
-                        this.#ResolveBusVolumeAction(
+                        this._ResolveBusVolumeAction(
                             action,
                             actionIndex,
                         ),
@@ -723,7 +723,7 @@ export class CjsSfxEngine
                 else if (action.kind === "set-voice-pitch"
                     || action.kind === "reset-voice-pitch")
                 {
-                    const pitch = this.#ResolveVoicePitchAction(
+                    const pitch = this._ResolveVoicePitchAction(
                         action,
                         actionIndex,
                     );
@@ -739,7 +739,7 @@ export class CjsSfxEngine
                     || action.kind === "reset-voice-high-pass")
                 {
                     operations.push(
-                        this.#ResolveVoiceFilterAction(
+                        this._ResolveVoiceFilterAction(
                             action,
                             actionIndex,
                         ),
@@ -749,7 +749,7 @@ export class CjsSfxEngine
                     || action.kind === "reset-game-parameter")
                 {
                     const gameParameter =
-                        this.#ResolveGameParameterAction(
+                        this._ResolveGameParameterAction(
                             action,
                             actionIndex,
                         );
@@ -804,34 +804,34 @@ export class CjsSfxEngine
     {
         if (!token
             || typeof token !== "object"
-            || !this.#continuousSessions.has(token))
+            || !this._continuousSessions.has(token))
         {
             throw new TypeError(
                 "CjsSfxEngine continuation token is invalid",
             );
         }
-        const generation = this.#tokenGenerations.get(token);
+        const generation = this._tokenGenerations.get(token);
         const currentGameObjGeneration =
-            this.#releasedGameObjGenerations.get(
+            this._releasedGameObjGenerations.get(
                 String(token.gameObjID),
             ) ?? 0;
 
         if (!generation
-            || generation.selection !== this.#selectionGeneration
+            || generation.selection !== this._selectionGeneration
             || generation.gameObj !== currentGameObjGeneration)
         {
             throw new TypeError(
                 "CjsSfxEngine continuation token has been invalidated",
             );
         }
-        this.#selectionLedger.AssertContinuationAvailable(token);
+        this._selectionLedger.AssertContinuationAvailable(token);
         if (token.done)
         {
             return [];
         }
         if (token.kind === "switch")
         {
-            return this.#ContinueSwitchProgram(token, controls);
+            return this._ContinueSwitchProgram(token, controls);
         }
         let nestedRestartTerms = null;
 
@@ -844,13 +844,13 @@ export class CjsSfxEngine
                     + SampleRandomizedValue(
                     token.parentNode.continuous.transitionMs,
                     token.parentNode.continuous.transitionRangeMs,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             };
             token.passCount = 0;
             token.remainingInPass = 0;
             token.sequencePosition = token.node.type === "sequence"
-                ? this.#InitialContinuousSequencePosition(
+                ? this._InitialContinuousSequencePosition(
                     token.nodeID,
                     token.node,
                     token.gameObjID,
@@ -860,7 +860,7 @@ export class CjsSfxEngine
             token.restartPending = false;
         }
 
-        const selections = this.#ResolveContinuousBatch(
+        const selections = this._ResolveContinuousBatch(
             token,
             controls,
             nestedRestartTerms !== null,
@@ -882,9 +882,9 @@ export class CjsSfxEngine
         const transition = token.node.continuous.transition;
         const programBatchId =
             `${token.programSlotId}:b${token.batchIndex++}`;
-        const hasMore = this.#ContinuousHasMore(token);
+        const hasMore = this._ContinuousHasMore(token);
         const nestedContinuation = IsNestedDelayToken(token)
-            ? this.#DescribeNestedContinuation(token, hasMore)
+            ? this._DescribeNestedContinuation(token, hasMore)
             : null;
         const delayMs = nestedContinuation?.delayMs
             ?? (transition === "delay"
@@ -893,7 +893,7 @@ export class CjsSfxEngine
             ? SampleRandomizedValue(
                 token.node.continuous.transitionMs,
                 token.node.continuous.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )
             : 0);
         return [
@@ -955,13 +955,13 @@ export class CjsSfxEngine
     {
         if (!token
             || typeof token !== "object"
-            || !this.#continuousSessions.has(token))
+            || !this._continuousSessions.has(token))
         {
             throw new TypeError(
                 "CjsSfxEngine continuation token is invalid",
             );
         }
-        this.#selectionLedger.AssertCanPrepare(token);
+        this._selectionLedger.AssertCanPrepare(token);
         if (token.kind === "switch")
         {
             throw new TypeError(
@@ -974,18 +974,18 @@ export class CjsSfxEngine
                 "CjsSfxEngine nested Trigger Rate sessions cannot be prepared",
             );
         }
-        const selectionGeneration = this.#selectionGeneration;
-        const gameObjGeneration = this.#releasedGameObjGenerations.get(
+        const selectionGeneration = this._selectionGeneration;
+        const gameObjGeneration = this._releasedGameObjGenerations.get(
             String(token.gameObjID),
         ) ?? 0;
 
-        return this.#selectionLedger.Prepare({
+        return this._selectionLedger.Prepare({
             token,
             resolve: () => this.ContinueProgram(token, controls),
             isCurrent: () =>
-                selectionGeneration === this.#selectionGeneration
+                selectionGeneration === this._selectionGeneration
                 && gameObjGeneration === (
-                    this.#releasedGameObjGenerations.get(
+                    this._releasedGameObjGenerations.get(
                         String(token.gameObjID),
                     ) ?? 0
                 ),
@@ -993,35 +993,35 @@ export class CjsSfxEngine
     }
 
     /** Captures one selection-state key before speculative mutation. */
-    #TrackSelectionMutation(map, key)
+    _TrackSelectionMutation(map, key)
     {
-        this.#selectionLedger.TrackMutation(map, key);
+        this._selectionLedger.TrackMutation(map, key);
     }
 
     /** Records one mergeable selection effect for speculative commit. */
-    #RecordSelectionOperation(operation)
+    _RecordSelectionOperation(operation)
     {
-        this.#selectionLedger.RecordOperation(operation);
+        this._selectionLedger.RecordOperation(operation);
     }
 
     /** Returns speculative random children reserved on one state key. */
-    #ReservedRandomSelections(key)
+    _ReservedRandomSelections(key)
     {
-        return this.#selectionLedger.ReservedRandomSelections(key);
+        return this._selectionLedger.ReservedRandomSelections(key);
     }
 
     /** Samples one authored Continuous transition duration. */
-    #SampleContinuousTransition(token)
+    _SampleContinuousTransition(token)
     {
         return SampleRandomizedValue(
             token.node.continuous.transitionMs,
             token.node.continuous.transitionRangeMs,
-            () => this.#SampleUnit(),
+            () => this._SampleUnit(),
         );
     }
 
     /** Returns whether a selected Continuous child has a successor. */
-    #ContinuousHasMore(token)
+    _ContinuousHasMore(token)
     {
         if (token.remainingInPass > 0)
         {
@@ -1197,9 +1197,9 @@ export class CjsSfxEngine
     /** Clears random history and step-sequence positions. */
     Reset()
     {
-        this.#selectionGeneration++;
-        this.#releasedGameObjGenerations.clear();
-        this.#selectionLedger.Reset();
+        this._selectionGeneration++;
+        this._releasedGameObjGenerations.clear();
+        this._selectionLedger.Reset();
     }
 
     /** Releases object-scoped container state for one unregistered game object. */
@@ -1207,15 +1207,15 @@ export class CjsSfxEngine
     {
         const id = String(gameObjID);
 
-        this.#releasedGameObjGenerations.set(
+        this._releasedGameObjGenerations.set(
             id,
-            (this.#releasedGameObjGenerations.get(id) ?? 0) + 1,
+            (this._releasedGameObjGenerations.get(id) ?? 0) + 1,
         );
-        this.#selectionLedger.ReleaseGameObj(id);
+        this._selectionLedger.ReleaseGameObj(id);
     }
 
     /** Resolves one child edge and its target node. */
-    #ResolveChild(
+    _ResolveChild(
         child,
         controls,
         inherited,
@@ -1227,7 +1227,7 @@ export class CjsSfxEngine
     )
     {
         const edge = NormalizeChild(child);
-        const node = this.#graph.nodes?.[edge.nodeId];
+        const node = this._graph.nodes?.[edge.nodeId];
 
         if (!node)
         {
@@ -1240,15 +1240,15 @@ export class CjsSfxEngine
             );
         }
 
-        const actionTiming = this.#ResolveActionTiming(edge, inherited);
+        const actionTiming = this._ResolveActionTiming(edge, inherited);
 
         if (actionTiming === null)
         {
             return;
         }
 
-        const terms = this.#AddNodeTerms(
-            this.#AddNodeTerms(inherited, edge),
+        const terms = this._AddNodeTerms(
+            this._AddNodeTerms(inherited, edge),
             node,
         );
         Object.assign(terms, actionTiming);
@@ -1279,13 +1279,13 @@ export class CjsSfxEngine
                 || rtpcCurves.some(curve =>
                     curve.property === "lowPass")
                 || matchIds.some(value =>
-                    this.#voiceLowPassTargets.has(String(value)));
+                    this._voiceLowPassTargets.has(String(value)));
             const hasHighPass = terms.hasHighPass
                 || HasStateCaseField(stateProperties, "highPass")
                 || rtpcCurves.some(curve =>
                     curve.property === "highPass")
                 || matchIds.some(value =>
-                    this.#voiceHighPassTargets.has(String(value)));
+                    this._voiceHighPassTargets.has(String(value)));
             const rtpcInitialDelayMs = EvaluateRtpcProperties(
                 rtpcCurves,
                 controls,
@@ -1307,7 +1307,7 @@ export class CjsSfxEngine
                     : {
                         busPathIds: node.busPathIds.map(String),
                         ...(node.busPathIds.some(value =>
-                            this.#busVoiceVolumeTargets.has(String(value)))
+                            this._busVoiceVolumeTargets.has(String(value)))
                             ? { busVoiceVolumeActionControlled: true }
                             : {}),
                         ...(node.authoredBusVolumeDb === undefined
@@ -1397,7 +1397,7 @@ export class CjsSfxEngine
         {
             for (const nested of node.children)
             {
-                this.#ResolveChild(
+                this._ResolveChild(
                     nested,
                     controls,
                     terms,
@@ -1417,7 +1417,7 @@ export class CjsSfxEngine
             {
                 if (switchSession)
                 {
-                    this.#ResolveContinuousSwitchDecision(
+                    this._ResolveContinuousSwitchDecision(
                         edge.nodeId,
                         node,
                         controls,
@@ -1430,7 +1430,7 @@ export class CjsSfxEngine
                 }
                 else
                 {
-                    this.#ResolveContinuousSwitch(
+                    this._ResolveContinuousSwitch(
                         edge.nodeId,
                         node,
                         controls,
@@ -1451,7 +1451,7 @@ export class CjsSfxEngine
 
             if (nested !== undefined)
             {
-                this.#ResolveChild(
+                this._ResolveChild(
                     nested,
                     controls,
                     terms,
@@ -1469,7 +1469,7 @@ export class CjsSfxEngine
         {
             if (node.continuous)
             {
-                this.#ResolveContinuousNode(
+                this._ResolveContinuousNode(
                     edge.nodeId,
                     node,
                     controls,
@@ -1480,7 +1480,7 @@ export class CjsSfxEngine
                 );
                 return;
             }
-            const index = this.#SelectRandom(
+            const index = this._SelectRandom(
                 edge.nodeId,
                 node,
                 ContainerObjectID(node, controls.gameObjID),
@@ -1488,7 +1488,7 @@ export class CjsSfxEngine
 
             if (index !== -1)
             {
-                this.#ResolveChild(
+                this._ResolveChild(
                     node.children[index],
                     controls,
                     terms,
@@ -1506,7 +1506,7 @@ export class CjsSfxEngine
         {
             if (node.continuous)
             {
-                this.#ResolveContinuousNode(
+                this._ResolveContinuousNode(
                     edge.nodeId,
                     node,
                     controls,
@@ -1517,7 +1517,7 @@ export class CjsSfxEngine
                 );
                 return;
             }
-            const index = this.#SelectSequence(
+            const index = this._SelectSequence(
                 edge.nodeId,
                 node,
                 ContainerObjectID(node, controls.gameObjID),
@@ -1525,7 +1525,7 @@ export class CjsSfxEngine
 
             if (index !== -1)
             {
-                this.#ResolveChild(
+                this._ResolveChild(
                     node.children[index],
                     controls,
                     terms,
@@ -1540,7 +1540,7 @@ export class CjsSfxEngine
     }
 
     /** Creates one live Continuous Switch topology session. */
-    #ResolveContinuousSwitch(
+    _ResolveContinuousSwitch(
         nodeID,
         node,
         controls,
@@ -1576,17 +1576,17 @@ export class CjsSfxEngine
             batchIndex: 0,
             done: false,
         };
-        const resolved = this.#ResolveContinuousSwitchRoute(
+        const resolved = this._ResolveContinuousSwitchRoute(
             token,
             controls,
             true,
         );
 
         token.route = resolved.route;
-        this.#continuousSessions.add(token);
-        this.#tokenGenerations.set(token, {
-            selection: this.#selectionGeneration,
-            gameObj: this.#releasedGameObjGenerations.get(
+        this._continuousSessions.add(token);
+        this._tokenGenerations.set(token, {
+            selection: this._selectionGeneration,
+            gameObj: this._releasedGameObjGenerations.get(
                 String(token.gameObjID),
             ) ?? 0,
         });
@@ -1597,13 +1597,13 @@ export class CjsSfxEngine
     }
 
     /** Resolves the currently active nested path of one Continuous Switch. */
-    #ResolveContinuousSwitchRoute(token, controls, initial)
+    _ResolveContinuousSwitchRoute(token, controls, initial)
     {
         const selections = [];
         const continuousBranches = [];
         const session = { route: [] };
 
-        this.#ResolveContinuousSwitchDecision(
+        this._ResolveContinuousSwitchDecision(
             token.nodeID,
             token.node,
             controls,
@@ -1659,7 +1659,7 @@ export class CjsSfxEngine
     }
 
     /** Records and resolves one active decision inside a switch session. */
-    #ResolveContinuousSwitchDecision(
+    _ResolveContinuousSwitchDecision(
         nodeID,
         node,
         controls,
@@ -1684,7 +1684,7 @@ export class CjsSfxEngine
         });
         if (selected !== undefined)
         {
-            this.#ResolveChild(
+            this._ResolveChild(
                 selected,
                 controls,
                 terms,
@@ -1698,9 +1698,9 @@ export class CjsSfxEngine
     }
 
     /** Re-resolves one live Continuous Switch after a game-sync change. */
-    #ContinueSwitchProgram(token, controls)
+    _ContinueSwitchProgram(token, controls)
     {
-        const resolved = this.#ResolveContinuousSwitchRoute(
+        const resolved = this._ResolveContinuousSwitchRoute(
             token,
             controls,
             false,
@@ -1768,7 +1768,7 @@ export class CjsSfxEngine
     }
 
     /** Creates one per-post Continuous container traversal. */
-    #ResolveContinuousNode(
+    _ResolveContinuousNode(
         nodeID,
         node,
         controls,
@@ -1785,14 +1785,14 @@ export class CjsSfxEngine
             );
         }
 
-        const nestedKind = this.#NestedContinuousDelayKind(node);
+        const nestedKind = this._NestedContinuousDelayKind(node);
 
         if (nestedKind)
         {
             const nestedBranches = [];
             const unexpectedSelections = [];
 
-            this.#ResolveChild(
+            this._ResolveChild(
                 node.children[0],
                 controls,
                 terms,
@@ -1814,7 +1814,7 @@ export class CjsSfxEngine
             branch.token.parentNodeID = nodeID;
             branch.token.parentNode = node;
             const innerEdge = NormalizeChild(node.children[0]);
-            const innerNode = this.#graph.nodes?.[innerEdge.nodeId];
+            const innerNode = this._graph.nodes?.[innerEdge.nodeId];
             const parentContinuationTerms = {
                 ...terms,
                 initialDelayMs: 0,
@@ -1822,8 +1822,8 @@ export class CjsSfxEngine
                 fadeInMs: 0,
             };
 
-            branch.token.restartInitialTerms = this.#AddNodeTerms(
-                this.#AddNodeTerms(
+            branch.token.restartInitialTerms = this._AddNodeTerms(
+                this._AddNodeTerms(
                     parentContinuationTerms,
                     innerEdge,
                 ),
@@ -1849,7 +1849,7 @@ export class CjsSfxEngine
             passCount: 0,
             remainingInPass: 0,
             sequencePosition: node.type === "sequence"
-                ? this.#InitialContinuousSequencePosition(
+                ? this._InitialContinuousSequencePosition(
                     nodeID,
                     node,
                     controls.gameObjID,
@@ -1861,16 +1861,16 @@ export class CjsSfxEngine
             done: false,
         };
 
-        this.#continuousSessions.add(token);
-        this.#tokenGenerations.set(token, {
-            selection: this.#selectionGeneration,
-            gameObj: this.#releasedGameObjGenerations.get(
+        this._continuousSessions.add(token);
+        this._tokenGenerations.set(token, {
+            selection: this._selectionGeneration,
+            gameObj: this._releasedGameObjGenerations.get(
                 String(token.gameObjID),
             ) ?? 0,
         });
         continuousBranches.push({
             token,
-            selections: this.#ResolveContinuousBatch(
+            selections: this._ResolveContinuousBatch(
                 token,
                 controls,
                 true,
@@ -1879,7 +1879,7 @@ export class CjsSfxEngine
     }
 
     /** Identifies one qualified outer completion-Delay scheduler. */
-    #NestedContinuousDelayKind(node)
+    _NestedContinuousDelayKind(node)
     {
         const edge = node.children?.[0];
         const edgeIsRecord = edge !== null
@@ -1900,10 +1900,10 @@ export class CjsSfxEngine
         const childID = String(
             edge?.nodeId ?? edge,
         );
-        const child = this.#graph.nodes?.[childID];
+        const child = this._graph.nodes?.[childID];
 
         const noDeeperClock = child?.children?.every(childEdge =>
-            !this.#NodeContainsContinuous(
+            !this._NodeContainsContinuous(
                 String(childEdge?.nodeId ?? childEdge),
                 new Set(),
             )) === true;
@@ -1949,14 +1949,14 @@ export class CjsSfxEngine
     }
 
     /** Detects deeper Continuous descendants for the narrow nested gate. */
-    #NodeContainsContinuous(nodeID, visited)
+    _NodeContainsContinuous(nodeID, visited)
     {
         if (visited.has(nodeID))
         {
             return false;
         }
         visited.add(nodeID);
-        const node = this.#graph.nodes?.[nodeID];
+        const node = this._graph.nodes?.[nodeID];
 
         if (!node)
         {
@@ -1967,14 +1967,14 @@ export class CjsSfxEngine
             return true;
         }
         return (node.children ?? []).some(edge =>
-            this.#NodeContainsContinuous(
+            this._NodeContainsContinuous(
                 String(edge?.nodeId ?? edge),
                 visited,
             ));
     }
 
     /** Describes the inner cadence or the outer physical-completion delay. */
-    #DescribeNestedContinuation(token, hasMore)
+    _DescribeNestedContinuation(token, hasMore)
     {
         const transition = token.node.continuous.transition;
         const crossfade = transition === "crossfade-amplitude";
@@ -1983,7 +1983,7 @@ export class CjsSfxEngine
         {
             return {
                 advance: crossfade ? "crossfade" : "trigger-rate",
-                delayMs: this.#SampleContinuousTransition(token),
+                delayMs: this._SampleContinuousTransition(token),
                 ...(crossfade ? { crossfadeMode: transition } : {}),
             };
         }
@@ -1998,14 +1998,14 @@ export class CjsSfxEngine
     }
 
     /** Selects and resolves one child batch from an active traversal. */
-    #ResolveContinuousBatch(
+    _ResolveContinuousBatch(
         token,
         controls,
         initial,
         overrideTerms = null,
     )
     {
-        const index = this.#SelectContinuousChild(token);
+        const index = this._SelectContinuousChild(token);
 
         if (index === -1)
         {
@@ -2016,7 +2016,7 @@ export class CjsSfxEngine
         const selections = [];
         const nested = [];
 
-        this.#ResolveChild(
+        this._ResolveChild(
             token.node.children[index],
             controls,
             overrideTerms
@@ -2036,7 +2036,7 @@ export class CjsSfxEngine
     }
 
     /** Advances one Continuous pass and returns its next playlist index. */
-    #SelectContinuousChild(token)
+    _SelectContinuousChild(token)
     {
         const node = token.node;
         const childCount = node.children.length;
@@ -2057,7 +2057,7 @@ export class CjsSfxEngine
 
         if (node.type === "random")
         {
-            index = this.#SelectRandom(
+            index = this._SelectRandom(
                 token.nodeID,
                 node,
                 ContainerObjectID(node, token.gameObjID),
@@ -2072,17 +2072,17 @@ export class CjsSfxEngine
             {
                 const key = StateKey(token.gameObjID, token.nodeID);
                 const position =
-                    this.#continuousSequencePositions.get(key) ?? 0;
+                    this._continuousSequencePositions.get(key) ?? 0;
 
-                this.#TrackSelectionMutation(
-                    this.#continuousSequencePositions,
+                this._TrackSelectionMutation(
+                    this._continuousSequencePositions,
                     key,
                 );
-                this.#continuousSequencePositions.set(
+                this._continuousSequencePositions.set(
                     key,
                     position + 1,
                 );
-                this.#RecordSelectionOperation({
+                this._RecordSelectionOperation({
                     kind: "continuous-sequence",
                     key,
                     advance: 1,
@@ -2095,7 +2095,7 @@ export class CjsSfxEngine
     }
 
     /** Reads the persisted next child for an interrupted Sequence traversal. */
-    #InitialContinuousSequencePosition(nodeID, node, gameObjID)
+    _InitialContinuousSequencePosition(nodeID, node, gameObjID)
     {
         if (node.continuous.resetPlaylistEachPlay !== false)
         {
@@ -2103,13 +2103,13 @@ export class CjsSfxEngine
         }
         const key = StateKey(gameObjID, nodeID);
         const position =
-            this.#continuousSequencePositions.get(key) ?? 0;
+            this._continuousSequencePositions.get(key) ?? 0;
 
         return position % node.children.length;
     }
 
     /** Accumulates one hierarchy level's static and randomized properties. */
-    #AddNodeTerms(base, value)
+    _AddNodeTerms(base, value)
     {
         return {
             ...base,
@@ -2117,7 +2117,7 @@ export class CjsSfxEngine
                 + (Number(value?.gainDb) || 0)
                 + SampleRanges(
                     value?.gainDbRanges,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             gainCurves: [
                 ...base.gainCurves,
@@ -2135,19 +2135,19 @@ export class CjsSfxEngine
                 + (Number(value?.pitchCents) || 0)
                 + SampleRanges(
                     value?.pitchCentsRanges,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             lowPass: base.lowPass
                 + (Number(value?.lowPass) || 0)
                 + SampleRanges(
                     value?.lowPassRanges,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             highPass: base.highPass
                 + (Number(value?.highPass) || 0)
                 + SampleRanges(
                     value?.highPassRanges,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             hasLowPass: base.hasLowPass
                 || value?.lowPass !== undefined
@@ -2159,13 +2159,13 @@ export class CjsSfxEngine
                 + (Number(value?.initialDelayMs) || 0)
                 + SampleRanges(
                     value?.initialDelayRangesMs,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
         };
     }
 
     /** Resolves one action edge's probability, delay, and fade-in randomizers. */
-    #ResolveActionTiming(edge, inherited)
+    _ResolveActionTiming(edge, inherited)
     {
         const probability = edge.probability === undefined
             ? 100
@@ -2176,7 +2176,7 @@ export class CjsSfxEngine
             return null;
         }
         if (probability < 100
-            && this.#SampleUnit() * 100 >= probability)
+            && this._SampleUnit() * 100 >= probability)
         {
             return null;
         }
@@ -2187,7 +2187,7 @@ export class CjsSfxEngine
         ) + SampleRandomizedValue(
             edge.delayMs,
             edge.delayRangeMs,
-            () => this.#SampleUnit(),
+            () => this._SampleUnit(),
         );
         const ownsFade = edge.fadeInMs !== undefined
             || edge.fadeInRangeMs !== undefined
@@ -2196,7 +2196,7 @@ export class CjsSfxEngine
             ? SampleRandomizedValue(
                 edge.fadeInMs,
                 edge.fadeInRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )
             : Math.max(0, Number(inherited.fadeInMs) || 0);
         const fadeCurve = ownsFade
@@ -2211,7 +2211,7 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Stop, Pause, or Resume action once per post. */
-    #ResolvePlaybackControlAction(action, actionIndex)
+    _ResolvePlaybackControlAction(action, actionIndex)
     {
         const probability = action.probability === undefined
             ? 100
@@ -2219,7 +2219,7 @@ export class CjsSfxEngine
 
         if (probability <= 0
             || (probability < 100
-                && this.#SampleUnit() * 100 >= probability))
+                && this._SampleUnit() * 100 >= probability))
         {
             return null;
         }
@@ -2234,12 +2234,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             actionFlags: Number(
@@ -2259,7 +2259,7 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Voice Volume action once for this post. */
-    #ResolveVoiceVolumeAction(action, actionIndex)
+    _ResolveVoiceVolumeAction(action, actionIndex)
     {
         const setting = action.kind === "set-voice-volume"
             || action.kind === "set-bus-voice-volume";
@@ -2268,7 +2268,7 @@ export class CjsSfxEngine
                 SampleSignedRandomizedValue(
                     action.volumeDb,
                     action.volumeRangeDb,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             ))
             : 0;
@@ -2283,12 +2283,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             ...(setting
@@ -2301,7 +2301,7 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Bus Volume action once for this post. */
-    #ResolveBusVolumeAction(action, actionIndex)
+    _ResolveBusVolumeAction(action, actionIndex)
     {
         const setting = action.kind === "set-bus-volume";
         const busVolumeDb = setting
@@ -2309,7 +2309,7 @@ export class CjsSfxEngine
                 SampleSignedRandomizedValue(
                     action.busVolumeDb,
                     action.busVolumeRangeDb,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             ))
             : 0;
@@ -2324,12 +2324,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             exceptions: action.exceptions.map(exception =>
@@ -2349,7 +2349,7 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Voice Pitch action once for this post. */
-    #ResolveVoicePitchAction(action, actionIndex)
+    _ResolveVoicePitchAction(action, actionIndex)
     {
         const setting = action.kind === "set-voice-pitch";
         const pitchCents = setting
@@ -2357,7 +2357,7 @@ export class CjsSfxEngine
                 SampleSignedRandomizedValue(
                     action.pitchCents,
                     action.pitchRangeCents,
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             ))
             : 0;
@@ -2372,12 +2372,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             ...(setting
@@ -2390,7 +2390,7 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Voice LPF or HPF action once per post. */
-    #ResolveVoiceFilterAction(action, actionIndex)
+    _ResolveVoiceFilterAction(action, actionIndex)
     {
         const setting = action.kind.startsWith("set-");
         const lowPass = action.kind.endsWith("low-pass");
@@ -2401,7 +2401,7 @@ export class CjsSfxEngine
                 SampleSignedRandomizedValue(
                     action[property],
                     action[rangeField],
-                    () => this.#SampleUnit(),
+                    () => this._SampleUnit(),
                 ),
             ))
             : 0;
@@ -2416,12 +2416,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             exceptions: action.exceptions.map(exception =>
@@ -2441,14 +2441,14 @@ export class CjsSfxEngine
     }
 
     /** Samples one authored Set or Reset Game Parameter action per post. */
-    #ResolveGameParameterAction(action, actionIndex)
+    _ResolveGameParameterAction(action, actionIndex)
     {
         const setting = action.kind === "set-game-parameter";
         const value = setting
             ? SampleSignedRandomizedValue(
                 action.gameParameterValue,
                 action.gameParameterRange,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )
             : 0;
 
@@ -2460,12 +2460,12 @@ export class CjsSfxEngine
             delayMs: Math.max(0, SampleRandomizedValue(
                 action.delayMs,
                 action.delayRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             transitionMs: Math.max(0, SampleRandomizedValue(
                 action.transitionMs,
                 action.transitionRangeMs,
-                () => this.#SampleUnit(),
+                () => this._SampleUnit(),
             )),
             curve: Number(action.curve ?? 4),
             bypassTransition: Boolean(
@@ -2484,9 +2484,9 @@ export class CjsSfxEngine
     }
 
     /** Returns one finite random sample clamped to Wwise's [0, 1) domain. */
-    #SampleUnit()
+    _SampleUnit()
     {
-        const sampled = Number(this.#random());
+        const sampled = Number(this._random());
 
         return Number.isFinite(sampled)
             ? Math.max(0, Math.min(0.9999999999999999, sampled))
@@ -2494,12 +2494,12 @@ export class CjsSfxEngine
     }
 
     /** Selects one weighted random child with per-object repeat avoidance. */
-    #SelectRandom(nodeID, node, gameObjID)
+    _SelectRandom(nodeID, node, gameObjID)
     {
         const key = StateKey(gameObjID, nodeID);
-        this.#TrackSelectionMutation(this.#randomHistory, key);
-        this.#TrackSelectionMutation(this.#shufflePools, key);
-        const history = this.#randomHistory.get(key) ?? [];
+        this._TrackSelectionMutation(this._randomHistory, key);
+        this._TrackSelectionMutation(this._shufflePools, key);
+        const history = this._randomHistory.get(key) ?? [];
         const avoid = Math.min(
             Number(node.avoidRepeat) || 0,
             Math.max(0, node.children.length - 1),
@@ -2507,7 +2507,7 @@ export class CjsSfxEngine
         const historyLength = node.mode === "shuffle"
             ? Math.max(1, avoid)
             : avoid;
-        const reserved = this.#ReservedRandomSelections(key);
+        const reserved = this._ReservedRandomSelections(key);
         const excluded = new Set([
             ...history.slice(-historyLength),
             ...reserved,
@@ -2516,7 +2516,7 @@ export class CjsSfxEngine
 
         if (node.mode === "shuffle")
         {
-            let pool = this.#shufflePools.get(key);
+            let pool = this._shufflePools.get(key);
 
             if (!pool?.length)
             {
@@ -2524,7 +2524,7 @@ export class CjsSfxEngine
                     child,
                     index,
                 }));
-                this.#shufflePools.set(key, pool);
+                this._shufflePools.set(key, pool);
             }
             available = pool.filter(({ index }) => !excluded.has(index));
             if (!available.length)
@@ -2556,7 +2556,7 @@ export class CjsSfxEngine
             (sum, { child }) => sum + (Number(child.weight) || 1),
             0,
         );
-        let remaining = this.#SampleUnit() * total;
+        let remaining = this._SampleUnit() * total;
         let selected = available.at(-1)?.index ?? -1;
 
         for (const { child, index } of available)
@@ -2576,11 +2576,11 @@ export class CjsSfxEngine
             {
                 history.shift();
             }
-            this.#randomHistory.set(key, history);
+            this._randomHistory.set(key, history);
         }
         if (selected !== -1 && node.mode === "shuffle")
         {
-            const pool = this.#shufflePools.get(key) ?? [];
+            const pool = this._shufflePools.get(key) ?? [];
             const poolIndex = pool.findIndex(({ index }) => index === selected);
 
             if (poolIndex !== -1)
@@ -2591,7 +2591,7 @@ export class CjsSfxEngine
         if (selected !== -1
             && (historyLength > 0 || node.mode === "shuffle"))
         {
-            this.#RecordSelectionOperation({
+            this._RecordSelectionOperation({
                 kind: "random",
                 key,
                 selected,
@@ -2605,10 +2605,10 @@ export class CjsSfxEngine
     }
 
     /** Selects and advances one per-object step-sequence child. */
-    #SelectSequence(nodeID, node, gameObjID)
+    _SelectSequence(nodeID, node, gameObjID)
     {
         const key = StateKey(gameObjID, nodeID);
-        const position = this.#sequencePositions.get(key) ?? 0;
+        const position = this._sequencePositions.get(key) ?? 0;
 
         if (position >= node.children.length && node.loop === false)
         {
@@ -2617,9 +2617,9 @@ export class CjsSfxEngine
 
         const index = position % node.children.length;
 
-        this.#TrackSelectionMutation(this.#sequencePositions, key);
-        this.#sequencePositions.set(key, position + 1);
-        this.#RecordSelectionOperation({
+        this._TrackSelectionMutation(this._sequencePositions, key);
+        this._sequencePositions.set(key, position + 1);
+        this._RecordSelectionOperation({
             kind: "sequence",
             key,
             advance: 1,

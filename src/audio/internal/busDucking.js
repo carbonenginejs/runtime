@@ -141,31 +141,31 @@ export function indexBusDuckingCatalog(value)
  */
 export class CjsBusDuckingController
 {
-    #catalog = new Map();
+    _catalog = new Map();
 
-    #activities = new Map();
+    _activities = new Map();
 
-    #targetBusIds = new Set();
+    _targetBusIds = new Set();
 
-    #listeners = new Set();
+    _listeners = new Set();
 
-    #nextTokenId = 1;
+    _nextTokenId = 1;
 
-    #disposed = false;
+    _disposed = false;
 
     /** Installs one validated portable ducking catalog. */
     constructor(catalog)
     {
-        this.#catalog = indexBusDuckingCatalog(catalog);
-        for (const sourceBusId of this.#catalog.keys())
+        this._catalog = indexBusDuckingCatalog(catalog);
+        for (const sourceBusId of this._catalog.keys())
         {
-            this.#activities.set(sourceBusId, new Map());
+            this._activities.set(sourceBusId, new Map());
         }
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
             for (const target of source.targets)
             {
-                this.#targetBusIds.add(target.targetBusId);
+                this._targetBusIds.add(target.targetBusId);
             }
         }
     }
@@ -173,13 +173,13 @@ export class CjsBusDuckingController
     /** True when the installed catalog has at least one authored source. */
     get active()
     {
-        return this.#catalog.size > 0 && !this.#disposed;
+        return this._catalog.size > 0 && !this._disposed;
     }
 
     /** Returns whether the live catalog owns one authored ducking source. */
     HasSource(busId)
     {
-        return !this.#disposed && this.#catalog.has(String(busId));
+        return !this._disposed && this._catalog.has(String(busId));
     }
 
     /** Returns whether one Bus receives an authored ducking rule/property. */
@@ -187,11 +187,11 @@ export class CjsBusDuckingController
     {
         const id = String(busId);
 
-        if (this.#disposed || !this.#targetBusIds.has(id)) return false;
+        if (this._disposed || !this._targetBusIds.has(id)) return false;
         if (targetProperty === null) return true;
         const property = String(targetProperty);
 
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
             if (source.targets.some(target =>
                 target.targetBusId === id
@@ -206,7 +206,7 @@ export class CjsBusDuckingController
     /** Returns whether one dry ancestry receives authored ducking. */
     PathHasTarget(busPathIds, targetProperty = null)
     {
-        return !this.#disposed && (busPathIds ?? [])
+        return !this._disposed && (busPathIds ?? [])
             .some(busId => this.HasTarget(busId, targetProperty));
     }
 
@@ -217,10 +217,10 @@ export class CjsBusDuckingController
      */
     CanSplitTargetProperties(busPathIds)
     {
-        if (this.#disposed) return false;
+        if (this._disposed) return false;
         const path = new Set((busPathIds ?? []).map(String));
 
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
             const matching = source.targets.filter(target =>
                 path.has(target.targetBusId));
@@ -240,18 +240,18 @@ export class CjsBusDuckingController
     /** Subscribes a route scheduler to activity/timing changes. */
     Subscribe(listener)
     {
-        if (typeof listener !== "function" || this.#disposed)
+        if (typeof listener !== "function" || this._disposed)
         {
             return () => {};
         }
-        this.#listeners.add(listener);
-        return () => this.#listeners.delete(listener);
+        this._listeners.add(listener);
+        return () => this._listeners.delete(listener);
     }
 
     /** Schedules one physical SFX/music signal across its complete dry route. */
     ScheduleActivity(busPathIds, startContextTime, endContextTime = Infinity)
     {
-        if (this.#disposed)
+        if (this._disposed)
         {
             return NullToken();
         }
@@ -274,38 +274,38 @@ export class CjsBusDuckingController
         }
         const sourceBusIds = [ ...new Set(
             (busPathIds ?? []).map(String),
-        ) ].filter(busId => this.#catalog.has(busId));
+        ) ].filter(busId => this._catalog.has(busId));
 
         if (!sourceBusIds.length || end === start)
         {
             return NullToken();
         }
-        const id = this.#nextTokenId++;
+        const id = this._nextTokenId++;
         const record = { id, start, end, sourceBusIds, cancelled: false };
 
         for (const sourceBusId of sourceBusIds)
         {
-            this.#activities.get(sourceBusId).set(id, record);
+            this._activities.get(sourceBusId).set(id, record);
         }
-        this.#Notify();
+        this._Notify();
 
         return {
-            End: at => this.#Settle(record, at, false),
-            Cancel: at => this.#Settle(record, at, true),
+            End: at => this._Settle(record, at, false),
+            Cancel: at => this._Settle(record, at, true),
         };
     }
 
     /** Evaluates the combined authored attenuation for one collapsed route. */
     EvaluateGainDb(busPathIds, at, targetProperty = null)
     {
-        if (this.#disposed || !this.#catalog.size)
+        if (this._disposed || !this._catalog.size)
         {
             return 0;
         }
         const path = new Set((busPathIds ?? []).map(String));
         let totalDb = 0;
 
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
             const matching = source.targets.filter(target =>
                 path.has(target.targetBusId)
@@ -317,7 +317,7 @@ export class CjsBusDuckingController
 
             for (const target of matching)
             {
-                sourceDb += this.#EvaluateTarget(source, target, at);
+                sourceDb += this._EvaluateTarget(source, target, at);
             }
             totalDb += Math.max(source.maxDuckVolumeDb, sourceDb);
         }
@@ -327,7 +327,7 @@ export class CjsBusDuckingController
     /** Returns every future point at which one route's duck envelope changes. */
     TransitionBoundaries(busPathIds, from = 0, targetProperty = null)
     {
-        if (this.#disposed || !this.#catalog.size)
+        if (this._disposed || !this._catalog.size)
         {
             return [];
         }
@@ -335,7 +335,7 @@ export class CjsBusDuckingController
         const after = Number(from) || 0;
         const result = [];
 
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
             const targets = source.targets.filter(target =>
                 path.has(target.targetBusId)
@@ -343,7 +343,7 @@ export class CjsBusDuckingController
                     || target.targetProperty === targetProperty));
 
             if (!targets.length) continue;
-            const records = [ ...this.#activities.get(source.sourceBusId).values() ];
+            const records = [ ...this._activities.get(source.sourceBusId).values() ];
 
             for (const record of records)
             {
@@ -369,15 +369,15 @@ export class CjsBusDuckingController
     /** Drops quiescent source histories after their last release is complete. */
     Prune(at)
     {
-        if (this.#disposed) return 0;
+        if (this._disposed) return 0;
         const now = Number(at);
 
         if (!Number.isFinite(now)) return 0;
         let removed = 0;
 
-        for (const source of this.#catalog.values())
+        for (const source of this._catalog.values())
         {
-            const records = this.#activities.get(source.sourceBusId);
+            const records = this._activities.get(source.sourceBusId);
 
             if (!records?.size) continue;
             const values = [ ...records.values() ];
@@ -403,12 +403,12 @@ export class CjsBusDuckingController
     /** Clears activity and subscribers. */
     Dispose()
     {
-        if (this.#disposed) return;
-        this.#disposed = true;
-        for (const records of this.#activities.values()) records.clear();
-        this.#Notify();
-        this.#targetBusIds.clear();
-        this.#listeners.clear();
+        if (this._disposed) return;
+        this._disposed = true;
+        for (const records of this._activities.values()) records.clear();
+        this._Notify();
+        this._targetBusIds.clear();
+        this._listeners.clear();
     }
 
     /**
@@ -418,11 +418,11 @@ export class CjsBusDuckingController
      * current duck. A start during Fade In begins a new Fade Out from the
      * current gain.
      */
-    #EvaluateTarget(source, target, at)
+    _EvaluateTarget(source, target, at)
     {
         const events = [];
 
-        for (const record of this.#activities.get(source.sourceBusId).values())
+        for (const record of this._activities.get(source.sourceBusId).values())
         {
             events.push({ time: record.start, starts: 1, ends: 0, release: false });
             if (Number.isFinite(record.end))
@@ -498,9 +498,9 @@ export class CjsBusDuckingController
     }
 
     /** Ends or cancels one scheduled activity record exactly once. */
-    #Settle(record, rawAt, cancel)
+    _Settle(record, rawAt, cancel)
     {
-        if (record.cancelled || this.#disposed) return false;
+        if (record.cancelled || this._disposed) return false;
         const at = Number(rawAt);
 
         if (!Number.isFinite(at))
@@ -511,7 +511,7 @@ export class CjsBusDuckingController
         {
             for (const sourceBusId of record.sourceBusIds)
             {
-                this.#activities.get(sourceBusId)?.delete(record.id);
+                this._activities.get(sourceBusId)?.delete(record.id);
             }
             record.cancelled = true;
         }
@@ -523,10 +523,10 @@ export class CjsBusDuckingController
             {
                 for (const sourceBusId of record.sourceBusIds)
                 {
-                    this.#activities.get(sourceBusId)?.delete(record.id);
+                    this._activities.get(sourceBusId)?.delete(record.id);
                 }
                 record.cancelled = true;
-                this.#Notify();
+                this._Notify();
                 return true;
             }
             const nextEnd = Number.isFinite(record.end)
@@ -536,14 +536,14 @@ export class CjsBusDuckingController
             if (nextEnd === record.end) return false;
             record.end = nextEnd;
         }
-        this.#Notify();
+        this._Notify();
         return true;
     }
 
     /** Notifies every live route scheduler that duck timing changed. */
-    #Notify()
+    _Notify()
     {
-        for (const listener of [ ...this.#listeners ]) listener();
+        for (const listener of [ ...this._listeners ]) listener();
     }
 }
 

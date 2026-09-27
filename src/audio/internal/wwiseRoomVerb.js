@@ -764,13 +764,13 @@ function NormalizeImpulse(data, quality)
 /** Sequential little-endian reader for one exact v150 RoomVerb payload. */
 class WwiseRoomVerbReader
 {
-    #view;
-    #offset = 0;
+    _view;
+    _offset = 0;
 
     /** Wraps one already length-qualified RoomVerb byte block. */
     constructor(bytes)
     {
-        this.#view = new DataView(
+        this._view = new DataView(
             bytes.buffer,
             bytes.byteOffset,
             bytes.byteLength,
@@ -780,25 +780,25 @@ class WwiseRoomVerbReader
     /** Reads the next little-endian float32. */
     F32()
     {
-        const value = this.#view.getFloat32(this.#offset, true);
+        const value = this._view.getFloat32(this._offset, true);
 
-        this.#offset += 4;
+        this._offset += 4;
         return value;
     }
 
     /** Reads the next little-endian uint32. */
     U32()
     {
-        const value = this.#view.getUint32(this.#offset, true);
+        const value = this._view.getUint32(this._offset, true);
 
-        this.#offset += 4;
+        this._offset += 4;
         return value;
     }
 
     /** Reads the next strict Wwise byte boolean. */
     Bool()
     {
-        const value = this.#view.getUint8(this.#offset++);
+        const value = this._view.getUint8(this._offset++);
 
         if (value !== 0 && value !== 1)
         {
@@ -810,7 +810,7 @@ class WwiseRoomVerbReader
     /** Verifies that the declared layout consumed the whole payload. */
     AssertComplete(label)
     {
-        if (this.#offset !== this.#view.byteLength)
+        if (this._offset !== this._view.byteLength)
         {
             throw new TypeError(`${label} has trailing RoomVerb parameters`);
         }

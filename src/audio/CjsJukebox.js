@@ -26,49 +26,49 @@ const REPEAT_MODES = new Set([ "none", "playlist", "song" ]);
  */
 export class CjsJukebox
 {
-    #context = null;
+    _context = null;
 
-    #destination = null;
+    _destination = null;
 
-    #library = null;
+    _library = null;
 
-    #loadTrack = null;
+    _loadTrack = null;
 
-    #isTrackAvailable = null;
+    _isTrackAvailable = null;
 
-    #availability = new Map();
+    _availability = new Map();
 
-    #availabilityRequestID = 0;
+    _availabilityRequestID = 0;
 
-    #availabilityAbortController = null;
+    _availabilityAbortController = null;
 
-    #onChange = null;
+    _onChange = null;
 
-    #outputGain = null;
+    _outputGain = null;
 
-    #playlist = null;
+    _playlist = null;
 
-    #songIndex = -1;
+    _songIndex = -1;
 
-    #source = null;
+    _source = null;
 
-    #buffer = null;
+    _buffer = null;
 
-    #offset = 0;
+    _offset = 0;
 
-    #startedAt = 0;
+    _startedAt = 0;
 
-    #state = "stopped";
+    _state = "stopped";
 
-    #volume = 1;
+    _volume = 1;
 
-    #repeat = "none";
+    _repeat = "none";
 
-    #requestID = 0;
+    _requestID = 0;
 
-    #abortController = null;
+    _abortController = null;
 
-    #lastError = null;
+    _lastError = null;
 
     /**
      * Creates a detached jukebox with optional catalog and host callbacks.
@@ -110,66 +110,66 @@ export class CjsJukebox
     /** Returns the installed immutable music-library catalog. */
     get library()
     {
-        return this.#library;
+        return this._library;
     }
 
     /** Returns the selected playlist, or null before a selection. */
     get currentPlaylist()
     {
-        return this.#playlist;
+        return this._playlist;
     }
 
     /** Returns the selected song, or null before a selection. */
     get currentSong()
     {
-        return this.#playlist?.songs[this.#songIndex] ?? null;
+        return this._playlist?.songs[this._songIndex] ?? null;
     }
 
     /** Returns stopped, loading, playing, or paused. */
     get state()
     {
-        return this.#state;
+        return this._state;
     }
 
     /** Returns the current zero-based playlist position. */
     get songIndex()
     {
-        return this.#songIndex;
+        return this._songIndex;
     }
 
     /** Returns the current output level in the inclusive 0..1 range. */
     get volume()
     {
-        return this.#volume;
+        return this._volume;
     }
 
     /** Returns none, playlist, or song. */
     get repeat()
     {
-        return this.#repeat;
+        return this._repeat;
     }
 
     /** Returns the most recent asynchronous playback failure. */
     get lastError()
     {
-        return this.#lastError;
+        return this._lastError;
     }
 
     /** Installs a detached catalog and clears the previous selection. */
     InstallLibrary(library)
     {
         this.Stop();
-        this.#availabilityRequestID++;
-        this.#availabilityAbortController?.abort();
-        this.#availabilityAbortController = null;
-        this.#library = installMusicLibrary(library);
-        this.#playlist = null;
-        this.#songIndex = -1;
-        this.#buffer = null;
-        this.#availability.clear();
-        this.#lastError = null;
-        this.#Notify();
-        return this.#library;
+        this._availabilityRequestID++;
+        this._availabilityAbortController?.abort();
+        this._availabilityAbortController = null;
+        this._library = installMusicLibrary(library);
+        this._playlist = null;
+        this._songIndex = -1;
+        this._buffer = null;
+        this._availability.clear();
+        this._lastError = null;
+        this._Notify();
+        return this._library;
     }
 
     /** Replaces the caller-owned track acquisition function. */
@@ -181,7 +181,7 @@ export class CjsJukebox
                 "CjsJukebox loadTrack must be a function",
             );
         }
-        this.#loadTrack = loadTrack;
+        this._loadTrack = loadTrack;
         return this;
     }
 
@@ -194,11 +194,11 @@ export class CjsJukebox
                 "CjsJukebox isTrackAvailable must be a function",
             );
         }
-        this.#isTrackAvailable = isTrackAvailable;
-        this.#availabilityRequestID++;
-        this.#availabilityAbortController?.abort();
-        this.#availabilityAbortController = null;
-        this.#availability.clear();
+        this._isTrackAvailable = isTrackAvailable;
+        this._availabilityRequestID++;
+        this._availabilityAbortController?.abort();
+        this._availabilityAbortController = null;
+        this._availability.clear();
         return this;
     }
 
@@ -208,12 +208,12 @@ export class CjsJukebox
      */
     async RefreshAvailability(playlistID = null, { signal = null } = {})
     {
-        const library = this.#RequireLibrary();
+        const library = this._RequireLibrary();
         const playlists = playlistID === null
             ? library.playlists
-            : [ this.#FindPlaylist(playlistID) ];
+            : [ this._FindPlaylist(playlistID) ];
 
-        if (!this.#isTrackAvailable)
+        if (!this._isTrackAvailable)
         {
             return playlists.flatMap(playlist => this.GetPlaylistSongs(
                 playlist.id,
@@ -221,12 +221,12 @@ export class CjsJukebox
             ));
         }
 
-        this.#availabilityAbortController?.abort();
-        const requestID = ++this.#availabilityRequestID;
+        this._availabilityAbortController?.abort();
+        const requestID = ++this._availabilityRequestID;
         const controller = new AbortController();
         const abort = () => controller.abort(signal?.reason);
 
-        this.#availabilityAbortController = controller;
+        this._availabilityAbortController = controller;
         signal?.addEventListener?.("abort", abort, { once: true });
 
         try
@@ -238,7 +238,7 @@ export class CjsJukebox
 
                     try
                     {
-                        available = Boolean(await this.#isTrackAvailable(
+                        available = Boolean(await this._isTrackAvailable(
                             song,
                             {
                                 signal: controller.signal,
@@ -255,9 +255,9 @@ export class CjsJukebox
                         }
                     }
 
-                    if (requestID === this.#availabilityRequestID)
+                    if (requestID === this._availabilityRequestID)
                     {
-                        this.#availability.set(
+                        this._availability.set(
                             AvailabilityKey(playlist.id, song.id),
                             available,
                         );
@@ -269,13 +269,13 @@ export class CjsJukebox
         finally
         {
             signal?.removeEventListener?.("abort", abort);
-            if (requestID === this.#availabilityRequestID)
+            if (requestID === this._availabilityRequestID)
             {
-                this.#availabilityAbortController = null;
+                this._availabilityAbortController = null;
             }
         }
 
-        this.#Notify();
+        this._Notify();
         return playlists.flatMap(playlist => this.GetPlaylistSongs(
             playlist.id,
             { includeUnavailable: true },
@@ -288,7 +288,7 @@ export class CjsJukebox
      */
     GetPlaylistSongs(playlistID, { includeUnavailable = true } = {})
     {
-        const playlist = this.#FindPlaylist(playlistID);
+        const playlist = this._FindPlaylist(playlistID);
 
         return playlist.songs
             .map(song => ({
@@ -307,8 +307,8 @@ export class CjsJukebox
     {
         const id = String(songID);
         const playlists = playlistID === null
-            ? this.#RequireLibrary().playlists
-            : [ this.#FindPlaylist(playlistID) ];
+            ? this._RequireLibrary().playlists
+            : [ this._FindPlaylist(playlistID) ];
 
         for (const playlist of playlists)
         {
@@ -316,7 +316,7 @@ export class CjsJukebox
             {
                 continue;
             }
-            const value = this.#availability.get(
+            const value = this._availability.get(
                 AvailabilityKey(playlist.id, id),
             );
 
@@ -336,7 +336,7 @@ export class CjsJukebox
                 "CjsJukebox onChange must be a function or null",
             );
         }
-        this.#onChange = onChange;
+        this._onChange = onChange;
         return this;
     }
 
@@ -361,20 +361,20 @@ export class CjsJukebox
                 "CjsJukebox requires an output destination",
             );
         }
-        if (this.#context === context
-            && this.#destination === destination
-            && this.#outputGain)
+        if (this._context === context
+            && this._destination === destination
+            && this._outputGain)
         {
             return this;
         }
 
         this.Stop();
-        this.#outputGain?.disconnect?.();
-        this.#context = context;
-        this.#destination = destination;
-        this.#outputGain = context.createGain();
-        SetAudioParam(this.#outputGain.gain, this.#volume, context);
-        this.#outputGain.connect(destination);
+        this._outputGain?.disconnect?.();
+        this._context = context;
+        this._destination = destination;
+        this._outputGain = context.createGain();
+        SetAudioParam(this._outputGain.gain, this._volume, context);
+        this._outputGain.connect(destination);
         return this;
     }
 
@@ -382,19 +382,19 @@ export class CjsJukebox
     Detach()
     {
         this.Stop();
-        this.#outputGain?.disconnect?.();
-        this.#outputGain = null;
-        this.#destination = null;
-        this.#context = null;
+        this._outputGain?.disconnect?.();
+        this._outputGain = null;
+        this._destination = null;
+        this._context = null;
     }
 
     /** Selects a playlist and starts at its requested zero-based index. */
     PlayPlaylist(playlistID, { index = 0 } = {})
     {
-        const playlist = this.#FindPlaylist(playlistID);
+        const playlist = this._FindPlaylist(playlistID);
         const normalizedIndex = NormalizeIndex(index, playlist.songs.length);
 
-        return this.#SelectAndPlay(playlist, normalizedIndex);
+        return this._SelectAndPlay(playlist, normalizedIndex);
     }
 
     /**
@@ -405,8 +405,8 @@ export class CjsJukebox
     {
         const id = String(songID);
         const playlists = playlistID === null
-            ? this.#RequireLibrary().playlists
-            : [ this.#FindPlaylist(playlistID) ];
+            ? this._RequireLibrary().playlists
+            : [ this._FindPlaylist(playlistID) ];
 
         for (const playlist of playlists)
         {
@@ -414,7 +414,7 @@ export class CjsJukebox
 
             if (index !== -1)
             {
-                return this.#SelectAndPlay(playlist, index);
+                return this._SelectAndPlay(playlist, index);
             }
         }
 
@@ -426,23 +426,23 @@ export class CjsJukebox
     /** Starts or resumes the current selection, or the first library song. */
     Play()
     {
-        if (this.#state === "paused" && this.#buffer)
+        if (this._state === "paused" && this._buffer)
         {
-            this.#StartBuffer(this.#offset);
+            this._StartBuffer(this._offset);
             return Promise.resolve(this.currentSong);
         }
-        if (this.#playlist && this.#songIndex >= 0)
+        if (this._playlist && this._songIndex >= 0)
         {
-            if (this.#buffer)
+            if (this._buffer)
             {
-                this.#StartBuffer(0);
+                this._StartBuffer(0);
                 return Promise.resolve(this.currentSong);
             }
-            return this.#LoadAndPlay();
+            return this._LoadAndPlay();
         }
 
-        const playlist = this.#RequireLibrary().playlists[0];
-        const index = this.#FindAvailableIndex(
+        const playlist = this._RequireLibrary().playlists[0];
+        const index = this._FindAvailableIndex(
             playlist,
             -1,
             1,
@@ -453,72 +453,72 @@ export class CjsJukebox
             ? Promise.reject(new Error(
                 `Music-library playlist ${playlist.id} has no available songs`,
             ))
-            : this.#SelectAndPlay(playlist, index);
+            : this._SelectAndPlay(playlist, index);
     }
 
     /** Pauses the current buffer while retaining its decoded data. */
     Pause()
     {
-        if (this.#state !== "playing" || !this.#source)
+        if (this._state !== "playing" || !this._source)
         {
             return false;
         }
 
         const elapsed = Math.max(
             0,
-            Number(this.#context?.currentTime) - this.#startedAt,
+            Number(this._context?.currentTime) - this._startedAt,
         );
 
-        this.#offset = Math.min(
-            Math.max(0, Number(this.#buffer?.duration) || 0),
-            this.#offset + elapsed,
+        this._offset = Math.min(
+            Math.max(0, Number(this._buffer?.duration) || 0),
+            this._offset + elapsed,
         );
-        this.#StopSource();
-        this.#state = "paused";
-        this.#Notify();
+        this._StopSource();
+        this._state = "paused";
+        this._Notify();
         return true;
     }
 
     /** Resumes a paused selection without reacquiring it. */
     Resume()
     {
-        if (this.#state !== "paused" || !this.#buffer)
+        if (this._state !== "paused" || !this._buffer)
         {
             return false;
         }
-        this.#StartBuffer(this.#offset);
+        this._StartBuffer(this._offset);
         return true;
     }
 
     /** Stops current loading/playback while retaining the selected song. */
     Stop()
     {
-        this.#CancelPending();
-        this.#StopSource();
-        this.#offset = 0;
-        if (this.#state !== "stopped")
+        this._CancelPending();
+        this._StopSource();
+        this._offset = 0;
+        if (this._state !== "stopped")
         {
-            this.#state = "stopped";
-            this.#Notify();
+            this._state = "stopped";
+            this._Notify();
         }
     }
 
     /** Advances to the next song under the current repeat policy. */
     Next()
     {
-        return this.#Move(1, true);
+        return this._Move(1, true);
     }
 
     /** Returns to the previous song, or restarts after three elapsed seconds. */
     Previous()
     {
-        if (this.#state === "playing"
-            && Number(this.#context?.currentTime) - this.#startedAt > 3)
+        if (this._state === "playing"
+            && Number(this._context?.currentTime) - this._startedAt > 3)
         {
-            this.#StartBuffer(0);
+            this._StartBuffer(0);
             return Promise.resolve(this.currentSong);
         }
-        return this.#Move(-1, true);
+        return this._Move(-1, true);
     }
 
     /** Sets the independent jukebox output level. */
@@ -530,14 +530,14 @@ export class CjsJukebox
         {
             throw new TypeError("CjsJukebox volume must be finite");
         }
-        this.#volume = Math.max(0, Math.min(1, numeric));
+        this._volume = Math.max(0, Math.min(1, numeric));
         SetAudioParam(
-            this.#outputGain?.gain,
-            this.#volume,
-            this.#context,
+            this._outputGain?.gain,
+            this._volume,
+            this._context,
         );
-        this.#Notify();
-        return this.#volume;
+        this._Notify();
+        return this._volume;
     }
 
     /** Sets end-of-song behavior: none, playlist, or song. */
@@ -551,8 +551,8 @@ export class CjsJukebox
                 `Unsupported CjsJukebox repeat mode ${value}`,
             );
         }
-        this.#repeat = value;
-        this.#Notify();
+        this._repeat = value;
+        this._Notify();
         return value;
     }
 
@@ -560,18 +560,18 @@ export class CjsJukebox
     GetStatus()
     {
         return {
-            state: this.#state,
-            library: this.#library,
-            playlist: this.#playlist,
+            state: this._state,
+            library: this._library,
+            playlist: this._playlist,
             song: this.currentSong,
-            songIndex: this.#songIndex,
-            volume: this.#volume,
-            repeat: this.#repeat,
-            error: this.#lastError,
+            songIndex: this._songIndex,
+            volume: this._volume,
+            repeat: this._repeat,
+            error: this._lastError,
             availability: this.currentSong
                 ? this.GetTrackAvailability(
                     this.currentSong.id,
-                    { playlistID: this.#playlist.id },
+                    { playlistID: this._playlist.id },
                 )
                 : "unknown",
         };
@@ -581,17 +581,17 @@ export class CjsJukebox
     Dispose()
     {
         this.Detach();
-        this.#library = null;
-        this.#playlist = null;
-        this.#songIndex = -1;
-        this.#buffer = null;
-        this.#loadTrack = null;
-        this.#isTrackAvailable = null;
-        this.#availabilityAbortController?.abort();
-        this.#availabilityAbortController = null;
-        this.#availability.clear();
-        this.#onChange = null;
-        this.#lastError = null;
+        this._library = null;
+        this._playlist = null;
+        this._songIndex = -1;
+        this._buffer = null;
+        this._loadTrack = null;
+        this._isTrackAvailable = null;
+        this._availabilityAbortController?.abort();
+        this._availabilityAbortController = null;
+        this._availability.clear();
+        this._onChange = null;
+        this._lastError = null;
     }
 
     /**
@@ -601,10 +601,10 @@ export class CjsJukebox
      * @param {number} index Zero-based song index.
      * @returns {Promise<object|null>} Selected song after playback starts.
      */
-    #SelectAndPlay(playlist, index)
+    _SelectAndPlay(playlist, index)
     {
         const song = playlist.songs[index];
-        const available = this.#availability.get(
+        const available = this._availability.get(
             AvailabilityKey(playlist.id, song.id),
         );
 
@@ -615,18 +615,18 @@ export class CjsJukebox
             );
         }
 
-        this.#CancelPending();
-        this.#StopSource();
-        this.#playlist = playlist;
-        this.#songIndex = index;
-        this.#buffer = null;
-        this.#offset = 0;
-        this.#lastError = null;
-        return this.#LoadAndPlay();
+        this._CancelPending();
+        this._StopSource();
+        this._playlist = playlist;
+        this._songIndex = index;
+        this._buffer = null;
+        this._offset = 0;
+        this._lastError = null;
+        return this._LoadAndPlay();
     }
 
     /** Acquires, decodes, and starts the currently selected song. */
-    async #LoadAndPlay()
+    async _LoadAndPlay()
     {
         const song = this.currentSong;
 
@@ -634,59 +634,59 @@ export class CjsJukebox
         {
             throw new Error("CjsJukebox has no selected song");
         }
-        if (!this.#context || !this.#outputGain)
+        if (!this._context || !this._outputGain)
         {
             throw new Error(
                 "CjsJukebox must be attached before playback",
             );
         }
-        if (!this.#loadTrack)
+        if (!this._loadTrack)
         {
             throw new Error("CjsJukebox has no track loader");
         }
 
-        this.#CancelPending();
-        const requestID = ++this.#requestID;
+        this._CancelPending();
+        const requestID = ++this._requestID;
         const controller = new AbortController();
 
-        this.#abortController = controller;
-        this.#state = "loading";
-        this.#Notify();
+        this._abortController = controller;
+        this._state = "loading";
+        this._Notify();
 
         try
         {
-            const loaded = await this.#loadTrack(song, {
+            const loaded = await this._loadTrack(song, {
                 signal: controller.signal,
-                playlist: this.#playlist,
-                library: this.#library,
+                playlist: this._playlist,
+                library: this._library,
             });
             throwIfAborted(controller.signal, "The operation was aborted");
-            const buffer = await DecodeTrack(this.#context, loaded);
+            const buffer = await DecodeTrack(this._context, loaded);
             throwIfAborted(controller.signal, "The operation was aborted");
 
-            if (requestID !== this.#requestID)
+            if (requestID !== this._requestID)
             {
                 return null;
             }
 
-            this.#abortController = null;
-            this.#buffer = buffer;
-            this.#offset = 0;
-            this.#lastError = null;
-            this.#StartBuffer(0);
+            this._abortController = null;
+            this._buffer = buffer;
+            this._offset = 0;
+            this._lastError = null;
+            this._StartBuffer(0);
             return song;
         }
         catch (error)
         {
-            if (requestID !== this.#requestID)
+            if (requestID !== this._requestID)
             {
                 return null;
             }
 
-            this.#abortController = null;
-            this.#state = "stopped";
-            this.#lastError = error;
-            this.#Notify();
+            this._abortController = null;
+            this._state = "stopped";
+            this._lastError = error;
+            this._Notify();
             throw error;
         }
     }
@@ -696,43 +696,43 @@ export class CjsJukebox
      *
      * @param {number} offset Offset in seconds.
      */
-    #StartBuffer(offset)
+    _StartBuffer(offset)
     {
-        if (!this.#context || !this.#outputGain || !this.#buffer)
+        if (!this._context || !this._outputGain || !this._buffer)
         {
             throw new Error(
                 "CjsJukebox has no attached decoded song to play",
             );
         }
 
-        this.#StopSource();
-        const source = this.#context.createBufferSource();
+        this._StopSource();
+        const source = this._context.createBufferSource();
 
-        source.buffer = this.#buffer;
-        source.connect(this.#outputGain);
+        source.buffer = this._buffer;
+        source.connect(this._outputGain);
         source.onended = () =>
         {
-            if (this.#source !== source)
+            if (this._source !== source)
             {
                 return;
             }
-            this.#source = null;
+            this._source = null;
             source.disconnect?.();
-            this.#offset = 0;
-            void this.#Move(1, false).catch(error =>
+            this._offset = 0;
+            void this._Move(1, false).catch(error =>
             {
-                this.#state = "stopped";
-                this.#lastError = error;
-                this.#Notify();
+                this._state = "stopped";
+                this._lastError = error;
+                this._Notify();
             });
         };
 
-        this.#source = source;
-        this.#offset = Math.max(0, Number(offset) || 0);
-        this.#startedAt = Number(this.#context.currentTime) || 0;
-        this.#state = "playing";
-        source.start(0, this.#offset);
-        this.#Notify();
+        this._source = source;
+        this._offset = Math.max(0, Number(offset) || 0);
+        this._startedAt = Number(this._context.currentTime) || 0;
+        this._state = "playing";
+        source.start(0, this._offset);
+        this._Notify();
     }
 
     /**
@@ -742,23 +742,23 @@ export class CjsJukebox
      * @param {boolean} explicit Whether the caller requested the move.
      * @returns {Promise<object|null>} Newly selected song, or null at the end.
      */
-    #Move(step, explicit)
+    _Move(step, explicit)
     {
-        if (!this.#playlist || this.#songIndex < 0)
+        if (!this._playlist || this._songIndex < 0)
         {
             return this.Play();
         }
-        if (!explicit && this.#repeat === "song")
+        if (!explicit && this._repeat === "song")
         {
-            this.#StartBuffer(0);
+            this._StartBuffer(0);
             return Promise.resolve(this.currentSong);
         }
 
-        const index = this.#FindAvailableIndex(
-            this.#playlist,
-            this.#songIndex,
+        const index = this._FindAvailableIndex(
+            this._playlist,
+            this._songIndex,
             step,
-            this.#repeat === "playlist" || explicit,
+            this._repeat === "playlist" || explicit,
         );
 
         if (index === -1)
@@ -766,7 +766,7 @@ export class CjsJukebox
             this.Stop();
             return Promise.resolve(null);
         }
-        return this.#SelectAndPlay(this.#playlist, index);
+        return this._SelectAndPlay(this._playlist, index);
     }
 
     /**
@@ -778,7 +778,7 @@ export class CjsJukebox
      * @param {boolean} wrap Whether the search may wrap.
      * @returns {number} Available song index, or -1.
      */
-    #FindAvailableIndex(playlist, start, step, wrap)
+    _FindAvailableIndex(playlist, start, step, wrap)
     {
         const length = playlist.songs.length;
         let index = start;
@@ -797,7 +797,7 @@ export class CjsJukebox
 
             const song = playlist.songs[index];
 
-            if (this.#availability.get(
+            if (this._availability.get(
                 AvailabilityKey(playlist.id, song.id),
             ) !== false)
             {
@@ -813,10 +813,10 @@ export class CjsJukebox
      * @param {string} playlistID Playlist identity.
      * @returns {object} Installed playlist.
      */
-    #FindPlaylist(playlistID)
+    _FindPlaylist(playlistID)
     {
         const id = String(playlistID);
-        const playlist = this.#RequireLibrary().playlists.find(
+        const playlist = this._RequireLibrary().playlists.find(
             candidate => candidate.id === id,
         );
 
@@ -828,33 +828,33 @@ export class CjsJukebox
     }
 
     /** Returns the installed library or throws when none is installed. */
-    #RequireLibrary()
+    _RequireLibrary()
     {
-        if (!this.#library)
+        if (!this._library)
         {
             throw new Error("CjsJukebox has no installed music library");
         }
-        return this.#library;
+        return this._library;
     }
 
     /** Aborts and invalidates the current track-acquisition request. */
-    #CancelPending()
+    _CancelPending()
     {
-        this.#requestID++;
-        this.#abortController?.abort();
-        this.#abortController = null;
+        this._requestID++;
+        this._abortController?.abort();
+        this._abortController = null;
     }
 
     /** Stops and disconnects the current browser source node. */
-    #StopSource()
+    _StopSource()
     {
-        const source = this.#source;
+        const source = this._source;
 
         if (!source)
         {
             return;
         }
-        this.#source = null;
+        this._source = null;
         source.onended = null;
         try
         {
@@ -868,13 +868,13 @@ export class CjsJukebox
     }
 
     /** Sends the current stable snapshot to the optional state observer. */
-    #Notify()
+    _Notify()
     {
-        if (!this.#onChange)
+        if (!this._onChange)
         {
             return;
         }
-        this.#onChange(this.GetStatus());
+        this._onChange(this.GetStatus());
     }
 }
 

@@ -30,9 +30,9 @@ export class Tr2AudioStretchBase extends CjsModel
   @type.model("ITr2AudEmitter")
   sourceEmitter = null;
 
-  #front = new Float32Array([ 0, 1, 0 ]);
+  _front = new Float32Array([ 0, 1, 0 ]);
 
-  #top = new Float32Array([ 0, 0, 1 ]);
+  _top = new Float32Array([ 0, 0, 1 ]);
 
   /** Creates and initializes Carbon's three-emitter stretch-audio bridge. */
   constructor()
@@ -70,14 +70,14 @@ export class Tr2AudioStretchBase extends CjsModel
   @impl.reason("Carbon reads Tr2Renderer's view position; the device-free audio graph uses the registered audio listener position.")
   Update(sourcePosition, destPosition)
   {
-    StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this.#front, this.#top);
-    this.sourceEmitter?.SetPosition(this.#front, this.#top, sourcePosition);
-    this.destinationEmitter?.SetPosition(this.#front, this.#top, destPosition);
+    StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
+    this.sourceEmitter?.SetPosition(this._front, this._top, sourcePosition);
+    this.destinationEmitter?.SetPosition(this._front, this._top, destPosition);
     const listenerPosition = AudGameObjResource.manager?.GetListener?.()?.GetPosition?.() ?? sourcePosition;
     this.stretchEmitter?.SetPosition(
-      this.#front,
-      this.#top,
-      Tr2AudioStretchBase.#ProjectOntoSegment(listenerPosition, sourcePosition, destPosition));
+      this._front,
+      this._top,
+      Tr2AudioStretchBase._ProjectOntoSegment(listenerPosition, sourcePosition, destPosition));
   }
 
   /** Carbon method FindEmitterByName. */
@@ -96,7 +96,7 @@ export class Tr2AudioStretchBase extends CjsModel
   }
 
   /** Projects one point onto the finite source-to-destination segment. */
-  static #ProjectOntoSegment(point, source, destination)
+  static _ProjectOntoSegment(point, source, destination)
   {
     const x = destination[0] - source[0];
     const y = destination[1] - source[1];

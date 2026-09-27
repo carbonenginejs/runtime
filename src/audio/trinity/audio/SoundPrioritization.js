@@ -36,13 +36,13 @@ function DefaultSettings()
 export class SoundPrioritization extends CjsModel
 {
 
-  #settings = DefaultSettings();
+  _settings = DefaultSettings();
 
-  #gameObjects = [];
+  _gameObjects = [];
 
-  #listener = null;
+  _listener = null;
 
-  #audioCullingEnabled = true;
+  _audioCullingEnabled = true;
 
   /** Carbon method RegisterGameObject: listener recognized by its fixed id. */
   @carbon.method
@@ -53,10 +53,10 @@ export class SoundPrioritization extends CjsModel
     {
       return;
     }
-    this.#gameObjects.push(object);
+    this._gameObjects.push(object);
     if (object.GetID() === LISTENER_GAME_OBJ_ID)
     {
-      this.#listener = object;
+      this._listener = object;
     }
   }
 
@@ -65,11 +65,11 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   UnregisterGameObject(objectID)
   {
-    if (this.#listener && this.#listener.GetID() === objectID)
+    if (this._listener && this._listener.GetID() === objectID)
     {
-      this.#listener = null;
+      this._listener = null;
     }
-    this.#gameObjects = this.#gameObjects.filter(object => object.GetID() !== objectID);
+    this._gameObjects = this._gameObjects.filter(object => object.GetID() !== objectID);
   }
 
   // Carbon quirk preserved: the strict `>` keeps maxAwakeGameObjects + 1
@@ -79,14 +79,14 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   CullAudio(now)
   {
-    if (!this.#audioCullingEnabled || !this.#gameObjects.length || !this.#listener)
+    if (!this._audioCullingEnabled || !this._gameObjects.length || !this._listener)
     {
       return;
     }
-    const listenerPosition = this.#listener.GetPosition();
-    for (const gameObject of this.#gameObjects)
+    const listenerPosition = this._listener.GetPosition();
+    for (const gameObject of this._gameObjects)
     {
-      if (gameObject !== this.#listener)
+      if (gameObject !== this._listener)
       {
         const objectPosition = gameObject.GetPosition();
         const dx = objectPosition[0] - listenerPosition[0];
@@ -96,11 +96,11 @@ export class SoundPrioritization extends CjsModel
       }
       gameObject.CalculateCullingWeight(now);
     }
-    this.#gameObjects.sort((a, b) => a.GetCullingWeight() - b.GetCullingWeight());
+    this._gameObjects.sort((a, b) => a.GetCullingWeight() - b.GetCullingWeight());
     let numAwake = 0;
-    for (const gameObject of this.#gameObjects)
+    for (const gameObject of this._gameObjects)
     {
-      if (numAwake > this.#settings.maxAwakeGameObjects)
+      if (numAwake > this._settings.maxAwakeGameObjects)
       {
         if (!gameObject.IsCulled())
         {
@@ -123,7 +123,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   ResetCullingSettings()
   {
-    this.#settings = DefaultSettings();
+    this._settings = DefaultSettings();
   }
 
   /** Carbon method GetAudioCullingEnabled. */
@@ -131,7 +131,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetAudioCullingEnabled()
   {
-    return this.#audioCullingEnabled;
+    return this._audioCullingEnabled;
   }
 
   /** Carbon method SetAudioCullingEnabled. */
@@ -139,7 +139,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetAudioCullingEnabled(enabled)
   {
-    this.#audioCullingEnabled = !!enabled;
+    this._audioCullingEnabled = !!enabled;
   }
 
   /** Carbon method EnableAudioCulling. */
@@ -147,7 +147,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   EnableAudioCulling()
   {
-    this.#audioCullingEnabled = true;
+    this._audioCullingEnabled = true;
   }
 
   /** Carbon method DisableAudioCulling: wake every culled object before disabling. */
@@ -155,14 +155,14 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   DisableAudioCulling()
   {
-    for (const object of this.#gameObjects)
+    for (const object of this._gameObjects)
     {
       if (object.IsCulled?.())
       {
         object.Wake?.();
       }
     }
-    this.#audioCullingEnabled = false;
+    this._audioCullingEnabled = false;
   }
 
   // Carbon asymmetry preserved: weight getters return weightMultiplier x the
@@ -172,7 +172,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetMaxAwakeGameObjects()
   {
-    return this.#settings.maxAwakeGameObjects;
+    return this._settings.maxAwakeGameObjects;
   }
 
   /** Carbon method SetMaxAwakeGameObjects. */
@@ -180,7 +180,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetMaxAwakeGameObjects(value)
   {
-    this.#settings.maxAwakeGameObjects = value;
+    this._settings.maxAwakeGameObjects = value;
   }
 
   /** Carbon method GetOneShotWindow (ms, plain). */
@@ -188,7 +188,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetOneShotWindow()
   {
-    return this.#settings.oneShotWindow;
+    return this._settings.oneShotWindow;
   }
 
   /** Carbon method SetOneShotWindow. */
@@ -196,7 +196,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetOneShotWindow(value)
   {
-    this.#settings.oneShotWindow = value;
+    this._settings.oneShotWindow = value;
   }
 
   /** Carbon method GetWeightMultiplier (plain). */
@@ -204,7 +204,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetWeightMultiplier()
   {
-    return this.#settings.weightMultiplier;
+    return this._settings.weightMultiplier;
   }
 
   /** Carbon method SetWeightMultiplier. */
@@ -212,7 +212,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetWeightMultiplier(value)
   {
-    this.#settings.weightMultiplier = value;
+    this._settings.weightMultiplier = value;
   }
 
   /** Carbon method GetPlayingVitalSoundWeight (multiplied). */
@@ -220,7 +220,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetPlayingVitalSoundWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.playingVitalSoundWeight;
+    return this._settings.weightMultiplier * this._settings.playingVitalSoundWeight;
   }
 
   /** Carbon method SetPlayingVitalSoundWeight (raw). */
@@ -228,7 +228,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetPlayingVitalSoundWeight(value)
   {
-    this.#settings.playingVitalSoundWeight = value;
+    this._settings.playingVitalSoundWeight = value;
   }
 
   /** Carbon method GetPlaying2DWeight (multiplied). */
@@ -236,7 +236,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetPlaying2DWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.playing2DWeight;
+    return this._settings.weightMultiplier * this._settings.playing2DWeight;
   }
 
   /** Carbon method SetPlaying2DWeight (raw). */
@@ -244,7 +244,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetPlaying2DWeight(value)
   {
-    this.#settings.playing2DWeight = value;
+    this._settings.playing2DWeight = value;
   }
 
   /** Carbon method GetRangeWeight (multiplied). */
@@ -252,7 +252,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetRangeWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.rangeWeight;
+    return this._settings.weightMultiplier * this._settings.rangeWeight;
   }
 
   /** Carbon method SetRangeWeight (raw). */
@@ -260,7 +260,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetRangeWeight(value)
   {
-    this.#settings.rangeWeight = value;
+    this._settings.rangeWeight = value;
   }
 
   /** Carbon method GetPlayingEventsWeight (multiplied activeSoundsWeight). */
@@ -268,7 +268,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetPlayingEventsWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.activeSoundsWeight;
+    return this._settings.weightMultiplier * this._settings.activeSoundsWeight;
   }
 
   /** Carbon method SetPlayingEventsWeight (raw). */
@@ -276,7 +276,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetPlayingEventsWeight(value)
   {
-    this.#settings.activeSoundsWeight = value;
+    this._settings.activeSoundsWeight = value;
   }
 
   /** Carbon method GetWaitingOneShotWeight (multiplied). */
@@ -284,7 +284,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetWaitingOneShotWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.waitingOneShotWeight;
+    return this._settings.weightMultiplier * this._settings.waitingOneShotWeight;
   }
 
   /** Carbon method SetWaitingOneShotWeight (raw). */
@@ -292,7 +292,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetWaitingOneShotWeight(value)
   {
-    this.#settings.waitingOneShotWeight = value;
+    this._settings.waitingOneShotWeight = value;
   }
 
   /** Carbon method GetVisibleWeight (multiplied). */
@@ -300,7 +300,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetVisibleWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.visibleWeight;
+    return this._settings.weightMultiplier * this._settings.visibleWeight;
   }
 
   /** Carbon method SetVisibleWeight (raw). */
@@ -308,7 +308,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetVisibleWeight(value)
   {
-    this.#settings.visibleWeight = value;
+    this._settings.visibleWeight = value;
   }
 
   /** Carbon method GetUsedEmitterWeight (multiplied). */
@@ -316,7 +316,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   GetUsedEmitterWeight()
   {
-    return this.#settings.weightMultiplier * this.#settings.usedEmitterWeight;
+    return this._settings.weightMultiplier * this._settings.usedEmitterWeight;
   }
 
   /** Carbon method SetUsedEmitterWeight (raw). */
@@ -324,7 +324,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   SetUsedEmitterWeight(value)
   {
-    this.#settings.usedEmitterWeight = value;
+    this._settings.usedEmitterWeight = value;
   }
 
   /** Carbon method GetPrioritizedAudioObjects: defensive current-order snapshot. */
@@ -333,7 +333,7 @@ export class SoundPrioritization extends CjsModel
   @impl.reason("Carbon returns a const vector reference; CarbonEngineJS returns a defensive array.")
   GetPrioritizedAudioObjects()
   {
-    return this.#gameObjects.slice();
+    return this._gameObjects.slice();
   }
 
   /** Carbon method ForEachAwakeAudioObject: visits every non-culled tracked object. Source: SoundPrioritization.h:264-274 (commit c9b986d). */
@@ -341,7 +341,7 @@ export class SoundPrioritization extends CjsModel
   @impl.implemented
   ForEachAwakeAudioObject(visitor)
   {
-    for (const gameObject of this.#gameObjects)
+    for (const gameObject of this._gameObjects)
     {
       if (!gameObject.IsCulled())
       {

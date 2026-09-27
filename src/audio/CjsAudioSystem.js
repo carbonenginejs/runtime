@@ -75,74 +75,74 @@ export class CjsAudioSystem
 
     updateContext = createAudioUpdateContext();
 
-    #attached = false;
+    _attached = false;
 
-    #loadBuffer = null;
+    _loadBuffer = null;
 
-    #hasEventStops = null;
+    _hasEventStops = null;
 
-    #hasSfxEvent = null;
+    _hasSfxEvent = null;
 
-    #resolveSfxProgram = null;
+    _resolveSfxProgram = null;
 
-    #continueSfxProgram = null;
+    _continueSfxProgram = null;
 
-    #prepareSfxProgram = null;
+    _prepareSfxProgram = null;
 
-    #stateTransitions = null;
+    _stateTransitions = null;
 
-    #createContext = null;
+    _createContext = null;
 
-    #distanceScale = 1;
+    _distanceScale = 1;
 
-    #musicGraph = null;
+    _musicGraph = null;
 
-    #loadMedia = null;
+    _loadMedia = null;
 
-    #createMusicEngine = null;
+    _createMusicEngine = null;
 
-    #providedMusicEngine = null;
+    _providedMusicEngine = null;
 
-    #applyRTPC = null;
+    _applyRTPC = null;
 
-    #releaseGameObj = null;
+    _releaseGameObj = null;
 
-    #busRtpcs = null;
+    _busRtpcs = null;
 
-    #busStates = null;
+    _busStates = null;
 
-    #busDucking = null;
+    _busDucking = null;
 
-    #busEffects = null;
+    _busEffects = null;
 
-    #busGraph = null;
+    _busGraph = null;
 
-    #busDuckingController = null;
+    _busDuckingController = null;
 
-    #busGraphRuntime = null;
+    _busGraphRuntime = null;
 
-    #busMixer = null;
+    _busMixer = null;
 
-    #providedUpdateContext = null;
+    _providedUpdateContext = null;
 
-    #wwiseDynamics = "strict";
+    _wwiseDynamics = "strict";
 
-    #wwiseDistortion = "strict";
+    _wwiseDistortion = "strict";
 
-    #wwiseModulation = "strict";
+    _wwiseModulation = "strict";
 
-    #wwiseReverb = "strict";
-    #wwiseRoomVerb = "strict";
+    _wwiseReverb = "strict";
+    _wwiseRoomVerb = "strict";
 
-    #wwiseMeterFeedback = "strict";
+    _wwiseMeterFeedback = "strict";
 
-    #wwiseObstructionOcclusion = "strict";
+    _wwiseObstructionOcclusion = "strict";
 
-    #wwiseVoiceLimits = "strict";
+    _wwiseVoiceLimits = "strict";
 
-    #adoptedEmitters = new Set();
+    _adoptedEmitters = new Set();
 
-    #adoptedCurveSetDrivers = new Set();
+    _adoptedCurveSetDrivers = new Set();
 
     /** Creates a headless-first audio composition with optional realization inputs. */
     constructor({
@@ -178,60 +178,60 @@ export class CjsAudioSystem
         wwiseVoiceLimits = "strict",
     } = {})
     {
-        this.#createContext = createContext ?? null;
-        this.#loadBuffer = loadBuffer ?? null;
-        this.#hasEventStops = typeof hasEventStops === "function"
+        this._createContext = createContext ?? null;
+        this._loadBuffer = loadBuffer ?? null;
+        this._hasEventStops = typeof hasEventStops === "function"
             ? hasEventStops
             : null;
-        this.#hasSfxEvent = typeof hasSfxEvent === "function"
+        this._hasSfxEvent = typeof hasSfxEvent === "function"
             ? hasSfxEvent
             : null;
-        this.#resolveSfxProgram = typeof resolveSfxProgram === "function"
+        this._resolveSfxProgram = typeof resolveSfxProgram === "function"
             ? resolveSfxProgram
             : null;
-        this.#continueSfxProgram =
+        this._continueSfxProgram =
             typeof continueSfxProgram === "function"
                 ? continueSfxProgram
                 : null;
-        this.#prepareSfxProgram =
+        this._prepareSfxProgram =
             typeof prepareSfxProgram === "function"
                 ? prepareSfxProgram
                 : null;
-        this.#stateTransitions = stateTransitions ?? null;
-        this.#distanceScale = Number(distanceScale) || 1;
-        this.#musicGraph = musicGraph ?? null;
-        this.#loadMedia = loadMedia ?? null;
-        this.#providedMusicEngine = musicEngine ?? null;
-        this.#createMusicEngine = typeof createMusicEngine === "function" ? createMusicEngine : null;
-        this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
-        this.#releaseGameObj = typeof releaseGameObj === "function"
+        this._stateTransitions = stateTransitions ?? null;
+        this._distanceScale = Number(distanceScale) || 1;
+        this._musicGraph = musicGraph ?? null;
+        this._loadMedia = loadMedia ?? null;
+        this._providedMusicEngine = musicEngine ?? null;
+        this._createMusicEngine = typeof createMusicEngine === "function" ? createMusicEngine : null;
+        this._applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
+        this._releaseGameObj = typeof releaseGameObj === "function"
             ? releaseGameObj
             : null;
-        this.#busRtpcs = busRtpcs ?? null;
-        this.#busStates = busStates ?? null;
-        this.#busDucking = busDucking ?? null;
-        this.#busEffects = busEffects ?? null;
-        this.#busGraph = busGraph ?? null;
-        this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
-        this.#wwiseDistortion = normalizeWwiseDistortionMode(
+        this._busRtpcs = busRtpcs ?? null;
+        this._busStates = busStates ?? null;
+        this._busDucking = busDucking ?? null;
+        this._busEffects = busEffects ?? null;
+        this._busGraph = busGraph ?? null;
+        this._wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this._wwiseDistortion = normalizeWwiseDistortionMode(
             wwiseDistortion,
         );
-        this.#wwiseModulation = normalizeWwiseModulationMode(
+        this._wwiseModulation = normalizeWwiseModulationMode(
             wwiseModulation,
         );
-        this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
-        this.#wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
-        this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
+        this._wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
+        this._wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
+        this._wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
             wwiseMeterFeedback,
         );
-        this.#wwiseObstructionOcclusion =
+        this._wwiseObstructionOcclusion =
             normalizeWwiseObstructionOcclusionMode(
                 wwiseObstructionOcclusion,
             );
-        this.#wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(
+        this._wwiseVoiceLimits = normalizeWwiseVoiceLimitMode(
             wwiseVoiceLimits,
         );
-        this.#providedUpdateContext = updateContext ?? null;
+        this._providedUpdateContext = updateContext ?? null;
         if (audioMetadata)
         {
             this.repository.Initialize(audioMetadata);
@@ -244,19 +244,19 @@ export class CjsAudioSystem
         AudGameObjResource.manager = this.manager;
         AudGameObjResource.staticDataRepository = this.repository;
         AudGameObjResource.backend = this.backend;
-        this.#attached = true;
+        this._attached = true;
         return this;
     }
 
     /** Clears the seams (back to headless). */
     Detach()
     {
-        if (this.#attached)
+        if (this._attached)
         {
             AudGameObjResource.manager = null;
             AudGameObjResource.staticDataRepository = null;
             AudGameObjResource.backend = null;
-            this.#attached = false;
+            this._attached = false;
         }
     }
 
@@ -269,84 +269,84 @@ export class CjsAudioSystem
      */
     Enable(soundBanksToLoad = [])
     {
-        if (!this.backend && this.#createContext)
+        if (!this.backend && this._createContext)
         {
-            const context = this.#createContext();
+            const context = this._createContext();
             if (context)
             {
-                this.#busGraphRuntime = this.#busGraph
-                    ? new CjsBusGraphRuntime(this.#busGraph)
+                this._busGraphRuntime = this._busGraph
+                    ? new CjsBusGraphRuntime(this._busGraph)
                     : null;
-                this.#busDuckingController = new CjsBusDuckingController(
-                    this.#busDucking,
+                this._busDuckingController = new CjsBusDuckingController(
+                    this._busDucking,
                 );
                 this.backend = new CjsAudioBackend({
                     context,
-                    loadBuffer: this.#loadBuffer,
+                    loadBuffer: this._loadBuffer,
                     isLoop: eventName => this.repository.EventIsLoop(eventName),
-                    hasEventStops: this.#hasEventStops,
-                    hasSfxEvent: this.#hasSfxEvent,
-                    resolveSfxProgram: this.#resolveSfxProgram,
-                    continueSfxProgram: this.#continueSfxProgram,
-                    prepareSfxProgram: this.#prepareSfxProgram,
-                    stateTransitions: this.#stateTransitions,
-                    distanceScale: this.#distanceScale,
-                    applyRTPC: this.#applyRTPC,
-                    busRtpcs: this.#busRtpcs,
-                    busStates: this.#busStates,
-                    busDuckingController: this.#busDuckingController,
-                    busEffects: this.#busEffects,
-                    wwiseDynamics: this.#wwiseDynamics,
-                    wwiseDistortion: this.#wwiseDistortion,
-                    wwiseModulation: this.#wwiseModulation,
-                    wwiseReverb: this.#wwiseReverb,
-                    wwiseRoomVerb: this.#wwiseRoomVerb,
-                    wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                    hasEventStops: this._hasEventStops,
+                    hasSfxEvent: this._hasSfxEvent,
+                    resolveSfxProgram: this._resolveSfxProgram,
+                    continueSfxProgram: this._continueSfxProgram,
+                    prepareSfxProgram: this._prepareSfxProgram,
+                    stateTransitions: this._stateTransitions,
+                    distanceScale: this._distanceScale,
+                    applyRTPC: this._applyRTPC,
+                    busRtpcs: this._busRtpcs,
+                    busStates: this._busStates,
+                    busDuckingController: this._busDuckingController,
+                    busEffects: this._busEffects,
+                    wwiseDynamics: this._wwiseDynamics,
+                    wwiseDistortion: this._wwiseDistortion,
+                    wwiseModulation: this._wwiseModulation,
+                    wwiseReverb: this._wwiseReverb,
+                    wwiseRoomVerb: this._wwiseRoomVerb,
+                    wwiseMeterFeedback: this._wwiseMeterFeedback,
                     wwiseObstructionOcclusion:
-                        this.#wwiseObstructionOcclusion,
-                    busGraphRuntime: this.#busGraphRuntime,
+                        this._wwiseObstructionOcclusion,
+                    busGraphRuntime: this._busGraphRuntime,
                 });
                 const globalControlReaders =
-                    this.#CreateGlobalControlReaders();
+                    this._CreateGlobalControlReaders();
 
-                this.#busMixer = this.#busGraphRuntime
+                this._busMixer = this._busGraphRuntime
                     ? new CjsSharedBusMixer({
                         context,
-                        runtime: this.#busGraphRuntime,
+                        runtime: this._busGraphRuntime,
                         destination: this.backend.masterGain,
-                        busRtpcs: this.#busRtpcs,
-                        busStates: this.#busStates,
-                        busDuckingController: this.#busDuckingController,
+                        busRtpcs: this._busRtpcs,
+                        busStates: this._busStates,
+                        busDuckingController: this._busDuckingController,
                         ...globalControlReaders,
-                        wwiseDynamics: this.#wwiseDynamics,
-                        wwiseMeterFeedback: this.#wwiseMeterFeedback,
-                        wwiseVoiceLimits: this.#wwiseVoiceLimits,
+                        wwiseDynamics: this._wwiseDynamics,
+                        wwiseMeterFeedback: this._wwiseMeterFeedback,
+                        wwiseVoiceLimits: this._wwiseVoiceLimits,
                     })
                     : null;
-                this.backend.SetBusMixer(this.#busMixer);
+                this.backend.SetBusMixer(this._busMixer);
                 if (!this.musicEngine)
                 {
-                    this.musicEngine = this.#CreateMusicEngine(context);
+                    this.musicEngine = this._CreateMusicEngine(context);
                 }
                 this.backend.SetMusicEngine(this.musicEngine);
             }
         }
-        if (this.#attached)
+        if (this._attached)
         {
             AudGameObjResource.backend = this.backend;
         }
-        for (const emitter of this.#adoptedEmitters)
+        for (const emitter of this._adoptedEmitters)
         {
-            this.#RecoverInitialEvent(emitter);
+            this._RecoverInitialEvent(emitter);
         }
         this.manager.Enable(soundBanksToLoad);
         if (this.manager.enabled)
         {
-            for (const emitter of this.#adoptedEmitters)
+            for (const emitter of this._adoptedEmitters)
             {
                 emitter.RealizePlacement?.();
             }
-            for (const driver of this.#adoptedCurveSetDrivers)
+            for (const driver of this._adoptedCurveSetDrivers)
             {
                 driver.Initialize();
             }
@@ -355,7 +355,7 @@ export class CjsAudioSystem
     }
 
     /** Creates the shared backend control-reader callbacks once per enable. */
-    #CreateGlobalControlReaders()
+    _CreateGlobalControlReaders()
     {
         return {
             getGlobalRTPC: (name, at) =>
@@ -370,36 +370,36 @@ export class CjsAudioSystem
     }
 
     /** Creates or validates the configured music engine for one backend. */
-    #CreateMusicEngine(context)
+    _CreateMusicEngine(context)
     {
-        if (this.#providedMusicEngine)
+        if (this._providedMusicEngine)
         {
             return CjsAudioSystem.ValidateMusicEngine(
-                this.#providedMusicEngine,
+                this._providedMusicEngine,
             );
         }
 
         const options = {
             context,
             destination: this.backend.masterGain ?? context.destination,
-            graph: this.#musicGraph,
-            loadMedia: this.#loadMedia,
-            busRtpcs: this.#busRtpcs,
-            busStates: this.#busStates,
-            busDuckingController: this.#busDuckingController,
-            busEffects: this.#busEffects,
-            busGraphRuntime: this.#busGraphRuntime,
-            busMixer: this.#busMixer,
-            ...this.#CreateGlobalControlReaders(),
+            graph: this._musicGraph,
+            loadMedia: this._loadMedia,
+            busRtpcs: this._busRtpcs,
+            busStates: this._busStates,
+            busDuckingController: this._busDuckingController,
+            busEffects: this._busEffects,
+            busGraphRuntime: this._busGraphRuntime,
+            busMixer: this._busMixer,
+            ...this._CreateGlobalControlReaders(),
         };
 
-        if (this.#createMusicEngine)
+        if (this._createMusicEngine)
         {
             return CjsAudioSystem.ValidateMusicEngine(
-                this.#createMusicEngine(options),
+                this._createMusicEngine(options),
             );
         }
-        return this.#musicGraph
+        return this._musicGraph
             ? new CjsMusicEngine(options)
             : null;
     }
@@ -418,7 +418,7 @@ export class CjsAudioSystem
     Process(updateContext)
     {
         const source = updateContext === undefined
-            ? this.#providedUpdateContext
+            ? this._providedUpdateContext
             : updateContext;
 
         this.updateContext.Update(source);
@@ -445,7 +445,7 @@ export class CjsAudioSystem
             previous?.Dispose?.();
         }
         this.musicEngine = next;
-        this.#providedMusicEngine = next;
+        this._providedMusicEngine = next;
         this.backend?.SetMusicEngine(next);
         return next;
     }
@@ -519,10 +519,10 @@ export class CjsAudioSystem
             this.manager.RegisterGameObject(emitter.ID, emitter);
         }
         emitter.UpdateValues({ skipEvents: true });
-        this.#adoptedEmitters.add(emitter);
+        this._adoptedEmitters.add(emitter);
         if (this.manager.enabled)
         {
-            this.#RecoverInitialEvent(emitter);
+            this._RecoverInitialEvent(emitter);
             emitter.Wake();
             emitter.RealizePlacement?.();
         }
@@ -530,7 +530,7 @@ export class CjsAudioSystem
     }
 
     /** Recovers one persisted Initialize-time event lost before graph seams existed. */
-    #RecoverInitialEvent(emitter)
+    _RecoverInitialEvent(emitter)
     {
         if (!emitter.isUsed && emitter.eventName)
         {
@@ -547,10 +547,10 @@ export class CjsAudioSystem
                 "CjsAudioSystem.AdoptCurveSetDriver requires an AudioCurveSetDriver.",
             );
         }
-        if (!this.#adoptedCurveSetDrivers.has(driver))
+        if (!this._adoptedCurveSetDrivers.has(driver))
         {
             driver.Initialize();
-            this.#adoptedCurveSetDrivers.add(driver);
+            this._adoptedCurveSetDrivers.add(driver);
         }
         return driver;
     }
@@ -588,7 +588,7 @@ export class CjsAudioSystem
     ReleaseEmitter(emitter)
     {
         if (!(emitter instanceof AudGameObjResource)
-            || !this.#adoptedEmitters.has(emitter)
+            || !this._adoptedEmitters.has(emitter)
             || this.manager.GetAudioEmitter(emitter.ID) !== emitter)
         {
             return false;
@@ -598,8 +598,8 @@ export class CjsAudioSystem
         this.backend?.ReleaseGameObj?.(emitter.ID);
         this.manager.RemoveCallbackGameObject(emitter.ID);
         this.manager.UnregisterGameObject(emitter.ID);
-        this.#adoptedEmitters.delete(emitter);
-        this.#releaseGameObj?.(emitter.ID);
+        this._adoptedEmitters.delete(emitter);
+        this._releaseGameObj?.(emitter.ID);
         return true;
     }
 
@@ -607,12 +607,12 @@ export class CjsAudioSystem
     ReleaseCurveSetDriver(driver)
     {
         if (!(driver instanceof AudioCurveSetDriver)
-            || !this.#adoptedCurveSetDrivers.has(driver))
+            || !this._adoptedCurveSetDrivers.has(driver))
         {
             return false;
         }
         driver.Dispose();
-        this.#adoptedCurveSetDrivers.delete(driver);
+        this._adoptedCurveSetDrivers.delete(driver);
         return true;
     }
 
@@ -650,26 +650,26 @@ export class CjsAudioSystem
     Dispose()
     {
         this.manager.Disable();
-        for (const emitter of [ ...this.#adoptedEmitters ])
+        for (const emitter of [ ...this._adoptedEmitters ])
         {
             this.ReleaseEmitter(emitter);
         }
-        for (const driver of [ ...this.#adoptedCurveSetDrivers ])
+        for (const driver of [ ...this._adoptedCurveSetDrivers ])
         {
             this.ReleaseCurveSetDriver(driver);
         }
         this.backend?.SetMusicEngine(null);
         this.musicEngine?.Dispose?.();
         this.musicEngine = null;
-        this.#providedMusicEngine = null;
+        this._providedMusicEngine = null;
         this.backend?.Dispose?.();
         this.backend = null;
-        this.#busMixer?.Dispose?.();
-        this.#busMixer = null;
-        this.#busGraphRuntime?.Dispose?.();
-        this.#busGraphRuntime = null;
-        this.#busDuckingController?.Dispose?.();
-        this.#busDuckingController = null;
+        this._busMixer?.Dispose?.();
+        this._busMixer = null;
+        this._busGraphRuntime?.Dispose?.();
+        this._busGraphRuntime = null;
+        this._busDuckingController?.Dispose?.();
+        this._busDuckingController = null;
         this.Detach();
     }
 }

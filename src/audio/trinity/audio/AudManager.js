@@ -53,23 +53,23 @@ export class AudManager extends CjsModel
 
   // AudioState (Uninitialized/Disabled/Enabled) as lowercase strings;
   // GetStateValue preserves Carbon's 0/1/2.
-  #state = "uninitialized";
+  _state = "uninitialized";
 
-  #soundBankInfoMap = new Map();
+  _soundBankInfoMap = new Map();
 
-  #nextSoundBankOperation = 1;
+  _nextSoundBankOperation = 1;
 
-  #monitoredParameters = new Map();
+  _monitoredParameters = new Map();
 
-  #callbackGameObjects = new Map();
+  _callbackGameObjects = new Map();
 
-  #debugDisplayAllEmitters = false;
+  _debugDisplayAllEmitters = false;
 
-  #spatialAudioSettings = new SpatialAudioSettings();
+  _spatialAudioSettings = new SpatialAudioSettings();
 
-  #spatialAudioGeometryBackends = new WeakSet();
+  _spatialAudioGeometryBackends = new WeakSet();
 
-  #obstructionOcclusion = new AudObstructionOcclusion(this);
+  _obstructionOcclusion = new AudObstructionOcclusion(this);
 
   // CarbonEngineJS-original: the prioritization is a public collaborator so
   // emitters can read weights directly (see AudGameObjResource notes).
@@ -78,7 +78,7 @@ export class AudManager extends CjsModel
   /** Enabled convenience over the Carbon state (the guard emitters check). */
   get enabled()
   {
-    return this.#state === "enabled";
+    return this._state === "enabled";
   }
 
   /** Carbon method GetState. */
@@ -86,7 +86,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetState()
   {
-    return this.#state;
+    return this._state;
   }
 
   /** Carbon method GetStateValue: Carbon's scripting int (0/1/2). */
@@ -94,7 +94,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetStateValue()
   {
-    return this.#state === "uninitialized" ? 0 : this.#state === "disabled" ? 1 : 2;
+    return this._state === "uninitialized" ? 0 : this._state === "disabled" ? 1 : 2;
   }
 
   /** Carbon method Enable: init if needed, enable, load Init.bnk + requested banks, wake everything. */
@@ -103,12 +103,12 @@ export class AudManager extends CjsModel
   @impl.reason("Wwise memory/stream/sound initialization is the backend's Init, while pre-enabled geometry uses optional InitSpatialAudioGeometry with Carbon's populated settings. The state machine, failure gate, bank loads, and wake pass follow audio/src/AudManager.cpp:148-180 and 848-881.")
   Enable(soundBanksToLoad = [])
   {
-    if (this.#state === "enabled")
+    if (this._state === "enabled")
     {
       return;
     }
     const backend = AudGameObjResource.backend;
-    if (this.#state === "uninitialized")
+    if (this._state === "uninitialized")
     {
       const repository = AudGameObjResource.staticDataRepository;
       if (!repository?.IsInitialized())
@@ -128,15 +128,15 @@ export class AudManager extends CjsModel
       return;
     }
     if (this.GetSpatialAudioGeometryEnabled()
-      && !this.#InitSpatialAudioGeometry(backend))
+      && !this._InitSpatialAudioGeometry(backend))
     {
       return;
     }
-    if (this.#state === "uninitialized")
+    if (this._state === "uninitialized")
     {
-      this.#state = "disabled";
+      this._state = "disabled";
     }
-    this.#state = "enabled";
+    this._state = "enabled";
     this.LoadBank("Init.bnk");
     for (const bank of soundBanksToLoad)
     {
@@ -153,7 +153,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   Disable()
   {
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
       return;
     }
@@ -162,9 +162,9 @@ export class AudManager extends CjsModel
       gameObject.Cull();
     }
     this.ClearBanks();
-    this.#obstructionOcclusion.Reset();
+    this._obstructionOcclusion.Reset();
     AudGeometry.ClearAllGeometry();
-    this.#state = "disabled";
+    this._state = "disabled";
   }
 
   /** Carbon method LoadBank: async - tracked LOADING immediately; backend callback drives LOADED. */
@@ -172,7 +172,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   LoadBank(name)
   {
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
       return;
     }
@@ -182,8 +182,8 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    const operation = this.#nextSoundBankOperation++;
-    this.#soundBankInfoMap.set(key, {
+    const operation = this._nextSoundBankOperation++;
+    this._soundBankInfoMap.set(key, {
       soundBankStatus: "loading",
       soundBankID: key,
       soundBankName: String(name),
@@ -192,7 +192,7 @@ export class AudManager extends CjsModel
     });
     AudGameObjResource.backend?.LoadBank?.(String(name), loaded =>
     {
-      if (this.#soundBankInfoMap.get(key)?.operation === operation)
+      if (this._soundBankInfoMap.get(key)?.operation === operation)
       {
         this.UpdateSoundBankStatus(
           key,
@@ -207,7 +207,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   UnloadBank(name)
   {
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
       return;
     }
@@ -217,16 +217,16 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    const operation = this.#nextSoundBankOperation++;
-    const info = this.#soundBankInfoMap.get(key);
+    const operation = this._nextSoundBankOperation++;
+    const info = this._soundBankInfoMap.get(key);
 
     info.operation = operation;
     this.UpdateSoundBankStatus(key, "unloading");
     AudGameObjResource.backend?.UnloadBank?.(String(name), () =>
     {
-      if (this.#soundBankInfoMap.get(key)?.operation === operation)
+      if (this._soundBankInfoMap.get(key)?.operation === operation)
       {
-        this.#soundBankInfoMap.delete(key);
+        this._soundBankInfoMap.delete(key);
       }
     });
   }
@@ -236,10 +236,10 @@ export class AudManager extends CjsModel
   @impl.implemented
   ClearBanks()
   {
-    if (this.#state !== "uninitialized")
+    if (this._state !== "uninitialized")
     {
       AudGameObjResource.backend?.ClearBanks?.();
-      this.#soundBankInfoMap.clear();
+      this._soundBankInfoMap.clear();
     }
   }
 
@@ -250,7 +250,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   UpdateSoundBankStatus(bankID, status)
   {
-    const info = this.#soundBankInfoMap.get(bankID);
+    const info = this._soundBankInfoMap.get(bankID);
     if (!info)
     {
       return;
@@ -271,7 +271,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   RegisterEventAfterSoundBankLoad(soundBankName, eventName, emitter)
   {
-    for (const info of this.#soundBankInfoMap.values())
+    for (const info of this._soundBankInfoMap.values())
     {
       if (info.soundBankName === String(soundBankName))
       {
@@ -285,12 +285,12 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetSoundBankStatus(name)
   {
-    const byKey = this.#soundBankInfoMap.get(BankKey(name));
+    const byKey = this._soundBankInfoMap.get(BankKey(name));
     if (byKey)
     {
       return byKey.soundBankStatus;
     }
-    for (const info of this.#soundBankInfoMap.values())
+    for (const info of this._soundBankInfoMap.values())
     {
       if (info.soundBankName === String(name))
       {
@@ -306,7 +306,7 @@ export class AudManager extends CjsModel
   GetLoadedSoundBanks()
   {
     const names = [];
-    for (const info of this.#soundBankInfoMap.values())
+    for (const info of this._soundBankInfoMap.values())
     {
       if (info.soundBankStatus === "loaded" || info.soundBankStatus === "loading")
       {
@@ -321,7 +321,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetGlobalRTPC(rtpcName, value)
   {
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
       return false;
     }
@@ -338,7 +338,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetState(stateGroup, stateName)
   {
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
       return false;
     }
@@ -392,7 +392,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetSpatialAudioGeometryEnabled()
   {
-    return this.#spatialAudioSettings.GetSpatialAudioGeometryEnabled();
+    return this._spatialAudioSettings.GetSpatialAudioGeometryEnabled();
   }
 
   /**
@@ -412,7 +412,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
-    return this.#obstructionOcclusion.SetEmitterLineOfSightBlockage(
+    return this._obstructionOcclusion.SetEmitterLineOfSightBlockage(
       emitterID,
       blockage,
     );
@@ -423,7 +423,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetEmitterOcclusion(emitterID)
   {
-    return this.#obstructionOcclusion.GetEmitterOcclusion(emitterID);
+    return this._obstructionOcclusion.GetEmitterOcclusion(emitterID);
   }
 
   /** Carbon method ClearObstructionOcclusion: fades every target to clear. */
@@ -431,7 +431,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   ClearObstructionOcclusion()
   {
-    this.#obstructionOcclusion.ClearAll();
+    this._obstructionOcclusion.ClearAll();
   }
 
   /** Carbon Blue property getter for game-driven obstruction/occlusion. */
@@ -439,7 +439,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetObstructionOcclusionEnabled()
   {
-    return this.#obstructionOcclusion.IsEnabled();
+    return this._obstructionOcclusion.IsEnabled();
   }
 
   /** Carbon Blue property setter for game-driven obstruction/occlusion. */
@@ -447,7 +447,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetObstructionOcclusionEnabled(value)
   {
-    this.#obstructionOcclusion.SetEnabled(value);
+    this._obstructionOcclusion.SetEnabled(value);
   }
 
   /** Carbon Blue property getter for the obstruction/occlusion fade rate. */
@@ -455,7 +455,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetObstructionOcclusionFadeRate()
   {
-    return this.#obstructionOcclusion.GetFadeRate();
+    return this._obstructionOcclusion.GetFadeRate();
   }
 
   /** Carbon Blue property setter for the obstruction/occlusion fade rate. */
@@ -463,7 +463,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetObstructionOcclusionFadeRate(value)
   {
-    this.#obstructionOcclusion.SetFadeRate(value);
+    this._obstructionOcclusion.SetFadeRate(value);
   }
 
   /** Carbon method SetSpatialAudioGeometryEnabled. */
@@ -477,22 +477,22 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    if (this.#state !== "enabled")
+    if (this._state !== "enabled")
     {
-      this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(value);
+      this._spatialAudioSettings.SetSpatialAudioGeometryEnabled(value);
       return;
     }
     if (!value)
     {
-      this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(false);
+      this._spatialAudioSettings.SetSpatialAudioGeometryEnabled(false);
       AudGeometry.ClearAllGeometry();
       return;
     }
-    if (!this.#InitSpatialAudioGeometry(AudGameObjResource.backend))
+    if (!this._InitSpatialAudioGeometry(AudGameObjResource.backend))
     {
       return;
     }
-    this.#spatialAudioSettings.SetSpatialAudioGeometryEnabled(true);
+    this._spatialAudioSettings.SetSpatialAudioGeometryEnabled(true);
   }
 
   /**
@@ -500,25 +500,25 @@ export class AudManager extends CjsModel
    * Carbon retains the equivalent flag across Disable but resets it when the
    * sound engine terminates; backend identity supplies that boundary here.
    */
-  #InitSpatialAudioGeometry(backend)
+  _InitSpatialAudioGeometry(backend)
   {
     if (!backend
       || (typeof backend !== "object" && typeof backend !== "function"))
     {
       return false;
     }
-    if (this.#spatialAudioGeometryBackends.has(backend))
+    if (this._spatialAudioGeometryBackends.has(backend))
     {
       return true;
     }
 
-    const settings = this.#spatialAudioSettings.PopulateInitSettings({});
+    const settings = this._spatialAudioSettings.PopulateInitSettings({});
 
     if (backend.InitSpatialAudioGeometry?.(settings) === false)
     {
       return false;
     }
-    this.#spatialAudioGeometryBackends.add(backend);
+    this._spatialAudioGeometryBackends.add(backend);
     return true;
   }
 
@@ -527,7 +527,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetMovementThreshold()
   {
-    return this.#spatialAudioSettings.GetMovementThreshold();
+    return this._spatialAudioSettings.GetMovementThreshold();
   }
 
   /** Sets the spatial-audio movement threshold. */
@@ -535,7 +535,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetMovementThreshold(value)
   {
-    this.#spatialAudioSettings.SetMovementThreshold(value);
+    this._spatialAudioSettings.SetMovementThreshold(value);
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
@@ -543,7 +543,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetNumberOfPrimaryRays()
   {
-    return this.#spatialAudioSettings.GetNumberOfPrimaryRays();
+    return this._spatialAudioSettings.GetNumberOfPrimaryRays();
   }
 
   /** Sets the maximum number of primary spatial-audio rays. */
@@ -551,7 +551,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetNumberOfPrimaryRays(value)
   {
-    this.#spatialAudioSettings.SetNumberOfPrimaryRays(value);
+    this._spatialAudioSettings.SetNumberOfPrimaryRays(value);
   }
 
   /** Returns the maximum reflection order. */
@@ -559,7 +559,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetMaxReflectionOrder()
   {
-    return this.#spatialAudioSettings.GetMaxReflectionOrder();
+    return this._spatialAudioSettings.GetMaxReflectionOrder();
   }
 
   /** Sets the maximum reflection order. */
@@ -567,7 +567,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetMaxReflectionOrder(value)
   {
-    this.#spatialAudioSettings.SetMaxReflectionOrder(value);
+    this._spatialAudioSettings.SetMaxReflectionOrder(value);
   }
 
   /** Returns the maximum diffraction order. */
@@ -575,7 +575,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetMaxDiffractionOrder()
   {
-    return this.#spatialAudioSettings.GetMaxDiffractionOrder();
+    return this._spatialAudioSettings.GetMaxDiffractionOrder();
   }
 
   /** Sets the maximum diffraction order. */
@@ -583,7 +583,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetMaxDiffractionOrder(value)
   {
-    this.#spatialAudioSettings.SetMaxDiffractionOrder(value);
+    this._spatialAudioSettings.SetMaxDiffractionOrder(value);
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
@@ -591,7 +591,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetMaxEmitterRoomAuxSends()
   {
-    return this.#spatialAudioSettings.GetMaxEmitterRoomAuxSends();
+    return this._spatialAudioSettings.GetMaxEmitterRoomAuxSends();
   }
 
   /** Sets the maximum number of emitter room auxiliary sends. */
@@ -599,7 +599,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
-    this.#spatialAudioSettings.SetMaxEmitterRoomAuxSends(value);
+    this._spatialAudioSettings.SetMaxEmitterRoomAuxSends(value);
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
@@ -607,7 +607,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetDiffractionOnReflectionsOrder()
   {
-    return this.#spatialAudioSettings.GetDiffractionOnReflectionsOrder();
+    return this._spatialAudioSettings.GetDiffractionOnReflectionsOrder();
   }
 
   /** Sets the diffraction order applied at reflection endpoints. */
@@ -615,7 +615,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
-    this.#spatialAudioSettings.SetDiffractionOnReflectionsOrder(value);
+    this._spatialAudioSettings.SetDiffractionOnReflectionsOrder(value);
   }
 
   /** Returns the maximum spatial-audio path length. */
@@ -623,7 +623,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetMaxPathLength()
   {
-    return this.#spatialAudioSettings.GetMaxPathLength();
+    return this._spatialAudioSettings.GetMaxPathLength();
   }
 
   /** Sets the maximum spatial-audio path length. */
@@ -631,7 +631,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetMaxPathLength(value)
   {
-    this.#spatialAudioSettings.SetMaxPathLength(value);
+    this._spatialAudioSettings.SetMaxPathLength(value);
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
@@ -639,7 +639,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetCPULimitPercentage()
   {
-    return this.#spatialAudioSettings.GetCPULimitPercentage();
+    return this._spatialAudioSettings.GetCPULimitPercentage();
   }
 
   /** Sets the targeted spatial-audio CPU percentage. */
@@ -647,7 +647,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetCPULimitPercentage(value)
   {
-    this.#spatialAudioSettings.SetCPULimitPercentage(value);
+    this._spatialAudioSettings.SetCPULimitPercentage(value);
   }
 
   /** Returns the spatial-audio load-balancing spread. */
@@ -655,7 +655,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetLoadBalancingSpread()
   {
-    return this.#spatialAudioSettings.GetLoadBalancingSpread();
+    return this._spatialAudioSettings.GetLoadBalancingSpread();
   }
 
   /** Sets the spatial-audio load-balancing spread. */
@@ -663,7 +663,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetLoadBalancingSpread(value)
   {
-    this.#spatialAudioSettings.SetLoadBalancingSpread(value);
+    this._spatialAudioSettings.SetLoadBalancingSpread(value);
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
@@ -671,7 +671,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetEnableDiffractionAndTransmission()
   {
-    return this.#spatialAudioSettings.GetEnableDiffractionAndTransmission();
+    return this._spatialAudioSettings.GetEnableDiffractionAndTransmission();
   }
 
   /** Enables or disables geometric diffraction and transmission. */
@@ -679,7 +679,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetEnableDiffractionAndTransmission(value)
   {
-    this.#spatialAudioSettings.SetEnableDiffractionAndTransmission(value);
+    this._spatialAudioSettings.SetEnableDiffractionAndTransmission(value);
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
@@ -687,7 +687,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetCalcEmitterVirtualPosition()
   {
-    return this.#spatialAudioSettings.GetCalcEmitterVirtualPosition();
+    return this._spatialAudioSettings.GetCalcEmitterVirtualPosition();
   }
 
   /** Enables or disables Wwise emitter virtual-position calculation. */
@@ -695,7 +695,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetCalcEmitterVirtualPosition(value)
   {
-    this.#spatialAudioSettings.SetCalcEmitterVirtualPosition(value);
+    this._spatialAudioSettings.SetCalcEmitterVirtualPosition(value);
   }
 
   /** Returns the geometry surface transmission loss. */
@@ -703,7 +703,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetTransmissionLoss()
   {
-    return this.#spatialAudioSettings.GetTransmissionLoss();
+    return this._spatialAudioSettings.GetTransmissionLoss();
   }
 
   /** Sets the geometry surface transmission loss. */
@@ -711,7 +711,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetTransmissionLoss(value)
   {
-    this.#spatialAudioSettings.SetTransmissionLoss(value);
+    this._spatialAudioSettings.SetTransmissionLoss(value);
   }
 
   /** Returns whether geometry diffraction is enabled. */
@@ -719,7 +719,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetEnableDiffraction()
   {
-    return this.#spatialAudioSettings.GetEnableDiffraction();
+    return this._spatialAudioSettings.GetEnableDiffraction();
   }
 
   /** Enables or disables geometry diffraction. */
@@ -727,7 +727,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetEnableDiffraction(value)
   {
-    this.#spatialAudioSettings.SetEnableDiffraction(value);
+    this._spatialAudioSettings.SetEnableDiffraction(value);
   }
 
   /** Returns whether geometry boundary-edge diffraction is enabled. */
@@ -735,7 +735,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
-    return this.#spatialAudioSettings.GetEnableDiffractionOnBoundaryEdges();
+    return this._spatialAudioSettings.GetEnableDiffractionOnBoundaryEdges();
   }
 
   /** Enables or disables geometry boundary-edge diffraction. */
@@ -743,7 +743,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
-    this.#spatialAudioSettings.SetEnableDiffractionOnBoundaryEdges(value);
+    this._spatialAudioSettings.SetEnableDiffractionOnBoundaryEdges(value);
   }
 
   /** Returns the one-shot opportunity window in milliseconds. */
@@ -928,7 +928,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   StopAll()
   {
-    if (this.#state !== "uninitialized")
+    if (this._state !== "uninitialized")
     {
       for (const gameObject of this.soundPrioritization.GetPrioritizedAudioObjects())
       {
@@ -946,7 +946,7 @@ export class AudManager extends CjsModel
     {
       return;
     }
-    this.#callbackGameObjects.set(gameObjID, gameObject);
+    this._callbackGameObjects.set(gameObjID, gameObject);
     this.soundPrioritization.RegisterGameObject(gameObject);
   }
 
@@ -962,8 +962,8 @@ export class AudManager extends CjsModel
   UnregisterGameObject(gameObjID)
   {
     this.soundPrioritization.UnregisterGameObject(gameObjID);
-    this.#obstructionOcclusion.RemoveEmitter(gameObjID);
-    for (const info of this.#soundBankInfoMap.values())
+    this._obstructionOcclusion.RemoveEmitter(gameObjID);
+    for (const info of this._soundBankInfoMap.values())
     {
       info.waitingEventsAfterLoad = info.waitingEventsAfterLoad.filter(
         ([ emitter ]) => emitter?.ID !== gameObjID
@@ -976,7 +976,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   RemoveCallbackGameObject(gameObjID)
   {
-    this.#callbackGameObjects.delete(gameObjID);
+    this._callbackGameObjects.delete(gameObjID);
   }
 
   /** Carbon method GetAudioEmitter (by game-object id). */
@@ -984,7 +984,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetAudioEmitter(gameObjID)
   {
-    return this.#callbackGameObjects.get(gameObjID) ?? null;
+    return this._callbackGameObjects.get(gameObjID) ?? null;
   }
 
   /** Carbon method WithCallbackGameObject. */
@@ -993,7 +993,7 @@ export class AudManager extends CjsModel
   @impl.reason("The native locked callback map is synchronous in JavaScript's single-threaded graph runtime.")
   WithCallbackGameObject(gameObjID, callback)
   {
-    const emitter = this.#callbackGameObjects.get(gameObjID);
+    const emitter = this._callbackGameObjects.get(gameObjID);
     if (!emitter)
     {
       return false;
@@ -1024,13 +1024,13 @@ export class AudManager extends CjsModel
   @impl.implemented
   RegisterParameter(name)
   {
-    if (this.#state === "uninitialized")
+    if (this._state === "uninitialized")
     {
       return;
     }
-    const entry = this.#monitoredParameters.get(String(name)) ?? { parameterValue: 0, parameterExists: false, watchers: 0 };
+    const entry = this._monitoredParameters.get(String(name)) ?? { parameterValue: 0, parameterExists: false, watchers: 0 };
     entry.watchers++;
-    this.#monitoredParameters.set(String(name), entry);
+    this._monitoredParameters.set(String(name), entry);
   }
 
   /** Carbon method UnregisterParameter: erased when watchers hit 0. */
@@ -1038,14 +1038,14 @@ export class AudManager extends CjsModel
   @impl.implemented
   UnregisterParameter(name)
   {
-    if (this.#state === "uninitialized")
+    if (this._state === "uninitialized")
     {
       return;
     }
-    const entry = this.#monitoredParameters.get(String(name));
+    const entry = this._monitoredParameters.get(String(name));
     if (entry && --entry.watchers === 0)
     {
-      this.#monitoredParameters.delete(String(name));
+      this._monitoredParameters.delete(String(name));
     }
   }
 
@@ -1054,7 +1054,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   GetParameterInfo(name)
   {
-    return this.#monitoredParameters.get(String(name)) ?? null;
+    return this._monitoredParameters.get(String(name)) ?? null;
   }
 
   /** Carbon method UpdateMonitoredParameters: refresh every entry from the backend RTPC query. */
@@ -1062,7 +1062,7 @@ export class AudManager extends CjsModel
   @impl.implemented
   UpdateMonitoredParameters()
   {
-    for (const [name, entry] of this.#monitoredParameters)
+    for (const [name, entry] of this._monitoredParameters)
     {
       const value = AudGameObjResource.backend?.GetGlobalRTPCValue?.(name);
       entry.parameterExists = value !== undefined && value !== null;
@@ -1092,17 +1092,17 @@ export class AudManager extends CjsModel
   @impl.implemented
   Process()
   {
-    if (this.#state === "uninitialized")
+    if (this._state === "uninitialized")
     {
       return;
     }
-    if (this.#state === "enabled")
+    if (this._state === "enabled")
     {
       if (this.soundPrioritization.GetAudioCullingEnabled())
       {
         this.soundPrioritization.CullAudio();
       }
-      this.#obstructionOcclusion.Update(
+      this._obstructionOcclusion.Update(
         AudGameObjResource.backend,
       );
       AudGameObjResource.backend?.RenderAudio?.();
@@ -1162,7 +1162,7 @@ export class AudManager extends CjsModel
   @impl.reason("Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected renderer.")
   EnableDebugDisplayAllEmitters()
   {
-    this.#debugDisplayAllEmitters = true;
+    this._debugDisplayAllEmitters = true;
   }
 
   /** Carbon debug flag; renderer consumption remains optional. */
@@ -1171,7 +1171,7 @@ export class AudManager extends CjsModel
   @impl.reason("Carbon's native debug renderer reads a global flag; CarbonEngineJS retains the flag for an injected renderer.")
   DisableDebugDisplayAllEmitters()
   {
-    this.#debugDisplayAllEmitters = false;
+    this._debugDisplayAllEmitters = false;
   }
 
   /** Carbon debug flag query. */
@@ -1180,7 +1180,7 @@ export class AudManager extends CjsModel
   @impl.reason("The value is available to browser renderers even though the audio layer does not draw debug geometry.")
   GetDebugDisplayAllEmitters()
   {
-    return this.#debugDisplayAllEmitters;
+    return this._debugDisplayAllEmitters;
   }
 
   /** Native Wwise output-device replacement has no WebAudio equivalent. */

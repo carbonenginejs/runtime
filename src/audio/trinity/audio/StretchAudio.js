@@ -54,13 +54,13 @@ export class StretchAudio extends IStretchAudio
   @type.string
   shotMissedEvent = "";
 
-  #shotMissed = false;
+  _shotMissed = false;
 
-  #listener = null;
+  _listener = null;
 
-  #front = vec3.fromValues(0, 1, 0);
+  _front = vec3.fromValues(0, 1, 0);
 
-  #top = vec3.fromValues(0, 0, 1);
+  _top = vec3.fromValues(0, 0, 1);
 
   /** Carbon method Initialize: create the three named emitters when absent. */
   @carbon.method
@@ -94,7 +94,7 @@ export class StretchAudio extends IStretchAudio
     this.destinationEmitter?.SendEvent(this.impactEvent);
     if (this.stretchEmitter)
     {
-      if (this.#shotMissed)
+      if (this._shotMissed)
       {
         this.stretchEmitter.SendEvent(this.shotMissedEvent);
       }
@@ -121,14 +121,14 @@ export class StretchAudio extends IStretchAudio
     {
       return;
     }
-    StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this.#front, this.#top);
-    this.sourceEmitter?.SetPosition(this.#front, this.#top, sourcePosition);
-    this.destinationEmitter?.SetPosition(this.#front, this.#top, destPosition);
+    StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
+    this.sourceEmitter?.SetPosition(this._front, this._top, sourcePosition);
+    this.destinationEmitter?.SetPosition(this._front, this._top, destPosition);
     if (this.stretchEmitter)
     {
       this.stretchEmitter.SetPosition(
-        this.#front,
-        this.#top,
+        this._front,
+        this._top,
         this.ProjectListenerOntoSegment(sourcePosition, destPosition));
     }
   }
@@ -185,15 +185,15 @@ export class StretchAudio extends IStretchAudio
   @impl.implemented
   ProjectListenerOntoSegment(sourcePosition, destPosition)
   {
-    if (!this.#listener)
+    if (!this._listener)
     {
-      this.#listener = AudGameObjResource.manager?.GetListener?.() ?? null;
-      if (!this.#listener)
+      this._listener = AudGameObjResource.manager?.GetListener?.() ?? null;
+      if (!this._listener)
       {
         return [0, 0, 0];
       }
     }
-    const listenerPosition = this.#listener.GetPosition();
+    const listenerPosition = this._listener.GetPosition();
     const segX = destPosition[0] - sourcePosition[0];
     const segY = destPosition[1] - sourcePosition[1];
     const segZ = destPosition[2] - sourcePosition[2];
@@ -215,7 +215,7 @@ export class StretchAudio extends IStretchAudio
   @impl.implemented
   SetShotMissed(missed)
   {
-    this.#shotMissed = !!missed;
+    this._shotMissed = !!missed;
   }
 
   /** Carbon method FindEmitterByName: source, then dest, then stretch; first name match or null. */

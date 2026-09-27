@@ -40,42 +40,42 @@ const FILTER_REMAINING_AT_AUTHORED_TIME = 0.005;
  */
 export class CjsWwiseSourceEffectRtpcLane
 {
-    #bindings;
+    _bindings;
 
-    #context;
+    _context;
 
-    #readCurve;
+    _readCurve;
 
-    #filteredControls = new Map();
+    _filteredControls = new Map();
 
     /** Creates a lane over qualified bindings and one authored RTPC reader. */
     constructor(context, bindings, readCurve)
     {
-        this.#context = context;
-        this.#bindings = [ ...(bindings ?? []) ];
-        this.#readCurve = readCurve;
+        this._context = context;
+        this._bindings = [ ...(bindings ?? []) ];
+        this._readCurve = readCurve;
     }
 
     /** Schedules every bound effect parameter over known control transitions. */
     Apply(boundaries = [], smooth = false)
     {
-        if (typeof this.#readCurve !== "function") return;
-        const now = Number(this.#context?.currentTime) || 0;
+        if (typeof this._readCurve !== "function") return;
+        const now = Number(this._context?.currentTime) || 0;
         const ends = [ ...new Set(boundaries
             .map(Number)
             .filter(value => Number.isFinite(value) && value > now)) ]
             .sort((left, right) => left - right);
 
-        for (const binding of this.#bindings)
+        for (const binding of this._bindings)
         {
             const transition = binding.curve.controlTransition;
 
             if (!transition) continue;
             const key = FilteredControlKey(binding.curve);
 
-            if (!this.#filteredControls.has(key))
+            if (!this._filteredControls.has(key))
             {
-                const target = Number(this.#readCurve(
+                const target = Number(this._readCurve(
                     binding.curve,
                     now,
                     true,
@@ -83,15 +83,15 @@ export class CjsWwiseSourceEffectRtpcLane
 
                 if (Number.isFinite(target))
                 {
-                    this.#filteredControls.set(
+                    this._filteredControls.set(
                         key,
                         new CjsWwiseFilteredControl(target, now),
                     );
                 }
                 continue;
             }
-            const control = this.#filteredControls.get(key);
-            const target = Number(this.#readCurve(
+            const control = this._filteredControls.get(key);
+            const target = Number(this._readCurve(
                 binding.curve,
                 now,
                 true,
@@ -100,7 +100,7 @@ export class CjsWwiseSourceEffectRtpcLane
             control.SetTarget(target, now, transition);
         }
 
-        for (const binding of this.#bindings)
+        for (const binding of this._bindings)
         {
             const transition = binding.curve.controlTransition;
             const bindingEnds = transition
@@ -109,7 +109,7 @@ export class CjsWwiseSourceEffectRtpcLane
                     // Wwise specifies 99.5% at the authored time. Continue
                     // the same exponential for one more authored interval,
                     // where only 0.0025% remains, before settling exactly.
-                    this.#filteredControls.get(
+                    this._filteredControls.get(
                         FilteredControlKey(binding.curve),
                     )?.GetSettleTime(),
                 ].filter(value => Number.isFinite(value) && value > now)
@@ -117,7 +117,7 @@ export class CjsWwiseSourceEffectRtpcLane
 
             ScheduleBinding(
                 binding,
-                at => this.#ValueAt(binding, at),
+                at => this._ValueAt(binding, at),
                 now,
                 [ ...new Set(bindingEnds) ].sort(
                     (left, right) => left - right,
@@ -130,16 +130,16 @@ export class CjsWwiseSourceEffectRtpcLane
     /** Releases references after the owning voice disconnects its nodes. */
     Dispose()
     {
-        this.#bindings = [];
-        this.#readCurve = null;
-        this.#filteredControls.clear();
+        this._bindings = [];
+        this._readCurve = null;
+        this._filteredControls.clear();
     }
 
     /** Resolves one bound AudioParam value at an AudioContext time. */
-    #ValueAt(binding, at)
+    _ValueAt(binding, at)
     {
         const filtered = binding.curve.controlTransition
-            ? this.#filteredControls.get(
+            ? this._filteredControls.get(
                 FilteredControlKey(binding.curve),
             )
             : null;
@@ -148,7 +148,7 @@ export class CjsWwiseSourceEffectRtpcLane
                 binding.curve.points,
                 filtered.Evaluate(at),
             )
-            : Number(this.#readCurve(binding.curve, at));
+            : Number(this._readCurve(binding.curve, at));
         const value = ScaleCurveOutput(output, binding.curve.scaling);
         const combined = binding.curve.accumulation === "additive"
             ? binding.baseValue + value
@@ -197,7 +197,7 @@ export class CjsWwiseSourceEffectRtpcLane
                 ? 1 - mix
                 : mix;
         }
-        const nyquist = Number(this.#context?.sampleRate) / 2;
+        const nyquist = Number(this._context?.sampleRate) / 2;
         const maximum = Number.isFinite(nyquist) && nyquist > 0
             ? Math.min(MAX_EQ_FREQUENCY_HZ, nyquist)
             : MAX_EQ_FREQUENCY_HZ;
@@ -302,46 +302,46 @@ function FilteredControlKey(curve)
 /** Owns one voice-local approximation of a filtered Wwise control timeline. */
 class CjsWwiseFilteredControl
 {
-    #from;
+    _from;
 
-    #to;
+    _to;
 
-    #startTime;
+    _startTime;
 
-    #timeConstant = 0;
+    _timeConstant = 0;
 
-    #settleTime;
+    _settleTime;
 
     /** Creates a settled control at one initial value and context time. */
     constructor(value, at)
     {
-        this.#from = value;
-        this.#to = value;
-        this.#startTime = at;
-        this.#settleTime = at;
+        this._from = value;
+        this._to = value;
+        this._startTime = at;
+        this._settleTime = at;
     }
 
     /** Returns the context time at which the current filter settles exactly. */
     GetSettleTime()
     {
-        return this.#settleTime;
+        return this._settleTime;
     }
 
     /** Rebases the filter toward a new target using authored ramp timing. */
     SetTarget(value, at, transition)
     {
-        if (!Number.isFinite(value) || value === this.#to) return;
+        if (!Number.isFinite(value) || value === this._to) return;
         const current = this.Evaluate(at);
         const duration = value > current
             ? transition.rampUpSeconds
             : transition.rampDownSeconds;
 
-        this.#from = current;
-        this.#to = value;
-        this.#startTime = at;
-        this.#timeConstant = duration
+        this._from = current;
+        this._to = value;
+        this._startTime = at;
+        this._timeConstant = duration
             / -Math.log(FILTER_REMAINING_AT_AUTHORED_TIME);
-        this.#settleTime = at + duration * FILTER_SETTLE_MULTIPLIER;
+        this._settleTime = at + duration * FILTER_SETTLE_MULTIPLIER;
     }
 
     /** Evaluates the filtered control at one context time. */
@@ -350,15 +350,15 @@ class CjsWwiseFilteredControl
         const time = Number(at);
 
         if (!Number.isFinite(time)
-            || this.#timeConstant <= 0
-            || time >= this.#settleTime)
+            || this._timeConstant <= 0
+            || time >= this._settleTime)
         {
-            return this.#to;
+            return this._to;
         }
-        const elapsed = Math.max(0, time - this.#startTime);
+        const elapsed = Math.max(0, time - this._startTime);
 
-        return this.#to
-            + (this.#from - this.#to)
-                * Math.exp(-elapsed / this.#timeConstant);
+        return this._to
+            + (this._from - this._to)
+                * Math.exp(-elapsed / this._timeConstant);
     }
 }

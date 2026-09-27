@@ -94,102 +94,102 @@ const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
  */
 export class CjsAudioBackend
 {
-    #context = null;
+    _context = null;
 
-    #loadBuffer = null;
+    _loadBuffer = null;
 
-    #isLoop = null;
+    _isLoop = null;
 
-    #hasEventStops = null;
+    _hasEventStops = null;
 
-    #hasSfxEvent = null;
+    _hasSfxEvent = null;
 
-    #resolveSfxProgram = null;
+    _resolveSfxProgram = null;
 
-    #continueSfxProgram = null;
+    _continueSfxProgram = null;
 
-    #prepareSfxProgram = null;
+    _prepareSfxProgram = null;
 
-    #masterGain = null;
+    _masterGain = null;
 
-    #sfxGain = null;
+    _sfxGain = null;
 
-    #emitterNodes = new Map();
+    _emitterNodes = new Map();
 
-    #playing = new Map();
+    _playing = new Map();
 
-    #voiceLimitLedger = new CjsAudioBackendSfxVoiceLimitLedger({
+    _voiceLimitLedger = new CjsAudioBackendSfxVoiceLimitLedger({
         isOwnerActive: owner =>
-            this.#playing.get(owner.playingID) === owner,
+            this._playing.get(owner.playingID) === owner,
     });
 
-    #scheduledSfxActions = [];
+    _scheduledSfxActions = [];
 
-    #globalRtpcValues = new Map();
+    _globalRtpcValues = new Map();
 
-    #globalStateValues = new Map();
+    _globalStateValues = new Map();
 
-    #globalVoiceHighPasses = new Map();
+    _globalVoiceHighPasses = new Map();
 
-    #globalVoiceLowPasses = new Map();
+    _globalVoiceLowPasses = new Map();
 
-    #globalBusVolumes = new Map();
+    _globalBusVolumes = new Map();
 
-    #stateTransitionCatalog = new Map();
+    _stateTransitionCatalog = new Map();
 
-    #statePropertyTransitions = new Map();
+    _statePropertyTransitions = new Map();
 
-    #objectRtpcValues = new Map();
+    _objectRtpcValues = new Map();
 
-    #objectSwitchValues = new Map();
+    _objectSwitchValues = new Map();
 
-    #rtpcTransitions = new Map();
+    _rtpcTransitions = new Map();
 
-    #deferSfxControlRefresh = false;
+    _deferSfxControlRefresh = false;
 
-    #applyRTPC = null;
+    _applyRTPC = null;
 
-    #busRtpcCatalog = new Map();
+    _busRtpcCatalog = new Map();
 
-    #busStateCatalog = new Map();
+    _busStateCatalog = new Map();
 
-    #busDuckingController = null;
+    _busDuckingController = null;
 
-    #busEffectCatalog = new Map();
+    _busEffectCatalog = new Map();
 
-    #wwiseDynamics = "strict";
+    _wwiseDynamics = "strict";
 
-    #wwiseDistortion = "strict";
+    _wwiseDistortion = "strict";
 
-    #wwiseModulation = "strict";
+    _wwiseModulation = "strict";
 
-    #wwiseReverb = "strict";
-    #wwiseRoomVerb = "strict";
+    _wwiseReverb = "strict";
+    _wwiseRoomVerb = "strict";
 
-    #wwiseMeterFeedback = "strict";
+    _wwiseMeterFeedback = "strict";
 
-    #wwiseObstructionOcclusion = "strict";
+    _wwiseObstructionOcclusion = "strict";
 
-    #busGraphRuntime = null;
+    _busGraphRuntime = null;
 
-    #busMixer = null;
+    _busMixer = null;
 
-    #unsubscribeBusDucking = null;
+    _unsubscribeBusDucking = null;
 
-    #nextPlayingID = 1;
+    _nextPlayingID = 1;
 
     // Application world units -> WebAudio HRTF position units. Authored Wwise
     // curves remain in unscaled world units; this scale is used only by the
     // compatibility inverse fallback when a graph has no retained curve.
-    #distanceScale = 1;
+    _distanceScale = 1;
 
-    #listenerPoseInitialized = false;
+    _listenerPoseInitialized = false;
 
-    #listenerPosition = null;
+    _listenerPosition = null;
 
     // Optional interactive-music engine (CjsMusicEngine); owns events found
     // in its graph and plays through its own gain into the master gain.
-    #musicEngine = null;
+    _musicEngine = null;
 
     /** Creates the Web Audio realization over an optional context and loaders. */
     constructor({
@@ -220,64 +220,64 @@ export class CjsAudioBackend
         busMixer,
     } = {})
     {
-        this.#context = context ?? null;
-        this.#loadBuffer = loadBuffer ?? null;
-        this.#isLoop = isLoop ?? (() => false);
-        this.#hasEventStops = typeof hasEventStops === "function"
+        this._context = context ?? null;
+        this._loadBuffer = loadBuffer ?? null;
+        this._isLoop = isLoop ?? (() => false);
+        this._hasEventStops = typeof hasEventStops === "function"
             ? hasEventStops
             : () => false;
-        this.#hasSfxEvent = typeof hasSfxEvent === "function"
+        this._hasSfxEvent = typeof hasSfxEvent === "function"
             ? hasSfxEvent
             : null;
-        this.#resolveSfxProgram = typeof resolveSfxProgram === "function"
+        this._resolveSfxProgram = typeof resolveSfxProgram === "function"
             ? resolveSfxProgram
             : null;
-        this.#continueSfxProgram = typeof continueSfxProgram === "function"
+        this._continueSfxProgram = typeof continueSfxProgram === "function"
             ? continueSfxProgram
             : null;
-        this.#prepareSfxProgram = typeof prepareSfxProgram === "function"
+        this._prepareSfxProgram = typeof prepareSfxProgram === "function"
             ? prepareSfxProgram
             : null;
-        this.#stateTransitionCatalog = IndexStateTransitionCatalog(
+        this._stateTransitionCatalog = IndexStateTransitionCatalog(
             stateTransitions,
         );
-        this.#distanceScale = Number(distanceScale) || 1;
-        this.#applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
-        this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
-        this.#busStateCatalog = indexBusStateCatalog(busStates);
-        this.#busDuckingController = busDuckingController ?? null;
-        this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
-        this.#wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
-        this.#wwiseDistortion = normalizeWwiseDistortionMode(
+        this._distanceScale = Number(distanceScale) || 1;
+        this._applyRTPC = typeof applyRTPC === "function" ? applyRTPC : null;
+        this._busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+        this._busStateCatalog = indexBusStateCatalog(busStates);
+        this._busDuckingController = busDuckingController ?? null;
+        this._busEffectCatalog = indexBusEffectCatalog(busEffects);
+        this._wwiseDynamics = normalizeWwiseDynamicsMode(wwiseDynamics);
+        this._wwiseDistortion = normalizeWwiseDistortionMode(
             wwiseDistortion,
         );
-        this.#wwiseModulation = normalizeWwiseModulationMode(
+        this._wwiseModulation = normalizeWwiseModulationMode(
             wwiseModulation,
         );
-        this.#wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
-        this.#wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
-        this.#wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
+        this._wwiseReverb = normalizeWwiseReverbMode(wwiseReverb);
+        this._wwiseRoomVerb = normalizeWwiseRoomVerbMode(wwiseRoomVerb);
+        this._wwiseMeterFeedback = normalizeWwiseMeterFeedbackMode(
             wwiseMeterFeedback,
         );
-        this.#wwiseObstructionOcclusion =
+        this._wwiseObstructionOcclusion =
             normalizeWwiseObstructionOcclusionMode(
                 wwiseObstructionOcclusion,
             );
-        this.#busGraphRuntime = busGraphRuntime ?? null;
-        this.#busMixer = busMixer ?? null;
-        this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
-            () => this.#RefreshBusDucking(),
+        this._busGraphRuntime = busGraphRuntime ?? null;
+        this._busMixer = busMixer ?? null;
+        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe?.(
+            () => this._RefreshBusDucking(),
         ) ?? null;
 
-        if (this.#context)
+        if (this._context)
         {
-            this.#masterGain = this.#context.createGain();
+            this._masterGain = this._context.createGain();
             // Safety limiter: many concurrent one-shots (weapon volleys) sum
             // well past 0 dBFS and hard-clip audibly without it. Wwise
             // projects carry a master-bus limiter for the same reason.
             // It is a browser workaround, not an authored Wwise effect, and
             // sits downstream of any admitted authored dynamics stage.
-            const limiter = this.#context.createDynamicsCompressor?.() ?? null;
+            const limiter = this._context.createDynamicsCompressor?.() ?? null;
             if (limiter)
             {
                 limiter.threshold.value = -6;
@@ -285,32 +285,32 @@ export class CjsAudioBackend
                 limiter.ratio.value = 12;
                 limiter.attack.value = 0.003;
                 limiter.release.value = 0.25;
-                this.#masterGain.connect(limiter);
-                limiter.connect(this.#context.destination);
+                this._masterGain.connect(limiter);
+                limiter.connect(this._context.destination);
             }
             else
             {
-                this.#masterGain.connect(this.#context.destination);
+                this._masterGain.connect(this._context.destination);
             }
             // SFX bus: every emitter chain routes through it so effect volume
             // is controllable independently of music (which feeds the master
             // gain directly through the music engine's own output gain).
-            this.#sfxGain = this.#context.createGain();
-            this.#sfxGain.connect(this.#masterGain);
+            this._sfxGain = this._context.createGain();
+            this._sfxGain.connect(this._masterGain);
         }
-        this.#musicEngine = musicEngine ?? null;
+        this._musicEngine = musicEngine ?? null;
     }
 
     /** The mix bus new output chains should connect into (music engine, meters). */
     get masterGain()
     {
-        return this.#masterGain;
+        return this._masterGain;
     }
 
     /** Returns the effect-only bus feeding the master output. */
     get sfxGain()
     {
-        return this.#sfxGain;
+        return this._sfxGain;
     }
 
     /** Effect-bus volume (0..1); music is unaffected. */
@@ -318,20 +318,20 @@ export class CjsAudioBackend
     {
         const volume = Math.max(0, Math.min(1, Number(value) || 0));
 
-        SetAudioParam(this.#sfxGain?.gain, volume, this.#context);
-        this.#busMixer?.SetCategoryVolume?.("sfx", volume);
+        SetAudioParam(this._sfxGain?.gain, volume, this._context);
+        this._busMixer?.SetCategoryVolume?.("sfx", volume);
     }
 
     /** Attaches the system-owned shared Bus mixer before any voices realize. */
     SetBusMixer(mixer)
     {
-        this.#busMixer = mixer ?? null;
+        this._busMixer = mixer ?? null;
     }
 
     /** Returns the currently attached built-in or application music engine. */
     get musicEngine()
     {
-        return this.#musicEngine;
+        return this._musicEngine;
     }
 
     /** Late attachment: the engine needs the master gain, which needs the context. */
@@ -348,60 +348,60 @@ export class CjsAudioBackend
     SetMusicEngine(engine)
     {
         const next = engine ?? null;
-        if (next === this.#musicEngine)
+        if (next === this._musicEngine)
         {
             return;
         }
-        const previous = this.#musicEngine;
-        for (const [playingID, record] of [ ...this.#playing ])
+        const previous = this._musicEngine;
+        for (const [playingID, record] of [ ...this._playing ])
         {
             if (record.music && record.musicEngine === previous)
             {
                 previous?.ExecuteAction?.("stop", playingID, 0);
-                this.#FinishMusicPlaying(playingID);
+                this._FinishMusicPlaying(playingID);
             }
         }
-        this.#musicEngine = next;
+        this._musicEngine = next;
     }
 
     /** Engine init (Carbon's InitLowLevel/InitSound collapse into context supply). */
     Init()
     {
-        return !!this.#context;
+        return !!this._context;
     }
 
     /** Registers the legacy emitter chain and storage for lazy exact-route branches. */
     RegisterGameObj(gameObjID)
     {
-        if (!this.#context || this.#emitterNodes.has(gameObjID))
+        if (!this._context || this._emitterNodes.has(gameObjID))
         {
             return;
         }
-        const panner = this.#context.createPanner();
+        const panner = this._context.createPanner();
         panner.panningModel = "HRTF";
         panner.distanceModel = "inverse";
         panner.rolloffFactor = 0;
-        const gain = this.#context.createGain();
+        const gain = this._context.createGain();
         gain.connect(panner);
         // Optional per-emitter level tap (post-panner, so it reflects what is
         // actually heard incl. distance attenuation). Absent on minimal fake
         // contexts - metering then reports 0.
-        const analyser = this.#context.createAnalyser?.() ?? null;
+        const analyser = this._context.createAnalyser?.() ?? null;
         if (analyser)
         {
             analyser.fftSize = 256;
-            analyser.connect(this.#sfxGain);
+            analyser.connect(this._sfxGain);
         }
-        const destination = analyser ?? this.#sfxGain;
+        const destination = analyser ?? this._sfxGain;
         const obstructionOcclusionStage =
             createWwiseObstructionOcclusionStage(
-                this.#context,
+                this._context,
                 destination,
-                this.#wwiseObstructionOcclusion,
+                this._wwiseObstructionOcclusion,
             );
 
         panner.connect(obstructionOcclusionStage?.input ?? destination);
-        this.#emitterNodes.set(gameObjID, {
+        this._emitterNodes.set(gameObjID, {
             gain,
             flatGain: null,
             panner,
@@ -413,12 +413,12 @@ export class CjsAudioBackend
             front: null,
             position: null,
             scalingFactor: 1,
-            voiceHighPasses: new Map(this.#globalVoiceHighPasses),
-            voiceLowPasses: new Map(this.#globalVoiceLowPasses),
+            voiceHighPasses: new Map(this._globalVoiceHighPasses),
+            voiceLowPasses: new Map(this._globalVoiceLowPasses),
             voicePitches: new Map(),
             voiceVolumes: new Map(),
             busVoiceVolumes: new Map(),
-            busVolumes: new Map(this.#globalBusVolumes),
+            busVolumes: new Map(this._globalBusVolumes),
         });
     }
 
@@ -428,14 +428,14 @@ export class CjsAudioBackend
      */
     UnregisterGameObj(gameObjID)
     {
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
         if (nodes)
         {
             nodes.retiredRtpcValues = new Map(
-                this.#objectRtpcValues.get(gameObjID) ?? [],
+                this._objectRtpcValues.get(gameObjID) ?? [],
             );
             nodes.retiredRtpcTransitions = new Map();
-            for (const transition of this.#rtpcTransitions.values())
+            for (const transition of this._rtpcTransitions.values())
             {
                 if (transition.scope === "game-object"
                     && String(transition.gameObjID)
@@ -447,19 +447,19 @@ export class CjsAudioBackend
                     );
                 }
             }
-            this.#emitterNodes.delete(gameObjID);
-            this.#ReleaseRetiredEmitterNodes(gameObjID, nodes);
+            this._emitterNodes.delete(gameObjID);
+            this._ReleaseRetiredEmitterNodes(gameObjID, nodes);
         }
-        this.#CancelObjectRtpcTransitions(gameObjID);
-        this.#objectRtpcValues.delete(gameObjID);
-        this.#objectSwitchValues.delete(gameObjID);
+        this._CancelObjectRtpcTransitions(gameObjID);
+        this._objectRtpcValues.delete(gameObjID);
+        this._objectSwitchValues.delete(gameObjID);
     }
 
     /** Permanently releases an emitter and every loaded or pending sound it owns. */
     ReleaseGameObj(gameObjID)
     {
-        this.#CancelObjectRtpcTransitions(gameObjID);
-        for (const [playingID, record] of [ ...this.#playing ])
+        this._CancelObjectRtpcTransitions(gameObjID);
+        for (const [playingID, record] of [ ...this._playing ])
         {
             if (record.gameObjID !== gameObjID)
             {
@@ -475,25 +475,25 @@ export class CjsAudioBackend
                 if (voice.source)
                 {
                     voice.source.onended = null;
-                    voice.source.stop?.(this.#context.currentTime);
+                    voice.source.stop?.(this._context.currentTime);
                 }
             }
-            this.#FinishPlaying(playingID);
+            this._FinishPlaying(playingID);
         }
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
         if (nodes)
         {
-            this.#emitterNodes.delete(gameObjID);
-            this.#DisconnectEmitterNodes(nodes);
+            this._emitterNodes.delete(gameObjID);
+            this._DisconnectEmitterNodes(nodes);
         }
-        this.#objectRtpcValues.delete(gameObjID);
-        this.#objectSwitchValues.delete(gameObjID);
+        this._objectRtpcValues.delete(gameObjID);
+        this._objectSwitchValues.delete(gameObjID);
     }
 
     /** Returns whether an installed authored program owns Stop execution. */
     HandlesEventStops(eventName)
     {
-        return this.#hasEventStops(String(eventName)) === true;
+        return this._hasEventStops(String(eventName)) === true;
     }
 
     /**
@@ -504,27 +504,27 @@ export class CjsAudioBackend
      */
     PostEvent(eventID, gameObjID, additionalFlags, emitter, eventName)
     {
-        this.#CommitHeardCrossfadeTransactions();
-        this.#ProcessScheduledSfxActions();
-        const music = this.#musicEngine?.HandlesEvent(eventName) === true;
-        const sfx = this.#hasSfxEvent
-            ? this.#hasSfxEvent(String(eventName)) === true
+        this._CommitHeardCrossfadeTransactions();
+        this._ProcessScheduledSfxActions();
+        const music = this._musicEngine?.HandlesEvent(eventName) === true;
+        const sfx = this._hasSfxEvent
+            ? this._hasSfxEvent(String(eventName)) === true
             : true;
 
         if (music && !sfx)
         {
-            return this.#PostMusicEvent(eventName, { gameObjID, emitter });
+            return this._PostMusicEvent(eventName, { gameObjID, emitter });
         }
         if (!sfx)
         {
             return 0;
         }
-        const nodes = this.#emitterNodes.get(gameObjID);
-        if (!this.#context || !this.#loadBuffer || !nodes)
+        const nodes = this._emitterNodes.get(gameObjID);
+        if (!this._context || !this._loadBuffer || !nodes)
         {
             return 0;
         }
-        const playingID = this.#nextPlayingID++;
+        const playingID = this._nextPlayingID++;
         const controller = new AbortController();
         const record = {
             playingID,
@@ -539,12 +539,12 @@ export class CjsAudioBackend
             sfxFinished: false,
             music,
             musicFinished: !music,
-            musicEngine: music ? this.#musicEngine : null,
+            musicEngine: music ? this._musicEngine : null,
             loaded: false,
             stopped: false,
             pendingBreak: false,
             pendingSeek: null,
-            postContextTime: Number(this.#context.currentTime) || 0,
+            postContextTime: Number(this._context.currentTime) || 0,
             sfxProgram: false,
             programSlots: null,
             pendingProgramActions: 0,
@@ -553,14 +553,14 @@ export class CjsAudioBackend
             posting: true,
             sfxControls: null,
         };
-        this.#playing.set(playingID, record);
+        this._playing.set(playingID, record);
 
         if (music)
         {
-            this.#StartMusicComponent(playingID, record);
+            this._StartMusicComponent(playingID, record);
         }
 
-        const controls = this.#CreateSfxControls(
+        const controls = this._CreateSfxControls(
             gameObjID,
             controller.signal,
             playingID,
@@ -572,9 +572,9 @@ export class CjsAudioBackend
 
         try
         {
-            if (this.#resolveSfxProgram)
+            if (this._resolveSfxProgram)
             {
-                resolvedProgram = this.#resolveSfxProgram(
+                resolvedProgram = this._resolveSfxProgram(
                     eventID,
                     eventName,
                     controls,
@@ -582,7 +582,7 @@ export class CjsAudioBackend
                 if (resolvedProgram !== null
                     && resolvedProgram !== undefined)
                 {
-                    resolvedProgram = this.#InstallSfxProgram(
+                    resolvedProgram = this._InstallSfxProgram(
                         playingID,
                         record,
                         resolvedProgram,
@@ -595,23 +595,23 @@ export class CjsAudioBackend
             record.loading = false;
             record.posting = false;
             Promise.resolve().then(() =>
-                this.#FinishSfxPlaying(playingID));
+                this._FinishSfxPlaying(playingID));
             return playingID;
         }
 
         record.posting = false;
         Promise.resolve().then(() =>
         {
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             if (record.stopped
                 || record.sfxFinished
-                || !this.#playing.has(playingID))
+                || !this._playing.has(playingID))
             {
                 return null;
             }
 
             record.loading = true;
-            return this.#loadBuffer(
+            return this._loadBuffer(
                 eventID,
                 eventName,
                 controls,
@@ -622,10 +622,10 @@ export class CjsAudioBackend
             record.loading = false;
             // Rendering may have paused while media was pending. Apply every
             // now-overdue Stop before a cancelled slot can become a voice.
-            this.#ProcessScheduledSfxActions();
-            if (record.stopped || !this.#playing.has(playingID))
+            this._ProcessScheduledSfxActions();
+            if (record.stopped || !this._playing.has(playingID))
             {
-                this.#FinishSfxPlaying(playingID);
+                this._FinishSfxPlaying(playingID);
                 return;
             }
             if (!result)
@@ -638,7 +638,7 @@ export class CjsAudioBackend
 
                 if (!dormantSwitch)
                 {
-                    this.#FinishSfxPlaying(playingID);
+                    this._FinishSfxPlaying(playingID);
                     return;
                 }
                 result = { voices: [] };
@@ -646,7 +646,7 @@ export class CjsAudioBackend
 
             const descriptors = NormalizeVoiceDescriptors(
                 result,
-                () => !!this.#isLoop(record.eventName),
+                () => !!this._isLoop(record.eventName),
             );
 
             const realizedSlots = new Set();
@@ -700,7 +700,7 @@ export class CjsAudioBackend
                     continue;
                 }
 
-                const voice = this.#CreateVoice(
+                const voice = this._CreateVoice(
                     selectionMetadata
                         ? {
                             ...descriptor,
@@ -791,9 +791,9 @@ export class CjsAudioBackend
 
                 if (missingInitialSelection)
                 {
-                    this.#FailOverlappingSlot(slot);
+                    this._FailOverlappingSlot(slot);
                 }
-                this.#UpdateOverlappingSlotState(slot);
+                this._UpdateOverlappingSlotState(slot);
             }
             record.loaded = true;
             if (record.sfxProgram)
@@ -813,11 +813,11 @@ export class CjsAudioBackend
                         }
                         else
                         {
-                            this.#AdvanceSfxProgramSlot(
+                            this._AdvanceSfxProgramSlot(
                                 playingID,
                                 record,
                                 slot,
-                                Number(this.#context.currentTime) || 0,
+                                Number(this._context.currentTime) || 0,
                             );
                         }
                     }
@@ -836,19 +836,19 @@ export class CjsAudioBackend
                     {
                         if (IsOverlappingAdvanceMode(slot.advanceMode))
                         {
-                            this.#UpdateOverlappingSlotState(slot);
+                            this._UpdateOverlappingSlotState(slot);
                         }
                     }
-                    this.#MaybeFinishSfxProgram(playingID, record);
+                    this._MaybeFinishSfxProgram(playingID, record);
                 }
                 else
                 {
-                    this.#FinishSfxPlaying(playingID);
+                    this._FinishSfxPlaying(playingID);
                 }
                 return;
             }
 
-            this.#StartVoices(
+            this._StartVoices(
                 playingID,
                 record,
                 initialVoices,
@@ -864,7 +864,7 @@ export class CjsAudioBackend
 
             if (dormantSwitch
                 && !record.stopped
-                && this.#playing.get(playingID) === record)
+                && this._playing.get(playingID) === record)
             {
                 record.loaded = true;
                 for (const slot of record.programSlots.values())
@@ -880,13 +880,13 @@ export class CjsAudioBackend
                         slot.state = "ended";
                     }
                 }
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
                 return;
             }
-            this.#FinishSfxPlaying(playingID);
+            this._FinishSfxPlaying(playingID);
         }).finally(() =>
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(
+            this._ReleasePendingSfxVoiceLimitReservations(
                 record,
                 resolvedProgram,
             );
@@ -901,11 +901,11 @@ export class CjsAudioBackend
      */
     PostMusicEvent(eventName, onFinished)
     {
-        if (!this.#musicEngine?.HandlesEvent?.(eventName))
+        if (!this._musicEngine?.HandlesEvent?.(eventName))
         {
             return 0;
         }
-        return this.#PostMusicEvent(eventName, {
+        return this._PostMusicEvent(eventName, {
             gameObjID: 3,
             emitter: null,
             onFinished: typeof onFinished === "function" ? onFinished : null
@@ -915,7 +915,7 @@ export class CjsAudioBackend
     /** Stops a direct or emitter-routed music event. */
     StopMusicEvent(playingID, fadeOutDuration = 1000)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
         if (!record?.music)
         {
             return false;
@@ -927,8 +927,8 @@ export class CjsAudioBackend
     /** Stop ("stop") fades then halts; break ("break") lets non-loops finish, halts loops at the fade. */
     ExecuteActionOnPlayingID(action, playingID, fadeOutDuration = 1000)
     {
-        this.#CommitHeardCrossfadeTransactions();
-        const record = this.#playing.get(playingID);
+        this._CommitHeardCrossfadeTransactions();
+        const record = this._playing.get(playingID);
         if (!record)
         {
             return;
@@ -943,7 +943,7 @@ export class CjsAudioBackend
         }
         if (action === "break")
         {
-            this.#BreakContinuousSlots(record);
+            this._BreakContinuousSlots(record);
         }
         if (action === "break" && !record.loaded)
         {
@@ -967,14 +967,14 @@ export class CjsAudioBackend
                 slot.continuation = null;
                 slot.broken = true;
                 slot.generation++;
-                this.#AbortSfxProgramSlot(record, slot);
+                this._AbortSfxProgramSlot(record, slot);
                 for (const batch of slot.batches?.values?.() ?? [])
                 {
                     if (batch.state === "loading"
                         || batch.state === "pending")
                     {
                         batch.state = "cancelled";
-                        this.#AbortSfxProgramBatch(record, batch);
+                        this._AbortSfxProgramBatch(record, batch);
                     }
                 }
                 if (slot.state === "pending"
@@ -984,14 +984,14 @@ export class CjsAudioBackend
                 }
             }
             record.pendingProgramActions = 0;
-            this.#scheduledSfxActions = this.#scheduledSfxActions
+            this._scheduledSfxActions = this._scheduledSfxActions
                 .filter(value => value.ownerPlayingID !== playingID);
         }
         const active = record.voices?.filter(voice =>
             voice.source
             && !voice.ended
             && (!breaking
-                || (!this.#IsContinuousProgramVoice(record, voice)
+                || (!this._IsContinuousProgramVoice(record, voice)
                     && (voice.loop || voice.playCount > 1)))) ?? [];
 
         if (active.length)
@@ -1000,7 +1000,7 @@ export class CjsAudioBackend
             // duration falls back to the default fade.
             const ms = Number(fadeOutDuration);
             const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
-            const actionTime = this.#context.currentTime;
+            const actionTime = this._context.currentTime;
 
             for (const voice of active)
             {
@@ -1054,17 +1054,17 @@ export class CjsAudioBackend
                 if (voice.startContextTime > actionTime)
                 {
                     voice.cancelledBeforeStart = true;
-                    this.#EndVoiceDucking(voice, actionTime, true);
+                    this._EndVoiceDucking(voice, actionTime, true);
                     SetAudioParam(
                         voice.stopGain.gain,
                         0,
-                        this.#context,
+                        this._context,
                     );
                     voice.source.stop(actionTime);
                     continue;
                 }
-                this.#HoldVoiceTransitionFade(voice, actionTime);
-                this.#HoldVoiceFade(voice, actionTime);
+                this._HoldVoiceTransitionFade(voice, actionTime);
+                this._HoldVoiceFade(voice, actionTime);
                 if (seconds > 0)
                 {
                     const param = voice.stopGain.gain;
@@ -1086,7 +1086,7 @@ export class CjsAudioBackend
                     SetAudioParam(
                         voice.stopGain.gain,
                         0,
-                        this.#context,
+                        this._context,
                     );
                 }
                 const fadeStopTime = actionTime + seconds;
@@ -1106,18 +1106,18 @@ export class CjsAudioBackend
         }
         else if (!breaking)
         {
-            this.#FinishSfxPlaying(playingID);
+            this._FinishSfxPlaying(playingID);
         }
         if (breaking)
         {
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
         }
     }
 
     /** Emitter placement -> panner. WebAudio is right-handed like Carbon's scene; Wwise's RH->LH flip does not apply. */
     SetPosition(gameObjID, front, top, position)
     {
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
 
         if (nodes)
         {
@@ -1129,8 +1129,8 @@ export class CjsAudioBackend
                 nodes.panner,
                 nodes.front,
                 nodes.position,
-                this.#distanceScale,
-                this.#context,
+                this._distanceScale,
+                this._context,
                 smooth,
             );
             for (const modes of nodes.routeBranches.values())
@@ -1143,20 +1143,20 @@ export class CjsAudioBackend
                         branch.panner,
                         nodes.front,
                         nodes.position,
-                        this.#distanceScale,
-                        this.#context,
+                        this._distanceScale,
+                        this._context,
                         smooth,
                     );
                 }
             }
-            this.#RefreshDistanceGains(nodes, smooth);
+            this._RefreshDistanceGains(nodes, smooth);
         }
     }
 
     /** Current source play position in milliseconds; -1 when invalid or finished. */
     GetSourcePlayPosition(playingID)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
         if (!record || record.stopped)
         {
             return -1;
@@ -1187,7 +1187,7 @@ export class CjsAudioBackend
                 && voice.repeatAnchorContextTime !== null)
             {
                 const from = Number(voice.repeatAnchorContextTime);
-                const to = Number(this.#context.currentTime);
+                const to = Number(this._context.currentTime);
                 const elapsed = to > from
                     ? UsesVoicePitchAutomation(voice)
                         ? IntegrateVoicePitchPlaybackRate(voice, from, to)
@@ -1209,7 +1209,7 @@ export class CjsAudioBackend
             && voice.positionAnchorContextTime !== null)
         {
             const from = Number(voice.positionAnchorContextTime);
-            const to = Number(this.#context.currentTime);
+            const to = Number(this._context.currentTime);
 
             seconds += UsesVoicePitchAutomation(voice)
                 ? IntegrateVoicePitchPlaybackRate(voice, from, to)
@@ -1235,7 +1235,7 @@ export class CjsAudioBackend
         {
             return false;
         }
-        return this.#Seek(playingID, { kind: "percent", value });
+        return this._Seek(playingID, { kind: "percent", value });
     }
 
     /** Seeks one playing source by elapsed milliseconds. */
@@ -1246,37 +1246,37 @@ export class CjsAudioBackend
         {
             return false;
         }
-        return this.#Seek(playingID, { kind: "ms", value });
+        return this._Seek(playingID, { kind: "ms", value });
     }
 
     /** Listener pose -> context.listener. */
     SetListenerPosition(gameObjID, front, top, position)
     {
-        const listener = this.#context?.listener;
+        const listener = this._context?.listener;
         if (listener)
         {
-            const smooth = this.#listenerPoseInitialized;
+            const smooth = this._listenerPoseInitialized;
 
-            this.#listenerPosition = [ ...position ];
+            this._listenerPosition = [ ...position ];
 
             const set = (param, value) => SetSpatialAudioParam(
                 param,
                 value,
-                this.#context,
+                this._context,
                 smooth,
             );
 
-            set(listener.positionX, position[0] * this.#distanceScale);
-            set(listener.positionY, position[1] * this.#distanceScale);
-            set(listener.positionZ, position[2] * this.#distanceScale);
+            set(listener.positionX, position[0] * this._distanceScale);
+            set(listener.positionY, position[1] * this._distanceScale);
+            set(listener.positionZ, position[2] * this._distanceScale);
             set(listener.forwardX, front[0]);
             set(listener.forwardY, front[1]);
             set(listener.forwardZ, front[2]);
             set(listener.upX, top[0]);
             set(listener.upY, top[1]);
             set(listener.upZ, top[2]);
-            this.#listenerPoseInitialized = true;
-            this.#RefreshDistanceGains(null, smooth);
+            this._listenerPoseInitialized = true;
+            this._RefreshDistanceGains(null, smooth);
         }
     }
 
@@ -1288,7 +1288,7 @@ export class CjsAudioBackend
         {
             return false;
         }
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
         if (!nodes)
         {
             return false;
@@ -1299,7 +1299,7 @@ export class CjsAudioBackend
         {
             SetPannerScalingFactor(modes.get(true)?.panner, numeric);
         }
-        this.#RefreshDistanceGains(nodes, true);
+        this._RefreshDistanceGains(nodes, true);
         return true;
     }
 
@@ -1316,19 +1316,19 @@ export class CjsAudioBackend
         {
             return false;
         }
-        this.#deferSfxControlRefresh = true;
+        this._deferSfxControlRefresh = true;
         let result;
 
         try
         {
-            this.#ProcessScheduledSfxActions();
-            this.#AdvanceRtpcVoices(
+            this._ProcessScheduledSfxActions();
+            this._AdvanceRtpcVoices(
                 "game-object",
                 gameObjID,
-                Number(this.#context?.currentTime) || 0,
+                Number(this._context?.currentTime) || 0,
             );
-            this.#CancelRtpcTransition("game-object", name, gameObjID);
-            result = this.#WriteObjectRtpcValue(
+            this._CancelRtpcTransition("game-object", name, gameObjID);
+            result = this._WriteObjectRtpcValue(
                 name,
                 numeric,
                 gameObjID,
@@ -1336,11 +1336,11 @@ export class CjsAudioBackend
         }
         finally
         {
-            this.#deferSfxControlRefresh = false;
+            this._deferSfxControlRefresh = false;
         }
         // Processing overdue actions above may have changed global RTPCs or
         // another emitter. Flush every suppressed refresh before returning.
-        this.#RefreshSfxControls();
+        this._RefreshSfxControls();
         return result;
     }
 
@@ -1349,11 +1349,11 @@ export class CjsAudioBackend
     {
         const name = String(rtpcName);
 
-        return this.#ReadRtpcValue(
+        return this._ReadRtpcValue(
             "game-object",
             name,
             gameObjID,
-            Number(this.#context?.currentTime) || 0,
+            Number(this._context?.currentTime) || 0,
         );
     }
 
@@ -1365,18 +1365,18 @@ export class CjsAudioBackend
     {
         const group = String(switchGroup);
         const state = String(switchState);
-        let values = this.#objectSwitchValues.get(gameObjID);
+        let values = this._objectSwitchValues.get(gameObjID);
         if (!values)
         {
             values = new Map();
-            this.#objectSwitchValues.set(gameObjID, values);
+            this._objectSwitchValues.set(gameObjID, values);
         }
         const changed = values.get(group) !== state;
 
         values.set(group, state);
         if (changed)
         {
-            this.#AdvanceContinuousSwitchSlots(
+            this._AdvanceContinuousSwitchSlots(
                 "switch",
                 group,
                 gameObjID,
@@ -1384,14 +1384,14 @@ export class CjsAudioBackend
         }
         if (gameObjID === 3)
         {
-            this.#musicEngine?.SetSwitch?.(group, state, gameObjID);
+            this._musicEngine?.SetSwitch?.(group, state, gameObjID);
         }
     }
 
     /** Per-object switch query for adapters, diagnostics, and tests. */
     GetSwitchValue(switchGroup, gameObjID)
     {
-        return this.#objectSwitchValues.get(gameObjID)?.get(String(switchGroup));
+        return this._objectSwitchValues.get(gameObjID)?.get(String(switchGroup));
     }
 
     /**
@@ -1409,48 +1409,48 @@ export class CjsAudioBackend
         {
             return false;
         }
-        this.#deferSfxControlRefresh = true;
+        this._deferSfxControlRefresh = true;
         let result;
 
         try
         {
-            this.#ProcessScheduledSfxActions();
-            this.#AdvanceRtpcVoices(
+            this._ProcessScheduledSfxActions();
+            this._AdvanceRtpcVoices(
                 "global",
                 undefined,
-                Number(this.#context?.currentTime) || 0,
+                Number(this._context?.currentTime) || 0,
             );
-            this.#CancelRtpcTransition("global", name);
-            result = this.#WriteGlobalRtpcValue(name, numeric);
+            this._CancelRtpcTransition("global", name);
+            result = this._WriteGlobalRtpcValue(name, numeric);
         }
         finally
         {
-            this.#deferSfxControlRefresh = false;
+            this._deferSfxControlRefresh = false;
         }
-        this.#RefreshSfxControls();
+        this._RefreshSfxControls();
         return result;
     }
 
     /** Global state group - feeds authored SFX and music tree arguments. */
     SetGlobalState(stateGroup, stateName)
     {
-        const catalogGroup = this.#stateTransitionCatalog.get(
+        const catalogGroup = this._stateTransitionCatalog.get(
             NormalizeStateIdentity(stateGroup),
         );
         const group = CanonicalStateGroup(catalogGroup, stateGroup);
         const state = CanonicalStateValue(catalogGroup, stateName);
-        const previous = this.#globalStateValues.get(group);
+        const previous = this._globalStateValues.get(group);
         const changed = previous !== state;
 
         if (changed)
         {
-            const now = Number(this.#context?.currentTime) || 0;
+            const now = Number(this._context?.currentTime) || 0;
 
             // Pitch is a transport control. Capture elapsed media under the
             // old State-property blend before rebasing an interrupted change.
-            this.#AdvanceRtpcVoices("global", undefined, now);
-            const fromWeights = this.#ReadStatePropertyWeights(group, now);
-            const duration = this.#StateTransitionDuration(
+            this._AdvanceRtpcVoices("global", undefined, now);
+            const fromWeights = this._ReadStatePropertyWeights(group, now);
+            const duration = this._StateTransitionDuration(
                 group,
                 previous,
                 state,
@@ -1459,7 +1459,7 @@ export class CjsAudioBackend
             if (duration > 0
                 && !StateWeightsEqualTarget(fromWeights, state))
             {
-                this.#statePropertyTransitions.set(
+                this._statePropertyTransitions.set(
                     NormalizeStateIdentity(group),
                     {
                         fromWeights,
@@ -1471,17 +1471,17 @@ export class CjsAudioBackend
             }
             else
             {
-                this.#statePropertyTransitions.delete(
+                this._statePropertyTransitions.delete(
                     NormalizeStateIdentity(group),
                 );
             }
         }
-        this.#globalStateValues.set(group, state);
-        const transition = this.#statePropertyTransitions.get(
+        this._globalStateValues.set(group, state);
+        const transition = this._statePropertyTransitions.get(
             NormalizeStateIdentity(group),
         );
 
-        this.#RefreshSfxControls(
+        this._RefreshSfxControls(
             null,
             transition
                 ? transition.startTime + transition.duration
@@ -1489,20 +1489,20 @@ export class CjsAudioBackend
         );
         if (changed)
         {
-            this.#AdvanceContinuousSwitchSlots("state", group);
+            this._AdvanceContinuousSwitchSlots("state", group);
         }
-        this.#musicEngine?.SetState(stateGroup, stateName);
-        this.#musicEngine?.RefreshBusStates?.();
+        this._musicEngine?.SetState(stateGroup, stateName);
+        this._musicEngine?.RefreshBusStates?.();
     }
 
     /** Global state query for authored SFX selection. */
     GetGlobalState(stateGroup)
     {
-        const catalogGroup = this.#stateTransitionCatalog.get(
+        const catalogGroup = this._stateTransitionCatalog.get(
             NormalizeStateIdentity(stateGroup),
         );
 
-        return this.#globalStateValues.get(
+        return this._globalStateValues.get(
             CanonicalStateGroup(catalogGroup, stateGroup),
         );
     }
@@ -1510,10 +1510,10 @@ export class CjsAudioBackend
     /** Returns the current weighted property mix for one global State group. */
     GetGlobalStatePropertyWeights(stateGroup, at = undefined)
     {
-        return this.#ReadStatePropertyWeights(
+        return this._ReadStatePropertyWeights(
             stateGroup,
             at === undefined
-                ? Number(this.#context?.currentTime) || 0
+                ? Number(this._context?.currentTime) || 0
                 : Number(at) || 0,
         );
     }
@@ -1522,11 +1522,11 @@ export class CjsAudioBackend
     GetGlobalStateTransitionBoundaries(from = undefined)
     {
         const now = from === undefined
-            ? Number(this.#context?.currentTime) || 0
+            ? Number(this._context?.currentTime) || 0
             : Number(from) || 0;
         const result = [];
 
-        for (const transition of this.#statePropertyTransitions.values())
+        for (const transition of this._statePropertyTransitions.values())
         {
             const start = Number(transition.startTime);
             const end = start + Math.max(0, Number(transition.duration) || 0);
@@ -1538,10 +1538,10 @@ export class CjsAudioBackend
     }
 
     /** Returns the current weighted State-property mix for one State group. */
-    #ReadStatePropertyWeights(stateGroup, at)
+    _ReadStatePropertyWeights(stateGroup, at)
     {
         const group = String(stateGroup);
-        const transition = this.#statePropertyTransitions.get(
+        const transition = this._statePropertyTransitions.get(
             NormalizeStateIdentity(group),
         );
 
@@ -1557,9 +1557,9 @@ export class CjsAudioBackend
     }
 
     /** Resolves one directed custom State duration, then the group default. */
-    #StateTransitionDuration(stateGroup, fromState, toState)
+    _StateTransitionDuration(stateGroup, fromState, toState)
     {
-        const group = this.#stateTransitionCatalog.get(
+        const group = this._stateTransitionCatalog.get(
             NormalizeStateIdentity(stateGroup),
         );
 
@@ -1583,18 +1583,18 @@ export class CjsAudioBackend
     }
 
     /** Collapses completed State-property blends onto their logical target. */
-    #ProcessStatePropertyTransitions()
+    _ProcessStatePropertyTransitions()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const [ key, transition ] of this.#statePropertyTransitions)
+        for (const [ key, transition ] of this._statePropertyTransitions)
         {
             if (transition.startTime + transition.duration <= now)
             {
                 // Preserve pitch-controlled media position before discarding
                 // the historical blend that the transport integrator reads.
-                this.#AdvanceRtpcVoices("global", undefined, now);
-                this.#statePropertyTransitions.delete(key);
+                this._AdvanceRtpcVoices("global", undefined, now);
+                this._statePropertyTransitions.delete(key);
             }
         }
     }
@@ -1604,12 +1604,12 @@ export class CjsAudioBackend
     {
         const name = String(rtpcName);
 
-        return this.#ReadRtpcValue(
+        return this._ReadRtpcValue(
             "global",
             name,
             undefined,
             at === undefined
-                ? Number(this.#context?.currentTime) || 0
+                ? Number(this._context?.currentTime) || 0
                 : Number(at) || 0,
         );
     }
@@ -1618,11 +1618,11 @@ export class CjsAudioBackend
     GetGlobalRTPCTransitionBoundaries(from = undefined)
     {
         const now = from === undefined
-            ? Number(this.#context?.currentTime) || 0
+            ? Number(this._context?.currentTime) || 0
             : Number(from) || 0;
         const result = [];
 
-        for (const transition of this.#rtpcTransitions.values())
+        for (const transition of this._rtpcTransitions.values())
         {
             if (transition.scope !== "global") continue;
 
@@ -1655,24 +1655,24 @@ export class CjsAudioBackend
     /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
     RenderAudio()
     {
-        this.#busDuckingController?.Prune?.(
-            Number(this.#context?.currentTime) || 0,
+        this._busDuckingController?.Prune?.(
+            Number(this._context?.currentTime) || 0,
         );
-        this.#ProcessScheduledSfxActions();
-        this.#ProcessRtpcTransitions();
-        this.#ProcessStatePropertyTransitions();
-        this.#FinalizeDueSfxPauses();
-        this.#ProcessTriggerRateSlots();
-        this.#ProcessCrossfadeSlots();
-        this.#musicEngine?.Process();
+        this._ProcessScheduledSfxActions();
+        this._ProcessRtpcTransitions();
+        this._ProcessStatePropertyTransitions();
+        this._FinalizeDueSfxPauses();
+        this._ProcessTriggerRateSlots();
+        this._ProcessCrossfadeSlots();
+        this._musicEngine?.Process();
     }
 
     /** Issues due Trigger Rate children from the Web Audio clock. */
-    #ProcessTriggerRateSlots()
+    _ProcessTriggerRateSlots()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const [ playingID, record ] of this.#playing)
+        for (const [ playingID, record ] of this._playing)
         {
             if (!record.sfxProgram || record.stopped)
             {
@@ -1694,13 +1694,13 @@ export class CjsAudioBackend
                 const deadline = slot.nextTriggerContextTime;
 
                 slot.nextTriggerContextTime = null;
-                this.#AdvanceSfxProgramSlot(
+                this._AdvanceSfxProgramSlot(
                     playingID,
                     record,
                     slot,
                     Math.max(deadline, now),
                 );
-                this.#MaybeFinishSfxProgram(
+                this._MaybeFinishSfxProgram(
                     playingID,
                     record,
                 );
@@ -1709,7 +1709,7 @@ export class CjsAudioBackend
     }
 
     /** Arms the next Trigger Rate deadline from this batch's first action. */
-    #ArmTriggerRateSlot(slot)
+    _ArmTriggerRateSlot(slot)
     {
         if (slot.advanceMode !== "trigger-rate"
             || !slot.continuation
@@ -1729,11 +1729,11 @@ export class CjsAudioBackend
     }
 
     /** Promotes due Crossfade successors and begins one-batch lookahead. */
-    #ProcessCrossfadeSlots()
+    _ProcessCrossfadeSlots()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const [ playingID, record ] of this.#playing)
+        for (const [ playingID, record ] of this._playing)
         {
             if (!record.sfxProgram || record.stopped)
             {
@@ -1754,7 +1754,7 @@ export class CjsAudioBackend
 
                 const batch = slot.preparedBatch;
 
-                this.#SettleCrossfadeBatchTransaction(
+                this._SettleCrossfadeBatchTransaction(
                     batch,
                     now,
                 );
@@ -1766,14 +1766,14 @@ export class CjsAudioBackend
                 slot.completionBarrier = batch.completionBarrier;
                 slot.transitionDelayMs = batch.transitionDelayMs;
                 slot.crossfadeMode = batch.crossfadeMode;
-                this.#UpdateOverlappingSlotState(slot);
-                if (this.#MaybeAdvanceNestedCompletionBarrier(
+                this._UpdateOverlappingSlotState(slot);
+                if (this._MaybeAdvanceNestedCompletionBarrier(
                     playingID,
                     record,
                     slot,
                 ))
                 {
-                    this.#MaybeFinishSfxProgram(playingID, record);
+                    this._MaybeFinishSfxProgram(playingID, record);
                     continue;
                 }
 
@@ -1782,13 +1782,13 @@ export class CjsAudioBackend
                     && !slot.completionBarrier
                     && batch.state !== "cancelled")
                 {
-                    this.#PrepareCrossfadeSuccessor(
+                    this._PrepareCrossfadeSuccessor(
                         playingID,
                         record,
                         slot,
                     );
                 }
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
             }
         }
     }
@@ -1796,13 +1796,13 @@ export class CjsAudioBackend
     /** Active playing ids (introspection/tests). */
     GetPlayingCount()
     {
-        return this.#playing.size;
+        return this._playing.size;
     }
 
     /** Stops every backend-owned event, including direct music posts. */
     StopAll()
     {
-        for (const [ playingID, record ] of [ ...this.#playing ])
+        for (const [ playingID, record ] of [ ...this._playing ])
         {
             record.stopped = true;
 
@@ -1819,7 +1819,7 @@ export class CjsAudioBackend
                         voice.source.onended = null;
                         try
                         {
-                            voice.source.stop?.(this.#context.currentTime);
+                            voice.source.stop?.(this._context.currentTime);
                         }
                         catch
                         {
@@ -1829,19 +1829,19 @@ export class CjsAudioBackend
                 }
             }
 
-            if (this.#playing.has(playingID))
+            if (this._playing.has(playingID))
             {
-                this.#FinishPlaying(playingID);
+                this._FinishPlaying(playingID);
             }
         }
     }
 
     /** Prevents another Continuous batch while the current object loops out. */
-    #BreakContinuousSlots(record)
+    _BreakContinuousSlots(record)
     {
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
         const currentBoundary = now
-            + RenderQuantumSeconds(this.#context);
+            + RenderQuantumSeconds(this._context);
 
         for (const slot of record.programSlots?.values?.() ?? [])
         {
@@ -1855,7 +1855,7 @@ export class CjsAudioBackend
             slot.preparingCrossfade = false;
             if (slot.preparedBatch)
             {
-                this.#DiscardTriggerRateBatch(
+                this._DiscardTriggerRateBatch(
                     record,
                     slot,
                     slot.preparedBatch,
@@ -1868,13 +1868,13 @@ export class CjsAudioBackend
                     || batch.state === "pending")
                 {
                     batch.state = "cancelled";
-                    this.#AbortSfxProgramBatch(record, batch);
+                    this._AbortSfxProgramBatch(record, batch);
                 }
             }
             if (slot.state === "loading")
             {
                 slot.generation++;
-                this.#AbortSfxProgramSlot(record, slot);
+                this._AbortSfxProgramSlot(record, slot);
             }
 
             for (const voice of slot.voices)
@@ -1885,8 +1885,8 @@ export class CjsAudioBackend
                     voice.ended = true;
                     voice.stopping = true;
                     voice.cancelledBeforeStart = true;
-                    this.#EndVoiceDucking(voice, now, true);
-                    this.#voiceLimitLedger.Release(
+                    this._EndVoiceDucking(voice, now, true);
+                    this._voiceLimitLedger.Release(
                         record,
                         voice.voiceLimitReservationId,
                     );
@@ -1933,7 +1933,7 @@ export class CjsAudioBackend
     }
 
     /** Returns whether a physical voice belongs to a Continuous batch slot. */
-    #IsContinuousProgramVoice(record, voice)
+    _IsContinuousProgramVoice(record, voice)
     {
         return Boolean(
             voice.programSlotId !== undefined
@@ -1942,7 +1942,7 @@ export class CjsAudioBackend
     }
 
     /** Returns whether Wwise ignores Seek for this Continuous transition. */
-    #IsRestrictedContinuousProgramVoice(record, voice)
+    _IsRestrictedContinuousProgramVoice(record, voice)
     {
         const mode = voice.programSlotId === undefined
             ? null
@@ -1961,28 +1961,28 @@ export class CjsAudioBackend
     {
         this.StopAll();
         this.SetMusicEngine(null);
-        for (const gameObjID of [ ...this.#emitterNodes.keys() ])
+        for (const gameObjID of [ ...this._emitterNodes.keys() ])
         {
             this.UnregisterGameObj(gameObjID);
         }
-        this.#objectRtpcValues.clear();
-        this.#objectSwitchValues.clear();
-        this.#rtpcTransitions.clear();
-        this.#statePropertyTransitions.clear();
-        this.#globalRtpcValues.clear();
-        this.#globalStateValues.clear();
-        this.#globalVoiceHighPasses.clear();
-        this.#globalVoiceLowPasses.clear();
-        this.#globalBusVolumes.clear();
-        this.#unsubscribeBusDucking?.();
-        this.#unsubscribeBusDucking = null;
-        this.#busDuckingController = null;
-        this.#busGraphRuntime = null;
-        this.#busMixer = null;
-        this.#sfxGain?.disconnect?.();
-        this.#masterGain?.disconnect?.();
-        this.#sfxGain = null;
-        this.#masterGain = null;
+        this._objectRtpcValues.clear();
+        this._objectSwitchValues.clear();
+        this._rtpcTransitions.clear();
+        this._statePropertyTransitions.clear();
+        this._globalRtpcValues.clear();
+        this._globalStateValues.clear();
+        this._globalVoiceHighPasses.clear();
+        this._globalVoiceLowPasses.clear();
+        this._globalBusVolumes.clear();
+        this._unsubscribeBusDucking?.();
+        this._unsubscribeBusDucking = null;
+        this._busDuckingController = null;
+        this._busGraphRuntime = null;
+        this._busMixer = null;
+        this._sfxGain?.disconnect?.();
+        this._masterGain?.disconnect?.();
+        this._sfxGain = null;
+        this._masterGain = null;
     }
 
     /**
@@ -1993,7 +1993,7 @@ export class CjsAudioBackend
      */
     GetGameObjLevel(gameObjID)
     {
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
         const analysers = [
             nodes?.analyser,
             ...[ ...(nodes?.routeBranches?.values?.() ?? []) ]
@@ -2047,7 +2047,7 @@ export class CjsAudioBackend
         occlusion,
     )
     {
-        const nodes = this.#emitterNodes.get(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID);
 
         if (!nodes || Number(listenerID) !== 4)
         {
@@ -2059,7 +2059,7 @@ export class CjsAudioBackend
             nodes.obstructionOcclusionStage,
             obstruction,
             occlusion,
-            this.#context,
+            this._context,
         );
         for (const modes of nodes.routeBranches.values())
         {
@@ -2069,7 +2069,7 @@ export class CjsAudioBackend
                     branch.obstructionOcclusionStage,
                     obstruction,
                     occlusion,
-                    this.#context,
+                    this._context,
                 );
             }
         }
@@ -2077,18 +2077,18 @@ export class CjsAudioBackend
     }
 
     /** Allocates and posts one event owned by the active music engine. */
-    #PostMusicEvent(eventName, { gameObjID = 3, emitter = null, onFinished = null } = {})
+    _PostMusicEvent(eventName, { gameObjID = 3, emitter = null, onFinished = null } = {})
     {
-        const musicEngine = this.#musicEngine;
+        const musicEngine = this._musicEngine;
         if (!musicEngine?.HandlesEvent?.(eventName))
         {
             return 0;
         }
-        const playingID = this.#nextPlayingID++;
+        const playingID = this._nextPlayingID++;
         const record = {
             gameObjID,
             emitter,
-            emitterNodes: this.#emitterNodes.get(gameObjID) ?? null,
+            emitterNodes: this._emitterNodes.get(gameObjID) ?? null,
             eventName: String(eventName),
             source: null,
             sourceGain: null,
@@ -2100,8 +2100,8 @@ export class CjsAudioBackend
             musicEngine,
             onFinished
         };
-        this.#playing.set(playingID, record);
-        this.#StartMusicComponent(playingID, record);
+        this._playing.set(playingID, record);
+        this._StartMusicComponent(playingID, record);
         return playingID;
     }
 
@@ -2109,7 +2109,7 @@ export class CjsAudioBackend
      * Starts one music side of an authored event and defers a synchronous
      * custom-engine completion until the posting caller can retain its id.
      */
-    #StartMusicComponent(playingID, record)
+    _StartMusicComponent(playingID, record)
     {
         let posting = true;
         let finished = false;
@@ -2120,7 +2120,7 @@ export class CjsAudioBackend
                 finished = true;
                 return;
             }
-            this.#FinishMusicPlaying(playingID);
+            this._FinishMusicPlaying(playingID);
         };
 
         try
@@ -2131,7 +2131,7 @@ export class CjsAudioBackend
                 complete,
                 {
                     busVolumeStates: record.emitterNodes?.busVolumes
-                        ?? this.#globalBusVolumes,
+                        ?? this._globalBusVolumes,
                     gameObjID: record.gameObjID,
                 },
             );
@@ -2148,14 +2148,14 @@ export class CjsAudioBackend
         if (finished)
         {
             Promise.resolve().then(() =>
-                this.#FinishMusicPlaying(playingID));
+                this._FinishMusicPlaying(playingID));
         }
     }
 
     /** Applies or defers a millisecond/percentage seek for one playing id. */
-    #Seek(playingID, seek)
+    _Seek(playingID, seek)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
         if (!record || record.stopped)
         {
             return false;
@@ -2191,13 +2191,13 @@ export class CjsAudioBackend
         }
         if (record.loaded)
         {
-            const now = Number(this.#context.currentTime) || 0;
-            const renderQuantum = RenderQuantumSeconds(this.#context);
+            const now = Number(this._context.currentTime) || 0;
+            const renderQuantum = RenderQuantumSeconds(this._context);
             const started = record.voices.filter(voice =>
                 voice.source
                 && !voice.ended
                 && (!hasRestrictedContinuous
-                    || !this.#IsRestrictedContinuousProgramVoice(
+                    || !this._IsRestrictedContinuousProgramVoice(
                         record,
                         voice,
                     ))
@@ -2209,7 +2209,7 @@ export class CjsAudioBackend
             }
 
             record.pendingSeek = seek;
-            this.#StartVoices(playingID, record, started);
+            this._StartVoices(playingID, record, started);
             return true;
         }
         record.pendingSeek = seek;
@@ -2217,7 +2217,7 @@ export class CjsAudioBackend
     }
 
     /** Reserves supported Sound caps before any asynchronous media request. */
-    #ReserveSfxProgram(record, program)
+    _ReserveSfxProgram(record, program)
     {
         if (!Array.isArray(program))
         {
@@ -2264,7 +2264,7 @@ export class CjsAudioBackend
                         );
                     }
 
-                    const reservationID = this.#voiceLimitLedger.Reserve(
+                    const reservationID = this._voiceLimitLedger.Reserve(
                         record,
                         String(counterNumber),
                     );
@@ -2294,7 +2294,7 @@ export class CjsAudioBackend
         {
             for (const reservationID of created)
             {
-                this.#voiceLimitLedger.Release(
+                this._voiceLimitLedger.Release(
                     record,
                     reservationID,
                 );
@@ -2304,7 +2304,7 @@ export class CjsAudioBackend
     }
 
     /** Releases reservations whose selected media never became a voice. */
-    #ReleasePendingSfxVoiceLimitReservations(record, program)
+    _ReleasePendingSfxVoiceLimitReservations(record, program)
     {
         for (const operation of Array.isArray(program) ? program : [])
         {
@@ -2312,7 +2312,7 @@ export class CjsAudioBackend
                 ? operation.selections ?? []
                 : [])
             {
-                this.#voiceLimitLedger.ReleasePending(
+                this._voiceLimitLedger.ReleasePending(
                     record,
                     [ selection ],
                 );
@@ -2321,15 +2321,15 @@ export class CjsAudioBackend
     }
 
     /** Aborts one slot and releases only tokens not yet bound to a voice. */
-    #AbortSfxProgramSlot(record, slot)
+    _AbortSfxProgramSlot(record, slot)
     {
-        this.#voiceLimitLedger.ReleasePending(
+        this._voiceLimitLedger.ReleasePending(
             record,
             slot?.selections,
         );
         for (const batch of slot?.batches?.values?.() ?? [])
         {
-            this.#voiceLimitLedger.ReleasePending(
+            this._voiceLimitLedger.ReleasePending(
                 record,
                 batch.selections,
             );
@@ -2338,9 +2338,9 @@ export class CjsAudioBackend
     }
 
     /** Aborts one overlapping batch without retaining an unclaimed cap. */
-    #AbortSfxProgramBatch(record, batch)
+    _AbortSfxProgramBatch(record, batch)
     {
-        this.#voiceLimitLedger.ReleasePending(
+        this._voiceLimitLedger.ReleasePending(
             record,
             batch?.selections,
         );
@@ -2348,10 +2348,10 @@ export class CjsAudioBackend
     }
 
     /** Installs one synchronously resolved authored SFX program. */
-    #InstallSfxProgram(playingID, record, program)
+    _InstallSfxProgram(playingID, record, program)
     {
         if (!record
-            || this.#playing.get(playingID) !== record
+            || this._playing.get(playingID) !== record
             || !Array.isArray(program))
         {
             throw new TypeError("Resolved SFX program is invalid");
@@ -2371,7 +2371,7 @@ export class CjsAudioBackend
             for (const rawOperation of program)
             {
                 const operation = rawOperation.kind === "play"
-                    ? this.#ReserveSfxProgram(
+                    ? this._ReserveSfxProgram(
                         record,
                         [ rawOperation ],
                     )[0]
@@ -2486,7 +2486,7 @@ export class CjsAudioBackend
                             slot.state = "active";
                             if (slot.advanceMode === "trigger-rate")
                             {
-                                this.#ArmTriggerRateSlot(slot);
+                                this._ArmTriggerRateSlot(slot);
                             }
                         }
                         continuations.set(id, slot);
@@ -2586,39 +2586,39 @@ export class CjsAudioBackend
                             Number(operation.delayMs) || 0,
                         ) / 1000,
                 };
-                const now = Number(this.#context.currentTime) || 0;
+                const now = Number(this._context.currentTime) || 0;
 
                 if (action.actionTime <= now)
                 {
-                    this.#ApplySfxProgramAction(action, now);
+                    this._ApplySfxProgramAction(action, now);
                 }
                 else
                 {
                     record.pendingProgramActions++;
-                    this.#scheduledSfxActions.push(action);
+                    this._scheduledSfxActions.push(action);
                 }
             }
 
-            this.#scheduledSfxActions.sort(CompareSfxActions);
+            this._scheduledSfxActions.sort(CompareSfxActions);
         }
         finally
         {
             record.planningProgram = false;
         }
-        this.#MaybeFinishSfxProgram(playingID, record);
+        this._MaybeFinishSfxProgram(playingID, record);
         return installedProgram;
     }
 
     /** Executes every authored SFX action whose absolute time has arrived. */
-    #ProcessScheduledSfxActions()
+    _ProcessScheduledSfxActions()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        while (this.#scheduledSfxActions.length
-            && this.#scheduledSfxActions[0].actionTime <= now)
+        while (this._scheduledSfxActions.length
+            && this._scheduledSfxActions[0].actionTime <= now)
         {
-            const action = this.#scheduledSfxActions.shift();
-            const owner = this.#playing.get(action.ownerPlayingID);
+            const action = this._scheduledSfxActions.shift();
+            const owner = this._playing.get(action.ownerPlayingID);
 
             if (!owner || owner.stopped)
             {
@@ -2629,8 +2629,8 @@ export class CjsAudioBackend
                 0,
                 owner.pendingProgramActions - 1,
             );
-            this.#ApplySfxProgramAction(action, now);
-            this.#MaybeFinishSfxProgram(
+            this._ApplySfxProgramAction(action, now);
+            this._MaybeFinishSfxProgram(
                 action.ownerPlayingID,
                 owner,
             );
@@ -2638,26 +2638,26 @@ export class CjsAudioBackend
     }
 
     /** Dispatches one due authored SFX operation. */
-    #ApplySfxProgramAction(action, now)
+    _ApplySfxProgramAction(action, now)
     {
         if (action.kind === "stop")
         {
-            this.#ApplySfxStop(action, now);
+            this._ApplySfxStop(action, now);
         }
         else if (action.kind === "pause"
             || action.kind === "resume")
         {
-            this.#ApplySfxPlaybackControl(action, now);
+            this._ApplySfxPlaybackControl(action, now);
         }
         else if (action.kind === "set-voice-pitch"
             || action.kind === "reset-voice-pitch")
         {
-            this.#ApplySfxVoicePitch(action, now);
+            this._ApplySfxVoicePitch(action, now);
         }
         else if (action.kind === "set-game-parameter"
             || action.kind === "reset-game-parameter")
         {
-            this.#ApplySfxGameParameter(action, now);
+            this._ApplySfxGameParameter(action, now);
         }
         else if (action.kind === "switch")
         {
@@ -2672,25 +2672,25 @@ export class CjsAudioBackend
             || action.kind === "set-voice-high-pass"
             || action.kind === "reset-voice-high-pass")
         {
-            this.#ApplySfxVoiceFilter(action);
+            this._ApplySfxVoiceFilter(action);
         }
         else if (action.kind === "set-bus-volume"
             || action.kind === "reset-bus-volume")
         {
-            this.#ApplySfxBusVolume(action);
+            this._ApplySfxBusVolume(action);
         }
         else if (action.kind === "set-bus-voice-volume")
         {
-            this.#ApplySfxBusVoiceVolume(action);
+            this._ApplySfxBusVoiceVolume(action);
         }
         else
         {
-            this.#ApplySfxVoiceVolume(action, now);
+            this._ApplySfxVoiceVolume(action, now);
         }
     }
 
     /** Applies one persistent Voice Volume property mutation. */
-    #ApplySfxVoiceVolume(action)
+    _ApplySfxVoiceVolume(action)
     {
         const targetId = String(action.targetId);
         const apply = nodes =>
@@ -2704,32 +2704,32 @@ export class CjsAudioBackend
 
         if (action.scope === "global")
         {
-            for (const nodes of this.#emitterNodes.values())
+            for (const nodes of this._emitterNodes.values())
             {
                 apply(nodes);
             }
-            this.#RefreshSfxVoiceVolumes();
+            this._RefreshSfxVoiceVolumes();
             return;
         }
 
-        if (this.#emitterNodes.get(action.gameObjID)
+        if (this._emitterNodes.get(action.gameObjID)
             !== action.emitterNodes)
         {
             return;
         }
         apply(action.emitterNodes);
-        this.#RefreshSfxVoiceVolumes(action.gameObjID);
+        this._RefreshSfxVoiceVolumes(action.gameObjID);
     }
 
     /** Applies one persistent Wwise Bus Volume property mutation. */
-    #ApplySfxBusVolume(action)
+    _ApplySfxBusVolume(action)
     {
         if (action.scope === "global")
         {
-            ApplyBusVolumeAction(this.#globalBusVolumes, action);
-            const generations = new Set(this.#emitterNodes.values());
+            ApplyBusVolumeAction(this._globalBusVolumes, action);
+            const generations = new Set(this._emitterNodes.values());
 
-            for (const record of this.#playing.values())
+            for (const record of this._playing.values())
             {
                 if (record.emitterNodes)
                 {
@@ -2740,19 +2740,19 @@ export class CjsAudioBackend
             {
                 ApplyBusVolumeAction(nodes.busVolumes, action);
             }
-            this.#RefreshSfxBusVolumes();
-            this.#musicEngine?.RefreshBusVolumeGains?.();
+            this._RefreshSfxBusVolumes();
+            this._musicEngine?.RefreshBusVolumeGains?.();
             return;
         }
 
-        if (this.#emitterNodes.get(action.gameObjID)
+        if (this._emitterNodes.get(action.gameObjID)
             !== action.emitterNodes)
         {
             return;
         }
         ApplyBusVolumeAction(action.emitterNodes.busVolumes, action);
-        this.#RefreshSfxBusVolumes(action.gameObjID);
-        this.#musicEngine?.RefreshBusVolumeGains?.();
+        this._RefreshSfxBusVolumes(action.gameObjID);
+        this._musicEngine?.RefreshBusVolumeGains?.();
     }
 
     /**
@@ -2763,10 +2763,10 @@ export class CjsAudioBackend
      * by a later event. Each voice applies it on its own gain before the
      * route's Bus processing; it is Voice Volume, never Bus Volume.
      */
-    #ApplySfxBusVoiceVolume(action)
+    _ApplySfxBusVoiceVolume(action)
     {
         if (action.scope !== "game-object"
-            || this.#emitterNodes.get(action.gameObjID)
+            || this._emitterNodes.get(action.gameObjID)
                 !== action.emitterNodes)
         {
             return;
@@ -2776,16 +2776,16 @@ export class CjsAudioBackend
             String(action.targetId),
             action,
         );
-        this.#RefreshSfxBusVoiceVolumes(action.gameObjID);
+        this._RefreshSfxBusVoiceVolumes(action.gameObjID);
     }
 
     /** Applies one persistent Voice Pitch property mutation. */
-    #ApplySfxVoicePitch(action, now)
+    _ApplySfxVoicePitch(action, now)
     {
         const targetId = String(action.targetId);
         const apply = nodes =>
         {
-            this.#AdvanceMatchingSfxVoices(
+            this._AdvanceMatchingSfxVoices(
                 nodes,
                 targetId,
                 now,
@@ -2799,25 +2799,25 @@ export class CjsAudioBackend
 
         if (action.scope === "global")
         {
-            for (const nodes of this.#emitterNodes.values())
+            for (const nodes of this._emitterNodes.values())
             {
                 apply(nodes);
             }
-            this.#RefreshSfxVoicePitches();
+            this._RefreshSfxVoicePitches();
             return;
         }
 
-        if (this.#emitterNodes.get(action.gameObjID)
+        if (this._emitterNodes.get(action.gameObjID)
             !== action.emitterNodes)
         {
             return;
         }
         apply(action.emitterNodes);
-        this.#RefreshSfxVoicePitches(action.gameObjID);
+        this._RefreshSfxVoicePitches(action.gameObjID);
     }
 
     /** Applies one persistent Voice LPF or HPF property mutation. */
-    #ApplySfxVoiceFilter(action)
+    _ApplySfxVoiceFilter(action)
     {
         const lowPass = action.kind.endsWith("low-pass");
         const apply = nodes =>
@@ -2833,37 +2833,37 @@ export class CjsAudioBackend
         {
             ApplyVoiceFilterAction(
                 lowPass
-                    ? this.#globalVoiceLowPasses
-                    : this.#globalVoiceHighPasses,
+                    ? this._globalVoiceLowPasses
+                    : this._globalVoiceHighPasses,
                 action,
                 lowPass ? "lowPass" : "highPass",
             );
-            for (const nodes of this.#emitterNodes.values())
+            for (const nodes of this._emitterNodes.values())
             {
                 apply(nodes);
             }
-            this.#RefreshSfxVoiceFilters();
+            this._RefreshSfxVoiceFilters();
             return;
         }
 
-        if (this.#emitterNodes.get(action.gameObjID)
+        if (this._emitterNodes.get(action.gameObjID)
             !== action.emitterNodes)
         {
             return;
         }
         apply(action.emitterNodes);
-        this.#RefreshSfxVoiceFilters(action.gameObjID);
+        this._RefreshSfxVoiceFilters(action.gameObjID);
     }
 
     /** Applies one persistent Set or Reset Game Parameter mutation. */
-    #ApplySfxGameParameter(action, now)
+    _ApplySfxGameParameter(action, now)
     {
         const scope = action.scope;
         const name = String(action.rtpc);
         const gameObjID = action.gameObjID;
 
         if (scope === "game-object"
-            && this.#emitterNodes.get(gameObjID)
+            && this._emitterNodes.get(gameObjID)
                 !== action.emitterNodes)
         {
             return false;
@@ -2874,20 +2874,20 @@ export class CjsAudioBackend
             currentTime,
             Math.max(0, Number(action.actionTime) || 0),
         );
-        const key = this.#RtpcTransitionKey(scope, name, gameObjID);
+        const key = this._RtpcTransitionKey(scope, name, gameObjID);
 
-        this.#AdvanceRtpcVoices(scope, gameObjID, currentTime);
+        this._AdvanceRtpcVoices(scope, gameObjID, currentTime);
 
         const defaultValue = Number(action.defaultValue);
         const fallback = scope === "game-object"
-            ? this.#ReadRtpcValue("global", name, undefined, at)
+            ? this._ReadRtpcValue("global", name, undefined, at)
                 ?? (Number.isFinite(defaultValue)
                     ? defaultValue
                     : undefined)
             : Number.isFinite(defaultValue)
                 ? defaultValue
                 : undefined;
-        const stored = this.#ReadRtpcValue(
+        const stored = this._ReadRtpcValue(
             scope,
             name,
             gameObjID,
@@ -2902,7 +2902,7 @@ export class CjsAudioBackend
                 ? current + authoredValue
                 : authoredValue;
 
-        this.#rtpcTransitions.delete(key);
+        this._rtpcTransitions.delete(key);
         if (!Number.isFinite(target))
         {
             return false;
@@ -2917,11 +2917,11 @@ export class CjsAudioBackend
             || current === target
             || at + transitionMs / 1000 <= currentTime)
         {
-            this.#WriteRtpcValue(scope, name, target, gameObjID);
+            this._WriteRtpcValue(scope, name, target, gameObjID);
             return true;
         }
 
-        this.#rtpcTransitions.set(key, {
+        this._rtpcTransitions.set(key, {
             key,
             scope,
             name,
@@ -2939,50 +2939,50 @@ export class CjsAudioBackend
             // store retains this flag for future whole-parameter realization.
             bypassTransition: action.bypassTransition === true,
         });
-        this.#RefreshSfxControls(
+        this._RefreshSfxControls(
             scope === "game-object" ? gameObjID : null,
             at + transitionMs / 1000,
         );
         if (scope === "global")
         {
-            this.#musicEngine?.RefreshBusRtpcs?.();
+            this._musicEngine?.RefreshBusRtpcs?.();
         }
         return true;
     }
 
     /** Advances every live authored Game Parameter transition. */
-    #ProcessRtpcTransitions()
+    _ProcessRtpcTransitions()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const [ key, transition ] of [ ...this.#rtpcTransitions ])
+        for (const [ key, transition ] of [ ...this._rtpcTransitions ])
         {
             if (transition.startTime + transition.duration <= now)
             {
-                this.#AdvanceRtpcVoices(
+                this._AdvanceRtpcVoices(
                     transition.scope,
                     transition.gameObjID,
                     now,
                 );
-                this.#AdvanceRtpcTransition(key, now);
+                this._AdvanceRtpcTransition(key, now);
             }
         }
     }
 
     /** Advances one transition and returns its current effective value. */
-    #AdvanceRtpcTransition(key, now)
+    _AdvanceRtpcTransition(key, now)
     {
-        const transition = this.#rtpcTransitions.get(key);
+        const transition = this._rtpcTransitions.get(key);
 
         if (!transition)
         {
             return undefined;
         }
         if (transition.scope === "game-object"
-            && this.#emitterNodes.get(transition.gameObjID)
+            && this._emitterNodes.get(transition.gameObjID)
                 !== transition.emitterNodes)
         {
-            this.#rtpcTransitions.delete(key);
+            this._rtpcTransitions.delete(key);
             return undefined;
         }
 
@@ -3002,8 +3002,8 @@ export class CjsAudioBackend
 
         if (progress >= 1)
         {
-            this.#rtpcTransitions.delete(key);
-            this.#WriteRtpcValue(
+            this._rtpcTransitions.delete(key);
+            this._WriteRtpcValue(
                 transition.scope,
                 transition.name,
                 transition.to,
@@ -3014,10 +3014,10 @@ export class CjsAudioBackend
     }
 
     /** Reads one RTPC value at a requested point on its active timeline. */
-    #ReadRtpcValue(scope, name, gameObjID, at)
+    _ReadRtpcValue(scope, name, gameObjID, at)
     {
-        const transition = this.#rtpcTransitions.get(
-            this.#RtpcTransitionKey(scope, name, gameObjID),
+        const transition = this._rtpcTransitions.get(
+            this._RtpcTransitionKey(scope, name, gameObjID),
         );
 
         if (transition)
@@ -3025,20 +3025,20 @@ export class CjsAudioBackend
             return EvaluateRtpcTransition(transition, at);
         }
         return scope === "global"
-            ? this.#globalRtpcValues.get(name)
-            : this.#objectRtpcValues.get(gameObjID)?.get(name);
+            ? this._globalRtpcValues.get(name)
+            : this._objectRtpcValues.get(gameObjID)?.get(name);
     }
 
     /** Advances affected SFX voice transport before an RTPC mutation. */
-    #AdvanceRtpcVoices(scope, gameObjID, at)
+    _AdvanceRtpcVoices(scope, gameObjID, at)
     {
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (scope === "game-object"
                     && (record.gameObjID !== gameObjID
                         || record.emitterNodes
-                            !== this.#emitterNodes.get(gameObjID))))
+                            !== this._emitterNodes.get(gameObjID))))
             {
                 continue;
             }
@@ -3046,23 +3046,23 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#AdvanceSfxVoiceTransport(voice, at);
+                    this._AdvanceSfxVoiceTransport(voice, at);
                 }
             }
         }
     }
 
     /** Returns the last relevant control-transition boundary for a record. */
-    #RtpcTransitionEndForRecord(record, from)
+    _RtpcTransitionEndForRecord(record, from)
     {
-        return this.#ControlTransitionBoundariesForRecord(
+        return this._ControlTransitionBoundariesForRecord(
             record,
             from,
         ).at(-1) ?? (Number(from) || 0);
     }
 
     /** Collects future State and RTPC transition boundaries for a record. */
-    #ControlTransitionBoundariesForRecord(record, from)
+    _ControlTransitionBoundariesForRecord(record, from)
     {
         const start = Number(from) || 0;
         const boundaries = new Set();
@@ -3077,18 +3077,18 @@ export class CjsAudioBackend
             }
         };
 
-        for (const transition of this.#statePropertyTransitions.values())
+        for (const transition of this._statePropertyTransitions.values())
         {
             add(transition);
         }
 
-        for (const transition of this.#rtpcTransitions.values())
+        for (const transition of this._rtpcTransitions.values())
         {
             if (transition.scope === "global"
                 || (transition.scope === "game-object"
                     && record.gameObjID === transition.gameObjID
                     && record.emitterNodes
-                        === this.#emitterNodes.get(record.gameObjID)))
+                        === this._emitterNodes.get(record.gameObjID)))
             {
                 add(transition);
             }
@@ -3102,7 +3102,7 @@ export class CjsAudioBackend
     }
 
     /** Creates the stable map key for one scoped RTPC transition. */
-    #RtpcTransitionKey(scope, name, gameObjID = "")
+    _RtpcTransitionKey(scope, name, gameObjID = "")
     {
         return scope === "global"
             ? `g\0${name}`
@@ -3110,84 +3110,84 @@ export class CjsAudioBackend
     }
 
     /** Cancels one active scoped RTPC transition. */
-    #CancelRtpcTransition(scope, name, gameObjID = "")
+    _CancelRtpcTransition(scope, name, gameObjID = "")
     {
-        this.#rtpcTransitions.delete(
-            this.#RtpcTransitionKey(scope, name, gameObjID),
+        this._rtpcTransitions.delete(
+            this._RtpcTransitionKey(scope, name, gameObjID),
         );
     }
 
     /** Cancels every active RTPC transition for one game object. */
-    #CancelObjectRtpcTransitions(gameObjID)
+    _CancelObjectRtpcTransitions(gameObjID)
     {
         const objectID = String(gameObjID);
 
-        for (const [ key, transition ] of this.#rtpcTransitions)
+        for (const [ key, transition ] of this._rtpcTransitions)
         {
             if (transition.scope === "game-object"
                 && String(transition.gameObjID) === objectID)
             {
-                this.#rtpcTransitions.delete(key);
+                this._rtpcTransitions.delete(key);
             }
         }
     }
 
     /** Writes one resolved RTPC value through its selected scope. */
-    #WriteRtpcValue(scope, name, value, gameObjID)
+    _WriteRtpcValue(scope, name, value, gameObjID)
     {
         return scope === "global"
-            ? this.#WriteGlobalRtpcValue(name, value)
-            : this.#WriteObjectRtpcValue(name, value, gameObjID);
+            ? this._WriteGlobalRtpcValue(name, value)
+            : this._WriteObjectRtpcValue(name, value, gameObjID);
     }
 
     /** Stores one object RTPC value and refreshes affected realization. */
-    #WriteObjectRtpcValue(name, value, gameObjID)
+    _WriteObjectRtpcValue(name, value, gameObjID)
     {
-        let values = this.#objectRtpcValues.get(gameObjID);
+        let values = this._objectRtpcValues.get(gameObjID);
 
         if (!values)
         {
             values = new Map();
-            this.#objectRtpcValues.set(gameObjID, values);
+            this._objectRtpcValues.set(gameObjID, values);
         }
         values.set(name, value);
-        this.#RefreshSfxControls(gameObjID);
-        const nodes = this.#emitterNodes.get(gameObjID) ?? null;
+        this._RefreshSfxControls(gameObjID);
+        const nodes = this._emitterNodes.get(gameObjID) ?? null;
 
-        this.#ApplyRTPCToEmitterNodes(nodes, gameObjID, name, value);
+        this._ApplyRTPCToEmitterNodes(nodes, gameObjID, name, value);
         return true;
     }
 
     /** Stores one global RTPC value and refreshes affected realization. */
-    #WriteGlobalRtpcValue(name, value)
+    _WriteGlobalRtpcValue(name, value)
     {
-        this.#globalRtpcValues.set(name, value);
-        this.#RefreshSfxControls();
+        this._globalRtpcValues.set(name, value);
+        this._RefreshSfxControls();
         const authoredBusControl = busRtpcCatalogUsesControl(
-            this.#busRtpcCatalog,
+            this._busRtpcCatalog,
             name,
         );
 
         if (!authoredBusControl && name === "menu_main_master_level")
         {
             SetAudioParam(
-                this.#masterGain?.gain,
+                this._masterGain?.gain,
                 Math.max(0, Math.min(1, value || 0)),
-                this.#context,
+                this._context,
             );
         }
         else if (!authoredBusControl && name === "menu_main_music_level")
         {
-            this.#musicEngine?.SetMusicVolume(value);
+            this._musicEngine?.SetMusicVolume(value);
         }
-        this.#musicEngine?.RefreshBusRtpcs?.();
+        this._musicEngine?.RefreshBusRtpcs?.();
         return true;
     }
 
     /** Advances matching voices before replacing their active pitch curve. */
-    #AdvanceMatchingSfxVoices(nodes, targetId, at)
+    _AdvanceMatchingSfxVoices(nodes, targetId, at)
     {
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx || record.emitterNodes !== nodes)
             {
@@ -3198,18 +3198,18 @@ export class CjsAudioBackend
                 if (!voice.ended
                     && voice.matchIds?.map(String).includes(targetId))
                 {
-                    this.#AdvanceSfxVoiceTransport(voice, at);
+                    this._AdvanceSfxVoiceTransport(voice, at);
                 }
             }
         }
     }
 
     /** Applies one authored Pause or Resume to matching live SFX instances. */
-    #ApplySfxPlaybackControl(action, now)
+    _ApplySfxPlaybackControl(action, now)
     {
         const pausing = action.kind === "pause";
 
-        for (const [ playingID, record ] of this.#playing)
+        for (const [ playingID, record ] of this._playing)
         {
             if (!record.sfx
                 || (action.scope === "game-object"
@@ -3233,7 +3233,7 @@ export class CjsAudioBackend
                     if (!voice.ended
                         && PlaybackControlMatchesValue(action, voice))
                     {
-                        this.#ApplySfxVoicePauseDepth(
+                        this._ApplySfxVoicePauseDepth(
                             playingID,
                             record,
                             voice,
@@ -3287,7 +3287,7 @@ export class CjsAudioBackend
                     {
                         continue;
                     }
-                    this.#ApplySfxVoicePauseDepth(
+                    this._ApplySfxVoicePauseDepth(
                         playingID,
                         record,
                         voice,
@@ -3301,7 +3301,7 @@ export class CjsAudioBackend
     }
 
     /** Adjusts one logical voice's stacked Wwise pause depth. */
-    #ApplySfxVoicePauseDepth(
+    _ApplySfxVoicePauseDepth(
         playingID,
         record,
         voice,
@@ -3318,11 +3318,11 @@ export class CjsAudioBackend
         voice.pauseDepth = next;
         if (previous === 0 && next === 1)
         {
-            this.#PauseSfxVoice(voice, action, now);
+            this._PauseSfxVoice(voice, action, now);
         }
         else if (previous === 1 && next === 0)
         {
-            this.#ResumeSfxVoice(
+            this._ResumeSfxVoice(
                 playingID,
                 record,
                 voice,
@@ -3333,7 +3333,7 @@ export class CjsAudioBackend
     }
 
     /** Stops one disposable WebAudio source while retaining its logical voice. */
-    #PauseSfxVoice(voice, action, now)
+    _PauseSfxVoice(voice, action, now)
     {
         if (voice.stopping || voice.ended)
         {
@@ -3350,7 +3350,7 @@ export class CjsAudioBackend
 
         if (!voice.source || pauseTime <= currentTime)
         {
-            this.#FinalizeSfxVoicePause(
+            this._FinalizeSfxVoicePause(
                 voice,
                 Math.min(pauseTime, currentTime),
             );
@@ -3394,16 +3394,16 @@ export class CjsAudioBackend
     }
 
     /** Finalizes a due pause without reporting EndOfEvent. */
-    #FinalizeSfxVoicePause(voice, pauseTime)
+    _FinalizeSfxVoicePause(voice, pauseTime)
     {
         if (voice.ended || voice.stopping || voice.paused)
         {
             return;
         }
 
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
 
-        this.#AdvanceSfxVoiceTransport(
+        this._AdvanceSfxVoiceTransport(
             voice,
             Number.isFinite(Number(pauseTime))
                 ? Number(pauseTime)
@@ -3414,7 +3414,7 @@ export class CjsAudioBackend
 
         if (source)
         {
-            this.#EndVoiceDucking(
+            this._EndVoiceDucking(
                 voice,
                 pauseTime,
                 pauseTime <= voice.startContextTime,
@@ -3438,11 +3438,11 @@ export class CjsAudioBackend
         voice.paused = true;
         voice.pauseContextTime = null;
         voice.pauseSource = null;
-        SetAudioParam(voice.stopGain.gain, 0, this.#context);
+        SetAudioParam(voice.stopGain.gain, 0, this._context);
     }
 
     /** Restarts one paused logical voice at its preserved media position. */
-    #ResumeSfxVoice(playingID, record, voice, action, now)
+    _ResumeSfxVoice(playingID, record, voice, action, now)
     {
         if (voice.stopping || voice.ended || voice.pauseDepth > 0)
         {
@@ -3453,10 +3453,10 @@ export class CjsAudioBackend
 
         if (voice.pausing && voice.source)
         {
-            this.#AdvanceSfxVoiceTransport(voice, currentTime);
+            this._AdvanceSfxVoiceTransport(voice, currentTime);
             const source = voice.source;
 
-            this.#EndVoiceDucking(voice, currentTime);
+            this._EndVoiceDucking(voice, currentTime);
             source.onended = null;
             try
             {
@@ -3482,8 +3482,8 @@ export class CjsAudioBackend
             voice.paused = false;
             voice.pausing = false;
             voice.ended = true;
-            this.#SetSfxProgramSlotEnded(playingID, record, voice);
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._SetSfxProgramSlotEnded(playingID, record, voice);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
 
@@ -3492,9 +3492,9 @@ export class CjsAudioBackend
         voice.pauseContextTime = null;
         voice.pauseSource = null;
         const startTime = currentTime
-            + RenderQuantumSeconds(this.#context);
+            + RenderQuantumSeconds(this._context);
 
-        this.#StartVoice(
+        this._StartVoice(
             playingID,
             record,
             voice,
@@ -3524,16 +3524,16 @@ export class CjsAudioBackend
         }
         else
         {
-            SetAudioParam(voice.stopGain.gain, 1, this.#context);
+            SetAudioParam(voice.stopGain.gain, 1, this._context);
         }
     }
 
     /** Finalizes scheduled Pause transitions even if a host delays onended. */
-    #FinalizeDueSfxPauses()
+    _FinalizeDueSfxPauses()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             for (const voice of record.voices ?? [])
             {
@@ -3541,7 +3541,7 @@ export class CjsAudioBackend
                     && voice.pauseSource === voice.source
                     && Number(voice.pauseContextTime) <= now)
                 {
-                    this.#FinalizeSfxVoicePause(
+                    this._FinalizeSfxVoicePause(
                         voice,
                         voice.pauseContextTime,
                     );
@@ -3551,12 +3551,12 @@ export class CjsAudioBackend
     }
 
     /** Advances every live Continuous Switch session reading one game sync. */
-    #AdvanceContinuousSwitchSlots(scope, group, gameObjID = null)
+    _AdvanceContinuousSwitchSlots(scope, group, gameObjID = null)
     {
         const normalizedScope = scope === "state" ? "state" : "switch";
         const normalizedGroup = String(group);
 
-        for (const [ playingID, record ] of this.#playing)
+        for (const [ playingID, record ] of this._playing)
         {
             if (!record.sfxProgram
                 || record.stopped
@@ -3578,7 +3578,7 @@ export class CjsAudioBackend
                 {
                     continue;
                 }
-                this.#AdvanceContinuousSwitchSlot(
+                this._AdvanceContinuousSwitchSlot(
                     playingID,
                     record,
                     slot,
@@ -3588,12 +3588,12 @@ export class CjsAudioBackend
     }
 
     /** Re-routes one live Continuous Switch without discarding fade tails. */
-    #AdvanceContinuousSwitchSlot(playingID, record, slot)
+    _AdvanceContinuousSwitchSlot(playingID, record, slot)
     {
         if (!slot.continuation
             || slot.broken
             || record.stopped
-            || this.#playing.get(playingID) !== record)
+            || this._playing.get(playingID) !== record)
         {
             return;
         }
@@ -3602,7 +3602,7 @@ export class CjsAudioBackend
 
         try
         {
-            program = this.#continueSfxProgram?.(
+            program = this._continueSfxProgram?.(
                 slot.continuation,
                 record.sfxControls,
             ) ?? [];
@@ -3615,7 +3615,7 @@ export class CjsAudioBackend
             slot.state = [ ...slot.voices ].some(voice => !voice.ended)
                 ? "voice"
                 : "ended";
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
 
@@ -3627,7 +3627,7 @@ export class CjsAudioBackend
             slot.state = [ ...slot.voices ].some(voice => !voice.ended)
                 ? "voice"
                 : "ended";
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
         if (!program.length)
@@ -3649,16 +3649,16 @@ export class CjsAudioBackend
             slot.state = [ ...slot.voices ].some(voice => !voice.ended)
                 ? "voice"
                 : "ended";
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
         try
         {
-            this.#voiceLimitLedger.ReleasePending(
+            this._voiceLimitLedger.ReleasePending(
                 record,
                 slot.selections,
             );
-            program = this.#ReserveSfxProgram(record, program);
+            program = this._ReserveSfxProgram(record, program);
         }
         catch
         {
@@ -3668,14 +3668,14 @@ export class CjsAudioBackend
             slot.state = [ ...slot.voices ].some(voice => !voice.ended)
                 ? "voice"
                 : "ended";
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
         play = program.find(operation => operation.kind === "play");
         continuation = play.continuations.find(value =>
             value.programSlotId === slot.id);
 
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
         const previousSwitchGeneration = slot.switchGeneration;
         const generation = ++slot.generation;
         const switchGeneration = ++slot.switchGeneration;
@@ -3687,7 +3687,7 @@ export class CjsAudioBackend
         const selectionMetadata = selections.map(selection =>
             CreateProgramSelectionMetadata(selection, now));
 
-        this.#AbortSfxProgramSlot(record, slot);
+        this._AbortSfxProgramSlot(record, slot);
         slot.controller = new AbortController();
         slot.continuation = continuation.token;
         slot.exhausted = false;
@@ -3726,7 +3726,7 @@ export class CjsAudioBackend
             const transition = voice.switchPath?.find(value =>
                 value.containerId === changedContainerId);
 
-            this.#StopSfxProgramVoice(
+            this._StopSfxProgramVoice(
                 voice,
                 now,
                 transition?.fadeOutMs ?? 0,
@@ -3734,7 +3734,7 @@ export class CjsAudioBackend
                 now,
             );
         }
-        this.#DisposeEndedSlotVoices(record, slot);
+        this._DisposeEndedSlotVoices(record, slot);
 
         if (!selectionMetadata.length)
         {
@@ -3744,25 +3744,25 @@ export class CjsAudioBackend
             return;
         }
 
-        Promise.resolve().then(() => this.#loadBuffer(
+        Promise.resolve().then(() => this._loadBuffer(
             record.eventID,
             record.eventName,
             record.sfxControls,
             program,
         )).then(result =>
         {
-            this.#ProcessScheduledSfxActions();
+            this._ProcessScheduledSfxActions();
             if (generation !== slot.generation
                 || slot.broken
                 || record.stopped
-                || this.#playing.get(playingID) !== record)
+                || this._playing.get(playingID) !== record)
             {
                 return;
             }
 
             const descriptors = NormalizeVoiceDescriptors(
                 result ?? { voices: [] },
-                () => !!this.#isLoop(record.eventName),
+                () => !!this._isLoop(record.eventName),
             ).filter(descriptor =>
                 descriptor.programSlotId === slot.id
                 && !slot.cancelledSelectionKeys.has(
@@ -3778,7 +3778,7 @@ export class CjsAudioBackend
                 {
                     return [];
                 }
-                const voice = this.#CreateVoice(
+                const voice = this._CreateVoice(
                     {
                         ...descriptor,
                         actionIndex: selection.actionIndex,
@@ -3816,13 +3816,13 @@ export class CjsAudioBackend
             }
             slot.voice = voices[0] ?? null;
             slot.state = "active";
-            this.#DisposeEndedSlotVoices(record, slot);
+            this._DisposeEndedSlotVoices(record, slot);
 
             if (voices.length)
             {
                 try
                 {
-                    this.#StartVoices(
+                    this._StartVoices(
                         playingID,
                         record,
                         voices,
@@ -3832,12 +3832,12 @@ export class CjsAudioBackend
                 catch
                 {
                     const failureTime = Number(
-                        this.#context.currentTime,
+                        this._context.currentTime,
                     ) || 0;
 
                     for (const voice of voices)
                     {
-                        this.#EndVoiceDucking(
+                        this._EndVoiceDucking(
                             voice,
                             failureTime,
                             voice.sourceStarted !== true
@@ -3861,37 +3861,37 @@ export class CjsAudioBackend
                     }
                     slot.voice = null;
                     slot.state = "active";
-                    this.#DisposeEndedSlotVoices(record, slot);
+                    this._DisposeEndedSlotVoices(record, slot);
                 }
             }
         }).catch(() =>
         {
             if (generation === slot.generation
                 && !slot.broken
-                && this.#playing.get(playingID) === record)
+                && this._playing.get(playingID) === record)
             {
                 slot.voice = [ ...slot.voices ].find(voice =>
                     !voice.ended
                     && voice.switchGeneration === switchGeneration)
                     ?? null;
                 slot.state = "active";
-                this.#DisposeEndedSlotVoices(record, slot);
+                this._DisposeEndedSlotVoices(record, slot);
             }
         }).finally(() =>
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
+            this._ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
     /** Applies one due Stop to eligible pending slots and live SFX voices. */
-    #ApplySfxStop(stop, now)
+    _ApplySfxStop(stop, now)
     {
         const actionTime = Math.max(
             Number(stop.actionTime) || 0,
             Number(now) || 0,
         );
 
-        for (const [ playingID, record ] of this.#playing)
+        for (const [ playingID, record ] of this._playing)
         {
             if (!record.sfx
                 || (stop.scope === "game-object"
@@ -3910,7 +3910,7 @@ export class CjsAudioBackend
                         stop,
                     ) <= 0)
                 {
-                    this.#StopFallbackRecord(
+                    this._StopFallbackRecord(
                         playingID,
                         record,
                         stop,
@@ -3924,7 +3924,7 @@ export class CjsAudioBackend
             {
                 if (slot.advanceMode === "switch")
                 {
-                    this.#ApplyContinuousSwitchStop(
+                    this._ApplyContinuousSwitchStop(
                         playingID,
                         record,
                         slot,
@@ -3946,7 +3946,7 @@ export class CjsAudioBackend
                 }
                 if (IsOverlappingAdvanceMode(slot.advanceMode))
                 {
-                    this.#ApplyTriggerRateStop(
+                    this._ApplyTriggerRateStop(
                         record,
                         slot,
                         stop,
@@ -3981,7 +3981,7 @@ export class CjsAudioBackend
 
                     slot.cancelledSelectionKeys?.add(key);
                     slot.selectionControllers?.get(key)?.abort();
-                    this.#voiceLimitLedger.ReleasePending(
+                    this._voiceLimitLedger.ReleasePending(
                         record,
                         [ selection ],
                     );
@@ -3997,7 +3997,7 @@ export class CjsAudioBackend
                         slot.exhausted = true;
                         slot.nextTriggerContextTime = null;
                         slot.generation++;
-                        this.#AbortSfxProgramSlot(record, slot);
+                        this._AbortSfxProgramSlot(record, slot);
                         if (slot.currentBatch)
                         {
                             slot.currentBatch.state = "cancelled";
@@ -4013,7 +4013,7 @@ export class CjsAudioBackend
                 }
                 for (const voice of matchingVoices)
                 {
-                    this.#StopSfxProgramVoice(
+                    this._StopSfxProgramVoice(
                         voice,
                         stop.actionTime,
                         stop.transitionMs,
@@ -4022,7 +4022,7 @@ export class CjsAudioBackend
                     );
                     if (voice.ended)
                     {
-                        this.#SetSfxProgramSlotEnded(
+                        this._SetSfxProgramSlotEnded(
                             playingID,
                             record,
                             voice,
@@ -4036,16 +4036,16 @@ export class CjsAudioBackend
                     slot.exhausted = true;
                     slot.nextTriggerContextTime = null;
                     slot.generation++;
-                    this.#AbortSfxProgramSlot(record, slot);
+                    this._AbortSfxProgramSlot(record, slot);
                 }
             }
 
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
         }
     }
 
     /** Applies an authored Stop to a live or dormant Continuous Switch. */
-    #ApplyContinuousSwitchStop(
+    _ApplyContinuousSwitchStop(
         playingID,
         record,
         slot,
@@ -4095,7 +4095,7 @@ export class CjsAudioBackend
             slot.exhausted = true;
             slot.generation++;
             slot.switchGeneration++;
-            this.#AbortSfxProgramSlot(record, slot);
+            this._AbortSfxProgramSlot(record, slot);
         }
         else
         {
@@ -4105,7 +4105,7 @@ export class CjsAudioBackend
 
                 slot.cancelledSelectionKeys.add(key);
                 slot.selectionControllers?.get(key)?.abort();
-                this.#voiceLimitLedger.ReleasePending(
+                this._voiceLimitLedger.ReleasePending(
                     record,
                     [ selection ],
                 );
@@ -4118,7 +4118,7 @@ export class CjsAudioBackend
 
         for (const voice of voices)
         {
-            this.#StopSfxProgramVoice(
+            this._StopSfxProgramVoice(
                 voice,
                 stop.actionTime,
                 stop.transitionMs,
@@ -4127,7 +4127,7 @@ export class CjsAudioBackend
             );
             if (voice.ended)
             {
-                this.#SetSfxProgramSlotEnded(
+                this._SetSfxProgramSlotEnded(
                     playingID,
                     record,
                     voice,
@@ -4144,7 +4144,7 @@ export class CjsAudioBackend
     }
 
     /** Applies one Stop across every overlapping Trigger Rate batch. */
-    #ApplyTriggerRateStop(record, slot, stop, actionTime)
+    _ApplyTriggerRateStop(record, slot, stop, actionTime)
     {
         const batches = [ ...slot.batches?.values?.() ?? [] ];
         const eligibleSelections = [];
@@ -4201,7 +4201,7 @@ export class CjsAudioBackend
 
             batch.cancelledSelectionKeys.add(key);
             batch.selectionControllers?.get(key)?.abort();
-            this.#voiceLimitLedger.ReleasePending(
+            this._voiceLimitLedger.ReleasePending(
                 record,
                 [ selection ],
             );
@@ -4217,12 +4217,12 @@ export class CjsAudioBackend
                     )))
             {
                 batch.state = "cancelled";
-                this.#AbortSfxProgramBatch(record, batch);
+                this._AbortSfxProgramBatch(record, batch);
             }
         }
         for (const voice of matchingVoices)
         {
-            this.#StopSfxProgramVoice(
+            this._StopSfxProgramVoice(
                 voice,
                 stop.actionTime,
                 stop.transitionMs,
@@ -4231,7 +4231,7 @@ export class CjsAudioBackend
             );
             if (voice.ended)
             {
-                this.#SetSfxProgramSlotEnded(
+                this._SetSfxProgramSlotEnded(
                     slot.playingID,
                     record,
                     voice,
@@ -4247,7 +4247,7 @@ export class CjsAudioBackend
             slot.preparingCrossfade = false;
             if (slot.preparedBatch)
             {
-                this.#DiscardTriggerRateBatch(
+                this._DiscardTriggerRateBatch(
                     record,
                     slot,
                     slot.preparedBatch,
@@ -4260,15 +4260,15 @@ export class CjsAudioBackend
                     || batch.state === "pending")
                 {
                     batch.state = "cancelled";
-                    this.#AbortSfxProgramBatch(record, batch);
+                    this._AbortSfxProgramBatch(record, batch);
                 }
             }
         }
-        this.#UpdateOverlappingSlotState(slot);
+        this._UpdateOverlappingSlotState(slot);
     }
 
     /** Applies one authored fade/stop without changing live RTPC controls. */
-    #StopSfxProgramVoice(
+    _StopSfxProgramVoice(
         voice,
         actionTime,
         transitionMs,
@@ -4333,19 +4333,19 @@ export class CjsAudioBackend
             if (voice.startContextTime > currentTime)
             {
                 voice.cancelledBeforeStart = true;
-                this.#EndVoiceDucking(voice, currentTime, true);
+                this._EndVoiceDucking(voice, currentTime, true);
             }
             SilenceAudioParamAt(
                 voice.stopGain.gain,
                 currentTime,
-                this.#context,
+                this._context,
             );
             voice.source.stop(currentTime);
             return;
         }
 
-        this.#HoldVoiceTransitionFade(voice, currentTime);
-        this.#HoldVoiceFade(voice, currentTime);
+        this._HoldVoiceTransitionFade(voice, currentTime);
+        this._HoldVoiceFade(voice, currentTime);
 
         const param = voice.stopGain.gain;
         const progress = seconds > 0
@@ -4382,17 +4382,17 @@ export class CjsAudioBackend
         }
         else
         {
-            SetAudioParam(param, 0, this.#context);
+            SetAudioParam(param, 0, this._context);
         }
         voice.source.stop(sourceStopTime);
     }
 
     /** Applies a hierarchy-free Stop-All to one flat eventMedia record. */
-    #StopFallbackRecord(playingID, record, stop, now)
+    _StopFallbackRecord(playingID, record, stop, now)
     {
         if (!record.loaded)
         {
-            this.#FinishSfxPlaying(playingID);
+            this._FinishSfxPlaying(playingID);
             return;
         }
 
@@ -4400,7 +4400,7 @@ export class CjsAudioBackend
         {
             if (!voice.ended)
             {
-                this.#StopSfxProgramVoice(
+                this._StopSfxProgramVoice(
                     voice,
                     stop.actionTime,
                     stop.transitionMs,
@@ -4412,7 +4412,7 @@ export class CjsAudioBackend
     }
 
     /** Closes a program record only after slots and delayed actions settle. */
-    #MaybeFinishSfxProgram(playingID, record)
+    _MaybeFinishSfxProgram(playingID, record)
     {
         if (!record?.sfxProgram
             || record.posting
@@ -4429,12 +4429,12 @@ export class CjsAudioBackend
 
         if (settled)
         {
-            this.#FinishSfxPlaying(playingID);
+            this._FinishSfxPlaying(playingID);
         }
     }
 
     /** Creates live control readers for one emitter's authored SFX post. */
-    #CreateSfxControls(
+    _CreateSfxControls(
         gameObjID,
         signal = null,
         playingID = 0,
@@ -4445,7 +4445,7 @@ export class CjsAudioBackend
             gameObjID,
             signal,
             installSfxProgram: program =>
-                this.#InstallSfxProgram(
+                this._InstallSfxProgram(
                     playingID,
                     record,
                     program,
@@ -4455,53 +4455,53 @@ export class CjsAudioBackend
             getState: group =>
                 this.GetGlobalState(group),
             getStatePropertyWeights: (group, at = undefined) =>
-                this.#ReadStatePropertyWeights(
+                this._ReadStatePropertyWeights(
                     group,
-                    at ?? (Number(this.#context?.currentTime) || 0),
+                    at ?? (Number(this._context?.currentTime) || 0),
                 ),
             getRTPC: (name, at = undefined) =>
                 record?.emitterNodes?.retiredRtpcValues instanceof Map
                     ? ReadRetiredRtpcValue(
                         record.emitterNodes,
                         String(name),
-                        at ?? (Number(this.#context?.currentTime) || 0),
+                        at ?? (Number(this._context?.currentTime) || 0),
                     )
-                    : this.#ReadRtpcValue(
+                    : this._ReadRtpcValue(
                         "game-object",
                         String(name),
                         gameObjID,
-                        at ?? (Number(this.#context?.currentTime) || 0),
+                        at ?? (Number(this._context?.currentTime) || 0),
                     ),
             getGlobalRTPC: (name, at = undefined) =>
-                this.#ReadRtpcValue(
+                this._ReadRtpcValue(
                     "global",
                     String(name),
                     undefined,
-                    at ?? (Number(this.#context?.currentTime) || 0),
+                    at ?? (Number(this._context?.currentTime) || 0),
                 ),
             getVoiceVolumeDb: matchIds =>
                 EvaluateVoiceVolumeTargets(
                     record?.emitterNodes?.voiceVolumes,
                     matchIds,
-                    Number(this.#context?.currentTime) || 0,
+                    Number(this._context?.currentTime) || 0,
                 ),
             getVoicePitchCents: matchIds =>
                 EvaluateVoicePitchTargets(
                     record?.emitterNodes?.voicePitches,
                     matchIds,
-                    Number(this.#context?.currentTime) || 0,
+                    Number(this._context?.currentTime) || 0,
                 ),
             getVoiceLowPass: (matchIds, at = undefined) =>
                 EvaluateVoiceFilterTargets(
                     record?.emitterNodes?.voiceLowPasses,
                     matchIds,
-                    at ?? (Number(this.#context?.currentTime) || 0),
+                    at ?? (Number(this._context?.currentTime) || 0),
                 ),
             getVoiceHighPass: (matchIds, at = undefined) =>
                 EvaluateVoiceFilterTargets(
                     record?.emitterNodes?.voiceHighPasses,
                     matchIds,
-                    at ?? (Number(this.#context?.currentTime) || 0),
+                    at ?? (Number(this._context?.currentTime) || 0),
                 ),
             setSwitch: (group, value) =>
                 this.SetSwitch(group, value, gameObjID),
@@ -4543,7 +4543,7 @@ export class CjsAudioBackend
      * and then the shared mixer entry; a blocked one feeds the emitter/SFX
      * destination.
      */
-    #GetEmitterRouteBranch(
+    _GetEmitterRouteBranch(
         emitterNodes,
         gameObjID,
         spatial,
@@ -4568,15 +4568,15 @@ export class CjsAudioBackend
         {
             return branch;
         }
-        const mixerInput = this.#busMixer?.GetInput?.(
+        const mixerInput = this._busMixer?.GetInput?.(
             busGraphRoute,
             "sfx",
         ) ?? null;
         const sharedBusFilters = Boolean(mixerInput)
-            && this.#busMixer?.OwnsRouteStateFilters?.(busGraphRoute) === true;
+            && this._busMixer?.OwnsRouteStateFilters?.(busGraphRoute) === true;
         const sharedBusDucking = sharedBusFilters;
         const analyser = mixerInput
-            ? this.#context.createAnalyser?.() ?? null
+            ? this._context.createAnalyser?.() ?? null
             : null;
 
         if (analyser)
@@ -4587,12 +4587,12 @@ export class CjsAudioBackend
         const destination = analyser
             ?? mixerInput
             ?? emitterNodes.analyser
-            ?? this.#sfxGain;
+            ?? this._sfxGain;
         const obstructionOcclusionStage =
             createWwiseObstructionOcclusionStage(
-                this.#context,
+                this._context,
                 destination,
-                this.#wwiseObstructionOcclusion,
+                this._wwiseObstructionOcclusion,
             );
         const routeDestination = obstructionOcclusionStage?.input
             ?? destination;
@@ -4601,13 +4601,13 @@ export class CjsAudioBackend
             obstructionOcclusionStage,
             emitterNodes.obstruction,
             emitterNodes.occlusion,
-            this.#context,
+            this._context,
         );
 
         if (spatial)
         {
-            const gain = this.#context.createGain();
-            const panner = this.#context.createPanner();
+            const gain = this._context.createGain();
+            const panner = this._context.createPanner();
 
             panner.panningModel = "HRTF";
             panner.distanceModel = "inverse";
@@ -4619,8 +4619,8 @@ export class CjsAudioBackend
                     panner,
                     emitterNodes.front,
                     emitterNodes.position,
-                    this.#distanceScale,
-                    this.#context,
+                    this._distanceScale,
+                    this._context,
                 );
             }
             gain.connect(panner);
@@ -4640,7 +4640,7 @@ export class CjsAudioBackend
         }
         else
         {
-            const flatGain = this.#context.createGain();
+            const flatGain = this._context.createGain();
 
             flatGain.connect(routeDestination);
             branch = {
@@ -4659,10 +4659,10 @@ export class CjsAudioBackend
         modes.set(mode, branch);
         for (const [ rtpcName, value ] of
             emitterNodes.retiredRtpcValues
-                ?? this.#objectRtpcValues.get(gameObjID)
+                ?? this._objectRtpcValues.get(gameObjID)
                 ?? [])
         {
-            this.#ApplyRTPCToRouteBranch(
+            this._ApplyRTPCToRouteBranch(
                 branch,
                 gameObjID,
                 rtpcName,
@@ -4673,13 +4673,13 @@ export class CjsAudioBackend
     }
 
     /** Applies one host RTPC adapter update to the legacy and graph-backed routes. */
-    #ApplyRTPCToEmitterNodes(nodes, gameObjID, rtpcName, value)
+    _ApplyRTPCToEmitterNodes(nodes, gameObjID, rtpcName, value)
     {
         if (!nodes)
         {
             return;
         }
-        this.#ApplyRTPCToLegacyEmitterNodes(
+        this._ApplyRTPCToLegacyEmitterNodes(
             nodes,
             gameObjID,
             rtpcName,
@@ -4689,7 +4689,7 @@ export class CjsAudioBackend
         {
             for (const branch of modes.values())
             {
-                this.#ApplyRTPCToRouteBranch(
+                this._ApplyRTPCToRouteBranch(
                     branch,
                     gameObjID,
                     rtpcName,
@@ -4700,13 +4700,13 @@ export class CjsAudioBackend
     }
 
     /** Applies one host RTPC adapter update to the legacy emitter route. */
-    #ApplyRTPCToLegacyEmitterNodes(nodes, gameObjID, rtpcName, value)
+    _ApplyRTPCToLegacyEmitterNodes(nodes, gameObjID, rtpcName, value)
     {
-        this.#applyRTPC?.({
+        this._applyRTPC?.({
             gameObjID,
             rtpcName,
             value,
-            context: this.#context,
+            context: this._context,
             gain: nodes.gain?.gain ?? null,
             flatGain: nodes.flatGain?.gain ?? null,
             panner: nodes.panner ?? null,
@@ -4714,13 +4714,13 @@ export class CjsAudioBackend
     }
 
     /** Applies one host RTPC adapter update to one exact graph route branch. */
-    #ApplyRTPCToRouteBranch(branch, gameObjID, rtpcName, value)
+    _ApplyRTPCToRouteBranch(branch, gameObjID, rtpcName, value)
     {
-        this.#applyRTPC?.({
+        this._applyRTPC?.({
             gameObjID,
             rtpcName,
             value,
-            context: this.#context,
+            context: this._context,
             gain: branch.gain?.gain ?? null,
             flatGain: branch.flatGain?.gain ?? null,
             panner: branch.panner,
@@ -4729,9 +4729,9 @@ export class CjsAudioBackend
     }
 
     /** Creates one decoded SFX voice and its independent gain stage. */
-    #CreateVoice(descriptor, emitterNodes, gameObjID)
+    _CreateVoice(descriptor, emitterNodes, gameObjID)
     {
-        const busGraphRoute = this.#busGraphRuntime?.ResolveSfxRoute(
+        const busGraphRoute = this._busGraphRuntime?.ResolveSfxRoute(
             descriptor.busRouteNodeId,
             {
                 ...descriptor,
@@ -4742,49 +4742,49 @@ export class CjsAudioBackend
             && !descriptor.getLowPassAtAdditionalPercent
             && !descriptor.getHighPass
             && !descriptor.getHighPassAtAdditionalPercent;
-        const mixerOwnsRouteFilters = this.#busMixer
+        const mixerOwnsRouteFilters = this._busMixer
             ?.OwnsRouteStateFilters?.(busGraphRoute) === true;
         const emitterRouteBranch = mixerOwnsRouteFilters && !allowAudibleAux
             ? null
-            : this.#GetEmitterRouteBranch(
+            : this._GetEmitterRouteBranch(
                 emitterNodes,
                 gameObjID,
                 descriptor.spatial,
                 busGraphRoute,
             );
-        const gain = this.#context.createGain();
+        const gain = this._context.createGain();
         const busVoiceActionGain =
             descriptor.busVoiceVolumeActionControlled
-                ? this.#context.createGain()
+                ? this._context.createGain()
                 : null;
         const busVoiceGain = busRtpcPathUses(
-            this.#busRtpcCatalog,
+            this._busRtpcCatalog,
             descriptor.busPathIds,
             "voice-volume",
-        ) ? this.#context.createGain() : null;
+        ) ? this._context.createGain() : null;
         const busGain = descriptor.busPathIds.length
-            ? this.#context.createGain()
+            ? this._context.createGain()
             : null;
         const fadeGain = descriptor.fadeInMs > 0
-            ? this.#context.createGain()
+            ? this._context.createGain()
             : null;
         const transitionGain = descriptor.crossfadeMode
             || descriptor.switchFadeInMs > 0
-            ? this.#context.createGain()
+            ? this._context.createGain()
             : null;
-        const stopGain = this.#context.createGain();
+        const stopGain = this._context.createGain();
         const usesBusPitch = busStatePathUses(
-            this.#busStateCatalog,
+            this._busStateCatalog,
             descriptor.busPathIds,
             "pitchCents",
         );
         const usesBusLowPass = busStatePathUses(
-            this.#busStateCatalog,
+            this._busStateCatalog,
             descriptor.busPathIds,
             "lowPass",
         );
         const usesBusHighPass = busStatePathUses(
-            this.#busStateCatalog,
+            this._busStateCatalog,
             descriptor.busPathIds,
             "highPass",
         );
@@ -4792,18 +4792,18 @@ export class CjsAudioBackend
         const lowPassFilter = (descriptor.getLowPass
             || descriptor.getLowPassAtAdditionalPercent
             || (usesBusLowPass && !sharedBusFilters))
-            ? this.#context.createBiquadFilter?.() ?? null
+            ? this._context.createBiquadFilter?.() ?? null
             : null;
         const highPassFilter = (descriptor.getHighPass
             || descriptor.getHighPassAtAdditionalPercent
             || (usesBusHighPass && !sharedBusFilters))
-            ? this.#context.createBiquadFilter?.() ?? null
+            ? this._context.createBiquadFilter?.() ?? null
             : null;
         const busEffectChain = emitterRouteBranch?.mixerInput
             ? null
             : createBusEffectChain(
-                this.#context,
-                this.#busEffectCatalog,
+                this._context,
+                this._busEffectCatalog,
                 descriptor.busPathIds,
             );
         const hasBuiltInDistanceEffect = descriptor.sourceEffects?.some(
@@ -4823,7 +4823,7 @@ export class CjsAudioBackend
                 {
                     const distance = EvaluateSfxBuiltInDistance(
                         emitterNodes?.position,
-                        this.#listenerPosition,
+                        this._listenerPosition,
                         emitterNodes?.scalingFactor,
                     );
 
@@ -4839,15 +4839,15 @@ export class CjsAudioBackend
             }
             : descriptor.getSourceEffectRtpc;
         const sourceEffectChain = createWwiseEffectChain(
-            this.#context,
+            this._context,
             descriptor.sourceEffects ?? [],
             {
-                wwiseDynamics: this.#wwiseDynamics,
-                wwiseDistortion: this.#wwiseDistortion,
-                wwiseModulation: this.#wwiseModulation,
-                wwiseReverb: this.#wwiseReverb,
-                wwiseRoomVerb: this.#wwiseRoomVerb,
-                wwiseMeterFeedback: this.#wwiseMeterFeedback,
+                wwiseDynamics: this._wwiseDynamics,
+                wwiseDistortion: this._wwiseDistortion,
+                wwiseModulation: this._wwiseModulation,
+                wwiseReverb: this._wwiseReverb,
+                wwiseRoomVerb: this._wwiseRoomVerb,
+                wwiseMeterFeedback: this._wwiseMeterFeedback,
                 sourceChannelCount:
                     descriptor.buffer?.numberOfChannels ?? 1,
                 readSourceEffectRtpc,
@@ -4860,12 +4860,12 @@ export class CjsAudioBackend
             SetAudioParam(
                 lowPassFilter.frequency,
                 wwiseFilterPercentToHz(0),
-                this.#context,
+                this._context,
             );
             SetAudioParam(
                 lowPassFilter.Q,
                 Math.SQRT1_2,
-                this.#context,
+                this._context,
             );
         }
         if (highPassFilter)
@@ -4874,12 +4874,12 @@ export class CjsAudioBackend
             SetAudioParam(
                 highPassFilter.frequency,
                 wwiseFilterPercentToHz(0, true),
-                this.#context,
+                this._context,
             );
             SetAudioParam(
                 highPassFilter.Q,
                 Math.SQRT1_2,
-                this.#context,
+                this._context,
             );
         }
 
@@ -4898,20 +4898,20 @@ export class CjsAudioBackend
         {
             if (!emitterNodes.flatGain)
             {
-                emitterNodes.flatGain = this.#context.createGain();
+                emitterNodes.flatGain = this._context.createGain();
                 emitterNodes.flatGain.connect(
                     emitterNodes.obstructionOcclusionStage?.input
                         ?? emitterNodes.analyser
-                        ?? this.#sfxGain,
+                        ?? this._sfxGain,
                 );
                 // A 2D route is allocated lazily. Replay previously stored
                 // object RTPCs now that adapters can finally see flatGain.
                 for (const [ rtpcName, value ] of
                     emitterNodes.retiredRtpcValues
-                        ?? this.#objectRtpcValues.get(gameObjID)
+                        ?? this._objectRtpcValues.get(gameObjID)
                         ?? [])
                 {
-                    this.#ApplyRTPCToLegacyEmitterNodes(
+                    this._ApplyRTPCToLegacyEmitterNodes(
                         emitterNodes,
                         gameObjID,
                         rtpcName,
@@ -4942,12 +4942,12 @@ export class CjsAudioBackend
             SetAudioParam(
                 transitionGain.gain,
                 0,
-                this.#context,
+                this._context,
             );
         }
         if (fadeGain)
         {
-            SetAudioParam(fadeGain.gain, 0, this.#context);
+            SetAudioParam(fadeGain.gain, 0, this._context);
             fadeGain.connect(gain);
         }
         if (highPassFilter)
@@ -4971,19 +4971,19 @@ export class CjsAudioBackend
             sharedBusFilters,
             usesBusPitch,
             getBusStateProperties: at => evaluateBusStateProperties(
-                this.#busStateCatalog,
+                this._busStateCatalog,
                 descriptor.busPathIds,
-                (group, time) => this.#ReadStatePropertyWeights(group, time),
+                (group, time) => this._ReadStatePropertyWeights(group, time),
                 at,
             ),
-            rtpcTransitionEnd: this.#RtpcTransitionEndForRecord(
+            rtpcTransitionEnd: this._RtpcTransitionEndForRecord(
                 { gameObjID, emitterNodes },
-                Number(this.#context?.currentTime) || 0,
+                Number(this._context?.currentTime) || 0,
             ),
             controlTransitionBoundaries:
-                this.#ControlTransitionBoundariesForRecord(
+                this._ControlTransitionBoundariesForRecord(
                     { gameObjID, emitterNodes },
-                    Number(this.#context?.currentTime) || 0,
+                    Number(this._context?.currentTime) || 0,
                 ),
             nodes: {
                 gain,
@@ -5003,14 +5003,14 @@ export class CjsAudioBackend
             },
         });
 
-        this.#ApplyVoiceDistanceGain(voice, emitterNodes);
-        this.#ApplyVoiceBusActionGain(voice);
-        this.#ApplyVoiceBusRtpcGain(voice);
-        this.#ApplyVoiceBusGain(voice);
-        this.#ApplyVoiceFilters(voice);
-        this.#ApplyVoiceSourceEffects(voice);
-        this.#ApplyVoicePlaybackRate(voice);
-        this.#voiceLimitLedger.Bind(
+        this._ApplyVoiceDistanceGain(voice, emitterNodes);
+        this._ApplyVoiceBusActionGain(voice);
+        this._ApplyVoiceBusRtpcGain(voice);
+        this._ApplyVoiceBusGain(voice);
+        this._ApplyVoiceFilters(voice);
+        this._ApplyVoiceSourceEffects(voice);
+        this._ApplyVoicePlaybackRate(voice);
+        this._voiceLimitLedger.Bind(
             voice,
             descriptor.voiceLimitReservationId,
         );
@@ -5018,7 +5018,7 @@ export class CjsAudioBackend
     }
 
     /** Starts or restarts every decoded voice owned by one logical event. */
-    #StartVoices(
+    _StartVoices(
         playingID,
         record,
         selectedVoices = null,
@@ -5027,22 +5027,22 @@ export class CjsAudioBackend
     {
         if (record.stopped
             || (!record.loaded && selectedVoices === null)
-            || this.#playing.get(playingID) !== record)
+            || this._playing.get(playingID) !== record)
         {
             return;
         }
 
         const voices = selectedVoices ?? record.voices;
         const hasOrdinaryVoice = voices.some(voice =>
-            !this.#IsRestrictedContinuousProgramVoice(record, voice));
+            !this._IsRestrictedContinuousProgramVoice(record, voice));
         const seek = hasOrdinaryVoice
             ? record.pendingSeek
             : null;
         const pendingBreak = hasOrdinaryVoice
             ? record.pendingBreak
             : false;
-        const now = Number(this.#context.currentTime) || 0;
-        const renderQuantum = RenderQuantumSeconds(this.#context);
+        const now = Number(this._context.currentTime) || 0;
+        const renderQuantum = RenderQuantumSeconds(this._context);
         // Scheduling one render quantum ahead keeps every leaf of a parallel
         // event on the same still-future sample boundary.
         const startContextTime = now + renderQuantum;
@@ -5064,7 +5064,7 @@ export class CjsAudioBackend
             {
                 voice.ended = true;
                 voice.stopping = true;
-                this.#SetSfxProgramSlotEnded(
+                this._SetSfxProgramSlotEnded(
                     playingID,
                     record,
                     voice,
@@ -5097,18 +5097,18 @@ export class CjsAudioBackend
                 )
                 : startContextTime;
 
-            this.#StartVoice(
+            this._StartVoice(
                 playingID,
                 record,
                 voice,
-                this.#IsRestrictedContinuousProgramVoice(record, voice)
+                this._IsRestrictedContinuousProgramVoice(record, voice)
                     ? null
                     : seek,
                 voiceStartContextTime,
             );
             if (voice.ended)
             {
-                this.#SetSfxProgramSlotEnded(
+                this._SetSfxProgramSlotEnded(
                     playingID,
                     record,
                     voice,
@@ -5131,7 +5131,7 @@ export class CjsAudioBackend
             {
                 if (!slot.exhausted && slot.continuation)
                 {
-                    this.#PrepareCrossfadeSuccessor(
+                    this._PrepareCrossfadeSuccessor(
                         playingID,
                         record,
                         slot,
@@ -5144,17 +5144,17 @@ export class CjsAudioBackend
         {
             if (record.sfxProgram)
             {
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
             }
             else
             {
-                this.#FinishSfxPlaying(playingID);
+                this._FinishSfxPlaying(playingID);
             }
         }
     }
 
     /** Creates or replaces one Web Audio buffer source. */
-    #StartVoice(
+    _StartVoice(
         playingID,
         record,
         voice,
@@ -5216,7 +5216,7 @@ export class CjsAudioBackend
         const previous = voice.source;
         if (previous)
         {
-            this.#EndVoiceDucking(
+            this._EndVoiceDucking(
                 voice,
                 startContextTime,
                 startContextTime <= voice.startContextTime,
@@ -5233,7 +5233,7 @@ export class CjsAudioBackend
             previous.disconnect?.();
         }
 
-        const source = this.#context.createBufferSource();
+        const source = this._context.createBufferSource();
         source.buffer = voice.buffer;
         const finiteRepeats = !loops
             && (timedSilence
@@ -5262,19 +5262,19 @@ export class CjsAudioBackend
             {
                 if (voice.stopping)
                 {
-                    this.#VoiceEnded(playingID, record, voice);
+                    this._VoiceEnded(playingID, record, voice);
                 }
                 else if (voice.pausing
                     && voice.pauseSource === source)
                 {
-                    this.#FinalizeSfxVoicePause(
+                    this._FinalizeSfxVoicePause(
                         voice,
                         voice.pauseContextTime,
                     );
                 }
                 else
                 {
-                    this.#VoiceEnded(playingID, record, voice);
+                    this._VoiceEnded(playingID, record, voice);
                 }
             }
         };
@@ -5304,7 +5304,7 @@ export class CjsAudioBackend
             && voice.switchFadeInMs > 0
             && voice.transitionGain)
         {
-            this.#ScheduleVoiceCrossfade(
+            this._ScheduleVoiceCrossfade(
                 voice,
                 0,
                 1,
@@ -5317,7 +5317,7 @@ export class CjsAudioBackend
         voice.scheduledEndContextTime = null;
         voice.repeatRemainingSeconds = null;
         voice.repeatAnchorContextTime = null;
-        this.#ApplyVoiceGain(voice);
+        this._ApplyVoiceGain(voice);
         voice.sourceStarted = false;
         voice.cancelledBeforeStart = false;
         source.start(startContextTime, voice.offsetSeconds);
@@ -5337,51 +5337,51 @@ export class CjsAudioBackend
                 + remaining / voice.playbackRate;
             source.stop(voice.scheduledEndContextTime);
         }
-        this.#ApplyVoicePlaybackRate(voice);
-        voice.duckActivity = this.#busDuckingController?.ScheduleActivity?.(
+        this._ApplyVoicePlaybackRate(voice);
+        voice.duckActivity = this._busDuckingController?.ScheduleActivity?.(
             voice.busPathIds,
             startContextTime,
         ) ?? null;
     }
 
     /** Marks one physical voice complete and closes its logical event at zero. */
-    #VoiceEnded(playingID, record, voice)
+    _VoiceEnded(playingID, record, voice)
     {
         // Source-owned effects share the disposable voice lifetime. In
         // particular, Web Audio's DelayNode exposes no Wwise tail-completion
         // signal, so natural completion remains the decoded dry-source
         // boundary and #FinishPlaying disconnects any residual feedback.
-        this.#EndVoiceDucking(
+        this._EndVoiceDucking(
             voice,
-            Number(this.#context?.currentTime) || 0,
+            Number(this._context?.currentTime) || 0,
             voice.cancelledBeforeStart === true,
         );
         voice.ended = true;
         voice.DisconnectNodes();
-        this.#voiceLimitLedger.Release(
+        this._voiceLimitLedger.Release(
             record,
             voice.voiceLimitReservationId,
         );
 
         if (record.sfxProgram)
         {
-            this.#SetSfxProgramSlotEnded(
+            this._SetSfxProgramSlotEnded(
                 playingID,
                 record,
                 voice,
             );
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
         }
         else if (record.voices.every(value => value.ended))
         {
-            this.#FinishSfxPlaying(playingID);
+            this._FinishSfxPlaying(playingID);
         }
     }
 
     /** Marks the logical slot behind one realized program voice complete. */
-    #SetSfxProgramSlotEnded(playingID, record, voice)
+    _SetSfxProgramSlotEnded(playingID, record, voice)
     {
-        this.#voiceLimitLedger.Release(
+        this._voiceLimitLedger.Release(
             record,
             voice.voiceLimitReservationId,
         );
@@ -5411,7 +5411,7 @@ export class CjsAudioBackend
                     : active.length
                         ? "voice"
                         : "ended";
-                this.#DisposeEndedSlotVoices(record, slot);
+                this._DisposeEndedSlotVoices(record, slot);
                 return;
             }
             if (IsOverlappingAdvanceMode(slot.advanceMode))
@@ -5429,7 +5429,7 @@ export class CjsAudioBackend
                     !value.ended);
 
                 slot.voice = active[0] ?? null;
-                if (this.#MaybeAdvanceNestedCompletionBarrier(
+                if (this._MaybeAdvanceNestedCompletionBarrier(
                     playingID,
                     record,
                     slot,
@@ -5437,7 +5437,7 @@ export class CjsAudioBackend
                 {
                     return;
                 }
-                this.#UpdateOverlappingSlotState(slot);
+                this._UpdateOverlappingSlotState(slot);
                 return;
             }
             if ([ ...slot.voices ].some(value => !value.ended))
@@ -5453,11 +5453,11 @@ export class CjsAudioBackend
                 && !slot.exhausted
                 && !record.stopped)
             {
-                this.#AdvanceSfxProgramSlot(
+                this._AdvanceSfxProgramSlot(
                     playingID,
                     record,
                     slot,
-                    Number(this.#context.currentTime) || 0,
+                    Number(this._context.currentTime) || 0,
                 );
             }
             else
@@ -5468,7 +5468,7 @@ export class CjsAudioBackend
     }
 
     /** Loads and starts the next child batch of one Continuous slot. */
-    #AdvanceSfxProgramSlot(
+    _AdvanceSfxProgramSlot(
         playingID,
         record,
         slot,
@@ -5480,7 +5480,7 @@ export class CjsAudioBackend
 
         if (triggerRate && !forceCompletionDelay)
         {
-            this.#AdvanceTriggerRateSlot(
+            this._AdvanceTriggerRateSlot(
                 playingID,
                 record,
                 slot,
@@ -5490,7 +5490,7 @@ export class CjsAudioBackend
         }
         if (slot.advanceMode === "crossfade" && !forceCompletionDelay)
         {
-            this.#PrepareCrossfadeSuccessor(
+            this._PrepareCrossfadeSuccessor(
                 playingID,
                 record,
                 slot,
@@ -5500,7 +5500,7 @@ export class CjsAudioBackend
         if (!slot.continuation
             || slot.broken
             || record.stopped
-            || this.#playing.get(playingID) !== record)
+            || this._playing.get(playingID) !== record)
         {
             slot.state = "ended";
             return;
@@ -5510,7 +5510,7 @@ export class CjsAudioBackend
 
         try
         {
-            program = this.#continueSfxProgram?.(
+            program = this._continueSfxProgram?.(
                 slot.continuation,
                 record.sfxControls,
             ) ?? [];
@@ -5523,7 +5523,7 @@ export class CjsAudioBackend
 
         if (!Array.isArray(program) || !program.length)
         {
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
 
@@ -5534,7 +5534,7 @@ export class CjsAudioBackend
 
         if (!play || !continuation)
         {
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
         const continuationDelayMs = Math.max(
@@ -5552,16 +5552,16 @@ export class CjsAudioBackend
             && pendingSelections.some(selection =>
                 selection.voiceLimit !== undefined))
         {
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
         try
         {
-            program = this.#ReserveSfxProgram(record, program);
+            program = this._ReserveSfxProgram(record, program);
         }
         catch
         {
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
         play = program.find(operation => operation.kind === "play");
@@ -5570,7 +5570,7 @@ export class CjsAudioBackend
         const generation = ++slot.generation;
 
         slot.state = "loading";
-        this.#AbortSfxProgramSlot(record, slot);
+        this._AbortSfxProgramSlot(record, slot);
         slot.controller = new AbortController();
         slot.continuation = continuation.token;
         slot.exhausted = continuation.doneAfterBatch === true;
@@ -5610,7 +5610,7 @@ export class CjsAudioBackend
             : batchStartContextTime;
         slot.matchIds = [ ...new Set(selectionMetadata.flatMap(selection =>
                 selection.matchIds)) ];
-        this.#DisposeEndedSlotVoices(record, slot);
+        this._DisposeEndedSlotVoices(record, slot);
         const overlappingBatch = IsOverlappingAdvanceMode(
             slot.advanceMode,
         ) ? slot.CreateBatch({
@@ -5633,14 +5633,14 @@ export class CjsAudioBackend
             slot.batches ??= new Map();
             if (slot.batches.has(overlappingBatch.id))
             {
-                this.#FailOverlappingSlot(slot);
+                this._FailOverlappingSlot(slot);
                 return;
             }
             slot.batches.set(overlappingBatch.id, overlappingBatch);
             slot.currentBatch = overlappingBatch;
         }
 
-        Promise.resolve().then(() => this.#loadBuffer(
+        Promise.resolve().then(() => this._loadBuffer(
                 record.eventID,
                 record.eventName,
                 record.sfxControls,
@@ -5649,18 +5649,18 @@ export class CjsAudioBackend
         {
             // Rendering may have paused while this boundary was acquiring.
             // Apply every now-overdue Stop before the new batch can realize.
-            this.#ProcessScheduledSfxActions();
+            this._ProcessScheduledSfxActions();
             if (generation !== slot.generation
                 || slot.state !== "loading"
                 || record.stopped
-                || this.#playing.get(playingID) !== record)
+                || this._playing.get(playingID) !== record)
             {
                 return;
             }
 
             const descriptors = NormalizeVoiceDescriptors(
                 result,
-                () => !!this.#isLoop(record.eventName),
+                () => !!this._isLoop(record.eventName),
             ).filter(descriptor =>
                 descriptor.programSlotId === slot.id
                 && !slot.cancelledSelectionKeys.has(
@@ -5672,7 +5672,7 @@ export class CjsAudioBackend
                     ProgramSelectionKey(value)
                         === ProgramSelectionKey(descriptor));
 
-                return this.#CreateVoice(
+                return this._CreateVoice(
                     selection
                         ? {
                             ...descriptor,
@@ -5731,12 +5731,12 @@ export class CjsAudioBackend
                     .some(voice => !voice.ended)
                     ? "voice"
                     : "ended";
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
                 return;
             }
 
             slot.state = "voice";
-            this.#StartVoices(
+            this._StartVoices(
                 playingID,
                 record,
                 voices,
@@ -5747,7 +5747,7 @@ export class CjsAudioBackend
                 && !slot.completionBarrier
                 && slot.continuation)
             {
-                this.#PrepareCrossfadeSuccessor(
+                this._PrepareCrossfadeSuccessor(
                     playingID,
                     record,
                     slot,
@@ -5756,7 +5756,7 @@ export class CjsAudioBackend
         }).catch(() =>
         {
             if (generation === slot.generation
-                && this.#playing.get(playingID) === record)
+                && this._playing.get(playingID) === record)
             {
                 slot.continuation = null;
                 slot.exhausted = true;
@@ -5770,16 +5770,16 @@ export class CjsAudioBackend
                     .some(voice => !voice.ended)
                     ? "voice"
                     : "ended";
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
             }
         }).finally(() =>
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
+            this._ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
     /** Loads one Trigger Rate child without serializing the authored clock. */
-    #AdvanceTriggerRateSlot(
+    _AdvanceTriggerRateSlot(
         playingID,
         record,
         slot,
@@ -5790,9 +5790,9 @@ export class CjsAudioBackend
             || slot.broken
             || slot.exhausted
             || record.stopped
-            || this.#playing.get(playingID) !== record)
+            || this._playing.get(playingID) !== record)
         {
-            this.#UpdateOverlappingSlotState(slot);
+            this._UpdateOverlappingSlotState(slot);
             return;
         }
 
@@ -5800,20 +5800,20 @@ export class CjsAudioBackend
 
         try
         {
-            program = this.#continueSfxProgram?.(
+            program = this._continueSfxProgram?.(
                 slot.continuation,
                 record.sfxControls,
             ) ?? [];
         }
         catch
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
         if (!Array.isArray(program) || !program.length)
         {
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
 
@@ -5826,16 +5826,16 @@ export class CjsAudioBackend
             || (continuation
                 && continuation.advance !== "trigger-rate"))
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         try
         {
-            program = this.#ReserveSfxProgram(record, program);
+            program = this._ReserveSfxProgram(record, program);
         }
         catch
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         play = program.find(operation => operation.kind === "play");
@@ -5871,11 +5871,11 @@ export class CjsAudioBackend
 
         if (slot.batches.has(batch.id))
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(
+            this._ReleasePendingSfxVoiceLimitReservations(
                 record,
                 program,
             );
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         slot.batches.set(batch.id, batch);
@@ -5901,45 +5901,45 @@ export class CjsAudioBackend
             Number(continuation?.delayMs) || 0,
         );
         slot.state = "active";
-        this.#ArmTriggerRateSlot(slot);
-        this.#DisposeEndedSlotVoices(record, slot);
+        this._ArmTriggerRateSlot(slot);
+        this._DisposeEndedSlotVoices(record, slot);
 
         if (!selectionMetadata.length)
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(
+            this._ReleasePendingSfxVoiceLimitReservations(
                 record,
                 program,
             );
             batch.state = "ended";
-            this.#UpdateOverlappingSlotState(slot);
-            this.#MaybeAdvanceNestedCompletionBarrier(
+            this._UpdateOverlappingSlotState(slot);
+            this._MaybeAdvanceNestedCompletionBarrier(
                 playingID,
                 record,
                 slot,
             );
-            this.#MaybeFinishSfxProgram(playingID, record);
+            this._MaybeFinishSfxProgram(playingID, record);
             return;
         }
 
-        Promise.resolve().then(() => this.#loadBuffer(
+        Promise.resolve().then(() => this._loadBuffer(
                 record.eventID,
                 record.eventName,
                 record.sfxControls,
                 program,
             )).then(result =>
         {
-            this.#ProcessScheduledSfxActions();
+            this._ProcessScheduledSfxActions();
             if (batch.state !== "loading"
                 || slot.broken
                 || record.stopped
-                || this.#playing.get(playingID) !== record)
+                || this._playing.get(playingID) !== record)
             {
                 return;
             }
 
             const descriptors = NormalizeVoiceDescriptors(
                 result,
-                () => !!this.#isLoop(record.eventName),
+                () => !!this._isLoop(record.eventName),
             ).filter(descriptor =>
                 descriptor.programSlotId === slot.id
                 && descriptor.programBatchId === batch.id
@@ -5952,7 +5952,7 @@ export class CjsAudioBackend
                     ProgramSelectionKey(value)
                         === ProgramSelectionKey(descriptor));
 
-                return this.#CreateVoice(
+                return this._CreateVoice(
                     selection
                         ? {
                             ...descriptor,
@@ -6004,24 +6004,24 @@ export class CjsAudioBackend
                     : "ended";
                 if (!intentionallyCancelled)
                 {
-                    this.#FailOverlappingSlot(slot);
+                    this._FailOverlappingSlot(slot);
                 }
                 else
                 {
-                    this.#UpdateOverlappingSlotState(slot);
-                    this.#MaybeAdvanceNestedCompletionBarrier(
+                    this._UpdateOverlappingSlotState(slot);
+                    this._MaybeAdvanceNestedCompletionBarrier(
                         playingID,
                         record,
                         slot,
                     );
                 }
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._MaybeFinishSfxProgram(playingID, record);
                 return;
             }
 
             batch.state = "voice";
-            this.#UpdateOverlappingSlotState(slot);
-            this.#StartVoices(
+            this._UpdateOverlappingSlotState(slot);
+            this._StartVoices(
                 playingID,
                 record,
                 voices,
@@ -6031,24 +6031,24 @@ export class CjsAudioBackend
         {
             if ((batch.state === "loading"
                     || batch.state === "voice")
-                && this.#playing.get(playingID) === record)
+                && this._playing.get(playingID) === record)
             {
-                this.#DiscardTriggerRateBatch(
+                this._DiscardTriggerRateBatch(
                     record,
                     slot,
                     batch,
                 );
-                this.#FailOverlappingSlot(slot);
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._FailOverlappingSlot(slot);
+                this._MaybeFinishSfxProgram(playingID, record);
             }
         }).finally(() =>
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
+            this._ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
     /** Prefetches and schedules one duration-clamped Crossfade successor. */
-    #PrepareCrossfadeSuccessor(
+    _PrepareCrossfadeSuccessor(
         playingID,
         record,
         slot,
@@ -6062,9 +6062,9 @@ export class CjsAudioBackend
             || slot.broken
             || slot.exhausted
             || record.stopped
-            || this.#playing.get(playingID) !== record)
+            || this._playing.get(playingID) !== record)
         {
-            this.#UpdateOverlappingSlotState(slot);
+            this._UpdateOverlappingSlotState(slot);
             return;
         }
 
@@ -6075,18 +6075,18 @@ export class CjsAudioBackend
 
         if (outgoingVoices.length !== 1)
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         const outgoingVoice = outgoingVoices[0];
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
         const timing = outgoingVoice.ended
             ? {
                 boundary:
-                    now + RenderQuantumSeconds(this.#context),
+                    now + RenderQuantumSeconds(this._context),
                 duration: 0,
                 naturalEnd:
-                    now + RenderQuantumSeconds(this.#context),
+                    now + RenderQuantumSeconds(this._context),
             }
             : CrossfadeTiming(
                 outgoingVoice,
@@ -6095,7 +6095,7 @@ export class CjsAudioBackend
 
         if (!timing)
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
@@ -6104,12 +6104,12 @@ export class CjsAudioBackend
 
         try
         {
-            if (!this.#prepareSfxProgram)
+            if (!this._prepareSfxProgram)
             {
-                this.#FailOverlappingSlot(slot);
+                this._FailOverlappingSlot(slot);
                 return;
             }
-            transaction = this.#prepareSfxProgram(
+            transaction = this._prepareSfxProgram(
                 slot.continuation,
                 record.sfxControls,
             );
@@ -6125,14 +6125,14 @@ export class CjsAudioBackend
         }
         catch
         {
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
         if (!Array.isArray(program) || !program.length)
         {
             transaction?.rollback?.();
-            this.#ExhaustSfxProgramSlot(slot);
+            this._ExhaustSfxProgramSlot(slot);
             return;
         }
 
@@ -6148,7 +6148,7 @@ export class CjsAudioBackend
                 && continuation.crossfadeMode !== "crossfade-power"))
         {
             transaction?.rollback?.();
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
@@ -6159,24 +6159,24 @@ export class CjsAudioBackend
         if (batchSelections.length !== 1)
         {
             transaction?.rollback?.();
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         if (batchSelections[0].voiceLimit !== undefined)
         {
             transaction?.rollback?.();
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
         try
         {
-            program = this.#ReserveSfxProgram(record, program);
+            program = this._ReserveSfxProgram(record, program);
         }
         catch
         {
             transaction?.rollback?.();
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
         play = program.find(operation => operation.kind === "play");
@@ -6218,7 +6218,7 @@ export class CjsAudioBackend
         if (slot.batches.has(batch.id))
         {
             transaction?.rollback?.();
-            this.#FailOverlappingSlot(slot);
+            this._FailOverlappingSlot(slot);
             return;
         }
 
@@ -6226,25 +6226,25 @@ export class CjsAudioBackend
         slot.batches.set(batch.id, batch);
         slot.state = "active";
 
-        Promise.resolve().then(() => this.#loadBuffer(
+        Promise.resolve().then(() => this._loadBuffer(
                 record.eventID,
                 record.eventName,
                 record.sfxControls,
                 program,
             )).then(result =>
         {
-            this.#ProcessScheduledSfxActions();
+            this._ProcessScheduledSfxActions();
             if (batch.state !== "loading"
                 || slot.broken
                 || record.stopped
-                || this.#playing.get(playingID) !== record)
+                || this._playing.get(playingID) !== record)
             {
                 return;
             }
 
             const descriptors = NormalizeVoiceDescriptors(
                 result,
-                () => !!this.#isLoop(record.eventName),
+                () => !!this._isLoop(record.eventName),
             ).filter(descriptor =>
                 descriptor.programSlotId === slot.id
                 && descriptor.programBatchId === batch.id
@@ -6255,17 +6255,17 @@ export class CjsAudioBackend
             if (descriptors.length !== 1)
             {
                 batch.state = "ended";
-                this.#FailOverlappingSlot(slot);
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._FailOverlappingSlot(slot);
+                this._MaybeFinishSfxProgram(playingID, record);
                 return;
             }
 
-            const now = Number(this.#context.currentTime) || 0;
+            const now = Number(this._context.currentTime) || 0;
             const boundary = outgoingVoice.ended
-                ? now + RenderQuantumSeconds(this.#context)
+                ? now + RenderQuantumSeconds(this._context)
                 : Math.max(
                     timing.boundary,
-                    now + RenderQuantumSeconds(this.#context),
+                    now + RenderQuantumSeconds(this._context),
                 );
             const selection = batch.selections[0];
             const actionTime = boundary
@@ -6273,7 +6273,7 @@ export class CjsAudioBackend
                     0,
                     Number(descriptors[0].delayMs) || 0,
                 ) / 1000;
-            const voice = this.#CreateVoice(
+            const voice = this._CreateVoice(
                 {
                     ...descriptors[0],
                     actionIndex: selection.actionIndex,
@@ -6304,7 +6304,7 @@ export class CjsAudioBackend
             SetAudioParam(
                 voice.transitionGain?.gain,
                 0,
-                this.#context,
+                this._context,
             );
             batch.actionTime = actionTime;
             batch.voices.add(voice);
@@ -6318,7 +6318,7 @@ export class CjsAudioBackend
                 ? voice
                 : outgoingVoice;
 
-            this.#StartVoices(
+            this._StartVoices(
                 playingID,
                 record,
                 [ voice ],
@@ -6338,7 +6338,7 @@ export class CjsAudioBackend
 
             if (overlap > 0)
             {
-                this.#ScheduleVoiceCrossfade(
+                this._ScheduleVoiceCrossfade(
                     outgoingVoice,
                     1,
                     0,
@@ -6346,7 +6346,7 @@ export class CjsAudioBackend
                     overlap,
                     slot.crossfadeMode,
                 );
-                this.#ScheduleVoiceCrossfade(
+                this._ScheduleVoiceCrossfade(
                     voice,
                     0,
                     1,
@@ -6360,20 +6360,20 @@ export class CjsAudioBackend
                 SetAudioParam(
                     voice.transitionGain?.gain,
                     1,
-                    this.#context,
+                    this._context,
                 );
             }
 
-            this.#DisposeEndedSlotVoices(record, slot);
-            this.#UpdateOverlappingSlotState(slot);
+            this._DisposeEndedSlotVoices(record, slot);
+            this._UpdateOverlappingSlotState(slot);
         }).catch(() =>
         {
-            if (this.#playing.get(playingID) === record)
+            if (this._playing.get(playingID) === record)
             {
                 slot.preparingCrossfade = false;
                 if (batch.voices.size)
                 {
-                    this.#DiscardTriggerRateBatch(
+                    this._DiscardTriggerRateBatch(
                         record,
                         slot,
                         batch,
@@ -6383,30 +6383,30 @@ export class CjsAudioBackend
                 {
                     batch.state = "ended";
                 }
-                this.#FailOverlappingSlot(slot);
-                this.#MaybeFinishSfxProgram(playingID, record);
+                this._FailOverlappingSlot(slot);
+                this._MaybeFinishSfxProgram(playingID, record);
             }
         }).finally(() =>
         {
-            this.#ReleasePendingSfxVoiceLimitReservations(record, program);
+            this._ReleasePendingSfxVoiceLimitReservations(record, program);
         });
     }
 
     /** Removes a failed physical batch without touching earlier overlap tails. */
-    #DiscardTriggerRateBatch(record, slot, batch)
+    _DiscardTriggerRateBatch(record, slot, batch)
     {
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
 
         for (const voice of batch.voices)
         {
-            this.#EndVoiceDucking(
+            this._EndVoiceDucking(
                 voice,
                 now,
                 voice.sourceStarted !== true
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
             );
-            this.#voiceLimitLedger.Release(
+            this._voiceLimitLedger.Release(
                 record,
                 voice.voiceLimitReservationId,
             );
@@ -6424,35 +6424,35 @@ export class CjsAudioBackend
             }
             voice.ended = true;
         }
-        this.#SettleCrossfadeBatchTransaction(batch, now);
+        this._SettleCrossfadeBatchTransaction(batch, now);
         batch.state = "ended";
-        this.#DisposeEndedSlotVoices(record, slot);
+        this._DisposeEndedSlotVoices(record, slot);
     }
 
     /** Cancels one Trigger Rate traversal after an acquisition failure. */
-    #FailOverlappingSlot(slot)
+    _FailOverlappingSlot(slot)
     {
-        const record = this.#playing.get(slot.playingID);
+        const record = this._playing.get(slot.playingID);
 
         slot.continuation = null;
         slot.exhausted = true;
         slot.completionBarrier = false;
         slot.nextTriggerContextTime = null;
         slot.preparingCrossfade = false;
-        this.#SettleCrossfadeBatchTransaction(
+        this._SettleCrossfadeBatchTransaction(
             slot.preparedBatch,
         );
         slot.preparedBatch = null;
         for (const batch of slot.batches?.values?.() ?? [])
         {
-            this.#SettleCrossfadeBatchTransaction(batch);
+            this._SettleCrossfadeBatchTransaction(batch);
             if (batch.state === "loading"
                 || batch.state === "pending")
             {
                 batch.state = "cancelled";
                 if (record)
                 {
-                    this.#AbortSfxProgramBatch(record, batch);
+                    this._AbortSfxProgramBatch(record, batch);
                 }
                 else
                 {
@@ -6460,11 +6460,11 @@ export class CjsAudioBackend
                 }
             }
         }
-        this.#UpdateOverlappingSlotState(slot);
+        this._UpdateOverlappingSlotState(slot);
     }
 
     /** Derives logical Trigger Rate activity from cadence, loads, and tails. */
-    #UpdateOverlappingSlotState(slot)
+    _UpdateOverlappingSlotState(slot)
     {
         const activeVoices = [ ...slot.voices ]
             .filter(voice => !voice.ended);
@@ -6487,7 +6487,7 @@ export class CjsAudioBackend
     }
 
     /** Restarts one qualified nested scheduler after every dry voice tail. */
-    #MaybeAdvanceNestedCompletionBarrier(playingID, record, slot)
+    _MaybeAdvanceNestedCompletionBarrier(playingID, record, slot)
     {
         if (!IsOverlappingAdvanceMode(slot.advanceMode)
             || !slot.completionBarrier
@@ -6495,7 +6495,7 @@ export class CjsAudioBackend
             || slot.broken
             || slot.exhausted
             || record.stopped
-            || this.#playing.get(playingID) !== record
+            || this._playing.get(playingID) !== record
             || [ ...slot.voices ].some(voice => !voice.ended)
             || [ ...slot.batches?.values?.() ?? [] ].some(batch =>
                 batch.state === "loading" || batch.state === "pending"))
@@ -6506,26 +6506,26 @@ export class CjsAudioBackend
         const forceCompletionDelay = slot.advanceMode === "crossfade";
 
         slot.completionBarrier = false;
-        this.#AdvanceSfxProgramSlot(
+        this._AdvanceSfxProgramSlot(
             playingID,
             record,
             slot,
-            Number(this.#context.currentTime) || 0,
+            Number(this._context.currentTime) || 0,
             forceCompletionDelay,
         );
         return true;
     }
 
     /** Commits prefetched choices already heard by the Web Audio clock. */
-    #CommitHeardCrossfadeTransactions()
+    _CommitHeardCrossfadeTransactions()
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             for (const slot of record.programSlots?.values?.() ?? [])
             {
-                this.#SettleCrossfadeBatchTransaction(
+                this._SettleCrossfadeBatchTransaction(
                     slot.preparedBatch,
                     now,
                     false,
@@ -6535,9 +6535,9 @@ export class CjsAudioBackend
     }
 
     /** Commits a heard Crossfade choice or rolls back an unheard discard. */
-    #SettleCrossfadeBatchTransaction(
+    _SettleCrossfadeBatchTransaction(
         batch,
-        now = Number(this.#context?.currentTime) || 0,
+        now = Number(this._context?.currentTime) || 0,
         rollbackUnheard = true,
     )
     {
@@ -6564,7 +6564,7 @@ export class CjsAudioBackend
     }
 
     /** Stops scheduling one traversal while preserving audible overlap tails. */
-    #ExhaustSfxProgramSlot(slot)
+    _ExhaustSfxProgramSlot(slot)
     {
         slot.continuation = null;
         slot.exhausted = true;
@@ -6572,7 +6572,7 @@ export class CjsAudioBackend
         slot.nextTriggerContextTime = null;
         if (IsOverlappingAdvanceMode(slot.advanceMode))
         {
-            this.#UpdateOverlappingSlotState(slot);
+            this._UpdateOverlappingSlotState(slot);
         }
         else
         {
@@ -6583,7 +6583,7 @@ export class CjsAudioBackend
     }
 
     /** Disconnects completed voices before a long-running slot advances. */
-    #DisposeEndedSlotVoices(record, slot)
+    _DisposeEndedSlotVoices(record, slot)
     {
         for (const voice of [ ...slot.voices ])
         {
@@ -6591,16 +6591,16 @@ export class CjsAudioBackend
             {
                 continue;
             }
-            const now = Number(this.#context.currentTime) || 0;
+            const now = Number(this._context.currentTime) || 0;
 
-            this.#EndVoiceDucking(
+            this._EndVoiceDucking(
                 voice,
                 now,
                 voice.sourceStarted !== true
                     || voice.startContextTime > now
                     || voice.cancelledBeforeStart === true,
             );
-            this.#voiceLimitLedger.Release(
+            this._voiceLimitLedger.Release(
                 record,
                 voice.voiceLimitReservationId,
             );
@@ -6627,21 +6627,21 @@ export class CjsAudioBackend
     }
 
     /** Re-evaluates authored live gain and playback-rate controls. */
-    #RefreshSfxControls(gameObjID = null, transitionEnd = null)
+    _RefreshSfxControls(gameObjID = null, transitionEnd = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null && record.gameObjID !== gameObjID)
                 || (gameObjID !== null
                     && record.emitterNodes
-                        !== this.#emitterNodes.get(record.gameObjID)))
+                        !== this._emitterNodes.get(record.gameObjID)))
             {
                 continue;
             }
@@ -6650,7 +6650,7 @@ export class CjsAudioBackend
                 if (!voice.ended)
                 {
                     const boundaries =
-                        this.#ControlTransitionBoundariesForRecord(
+                        this._ControlTransitionBoundariesForRecord(
                             record,
                             now,
                         );
@@ -6666,26 +6666,26 @@ export class CjsAudioBackend
                     ];
                     voice.rtpcTransitionEnd =
                         voice.controlTransitionBoundaries.at(-1) ?? now;
-                    this.#ApplyVoiceGain(voice);
-                    this.#ApplyVoiceBusRtpcGain(voice);
-                    this.#ApplyVoiceBusGain(voice);
-                    this.#ApplyVoiceFilters(voice);
-                    this.#ApplyVoiceSourceEffects(voice);
-                    this.#ApplyVoicePlaybackRate(voice);
+                    this._ApplyVoiceGain(voice);
+                    this._ApplyVoiceBusRtpcGain(voice);
+                    this._ApplyVoiceBusGain(voice);
+                    this._ApplyVoiceFilters(voice);
+                    this._ApplyVoiceSourceEffects(voice);
+                    this._ApplyVoicePlaybackRate(voice);
                 }
             }
         }
-        this.#busMixer?.RefreshBusControls?.();
+        this._busMixer?.RefreshBusControls?.();
     }
 
     /** Re-evaluates the live Voice Volume contribution during transitions. */
-    #RefreshSfxVoiceVolumes(gameObjID = null)
+    _RefreshSfxVoiceVolumes(gameObjID = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null
@@ -6697,20 +6697,20 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoiceGain(voice);
+                    this._ApplyVoiceGain(voice);
                 }
             }
         }
     }
 
     /** Re-evaluates Bus-target Voice Volume before shared Bus processing. */
-    #RefreshSfxBusVoiceVolumes(gameObjID = null)
+    _RefreshSfxBusVoiceVolumes(gameObjID = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null
@@ -6722,20 +6722,20 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoiceBusActionGain(voice);
+                    this._ApplyVoiceBusActionGain(voice);
                 }
             }
         }
     }
 
     /** Re-evaluates live Wwise Bus Volume contributions. */
-    #RefreshSfxBusVolumes(gameObjID = null)
+    _RefreshSfxBusVolumes(gameObjID = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null
@@ -6747,20 +6747,20 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoiceBusGain(voice);
+                    this._ApplyVoiceBusGain(voice);
                 }
             }
         }
     }
 
     /** Re-evaluates the live Voice Pitch contribution during transitions. */
-    #RefreshSfxVoicePitches(gameObjID = null)
+    _RefreshSfxVoicePitches(gameObjID = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null
@@ -6772,20 +6772,20 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoicePlaybackRate(voice);
+                    this._ApplyVoicePlaybackRate(voice);
                 }
             }
         }
     }
 
     /** Re-evaluates live Voice LPF and HPF action contributions. */
-    #RefreshSfxVoiceFilters(gameObjID = null)
+    _RefreshSfxVoiceFilters(gameObjID = null)
     {
-        if (this.#deferSfxControlRefresh)
+        if (this._deferSfxControlRefresh)
         {
             return;
         }
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (gameObjID !== null
@@ -6797,14 +6797,14 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoiceFilters(voice);
+                    this._ApplyVoiceFilters(voice);
                 }
             }
         }
     }
 
     /** Applies one voice descriptor's current safe linear gain. */
-    #ApplyVoiceGain(voice, smoothDistance = false)
+    _ApplyVoiceGain(voice, smoothDistance = false)
     {
         const param = voice.gain?.gain;
 
@@ -6814,7 +6814,7 @@ export class CjsAudioBackend
             ScheduleVoiceVolumeGain(
                 param,
                 voice,
-                this.#context,
+                this._context,
                 smoothDistance,
             );
             return;
@@ -6825,7 +6825,7 @@ export class CjsAudioBackend
         try
         {
             value = voice.getGain(
-                Number(this.#context?.currentTime) || 0,
+                Number(this._context?.currentTime) || 0,
             );
         }
         catch
@@ -6846,7 +6846,7 @@ export class CjsAudioBackend
             SetSpatialAudioParam(
                 param,
                 target,
-                this.#context,
+                this._context,
                 true,
             );
         }
@@ -6855,15 +6855,15 @@ export class CjsAudioBackend
             SetAudioParam(
                 param,
                 target,
-                this.#context,
+                this._context,
             );
         }
     }
 
     /** Re-evaluates per-voice distance gains after listener/emitter changes. */
-    #RefreshDistanceGains(emitterNodes = null, smooth = true)
+    _RefreshDistanceGains(emitterNodes = null, smooth = true)
     {
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             if (!record.sfx
                 || (emitterNodes !== null
@@ -6875,19 +6875,19 @@ export class CjsAudioBackend
             {
                 if (!voice.ended)
                 {
-                    this.#ApplyVoiceDistanceGain(
+                    this._ApplyVoiceDistanceGain(
                         voice,
                         record.emitterNodes,
                         smooth,
                     );
-                    this.#ApplyVoiceSourceEffects(voice, smooth);
+                    this._ApplyVoiceSourceEffects(voice, smooth);
                 }
             }
         }
     }
 
     /** Applies one spatial voice's authored or compatibility distance gain. */
-    #ApplyVoiceDistanceGain(voice, emitterNodes, smooth = false)
+    _ApplyVoiceDistanceGain(voice, emitterNodes, smooth = false)
     {
         if (!voice.spatial)
         {
@@ -6896,16 +6896,16 @@ export class CjsAudioBackend
         voice.distanceGainValue = EvaluateSfxDistanceGain({
             curve: voice.dryVolumeCurve,
             emitterPosition: emitterNodes?.position,
-            listenerPosition: this.#listenerPosition,
+            listenerPosition: this._listenerPosition,
             scalingFactor: emitterNodes?.scalingFactor,
-            distanceScale: this.#distanceScale,
+            distanceScale: this._distanceScale,
         });
 
-        this.#ApplyVoiceGain(voice, smooth);
+        this._ApplyVoiceGain(voice, smooth);
     }
 
     /** Applies the current authored Wwise bus contribution to one voice. */
-    #ApplyVoiceBusGain(voice)
+    _ApplyVoiceBusGain(voice)
     {
         if (!voice.busGain)
         {
@@ -6914,22 +6914,22 @@ export class CjsAudioBackend
         ScheduleBusVolumeGain(
             voice.busGain.gain,
             voice,
-            this.#context,
-            this.#busRtpcCatalog,
-            (name, at) => this.#ReadRtpcValue(
+            this._context,
+            this._busRtpcCatalog,
+            (name, at) => this._ReadRtpcValue(
                 "global",
                 name,
                 undefined,
                 at,
             ),
-            this.#busStateCatalog,
-            (group, at) => this.#ReadStatePropertyWeights(group, at),
-            this.#busDuckingController,
+            this._busStateCatalog,
+            (group, at) => this._ReadStatePropertyWeights(group, at),
+            this._busDuckingController,
         );
     }
 
     /** Applies Bus-target Voice Volume before Bus effects and faders. */
-    #ApplyVoiceBusActionGain(voice)
+    _ApplyVoiceBusActionGain(voice)
     {
         if (!voice.busVoiceActionGain)
         {
@@ -6938,12 +6938,12 @@ export class CjsAudioBackend
         ScheduleBusVoiceActionGain(
             voice.busVoiceActionGain.gain,
             voice,
-            this.#context,
+            this._context,
         );
     }
 
     /** Applies Audio Bus Voice Volume RTPCs before Bus Volume/effects. */
-    #ApplyVoiceBusRtpcGain(voice)
+    _ApplyVoiceBusRtpcGain(voice)
     {
         if (!voice.busVoiceGain)
         {
@@ -6952,9 +6952,9 @@ export class CjsAudioBackend
         ScheduleBusVoiceRtpcGain(
             voice.busVoiceGain.gain,
             voice,
-            this.#context,
-            this.#busRtpcCatalog,
-            (name, at) => this.#ReadRtpcValue(
+            this._context,
+            this._busRtpcCatalog,
+            (name, at) => this._ReadRtpcValue(
                 "global",
                 name,
                 undefined,
@@ -6964,21 +6964,21 @@ export class CjsAudioBackend
     }
 
     /** Reapplies duck envelopes after either engine changes bus activity. */
-    #RefreshBusDucking()
+    _RefreshBusDucking()
     {
-        for (const record of this.#playing.values())
+        for (const record of this._playing.values())
         {
             for (const voice of record.voices ?? [])
             {
-                if (!voice.ended) this.#ApplyVoiceBusGain(voice);
+                if (!voice.ended) this._ApplyVoiceBusGain(voice);
             }
         }
-        this.#musicEngine?.RefreshBusDucking?.();
-        this.#busMixer?.RefreshBusControls?.();
+        this._musicEngine?.RefreshBusDucking?.();
+        this._busMixer?.RefreshBusControls?.();
     }
 
     /** Settles one disposable source's bus activity exactly once. */
-    #EndVoiceDucking(voice, at, cancel = false)
+    _EndVoiceDucking(voice, at, cancel = false)
     {
         const activity = voice?.duckActivity;
 
@@ -6988,9 +6988,9 @@ export class CjsAudioBackend
     }
 
     /** Applies live Wwise LPF/HPF percentages to per-voice WebAudio filters. */
-    #ApplyVoiceFilters(voice)
+    _ApplyVoiceFilters(voice)
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
         const evaluateBus = at => voice.sharedBusFilters
             ? { lowPass: 0, highPass: 0 }
             : voice.getBusStateProperties?.(at) ?? {
@@ -7005,7 +7005,7 @@ export class CjsAudioBackend
                 ?? ((Number(voice.getLowPass?.(at)) || 0) + additional),
             at => evaluateBus(at).lowPass,
             false,
-            this.#context,
+            this._context,
             [
                 ...(voice.controlTransitionBoundaries ?? []),
                 ...VoiceTargetTransitionBoundaries(
@@ -7022,7 +7022,7 @@ export class CjsAudioBackend
                 ?? ((Number(voice.getHighPass?.(at)) || 0) + additional),
             at => evaluateBus(at).highPass,
             true,
-            this.#context,
+            this._context,
             [
                 ...(voice.controlTransitionBoundaries ?? []),
                 ...VoiceTargetTransitionBoundaries(
@@ -7035,7 +7035,7 @@ export class CjsAudioBackend
     }
 
     /** Applies live RTPC automation to qualified source-effect parameters. */
-    #ApplyVoiceSourceEffects(voice, smooth = false)
+    _ApplyVoiceSourceEffects(voice, smooth = false)
     {
         voice.sourceEffectRtpcLane?.Apply?.(
             voice.controlTransitionBoundaries ?? [],
@@ -7044,7 +7044,7 @@ export class CjsAudioBackend
     }
 
     /** Advances one live voice's media and finite-repeat clocks to a context time. */
-    #AdvanceSfxVoiceTransport(voice, contextTime)
+    _AdvanceSfxVoiceTransport(voice, contextTime)
     {
         const anchor = Number(voice.positionAnchorContextTime);
         const time = Number(contextTime);
@@ -7101,7 +7101,7 @@ export class CjsAudioBackend
     }
 
     /** Applies one voice descriptor's current safe playback rate in place. */
-    #ApplyVoicePlaybackRate(voice)
+    _ApplyVoicePlaybackRate(voice)
     {
         if (typeof voice.getPlaybackRate !== "function")
         {
@@ -7109,10 +7109,10 @@ export class CjsAudioBackend
         }
 
         const source = voice.source;
-        const now = Number(this.#context.currentTime) || 0;
+        const now = Number(this._context.currentTime) || 0;
         const variablePitch = UsesVoicePitchAutomation(voice);
 
-        this.#AdvanceSfxVoiceTransport(voice, now);
+        this._AdvanceSfxVoiceTransport(voice, now);
 
         if (variablePitch)
         {
@@ -7127,7 +7127,7 @@ export class CjsAudioBackend
             ScheduleVoicePitchPlaybackRate(
                 source?.playbackRate,
                 voice,
-                this.#context,
+                this._context,
             );
             if (source
                 && !voice.stopping
@@ -7186,7 +7186,7 @@ export class CjsAudioBackend
         }
 
         voice.playbackRate = value;
-        SetAudioParam(source?.playbackRate, value, this.#context);
+        SetAudioParam(source?.playbackRate, value, this._context);
     }
 
     /**
@@ -7194,7 +7194,7 @@ export class CjsAudioBackend
      * Otherwise the rising Play envelope would multiply the falling Stop
      * envelope and could become louder after the stop action.
      */
-    #HoldVoiceFade(voice, actionTime)
+    _HoldVoiceFade(voice, actionTime)
     {
         const param = voice.fadeGain?.gain;
         const start = voice.fadeStartContextTime;
@@ -7231,7 +7231,7 @@ export class CjsAudioBackend
     }
 
     /** Freezes one active Crossfade envelope before applying a Stop fade. */
-    #HoldVoiceTransitionFade(voice, actionTime)
+    _HoldVoiceTransitionFade(voice, actionTime)
     {
         const param = voice.transitionGain?.gain;
         const start = voice.transitionFadeStartContextTime;
@@ -7272,7 +7272,7 @@ export class CjsAudioBackend
     }
 
     /** Schedules and records one Crossfade envelope for later Stop holds. */
-    #ScheduleVoiceCrossfade(
+    _ScheduleVoiceCrossfade(
         voice,
         from,
         to,
@@ -7298,26 +7298,26 @@ export class CjsAudioBackend
     }
 
     /** Marks the SFX side complete and closes the shared id when music agrees. */
-    #FinishSfxPlaying(playingID)
+    _FinishSfxPlaying(playingID)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
 
         if (!record || record.sfxFinished)
         {
             return;
         }
-        this.#voiceLimitLedger.ReleaseAll(record);
+        this._voiceLimitLedger.ReleaseAll(record);
         record.sfxFinished = true;
         if (!record.music || record.musicFinished)
         {
-            this.#FinishPlaying(playingID);
+            this._FinishPlaying(playingID);
         }
     }
 
     /** Marks the music side complete and closes the shared id when SFX agrees. */
-    #FinishMusicPlaying(playingID)
+    _FinishMusicPlaying(playingID)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
 
         if (!record || record.musicFinished)
         {
@@ -7326,19 +7326,19 @@ export class CjsAudioBackend
         record.musicFinished = true;
         if (!record.sfx || record.sfxFinished)
         {
-            this.#FinishPlaying(playingID);
+            this._FinishPlaying(playingID);
         }
     }
 
     /** Finalizes one playing record and delivers completion callbacks once. */
-    #FinishPlaying(playingID)
+    _FinishPlaying(playingID)
     {
-        const record = this.#playing.get(playingID);
+        const record = this._playing.get(playingID);
         if (record)
         {
-            this.#voiceLimitLedger.ReleaseAll(record);
-            this.#playing.delete(playingID);
-            this.#scheduledSfxActions = this.#scheduledSfxActions
+            this._voiceLimitLedger.ReleaseAll(record);
+            this._playing.delete(playingID);
+            this._scheduledSfxActions = this._scheduledSfxActions
                 .filter(value => value.ownerPlayingID !== playingID);
             record.stopped = true;
             record.controller?.abort();
@@ -7347,16 +7347,16 @@ export class CjsAudioBackend
                 slot.Abort();
                 for (const batch of slot.batches?.values?.() ?? [])
                 {
-                    this.#SettleCrossfadeBatchTransaction(batch);
+                    this._SettleCrossfadeBatchTransaction(batch);
                     batch.Abort();
                 }
             }
 
-            const now = Number(this.#context?.currentTime) || 0;
+            const now = Number(this._context?.currentTime) || 0;
 
             for (const voice of record.voices ?? [])
             {
-                this.#EndVoiceDucking(
+                this._EndVoiceDucking(
                     voice,
                     now,
                     voice.sourceStarted !== true
@@ -7389,7 +7389,7 @@ export class CjsAudioBackend
             record.sourceGain?.disconnect?.();
             record.emitter?.EventFinishedCallback?.(playingID);
             record.onFinished?.(playingID);
-            this.#ReleaseRetiredEmitterNodes(
+            this._ReleaseRetiredEmitterNodes(
                 record.gameObjID,
                 record.emitterNodes,
             );
@@ -7397,20 +7397,20 @@ export class CjsAudioBackend
     }
 
     /** Disconnects one emitter generation once no current or playing record owns it. */
-    #ReleaseRetiredEmitterNodes(gameObjID, nodes)
+    _ReleaseRetiredEmitterNodes(gameObjID, nodes)
     {
         if (!nodes
-            || this.#emitterNodes.get(gameObjID) === nodes
-            || [ ...this.#playing.values() ]
+            || this._emitterNodes.get(gameObjID) === nodes
+            || [ ...this._playing.values() ]
                 .some(record => record.emitterNodes === nodes))
         {
             return;
         }
-        this.#DisconnectEmitterNodes(nodes);
+        this._DisconnectEmitterNodes(nodes);
     }
 
     /** Disconnects a no-longer-used emitter node generation. */
-    #DisconnectEmitterNodes(nodes)
+    _DisconnectEmitterNodes(nodes)
     {
         for (const modes of nodes.routeBranches?.values?.() ?? [])
         {

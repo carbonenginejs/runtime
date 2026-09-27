@@ -23,9 +23,9 @@ function Now()
 export class AudActionLogCB extends IAudActionLog
 {
 
-  #callback = null;
+  _callback = null;
 
-  #queue = [];
+  _queue = [];
 
   /**
    * Registers the callback used by Flush; null unregisters without clearing records.
@@ -47,7 +47,7 @@ export class AudActionLogCB extends IAudActionLog
     {
       throw new TypeError("AudActionLogCB.RegisterCallback requires a function, CallVoid object, or null.");
     }
-    this.#callback = callback ?? null;
+    this._callback = callback ?? null;
   }
 
   /**
@@ -67,7 +67,7 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
-    this.#queue.push(new AudActionRecordPostEvent(Now(), emitterID, playID, eventID, name));
+    this._queue.push(new AudActionRecordPostEvent(Now(), emitterID, playID, eventID, name));
   }
 
   /**
@@ -86,7 +86,7 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
-    this.#queue.push(new AudActionRecordExecuteActionOnPlayingID(Now(), emitterID, playID, action));
+    this._queue.push(new AudActionRecordExecuteActionOnPlayingID(Now(), emitterID, playID, action));
   }
 
   /**
@@ -105,7 +105,7 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   LogSetSwitch(emitterID, group, state)
   {
-    this.#queue.push(new AudActionRecordSetSwitch(Now(), emitterID, group, state));
+    this._queue.push(new AudActionRecordSetSwitch(Now(), emitterID, group, state));
   }
 
   /**
@@ -123,7 +123,7 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   LogSetState(group, state)
   {
-    this.#queue.push(new AudActionRecordSetState(Now(), group, state));
+    this._queue.push(new AudActionRecordSetState(Now(), group, state));
   }
 
   /**
@@ -143,7 +143,7 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
-    this.#queue.push(new AudActionRecordSetRTPC(Now(), emitterID, name, value, playID));
+    this._queue.push(new AudActionRecordSetRTPC(Now(), emitterID, name, value, playID));
   }
 
   /**
@@ -161,18 +161,18 @@ export class AudActionLogCB extends IAudActionLog
   @impl.adapted
   Flush()
   {
-    while (this.#callback && this.#queue.length)
+    while (this._callback && this._queue.length)
     {
-      const record = this.#queue[0].ToPyObject();
-      if (typeof this.#callback === "function")
+      const record = this._queue[0].ToPyObject();
+      if (typeof this._callback === "function")
       {
-        this.#callback(record);
+        this._callback(record);
       }
       else
       {
-        this.#callback.CallVoid(record);
+        this._callback.CallVoid(record);
       }
-      this.#queue.shift();
+      this._queue.shift();
     }
   }
 

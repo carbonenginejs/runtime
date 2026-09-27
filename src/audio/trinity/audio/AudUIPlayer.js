@@ -18,7 +18,7 @@ export class AudUIPlayer extends AudEmitter
   @type.rawStruct("BlueScriptCallback")
   eventSenderCallback = null;
 
-  #callbackEvents = new Map();
+  _callbackEvents = new Map();
 
   /** Creates Carbon's fixed-id UI emitter at its authored origin pose. */
   constructor()
@@ -94,7 +94,7 @@ export class AudUIPlayer extends AudEmitter
     const playingID = this.PostEvent(name, false, 0);
     if (playingID)
     {
-      this.#callbackEvents.set(playingID, {
+      this._callbackEvents.set(playingID, {
         callback,
         eventName: this.GetPlayingEvents().get(playingID) ?? String(name ?? "")
       });
@@ -117,17 +117,17 @@ export class AudUIPlayer extends AudEmitter
   @impl.adapted
   EventFinishedCallback(playingID)
   {
-    const callbackEvent = this.#callbackEvents.get(playingID) ?? null;
-    this.#callbackEvents.delete(playingID);
+    const callbackEvent = this._callbackEvents.get(playingID) ?? null;
+    this._callbackEvents.delete(playingID);
     super.EventFinishedCallback(playingID);
     if (callbackEvent)
     {
-      queueMicrotask(() => AudUIPlayer.#InvokeCallback(callbackEvent.callback, callbackEvent.eventName));
+      queueMicrotask(() => AudUIPlayer._InvokeCallback(callbackEvent.callback, callbackEvent.eventName));
     }
   }
 
   /** Invokes one function- or Blue-style UI completion callback. */
-  static #InvokeCallback(callback, eventName)
+  static _InvokeCallback(callback, eventName)
   {
     if (typeof callback === "function")
     {

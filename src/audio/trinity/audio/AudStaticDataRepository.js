@@ -16,13 +16,13 @@ const INVALID_UNIQUE_ID = 0;
 export class AudStaticDataRepository extends CjsModel
 {
 
-  #events = new Map();
+  _events = new Map();
 
-  #soundBanks = new Map();
+  _soundBanks = new Map();
 
-  #sources = new Map();
+  _sources = new Map();
 
-  #initialized = false;
+  _initialized = false;
 
   /**
    * Merges event, sound-bank and source metadata into the catalog and marks it initialized.
@@ -54,7 +54,7 @@ export class AudStaticDataRepository extends CjsModel
     const events = SectionEntries(audioMetadata.Events, "Events");
     for (const [eventName, record] of events)
     {
-      this.#events.set(String(eventName), {
+      this._events.set(String(eventName), {
         eventName: String(eventName),
         eventID: ToUint(record?.eventID),
         maxAttenuationRadius: Number(record?.maxRadiusAttenuation) || 0,
@@ -69,16 +69,16 @@ export class AudStaticDataRepository extends CjsModel
     const soundBanks = SectionEntries(audioMetadata.SoundBanks, "SoundBanks");
     for (const [soundBankName, record] of soundBanks)
     {
-      this.#soundBanks.set(String(soundBankName), { isEssentialSoundBank: !!record?.EssentialSoundBank });
+      this._soundBanks.set(String(soundBankName), { isEssentialSoundBank: !!record?.EssentialSoundBank });
     }
 
     const sources = SectionEntries(audioMetadata.WemFileIDs, "WemFileIDs");
     for (const [sourceID, record] of sources)
     {
-      this.#sources.set(String(sourceID), { isEssential: !!record?.IsEssential });
+      this._sources.set(String(sourceID), { isEssential: !!record?.IsEssential });
     }
 
-    this.#initialized = true;
+    this._initialized = true;
   }
 
   /**
@@ -90,7 +90,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   IsInitialized()
   {
-    return this.#initialized;
+    return this._initialized;
   }
 
   // Carbon's templated core (AudStaticDataRepository.h:68-91): every typed
@@ -98,16 +98,16 @@ export class AudStaticDataRepository extends CjsModel
   // JS's no-op, and C++ pointer-to-member projection is a keyed read.
 
   /** Carbon GetData<DataType> (h:68-78): the named record, or null. */
-  #GetData(map, name)
+  _GetData(map, name)
   {
     return map.get(String(name)) ?? null;
   }
 
   /** Carbon GetAttribute<DataType, AttrType> (h:82-91): one field of the
    *  named record, or the default when the record is absent. */
-  #GetAttribute(map, name, attribute, defaultValue)
+  _GetAttribute(map, name, attribute, defaultValue)
   {
-    const data = this.#GetData(map, name);
+    const data = this._GetData(map, name);
     return data ? data[attribute] : defaultValue;
   }
 
@@ -121,7 +121,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   GetEventID(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "eventID", INVALID_UNIQUE_ID);
+    return this._GetAttribute(this._events, eventName, "eventID", INVALID_UNIQUE_ID);
   }
 
   /**
@@ -137,7 +137,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.adapted
   GetEventRadiusSq(eventName)
   {
-    const eventData = this.#GetData(this.#events, eventName);
+    const eventData = this._GetData(this._events, eventName);
     if (!eventData)
     {
       return 0;
@@ -155,7 +155,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsLoop(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "isLoop", false);
+    return this._GetAttribute(this._events, eventName, "isLoop", false);
   }
 
   /**
@@ -168,7 +168,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIs2D(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "is2D", false);
+    return this._GetAttribute(this._events, eventName, "is2D", false);
   }
 
   /**
@@ -181,7 +181,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsVital(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "isVital", false);
+    return this._GetAttribute(this._events, eventName, "isVital", false);
   }
 
   /**
@@ -195,7 +195,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
   {
-    const eventData = this.#GetData(this.#events, eventPotentiallyStopped);
+    const eventData = this._GetData(this._events, eventPotentiallyStopped);
     return !!eventData && eventData.eventsStoppedBy.includes(String(eventPotentiallyStopping));
   }
 
@@ -209,7 +209,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SourceIsEssential(sourceID)
   {
-    return this.#GetAttribute(this.#sources, sourceID, "isEssential", false);
+    return this._GetAttribute(this._sources, sourceID, "isEssential", false);
   }
 
   /**
@@ -222,7 +222,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SoundBankIsEssential(soundBankName)
   {
-    return this.#GetAttribute(this.#soundBanks, soundBankName, "isEssentialSoundBank", false);
+    return this._GetAttribute(this._soundBanks, soundBankName, "isEssentialSoundBank", false);
   }
 
   /**
@@ -236,7 +236,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SoundBanksRequiredForEvent(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "soundbanks", []);
+    return this._GetAttribute(this._events, eventName, "soundbanks", []);
   }
 
 }

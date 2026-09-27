@@ -34,12 +34,12 @@ export class AudioCurveSetDriver extends CjsModel
   audioParameterName = "";
 
   // C++ m_audioParameterExists - runtime, refreshed from the manager.
-  #audioParameterExists = false;
+  _audioParameterExists = false;
 
   // JavaScript adaptation of Carbon's deterministic destructor ownership.
-  #registeredManager = null;
+  _registeredManager = null;
 
-  #registeredParameterName = "";
+  _registeredParameterName = "";
 
   /**
    * Refreshes the cached RTPC value and samples the fallback curve when invalid.
@@ -60,7 +60,7 @@ export class AudioCurveSetDriver extends CjsModel
     if (parameterInfo)
     {
       this.audioParameterValue = parameterInfo.parameterValue;
-      this.#audioParameterExists = !!parameterInfo.parameterExists;
+      this._audioParameterExists = !!parameterInfo.parameterExists;
     }
     if (!this.IsValid() && this.fallbackCurve)
     {
@@ -78,7 +78,7 @@ export class AudioCurveSetDriver extends CjsModel
   @impl.implemented
   IsValid()
   {
-    return !!AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this.#audioParameterExists;
+    return !!AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this._audioParameterExists;
   }
 
   /**
@@ -107,7 +107,7 @@ export class AudioCurveSetDriver extends CjsModel
   @impl.adapted
   Initialize()
   {
-    if (this.audioParameterName && !this.#registeredManager)
+    if (this.audioParameterName && !this._registeredManager)
     {
       const manager = AudGameObjResource.manager;
 
@@ -115,8 +115,8 @@ export class AudioCurveSetDriver extends CjsModel
         && manager.GetState?.() !== "uninitialized")
       {
         manager.RegisterParameter(this.audioParameterName);
-        this.#registeredManager = manager;
-        this.#registeredParameterName = this.audioParameterName;
+        this._registeredManager = manager;
+        this._registeredParameterName = this.audioParameterName;
       }
     }
     return true;
@@ -138,13 +138,13 @@ export class AudioCurveSetDriver extends CjsModel
   SetAudioParameterName(name)
   {
     const manager = AudGameObjResource.manager;
-    if (this.#registeredManager)
+    if (this._registeredManager)
     {
-      this.#registeredManager.UnregisterParameter?.(
-        this.#registeredParameterName,
+      this._registeredManager.UnregisterParameter?.(
+        this._registeredParameterName,
       );
-      this.#registeredManager = null;
-      this.#registeredParameterName = "";
+      this._registeredManager = null;
+      this._registeredParameterName = "";
     }
     this.audioParameterName = String(name ?? "");
     if (this.audioParameterName
@@ -152,8 +152,8 @@ export class AudioCurveSetDriver extends CjsModel
       && manager.GetState?.() !== "uninitialized")
     {
       manager.RegisterParameter(this.audioParameterName);
-      this.#registeredManager = manager;
-      this.#registeredParameterName = this.audioParameterName;
+      this._registeredManager = manager;
+      this._registeredParameterName = this.audioParameterName;
     }
   }
 
@@ -171,17 +171,17 @@ export class AudioCurveSetDriver extends CjsModel
   @impl.custom
   Dispose()
   {
-    if (!this.#registeredManager)
+    if (!this._registeredManager)
     {
       return;
     }
 
-    this.#registeredManager.UnregisterParameter?.(
-      this.#registeredParameterName,
+    this._registeredManager.UnregisterParameter?.(
+      this._registeredParameterName,
     );
-    this.#registeredManager = null;
-    this.#registeredParameterName = "";
-    this.#audioParameterExists = false;
+    this._registeredManager = null;
+    this._registeredParameterName = "";
+    this._audioParameterExists = false;
   }
 
 }

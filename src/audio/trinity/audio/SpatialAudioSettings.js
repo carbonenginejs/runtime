@@ -11,42 +11,42 @@ import { CjsModel } from "#model";
 export class SpatialAudioSettings extends CjsModel
 {
 
-  #spatialAudioGeometryEnabled = false;
+  _spatialAudioGeometryEnabled = false;
 
-  #movementThreshold = 100;
+  _movementThreshold = 100;
 
-  #numberOfPrimaryRays = 35;
+  _numberOfPrimaryRays = 35;
 
-  #maxReflectionOrder = 0;
+  _maxReflectionOrder = 0;
 
-  #maxDiffractionOrder = 4;
+  _maxDiffractionOrder = 4;
 
-  #maxEmitterRoomAuxSends = 0;
+  _maxEmitterRoomAuxSends = 0;
 
-  #diffractionOnReflectionsOrder = 0;
+  _diffractionOnReflectionsOrder = 0;
 
-  #maxPathLength = 1000;
+  _maxPathLength = 1000;
 
-  #cpuLimitPercentage = 20;
+  _cpuLimitPercentage = 20;
 
-  #loadBalancingSpread = 1;
+  _loadBalancingSpread = 1;
 
-  #enableDiffractionAndTransmission = true;
+  _enableDiffractionAndTransmission = true;
 
-  #calcEmitterVirtualPosition = true;
+  _calcEmitterVirtualPosition = true;
 
-  #transmissionLoss = 0.7;
+  _transmissionLoss = 0.7;
 
-  #enableDiffraction = true;
+  _enableDiffraction = true;
 
-  #enableDiffractionOnBoundaryEdges = true;
+  _enableDiffractionOnBoundaryEdges = true;
 
   /** Returns whether geometry-based spatial audio is enabled. */
   @carbon.method
   @impl.implemented
   GetSpatialAudioGeometryEnabled()
   {
-    return this.#spatialAudioGeometryEnabled;
+    return this._spatialAudioGeometryEnabled;
   }
 
   /** Enables or disables geometry-based spatial audio. */
@@ -54,7 +54,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetSpatialAudioGeometryEnabled(value)
   {
-    this.#spatialAudioGeometryEnabled = Boolean(value);
+    this._spatialAudioGeometryEnabled = Boolean(value);
   }
 
   /** Returns the movement threshold used for spatial path validation. */
@@ -62,7 +62,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetMovementThreshold()
   {
-    return this.#movementThreshold;
+    return this._movementThreshold;
   }
 
   /** Sets the movement threshold used for spatial path validation. */
@@ -70,7 +70,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetMovementThreshold(value)
   {
-    this.#movementThreshold = Number(value);
+    this._movementThreshold = Number(value);
   }
 
   /** Returns the maximum number of primary spatial-audio rays. */
@@ -78,7 +78,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetNumberOfPrimaryRays()
   {
-    return this.#numberOfPrimaryRays;
+    return this._numberOfPrimaryRays;
   }
 
   /** Sets the maximum number of primary spatial-audio rays. */
@@ -86,7 +86,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetNumberOfPrimaryRays(value)
   {
-    this.#numberOfPrimaryRays = Number(value);
+    this._numberOfPrimaryRays = Number(value);
   }
 
   /** Returns the maximum reflection order. */
@@ -94,7 +94,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetMaxReflectionOrder()
   {
-    return this.#maxReflectionOrder;
+    return this._maxReflectionOrder;
   }
 
   /** Sets the maximum reflection order. */
@@ -102,7 +102,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetMaxReflectionOrder(value)
   {
-    this.#maxReflectionOrder = Number(value);
+    this._maxReflectionOrder = Number(value);
   }
 
   /** Returns the maximum diffraction order. */
@@ -110,7 +110,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetMaxDiffractionOrder()
   {
-    return this.#maxDiffractionOrder;
+    return this._maxDiffractionOrder;
   }
 
   /** Sets the maximum diffraction order. */
@@ -118,7 +118,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetMaxDiffractionOrder(value)
   {
-    this.#maxDiffractionOrder = Number(value);
+    this._maxDiffractionOrder = Number(value);
   }
 
   /** Returns the maximum number of emitter room auxiliary sends. */
@@ -126,7 +126,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetMaxEmitterRoomAuxSends()
   {
-    return this.#maxEmitterRoomAuxSends;
+    return this._maxEmitterRoomAuxSends;
   }
 
   /** Sets the maximum number of emitter room auxiliary sends. */
@@ -134,7 +134,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetMaxEmitterRoomAuxSends(value)
   {
-    this.#maxEmitterRoomAuxSends = Number(value);
+    this._maxEmitterRoomAuxSends = Number(value);
   }
 
   /** Returns the diffraction order applied at reflection endpoints. */
@@ -142,7 +142,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetDiffractionOnReflectionsOrder()
   {
-    return this.#diffractionOnReflectionsOrder;
+    return this._diffractionOnReflectionsOrder;
   }
 
   /** Sets the diffraction order applied at reflection endpoints. */
@@ -150,7 +150,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetDiffractionOnReflectionsOrder(value)
   {
-    this.#diffractionOnReflectionsOrder = Number(value);
+    this._diffractionOnReflectionsOrder = Number(value);
   }
 
   /** Returns the maximum spatial-audio path length. */
@@ -158,7 +158,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetMaxPathLength()
   {
-    return this.#maxPathLength;
+    return this._maxPathLength;
   }
 
   /** Sets the maximum spatial-audio path length. */
@@ -166,7 +166,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetMaxPathLength(value)
   {
-    this.#maxPathLength = Number(value);
+    this._maxPathLength = Number(value);
   }
 
   /** Returns the targeted spatial-audio CPU percentage. */
@@ -174,7 +174,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetCPULimitPercentage()
   {
-    return this.#cpuLimitPercentage;
+    return this._cpuLimitPercentage;
   }
 
   /** Sets the targeted spatial-audio CPU percentage. */
@@ -182,7 +182,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetCPULimitPercentage(value)
   {
-    this.#cpuLimitPercentage = Number(value);
+    this._cpuLimitPercentage = Number(value);
   }
 
   /** Returns the number of frames used for load balancing. */
@@ -190,7 +190,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetLoadBalancingSpread()
   {
-    return this.#loadBalancingSpread;
+    return this._loadBalancingSpread;
   }
 
   /** Sets the number of frames used for load balancing. */
@@ -198,7 +198,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetLoadBalancingSpread(value)
   {
-    this.#loadBalancingSpread = Number(value);
+    this._loadBalancingSpread = Number(value);
   }
 
   /** Returns whether geometric diffraction and transmission are enabled. */
@@ -206,7 +206,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetEnableDiffractionAndTransmission()
   {
-    return this.#enableDiffractionAndTransmission;
+    return this._enableDiffractionAndTransmission;
   }
 
   /** Enables or disables geometric diffraction and transmission. */
@@ -214,7 +214,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetEnableDiffractionAndTransmission(value)
   {
-    this.#enableDiffractionAndTransmission = Boolean(value);
+    this._enableDiffractionAndTransmission = Boolean(value);
   }
 
   /** Returns whether Wwise calculates emitter virtual positions. */
@@ -222,7 +222,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetCalcEmitterVirtualPosition()
   {
-    return this.#calcEmitterVirtualPosition;
+    return this._calcEmitterVirtualPosition;
   }
 
   /** Enables or disables Wwise emitter virtual-position calculation. */
@@ -230,7 +230,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetCalcEmitterVirtualPosition(value)
   {
-    this.#calcEmitterVirtualPosition = Boolean(value);
+    this._calcEmitterVirtualPosition = Boolean(value);
   }
 
   /** Returns the geometry surface transmission loss. */
@@ -238,7 +238,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetTransmissionLoss()
   {
-    return this.#transmissionLoss;
+    return this._transmissionLoss;
   }
 
   /** Sets geometry surface transmission loss, clamped to the Carbon range. */
@@ -246,7 +246,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetTransmissionLoss(value)
   {
-    this.#transmissionLoss = Math.max(0, Math.min(1, Number(value)));
+    this._transmissionLoss = Math.max(0, Math.min(1, Number(value)));
   }
 
   /** Returns whether geometry diffraction is enabled. */
@@ -254,7 +254,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetEnableDiffraction()
   {
-    return this.#enableDiffraction;
+    return this._enableDiffraction;
   }
 
   /** Enables or disables geometry diffraction. */
@@ -262,7 +262,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetEnableDiffraction(value)
   {
-    this.#enableDiffraction = Boolean(value);
+    this._enableDiffraction = Boolean(value);
   }
 
   /** Returns whether geometry boundary-edge diffraction is enabled. */
@@ -270,7 +270,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   GetEnableDiffractionOnBoundaryEdges()
   {
-    return this.#enableDiffractionOnBoundaryEdges;
+    return this._enableDiffractionOnBoundaryEdges;
   }
 
   /** Enables or disables geometry boundary-edge diffraction. */
@@ -278,7 +278,7 @@ export class SpatialAudioSettings extends CjsModel
   @impl.implemented
   SetEnableDiffractionOnBoundaryEdges(value)
   {
-    this.#enableDiffractionOnBoundaryEdges = Boolean(value);
+    this._enableDiffractionOnBoundaryEdges = Boolean(value);
   }
 
   /** Carbon method PopulateInitSettings, mapped to a plain Wwise-shaped object. */
@@ -287,17 +287,17 @@ export class SpatialAudioSettings extends CjsModel
   @impl.reason("AkSpatialAudioInitSettings is represented by a caller-owned plain JavaScript object.")
   PopulateInitSettings(out = {})
   {
-    out.fMovementThreshold = this.#movementThreshold;
-    out.uNumberOfPrimaryRays = this.#numberOfPrimaryRays;
-    out.uMaxReflectionOrder = this.#maxReflectionOrder;
-    out.uMaxDiffractionOrder = this.#maxDiffractionOrder;
-    out.uMaxEmitterRoomAuxSends = this.#maxEmitterRoomAuxSends;
-    out.uDiffractionOnReflectionsOrder = this.#diffractionOnReflectionsOrder;
-    out.fMaxPathLength = this.#maxPathLength;
-    out.fCPULimitPercentage = this.#cpuLimitPercentage;
-    out.uLoadBalancingSpread = this.#loadBalancingSpread;
-    out.bEnableGeometricDiffractionAndTransmission = this.#enableDiffractionAndTransmission;
-    out.bCalcEmitterVirtualPosition = this.#calcEmitterVirtualPosition;
+    out.fMovementThreshold = this._movementThreshold;
+    out.uNumberOfPrimaryRays = this._numberOfPrimaryRays;
+    out.uMaxReflectionOrder = this._maxReflectionOrder;
+    out.uMaxDiffractionOrder = this._maxDiffractionOrder;
+    out.uMaxEmitterRoomAuxSends = this._maxEmitterRoomAuxSends;
+    out.uDiffractionOnReflectionsOrder = this._diffractionOnReflectionsOrder;
+    out.fMaxPathLength = this._maxPathLength;
+    out.fCPULimitPercentage = this._cpuLimitPercentage;
+    out.uLoadBalancingSpread = this._loadBalancingSpread;
+    out.bEnableGeometricDiffractionAndTransmission = this._enableDiffractionAndTransmission;
+    out.bCalcEmitterVirtualPosition = this._calcEmitterVirtualPosition;
     return out;
   }
 

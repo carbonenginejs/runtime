@@ -64,9 +64,9 @@ export class AudEventCurve extends CjsModel
   audioEmitter = null;
 
   // Playback cursor (C++ m_currentKeyIt) - runtime state, rebuildable.
-  #currentKeyIndex = 0;
+  _currentKeyIndex = 0;
 
-  #queuedEvent = "";
+  _queuedEvent = "";
 
   /** Carbon method AddKey (MAP_METHOD_AND_WRAP). Appends a key and resorts. */
   @carbon.method
@@ -86,7 +86,7 @@ export class AudEventCurve extends CjsModel
   {
     this.keys.push(key);
     SortKeys(this.keys);
-    this.#currentKeyIndex = 0;
+    this._currentKeyIndex = 0;
     this.length = this.keys[this.keys.length - 1].time;
   }
 
@@ -151,7 +151,7 @@ export class AudEventCurve extends CjsModel
     }
     this.keys.splice(ix, 1);
     SortKeys(this.keys);
-    this.#currentKeyIndex = 0;
+    this._currentKeyIndex = 0;
     if (this.keys.length > 0)
     {
       this.length = this.keys[this.keys.length - 1].time;
@@ -164,7 +164,7 @@ export class AudEventCurve extends CjsModel
   Initialize()
   {
     SortKeys(this.keys);
-    this.#currentKeyIndex = 0;
+    this._currentKeyIndex = 0;
     if (this.keys.length > 0)
     {
       this.length = this.keys[this.keys.length - 1].time;
@@ -207,7 +207,7 @@ export class AudEventCurve extends CjsModel
   @impl.implemented
   Reset()
   {
-    this.#currentKeyIndex = 0;
+    this._currentKeyIndex = 0;
   }
 
   /** Carbon method GetSourceTriObserver (MAP_METHOD_AND_WRAP). */
@@ -267,7 +267,7 @@ export class AudEventCurve extends CjsModel
     this.time = Number(time) || 0;
     if (this.time < before)
     {
-      this.#currentKeyIndex = 0;
+      this._currentKeyIndex = 0;
     }
 
     if (this.extrapolation === TRIEXTRAPOLATION.TRIEXT_CYCLE)
@@ -275,7 +275,7 @@ export class AudEventCurve extends CjsModel
       const localNow = this.time % this.length;
       if (localNow < this.localTime)
       {
-        this.#currentKeyIndex = 0;
+        this._currentKeyIndex = 0;
       }
       this.localTime = localNow;
     }
@@ -289,16 +289,16 @@ export class AudEventCurve extends CjsModel
       this.CreateAudioEmitter();
     }
     const positioned = this.audioEmitter?.HasReceivedPosition?.() === true;
-    if (this.#queuedEvent && positioned)
+    if (this._queuedEvent && positioned)
     {
-      this.audioEmitter.SendEvent(this.#queuedEvent);
-      this.#queuedEvent = "";
+      this.audioEmitter.SendEvent(this._queuedEvent);
+      this._queuedEvent = "";
     }
 
-    while (this.#currentKeyIndex < this.keys.length
-      && this.localTime >= this.keys[this.#currentKeyIndex].time)
+    while (this._currentKeyIndex < this.keys.length
+      && this.localTime >= this.keys[this._currentKeyIndex].time)
     {
-      const eventName = this.keys[this.#currentKeyIndex].value;
+      const eventName = this.keys[this._currentKeyIndex].value;
       if (eventName)
       {
         if (positioned)
@@ -307,10 +307,10 @@ export class AudEventCurve extends CjsModel
         }
         else
         {
-          this.#queuedEvent = eventName;
+          this._queuedEvent = eventName;
         }
       }
-      this.#currentKeyIndex++;
+      this._currentKeyIndex++;
     }
   }
 

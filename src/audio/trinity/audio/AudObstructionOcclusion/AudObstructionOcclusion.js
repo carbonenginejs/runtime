@@ -22,48 +22,48 @@ function NowSeconds()
  */
 export class AudObstructionOcclusion
 {
-  #audioManager;
+  _audioManager;
 
-  #emitters = new Map();
+  _emitters = new Map();
 
-  #fadeRate = DEFAULT_FADE_RATE;
+  _fadeRate = DEFAULT_FADE_RATE;
 
-  #hasUpdated = false;
+  _hasUpdated = false;
 
-  #lastUpdateTime = 0;
+  _lastUpdateTime = 0;
 
-  #enabled = true;
+  _enabled = true;
 
-  #now;
+  _now;
 
   /** Creates Carbon's obstruction/occlusion collaborator for one manager. */
   constructor(audioManager, now = NowSeconds)
   {
-    this.#audioManager = audioManager;
-    this.#now = now;
+    this._audioManager = audioManager;
+    this._now = now;
   }
 
   /** Advances every fade and sends changed awake-emitter values. */
   Update(backend)
   {
-    if (!this.#audioManager
-      || this.#audioManager.GetState?.() !== "enabled")
+    if (!this._audioManager
+      || this._audioManager.GetState?.() !== "enabled")
     {
       return;
     }
 
-    const now = Number(this.#now());
-    const deltaSeconds = this.#hasUpdated && Number.isFinite(now)
-      ? Math.max(0, now - this.#lastUpdateTime)
+    const now = Number(this._now());
+    const deltaSeconds = this._hasUpdated && Number.isFinite(now)
+      ? Math.max(0, now - this._lastUpdateTime)
       : 0;
 
-    this.#lastUpdateTime = Number.isFinite(now) ? now : NowSeconds();
-    this.#hasUpdated = true;
+    this._lastUpdateTime = Number.isFinite(now) ? now : NowSeconds();
+    this._hasUpdated = true;
 
-    for (const [ emitterID, state ] of this.#emitters)
+    for (const [ emitterID, state ] of this._emitters)
     {
       let culled = false;
-      const exists = this.#audioManager.WithCallbackGameObject?.(
+      const exists = this._audioManager.WithCallbackGameObject?.(
         emitterID,
         emitter =>
         {
@@ -73,17 +73,17 @@ export class AudObstructionOcclusion
 
       if (!exists)
       {
-        this.#emitters.delete(emitterID);
+        this._emitters.delete(emitterID);
         continue;
       }
 
       const obstructionChanged = state.obstruction.Advance(
         deltaSeconds,
-        this.#fadeRate,
+        this._fadeRate,
       );
       const occlusionChanged = state.occlusion.Advance(
         deltaSeconds,
-        this.#fadeRate,
+        this._fadeRate,
       );
 
       if (culled)
@@ -93,7 +93,7 @@ export class AudObstructionOcclusion
       }
       if (obstructionChanged || occlusionChanged || state.needsSend)
       {
-        state.needsSend = !this.#SendToBackend(
+        state.needsSend = !this._SendToBackend(
           backend,
           emitterID,
           state,
@@ -105,11 +105,11 @@ export class AudObstructionOcclusion
   /** Sets the obstruction and occlusion targets for a registered emitter. */
   SetObstructionOcclusion(emitterID, obstruction, occlusion)
   {
-    if (!this.#enabled
-      || !this.#audioManager
-      || this.#audioManager.GetState?.() !== "enabled"
+    if (!this._enabled
+      || !this._audioManager
+      || this._audioManager.GetState?.() !== "enabled"
       || emitterID === LISTENER_GAME_OBJ_ID
-      || this.#audioManager.WithCallbackGameObject?.(
+      || this._audioManager.WithCallbackGameObject?.(
         emitterID,
         () => {},
       ) !== true)
@@ -117,13 +117,13 @@ export class AudObstructionOcclusion
       return false;
     }
 
-    let state = this.#emitters.get(emitterID);
+    let state = this._emitters.get(emitterID);
     const isNewEmitter = !state;
 
     if (!state)
     {
       state = new EmitterState();
-      this.#emitters.set(emitterID, state);
+      this._emitters.set(emitterID, state);
     }
     state.obstruction.SetTarget(obstruction);
     state.occlusion.SetTarget(occlusion);
@@ -139,7 +139,7 @@ export class AudObstructionOcclusion
   /** Maps caller-supplied blockage to Carbon's acoustics-aware targets. */
   SetEmitterLineOfSightBlockage(emitterID, blockage)
   {
-    const acousticsEnabled = this.#audioManager
+    const acousticsEnabled = this._audioManager
       ?.GetSpatialAudioGeometryEnabled?.() === true;
 
     return this.SetObstructionOcclusion(
@@ -152,27 +152,27 @@ export class AudObstructionOcclusion
   /** Returns the live, mid-fade occlusion value for one emitter. */
   GetEmitterOcclusion(emitterID)
   {
-    return this.#emitters.get(emitterID)?.occlusion.currentValue ?? 0;
+    return this._emitters.get(emitterID)?.occlusion.currentValue ?? 0;
   }
 
   /** Drops one emitter immediately when its game object is unregistered. */
   RemoveEmitter(emitterID)
   {
-    this.#emitters.delete(emitterID);
+    this._emitters.delete(emitterID);
   }
 
   /** Forgets every emitter and resets the fade clock. */
   Reset()
   {
-    this.#emitters.clear();
-    this.#hasUpdated = false;
-    this.#lastUpdateTime = 0;
+    this._emitters.clear();
+    this._hasUpdated = false;
+    this._lastUpdateTime = 0;
   }
 
   /** Fades every tracked emitter back to clear. */
   ClearAll()
   {
-    for (const state of this.#emitters.values())
+    for (const state of this._emitters.values())
     {
       state.obstruction.SetTarget(0);
       state.occlusion.SetTarget(0);
@@ -182,7 +182,7 @@ export class AudObstructionOcclusion
   /** Returns whether new caller-supplied targets are accepted. */
   IsEnabled()
   {
-    return this.#enabled;
+    return this._enabled;
   }
 
   /** Enables target input or fades every existing target to clear. */
@@ -190,11 +190,11 @@ export class AudObstructionOcclusion
   {
     const enabled = Boolean(value);
 
-    if (this.#enabled === enabled)
+    if (this._enabled === enabled)
     {
       return;
     }
-    this.#enabled = enabled;
+    this._enabled = enabled;
     if (!enabled)
     {
       this.ClearAll();
@@ -204,17 +204,17 @@ export class AudObstructionOcclusion
   /** Returns the linear fade speed in value units per second. */
   GetFadeRate()
   {
-    return this.#fadeRate;
+    return this._fadeRate;
   }
 
   /** Stores Carbon's nonnegative linear fade speed. */
   SetFadeRate(value)
   {
-    this.#fadeRate = Math.max(0, Number(value));
+    this._fadeRate = Math.max(0, Number(value));
   }
 
   /** Delivers one live value through the optional Wwise-shaped backend seam. */
-  #SendToBackend(backend, emitterID, state)
+  _SendToBackend(backend, emitterID, state)
   {
     if (typeof backend?.SetObjectObstructionAndOcclusion !== "function")
     {

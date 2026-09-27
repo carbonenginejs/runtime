@@ -4,15 +4,15 @@
 /** Owns backend SFX voice-limit reservations and their owner/key invariants. */
 export class CjsAudioBackendSfxVoiceLimitLedger
 {
-    #isOwnerActive = null;
+    _isOwnerActive = null;
 
-    #ownerReservations = new WeakMap();
+    _ownerReservations = new WeakMap();
 
-    #reservationKeys = new Map();
+    _reservationKeys = new Map();
 
-    #reservations = new Map();
+    _reservations = new Map();
 
-    #nextReservationID = 1;
+    _nextReservationID = 1;
 
     /** Creates one ledger against the backend's active-owner identity check. */
     constructor({ isOwnerActive } = {})
@@ -23,7 +23,7 @@ export class CjsAudioBackendSfxVoiceLimitLedger
                 "SFX voice-limit ledger requires an active-owner predicate",
             );
         }
-        this.#isOwnerActive = isOwnerActive;
+        this._isOwnerActive = isOwnerActive;
     }
 
     /** Reserves one object-scoped counter or returns null when already held. */
@@ -31,27 +31,27 @@ export class CjsAudioBackendSfxVoiceLimitLedger
     {
         const key = `o:${String(owner.gameObjID)}\0${String(counterId)}`;
 
-        if (this.#reservationKeys.has(key))
+        if (this._reservationKeys.has(key))
         {
             return null;
         }
 
-        const id = this.#nextReservationID++;
+        const id = this._nextReservationID++;
         const reservation = {
             id,
             key,
             owner,
             voice: null,
         };
-        let ownerReservations = this.#ownerReservations.get(owner);
+        let ownerReservations = this._ownerReservations.get(owner);
 
         if (!ownerReservations)
         {
             ownerReservations = new Set();
-            this.#ownerReservations.set(owner, ownerReservations);
+            this._ownerReservations.set(owner, ownerReservations);
         }
-        this.#reservations.set(id, reservation);
-        this.#reservationKeys.set(key, id);
+        this._reservations.set(id, reservation);
+        this._reservationKeys.set(key, id);
         ownerReservations.add(id);
         return id;
     }
@@ -63,12 +63,12 @@ export class CjsAudioBackendSfxVoiceLimitLedger
         {
             return;
         }
-        const reservation = this.#reservations.get(Number(reservationID));
+        const reservation = this._reservations.get(Number(reservationID));
 
         if (!reservation
             || reservation.voice
             || reservation.owner.gameObjID !== voice.gameObjID
-            || !this.#isOwnerActive(reservation.owner))
+            || !this._isOwnerActive(reservation.owner))
         {
             throw new Error("SFX voice-limit reservation is no longer active");
         }
@@ -79,23 +79,23 @@ export class CjsAudioBackendSfxVoiceLimitLedger
     Release(owner, reservationID)
     {
         const id = Number(reservationID);
-        const reservation = this.#reservations.get(id);
+        const reservation = this._reservations.get(id);
 
         if (!reservation || reservation.owner !== owner)
         {
             return false;
         }
-        this.#reservations.delete(id);
-        if (this.#reservationKeys.get(reservation.key) === id)
+        this._reservations.delete(id);
+        if (this._reservationKeys.get(reservation.key) === id)
         {
-            this.#reservationKeys.delete(reservation.key);
+            this._reservationKeys.delete(reservation.key);
         }
-        const ownerReservations = this.#ownerReservations.get(owner);
+        const ownerReservations = this._ownerReservations.get(owner);
 
         ownerReservations?.delete(id);
         if (ownerReservations?.size === 0)
         {
-            this.#ownerReservations.delete(owner);
+            this._ownerReservations.delete(owner);
         }
         return true;
     }
@@ -106,7 +106,7 @@ export class CjsAudioBackendSfxVoiceLimitLedger
         for (const selection of selections ?? [])
         {
             const id = selection.voiceLimitReservationId;
-            const reservation = this.#reservations.get(Number(id));
+            const reservation = this._reservations.get(Number(id));
 
             if (id !== undefined
                 && reservation?.owner === owner
@@ -120,7 +120,7 @@ export class CjsAudioBackendSfxVoiceLimitLedger
     /** Releases every reservation still owned by one playing record. */
     ReleaseAll(owner)
     {
-        for (const id of [ ...(this.#ownerReservations.get(owner) ?? []) ])
+        for (const id of [ ...(this._ownerReservations.get(owner) ?? []) ])
         {
             this.Release(owner, id);
         }

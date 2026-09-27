@@ -855,29 +855,29 @@ function RouteSelection(route, containerId)
 /** One retained music clip whose disposable Web Audio source may be resumed. */
 class CjsMusicEngineScheduledClip
 {
-    #acquireBuffer;
+    _acquireBuffer;
 
-    #buffer = null;
+    _buffer = null;
 
-    #context;
+    _context;
 
-    #destination;
+    _destination;
 
-    #isLive;
+    _isLive;
 
-    #getStopAt;
+    _getStopAt;
 
-    #offsetSeconds;
+    _offsetSeconds;
 
-    #pausedAt = null;
+    _pausedAt = null;
 
-    #pausedDelay = 0;
+    _pausedDelay = 0;
 
-    #pausedDuration = 0;
+    _pausedDuration = 0;
 
-    #scheduledPauseAt = null;
+    _scheduledPauseAt = null;
 
-    #scheduleDuck;
+    _scheduleDuck;
 
     /** Retains one already-windowed clip and begins asynchronous realization. */
     constructor({
@@ -894,13 +894,13 @@ class CjsMusicEngineScheduledClip
         scheduleDuck,
     })
     {
-        this.#context = context;
-        this.#destination = destination;
-        this.#acquireBuffer = acquireBuffer;
-        this.#isLive = isLive;
-        this.#getStopAt = getStopAt;
-        this.#scheduleDuck = scheduleDuck;
-        this.#offsetSeconds = offsetSeconds;
+        this._context = context;
+        this._destination = destination;
+        this._acquireBuffer = acquireBuffer;
+        this._isLive = isLive;
+        this._getStopAt = getStopAt;
+        this._scheduleDuck = scheduleDuck;
+        this._offsetSeconds = offsetSeconds;
         this.sourceId = sourceId;
         this.source = null;
         this.startCtx = startCtx;
@@ -910,17 +910,17 @@ class CjsMusicEngineScheduledClip
         this.missed = false;
         this.ended = false;
         this.duckActivity = null;
-        this.#BeginLoad(isPrepared);
+        this._BeginLoad(isPrepared);
     }
 
     /** Acquires the clip buffer and realizes it when playback is active. */
-    #BeginLoad(isPrepared)
+    _BeginLoad(isPrepared)
     {
         let acquired;
 
         try
         {
-            acquired = this.#acquireBuffer();
+            acquired = this._acquireBuffer();
         }
         catch
         {
@@ -930,11 +930,11 @@ class CjsMusicEngineScheduledClip
         }
         if (isPrepared)
         {
-            this.#AcceptBuffer(acquired);
+            this._AcceptBuffer(acquired);
             return;
         }
         Promise.resolve(acquired).then(buffer =>
-            this.#AcceptBuffer(buffer)).catch(() =>
+            this._AcceptBuffer(buffer)).catch(() =>
         {
             this.cancelled = true;
             this.failed = true;
@@ -942,7 +942,7 @@ class CjsMusicEngineScheduledClip
     }
 
     /** Retains an acquired buffer or marks the clip as failed. */
-    #AcceptBuffer(buffer)
+    _AcceptBuffer(buffer)
     {
         if (!buffer)
         {
@@ -950,33 +950,33 @@ class CjsMusicEngineScheduledClip
             this.failed = true;
             return;
         }
-        this.#buffer = buffer;
-        if (this.#pausedAt === null)
+        this._buffer = buffer;
+        if (this._pausedAt === null)
         {
-            this.#Realize();
+            this._Realize();
         }
     }
 
     /** Creates the Web Audio source for the clip's remaining schedule. */
-    #Realize()
+    _Realize()
     {
-        if (!this.#buffer || this.cancelled || this.ended
-            || this.#pausedAt !== null || !this.#isLive())
+        if (!this._buffer || this.cancelled || this.ended
+            || this._pausedAt !== null || !this._isLive())
         {
             return;
         }
         let when = this.startCtx;
-        let offset = this.#offsetSeconds;
-        const now = Number(this.#context?.currentTime) || 0;
-        const stopAt = this.#getStopAt();
-        const carrierStopAt = [ stopAt, this.#scheduledPauseAt ]
+        let offset = this._offsetSeconds;
+        const now = Number(this._context?.currentTime) || 0;
+        const stopAt = this._getStopAt();
+        const carrierStopAt = [ stopAt, this._scheduledPauseAt ]
             .filter(value => value !== null)
             .reduce((minimum, value) => Math.min(minimum, value), Infinity);
 
-        if (this.#scheduledPauseAt !== null
-            && this.#scheduledPauseAt <= now)
+        if (this._scheduledPauseAt !== null
+            && this._scheduledPauseAt <= now)
         {
-            this.#RetainAt(this.#scheduledPauseAt);
+            this._RetainAt(this._scheduledPauseAt);
             return;
         }
 
@@ -999,24 +999,24 @@ class CjsMusicEngineScheduledClip
             this.missed = true;
             return;
         }
-        const source = this.#context.createBufferSource();
+        const source = this._context.createBufferSource();
 
-        source.buffer = this.#buffer;
-        source.connect(this.#destination);
+        source.buffer = this._buffer;
+        source.connect(this._destination);
         source.onended = () =>
         {
-            const endedAt = Number(this.#context?.currentTime)
+            const endedAt = Number(this._context?.currentTime)
                 || this.endCtx;
-            const authoredStopAt = this.#getStopAt();
+            const authoredStopAt = this._getStopAt();
 
-            if (this.#scheduledPauseAt !== null
-                && this.#scheduledPauseAt < this.endCtx
+            if (this._scheduledPauseAt !== null
+                && this._scheduledPauseAt < this.endCtx
                 && (authoredStopAt === null
-                    || this.#scheduledPauseAt < authoredStopAt)
-                && endedAt >= this.#scheduledPauseAt)
+                    || this._scheduledPauseAt < authoredStopAt)
+                && endedAt >= this._scheduledPauseAt)
             {
                 source.onended = null;
-                this.#RetainAt(this.#scheduledPauseAt);
+                this._RetainAt(this._scheduledPauseAt);
                 return;
             }
 
@@ -1048,8 +1048,8 @@ class CjsMusicEngineScheduledClip
         this.source = source;
         this.startCtx = when;
         this.endCtx = when + duration;
-        this.#offsetSeconds = offset;
-        this.duckActivity = this.#scheduleDuck(
+        this._offsetSeconds = offset;
+        this.duckActivity = this._scheduleDuck(
             this.startCtx,
             this.endCtx,
         );
@@ -1063,14 +1063,14 @@ class CjsMusicEngineScheduledClip
     SchedulePauseAt(pauseAt)
     {
         if (this.cancelled || this.failed || this.missed || this.ended
-            || this.#pausedAt !== null || this.endCtx <= pauseAt)
+            || this._pausedAt !== null || this.endCtx <= pauseAt)
         {
             return;
         }
-        this.#scheduledPauseAt = pauseAt;
+        this._scheduledPauseAt = pauseAt;
         if (this.source)
         {
-            const stopAt = this.#getStopAt();
+            const stopAt = this._getStopAt();
 
             try
             {
@@ -1088,14 +1088,14 @@ class CjsMusicEngineScheduledClip
     /** Replaces a scheduled pause stop with the clip's authored end. */
     CancelScheduledPause()
     {
-        if (this.#scheduledPauseAt === null || this.#pausedAt !== null)
+        if (this._scheduledPauseAt === null || this._pausedAt !== null)
         {
             return;
         }
-        this.#scheduledPauseAt = null;
+        this._scheduledPauseAt = null;
         if (this.source)
         {
-            const stopAt = this.#getStopAt();
+            const stopAt = this._getStopAt();
 
             try
             {
@@ -1112,9 +1112,9 @@ class CjsMusicEngineScheduledClip
     ScheduleStopAt(stopAt)
     {
         if (!this.source) return;
-        const carrierStopAt = this.#scheduledPauseAt === null
+        const carrierStopAt = this._scheduledPauseAt === null
             ? stopAt
-            : Math.min(stopAt, this.#scheduledPauseAt);
+            : Math.min(stopAt, this._scheduledPauseAt);
 
         try
         {
@@ -1127,13 +1127,13 @@ class CjsMusicEngineScheduledClip
     }
 
     /** Retains the clip's playback position at an authored pause boundary. */
-    #RetainAt(pauseAt)
+    _RetainAt(pauseAt)
     {
-        if (this.#pausedAt !== null || this.cancelled || this.ended)
+        if (this._pausedAt !== null || this.cancelled || this.ended)
         {
             return;
         }
-        const stopAt = this.#getStopAt();
+        const stopAt = this._getStopAt();
         const effectiveEnd = stopAt === null
             ? this.endCtx
             : Math.min(this.endCtx, stopAt);
@@ -1151,12 +1151,12 @@ class CjsMusicEngineScheduledClip
             this.ended = true;
             return;
         }
-        this.#pausedAt = pauseAt;
-        this.#pausedDelay = Math.max(0, this.startCtx - pauseAt);
+        this._pausedAt = pauseAt;
+        this._pausedDelay = Math.max(0, this.startCtx - pauseAt);
         const elapsed = Math.max(0, pauseAt - this.startCtx);
 
-        this.#offsetSeconds += elapsed;
-        this.#pausedDuration = effectiveEnd
+        this._offsetSeconds += elapsed;
+        this._pausedDuration = effectiveEnd
             - Math.max(this.startCtx, pauseAt);
         if (this.source)
         {
@@ -1189,32 +1189,32 @@ class CjsMusicEngineScheduledClip
     PauseAt(pauseAt)
     {
         if (this.cancelled || this.failed || this.missed || this.ended
-            || this.#pausedAt !== null)
+            || this._pausedAt !== null)
         {
             return;
         }
-        this.#RetainAt(pauseAt);
+        this._RetainAt(pauseAt);
     }
 
     /** Recreates the carrier at its retained offset on a shifted timeline. */
     ResumeAt(resumeAt)
     {
-        if (this.#pausedAt === null || this.cancelled || this.ended)
+        if (this._pausedAt === null || this.cancelled || this.ended)
         {
             return;
         }
-        this.startCtx = resumeAt + this.#pausedDelay;
-        this.endCtx = this.startCtx + this.#pausedDuration;
-        this.#pausedAt = null;
-        this.#scheduledPauseAt = null;
-        this.#Realize();
+        this.startCtx = resumeAt + this._pausedDelay;
+        this.endCtx = this.startCtx + this._pausedDuration;
+        this._pausedAt = null;
+        this._scheduledPauseAt = null;
+        this._Realize();
     }
 
     /** Stops and disconnects this clip permanently. */
     Dispose()
     {
         this.cancelled = true;
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
 
         if (now <= this.startCtx)
         {
@@ -1240,7 +1240,7 @@ class CjsMusicEngineScheduledClip
  */
 class CjsMusicEngineScheduledSegment
 {
-    #context;
+    _context;
 
     /** Initializes one scheduled segment around its connected gain lane. */
     constructor({
@@ -1254,7 +1254,7 @@ class CjsMusicEngineScheduledSegment
         timeline,
     })
     {
-        this.#context = context;
+        this._context = context;
         this.sources = [];
         this.routeGains = new Map();
         this.subTracks = new Map();
@@ -1294,7 +1294,7 @@ class CjsMusicEngineScheduledSegment
         const destination = resolveDestination() ?? this.gain;
         const { prepared, isLive } = acquireBuffer();
         const entry = new CjsMusicEngineScheduledClip({
-            context: this.#context,
+            context: this._context,
             sourceId,
             startCtx,
             endCtx,
@@ -1422,7 +1422,7 @@ class CjsMusicEngineScheduledSegment
     {
         for (const param of this.GetGainParams())
         {
-            this.#ScheduleEnvelope({
+            this._ScheduleEnvelope({
                 param,
                 from: 0,
                 to: 1,
@@ -1435,7 +1435,7 @@ class CjsMusicEngineScheduledSegment
     }
 
     /** Records and schedules one authored music automation envelope. */
-    #ScheduleEnvelope({
+    _ScheduleEnvelope({
         param,
         from,
         to,
@@ -1506,7 +1506,7 @@ class CjsMusicEngineScheduledSegment
             {
                 const authored = startValue !== null;
 
-                this.#ScheduleEnvelope({
+                this._ScheduleEnvelope({
                     param,
                     from: authored ? 1 : (param.value ?? 1),
                     to: 0,
@@ -1534,7 +1534,7 @@ class CjsMusicEngineScheduledSegment
                 }
                 entry.ScheduleStopAt(stopAt);
             }
-            else if (when + duration <= (this.#context?.currentTime ?? 0))
+            else if (when + duration <= (this._context?.currentTime ?? 0))
             {
                 entry.cancelled = true;
             }
@@ -1621,55 +1621,55 @@ class MusicInstance
 /** Interactive-music engine over the extracted Wwise music graph. */
 export class CjsMusicEngine
 {
-    #graph = null;
+    _graph = null;
 
-    #context = null;
+    _context = null;
 
-    #loadMedia = null;
+    _loadMedia = null;
 
-    #destination = null;
+    _destination = null;
 
-    #musicGain = null;
+    _musicGain = null;
 
-    #random = Math.random;
+    _random = Math.random;
 
-    #switchValues = new Map();
+    _switchValues = new Map();
 
-    #instances = new Map();
+    _instances = new Map();
 
-    #groups = new Map();
+    _groups = new Map();
 
-    #scheduledSetters = [];
+    _scheduledSetters = [];
 
-    #buffers = new Map();
+    _buffers = new Map();
 
-    #transportChoices = new Map();
+    _transportChoices = new Map();
 
-    #nextScheduleId = 1;
+    _nextScheduleId = 1;
 
-    #epoch = 0;
+    _epoch = 0;
 
-    #busRtpcCatalog = new Map();
+    _busRtpcCatalog = new Map();
 
-    #readGlobalRtpc = null;
+    _readGlobalRtpc = null;
 
-    #readGlobalRtpcTransitionBoundaries = null;
+    _readGlobalRtpcTransitionBoundaries = null;
 
-    #busStateCatalog = new Map();
+    _busStateCatalog = new Map();
 
-    #readGlobalStateWeights = null;
+    _readGlobalStateWeights = null;
 
-    #readGlobalStateTransitionBoundaries = null;
+    _readGlobalStateTransitionBoundaries = null;
 
-    #busDuckingController = null;
+    _busDuckingController = null;
 
-    #busEffectCatalog = new Map();
+    _busEffectCatalog = new Map();
 
-    #busGraphRuntime = null;
+    _busGraphRuntime = null;
 
-    #busMixer = null;
+    _busMixer = null;
 
-    #unsubscribeBusDucking = null;
+    _unsubscribeBusDucking = null;
 
     /** Creates a scheduler over an optional authored graph and Web Audio context. */
     constructor({
@@ -1690,61 +1690,61 @@ export class CjsMusicEngine
         busMixer,
     } = {})
     {
-        this.#graph = graph ?? null;
-        this.#context = context ?? null;
-        this.#loadMedia = loadMedia ?? null;
-        this.#destination = destination ?? context?.destination ?? null;
-        this.#busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
-        this.#readGlobalRtpc = typeof getGlobalRTPC === "function"
+        this._graph = graph ?? null;
+        this._context = context ?? null;
+        this._loadMedia = loadMedia ?? null;
+        this._destination = destination ?? context?.destination ?? null;
+        this._busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
+        this._readGlobalRtpc = typeof getGlobalRTPC === "function"
             ? getGlobalRTPC
             : null;
-        this.#readGlobalRtpcTransitionBoundaries =
+        this._readGlobalRtpcTransitionBoundaries =
             typeof getGlobalRTPCTransitionBoundaries === "function"
                 ? getGlobalRTPCTransitionBoundaries
                 : null;
-        this.#busStateCatalog = indexBusStateCatalog(busStates);
-        this.#readGlobalStateWeights =
+        this._busStateCatalog = indexBusStateCatalog(busStates);
+        this._readGlobalStateWeights =
             typeof getGlobalStatePropertyWeights === "function"
                 ? getGlobalStatePropertyWeights
                 : null;
-        this.#readGlobalStateTransitionBoundaries =
+        this._readGlobalStateTransitionBoundaries =
             typeof getGlobalStateTransitionBoundaries === "function"
                 ? getGlobalStateTransitionBoundaries
                 : null;
-        this.#busDuckingController = busDuckingController ?? null;
-        this.#busEffectCatalog = indexBusEffectCatalog(busEffects);
-        this.#busGraphRuntime = busGraphRuntime ?? null;
-        this.#busMixer = busMixer ?? null;
-        this.#unsubscribeBusDucking = this.#busDuckingController?.Subscribe?.(
+        this._busDuckingController = busDuckingController ?? null;
+        this._busEffectCatalog = indexBusEffectCatalog(busEffects);
+        this._busGraphRuntime = busGraphRuntime ?? null;
+        this._busMixer = busMixer ?? null;
+        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe?.(
             () => this.RefreshBusDucking(),
         ) ?? null;
-        if (random) this.#random = random;
-        if (this.#context && this.#destination)
+        if (random) this._random = random;
+        if (this._context && this._destination)
         {
             // Music output bus: every instance routes through it so music
             // volume is controllable independently of effects.
-            this.#musicGain = this.#context.createGain();
-            this.#musicGain.connect(this.#destination);
+            this._musicGain = this._context.createGain();
+            this._musicGain.connect(this._destination);
         }
     }
 
     /** Returns the Web Audio gain feeding the configured music destination. */
     get musicGain()
     {
-        return this.#musicGain;
+        return this._musicGain;
     }
 
     /** Music-bus volume (0..1); effects are unaffected. */
     SetMusicVolume(value)
     {
-        const gain = this.#musicGain?.gain;
+        const gain = this._musicGain?.gain;
         const volume = Math.max(0, Math.min(1, Number(value) || 0));
 
         if (gain && typeof gain === "object" && "value" in gain)
         {
             gain.value = volume;
         }
-        this.#busMixer?.SetCategoryVolume?.("music", volume);
+        this._busMixer?.SetCategoryVolume?.("music", volume);
     }
 
     /**
@@ -1752,14 +1752,14 @@ export class CjsMusicEngine
      * cancelled before the new graph becomes visible; stale async loads are
      * rejected by the engine epoch.
      */
-    SetGraph(graph, { loadMedia = this.#loadMedia } = {})
+    SetGraph(graph, { loadMedia = this._loadMedia } = {})
     {
         this.StopAll(0);
-        this.#epoch++;
-        this.#graph = graph ?? null;
-        this.#loadMedia = loadMedia ?? null;
-        this.#switchValues.clear();
-        this.#transportChoices.clear();
+        this._epoch++;
+        this._graph = graph ?? null;
+        this._loadMedia = loadMedia ?? null;
+        this._switchValues.clear();
+        this._transportChoices.clear();
         this.ClearMedia();
         return this;
     }
@@ -1769,66 +1769,66 @@ export class CjsMusicEngine
     {
         const ms = Number(fadeOutDuration);
         const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : 0;
-        for (const instance of [ ...this.#instances.values() ])
+        for (const instance of [ ...this._instances.values() ])
         {
-            this.#StopInstance(instance, seconds);
+            this._StopInstance(instance, seconds);
         }
-        for (const group of [ ...this.#groups.values() ])
+        for (const group of [ ...this._groups.values() ])
         {
-            this.#CancelScheduledSetters(group);
-            this.#MaybeFinishGroup(group);
+            this._CancelScheduledSetters(group);
+            this._MaybeFinishGroup(group);
         }
     }
 
     /** Releases one decoded-buffer promise from the source cache. */
     ReleaseMedia(sourceId)
     {
-        return this.#buffers.delete(sourceId);
+        return this._buffers.delete(sourceId);
     }
 
     /** Releases every decoded-buffer promise and returns the removed count. */
     ClearMedia()
     {
-        const count = this.#buffers.size;
-        this.#buffers.clear();
+        const count = this._buffers.size;
+        this._buffers.clear();
         return count;
     }
 
     /** Active decoded-media cache size. */
     GetCachedMediaCount()
     {
-        return this.#buffers.size;
+        return this._buffers.size;
     }
 
     /** Cancels playback and releases graph-owned WebAudio/cache state. */
     Dispose()
     {
         this.StopAll(0);
-        this.#epoch++;
+        this._epoch++;
         this.ClearMedia();
-        this.#switchValues.clear();
-        this.#transportChoices.clear();
-        this.#unsubscribeBusDucking?.();
-        this.#unsubscribeBusDucking = null;
-        this.#busDuckingController = null;
-        this.#busGraphRuntime = null;
-        this.#busMixer = null;
-        this.#musicGain?.disconnect?.();
-        this.#musicGain = null;
-        this.#graph = null;
-        this.#loadMedia = null;
-        this.#destination = null;
-        this.#context = null;
+        this._switchValues.clear();
+        this._transportChoices.clear();
+        this._unsubscribeBusDucking?.();
+        this._unsubscribeBusDucking = null;
+        this._busDuckingController = null;
+        this._busGraphRuntime = null;
+        this._busMixer = null;
+        this._musicGain?.disconnect?.();
+        this._musicGain = null;
+        this._graph = null;
+        this._loadMedia = null;
+        this._destination = null;
+        this._context = null;
     }
 
     /** True when this engine owns the event or one retained music program. */
     HandlesEvent(eventName)
     {
-        if (!this.#graph) return false;
-        return !!(this.#graph.eventTargets?.[eventName]
-            || this.#graph.eventStops?.[eventName]
-            || this.#graph.switchSetters?.[eventName]
-            || this.#graph.programs?.[eventName]);
+        if (!this._graph) return false;
+        return !!(this._graph.eventTargets?.[eventName]
+            || this._graph.eventStops?.[eventName]
+            || this._graph.switchSetters?.[eventName]
+            || this._graph.programs?.[eventName]);
     }
 
     /**
@@ -1844,14 +1844,14 @@ export class CjsMusicEngine
         { busVolumeStates = null, gameObjID = 3 } = {},
     )
     {
-        this.#FinalizeDueAuthoredPauses(
-            Number(this.#context?.currentTime) || 0,
+        this._FinalizeDueAuthoredPauses(
+            Number(this._context?.currentTime) || 0,
         );
-        this.#ApplyMusicProgram(
-            this.#graph.programs?.[eventName],
+        this._ApplyMusicProgram(
+            this._graph.programs?.[eventName],
             gameObjID,
         );
-        const setters = this.#graph.switchSetters?.[eventName];
+        const setters = this._graph.switchSetters?.[eventName];
         const delayedSetters = [];
         if (setters)
         {
@@ -1867,24 +1867,24 @@ export class CjsMusicEngine
 
             if (immediate.length)
             {
-                this.#ApplySetterBatch(immediate);
+                this._ApplySetterBatch(immediate);
             }
         }
-        const stops = this.#graph.eventStops?.[eventName];
+        const stops = this._graph.eventStops?.[eventName];
         if (stops)
         {
             // Authored stop actions target the same root nodes play started.
-            for (const instance of [ ...this.#instances.values() ])
+            for (const instance of [ ...this._instances.values() ])
             {
                 if (stops.includes(instance.rootId))
                 {
-                    this.#StopInstance(instance, DEFAULT_FADE_SECONDS);
+                    this._StopInstance(instance, DEFAULT_FADE_SECONDS);
                 }
             }
         }
-        const targets = this.#graph.eventTargets?.[eventName];
+        const targets = this._graph.eventTargets?.[eventName];
         if (((!targets || !targets.length) && !delayedSetters.length)
-            || !this.#context)
+            || !this._context)
         {
             // Deferred so the caller can record the playing id before the
             // finished callback clears an immediate setter-only event.
@@ -1899,18 +1899,18 @@ export class CjsMusicEngine
             finished: false,
         };
 
-        this.#groups.set(playingID, group);
-        const postTime = Number(this.#context.currentTime) || 0;
+        this._groups.set(playingID, group);
+        const postTime = Number(this._context.currentTime) || 0;
         for (const { setter, actionIndex } of delayedSetters)
         {
-            this.#scheduledSetters.push({
+            this._scheduledSetters.push({
                 playingID,
                 actionIndex,
                 actionTime: postTime + Number(setter.delayMs) / 1000,
                 setter,
             });
         }
-        this.#scheduledSetters.sort((left, right) =>
+        this._scheduledSetters.sort((left, right) =>
             left.actionTime - right.actionTime
             || left.playingID - right.playingID
             || left.actionIndex - right.actionIndex);
@@ -1924,11 +1924,11 @@ export class CjsMusicEngine
                 busVolumeStates,
             });
 
-            instance.gain = this.#context.createGain();
-            instance.gain.connect(this.#musicGain ?? this.#destination);
+            instance.gain = this._context.createGain();
+            instance.gain.connect(this._musicGain ?? this._destination);
             group.instances.add(instance);
-            this.#instances.set(instance.key, instance);
-            this.#BeginInitialTarget(instance);
+            this._instances.set(instance.key, instance);
+            this._BeginInitialTarget(instance);
         }
         this.Process();
         return true;
@@ -1964,11 +1964,11 @@ export class CjsMusicEngine
      * each source at its retained offset, and keeps the playlist iterator,
      * random/shuffle history and sequence positions.
      */
-    #ApplyMusicProgram(program, gameObjID)
+    _ApplyMusicProgram(program, gameObjID)
     {
         for (const action of program ?? [])
         {
-            for (const instance of [ ...this.#instances.values() ])
+            for (const instance of [ ...this._instances.values() ])
             {
                 if (instance.stopped
                     || Number(instance.gameObjID) !== Number(gameObjID)
@@ -1984,7 +1984,7 @@ export class CjsMusicEngine
                     instance.authoredPauseDepth++;
                     if (!wasPaused)
                     {
-                        this.#BeginAuthoredPause(instance, action);
+                        this._BeginAuthoredPause(instance, action);
                     }
                 }
                 else if (instance.authoredPauseDepth > 0)
@@ -1992,7 +1992,7 @@ export class CjsMusicEngine
                     instance.authoredPauseDepth--;
                     if (instance.authoredPauseDepth === 0)
                     {
-                        this.#ResumeAuthoredPause(instance, action);
+                        this._ResumeAuthoredPause(instance, action);
                     }
                 }
             }
@@ -2000,16 +2000,16 @@ export class CjsMusicEngine
     }
 
     /** Starts an authored fade whose completion freezes the musical clock. */
-    #BeginAuthoredPause(instance, action)
+    _BeginAuthoredPause(instance, action)
     {
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
         const duration = Math.max(0, Number(action.transitionMs) || 0) / 1000;
 
         instance.authoredPause = {
             phase: duration > 0 ? "pausing" : "paused",
             pauseAt: now + duration,
         };
-        this.#SetAuthoredOutputEnvelope(
+        this._SetAuthoredOutputEnvelope(
             instance,
             0,
             duration,
@@ -2023,20 +2023,20 @@ export class CjsMusicEngine
         // Pause fades run on the audio clock, so queue the musical timeline
         // through every source/fade that can become audible at the fade edge,
         // even if the browser's frame loop is throttled.
-        this.#QueueThroughAuthoredPause(instance);
+        this._QueueThroughAuthoredPause(instance);
         if (duration <= 0)
         {
-            this.#FreezeAuthoredPause(instance, now);
+            this._FreezeAuthoredPause(instance, now);
         }
     }
 
     /** Extends one pausing playlist through its exact audible lookahead. */
-    #QueueThroughAuthoredPause(instance)
+    _QueueThroughAuthoredPause(instance)
     {
         const pause = instance.authoredPause;
 
         if (pause?.phase !== "pausing") return;
-        const targetNode = this.#graph.nodes[instance.resolvedTargetId];
+        const targetNode = this._graph.nodes[instance.resolvedTargetId];
         const scheduleHorizon = targetNode?.type === "music-playlist-container"
             ? PlaylistScheduleHorizon(targetNode)
             : SCHEDULE_HORIZON_SECONDS;
@@ -2047,12 +2047,12 @@ export class CjsMusicEngine
             && instance.boundary <= audibleHorizon
             && remaining-- > 0)
         {
-            if (!this.#ScheduleNextSegment(instance)) break;
+            if (!this._ScheduleNextSegment(instance)) break;
         }
     }
 
     /** Freezes source offsets and invalidates preparations at the fade edge. */
-    #FreezeAuthoredPause(instance, pauseAt)
+    _FreezeAuthoredPause(instance, pauseAt)
     {
         if (instance.authoredPause?.phase === "paused")
         {
@@ -2074,12 +2074,12 @@ export class CjsMusicEngine
     }
 
     /** Cancels a pending freeze or resumes the retained timeline in place. */
-    #ResumeAuthoredPause(instance, action)
+    _ResumeAuthoredPause(instance, action)
     {
         const state = instance.authoredPause;
 
         if (!state) return;
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
         const duration = Math.max(0, Number(action.transitionMs) || 0) / 1000;
         const frozen = state.phase === "paused";
 
@@ -2109,7 +2109,7 @@ export class CjsMusicEngine
                 scheduled.CancelScheduledPause();
             }
         }
-        this.#SetAuthoredOutputEnvelope(
+        this._SetAuthoredOutputEnvelope(
             instance,
             1,
             duration,
@@ -2126,13 +2126,13 @@ export class CjsMusicEngine
         else if (frozen || instance.authoredReevaluate)
         {
             instance.authoredReevaluate = false;
-            this.#ReevaluateInstance(instance);
+            this._ReevaluateInstance(instance);
         }
         this.Process();
     }
 
     /** Schedules the instance-level Wwise curve on every output topology. */
-    #SetAuthoredOutputEnvelope(instance, to, duration, curve, now)
+    _SetAuthoredOutputEnvelope(instance, to, duration, curve, now)
     {
         const from = EvaluateFadeEnvelope(instance.authoredOutputEnvelope, now);
         const envelope = {
@@ -2144,7 +2144,7 @@ export class CjsMusicEngine
         };
 
         instance.authoredOutputEnvelope = envelope;
-        for (const param of this.#AuthoredOutputParams(instance))
+        for (const param of this._AuthoredOutputParams(instance))
         {
             HoldAudioParam(param, now, from);
             ScheduleFade(param, from, to, now, duration, curve);
@@ -2152,7 +2152,7 @@ export class CjsMusicEngine
     }
 
     /** Collects the active gain parameters controlled by authored fades. */
-    #AuthoredOutputParams(instance)
+    _AuthoredOutputParams(instance)
     {
         return [
             instance.gain?.gain,
@@ -2162,12 +2162,12 @@ export class CjsMusicEngine
     }
 
     /** Applies the current authored output envelope to a lazily created route. */
-    #ApplyAuthoredOutputEnvelope(instance, param)
+    _ApplyAuthoredOutputEnvelope(instance, param)
     {
         const envelope = instance.authoredOutputEnvelope;
 
         if (!envelope) return;
-        const now = Number(this.#context?.currentTime) || 0;
+        const now = Number(this._context?.currentTime) || 0;
         const value = EvaluateFadeEnvelope(envelope, now);
         const end = envelope.start + envelope.duration;
 
@@ -2197,19 +2197,19 @@ export class CjsMusicEngine
         {
             return;
         }
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         if (!group)
         {
             return;
         }
         const ms = Number(fadeOutDuration);
         const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : DEFAULT_FADE_SECONDS;
-        this.#CancelScheduledSetters(group);
+        this._CancelScheduledSetters(group);
         for (const instance of [ ...group.instances ])
         {
-            this.#StopInstance(instance, seconds);
+            this._StopInstance(instance, seconds);
         }
-        this.#MaybeFinishGroup(group);
+        this._MaybeFinishGroup(group);
     }
 
     /**
@@ -2233,10 +2233,10 @@ export class CjsMusicEngine
      */
     GetTransportCapabilities(playingID)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         const states = [ ...(group?.instances ?? []) ]
             .filter(instance => !instance.stopped)
-            .map(instance => this.#GetTransportState(instance));
+            .map(instance => this._GetTransportState(instance));
         const active = states.length > 0;
         const choiceCount = states.reduce(
             (count, state) => Math.max(count, state.choices.length),
@@ -2278,7 +2278,7 @@ export class CjsMusicEngine
      */
     PauseTransport(playingID, fadeOutDuration = 30)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         const ms = Number(fadeOutDuration);
         const seconds = Number.isFinite(ms) ? Math.max(0, ms) / 1000 : 0.03;
         let changed = false;
@@ -2292,7 +2292,7 @@ export class CjsMusicEngine
             instance.pendingGeneration++;
             instance.pendingTargetId = null;
             instance.pendingRoute = null;
-            const state = this.#GetTransportState(instance);
+            const state = this._GetTransportState(instance);
 
             if (!state.choice) continue;
             instance.transportChoice = state.choice;
@@ -2300,7 +2300,7 @@ export class CjsMusicEngine
             for (const scheduled of instance.active)
             {
                 scheduled.FadeOut({
-                    when: this.#context.currentTime,
+                    when: this._context.currentTime,
                     duration: seconds,
                     override: true,
                 });
@@ -2313,28 +2313,28 @@ export class CjsMusicEngine
     /** Resumes a soft-paused playing id at its retained authored item. */
     ResumeTransport(playingID)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         const queued = [];
 
         for (const instance of group?.instances ?? [])
         {
             if (instance.stopped || !instance.transportPaused
                 || instance.authoredPause !== null) continue;
-            const state = this.#GetTransportState(instance);
+            const state = this._GetTransportState(instance);
             const choice = instance.transportChoice ?? state.choice;
 
             if (!choice) continue;
             instance.transportPendingChoice = choice;
             queued.push({ instance, choice });
         }
-        this.#QueueTransportGroup(queued, { resume: true });
+        this._QueueTransportGroup(queued, { resume: true });
         return queued.length > 0;
     }
 
     /** Moves within the current authored playlist/track selection. */
     StepTransport(playingID, direction)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         if ([ ...(group?.instances ?? []) ].some(instance =>
             !instance.stopped
             && (instance.authoredPause !== null
@@ -2351,7 +2351,7 @@ export class CjsMusicEngine
         for (const instance of group?.instances ?? [])
         {
             if (instance.stopped || instance.pendingTargetId !== null) continue;
-            const state = this.#GetTransportState(instance);
+            const state = this._GetTransportState(instance);
 
             if (state.choices.length < 2) continue;
             const index = (state.index + delta + state.choices.length)
@@ -2366,14 +2366,14 @@ export class CjsMusicEngine
             }
             changed = true;
         }
-        this.#QueueTransportGroup(queued);
+        this._QueueTransportGroup(queued);
         return changed;
     }
 
     /** Chooses another item inside the current authored playlist/track. */
     RandomTransport(playingID)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
         if ([ ...(group?.instances ?? []) ].some(instance =>
             !instance.stopped
             && (instance.authoredPause !== null
@@ -2389,11 +2389,11 @@ export class CjsMusicEngine
         for (const instance of group?.instances ?? [])
         {
             if (instance.stopped || instance.pendingTargetId !== null) continue;
-            const state = this.#GetTransportState(instance);
+            const state = this._GetTransportState(instance);
 
             if (state.choices.length < 2) continue;
             const offset = 1 + Math.floor(
-                this.#random() * (state.choices.length - 1),
+                this._random() * (state.choices.length - 1),
             );
             const choice = state.choices[
                 (state.index + offset) % state.choices.length
@@ -2407,32 +2407,32 @@ export class CjsMusicEngine
             }
             changed = true;
         }
-        this.#QueueTransportGroup(queued);
+        this._QueueTransportGroup(queued);
         return changed;
     }
 
     /** Switch/state input by name or id; music treats both as tree arguments. */
     SetSwitch(group, value)
     {
-        this.#SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
+        this._SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
     }
 
     /** State input by name or id; states and switches share graph arguments. */
     SetState(group, value)
     {
-        this.#SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
+        this._SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
     }
 
     /** Active instance count (introspection/tests). */
     GetPlayingCount()
     {
-        return this.#groups.size;
+        return this._groups.size;
     }
 
     /** Currently resolved target node id of an instance (introspection/tests). */
     GetResolvedTarget(playingID)
     {
-        const group = this.#groups.get(playingID);
+        const group = this._groups.get(playingID);
 
         return group
             ? [ ...group.instances ][0]?.resolvedTargetId ?? null
@@ -2445,17 +2445,17 @@ export class CjsMusicEngine
      */
     Process()
     {
-        if (!this.#context) return;
-        const now = this.#context.currentTime;
-        this.#FinalizeDueAuthoredPauses(now);
-        this.#ProcessScheduledSetters(now);
-        for (const instance of [ ...this.#instances.values() ])
+        if (!this._context) return;
+        const now = this._context.currentTime;
+        this._FinalizeDueAuthoredPauses(now);
+        this._ProcessScheduledSetters(now);
+        for (const instance of [ ...this._instances.values() ])
         {
             if (instance.stopped)
             {
                 if (instance.stopAt === null || now >= instance.stopAt)
                 {
-                    this.#FinalizeInstance(instance);
+                    this._FinalizeInstance(instance);
                 }
                 continue;
             }
@@ -2463,7 +2463,7 @@ export class CjsMusicEngine
             {
                 continue;
             }
-            this.#PruneScheduledSegments(instance, now);
+            this._PruneScheduledSegments(instance, now);
             if (instance.transportPaused)
             {
                 continue;
@@ -2476,10 +2476,10 @@ export class CjsMusicEngine
             }
             if (instance.exhausted)
             {
-                this.#FinishExhaustedInstance(instance, now);
+                this._FinishExhaustedInstance(instance, now);
                 continue;
             }
-            const targetNode = this.#graph.nodes[instance.resolvedTargetId];
+            const targetNode = this._graph.nodes[instance.resolvedTargetId];
             const scheduleHorizon = targetNode?.type
                 === "music-playlist-container"
                 ? PlaylistScheduleHorizon(targetNode)
@@ -2487,10 +2487,10 @@ export class CjsMusicEngine
 
             while (instance.boundary - now <= scheduleHorizon)
             {
-                if (!this.#ScheduleNextSegment(instance)) break;
+                if (!this._ScheduleNextSegment(instance)) break;
             }
             if (instance.exhausted
-                && this.#FinishExhaustedInstance(instance, now))
+                && this._FinishExhaustedInstance(instance, now))
             {
                 continue;
             }
@@ -2498,35 +2498,35 @@ export class CjsMusicEngine
     }
 
     /** Freezes music instances whose authored Pause fade has completed. */
-    #FinalizeDueAuthoredPauses(now)
+    _FinalizeDueAuthoredPauses(now)
     {
-        for (const instance of this.#instances.values())
+        for (const instance of this._instances.values())
         {
             const pause = instance.authoredPause;
 
             if (!instance.stopped && pause?.phase === "pausing"
                 && pause.pauseAt <= now)
             {
-                this.#FreezeAuthoredPause(instance, pause.pauseAt);
+                this._FreezeAuthoredPause(instance, pause.pauseAt);
             }
         }
     }
 
     /** Applies all due fixed-delay music setters in stable authored order. */
-    #ProcessScheduledSetters(now)
+    _ProcessScheduledSetters(now)
     {
-        while (this.#scheduledSetters.length
-            && this.#scheduledSetters[0].actionTime <= now)
+        while (this._scheduledSetters.length
+            && this._scheduledSetters[0].actionTime <= now)
         {
-            const actionTime = this.#scheduledSetters[0].actionTime;
+            const actionTime = this._scheduledSetters[0].actionTime;
             const due = [];
             const touched = new Set();
 
-            while (this.#scheduledSetters.length
-                && this.#scheduledSetters[0].actionTime === actionTime)
+            while (this._scheduledSetters.length
+                && this._scheduledSetters[0].actionTime === actionTime)
             {
-                const action = this.#scheduledSetters.shift();
-                const group = this.#groups.get(action.playingID);
+                const action = this._scheduledSetters.shift();
+                const group = this._groups.get(action.playingID);
 
                 if (!group || group.finished) continue;
                 group.pendingSetters = Math.max(
@@ -2538,31 +2538,31 @@ export class CjsMusicEngine
             }
             if (due.length)
             {
-                this.#ApplySetterBatch(due);
+                this._ApplySetterBatch(due);
             }
             for (const group of touched)
             {
-                this.#MaybeFinishGroup(group);
+                this._MaybeFinishGroup(group);
             }
         }
     }
 
     /** Applies one setter batch and reevaluates each live instance once. */
-    #ApplySetterBatch(setters)
+    _ApplySetterBatch(setters)
     {
         for (const setter of setters)
         {
-            this.#switchValues.set(
+            this._switchValues.set(
                 setter.groupId >>> 0,
                 setter.targetId >>> 0,
             );
         }
-        for (const instance of this.#instances.values())
+        for (const instance of this._instances.values())
         {
             if (!instance.stopped && !instance.transportPaused
                 && instance.authoredPause?.phase !== "paused")
             {
-                this.#ReevaluateInstance(instance);
+                this._ReevaluateInstance(instance);
             }
             else if (!instance.stopped
                 && instance.authoredPause?.phase === "paused")
@@ -2577,16 +2577,16 @@ export class CjsMusicEngine
     }
 
     /** Cancels every pending setter owned by one playing id. */
-    #CancelScheduledSetters(group)
+    _CancelScheduledSetters(group)
     {
         if (!group || group.pendingSetters <= 0) return;
-        this.#scheduledSetters = this.#scheduledSetters.filter(action =>
+        this._scheduledSetters = this._scheduledSetters.filter(action =>
             action.playingID !== group.playingID);
         group.pendingSetters = 0;
     }
 
     /** Completes a music post after both instances and setters settle. */
-    #MaybeFinishGroup(group)
+    _MaybeFinishGroup(group)
     {
         if (!group || group.finished || group.instances.size
             || group.pendingSetters > 0)
@@ -2594,7 +2594,7 @@ export class CjsMusicEngine
             return;
         }
         group.finished = true;
-        this.#groups.delete(group.playingID);
+        this._groups.delete(group.playingID);
         group.onFinished?.();
     }
 
@@ -2602,7 +2602,7 @@ export class CjsMusicEngine
      * Drops segment graphs whose audible window and callback grace period
      * passed, including outgoing audio retained by an authored-silence state.
      */
-    #PruneScheduledSegments(instance, now)
+    _PruneScheduledSegments(instance, now)
     {
         instance.active = instance.active.filter(scheduled =>
         {
@@ -2635,8 +2635,8 @@ export class CjsMusicEngine
      */
     GetStatus()
     {
-        const now = this.#context?.currentTime ?? 0;
-        return [ ...this.#instances.values() ].map(instance =>
+        const now = this._context?.currentTime ?? 0;
+        return [ ...this._instances.values() ].map(instance =>
         {
             const segments = instance.active.map(scheduled =>
             {
@@ -2786,13 +2786,13 @@ export class CjsMusicEngine
     }
 
     /** Stores one switch/state argument and reevaluates every live instance. */
-    #SetValue(groupId, valueId)
+    _SetValue(groupId, valueId)
     {
-        this.#FinalizeDueAuthoredPauses(
-            Number(this.#context?.currentTime) || 0,
+        this._FinalizeDueAuthoredPauses(
+            Number(this._context?.currentTime) || 0,
         );
-        this.#switchValues.set(groupId >>> 0, valueId >>> 0);
-        for (const instance of this.#instances.values())
+        this._switchValues.set(groupId >>> 0, valueId >>> 0);
+        for (const instance of this._instances.values())
         {
             if (instance.stopped) continue;
             if (instance.authoredPause?.phase === "paused")
@@ -2813,14 +2813,14 @@ export class CjsMusicEngine
                 instance.pendingRoute = null;
                 continue;
             }
-            this.#ReevaluateInstance(instance);
+            this._ReevaluateInstance(instance);
         }
     }
 
     /** Returns one stored switch/state argument, defaulting to authored key zero. */
-    #GetValue(groupId)
+    _GetValue(groupId)
     {
-        return this.#switchValues.get(groupId >>> 0) ?? 0;
+        return this._switchValues.get(groupId >>> 0) ?? 0;
     }
 
     /**
@@ -2830,26 +2830,26 @@ export class CjsMusicEngine
      * unavailable because a later setter can recover them. Direct targets
      * have no alternate branch and finish when their media cannot sound.
      */
-    #BeginInitialTarget(instance)
+    _BeginInitialTarget(instance)
     {
-        const resolution = this.#ResolveTarget(instance.rootId);
+        const resolution = this._ResolveTarget(instance.rootId);
         const target = resolution.targetId;
         const route = resolution.route;
         const targetMeter = resolution.meter;
-        const root = this.#graph.nodes[instance.rootId];
+        const root = this._graph.nodes[instance.rootId];
         const ruleTarget = root?.type === "music-switch-container"
             ? RouteSelection(route, instance.rootId)
             : target;
-        const rule = this.#FindRule(root, null, ruleTarget);
+        const rule = this._FindRule(root, null, ruleTarget);
         const recoverable = root?.type === "music-switch-container";
 
-        instance.boundary = this.#context.currentTime;
+        instance.boundary = this._context.currentTime;
         instance.resolvedTargetId = null;
         instance.resolvedRoute = null;
         instance.iterator = null;
         instance.unavailableTargetId = null;
 
-        if (!this.#graph.nodes[target])
+        if (!this._graph.nodes[target])
         {
             instance.resolvedRoute = route;
             if (!recoverable)
@@ -2858,7 +2858,7 @@ export class CjsMusicEngine
                 {
                     if (!instance.stopped)
                     {
-                        this.#FinishInstance(instance);
+                        this._FinishInstance(instance);
                     }
                 });
             }
@@ -2869,7 +2869,7 @@ export class CjsMusicEngine
 
         instance.pendingTargetId = target;
         instance.pendingRoute = route;
-        this.#PrepareTransition(
+        this._PrepareTransition(
             instance,
             target,
             rule,
@@ -2878,8 +2878,8 @@ export class CjsMusicEngine
             EffectiveMeter(null, root),
         ).then(preparation =>
         {
-            this.#FinalizeDueAuthoredPauses(
-                Number(this.#context?.currentTime) || 0,
+            this._FinalizeDueAuthoredPauses(
+                Number(this._context?.currentTime) || 0,
             );
             if (instance.stopped
                 || instance.pendingGeneration !== generation)
@@ -2904,22 +2904,22 @@ export class CjsMusicEngine
                     instance.unavailableTargetId = target;
                     if (!recoverable)
                     {
-                        this.#FinishInstance(instance);
+                        this._FinishInstance(instance);
                     }
                     return;
                 }
 
-                const when = this.#TransitionTime(instance, rule)
+                const when = this._TransitionTime(instance, rule)
                     ?? instance.boundary;
-                this.#TransitionInstance(
+                this._TransitionInstance(
                     instance,
                     rule,
                     target,
                     route,
-                    Math.max(when, this.#context.currentTime),
+                    Math.max(when, this._context.currentTime),
                     preparation,
                 );
-                this.#QueueThroughAuthoredPause(instance);
+                this._QueueThroughAuthoredPause(instance);
             };
 
             if (instance.authoredPause?.phase === "paused")
@@ -2943,7 +2943,7 @@ export class CjsMusicEngine
             instance.unavailableTargetId = target;
             if (!recoverable)
             {
-                this.#FinishInstance(instance);
+                this._FinishInstance(instance);
             }
         });
     }
@@ -2953,7 +2953,7 @@ export class CjsMusicEngine
      * A null target means authored silence, an unmatched path, or content
      * absent from the installed graph.
      */
-    #ResolveTarget(rootId, getValue = groupId => this.#GetValue(groupId))
+    _ResolveTarget(rootId, getValue = groupId => this._GetValue(groupId))
     {
         let currentId = rootId;
         const route = [];
@@ -2965,7 +2965,7 @@ export class CjsMusicEngine
             {
                 return { targetId: null, route, meter };
             }
-            const node = this.#graph.nodes[currentId];
+            const node = this._graph.nodes[currentId];
             if (!node)
             {
                 return { targetId: null, route, meter };
@@ -2998,13 +2998,13 @@ export class CjsMusicEngine
      */
     PreviewSwitchEvent(eventName, rootId)
     {
-        if (!this.#graph) return null;
-        const overlay = new Map(this.#switchValues);
-        for (const setter of this.#graph.switchSetters?.[eventName] ?? [])
+        if (!this._graph) return null;
+        const overlay = new Map(this._switchValues);
+        for (const setter of this._graph.switchSetters?.[eventName] ?? [])
         {
             overlay.set(setter.groupId >>> 0, setter.targetId >>> 0);
         }
-        return this.#ResolveTarget(
+        return this._ResolveTarget(
             rootId,
             groupId => overlay.get(groupId >>> 0) ?? 0,
         ).targetId;
@@ -3017,13 +3017,13 @@ export class CjsMusicEngine
      * a silence gap exactly as long as the fetch/decode - so the musical
      * transition is computed only once the destination can actually sound.
      */
-    #ReevaluateInstance(instance)
+    _ReevaluateInstance(instance)
     {
         // A newly authored switch/state decision supersedes any browser
         // transport choice that is still waiting on media.
         instance.transportGeneration++;
         instance.transportPendingChoice = null;
-        const resolution = this.#ResolveTarget(instance.rootId);
+        const resolution = this._ResolveTarget(instance.rootId);
         const target = resolution.targetId;
         const route = resolution.route;
         const targetMeter = resolution.meter;
@@ -3063,18 +3063,18 @@ export class CjsMusicEngine
         {
             return;
         }
-        const rootNode = this.#graph.nodes[instance.rootId];
+        const rootNode = this._graph.nodes[instance.rootId];
         const ruleOwnerId = sameTarget
             ? restartOwnerId
             : transitionOwnerId;
-        const ruleNode = this.#graph.nodes[ruleOwnerId] ?? rootNode;
+        const ruleNode = this._graph.nodes[ruleOwnerId] ?? rootNode;
         const ruleFromId = ruleNode?.type === "music-switch-container"
             ? RouteSelection(instance.resolvedRoute, ruleOwnerId ?? instance.rootId)
             : instance.resolvedTargetId;
         const ruleToId = ruleNode?.type === "music-switch-container"
             ? RouteSelection(route, ruleOwnerId ?? instance.rootId)
             : target;
-        const rule = this.#FindRule(
+        const rule = this._FindRule(
             ruleNode,
             ruleFromId,
             ruleToId,
@@ -3096,9 +3096,9 @@ export class CjsMusicEngine
             instance.unavailableTargetId = null;
             instance.pendingGeneration++;
             const when = Math.max(
-                this.#TransitionTime(instance, rule)
-                    ?? this.#CurrentSegmentBoundary(instance),
-                this.#context.currentTime,
+                this._TransitionTime(instance, rule)
+                    ?? this._CurrentSegmentBoundary(instance),
+                this._context.currentTime,
             );
             const fadeSeconds = Math.max(0, (rule?.src.transitionTime ?? 0)) / 1000;
             for (const active of instance.active)
@@ -3114,7 +3114,7 @@ export class CjsMusicEngine
         instance.pendingTargetId = target;
         instance.pendingRoute = route;
         instance.unavailableTargetId = null;
-        this.#PrepareTransition(
+        this._PrepareTransition(
             instance,
             target,
             rule,
@@ -3123,8 +3123,8 @@ export class CjsMusicEngine
             ruleMeter,
         ).then(preparation =>
         {
-            this.#FinalizeDueAuthoredPauses(
-                Number(this.#context?.currentTime) || 0,
+            this._FinalizeDueAuthoredPauses(
+                Number(this._context?.currentTime) || 0,
             );
             if (instance.stopped || instance.pendingGeneration !== generation)
             {
@@ -3148,18 +3148,18 @@ export class CjsMusicEngine
                     instance.unavailableTargetId = target;
                     return;
                 }
-                const when = this.#TransitionTime(instance, rule)
-                    ?? this.#CurrentSegmentBoundary(instance);
+                const when = this._TransitionTime(instance, rule)
+                    ?? this._CurrentSegmentBoundary(instance);
 
-                this.#TransitionInstance(
+                this._TransitionInstance(
                     instance,
                     rule,
                     target,
                     route,
-                    Math.max(when, this.#context.currentTime),
+                    Math.max(when, this._context.currentTime),
                     preparation,
                 );
-                this.#QueueThroughAuthoredPause(instance);
+                this._QueueThroughAuthoredPause(instance);
             };
 
             if (instance.authoredPause?.phase === "paused")
@@ -3178,7 +3178,7 @@ export class CjsMusicEngine
      * later be scheduled. Sequence-track positions are projected on a clone
      * and are committed only if the transition itself commits.
      */
-    #PrepareTransition(
+    _PrepareTransition(
         instance,
         targetId,
         rule,
@@ -3187,7 +3187,7 @@ export class CjsMusicEngine
         ruleMeter,
     )
     {
-        return this.#PrepareSelection(
+        return this._PrepareSelection(
             instance,
             targetId,
             rule?.transitionSegment?.segmentId ?? null,
@@ -3202,7 +3202,7 @@ export class CjsMusicEngine
      * Cursor or switch-track drift during loading causes a fresh plan under
      * the same event generation; stale target/graph work returns null.
      */
-    #PrepareSelection(
+    _PrepareSelection(
         instance,
         targetId,
         transitionSegmentId,
@@ -3211,32 +3211,32 @@ export class CjsMusicEngine
         ruleMeter,
     )
     {
-        const epoch = this.#epoch;
+        const epoch = this._epoch;
         const attempt = () =>
         {
             if (instance.stopped
                 || instance.pendingGeneration !== generation
-                || this.#epoch !== epoch)
+                || this._epoch !== epoch)
             {
                 return Promise.resolve(null);
             }
 
-            const transaction = this.#CreateSelectionTransaction(
+            const transaction = this._CreateSelectionTransaction(
                 instance,
             );
             // Bridge selections precede destination selections in the same
             // draft cursor transaction, matching their audible order.
             const transitionPlan = transitionSegmentId
-                ? this.#CreatePlaybackPlan(
+                ? this._CreatePlaybackPlan(
                     transitionSegmentId,
                     transaction,
                     EffectiveMeter(
                         ruleMeter,
-                        this.#graph.nodes[transitionSegmentId],
+                        this._graph.nodes[transitionSegmentId],
                     ),
                 )
                 : null;
-            const destinationPlan = this.#CreatePlaybackPlan(
+            const destinationPlan = this._CreatePlaybackPlan(
                 targetId,
                 transaction,
                 targetMeter,
@@ -3247,16 +3247,16 @@ export class CjsMusicEngine
             ];
 
             return Promise.all(
-                plans.map(plan => this.#PreparePlaybackPlan(plan)),
+                plans.map(plan => this._PreparePlaybackPlan(plan)),
             ).then(results =>
             {
                 if (instance.stopped
                     || instance.pendingGeneration !== generation
-                    || this.#epoch !== epoch)
+                    || this._epoch !== epoch)
                 {
                     return null;
                 }
-                if (!this.#ValidateSelectionTransaction(
+                if (!this._ValidateSelectionTransaction(
                     instance,
                     transaction,
                 ))
@@ -3277,7 +3277,7 @@ export class CjsMusicEngine
     }
 
     /** Creates a draft over live sequence cursors and switch-track values. */
-    #CreateSelectionTransaction(instance)
+    _CreateSelectionTransaction(instance)
     {
         return {
             sequencePositions: new Map(
@@ -3290,7 +3290,7 @@ export class CjsMusicEngine
     }
 
     /** True when no live cursor or switch dependency changed during loading. */
-    #ValidateSelectionTransaction(instance, transaction)
+    _ValidateSelectionTransaction(instance, transaction)
     {
         for (const [ trackId, base ] of transaction.sequenceBases)
         {
@@ -3302,7 +3302,7 @@ export class CjsMusicEngine
         }
         for (const [ groupId, value ] of transaction.switchValues)
         {
-            if (this.#GetValue(groupId) !== value)
+            if (this._GetValue(groupId) !== value)
             {
                 return false;
             }
@@ -3313,7 +3313,7 @@ export class CjsMusicEngine
     /** Reapplies live Bus Volume and filter state to scheduled routes. */
     RefreshBusVolumeGains()
     {
-        for (const instance of this.#instances.values())
+        for (const instance of this._instances.values())
         {
             for (const scheduled of instance.active)
             {
@@ -3327,14 +3327,14 @@ export class CjsMusicEngine
                         route.authoredBusVolumeDb,
                         route.authoredBusMakeUpGainDb,
                         route.authoredOutputBusVolumeDb,
-                        this.#context,
-                        this.#busRtpcCatalog,
-                        this.#readGlobalRtpc,
-                        this.#readGlobalRtpcTransitionBoundaries,
-                        this.#busStateCatalog,
-                        this.#readGlobalStateWeights,
-                        this.#readGlobalStateTransitionBoundaries,
-                        this.#busDuckingController,
+                        this._context,
+                        this._busRtpcCatalog,
+                        this._readGlobalRtpc,
+                        this._readGlobalRtpcTransitionBoundaries,
+                        this._busStateCatalog,
+                        this._readGlobalStateWeights,
+                        this._readGlobalStateTransitionBoundaries,
+                        this._busDuckingController,
                         route.sharedBusFaders,
                     );
                     ScheduleMusicBusFilter(
@@ -3342,20 +3342,20 @@ export class CjsMusicEngine
                         route.busPathIds,
                         "lowPass",
                         false,
-                        this.#context,
-                        this.#busStateCatalog,
-                        this.#readGlobalStateWeights,
-                        this.#readGlobalStateTransitionBoundaries,
+                        this._context,
+                        this._busStateCatalog,
+                        this._readGlobalStateWeights,
+                        this._readGlobalStateTransitionBoundaries,
                     );
                     ScheduleMusicBusFilter(
                         route.highPassFilter,
                         route.busPathIds,
                         "highPass",
                         true,
-                        this.#context,
-                        this.#busStateCatalog,
-                        this.#readGlobalStateWeights,
-                        this.#readGlobalStateTransitionBoundaries,
+                        this._context,
+                        this._busStateCatalog,
+                        this._readGlobalStateWeights,
+                        this._readGlobalStateTransitionBoundaries,
                     );
                 }
             }
@@ -3381,7 +3381,7 @@ export class CjsMusicEngine
     }
 
     /** Atomically applies draft sequence advances after successful prepare. */
-    #CommitSelectionTransaction(instance, transaction)
+    _CommitSelectionTransaction(instance, transaction)
     {
         for (const [ trackId, advances ] of (
             transaction?.sequenceAdvances ?? []
@@ -3401,7 +3401,7 @@ export class CjsMusicEngine
      * Finishes an exhausted iterator after its authored exit boundary and
      * every still-live clip tail. Ended sources cannot extend the instance.
      */
-    #FinishExhaustedInstance(instance, now)
+    _FinishExhaustedInstance(instance, now)
     {
         const pending = instance.active.some(scheduled =>
             scheduled.sources.some(entry =>
@@ -3438,7 +3438,7 @@ export class CjsMusicEngine
         {
             return false;
         }
-        this.#FinishInstance(instance);
+        this._FinishInstance(instance);
         return true;
     }
 
@@ -3446,9 +3446,9 @@ export class CjsMusicEngine
      * Creates one target iterator and consumes its first exact segment,
      * pinning every selected random/sequence/switch subtrack for scheduling.
      */
-    #CreatePlaybackPlan(targetId, transaction, effectiveMeter = null)
+    _CreatePlaybackPlan(targetId, transaction, effectiveMeter = null)
     {
-        const node = this.#graph.nodes[targetId];
+        const node = this._graph.nodes[targetId];
         if (!node)
         {
             return null;
@@ -3458,7 +3458,7 @@ export class CjsMusicEngine
 
         if (node.type === "music-playlist-container")
         {
-            iterator = createPlaylistIterator(node, this.#random);
+            iterator = createPlaylistIterator(node, this._random);
         }
         else
         {
@@ -3469,7 +3469,7 @@ export class CjsMusicEngine
         }
 
         const segmentId = iterator();
-        const segment = this.#graph.nodes[segmentId];
+        const segment = this._graph.nodes[segmentId];
         const targetMeter = effectiveMeter
             ?? EffectiveMeter(null, node);
         const segmentMeter = node.type === "music-playlist-container"
@@ -3481,7 +3481,7 @@ export class CjsMusicEngine
         {
             for (const trackId of segment.children)
             {
-                const track = this.#graph.nodes[trackId];
+                const track = this._graph.nodes[trackId];
 
                 if (!track
                     || track.type !== "music-track"
@@ -3492,7 +3492,7 @@ export class CjsMusicEngine
 
                 subTracks.set(
                     trackId,
-                    this.#SelectSubTrack(
+                    this._SelectSubTrack(
                         trackId,
                         track,
                         transaction.sequencePositions,
@@ -3514,14 +3514,14 @@ export class CjsMusicEngine
     }
 
     /** Preloads only the media selected by one pinned first-segment plan. */
-    #PreparePlaybackPlan(plan)
+    _PreparePlaybackPlan(plan)
     {
         if (!plan)
         {
             return Promise.resolve(false);
         }
 
-        const segment = this.#graph.nodes[plan.segmentId];
+        const segment = this._graph.nodes[plan.segmentId];
         if (plan.segmentId === null || plan.segmentId === undefined)
         {
             return Promise.resolve(true);
@@ -3535,7 +3535,7 @@ export class CjsMusicEngine
 
         for (const trackId of segment.children)
         {
-            const track = this.#graph.nodes[trackId];
+            const track = this._graph.nodes[trackId];
             const subTrack = plan.subTracks.get(trackId);
 
             if (!track || track.type !== "music-track")
@@ -3562,7 +3562,7 @@ export class CjsMusicEngine
 
         return Promise.all(
             ids.map(sourceId =>
-                this.#LoadBuffer(sourceId, null)),
+                this._LoadBuffer(sourceId, null)),
         ).then(buffers =>
         {
             plan.preparedBuffers = new Map(
@@ -3576,12 +3576,12 @@ export class CjsMusicEngine
     }
 
     /** Enumerates authored segment and random/sequence subtrack choices. */
-    #GetTransportChoices(instance)
+    _GetTransportChoices(instance)
     {
-        const cached = this.#transportChoices.get(instance.resolvedTargetId);
+        const cached = this._transportChoices.get(instance.resolvedTargetId);
 
         if (cached) return cached;
-        const target = this.#graph?.nodes?.[instance.resolvedTargetId];
+        const target = this._graph?.nodes?.[instance.resolvedTargetId];
         const segmentIds = target?.type === "music-segment"
             ? [ instance.resolvedTargetId ]
             : target?.type === "music-playlist-container"
@@ -3592,14 +3592,14 @@ export class CjsMusicEngine
 
         for (const segmentId of segmentIds)
         {
-            const segment = this.#graph.nodes[segmentId];
+            const segment = this._graph.nodes[segmentId];
 
             if (segment?.type !== "music-segment") continue;
             const selectableTracks = [];
 
             for (const trackId of segment.children ?? [])
             {
-                const track = this.#graph.nodes[trackId];
+                const track = this._graph.nodes[trackId];
                 const count = Math.max(1, track?.subTrackCount || 1);
 
                 if (track?.type !== "music-track"
@@ -3628,19 +3628,19 @@ export class CjsMusicEngine
             for (const subTracks of variants)
             {
                 const choice = { segmentId, subTracks };
-                const key = this.#TransportChoiceKey(choice);
+                const key = this._TransportChoiceKey(choice);
 
                 if (seen.has(key)) continue;
                 seen.add(key);
                 choices.push(choice);
             }
         }
-        this.#transportChoices.set(instance.resolvedTargetId, choices);
+        this._transportChoices.set(instance.resolvedTargetId, choices);
         return choices;
     }
 
     /** Stable comparison key for one internal authored transport choice. */
-    #TransportChoiceKey(choice)
+    _TransportChoiceKey(choice)
     {
         return [
             choice?.segmentId,
@@ -3650,15 +3650,15 @@ export class CjsMusicEngine
     }
 
     /** Locates the audible/current scheduled item in the enumerated choices. */
-    #GetTransportState(instance)
+    _GetTransportState(instance)
     {
-        const choices = this.#GetTransportChoices(instance);
+        const choices = this._GetTransportChoices(instance);
         let choice = instance.transportPendingChoice
             ?? (instance.transportPaused ? instance.transportChoice : null);
 
         if (!choice)
         {
-            const now = this.#context?.currentTime ?? 0;
+            const now = this._context?.currentTime ?? 0;
             const candidates = instance.active
                 .filter(value => !value.disposed)
                 .sort((left, right) => left.startCtx - right.startCtx)
@@ -3683,7 +3683,7 @@ export class CjsMusicEngine
                 const subTracks = new Map(
                     [ ...scheduled.subTracks ].filter(([ trackId ]) =>
                     {
-                        const track = this.#graph.nodes[trackId];
+                        const track = this._graph.nodes[trackId];
 
                         return track?.type === "music-track"
                             && [ 1, 2 ].includes(track.trackType)
@@ -3697,8 +3697,8 @@ export class CjsMusicEngine
             }
         }
         let index = choices.findIndex(value =>
-            this.#TransportChoiceKey(value)
-                === this.#TransportChoiceKey(choice));
+            this._TransportChoiceKey(value)
+                === this._TransportChoiceKey(choice));
 
         if (index < 0) index = 0;
         return {
@@ -3712,7 +3712,7 @@ export class CjsMusicEngine
     }
 
     /** Preloads every changed layer, then commits them at one context time. */
-    #QueueTransportGroup(selections, { resume = false } = {})
+    _QueueTransportGroup(selections, { resume = false } = {})
     {
         if (!selections.length) return;
         const entries = selections.map(({ instance, choice }) => ({
@@ -3721,7 +3721,7 @@ export class CjsMusicEngine
             generation: ++instance.transportGeneration,
             pendingGeneration: instance.pendingGeneration,
             targetId: instance.resolvedTargetId,
-            plan: this.#CreateTransportPlan(instance, choice),
+            plan: this._CreateTransportPlan(instance, choice),
         }));
 
         if (entries.some(entry => !entry.plan))
@@ -3748,7 +3748,7 @@ export class CjsMusicEngine
             }
         };
         Promise.all(entries.map(entry =>
-            this.#PreparePlaybackPlan(entry.plan))).then(results =>
+            this._PreparePlaybackPlan(entry.plan))).then(results =>
         {
             const valid = entries.every((entry, index) =>
                 results[index] && current(entry));
@@ -3758,14 +3758,14 @@ export class CjsMusicEngine
                 clearPending();
                 return;
             }
-            const now = (this.#context?.currentTime ?? 0)
-                + RenderQuantumSeconds(this.#context);
+            const now = (this._context?.currentTime ?? 0)
+                + RenderQuantumSeconds(this._context);
             for (const entry of entries)
             {
                 if (resume) entry.instance.transportPaused = false;
                 entry.instance.transportPendingChoice = null;
                 entry.plan.scheduleFloor = now;
-                this.#RestartTransportChoice(
+                this._RestartTransportChoice(
                     entry.instance,
                     entry.choice,
                     entry.plan,
@@ -3778,18 +3778,18 @@ export class CjsMusicEngine
             {
                 for (const entry of entries)
                 {
-                    this.#ReevaluateInstance(entry.instance);
+                    this._ReevaluateInstance(entry.instance);
                 }
             }
         }).catch(clearPending);
     }
 
     /** Creates the pinned segment/subtrack plan for a transport selection. */
-    #CreateTransportPlan(instance, choice)
+    _CreateTransportPlan(instance, choice)
     {
         const targetId = instance.resolvedTargetId;
-        const target = this.#graph?.nodes?.[targetId];
-        const segment = this.#graph?.nodes?.[choice.segmentId];
+        const target = this._graph?.nodes?.[targetId];
+        const segment = this._graph?.nodes?.[choice.segmentId];
 
         if (!target || segment?.type !== "music-segment") return null;
         const targetMeter = EffectiveMeter(null, target);
@@ -3797,7 +3797,7 @@ export class CjsMusicEngine
 
         for (const trackId of segment.children ?? [])
         {
-            const track = this.#graph.nodes[trackId];
+            const track = this._graph.nodes[trackId];
 
             if (track?.type !== "music-track" || subTracks.has(trackId))
             {
@@ -3806,7 +3806,7 @@ export class CjsMusicEngine
             subTracks.set(
                 trackId,
                 track.trackType === 3
-                    ? this.#SelectSubTrack(
+                    ? this._SelectSubTrack(
                         trackId,
                         track,
                         new Map(instance.trackSequencePositions),
@@ -3826,16 +3826,16 @@ export class CjsMusicEngine
     }
 
     /** Restarts one live instance at an explicitly selected authored item. */
-    #RestartTransportChoice(
+    _RestartTransportChoice(
         instance,
         choice,
-        plan = this.#CreateTransportPlan(instance, choice),
-        now = this.#context?.currentTime ?? 0,
+        plan = this._CreateTransportPlan(instance, choice),
+        now = this._context?.currentTime ?? 0,
         runProcess = true,
     )
     {
         const targetId = instance.resolvedTargetId;
-        const target = this.#graph?.nodes?.[targetId];
+        const target = this._graph?.nodes?.[targetId];
 
         if (!target || !plan) return false;
         instance.pendingGeneration++;
@@ -3850,14 +3850,14 @@ export class CjsMusicEngine
                 override: true,
             });
         }
-        this.#ResolveInstanceTo(instance, targetId, now);
+        this._ResolveInstanceTo(instance, targetId, now);
         if (target.type === "music-segment")
         {
             instance.iterator = () => null;
         }
         for (const [ trackId, subTrack ] of choice.subTracks)
         {
-            const track = this.#graph.nodes[trackId];
+            const track = this._graph.nodes[trackId];
 
             if (track?.type === "music-track" && track.trackType === 2)
             {
@@ -3867,7 +3867,7 @@ export class CjsMusicEngine
         instance.nextSegmentPlan = plan;
         instance.transportChoice = choice;
         instance.transportPendingChoice = null;
-        this.#ScheduleNextSegment(instance);
+        this._ScheduleNextSegment(instance);
         if (runProcess) this.Process();
         return true;
     }
@@ -3878,12 +3878,12 @@ export class CjsMusicEngine
      * 1 NextGrid, 2 NextBar, 3 NextBeat; cue-synced types return null and
      * transition at the segment boundary instead.
      */
-    #TransitionTime(instance, rule)
+    _TransitionTime(instance, rule)
     {
-        const now = this.#context.currentTime;
+        const now = this._context.currentTime;
         const syncType = rule?.src.syncType ?? 7;
         if (syncType === 0) return now;
-        const timeline = this.#CurrentScheduledSegment(instance)?.timeline
+        const timeline = this._CurrentScheduledSegment(instance)?.timeline
             ?? instance.timeline;
         const meter = timeline?.meter;
         if (!meter || syncType > 3) return null;
@@ -3913,9 +3913,9 @@ export class CjsMusicEngine
      * Lookahead may already have queued later segments, so the last scheduled
      * segment is not necessarily the segment that owns the current sync point.
      */
-    #CurrentScheduledSegment(instance)
+    _CurrentScheduledSegment(instance)
     {
-        const now = this.#context?.currentTime ?? 0;
+        const now = this._context?.currentTime ?? 0;
         let current = null;
 
         for (const scheduled of instance.active)
@@ -3931,14 +3931,14 @@ export class CjsMusicEngine
     }
 
     /** Returns the current segment exit without using the lookahead frontier. */
-    #CurrentSegmentBoundary(instance)
+    _CurrentSegmentBoundary(instance)
     {
-        return this.#CurrentScheduledSegment(instance)?.endCtx
+        return this._CurrentScheduledSegment(instance)?.endCtx
             ?? instance.boundary;
     }
 
     /** Selects the bottom-most matching Wwise transition rule. */
-    #FindRule(node, fromId, toId)
+    _FindRule(node, fromId, toId)
     {
         if (!node?.rules) return null;
         const match = (ids, id) =>
@@ -3966,7 +3966,7 @@ export class CjsMusicEngine
     }
 
     /** Applies one authored rule and schedules its bridge and destination. */
-    #TransitionInstance(
+    _TransitionInstance(
         instance,
         rule,
         target,
@@ -3975,7 +3975,7 @@ export class CjsMusicEngine
         preparation = null,
     )
     {
-        this.#CommitSelectionTransaction(
+        this._CommitSelectionTransaction(
             instance,
             preparation?.transaction,
         );
@@ -3988,7 +3988,7 @@ export class CjsMusicEngine
             const carriesPostExit = rule?.src?.playPostExit === true
                 && atExitCue;
 
-            this.#ApplySourceFade(
+            this._ApplySourceFade(
                 active,
                 when,
                 rule?.src,
@@ -4002,7 +4002,7 @@ export class CjsMusicEngine
         let destinationTime = when;
         const transition = rule?.transitionSegment;
         const transitionSegment = transition
-            ? this.#graph.nodes[transition.segmentId]
+            ? this._graph.nodes[transition.segmentId]
             : null;
 
         if (transitionSegment?.type === "music-segment")
@@ -4010,7 +4010,7 @@ export class CjsMusicEngine
             const { entry, exit } = segmentCues(transitionSegment);
             const transitionPlan = preparation?.transitionPlan;
 
-            const scheduledTransition = this.#ScheduleSegmentClips(
+            const scheduledTransition = this._ScheduleSegmentClips(
                 instance,
                 transitionSegment,
                 transition.segmentId,
@@ -4027,14 +4027,14 @@ export class CjsMusicEngine
                 },
             );
             destinationTime += Math.max(0.001, (exit - entry) / 1000);
-            this.#ApplyFadeIn(
+            this._ApplyFadeIn(
                 scheduledTransition,
                 when,
                 transition.fadeIn,
             );
             if (FadeDuration(transition.fadeOut) > 0)
             {
-                this.#ApplySourceFade(
+                this._ApplySourceFade(
                     scheduledTransition,
                     destinationTime,
                     transition.fadeOut,
@@ -4042,7 +4042,7 @@ export class CjsMusicEngine
             }
         }
 
-        this.#ResolveInstanceTo(
+        this._ResolveInstanceTo(
             instance,
             target,
             destinationTime,
@@ -4053,14 +4053,14 @@ export class CjsMusicEngine
         // The prepared first destination is always scheduled immediately,
         // even when its authored sync point is in the future. This makes the
         // transaction commit coincide with an actual pinned WebAudio source.
-        this.#ScheduleNextSegment(instance);
+        this._ScheduleNextSegment(instance);
         this.Process();
     }
 
     /** Re-primes an instance iterator at a resolved graph target and time. */
-    #ResolveInstanceTo(instance, targetId, startTime, plan = null)
+    _ResolveInstanceTo(instance, targetId, startTime, plan = null)
     {
-        const node = this.#graph.nodes[targetId];
+        const node = this._graph.nodes[targetId];
         if (!node)
         {
             // Nothing to play for this target: go silent, stay alive.
@@ -4076,7 +4076,7 @@ export class CjsMusicEngine
         }
         else if (node.type === "music-playlist-container")
         {
-            instance.iterator = createPlaylistIterator(node, this.#random);
+            instance.iterator = createPlaylistIterator(node, this._random);
             instance.nextSegmentPlan = null;
             instance.targetMeter = EffectiveMeter(null, node);
         }
@@ -4094,7 +4094,7 @@ export class CjsMusicEngine
     }
 
     /** Schedules one more segment at the instance boundary. False = done/starved. */
-    #ScheduleNextSegment(instance)
+    _ScheduleNextSegment(instance)
     {
         let segmentId;
         let subTracks = null;
@@ -4123,15 +4123,15 @@ export class CjsMusicEngine
             instance.exhausted = true;
             return false;
         }
-        const segment = this.#graph.nodes[segmentId];
+        const segment = this._graph.nodes[segmentId];
         if (!segment || segment.type !== "music-segment")
         {
             return false;
         }
-        const playlist = this.#graph.nodes[instance.resolvedTargetId];
+        const playlist = this._graph.nodes[instance.resolvedTargetId];
         const playlistRule = playlist?.type === "music-playlist-container"
             && instance.playlistPreviousSegmentId !== null
-            ? this.#FindRule(
+            ? this._FindRule(
                 playlist,
                 instance.playlistPreviousSegmentId,
                 segmentId,
@@ -4146,7 +4146,7 @@ export class CjsMusicEngine
         const { entry, exit } = segmentCues(segment);
         const boundary = instance.boundary;
         instance.timeline = { startCtx: boundary - entry / 1000, meter };
-        const scheduled = this.#ScheduleSegmentClips(
+        const scheduled = this._ScheduleSegmentClips(
             instance,
             segment,
             segmentId,
@@ -4163,7 +4163,7 @@ export class CjsMusicEngine
         );
         if (instance.nextSegmentFadeIn)
         {
-            this.#ApplyFadeIn(
+            this._ApplyFadeIn(
                 scheduled,
                 boundary,
                 instance.nextSegmentFadeIn,
@@ -4172,14 +4172,14 @@ export class CjsMusicEngine
         }
         if (playlistRule)
         {
-            this.#ApplySourceFade(
+            this._ApplySourceFade(
                 instance.playlistPreviousScheduled,
                 boundary,
                 playlistRule.src,
                 playlistRule.src?.playPostExit === true,
                 true,
             );
-            this.#ApplyFadeIn(
+            this._ApplyFadeIn(
                 scheduled,
                 boundary,
                 playlistRule.dst,
@@ -4193,7 +4193,7 @@ export class CjsMusicEngine
     }
 
     /** Creates one scheduled segment gain and queues all selected track clips. */
-    #ScheduleSegmentClips(
+    _ScheduleSegmentClips(
         instance,
         segment,
         segmentId,
@@ -4213,16 +4213,16 @@ export class CjsMusicEngine
     {
         // Each scheduled segment owns a gain so transitions can crossfade it
         // out without touching the incoming segment on the same instance.
-        const gain = this.#context.createGain();
+        const gain = this._context.createGain();
 
         gain.connect(instance.gain);
         const endCtx = boundary
             + Math.max(0.001, (exitCueMs - entryCueMs) / 1000);
         const scheduled = new CjsMusicEngineScheduledSegment({
-            context: this.#context,
+            context: this._context,
             gain,
             segmentId,
-            scheduleId: this.#nextScheduleId++,
+            scheduleId: this._nextScheduleId++,
             targetId,
             startCtx: boundary,
             endCtx,
@@ -4234,10 +4234,10 @@ export class CjsMusicEngine
         instance.active.push(scheduled);
         for (const trackId of segment.children)
         {
-            const track = this.#graph.nodes[trackId];
+            const track = this._graph.nodes[trackId];
             if (!track || track.type !== "music-track" || !track.clips.length) continue;
             const subTrack = subTracks?.get(trackId)
-                ?? this.#SelectSubTrack(
+                ?? this._SelectSubTrack(
                     trackId,
                     track,
                     instance.trackSequencePositions,
@@ -4246,7 +4246,7 @@ export class CjsMusicEngine
             for (const clip of track.clips)
             {
                 if ((clip.trackId ?? 0) !== subTrack) continue;
-                this.#ScheduleClip(
+                this._ScheduleClip(
                     instance,
                     scheduled,
                     trackId,
@@ -4270,7 +4270,7 @@ export class CjsMusicEngine
     }
 
     /** Selects the active subtrack for normal, random, or switch track modes. */
-    #SelectSubTrack(
+    _SelectSubTrack(
         trackId,
         track,
         sequencePositions,
@@ -4280,7 +4280,7 @@ export class CjsMusicEngine
         const count = Math.max(1, track.subTrackCount || 1);
         if (track.trackType === 1)
         {
-            return Math.floor(this.#random() * count);
+            return Math.floor(this._random() * count);
         }
         if (track.trackType === 2)
         {
@@ -4302,7 +4302,7 @@ export class CjsMusicEngine
         }
         if (track.trackType === 3 && track.switchParams)
         {
-            const value = this.#GetValue(track.switchParams.groupId);
+            const value = this._GetValue(track.switchParams.groupId);
 
             transaction?.switchValues.set(
                 track.switchParams.groupId,
@@ -4317,7 +4317,7 @@ export class CjsMusicEngine
     }
 
     /** Loads and schedules one clip within its allowed pre/post-entry window. */
-    #ScheduleClip(
+    _ScheduleClip(
         instance,
         scheduled,
         trackId,
@@ -4332,7 +4332,7 @@ export class CjsMusicEngine
         scheduleFloor,
     )
     {
-        const context = this.#context;
+        const context = this._context;
         const clipStartMs = clip.playAt + clip.beginTrimOffset;
         const clipEndMs = clip.playAt + clip.srcDuration + clip.endTrimOffset;
         const audibleStartMs = playPreEntry
@@ -4368,7 +4368,7 @@ export class CjsMusicEngine
             isPrepared,
             // Qualified routes own segment-local fade lanes, which must exist
             // before loading starts and before a transition can target them.
-            resolveDestination: () => this.#GetRouteGain(
+            resolveDestination: () => this._GetRouteGain(
                 instance,
                 scheduled,
                 trackId,
@@ -4376,18 +4376,18 @@ export class CjsMusicEngine
             ),
             acquireBuffer: () =>
             {
-                const epoch = this.#epoch;
+                const epoch = this._epoch;
                 const prepared = isPrepared
                     ? preparedBuffers.get(clip.sourceId)
-                    : this.#LoadBuffer(clip.sourceId, track);
+                    : this._LoadBuffer(clip.sourceId, track);
 
                 return {
                     prepared,
-                    isLive: () => !instance.stopped && epoch === this.#epoch,
+                    isLive: () => !instance.stopped && epoch === this._epoch,
                 };
             },
             scheduleDuck: (startCtx, endCtx) =>
-                this.#busDuckingController?.ScheduleActivity?.(
+                this._busDuckingController?.ScheduleActivity?.(
                     track.busPathIds,
                     startCtx,
                     endCtx,
@@ -4403,7 +4403,7 @@ export class CjsMusicEngine
      * has no bus path). Different tracks on one output route therefore keep
      * independent RTPC gains. This is a track-local stage, not a Bus Volume.
      */
-    #GetRouteGain(instance, scheduled, trackId, track)
+    _GetRouteGain(instance, scheduled, trackId, track)
     {
         const trackRtpcCurves = Array.isArray(track.rtpcCurves)
             ? track.rtpcCurves
@@ -4416,7 +4416,7 @@ export class CjsMusicEngine
             return null;
         }
         const routeInput = hasBusPath
-            ? this.#GetBusRouteGain(instance, scheduled, trackId, track)
+            ? this._GetBusRouteGain(instance, scheduled, trackId, track)
             : scheduled.gain;
 
         if (!trackRtpcCurves.length)
@@ -4430,7 +4430,7 @@ export class CjsMusicEngine
         {
             return scheduled.routeGains.get(key).input;
         }
-        const gain = this.#context.createGain();
+        const gain = this._context.createGain();
         const route = {
             input: gain,
             gain,
@@ -4456,14 +4456,14 @@ export class CjsMusicEngine
             0,
             0,
             0,
-            this.#context,
-            this.#busRtpcCatalog,
-            this.#readGlobalRtpc,
-            this.#readGlobalRtpcTransitionBoundaries,
-            this.#busStateCatalog,
-            this.#readGlobalStateWeights,
-            this.#readGlobalStateTransitionBoundaries,
-            this.#busDuckingController,
+            this._context,
+            this._busRtpcCatalog,
+            this._readGlobalRtpc,
+            this._readGlobalRtpcTransitionBoundaries,
+            this._busStateCatalog,
+            this._readGlobalStateWeights,
+            this._readGlobalStateTransitionBoundaries,
+            this._busDuckingController,
         );
         scheduled.routeGains.set(key, route);
         return route.input;
@@ -4490,7 +4490,7 @@ export class CjsMusicEngine
      * Audio Bus Pitch is not read. The route exists before media loads, so
      * late buffers enter behind every scheduled fade.
      */
-    #GetBusRouteGain(instance, scheduled, trackId, track)
+    _GetBusRouteGain(instance, scheduled, trackId, track)
     {
         const busPathIds = track.busPathIds.map(String);
 
@@ -4503,7 +4503,7 @@ export class CjsMusicEngine
         const authoredOutputBusVolumeDb = Number(
             track.authoredOutputBusVolumeDb ?? 0,
         );
-        const busGraphRoute = this.#busGraphRuntime?.ResolveMusicRoute(
+        const busGraphRoute = this._busGraphRuntime?.ResolveMusicRoute(
             trackId,
             {
                 outputBusId: busPathIds[0],
@@ -4529,32 +4529,32 @@ export class CjsMusicEngine
             return scheduled.routeGains.get(key).input;
         }
 
-        const gain = this.#context.createGain();
+        const gain = this._context.createGain();
         const lowPassFilter = busStatePathUses(
-            this.#busStateCatalog,
+            this._busStateCatalog,
             busPathIds,
             "lowPass",
-        ) ? this.#context.createBiquadFilter?.() ?? null : null;
+        ) ? this._context.createBiquadFilter?.() ?? null : null;
         const highPassFilter = busStatePathUses(
-            this.#busStateCatalog,
+            this._busStateCatalog,
             busPathIds,
             "highPass",
-        ) ? this.#context.createBiquadFilter?.() ?? null : null;
+        ) ? this._context.createBiquadFilter?.() ?? null : null;
         const mixerInput = busGraphRoute
-            ? this.#busMixer?.GetInput?.(busGraphRoute, "music") ?? null
+            ? this._busMixer?.GetInput?.(busGraphRoute, "music") ?? null
             : null;
         const busEffectChain = mixerInput
             ? null
             : createBusEffectChain(
-                this.#context,
-                this.#busEffectCatalog,
+                this._context,
+                this._busEffectCatalog,
                 busPathIds,
             );
         const transitionGain = mixerInput
-            ? this.#context.createGain()
+            ? this._context.createGain()
             : null;
         const instanceRouteGain = mixerInput
-            ? this.#GetInstanceRouteGain(
+            ? this._GetInstanceRouteGain(
                 instance,
                 busGraphRoute,
                 mixerInput,
@@ -4601,14 +4601,14 @@ export class CjsMusicEngine
             authoredBusVolumeDb,
             authoredBusMakeUpGainDb,
             authoredOutputBusVolumeDb,
-            this.#context,
-            this.#busRtpcCatalog,
-            this.#readGlobalRtpc,
-            this.#readGlobalRtpcTransitionBoundaries,
-            this.#busStateCatalog,
-            this.#readGlobalStateWeights,
-            this.#readGlobalStateTransitionBoundaries,
-            this.#busDuckingController,
+            this._context,
+            this._busRtpcCatalog,
+            this._readGlobalRtpc,
+            this._readGlobalRtpcTransitionBoundaries,
+            this._busStateCatalog,
+            this._readGlobalStateWeights,
+            this._readGlobalStateTransitionBoundaries,
+            this._busDuckingController,
             Boolean(mixerInput),
         );
         ScheduleMusicBusFilter(
@@ -4616,27 +4616,27 @@ export class CjsMusicEngine
             busPathIds,
             "lowPass",
             false,
-            this.#context,
-            this.#busStateCatalog,
-            this.#readGlobalStateWeights,
-            this.#readGlobalStateTransitionBoundaries,
+            this._context,
+            this._busStateCatalog,
+            this._readGlobalStateWeights,
+            this._readGlobalStateTransitionBoundaries,
         );
         ScheduleMusicBusFilter(
             highPassFilter,
             busPathIds,
             "highPass",
             true,
-            this.#context,
-            this.#busStateCatalog,
-            this.#readGlobalStateWeights,
-            this.#readGlobalStateTransitionBoundaries,
+            this._context,
+            this._busStateCatalog,
+            this._readGlobalStateWeights,
+            this._readGlobalStateTransitionBoundaries,
         );
         scheduled.routeGains.set(key, route);
         return route.input;
     }
 
     /** Gets one instance-local lane before a qualified shared music route. */
-    #GetInstanceRouteGain(instance, busGraphRoute, mixerInput)
+    _GetInstanceRouteGain(instance, busGraphRoute, mixerInput)
     {
         let gain = instance.routeMixerGains.get(busGraphRoute);
 
@@ -4644,37 +4644,37 @@ export class CjsMusicEngine
         {
             return gain;
         }
-        gain = this.#context.createGain();
+        gain = this._context.createGain();
         if (instance.stopped && gain.gain && "value" in gain.gain)
         {
             gain.gain.value = 0;
         }
         gain.connect(mixerInput);
-        this.#ApplyAuthoredOutputEnvelope(instance, gain.gain);
+        this._ApplyAuthoredOutputEnvelope(instance, gain.gain);
         instance.routeMixerGains.set(busGraphRoute, gain);
         return gain;
     }
 
     /** Loads and retains one decoded music source, evicting failed results. */
-    #LoadBuffer(sourceId, track)
+    _LoadBuffer(sourceId, track)
     {
-        if (this.#buffers.has(sourceId)) return this.#buffers.get(sourceId);
-        const pending = Promise.resolve(this.#loadMedia?.(sourceId, track))
+        if (this._buffers.has(sourceId)) return this._buffers.get(sourceId);
+        const pending = Promise.resolve(this._loadMedia?.(sourceId, track))
             .catch(() => null)
             .then(buffer =>
             {
-                if (!buffer && this.#buffers.get(sourceId) === pending)
+                if (!buffer && this._buffers.get(sourceId) === pending)
                 {
-                    this.#buffers.delete(sourceId);
+                    this._buffers.delete(sourceId);
                 }
                 return buffer;
             });
-        this.#buffers.set(sourceId, pending);
+        this._buffers.set(sourceId, pending);
         return pending;
     }
 
     /** Applies an authored fade-in relative to a segment's entry cue. */
-    #ApplyFadeIn(scheduledSegment, entryTime, fade)
+    _ApplyFadeIn(scheduledSegment, entryTime, fade)
     {
         const duration = FadeDuration(fade);
         const params = scheduledSegment.GetGainParams();
@@ -4686,7 +4686,7 @@ export class CjsMusicEngine
 
         const start = entryTime + FadeOffset(fade);
         const end = start + duration;
-        const now = this.#context?.currentTime ?? 0;
+        const now = this._context?.currentTime ?? 0;
 
         if (end <= now)
         {
@@ -4712,7 +4712,7 @@ export class CjsMusicEngine
     }
 
     /** Applies an authored fade-out whose offset is relative to an exit cue. */
-    #ApplySourceFade(
+    _ApplySourceFade(
         scheduledSegment,
         exitTime,
         fade,
@@ -4735,7 +4735,7 @@ export class CjsMusicEngine
             const stopAt = exitTime + effectiveOffset;
 
             scheduledSegment.FadeOut({
-                when: Math.max(stopAt, this.#context?.currentTime ?? 0),
+                when: Math.max(stopAt, this._context?.currentTime ?? 0),
                 duration: 0,
             });
             return;
@@ -4743,7 +4743,7 @@ export class CjsMusicEngine
 
         const end = exitTime + effectiveOffset;
         const start = end - duration;
-        const now = this.#context?.currentTime ?? 0;
+        const now = this._context?.currentTime ?? 0;
 
         if (end <= now)
         {
@@ -4769,11 +4769,11 @@ export class CjsMusicEngine
     }
 
     /** Stops one live instance immediately or after an audible fade. */
-    #StopInstance(instance, fadeSeconds)
+    _StopInstance(instance, fadeSeconds)
     {
         if (instance.stopped) return;
         instance.stopped = true;
-        const now = this.#context?.currentTime ?? 0;
+        const now = this._context?.currentTime ?? 0;
         if (fadeSeconds > 0)
         {
             instance.gain?.gain?.linearRampToValueAtTime?.(0, now + fadeSeconds);
@@ -4803,25 +4803,25 @@ export class CjsMusicEngine
         }
         else
         {
-            this.#FinalizeInstance(instance);
+            this._FinalizeInstance(instance);
         }
     }
 
     /** Marks a naturally exhausted instance stopped and finalizes it. */
-    #FinishInstance(instance)
+    _FinishInstance(instance)
     {
         if (instance.finished) return;
         instance.stopped = true;
         instance.stopAt = null;
-        this.#FinalizeInstance(instance);
+        this._FinalizeInstance(instance);
     }
 
     /** Removes one instance, disconnects its gain, and fires completion once. */
-    #FinalizeInstance(instance)
+    _FinalizeInstance(instance)
     {
         if (instance.finished) return;
         instance.finished = true;
-        this.#instances.delete(instance.key);
+        this._instances.delete(instance.key);
         for (const scheduled of instance.active)
         {
             scheduled.Dispose();
@@ -4836,6 +4836,6 @@ export class CjsMusicEngine
         const group = instance.group;
 
         group?.instances.delete(instance);
-        this.#MaybeFinishGroup(group);
+        this._MaybeFinishGroup(group);
     }
 }

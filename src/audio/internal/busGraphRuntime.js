@@ -6,15 +6,15 @@ import { assertBusGraphRouteProjection } from "./busGraph.js";
  */
 export class CjsBusGraphRuntime
 {
-    #catalog = null;
+    _catalog = null;
 
-    #routes = [];
+    _routes = [];
 
-    #sfxRoutes = new Map();
+    _sfxRoutes = new Map();
 
-    #musicRoutes = new Map();
+    _musicRoutes = new Map();
 
-    #disposed = false;
+    _disposed = false;
 
     /** Installs one validated portable Bus graph generation. */
     constructor(catalog)
@@ -25,19 +25,19 @@ export class CjsBusGraphRuntime
         {
             throw new TypeError("Audio Bus graph runtime requires a version-1 route catalog");
         }
-        this.#catalog = value;
-        this.#routes = value.routes.map((route, index) => ({
+        this._catalog = value;
+        this._routes = value.routes.map((route, index) => ({
             index,
             route,
         }));
-        this.#sfxRoutes = IndexRouteReferences(
+        this._sfxRoutes = IndexRouteReferences(
             value.sfxRoutes,
-            this.#routes,
+            this._routes,
             "Audio Bus graph runtime SFX routes",
         );
-        this.#musicRoutes = IndexRouteReferences(
+        this._musicRoutes = IndexRouteReferences(
             value.musicRoutes,
-            this.#routes,
+            this._routes,
             "Audio Bus graph runtime music routes",
         );
     }
@@ -45,42 +45,42 @@ export class CjsBusGraphRuntime
     /** Resolves one SFX Sound's stable route handle, or null when it is unrouted. */
     ResolveSfxRoute(nodeId, projection = undefined)
     {
-        return this.#Resolve(this.#sfxRoutes, nodeId, projection, "SFX Sound");
+        return this._Resolve(this._sfxRoutes, nodeId, projection, "SFX Sound");
     }
 
     /** Resolves one music track's stable route handle, or null when it is unrouted. */
     ResolveMusicRoute(trackId, projection = undefined)
     {
-        return this.#Resolve(this.#musicRoutes, trackId, projection, "music track");
+        return this._Resolve(this._musicRoutes, trackId, projection, "music track");
     }
 
     /** Returns the immutable installed catalog while this generation is live. */
     GetCatalog()
     {
-        return this.#disposed ? null : this.#catalog;
+        return this._disposed ? null : this._catalog;
     }
 
     /** Returns whether a route handle belongs to this live generation. */
     OwnsRouteHandle(handle)
     {
-        return !this.#disposed && this.#routes.includes(handle);
+        return !this._disposed && this._routes.includes(handle);
     }
 
     /** Invalidates this library generation. Safe to call more than once. */
     Dispose()
     {
-        if (this.#disposed) return;
-        this.#disposed = true;
-        this.#catalog = null;
-        this.#routes = [];
-        this.#sfxRoutes.clear();
-        this.#musicRoutes.clear();
+        if (this._disposed) return;
+        this._disposed = true;
+        this._catalog = null;
+        this._routes = [];
+        this._sfxRoutes.clear();
+        this._musicRoutes.clear();
     }
 
     /** Resolves and optionally verifies one exact route projection. */
-    #Resolve(index, rawId, projection, kind)
+    _Resolve(index, rawId, projection, kind)
     {
-        if (this.#disposed || rawId === null || rawId === undefined)
+        if (this._disposed || rawId === null || rawId === undefined)
         {
             return null;
         }

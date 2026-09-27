@@ -21,7 +21,7 @@ export class AudParameter extends CjsModel
   @type.float32
   value = 0;
 
-  #gameObjID = 0;
+  _gameObjID = 0;
 
 
   /**
@@ -37,7 +37,7 @@ export class AudParameter extends CjsModel
   @impl.custom
   SetGameObjectID(gameObjID)
   {
-    this.#gameObjID = Number(gameObjID) || 0;
+    this._gameObjID = Number(gameObjID) || 0;
   }
 
   /**
@@ -56,10 +56,10 @@ export class AudParameter extends CjsModel
   @impl.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "value" && this.#gameObjID && AudGameObjResource.manager?.enabled)
+    if (propertyName === "value" && this._gameObjID && AudGameObjResource.manager?.enabled)
     {
-      AudGameObjResource.backend?.SetRTPCValue?.(this.name, this.value, this.#gameObjID);
-      AudGameObjResource.manager.LogSetRTPC?.(this.#gameObjID, this.name, this.value);
+      AudGameObjResource.backend?.SetRTPCValue?.(this.name, this.value, this._gameObjID);
+      AudGameObjResource.manager.LogSetRTPC?.(this._gameObjID, this.name, this.value);
     }
     return true;
   }

@@ -1272,38 +1272,38 @@ function MarkBusGraphVolumeActionControls(busGraph, sfx)
 /** Owns ordered bank inspection and its coupled projections. */
 class CjsAudioLibraryBuilderBankInspectionSession
 {
-    #builder;
+    _builder;
 
-    #loadBank;
+    _loadBank;
 
-    #inspectBank;
+    _inspectBank;
 
-    #signal;
+    _signal;
 
-    #inspections = [];
+    _inspections = [];
 
-    #bankIdentities = {};
+    _bankIdentities = {};
 
-    #embeddedMedia = {};
+    _embeddedMedia = {};
 
     /** Creates one ordered bank-inspection accumulator. */
     constructor({ builder, loadBank, inspectBank, signal })
     {
-        this.#builder = builder;
-        this.#loadBank = loadBank;
-        this.#inspectBank = inspectBank;
-        this.#signal = signal;
+        this._builder = builder;
+        this._loadBank = loadBank;
+        this._inspectBank = inspectBank;
+        this._signal = signal;
     }
 
     /** Inspects every indexed bank and returns its coupled projections. */
     async Inspect(library)
     {
-        const loadBank = this.#loadBank;
-        const inspectBank = this.#inspectBank;
+        const loadBank = this._loadBank;
+        const inspectBank = this._inspectBank;
 
         for (const [ sourceID, bank ] of Object.entries(library.banks))
         {
-            throwIfAborted(this.#signal, "Audio-library construction was aborted");
+            throwIfAborted(this._signal, "Audio-library construction was aborted");
 
             let loaded;
 
@@ -1311,7 +1311,7 @@ class CjsAudioLibraryBuilderBankInspectionSession
             {
                 loaded = await loadBank(bank, {
                     sourceID,
-                    signal: this.#signal,
+                    signal: this._signal,
                 });
             }
             catch (cause)
@@ -1322,7 +1322,7 @@ class CjsAudioLibraryBuilderBankInspectionSession
                 );
             }
 
-            throwIfAborted(this.#signal, "Audio-library construction was aborted");
+            throwIfAborted(this._signal, "Audio-library construction was aborted");
 
             const source = bankSourceName(bank.resPath);
             const prepared = normalizeLoadedBank(loaded, sourceID);
@@ -1332,7 +1332,7 @@ class CjsAudioLibraryBuilderBankInspectionSession
                     bank,
                     source,
                     sourceID,
-                    signal: this.#signal,
+                    signal: this._signal,
                 },
             );
             const compact = compactBankInspection(
@@ -1343,11 +1343,11 @@ class CjsAudioLibraryBuilderBankInspectionSession
             const inspectedSourceID =
                 `${compact.bankId}:${compact.languageId}`;
 
-            this.#bankIdentities[bank.resPath.toLowerCase()] = {
+            this._bankIdentities[bank.resPath.toLowerCase()] = {
                 bankID: compact.bankId,
                 languageID: compact.languageId,
             };
-            this.#inspections.push(compact);
+            this._inspections.push(compact);
 
             for (const record of compact.media)
             {
@@ -1360,13 +1360,13 @@ class CjsAudioLibraryBuilderBankInspectionSession
 
                 const mediaType = record.mediaType
                     ?? (prepared.bytes
-                        ? this.#builder.mediaTypeFromMagic(
+                        ? this._builder.mediaTypeFromMagic(
                             prepared.bytes,
                             record.absoluteOffset,
                         )
                         : "unknown");
 
-                addSourceRecord(this.#embeddedMedia, id, {
+                addSourceRecord(this._embeddedMedia, id, {
                     sourceID: `embedded:${id}:${inspectedSourceID}`,
                     bank: inspectedSourceID,
                     offset: record.absoluteOffset,
@@ -1377,9 +1377,9 @@ class CjsAudioLibraryBuilderBankInspectionSession
             }
         }
         return {
-            inspections: this.#inspections,
-            bankIdentities: this.#bankIdentities,
-            embeddedMedia: this.#embeddedMedia,
+            inspections: this._inspections,
+            bankIdentities: this._bankIdentities,
+            embeddedMedia: this._embeddedMedia,
         };
     }
 }
@@ -1387,21 +1387,21 @@ class CjsAudioLibraryBuilderBankInspectionSession
 /** Traces and caches mechanical Wwise NodeBase parent ancestry. */
 class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
 {
-    #cache = new Map();
+    _cache = new Map();
 
-    #getNodeBase = null;
+    _getNodeBase = null;
 
     /** Creates a tracer over one immutable parsed NodeBase catalog. */
     constructor(getNodeBase)
     {
-        this.#getNodeBase = getNodeBase;
+        this._getNodeBase = getNodeBase;
     }
 
     /** Returns one leaf-to-root trace with an explicit terminal condition. */
     Trace(rawID)
     {
         const startId = Number(rawID) >>> 0;
-        const cached = this.#cache.get(startId);
+        const cached = this._cache.get(startId);
 
         if (cached)
         {
@@ -1424,7 +1424,7 @@ class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
             }
             visited.add(current);
 
-            const nodeBase = this.#getNodeBase(current);
+            const nodeBase = this._getNodeBase(current);
 
             if (!nodeBase)
             {
@@ -1441,7 +1441,7 @@ class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
 
         const result = { startId, entries, terminal, terminalId };
 
-        this.#cache.set(startId, result);
+        this._cache.set(startId, result);
         return result;
     }
 }
@@ -1449,31 +1449,31 @@ class CjsAudioLibraryBuilderWwiseNodeBaseAncestry
 /** Owns recursive SFX node lowering, memoized summaries, and synthetic IDs. */
 class CjsAudioLibraryBuilderSfxNodeLoweringSession
 {
-    #active = new Set();
+    _active = new Set();
 
-    #ancestry = null;
+    _ancestry = null;
 
-    #buses = null;
+    _buses = null;
 
-    #crossfadeFiniteSounds = new Set();
+    _crossfadeFiniteSounds = new Set();
 
-    #effects = null;
+    _effects = null;
 
-    #embeddedMedia = null;
+    _embeddedMedia = null;
 
-    #media = null;
+    _media = null;
 
-    #names = null;
+    _names = null;
 
-    #nodes = {};
+    _nodes = {};
 
-    #parsed = null;
+    _parsed = null;
 
-    #projections = new Map();
+    _projections = new Map();
 
-    #syntheticID = 0xffffffff;
+    _syntheticID = 0xffffffff;
 
-    #usedIDs = new Set();
+    _usedIDs = new Set();
 
     /** Creates one lowering session for a parsed Wwise SFX node graph. */
     constructor({
@@ -1486,14 +1486,14 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         ancestry,
     })
     {
-        this.#parsed = parsed;
-        this.#effects = effects;
-        this.#buses = buses;
-        this.#names = names;
-        this.#media = media;
-        this.#embeddedMedia = embeddedMedia;
-        this.#ancestry = ancestry;
-        this.#usedIDs = new Set(
+        this._parsed = parsed;
+        this._effects = effects;
+        this._buses = buses;
+        this._names = names;
+        this._media = media;
+        this._embeddedMedia = embeddedMedia;
+        this._ancestry = ancestry;
+        this._usedIDs = new Set(
             [ ...parsed.nodes.keys() ].map(value => String(value >>> 0)),
         );
     }
@@ -1502,25 +1502,25 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     Lower(rawID)
     {
         const id = String(Number(rawID) >>> 0);
-        const existing = this.#projections.get(id);
+        const existing = this._projections.get(id);
 
         if (existing)
         {
             return existing;
         }
-        if (this.#active.has(id))
+        if (this._active.has(id))
         {
             throw new Error(`cycle at node ${id}`);
         }
 
-        const source = this.#parsed.nodes.get(Number(id));
+        const source = this._parsed.nodes.get(Number(id));
 
         if (!source)
         {
             throw new Error(`missing typed node ${id}`);
         }
 
-        this.#active.add(id);
+        this._active.add(id);
 
         try
         {
@@ -1544,12 +1544,12 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
 
             if (source.type === "sound")
             {
-                lowered = this.#LowerSound(id, source, summary);
+                lowered = this._LowerSound(id, source, summary);
             }
             else if (source.type === "random"
                 || source.type === "sequence")
             {
-                lowered = this.#LowerRandomSequence(
+                lowered = this._LowerRandomSequence(
                     id,
                     source,
                     lowerChild,
@@ -1558,7 +1558,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             }
             else if (source.type === "switch")
             {
-                lowered = this.#LowerSwitch(
+                lowered = this._LowerSwitch(
                     id,
                     source,
                     lowerChild,
@@ -1567,7 +1567,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             }
             else if (source.type === "layer")
             {
-                lowered = this.#LowerLayer(
+                lowered = this._LowerLayer(
                     id,
                     source,
                     lowerChild,
@@ -1583,20 +1583,20 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             Object.assign(
                 node,
                 CreateSfxNodeBasePlaybackProjection(
-                    this.#ancestry,
-                    this.#parsed.nodes,
+                    this._ancestry,
+                    this._parsed.nodes,
                     id,
-                    this.#names,
+                    this._names,
                 ),
                 source.type === "sound"
                     ? CreateSfxSoundVoiceLimitProjection(
-                        this.#ancestry,
+                        this._ancestry,
                         id,
-                        this.#buses,
+                        this._buses,
                     )
                     : {},
             );
-            this.#nodes[id] = node;
+            this._nodes[id] = node;
 
             const projection = {
                 nodeId: id,
@@ -1617,12 +1617,12 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                 neverCompletes,
             };
 
-            this.#projections.set(id, projection);
+            this._projections.set(id, projection);
             return projection;
         }
         finally
         {
-            this.#active.delete(id);
+            this._active.delete(id);
         }
     }
 
@@ -1635,7 +1635,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         }
 
         return {
-            nodeId: this.#Allocate({
+            nodeId: this._Allocate({
                 type: "parallel",
                 children: roots,
             }),
@@ -1645,26 +1645,26 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     /** Returns the still-plain serialized node table owned by this session. */
     GetPlainNodes()
     {
-        return this.#nodes;
+        return this._nodes;
     }
 
     /** Lowers one codec or qualified Wwise Silence source. */
-    #LowerSound(id, source, summary)
+    _LowerSound(id, source, summary)
     {
         const mediaID = String(source.sourceId >>> 0);
-        const loopCount = this.#parsed.nodeBases
+        const loopCount = this._parsed.nodeBases
             ?.get(Number(id))
             ?.loopCount;
-        const matchIds = CreateSfxMatchIds(this.#ancestry, id);
+        const matchIds = CreateSfxMatchIds(this._ancestry, id);
         const routing = CreateSfxBusRouting(
-            this.#ancestry,
+            this._ancestry,
             id,
-            this.#buses,
+            this._buses,
         );
 
         if (source.pluginType === 1
-            && !this.#media[mediaID]
-            && !this.#embeddedMedia[mediaID])
+            && !this._media[mediaID]
+            && !this._embeddedMedia[mediaID])
         {
             throw new Error(
                 `sound ${id} references unavailable media ${mediaID}`,
@@ -1685,9 +1685,9 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                 mediaId: mediaID,
                 ...identity,
                 ...CreateSfxSoundEffectProjection(
-                    this.#ancestry,
-                    this.#effects,
-                    this.#names,
+                    this._ancestry,
+                    this._effects,
+                    this._names,
                     id,
                 ),
                 ...(loopCount === 0
@@ -1697,7 +1697,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                             loop: false,
                             playCount: loopCount,
                         }
-                        : this.#crossfadeFiniteSounds.has(id)
+                        : this._crossfadeFiniteSounds.has(id)
                             ? { loop: false }
                             : {}),
             };
@@ -1712,7 +1712,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             node = {
                 type: "timed-silence",
                 durationMs: ParseStaticWwiseSilenceDuration(
-                    this.#effects,
+                    this._effects,
                     source,
                     id,
                 ),
@@ -1731,7 +1731,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     }
 
     /** Lowers one Random or Sequence container and its Continuous contract. */
-    #LowerRandomSequence(id, source, lowerChild, summary)
+    _LowerRandomSequence(id, source, lowerChild, summary)
     {
         if (source.restartBackward)
         {
@@ -1766,7 +1766,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             && (source.transitionMode === 1
                 || source.transitionMode === 2))
         {
-            this.#QualifyCrossfadeChildren(
+            this._QualifyCrossfadeChildren(
                 source.playlist.length
                     ? source.playlist.map(item => item.playId)
                     : source.children,
@@ -1822,10 +1822,10 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             && source.transitionMode === 0
             && summary.childContainsContinuous
             && children.every(child =>
-                this.#projections.get(String(child.nodeId))
+                this._projections.get(String(child.nodeId))
                     ?.neverCompletes === true);
         const nestedChild = children.length === 1
-            ? this.#nodes[String(children[0].nodeId)]
+            ? this._nodes[String(children[0].nodeId)]
             : null;
         // Wwise hangar warnings use one bounded nested clock: an infinite
         // outer Sequence waits after physical completion of a finite,
@@ -1847,7 +1847,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             && nestedChild.continuous.transition === "trigger-rate"
             && nestedChild.continuous.resetPlaylistEachPlay !== false
             && nestedChild.children.every(child =>
-                !this.#projections.get(String(child.nodeId))
+                !this._projections.get(String(child.nodeId))
                     ?.containsContinuous);
         // Jita's level-three incidental branch uses the second bounded form:
         // an infinite single-child Random/Delay around a two-choice amplitude
@@ -1877,7 +1877,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             && nestedChild.continuous.transition === "crossfade-amplitude"
             && nestedChild.continuous.resetPlaylistEachPlay === false
             && nestedChild.children.every(child =>
-                !this.#projections.get(String(child.nodeId))
+                !this._projections.get(String(child.nodeId))
                     ?.containsContinuous);
 
         if (source.continuous
@@ -1954,7 +1954,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     }
 
     /** Lowers one Step or qualified Continuous Switch container. */
-    #LowerSwitch(id, source, lowerChild, summary)
+    _LowerSwitch(id, source, lowerChild, summary)
     {
         const empty = source.groupType === 0
             && source.groupId === 0
@@ -1991,7 +1991,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         }
 
         const scope = source.groupType === 1 ? "state" : "switch";
-        const group = this.#names.groups.get(
+        const group = this._names.groups.get(
             `${scope}:${source.groupId}`,
         );
 
@@ -2045,7 +2045,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                 }
                 return child;
             });
-            const child = this.#Aggregate(childIDs);
+            const child = this._Aggregate(childIDs);
 
             cases[valueName] = { nodeId: child };
             if (assignment.valueId === source.defaultValueId)
@@ -2060,7 +2060,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         }
         if (defaultChild === null)
         {
-            defaultChild = this.#Aggregate([]);
+            defaultChild = this._Aggregate([]);
         }
         if (source.continuousValidation
             && summary.childContainsNonSwitchContinuous)
@@ -2085,7 +2085,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     }
 
     /** Lowers one Layer container and its qualified gain/RTPC associations. */
-    #LowerLayer(id, source, lowerChild)
+    _LowerLayer(id, source, lowerChild)
     {
         // A Layer controls only children named by its association list. An
         // associated Continuous Layer is approximated only when every direct
@@ -2121,7 +2121,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
 
         const finiteChildren = associatedContinuous
             ? source.children.filter(childID =>
-                this.#projections.get(
+                this._projections.get(
                     String(Number(childID) >>> 0),
                 )?.neverCompletes !== true)
             : [];
@@ -2161,7 +2161,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
 
             const parameter = associations.some(association =>
                 association.points.length)
-                ? this.#names.parameters.get(
+                ? this._names.parameters.get(
                     Number(layer.controlId) >>> 0,
                 )
                 : null;
@@ -2224,7 +2224,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                     }
                     const curve = CreateSfxRtpcCurve(
                         rtpc,
-                        this.#names,
+                        this._names,
                     );
 
                     if (!curve)
@@ -2256,44 +2256,44 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
     }
 
     /** Allocates one collision-free synthetic node identity. */
-    #Allocate(node)
+    _Allocate(node)
     {
-        while (this.#syntheticID > 0
-            && this.#usedIDs.has(String(this.#syntheticID)))
+        while (this._syntheticID > 0
+            && this._usedIDs.has(String(this._syntheticID)))
         {
-            this.#syntheticID--;
+            this._syntheticID--;
         }
-        if (this.#syntheticID === 0)
+        if (this._syntheticID === 0)
         {
             throw new Error("Audio SFX construction exhausted node identities");
         }
 
-        const id = String(this.#syntheticID--);
+        const id = String(this._syntheticID--);
 
-        this.#usedIDs.add(id);
-        this.#nodes[id] = node;
+        this._usedIDs.add(id);
+        this._nodes[id] = node;
         return id;
     }
 
     /** Aggregates zero, one, or several lowered child node identities. */
-    #Aggregate(childIDs)
+    _Aggregate(childIDs)
     {
         if (!childIDs.length)
         {
-            return this.#Allocate({ type: "silence" });
+            return this._Allocate({ type: "silence" });
         }
         if (childIDs.length === 1)
         {
             return childIDs[0];
         }
-        return this.#Allocate({
+        return this._Allocate({
             type: "parallel",
             children: childIDs.map(nodeId => ({ nodeId })),
         });
     }
 
     /** Qualifies every finite Sound reachable by one Crossfade container. */
-    #QualifyCrossfadeChildren(rawIDs, containerID)
+    _QualifyCrossfadeChildren(rawIDs, containerID)
     {
         const pending = [ ...rawIDs ];
         const visited = new Set();
@@ -2310,7 +2310,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
             }
             visited.add(id);
 
-            const source = this.#parsed.nodes.get(id);
+            const source = this._parsed.nodes.get(id);
 
             if (!source)
             {
@@ -2332,7 +2332,7 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
                 );
             }
             if (source.type === "sound"
-                && this.#parsed.nodeBases?.get(id)?.loopCount === 0)
+                && this._parsed.nodeBases?.get(id)?.loopCount === 0)
             {
                 throw new Error(
                     `crossfade container ${containerID} reaches `
@@ -2350,11 +2350,11 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
         }
         for (const key of qualifiedSounds)
         {
-            this.#crossfadeFiniteSounds.add(key);
-            if (this.#nodes[key]?.type === "sound"
-                && this.#nodes[key].loop === undefined)
+            this._crossfadeFiniteSounds.add(key);
+            if (this._nodes[key]?.type === "sound"
+                && this._nodes[key].loop === undefined)
             {
-                this.#nodes[key].loop = false;
+                this._nodes[key].loop = false;
             }
         }
     }
@@ -2363,33 +2363,33 @@ class CjsAudioLibraryBuilderSfxNodeLoweringSession
 /** Owns recursive SFX event lowering, publication, and diagnostics. */
 class CjsAudioLibraryBuilderSfxEventLoweringSession
 {
-    #activeEvents = new Set();
+    _activeEvents = new Set();
 
-    #approximatedEvents = [];
+    _approximatedEvents = [];
 
-    #buses = null;
+    _buses = null;
 
-    #eventNames = null;
+    _eventNames = null;
 
-    #events = {};
+    _events = {};
 
-    #leavesByEvent = new Map();
+    _leavesByEvent = new Map();
 
-    #loweredEvents = new Map();
+    _loweredEvents = new Map();
 
-    #musicNodeIds = null;
+    _musicNodeIds = null;
 
-    #names = null;
+    _names = null;
 
-    #nodeSession = null;
+    _nodeSession = null;
 
-    #omittedEvents = [];
+    _omittedEvents = [];
 
-    #parsed = null;
+    _parsed = null;
 
-    #programs = {};
+    _programs = {};
 
-    #stopTargetsByEvent = new Map();
+    _stopTargetsByEvent = new Map();
 
     /** Creates one lowering session for a parsed Wwise SFX event graph. */
     constructor({
@@ -2401,21 +2401,21 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
         nodeSession,
     })
     {
-        this.#parsed = parsed;
-        this.#buses = buses;
-        this.#eventNames = eventNames;
-        this.#musicNodeIds = musicNodeIds;
-        this.#names = names;
-        this.#nodeSession = nodeSession;
+        this._parsed = parsed;
+        this._buses = buses;
+        this._eventNames = eventNames;
+        this._musicNodeIds = musicNodeIds;
+        this._names = names;
+        this._nodeSession = nodeSession;
     }
 
     /** Lowers and publishes every named event in deterministic ID order. */
     LowerNamedEvents()
     {
-        for (const [ eventID ] of [ ...this.#parsed.events.entries() ]
+        for (const [ eventID ] of [ ...this._parsed.events.entries() ]
             .sort(([ left ], [ right ]) => left - right))
         {
-            const name = this.#eventNames.get(eventID >>> 0);
+            const name = this._eventNames.get(eventID >>> 0);
 
             if (!name)
             {
@@ -2424,15 +2424,15 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
 
             try
             {
-                this.#PublishNamedEvent(
+                this._PublishNamedEvent(
                     eventID,
                     name,
-                    this.#LowerEvent(eventID),
+                    this._LowerEvent(eventID),
                 );
             }
             catch (error)
             {
-                this.#omittedEvents.push({
+                this._omittedEvents.push({
                     id: eventID,
                     name,
                     reason: error.message,
@@ -2441,30 +2441,30 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
         }
 
         return {
-            events: this.#events,
-            programs: this.#programs,
-            leavesByEvent: this.#leavesByEvent,
-            stopTargetsByEvent: this.#stopTargetsByEvent,
-            omittedEvents: this.#omittedEvents,
-            approximatedEvents: this.#approximatedEvents,
+            events: this._events,
+            programs: this._programs,
+            leavesByEvent: this._leavesByEvent,
+            stopTargetsByEvent: this._stopTargetsByEvent,
+            omittedEvents: this._omittedEvents,
+            approximatedEvents: this._approximatedEvents,
         };
     }
 
     /** Lowers one event once, preserving authored action order. */
-    #LowerEvent(rawID)
+    _LowerEvent(rawID)
     {
         const eventID = Number(rawID) >>> 0;
 
-        if (this.#loweredEvents.has(eventID))
+        if (this._loweredEvents.has(eventID))
         {
-            return this.#loweredEvents.get(eventID);
+            return this._loweredEvents.get(eventID);
         }
-        if (this.#activeEvents.has(eventID))
+        if (this._activeEvents.has(eventID))
         {
             throw new Error(`Play-Event cycle at event ${eventID}`);
         }
 
-        const event = this.#parsed.events.get(eventID);
+        const event = this._parsed.events.get(eventID);
 
         if (!event)
         {
@@ -2481,27 +2481,27 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             approximatedActions: [],
         };
 
-        this.#activeEvents.add(eventID);
+        this._activeEvents.add(eventID);
 
         try
         {
-            this.#ApplyAuthoredActions(event, result);
-            this.#FinalizeEvent(eventID, result);
-            this.#loweredEvents.set(eventID, result);
+            this._ApplyAuthoredActions(event, result);
+            this._FinalizeEvent(eventID, result);
+            this._loweredEvents.set(eventID, result);
             return result;
         }
         finally
         {
-            this.#activeEvents.delete(eventID);
+            this._activeEvents.delete(eventID);
         }
     }
 
     /** Applies every authored event action to one plain working result. */
-    #ApplyAuthoredActions(event, result)
+    _ApplyAuthoredActions(event, result)
     {
         for (const actionID of event.actionIds)
         {
-            const action = this.#parsed.actions.get(actionID);
+            const action = this._parsed.actions.get(actionID);
 
             if (!action)
             {
@@ -2515,11 +2515,11 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             }
             if (action.actionType === SFX_PLAY_ACTION)
             {
-                this.#ApplyPlay(result, event, actionID, action);
+                this._ApplyPlay(result, event, actionID, action);
             }
             else if (action.actionType === SFX_PLAY_EVENT_ACTION)
             {
-                this.#ApplyPlayEvent(result, action);
+                this._ApplyPlayEvent(result, action);
             }
             else if ([
                 SFX_STOP_ACTION_FAMILY,
@@ -2554,7 +2554,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             {
                 const voicePitch = ReadSfxVoicePitchAction(
                     action,
-                    this.#parsed,
+                    this._parsed,
                 );
 
                 if (voicePitch)
@@ -2569,8 +2569,8 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             {
                 const voiceVolume = ReadSfxVoiceVolumeAction(
                     action,
-                    this.#parsed,
-                    this.#buses,
+                    this._parsed,
+                    this._buses,
                 );
 
                 if (voiceVolume)
@@ -2594,7 +2594,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             {
                 const voiceFilter = ReadSfxVoiceFilterAction(
                     action,
-                    this.#parsed,
+                    this._parsed,
                 );
 
                 if (voiceFilter)
@@ -2608,7 +2608,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
                 === SFX_RESET_GAME_PARAMETER_ACTION_FAMILY)
             {
                 result.program.push(
-                    ReadSfxGameParameterAction(action, this.#names),
+                    ReadSfxGameParameterAction(action, this._names),
                 );
             }
             else if (((action.actionType >> 8) & 0xff)
@@ -2616,7 +2616,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
                 || ((action.actionType >> 8) & 0xff)
                 === SFX_SET_STATE_ACTION_FAMILY)
             {
-                const setter = ReadSfxSetterAction(action, this.#names);
+                const setter = ReadSfxSetterAction(action, this._names);
 
                 result.setters.push(setter);
                 result.program.push(setter);
@@ -2629,14 +2629,14 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
     }
 
     /** Applies one ordinary Play action or its bounded omission fallback. */
-    #ApplyPlay(result, event, actionID, action)
+    _ApplyPlay(result, event, actionID, action)
     {
-        if (this.#musicNodeIds.has(Number(action.targetId) >>> 0))
+        if (this._musicNodeIds.has(Number(action.targetId) >>> 0))
         {
             return;
         }
         if (IsBoundedCrossfadeLayerSiblingFallback(
-            this.#parsed,
+            this._parsed,
             event,
             actionID,
             action,
@@ -2649,7 +2649,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
             return;
         }
 
-        const projection = this.#nodeSession.Lower(action.targetId);
+        const projection = this._nodeSession.Lower(action.targetId);
         const child = ReadSfxPlayActionChild(
             { nodeId: projection.nodeId },
             action,
@@ -2665,9 +2665,9 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
     }
 
     /** Applies one recursive Play-Event action and merges its plain result. */
-    #ApplyPlayEvent(result, action)
+    _ApplyPlayEvent(result, action)
     {
-        const nested = this.#LowerEvent(action.targetId);
+        const nested = this._LowerEvent(action.targetId);
         const hasTiming = HasSfxPlayActionTiming(action, false);
 
         if (hasTiming
@@ -2679,7 +2679,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
         }
         const actionChild = ReadSfxPlayActionChild(
             nested.roots.length
-                ? this.#nodeSession.AggregateRoots(
+                ? this._nodeSession.AggregateRoots(
                     nested.roots,
                     hasTiming,
                 )
@@ -2714,9 +2714,9 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
     }
 
     /** Applies music-event filtering and derives the final Play roots. */
-    #FinalizeEvent(eventID, result)
+    _FinalizeEvent(eventID, result)
     {
-        if (IsMusicEventName(this.#eventNames.get(eventID)))
+        if (IsMusicEventName(this._eventNames.get(eventID)))
         {
             if (result.program.some(value =>
                 value.kind === "set-bus-voice-volume"))
@@ -2738,7 +2738,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
     }
 
     /** Publishes one successfully lowered named event and its diagnostics. */
-    #PublishNamedEvent(eventID, name, result)
+    _PublishNamedEvent(eventID, name, result)
     {
         const {
             roots,
@@ -2753,7 +2753,7 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
         // later mixed-action validation rejects this named event.
         if (stopTargets.size)
         {
-            this.#stopTargetsByEvent.set(name, stopTargets);
+            this._stopTargetsByEvent.set(name, stopTargets);
         }
 
         const music = IsMusicEventName(name);
@@ -2779,13 +2779,13 @@ class CjsAudioLibraryBuilderSfxEventLoweringSession
         }
         if (roots.length && !music)
         {
-            this.#events[name] = roots;
-            this.#leavesByEvent.set(name, leaves);
+            this._events[name] = roots;
+            this._leavesByEvent.set(name, leaves);
         }
-        this.#programs[name] = retainedProgram;
+        this._programs[name] = retainedProgram;
         if (approximatedActions.length)
         {
-            this.#approximatedEvents.push({
+            this._approximatedEvents.push({
                 id: eventID,
                 name,
                 reason: "retained independent Play actions while omitting an unsupported Crossfade-to-Layer action",
@@ -4837,146 +4837,146 @@ function CreateBusEffectCatalog(inspections, buses, routedBusIds)
 /** Owns Wwise Bus graph qualification, route interning, and projection. */
 class CjsAudioLibraryBuilderBusGraphConstructionSession
 {
-    #buses = null;
+    _buses = null;
 
-    #candidates = [];
+    _candidates = [];
 
-    #effectsResult = null;
+    _effectsResult = null;
 
-    #graphBuses = {};
+    _graphBuses = {};
 
-    #graphEffects = {};
+    _graphEffects = {};
 
-    #inspections = null;
+    _inspections = null;
 
-    #musicAncestry = null;
+    _musicAncestry = null;
 
-    #musicInspections = null;
+    _musicInspections = null;
 
-    #musicResult = null;
+    _musicResult = null;
 
-    #musicRoutes = {};
+    _musicRoutes = {};
 
-    #reachable = new Set();
+    _reachable = new Set();
 
-    #routes = [];
+    _routes = [];
 
-    #sfxAncestry = null;
+    _sfxAncestry = null;
 
-    #sfxResult = null;
+    _sfxResult = null;
 
-    #sfxRoutes = {};
+    _sfxRoutes = {};
 
     /** Creates one construction session for already parsed Audio Buses. */
     constructor({ inspections, musicInspections, buses })
     {
-        this.#inspections = inspections;
-        this.#musicInspections = musicInspections;
-        this.#buses = buses;
+        this._inspections = inspections;
+        this._musicInspections = musicInspections;
+        this._buses = buses;
     }
 
     /** Builds one deterministic plain Bus graph catalog. */
     Build()
     {
-        this.#ParseSources();
-        this.#CollectCandidates();
-        this.#InternRoutes();
-        this.#CollectReachableBuses();
-        this.#ProjectBuses();
+        this._ParseSources();
+        this._CollectCandidates();
+        this._InternRoutes();
+        this._CollectReachableBuses();
+        this._ProjectBuses();
 
         return {
             schemaVersion: 1,
-            buses: this.#graphBuses,
-            effects: Object.fromEntries(Object.entries(this.#graphEffects)
+            buses: this._graphBuses,
+            effects: Object.fromEntries(Object.entries(this._graphEffects)
                 .sort(([ left ], [ right ]) => Number(left) - Number(right))),
-            routes: this.#routes,
-            sfxRoutes: this.#sfxRoutes,
-            musicRoutes: this.#musicRoutes,
+            routes: this._routes,
+            sfxRoutes: this._sfxRoutes,
+            musicRoutes: this._musicRoutes,
         };
     }
 
     /** Parses and qualifies every source catalog used by Bus routing. */
-    #ParseSources()
+    _ParseSources()
     {
-        this.#effectsResult = CjsBnkFormat.wwise.effectNodesFromBanks(
-            this.#inspections,
+        this._effectsResult = CjsBnkFormat.wwise.effectNodesFromBanks(
+            this._inspections,
         );
-        this.#sfxResult = CjsBnkFormat.wwise.sfxNodesFromBanks(
-            this.#inspections,
+        this._sfxResult = CjsBnkFormat.wwise.sfxNodesFromBanks(
+            this._inspections,
         );
-        this.#musicResult = this.#musicInspections.length
-            ? CjsBnkFormat.wwise.musicNodesFromBanks(this.#musicInspections)
+        this._musicResult = this._musicInspections.length
+            ? CjsBnkFormat.wwise.musicNodesFromBanks(this._musicInspections)
             : {
                 nodes: new Map(),
                 diagnostics: { failed: [], unsupportedVersions: [] },
             };
 
-        if (this.#effectsResult.diagnostics.failed.length
-            || this.#effectsResult.diagnostics.unsupportedVersions.length
-            || this.#sfxResult.diagnostics.failed.length
-            || this.#sfxResult.diagnostics.unsupportedVersions?.length
-            || this.#musicResult.diagnostics.failed.length
-            || this.#musicResult.diagnostics.unsupportedVersions?.length)
+        if (this._effectsResult.diagnostics.failed.length
+            || this._effectsResult.diagnostics.unsupportedVersions.length
+            || this._sfxResult.diagnostics.failed.length
+            || this._sfxResult.diagnostics.unsupportedVersions?.length
+            || this._musicResult.diagnostics.failed.length
+            || this._musicResult.diagnostics.unsupportedVersions?.length)
         {
             throw new Error("Audio Bus graph qualification failed");
         }
-        this.#sfxAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
-            id => this.#sfxResult.nodeBases.get(id),
+        this._sfxAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+            id => this._sfxResult.nodeBases.get(id),
         );
-        this.#musicAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
-            id => this.#musicResult.nodes.get(id)?.nodeBase,
+        this._musicAncestry = new CjsAudioLibraryBuilderWwiseNodeBaseAncestry(
+            id => this._musicResult.nodes.get(id)?.nodeBase,
         );
     }
 
     /** Collects every routed SFX Sound and Music Track candidate. */
-    #CollectCandidates()
+    _CollectCandidates()
     {
-        for (const [ id, node ] of this.#sfxResult.nodes)
+        for (const [ id, node ] of this._sfxResult.nodes)
         {
             if (node.type !== "sound") continue;
             const routing = CreateSfxBusRouting(
-                this.#sfxAncestry,
+                this._sfxAncestry,
                 id,
-                this.#buses,
+                this._buses,
             );
 
             if (!routing) continue;
-            this.#candidates.push({
+            this._candidates.push({
                 kind: "sfx",
                 nodeId: String(id),
                 route: {
                     ...routing,
-                    ...CreateEffectiveNodeAuxRouting(id, this.#sfxAncestry),
+                    ...CreateEffectiveNodeAuxRouting(id, this._sfxAncestry),
                 },
             });
         }
-        for (const [ id, node ] of this.#musicResult.nodes)
+        for (const [ id, node ] of this._musicResult.nodes)
         {
             if (node.type !== "music-track") continue;
             const routing = CreateMusicBusRouting(
-                this.#musicAncestry,
+                this._musicAncestry,
                 id,
-                this.#buses,
+                this._buses,
             );
 
             if (!routing) continue;
-            this.#candidates.push({
+            this._candidates.push({
                 kind: "music",
                 nodeId: String(id),
                 route: {
                     ...routing,
-                    ...CreateEffectiveNodeAuxRouting(id, this.#musicAncestry),
+                    ...CreateEffectiveNodeAuxRouting(id, this._musicAncestry),
                 },
             });
         }
     }
 
     /** Interns identical routes and assigns stable indices by signature. */
-    #InternRoutes()
+    _InternRoutes()
     {
         const routesBySignature = new Map();
 
-        for (const candidate of this.#candidates)
+        for (const candidate of this._candidates)
         {
             const signature = JSON.stringify(candidate.route);
 
@@ -4992,23 +4992,23 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
             index,
         ]));
 
-        this.#routes = signatures.map(signature =>
+        this._routes = signatures.map(signature =>
             routesBySignature.get(signature));
-        for (const candidate of this.#candidates.sort((left, right) =>
+        for (const candidate of this._candidates.sort((left, right) =>
             Number(left.nodeId) - Number(right.nodeId)))
         {
             const target = candidate.kind === "sfx"
-                ? this.#sfxRoutes
-                : this.#musicRoutes;
+                ? this._sfxRoutes
+                : this._musicRoutes;
 
             target[candidate.nodeId] = routeIndices.get(candidate.signature);
         }
     }
 
     /** Finds the complete parent and auxiliary Bus closure for every route. */
-    #CollectReachableBuses()
+    _CollectReachableBuses()
     {
-        const pending = this.#routes.flatMap(route => [
+        const pending = this._routes.flatMap(route => [
             ...route.busPathIds,
             ...(route.userAuxSends ?? []).map(send => send.targetBusId),
             route.reflectionsAuxSend?.targetBusId,
@@ -5018,8 +5018,8 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
         {
             const busId = Number(pending.pop()) >>> 0;
 
-            if (!busId || this.#reachable.has(busId)) continue;
-            const bus = this.#buses.get(busId);
+            if (!busId || this._reachable.has(busId)) continue;
+            const bus = this._buses.get(busId);
 
             if (!bus)
             {
@@ -5027,7 +5027,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
                     `Audio Bus graph references missing bus ${busId}`,
                 );
             }
-            this.#reachable.add(busId);
+            this._reachable.add(busId);
             const busAux = CreateAuthoredAuxRouting(
                 bus,
                 `Audio Bus ${busId}`,
@@ -5043,19 +5043,19 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
     }
 
     /** Projects every reachable Bus and its qualified effect slots. */
-    #ProjectBuses()
+    _ProjectBuses()
     {
-        for (const busId of [ ...this.#reachable ]
+        for (const busId of [ ...this._reachable ]
             .sort((left, right) => left - right))
         {
-            const bus = this.#buses.get(busId);
+            const bus = this._buses.get(busId);
             const aux = CreateAuthoredAuxRouting(
                 bus,
                 `Audio Bus ${busId}`,
             );
-            const slots = this.#ProjectEffectSlots(busId, bus);
+            const slots = this._ProjectEffectSlots(busId, bus);
 
-            this.#graphBuses[String(busId)] = {
+            this._graphBuses[String(busId)] = {
                 type: bus.type,
                 ...(Number(bus.overrideBusId) >>> 0
                     ? {
@@ -5103,7 +5103,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
                     : { outputBusVolumeDb: Number(bus.outputBusVolume) }),
                 ...aux,
                 effects: slots,
-                requiresProcessing: this.#CreateProcessingReasons(
+                requiresProcessing: this._CreateProcessingReasons(
                     bus,
                     aux,
                     slots,
@@ -5113,7 +5113,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
     }
 
     /** Projects and registers one Bus's ordered effect slots. */
-    #ProjectEffectSlots(busId, bus)
+    _ProjectEffectSlots(busId, bus)
     {
         return [ ...(bus.fx?.slots ?? []) ]
             .sort((left, right) => left.index - right.index)
@@ -5126,7 +5126,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
                         + " has unsupported slot flags",
                     );
                 }
-                const effect = this.#effectsResult.effects.get(slot.fxId);
+                const effect = this._effectsResult.effects.get(slot.fxId);
 
                 if (!effect)
                 {
@@ -5143,7 +5143,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
                         + " has a mismatched ShareSet flag",
                     );
                 }
-                this.#graphEffects[String(effect.id)] =
+                this._graphEffects[String(effect.id)] =
                     CreatePortableEffect(effect);
                 return {
                     slotIndex: Number(slot.index),
@@ -5156,7 +5156,7 @@ class CjsAudioLibraryBuilderBusGraphConstructionSession
     }
 
     /** Classifies which authored Bus features require runtime processing. */
-    #CreateProcessingReasons(bus, aux, slots)
+    _CreateProcessingReasons(bus, aux, slots)
     {
         const reasons = [];
 
@@ -7459,19 +7459,19 @@ function CreateMusicRtpcCurves(nodeBase, names)
 /** Owns ordered Wwise name and default-value catalog accumulation. */
 class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
 {
-    #groups = new Map();
+    _groups = new Map();
 
-    #parameters = new Map();
+    _parameters = new Map();
 
-    #parameterDefaults = new Map();
+    _parameterDefaults = new Map();
 
-    #parameterBuiltIns = new Map();
+    _parameterBuiltIns = new Map();
 
-    #parameterTransitions = new Map();
+    _parameterTransitions = new Map();
 
-    #stateFilterBehavior;
+    _stateFilterBehavior;
 
-    #stateTransitionSettings = new Map();
+    _stateTransitionSettings = new Map();
 
     /** Adds authored names from parsed SoundbanksInfo metadata. */
     AddSoundbanksInfo(soundbanksInfo)
@@ -7494,7 +7494,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             {
                 for (const entry of entries)
                 {
-                    this.#AddGroup(scope, entry, valuesField);
+                    this._AddGroup(scope, entry, valuesField);
                 }
             }
 
@@ -7502,7 +7502,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             // historical later-bank-wins rule for duplicate parameter IDs.
             for (const parameter of bank.gameParameters)
             {
-                this.#parameters.set(
+                this._parameters.set(
                     Number(parameter.id) >>> 0,
                     parameter.name,
                 );
@@ -7516,7 +7516,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
     {
         for (const inspection of inspections)
         {
-            this.#AddGlobalSettings(inspection?.globalSettings);
+            this._AddGlobalSettings(inspection?.globalSettings);
         }
         return this;
     }
@@ -7546,8 +7546,8 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 );
             }
 
-            this.#AddEnrichedParameterName(rawID, id, value);
-            this.#AddEnrichedParameterDefault(rawID, id, value);
+            this._AddEnrichedParameterName(rawID, id, value);
+            this._AddEnrichedParameterDefault(rawID, id, value);
         }
         return this;
     }
@@ -7556,22 +7556,22 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
     Build()
     {
         return {
-            groups: this.#groups,
-            parameters: this.#parameters,
-            parameterDefaults: this.#parameterDefaults,
-            parameterBuiltIns: this.#parameterBuiltIns,
-            parameterTransitions: this.#parameterTransitions,
-            stateTransitions: this.#CreateStateTransitions(),
-            stateFilterBehavior: this.#stateFilterBehavior,
+            groups: this._groups,
+            parameters: this._parameters,
+            parameterDefaults: this._parameterDefaults,
+            parameterBuiltIns: this._parameterBuiltIns,
+            parameterTransitions: this._parameterTransitions,
+            stateTransitions: this._CreateStateTransitions(),
+            stateFilterBehavior: this._stateFilterBehavior,
         };
     }
 
     /** Merges one named Switch or State group and its values. */
-    #AddGroup(scope, entry, valuesField)
+    _AddGroup(scope, entry, valuesField)
     {
         const key = `${scope}:${Number(entry.id) >>> 0}`;
-        const entryName = this.#NormalizeOptionalName(entry.name);
-        const group = this.#groups.get(key) ?? {
+        const entryName = this._NormalizeOptionalName(entry.name);
+        const group = this._groups.get(key) ?? {
             ...(entryName ? { name: entryName } : {}),
             values: new Map(),
         };
@@ -7586,7 +7586,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
         }
         if (entryName)
         {
-            for (const [ otherKey, otherGroup ] of this.#groups)
+            for (const [ otherKey, otherGroup ] of this._groups)
             {
                 if (otherKey !== key
                     && otherKey.startsWith(`${scope}:`)
@@ -7604,18 +7604,18 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
 
         for (const value of entry[valuesField])
         {
-            this.#AddValueName(
+            this._AddValueName(
                 group.values,
                 Number(value.id) >>> 0,
                 value.name,
                 `Audio ${scope} group ${entry.id}`,
             );
         }
-        this.#groups.set(key, group);
+        this._groups.set(key, group);
     }
 
     /** Validates and merges one inspection's optional STMG settings. */
-    #AddGlobalSettings(globalSettings)
+    _AddGlobalSettings(globalSettings)
     {
         if (globalSettings === null || globalSettings === undefined)
         {
@@ -7646,8 +7646,8 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             );
         }
         if (filterBehavior !== undefined
-            && this.#stateFilterBehavior !== undefined
-            && this.#stateFilterBehavior !== filterBehavior)
+            && this._stateFilterBehavior !== undefined
+            && this._stateFilterBehavior !== filterBehavior)
         {
             throw new TypeError(
                 "Audio STMG filterBehavior conflicts between banks",
@@ -7655,21 +7655,21 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
         }
         if (filterBehavior !== undefined)
         {
-            this.#stateFilterBehavior = filterBehavior;
+            this._stateFilterBehavior = filterBehavior;
         }
 
         for (const rawGroup of globalSettings.stateGroups)
         {
-            this.#AddStateTransitionSettings(rawGroup);
+            this._AddStateTransitionSettings(rawGroup);
         }
         for (const parameter of globalSettings.rtpcParameters)
         {
-            this.#AddParameterDefault(parameter);
+            this._AddParameterDefault(parameter);
         }
     }
 
     /** Validates and merges one STMG State group's transition settings. */
-    #AddStateTransitionSettings(rawGroup)
+    _AddStateTransitionSettings(rawGroup)
     {
         if (!rawGroup
             || typeof rawGroup !== "object"
@@ -7730,7 +7730,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
         }).sort((left, right) =>
             left.fromId - right.fromId || left.toId - right.toId);
         const normalized = { id, defaultTransitionMs, transitions };
-        const existing = this.#stateTransitionSettings.get(id);
+        const existing = this._stateTransitionSettings.get(id);
 
         if (existing
             && JSON.stringify(existing) !== JSON.stringify(normalized))
@@ -7739,11 +7739,11 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 `Audio STMG State group ${id} has conflicting settings`,
             );
         }
-        this.#stateTransitionSettings.set(id, normalized);
+        this._stateTransitionSettings.set(id, normalized);
     }
 
     /** Validates and merges one STMG Game Parameter default. */
-    #AddParameterDefault(parameter)
+    _AddParameterDefault(parameter)
     {
         if (!parameter
             || typeof parameter !== "object"
@@ -7763,7 +7763,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + " defaultValue must be finite",
             );
         }
-        const existing = this.#parameterDefaults.get(id);
+        const existing = this._parameterDefaults.get(id);
 
         if (existing !== undefined && existing !== defaultValue)
         {
@@ -7772,7 +7772,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + ` defaultValue conflicts with ${existing}`,
             );
         }
-        this.#parameterDefaults.set(id, defaultValue);
+        this._parameterDefaults.set(id, defaultValue);
         const builtInParameter = parameter.builtInParameter === undefined
             ? undefined
             : Number(parameter.builtInParameter);
@@ -7787,7 +7787,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + " builtInParameter is invalid",
             );
         }
-        const existingBuiltIn = this.#parameterBuiltIns.get(id);
+        const existingBuiltIn = this._parameterBuiltIns.get(id);
 
         if (builtInParameter !== undefined
             && existingBuiltIn !== undefined
@@ -7800,7 +7800,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
         }
         if (builtInParameter !== undefined)
         {
-            this.#parameterBuiltIns.set(id, builtInParameter);
+            this._parameterBuiltIns.set(id, builtInParameter);
         }
         const hasTransition = parameter.rampType !== undefined
             || parameter.rampUp !== undefined
@@ -7825,7 +7825,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
             );
         }
         const transition = { rampType, rampUpSeconds, rampDownSeconds };
-        const existingTransition = this.#parameterTransitions.get(id);
+        const existingTransition = this._parameterTransitions.get(id);
 
         if (existingTransition
             && JSON.stringify(existingTransition)
@@ -7836,11 +7836,11 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + " transition settings conflict between banks",
             );
         }
-        this.#parameterTransitions.set(id, transition);
+        this._parameterTransitions.set(id, transition);
     }
 
     /** Merges one optional enrichment Game Parameter name. */
-    #AddEnrichedParameterName(rawID, id, value)
+    _AddEnrichedParameterName(rawID, id, value)
     {
         if (value.name === undefined)
         {
@@ -7855,7 +7855,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + " name must be non-empty",
             );
         }
-        const existing = this.#parameters.get(id);
+        const existing = this._parameters.get(id);
 
         if (existing && existing !== name)
         {
@@ -7864,11 +7864,11 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + ` name conflicts with ${existing}`,
             );
         }
-        this.#parameters.set(id, name);
+        this._parameters.set(id, name);
     }
 
     /** Merges one optional enrichment Game Parameter default. */
-    #AddEnrichedParameterDefault(rawID, id, value)
+    _AddEnrichedParameterDefault(rawID, id, value)
     {
         if (value.defaultValue === undefined)
         {
@@ -7883,7 +7883,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + " defaultValue must be finite",
             );
         }
-        const existing = this.#parameterDefaults.get(id);
+        const existing = this._parameterDefaults.get(id);
 
         if (existing !== undefined && existing !== defaultValue)
         {
@@ -7892,17 +7892,17 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
                 + ` defaultValue conflicts with ${existing}`,
             );
         }
-        this.#parameterDefaults.set(id, defaultValue);
+        this._parameterDefaults.set(id, defaultValue);
     }
 
     /** Projects normalized State settings with any known authored names. */
-    #CreateStateTransitions()
+    _CreateStateTransitions()
     {
-        return [ ...this.#stateTransitionSettings.values() ]
+        return [ ...this._stateTransitionSettings.values() ]
             .sort((left, right) => left.id - right.id)
             .map(settings =>
             {
-                const named = this.#groups.get(`state:${settings.id}`);
+                const named = this._groups.get(`state:${settings.id}`);
 
                 return {
                     groupId: String(settings.id),
@@ -7934,9 +7934,9 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
     }
 
     /** Adds one optional value name while enforcing per-group uniqueness. */
-    #AddValueName(values, id, rawName, label)
+    _AddValueName(values, id, rawName, label)
     {
-        const name = this.#NormalizeOptionalName(rawName);
+        const name = this._NormalizeOptionalName(rawName);
 
         if (!name)
         {
@@ -7966,7 +7966,7 @@ class CjsAudioLibraryBuilderSfxNameCatalogAccumulator
     }
 
     /** Trims one optional authored catalog name. */
-    #NormalizeOptionalName(value)
+    _NormalizeOptionalName(value)
     {
         const name = String(value ?? "").trim();
 
