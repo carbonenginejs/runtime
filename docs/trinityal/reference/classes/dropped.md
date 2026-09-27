@@ -103,6 +103,16 @@ A constant buffer on a WebGL2 device.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2ResourceSetALWebgl2 -->
+## `Tr2ResourceSetALWebgl2`
+
+A resource set on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2ResourceSetALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2SamplerStateALWebgl2 -->
 ## `Tr2SamplerStateALWebgl2`
 
