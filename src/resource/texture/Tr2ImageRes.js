@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsResource } from "#blue";
 import { HostBitmap } from "#imageio";
@@ -105,8 +106,11 @@ export class Tr2ImageRes extends CjsResource
 
     const format = this.bitmap.GetFormat();
 
-    // Carbon: CCP_LOGERR("Tr2ImageRes::GetPixelColor currently only supports ...")
-    if (format !== PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM && format !== PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM) return transparent;
+    if (format !== PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM && format !== PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes::GetPixelColor currently only supports PIXEL_FORMAT_B8G8R8A8_UNORM or PIXEL_FORMAT_B8G8R8X8_UNORM");
+      return transparent;
+    }
 
     const color = this.bitmap.GetPixel(x, y);
 
@@ -125,8 +129,13 @@ export class Tr2ImageRes extends CjsResource
    */
   IsPixelOpaque(x = 0, y = 0)
   {
-    // Carbon: CCP_LOGERR("Tr2ImageRes::IsPixelOpaque currently only supports PIXEL_FORMAT_B8G8R8A8_UNORM")
-    if (!this.bitmap.IsValid() || this.bitmap.GetFormat() !== PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM) return false;
+    if (!this.bitmap.IsValid()) return false;
+
+    if (this.bitmap.GetFormat() !== PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes::IsPixelOpaque currently only supports PIXEL_FORMAT_B8G8R8A8_UNORM");
+      return false;
+    }
 
     const color = this.bitmap.GetPixel(x, y);
 

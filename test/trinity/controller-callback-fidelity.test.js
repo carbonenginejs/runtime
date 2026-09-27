@@ -1,3 +1,4 @@
+import * as CcpLog from "../../npm/dist/global/logging/CcpLog.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
@@ -12,7 +13,14 @@ for (const Constructor of [Tr2Controller, Tr2TimelineController])
   {
     const controller = new Constructor();
     const reports = [], calls = [];
-    t.mock.method(console, "error", (...args) => reports.push(args));
+    const sink = (...args) => reports.push(args);
+    CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+    CcpLog.RegisterLogEcho(sink);
+    t.after(() =>
+    {
+      CcpLog.UnregisterLogEcho(sink);
+      CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+    });
     controller.RegisterCallback("", () =>
     {
       calls.push("first");
@@ -25,7 +33,7 @@ for (const Constructor of [Tr2Controller, Tr2TimelineController])
     assert.equal(controller.Callback(""), true);
     assert.deepEqual(calls, ["first", "second"]);
     assert.equal(reports.length, 1);
-    assert.equal(reports[0].at(-1), null);
+    assert.match(reports[0][3], /Controller callback failed.*\(null\)$/);
     controller.isPlaying = false;
     assert.equal(controller.Callback(""), false);
     assert.equal(calls.length, 2);
@@ -57,7 +65,14 @@ for (const wrapped of [false, true])
   test(`curve-set stop cleans up a throwing ${wrapped ? "CjsScriptCallback" : "function"} and completes playback`, t =>
   {
     const reports = [];
-    t.mock.method(console, "error", (...args) => reports.push(args));
+    const sink = (...args) => reports.push(args);
+    CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+    CcpLog.RegisterLogEcho(sink);
+    t.after(() =>
+    {
+      CcpLog.UnregisterLogEcho(sink);
+      CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+    });
     let calls = 0;
     const callback = () =>
     {
@@ -79,7 +94,7 @@ for (const wrapped of [false, true])
     if (wrapped) assert.equal(argument.IsValid(), true);
     assert.equal(value._stopOnNextFrame, false);
     assert.equal(reports.length, 1);
-    assert.equal(reports[0].at(-1), false);
+    assert.equal(reports[0][3], "Curve-set stop callback failed false");
   });
 }
 

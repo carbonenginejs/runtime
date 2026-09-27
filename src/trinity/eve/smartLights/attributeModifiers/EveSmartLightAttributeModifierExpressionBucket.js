@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
+import * as CcpLog from "../../../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";
@@ -90,16 +91,22 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:134-164). An invalid
    * expression compiles to an invalid program, which UpdateSyncronous skips -
    * matching Carbon's keep-running-on-parse-error behavior.
+   *
+   * Adapted: the shared CjsControllerExpressionProgram VM replaces CcpParser;
+   * parse errors are retained on the program and reported through CcpLog.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("CcpParser::Parse is replaced by the shared CjsControllerExpressionProgram VM; parse errors are held on the program rather than logged through CCP_LOGERR.")
   SetExpression(expression)
   {
     this.expression = String(expression ?? "");
     this.#program = this.expression
       ? CjsControllerExpressionProgram.Compile(this.expression, { emptyValue: 0 })
       : null;
+    if (this.#program && !this.#program.IsValid())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this.expression, this.#program.error);
+    }
   }
 
   /** Regenerates the random constant (Carbon jessica hook, h:34). */

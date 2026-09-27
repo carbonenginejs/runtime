@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, TimeAsDouble } from "#blue";
@@ -486,7 +487,7 @@ export class Tr2Controller extends EveThrottleable
    * Runs callbacks registered for a named callback.
    *
    * Adapted: Invokes stored JavaScript functions and reports exceptions through
-   * console.error, preserving Carbon's continuation after a failed callback.
+   * CcpLog, preserving Carbon's continuation after a failed callback.
    * Returns whether a matching callback was invoked; native returns void.
    */
   @carbon.method
@@ -509,7 +510,7 @@ export class Tr2Controller extends EveThrottleable
         catch (error)
         {
           // Carbon CallVoid().ReportException() reports and continues dispatch.
-          console.error("Controller callback failed", callbackName, error);
+          CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s %s %s", "Controller callback failed", callbackName, error);
         }
         called = true;
       }

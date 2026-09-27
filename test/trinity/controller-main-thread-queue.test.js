@@ -1,3 +1,4 @@
+import * as CcpLog from "../../npm/dist/global/logging/CcpLog.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";
@@ -284,7 +285,14 @@ test("state run times are TimeAsFloat tick differences of Blue frame time", t =>
 test("the state-machine loop guard logs Carbon's CCP_LOGERR text (Tr2StateMachine.cpp:136)", t =>
 {
   const reports = [];
-  t.mock.method(console, "error", (...args) => reports.push(args.join(" ")));
+  const sink = (channel, type, userData, message) => reports.push(message);
+  CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+  CcpLog.RegisterLogEcho(sink);
+  t.after(() =>
+  {
+    CcpLog.UnregisterLogEcho(sink);
+    CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+  });
   const state = {
     Link() {},
     Start() {},
@@ -305,7 +313,14 @@ test("the state-machine loop guard logs Carbon's CCP_LOGERR text (Tr2StateMachin
 test("a missing transition destination logs Carbon's CCP_LOGERR text (Tr2StateMachineTransition.cpp:66-69)", t =>
 {
   const reports = [];
-  t.mock.method(console, "error", (...args) => reports.push(args.join(" ")));
+  const sink = (channel, type, userData, message) => reports.push(message);
+  CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+  CcpLog.RegisterLogEcho(sink);
+  t.after(() =>
+  {
+    CcpLog.UnregisterLogEcho(sink);
+    CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+  });
   const transition = new Tr2StateMachineTransition();
   transition.name = "nowhere";
   const source = { GetStateMachine: () => ({ GetStateByName: () => null }) };

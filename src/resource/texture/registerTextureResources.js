@@ -12,6 +12,7 @@
 // format needs it: PNG decodes through `DecompressionStream`, which is
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../imageio/ImageIO.js";
 import { TriTextureRes } from "./TriTextureRes.js";
@@ -51,9 +52,9 @@ async function ReadImageResource(bytes, context)
   const path = context.path;
   const result = await ImageIO.readImageAsync(bytes, new LoadParameters(path), bitmap, metadata);
 
-  // Carbon: CCP_LOGWARN("Tr2ImageRes: error reading '%S' - %s") and LR_FAILED.
   if (!result.IsOk())
   {
+    CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Tr2ImageRes: error reading '%S' - %s", path, result.GetErrorMessage());
     const error = new Error(`${path || "image"}: ${result.GetErrorMessage()}`);
     error.code = "CJS_RESOURCE_IMAGE_READ_FAILED";
     throw error;

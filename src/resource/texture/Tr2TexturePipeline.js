@@ -5,10 +5,14 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepCompress.cpp
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepPack.cpp
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2TexturePipelineParams } from "./Tr2TexturePipelineParams.js";
 import { Tr2TexturePipelineStepLimitSize } from "./Tr2TexturePipelineStepLimitSize.js";
+
+// Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
+const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /**
  * Carbon texture-specific CPU bitmap transformation pipeline.
@@ -54,8 +58,11 @@ export class Tr2TexturePipeline extends CjsModel
   {
     result.Destroy();
 
-    // Carbon: CCP_LOGERR("Tr2TexturePipeline: no steps")
-    if (!this.steps.length) return false;
+    if (!this.steps.length)
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipeline: no steps");
+      return false;
+    }
 
     for (const step of this.steps)
     {

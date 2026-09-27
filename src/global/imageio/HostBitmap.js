@@ -18,13 +18,14 @@
 // - Out-parameters (`GetAverageColor`, `GetPixel`) return an object, or null
 //   where Carbon returns false.
 // - Carbon's move constructor and move assignment become `Swap`.
-// - No logging facility is ported; each CCP_LOG call is kept as a comment
-//   with its message, and the failure is reported by the return value alone.
+// - Diagnostics use CcpLog on the Trinity module channel, matching the
+//   native image library embedded by Trinity. Return values are unchanged.
 //
 // CARBON'S DEFECTS ARE FIXED, NOT REPRODUCED (operator, 2026-09-22: fix the
 // image-io defects in our library and report them upstream). Each fix is marked
 // `diverged:` with its issue number in /docs/research/carbon-imageio-issue.md. Behaviour
 // that is Carbon's design rather than a defect is kept and marked `quirk:`.
+import * as CcpLog from "../logging/CcpLog.js";
 import { CjsSchema } from "#schema";
 import {
   PixelFormat,
@@ -178,13 +179,13 @@ export class HostBitmap extends BitmapDimensions
 
     if (!width || !height || format >= PixelFormat.PIXEL_FORMAT_SENTINEL)
     {
-      // Carbon: CCP_LOGWARN("HostBitmap::Create invalid parameters: %d x %d, %d mips, format %d")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create invalid parameters: %d x %d, %d mips, format %d", width, height, mipCount, format);
       return false;
     }
 
     if (IsCompressedFormat(format) && ((width % 4) !== 0 || (height % 4) !== 0))
     {
-      // Carbon: CCP_LOGWARN("HostBitmap::Create invalid compressed size: %d x %d")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create invalid compressed size: %d x %d", width, height);
       return false;
     }
 
@@ -217,13 +218,13 @@ export class HostBitmap extends BitmapDimensions
 
     if (!width || !height || !arraySize || format >= PixelFormat.PIXEL_FORMAT_SENTINEL)
     {
-      // Carbon: CCP_LOGWARN("HostBitmap::Create2DArray invalid parameters: %d x %d, %d mips, %d array elements, format %d")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create2DArray invalid parameters: %d x %d, %d mips, %d array elements, format %d", width, height, mipCount, arraySize, format);
       return false;
     }
 
     if (IsCompressedFormat(format) && ((width % 4) !== 0 || (height % 4) !== 0))
     {
-      // Carbon: CCP_LOGWARN("HostBitmap::Create invalid compressed size: %d x %d")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap::Create invalid compressed size: %d x %d", width, height);
       return false;
     }
 
@@ -502,25 +503,27 @@ export class HostBitmap extends BitmapDimensions
    *
    * @param {BitmapDimensions} bd Description to compare with.
    * @param {boolean} checkDimensions Whether width and height must match.
-   * @param {string} _log Log prefix (no logging is ported).
+   * @param {string} _log Prefix included in diagnostic messages.
    * @returns {{match: boolean, alphaConvert: boolean}} The answer.
    */
   _CheckForMatch(bd, checkDimensions, _log)
   {
     if (!this.IsValid())
     {
-      // Carbon: CCP_LOGWARN("%s: invalid source or destination")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s: invalid source or destination", _log);
       return { match: false, alphaConvert: false };
     }
 
     if (checkDimensions && (bd.GetWidth() !== this._width || bd.GetHeight() !== this._height))
     {
-      // Carbon: CCP_LOGWARN("%s: incompatible size")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s: incompatible size", _log);
       return { match: false, alphaConvert: false };
     }
 
-    // Carbon: CCP_LOGWARN("%s: miplevels mismatch, data may be truncated")
-    // when the true mip counts differ - a warning only, not a failure.
+    if (bd.GetTrueMipCount() !== this.GetTrueMipCount())
+    {
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s: miplevels mismatch, data may be truncated", _log);
+    }
 
     const formatMatch = bd.GetFormat() === this._format;
     const alphaConvert = bd.GetFormat() === PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM &&
@@ -528,7 +531,7 @@ export class HostBitmap extends BitmapDimensions
 
     if (!formatMatch && !alphaConvert)
     {
-      // Carbon: CCP_LOGWARN("%s: incompatible size/pixelformat")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s: incompatible size/pixelformat", _log);
       return { match: false, alphaConvert };
     }
 
@@ -719,25 +722,31 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid() || this.IsCompressed() || !source.IsValid() || source.IsCompressed())
     {
-      // Carbon: CCP_LOGWARN("HostBitmap.CopyChannel: Need a valid uncompressed bitmap")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.CopyChannel: Need a valid uncompressed bitmap");
       return false;
     }
 
     if (this._type !== source._type || this._arraySize !== source._arraySize ||
       this._mipCount !== source._mipCount || this._width !== source._width || this._height !== source._height)
     {
-      // Carbon: CCP_LOGWARN("HostBitmap.CopyChannel: Bitmaps need same type and dimensions")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.CopyChannel: Bitmaps need same type and dimensions");
       return false;
     }
 
     const dstBPP = GetBytesPerPixel(this.GetFormat());
     const srcBPP = GetBytesPerPixel(source.GetFormat());
 
-    // Carbon: CCP_LOGWARN("HostBitmap.CopyChannel: Destination channel out of range")
-    if (dstChannel >= dstBPP) return false;
+    if (dstChannel >= dstBPP)
+    {
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.CopyChannel: Destination channel out of range");
+      return false;
+    }
 
-    // Carbon: CCP_LOGWARN("HostBitmap.CopyChannel: Source channel out of range")
-    if (srcChannel >= srcBPP) return false;
+    if (srcChannel >= srcBPP)
+    {
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.CopyChannel: Source channel out of range");
+      return false;
+    }
 
     if (source === this && srcChannel === dstChannel) return true;
 
@@ -766,13 +775,13 @@ export class HostBitmap extends BitmapDimensions
     if (!this.IsValid() || (this._width & 1) || (this._height & 1) ||
       (this._type !== TextureType.TEX_TYPE_2D && this._type !== TextureType.TEX_TYPE_CUBE))
     {
-      // Carbon: CCP_LOGWARN("Downsample2x2 only works with valid, even sized bitmaps")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Downsample2x2 only works with valid, even sized bitmaps");
       return false;
     }
 
     if (!EIGHT_BIT_FORMATS.has(this.GetFormat()))
     {
-      // Carbon: CCP_LOGWARN("Downsample2x2 does not support this pixel format")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Downsample2x2 does not support this pixel format");
       return false;
     }
 
@@ -853,7 +862,7 @@ export class HostBitmap extends BitmapDimensions
     if (!this.IsValid() || this._mipCount !== 1 || this._type !== TextureType.TEX_TYPE_2D ||
       this._arraySize > 1 || IsCompressedFormat(this._format))
     {
-      // Carbon: CCP_LOGWARN("Crop only works with valid, single miplevel 2D bitmaps in uncompressed format")
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "Crop only works with valid, single miplevel 2D bitmaps in uncompressed format");
       return false;
     }
 
@@ -901,18 +910,27 @@ export class HostBitmap extends BitmapDimensions
 
     if ((this.GetType() !== TextureType.TEX_TYPE_2D && this.GetType() !== TextureType.TEX_TYPE_CUBE) || this.GetTrueMipCount() !== 1)
     {
-      // Carbon: CCP_LOGERR("HostBitmap.RotateFaceClockwise requires 2D/CUBE bitmap with a single mip level")
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.RotateFaceClockwise requires 2D/CUBE bitmap with a single mip level");
       return false;
     }
 
-    // Carbon: CCP_LOGERR("HostBitmap.RotateFaceClockwise: index out of range")
-    if (face >= this.GetArraySize()) return false;
+    if (face >= this.GetArraySize())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.RotateFaceClockwise: index out of range");
+      return false;
+    }
 
-    // Carbon: CCP_LOGERR("HostBitmap.RotateFaceClockwise: width must be equal to height")
-    if (this.GetWidth() !== this.GetHeight()) return false;
+    if (this.GetWidth() !== this.GetHeight())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.RotateFaceClockwise: width must be equal to height");
+      return false;
+    }
 
-    // Carbon: CCP_LOGERR("HostBitmap.RotateFaceClockwise: don't support compressed images")
-    if (IsCompressedFormat(this.GetFormat())) return false;
+    if (IsCompressedFormat(this.GetFormat()))
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.RotateFaceClockwise: don't support compressed images");
+      return false;
+    }
 
     times = times % 4;
     if (!times) return true;
@@ -964,17 +982,29 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid()) return false;
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertCrossmapToCubemap requires a 2D bitmap")
-    if (this.GetType() !== TextureType.TEX_TYPE_2D || this._arraySize > 1) return false;
+    if (this.GetType() !== TextureType.TEX_TYPE_2D || this._arraySize > 1)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertCrossmapToCubemap requires a 2D bitmap");
+      return false;
+    }
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertCrossmapToCubemap: Bitmap has mips. Use DropMipMaps() first.")
-    if (this.GetMipCount() !== 1) return false;
+    if (this.GetMipCount() !== 1)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertCrossmapToCubemap: Bitmap has mips. Use DropMipMaps() first.");
+      return false;
+    }
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertCrossmapToCubemap: source image does not represent a 3:4 crossmap!")
-    if (this.GetWidth() % 3 !== 0 || this.GetHeight() % 4 !== 0 || this.GetWidth() / 3 !== this.GetHeight() / 4) return false;
+    if (this.GetWidth() % 3 !== 0 || this.GetHeight() % 4 !== 0 || this.GetWidth() / 3 !== this.GetHeight() / 4)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertCrossmapToCubemap: source image does not represent a 3:4 crossmap!");
+      return false;
+    }
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertCrossmapToCubemap: don't support compressed images")
-    if (IsCompressedFormat(this.GetFormat())) return false;
+    if (IsCompressedFormat(this.GetFormat()))
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertCrossmapToCubemap: don't support compressed images");
+      return false;
+    }
 
     const cubeSize = this.GetWidth() / 3;
     const srcPitch = this.GetPitch();
@@ -1029,13 +1059,19 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid()) return false;
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertToVolume requires 2D bitmap")
-    if (this.GetType() !== TextureType.TEX_TYPE_2D || this._arraySize > 1) return false;
+    if (this.GetType() !== TextureType.TEX_TYPE_2D || this._arraySize > 1)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertToVolume requires 2D bitmap");
+      return false;
+    }
 
     let cubeSize = this.GetHeight();
 
-    // Carbon: CCP_LOGERR("HostBitmap.ConvertToVolume: source image does not represent a cubic volume texture!")
-    if (cubeSize * cubeSize < this.GetWidth()) return false;
+    if (cubeSize * cubeSize < this.GetWidth())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.ConvertToVolume: source image does not represent a cubic volume texture!");
+      return false;
+    }
 
     if (IsCompressedFormat(this.GetFormat())) return false;
 
@@ -1207,7 +1243,7 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid())
     {
-      // Carbon: CCP_LOGERR("HostBitmap.DropMipMaps: bitmap is not valid")
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "HostBitmap.DropMipMaps: bitmap is not valid");
       return false;
     }
 
@@ -1247,7 +1283,8 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid())
     {
-      // Carbon: CCP_LOGERR("GetAverageColor: bitmap %s is not valid") - its %s has no argument (1203, issue 9).
+      // Adapted: Carbon omits the %s argument (HostBitmap.cpp:1203); avoid its undefined varargs read.
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "GetAverageColor: bitmap is not valid");
       return null;
     }
 
@@ -1339,7 +1376,7 @@ export class HostBitmap extends BitmapDimensions
   {
     if (!this.IsValid())
     {
-      // Carbon: CCP_LOGERR("GetPixel: bitmap is not valid")
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "GetPixel: bitmap is not valid");
       return null;
     }
 
@@ -1360,7 +1397,7 @@ export class HostBitmap extends BitmapDimensions
 
     if (x >= width || y >= height)
     {
-      // Carbon: CCP_LOGERR("GetPixel: pixel index out of range. Requested pixel (%d, %d), dimensions (%d, %d)")
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "GetPixel: pixel index out of range. Requested pixel (%d, %d), dimensions (%d, %d)", x, y, width, height);
       return null;
     }
 

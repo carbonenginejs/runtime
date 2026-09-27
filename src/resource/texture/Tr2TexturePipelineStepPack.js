@@ -6,9 +6,13 @@
 // `pack`: a per-channel byte interleaver whose independent pixel and row
 // strides exist because the inputs are separate host bitmaps with their own
 // formats and mip pitches.
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";
+
+// Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
+const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's pack step, naming the target pixel format and the four per-channel pack sources. */
 export class Tr2TexturePipelineStepPack extends CjsModel
@@ -64,11 +68,19 @@ export class Tr2TexturePipelineStepPack extends CjsModel
   Execute(bitmap, inputs)
   {
     const F = PixelFormat;
+    if (bitmap.IsValid())
+    {
+      // Carbon's pack step also uses the StepLoad wording.
+      CcpLog.CCP_LOGWARN_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepLoad: output bitmap is not empty");
+    }
 
-    // Carbon: CCP_LOGERR("Tr2TexturePipelineStepPack: only supports b8g8r8a8, b8g8r8 and r8 textures")
     if (this.format !== F.PIXEL_FORMAT_B8G8R8A8_UNORM
       && this.format !== F.PIXEL_FORMAT_B8G8R8X8_UNORM
-      && this.format !== F.PIXEL_FORMAT_R8_UNORM) return false;
+      && this.format !== F.PIXEL_FORMAT_R8_UNORM)
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: only supports b8g8r8a8, b8g8r8 and r8 textures");
+      return false;
+    }
 
     // Carbon's channel order is b, g, r, a (cpp:72).
     const channels = [ this.b, this.g, this.r, this.a ];
@@ -81,8 +93,11 @@ export class Tr2TexturePipelineStepPack extends CjsModel
 
       const input = inputs?.get(path) ?? null;
 
-      // Carbon: CCP_LOGERR("Tr2TexturePipelineStepPack: failed to get input texture %S")
-      if (!input) return false;
+      if (!input)
+      {
+        CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: failed to get input texture %S", path);
+        return false;
+      }
 
       channelInputs.push(input);
     }
@@ -92,17 +107,29 @@ export class Tr2TexturePipelineStepPack extends CjsModel
     let mips = 1;
     let defaultSize = true;
 
-    for (const input of channelInputs)
+    for (const [inputIndex, input] of channelInputs.entries())
     {
       if (!input) continue;
 
-      // Carbon: CCP_LOGERR("... no support for texture arrays" / "only supports 2D textures")
-      if (input.GetArraySize() > 1 || input.GetType() !== TextureType.TEX_TYPE_2D) return false;
+      if (input.GetArraySize() > 1)
+      {
+        CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: no support for texture arrays");
+        return false;
+      }
+      if (input.GetType() !== TextureType.TEX_TYPE_2D)
+      {
+        CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: only supports 2D textures");
+        return false;
+      }
 
       const format = input.GetFormat();
       if (format !== F.PIXEL_FORMAT_B8G8R8A8_UNORM
         && format !== F.PIXEL_FORMAT_B8G8R8X8_UNORM
-        && format !== F.PIXEL_FORMAT_R8_UNORM) return false;
+        && format !== F.PIXEL_FORMAT_R8_UNORM)
+      {
+        CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: only supports b8g8r8a8, b8g8r8 and r8 textures");
+        return false;
+      }
 
       if (defaultSize)
       {
@@ -113,14 +140,20 @@ export class Tr2TexturePipelineStepPack extends CjsModel
         continue;
       }
 
-      // Carbon: CCP_LOGERR("Tr2TexturePipelineStepPack: inconsistent texture size for %S")
-      if (width !== input.GetWidth() || height !== input.GetHeight()) return false;
+      if (width !== input.GetWidth() || height !== input.GetHeight())
+      {
+        CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: inconsistent texture size for %S", channels[inputIndex].path);
+        return false;
+      }
 
       mips = Math.min(mips, input.GetTrueMipCount());
     }
 
-    // Carbon: CCP_LOGERR("Tr2TexturePipelineStepPack: failed to create output")
-    if (!bitmap.Create(width, height, mips, this.format)) return false;
+    if (!bitmap.Create(width, height, mips, this.format))
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepPack: failed to create output");
+      return false;
+    }
 
     for (let mip = 0; mip < mips; ++mip)
     {

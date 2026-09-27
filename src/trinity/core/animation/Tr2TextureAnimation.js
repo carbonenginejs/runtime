@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { blue } from "#blue";
@@ -160,7 +161,7 @@ export class Tr2TextureAnimation extends CjsModel
         });
         if (!texture)
         {
-          console.error("Tr2TextureAnimation failed to create texture", this.resPath, grid.name);
+          CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s %s %s", "Tr2TextureAnimation failed to create texture", this.resPath, grid.name);
         }
         this._grids.push({ name: grid.name, frame: texture });
       }
@@ -380,7 +381,7 @@ export class Tr2TextureAnimation extends CjsModel
       if (!request.state.cancel)
       {
         request.state.error = error;
-        console.error("Tr2TextureAnimation decode failed", request.filename, error);
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s %s %s", "Tr2TextureAnimation decode failed", request.filename, error);
       }
       return false;
     });

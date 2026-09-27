@@ -1,4 +1,5 @@
 ﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
@@ -45,7 +46,7 @@ export class AudStaticDataRepository extends CjsModel
   {
     if (!audioMetadata || typeof audioMetadata !== "object")
     {
-      console.warn("AudStaticDataRepository.Initialize expects an audio metadata object.");
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("audio2"), "%s", "AudStaticDataRepository.Initialize expects an audio metadata object.");
       return;
     }
 
@@ -251,7 +252,7 @@ function SectionEntries(section, sectionName)
   {
     return Object.entries(section);
   }
-  console.warn(`AudStaticDataRepository: audio metadata section "${sectionName}" is missing or not an object; skipped.`);
+  CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("audio2"), "%s", `AudStaticDataRepository: audio metadata section "${sectionName}" is missing or not an object; skipped.`);
   return [];
 }
 

@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
@@ -289,7 +290,7 @@ export class Tr2StateMachine extends CjsModel
           found.count++;
           if (found.count > 20)
           {
-            console.error(`Tr2StateMachine: infinite loop in state machine ${this.name} detected`); // CCP_LOGERR Tr2StateMachine.cpp:136
+            CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2StateMachine: infinite loop in state machine ${this.name} detected`);
             return;
           }
         }

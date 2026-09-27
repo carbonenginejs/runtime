@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
@@ -611,13 +612,15 @@ export class TriDevice extends CjsModel
    * The early return is Carbon's: a software device with no output window has
    * nothing to present to, and saying so is not a failure.
    *
+   * Adapted: the failed HRESULT is logged through CcpLog; Carbon's separate
+   * LogAllLiveResources video-memory inventory is still unavailable here.
+   *
    * @param {number} adapter Which adapter.
    * @param {object} presentParameters A `Tr2PresentParametersAL`.
    * @returns {boolean} Whether the parameters were accepted.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon logs every live video-memory resource and the HRESULT before returning false, through LogAllLiveResources and CCP_LOGERR; neither logging facility is ported, so the failure is reported by the return value alone.")
   SetPresentParameters(adapter, presentParameters)
   {
     if (!this.#hwnd && presentParameters.software) return true;
@@ -625,7 +628,12 @@ export class TriDevice extends CjsModel
     const al = Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL();
     const result = al ? al.SetPresentParameters(presentParameters, adapter) : ALResult.S_OK;
 
-    return !Failed(result);
+    if (Failed(result))
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Device Reset failed: 0x%X", result);
+      return false;
+    }
+    return true;
   }
 
   /**
@@ -663,6 +671,10 @@ export class TriDevice extends CjsModel
    * truthful to put in those fields. Windowed and adapterless creation are
    * complete.
    *
+   * Adapted: CreateUpscalingTechnique and the nvperfhud accommodation have no
+   * backend implementation here. Device-creation failure is logged through
+   * CcpLog; display-mode enumeration remains the explicit refusal above.
+   *
    * @param {*} hwnd The output window; a canvas here.
    * @param {number} width Back-buffer width.
    * @param {number} height Back-buffer height.
@@ -673,7 +685,6 @@ export class TriDevice extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("FULLSCREEN refuses because display-mode enumeration has no browser counterpart. CreateUpscalingTechnique and the nvperfhud accommodation have no backend that offers them. Carbon's two CCP_LOGERR calls are absent with the logging facility. Everything else is Carbon's order, including that registration is the last step and happens only once a device exists.")
   CreateSimpleDevice(
     hwnd,
     width,
@@ -709,7 +720,11 @@ export class TriDevice extends CjsModel
     // layer's CreateDevice.
     Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL()?.CreateDevice(pp);
 
-    if (!this.DeviceExists()) return false;
+    if (!this.DeviceExists())
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Failed to create compatible device!");
+      return false;
+    }
 
     this.#presentParam = pp;
     this.width = width;

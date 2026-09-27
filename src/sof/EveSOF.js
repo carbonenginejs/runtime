@@ -1,3 +1,4 @@
+import * as CcpLog from "../global/logging/CcpLog.js";
 import { normalizeResourcePath } from "#utils/path";
 
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h
@@ -923,7 +924,7 @@ export class EveSOF extends CjsModel
     }
     if (resFileIndex === undefined || resFileIndex === null)
     {
-      console.warn("EveSOF.Create: no resFileIndex file list provided; resPathInsert existence checks will report missing and texture paths fall back to their base values.");
+      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s", "EveSOF.Create: no resFileIndex file list provided; resPathInsert existence checks will report missing and texture paths fall back to their base values.");
     }
     else
     {
@@ -2026,8 +2027,8 @@ export class EveSOF extends CjsModel
     }
     if (descriptor === null || descriptor === undefined)
     {
-      // Carbon: CCP_LOGERR("resource file %s is invalid!") and the child is
-      // skipped (EveSOF.cpp:2008,2171).
+      // Preserve build diagnostics as well as Carbon's log (EveSOF.cpp:2008,2171).
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "resource file %s is invalid!", String(redFilePath ?? ""));
       this.#buildDiagnostics.push({
         code: "unresolved-child-resource",
         reason: "not-resolved",

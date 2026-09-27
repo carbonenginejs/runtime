@@ -31,6 +31,7 @@
 // detail. They lived in the WebGPU engine until now, where a second backend
 // could not have reached them without copying them.
 
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, impl, type } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
@@ -634,7 +635,7 @@ export class Tr2Renderer
 
     if (!allocation)
     {
-      console.error(`Tr2Renderer: CreateIndexBuffer failed to create an index buffer for ${count} quads`);
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2Renderer: CreateIndexBuffer failed to create an index buffer for ${count} quads`);
       return false;
     }
 

@@ -1,8 +1,12 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLimitSize.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLimitSize.json; maintained by the runtime resource layer.
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { HostBitmap } from "#imageio";
 import { CjsModel } from "#model";
+
+// Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
+const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Persisted pipeline-step record mirroring Carbon's size-limit step, holding the maximum width and height the bitmap may keep. */
 export class Tr2TexturePipelineStepLimitSize extends CjsModel
@@ -58,8 +62,11 @@ export class Tr2TexturePipelineStepLimitSize extends CjsModel
   {
     if (!maxWidth && !maxHeight) return true;
 
-    // Carbon: CCP_LOGERR("Tr2TexturePipelineStepLimitSize: invalid input bitmap")
-    if (!bitmap.IsValid()) return false;
+    if (!bitmap.IsValid())
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepLimitSize: invalid input bitmap");
+      return false;
+    }
 
     let mip = 0;
     let width = bitmap.GetWidth();
@@ -92,8 +99,11 @@ export class Tr2TexturePipelineStepLimitSize extends CjsModel
     const mipCount = Math.max(bitmap.GetTrueMipCount() - mip, 1);
     const result = new HostBitmap();
 
-    // Carbon: CCP_LOGERR("Tr2TexturePipelineStepLimitSize: could not create resulting bitmap")
-    if (!result.Create(bitmap.GetMipWidth(mip), bitmap.GetMipHeight(mip), mipCount, bitmap.GetFormat())) return false;
+    if (!result.Create(bitmap.GetMipWidth(mip), bitmap.GetMipHeight(mip), mipCount, bitmap.GetFormat()))
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepLimitSize: could not create resulting bitmap");
+      return false;
+    }
 
     for (let m = mip; m < mip + mipCount; ++m)
     {

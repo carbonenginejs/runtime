@@ -1,8 +1,12 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepGenerateMips.h
 // Marker step: Carbon registers the class with zero attributes; the mip
 // generation itself happens where the pipeline is executed.
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
+
+// Source: trinity/trinity/Resources/TexturePipeline/ITr2TexturePipelineStep.h:26
+const s_texturePipelineChannel = CcpLog.CCP_LOG_DEFINE_CHANNEL("TexturePipeline", "trinity");
 
 /** Attribute-free persisted Blue marker step mirroring Carbon's mip-generation step; the mip generation itself happens where the pipeline executes. */
 export class Tr2TexturePipelineStepGenerateMips extends CjsModel
@@ -28,8 +32,11 @@ export class Tr2TexturePipelineStepGenerateMips extends CjsModel
    */
   Execute(bitmap)
   {
-    // Carbon: CCP_LOGERR("Tr2TexturePipelineStepGenerateMips: invalid input bitmap")
-    if (!bitmap.IsValid()) return false;
+    if (!bitmap.IsValid())
+    {
+      CcpLog.CCP_LOGERR_CH(s_texturePipelineChannel, "Tr2TexturePipelineStepGenerateMips: invalid input bitmap");
+      return false;
+    }
 
     return bitmap.GenerateMipMaps();
   }

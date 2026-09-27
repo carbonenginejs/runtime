@@ -1,3 +1,4 @@
+import * as CcpLog from "../../npm/dist/global/logging/CcpLog.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -226,16 +227,17 @@ test("an invalid source returns before borrowing anything", () =>
   const pool = new Tr2GpuResourcePool().SetRenderContext(context);
   const held = pool.GetHeldCount();
   const errors = [];
-  const original = console.error;
-
-  console.error = message => errors.push(message);
+  const sink = (channel, type, userData, message) => errors.push(message);
+  CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+  CcpLog.RegisterLogEcho(sink);
   try
   {
     new Tr2PostProcessRenderer().Execute(null, { IsValid: () => false }, null, null, null, null, null, pool, context, new Tr2Renderer());
   }
   finally
   {
-    console.error = original;
+    CcpLog.UnregisterLogEcho(sink);
+    CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
   }
 
   assert.equal(pool.GetHeldCount(), held);

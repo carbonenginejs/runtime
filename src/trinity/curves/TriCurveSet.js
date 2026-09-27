@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Curves/TriCurveSet.h
 // Source: trinity/trinity/Curves/TriCurveSet.cpp
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsScriptCallback } from "#blue";
@@ -531,7 +532,7 @@ export class TriCurveSet extends CjsModel
    * is released, as in the donor.
    *
    * Custom: Extracts the native update-site call and cleanup into a helper.
-   * JavaScript exceptions are reported with console.error so playback still
+   * JavaScript exceptions are reported with CcpLog so playback still
    * stops; Carbon's BlueScriptCallbackStatus reports without throwing.
    */
   @impl.custom
@@ -547,7 +548,7 @@ export class TriCurveSet extends CjsModel
     }
     catch (error)
     {
-      console.error("Curve-set stop callback failed", error);
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s %s", "Curve-set stop callback failed", error);
     }
     this.DestroyStopCallback();
   }

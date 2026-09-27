@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { blue } from "#blue";
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -130,7 +131,7 @@ export class EveChildRef extends EveChildTransform
       const child = CjsSchema.cast(object, EveSpaceObjectChild);
       if (!child)
       {
-        console.error(`Red file ${path} is invalid or not an Eve Child type.`);
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Red file ${path} is invalid or not an Eve Child type.`);
         return;
       }
       this.child = child;
@@ -138,7 +139,7 @@ export class EveChildRef extends EveChildTransform
       this.RegisterComponents();
     }, error =>
     {
-      if (request === this._loadRequest) console.error(`Red file ${path} is invalid or not an Eve Child type. ${error?.message ?? error}`);
+      if (request === this._loadRequest) CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Red file ${path} is invalid or not an Eve Child type. ${error?.message ?? error}`);
     });
     return true;
   }

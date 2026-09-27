@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
+import * as CcpLog from "../../../global/logging/CcpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
@@ -311,7 +312,7 @@ export class Tr2StateMachineTransition extends CjsModel
     this._destination = this._source.GetStateMachine().GetStateByName(this.name);
     if (!this._destination)
     {
-      console.error(`Invalid destination state name ${this.name} for state machine transition`); // CCP_LOGERR Tr2StateMachineTransition.cpp:66-69
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Invalid destination state name ${this.name} for state machine transition`);
     }
   }
 

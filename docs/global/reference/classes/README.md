@@ -345,6 +345,16 @@ Carbon's `ImageUtility` namespace (imageio/ImageUtility.cpp).
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:CcpLogChannel_t -->
+## `CcpLogChannel_t`
+
+Identifies the facility and object that produced a Carbon log message.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/logging/CcpLogChannel_t.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:CjsEventEmitter -->
 ## `CjsEventEmitter`
 

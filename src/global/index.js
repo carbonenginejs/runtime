@@ -89,3 +89,6 @@ export * as tangent from "./math/tangent.js";
  * @typedef {Float64Array|Float32Array|Uint32Array|Uint16Array|Uint8Array|Uint8ClampedArray|Int32Array|Int16Array|Int8Array} TypedArray
  */
 export * from "./utils/resFile.js";
+
+export * as CcpLog from "./logging/CcpLog.js";
+export * from "./logging/CcpLog.js";

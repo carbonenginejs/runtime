@@ -9,6 +9,7 @@
 // PASSES NOT PORTED YET throw by name from their own method, and each runs
 // only when the scene's Tr2PostProcess2 enables that effect, so a scene
 // without them runs the chain end to end: copy, sharpening, tonemapping.
+import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";
@@ -244,7 +245,7 @@ export class Tr2PostProcessRenderer extends CjsModel
   {
     if (!sourceBuffer?.IsValid())
     {
-      console.error("Tr2PostProcessRenderer::Execute: Source buffer is invalid!");
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", "Tr2PostProcessRenderer::Execute: Source buffer is invalid!");
       return;
     }
 
