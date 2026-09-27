@@ -409,23 +409,32 @@ export class CjsDdsFormat extends CjsImageFormat
     }
 
     /**
-     * Carbon's Metal-backend CPU decode, grouped apart from this format's own
-     * statics as `CjsBnkFormat.wwise` groups its Wwise toolkit.
+     * A faithful copy of Carbon's own BC decoder, BUGS INCLUDED ON PURPOSE.
+     * If you want to decode a DDS file correctly, use `decodeBlockSlice`, not
+     * this.
      *
-     * `bcDecompress(width, height, depth, format, src, decompressed)` is
-     * Carbon's `BcDecompress` (`trinity/trinityal/BcDecompress.cpp`), which
-     * Carbon calls only from Metal, to decompress BC volume textures a macOS
-     * GPU cannot hold (`Tr2TextureALMetal.mm:166-186`). BC1, BC2 or BC3 to
-     * BGRA8, every depth slice, returned as a `Uint8Array` of
-     * `width * height * depth * 4` bytes, or null for a format it does not
-     * handle (where Carbon answers false).
+     * WHAT IT IS. `bcDecompress(width, height, depth, format, src, decompressed)`
+     * reproduces `BcDecompress` from CCP's Carbon engine
+     * (`trinity/trinityal/BcDecompress.cpp`), which EVE Online's macOS client
+     * uses to decompress BC volume textures its GPU cannot hold
+     * (`Tr2TextureALMetal.mm:166-186`). BC1, BC2 or BC3 to BGRA8, every depth
+     * slice, returned as a `Uint8Array` of `width * height * depth * 4` bytes,
+     * or null for a format it does not handle (where Carbon answers false).
      *
-     * IT REPRODUCES CARBON'S DEFECTS: 565 expanded by truncation, BC1's
-     * transparent texel keeping color2's RGB (CE-37), and whole-block writes
-     * that scramble widths that are not a multiple of four (CE-36). On PC,
-     * D3D11 decodes BC in hardware to the specification, which is what
-     * `decodeBlockSlice` matches. Use this only where Carbon's Metal output is
-     * the thing being reproduced; `core/bcDecompress.js` has the details, and
+     * WHY THE BUGS ARE KEPT. Carbon's decoder has two defects, and this copy
+     * keeps them deliberately, so that its output is byte-for-byte what the
+     * Mac client renders. Fixing them would destroy the one thing it is for:
+     *
+     * - BC1's transparent texel keeps a colour instead of being transparent
+     *   black (Carbon known defect CE-37);
+     * - textures whose width is not a multiple of four come out scrambled,
+     *   because whole 4x4 blocks are written without clipping (CE-36).
+     *
+     * It also expands 565 colours by truncation where `decodeBlockSlice`
+     * rounds; both are within the BC specification. EVE on PC decodes BC in
+     * D3D11 hardware to the specification, which is what `decodeBlockSlice`
+     * matches - so this is not "how EVE looks", only how its Mac client's
+     * CPU fallback looks. `core/bcDecompress.js` has the details, and
      * `trinityal/BcDecompress.js` is its door under Carbon's own name.
      */
     static metal = {

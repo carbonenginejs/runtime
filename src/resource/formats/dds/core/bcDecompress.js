@@ -2,8 +2,10 @@
 // Source: trinity/trinityal/BcDecompress.cpp
 //
 // Carbon's software BC1/BC2/BC3 decompressor, to BGRA8, with Carbon's exact
-// output - the second BC behaviour the DDS format holds, beside its own rounding
-// RGBA8 decode in `helpers.js`. `CjsDdsFormat.metal.bcDecompress` is its door, and
+// output - BUGS INCLUDED ON PURPOSE. It is a faithful record of what EVE's
+// macOS client renders, so its two defects (CE-36, CE-37 below) are kept, not
+// fixed; for a correct decode use the format's own `decodeBlockSlice`
+// (`helpers.js`). `CjsDdsFormat.metal.bcDecompress` is its door, and
 // `trinityal/BcDecompress.js` keeps Carbon's name where Carbon keeps it.
 //
 // Carbon keeps it at the AL root, shared by every backend; its one caller is
