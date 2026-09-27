@@ -23,12 +23,25 @@ const FORMAT_NAME = "CjsVtaFormat";
 /**
  * VTA format profile - Carbon's Volume Texture Animation container.
  *
- * Reads `.vta` bytes into raw, structural debug JSON, or decoded R8 volume
- * payloads (per grid, per frame). Volume decode is asynchronous because
- * every frame blob is zlib-compressed and inflates through
- * DecompressionStream; `Read` serves the synchronous targets and points
- * volume callers at `ReadAsync`. Carbon's static texture path is grid 0 /
- * frame 0 - the profile's defaults select exactly that frame.
+ * Extends CjsFormat in runtime's resource layer. Callers supply bytes and receive
+ * raw bytes, structural debug JSON, or decoded R8 volume payloads. This class
+ * owns container inspection and decoding; it performs no resource acquisition,
+ * filesystem access, playback scheduling or GPU texture allocation.
+ *
+ * Tr2TextureAnimation is the playback consumer in the Trinity layer. It acquires
+ * bytes through blue.resMan.ReadResource, calls CjsVtaFormat.readFrames to decode
+ * one frame ahead, and uses the render context to create and update a stable 3D
+ * texture for each grid. Looping, pause, restart and texture disposal belong to
+ * Tr2TextureAnimation; the format remains usable by tools without that class.
+ *
+ * Read serves raw and debug outputs. ReadAsync also decodes volume payloads;
+ * ReadFrames/readFrames yields sequential frames without retaining the entire
+ * decoded animation. Each frame blob is zlib-compressed and inflated through
+ * DecompressionStream, so volume decoding is asynchronous.
+ *
+ * Profiles default to raw output. When volume output is requested, defaults
+ * select frame zero and all grids; callers can select a grid explicitly.
+ * Carbon's separate static-texture path uses grid zero and frame zero.
  */
 export class CjsVtaFormat extends CjsFormat
 {
