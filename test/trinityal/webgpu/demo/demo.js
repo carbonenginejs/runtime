@@ -2529,18 +2529,18 @@ export async function RunDemo(canvas)
     // along the ship's local Z.
     //
     // THE DEMO'S SPEED CONVENTION (operator): no real ship speeds, modifiers or
-    // skills. The slider (0-2) against a maximum of 2, so speed/maxSpeed runs
-    // 0-1 and slider values above 1 stand for an active propulsion modifier
-    // (afterburner/MWD). Both are in units of the booster set's authored
-    // maxVel: EveShip2 derives m_speed from this ball (EveShip2.cpp:50-55) and
-    // the boosters divide it by maxVel, so a unitless ball leaves them dark.
+    // skills. The slider (0-2) is the speed and maxSpeed is 2; the controllers
+    // normalise themselves. Slider values above 1 stand for an active
+    // propulsion modifier (afterburner/MWD). The booster set divides the same
+    // speed by its maxVel (EveBoosterSet2.cpp:109; default 250, a writable
+    // attribute), overridden to the same 2 so both see one scale, as the
+    // effects are authored.
     speed: value =>
     {
       if (!ship) return;
-      const slider = Number(value) || 0;
-      const unit = ship.boosters?.maxVel || 1;
-      ship.maxSpeed = 2 * unit;
-      const worldSpeed = slider * unit;
+      const worldSpeed = Number(value) || 0;
+      ship.maxSpeed = 2;
+      if (ship.boosters) ship.boosters.maxVel = 2;
       if (!ship.translationCurve)
       {
         const velocity = vec3.create();
