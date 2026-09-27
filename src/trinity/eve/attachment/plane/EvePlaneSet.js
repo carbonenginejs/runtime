@@ -10,6 +10,9 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 import { Fade, Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
+import { num } from "#math/num";
+import { TriBatchType } from "#consts/graphics";
+import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -19,6 +22,26 @@ import {
 } from "../../lights/lightConversion.js";
 
 const WHITE = new Float32Array([1, 1, 1, 1]);
+
+// Carbon's function-local s_spriteVertexDecl (EvePlaneSet.cpp:154-168), all
+// stream 1: it lands on EvePlaneSet::PlaneVertex (EvePlaneSet.h:124-138) -
+// transform1..3 and color as float4 at 0..63, the four layer vectors and
+// blinkData as half4 at 64..103, then index, boneIndex, maskMapAtlasIndex and
+// pickBufferID as bytes at 104..107.
+const PLANE_VERTEX_DEFINITION = new Tr2VertexDefinition();
+PLANE_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 0, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 1, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT32_4", "TEXCOORD", 2, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT32_4", "COLOR", 0, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 3, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 4, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 5, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 6, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("FLOAT16_4", "TEXCOORD", 8, 1, 1);
+PLANE_VERTEX_DEFINITION.Add("UBYTE_4", "TEXCOORD", 7, 1, 1);
+
+/** sizeof( EvePlaneSet::PlaneVertex ). */
+const PLANE_VERTEX_SIZE = 108;
 
 
 /**
@@ -97,6 +120,15 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   maskMapParameter = null;
   #rebuildRevision = 0;
 
+  /** m_effectHash: the quad renderer's key. */
+  _effectHash = 0;
+
+  /** m_items: one PlaneVertex per visible plane, packed bytes. */
+  _items = new Uint8Array(0);
+
+  /** m_volatileData: { transform, color } per packed plane. */
+  _volatileData = [];
+
   /** m_aabb - the union of every unskinned, non-transparent plane (cpp:323-355). */
   #staticBounds = box3.create();
 
@@ -116,9 +148,29 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @impl.adapted
   Rebuild()
   {
-    // Packed vertices, bounds caches and quad registration are reconciled by
-    // the renderer adapter from this authored graph.
     this.#rebuildRevision++;
+
+    // Carbon Rebuild (cpp:292-318): each plane that is not fully transparent
+    // keeps its local transform and colour for the frame, and packs its layer
+    // vectors and blink data as halves with its bone and mask-atlas bytes. The
+    // pick buffer id and index stay zero, as Carbon leaves them.
+    const packed = this.planes.filter(item => !EvePlaneSet.#IsFullyTransparent(item));
+    this._items = new Uint8Array(packed.length * PLANE_VERTEX_SIZE);
+    const view = new DataView(this._items.buffer);
+    this._volatileData = packed.map((plane, i) =>
+    {
+      const base = i * PLANE_VERTEX_SIZE;
+      [ plane.layer1Transform, plane.layer2Transform, plane.layer1Scroll, plane.layer2Scroll, plane.blinkData ].forEach((vector, slot) =>
+      {
+        for (let c = 0; c < 4; c++) view.setUint16(base + 64 + slot * 8 + c * 2, num.toHalfFloat(vector[c]), true);
+      });
+      this._items[base + 105] = plane.boneIndex & 0xff;
+      this._items[base + 106] = plane.maskAtlasID & 0xff;
+
+      // Carbon TransformationMatrix( scaling, rotation, position ).
+      const transform = mat4.fromRotationTranslationScale(mat4.create(), plane.rotation, plane.position, plane.scaling);
+      return { transform, color: [ plane.color[0], plane.color[1], plane.color[2], plane.color[3] ] };
+    });
 
     // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
     // filter: a fully transparent plane contributes NO bounds at all.
@@ -139,8 +191,71 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   Initialize()
   {
     this.Rebuild();
+    if (this.effect) this._effectHash = Number(this.effect.GetHashValue()) >>> 0;
     return true;
   }
+
+  /**
+   * Carbon RegisterWithQuadRenderer (cpp:147-171): the key from the effect's
+   * current hash, one quad per plane, additive.
+   */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (this.effect) this._effectHash = Number(this.effect.GetHashValue()) >>> 0;
+    quadRenderer.RegisterEffect(this._effectHash, TriBatchType.TRIBATCHTYPE_ADDITIVE, PLANE_VERTEX_SIZE, 1, PLANE_VERTEX_DEFINITION, this.effect);
+  }
+
+  /**
+   * Carbon AddToQuadRenderer (cpp:173-234): each plane's world matrix (through
+   * its bone when skinned and the bone exists) as its three columns, and its
+   * colour times activation.
+   */
+  @carbon.method
+  @impl.implemented
+  AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
+  {
+    if (!this.display) return;
+    if (this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) return;
+    if (!this._volatileData.length) return;
+
+    const view = new DataView(this._items.buffer);
+    const m = EvePlaneSet._matrixScratch;
+    const bone = EvePlaneSet._boneScratch;
+
+    this._volatileData.forEach((data, i) =>
+    {
+      const base = i * PLANE_VERTEX_SIZE;
+      const boneIndex = this._items[base + 105];
+
+      // Carbon's row-vector data.transform * bone * parent.
+      if (this.skinned && boneIndex < boneCount)
+      {
+        MatrixCopyFrom3x4(bone, bones, boneIndex);
+        mat4.multiply(m, bone, data.transform);
+        mat4.multiply(m, parentTransform, m);
+      }
+      else
+      {
+        mat4.multiply(m, parentTransform, data.transform);
+      }
+
+      // transformN = (m._1N, m._2N, m._3N, m._4N), column N; Carbon's _rc
+      // sits at memory (r - 1) * 4 + (c - 1).
+      for (let r = 0; r < 3; r++)
+      {
+        for (let c = 0; c < 4; c++) view.setFloat32(base + r * 16 + c * 4, m[c * 4 + r], true);
+      }
+      for (let c = 0; c < 4; c++) view.setFloat32(base + 48 + c * 4, data.color[c] * activation, true);
+    });
+
+    quadRenderer.AddQuads(this._effectHash, this._items, this._volatileData.length);
+  }
+
+  static _matrixScratch = mat4.create();
+
+  static _boneScratch = mat4.create();
 
   /** Sets the effect that draws the planes. */
   @carbon.method

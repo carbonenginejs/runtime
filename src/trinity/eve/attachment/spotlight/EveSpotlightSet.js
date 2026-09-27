@@ -11,6 +11,8 @@ import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js"
 import { AsPerSpotLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { TriBatchType } from "#consts/graphics";
+import { num } from "#math/num";
+import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 
 
 // Carbon's two nested pool-vertex layouts, BUILT as Carbon builds them
@@ -106,33 +108,141 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
 
   #boosterGain = 0;
 
+  /** m_coneEffectHash / m_glowEffectHash: the quad renderer's keys. */
+  _coneEffectHash = 0;
+
+  _glowEffectHash = 0;
+
+  /** m_coneBuffer: one ConePoolVertex per spotlight, packed bytes. */
+  _coneBuffer = new Uint8Array(0);
+
+  /** m_glowBuffer: one GlowPoolVertex per spotlight, packed bytes. */
+  _glowBuffer = new Uint8Array(0);
+
+  /** m_spotlightData: { transform, boneIndex, boosterGainInfluence } per spotlight. */
+  _spotlightData = [];
+
   /**
-   * Recomputes the static and per-bone bounds from the authored spotlight items
-   * and marks the packed geometry stale.
+   * Carbon Rebuild (cpp:274-311): mirrors each item's transform, bone and
+   * booster influence, packs the cone colour and the glow's sprite colour,
+   * flare colour and scale as halves, then the bounds. The transforms and
+   * activation are written per frame by AddToQuadRenderer.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Rebuild()
   {
-    // Packed cone/glow vertices, bounds caches, effect hashes and quad
-    // registration are reconciled by the concrete renderer adapter.
     this.#rebuildRevision++;
 
-    // Carbon rebuilds the item-set bounds at the tail of the same pack (cpp:311).
+    const n = this.spotlightItems.length;
+    this._coneBuffer = new Uint8Array(n * CONE_POOL_VERTEX_SIZE);
+    this._glowBuffer = new Uint8Array(n * GLOW_POOL_VERTEX_SIZE);
+    const cone = new DataView(this._coneBuffer.buffer);
+    const glow = new DataView(this._glowBuffer.buffer);
+    const half = (view, at, value) => view.setUint16(at, num.toHalfFloat(value), true);
+
+    this._spotlightData = this.spotlightItems.map((item, i) =>
+    {
+      // ConePoolVertex (h:126-137): 3 x Vector4, then m_color[3] at 48.
+      for (let c = 0; c < 3; c++) half(cone, i * CONE_POOL_VERTEX_SIZE + 48 + c * 2, item.coneColor[c]);
+
+      // GlowPoolVertex (h:111-124): 3 x Vector4, m_spriteColor[3] at 48,
+      // m_flareColor[3] at 56, m_scale[3] at 64.
+      const base = i * GLOW_POOL_VERTEX_SIZE;
+      for (let c = 0; c < 3; c++)
+      {
+        half(glow, base + 48 + c * 2, item.spriteColor[c]);
+        half(glow, base + 56 + c * 2, item.flareColor[c]);
+        half(glow, base + 64 + c * 2, item.spriteScale[c]);
+      }
+
+      return { transform: item.transform, boneIndex: item.boneIndex | 0, boosterGainInfluence: item.boosterGainInfluence ? 1 : 0 };
+    });
+
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
   }
 
-  /**
-   * Runs the first Rebuild so the set has bounds before its first visibility
-   * test.
-   */
+  /** Carbon Initialize (cpp:106-122): the effect keys, then the first Rebuild. */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Initialize()
   {
+    if (this.coneEffect) this._coneEffectHash = Number(this.coneEffect.GetHashValue()) >>> 0;
+    if (this.glowEffect) this._glowEffectHash = Number(this.glowEffect.GetHashValue()) >>> 0;
     this.Rebuild();
     return true;
   }
+
+  /** Carbon RegisterWithQuadRenderer (cpp:194-198): the cone, then the glow. */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    this.RegisterQuadRendererCone(quadRenderer);
+    this.RegisterQuadRendererGlow(quadRenderer);
+  }
+
+  /**
+   * Carbon AddToQuadRenderer (cpp:212-272): each spotlight's world matrix
+   * (through its bone when skinned and the bone exists) is written into both
+   * vertices as its three columns, with activation * intensity and the booster
+   * gain influence as halves; the glows, then the cones, go to the renderer.
+   */
+  @carbon.method
+  @impl.implemented
+  AddToQuadRenderer(quadRenderer, world, activation, boosterGain, bones, boneCount)
+  {
+    if (!this.display || !this._glowBuffer.length) return;
+
+    const cone = new DataView(this._coneBuffer.buffer);
+    const glow = new DataView(this._glowBuffer.buffer);
+    const m = EveSpotlightSet._matrixScratch;
+    const bone = EveSpotlightSet._boneScratch;
+    const activation16 = num.toHalfFloat(activation * this.intensity);
+
+    this._spotlightData.forEach((data, i) =>
+    {
+      // Carbon's row-vector transform * world (and transform * bone * world).
+      if (this.skinned && data.boneIndex < boneCount)
+      {
+        MatrixCopyFrom3x4(bone, bones, data.boneIndex);
+        mat4.multiply(m, bone, data.transform);
+        mat4.multiply(m, world, m);
+      }
+      else
+      {
+        mat4.multiply(m, world, data.transform);
+      }
+
+      const influence = num.toHalfFloat(1 + (boosterGain - 1) * data.boosterGainInfluence);
+      const coneBase = i * CONE_POOL_VERTEX_SIZE;
+      const glowBase = i * GLOW_POOL_VERTEX_SIZE;
+
+      // m_transformR = (m._1R, m._2R, m._3R, m._4R). The byte layouts agree,
+      // so Carbon's _cR is memory index (c - 1) * 4 + (R - 1).
+      for (let r = 0; r < 3; r++)
+      {
+        for (let c = 0; c < 4; c++)
+        {
+          const value = m[c * 4 + r];
+          cone.setFloat32(coneBase + r * 16 + c * 4, value, true);
+          glow.setFloat32(glowBase + r * 16 + c * 4, value, true);
+        }
+      }
+
+      glow.setUint16(glowBase + 54, activation16, true);
+      glow.setUint16(glowBase + 70, influence, true);
+      cone.setUint16(coneBase + 54, activation16, true);
+      cone.setUint16(coneBase + 56, influence, true);
+    });
+
+    quadRenderer.AddQuads(this._glowEffectHash, this._glowBuffer, this._spotlightData.length);
+    quadRenderer.AddQuads(this._coneEffectHash, this._coneBuffer, this._spotlightData.length);
+  }
+
+  static _matrixScratch = mat4.create();
+
+  static _boneScratch = mat4.create();
 
   /** The effect that draws the light cones. */
   @carbon.method
@@ -148,6 +258,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   SetConeEffect(effect)
   {
     this.coneEffect = effect ?? null;
+    this._coneEffectHash = this.coneEffect ? Number(this.coneEffect.GetHashValue()) >>> 0 : 0;
   }
 
   /** The effect that draws the glow sprite at each cone's source. */
@@ -164,6 +275,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   SetGlowEffect(effect)
   {
     this.glowEffect = effect ?? null;
+    this._glowEffectHash = this.glowEffect ? Number(this.glowEffect.GetHashValue()) >>> 0 : 0;
   }
 
   /**
@@ -176,9 +288,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @impl.implemented
   RegisterQuadRendererCone(quadRenderer)
   {
-    if (!this.coneEffect) return;
     quadRenderer.RegisterEffect(
-      Number(this.coneEffect.GetHashValue()) >>> 0,
+      this._coneEffectHash,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,
       CONE_POOL_VERTEX_SIZE,
       CONE_QUAD_COUNT,
@@ -195,9 +306,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @impl.implemented
   RegisterQuadRendererGlow(quadRenderer)
   {
-    if (!this.glowEffect) return;
     quadRenderer.RegisterEffect(
-      Number(this.glowEffect.GetHashValue()) >>> 0,
+      this._glowEffectHash,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,
       GLOW_POOL_VERTEX_SIZE,
       SPRITE_QUAD_COUNT,
@@ -297,20 +407,24 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Sets a shader option on both the cone and the glow effect, skipping
-   * whichever is absent or does not accept options.
+   * Carbon SetShaderOption (cpp:405-420): the option changes the effect's
+   * permutation and so its hash, and the set registers again under it.
    */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   SetShaderOption(name, value)
   {
-    if (this.coneEffect && typeof this.coneEffect.SetOption === "function")
+    if (this.coneEffect)
     {
       this.coneEffect.SetOption(name, value);
+      this._coneEffectHash = Number(this.coneEffect.GetHashValue()) >>> 0;
+      this.RegisterQuadRendererCone(Tr2QuadRenderer.Instance());
     }
-    if (this.glowEffect && typeof this.glowEffect.SetOption === "function")
+    if (this.glowEffect)
     {
       this.glowEffect.SetOption(name, value);
+      this._glowEffectHash = Number(this.glowEffect.GetHashValue()) >>> 0;
+      this.RegisterQuadRendererGlow(Tr2QuadRenderer.Instance());
     }
   }
 

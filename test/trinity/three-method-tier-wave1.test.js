@@ -216,13 +216,16 @@ test("EveSpotlightSet: both pool declarations are BUILT and land on the struct s
   const registered = [];
   const renderer = { RegisterEffect(...args) { registered.push(args); } };
 
-  // No effects: neither registration fires.
+  // Carbon registers unconditionally, under the cached key (cpp:124-132):
+  // with no effect set that is key 0 and a null effect.
   set.RegisterQuadRendererCone(renderer);
   set.RegisterQuadRendererGlow(renderer);
-  assert.equal(registered.length, 0);
+  assert.deepEqual(registered.map(call => [ call[0], call[5] ]), [ [ 0, null ], [ 0, null ] ]);
+  registered.length = 0;
 
-  set.coneEffect = { GetHashValue: () => 0xC0DE };
-  set.glowEffect = { GetHashValue: () => 0x610 };
+  // The keys are cached when the effects are set (cpp:333-383).
+  set.SetConeEffect({ GetHashValue: () => 0xC0DE });
+  set.SetGlowEffect({ GetHashValue: () => 0x610 });
   set.RegisterQuadRendererCone(renderer);
   set.RegisterQuadRendererGlow(renderer);
 

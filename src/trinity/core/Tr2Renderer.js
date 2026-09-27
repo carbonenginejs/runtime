@@ -543,6 +543,14 @@ export class Tr2Renderer
     return Tr2Renderer.#shaderModel;
   }
 
+  /** Carbon IsLowQuality (Tr2Renderer.cpp:1193-1197): the low shader model or below. */
+  @carbon.method
+  @impl.implemented
+  static IsLowQuality()
+  {
+    return Tr2Renderer.GetShaderModel() <= TR2SHADERMODEL.TR2SM_3_0_LO;
+  }
+
   /**
    * Sets the renderer's shader model.
    *

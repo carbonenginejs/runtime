@@ -448,7 +448,7 @@ test("EveBannerSet preserves the authored physical attachment graph", () =>
   assertEquals(restoredBanner.reference, 42);
 
   const options = [];
-  const effect = { SetOption: (...args) => options.push(args) };
+  const effect = { SetOption: (...args) => options.push(args), GetHashValue: () => 0x5e7 };
   set.SetEffect(effect);
   set.SetShaderOption("BANNER", "1");
   assertEquals(options[0].join(","), "BANNER,1");
@@ -491,7 +491,7 @@ test("EvePlaneSet preserves authored quad and SOF-light intent without GPU state
   assertEquals(set.skinned, true);
 
   const options = [];
-  set.SetEffect({ SetOption: (...args) => options.push(args) });
+  set.SetEffect({ SetOption: (...args) => options.push(args), GetHashValue: () => 0x9a });
   set.SetShaderOption("SKINNED", "1");
   assertEquals(options[0].join(","), "SKINNED,1");
   set.SetImageMapParameter({ name: "ImageMap" });
@@ -530,8 +530,8 @@ test("EveSpotlightSet preserves authored cone, glow, and SOF-light intent", () =
   assertEquals(set.skinned, true);
 
   const options = [];
-  const coneEffect = { SetOption: (...args) => options.push(["cone", ...args]) };
-  const glowEffect = { SetOption: (...args) => options.push(["glow", ...args]) };
+  const coneEffect = { SetOption: (...args) => options.push(["cone", ...args]), GetHashValue: () => 0xc0 };
+  const glowEffect = { SetOption: (...args) => options.push(["glow", ...args]), GetHashValue: () => 0x61 };
   set.SetConeEffect(coneEffect);
   set.SetGlowEffect(glowEffect);
   assert(set.GetConeEffect() === coneEffect);
