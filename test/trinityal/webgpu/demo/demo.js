@@ -1082,7 +1082,8 @@ async function SofDocument(dna)
  * PLACEHOLDER ALLIANCE AND CORP LOGOS. The client points a ship's banner
  * external parameters (named by EveSOF, EveSOF.cpp:1682-1696) at the owning
  * alliance's and corporation's images at runtime; the demo has neither, so it
- * points them at two local images the runner serves from CJS_DEMO_BANNER_DIR.
+ * points them at two local images the runner serves from the `res/` folder
+ * beside the checkout.
  * Temporary: remove once the demo can name a real alliance.
  */
 const DEMO_BANNERS = Object.freeze({

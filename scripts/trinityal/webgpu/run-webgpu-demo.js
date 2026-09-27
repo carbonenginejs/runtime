@@ -47,13 +47,11 @@ const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3498
 /** The target root behind the resource route, for the other tools-core paths. */
 const TOOLS_CORE_ROOT = TOOLS_CORE.replace(/resources\/?$/u, "");
 
-// Placeholder alliance and corp logos, read from a local folder named by
-// CJS_DEMO_BANNER_DIR (holding alliance.png and corporation.png). Unset, the
-// banner route answers 404 and the ship keeps its authored banners.
-const BANNER_DIR = process.env.CJS_DEMO_BANNER_DIR ?? "";
-const DEMO_BANNERS = BANNER_DIR
-  ? { "alliance.png": join(BANNER_DIR, "alliance.png"), "corporation.png": join(BANNER_DIR, "corporation.png") }
-  : {};
+// Placeholder alliance and corp logos, alliance.png and corporation.png, read
+// from the local `res/` folder beside this checkout (outside every repository,
+// so client images are never committed), or from CJS_DEMO_BANNER_DIR.
+const BANNER_DIR = process.env.CJS_DEMO_BANNER_DIR ?? resolve(ROOT, "../res");
+const DEMO_BANNERS = { "alliance.png": join(BANNER_DIR, "alliance.png"), "corporation.png": join(BANNER_DIR, "corporation.png") };
 
 const server = createServer(async (request, response) =>
 {
