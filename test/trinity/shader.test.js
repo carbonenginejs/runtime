@@ -963,28 +963,7 @@ test("effect collections accept unique-name value maps with class-claimed infere
   assert(effect.parameters[0] === kept[0]);
 });
 
-test("GetValues keyed lists round-trip the effect collections as unique-name objects", () =>
-{
-  const effect = new Tr2Effect();
-  effect.SetValues({
-    parameters: { DiffuseColor: [0, 0, 0, 1] },
-    textures: { AlbedoMap: "res:/albedo.dds" },
-    samplerOverrides: { AlbedoMapSampler: { addressU: 4 } }
-  });
-
-  const keyed = effect.GetValues({ keyedLists: true });
-  assert(!Array.isArray(keyed.parameters));
-  assert("DiffuseColor" in keyed.parameters);
-  assertEquals(keyed.parameters.DiffuseColor.name, undefined, "keyed items drop the redundant name");
-  assertEquals(keyed.resources.AlbedoMap.resourcePath, "res:/albedo.dds");
-  assertEquals(keyed.samplerOverrides.AlbedoMapSampler.addressU, 4);
-
-  const clone = new Tr2Effect();
-  clone.SetValues({ samplerOverrides: keyed.samplerOverrides });
-  assertEquals(clone.samplerOverrides.length, 1);
-  assertEquals(clone.samplerOverrides[0].name, "AlbedoMapSampler");
-  assertEquals(clone.samplerOverrides[0].addressU, 4);
-});
+// Removed: "GetValues keyed lists round-trip..." - keyed lists have no Blue counterpart and no production caller, and were dropped with the move to Blue's values engine (operator, 2026-09-27).
 
 test("vector parameters never hand out their own value array", () =>
 {

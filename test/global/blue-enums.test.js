@@ -108,9 +108,11 @@ test("Blue and schema share registration and resolve qualified fields after regi
     assert.equal(CjsSchema.getField(Host, "mode").enum.members, values);
     assert.equal(CjsSchema.getSchema(Host).fields[0].enum.identity, "test.LateEnum");
     const host = new Host();
-    host.SetValues({ mode: "SECOND" });
+    // Enum members read and write as integers, as Carbon's readers read them
+    // (DictReader.cpp ReadValue); member-name import and enumFormat export are
+    // dropped (operator, 2026-09-27).
+    host.SetValues({ mode: 2 });
     assert.equal(host.mode, 2);
-    assert.equal(host.GetValues({ enumFormat: "names" }).mode, "SECOND");
     class Derived extends Host {}
     assert.equal(CjsSchema.getSchema(Derived).fields[0].enum.members, values);
     class Legacy extends CjsModel { static Choice = values; }
@@ -173,7 +175,7 @@ test("SOF-owned enum fields resolve native choosers without merging independent 
         assert.equal(info.chooser.length, count);
         // Named values transport remains based on native identifiers, not UI labels.
         const key = Object.keys(Constructor[enumName])[0];
-        instance.SetValues({ [member]: key });
+        instance.SetValues({ [member]: Constructor[enumName][key] });
         assert.equal(instance[member], Constructor[enumName][key]);
     }
     for (const [first, second] of [
@@ -215,9 +217,8 @@ test("shared SOF enum fields resolve through Blue with native reflection labels 
         assert.equal(field.enum.members, Constructor[staticName]);
         const instance = new Constructor();
         const key = staticName === "Tr2Lod" ? "TR2_LOD_UNSPECIFIED" : "REFLECT_HIGH";
-        instance.SetValues({ [member]: key });
+        instance.SetValues({ [member]: services.enums.GetEnum(identity)[key] });
         assert.equal(instance[member], staticName === "Tr2Lod" ? -1 : 0);
-        assert.equal(instance.GetValues({ enumFormat: "names" })[member], key);
     }
     const reflection = "trinity.EntityComponents.ReflectionMode";
     assert.deepEqual(services.enums.GetEnumInfo(reflection).chooser.map(entry => entry.name),

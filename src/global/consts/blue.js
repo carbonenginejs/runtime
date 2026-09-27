@@ -11,13 +11,13 @@
  * The first seven are events; the last three are flags OR-ed on top, so mask
  * with `BELIST_EVENTMASK` before comparing.
  *
- * IT LIVES HERE RATHER THAN ON ITS OWNER, AND ITS OWNER CANNOT REACH IT. The
- * enum-placement rule makes a static on `IListNotify` the default, and that is
- * where the vocabulary belongs. Two layer rules forbid it: `global/model` may
- * not import `global/blue`, and `CjsModel` is what fires these; and
- * `global/blue` may import only `global/schema`, so `IListNotify` cannot point
- * back here either. There is therefore NO `IListNotify.BLUELISTEVENT` - this
- * object is the only declaration, and `IListNotify` documents it in prose.
+ * IT LIVES HERE RATHER THAN ON ITS OWNER. The enum-placement rule makes a
+ * static on `IListNotify` the default, and that is where the vocabulary
+ * belongs. It was placed here while `global/model` (which fires these, in
+ * `CjsModel`) could not import `global/blue`; that edge exists now (layers.json,
+ * CjsModel delegating to Blue's values engine), so moving it onto
+ * `IListNotify` is open. Until then there is NO `IListNotify.BLUELISTEVENT` -
+ * this object is the only declaration, and `IListNotify` documents it in prose.
  */
 export const BLUELISTEVENT = Object.freeze({
     /** After a read has filled the list - the one notification a load produces. */

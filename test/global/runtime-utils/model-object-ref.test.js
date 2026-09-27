@@ -139,15 +139,14 @@ test("isInstanceOf reads a class this copy has never seen", () =>
     assert.equal(CjsSchema.isInstanceOf("ForeignTr2Effect", foreign), false);
 });
 
-test("an objectRef still constructs from a plain values bag", () =>
+test("an objectRef to an interface throws on a plain bag with no class", () =>
 {
-    // The alias rule must not swallow the ordinary case: a plain object is
-    // data, not a reference, and there is nothing to alias.
+    // A plain object is data, not a reference - but a member typed as an
+    // interface nothing registers has no class to build from it, and a typed
+    // member does not keep a plain object (operator, 2026-09-26).
     const observer = new Observer();
-    observer.SetValues({ observer: { name: "from-values" } });
-
-    assert.equal(isModelInstance(observer.observer), false);
-    assert.equal(observer.observer.name, "from-values");
+    assert.throws(() => observer.SetValues({ observer: { name: "from-values" } }), /_type/u);
+    assert.equal(observer.observer, null);
 });
 
 test("a class name survives the package-copy boundary", () =>

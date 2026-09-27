@@ -9,7 +9,7 @@ import {
 import { composeAbstractDecorator } from "../compose/abstract.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../compose/interface.js";
-import { composeValuesDecorator, createValuesTransport } from "../compose/values.js";
+import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
 import { blueEnums, CjsBlueEnumRegistry } from "../blue/enums/CjsBlueEnumRegistry.js";
 import { TriSettingNames } from "../consts/trinity.js";
 
@@ -190,6 +190,30 @@ export class CjsSchema
      *
      * @returns {ReadonlyArray<object>} The described settings.
      */
+    /**
+     * Whether values may write a field: a writer's edit-flag rule, which the
+     * values transport and Blue's reader share.
+     *
+     * @param {object} field A field record.
+     * @returns {boolean} True when writable.
+     */
+    static isFieldWritable(field)
+    {
+        return isWritableField(field);
+    }
+
+    /**
+     * Whether an export writes a field under the given options (`persistOnly`).
+     *
+     * @param {object} field A field record.
+     * @param {object} [options] Export options.
+     * @returns {boolean} True when exported.
+     */
+    static isFieldExported(field, options = {})
+    {
+        return isExportableField(field, options);
+    }
+
     static getSettings()
     {
         return SETTINGS;

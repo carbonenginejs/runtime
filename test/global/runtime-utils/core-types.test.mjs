@@ -155,64 +155,7 @@ test("CjsModel exposes only the schema-backed construction surface", () => {
     }
 });
 
-test("CjsModel Merge deep-merges raw value bags and updates once", () => {
-    class MergeSettings extends CjsModel
-    {
-        left = 0;
-        right = 0;
-    }
-
-    class MergeModel extends CjsModel
-    {
-        name = "";
-        count = 0;
-        settings = null;
-        members = [];
-        observed = [];
-
-        OnModified(member)
-        {
-            this.members.push(member);
-            this.observed.push([this.name, this.count, this.settings.left, this.settings.right]);
-            return true;
-        }
-    }
-
-    CjsSchema.defineField(MergeSettings, "left", "type", { kind: "uint32" });
-    CjsSchema.defineField(MergeSettings, "right", "type", { kind: "uint32" });
-    CjsSchema.define(MergeSettings, { className: "MergeSettings", family: "test" });
-    CjsSchema.defineField(MergeModel, "name", "type", { kind: "string" });
-    CjsSchema.defineField(MergeModel, "name", "edit", { notify: true });
-    CjsSchema.defineField(MergeModel, "count", "type", { kind: "uint32" });
-    CjsSchema.defineField(MergeModel, "count", "edit", { notify: true });
-    CjsSchema.defineField(MergeModel, "settings", "type", { kind: "struct", className: "MergeSettings" });
-    CjsSchema.defineField(MergeModel, "settings", "edit", { notify: true });
-    CjsSchema.define(MergeModel, { className: "MergeModel", family: "test" });
-
-    const target = new MergeModel();
-    const returned = CjsModel.merge(
-        target,
-        [
-            { name: "first", count: 1, settings: { left: 4 }, ignored: true },
-            { count: 2, settings: { right: 8 } },
-            { name: "last" }
-        ],
-        {}
-    );
-
-    assert.deepEqual(returned, new Set(["name", "count", "settings"]));
-    assert.equal(target.name, "last");
-    assert.equal(target.count, 2);
-    assert.equal(target.settings instanceof MergeSettings, true);
-    assert.deepEqual(target.settings.GetValues(), { left: 4, right: 8 });
-    assert.equal(Object.hasOwn(target, "ignored"), false);
-    assert.deepEqual(target.members, ["name", "count", "settings"]);
-    assert.deepEqual(target.observed, Array(3).fill(["last", 2, 4, 8]));
-    assert.deepEqual(target.Merge([{ count: 3 }]), new Set(["count"]));
-    assert.equal(target.count, 3);
-    assert.deepEqual(target.members, ["name", "count", "settings", "count"]);
-    assert.throws(() => target.Merge({ count: 4 }), /array of value sources/);
-});
+// Removed: "CjsModel Merge deep-merges raw value bags..." - Merge: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
 
 test("CjsModel Copy transfers an instantiated model through SetValues", () => {
     class CopyModel extends CjsModel
@@ -734,12 +677,15 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         ]
     });
 
+    // A hidden or undeclared key is not a member the reader knows: it throws,
+    // as Carbon's readers do (IRootReader.cpp:99-106; operator, 2026-09-27).
+    assert.throws(() => HideChild.from({ hidden: "hidden-loaded" }), /Invalid attribute: hidden/u);
+    assert.throws(() => HideChild.from({ unknown: "rejected" }), /Invalid attribute: unknown/u);
+
     const child = HideChild.from({
         visible: "visible-loaded",
-        hidden: "hidden-loaded",
         secondHidden: "second-loaded",
-        own: "own-loaded",
-        unknown: "ignored"
+        own: "own-loaded"
     });
 
     assert.equal(child.hidden, "hidden-default");
@@ -749,7 +695,7 @@ test("schema.hideInherited removes inherited fields only from the schema surface
     assert.equal(child instanceof HideChild, true);
     assert.equal(child instanceof HideBase, true);
     assert.equal(Object.getPrototypeOf(HideChild.prototype), HideBase.prototype);
-    assert.equal(child.SetValues({ hidden: "still-ignored" }), false);
+    assert.throws(() => child.SetValues({ hidden: "still-rejected" }), /Invalid attribute: hidden/u);
 
     for (const options of [
         {},
@@ -788,11 +734,11 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         ]
     });
 
-    const grandchild = HideGrandchild.from({
-        hidden: "cannot-unhide",
-        secondHidden: "also-hidden",
-        extra: "extra-loaded"
-    });
+    // There is no unhide: re-declaring "hidden" does not expose it again, so
+    // both hidden names throw on the grandchild.
+    assert.throws(() => HideGrandchild.from({ hidden: "cannot-unhide" }), /Invalid attribute: hidden/u);
+    assert.throws(() => HideGrandchild.from({ secondHidden: "also-hidden" }), /Invalid attribute: secondHidden/u);
+    const grandchild = HideGrandchild.from({ extra: "extra-loaded" });
 
     assert.equal(grandchild.hidden, "grandchild-hidden");
     assert.equal(grandchild.secondHidden, "second-default");
@@ -1347,9 +1293,10 @@ test("hydrates canonical model fields and lists without constructing raw objects
     const parent = CanonicalParent.from({
         child: { label: "one" },
         children: [{ label: "two" }],
-        payload: { native: 7 },
-        reference: { name: "root" }
+        payload: { native: 7 }
     });
+    assert.throws(() => CanonicalParent.from({ reference: { name: "root" } }), /_type/u,
+        "a typed member does not keep a plain object it cannot build (operator, 2026-09-26)");
     const existingChild = CanonicalChild.from({ label: "existing" });
     const referencingParent = CanonicalParent.from({
         child: existingChild,
@@ -1361,13 +1308,13 @@ test("hydrates canonical model fields and lists without constructing raw objects
     assert.equal(referencingParent.child, existingChild);
     assert.equal(referencingParent.children[0], existingChild);
     assert.deepEqual(parent.payload, { native: 7 });
-    assert.deepEqual(parent.reference, { name: "root" });
+    assert.equal(parent.reference, null);
     assert.equal(parent.payload instanceof CjsModel, false);
     assert.deepEqual(parent.GetValues(), {
         child: { label: "one" },
         children: [{ label: "two" }],
         payload: { native: 7 },
-        reference: { name: "root" }
+        reference: null
     });
 });
 
@@ -1449,7 +1396,7 @@ test("keeps unknown list item types as plain values", () => {
     assert.equal(node.items[0] instanceof CjsModel, false);
 });
 
-test("GetValues export options control persistence, type tags, refs, ids, and keyed lists", () => {
+test("GetValues export options control persistence, type tags and refs", () => {
     class ExportChild extends CjsModel
     {
         name = "";
@@ -1525,10 +1472,8 @@ test("GetValues export options control persistence, type tags, refs, ids, and ke
     assert.deepEqual(withRefs.children[0], { _ref: 1 });
     assert.equal(withRefs.children[1]._id, undefined);
 
-    const withIds = root.GetValues({ refs: true, forceIDs: true });
-    assert.equal(typeof withIds._id, "number");
-    assert.equal(typeof withIds.children[1]._id, "number");
-    assert.deepEqual(withIds.children[0], { _ref: withIds.child._id });
+    // forceIDs and keyedLists are dropped: Blue's writers have neither, and
+    // nothing in production asked for them (operator, 2026-09-27).
 
     const cyclic = new ExportRoot();
     cyclic.name = "cycle";
@@ -1536,13 +1481,6 @@ test("GetValues export options control persistence, type tags, refs, ids, and ke
     const cycled = cyclic.GetValues({ refs: true });
     assert.deepEqual(cycled.child, { _ref: cycled._id });
 
-    const keyedRoot = new ExportRoot();
-    keyedRoot.children = [ExportChild.from({ name: "a", value: 1 }), ExportChild.from({ name: "b", value: 2 })];
-    const keyed = keyedRoot.GetValues({ keyedLists: true });
-    assert.deepEqual(keyed.children, { a: { value: 1 }, b: { value: 2 } });
-
-    keyedRoot.children = [ExportChild.from({ name: "a", value: 1 }), ExportChild.from({ name: "a", value: 2 })];
-    assert.equal(Array.isArray(keyedRoot.GetValues({ keyedLists: true }).children), true);
 });
 
 test("imports _ref identity: shared children, cycles, self and forward references", () => {
@@ -1715,39 +1653,9 @@ test("reference import errors are loud and specific", () => {
     assert.equal(crossTyped.node, crossTyped.others[0]);
 });
 
-test("keyed list maps accept _ref entries and keep the shared item's own name", () => {
-    class KeyedRefChild extends CjsModel
-    {
-        name = "";
-        value = 0;
-    }
-    CjsSchema.define(KeyedRefChild, {
-        className: "KeyedRefChild",
-        fields: [
-            { name: "name", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
-            { name: "value", type: { kind: "float32" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
+// Removed: "keyed list maps accept _ref entries..." - keyed lists: the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
 
-    class KeyedRefHost extends CjsModel
-    {
-        children = [];
-    }
-    CjsSchema.define(KeyedRefHost, {
-        className: "KeyedRefHost",
-        fields: [
-            { name: "children", type: { kind: "list", itemType: "KeyedRefChild" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
-
-    const host = new KeyedRefHost();
-    host.SetValues({ children: { a: { _id: 9, value: 1 }, b: { _ref: 9 } } });
-    assert.equal(host.children.length, 2);
-    assert.equal(host.children[1], host.children[0]);
-    assert.equal(host.children[0].name, "a");
-});
-
-test("list fields accept keyed maps and explicit item _type on input", () => {
+test("list items honor an explicit _type on input", () => {
     class MapChild extends CjsModel
     {
         name = "";
@@ -1784,130 +1692,18 @@ test("list fields accept keyed maps and explicit item _type on input", () => {
     });
 
     const host = new MapHost();
-    host.SetValues({ children: { a: { value: 1 }, b: { _type: "MapChildAlt", value: 2 }, skipped: null } });
-    assert.equal(host.children.length, 2);
-    assert.equal(host.children[0] instanceof MapChild, true);
-    assert.equal(host.children[0].name, "a");
-    assert.equal(host.children[0].value, 1);
-    assert.equal(host.children[1] instanceof MapChildAlt, true);
-    assert.equal(host.children[1].name, "b");
+    // A list is read from a list (DictReader ReadList: "Expected a list"); the
+    // name-keyed map form was dropped with keyed lists (operator, 2026-09-27).
+    assert.throws(() => host.SetValues({ children: { a: { value: 1 } } }), TypeError);
 
     host.SetValues({ children: [{ _type: "MapChildAlt", name: "c", value: 3 }] });
     assert.equal(host.children.length, 1);
     assert.equal(host.children[0] instanceof MapChildAlt, true);
     assert.equal(host.children[0].name, "c");
-
-    assert.throws(() => host.SetValues({ children: { bad: 1 } }), TypeError);
     assert.equal(Array.isArray(host.children), true);
-
-    const keyed = host.GetValues({ keyedLists: true });
-    assert.deepEqual(keyed.children, { c: { value: 3 } });
 });
 
-test("enum-backed fields validate on set and translate on export via class statics", () => {
-    class EnumHost extends CjsModel
-    {
-        static Mode = Object.freeze({
-            OFF: 0,
-            ON: 1,
-            AUTO: 1,
-            PULSE: 2
-        });
-
-        mode = 0;
-        label = "";
-    }
-    CjsSchema.define(EnumHost, {
-        className: "EnumHost",
-        fields: [
-            { name: "mode", type: { kind: "int32" }, edit: { read: true, write: true, persist: true }, enum: { enumType: "Mode" } },
-            { name: "label", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
-
-    class EnumHostChild extends EnumHost
-    {
-    }
-    CjsSchema.define(EnumHostChild, {
-        className: "EnumHostChild",
-        fields: [
-            { name: "mode", type: { kind: "int32" }, edit: { read: true, write: true, persist: true }, enum: { enumType: "Mode" } },
-            { name: "label", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
-        ]
-    });
-
-    const host = new EnumHost();
-
-    // acceptance: number, exact member string, identity tuple (element 0)
-    host.SetValues({ mode: 2 });
-    assert.equal(host.mode, 2);
-    host.SetValues({ mode: "ON" });
-    assert.equal(host.mode, 1);
-    host.SetValues({ mode: ["PULSE", "EnumHost.Mode"] });
-    assert.equal(host.mode, 2);
-
-    // default export is untouched numerics
-    assert.equal(host.GetValues().mode, 2);
-
-    // names / identity modes translate; alias reverse map is first-declared
-    host.SetValues({ mode: 1 });
-    assert.equal(host.GetValues({ enumFormat: "names" }).mode, "ON");
-    assert.deepEqual(host.GetValues({ enumFormat: "identity" }).mode, ["ON", "EnumHost.Mode"]);
-    assert.equal(host.GetValues({ enumFormat: "names" }).label, "");
-
-    // inheritance: child instance resolves the parent's static, identity names the owner
-    const child = new EnumHostChild();
-    child.SetValues({ mode: "PULSE" });
-    assert.deepEqual(child.GetValues({ enumFormat: "identity" }).mode, ["PULSE", "EnumHost.Mode"]);
-
-    // unknown numeric exports raw in translation modes (forward-compatible)
-    Object.defineProperty(host, "mode", { value: 99, writable: true, configurable: true });
-    assert.equal(host.GetValues({ enumFormat: "names" }).mode, 99);
-
-    // strict atomic throw: every invalid property listed, nothing mutated
-    const strict = new EnumHost();
-    strict.SetValues({ mode: 1, label: "before" });
-    let message = "";
-    try
-    {
-        strict.SetValues({ mode: "on", label: "after" });
-    }
-    catch (error)
-    {
-        message = error instanceof TypeError ? error.message : "";
-    }
-    assert.match(message, /mode/);
-    assert.match(message, /EnumHost\.Mode/);
-    assert.equal(strict.mode, 1);
-    assert.equal(strict.label, "before", "atomic validation must reject before any mutation");
-    assert.throws(() => strict.SetValues({ mode: 3 }), TypeError);
-    assert.throws(() => strict.SetValues({ mode: [] }), TypeError);
-    assert.throws(() => strict.SetValues({ mode: true }), TypeError);
-
-    // hydration path throws through from()
-    assert.throws(() => EnumHost.from({ mode: "BAD" }), TypeError);
-
-    // schema export is self-describing for resolved enums
-    const schemaField = CjsSchema.getSchema(EnumHost).fields.find(field => field.name === "mode");
-    assert.equal(schemaField.enum.identity, "EnumHost.Mode");
-    assert.equal(schemaField.enum.members, EnumHost.Mode);
-
-    // classes without a resolvable static pass values through unvalidated
-    class EnumlessHost extends CjsModel
-    {
-        mode = 0;
-    }
-    CjsSchema.define(EnumlessHost, {
-        className: "EnumlessHost",
-        fields: [
-            { name: "mode", type: { kind: "int32" }, edit: { read: true, write: true, persist: true }, enum: { enumType: "MissingEnum" } }
-        ]
-    });
-    const enumless = new EnumlessHost();
-    enumless.SetValues({ mode: 42 });
-    assert.equal(enumless.mode, 42);
-    assert.equal(enumless.GetValues({ enumFormat: "names" }).mode, 42);
-});
+// Removed: "enum-backed fields validate on set and translate on export..." - enum member names on import, enumFormat on export and membership validation: Carbon's readers read enum members as integers (DictReader ReadValue). the feature has no Blue counterpart and no production caller, and was dropped with the move to Blue's values engine (operator, 2026-09-27; docs research/blue-values-engine.md).
 
 test("records carbon.contextual tier provenance", () => {
     class ContextualNode

@@ -10,6 +10,12 @@ import { resolveFactionColor } from "../../resolveFactionColor.js";
 export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttributeModifier
 {
 
+  /** m_name (std::string) [READWRITE, PERSIST] */
+  @edit.readwrite
+  @edit.persist
+  @type.string
+  name = "";
+
   /** m_selectedColor (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
   @edit.readwrite

@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime` global classes under `src/global/dropped`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for donor classes that are written but deliberately not live, each carrying the reason it was dropped.
 
+<!-- class:BlueObjectMetadata -->
+## `BlueObjectMetadata`
+
+`BlueObjectMetadata` - the object-metadata store.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/BlueObjectMetadata.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Copier -->
 ## `Copier`
 
@@ -12,6 +22,36 @@ Summary: Provides one-sentence purpose descriptors for donor classes that are wr
 
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/Copier.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:DictReader -->
+## `DictReader`
+
+`DictReader` - reads plain dictionaries into Blue objects.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/DictReader.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:DictWriter -->
+## `DictWriter`
+
+`DictWriter` - writes an object as a plain values bag.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/DictWriter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IBlueObjectMetadata -->
+## `IBlueObjectMetadata`
+
+`IBlueObjectMetadata` - per-object string metadata, per blue/include/IBlueObjectMetadata.h.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IBlueObjectMetadata.js`
 - Visibility: Public
 - Kind: Carbon
 
@@ -32,6 +72,66 @@ Summary: Provides one-sentence purpose descriptors for donor classes that are wr
 
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/ICopierCustomAssignment.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:InvalidAttributeException -->
+## `InvalidAttributeException`
+
+`InvalidAttributeException` - a key names no member the reader may write (IRootReader.h:46-53).
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/InvalidAttributeException.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IRootReader -->
+## `IRootReader`
+
+`IRootReader` - reads an object tree from a stream, per blue/src/IRootReader.h:15-25.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IRootReader.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IRootReaderBase -->
+## `IRootReaderBase`
+
+`IRootReaderBase` - reads one member of an instance by the member's type.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IRootReaderBase.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IRootReaderException -->
+## `IRootReaderException`
+
+`IRootReaderException` - a reader could not read a value (IRootReader.h:21-38).
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IRootReaderException.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:IRootWriter -->
+## `IRootWriter`
+
+`IRootWriter` - writes an object's members through a writer's primitives.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IRootWriter.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:YamlWriter -->
+## `YamlWriter`
+
+`YamlWriter` - writes an object tree as YAML (`.red`); not yet implemented.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/YamlWriter.js`
 - Visibility: Public
 - Kind: Carbon
 

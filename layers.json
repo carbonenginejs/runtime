@@ -123,7 +123,13 @@
         "global/utils",
         "global/math",
         "global/consts",
-        "global/schema"
+        "global/schema",
+        "global/blue"
+      ],
+      "why": [
+        "CjsModel.get/set delegate to Blue's values engine (DictReader,",
+        "DictWriter): the reader and writer are Blue's, CjsModel only wraps",
+        "the editing contract around them. global/blue does not import model."
       ]
     },
     "global/interfaces": {
