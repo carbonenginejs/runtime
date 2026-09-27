@@ -10,6 +10,10 @@ import { Tr2GpuSharedEmitter } from "./Tr2GpuSharedEmitter.js";
 const DECOMPOSE_ROTATION = new Float32Array(4);
 const DECOMPOSE_TRANSLATION = vec3.create();
 const DECOMPOSE_SCALE = vec3.create();
+// Kept separate from Shared's spawn scratch: scaled structs remain live while
+// a shared spawn makes its own value copy, then Emit synchronously copies it.
+const SCALED_EMITTER = Tr2GpuSharedEmitter._createEmitter();
+const SCALED_PARAMS = Tr2GpuSharedEmitter._createParams();
 
 
 /**
@@ -64,7 +68,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 
   /**
    * Updates the world attractor, temporarily scales native structs, and runs
-   * shared emission (cpp:18-53). Struct copies replace C++ value assignment;
+   * shared emission (cpp:18-53). Module scratch replaces C++ stack copies;
    * the schema's local attractor and other authored values remain unchanged.
    */
   @carbon.method
@@ -96,39 +100,63 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /**
-   * Applies parent scaling to either native spawn overload (cpp:55-120).
+   * Scales the native point overload (cpp:55-86) using reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
-   * The argument list is bounded by the two native forms (four or six).
    */
   @carbon.method
   @impl.adapted
-  SpawnParticles(...args)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
     this._ReadParameters();
     const emitter = this._emitter;
     const params = this._params;
     if (this.scaledByParent)
     {
-      this._ScaleParameters(args[0].parentTransform);
+      this._ScaleParameters(arguments_.parentTransform);
       this.UpdateHash();
     }
     try
     {
-      this._Spawn(...args);
+      this._SpawnPoint(arguments_, position, velocity, rateModifier);
     }
     finally
     {
-      if (this.scaledByParent)
-      {
-        this._emitter = emitter;
-        this._params = params;
-      }
+      this._emitter = emitter;
+      this._params = params;
+    }
+  }
+
+  /**
+   * Scales Carbon's segment overload (cpp:88-120) with separate scratch from
+   * shared spawning. The renamed overload avoids JavaScript arity dispatch.
+   */
+  @carbon.renamed("SpawnParticles")
+  @impl.adapted
+  SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  {
+    this._ReadParameters();
+    const emitter = this._emitter;
+    const params = this._params;
+    if (this.scaledByParent)
+    {
+      this._ScaleParameters(arguments_.parentTransform);
+      this.UpdateHash();
+    }
+    try
+    {
+      this._SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime);
+    }
+    finally
+    {
+      this._emitter = emitter;
+      this._params = params;
     }
   }
 
   /**
    * Shares the repeated native scaling body between Update and both spawn
-   * forms. Copies model C++ stack temporaries without mutating authored fields.
+   * forms. Module scratch models C++ stack temporaries without allocating
+   * per call or mutating authored fields. Emit must copy before returning.
    */
   @impl.custom
   _ScaleParameters(parentTransform)
@@ -136,8 +164,8 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
     // Carbon ignores XMMatrixDecompose failure and consumes its scale output.
     mat4.decomposeDirectX(parentTransform, DECOMPOSE_ROTATION, DECOMPOSE_TRANSLATION, DECOMPOSE_SCALE);
     const uniform = (DECOMPOSE_SCALE[0] + DECOMPOSE_SCALE[1] + DECOMPOSE_SCALE[2]) / 3;
-    this._emitter = structuredClone(this._emitter);
-    this._params = structuredClone(this._params);
+    this._emitter = Tr2GpuSharedEmitter._copyEmitter(SCALED_EMITTER, this._emitter);
+    this._params = Tr2GpuSharedEmitter._copyParams(SCALED_PARAMS, this._params);
     vec3.scale(this._params.sizes, this._params.sizes, uniform);
     this._params.gravity *= uniform;
     this._params.turbulenceAmplitude *= uniform;

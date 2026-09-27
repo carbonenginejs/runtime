@@ -189,21 +189,10 @@ export class Tr2GpuSharedEmitter extends CjsModel
 
   _prevVelocity = vec3.create();
 
-  // Value structs from Tr2GpuParticleSystem.h, zeroed by the native constructor.
-  _emitter = {
-    position: vec3.create(), count: 0, positionPrevious: vec3.create(), radius: 0,
-    direction: vec3.create(), angle: 0, directionPrevious: vec3.create(), emitterSeed: 0,
-    velocity: vec3.create(), minSpeed: 0, velocityPrevious: vec3.create(), maxSpeed: 0,
-    innerAngle: 0, unused: vec3.create()
-  };
+  // Persistent native value structs; temporary copies use module scratch.
+  _emitter = Tr2GpuSharedEmitter._createEmitter();
 
-  _params = {
-    minLifeTime: 0, maxLifeTime: 0, textureIndex: 0, colorMidpoint: 0.5,
-    colors: [color.create(), color.create(), color.create(), color.create()],
-    sizes: vec3.create(), sizeVariance: 0, drag: 0, turbulenceAmplitude: 0,
-    turbulenceFrequency: 1, gravity: 0, attractorPosition: vec3.create(),
-    attractorStrength: 0, velocityStretchRotation: 0
-  };
+  _params = Tr2GpuSharedEmitter._createParams();
 
   _enabled = true;
 
@@ -305,8 +294,8 @@ export class Tr2GpuSharedEmitter extends CjsModel
     this._previousTime = arguments_.time;
     if (dt <= 0 && !firstUpdate) return;
 
-    const position = vec3.transformMat4(vec3.create(), this.position, arguments_.parentTransform);
-    const velocity = vec3.create();
+    const position = vec3.transformMat4(UPDATE_POSITION, this.position, arguments_.parentTransform);
+    const velocity = vec3.set(UPDATE_VELOCITY, 0, 0, 0);
     if (!firstUpdate)
     {
       vec3.subtract(velocity, position, this._prevPosition);
@@ -319,7 +308,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
     }
     if (this.continuousEmitter)
     {
-      const start = vec3.add(vec3.create(), this._prevPosition, arguments_.originShift);
+      const start = vec3.add(UPDATE_START, this._prevPosition, arguments_.originShift);
       this._carryOver = this._SpawnParticles(this._emitter, arguments_, start, position,
         this._prevVelocity, velocity, this._carryOver, Math.min(dt, 1 / 15));
     }
@@ -328,41 +317,63 @@ export class Tr2GpuSharedEmitter extends CjsModel
   }
 
   /**
-   * Emits at a point (four arguments) or along a segment (six arguments).
-   * JavaScript dispatches Carbon's overloads by argument count; struct copies
-   * keep explicit spawns from changing the continuous emitter's direction history.
+   * Emits at a point (Tr2GpuSharedEmitter.cpp:149-163). JavaScript cannot
+   * overload methods: the six-argument native form is SpawnParticlesSegment.
+   * A reusable value copy preserves the continuous emitter's direction history.
    */
   @carbon.method
   @impl.adapted
-  SpawnParticles(...args)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
   {
     this._ReadParameters();
-    this._Spawn(...args);
+    this._SpawnPoint(arguments_, position, velocity, rateModifier);
   }
 
-  /** Dispatches the two native overloads after schema projection/scaling. */
+  /**
+   * Emits along a segment (Tr2GpuSharedEmitter.cpp:165-191). The distinct name
+   * represents Carbon's second overload without argument-count inference.
+   */
+  @carbon.renamed("SpawnParticles")
+  @impl.adapted
+  SpawnParticlesSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  {
+    this._ReadParameters();
+    this._SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime);
+  }
+
+  /** Point overload body shared with the subclass after parameter scaling. */
   @impl.custom
-  _Spawn(arguments_, positionStart = null, positionEnd = null, velocityStart = 1, velocityEnd, deltaTime)
+  _SpawnPoint(arguments_, position, velocity, rateModifier)
   {
     if (!arguments_.system || !this._enabled) return;
     const transform = arguments_.parentTransform;
-    const emitter = structuredClone(this._emitter);
-    if (arguments.length < 6)
-    {
-      const position = vec3.transformMat4(vec3.create(), positionStart ?? this.position, transform);
-      const velocity = positionEnd ? this._TransformNormal(positionEnd, transform) : vec3.create();
-      this._SpawnParticles(emitter, arguments_, position, position, velocity, velocity, 0, velocityStart);
-      return;
-    }
-    const end = vec3.transformMat4(vec3.create(), positionEnd ?? this.position, transform);
-    const start = positionStart ? vec3.transformMat4(vec3.create(), positionStart, transform) : vec3.clone(end);
+    const emitter = Tr2GpuSharedEmitter._copyEmitter(SPAWN_EMITTER, this._emitter);
+    const worldPosition = vec3.transformMat4(SPAWN_END, position ?? this.position, transform);
+    const worldVelocity = velocity
+      ? this._TransformNormal(SPAWN_VELOCITY_END, velocity, transform)
+      : vec3.set(SPAWN_VELOCITY_END, 0, 0, 0);
+    this._SpawnParticles(emitter, arguments_, worldPosition, worldPosition,
+      worldVelocity, worldVelocity, 0, rateModifier);
+  }
+
+  /** Segment overload body shared with the subclass after parameter scaling. */
+  @impl.custom
+  _SpawnSegment(arguments_, positionStart, positionEnd, velocityStart, velocityEnd, deltaTime)
+  {
+    if (!arguments_.system || !this._enabled) return;
+    const transform = arguments_.parentTransform;
+    const emitter = Tr2GpuSharedEmitter._copyEmitter(SPAWN_EMITTER, this._emitter);
+    const end = vec3.transformMat4(SPAWN_END, positionEnd ?? this.position, transform);
+    const start = positionStart
+      ? vec3.transformMat4(SPAWN_START, positionStart, transform)
+      : vec3.copy(SPAWN_START, end);
     if (positionStart) vec3.subtract(start, start, arguments_.originShift);
-    let startVelocity = vec3.create();
-    let endVelocity = vec3.create();
+    const startVelocity = vec3.set(SPAWN_VELOCITY_START, 0, 0, 0);
+    const endVelocity = vec3.set(SPAWN_VELOCITY_END, 0, 0, 0);
     if (velocityStart && velocityEnd)
     {
-      startVelocity = this._TransformNormal(velocityStart, transform);
-      endVelocity = this._TransformNormal(velocityEnd, transform);
+      this._TransformNormal(startVelocity, velocityStart, transform);
+      this._TransformNormal(endVelocity, velocityEnd, transform);
       // Carbon quirk: an origin displacement is subtracted from velocity too.
       // Source: trinity/trinity/Particle/Tr2GpuSharedEmitter.cpp:183.
       vec3.subtract(endVelocity, endVelocity, arguments_.originShift);
@@ -389,15 +400,15 @@ export class Tr2GpuSharedEmitter extends CjsModel
       vec3.scale(emitter.velocity, velocityEnd, this.inheritVelocity);
       vec3.scale(emitter.velocityPrevious, velocityStart, this.inheritVelocity);
       vec3.copy(emitter.directionPrevious, emitter.direction);
-      vec3.copy(emitter.direction, this._TransformNormal(this.direction, arguments_.parentTransform));
+      this._TransformNormal(emitter.direction, this.direction, arguments_.parentTransform);
       arguments_.system.Emit(emitter, this._id, this._paramsHash, this._params);
     }
     return carryOverCount;
   }
 
   /**
-   * Emits one scaled burst (cpp:236-276). Structured copies replace native
-   * value copies; the supplied velocity is already in world coordinates.
+   * Emits one scaled burst (cpp:236-276). Reusable scratch replaces native
+   * stack value copies; the supplied velocity is already in world coordinates.
    */
   @carbon.method
   @impl.adapted
@@ -405,7 +416,7 @@ export class Tr2GpuSharedEmitter extends CjsModel
   {
     if (!arguments_.system || !this._enabled) return;
     this._ReadParameters();
-    const emitter = structuredClone(this._emitter);
+    const emitter = Tr2GpuSharedEmitter._copyEmitter(SPAWN_EMITTER, this._emitter);
     // Carbon quirk: cpp:244 assigns signed int to the uint32 count field.
     emitter.count = Math.trunc(this.rate * rateModifier) >>> 0;
     if (!emitter.count) return;
@@ -416,11 +427,11 @@ export class Tr2GpuSharedEmitter extends CjsModel
     vec3.copy(emitter.positionPrevious, emitter.position);
     vec3.copy(emitter.velocity, velocity);
     vec3.copy(emitter.velocityPrevious, velocity);
-    vec3.copy(emitter.direction, this._TransformNormal(this.direction, arguments_.parentTransform));
+    this._TransformNormal(emitter.direction, this.direction, arguments_.parentTransform);
     vec3.copy(emitter.directionPrevious, emitter.direction);
     let id = this._id;
     let hash = this._paramsHash;
-    const params = structuredClone(this._params);
+    const params = Tr2GpuSharedEmitter._copyParams(SPAWN_PARAMS, this._params);
     if (scale !== 1)
     {
       vec3.scale(params.sizes, params.sizes, scale);
@@ -464,59 +475,77 @@ export class Tr2GpuSharedEmitter extends CjsModel
    * Packs EmitterParams (Tr2GpuParticleSystem.h:45-63) into its 132 native
    * little-endian bytes before Carbon's signed-byte FNV-1. JavaScript has no
    * native struct memory to hash; integer fields retain their uint32 bit patterns.
+   * All bytes in the module scratch buffer are overwritten before each hash.
    */
   @carbon.method
   @impl.adapted
   GetHash(params)
   {
-    const data = new DataView(new ArrayBuffer(132));
-    let offset = 0;
-    const put = value => { data.setFloat32(offset, value, true); offset += 4; };
-    put(params.minLifeTime);
-    put(params.maxLifeTime);
-    data.setUint32(offset, params.textureIndex, true); offset += 4;
-    put(params.colorMidpoint);
-    for (const value of params.colors) for (const component of value) put(component);
-    for (const component of params.sizes) put(component);
-    put(params.sizeVariance);
-    put(params.drag);
-    put(params.turbulenceAmplitude);
-    data.setUint32(offset, params.turbulenceFrequency, true); offset += 4;
-    put(params.gravity);
-    for (const component of params.attractorPosition) put(component);
-    put(params.attractorStrength);
-    put(params.velocityStretchRotation);
-    return ccpHashFnv1(new Uint8Array(data.buffer));
+    const data = HASH_DATA;
+    data.setFloat32(0, params.minLifeTime, true);
+    data.setFloat32(4, params.maxLifeTime, true);
+    data.setUint32(8, params.textureIndex, true);
+    data.setFloat32(12, params.colorMidpoint, true);
+    for (let i = 0; i < 4; i++)
+    {
+      for (let j = 0; j < 4; j++) data.setFloat32(16 + i * 16 + j * 4, params.colors[i][j], true);
+    }
+    for (let i = 0; i < 3; i++) data.setFloat32(80 + i * 4, params.sizes[i], true);
+    data.setFloat32(92, params.sizeVariance, true);
+    data.setFloat32(96, params.drag, true);
+    data.setFloat32(100, params.turbulenceAmplitude, true);
+    data.setUint32(104, params.turbulenceFrequency, true);
+    data.setFloat32(108, params.gravity, true);
+    for (let i = 0; i < 3; i++) data.setFloat32(112 + i * 4, params.attractorPosition[i], true);
+    data.setFloat32(124, params.attractorStrength, true);
+    data.setFloat32(128, params.velocityStretchRotation, true);
+    return ccpHashFnv1(HASH_BYTES);
   }
 
   /**
-   * Projects the existing flattened schema fields onto Carbon's two structs.
-   * Keeps native motion history and world attractor separate from authored values.
+   * Projects flat schema fields onto Carbon's structs without allocating.
+   * Deliberate divergence: native Blue properties address struct members,
+   * whereas JS direct writes and vector mutations bypass OnModified. In
+   * particular, TriValueBinding animates the non-notifying shape fields, so
+   * projection must run at call entry, not just on notifications. It does not
+   * rehash or replace native motion history and the transformed world attractor.
    */
   @impl.custom
   _ReadParameters()
   {
-    for (const name of ["radius", "angle", "innerAngle", "minSpeed", "maxSpeed"])
-    {
-      this._emitter[name] = this[name];
-    }
-    for (const name of ["minLifeTime", "maxLifeTime", "textureIndex", "colorMidpoint", "sizeVariance",
-      "drag", "turbulenceAmplitude", "turbulenceFrequency", "gravity", "velocityStretchRotation"])
-    {
-      this._params[name] = this[name];
-    }
-    vec3.copy(this._params.sizes, this.sizes);
-    for (let i = 0; i < 4; i++) color.copy(this._params.colors[i], this[`color${i}`]);
+    const emitter = this._emitter;
+    emitter.radius = this.radius;
+    emitter.angle = this.angle;
+    emitter.innerAngle = this.innerAngle;
+    emitter.minSpeed = this.minSpeed;
+    emitter.maxSpeed = this.maxSpeed;
+    const params = this._params;
+    params.minLifeTime = this.minLifeTime;
+    params.maxLifeTime = this.maxLifeTime;
+    params.textureIndex = this.textureIndex;
+    params.colorMidpoint = this.colorMidpoint;
+    params.sizeVariance = this.sizeVariance;
+    params.drag = this.drag;
+    params.turbulenceAmplitude = this.turbulenceAmplitude;
+    params.turbulenceFrequency = this.turbulenceFrequency;
+    params.gravity = this.gravity;
+    params.velocityStretchRotation = this.velocityStretchRotation;
+    vec3.copy(params.sizes, this.sizes);
+    color.copy(params.colors[0], this.color0);
+    color.copy(params.colors[1], this.color1);
+    color.copy(params.colors[2], this.color2);
+    color.copy(params.colors[3], this.color3);
   }
 
-  /** Native XMVector3TransformNormal without gl-matrix's point translation. */
+  /** Native XMVector3TransformNormal, writing into caller-owned storage. */
   @impl.custom
-  _TransformNormal(value, matrix)
+  _TransformNormal(out, value, matrix)
   {
-    return vec3.fromValues(
-      matrix[0] * value[0] + matrix[4] * value[1] + matrix[8] * value[2],
-      matrix[1] * value[0] + matrix[5] * value[1] + matrix[9] * value[2],
-      matrix[2] * value[0] + matrix[6] * value[1] + matrix[10] * value[2]);
+    const x = value[0], y = value[1], z = value[2];
+    return vec3.set(out,
+      matrix[0] * x + matrix[4] * y + matrix[8] * z,
+      matrix[1] * x + matrix[5] * y + matrix[9] * z,
+      matrix[2] * x + matrix[6] * y + matrix[10] * z);
   }
 
   /**
@@ -594,5 +623,88 @@ export class Tr2GpuSharedEmitter extends CjsModel
   {
   }
 
+  /** Allocates a native emitter record once for instance state or module scratch. */
+  @impl.custom
+  static _createEmitter()
+  {
+    return {
+      position: vec3.create(), count: 0, positionPrevious: vec3.create(), radius: 0,
+      direction: vec3.create(), angle: 0, directionPrevious: vec3.create(), emitterSeed: 0,
+      velocity: vec3.create(), minSpeed: 0, velocityPrevious: vec3.create(), maxSpeed: 0,
+      innerAngle: 0, unused: vec3.create()
+    };
+  }
+
+  /** Allocates native parameter defaults once for instance state or module scratch. */
+  @impl.custom
+  static _createParams()
+  {
+    return {
+      minLifeTime: 0, maxLifeTime: 0, textureIndex: 0, colorMidpoint: 0.5,
+      colors: [color.create(), color.create(), color.create(), color.create()],
+      sizes: vec3.create(), sizeVariance: 0, drag: 0, turbulenceAmplitude: 0,
+      turbulenceFrequency: 1, gravity: 0, attractorPosition: vec3.create(),
+      attractorStrength: 0, velocityStretchRotation: 0
+    };
+  }
+
+  /** Models native Emitter value assignment without allocating JS storage. */
+  @impl.custom
+  static _copyEmitter(out, value)
+  {
+    vec3.copy(out.position, value.position);
+    out.count = value.count;
+    vec3.copy(out.positionPrevious, value.positionPrevious);
+    out.radius = value.radius;
+    vec3.copy(out.direction, value.direction);
+    out.angle = value.angle;
+    vec3.copy(out.directionPrevious, value.directionPrevious);
+    out.emitterSeed = value.emitterSeed;
+    vec3.copy(out.velocity, value.velocity);
+    out.minSpeed = value.minSpeed;
+    vec3.copy(out.velocityPrevious, value.velocityPrevious);
+    out.maxSpeed = value.maxSpeed;
+    out.innerAngle = value.innerAngle;
+    vec3.copy(out.unused, value.unused);
+    return out;
+  }
+
+  /** Models native EmitterParams value assignment without allocating JS storage. */
+  @impl.custom
+  static _copyParams(out, value)
+  {
+    out.minLifeTime = value.minLifeTime;
+    out.maxLifeTime = value.maxLifeTime;
+    out.textureIndex = value.textureIndex;
+    out.colorMidpoint = value.colorMidpoint;
+    for (let i = 0; i < 4; i++) color.copy(out.colors[i], value.colors[i]);
+    vec3.copy(out.sizes, value.sizes);
+    out.sizeVariance = value.sizeVariance;
+    out.drag = value.drag;
+    out.turbulenceAmplitude = value.turbulenceAmplitude;
+    out.turbulenceFrequency = value.turbulenceFrequency;
+    out.gravity = value.gravity;
+    vec3.copy(out.attractorPosition, value.attractorPosition);
+    out.attractorStrength = value.attractorStrength;
+    out.velocityStretchRotation = value.velocityStretchRotation;
+    return out;
+  }
+
   static _zero3 = vec3.create();
 }
+
+// Native Emit copies its inputs synchronously (Tr2GpuParticleSystem.cpp:716-729).
+// These buffers model stack temporaries for that non-reentrant call chain;
+// systems must own their queued request data, not retain these input records.
+// Unique scaling uses separate scratch because it surrounds shared spawning.
+const SPAWN_EMITTER = Tr2GpuSharedEmitter._createEmitter();
+const SPAWN_PARAMS = Tr2GpuSharedEmitter._createParams();
+const UPDATE_POSITION = vec3.create();
+const UPDATE_VELOCITY = vec3.create();
+const UPDATE_START = vec3.create();
+const SPAWN_START = vec3.create();
+const SPAWN_END = vec3.create();
+const SPAWN_VELOCITY_START = vec3.create();
+const SPAWN_VELOCITY_END = vec3.create();
+const HASH_BYTES = new Uint8Array(132);
+const HASH_DATA = new DataView(HASH_BYTES.buffer);

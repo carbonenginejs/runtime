@@ -1,6 +1,8 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { color } from "../../npm/dist/global/math/color.js";
 import { Tr2GpuSharedEmitter, Tr2GpuUniqueEmitter, ITr2GenericEmitterUpdateArguments,
   EveChildParticleSystem, EveUpdateContext } from "../../npm/dist/trinity/index.js";
 
@@ -35,6 +37,7 @@ test("GPU emitter null-system update follows Carbon and unblocks child updates",
     emitter.Update(args);
     assert.equal(emitter._previousTime, -1);
     emitter.SpawnParticles(args);
+    emitter.SpawnParticlesSegment(args, null, null, null, null, 1);
     emitter.SpawnOnce(args, [0, 0, 0]);
     const child = new EveChildParticleSystem();
     child.particleEmitters.push(emitter);
@@ -137,7 +140,7 @@ test("GPU explicit point and segment overloads preserve normal transforms and or
   assert.equal(requests[0].emitter.count, 3, "point rateModifier is not frame-clamped");
   near(emitter._emitter.direction, [0, 0, 0], "point call uses an emitter copy");
   args.originShift[0] = 1;
-  emitter.SpawnParticles(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], 1);
+  emitter.SpawnParticlesSegment(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [1, 0, 0], 1);
   assert.equal(requests[1].emitter.count, 2);
   near(requests[1].emitter.positionPrevious, [9, 0, 0]);
   near(requests[1].emitter.velocity, [-1, 2, 0]);
@@ -229,4 +232,112 @@ test("GPU SpawnOnce scales bursts without LOD factor and leaves authored paramet
   assert.equal(requests[1].emitter.count, 0xFFFFFFFE, "native signed-to-uint32 burst-count quirk");
   assert.throws(() => emitter.SpawnOnce({ ...args, system: {} }, [0, 0, 0]), /Emit/,
     "a non-null incomplete system must still fail visibly");
+});
+
+test("GPU scratch copies remain isolated across scaled emitters and preserve queued snapshots", () =>
+{
+  const { args, requests } = context();
+  const first = new Tr2GpuUniqueEmitter();
+  const second = new Tr2GpuUniqueEmitter();
+  for (const emitter of [first, second])
+  {
+    emitter.rate = 30;
+    emitter.scaledByParent = true;
+    emitter.Initialize();
+  }
+  first.radius = 2;
+  first.color0.set([0.1, 0.2, 0.3, 0.4]);
+  first.sizes.set([1, 2, 3]);
+  first.direction.set([1, 0, 0]);
+  second.radius = 5;
+  second.color0.set([0.9, 0.8, 0.7, 0.6]);
+  second.sizes.set([7, 8, 9]);
+  second.direction.set([0, 1, 0]);
+  const firstEmitter = first._emitter, firstParams = first._params;
+  mat4.fromScaling(args.parentTransform, [2, 2, 2]);
+  first.SpawnParticlesSegment(args, [0, 0, 0], [1, 0, 0], [1, 0, 0], [2, 0, 0], 1);
+  const snapshot = structuredClone(requests[0]);
+  second.SpawnParticles(args);
+  first.SpawnOnce(args, [0, 0, 0], 3);
+  assert.deepEqual(requests[0], snapshot, "Emit owns its queued copy before scratch is reused");
+  assert.equal(first._emitter, firstEmitter);
+  assert.equal(first._params, firstParams);
+  assert.equal(first._emitter.radius, 2);
+  near(first._emitter.direction, [0, 0, 0], "explicit spawning preserves continuous direction history");
+  assert.equal(requests[0].emitter.radius, 4);
+  near(requests[0].params.sizes, [2, 4, 6]);
+  assert.equal(requests[1].emitter.radius, 10);
+  near(requests[1].params.sizes, [14, 16, 18]);
+  assert.notEqual(requests[0].hash, requests[1].hash);
+  const failing = { ...args, system: { Emit() { throw new Error("emit failed"); } } };
+  assert.throws(() => first.SpawnParticlesSegment(failing, null, null, null, null, 1), /emit failed/);
+  assert.equal(first._emitter, firstEmitter);
+  assert.equal(first._params, firstParams);
+  near(first._params.sizes, [1, 2, 3]);
+});
+
+test("GPU projection observes direct animated fields and vector edits without changing notification hashes", () =>
+{
+  const { args, requests } = context();
+  const emitter = new Tr2GpuSharedEmitter();
+  emitter.rate = 30;
+  emitter.Initialize();
+  const notifiedHash = emitter._paramsHash;
+  emitter.Update(args);
+  // Non-notifying TriValueBinding destinations and direct vector edits do not
+  // invoke OnModified; the flat schema still has to reach the native structs.
+  emitter.radius = 7;
+  emitter.minSpeed = 4;
+  emitter.sizes.set([3, 2, 1]);
+  emitter.color3.set([0.1, 0.2, 0.3, 0.4]);
+  args.time = 1;
+  emitter.Update(args);
+  assert.equal(requests[0].emitter.radius, 7);
+  assert.equal(requests[0].emitter.minSpeed, 4);
+  near(requests[0].params.sizes, [3, 2, 1]);
+  near(requests[0].params.colors[3], [0.1, 0.2, 0.3, 0.4]);
+  assert.equal(requests[0].hash, notifiedHash, "projection does not add a hash notification");
+});
+
+test("GPU hot paths reuse vectors, value structs and hash bytes after initialization", t =>
+{
+  const args = new ITr2GenericEmitterUpdateArguments();
+  let emits = 0;
+  args.system = { Emit() { emits++; } };
+  mat4.fromScaling(args.parentTransform, [2, 3, 4]);
+  const shared = new Tr2GpuSharedEmitter();
+  const unique = new Tr2GpuUniqueEmitter();
+  shared.rate = unique.rate = 30;
+  unique.scaledByParent = true;
+  unique.attractorStrength = 1;
+  shared.Initialize();
+  unique.Initialize();
+  const position = new Float32Array([1, 2, 3]);
+  const velocity = new Float32Array([3, 2, 1]);
+  const originalEmitter = unique._emitter, originalParams = unique._params;
+  const rejectAllocation = () => { throw new Error("unexpected hot-path allocation"); };
+  for (const name of ["create", "clone", "fromValues"]) t.mock.method(vec3, name, rejectAllocation);
+  t.mock.method(color, "create", rejectAllocation);
+  t.mock.method(Tr2GpuSharedEmitter, "_createEmitter", rejectAllocation);
+  t.mock.method(Tr2GpuSharedEmitter, "_createParams", rejectAllocation);
+  for (const name of ["structuredClone", "ArrayBuffer", "DataView", "Uint8Array", "Float32Array"])
+  {
+    t.mock.method(globalThis, name, rejectAllocation);
+  }
+  for (let i = 0; i < 100; i++)
+  {
+    args.time = i / 30;
+    shared.Update(args);
+    unique.Update(args);
+    shared.SpawnParticles(args, position, velocity, 1);
+    unique.SpawnParticles(args, position, velocity, 1);
+    shared.SpawnParticlesSegment(args, position, position, velocity, velocity, 1 / 30);
+    unique.SpawnParticlesSegment(args, position, position, velocity, velocity, 1 / 30);
+    shared.SpawnOnce(args, velocity, 2);
+    unique.SpawnOnce(args, velocity, 2);
+  }
+  t.mock.restoreAll();
+  assert.ok(emits >= 600);
+  assert.equal(unique._emitter, originalEmitter);
+  assert.equal(unique._params, originalParams);
 });
