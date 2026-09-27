@@ -43,9 +43,22 @@ export class Tr2InteriorPerObjectPSData extends CjsModel
   /**
    * Imports values while normalizing padding, ten point lights, and four
    * spot-light matrices to Carbon cardinality.
+   *
+   * Custom: Carbon declares fixed-size arrays in
+   * trinity/trinity/Interior/Tr2InteriorConstantBufferFormats.h; these structs
+   * have no values-import method. JavaScript import supplies the normalization
+   * and default filling described here; these are not native initializers.
+   *
+   * Supplied arrays are truncated or filled to three padding entries, ten point
+   * lights and four spot-light matrices. Missing padding becomes zero, missing
+   * lights become new records, and missing or non-16-element matrices become
+   * identity matrices. Omitted fields are left to the base setter.
+   *
+   * @param {object} [values={}] Field values to apply through the schema setter.
+   * @param {object} [options={}] Options forwarded to the base setter.
+   * @returns {Set<string>|boolean} The base setter's change result.
    */
   @impl.custom
-  @impl.reason("Preserves Carbon fixed-array cardinalities when importing plain JS values.")
   SetValues(values = {}, options = {})
   {
     const normalized = { ...values };
