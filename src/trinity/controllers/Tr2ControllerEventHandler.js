@@ -8,6 +8,16 @@ import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.j
 /**
  * Binds a named controller event to a list of actions that are run as a single
  * one-shot pulse when the event fires.
+ *
+ * Tr2Controller owns these handlers in eventHandlers. While playing, it matches
+ * an incoming event name against each handler and calls Execute for every match.
+ * The handler supplies an ordered action list; each ITr2ControllerAction owns
+ * its bindings and the work performed by Start and Stop.
+ *
+ * Link supplies the action controller used to resolve those bindings. Execute
+ * performs a synchronous pulse, starting all actions before stopping any; it
+ * does not schedule updates or keep actions active across frames. CjsModel and
+ * the schema provide persistence for the authored name and action list.
  */
 @type.define({
   className: "Tr2ControllerEventHandler",
@@ -29,6 +39,18 @@ export class Tr2ControllerEventHandler extends CjsModel
 
   /**
    * Handles Carbon list notifications for inserted and removed actions.
+   *
+   * Insertions link to the retained controller, if present; removals unlink
+   * their action. Notifications for another list or another event are ignored.
+   * Entries must provide the action interface; the local object guard does not
+   * validate its methods.
+   *
+   * @param {number} event Carbon list event flags, masked with BELIST_EVENTMASK.
+   * @param {number} [_key=0] Unused list notification key.
+   * @param {number} [_key2=0] Unused secondary notification key.
+   * @param {object|null} [value=null] Inserted or removed action.
+   * @param {Array} [list=this.actions] List that emitted the notification.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -55,6 +77,12 @@ export class Tr2ControllerEventHandler extends CjsModel
 
   /**
    * Links all actions to the supplied action controller.
+   *
+   * Unlinks the previous action bindings first, retains the controller, then
+   * links each action in list order. Action errors propagate without rollback.
+   *
+   * @param {ITr2ActionController} controller Controller used to resolve bindings.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -70,6 +98,12 @@ export class Tr2ControllerEventHandler extends CjsModel
 
   /**
    * Unlinks all actions from the current controller.
+   *
+   * Does nothing before the first Link. Like Carbon, this retains the controller
+   * reference: subsequent insert notifications can still link new actions, and
+   * repeated calls invoke Unlink on the actions again.
+   *
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -87,6 +121,8 @@ export class Tr2ControllerEventHandler extends CjsModel
 
   /**
    * Gets the authored handler name.
+   *
+   * @returns {string} Name compared with incoming controller event names.
    */
   @carbon.method
   @impl.implemented
@@ -97,6 +133,13 @@ export class Tr2ControllerEventHandler extends CjsModel
 
   /**
    * Executes all actions by starting them first, then stopping them.
+   *
+   * Both passes use list order and the supplied controller. An action error
+   * propagates immediately; remaining calls, including Stop calls, are skipped.
+   * The caller is responsible for deciding whether the controller is playing.
+   *
+   * @param {ITr2ActionController} controller Controller passed to Start and Stop.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -113,8 +156,13 @@ export class Tr2ControllerEventHandler extends CjsModel
   }
 
   /**
-   * Narrows a stored entry to a controller action, so a malformed list entry is
-   * ignored rather than invoked.
+   * Accepts object-valued entries for list notification dispatch.
+   *
+   * This guard rejects null and primitives but does not check the action
+   * interface. An object without Link or Unlink can still fail at the call site.
+   *
+   * @param {*} value Candidate list entry.
+   * @returns {object|null} Object entry, or null when the guard rejects it.
    */
   static #asControllerAction(value)
   {
