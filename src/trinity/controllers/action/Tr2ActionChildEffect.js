@@ -1,7 +1,9 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { blue } from "#blue";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
 
@@ -68,6 +70,9 @@ export class Tr2ActionChildEffect extends CjsModel
 
   #child = null;
 
+  /** Counts loads; a Stop or restart makes an in-flight one stale. */
+  _loadRequest = 0;
+
   /**
    * Carbon prefetches the resource here; JS keeps this as an explicit no-op.
    */
@@ -98,16 +103,45 @@ export class Tr2ActionChildEffect extends CjsModel
     {
       return;
     }
-    this.#child = this.CreateChild(owner);
-    if (!this.#child)
+    this.#LoadChild(owner, controllerOwner, resolved.rebind);
+  }
+
+  /**
+   * Carbon Start's load (Tr2ActionChildEffect.cpp:115-134): LoadObject the
+   * path as an EveSpaceObjectChild; only when that succeeds, name it, add it
+   * to the owner and start its controllers; then rebind a redirected owner.
+   * A failed load adds nothing.
+   *
+   * Adapted: the JS resource manager resolves asynchronously, so this runs
+   * when the file arrives, and a Stop or restart before then discards it.
+   */
+  #LoadChild(owner, controllerOwner, rebind)
+  {
+    const path = this.path;
+    const request = ++this._loadRequest;
+    Promise.resolve(blue.resMan.LoadObject(path)).then(object =>
     {
-      return;
-    }
-    ITr2ControllerAction.callTarget(this.#child, "StartControllers");
-    if (resolved.rebind)
+      if (request !== this._loadRequest) return;
+      const child = CjsSchema.cast(object, blue.classes.GetClassRegistration("EveSpaceObjectChild").type);
+      if (child)
+      {
+        if (this.childName) child.SetName(this.childName);
+        Tr2ActionChildEffect.#addChildToOwner(owner, child);
+        child.StartControllers();
+        this.#child = child;
+      }
+      else
+      {
+        CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2ActionChildEffect: ${path} is not an Eve child`);
+      }
+      if (rebind)
+      {
+        ITr2ControllerAction.callTarget(controllerOwner, "Rebind", true);
+      }
+    }, error =>
     {
-      ITr2ControllerAction.callTarget(controllerOwner, "Rebind", true);
-    }
+      if (request === this._loadRequest) CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "%s", `Tr2ActionChildEffect: ${path} failed to load. ${error?.message ?? error}`);
+    });
   }
 
   /**
@@ -117,6 +151,8 @@ export class Tr2ActionChildEffect extends CjsModel
   @impl.adapted
   Stop(controller)
   {
+    // A load still in flight belongs to this run; drop it.
+    this._loadRequest++;
     const child = this.#child;
     if (!child)
     {
@@ -149,28 +185,6 @@ export class Tr2ActionChildEffect extends CjsModel
   FindChild(owner)
   {
     return (this.childName ? ITr2ControllerAction.callTarget(owner, "GetEffectChildByName", this.childName) ?? Tr2ActionChildEffect.#findNamed(owner, this.childName) : null) ?? null;
-  }
-
-  /**
-   * Creates the child through the owner's AddChildFromPath, and when the owner
-   * has no loader falls back to attaching a plain `{ name, path }` placeholder
-   * record so the binding still resolves.
-   */
-  CreateChild(owner)
-  {
-    const childFromOwner = ITr2ControllerAction.callTarget(owner, "AddChildFromPath", this.path, this.childName);
-    if (childFromOwner)
-    {
-      Tr2ActionChildEffect.#setChildName(childFromOwner, this.childName);
-      return childFromOwner;
-    }
-    const child = {
-      name: this.childName,
-      path: this.path
-    };
-    Tr2ActionChildEffect.#setChildName(child, this.childName);
-    Tr2ActionChildEffect.#addChildToOwner(owner, child);
-    return child;
   }
 
   /**
@@ -286,24 +300,6 @@ export class Tr2ActionChildEffect extends CjsModel
     }
     this.#removeFromArray(owner, "effectChildren", child);
     this.#removeFromArray(owner, "children", child);
-  }
-
-  /**
-   * Names a created child through SetName when available, otherwise by assigning
-   * the `name` property; an empty name is ignored.
-   */
-  static #setChildName(child, name)
-  {
-    if (!name || !child || typeof child !== "object")
-    {
-      return;
-    }
-    if (ITr2ControllerAction.hasFunction(child, "SetName"))
-    {
-      child.SetName(name);
-      return;
-    }
-    child.name = name;
   }
 
   /**

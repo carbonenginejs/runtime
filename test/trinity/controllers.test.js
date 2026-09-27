@@ -1516,89 +1516,121 @@ test("audio controller actions use Carbon emitter APIs only", () =>
   assertThrows(() => attenuation.StartWithController(null), "StartWithController expects a Tr2Controller");
   assertEquals(events.join(","), "find:main,prefix:ship,find:main,switch:mode:warp,find:main,attenuation:6");
 });
-test("Tr2ActionChildEffect follows Carbon child owner lifecycle", () =>
+test("Tr2ActionChildEffect loads its child as Carbon does and adds it only on success", async () =>
 {
   const pathField = CjsSchema.getField(Tr2ActionChildEffect, "path");
   assertEquals(pathField?.type?.kind, "path");
+  const { EveChildContainer } = await import("../../npm/dist/trinity/index.js");
+  const settle = () => new Promise(resolve => setImmediate(resolve));
   const events = [];
-  const targetOwner = makeChildOwner("target", events);
-  const rootOwner = {
-    children: [targetOwner],
-    GetEffectChildByName(name)
-    {
-      return this.children.find(child => child.name === name) ?? null;
-    },
-    Rebind(value)
-    {
-      events.push(`rebind:${value}`);
-    }
+  const makeChild = () =>
+  {
+    const child = new EveChildContainer();
+    child.StartControllers = () => events.push("start");
+    return child;
   };
-  const controller = {
-    GetOwner()
-    {
-      return rootOwner;
-    }
+  const loads = new Map([
+    [ "res:/spark.red", makeChild ],
+    [ "res:/beam.red", makeChild ],
+    [ "res:/plain.red", () => ({ name: "plain" }) ]
+  ]);
+  const loadObject = blue.resMan.LoadObject;
+  blue.resMan.LoadObject = async path =>
+  {
+    events.push(`load:${path}`);
+    return loads.get(path)();
   };
-  const action = new Tr2ActionChildEffect();
-  action.targetAnotherOwner = "target";
-  action.childName = "spark";
-  action.path = "res:/spark.red";
-  action.Start(controller);
-  assertEquals(events.join(","), "load:res:/spark.red:spark,start");
-  action.Stop(controller);
-  assertEquals(events.join(","), "load:res:/spark.red:spark,start,remove");
-  events.length = 0;
-  const existing = {
-    name: "spark",
-    StartControllers()
-    {
-      events.push("existing:start");
-    }
-  };
-  targetOwner.children = [existing];
-  action.Start(controller);
-  assertEquals(events.join(","), "");
-  action.Stop(controller);
-  assertEquals(events.join(","), "remove");
-  events.length = 0;
-  action.targetAnotherOwner = "missing";
-  action.Start(controller);
-  assertEquals(events.join(","), "");
-  const parameterOwner = makeChildOwner("parameterOwner", events);
-  const parameterRoot = {
-    GetEffectChildByName()
-    {
-      return null;
-    },
-    GetParameterByName(name)
-    {
-      if (name !== "paramOwner")
+  try
+  {
+    const targetOwner = makeChildOwner("target", events);
+    const rootOwner = {
+      children: [targetOwner],
+      GetEffectChildByName(name)
+      {
+        return this.children.find(child => child.name === name) ?? null;
+      },
+      Rebind(value)
+      {
+        events.push(`rebind:${value}`);
+      }
+    };
+    const controller = { GetOwner: () => rootOwner };
+    const action = new Tr2ActionChildEffect();
+    action.targetAnotherOwner = "target";
+    action.childName = "spark";
+    action.path = "res:/spark.red";
+    // Carbon cpp:115-126: load, then name, add and start the child.
+    action.Start(controller);
+    await settle();
+    assertEquals(events.join(","), "load:res:/spark.red,add:spark,start");
+    action.Stop(controller);
+    assertEquals(events.join(","), "load:res:/spark.red,add:spark,start,remove");
+
+    // An existing child of that name is reused, not loaded.
+    events.length = 0;
+    const existing = { name: "spark" };
+    targetOwner.children = [existing];
+    action.Start(controller);
+    await settle();
+    assertEquals(events.join(","), "");
+    action.Stop(controller);
+    assertEquals(events.join(","), "remove");
+
+    // A missing redirect owner does nothing.
+    events.length = 0;
+    action.targetAnotherOwner = "missing";
+    action.Start(controller);
+    await settle();
+    assertEquals(events.join(","), "");
+
+    // A file that is not an Eve child adds nothing (no placeholder).
+    targetOwner.children = [];
+    action.targetAnotherOwner = "target";
+    action.childName = "plain";
+    action.path = "res:/plain.red";
+    action.Start(controller);
+    await settle();
+    assertEquals(events.join(","), "load:res:/plain.red");
+    assertEquals(targetOwner.children.length, 0);
+
+    // A Stop before the file arrives discards the load.
+    events.length = 0;
+    action.childName = "late";
+    action.path = "res:/spark.red";
+    action.Start(controller);
+    action.Stop(controller);
+    await settle();
+    assertEquals(events.join(","), "load:res:/spark.red");
+    assertEquals(targetOwner.children.length, 0);
+
+    // A parameter owner rebinds the controller owner after the add.
+    events.length = 0;
+    const parameterOwner = makeChildOwner("parameterOwner", events);
+    const parameterRoot = {
+      GetEffectChildByName()
       {
         return null;
+      },
+      GetParameterByName(name)
+      {
+        return name === "paramOwner" ? { GetParameterObject: () => parameterOwner } : null;
+      },
+      Rebind(value)
+      {
+        events.push(`rebind:${value}`);
       }
-      return {
-        GetParameterObject()
-        {
-          return parameterOwner;
-        }
-      };
-    },
-    Rebind(value)
-    {
-      events.push(`rebind:${value}`);
-    }
-  };
-  const parameterController = {
-    GetOwner()
-    {
-      return parameterRoot;
-    }
-  };
-  action.targetAnotherOwner = "paramOwner";
-  action.childName = "beam";
-  action.path = "res:/beam.red";
-  action.Start(parameterController);
-  assertEquals(events.join(","), "load:res:/beam.red:beam,start,rebind:true");
+    };
+    action.targetAnotherOwner = "paramOwner";
+    action.childName = "beam";
+    action.path = "res:/beam.red";
+    action.Start({ GetOwner: () => parameterRoot });
+    await settle();
+    assertEquals(events.join(","), "load:res:/beam.red,add:beam,start,rebind:true");
+  }
+  finally
+  {
+    blue.resMan.LoadObject = loadObject;
+  }
 });
 test("Tr2ActionChildEffect.Link forwards prefetch through controller resource host", () =>
 {
@@ -1888,23 +1920,10 @@ function makeChildOwner(name, events)
   return {
     name,
     children: [],
-    AddChildFromPath(path, childName)
+    AddToEffectChildrenList(child)
     {
-      events.push(`load:${path}:${childName}`);
-      const child = {
-        name: childName,
-        path,
-        StartControllers()
-        {
-          events.push("start");
-        },
-        StopControllers()
-        {
-          events.push("stop");
-        }
-      };
+      events.push(`add:${child.name}`);
       this.children.push(child);
-      return child;
     },
     RemoveFromEffectChildrenList(child)
     {
