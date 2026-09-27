@@ -8,4 +8,6 @@ export * from "./Tr2GpuStructuredBuffer.js";
 export * from "./Tr2RingBuffer/index.js";
 export * from "./Tr2RuntimeGpuBuffer.js";
 export * from "./Tr2DynamicRingBuffer.js";
+export * from "./Tr2RingVertexBuffer.js";
+export * from "./Tr2RingIndexBuffer.js";
 export * from "./gTriDev.js";

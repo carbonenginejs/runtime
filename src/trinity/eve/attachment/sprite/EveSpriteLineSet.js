@@ -11,6 +11,10 @@ import { Blink } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
 import { AsPerPointLightData, CreateLightRecord, MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
+import { vec3 } from "#math/vec3";
+import { num } from "#math/num";
+import { TriBatchType } from "#consts/graphics";
+import { EveSpriteSet } from "./EveSpriteSet.js";
 
 
 /**
@@ -55,6 +59,15 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
 
   #rebuildRevision = 0;
 
+  /** m_buffer - one EveSpriteSet PoolVertex per sprite, packed bytes. */
+  _buffer = new Uint8Array(0);
+
+  /** A DataView over _buffer. */
+  _view = new DataView(this._buffer.buffer);
+
+  /** m_spriteData - { position, boneIndex } per sprite, in parent space. */
+  _spriteData = [];
+
   /** m_aabb - the union of every unskinned sprite line (cpp:77). */
   #staticBounds = box3.create();
 
@@ -65,20 +78,118 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
    * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
   #activationStrength = 0;
 
-  /**
-   * Recomputes the static and per-bone bounds from the authored sprite lines and
-   * marks the packed geometry stale.
-   */
+  /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   Rebuild()
   {
-    // Position expansion is available on each item, but packed quad data,
-    // effect hashes, bounds caches and registration belong to the adapter.
     this.#rebuildRevision++;
-
+    this.ReallocateResources();
     CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
   }
+
+  /**
+   * Carbon ReallocateResources (cpp:84-138): every line expands to its sprite
+   * positions, each packed as an EveSpriteSet PoolVertex - the blink phase
+   * stepping by blinkPhaseShift along the line, the warp colour the line's
+   * colour, activation 1 - and mirrored with its bone index.
+   *
+   * @returns {boolean} True.
+   */
+  @carbon.method
+  @impl.implemented
+  ReallocateResources()
+  {
+    if (this.effect) this.effectHash = Number(this.effect.GetHashValue()) >>> 0;
+
+    const size = EveSpriteSet.poolVertexSize;
+    const expanded = this.spriteLines.map(line => [ line, line.GetPositions() ]);
+    const total = expanded.reduce((sum, [ , positions ]) => sum + positions.length, 0);
+
+    this._buffer = new Uint8Array(total * size);
+    this._view = new DataView(this._buffer.buffer);
+    this._spriteData = [];
+
+    const activation = num.toHalfFloat(1);
+    let at = 0;
+    for (const [ line, positions ] of expanded)
+    {
+      // Carbon's B/R swap of the uint32 Color, which is r,g,b,a as bytes.
+      const color = [ 0, 1, 2, 3 ].map(c => Math.min(255, Math.max(0, Math.round(Number(line.color[c]) * 255))) | 0);
+      positions.forEach((position, index) =>
+      {
+        const base = at * size;
+        this._view.setFloat32(base, position[0], true);
+        this._view.setFloat32(base + 4, position[1], true);
+        this._view.setFloat32(base + 8, position[2], true);
+        this._view.setUint16(base + 12, activation, true);
+        this._view.setUint16(base + 14, num.toHalfFloat(line.blinkPhase + line.blinkPhaseShift * index), true);
+        this._view.setUint16(base + 16, num.toHalfFloat(line.blinkRate), true);
+        this._view.setUint16(base + 18, num.toHalfFloat(line.minScale), true);
+        this._view.setUint16(base + 20, num.toHalfFloat(line.maxScale), true);
+        this._view.setUint16(base + 22, num.toHalfFloat(line.falloff), true);
+        this._buffer.set(color, base + 24);
+        this._buffer.set(color, base + 28);
+        this._spriteData.push({ position, boneIndex: line.boneIndex | 0 });
+        at++;
+      });
+    }
+    return true;
+  }
+
+  /** Carbon RegisterWithQuadRenderer (cpp:186-190): additive, one quad per sprite. */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    quadRenderer.RegisterEffect(this.effectHash, TriBatchType.TRIBATCHTYPE_ADDITIVE, EveSpriteSet.poolVertexSize, 1, EveSpriteSet.getDefinition(), this.effect);
+  }
+
+  /**
+   * Carbon AddToQuadRenderer (cpp:192-239): sprite positions into world space,
+   * through their bone when skinned and the bone exists; activation stamped
+   * unscaled (unlike EveSpriteSet, no intensity).
+   */
+  @carbon.method
+  @impl.implemented
+  AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain, bones, boneCount)
+  {
+    if (!this.display || !this._spriteData.length) return;
+
+    const size = EveSpriteSet.poolVertexSize;
+    const position = EveSpriteLineSet._positionScratch;
+    const bone = EveSpriteLineSet._boneScratch;
+
+    this._spriteData.forEach((data, index) =>
+    {
+      if (this.skinned && data.boneIndex < boneCount)
+      {
+        MatrixCopyFrom3x4(bone, bones, data.boneIndex);
+        vec3.transformMat4(position, data.position, bone);
+        vec3.transformMat4(position, position, parentTransform);
+      }
+      else
+      {
+        vec3.transformMat4(position, data.position, parentTransform);
+      }
+      const base = index * size;
+      this._view.setFloat32(base, position[0], true);
+      this._view.setFloat32(base + 4, position[1], true);
+      this._view.setFloat32(base + 8, position[2], true);
+    });
+
+    const activation16 = num.toHalfFloat(activation);
+    for (let index = 0; index < this._spriteData.length; index++)
+    {
+      this._view.setUint16(index * size + 12, activation16, true);
+    }
+
+    quadRenderer.AddQuads(this.effectHash, this._buffer, this._spriteData.length);
+  }
+
+  static _positionScratch = vec3.create();
+
+  static _boneScratch = mat4.create();
 
   /**
    * Runs the first Rebuild so the set has bounds before its first visibility

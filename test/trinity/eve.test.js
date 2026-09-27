@@ -559,7 +559,7 @@ test("EveSpotlightSet preserves authored cone, glow, and SOF-light intent", () =
   assertEquals(set.Initialize(), true);
 });
 
-test("EveSpriteLineSet expands Carbon line and circle positions without renderer buffers", () =>
+test("EveSpriteLineSet expands Carbon line and circle positions and packs them as sprite pool vertices", () =>
 {
   const line = new EveSpriteLineSetItem();
   vec3.set(line.position, 1, 2, 3);
@@ -591,13 +591,13 @@ test("EveSpriteLineSet expands Carbon line and circle positions without renderer
 
   const set = new EveSpriteLineSet();
   const options = [];
-  const effect = { SetOption: (...args) => options.push(args) };
+  const effect = { SetOption: (...args) => options.push(args), GetHashValue: () => 0x1234 };
   set.Setup(effect, true);
   set.Add(line);
   assert(set.spriteLines[0] === line, "Carbon retains sprite-line identity");
   set.SetShaderOption("SKINNED", "1");
   assertEquals(options[0].join(","), "SKINNED,1");
-  assertEquals(set.effectHash, 0, "effect identity remains adapter-owned");
+  assertEquals(set.effectHash, 0, "the key is taken when the sprites are packed (cpp:87-90)");
 
   const rawLight = {
     lightData: { position: [4, 5, 6], brightness: 3, flags: 1 },
@@ -619,6 +619,15 @@ test("EveSpriteLineSet expands Carbon line and circle positions without renderer
   assertEquals(CjsSchema.getField(EveSpriteLineSet, "lights")?.type.kind, "list");
   assertEquals(set.display, true);
   assertEquals(set.Initialize(), true);
+
+  // Carbon ReallocateResources (cpp:84-138): one 32-byte pool vertex per
+  // sprite, the blink phase stepping by blinkPhaseShift, activation 1.
+  assertEquals(set.effectHash, 0x1234);
+  assertEquals(set._spriteData.length, 3);
+  assertEquals(set._buffer.byteLength, 3 * 32);
+  const view = new DataView(set._buffer.buffer);
+  assertEquals(view.getFloat32(32 + 4, true), 4, "second sprite's y");
+  assertEquals(view.getUint16(12, true), 0x3c00, "activation half 1.0");
 });
 
 test("EveHazeSet exposes authored SOF lights through its public graph", () =>

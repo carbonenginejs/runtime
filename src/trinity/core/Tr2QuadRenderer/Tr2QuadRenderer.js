@@ -11,7 +11,7 @@ import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
 import { TriBatchType, TriStorageFlags } from "#consts/graphics";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
 import { Tr2BufferDescriptionAL } from "#trinityal";
-import { Tr2RingVertexBuffer } from "../device/Tr2DynamicRingBuffer.js";
+import { Tr2RingVertexBuffer } from "../device/Tr2RingVertexBuffer.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";

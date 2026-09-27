@@ -100,6 +100,22 @@ export class CjsWebgpuFenceAL
     return ALResult.E_FAIL;
   }
 
+  /**
+   * Metal's `Describe` (`mm:71-75`): the type and the name.
+   *
+   * @param {object} description The description to fill.
+   * @returns {object} The description, filled.
+   */
+  Describe(description)
+  {
+    if (!description) return description;
+
+    description.type = "Tr2FenceAL";
+    description.name = this.m_name;
+
+    return description;
+  }
+
   /** @returns {number} A `Tr2ALMemoryType`. */
   GetMemoryClass()
   {

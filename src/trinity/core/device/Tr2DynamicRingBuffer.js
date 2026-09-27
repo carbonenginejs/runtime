@@ -3,11 +3,10 @@
 //
 // A ring of GPU memory for data written once and drawn once: PutData copies
 // into the first region the GPU is no longer reading, DoneUsingData fences it,
-// and regions are reused once their fence is reached. The three classes share
-// one file because Carbon's header declares all three.
+// and regions are reused once their fence is reached. Carbon's header also
+// declares Tr2RingVertexBuffer and Tr2RingIndexBuffer; each has its own file.
 import { carbon, impl } from "#schema";
-import { Tr2BufferDescriptionAL, ALResult, Failed } from "#trinityal";
-import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { ALResult, Failed } from "#trinityal";
 import { Tr2Renderer } from "../Tr2Renderer.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
@@ -273,6 +272,20 @@ export class Tr2DynamicRingBuffer
   }
 
   /**
+   * Carbon's pure virtual CreateBuffer (Tr2DynamicRingBuffer.h:55): each ring
+   * kind creates its own buffer.
+   *
+   * @param {number} _size Bytes.
+   * @returns {number} An `ALResult`.
+   */
+  @carbon.method
+  @impl.abstract
+  CreateBuffer(_size)
+  {
+    return ALResult.E_FAIL;
+  }
+
+  /**
    * Carbon UpdateBuffer (cpp:368-382): map, copy, unmap.
    *
    * @returns {number} An `ALResult`.
@@ -289,67 +302,5 @@ export class Tr2DynamicRingBuffer
     this.m_buffer.UnmapForWriting(renderContext);
 
     return ALResult.S_OK;
-  }
-}
-
-/** Carbon `Tr2RingVertexBuffer`: the ring as a vertex buffer. */
-export class Tr2RingVertexBuffer extends Tr2DynamicRingBuffer
-{
-  /** Carbon Create (cpp:395-400). */
-  @carbon.method
-  @impl.implemented
-  Create(bufferSize)
-  {
-    this.ReleaseResources();
-    this.m_bufferSize = bufferSize >>> 0;
-
-    return this.PrepareResources();
-  }
-
-  /** Carbon CreateBuffer (cpp:411-421): a stride-1 WRITE_OFTEN vertex buffer. */
-  @carbon.method
-  @impl.implemented
-  CreateBuffer(size)
-  {
-    this.m_buffer?.Destroy();
-    this.m_buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
-      Tr2BufferDescriptionAL.FromStride(1, size, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
-      null
-    );
-
-    return this.m_buffer ? ALResult.S_OK : ALResult.E_FAIL;
-  }
-}
-
-/** Carbon `Tr2RingIndexBuffer`: the ring as an index buffer. */
-export class Tr2RingIndexBuffer extends Tr2DynamicRingBuffer
-{
-  /** m_indexSize */
-  m_indexSize = 4;
-
-  /** Carbon Create (cpp:440-447). */
-  @carbon.method
-  @impl.implemented
-  Create(numberOfIndices, indexSize)
-  {
-    this.ReleaseResources();
-    this.m_indexSize = indexSize;
-    this.m_bufferSize = numberOfIndices * this.m_indexSize;
-
-    return this.PrepareResources();
-  }
-
-  /** Carbon CreateBuffer (cpp:458-468). */
-  @carbon.method
-  @impl.implemented
-  CreateBuffer(size)
-  {
-    this.m_buffer?.Destroy();
-    this.m_buffer = Tr2RenderContext_GetMainThreadRenderContext().CreateBuffer(
-      Tr2BufferDescriptionAL.FromStride(this.m_indexSize, size / this.m_indexSize, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN | Tr2CpuUsage.NON_SYNCRONIZED_WRITE),
-      null
-    );
-
-    return this.m_buffer ? ALResult.S_OK : ALResult.E_FAIL;
   }
 }

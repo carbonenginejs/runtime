@@ -431,6 +431,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     return POOL_VERTEX_DEFINITION;
   }
 
+  /** Carbon sizeof( PoolVertex ): bytes per instance, shared with EveSpriteLineSet. */
+  static poolVertexSize = POOL_VERTEX_SIZE;
+
   /** The unskinned XMVector3TransformCoordStream (cpp:184-191 / cpp:101-107). */
   #TransformPositions(transform)
   {
