@@ -4,7 +4,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { blue } from "#blue";
 import { BitmapDimensions } from "#imageio";
-import { PixelFormat, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
+import { GetBytesPerPixel, PixelFormat, PixelFormatFromCanonical, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
 import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";
 import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
 import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
@@ -85,11 +85,13 @@ export class Tr2TextureAnimation extends CjsModel
   }
 
   /**
-   * Cancels the previous load, releases owned textures and reads the current path.
+   * Cancels the previous load, drops the grid textures and reads the current path.
    *
    * Adapted: The shared resource manager supplies bytes through its injected
    * sources; CjsVtaFormat streams decoded frames. No filesystem access is owned
-   * here. Low-detail VTA path substitution is not yet connected to the LOD manager.
+   * here. Like Carbon's `m_grids.clear()` (Tr2TextureAnimation.cpp:258) the
+   * textures are only released, never destroyed: a realized resource set may
+   * still bind one, since the parameter invalidates only on an `animation` edit.
    * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
    */
   @carbon.method
@@ -109,6 +111,9 @@ export class Tr2TextureAnimation extends CjsModel
    * Captures the request's path and state, marking its decoded frame unavailable.
    *
    * Adapted: A JavaScript record replaces the native shared-state request object.
+   * Carbon swaps `.vta` for `_lowdetail.vta` here when the LOD manager's low-res
+   * VTA setting is on (Tr2TextureAnimation.cpp:286-291); that swap is not done,
+   * because files are always fetched and never limited to a local low-detail install.
    * @returns {object} Request record.
    */
   @carbon.method
@@ -142,13 +147,16 @@ export class Tr2TextureAnimation extends CjsModel
       const context = Tr2RenderContext_GetMainThreadRenderContext();
       for (const grid of state.frameData.grids)
       {
+        // The decoder bitmap is a volume in the grid's own format
+        // (imageio/VtaHandler.cpp:432); pitches follow it as cpp:151-152 do.
         const dimensions = new BitmapDimensions({
-          type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
+          type: TextureType.TEX_TYPE_3D, format: this._gridPixelFormat(grid),
           width: grid.width, height: grid.height, depth: grid.depth, mipCount: 1
         });
+        const pitch = dimensions.GetMipPitch(0);
         const texture = context.CreateTexture(dimensions, {
           gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE,
-          initialData: [new Tr2SubresourceData(grid.frames[0], grid.width, grid.width * grid.height)]
+          initialData: [new Tr2SubresourceData(grid.frames[0], pitch, pitch * dimensions.GetMipHeight(0))]
         });
         if (!texture)
         {
@@ -188,7 +196,8 @@ export class Tr2TextureAnimation extends CjsModel
     }
     if (!this.paused)
     {
-      this.time = Math.fround(this.time + Math.fround(dt * this.fps));
+      // Carbon: float dt, float m_fps (Tr2TextureAnimation.h:77, cpp:200).
+      this.time = Math.fround(this.time + Math.fround(Math.fround(dt) * Math.fround(this.fps)));
       if (this.time > 1 && state.bitmapsReady)
       {
         this.frame++;
@@ -226,7 +235,8 @@ export class Tr2TextureAnimation extends CjsModel
       const texture = this._grids[i].frame;
       if (texture)
       {
-        texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(0), grid.frames[0], grid.width, grid.width * grid.height, context);
+        const pitch = grid.width * GetBytesPerPixel(this._gridPixelFormat(grid));
+        texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(0), grid.frames[0], pitch, pitch * grid.height, context);
       }
     }
   }
@@ -327,9 +337,13 @@ export class Tr2TextureAnimation extends CjsModel
   }
 
   /**
-   * Cancels pending tasks and releases textures owned by this animation.
+   * Cancels the pending load and drops the grid textures.
    *
-   * Custom: Explicit disposal provides Carbon's destructor cleanup in JavaScript.
+   * Custom: Stands in for Carbon's destructor, which only sets `cancel` on the
+   * shared state (Tr2TextureAnimation.cpp:103-109); the grid textures are freed
+   * by refcount when their last holder lets go. No texture is destroyed here
+   * either: a bound resource set may still hold one, and garbage collection
+   * reclaims it after the last reference drops.
    * @returns {void}
    */
   @impl.custom
@@ -338,17 +352,23 @@ export class Tr2TextureAnimation extends CjsModel
     this._clear();
   }
 
-  /** Clears state without releasing caller-owned SetChannels adapters. */
+  /** Cancels the load and drops grid and channel references; destroys nothing. */
   _clear()
   {
     if (this._asyncState) this._asyncState.cancel = true;
     this._asyncState = null;
-    for (const grid of this._grids)
-    {
-      if (grid.frame) grid.frame.Destroy();
-    }
-    this._grids.length = 0;
+    this._grids = [];
     this._channels.clear();
+  }
+
+  /**
+   * Maps a decoded grid's canonical format string to its PixelFormat.
+   * @param {object} grid Decoded grid.
+   * @returns {number} PixelFormat value, or PIXEL_FORMAT_UNKNOWN.
+   */
+  _gridPixelFormat(grid)
+  {
+    return PixelFormatFromCanonical[grid.format] ?? PixelFormat.PIXEL_FORMAT_UNKNOWN;
   }
 
   /** Schedules one decode task and reports failures without unhandled rejections. */

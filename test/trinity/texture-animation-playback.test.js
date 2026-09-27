@@ -7,7 +7,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trin
 import { CjsVtaFormat } from "../../npm/dist/resource/formats/vta/CjsVtaFormat.js";
 import { CjsWebgpuTextureAL } from "../../npm/dist/trinityal/webgpu/CjsWebgpuTextureAL.js";
 import { BitmapDimensions } from "../../npm/dist/global/imageio/BitmapDimensions.js";
-import { TextureType, PixelFormat } from "../../npm/dist/global/consts/renderContext/index.js";
+import { TextureType, PixelFormat, Tr2CpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2TextureSubresource } from "../../npm/dist/trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
 
 function fixture()
@@ -96,7 +96,65 @@ test("texture animation advances one frame after the strict threshold and keeps 
   assert.equal(animation.frame, 0);
   assert.deepEqual(texture.uploads.at(-1), [1, 2, 3, 4]);
   animation.Destroy();
-  assert.ok(textures.every(item => item.destroyed));
+  // Carbon's destructor only cancels (Tr2TextureAnimation.cpp:103-109); holders keep the textures.
+  assert.ok(textures.every(item => !item.destroyed));
+  assert.equal(animation.GetTexture("density"), null);
+});
+
+test("reload drops grid textures without destroying ones a resource set may still bind", async t =>
+{
+  const { animation, textures } = setup(t);
+  await animation.ReadData();
+  animation.AdvanceTime(0);
+  const old = animation.GetTexture("density");
+  assert.equal(old, textures[0]);
+  await animation.ReadData();
+  assert.equal(old.destroyed, false);
+  assert.deepEqual(animation.GetChannelNames(), []);
+  animation.AdvanceTime(0);
+  assert.notEqual(animation.GetTexture("density"), old);
+  assert.equal(textures.length, 4);
+  assert.ok(textures.every(item => !item.destroyed));
+  animation.Destroy();
+});
+
+test("grid textures take the grid's pixel format", async t =>
+{
+  const { animation, textures } = setup(t);
+  await animation.ReadData();
+  animation.AdvanceTime(0);
+  assert.equal(textures[0].desc.GetFormat(), PixelFormat.PIXEL_FORMAT_R8_UNORM);
+  animation.Destroy();
+});
+
+test("playback time accumulates in float32 like Carbon's float dt * m_fps", async t =>
+{
+  const { animation } = setup(t);
+  await animation.ReadData();
+  animation.AdvanceTime(0);
+  await animation._asyncState.pending;
+  animation.fps = 3;
+  animation.AdvanceTime(0.1);
+  assert.equal(animation.time, Math.fround(Math.fround(0.1) * 3));
+  animation.Destroy();
+});
+
+test("WebGPU MapForWriting on a volume maps every depth slice", () =>
+{
+  const texture = new CjsWebgpuTextureAL();
+  texture.m_texture = {};
+  texture.m_cpuUsage = Tr2CpuUsage.WRITE;
+  texture.m_desc = new BitmapDimensions({ type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_UNORM, width: 4, height: 2, depth: 3, mipCount: 1 });
+  let upload;
+  texture.m_webgpu = { GetDevice: () => ({ queue: { writeTexture: (_target, bytes, layout, size) => { upload = { bytes, layout, size }; } } }) };
+  const al = { IsValid: () => true };
+  const mapping = texture.MapForWriting(Tr2TextureSubresource.ForMipLevel(0), al);
+  assert.equal(mapping.pitch, 4);
+  assert.equal(mapping.data.length, 4 * 2 * 3);
+  texture.UnmapForWriting(al);
+  assert.equal(upload.bytes.length, 24);
+  assert.equal(upload.layout.rowsPerImage, 2);
+  assert.deepEqual(upload.size, { width: 4, height: 2, depthOrArrayLayers: 3 });
 });
 
 test("unlooped playback stops at the last frame and paused restart still completes", async t =>

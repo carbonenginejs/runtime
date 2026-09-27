@@ -586,7 +586,9 @@ export class CjsWebgpuTextureAL
 
     const mip = region.m_startMipLevel;
     const pitch = this.m_desc.GetMipPitch(mip);
-    const size = pitch * this.m_desc.GetMipHeight(mip);
+    // A volume maps every slice, as the dx11 staging buffer does
+    // (Tr2TextureALDx11.cpp:958-961, pitch * h * max(1, d)); non-3D depth is 1.
+    const size = pitch * this.m_desc.GetMipHeight(mip) * Math.max(1, this.m_desc.GetMipDepth(mip));
 
     if (size === 0) return { result: ALResult.E_FAIL, data: null, pitch: 0 };
     if (this._mappedData === null || this._mappedData.length !== size) this._mappedData = new Uint8Array(size);
@@ -599,7 +601,9 @@ export class CjsWebgpuTextureAL
   /**
    * Uploads what was written into the mapping, Carbon's `UnmapForWriting`.
    * The CPU copy is kept for the next map only when the texture was created
-   * `WRITE_OFTEN`, as the stub keeps its buffer.
+   * `WRITE_OFTEN`, as the stub keeps its buffer. The slice pitch passed on is
+   * one slice (`pitch * height`); `UpdateSubresource` uploads the mip's full
+   * depth from the whole mapping.
    *
    * @param {object} renderContext The render context, Trinity's or the AL.
    * @returns {number} An `ALResult` value.
