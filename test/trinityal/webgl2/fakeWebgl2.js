@@ -22,6 +22,9 @@ const ENUMS = [
     "INVALID_INDEX", "CURRENT_PROGRAM", "VERTEX_SHADER", "FRAGMENT_SHADER", "COMPILE_STATUS", "LINK_STATUS"
 ];
 
+/** `EXT_disjoint_timer_query_webgl2`'s enums, with their real values; offered when a test lists it in `gl.extensions`. */
+export const TIMER_QUERY = Object.freeze({ TIME_ELAPSED_EXT: 0x88BF, GPU_DISJOINT_EXT: 0x8FBB });
+
 /**
  * Builds a fake context.
  *
@@ -105,6 +108,7 @@ export function FakeWebgl2()
             if (name === gl.ARRAY_BUFFER_BINDING) return bindings.get(gl.ARRAY_BUFFER) ?? null;
             if (name === gl.TEXTURE_BINDING_2D) return bindings.get(gl.TEXTURE_2D) ?? null;
             if (name === gl.CURRENT_PROGRAM) return bindings.get("program") ?? null;
+            if (name === TIMER_QUERY.GPU_DISJOINT_EXT) return gl.disjoint === true;
             return null;
         },
         texStorage2D(...args) { calls.push([ "texStorage2D", ...args ]); },
@@ -169,8 +173,58 @@ export function FakeWebgl2()
         uniformBlockBinding(program, index, point) { calls.push([ "uniformBlockBinding", index, point ]); },
         createFramebuffer() { return { kind: "framebuffer" }; },
         deleteFramebuffer() {},
-        bindFramebuffer(...args) { calls.push([ "bindFramebuffer", ...args ]); }
+        bindFramebuffer(...args) { calls.push([ "bindFramebuffer", ...args ]); },
+        // A sync object signals when a test sets `signaled`; `finish` signals them all.
+        fenceSync(condition, flags)
+        {
+            const sync = { kind: "sync", condition, flags, signaled: false };
+            syncs.add(sync);
+            calls.push([ "fenceSync", sync ]);
+            return sync;
+        },
+        deleteSync(sync)
+        {
+            syncs.delete(sync);
+            calls.push([ "deleteSync", sync ]);
+        },
+        getSyncParameter(sync, name)
+        {
+            return name === withEnums.SYNC_STATUS ? (sync.signaled ? withEnums.SIGNALED : withEnums.UNSIGNALED) : null;
+        },
+        finish()
+        {
+            for (const sync of syncs) sync.signaled = true;
+            calls.push([ "finish" ]);
+        },
+        // A query's result arrives when a test sets `available` and `result`.
+        createQuery()
+        {
+            const query = { kind: "query", available: false, result: 0 };
+            calls.push([ "createQuery", query ]);
+            return query;
+        },
+        deleteQuery(query) { calls.push([ "deleteQuery", query ]); },
+        beginQuery(target, query)
+        {
+            activeQueries.set(target, query);
+            calls.push([ "beginQuery", target, query ]);
+        },
+        endQuery(target)
+        {
+            activeQueries.delete(target);
+            calls.push([ "endQuery", target ]);
+        },
+        getQuery(target) { return activeQueries.get(target) ?? null; },
+        getQueryParameter(query, name)
+        {
+            if (name === withEnums.QUERY_RESULT_AVAILABLE) return query.available;
+            if (name === withEnums.QUERY_RESULT) return query.result;
+            return null;
+        }
     });
+
+    const syncs = new Set();
+    const activeQueries = new Map();
 
     // Any other upper-case constant the backend reads gets its own stable value,
     // so tests need not list every enum a texture path touches.

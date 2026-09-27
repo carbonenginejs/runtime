@@ -93,6 +93,16 @@ A buffer on a WebGL2 device.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2CapsALWebgl2 -->
+## `Tr2CapsALWebgl2`
+
+The capabilities the WebGL2 backend reports.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2CapsALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2ConstantBufferALWebgl2 -->
 ## `Tr2ConstantBufferALWebgl2`
 
@@ -100,6 +110,46 @@ A constant buffer on a WebGL2 device.
 
 - Export: `@carbonenginejs/runtime/trinityal/webgl2`
 - Source: `src/trinityal/webgl2/Tr2ConstantBufferALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2FenceALWebgl2 -->
+## `Tr2FenceALWebgl2`
+
+A GPU fence on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2FenceALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2GpuTimerALWebgl2 -->
+## `Tr2GpuTimerALWebgl2`
+
+A GPU timer on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2GpuTimerALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2OcclusionQueryALWebgl2 -->
+## `Tr2OcclusionQueryALWebgl2`
+
+An occlusion query on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2OcclusionQueryALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2PipelineStatsQueryALWebgl2 -->
+## `Tr2PipelineStatsQueryALWebgl2`
+
+A pipeline statistics query on a WebGL2 device, which cannot be created.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2PipelineStatsQueryALWebgl2.js`
 - Visibility: Public
 - Kind: Carbon
 

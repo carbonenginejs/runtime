@@ -16,3 +16,8 @@ export * from "./Tr2ShaderALWebgl2.js";
 export * from "./Tr2ShaderProgramALWebgl2.js";
 export * from "./Tr2VertexLayoutALWebgl2.js";
 export * from "./Tr2ResourceSetALWebgl2.js";
+export * from "./Tr2FenceALWebgl2.js";
+export * from "./Tr2OcclusionQueryALWebgl2.js";
+export * from "./Tr2GpuTimerALWebgl2.js";
+export * from "./Tr2PipelineStatsQueryALWebgl2.js";
+export * from "./Tr2CapsALWebgl2.js";
