@@ -665,19 +665,23 @@ test("fragment lowering emits a parameterless entry point when declared inputs a
         // A UNORM stand-in target stores clamped, NaN as 0, when the pipeline sets this.
         "override cjsUnormTarget0: bool = false;",
         "",
+        // The DoF layer pass discards invisible output when the pipeline sets this.
+        "override cjsCoverageDiscard: u32 = 0u;",
+        "",
         "@fragment",
         "fn main() -> FragmentOutput",
         "{",
         "    var output: FragmentOutput;",
         "    output.output0 = vec4<f32>(bitcast<f32>(0x3f800000u), bitcast<f32>(0x00000000u), bitcast<f32>(0x3f000000u), bitcast<f32>(0x3f800000u));",
         "    if (cjsUnormTarget0) { output.output0 = clamp(select(output.output0, vec4<f32>(0.0), (bitcast<vec4<u32>>(output.output0) & vec4<u32>(0x7fffffffu)) > vec4<u32>(0x7f800000u)), vec4<f32>(0.0), vec4<f32>(1.0)); }",
+        "    if (cjsCoverageDiscard != 0u && !(select(output.output0.a, max(max(abs(output.output0.r), abs(output.output0.g)), abs(output.output0.b)), cjsCoverageDiscard == 2u) > 0.001)) { discard; }",
         "    return output;",
         "}",
         ""
     ].join("\n"));
     assert.deepEqual(shader.sourceMap.map(({ line, dxbcOffset }) => ({ line, dxbcOffset })), [
-        { line: 12, dxbcOffset: 5 },
-        { line: 13, dxbcOffset: 10 }
+        { line: 14, dxbcOffset: 5 },
+        { line: 15, dxbcOffset: 10 }
     ]);
 
     const noDeclaredInput = inputlessFragmentFixture();
@@ -710,9 +714,9 @@ test("fragment lowering maps DXBC frc and round_ni to component-wise WGSL roundi
     // Each entry anchors on the `let` that evaluates the instruction, which is
     // where its work happens; the component stores after it carry no arithmetic.
     assert.deepEqual(dx11.sourceMap.map(({ line, dxbcOffset }) => ({ line, dxbcOffset })), [
-        { line: 12, dxbcOffset: 2 },
-        { line: 15, dxbcOffset: 6 },
-        { line: 18, dxbcOffset: 10 }
+        { line: 14, dxbcOffset: 2 },
+        { line: 17, dxbcOffset: 6 },
+        { line: 20, dxbcOffset: 10 }
     ]);
 });
 
