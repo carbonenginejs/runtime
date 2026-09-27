@@ -277,6 +277,15 @@ export class EveChildInstanceContainer extends EveChildTransform
     return out;
   }
 
+  /** Carbon EveChildInstanceContainer::RegisterWithQuadRenderer (cpp:467-473):
+   * the shared source registers once for every instance. */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (this.source) this.source.RegisterWithQuadRenderer(quadRenderer);
+  }
+
   /** Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478). */
   @carbon.method
   @impl.implemented

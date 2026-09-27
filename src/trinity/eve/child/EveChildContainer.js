@@ -961,6 +961,22 @@ export class EveChildContainer extends EveChildTransform
     return success;
   }
 
+  /** Carbon EveChildContainer::RegisterWithQuadRenderer (cpp:448-458): the
+   * children's quad effects, then the attachments'. */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    for (const child of this.objects)
+    {
+      child?.RegisterWithQuadRenderer(quadRenderer);
+    }
+    for (const attachment of this.attachments)
+    {
+      attachment?.RegisterWithQuadRenderer(quadRenderer);
+    }
+  }
+
   /** Carbon EveChildContainer::AddQuadsToQuadRenderer (cpp:460-488): the
    * children add theirs, then the attachments in world space at full
    * activation, posed by the animation owner's bones. */

@@ -638,6 +638,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     this.effect?.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
+  /** Carbon EveChildEffectPropagator::RegisterWithQuadRenderer (cpp:383-389). */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    this.effect?.RegisterWithQuadRenderer(quadRenderer);
+  }
+
   /** Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
    * sample the owned locator set through the completeness gate; the trigger
    * sphere scalar becomes twice the farthest locator distance. */
