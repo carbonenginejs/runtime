@@ -160,3 +160,25 @@ test("SubmitGeometry realizes a descriptor batch through the submitting context 
   // A second submit finds the buffers already there.
   assert.equal(renderContext.SubmitGeometry(batch), true);
 });
+
+test("a descriptor batch whose LOD cannot be realized yet is not drawn", () =>
+{
+  // Carbon's CreateGeometryBatch returns an invalid batch while
+  // `!lod->m_allocationsValid` (Tr2MeshBase.cpp:345-347). Falling through to
+  // a non-indexed draw on the previous batch's streams made WebGPU refuse the
+  // pipeline and drop the whole frame.
+  const renderContext = context();
+  const al = renderContext.GetRenderContextAL();
+  const geometry = new TriGeometryRes();
+  const batch = new Tr2RenderBatch();
+  let draws = 0;
+
+  batch.SetGeometrySource(geometry, 0, 0, 1, false, null);
+  batch.topology = 4;
+  renderContext.DrawInstanced = () => { draws += 1; return true; };
+  renderContext.DrawIndexedInstanced = () => { draws += 1; return true; };
+
+  al.BeginScene();
+  assert.equal(renderContext.SubmitGeometry(batch), false);
+  assert.equal(draws, 0);
+});

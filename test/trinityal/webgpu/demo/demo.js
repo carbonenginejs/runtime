@@ -253,7 +253,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -356,6 +356,32 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const showKills = () => { killCountReadout.value = killCount.value; };
   killCount.addEventListener("input", () => { kills(Number(killCount.value)); showKills(); });
   showKills();
+
+  // Damage: remaining shield, armor and hull, 0 to 1 (SetImpactDamageState),
+  // and the five module animations Carbon names (SetImpactAnimation), which
+  // fade on and off rather than taking a level.
+  const damageLevels = { shield: 1, armor: 1, hull: 1 };
+  for (const name of [ "shield", "armor", "hull" ])
+  {
+    const level = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "1", step: "0.01", value: "1" });
+    const levelReadout = document.createElement("output");
+    const levelField = Object.assign(document.createElement("span"), { className: "slider" });
+    levelField.append(level, levelReadout);
+    row(name, levelField);
+    const showLevel = () => { levelReadout.value = Number(level.value).toFixed(2); };
+    level.addEventListener("input", () =>
+    {
+      damageLevels[name] = Number(level.value);
+      damage(damageLevels.shield, damageLevels.armor, damageLevels.hull);
+      showLevel();
+    });
+    showLevel();
+  }
+  for (const name of [ "shieldhardening", "shieldboost", "armorhardening", "armorrepair", "hullrepair" ])
+  {
+    const toggle = row(name, Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
+    toggle.addEventListener("change", () => effect(name, toggle.checked));
+  }
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -2459,6 +2485,10 @@ export async function RunDemo(canvas)
         estimatedPixelDiameter: ship.estimatedPixelDiameter
       };
     },
+    // A module animation on or off: shieldboost, shieldhardening,
+    // armorhardening, armorrepair or hullrepair (SetImpactAnimation,
+    // cpp:3580). The fade takes a quarter of the duration, in seconds.
+    effect: (name, on, duration = 4) => { if (realScene) ship.SetImpactAnimation(name, !!on, Number(duration)); },
     ship,
     scene: realScene
   };
@@ -2527,6 +2557,8 @@ export async function RunDemo(canvas)
       return accumulator;
     }
   });
+  // The frame's batch lists, for inspecting what was drawn and with what.
+  globalThis.demo.batchManager = batchManager;
 
   // THE QUAD STEP OF CARBON'S GatherBatches (EveSpaceScene.cpp:1512-1514):
   // after the renderables' batches and before FinalizeBatches, the scene's
@@ -3173,6 +3205,8 @@ export async function RunDemo(canvas)
     age: weeks => globalThis.demo.age(weeks),
     speed: value => globalThis.demo.speed(value),
     kills: value => globalThis.demo.kills(value),
+    damage: (shield, armor, hull) => globalThis.demo.damage(shield, armor, hull),
+    effect: (name, on) => globalThis.demo.effect(name, on),
     clientDefaults: {
       enabled: () => clientState.enabled,
       set: enabled => { clientState.enabled = enabled; ApplyClientDefaults(); }

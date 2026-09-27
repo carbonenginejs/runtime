@@ -1119,7 +1119,13 @@ export class Tr2RenderContext extends CjsModel
     // allocations are made here, at the first submit through THIS context, and
     // the batch's streams and draw arguments are set from them exactly as
     // CreateGeometryBatch sets them in Carbon (Tr2MeshBase.cpp:372-392).
-    if (batch.geometrySource && !batch.vertexStreams[0]) RealizeBatchGeometry(batch, this);
+    //
+    // A LOD that cannot be realized yet (its geometry still loading) is not
+    // drawn: Carbon's CreateGeometryBatch returns an invalid batch when
+    // `!lod->m_allocationsValid` (Tr2MeshBase.cpp:345-347), so it never reaches
+    // a submit. Falling through drew non-indexed on the previous batch's
+    // streams, which WebGPU refused, dropping the frame.
+    if (batch.geometrySource && !batch.vertexStreams[0] && !RealizeBatchGeometry(batch, this)) return false;
 
     this.SetTopology(batch.topology);
     this.#esm.ApplyVertexDeclaration(batch.vertexDeclaration);
