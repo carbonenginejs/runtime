@@ -11,6 +11,24 @@
     "the ordering INSIDE global is enforced too -- math is not allowed to reach",
     "sideways into model just because both are global."
   ],
+  "standalone": {
+    "paths": [
+      "resource/formats",
+      "resource/format"
+    ],
+    "why": [
+      "A single format is importable by anything: by every layer here, and by",
+      "external parties apart from the rest of the runtime (people run Carbon's",
+      "GR2 through CjsGr2Format). That was the first rule of the formats and was",
+      "lost when the packages merged and formats fell under the resource layer.",
+      "A path listed here may be imported from any layer. Its own imports are",
+      "still checked against its layer. A format may bring the classes it needs,",
+      "never the engine or the whole library: a caller that wants engine classes",
+      "hydrated (black, red) injects them, through Blue's class registry or a",
+      "plain object. test/resource/format-standalone.test.js proves it for every",
+      "format."
+    ]
+  },
   "surfaces": {
     "index.js": {
       "mayImport": [

@@ -15,6 +15,12 @@ import { fileURLToPath } from "node:url";
 const DEFAULT_ROOT = fileURLToPath(new URL("..", import.meta.url));
 const NODE_BUILTINS = new Set(builtinModules.map(name => name.replace(/^node:/u, "")));
 
+/**
+ * The target of an import into a `standalone` path (layers.json), which any
+ * layer may import: a single format is importable by anything.
+ */
+const STANDALONE = Symbol("standalone");
+
 function slash(value)
 {
     return value.split(sep).join("/");
@@ -357,6 +363,11 @@ function resolveSpecifierLayers(specifier, file, context)
         if (!target.startsWith("./")) continue;
         const path = resolve(root, target);
         const surfacePath = slash(relative(sourceRoot, path));
+        if (context.standalone.some(prefix => surfacePath === prefix || surfacePath.startsWith(`${prefix}/`)))
+        {
+            result.push(STANDALONE);
+            continue;
+        }
         if (surfaces[surfacePath])
         {
             result.push(...surfaces[surfacePath].mayImport);
@@ -386,6 +397,7 @@ export async function validateLayering(options = {})
     const layers = config.layers ?? {};
     expandGlobalAlias(config.layers ?? {});
     const surfaces = config.surfaces ?? {};
+    const standalone = config.standalone?.paths ?? [];
     const imports = manifest.imports ?? {};
     const externalImportValues = config.externalImports ?? [];
     const externalImports = new Set(Array.isArray(externalImportValues) ? externalImportValues : []);
@@ -436,6 +448,12 @@ export async function validateLayering(options = {})
     validatePackageMap("imports", imports, root, problems);
     const layerNames = validateGraph(layers, sourceRoot, problems);
 
+    if (!Array.isArray(standalone)) problems.push("layers.json standalone.paths must be an array");
+    for (const path of standalone)
+    {
+        if (!existsSync(join(sourceRoot, path))) problems.push(`layers.json standalone path "${path}" does not exist`);
+    }
+
     for (const [ path, rule ] of Object.entries(surfaces))
     {
         if (!existsSync(join(sourceRoot, path))) problems.push(`layers.json surface "${path}" does not exist`);
@@ -473,6 +491,7 @@ export async function validateLayering(options = {})
                 sourceRoot,
                 layerNames,
                 surfaces,
+                standalone,
                 imports,
                 externalImports,
                 problems,
@@ -480,6 +499,7 @@ export async function validateLayering(options = {})
             });
             for (const to of targets)
             {
+                if (to === STANDALONE) continue;
                 if (!surface && to === from) continue;
                 if (!allowed.has(to))
                 {
