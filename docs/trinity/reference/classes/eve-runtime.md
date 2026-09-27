@@ -68,7 +68,7 @@ One ship's instance of a booster set: it carries the parent transform, speed and
 <!-- class:EveTrailsSet -->
 ## `EveTrailsSet`
 
-Holds the booster trail placements a hull emits, together with the mesh resource and effect a renderer draws them with.
+A booster set's trails: one trail mesh drawn once per booster, instanced, its shape bent along each booster renderable's spline in the vertex shader.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
 - Source: `src/trinity/eve/attachment/booster/EveTrailsSet.js`
@@ -848,7 +848,7 @@ A billboard quad child that renders through the shared quad renderer's additive 
 <!-- class:EveChildRef -->
 ## `EveChildRef`
 
-A child that lazily resolves and owns a referenced space-object-child resource by path, forwarding controller and registration calls to it.
+A child that loads another space-object child from a red/black file by path and forwards the child interface to it (EveChildRef.cpp).
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
 - Source: `src/trinity/eve/child/EveChildRef.js`

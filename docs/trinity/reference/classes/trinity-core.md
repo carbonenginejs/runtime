@@ -35,6 +35,16 @@ Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2GrannyAnimationLayer -->
+## `Tr2GrannyAnimationLayer`
+
+One animation layer of a Tr2GrannyAnimation: the base layer, or a named layer masked to a bone set.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/animation/Tr2GrannyAnimationLayer.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2TextureAnimation -->
 ## `Tr2TextureAnimation`
 
@@ -305,26 +315,6 @@ Carbon `Tr2DynamicRingBuffer`: the base of the vertex and index rings.
 - Visibility: Public
 - Kind: Carbon
 
-<!-- class:Tr2RingIndexBuffer -->
-## `Tr2RingIndexBuffer`
-
-Carbon `Tr2RingIndexBuffer`: the ring as an index buffer.
-
-- Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/device/Tr2DynamicRingBuffer.js`
-- Visibility: Public
-- Kind: Carbon
-
-<!-- class:Tr2RingVertexBuffer -->
-## `Tr2RingVertexBuffer`
-
-Carbon `Tr2RingVertexBuffer`: the ring as a vertex buffer.
-
-- Export: `@carbonenginejs/runtime/trinity/core`
-- Source: `src/trinity/core/device/Tr2DynamicRingBuffer.js`
-- Visibility: Public
-- Kind: Carbon
-
 <!-- class:Tr2GpuBuffer -->
 ## `Tr2GpuBuffer`
 
@@ -362,6 +352,26 @@ Where one consumer's rows landed, this frame and last.
 
 - Export: `@carbonenginejs/runtime/trinity/core`
 - Source: `src/trinity/core/device/Tr2RingBuffer/Tr2RingBufferOffsets.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RingIndexBuffer -->
+## `Tr2RingIndexBuffer`
+
+Carbon `Tr2RingIndexBuffer`: the ring as an index buffer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2RingIndexBuffer.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2RingVertexBuffer -->
+## `Tr2RingVertexBuffer`
+
+Carbon `Tr2RingVertexBuffer`: the ring as a vertex buffer.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/device/Tr2RingVertexBuffer.js`
 - Visibility: Public
 - Kind: Carbon
 
