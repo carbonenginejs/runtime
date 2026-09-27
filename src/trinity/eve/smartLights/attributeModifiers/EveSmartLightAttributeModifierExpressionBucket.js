@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/SmartLightSets/attributeModifiers/EveSmartLightAttributeModifierExpressionBucket.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
-import * as CcpLog from "../../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { EveSmartLightAttributeModifierBucket } from "./EveSmartLightAttributeModifierBucket.js";
 import { CjsControllerExpressionProgram } from "../../../controllers/expression/CjsControllerExpressionProgram.js";

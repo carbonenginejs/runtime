@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepLoad.h
 // Schema: format-carbon resources/Tr2TexturePipelineStepLoad.json; maintained by the runtime resource layer.
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { CjsModel } from "#model";
 

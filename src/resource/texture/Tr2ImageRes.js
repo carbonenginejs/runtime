@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/Tr2ImageRes.h
 // Source: trinity/trinity/Resources/Tr2ImageRes.cpp
 // Source: trinity/trinity/Resources/Tr2ImageRes_Blue.cpp
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { CjsResource } from "#blue";
 import { HostBitmap } from "#imageio";

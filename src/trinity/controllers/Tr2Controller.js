@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2Controller.h
 // Source: trinity/trinity/Controllers/Tr2Controller.cpp
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, TimeAsDouble } from "#blue";

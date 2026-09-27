@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
 // class and calls the AL from it.
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { PresentInterval, SwapEffect, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";

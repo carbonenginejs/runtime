@@ -12,7 +12,7 @@
 // format needs it: PNG decodes through `DecompressionStream`, which is
 // asynchronous, and `SetPayload` is not. The loader therefore does what
 // Carbon's DoLoad does, and hands the resource the finished bitmap.
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { HostBitmap, LoadParameters, Metadata } from "#imageio";
 import { ImageIO } from "../imageio/ImageIO.js";
 import { TriTextureRes } from "./TriTextureRes.js";

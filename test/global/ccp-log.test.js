@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as Log from "../../src/global/logging/CcpLog.js";
+import * as Log from "../../src/global/logging/ccpLog.js";
 
 // This new module is plain ESM, so these tests can run without touching the
 // shared npm/dist build. Package-build validation is a separate coordinated step.

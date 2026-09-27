@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Tr2TextureAnimation.h
 // Source: trinity/trinity/Tr2TextureAnimation.cpp
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { blue } from "#blue";

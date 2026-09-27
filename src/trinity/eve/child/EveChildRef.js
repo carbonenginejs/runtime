@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildRef.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue } from "#blue";
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildTransform } from "./EveChildTransform.js";

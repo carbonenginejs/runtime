@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import * as CcpLog from "../../npm/dist/global/logging/CcpLog.js";
+import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import { CcpLog as PublicLog } from "../../npm/dist/global/index.js";
 import { HostBitmap } from "../../npm/dist/global/imageio/HostBitmap.js";
 import { Tr2TexturePipelineStepLoad } from "../../npm/dist/resource/texture/Tr2TexturePipelineStepLoad.js";

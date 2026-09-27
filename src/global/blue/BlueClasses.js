@@ -31,7 +31,7 @@
 // module and name, and `FindClsid` already ignores the module ("we don't allow
 // name clashes between modules", BlueClasses.cpp:340-343). With no GUIDs to
 // carry, the name is the only identity there is.
-import * as CcpLog from "../logging/CcpLog.js";
+import * as CcpLog from "../logging/ccpLog.js";
 import { CjsSchema, carbon, impl } from "#schema";
 import { IBlueClasses } from "./IBlueClasses.js";
 import { Copier } from "./Copier.js";
@@ -140,7 +140,9 @@ export class BlueClasses extends IBlueClasses
 
     if (CjsSchema.GetConstructor(name))
     {
-      // Keep the first registration, as in BlueClasses.cpp:272-276.
+      // Keep the first registration, as in BlueClasses.cpp:272-276. Carbon logs
+      // "Class %s.%s is already registered!" with the module first; a JS
+      // registration carries no module, so only the name is printed.
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "Class %s is already registered!", name);
       return;
     }

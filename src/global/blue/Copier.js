@@ -35,7 +35,7 @@
 // compare with `Object.is`, object references by identity, and containers
 // match only when both are empty - two distinct containers' bytes match in
 // Carbon only then.
-import * as CcpLog from "../logging/CcpLog.js";
+import * as CcpLog from "../logging/ccpLog.js";
 import { CjsSchema, carbon, impl } from "#schema";
 import { cloneCarbonValue, coerceCarbonMathInto, coerceCarbonTypedArrayInto } from "../schema/types/index.js";
 import { ICopier } from "./ICopier.js";

@@ -1,4 +1,4 @@
-import * as CcpLog from "../../npm/dist/global/logging/CcpLog.js";
+import * as CcpLog from "../../npm/dist/global/logging/ccpLog.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";

@@ -1,4 +1,4 @@
-import * as CcpLog from "../global/logging/CcpLog.js";
+import * as CcpLog from "../global/logging/ccpLog.js";
 import { normalizeResourcePath } from "#utils/path";
 
 // Source: trinity/trinity/Eve/SpaceObjectFactory/EveSOF.h

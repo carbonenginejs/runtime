@@ -9,7 +9,7 @@
 // PASSES NOT PORTED YET throw by name from their own method, and each runs
 // only when the scene's Tr2PostProcess2 enables that effect, so a scene
 // without them runs the chain end to end: copy, sharpening, tonemapping.
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { BloomDebugMode, Quality } from "../generated/postProcess/enums.js";

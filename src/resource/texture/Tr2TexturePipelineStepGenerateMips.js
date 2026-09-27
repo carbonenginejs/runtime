@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Resources/TexturePipeline/Tr2TexturePipelineStepGenerateMips.h
 // Marker step: Carbon registers the class with zero attributes; the mip
 // generation itself happens where the pipeline is executed.
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, impl, type } from "#schema";
 import { CjsModel } from "#model";
 

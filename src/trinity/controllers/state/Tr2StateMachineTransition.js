@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";

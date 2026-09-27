@@ -6,7 +6,7 @@
 // `pack`: a per-channel byte interleaver whose independent pixel and row
 // strides exist because the inputs are separate host bitmaps with their own
 // formats and mip pitches.
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, CjsSchema, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { GetBytesPerPixel, PixelFormat, TextureType } from "#consts/render-context";

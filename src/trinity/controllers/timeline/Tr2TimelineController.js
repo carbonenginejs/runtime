@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2TimelineController.h
 // Source: trinity/trinity/Controllers/Tr2TimelineController.cpp
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { blue, TimeAsDouble, TimeAsFloat } from "#blue";
 import { EveThrottleable } from "../../eve/EveThrottleable.js";

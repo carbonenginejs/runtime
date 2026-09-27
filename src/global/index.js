@@ -90,5 +90,5 @@ export * as tangent from "./math/tangent.js";
  */
 export * from "./utils/resFile.js";
 
-export * as CcpLog from "./logging/CcpLog.js";
-export * from "./logging/CcpLog.js";
+export * as CcpLog from "./logging/ccpLog.js";
+export * from "./logging/ccpLog.js";

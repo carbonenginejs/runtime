@@ -1,5 +1,5 @@
 ﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
-import * as CcpLog from "../../../global/logging/CcpLog.js";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
