@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CjsBackendCandidate } from "../../../npm/dist/global/contracts/index.js";
+import { CjsBackendCandidate } from "../../../npm/dist/global/interfaces/index.js";
 import {
   CjsWebgpuBackendCandidate,
   CjsWebgpuDevice

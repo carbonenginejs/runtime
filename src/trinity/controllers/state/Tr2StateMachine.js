@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { blue, TimeAsFloat } from "#blue";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "../contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 
 /**
@@ -57,15 +57,15 @@ export class Tr2StateMachine extends CjsModel
       return;
     }
     const state = Tr2StateMachine._asState(value);
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (this._controller && state)
         {
           state.Link(this);
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         if (state)
         {
           if (state === this.currentState)
@@ -167,7 +167,7 @@ export class Tr2StateMachine extends CjsModel
       return;
     }
     this.currentState.Start();
-    this._followTransitions(TR2_DIRTY_ALL);
+    this._followTransitions(0xffffffffffffffffn);
   }
 
   /**
@@ -302,7 +302,7 @@ export class Tr2StateMachine extends CjsModel
       this.currentState = next;
       this.currentState.Start();
       this._stateStartTime = blue.os.GetCurrentFrameTime();
-      next = this.currentState.Update(TR2_DIRTY_ALL) ?? null;
+      next = this.currentState.Update(0xffffffffffffffffn) ?? null;
     }
   }
 

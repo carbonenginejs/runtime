@@ -7,13 +7,7 @@ import { PlacementDataWithIdentifier } from "../PlacementDataWithIdentifier.js";
 import { color } from "#math/color";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADING,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART
-} from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group that computes one shared faction-aware colour, applies it to its child light groups, and fans out their per-frame updates. */
 @type.define({ className: "EveSmartLightColorShareGroup", family: "eve/smartLights" })
@@ -116,9 +110,9 @@ export class EveSmartLightColorShareGroup extends EveEntity
   @impl.implemented
   OnListModified(event, _key, _key2, value, list)
   {
-    const maskedEvent = Number(event) & BELIST_EVENTMASK;
+    const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
     if (
-      Number(event) === BELIST_INSERTED &&
+      Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
       this.#parentColorSet &&
       value &&
       (list === this.attributeModifiers || list === this.lightGroups)
@@ -129,20 +123,20 @@ export class EveSmartLightColorShareGroup extends EveEntity
 
     if (
       list === this.lightGroups &&
-      (Number(event) & BELIST_LOADING) === 0 &&
+      (Number(event) & BLUELISTEVENT.BELIST_LOADING) === 0 &&
       this.IsInRegistry()
     )
     {
       const registry = this.GetComponentRegistry();
-      if (maskedEvent === BELIST_INSERTED && value instanceof EveEntity)
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED && value instanceof EveEntity)
       {
         value.Register(registry);
       }
-      else if (maskedEvent === BELIST_REMOVED && value instanceof EveEntity)
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED && value instanceof EveEntity)
       {
         value.UnRegister(registry);
       }
-      else if (maskedEvent === BELIST_UNLOADSTART)
+      else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const group of this.lightGroups)
         {

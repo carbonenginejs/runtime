@@ -4,13 +4,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { CjsModel } from "#model";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADING,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART
-} from "../../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 /**
  * A named bundle of curve sets, controllers and dynamic bindings that animates
@@ -123,22 +117,22 @@ export class EveMultiEffect extends CjsModel
   @impl.reason("Reproduces Carbon IList ownership and controller callbacks through explicit portable list-event arguments.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    const maskedEvent = event & BELIST_EVENTMASK;
+    const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.parameters)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.SetOwner(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner(null);
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.SetOwner(this);
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.SetOwner(null);
     }
     else if (list === this.bindings)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.SetOwner(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.SetOwner(null);
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.SetOwner(this);
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.SetOwner(null);
     }
-    else if (list === this.controllers && (event & BELIST_LOADING) === 0)
+    else if (list === this.controllers && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.Link(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.Unlink();
-      else if (maskedEvent === BELIST_UNLOADSTART)
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.Link(this);
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.Unlink();
+      else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller?.Unlink();
       }

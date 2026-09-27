@@ -50,7 +50,7 @@ export {
 export * as errors from "./utils/errors/index.js";
 export * from "./utils/errors/index.js";
 
-export * from "./contracts/index.js";
+export * from "./interfaces/index.js";
 export * from "./blue/index.js";
 
 export * as constants from "./consts/index.js";

@@ -6,19 +6,19 @@ import test from "node:test";
 import { validateLayering } from "../scripts/layering.js";
 
 const BASE_LAYERS = {
-    "global/contracts": { mayImport: [] },
+    "global/interfaces": { mayImport: [] },
     "global/utils": { mayImport: [] },
-    resource: { mayImport: [ "global/contracts", "global/utils" ] },
-    trinity: { mayImport: [ "global/contracts", "global/utils", "resource" ] },
-    "trinityal/webgpu": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
-    "trinityal/webgl": { mayImport: [ "global/contracts", "global/utils", "resource", "trinity" ] },
-    core: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl" ] },
-    tools: { mayImport: [ "global/contracts", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl", "core" ] }
+    resource: { mayImport: [ "global/interfaces", "global/utils" ] },
+    trinity: { mayImport: [ "global/interfaces", "global/utils", "resource" ] },
+    "trinityal/webgpu": { mayImport: [ "global/interfaces", "global/utils", "resource", "trinity" ] },
+    "trinityal/webgl": { mayImport: [ "global/interfaces", "global/utils", "resource", "trinity" ] },
+    core: { mayImport: [ "global/interfaces", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl" ] },
+    tools: { mayImport: [ "global/interfaces", "global/utils", "resource", "trinity", "trinityal/webgpu", "trinityal/webgl", "core" ] }
 };
 
 const BASE_IMPORTS = {
-    "#contracts": "./src/global/contracts/index.js",
-    "#contracts/*": "./src/global/contracts/*.js",
+    "#interfaces": "./src/global/interfaces/index.js",
+    "#interfaces/*": "./src/global/interfaces/*.js",
     "#trinity": "./src/trinity/index.js",
     "#trinityal/webgpu/*": "./src/trinityal/webgpu/*.js",
     "#trinityal/webgl/*": "./src/trinityal/webgl/*.js",
@@ -73,7 +73,7 @@ test("nested backend layers use the longest configured prefix and alias", async 
             "trinityal/webgpu/helper.js": "export const helper = true;",
             "trinityal/webgpu/index.js": `
                 import "../../trinity/index.js";
-                export * from "#contracts";
+                export * from "#interfaces";
                 export { helper } from "#trinityal/webgpu/helper";
                 await import("#trinity");
             `

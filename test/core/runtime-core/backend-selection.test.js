@@ -6,7 +6,7 @@ import {
     SelectBackend,
     Tr2PlatformInfo
 } from "../../../npm/dist/core/index.js";
-import { CjsBackendCandidate } from "../../../npm/dist/global/contracts/index.js";
+import { CjsBackendCandidate } from "../../../npm/dist/global/interfaces/index.js";
 
 
 class TestBackendCandidate extends CjsBackendCandidate

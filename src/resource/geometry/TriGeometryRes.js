@@ -613,7 +613,7 @@ export class TriGeometryRes extends CjsResource
    * Throwing is the interim answer, not the final one: once accuracy tiers
    * exist a query degrades to bounds or sphere and reports which produced it.
    * What it must never do again is report absence as a miss. See
-   * `/docs/contracts/cpu-geometry-residency.md`.
+   * `/docs/specifications/cpu-geometry-residency.md`.
    *
    * @returns {Array<*>} Canonical CPU meshes.
    * @throws {Error} When the CPU geometry is not resident.

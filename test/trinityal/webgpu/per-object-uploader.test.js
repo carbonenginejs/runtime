@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
-import { CjsConstantPayload } from "#contracts";
+import { CjsConstantPayload } from "#interfaces";
 import {
   CollectPerObjectUploads,
   CommitPerObjectUploads,

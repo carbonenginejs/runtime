@@ -10,7 +10,7 @@
 // pairing only in the DXBC operands - quadv5 binds nine textures against a
 // single s0 - so a source that tried to hand out one sampler per texture would
 // be inventing a relationship the container does not express. See
-// /docs/contracts/texture-sampler-pairing.md.
+// /docs/specifications/texture-sampler-pairing.md.
 import { CarbonSamplerDescriptor } from "./samplerDescriptor.js";
 
 

@@ -22,7 +22,7 @@ subpaths outside the aggregate root; the demo suite is `@carbonenginejs/demos`.
 ## Dependency direction
 
 ```text
-global  (utils, math, consts, imageio, compose, schema, model, contracts, blue)
+global  (utils, math, consts, imageio, compose, schema, model, interfaces, blue)
    |
    +-- resource
    |      |
@@ -49,7 +49,7 @@ headless on the stub until a backend such as `trinityal/webgpu` is installed.
 
 ## Contracts and engines
 
-`global/contracts` owns dependency-floor base classes for organization-owned
+`global/interfaces` owns dependency-floor base classes for organization-owned
 execution interfaces. It imports only schema metadata so a required root method
 can carry abstract implementation metadata and throw until a subclass overrides
 it. Owned consumers call required methods directly; optional chaining and

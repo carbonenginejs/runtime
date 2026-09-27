@@ -3,7 +3,7 @@
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
-import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
+import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 import "#blue/registerTrinityEnums";
 
 /** A render-graph node that binds named sources onto an effect and produces its output. */

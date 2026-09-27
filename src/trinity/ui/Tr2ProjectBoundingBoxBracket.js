@@ -3,7 +3,7 @@
 // Source: trinity/trinity/Tr2ProjectBoundingBoxBracket_Blue.cpp
 // Promoted to hand-maintained source 2026-08-22; projection is portable CPU work.
 import { mat4 } from "#math/mat4";
-import { ITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#interfaces";
 import { CjsModel } from "#model";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 

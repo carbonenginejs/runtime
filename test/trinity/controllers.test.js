@@ -1,5 +1,6 @@
 import test from "node:test";
-import { BELIST_INSERTED, BELIST_REMOVED, CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, TR2_DIRTY_ALL, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
+import { CjsControllerExpressionProgram, ExecuteMainThreadActions, EveChildUpdateParams, ITr2ControllerAction, ITr2GenericEmitterUpdateArguments, ITr2StateMachineStateFinalizer, Tr2ActionAnimateCurveSet, Tr2ActionAnimateValue, Tr2ActionBindRTPC, Tr2ActionCallback, Tr2ActionChildEffect, Tr2ActionOverlay, Tr2ActionPlayCurveSet, Tr2ActionPlayMeshAnimation, Tr2ActionPlaySound, Tr2ActionPython, Tr2ActionResetClipSphereCenter, Tr2ActionSetAttenuationScaling, Tr2ActionSetAudioEmitterPrefix, Tr2ActionSetAudioSwitch, Tr2ActionSetExternalControllerVariable, Tr2ActionSetShaderOption, Tr2ActionSetValue, Tr2ActionSpawnParticles, Tr2BindingPoint, Tr2Controller, Tr2ControllerEventHandler, Tr2ControllerExpression, Tr2ControllerFloatVariable, Tr2ControllerReference, Tr2StateMachine, Tr2StateMachineState, Tr2StateMachineTransition, Tr2SyncToAnimation, Tr2TimelineController, PlayAction, ResetBehavior, StopAction, Type } from "../../npm/dist/trinity/index.js";
+import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsModel } from "../../npm/dist/global/model/index.js";
@@ -297,12 +298,12 @@ test("Tr2ControllerEventHandler links and executes controller actions", () =>
   handler.Execute(controller);
   assertEquals(events.join(","), "first:link,second:link,first:start,second:start,first:stop,second:stop");
   const inserted = makeAction("inserted", events, controller);
-  handler.OnListModified(BELIST_INSERTED, 0, 0, inserted, handler.actions);
+  handler.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, inserted, handler.actions);
   assertEquals(events.at(-1), "inserted:link");
-  handler.OnListModified(BELIST_REMOVED, 0, 0, inserted, handler.actions);
+  handler.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, inserted, handler.actions);
   assertEquals(events.at(-1), "inserted:unlink");
   const unrelated = makeAction("unrelated", events, controller);
-  handler.OnListModified(BELIST_INSERTED, 0, 0, unrelated, []);
+  handler.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, unrelated, []);
   assertEquals(events.at(-1), "inserted:unlink");
   assertEquals(CjsSchema.getField(Tr2ControllerEventHandler, "actions")?.type.kind, "list");
 });
@@ -380,7 +381,7 @@ test("Tr2Controller links variables, events, callbacks, and updateables", () =>
   ExecuteMainThreadActions();
   controller.Start();
   controller.Update(1);
-  assertEquals(dirtyMasks[0], TR2_DIRTY_ALL);
+  assertEquals(dirtyMasks[0], 0xffffffffffffffffn);
   // Carbon queues updateable Updates (Tr2Controller.cpp:263-267); they run at the drain.
   assertEquals(updateSimTimes.length, 0);
   ExecuteMainThreadActions();

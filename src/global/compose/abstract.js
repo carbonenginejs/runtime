@@ -1,7 +1,7 @@
 // Installs the body of a method that an implementer must supply.
 //
 // The throwing body was previously written by hand at every site - four video
-// decoder interfaces and the interface roots in `global/contracts` carry twenty
+// decoder interfaces and the interface roots in `global/interfaces` carry twenty
 // or so identical `throw new Error("X.Y must be implemented.")` lines, each one
 // repeating a class name that a rename would silently desynchronise, and each
 // one paired with an `@impl.abstract` marker that has to agree with it.

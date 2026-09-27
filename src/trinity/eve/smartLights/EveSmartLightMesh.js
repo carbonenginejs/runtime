@@ -13,7 +13,7 @@ import { resolveGroupColor } from "./EveSmartLightBaseGroup.js";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { Tr2InstancedMesh } from "../../core/mesh/Tr2InstancedMesh.js";
 import { RotationalConstraints } from "../../generated/eve/child/enums.js";
-import { BELIST_INSERTED } from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 
 /**
@@ -147,7 +147,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   {
     if (
       list === this.attributeModifiers &&
-      Number(event) === BELIST_INSERTED &&
+      Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
       this.#parentColorSet &&
       value
     )

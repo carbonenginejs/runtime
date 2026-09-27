@@ -28,7 +28,7 @@
 // been uploaded". Filling a reused arena record on a later frame marks it dirty
 // again, so it cannot be skipped merely because an earlier lease was committed.
 
-import { CjsConstantPayload } from "#contracts";
+import { CjsConstantPayload } from "#interfaces";
 
 function fail(message)
 {

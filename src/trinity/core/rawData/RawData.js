@@ -1,4 +1,4 @@
-import { CjsConstantPayload } from "#contracts";
+import { CjsConstantPayload } from "#interfaces";
 import { CjsPerFrameLayouts } from "./CjsPerFrameLayouts.js";
 import { CjsPerObjectLayouts } from "./CjsPerObjectLayouts.js";
 

@@ -4,13 +4,7 @@
 import { CjsModel } from "#model";
 import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, edit, type } from "#schema";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADING,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART
-} from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 
 /**
@@ -151,17 +145,17 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.reason("Plain JavaScript arrays do not raise Blue IList notifications; callers forward the equivalent event explicitly.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = this.controllers)
   {
-    if (list !== this.controllers || (event & BELIST_LOADING) !== 0) return;
+    if (list !== this.controllers || (event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
 
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         value?.Link(this);
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         value?.Unlink();
         break;
-      case BELIST_UNLOADSTART:
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
         for (const controller of this.controllers) controller?.Unlink();
         break;
     }

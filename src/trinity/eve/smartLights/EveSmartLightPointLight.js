@@ -16,7 +16,7 @@ import {
   createCjsLightDataView,
   setCjsLightDataOwnerValues
 } from "../lights/CjsLightData.js";
-import { BELIST_INSERTED } from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 /** A smart-light group member that places faction-colour-aware point or spot lights at each distribution placement and submits them to the light manager. */
 @type.define({ className: "EveSmartLightPointLight", family: "eve/smartLights" })
@@ -259,7 +259,7 @@ export class EveSmartLightPointLight extends EveEntity
   {
     if (
       list === this.attributeModifiers &&
-      Number(event) === BELIST_INSERTED &&
+      Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
       this.#parentColorSet &&
       value
     )

@@ -80,9 +80,9 @@
  *
  * So there is no per-game family list. There is one ordered list and a budget.
  *
- * Numbers for both games: `/docs/contracts/quad-family-texture-budget.md`.
+ * Numbers for both games: `/docs/specifications/quad-family-texture-budget.md`.
  * What happens when the sources disagree on shape or format:
- * `/docs/contracts/texture-array-realization.md`.
+ * `/docs/specifications/texture-array-realization.md`.
  */
 
 /** Carbon's resource type code for a 2D texture. */

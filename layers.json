@@ -35,7 +35,7 @@
         "global/utils",
         "global/math",
         "global/consts",
-        "global/contracts",
+        "global/interfaces",
         "global/blue",
         "global/schema",
         "global/model",
@@ -54,7 +54,7 @@
         "global/utils",
         "global/math",
         "global/consts",
-        "global/contracts",
+        "global/interfaces",
         "global/blue",
         "global/schema",
         "global/model",
@@ -126,12 +126,12 @@
         "global/schema"
       ]
     },
-    "global/contracts": {
+    "global/interfaces": {
       "mayImport": [
         "global/schema"
       ],
       "why": [
-        "Contract roots use schema implementation metadata so required",
+        "Interface roots use schema implementation metadata so required",
         "methods carry @impl.abstract as well as their throwing body."
       ]
     },

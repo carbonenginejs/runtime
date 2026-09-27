@@ -11,19 +11,13 @@ import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, edit, type } from "#schema";
-import { ITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#interfaces";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { EveComponentType } from "../EveComponentTypes.js";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADING,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART
-} from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 
 /**
@@ -553,23 +547,23 @@ export class EveEffectRoot2 extends EveEntity
   @impl.implemented
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    const masked = event & BELIST_EVENTMASK;
+    const masked = event & BLUELISTEVENT.BELIST_EVENTMASK;
 
-    if (list === this.controllers && (event & BELIST_LOADING) === 0)
+    if (list === this.controllers && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
     {
       switch (masked)
       {
-        case BELIST_INSERTED:
+        case BLUELISTEVENT.BELIST_INSERTED:
           if (value)
           {
             value.Link(this);
             EveEffectRoot2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
           }
           break;
-        case BELIST_REMOVED:
+        case BLUELISTEVENT.BELIST_REMOVED:
           if (value) value.Unlink();
           break;
-        case BELIST_UNLOADSTART:
+        case BLUELISTEVENT.BELIST_UNLOADSTART:
           for (const controller of this.controllers) controller.Unlink();
           break;
         default:
@@ -578,12 +572,12 @@ export class EveEffectRoot2 extends EveEntity
       return;
     }
 
-    if (list === this.effectChildren && (event & BELIST_LOADING) === 0)
+    if (list === this.effectChildren && (event & BLUELISTEVENT.BELIST_LOADING) === 0)
     {
       const registry = this.IsInRegistry() ? this.GetComponentRegistry() : null;
       switch (masked)
       {
-        case BELIST_INSERTED:
+        case BLUELISTEVENT.BELIST_INSERTED:
           if (value)
           {
             value.SetOwner(this);
@@ -592,14 +586,14 @@ export class EveEffectRoot2 extends EveEntity
             if (registry) value.Register(registry);
           }
           break;
-        case BELIST_REMOVED:
+        case BLUELISTEVENT.BELIST_REMOVED:
           if (value)
           {
             if (registry) value.UnRegister(registry);
             value.SetOwner(null);
           }
           break;
-        case BELIST_UNLOADSTART:
+        case BLUELISTEVENT.BELIST_UNLOADSTART:
           for (const child of this.effectChildren)
           {
             if (registry) child?.UnRegister(registry);
@@ -616,11 +610,11 @@ export class EveEffectRoot2 extends EveEntity
     {
       const registry = this.GetComponentRegistry();
       if (!registry) return;
-      if (masked === BELIST_UNLOADSTART || (masked === BELIST_REMOVED && this.lights.length === 0))
+      if (masked === BLUELISTEVENT.BELIST_UNLOADSTART || (masked === BLUELISTEVENT.BELIST_REMOVED && this.lights.length === 0))
       {
         registry.UnRegisterComponent(EveComponentType.LightOwner, this);
       }
-      else if (masked === BELIST_INSERTED && this.lights.length === 1)
+      else if (masked === BLUELISTEVENT.BELIST_INSERTED && this.lights.length === 1)
       {
         registry.RegisterComponent(EveComponentType.LightOwner, this);
       }

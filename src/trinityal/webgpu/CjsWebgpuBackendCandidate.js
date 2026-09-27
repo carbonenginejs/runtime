@@ -1,4 +1,4 @@
-import { CjsBackendCandidate } from "#contracts";
+import { CjsBackendCandidate } from "#interfaces";
 import { CjsWebgpuDevice } from "./CjsWebgpuDevice.js";
 
 

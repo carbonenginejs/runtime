@@ -235,46 +235,6 @@ Combines Carbon enum registration and BlueEnum lookup in a dependency-free regis
 - Visibility: Public
 - Kind: Carbon
 
-<!-- class:CjsBackendCandidate -->
-## `CjsBackendCandidate`
-
-Dependency-free participant in runtime backend selection.
-
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/CjsBackendCandidate.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsConstantPayload -->
-## `CjsConstantPayload`
-
-Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
-
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/CjsConstantPayload.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:ITr2BoundingBox -->
-## `ITr2BoundingBox`
-
-Dependency-free contract for objects that publish a ready world-space axis-aligned bounding box.
-
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/ITr2BoundingBox.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:ITr2RenderNode -->
-## `ITr2RenderNode`
-
-Dependency-free contract for one node in a Trinity render graph.
-
-- Export: `@carbonenginejs/runtime/contracts`
-- Source: `src/global/contracts/ITr2RenderNode.js`
-- Visibility: Public
-- Kind: Carbon
-
 <!-- class:BitmapDimensions -->
 ## `BitmapDimensions`
 
@@ -342,6 +302,46 @@ Carbon's `ImageUtility` namespace (imageio/ImageUtility.cpp).
 
 - Export: `@carbonenginejs/runtime/imageio`
 - Source: `src/global/imageio/Metadata.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:CjsBackendCandidate -->
+## `CjsBackendCandidate`
+
+Dependency-free participant in runtime backend selection.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/CjsBackendCandidate.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsConstantPayload -->
+## `CjsConstantPayload`
+
+Terminal constant-buffer bytes with an explicit upload dirty lifecycle.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/CjsConstantPayload.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2BoundingBox -->
+## `ITr2BoundingBox`
+
+Dependency-free contract for objects that publish a ready world-space axis-aligned bounding box.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/ITr2BoundingBox.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ITr2RenderNode -->
+## `ITr2RenderNode`
+
+Dependency-free contract for one node in a Trinity render graph.
+
+- Export: `@carbonenginejs/runtime/interfaces`
+- Source: `src/global/interfaces/ITr2RenderNode.js`
 - Visibility: Public
 - Kind: Carbon
 

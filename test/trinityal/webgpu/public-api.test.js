@@ -41,7 +41,7 @@ test("the built WebGPU subpath is import-inert and isolated from the root", () =
 
       const engine = await import("@carbonenginejs/runtime/trinityal/webgpu");
       for (const name of guarded) delete globalThis[name];
-      const contracts = await import("@carbonenginejs/runtime/contracts");
+      const interfaces = await import("@carbonenginejs/runtime/interfaces");
       const root = await import("@carbonenginejs/runtime");
 
       for (const name of [
@@ -67,7 +67,7 @@ test("the built WebGPU subpath is import-inert and isolated from the root", () =
       }
 
       const candidate = new engine.CjsWebgpuBackendCandidate();
-      if (!(candidate instanceof contracts.CjsBackendCandidate))
+      if (!(candidate instanceof interfaces.CjsBackendCandidate))
       {
         throw new Error("The WebGPU candidate does not share the canonical contract identity");
       }

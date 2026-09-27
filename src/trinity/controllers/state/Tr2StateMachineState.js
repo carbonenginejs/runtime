@@ -3,7 +3,7 @@
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "../contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -267,7 +267,7 @@ export class Tr2StateMachineState extends CjsModel
     }
     if (this._hasBeenVetoed)
     {
-      dirtyVariables = TR2_DIRTY_ALL;
+      dirtyVariables = 0xffffffffffffffffn;
     }
     if (this._transitionVariableMask !== 0n && !Tr2StateMachineState._dirtyMaskMatches(this._transitionVariableMask, dirtyVariables))
     {
@@ -356,7 +356,7 @@ export class Tr2StateMachineState extends CjsModel
     for (const transition of this.transitions)
     {
       const destination = transition.GetDestination?.() ?? null;
-      if (transition.CanActivate?.(TR2_DIRTY_ALL) && destination)
+      if (transition.CanActivate?.(0xffffffffffffffffn) && destination)
       {
         return destination;
       }
@@ -381,9 +381,9 @@ export class Tr2StateMachineState extends CjsModel
   {
     const action = Tr2StateMachineState._asAction(value);
     const controller = this._getController();
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (controller && action)
         {
           action.Link(controller);
@@ -393,7 +393,7 @@ export class Tr2StateMachineState extends CjsModel
           }
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         if (action)
         {
           if (controller && this._isActive)
@@ -414,16 +414,16 @@ export class Tr2StateMachineState extends CjsModel
   _onTransitionListModified(event, value)
   {
     const transition = Tr2StateMachineState._asTransition(value);
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (this._stateMachine && transition)
         {
           transition.Link(this);
           this.UpdateVariableMask();
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         if (transition)
         {
           transition.Unlink();

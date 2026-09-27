@@ -5,7 +5,7 @@ import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import { vec4 } from "../../npm/dist/global/math/vec4.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
-import { ITr2BoundingBox } from "../../npm/dist/global/contracts/index.js";
+import { ITr2BoundingBox } from "../../npm/dist/global/interfaces/index.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import {

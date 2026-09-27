@@ -2,7 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
-import { ITr2RenderNode } from "#contracts/ITr2RenderNode";
+import { ITr2RenderNode } from "#interfaces/ITr2RenderNode";
 
 /** A render-graph node that draws a sprite scene into a destination texture, over an optional background node. */
 @type.define({ className: "Tr2RenderNodeSprite2dScene", family: "renderJob" })

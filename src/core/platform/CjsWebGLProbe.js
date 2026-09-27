@@ -24,7 +24,7 @@ import { finiteNumber } from "./browserHelpers.js";
  * `MAX_TEXTURE_IMAGE_UNITS` is the load-bearing one. WebGL2 guarantees sixteen
  * per stage and the v5 quad `.sm_depth` family lands at exactly fifteen and
  * sixteen after lowering, with zero headroom. See
- * docs/contracts/webgl2-texture-budget.md.
+ * docs/specifications/webgl2-texture-budget.md.
  */
 export const WEBGL2_PARAMETERS = Object.freeze([
     "MAX_TEXTURE_IMAGE_UNITS",

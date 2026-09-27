@@ -10,7 +10,7 @@
 // This is the geometry layer's half of realization. It produces BYTES and a
 // stride; it names no format, no attribute and no buffer usage, because those
 // are the backend's and the two backends differ. See
-// /docs/contracts/geometry-vertex-binding.md.
+// /docs/specifications/geometry-vertex-binding.md.
 import { packVertexBuffer, packIndexBuffer } from "../formats/cmf/core/pack.js";
 
 

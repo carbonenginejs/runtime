@@ -24,7 +24,7 @@
 // itself casts (the BlueCastPtr ports); capability discovery and test lineage
 // checks are never a reason, and neither are typeof probes. A contract that
 // genuinely needs a cast declares its own `Symbol.hasInstance`, as the
-// dependency-free contracts under `global/contracts` already do.
+// dependency-free contracts under `global/interfaces` already do.
 
 // This module imports NOTHING, for the reason `compose/notify.js` imports
 // nothing: `CjsSchema` installs these decorators onto its own namespace, so a

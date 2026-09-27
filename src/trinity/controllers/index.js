@@ -4,7 +4,6 @@ export * from "./Tr2Controller.js";
 export * from "./Tr2ControllerEventHandler.js";
 export * from "./Tr2ControllerReference.js";
 export * from "./Tr2SyncToAnimation.js";
-export * from "./contracts.js";
 export * from "./enums.js";
 export * from "./action/index.js";
 export * from "./expression/index.js";

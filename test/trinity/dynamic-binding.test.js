@@ -3,10 +3,8 @@ import { existsSync } from "node:fs";
 import { test } from "node:test";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
-  BELIST_INSERTED,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART,
   EveMultiEffect,
   EveStretch3,
   Tr2ControllerExpression,
@@ -377,9 +375,9 @@ test("EveMultiEffect owns dynamic graphs, preserves map precedence, and updates 
   assert.equal(effect.GetCurveSetDuration("Duplicate"), 2);
   assert.equal(effect.GetRangeDuration("Duplicate", "range"), 3);
 
-  effect.OnListModified(BELIST_REMOVED, 0, 0, binding, effect.bindings);
-  effect.OnListModified(BELIST_INSERTED, 0, 0, binding, effect.bindings);
-  effect.OnListModified(BELIST_UNLOADSTART, 0, 0, null, effect.controllers);
+  effect.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, binding, effect.bindings);
+  effect.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, binding, effect.bindings);
+  effect.OnListModified(BLUELISTEVENT.BELIST_UNLOADSTART, 0, 0, null, effect.controllers);
   assert.ok(calls.some(entry => entry[0] === "controller-unlink"));
   assert.equal(effect.GetBoundingSphere(new Float32Array(4)), false);
   assert.equal(effect.GetLocalBoundingBox(new Float32Array(3), new Float32Array(3)), false);

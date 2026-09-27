@@ -11,7 +11,7 @@ import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
-import { BELIST_INSERTED } from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "../child/packQuadInstanceData.js";
 
 /** A smart-light group member that places faction-colour-aware flare quads at each distribution placement and submits them to the quad renderer. */
@@ -173,7 +173,7 @@ export class EveSmartLightQuad extends EveChildTransform
   {
     if (
       list === this.attributeModifiers &&
-      Number(event) === BELIST_INSERTED &&
+      Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
       this.#parentColorSet &&
       value
     )

@@ -4,7 +4,7 @@
 // vertex layout in the tree was a hardcoded fixture literal, so a real
 // declaration had no route to a pipeline at all.
 //
-// The split follows /docs/contracts/geometry-vertex-binding.md: the geometry
+// The split follows /docs/specifications/geometry-vertex-binding.md: the geometry
 // layer packs BYTES and reports the stride it wrote, this names the formats and
 // assembles the request. Nothing here recomputes a stride - the packer knows
 // the one it actually used, and a second derivation would disagree silently.

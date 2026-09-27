@@ -207,7 +207,7 @@ export function ShouldEmulate(modes, forced)
 
 /**
  * The constant-buffer register the modes buffer takes, as the WebGL2 path's
- * `emulatedAddressingRegister` (docs/contracts/webgl2-emulated-addressing.md).
+ * `emulatedAddressingRegister` (docs/specifications/webgl2-emulated-addressing.md).
  */
 export const ADDRESS_MODES_REGISTER = 8;
 

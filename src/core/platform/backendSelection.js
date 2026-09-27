@@ -26,7 +26,7 @@
 // one active renderer, and there is no registry of simultaneously active
 // backends. Candidates are an ARGUMENT rather than a stored registration for
 // the same reason - nothing here outlives the decision except the answer.
-import { CjsBackendCandidate } from "#contracts";
+import { CjsBackendCandidate } from "#interfaces";
 import { Tr2PlatformInfo } from "./Tr2PlatformInfo.js";
 
 

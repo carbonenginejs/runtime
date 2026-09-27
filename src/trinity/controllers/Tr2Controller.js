@@ -4,7 +4,7 @@ import * as CcpLog from "../../global/logging/CcpLog.js";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "./enums.js";
 import { blue, TimeAsDouble } from "#blue";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED, TR2_DIRTY_ALL } from "./contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { ContinueOnMainThread } from "../core/continueOnMainThread.js";
 import { EveThrottleable } from "../eve/EveThrottleable.js";
 import { ITr2ActionController } from "./ITr2Controller/index.js";
@@ -62,7 +62,7 @@ export class Tr2Controller extends EveThrottleable
   #tempArena = new ArrayBuffer(0);
 
   #dirtyVariables = {
-    value: TR2_DIRTY_ALL
+    value: 0xffffffffffffffffn
   };
   #bindingPathRoots = [];
 
@@ -211,7 +211,7 @@ export class Tr2Controller extends EveThrottleable
     {
       this.Stop();
     }
-    this.#dirtyVariables.value = TR2_DIRTY_ALL;
+    this.#dirtyVariables.value = 0xffffffffffffffffn;
     for (const stateMachine of this.stateMachines)
     {
       stateMachine.Start();
@@ -566,9 +566,9 @@ export class Tr2Controller extends EveThrottleable
   #onStateMachineListModified(event, value)
   {
     const stateMachine = Tr2Controller.#asStateMachine(value);
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (this.#owner && stateMachine)
         {
           stateMachine.Link(this);
@@ -578,7 +578,7 @@ export class Tr2Controller extends EveThrottleable
           }
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         if (stateMachine)
         {
           if (this.isPlaying)
@@ -598,15 +598,15 @@ export class Tr2Controller extends EveThrottleable
   #onEventHandlerListModified(event, value)
   {
     const handler = value instanceof Tr2ControllerEventHandler ? value : null;
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (this.#owner && handler)
         {
           handler.Link(this);
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         handler?.Unlink();
         break;
     }
@@ -619,8 +619,8 @@ export class Tr2Controller extends EveThrottleable
    */
   #onVariableListModified(event)
   {
-    const maskedEvent = event & BELIST_EVENTMASK;
-    if (maskedEvent !== BELIST_INSERTED && maskedEvent !== BELIST_REMOVED)
+    const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (maskedEvent !== BLUELISTEVENT.BELIST_INSERTED && maskedEvent !== BLUELISTEVENT.BELIST_REMOVED)
     {
       return;
     }

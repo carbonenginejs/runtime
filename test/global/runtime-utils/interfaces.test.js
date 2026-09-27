@@ -4,7 +4,7 @@ import {
     CjsBackendCandidate,
     CjsConstantPayload,
     ITr2BoundingBox
-} from "@carbonenginejs/runtime/contracts";
+} from "@carbonenginejs/runtime/interfaces";
 import { CjsSchema } from "@carbonenginejs/runtime/schema";
 
 test("required contract roots carry abstract implementation metadata", () =>

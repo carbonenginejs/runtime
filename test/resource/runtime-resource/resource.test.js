@@ -1918,7 +1918,7 @@ test("a geometry intersection query reports unavailable CPU data instead of a mi
   // released payload returned `hit: false`, which no caller can distinguish
   // from the ray genuinely missing. Picking degrades to "nothing is ever
   // clickable" with no error anywhere. See
-  // /docs/contracts/cpu-geometry-residency.md.
+  // /docs/specifications/cpu-geometry-residency.md.
   const geometry = new TriGeometryRes();
 
   assert.equal(geometry.HasPayload(), false);

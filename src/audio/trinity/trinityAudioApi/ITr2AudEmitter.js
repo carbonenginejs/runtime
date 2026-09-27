@@ -7,7 +7,7 @@
 //
 // The brand plumbing is written longhand rather than imported from the trinity
 // contract family: the audio layer may not import trinity (layers.json), and
-// global/contracts (ITr2BoundingBox.js) establishes exactly this local idiom.
+// global/interfaces (ITr2BoundingBox.js) establishes exactly this local idiom.
 //
 // Signature notes against the header:
 // - Carbon splits std::string (name) from std::wstring (prefix, event, RTPC

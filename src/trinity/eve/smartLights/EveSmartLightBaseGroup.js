@@ -5,7 +5,7 @@ import { CjsModel } from "#model";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
 import { resolveFactionColor } from "../resolveFactionColor.js";
-import { BELIST_INSERTED } from "../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 /**
  * Faction-color resolution shared by every class that flattens Carbon's
@@ -167,7 +167,7 @@ export class EveSmartLightBaseGroup extends CjsModel
   {
     if (
       list === this.attributeModifiers &&
-      Number(event) === BELIST_INSERTED &&
+      Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
       this.#parentColorSet &&
       value
     )

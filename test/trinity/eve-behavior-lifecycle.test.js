@@ -5,10 +5,8 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { CjsSchema } from "../../npm/dist/global/schema/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
+import { BLUELISTEVENT } from "../../npm/dist/global/consts/blue.js";
 import {
-  BELIST_INSERTED,
-  BELIST_LOADFINISHED,
-  BELIST_REMOVED,
   ProcessLifetime,
   ProcessLifetimeData,
   ProcessPriority,
@@ -121,12 +119,12 @@ test("tunnel list callbacks rebuild only for Carbon list events", () =>
   let changes = 0;
   group.SetSystemTunnelFunctionReferenceAndColor(() => changes++, 0xff123456);
   const initial = changes;
-  group.OnListModified(BELIST_INSERTED, 0, 0, curve, group.curveSets);
-  group.OnListModified(BELIST_REMOVED, 0, 0, curve, group.curveSets);
-  group.OnListModified(BELIST_LOADFINISHED, 0, 0, curve, group.curveSets);
+  group.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, curve, group.curveSets);
+  group.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, curve, group.curveSets);
+  group.OnListModified(BLUELISTEVENT.BELIST_LOADFINISHED, 0, 0, curve, group.curveSets);
   assert.equal(changes, initial + 3);
   group.OnListModified(0x05, 0, 0, curve, group.curveSets);
-  group.OnListModified(BELIST_INSERTED, 0, 0, curve, []);
+  group.OnListModified(BLUELISTEVENT.BELIST_INSERTED, 0, 0, curve, []);
   assert.equal(changes, initial + 3);
 });
 
@@ -199,7 +197,7 @@ test("ProcessLifetime list callbacks detach removals and detect direct pushes", 
   assert.equal(typeof calls.at(-1)[1], "function");
 
   lifetime.splineTunnels.splice(0, 1);
-  lifetime.OnListModified(BELIST_REMOVED, 0, 0, first, lifetime.splineTunnels);
+  lifetime.OnListModified(BLUELISTEVENT.BELIST_REMOVED, 0, 0, first, lifetime.splineTunnels);
   assert.equal(calls.findLast(([group]) => group === first)[1], null);
 
   const second = {

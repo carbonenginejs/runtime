@@ -7,13 +7,7 @@ import { vec4 } from "#math/vec4";
 import { quat } from "#math/quat";
 import { Tr2Lod } from "../../EveLODHelper.js";
 import { carbon, impl, edit, type } from "#schema";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADING,
-  BELIST_REMOVED,
-  BELIST_UNLOADSTART
-} from "../../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { TriFloat } from "../../../core/variable/TriFloat.js";
 import { EveChildUpdateParams } from "../../EveChildUpdateParams.js";
@@ -235,25 +229,25 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Reproduces Carbon IList controller and dynamic-binding callbacks through explicit portable list-event arguments.")
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
-    if ((event & BELIST_LOADING) !== 0) return;
-    const maskedEvent = event & BELIST_EVENTMASK;
+    if ((event & BLUELISTEVENT.BELIST_LOADING) !== 0) return;
+    const maskedEvent = event & BLUELISTEVENT.BELIST_EVENTMASK;
     if (list === this.controllers)
     {
-      if (maskedEvent === BELIST_INSERTED) value?.Link(this);
-      else if (maskedEvent === BELIST_REMOVED) value?.Unlink();
-      else if (maskedEvent === BELIST_UNLOADSTART)
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED) value?.Link(this);
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED) value?.Unlink();
+      else if (maskedEvent === BLUELISTEVENT.BELIST_UNLOADSTART)
       {
         for (const controller of this.controllers) controller?.Unlink();
       }
     }
     else if (list === this.dynamicBindings)
     {
-      if (maskedEvent === BELIST_INSERTED)
+      if (maskedEvent === BLUELISTEVENT.BELIST_INSERTED)
       {
         value?.SetOwner(this);
         value?.Link();
       }
-      else if (maskedEvent === BELIST_REMOVED)
+      else if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED)
       {
         value?.SetOwner(null);
       }

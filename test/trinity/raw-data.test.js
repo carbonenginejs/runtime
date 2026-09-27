@@ -2,7 +2,7 @@
 // reflected offsets; engines only realize and bind its terminal byte ranges.
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsConstantPayload } from "../../npm/dist/global/contracts/index.js";
+import { CjsConstantPayload } from "../../npm/dist/global/interfaces/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { RawData, TriPoolAllocator } from "../../npm/dist/trinity/index.js";
 

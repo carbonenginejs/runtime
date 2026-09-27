@@ -5,7 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { vec3 } from "#math/vec3";
 import { TunnelGroupType } from "./enums.js";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_LOADFINISHED, BELIST_REMOVED } from "../../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 // Module scratch for the per-agent loop (behavior updates run sequentially).
 const DIST = vec3.create();
@@ -120,8 +120,8 @@ export class FollowASpline extends CjsModel
   {
     if (theList !== this.splineTunnels) return;
 
-    const kind = event & BELIST_EVENTMASK;
-    if (kind !== BELIST_INSERTED && kind !== BELIST_REMOVED && kind !== BELIST_LOADFINISHED) return;
+    const kind = event & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (kind !== BLUELISTEVENT.BELIST_INSERTED && kind !== BLUELISTEVENT.BELIST_REMOVED && kind !== BLUELISTEVENT.BELIST_LOADFINISHED) return;
 
     if (typeof value?.SetSystemTunnelFunctionReferenceAndColor === "function")
     {

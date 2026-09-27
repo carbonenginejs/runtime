@@ -5,12 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADFINISHED,
-  BELIST_REMOVED
-} from "../../../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { TunnelGroupType } from "../enums.js";
 import { SplineTunnel } from "./SplineTunnel.js";
 import { SplineTunnelPoint } from "./SplineTunnelPoint.js";
@@ -167,8 +162,8 @@ export class SplineTunnelGroup extends CjsModel
   OnListModified(event, _key = 0, _key2 = 0, _value = null, list = null)
   {
     if (list !== this.curveSets) return;
-    const maskedEvent = Number(event) & BELIST_EVENTMASK;
-    if ([BELIST_INSERTED, BELIST_REMOVED, BELIST_LOADFINISHED].includes(maskedEvent))
+    const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
+    if ([BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_REMOVED, BLUELISTEVENT.BELIST_LOADFINISHED].includes(maskedEvent))
     {
       this.createSplineTunnels();
     }

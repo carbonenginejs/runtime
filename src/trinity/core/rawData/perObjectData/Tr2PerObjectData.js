@@ -11,7 +11,7 @@
 // ApplyConstantBuffers, the indirect-draw sibling, is unported: it takes a
 // Tr2IndirectDrawBufferWriter and nothing on this path draws indirectly yet.
 
-import { CjsConstantPayload } from "#contracts";
+import { CjsConstantPayload } from "#interfaces";
 import { CjsSchema, carbon, impl } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { FillAndSetConstants } from "../../Tr2RenderUtils.js";

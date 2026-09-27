@@ -14,7 +14,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
-import { ITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#interfaces";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).

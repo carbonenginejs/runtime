@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Controllers/Tr2ControllerEventHandler.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { BELIST_EVENTMASK, BELIST_INSERTED, BELIST_REMOVED } from "./contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 
 
 /**
@@ -61,15 +61,15 @@ export class Tr2ControllerEventHandler extends CjsModel
       return;
     }
     const action = Tr2ControllerEventHandler.#asControllerAction(value);
-    switch (event & BELIST_EVENTMASK)
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
     {
-      case BELIST_INSERTED:
+      case BLUELISTEVENT.BELIST_INSERTED:
         if (this.#controller && action)
         {
           action.Link(this.#controller);
         }
         break;
-      case BELIST_REMOVED:
+      case BLUELISTEVENT.BELIST_REMOVED:
         action?.Unlink();
         break;
     }

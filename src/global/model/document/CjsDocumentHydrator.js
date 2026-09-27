@@ -2,7 +2,7 @@
 // values is decided and partially executed - the envelope was
 // over-engineered, and a _type-tagged values graph carries everything it
 // did. Kept only until the interchange retirement completes its inventory
-// (docs/contracts/model-values-interchange.md owns the rule: no document
+// (docs/specifications/model-values-interchange.md owns the rule: no document
 // producer or consumer retires without inventory and replacement proof).
 // Do not add new consumers.
 import { normalizeCarbonValue } from "../../schema/types/index.js";

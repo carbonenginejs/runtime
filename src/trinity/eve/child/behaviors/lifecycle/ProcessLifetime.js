@@ -5,12 +5,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
-import {
-  BELIST_EVENTMASK,
-  BELIST_INSERTED,
-  BELIST_LOADFINISHED,
-  BELIST_REMOVED
-} from "../../../../controllers/contracts.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { ProcessLifetimeData } from "./ProcessLifetimeData.js";
 import { ProcessPriority, TunnelGroupType } from "../enums.js";
 
@@ -125,12 +120,12 @@ export class ProcessLifetime extends CjsModel
   OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
   {
     if (list !== this.splineTunnels) return;
-    const maskedEvent = Number(event) & BELIST_EVENTMASK;
-    if (maskedEvent === BELIST_REMOVED)
+    const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
+    if (maskedEvent === BLUELISTEVENT.BELIST_REMOVED)
     {
       value?.SetSystemTunnelFunctionReferenceAndColor?.(null, 0xff5555aa);
     }
-    else if (![BELIST_INSERTED, BELIST_LOADFINISHED].includes(maskedEvent))
+    else if (![BLUELISTEVENT.BELIST_INSERTED, BLUELISTEVENT.BELIST_LOADFINISHED].includes(maskedEvent))
     {
       this.UpdateTunnelRegistry();
       return;

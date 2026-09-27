@@ -5,7 +5,7 @@ import "#blue/registerTrinityEnums";
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
-import { ITr2BoundingBox } from "#contracts";
+import { ITr2BoundingBox } from "#interfaces";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
