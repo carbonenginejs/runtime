@@ -2435,6 +2435,25 @@ export async function RunDemo(canvas)
     // The ship's kill count, 0 to 999, shown by its kill-counter decals.
     kills: value => { if (ship) ship.displayKillCounterValue = DemoKillCount(value); return ship?.displayKillCounterValue ?? null; },
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
+    // Remaining shield, armor and hull, 0 to 1, as the client sets them
+    // (EveSpaceObject2::SetImpactDamageState, cpp:3500). Armour below 1 seeds
+    // armour impacts on the damage locators, drawn by the DECAL damage pass.
+    // With no arguments, only reports.
+    damage: (shield, armor, hull) =>
+    {
+      if (!realScene) return null;
+      if (shield !== undefined) ship.SetImpactDamageState(Number(shield), Number(armor ?? 1), Number(hull ?? 1), true);
+      const overlay = ship.impactOverlay?.damageOverlay ?? null;
+      return {
+        armorActivity: overlay?.HasArmorActivity() ?? null,
+        hullActivity: overlay?.HasHullActivity() ?? null,
+        renderPriority: overlay?.renderPriority ?? null,
+        dataTextureBlockID: overlay?.dataTextureBlockID ?? null,
+        dataTextureOffset: overlay?.GetDataTextureOffset() ?? null,
+        decalShader: overlay?.GetArmorDamageShader(TriBatchType.TRIBATCHTYPE_DECAL)?.effectFilePath ?? null,
+        estimatedPixelDiameter: ship.estimatedPixelDiameter
+      };
+    },
     ship,
     scene: realScene
   };
