@@ -7,23 +7,28 @@ export class CjsCharacterModifierReference extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     authoredValue = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modifierPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterPartSource")
     partSource = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterModifierLocation")
     modifierLocation = null;
 
     /** Effective weight for a proved weighted logical modifier; otherwise null. */
     @edit.readwrite
+    @edit.persist
     @type.float64
     weight = null;
 

@@ -14,26 +14,32 @@ export class CjsCharacterCompositionTarget extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     scope = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     region = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     output = "";
 
     @edit.readwrite
+    @edit.persist
     @type.vec2
     size = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterCompositionPass")
     passes = [];
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

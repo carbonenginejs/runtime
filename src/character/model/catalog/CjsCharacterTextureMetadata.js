@@ -15,82 +15,102 @@ export class CjsCharacterTextureMetadata extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourcePath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceFormat = "png";
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     width = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     height = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     offsetXRaw = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     offsetYRaw = null;
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     offsetUnit = null;
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     physicalPixelDimensionsXRaw = null;
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     physicalPixelDimensionsYRaw = null;
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     physicalPixelDimensionsUnit = null;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     offsetX = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     offsetY = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     extentX = 1;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     extentY = 1;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     hasOffsetMetadata = false;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     hasPhysicalPixelDimensionsMetadata = false;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     hasPlacementMetadata = false;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     placementEncoding = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     placementPolicy = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     placementStatus = null;
 

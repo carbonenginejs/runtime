@@ -7,6 +7,7 @@ export class CjsCharacterRecord extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     recordID = "";
 

@@ -14,102 +14,127 @@ export class CjsCharacterProjectionProfile extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     sourcePath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     label = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     mode = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     angleRotation = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     aspectRatio = 1;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     azimuth = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.path
     texturePath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.path
     maskPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     headEnabled = false;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     bodyEnabled = false;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     flipX = false;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     flipY = false;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     height = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     incline = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     layer = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.boolean
     maskPathEnabled = false;
 
     @edit.readwrite
+    @edit.persist
     @type.vec2
     offset = [ 0, 0 ];
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     pitch = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     planarBeta = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     planarScale = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.vec3
     position = [ 0, 0, 0 ];
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     radius = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     roll = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     scale = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     yaw = 0;
 

@@ -14,26 +14,32 @@ export class CjsCharacterPartSourceVersion extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     resourceVersion = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterPartMetadata")
     metadata = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     configurationCandidates = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     geometryCandidates = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterPartModelBundle")
     modelBundles = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     textureCandidates = [];
 

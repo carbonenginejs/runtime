@@ -110,6 +110,8 @@ test("CjsModel exposes only the schema-backed construction surface", () => {
     assert.throws(() => new SchemalessModel(), /explicit CjsSchema className/);
 
     CjsSchema.defineField(SurfaceModel, "value", "type", { kind: "float32" });
+    // Clone copies PERSIST members, as Carbon's Copier does.
+    CjsSchema.defineField(SurfaceModel, "value", "edit", { read: true, write: true, persist: true });
     CjsSchema.define(SurfaceModel, { className: "StableSurfaceModel" });
 
     class TrackingSurfaceModel extends SurfaceModel {}
@@ -411,7 +413,7 @@ test("from initializes owned children last-to-first before their parent", () => 
     assert.deepEqual(order, ["assigned-last", "assigned-first"]);
 });
 
-test("objects nested in a raw struct's records keep their identity through clone", () => {
+test("objects nested in a raw struct's records keep their identity through a values round trip", () => {
     // Tr2EffectPassParameters.stageInput: records holding the effect's texture
     // parameters. The writer anchors the first sight inside a record; the
     // reader must build and register it there, or later aliases dangle.
@@ -431,7 +433,7 @@ test("objects nested in a raw struct's records keep their identity through clone
     holder.records = [ { textures: [ { sourceValue: a } ] }, { textures: [ { sourceValue: b } ] } ];
     holder.params = [ b, a ];
 
-    const clone = holder.Clone();
+    const clone = NestedHolder.from(holder.GetValues({ refs: true, typeTags: true, roundTrip: true }));
     const [ ca, cb ] = [ clone.records[0].textures[0].sourceValue, clone.records[1].textures[0].sourceValue ];
     assert.equal(ca instanceof NestedParam, true);
     assert.equal(ca.name, "a");

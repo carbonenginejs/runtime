@@ -7,42 +7,52 @@ export class CjsCharacterAncestry extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     shortDescription = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterBloodline")
     bloodlineID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     charisma = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     descriptionID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     iconID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     intelligence = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     memory = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     nameID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     perception = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     willpower = 0;
 

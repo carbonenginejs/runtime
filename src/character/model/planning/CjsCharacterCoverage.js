@@ -7,22 +7,27 @@ export class CjsCharacterCoverage extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     region = "";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterTextureChannel")
     source = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterTextureChannel")
     subtract = [];
 
     @edit.readwrite
+    @edit.persist
     @type.string
     combine = "";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

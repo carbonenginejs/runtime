@@ -12,22 +12,27 @@ export class CjsCharacterMorphTargetWeight extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modifierPath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     targetName = "";
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     weight = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterAppearanceSelection")
     owner = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

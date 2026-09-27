@@ -13,14 +13,17 @@ export class CjsCharacterDefinition extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     sourcePath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     extension = "";
 
     @edit.readwrite
+    @edit.persist
     @type.unknown
     values = null;
 

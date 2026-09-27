@@ -7,10 +7,12 @@ export class CjsCharacterTextureChannel extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterTextureAsset")
     texture = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     channel = "a";
 

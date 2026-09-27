@@ -17,38 +17,47 @@ export class CjsCharacterCompositionPass extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterAppearanceLayer")
     layer = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     op = "";
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterCompositionInput")
     inputs = [];
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterCoverage")
     coverage = null;
 
     @edit.readwrite
+    @edit.persist
     @type.vec4
     destination = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     blend = "replace";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     write = "rgba";
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     strength = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

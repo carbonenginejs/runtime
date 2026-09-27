@@ -7,10 +7,12 @@ export class CjsCharacterAppearanceSelection extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     groupID = "";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

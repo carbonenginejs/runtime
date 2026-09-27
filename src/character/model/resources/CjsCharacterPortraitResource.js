@@ -7,14 +7,17 @@ export class CjsCharacterPortraitResource extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     resPath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     resourceCategory = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     typeID = null;
 

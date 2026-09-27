@@ -7,10 +7,12 @@ export class CjsCharacterSculptingLocation extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     weightKeyCategory = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     weightKeyPrefix = "";
 

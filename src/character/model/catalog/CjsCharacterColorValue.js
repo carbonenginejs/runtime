@@ -7,6 +7,7 @@ export class CjsCharacterColorValue extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.vec4
     value = [ 0, 0, 0, 1 ];
 

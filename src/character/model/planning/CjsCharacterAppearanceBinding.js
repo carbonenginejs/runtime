@@ -12,26 +12,32 @@ export class CjsCharacterAppearanceBinding extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     consumerID = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sampler = "";
 
     @edit.readwrite
+    @edit.persist
     @type.unknown
     source = null;
 
     @edit.readwrite
+    @edit.persist
     @type.vec4
     sampleBounds = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterBindingAlpha")
     alpha = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

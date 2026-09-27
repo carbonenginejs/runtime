@@ -7,18 +7,22 @@ export class CjsCharacterAppearanceDiagnostic extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     code = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     message = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     severity = "warning";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

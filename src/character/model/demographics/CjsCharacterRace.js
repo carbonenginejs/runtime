@@ -7,22 +7,27 @@ export class CjsCharacterRace extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.map("int32")
     skills = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     descriptionID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     iconID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     nameID = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     shipTypeID = null;
 

@@ -7,18 +7,22 @@ export class CjsCharacterSculptSelection extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     weightForwardBack = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     weightLeftRight = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.float64
     weightUpDown = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterSculptingLocation")
     sculptLocationID = null;
 

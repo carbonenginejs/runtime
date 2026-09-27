@@ -7,10 +7,12 @@ export class CjsCharacterBindingAlpha extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     mode = "";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterCoverage")
     coverage = null;
 

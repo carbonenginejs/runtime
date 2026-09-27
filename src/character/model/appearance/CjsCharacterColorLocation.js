@@ -7,14 +7,17 @@ export class CjsCharacterColorLocation extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     colorKey = "";
 
     @edit.readwrite
+    @edit.persist
     @type.uint8
     hasGloss = 0;
 
     @edit.readwrite
+    @edit.persist
     @type.uint8
     hasWeight = 0;
 

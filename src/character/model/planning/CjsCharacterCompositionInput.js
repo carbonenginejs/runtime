@@ -7,18 +7,22 @@ export class CjsCharacterCompositionInput extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     role = "";
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterTextureAsset")
     texture = null;
 
     @edit.readwrite
+    @edit.persist
     @type.vec4
     sampleBounds = null;
 
     @edit.readwrite
+    @edit.persist
     @type.unknown
     value = null;
 

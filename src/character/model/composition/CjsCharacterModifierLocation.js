@@ -7,10 +7,12 @@ export class CjsCharacterModifierLocation extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modifierKey = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     variationKey = "";
 

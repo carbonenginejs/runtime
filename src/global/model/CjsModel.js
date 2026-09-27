@@ -5,6 +5,7 @@ import { BLUELISTEVENT } from "../consts/blue.js";
 import { CjsModelState } from "./CjsModelState.js";
 import { DictReader } from "../blue/DictReader.js";
 import { DictWriter } from "../blue/DictWriter.js";
+import { Copier } from "../blue/Copier.js";
 import { CjsEventEmitter } from "./CjsEventEmitter.js";
 
 /**
@@ -744,11 +745,21 @@ export class CjsModel extends CjsEventEmitter
     }
 
     /**
-     * Constructs a model from another model-like value or a raw value bag.
+     * Copies a model through Blue's Copier (`CloneTo`, Copier.cpp:36-40): a
+     * new object of the source's class for every object reached, shared
+     * children still shared, PERSIST members copied, each copy initialized
+     * after its members. A raw value bag is built with `from`.
+     *
+     * Carbon's members decide what is copied: a READWRITE-only member such as
+     * `EveSpaceObject2.inheritProperties` (EveSpaceObject2_Blue.cpp:376-380)
+     * is not, nor are the light records attachment sets rebuild (docs
+     * sof-attachment-lights). The values round trip clone copied both until
+     * 2026-09-28.
      *
      * @param {CjsModel|object|null} value
-     * @param {object} [options={}]
-     * @returns {CjsModel} An instance of the invoked model constructor.
+     * @param {object} [options={}] Build options, for a raw value bag only.
+     * @returns {CjsModel} The copy.
+     * @throws {TypeError} If the copy fails, where Carbon's CloneTo returns false.
      */
     static clone(value, options = {})
     {
@@ -757,20 +768,9 @@ export class CjsModel extends CjsEventEmitter
             return this.from(value || {}, options);
         }
 
-        // `refs` IS the clone contract, and a caller cannot turn it off
-        // (operator, 2026-09-17): a totally new version of the target, every
-        // object new, internal references intact. Identity is what delivers
-        // that - without `refs` no `_id` is emitted at all, so a child
-        // referenced twice exports as two full copies and rebuilds as two
-        // separate objects, silently. It was the caller's to pass until now,
-        // and none of the three in `src` passed it.
-        // `typeTags` likewise: a member declared as a base or interface
-        // (ITriEffectTextureParameter) holding a concrete class rebuilds as the
-        // declared class without its `_type`. And `roundTrip`: only members the
-        // import reads back are exported; a READ-only member
-        // (EveImpactOverlay.damageOverlay) was written, skipped on the way in,
-        // and an anchor inside it left every later `_ref` dangling.
-        return this.from(value.GetValues({ ...options, refs: true, typeTags: true, roundTrip: true }), { ...options, refs: true });
+        const copy = new Copier().CloneTo(value);
+        if (!copy) throw new TypeError(`${CjsSchema.getClassName(value.constructor)}.clone failed: Copier.CloneTo returned no copy.`);
+        return copy;
     }
 
 }

@@ -7,14 +7,17 @@ export class CjsCharacterAvatarBehavior extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     name = "";
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     resPathList = [];
 
     @edit.readwrite
+    @edit.persist
     @type.uint8
     resGender = 0;
 

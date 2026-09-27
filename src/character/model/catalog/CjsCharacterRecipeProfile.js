@@ -14,14 +14,17 @@ export class CjsCharacterRecipeProfile extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     sourcePath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sex = "";
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterRecipeEntry")
     entries = [];
 

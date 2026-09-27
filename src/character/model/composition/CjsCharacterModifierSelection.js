@@ -7,14 +7,17 @@ export class CjsCharacterModifierSelection extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterModifierLocation")
     modifierLocationID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterResource")
     paperdollResourceID = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     paperdollResourceVariation = 0;
 

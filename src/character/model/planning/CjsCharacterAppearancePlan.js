@@ -286,58 +286,72 @@ export class CjsCharacterAppearancePlan extends CjsModel
     }
 
     @edit.readwrite
+    @edit.persist
     @type.string
     schema = "carbonenginejs.characterAppearancePlan";
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     schemaVersion = 4;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceBuild = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterOrigin")
     origins = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterAppearanceSelection")
     selections = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterAppearanceColorSelection")
     colorSelections = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterResolvedPart")
     parts = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterAppearanceLayer")
     layers = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterTextureAsset")
     textures = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterCoverage")
     coverages = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterMorphTargetWeight")
     morphTargets = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterCompositionTarget")
     targets = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterAppearanceBinding")
     bindings = [];
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterAppearanceDiagnostic")
     diagnostics = [];
 

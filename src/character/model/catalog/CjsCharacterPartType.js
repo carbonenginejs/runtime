@@ -14,38 +14,47 @@ export class CjsCharacterPartType extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     sourcePath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     sourcePaths = [];
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sex = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     partPath = "";
 
     @edit.readwrite
+    @edit.persist
     @type.string
     resourceVersion = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     colorVariant = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     bloodlineIDs = [];
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterPartSource")
     partSource = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterPartSource")
     partSources = [];
 

@@ -7,30 +7,37 @@ export class CjsCharacterResolvedPart extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.path
     configurationPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.path
     geometryPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.list("string")
     texturePaths = [];
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     requestedLod = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     resolvedLod = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modelFamily = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

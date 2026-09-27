@@ -14,26 +14,32 @@ export class CjsCharacterPartModelBundle extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     configurationPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     geometryPath = null;
 
     @edit.readwrite
+    @edit.persist
     @type.int32
     lod = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     lodOrigin = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modelFamily = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     modelFamilyOrigin = null;
 

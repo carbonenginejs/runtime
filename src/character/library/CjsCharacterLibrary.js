@@ -160,34 +160,42 @@ export class CjsCharacterLibrary extends CjsModel
     }
 
     @edit.readwrite
+    @edit.persist
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
     @edit.readwrite
+    @edit.persist
     @type.uint32
     schemaVersion = 11;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceTarget = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceGame = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceProvider = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     sourceBuild = null;
 
     @edit.readwrite
+    @edit.persist
     @type.string
     generatedAt = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
 
@@ -196,6 +204,7 @@ export class CjsCharacterLibrary extends CjsModel
      * member holds null; the builder records here which identity it named.
      */
     @edit.readwrite
+    @edit.persist
     @type.list("CjsCharacterUnresolvedRelationship")
     unresolvedRelationships = [];
 

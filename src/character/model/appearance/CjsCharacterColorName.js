@@ -7,10 +7,12 @@ export class CjsCharacterColorName extends CjsCharacterRecord
 {
 
     @edit.readwrite
+    @edit.persist
     @type.string
     colorName = "";
 
     @edit.readwrite
+    @edit.persist
     @type.uint8
     hairColor = 0;
 

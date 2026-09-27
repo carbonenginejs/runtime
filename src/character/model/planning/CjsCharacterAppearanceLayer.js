@@ -13,19 +13,23 @@ export class CjsCharacterAppearanceLayer extends CjsModel
 {
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterAppearanceSelection")
     owner = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterResolvedPart")
     contributor = null;
 
     /** Authored contribution weight when the dependency carries one. */
     @edit.readwrite
+    @edit.persist
     @type.float64
     weight = null;
 
     @edit.readwrite
+    @edit.persist
     @type.model("CjsCharacterOrigin")
     origin = null;
 

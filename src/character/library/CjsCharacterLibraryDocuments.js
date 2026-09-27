@@ -107,101 +107,121 @@ export class CjsCharacterLibraryDocuments extends CjsModel
     }
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterAncestry")
     ancestries = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterArchetype")
     archetypes = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterBloodline")
     bloodlines = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterAvatarBehavior")
     characterAvatarBehaviors = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterColorLocation")
     characterColorLocations = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterColorName")
     characterColorNames = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterModifierLocation")
     characterModifierLocations = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterPortraitResource")
     characterPortraitResources = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterResource")
     characterResources = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterSculptingLocation")
     characterSculptingLocations = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterPaperdoll")
     paperdolls = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterRace")
     races = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterDefinition")
     characterDefinitions = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterPartType")
     characterPartTypes = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterPartSource")
     characterPartSources = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterPartMetadata")
     characterPartMetadata = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterMaterialProfile")
     characterMaterialProfiles = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterProjectionProfile")
     characterProjectionProfiles = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterRecipeProfile")
     characterRecipeProfiles = [];
 
     @edit.readwrite
+    @edit.persist
 
     @type.list("CjsCharacterTextureMetadata")
     characterTextureMetadata = [];
