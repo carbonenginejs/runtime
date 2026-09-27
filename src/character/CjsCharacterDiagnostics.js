@@ -75,7 +75,7 @@ export class CjsCharacterDiagnostics
                     evidence: value.evidence ? { ...value.evidence } : undefined
                 }))
             } : null,
-            appearanceManager: character.GetAppearanceManager()?.GetState?.()
+            appearanceManager: character.GetAppearanceManager()?.GetState()
                 ?? character.GetAppearanceManager()?.GetCapabilities()
                 ?? null
         };

@@ -126,6 +126,7 @@ function RouteEffect(effect)
     try
     {
         SetEffectFilePath(effect, route.target);
+        // ccpwgl Tw2Effect boundary: AutoPopulate exists only there.
         effect.Initialize?.();
         effect.AutoPopulate?.(false);
         if (!route.required.every(name => HasParameter(effect, name)))
@@ -216,6 +217,7 @@ function CaptureEffectState(effect, route)
 function RestoreEffectState(effect, snapshot)
 {
     SetEffectFilePath(effect, snapshot.effectFilePath);
+    // ccpwgl Tw2Effect boundary: AutoPopulate exists only there.
     effect.Initialize?.();
     effect.AutoPopulate?.(false);
     RestoreControls(effect, snapshot.controls);

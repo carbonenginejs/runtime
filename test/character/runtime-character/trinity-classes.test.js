@@ -24,7 +24,8 @@ class FakeLodProxy
   constructor(name, options = {})
   {
     this.name = name;
-    this.model = options.model ?? { name };
+    // A real model, so the object's calls on it are the ones it declares.
+    this.model = options.model ?? Object.assign(new Tr2SkinnedModel(), { name });
     this.temporary = options.temporary === true;
     this.resident = options.resident !== false;
     this.selected = 0;

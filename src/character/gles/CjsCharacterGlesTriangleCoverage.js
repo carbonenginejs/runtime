@@ -66,6 +66,7 @@ export class CjsCharacterGlesTriangleCoverage
         }
 
         await this._geometryHost.EnsureSystemMirror(geometryResource);
+        // ccpwgl mesh boundary: the meshes may be ccpwgl's, so they are probed.
         const originalIndices = meshes.map(mesh => mesh?.indexData?.slice?.() ?? null);
         const prepared = BuildPrepared(meshes, originalIndices, [ CreatePolicyDescriptor(policy) ]);
         if (prepared.some(value => !value.available)
@@ -214,6 +215,7 @@ function PrepareMesh(mesh, policies, sourceIndices = null)
         };
     }
 
+    // ccpwgl mesh boundary: the indices may be ccpwgl's, so they are probed.
     const originalIndices = sourceIndices?.slice?.() ?? indices.slice();
     const maskedIndices = originalIndices.slice();
     const matchedBoneSets = policies.map(policy =>

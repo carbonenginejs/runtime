@@ -573,7 +573,7 @@ function ResolveFoundationTextureBindings(bindings, library, textureQuality)
 function SelectFoundationTexture(library, referencePath, textureQuality)
 {
     if (!referencePath) return null;
-    const metadata = library?.GetDocument?.("characterTextureMetadata") ?? [];
+    const metadata = library?.GetDocument("characterTextureMetadata") ?? [];
     const family = CjsCharacterTextureQuality.getFamily(referencePath);
     const matches = metadata.map(value => value?.sourcePath)
         .filter(value => typeof value === "string"

@@ -188,7 +188,7 @@ function ResolveGenericFoundationSurface(sex, library, textureQuality)
     const specularRoot = `res:/graphics/character/${sex}/paperdoll/skintype/`
         + `${archetypeFamily}/${specularFamily}`;
     const specularPath = SelectFoundationTexture(library, specularRoot, textureQuality);
-    const specularMetadata = (library?.GetDocument?.("characterTextureMetadata") ?? [])
+    const specularMetadata = (library?.GetDocument("characterTextureMetadata") ?? [])
         .find(value => value?.sourcePath === specularPath);
     return {
         bodyDiffusePath: diffusePath,
@@ -204,7 +204,7 @@ function ResolveGenericFoundationSurface(sex, library, textureQuality)
 function SelectFoundationTexture(library, referencePath, textureQuality)
 {
     if (!referencePath) return null;
-    const metadata = library?.GetDocument?.("characterTextureMetadata") ?? [];
+    const metadata = library?.GetDocument("characterTextureMetadata") ?? [];
     const family = FoundationTextureFamily(referencePath);
     const matches = metadata.map(value => value?.sourcePath)
         .filter(value => typeof value === "string"

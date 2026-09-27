@@ -213,7 +213,7 @@ export class CjsCharacterGlesAppearanceAL
             status: stage.status,
             sex: stage.sex,
             resourceCount: stage.resources?.length ?? 0,
-            foundationRoles: [ ...(stage.foundationResources?.keys?.() ?? []) ],
+            foundationRoles: [ ...stage.foundationResources.keys() ],
             operationResults: stage.operationResults?.map(CloneResult) ?? [],
             host: typeof this._visualHost.GetDiagnostics === "function"
                 ? this._visualHost.GetDiagnostics(stage)

@@ -274,10 +274,7 @@ export class Tr2SkinnedObject extends CjsModel
     {
       this.visualModel = model;
       this.skinningMatrixCount = 0;
-      if (typeof this.UpdateBones === "function")
-      {
-        this.UpdateBones(this._lastUpdateTime, null);
-      }
+      this.UpdateBones(this._lastUpdateTime, null);
     }
   }
 
@@ -315,7 +312,7 @@ export class Tr2SkinnedObject extends CjsModel
   UpdateBones(_time = 0, _apexScene = null)
   {
     const model = this.visualModel;
-    const skeleton = model?.GetSkeleton?.();
+    const skeleton = model?.GetSkeleton();
 
     if (!model || !skeleton)
     {
@@ -323,7 +320,7 @@ export class Tr2SkinnedObject extends CjsModel
     }
 
     const renderJoints = ReadRenderJoints(skeleton);
-    const updaterBoneList = this.animationUpdater?.GetAnimationBoneList?.();
+    const updaterBoneList = this.animationUpdater?.GetAnimationBoneList();
     const usesAnimationRig = Array.isArray(updaterBoneList);
     let boneNames;
 
@@ -361,21 +358,18 @@ export class Tr2SkinnedObject extends CjsModel
     const bindingChanged = this._rigBinding.Bind(renderJoints, boneNames);
     const rebuildMapping = sourceChanged || countChanged || bindingChanged;
 
-    if (typeof model.BindToRig === "function")
-    {
-      model.BindToRig(boneNames, boneNames.length, rebuildMapping);
-    }
+    model.BindToRig(boneNames, boneNames.length, rebuildMapping);
 
     if (rebuildMapping)
     {
       this._skeletonTag = (this._skeletonTag + 1) >>> 0;
       this.skinningMatrixCount = boneNames.length;
-      model.ResetBindings?.();
+      model.ResetBindings();
     }
 
     let transforms = null;
 
-    if (usesAnimationRig && typeof this.animationUpdater?.GetAnimationTransforms === "function")
+    if (usesAnimationRig)
     {
       transforms = this.animationUpdater.GetAnimationTransforms();
     }
@@ -398,7 +392,7 @@ export class Tr2SkinnedObject extends CjsModel
   @impl.reason("Consumes the CarbonEngineJS animation updater's bone-name array because JavaScript has no output-count reference.")
   GetBoneIndex(boneName)
   {
-    const bones = this.animationUpdater?.GetAnimationBoneList?.();
+    const bones = this.animationUpdater?.GetAnimationBoneList();
 
     if (!Array.isArray(bones)
       || (this.skinningMatrixCount > 0 && bones.length !== this.skinningMatrixCount))
@@ -433,7 +427,7 @@ export class Tr2SkinnedObject extends CjsModel
   GetBoneTransform(joint)
   {
     const index = Number(joint);
-    const transforms = this.animationUpdater?.GetAnimationTransforms?.();
+    const transforms = this.animationUpdater?.GetAnimationTransforms();
 
     if (!Number.isInteger(index)
       || index < 0
