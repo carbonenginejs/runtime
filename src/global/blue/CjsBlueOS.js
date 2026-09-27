@@ -1,31 +1,5 @@
-// Source: blue/include/IBlueOS.h, blue/src/BlueOS.cpp:500-525, :1105-1135
-//
-// The clock and the pump, which is the half of `BeOS` this runtime needs and
-// can answer honestly. The error, startup-argument and process-control half
-// stays refused on the interface: it is a real operating-system service with
-// no consumer here, and filling it in would be inventing.
-//
-// WHY THERE IS A CONCRETE ONE AT ALL: an unconfigured clock can answer its
-// questions truthfully - a browser and Node both have a monotonic clock and a
-// wallclock. A host that has a better clock replaces it; nothing has to be
-// composed for the clock to be right. `blue.resMan` is concrete by default
-// for a similar reason, and ticks through this pump.
-//
-// SMOOTHED TIME IS ACTUAL TIME HERE, and that is Carbon's own fallback rather
-// than a shortcut. `BlueOS::GetSmoothedTime` samples a Python frame clock and
-// returns `GetActualTime()` whenever there is no such clock, or sampling it
-// fails (`BlueOS.cpp:1109-1135`). There is no Python here, so the fallback is
-// the only branch, and the filtering Carbon's own comment calls out for
-// creating artefacts of its own is absent with it.
-//
-// SIMULATION TIME EQUALS REAL TIME HERE. Carbon's differ because simulation
-// time is "sometimes slowed down in order to manage load" (`IBlueOS.h:62`) and
-// can be moved outright by a server sync, which is what `ISimTimeRebaseNotify`
-// exists for. Neither happens in this runtime: there is no load manager and no
-// server to sync against. The two are kept as separate parameters all the way
-// through anyway, because the moment either appears the callers are already
-// written for it - collapsing them into one argument is the change that would
-// be expensive to undo.
+// Source: blue/include/IBlueOS.h, blue/src/BlueOS.h and BlueOS.cpp.
+// Host-driven clock and tick pump; scheduler, IO and process services remain on the interface.
 import { CjsSchema, impl } from "#schema";
 import { BeInfo } from "./BeInfo.js";
 import { IBlueEvents } from "./IBlueEvents.js";
@@ -47,16 +21,16 @@ const TICKS_PER_MILLISECOND = 10000;
  */
 export class CjsBlueOS extends IBlueOS
 {
-  /** Wallclock at construction, in Blue UTC ticks, as the anchor for a monotonic reading. */
+  /** Wallclock at construction, in Blue UTC ticks, as the anchor for elapsed host time. */
   #utcAnchor = 0;
 
-  /** The monotonic clock at construction, in milliseconds. */
+  /** The host clock at construction, in milliseconds. */
   #originMs = 0;
 
   /** `m_pumpTicksTotal` - pump cycles since creation. */
   #pumpTicks = 0;
 
-  /** The cached smoothed time for this frame, in Blue UTC ticks. */
+  /** The cached actual-time sample, in Blue UTC ticks. */
   #currentFrameTime = 0;
 
   /** Registrants of `RegisterForTicks`, each with the cookie it supplied. */
@@ -65,7 +39,7 @@ export class CjsBlueOS extends IBlueOS
   /** Registrants of `RegisterForSimTimeRebase`. */
   #rebaseListeners = [];
 
-  /** Anchors the monotonic clock to the current UTC wallclock. */
+  /** Anchors the host clock to the current UTC wallclock. */
   constructor()
   {
     super();
@@ -76,9 +50,13 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * The monotonic clock in milliseconds, preferring `performance.now`.
+   * Reads host milliseconds, preferring performance.now over Date.now.
    *
-   * @returns {number} Milliseconds since an arbitrary origin.
+   * The Date.now fallback follows wallclock adjustments and is not monotonic.
+   * The performance global must be defined, even when its now method is absent.
+   *
+   * @returns {number} Host milliseconds; the origin depends on the clock used.
+   * @throws {ReferenceError} If the performance global is absent.
    */
   static Monotonic()
   {
@@ -86,15 +64,15 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * The wallclock adjusted for server sync, in Blue UTC ticks
-   * (`BlueOS.cpp:1105-1107` is `mUTCAdj + mWallclock.Get()`).
+   * Reads Blue UTC ticks from a wallclock anchor and elapsed host milliseconds.
    *
-   * Read from the monotonic clock against a wallclock anchor taken once, so
-   * the reading cannot go backwards when the system clock is adjusted - which
-   * is what `mWallclock` is for on Carbon's side. There is no server to sync
-   * against here, so there is no `mUTCAdj` term.
+   * Adapted: Carbon adds mUTCAdj to its wallclock (BlueOS.cpp:1102-1107).
+   * This service has no server-sync adjustment and anchors its host clock at
+   * construction. The performance.now path avoids later wallclock adjustments;
+   * the Date.now fallback can move backwards. Number precision limits the
+   * resolution of absolute Blue UTC ticks.
    *
-   * @returns {number} Blue UTC, in 100ns ticks, to roughly 1.6 microseconds.
+   * @returns {number} Blue UTC in 100ns units, subject to host clock and Number precision.
    */
   GetActualTime()
   {
@@ -103,13 +81,12 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * The cached smoothed time for this frame, in Blue UTC ticks.
+   * Returns the actual-time sample cached at construction or the latest pump.
    *
-   * CACHED IS THE POINT: every consumer within one frame gets the same answer,
-   * which is why 49 Carbon call sites use this rather than `GetActualTime`.
-   * It moves only when the pump runs.
+   * Adapted: Carbon returns mSimTime (BlueOS.h:51). This service caches
+   * GetActualTime without simulation-clock dilation or rebasing.
    *
-   * @returns {number} Blue UTC, in 100ns ticks.
+   * @returns {number} Cached Blue UTC in 100ns units.
    */
   GetCurrentFrameTime()
   {
@@ -117,19 +94,21 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * One pump cycle: refresh the frame clock, then tick every registrant.
+   * Refreshes the frame clock and delivers a tick to a snapshot of registrants.
    *
-   * Carbon's header calls this one "put here temporarily" and it has a single
-   * call site, its own main loop. A host drives it - from
-   * `requestAnimationFrame` in a browser - and nothing in the library calls it
-   * for itself.
+   * Adapted: Carbon also drives scheduler, IO, recycling and statistics work.
+   * This host-driven pump supplies the same elapsed-origin time for both callback
+   * clocks; Carbon supplies its absolute real and simulation times
+   * (BlueOS.cpp:552,2190). It increments the pump count before callbacks rather
+   * than after them, permits nested pumping, and still calls snapshot entries
+   * removed during another callback. Native pumping guards reentrancy and checks
+   * current registration before each tick (BlueOS.cpp:674-679,2172-2182).
+   * Callback exceptions are caught so delivery continues. The retained failure
+   * is rethrown only if truthy; falsy thrown values may be swallowed. The method
+   * returns this service instead of Carbon's void return.
    *
-   * A registrant that throws does not stop the others, and the first failure
-   * is rethrown once every registrant has been offered the tick. A tick half
-   * delivered leaves some consumers a frame behind others, which is worse than
-   * a loud failure after a complete pass.
-   *
-   * @returns {CjsBlueOS} This service.
+   * @returns {CjsBlueOS} This service when no truthy failure remains.
+   * @throws {*} The retained callback failure, when truthy.
    */
   PumpOS()
   {
@@ -139,8 +118,7 @@ export class CjsBlueOS extends IBlueOS
     const realTime = this.GetRealTime();
     let failure = null;
 
-    // Iterated over a copy, because a registrant may unregister itself - or
-    // another - from inside its own tick.
+    // Snapshot entries remain eligible even if removed during an earlier callback.
     for (const { cb, cookie } of [ ...this.#tickers ])
     {
       try
@@ -158,13 +136,14 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Time since this service was created, in 100ns ticks.
+   * Returns elapsed host time since this service was constructed.
    *
-   * This is the base `OnTick` reports in, and it is exact: a JavaScript number
-   * counts 100ns ticks without loss for about nine years, where absolute Blue
-   * UTC cannot be held exactly at all.
+   * Custom: Carbon exposes no such accessor. This elapsed-origin value is used
+   * for this service's OnTick arguments; it is not equivalent to native
+   * BeInfo.mRealTime, which contains absolute Blue UTC. Integer tick precision
+   * is limited by Number, and measurement precision depends on the host clock.
    *
-   * @returns {number} Ticks since construction.
+   * @returns {number} Elapsed time in 100ns units.
    */
   GetRealTime()
   {
@@ -172,19 +151,14 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Blue's clocks, framerate state and pump counters (`BeInfo`).
+   * Returns a new BeInfo snapshot containing clocks and the pump count.
    *
-   * A FRESH RECORD EACH CALL, where Carbon returns a pointer to its own
-   * long-lived struct. A caller that held Carbon's pointer would see the values
-   * move under it, which is how some of those 19 call sites use it; a caller
-   * holding this one sees a snapshot. That is the safer of the two behaviours
-   * and the one a reader of this code will assume, but it IS a difference, and
-   * a consumer polling a held record would silently never update.
+   * Adapted: Carbon returns its live state (BlueOS.cpp:1339-1342). A retained
+   * JavaScript snapshot does not update. Only actual time, matching simulation
+   * time, construction time and pump count are populated; other fields retain
+   * BeInfo defaults. Simulation dilation and rebasing are not represented.
    *
-   * Only the clocks and the pump count are filled. See BeInfo for which fields
-   * are Blue's own bookkeeping and stay at their defaults.
-   *
-   * @returns {BeInfo} A snapshot of what this service knows.
+   * @returns {BeInfo} A new, partially populated snapshot.
    */
   GetInfo()
   {
@@ -197,25 +171,19 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Drives an `IBlueEvents` from the pump.
+   * Registers a callback and cookie for pump ticks, ignoring duplicate pairs.
    *
-   * The cookie is the registrant's own, echoed back to it on every tick;
-   * `TriDevice` uses the string "Trinity" (`TriDevice.cpp:148`). Registering
-   * the same object twice with the same cookie is ignored, as Carbon's
-   * registration is set membership rather than a count.
+   * Adapted: Schema identity enforces IBlueEvents at runtime. Carbon accepts a
+   * typed pointer and returns void; this method returns the service.
    *
-   * @param {object} cb An `IBlueEvents`.
-   * @param {*} [cookie] Passed back on every tick.
+   * @param {object} cb An object implementing IBlueEvents.
+   * @param {*} [cookie=null] Value passed back on each tick.
    * @returns {CjsBlueOS} This service.
+   * @throws {TypeError} If cb does not declare IBlueEvents.
    */
   RegisterForTicks(cb, cookie = null)
   {
-    // AN IDENTITY CHECK, NOT A NAME PROBE. Carbon's signature is
-    // `RegisterForTicks( IBlueEvents* cb, void* cookie )`, so the type system
-    // refuses anything else before the call is made; `CjsSchema.cast` is that
-    // refusal here. A registrant declares `IBlueEvents` with
-    // `@carbon.inherit`, as `TriDevice` does, and an object that merely
-    // happens to own an `OnTick` is not one.
+    // Enforce the declared IBlueEvents interface before registration.
     if (!CjsSchema.cast(cb, IBlueEvents))
     {
       throw new TypeError("CjsBlueOS.RegisterForTicks expects an IBlueEvents.");
@@ -228,11 +196,12 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Stops driving one. Both the object and the cookie must match, as they do
-   * in Carbon's signature.
+   * Removes the registration matching both callback and cookie, if present.
    *
-   * @param {object} cb The registered `IBlueEvents`.
-   * @param {*} [cookie] The cookie it registered with.
+   * Adapted: Returns this service instead of Carbon's void return.
+   *
+   * @param {object} cb The registered IBlueEvents object.
+   * @param {*} [cookie=null] The cookie supplied at registration.
    * @returns {CjsBlueOS} This service.
    */
   UnregisterForTicks(cb, cookie = null)
@@ -243,10 +212,13 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Whether an object is registered for ticks.
+   * Checks whether a callback is registered with any cookie.
    *
-   * @param {object} cb An `IBlueEvents`.
-   * @returns {boolean} Whether the pump drives it.
+   * Custom: Carbon exposes no registration query. This method checks callback
+   * identity without delivering ticks.
+   *
+   * @param {object} cb An IBlueEvents object.
+   * @returns {boolean} Whether any registration contains the callback.
    */
   IsRegisteredForTicks(cb)
   {
@@ -254,10 +226,15 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Registers to be told when the simulation clock is moved.
+   * Registers a simulation-clock rebase listener, ignoring duplicates.
    *
-   * @param {object} cb An `ISimTimeRebaseNotify`.
+   * Adapted: Schema identity enforces ISimTimeRebaseNotify at runtime. Carbon
+   * accepts a typed pointer and returns void; this method returns the service.
+   * The listener is retained, but this service does not perform clock rebasing.
+   *
+   * @param {object} cb An object implementing ISimTimeRebaseNotify.
    * @returns {CjsBlueOS} This service.
+   * @throws {TypeError} If cb does not declare ISimTimeRebaseNotify.
    */
   RegisterForSimTimeRebase(cb)
   {
@@ -270,9 +247,11 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Stops being told.
+   * Removes a simulation-clock rebase listener, if present.
    *
-   * @param {object} cb The registered `ISimTimeRebaseNotify`.
+   * Adapted: Returns this service instead of Carbon's void return.
+   *
+   * @param {object} cb The registered ISimTimeRebaseNotify object.
    * @returns {CjsBlueOS} This service.
    */
   UnregisterForSimTimeRebase(cb)
@@ -283,9 +262,13 @@ export class CjsBlueOS extends IBlueOS
   }
 
   /**
-   * Whether the stackless scheduler is in use (`RunStackless`).
+   * Returns the fallback result for a runtime without Stackless Python.
    *
-   * @returns {boolean} False; there is no stackless Python here.
+   * Adapted: Carbon invokes StacklessMain and reports whether it succeeds with
+   * Stackless support (BlueOS.cpp:855-896). This method follows only its
+   * non-Stackless branch; it does not query scheduler status or run a scheduler.
+   *
+   * @returns {boolean} False.
    */
   RunStackless()
   {
@@ -299,16 +282,16 @@ CjsSchema.define(CjsBlueOS, {
   carbon: "BlueOS",
   fields: {},
   methods: {
-    GetActualTime: [ impl.adapted, impl.reason("Carbon adds a server-sync adjustment (mUTCAdj) to a wallclock object; there is no server to sync against here, so the term is absent. The reading is monotonic against an anchor taken at construction rather than a fresh Date.now(), so it cannot step backwards.") ],
-    GetCurrentFrameTime: [ impl.implemented ],
-    PumpOS: [ impl.adapted, impl.reason("Carbon's pump also runs the stackless scheduler, the IO scheduling runs, the recycler update and the statistics. This is the tick delivery only. The error isolation across registrants is ours: Carbon lets an exception escape, and in a browser that would silently drop every registrant after the failing one.") ],
-    GetRealTime: [ impl.custom, impl.reason("Carbon has no such accessor: its equivalent is BeInfo::mRealTime, reached through GetInfo, and the pump computes the since-startup value inline. Named here because it is the base OnTick reports in, and the distinction from GetActualTime is the one thing about these clocks that is easy to get wrong.") ],
-    GetInfo: [ impl.adapted, impl.reason("Carbon returns a pointer to a live struct whose values move under the caller; this returns a snapshot, because a JS object handed out would otherwise have to be mutated in place to match and nothing here needs that. Only the time and pump fields are filled - the framerate, sleep, fake-time and build fields belong to a pump this runtime does not have.") ],
-    RegisterForTicks: [ impl.implemented ],
-    UnregisterForTicks: [ impl.implemented ],
-    IsRegisteredForTicks: [ impl.custom, impl.reason("Carbon has no such query; registration is private to BlueOS. It exists here so a host can tell whether it already registered something, and so a test can prove registration without pumping.") ],
-    RegisterForSimTimeRebase: [ impl.implemented ],
-    UnregisterForSimTimeRebase: [ impl.implemented ],
-    RunStackless: [ impl.adapted, impl.reason("Carbon answers whether its stackless Python scheduler is running. There is no Python in this runtime, so the answer is a constant rather than a refusal - a caller asking is asking whether it may yield, and the truthful answer is no.") ]
+    GetActualTime: [ impl.adapted ],
+    GetCurrentFrameTime: [ impl.adapted ],
+    PumpOS: [ impl.adapted ],
+    GetRealTime: [ impl.custom ],
+    GetInfo: [ impl.adapted ],
+    RegisterForTicks: [ impl.adapted ],
+    UnregisterForTicks: [ impl.adapted ],
+    IsRegisteredForTicks: [ impl.custom ],
+    RegisterForSimTimeRebase: [ impl.adapted ],
+    UnregisterForSimTimeRebase: [ impl.adapted ],
+    RunStackless: [ impl.adapted ]
   }
 });
