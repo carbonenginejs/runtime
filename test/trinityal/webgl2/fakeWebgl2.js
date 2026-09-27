@@ -104,10 +104,40 @@ export function FakeWebgl2()
             if (name === gl.ARRAY_BUFFER_BINDING) return bindings.get(gl.ARRAY_BUFFER) ?? null;
             if (name === gl.TEXTURE_BINDING_2D) return bindings.get(gl.TEXTURE_2D) ?? null;
             return null;
+        },
+        texStorage2D(...args) { calls.push([ "texStorage2D", ...args ]); },
+        texStorage3D(...args) { calls.push([ "texStorage3D", ...args ]); },
+        texSubImage2D(...args) { calls.push([ "texSubImage2D", ...args ]); },
+        texSubImage3D(...args) { calls.push([ "texSubImage3D", ...args ]); },
+        compressedTexSubImage2D(...args) { calls.push([ "compressedTexSubImage2D", ...args ]); },
+        compressedTexSubImage3D(...args) { calls.push([ "compressedTexSubImage3D", ...args ]); },
+        pixelStorei(...args) { calls.push([ "pixelStorei", ...args ]); },
+        generateMipmap(...args) { calls.push([ "generateMipmap", ...args ]); },
+        createRenderbuffer()
+        {
+            const renderbuffer = { kind: "renderbuffer" };
+            calls.push([ "createRenderbuffer", renderbuffer ]);
+            return renderbuffer;
+        },
+        deleteRenderbuffer(renderbuffer) { calls.push([ "deleteRenderbuffer", renderbuffer ]); },
+        bindRenderbuffer(...args) { calls.push([ "bindRenderbuffer", ...args ]); },
+        renderbufferStorageMultisample(...args) { calls.push([ "renderbufferStorageMultisample", ...args ]); },
+        createFramebuffer() { return { kind: "framebuffer" }; },
+        deleteFramebuffer() {},
+        bindFramebuffer(...args) { calls.push([ "bindFramebuffer", ...args ]); }
+    });
+
+    // Any other upper-case constant the backend reads gets its own stable value,
+    // so tests need not list every enum a texture path touches.
+    const withEnums = new Proxy(gl, {
+        get(target, name)
+        {
+            if (!(name in target) && typeof name === "string" && /^[A-Z][A-Z0-9_]*$/u.test(name)) target[name] = nextEnum++;
+            return target[name];
         }
     });
 
-    return { gl, calls };
+    return { gl: withEnums, calls };
 }
 
 /**

@@ -64,6 +64,12 @@ const ACCEPTED = new Map([
         "The DX name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
     [ "CjsWebgpuBufferAL.GetMetalBuffer",
         "The Metal name for the native buffer accessor; ours is GetDeviceBuffer. Recorded in CjsWebgpuBufferAL.js." ],
+    // The WebGL2 backend, 2026-09-27; reasons in the head comment of
+    // src/trinityal/webgl2/Tr2TextureALWebgl2.js.
+    [ "Tr2TextureALWebgl2.GetResourceDx11",
+        "dx11's name for the native-resource accessor; ours is GetGpuResource, the dx11 buffer's name. Recorded in Tr2TextureALWebgl2.js." ],
+    [ "Tr2TextureALWebgl2.Attach",
+        "Adopts the swap chain's ID3D11Texture2D back buffer; WebGL2 presents through the canvas default framebuffer, which is not a texture. Recorded in Tr2TextureALWebgl2.js." ],
     [ "CjsWebgpuTextureAL.GetMetalTexture",
         "The Metal name for the native texture accessor; ours is GetDeviceTexture. Recorded in CjsWebgpuTextureAL.js." ],
     [ "CjsWebgpuTextureAL.GetSRGBViewMetalTexture",
