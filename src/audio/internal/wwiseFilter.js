@@ -1,4 +1,4 @@
-const WWISE_FILTER_CUTOFF_HZ = Object.freeze([
+const WWISE_FILTER_CUTOFF_HZ = [
     20000, 19567, 19133, 18700, 18267, 17833, 17400, 16967, 16533,
     16100, 15667, 15233, 14800, 14367, 13933, 13500, 13067, 12633,
     12200, 11767, 11333, 10900, 10467, 10033, 9600, 9167, 8733,
@@ -9,7 +9,7 @@ const WWISE_FILTER_CUTOFF_HZ = Object.freeze([
     223, 204, 188, 172, 158, 145, 133, 122, 112, 103, 94, 86, 79,
     73, 67, 61, 56, 51, 47, 43, 40, 36, 33, 31, 28, 26, 24, 22,
     20, 18, 17,
-]);
+];
 
 /** Maps an additive Wwise filter percentage to its WebAudio cutoff. */
 export function wwiseFilterPercentToHz(value, highPass = false)

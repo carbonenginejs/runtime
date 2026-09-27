@@ -38,8 +38,8 @@ import {
     parseStaticWwiseTremoloBytes,
 } from "../internal/busEffects.js";
 
-const MUSIC_BANK_NAMES = Object.freeze([ "music.bnk", "music_essential.bnk" ]);
-const AUTO_MUSIC_BANK_NAMES = Object.freeze([ "common.bnk", ...MUSIC_BANK_NAMES ]);
+const MUSIC_BANK_NAMES = [ "music.bnk", "music_essential.bnk" ];
+const AUTO_MUSIC_BANK_NAMES = [ "common.bnk", ...MUSIC_BANK_NAMES ];
 const MUSIC_HIRC_TYPES = new Set([ 10, 11, 12, 13 ]);
 const EFFECT_HIRC_TYPES = new Set([ 16, 17 ]);
 const SFX_PLAY_ACTION = 0x0403;
@@ -114,7 +114,7 @@ const WWISE_EXCLUSIVE_ACCUMULATION = 1;
 const WWISE_FILTERING_OVER_TIME_RAMP = 2;
 const SFX_FILTER_ACCUMULATION = 6;
 const SFX_IMMEDIATE_STATE_SYNC = 0;
-const AUDIO_LANGUAGE_TAGS = Object.freeze({
+const AUDIO_LANGUAGE_TAGS = {
     chinese: "zh-cn",
     "chinese(prc)": "zh-cn",
     "english(us)": "en-us",
@@ -125,7 +125,7 @@ const AUDIO_LANGUAGE_TAGS = Object.freeze({
     russian: "ru",
     sfx: "",
     spanish: "es",
-});
+};
 /**
  * Builds a deterministic schema-v2 audio-library document from caller-supplied
  * values and bank access.

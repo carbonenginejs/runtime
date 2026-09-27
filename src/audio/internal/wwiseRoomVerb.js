@@ -23,19 +23,19 @@ const WWISE_ROOMVERB_MODES = new Set([
 ]);
 const ROOMVERB_PATTERNS = new Set([ 5, 8, 9, 11, 23 ]);
 const ROOMVERB_QUALITIES = new Set([ 8, 12, 16 ]);
-const FILTER_INSERTS = Object.freeze([
+const FILTER_INSERTS = [
     "off",
     "early-reflections",
     "reverb",
     "early-reflections-and-reverb",
-]);
-const FILTER_CURVES = Object.freeze([
+];
+const FILTER_CURVES = [
     "lowshelf",
     "peaking",
     "highshelf",
-]);
+];
 const LEVEL_MIN_DB = Math.fround(-96.3);
-const TUNING_FINGERPRINT = Object.freeze({
+const TUNING_FINGERPRINT = {
     densityDelayMinSeconds: 0.008,
     densityDelayMaxSeconds: 0.05,
     densityDelayRandomPercent: 2,
@@ -47,7 +47,7 @@ const TUNING_FINGERPRINT = Object.freeze({
     dcFilterCutFrequencyHz: 40,
     reverbUnitInputDelaySeconds: 0.1,
     reverbUnitInputDelayRandomPercent: 50,
-});
+};
 const IMPULSE_CACHE = new WeakMap();
 
 /** Validates the independent host policy for Wwise RoomVerb realization. */

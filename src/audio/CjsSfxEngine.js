@@ -1620,7 +1620,7 @@ export class CjsSfxEngine
             );
         }
 
-        const route = session.route.map(Object.freeze);
+        const route = session.route.slice();
         return {
             route,
             selections: selections.map(selection =>

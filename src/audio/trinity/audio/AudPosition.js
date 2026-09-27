@@ -13,11 +13,11 @@ export class AudPosition extends CjsModel
 {
 
   /** Native AkSoundPosition replacement; not part of Blue serialization. */
-  value = Object.freeze({
+  value = {
     front: vec3.fromValues(0, 0, 1),
     top: vec3.fromValues(0, 1, 0),
     position: vec3.create()
-  });
+  };
 
   /**
    * Copies the placement vectors into the retained position record.

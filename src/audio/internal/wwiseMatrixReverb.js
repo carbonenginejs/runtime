@@ -14,14 +14,14 @@ const WWISE_REVERB_MODES = new Set([
     "strict",
     "approximate-web-audio",
 ]);
-const FDN_DELAY_SECONDS = Object.freeze([
+const FDN_DELAY_SECONDS = [
     // Four spaced values from Wwise's documented default-delay table bound
     // browser node cost. The authored 4/8/12/16 count remains in metadata.
     0.01362,
     0.01902,
     0.02478,
     0.02691,
-]);
+];
 const MINIMUM_DAMPING_HZ = 1000;
 const MAXIMUM_DAMPING_HZ = 20000;
 

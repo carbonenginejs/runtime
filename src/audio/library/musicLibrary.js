@@ -135,8 +135,7 @@ export function validateMusicLibrary(value)
 }
 
 /**
- * Returns a detached JSON clone of the jukebox catalog. The clone is not
- * frozen: `DeepFreeze()` walks it but never calls `Object.freeze`.
+ * Returns a detached JSON clone of the jukebox catalog.
  *
  * Only JSON-compatible catalogs are accepted so the same object may be
  * supplied as imported JavaScript, downloaded JSON, or an API response.
@@ -158,7 +157,7 @@ export function installMusicLibrary(value)
         );
     }
 
-    return DeepFreeze(clone);
+    return clone;
 }
 
 function RequireRecord(value, label)
@@ -186,18 +185,4 @@ function OptionalText(value, label)
         return "";
     }
     return RequireText(value, label);
-}
-
-function DeepFreeze(value)
-{
-    if (!value || typeof value !== "object" || Object.isFrozen(value))
-    {
-        return value;
-    }
-
-    for (const child of Object.values(value))
-    {
-        DeepFreeze(child);
-    }
-    return value;
 }

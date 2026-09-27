@@ -5,7 +5,6 @@ import { CjsModel } from "#model";
 
 // Wwise AK_INVALID_UNIQUE_ID - the C++ GetEventID default.
 const INVALID_UNIQUE_ID = 0;
-const EMPTY_SOUNDBANKS = Object.freeze([]);
 
 /**
  * AudStaticDataRepository (audio) - the event-metadata catalog: per-event
@@ -237,7 +236,7 @@ export class AudStaticDataRepository extends CjsModel
   @impl.implemented
   SoundBanksRequiredForEvent(eventName)
   {
-    return this.#GetAttribute(this.#events, eventName, "soundbanks", EMPTY_SOUNDBANKS);
+    return this.#GetAttribute(this.#events, eventName, "soundbanks", []);
   }
 
 }

@@ -74,7 +74,7 @@ const WWISE_VOICE_LIMIT_MODES = new Set([
     "ignore",
 ]);
 
-const FILTER_TYPE_NAMES = Object.freeze([
+const FILTER_TYPE_NAMES = [
     "lowpass",
     "highpass",
     "bandpass",
@@ -82,9 +82,9 @@ const FILTER_TYPE_NAMES = Object.freeze([
     "lowshelf",
     "highshelf",
     "peaking",
-]);
+];
 
-const FILTER_TYPES = Object.freeze(new Set(FILTER_TYPE_NAMES));
+const FILTER_TYPES = new Set(FILTER_TYPE_NAMES);
 
 const MIN_GAIN_DB = -200;
 const MAX_GAIN_DB = 200;
@@ -121,14 +121,14 @@ const MODULATION_PHASE_OFFSET_MIN = -180;
 const MODULATION_PHASE_OFFSET_MAX = 180;
 const MODULATION_PHASE_SPREAD_MIN = 0;
 const MODULATION_PHASE_SPREAD_MAX = 180;
-const MODULATION_PHASE_MODES = Object.freeze([
+const MODULATION_PHASE_MODES = [
     "left-right",
     "front-rear",
     "circular",
     "random",
-]);
+];
 const MODULATION_PHASE_MODE_SET = new Set(MODULATION_PHASE_MODES);
-const TREMOLO_WAVEFORMS = Object.freeze([ "sine", "square", "triangle" ]);
+const TREMOLO_WAVEFORMS = [ "sine", "square", "triangle" ];
 const TREMOLO_WAVEFORM_SET = new Set(TREMOLO_WAVEFORMS);
 const EVE_OSSE_SQUARE_SMOOTHING_PERCENT = 9;
 const EVE_OSSE_SQUARE_PWM_PERCENT = 15;
@@ -148,7 +148,7 @@ const MATRIX_REVERB_LEVEL_MAX = 0;
 const MATRIX_REVERB_PRE_DELAY_MIN = 0;
 const MATRIX_REVERB_PRE_DELAY_MAX = 1;
 const GUITAR_DISTORTION_CURVE_SAMPLES = 4096;
-const GUITAR_DISTORTION_FILTER_TYPES = Object.freeze([
+const GUITAR_DISTORTION_FILTER_TYPES = [
     "lowshelf",
     "peaking",
     "highshelf",
@@ -156,14 +156,14 @@ const GUITAR_DISTORTION_FILTER_TYPES = Object.freeze([
     "highpass",
     "bandpass",
     "notch",
-]);
-const GUITAR_DISTORTION_TYPES = Object.freeze([
+];
+const GUITAR_DISTORTION_TYPES = [
     "none",
     "overdrive",
     "heavy",
     "fuzz",
     "clip",
-]);
+];
 
 /** Validates the host policy for authored Wwise dynamics realization. */
 export function normalizeWwiseDynamicsMode(value = "strict")
