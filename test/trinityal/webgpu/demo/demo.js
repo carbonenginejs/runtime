@@ -2517,14 +2517,21 @@ export async function RunDemo(canvas)
     // shipSpeed reads the same velocity. The velocity is the derivative of the
     // ball position the client binds (m_ballPosition, EveSpaceObject2.cpp:
     // 3063-3067). This ball holds the ship at the origin and reports the speed
-    // along the ship's local Z, and maxSpeed is the boosters' maxVel.
+    // along the ship's local Z.
+    //
+    // THE DEMO'S SPEED CONVENTION (operator): no real ship speeds, modifiers or
+    // skills. maxSpeed is 2 and the slider (0-2) is the speed itself, so
+    // speed/maxSpeed is 0-1 without a propulsion module; slider values above 1
+    // stand for an active propulsion modifier (afterburner/MWD). The booster
+    // set normalises by its own authored maxVel, so it still gets
+    // slider * maxVel.
     speed: value =>
     {
       if (!ship) return;
-      const maxSpeed = ship.boosters?.maxVel ?? 1;
-      const worldSpeed = (Number(value) || 0) * maxSpeed;
-      if (ship.speed) ship.speed.value = worldSpeed;
-      ship.maxSpeed = maxSpeed;
+      const slider = Number(value) || 0;
+      if (ship.speed) ship.speed.value = slider * (ship.boosters?.maxVel ?? 1);
+      ship.maxSpeed = 2;
+      const worldSpeed = slider;
       if (!ship.translationCurve)
       {
         const velocity = vec3.create();
