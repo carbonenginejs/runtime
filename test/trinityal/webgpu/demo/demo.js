@@ -1000,6 +1000,11 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
  * The DNA whose built SOF document names this hull's maps, constants and
  * geometry. `?dna=` picks another, e.g. `?dna=at1_t1:amarrbase:amarr`.
  */
+// ?alpha=1: a transparent canvas. The clear alpha is 0, no nebula is drawn,
+// the canvas composites premultiplied over a checkerboard, so whatever the
+// effects and the post process leave in alpha shows through.
+const ALPHA = new URLSearchParams(globalThis.location?.search ?? "").get("alpha") === "1";
+
 // The other skin demo.skin() swaps to: the same hull in Angel base colours.
 const SKIN_ALTERNATE = "angb1_t1:angelbase:angel";
 const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "angb1_t1:capsuleerday_25_angel:angel:pattern?capsuleerday_25_angel;green_carapace_darker_polished;green_carapace_mirror";
@@ -2346,7 +2351,7 @@ export async function RunDemo(canvas)
 
   if (realScene)
   {
-    realScene.envMapResPath = SCENE_NEBULA;
+    if (!ALPHA) realScene.envMapResPath = SCENE_NEBULA;
     // THE CLIENT'S "dynamic lights" GRAPHICS SETTING: Carbon ships
     // g_eveSpaceSceneDynamicLighting false (EveSpaceScene.cpp:109-110), and
     // without it BeginRender deletes the light manager, so attachment lights
@@ -2617,7 +2622,8 @@ export async function RunDemo(canvas)
     depthFormat,
     // The frame is counted back off the surface, so it must be copyable.
     // Without this the demo draws and then cannot prove it.
-    extraUsage: GPUTextureUsage.COPY_SRC
+    extraUsage: GPUTextureUsage.COPY_SRC,
+    alphaMode: ALPHA ? "premultiplied" : "opaque"
   }).Configure({ width: canvas.width, height: canvas.height });
 
   const batchManager = new CjsBatchManager({
@@ -3445,7 +3451,12 @@ export async function RunDemo(canvas)
 
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
   // the clear black made "drew nothing" and "drew black" the same reading.
-  driver.clearColor = [ 0.07, 0.09, 0.14, 1 ];
+  driver.clearColor = ALPHA ? [ 0, 0, 0, 0 ] : [ 0.07, 0.09, 0.14, 1 ];
+  if (ALPHA)
+  {
+    const style = canvas.ownerDocument?.body?.style;
+    if (style) style.background = "repeating-conic-gradient(#808080 0 25%, #c0c0c0 0 50%) 0 0 / 32px 32px";
+  }
   // The camera's own holders, as Carbon's SetCameraToRenderer reads them
   // (TriView / TriProjection, cpp:384-391); the demo updates the camera itself.
   driver.view = camera.GetViewMatrix();
