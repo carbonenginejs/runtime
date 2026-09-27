@@ -253,7 +253,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -346,6 +346,16 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const showSpeed = () => { shipSpeedReadout.value = Number(shipSpeed.value).toFixed(2); };
   shipSpeed.addEventListener("input", () => { speed(Number(shipSpeed.value)); showSpeed(); });
   showSpeed();
+
+  // Kill marks: the ship's kill count, which its kill-counter decals display.
+  const killCount = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "999", step: "1", value: String(KILLS) });
+  const killCountReadout = document.createElement("output");
+  const killCountField = Object.assign(document.createElement("span"), { className: "slider" });
+  killCountField.append(killCount, killCountReadout);
+  row("kills", killCountField);
+  const showKills = () => { killCountReadout.value = killCount.value; };
+  killCount.addEventListener("input", () => { kills(Number(killCount.value)); showKills(); });
+  showKills();
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -942,6 +952,21 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
  * geometry. `?dna=` picks another, e.g. `?dna=at1_t1:amarrbase:amarr`.
  */
 const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "angb1_t1:capsuleerday_25_angel:angel:pattern?capsuleerday_25_angel;green_carapace_darker_polished;green_carapace_mirror";
+
+/**
+ * The kill count a loaded ship shows through its kill-counter decals: Carbon's
+ * EveShip2 displayKillCounterValue, which the client sets from the pilot's
+ * kills. `?kills=` sets it at load, 0 to 999.
+ *
+ * @param {*} value A requested count.
+ * @returns {number} A whole count, 0 to 999.
+ */
+function DemoKillCount(value)
+{
+  return Math.min(Math.max(Math.trunc(Number(value) || 0), 0), 999);
+}
+
+const KILLS = DemoKillCount(new URLSearchParams(globalThis.location?.search ?? "").get("kills"));
 
 /**
  * `?scene=stub` keeps the hand-built hull and the stand-in scene; the default
@@ -2268,6 +2293,7 @@ export async function RunDemo(canvas)
     // ?dynamicLights=0 renders without them.
     Tr2Renderer.getSettings().SetValue("eveSpaceSceneDynamicLighting", new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0");
     ship = await BuildSofShip(DNA);
+    ship.displayKillCounterValue = KILLS;
     const banners = ApplyDemoBanners(ship);
     if (banners.length) console.info(`demo banners: ${banners.join(", ")}`);
 
@@ -2402,6 +2428,8 @@ export async function RunDemo(canvas)
     age: weeks => globalThis.demo.dirt(DirtLevelFromWeeks(weeks)),
     // Normalized speed: the booster set divides the ship's speed by its maxVel.
     speed: value => { if (ship?.speed) ship.speed.value = (Number(value) || 0) * (ship.boosters?.maxVel ?? 1); },
+    // The ship's kill count, 0 to 999, shown by its kill-counter decals.
+    kills: value => { if (ship) ship.displayKillCounterValue = DemoKillCount(value); return ship?.displayKillCounterValue ?? null; },
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
     ship,
     scene: realScene
@@ -3092,6 +3120,7 @@ export async function RunDemo(canvas)
     flare,
     age: weeks => globalThis.demo.age(weeks),
     speed: value => globalThis.demo.speed(value),
+    kills: value => globalThis.demo.kills(value),
     clientDefaults: {
       enabled: () => clientState.enabled,
       set: enabled => { clientState.enabled = enabled; ApplyClientDefaults(); }
