@@ -32,7 +32,8 @@ test("EveTrailsSet preserves Carbon trail records without realizing geometry", (
   const trails = new EveTrailsSet();
   const transform = mat4.fromTranslation(mat4.create(), [1, 2, 3]);
   const effect = {};
-  const geometry = {};
+  // The TriGeometryRes surface the set reads: its load events and mesh count.
+  const geometry = { OnCompleted() {}, OffEvent() {}, IsGood: () => false, GetMeshCount: () => 0 };
   assert.equal(trails.GetFadeSpeed(), 1);
   trails.SetEffect(effect);
   trails.SetMeshResPath("res:/trail.gr2");

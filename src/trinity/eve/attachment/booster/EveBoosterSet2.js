@@ -313,6 +313,10 @@ export class EveBoosterSet2 extends EveEntity
     TriDevice.RegisterResource(this);
   }
 
+  /** Carbon g_eveSpaceObjectTrailsEnabled (cpp:31-32), a registered engine setting: trails update and draw. */
+  @edit.setting("eveSpaceObjectTrailsEnabled")
+  static eveSpaceObjectTrailsEnabled = true;
+
   /**
    * Derives the runtime boosters, flares and trails from the authored items,
    * binds every renderable instance back to this set, and prepares the device
@@ -360,8 +364,7 @@ export class EveBoosterSet2 extends EveEntity
    * buffer.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The trail set's PrepareResources (cpp:945-948) is not called: EveTrailsSet has no device half yet.")
+  @impl.implemented
   OnPrepareResources()
   {
     this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2.#BoosterInstancedVertex());
@@ -372,6 +375,9 @@ export class EveBoosterSet2 extends EveEntity
       : MakeBoosterStarBuffer();
 
     this.RebuildInstanceData(Tr2RenderContext_GetMainThreadRenderContext());
+
+    // cpp:945-948
+    this.trails?.PrepareResources();
     return true;
   }
 
@@ -545,7 +551,8 @@ export class EveBoosterSet2 extends EveEntity
   @impl.adapted
   UpdateTrails(deltaTime, time)
   {
-    if (!this.trails)
+    // cpp:729: trails advance only while the setting is on.
+    if (!this.trails || !EveBoosterSet2.eveSpaceObjectTrailsEnabled)
     {
       return false;
     }

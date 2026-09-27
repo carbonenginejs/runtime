@@ -338,8 +338,7 @@ export class EveBoosterSet2Renderable extends CjsModel
    * buffer, 3 * 2 * planes indices per booster instance.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The trail half (cpp:222-239) forwards to EveTrailsSet::GetBatches, which is not ported, so trails do not draw.")
+  @impl.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
@@ -378,6 +377,14 @@ export class EveBoosterSet2Renderable extends CjsModel
         vb.GetOffset() / vb.GetStride(),
         instanceBuffer.GetOffset() / instanceBuffer.GetStride());
       batches.Commit(batch);
+    }
+
+    // cpp:222-239: the trails, when visible, enabled, and with length and
+    // intensity above zero.
+    if (this.trailsVisible && boosterSet.trails && EveBoosterSet2.eveSpaceObjectTrailsEnabled
+      && this.trailsTotalLength > 0 && this.trailIntensity > 0)
+    {
+      boosterSet.trails.GetBatches(batches, perObjectData);
     }
   }
 

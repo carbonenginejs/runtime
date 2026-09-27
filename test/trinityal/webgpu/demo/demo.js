@@ -990,7 +990,11 @@ const SCENE_NEBULA = "res:/dx9/scene/universe/a01_cube.dds";
 async function BuildSofShip(dna)
 {
   const sof = new EveSOF().Register({
-    lazyData: { source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")) }
+    lazyData: { source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")) },
+    // The EVE client's volumetricTrailPath (Carbon registers the setting
+    // empty, EveSOF.cpp:64-65, and the client fills it): the one generic
+    // booster trail mesh in the client's resources.
+    volumetricTrailPath: "res:/dx9/model/ship/booster/volumetrictrail.gr2"
   });
 
   await sof.InitializeAsync();
