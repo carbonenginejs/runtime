@@ -119,7 +119,43 @@ quat.fromYawPitchRoll = function(out, yaw, pitch, roll)
  * @param {ArrayLike<number>} to Target direction.
  * @returns {Float32Array} The destination quaternion.
  */
-quat.rotationArc = function(out, from, to)
+quat.rotationArc = rotationArcImpl;
+
+/**
+ * Carbon TriQuaternionArcFromForward (trinity/trinity/TriMath.cpp:341-356):
+ * the closed-form rotation of +Z onto `v`. Below z 0.99999 it is
+ * (y, -x, 0, sqrt(1 - z)) scaled by 0.7071 / sqrt(1 - z) in xy; at or above,
+ * Carbon returns (1, 0, 0, 0) - a half turn about X, not identity - ported
+ * as written.
+ *
+ * @param {Float32Array} out Destination quaternion.
+ * @param {ArrayLike<number>} v The direction.
+ * @returns {Float32Array} The destination quaternion.
+ */
+quat.arcFromForward = function(out, v)
+{
+    const length = Math.hypot(v[0], v[1], v[2]);
+    const x = length ? v[0] / length : 0;
+    const y = length ? v[1] / length : 0;
+    const z = length ? v[2] / length : 0;
+    if (z < 0.99999)
+    {
+        const root = Math.sqrt(1 - z);
+        const div = 0.707106781187 / root;
+        out[0] = y * div;
+        out[1] = -x * div;
+        out[2] = 0;
+        out[3] = 0.707106781187 * root;
+        return out;
+    }
+    out[0] = 1;
+    out[1] = 0;
+    out[2] = 0;
+    out[3] = 0;
+    return out;
+};
+
+function rotationArcImpl(out, from, to)
 {
     const fromLength = Math.hypot(from[0], from[1], from[2]);
     const toLength = Math.hypot(to[0], to[1], to[2]);
@@ -176,6 +212,7 @@ export const {
     rotateZ,
     rotationTo,
     rotationArc,
+    arcFromForward,
     scale,
     set,
     setAxes,

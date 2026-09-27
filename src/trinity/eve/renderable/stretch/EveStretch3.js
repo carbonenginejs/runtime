@@ -4,6 +4,8 @@ import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../../IEveSpaceObject2.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
+import { quat } from "#math/quat";
+import { Tr2Lod } from "../../EveLODHelper.js";
 import { carbon, impl, edit, type } from "#schema";
 import {
   BELIST_EVENTMASK,
@@ -406,33 +408,36 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   /**
-   * Hands each child its visibility placement: the endpoint children as plain
-   * translations (the destination scaled), the stretch child the parent
-   * transform unchanged, and the move child the span orientation moved to the
-   * interpolated position. No GPU work happens here.
+   * Carbon UpdateVisibility (EveStretch3.cpp:554-594), every child at
+   * TR2_LOD_HIGH: the endpoint children at plain translations, the stretch
+   * child at the parent transform, the move child turned from +Z onto
+   * normalize(source - destination) (TriQuaternionArcFromForward) at scale 1,
+   * placed at the interpolated position.
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Visibility transforms are computed here; renderer-specific LOD selection is not ported yet.")
+  @carbon.method @impl.implemented
   UpdateVisibility(context, parentTransform = EveStretch3.#identity)
   {
     if (!this.display) return;
-    updateChildVisibility(this.sourceObject, context, translationMatrix(this.sourcePosition, EveStretch3.#sourceVisibility));
-    updateChildVisibility(this.destObject, context, translationMatrix(this.destinationPosition, EveStretch3.#destinationVisibility, this.#destinationScale));
-    updateChildVisibility(this.stretchObject, context, parentTransform);
+    const high = Tr2Lod.TR2_LOD_HIGH;
+    updateChildVisibility(this.sourceObject, context, translationMatrix(this.sourcePosition, EveStretch3.#sourceVisibility), high);
+    updateChildVisibility(this.destObject, context, translationMatrix(this.destinationPosition, EveStretch3.#destinationVisibility), high);
+    updateChildVisibility(this.stretchObject, context, parentTransform, high);
     vec3.lerp(EveStretch3.#movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
-    makeEndpointTransforms(this.sourcePosition, this.destinationPosition, EveStretch3.#moveVisibility, EveStretch3.#unusedTransform);
-    EveStretch3.#moveVisibility[12] = EveStretch3.#movePosition[0];
-    EveStretch3.#moveVisibility[13] = EveStretch3.#movePosition[1];
-    EveStretch3.#moveVisibility[14] = EveStretch3.#movePosition[2];
-    updateChildVisibility(this.moveObject, context, EveStretch3.#moveVisibility);
+    vec3.subtract(EveStretch3.#moveDirection, this.sourcePosition, this.destinationPosition);
+    quat.arcFromForward(EveStretch3.#moveRotation, EveStretch3.#moveDirection);
+    mat4.fromRotationTranslation(EveStretch3.#moveVisibility, EveStretch3.#moveRotation, EveStretch3.#movePosition);
+    updateChildVisibility(this.moveObject, context, EveStretch3.#moveVisibility, high);
   }
 
+  static #moveDirection = vec3.create();
+  static #moveRotation = quat.create();
+
   /**
-   * Appends every child's renderables to out while displayed; batch construction is left to runtime-engine.
+   * Carbon GetRenderables (cpp:601-609): every child's renderables while
+   * displayed. EveStretch3 has no batches of its own; its children draw.
    * @returns {Array} out
    */
-  @carbon.method @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; draw-batch construction is not ported yet.")
+  @carbon.method @impl.implemented
   GetRenderables(out = [])
   {
     if (this.display) for (const component of this.#components()) collectRenderables(component, out);
@@ -447,6 +452,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   SetDisplay(display)
   {
     this.display = !!display;
+    this.ReRegister();
   }
 
   /**

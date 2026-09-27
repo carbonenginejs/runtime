@@ -97,10 +97,10 @@ export function updateChildAsync(child, context, params)
  * Hands a stretch child its world placement for the frame, falling back to the
  * older UpdateViewDependentData entry point.
  */
-export function updateChildVisibility(child, context, transform)
+export function updateChildVisibility(child, context, transform, lod = undefined)
 {
   if (!child) return;
-  if (typeof child.UpdateVisibility === "function") child.UpdateVisibility(context, transform);
+  if (typeof child.UpdateVisibility === "function") child.UpdateVisibility(context, transform, lod);
   else child.UpdateViewDependentData?.(transform, context);
 }
 
