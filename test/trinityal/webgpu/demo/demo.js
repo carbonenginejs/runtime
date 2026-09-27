@@ -1068,7 +1068,12 @@ async function BuildSofShip(dna)
   const values = await sof.BuildValuesFromDNAAsync(dna);
   const diagnostics = sof.GetBuildDiagnostics();
   if (diagnostics?.length) console.warn(`SOF ${dna}: ${JSON.stringify(diagnostics).slice(0, 400)}`);
-  return EveShip2.from(values);
+  // The client starts a loaded ship's controllers (EveSpaceObject2::
+  // StartControllers, cpp:4318, reaching every effect child); unstarted, no
+  // state machine runs, so speed readouts, heat and state effects never show.
+  const ship = EveShip2.from(values);
+  ship.StartControllers();
+  return ship;
 }
 
 
@@ -2231,11 +2236,15 @@ export async function RunDemo(canvas)
 
   // Every constant upload, so "the matrix never reached the shader" can be
   // distinguished from "the matrix was wrong" without another guess.
+  // Both logs feed only the start-up report and stop once it is taken; kept
+  // for the life of the page they grew without bound (~74 MB per 15 s).
   const uploads = [];
+  let recordDiagnostics = true;
   const writeBuffer = device.queue.writeBuffer.bind(device.queue);
 
   device.queue.writeBuffer = (buffer, offset, data, ...rest) =>
   {
+    if (!recordDiagnostics) return writeBuffer(buffer, offset, data, ...rest);
     // THROUGH THE VIEW, NOT THE BACKING BUFFER. Reading `data.buffer` from zero
     // ignores `byteOffset` and reports whatever else shares the allocation: the
     // first version of this probe showed vertex positions where it claimed to
@@ -2520,18 +2529,18 @@ export async function RunDemo(canvas)
     // along the ship's local Z.
     //
     // THE DEMO'S SPEED CONVENTION (operator): no real ship speeds, modifiers or
-    // skills. maxSpeed is 2 and the slider (0-2) is the speed itself, so
-    // speed/maxSpeed is 0-1 without a propulsion module; slider values above 1
-    // stand for an active propulsion modifier (afterburner/MWD). The booster
-    // set normalises by its own authored maxVel, so it still gets
-    // slider * maxVel.
+    // skills. The slider (0-2) against a maximum of 2, so speed/maxSpeed runs
+    // 0-1 and slider values above 1 stand for an active propulsion modifier
+    // (afterburner/MWD). Both are in units of the booster set's authored
+    // maxVel: EveShip2 derives m_speed from this ball (EveShip2.cpp:50-55) and
+    // the boosters divide it by maxVel, so a unitless ball leaves them dark.
     speed: value =>
     {
       if (!ship) return;
       const slider = Number(value) || 0;
-      if (ship.speed) ship.speed.value = slider * (ship.boosters?.maxVel ?? 1);
-      ship.maxSpeed = 2;
-      const worldSpeed = slider;
+      const unit = ship.boosters?.maxVel || 1;
+      ship.maxSpeed = 2 * unit;
+      const worldSpeed = slider * unit;
       if (!ship.translationCurve)
       {
         const velocity = vec3.create();
@@ -3674,7 +3683,7 @@ export async function RunDemo(canvas)
     globalThis.requestAnimationFrame(tick);
   }
 
-  return {
+  const report = {
     litPixels: inverted?.litPixels ?? asAuthored.litPixels,
     litPixelsAsAuthored: asAuthored.litPixels,
     litPixelsCullInverted: inverted?.litPixels ?? null,
@@ -3703,12 +3712,12 @@ export async function RunDemo(canvas)
     deviceTextures: madeTextures,
     textureFailures: textures.failed,
     materialResources: (material.resources ?? []).map(r => r.name),
-    pipelines,
-    bindGroups,
+    pipelines: pipelines.slice(),
+    bindGroups: bindGroups.slice(),
     constantBinds: [ ...new Set(binds) ],
     renderingModes: [ ...new Set(renderModes) ],
-    dummyTextureSlots: dummies,
-    resourceSetSrvs: srvs,
+    dummyTextureSlots: dummies.slice(),
+    resourceSetSrvs: srvs.slice(),
     uploads: uploads.map(u => `${u.label ?? "?"}@${u.offset}+${u.bytes}`),
     sceneRows: (() => {
       const block = uploads.find(u => u.bytes === 1888);
@@ -3717,7 +3726,14 @@ export async function RunDemo(canvas)
       return { sunDir: row(12), sunDiffuse: row(13), ambient: row(14), fog: row(15), gamma: row(21) };
     })(),
     uploadCount: uploads.length,
-    draws,
+    draws: draws.slice(),
     expectedViewProjectionTransposed: Array.from(mat4.transpose(mat4.create(), frame.viewProjection)).map(v => Number(v.toFixed(3)))
   };
+  recordDiagnostics = false;
+  for (const log of [ uploads, draws, pipelines, bindGroups, binds, renderModes, dummies, srvs ])
+  {
+    log.length = 0;
+    log.push = () => 0;
+  }
+  return report;
 }
