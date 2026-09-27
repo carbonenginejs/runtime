@@ -4,3 +4,4 @@ export { CjsFileIndexEntry } from "./CjsFileIndexEntry.js";
 export { CjsFileIndexLibrary } from "./CjsFileIndexLibrary.js";
 export { CjsFileIndexOverlay } from "./CjsFileIndexOverlay.js";
 export { CjsFileIndexSource } from "./CjsFileIndexSource.js";
+export * as CarbonResources from "./carbon/index.js";

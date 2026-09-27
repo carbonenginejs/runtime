@@ -254,7 +254,8 @@
     },
     "tools": {
       "mayImport": [
-        "global/utils"
+        "global/utils",
+        "global/schema"
       ],
       "why": [
         "Acquisition only. The demo suite left for the separate",
@@ -266,7 +267,11 @@
         "mayImport is exhaustive, so narrowing it IS the enforcement. Anything",
         "here that needs resource, trinity, or core is not a tool -- it is either",
         "a demo, which belongs in the demos repository, or a runtime value that",
-        "belongs lower down."
+        "belongs lower down.",
+        "It also holds Carbon's resources library (tools/fileindex/carbon: ResourceGroup,",
+        "ResourceInfo and their data), which needs global/schema for its carbon: identities",
+        "and @impl markers like every other port (operator, 2026-09-27). Formats are",
+        "reached through layers.json standalone, not through this list."
       ]
     }
   }

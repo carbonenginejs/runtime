@@ -1,0 +1,23 @@
+/** Carbon's resources library (CarbonResources): resource groups, their records and document versions. */
+export * from "./enums.js";
+export { CallbackSettings } from "./CallbackSettings.js";
+export { DocumentParameter } from "./DocumentParameter.js";
+export { Location } from "./Location.js";
+export { Parameter, ParameterContexts, ParameterInfo, ParameterVersions } from "./ParameterInfo.js";
+export { ParameterContext } from "./ParameterContext.js";
+export { ResourceGroup } from "./ResourceGroup.js";
+export { ResourceGroupDiffAgainstGroupParams } from "./ResourceGroupDiffAgainstGroupParams.js";
+export { ResourceGroupExportToFileParams } from "./ResourceGroupExportToFileParams.js";
+export { ResourceGroupImpl } from "./ResourceGroupImpl.js";
+export { ResourceGroupImportFromFileParams } from "./ResourceGroupImportFromFileParams.js";
+export { ResourceGroupMergeParams } from "./ResourceGroupMergeParams.js";
+export { ResourceGroupRemoveResourcesParams } from "./ResourceGroupRemoveResourcesParams.js";
+export { ResourceInfo } from "./ResourceInfo.js";
+export { ResourceInfoParams } from "./ResourceInfoParams.js";
+export { Result } from "./Result.js";
+export { StatusReturn } from "./StatusReturn.js";
+export { StatusSettings } from "./StatusSettings.js";
+export { StatusUpdate } from "./StatusUpdate.js";
+export { Version } from "./Version.js";
+export { VersionedParameter } from "./VersionedParameter.js";
+export { VersionInternal } from "./VersionInternal.js";
