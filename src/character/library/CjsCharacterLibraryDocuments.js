@@ -29,7 +29,21 @@ const DOCUMENT_DEFINITIONS = [
 @type.define({ className: "CjsCharacterLibraryDocuments", family: "character" })
 export class CjsCharacterLibraryDocuments extends CjsModel
 {
-    _documentRevisions = new Map();
+    /**
+     * Revisions live beside the document lists, not among them: key
+     * enumeration of this object lists exactly the documents, so the state
+     * is defined non-enumerable.
+     */
+    constructor()
+    {
+        super();
+        Object.defineProperty(this, "_documentRevisions", {
+            value: new Map(),
+            writable: true,
+            configurable: true,
+            enumerable: false
+        });
+    }
 
     /** Revision of library-owned list mutations, independent of edit settling. */
     GetDocumentRevision(name)
