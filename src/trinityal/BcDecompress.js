@@ -13,6 +13,7 @@
 //
 // Carbon's free function is a static here: `BcDecompress.bcDecompress`.
 
+import { CjsSchema } from "#schema";
 import { CjsDdsFormat } from "../resource/formats/dds/CjsDdsFormat.js";
 
 /**
@@ -42,3 +43,7 @@ export class BcDecompress
     return CjsDdsFormat.metal.bcDecompress(width, height, depth, format, src, decompressed);
   }
 }
+
+// Carbon's BcDecompress is a free function, not a class, so there is no class
+// surface to compare: the class is modelled on it and carries it as a static.
+CjsSchema.define(BcDecompress, { className: "BcDecompress", modelledOn: "BcDecompress" });

@@ -18,7 +18,8 @@ const ENUMS = [
     "REPEAT", "MIRRORED_REPEAT", "CLAMP_TO_EDGE", "LINEAR",
     "NEAREST_MIPMAP_NEAREST", "NEAREST_MIPMAP_LINEAR", "LINEAR_MIPMAP_NEAREST", "LINEAR_MIPMAP_LINEAR",
     "TEXTURE_WRAP_S", "TEXTURE_WRAP_T", "TEXTURE_WRAP_R", "TEXTURE_MIN_LOD", "TEXTURE_MAX_LOD",
-    "TEXTURE_COMPARE_MODE", "TEXTURE_COMPARE_FUNC", "COMPARE_REF_TO_TEXTURE"
+    "TEXTURE_COMPARE_MODE", "TEXTURE_COMPARE_FUNC", "COMPARE_REF_TO_TEXTURE",
+    "INVALID_INDEX", "CURRENT_PROGRAM", "VERTEX_SHADER", "FRAGMENT_SHADER", "COMPILE_STATUS", "LINK_STATUS"
 ];
 
 /**
@@ -103,6 +104,7 @@ export function FakeWebgl2()
             if (name === gl.VERTEX_ARRAY_BINDING) return vertexArray;
             if (name === gl.ARRAY_BUFFER_BINDING) return bindings.get(gl.ARRAY_BUFFER) ?? null;
             if (name === gl.TEXTURE_BINDING_2D) return bindings.get(gl.TEXTURE_2D) ?? null;
+            if (name === gl.CURRENT_PROGRAM) return bindings.get("program") ?? null;
             return null;
         },
         texStorage2D(...args) { calls.push([ "texStorage2D", ...args ]); },
@@ -122,6 +124,49 @@ export function FakeWebgl2()
         deleteRenderbuffer(renderbuffer) { calls.push([ "deleteRenderbuffer", renderbuffer ]); },
         bindRenderbuffer(...args) { calls.push([ "bindRenderbuffer", ...args ]); },
         renderbufferStorageMultisample(...args) { calls.push([ "renderbufferStorageMultisample", ...args ]); },
+        createShader(type)
+        {
+            const shader = { kind: "shader", type, source: "" };
+            calls.push([ "createShader", shader ]);
+            return shader;
+        },
+        shaderSource(shader, source) { shader.source = source; },
+        compileShader(shader) { calls.push([ "compileShader", shader ]); },
+        // A shader whose source contains "#error" fails to compile, so tests can
+        // exercise the failure path.
+        getShaderParameter(shader) { return !shader.source.includes("#error"); },
+        getShaderInfoLog(shader) { return shader.source.includes("#error") ? "ERROR: 0:1: '#error'" : ""; },
+        deleteShader(shader) { calls.push([ "deleteShader", shader ]); },
+        createProgram()
+        {
+            const program = { kind: "program", shaders: [], attributes: new Map(), uniforms: new Map() };
+            calls.push([ "createProgram", program ]);
+            return program;
+        },
+        attachShader(program, shader) { program.shaders.push(shader); },
+        bindAttribLocation(program, location, name) { program.attributes.set(name, location); },
+        linkProgram(program) { calls.push([ "linkProgram", program ]); },
+        getProgramParameter(program) { return !program.shaders.some(shader => shader.source.includes("#nolink")); },
+        getProgramInfoLog() { return "link failed"; },
+        deleteProgram(program) { calls.push([ "deleteProgram", program ]); },
+        useProgram(program)
+        {
+            bindings.set("program", program);
+            calls.push([ "useProgram", program ]);
+        },
+        getUniformLocation(program, name)
+        {
+            // Every uniform named in any attached shader's source exists.
+            if (!program.shaders.some(shader => shader.source.includes(name))) return null;
+            if (!program.uniforms.has(name)) program.uniforms.set(name, { kind: "location", name });
+            return program.uniforms.get(name);
+        },
+        uniform1i(location, value) { calls.push([ "uniform1i", location.name, value ]); },
+        getUniformBlockIndex(program, name)
+        {
+            return program.shaders.some(shader => shader.source.includes(`uniform ${name}`)) ? name.length : gl.INVALID_INDEX;
+        },
+        uniformBlockBinding(program, index, point) { calls.push([ "uniformBlockBinding", index, point ]); },
         createFramebuffer() { return { kind: "framebuffer" }; },
         deleteFramebuffer() {},
         bindFramebuffer(...args) { calls.push([ "bindFramebuffer", ...args ]); }

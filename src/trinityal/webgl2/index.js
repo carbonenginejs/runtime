@@ -12,3 +12,5 @@ export * from "./Tr2BufferALWebgl2.js";
 export * from "./Tr2ConstantBufferALWebgl2.js";
 export * from "./Tr2SamplerStateALWebgl2.js";
 export * from "./Tr2TextureALWebgl2.js";
+export * from "./Tr2ShaderALWebgl2.js";
+export * from "./Tr2ShaderProgramALWebgl2.js";

@@ -113,6 +113,26 @@ A sampler state on a WebGL2 device.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2ShaderALWebgl2 -->
+## `Tr2ShaderALWebgl2`
+
+One compiled shader stage on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2ShaderALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ShaderProgramALWebgl2 -->
+## `Tr2ShaderProgramALWebgl2`
+
+Linked shader stages on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2ShaderProgramALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2TextureALWebgl2 -->
 ## `Tr2TextureALWebgl2`
 
