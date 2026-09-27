@@ -14,7 +14,7 @@ export const DEFAULT_VALUES = Object.freeze({
     adapter: null,
     payloadTypeField: "_type",
     payloadIdField: "_id",
-    payloadReferenceField: "_reference",
+    payloadReferenceField: "_ref",
     payloadValuesField: "_values",
     classes: Object.freeze({})
 });

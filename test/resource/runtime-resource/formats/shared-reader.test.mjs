@@ -81,12 +81,12 @@ test("Red keeps lenient named fields and payload identity on the shared backend"
     assert.equal(payload._type, "Root");
     assert.equal(payload.left.fieldOutsideGeneratedShape, 7);
     assert.equal("__authoringFingerprint__" in payload, false);
-    assert.equal(payload.left._id, payload.right._reference);
+    assert.equal(payload.left._id, payload.right._ref);
 
     const profile = new CjsRedFormat();
     assert.equal(profile.GetValues().payloadTypeField, "_type");
     assert.equal(profile.GetValues().payloadIdField, "_id");
-    assert.equal(profile.GetValues().payloadReferenceField, "_reference");
+    assert.equal(profile.GetValues().payloadReferenceField, "_ref");
     assert.equal(profile.GetValues().payloadValuesField, "_values");
     profile.SetValues({ payloadValuesField: "values" });
     assert.equal(profile.GetValues().payloadValuesField, "values");
@@ -108,7 +108,7 @@ test("Red YAML strips nested Blue metadata in every output mode", () =>
 
     const payload = new CjsRedReader(source).ReadPayload().object;
     assertNoDoubleUnderscoreKeys(payload);
-    assert.equal(payload.child._id, payload.again._reference);
+    assert.equal(payload.child._id, payload.again._ref);
 
     const raw = new CjsRedReader(source).ReadRaw();
     assertNoDoubleUnderscoreKeys(raw);
@@ -136,9 +136,9 @@ test("Red preserves aliased and cyclic sequences in every output mode", () =>
     const payload = new CjsRedReader(source).ReadPayload();
     assert.deepEqual(payload.object.items, {
         _id: 1,
-        _values: [ 7, { _reference: 1 } ]
+        _values: [ 7, { _ref: 1 } ]
     });
-    assert.deepEqual(payload.object.again, { _reference: 1 });
+    assert.deepEqual(payload.object.again, { _ref: 1 });
     assert.doesNotThrow(() => JSON.stringify(payload));
 
     const raw = new CjsRedReader(source).ReadRaw();
@@ -156,7 +156,7 @@ test("Red preserves aliased and cyclic sequences in every output mode", () =>
     const custom = CjsRedFormat.readPayload(source, {
         payloadValuesField: "values"
     }).object;
-    assert.deepEqual(custom.items.values, [ 7, { _reference: 1 } ]);
+    assert.deepEqual(custom.items.values, [ 7, { _ref: 1 } ]);
 });
 
 test("Red preserves typed-table identity around decoded rows", () =>
@@ -171,9 +171,9 @@ test("Red preserves typed-table identity around decoded rows", () =>
     const payload = new CjsRedReader(root).ReadPayload();
     assert.deepEqual(payload.object.table, {
         _id: 1,
-        _values: [ { self: { _reference: 1 } } ]
+        _values: [ { self: { _ref: 1 } } ]
     });
-    assert.deepEqual(payload.object.again, { _reference: 1 });
+    assert.deepEqual(payload.object.again, { _ref: 1 });
     assert.doesNotThrow(() => JSON.stringify(payload));
 
     const raw = new CjsRedReader(root).ReadRaw();
@@ -230,8 +230,8 @@ test("Red payload reference IDs remain lazily encounter-ordered", () =>
 
     assert.equal(payload.object._id, 1);
     assert.equal(payload.sequence._id, 2);
-    assert.deepEqual(payload.objectAgain, { _reference: 1 });
-    assert.deepEqual(payload.sequenceAgain, { _reference: 2 });
+    assert.deepEqual(payload.objectAgain, { _ref: 1 });
+    assert.deepEqual(payload.sequenceAgain, { _ref: 2 });
 
     const zeroBased = new CjsRedReader({
         type: "Root",
@@ -239,7 +239,7 @@ test("Red payload reference IDs remain lazily encounter-ordered", () =>
         objectAgain: object
     }, { firstId: 0 }).ReadPayload().object;
     assert.equal(zeroBased.object._id, 0);
-    assert.deepEqual(zeroBased.objectAgain, { _reference: 0 });
+    assert.deepEqual(zeroBased.objectAgain, { _ref: 0 });
 });
 
 test("Red keeps ID-only sequence wrappers serializable", () =>
@@ -281,7 +281,7 @@ test("Red rejects reserved payload fields and accepts explicit remapping", () =>
         type: "Child",
         _type: "authored-type",
         _id: 99,
-        _reference: "authored-reference"
+        _ref: "authored-reference"
     };
     const root = { type: "Root", child: shared, again: shared };
 
@@ -289,7 +289,7 @@ test("Red rejects reserved payload fields and accepts explicit remapping", () =>
         () => new CjsRedReader(root).ReadPayload(),
         error => error.code === "PAYLOAD_RESERVED_FIELD_COLLISION"
     );
-    for (const field of [ "_type", "_id", "_reference", "_values" ])
+    for (const field of [ "_type", "_id", "_ref", "_values" ])
     {
         assert.throws(
             () => new CjsRedReader({ type: "Root", [field]: "authored" }).ReadPayload(),
@@ -304,7 +304,7 @@ test("Red rejects reserved payload fields and accepts explicit remapping", () =>
     }).ReadPayload().object;
     assert.equal(remapped.child._type, "authored-type");
     assert.equal(remapped.child._id, 99);
-    assert.equal(remapped.child._reference, "authored-reference");
+    assert.equal(remapped.child._ref, "authored-reference");
     assert.equal(remapped.child.$id, 1);
     assert.deepEqual(remapped.again, { $ref: 1 });
 
@@ -387,10 +387,10 @@ test("Red rejects reserved payload fields and accepts explicit remapping", () =>
 
     const raw = new CjsRedReader(root).ReadRaw();
     assert.equal(raw.child._id, 99);
-    assert.equal(raw.child._reference, "authored-reference");
+    assert.equal(raw.child._ref, "authored-reference");
     const runtime = new CjsRedReader(root).ReadRuntime().root;
     assert.equal(runtime.child._id, 99);
-    assert.equal(runtime.child._reference, "authored-reference");
+    assert.equal(runtime.child._ref, "authored-reference");
 });
 
 test("Red runtime keeps untyped maps outside the adapter lifecycle", () =>
@@ -472,7 +472,7 @@ test("source-bound Blue readers reset graph state between output modes", () =>
 
     const firstRedPayload = red.ReadPayload().object;
     assert.equal(firstRedPayload.cyclic._id, 1);
-    assert.deepEqual(firstRedPayload.cyclic.self, { _reference: 1 });
+    assert.deepEqual(firstRedPayload.cyclic.self, { _ref: 1 });
     assert.doesNotThrow(() => JSON.stringify(firstRedPayload));
 
     const redRaw = red.ReadRaw();
@@ -502,7 +502,7 @@ test("Black source reader preserves payload references and runtime hydration", (
     assert.equal(payload.name, "root");
     assert.equal(payload.child._type, "TestChild");
     assert.equal(payload.child._id, 2);
-    assert.deepEqual(payload.again, { _reference: 2 });
+    assert.deepEqual(payload.again, { _ref: 2 });
 
     const phases = [];
     const adapter = {
@@ -572,7 +572,7 @@ test("Black preserves custom payload fields and falsy-kind class lookup", () =>
         payloadIdField: false
     }).ReadPayload().object;
     assert.equal("_id" in referenceOnlyPayload.child, false);
-    assert.deepEqual(referenceOnlyPayload.again, { _reference: 2 });
+    assert.deepEqual(referenceOnlyPayload.again, { _ref: 2 });
 
     assert.doesNotThrow(() => new CjsBlackReader(createBlackFixture(), {
         schema: BLACK_SCHEMA,

@@ -30,7 +30,7 @@ export const DEFAULT_VALUES = Object.freeze({
     payloadRootFields: null,
     payloadTypeField: "_type",
     payloadIdField: "_id",
-    payloadReferenceField: "_reference",
+    payloadReferenceField: "_ref",
     pathHandler: null,
     adapter: null,
     classes: Object.freeze({})

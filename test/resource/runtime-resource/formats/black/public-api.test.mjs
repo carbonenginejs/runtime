@@ -191,7 +191,7 @@ test("read emits compact public payload objects by default", () =>
     assert.equal(payload.object.child._type, "TestChild");
     assert.equal(payload.object.child.name, "primary");
     assert.equal(payload.object.child.weight, 2.5);
-    assert.deepEqual(payload.object.items[0], { _reference: 2 });
+    assert.deepEqual(payload.object.items[0], { _ref: 2 });
     assert.equal(payload.object.child._id, 2);
     assert.equal(payload.object.items[1].name, "secondary");
 });

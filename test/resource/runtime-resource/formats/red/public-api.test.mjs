@@ -103,7 +103,7 @@ test("reader profile exposes and persists payload identity markers", () =>
     const format = new CjsRedFormat();
     assert.equal(format.GetValues().payloadTypeField, "_type");
     assert.equal(format.GetValues().payloadIdField, "_id");
-    assert.equal(format.GetValues().payloadReferenceField, "_reference");
+    assert.equal(format.GetValues().payloadReferenceField, "_ref");
     assert.equal(format.GetValues().payloadValuesField, "_values");
 
     const shared = [ 7 ];
@@ -112,7 +112,7 @@ test("reader profile exposes and persists payload identity markers", () =>
         .ReadPayload({ type: "Root", left: shared, right: shared })
         .object;
     assert.deepEqual(payload.left.items, [ 7 ]);
-    assert.equal(payload.left._id, payload.right._reference);
+    assert.equal(payload.left._id, payload.right._ref);
     assert.equal(format.GetValues().payloadValuesField, "items");
 });
 
@@ -155,7 +155,7 @@ test("shared nodes emit a full object once and references thereafter", () =>
     assert.equal(typeof light._id, "number");
 
     const binding = payload.object.curveSets[0].bindings[0];
-    assert.deepEqual(binding.destinationObject, { _reference: light._id });
+    assert.deepEqual(binding.destinationObject, { _ref: light._id });
 
     // The result is a JSON-safe tree despite the shared reference.
     assert.doesNotThrow(() => JSON.stringify(payload));
@@ -200,7 +200,7 @@ test("YAML strings use format-yaml with anchor identity intact", () =>
     const payload = CjsRedFormat.readPayload(source);
     assert.equal(payload.object.objects[0]._type, "Tr2PointLight");
     assert.deepEqual(payload.object.bindings[0].destinationObject, {
-        _reference: payload.object.objects[0]._id
+        _ref: payload.object.objects[0]._id
     });
 });
 

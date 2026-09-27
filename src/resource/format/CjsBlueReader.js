@@ -166,7 +166,7 @@ export class CjsBlueReader extends CjsReader
     /** Returns payload reference field from the current Blue graph reader. */
     GetPayloadReferenceField()
     {
-        return this.GetPayloadField("payloadReferenceField", "_reference");
+        return this.GetPayloadField("payloadReferenceField", "_ref");
     }
 
     /** Returns payload values field from the current Blue graph reader. */
