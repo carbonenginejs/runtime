@@ -2529,6 +2529,20 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
+   * Sets the coverage-discard mode later draws' pipelines are built with
+   * (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE): 0 off, 1 discard where target
+   * 0's alpha is invisible, 2 where its colour is. Not Carbon: the
+   * depth-of-field layer pass sets it so transparent and additive materials
+   * write depth only where they are visible (after ccpwgl 89973207).
+   *
+   * @param {number} mode 0, 1 or 2.
+   */
+  SetCoverageDiscard(mode)
+  {
+    this._psoDescription.coverageDiscard = Number(mode) >>> 0;
+  }
+
+  /**
    * Binds depth read-only, so it can be sampled while still testing.
    *
    * TURNING IT ON REFRESHES THE BOUND DEPTH'S FLOAT SHADOW. Carbon enables it

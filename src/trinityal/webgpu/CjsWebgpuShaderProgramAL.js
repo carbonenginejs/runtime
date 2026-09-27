@@ -290,6 +290,14 @@ export class CjsWebgpuShaderProgramAL
     return pixel ? pixel.GetUnormTargetOverrides() : [];
   }
 
+  /** Whether the pixel stage declares the coverage-discard override. */
+  HasCoverageDiscardOverride()
+  {
+    const pixel = this.m_shaders.find(shader => shader.GetType() === ShaderType.PIXEL_SHADER);
+
+    return pixel ? pixel.HasCoverageDiscardOverride() : false;
+  }
+
   /** One `GPUBindGroupLayout` per group, contiguous from zero. */
   GetBindGroupLayouts()
   {

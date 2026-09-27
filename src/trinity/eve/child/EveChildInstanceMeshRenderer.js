@@ -445,7 +445,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
         );
         vec3.normalize(MESH_DIRECTION, MESH_DIRECTION);
         vec3.scale(MESH_DIRECTION, MESH_DIRECTION, -1);
-        EveChildInstanceMeshRenderer.#QuaternionArcFromForward(ROTATION, MESH_DIRECTION);
+        quat.arcFromForward(ROTATION, MESH_DIRECTION);
       }
 
       // Carbon row-vector: staticOffsetRotation * rotation.
@@ -605,24 +605,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     return out;
   }
 
-  /** Carbon TriQuaternionArcFromForward. */
-  static #QuaternionArcFromForward(out, direction)
-  {
-    vec3.normalize(MESH_DIRECTION, direction);
-    if (MESH_DIRECTION[2] < 0.99999)
-    {
-      const z = Math.sqrt(1 - MESH_DIRECTION[2]);
-      const divisor = 0.707106781187 / z;
-      return quat.set(
-        out,
-        MESH_DIRECTION[1] * divisor,
-        -MESH_DIRECTION[0] * divisor,
-        0,
-        0.707106781187 * z
-      );
-    }
-    return quat.set(out, 1, 0, 0, 0);
-  }
 
   /** Carbon's literal Matrix * Vector4(w=0) row-dot operation. */
   static #TransformMatrixTimesDirection(out, matrix, direction)

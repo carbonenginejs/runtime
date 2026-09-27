@@ -1,5 +1,5 @@
 import { EmulatedAddressingHelpers } from "./emulatedAddressing.js";
-import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "../../../../format/carbonEffect/carbonEffectBackendBlock.js";
+import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "../../../../format/carbonEffect/carbonEffectBackendBlock.js";
 import { lowerDxbcToIr } from "../ir/lowerDxbcToIr.js";
 import { lowerComputeProgram } from "./lowerComputeProgram.js";
 import { lowerFragmentProgram } from "./lowerFragmentProgram.js";
@@ -410,6 +410,13 @@ export function buildWgsl(input, options = {})
         lines.push(`override ${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${field.attribute.index}: bool = false;`);
     }
     if (unormOutputs.length) lines.push("");
+
+    // The coverage-discard override (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE):
+    // off by default, so the shader is unchanged unless a pipeline sets it.
+    const coverageTarget = program.stage === "fragment"
+        ? interfaceOutputs.find((field) => field.attribute.kind !== "builtin" && field.attribute.index === 0 && field.type === "vec4<f32>")
+        : null;
+    if (coverageTarget) lines.push(`override ${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE}: u32 = 0u;`, "");
     if (program.immediateConstantBuffer?.length) emitImmediateConstantBuffer(lines, program.immediateConstantBuffer);
     if (program.constTables?.length) emitConstTables(lines, program.constTables);
     const workgroupDeclarations = computeWorkgroupVariableDeclarations(program);
@@ -490,6 +497,12 @@ export function buildWgsl(input, options = {})
                 const bits = field.type.replace("f32", "u32");
                 const nan = `(bitcast<${bits}>(${value}) & ${bits}(0x7fffffffu)) > ${bits}(0x7f800000u)`;
                 lines.push(`${indent}if (${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${field.attribute.index}) { ${value} = clamp(select(${value}, ${zero}, ${nan}), ${zero}, ${field.type}(1.0)); }`);
+            }
+            if (coverageTarget)
+            {
+                const value = `output.${coverageTarget.name}`;
+                const colour = `max(max(abs(${value}.r), abs(${value}.g)), abs(${value}.b))`;
+                lines.push(`${indent}if (${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} != 0u && !(select(${value}.a, ${colour}, ${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE} == 2u) > 0.001)) { discard; }`);
             }
             lines.push(compute ? `${indent}return;` : `${indent}return output;`);
         }

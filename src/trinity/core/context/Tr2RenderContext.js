@@ -491,6 +491,18 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Sets the coverage-discard mode for later draws: 0 off, 1 alpha, 2 colour.
+   * Not Carbon: the depth-of-field layer pass uses it so transparent and
+   * additive materials write depth only where visible (after ccpwgl 89973207).
+   *
+   * @param {number} mode 0, 1 or 2.
+   */
+  SetCoverageDiscard(mode)
+  {
+    return this.#requireAL("SetCoverageDiscard").SetCoverageDiscard(mode);
+  }
+
+  /**
    * Declares what the next render pass does with its attachments.
    *
    * Carbon calls this on the render context (`Tr2Denoiser.cpp:106` and each

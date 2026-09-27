@@ -32,7 +32,7 @@
 import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
-import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE, readBackendBlock } from "#resource/format";
+import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE, readBackendBlock } from "#resource/format";
 
 /**
  * The entry point every stage in a Carbon WebGPU container has.
@@ -263,6 +263,8 @@ export class CjsWebgpuShaderAL
     this.m_inputs = Array.isArray(signature?.pipelineInputs) ? signature.pipelineInputs.slice() : [];
     this.m_outputs = type === ShaderType.PIXEL_SHADER ? FragmentOutputLocations(this.m_source) : [];
     this.m_unormOverrides = type === ShaderType.PIXEL_SHADER ? UnormTargetOverrides(this.m_source) : [];
+    this.m_coverageDiscard = type === ShaderType.PIXEL_SHADER
+      && new RegExp(`override\\s+${CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE}\\s*:`, "u").test(this.m_source);
 
     return ALResult.S_OK;
   }
@@ -276,6 +278,18 @@ export class CjsWebgpuShaderAL
   GetUnormTargetOverrides()
   {
     return this.m_unormOverrides;
+  }
+
+  /**
+   * Whether a pixel stage declares the coverage-discard override
+   * (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE); a pipeline may set only what
+   * the module declares.
+   *
+   * @returns {boolean} True when declared.
+   */
+  HasCoverageDiscardOverride()
+  {
+    return this.m_coverageDiscard === true;
   }
 
   /**

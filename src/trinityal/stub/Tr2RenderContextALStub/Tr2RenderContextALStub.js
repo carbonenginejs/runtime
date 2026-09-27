@@ -875,6 +875,17 @@ export class Tr2RenderContextALStub
   {
   }
 
+  /**
+   * The depth-of-field layer pass's coverage-discard mode (not Carbon; see
+   * CjsWebgpuRenderContextAL.SetCoverageDiscard). The stub draws nothing, so
+   * it keeps nothing.
+   *
+   * @param {number} _mode Ignored.
+   */
+  SetCoverageDiscard(_mode)
+  {
+  }
+
   /** @see SetReadOnlyDepth @returns {boolean} False, always. */
   GetReadOnlyDepth()
   {

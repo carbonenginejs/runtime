@@ -201,3 +201,27 @@ test("a float stand-in for a UNORM target sets the shader's UNORM override for i
   pso.shaderProgram = { IsValid: () => true, id: "hand", GetFragmentOutputs: () => [ 0 ], GetUnormTargetOverrides: () => [] };
   assert.equal(pso.BuildRecipe().fragment.constants, undefined);
 });
+
+test("the depth-of-field layer pass's coverage discard is a pipeline constant, set only where declared", () =>
+{
+  // Not Carbon (after ccpwgl 89973207): a transparent (1) or additive (2)
+  // material run with this set discards invisible output, so its layer depth
+  // is written only where it shows.
+  const program = {
+    IsValid: () => true,
+    id: "program",
+    GetFragmentOutputs: () => [ 0 ],
+    GetUnormTargetOverrides: () => [],
+    HasCoverageDiscardOverride: () => true
+  };
+  const pso = description({ shaderProgram: program });
+
+  assert.equal(pso.BuildRecipe().fragment.constants, undefined, "off by default: the shader is unchanged");
+
+  pso.coverageDiscard = 2;
+  assert.deepEqual(pso.BuildRecipe().fragment.constants, { cjsCoverageDiscard: 2 });
+  assert.notEqual(pso.GetKey(), description({ shaderProgram: program }).GetKey(), "a distinct pipeline");
+
+  pso.shaderProgram = { ...program, HasCoverageDiscardOverride: () => false };
+  assert.equal(pso.BuildRecipe().fragment.constants, undefined, "a module without it gets none");
+});

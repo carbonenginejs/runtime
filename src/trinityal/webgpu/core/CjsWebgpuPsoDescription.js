@@ -41,7 +41,7 @@
 // overrides while doing it, and refuses a fill mode WebGPU cannot rasterize. A
 // second translator is the mistake this whole lane exists to undo.
 import { CjsSchema } from "#schema";
-import { CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
+import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
 import { RenderPipelineKey } from "./CjsWebgpuPipelineCache.js";
 import { TOPOLOGIES } from "./topology.js";
 
@@ -91,6 +91,13 @@ export class CjsWebgpuPsoDescription
    * turns depth clip off to draw its shadow cascades (EveSpaceScene.cpp:748).
    */
   unclippedDepth = false;
+
+  /**
+   * The coverage-discard mode (CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE): 0
+   * off, 1 alpha, 2 colour. Set only by the depth-of-field layer pass; not
+   * Carbon.
+   */
+  coverageDiscard = 0;
 
   /**
    * Whether the description names everything a pipeline needs.
@@ -161,6 +168,12 @@ export class CjsWebgpuPsoDescription
     for (const location of overrides)
     {
       if (this.unormTargets[location]) constants[`${CARBON_BACKEND_UNORM_TARGET_OVERRIDE}${location}`] = 1;
+    }
+
+    if (this.coverageDiscard && typeof this.shaderProgram.HasCoverageDiscardOverride === "function"
+      && this.shaderProgram.HasCoverageDiscardOverride())
+    {
+      constants[CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE] = this.coverageDiscard;
     }
 
     return {
