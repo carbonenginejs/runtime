@@ -56,25 +56,25 @@ export class Tr2TimelineController extends EveThrottleable
   @type.boolean
   isPaused = false;
 
-  #owner = null;
+  _owner = null;
 
-  #time = 0;
+  _time = 0;
 
-  #lastUpdateTime = 0;
+  _lastUpdateTime = 0;
 
-  #callbacks = [];
+  _callbacks = [];
 
-  #updateables = new Set();
+  _updateables = new Set();
 
-  #disabledTracks = new Set();
+  _disabledTracks = new Set();
 
-  #variableView = [];
+  _variableView = [];
 
-  #variableData = new Float32Array(0);
+  _variableData = new Float32Array(0);
 
-  #tempArena = new ArrayBuffer(0);
+  _tempArena = new ArrayBuffer(0);
 
-  #bindingPathRoots = [];
+  _bindingPathRoots = [];
 
   /** Blue property alias for the controller's runtime timeline clock. */
   get time()
@@ -96,18 +96,18 @@ export class Tr2TimelineController extends EveThrottleable
   Link(owner)
   {
     this.Unlink();
-    this.#owner = owner;
-    this.#variableView = [];
-    this.#variableData = new Float32Array(this.variables.length);
+    this._owner = owner;
+    this._variableView = [];
+    this._variableData = new Float32Array(this.variables.length);
     for (let i = 0; i < this.variables.length; i++)
     {
       const variable = this.variables[i];
-      this.#variableView.push({
+      this._variableView.push({
         name: variable.GetName(),
         index: i,
         offset: i * Float32Array.BYTES_PER_ELEMENT
       });
-      variable.SetDestinationBuffer(this.#variableData, i);
+      variable.SetDestinationBuffer(this._variableData, i);
       variable.SetDirtyMask(null, 0);
     }
     for (const action of this.actions)
@@ -127,7 +127,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
-    if (!this.#owner)
+    if (!this._owner)
     {
       return;
     }
@@ -148,8 +148,8 @@ export class Tr2TimelineController extends EveThrottleable
     {
       handler.Unlink();
     }
-    this.#bindingPathRoots = [];
-    this.#owner = null;
+    this._bindingPathRoots = [];
+    this._owner = null;
   }
 
   /**
@@ -159,7 +159,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   IsLinked()
   {
-    return this.#owner !== null;
+    return this._owner !== null;
   }
 
   /**
@@ -174,11 +174,11 @@ export class Tr2TimelineController extends EveThrottleable
       this.Stop();
     }
     this.isPlaying = true;
-    this.#lastUpdateTime = GetControllerFrameTimeSeconds();
+    this._lastUpdateTime = GetControllerFrameTimeSeconds();
     for (let i = 0; i < this.actions.length; i++)
     {
-      const entry = this.#entryAt(i);
-      if (entry && this.IsActionEnabled(i) && Tr2TimelineController.#inRange(this.#time, entry))
+      const entry = this._entryAt(i);
+      if (entry && this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
       {
         this.actions[i].Start(this);
       }
@@ -198,14 +198,14 @@ export class Tr2TimelineController extends EveThrottleable
     }
     for (let i = 0; i < this.actions.length; i++)
     {
-      const entry = this.#entryAt(i);
-      if (entry && this.IsActionEnabled(i) && Tr2TimelineController.#inRange(this.#time, entry))
+      const entry = this._entryAt(i);
+      if (entry && this.IsActionEnabled(i) && Tr2TimelineController._inRange(this._time, entry))
       {
         this.actions[i].Stop(this);
       }
     }
     this.isPlaying = false;
-    this.#time = 0;
+    this._time = 0;
   }
 
   /**
@@ -225,13 +225,13 @@ export class Tr2TimelineController extends EveThrottleable
       return;
     }
     const frameTime = GetControllerFrameTimeSeconds();
-    const dt = (frameTime - this.#lastUpdateTime) * this.timeScale;
-    this.#lastUpdateTime = frameTime;
+    const dt = (frameTime - this._lastUpdateTime) * this.timeScale;
+    this._lastUpdateTime = frameTime;
     if (!this.isPaused)
     {
-      this.#setTime(this.#time + dt, true);
+      this._setTime(this._time + dt, true);
     }
-    for (const updateable of this.#updateables)
+    for (const updateable of this._updateables)
     {
       updateable.Update(actualTime, frameTime);
     }
@@ -274,7 +274,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetOwner()
   {
-    return this.#owner;
+    return this._owner;
   }
 
   /**
@@ -289,7 +289,7 @@ export class Tr2TimelineController extends EveThrottleable
       return false;
     }
     let called = false;
-    for (const entry of this.#callbacks)
+    for (const entry of this._callbacks)
     {
       if (entry.name === callbackName)
       {
@@ -307,7 +307,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   RegisterUpdateable(updateable)
   {
-    this.#updateables.add(updateable);
+    this._updateables.add(updateable);
   }
 
   /**
@@ -317,7 +317,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   UnRegisterUpdateable(updateable)
   {
-    this.#updateables.delete(updateable);
+    this._updateables.delete(updateable);
   }
 
   /**
@@ -327,18 +327,18 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.adapted
   GetBindingPathRoots()
   {
-    if (!this.#bindingPathRoots.length)
+    if (!this._bindingPathRoots.length)
     {
-      if (this.#owner)
+      if (this._owner)
       {
-        this.#bindingPathRoots.push(["Owner", this.#owner]);
+        this._bindingPathRoots.push(["Owner", this._owner]);
       }
       for (const variable of this.variables)
       {
-        this.#bindingPathRoots.push([variable.GetName(), variable]);
+        this._bindingPathRoots.push([variable.GetName(), variable]);
       }
     }
-    return this.#bindingPathRoots;
+    return this._bindingPathRoots;
   }
 
   /**
@@ -376,7 +376,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetVariableView()
   {
-    return this.#variableView;
+    return this._variableView;
   }
 
   /**
@@ -386,7 +386,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetVariableBuffer()
   {
-    return this.#variableData;
+    return this._variableData;
   }
 
   /**
@@ -396,9 +396,9 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   EnsureTempArenaSize(size)
   {
-    if (this.#tempArena.byteLength < size)
+    if (this._tempArena.byteLength < size)
     {
-      this.#tempArena = new ArrayBuffer(size);
+      this._tempArena = new ArrayBuffer(size);
     }
   }
 
@@ -409,7 +409,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetTempArena()
   {
-    return this.#tempArena;
+    return this._tempArena;
   }
 
   /**
@@ -420,7 +420,7 @@ export class Tr2TimelineController extends EveThrottleable
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
-    this.#lastUpdateTime += diff;
+    this._lastUpdateTime += diff;
     for (const action of this.actions)
     {
       action.RebaseSimTime?.(diff);
@@ -455,7 +455,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetActionStartTime(index)
   {
-    return this.#entryAt(index)?.startTime ?? 0;
+    return this._entryAt(index)?.startTime ?? 0;
   }
 
   /**
@@ -466,7 +466,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetActionEndTime(index)
   {
-    return this.#entryAt(index)?.endTime ?? 0;
+    return this._entryAt(index)?.endTime ?? 0;
   }
 
   /**
@@ -477,7 +477,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetActionTrackID(index)
   {
-    return this.#entryAt(index)?.trackID ?? 0;
+    return this._entryAt(index)?.trackID ?? 0;
   }
 
   /**
@@ -493,15 +493,15 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return false;
     }
-    const entry = this.#entryAt(index);
+    const entry = this._entryAt(index);
     if (!entry)
     {
       return false;
     }
     if (this.isPlaying && this.IsActionEnabled(index))
     {
-      const wasActive = Tr2TimelineController.#inRange(this.#time, entry);
-      const isActive = Tr2TimelineController.#inRange(this.#time, {
+      const wasActive = Tr2TimelineController._inRange(this._time, entry);
+      const isActive = Tr2TimelineController._inRange(this._time, {
         startTime,
         endTime: entry.endTime
       });
@@ -531,15 +531,15 @@ export class Tr2TimelineController extends EveThrottleable
     {
       return false;
     }
-    const entry = this.#entryAt(index);
+    const entry = this._entryAt(index);
     if (!entry)
     {
       return false;
     }
     if (this.isPlaying && this.IsActionEnabled(index))
     {
-      const wasActive = Tr2TimelineController.#inRange(this.#time, entry);
-      const isActive = Tr2TimelineController.#inRange(this.#time, {
+      const wasActive = Tr2TimelineController._inRange(this._time, entry);
+      const isActive = Tr2TimelineController._inRange(this._time, {
         startTime: entry.startTime,
         endTime
       });
@@ -570,14 +570,14 @@ export class Tr2TimelineController extends EveThrottleable
       return false;
     }
     const wasEnabled = this.IsActionEnabled(index);
-    const entry = this.#entryAt(index);
+    const entry = this._entryAt(index);
     if (!entry)
     {
       return false;
     }
     entry.trackID = trackID;
     const isEnabled = this.IsActionEnabled(index);
-    if (this.isPlaying && wasEnabled !== isEnabled && Tr2TimelineController.#inRange(this.#time, entry))
+    if (this.isPlaying && wasEnabled !== isEnabled && Tr2TimelineController._inRange(this._time, entry))
     {
       if (isEnabled)
       {
@@ -592,7 +592,10 @@ export class Tr2TimelineController extends EveThrottleable
   }
 
   /**
-   * Adds an action and entry.
+   * Appends the action, links it when owned, then appends its timeline entry.
+   * Starts it immediately when playback covers its enabled range.
+   *
+   * Adapted: Stores a Tr2TimelineEntry object in place of Carbon's value struct.
    */
   @carbon.method
   @impl.adapted
@@ -603,23 +606,25 @@ export class Tr2TimelineController extends EveThrottleable
       return;
     }
     this.actions.push(action);
+    if (this._owner)
+    {
+      action.Link(this);
+    }
     const entry = new Tr2TimelineEntry();
     entry.startTime = startTime;
     entry.endTime = endTime;
     entry.trackID = trackID;
     this.entries.push(entry);
-    if (this.#owner)
-    {
-      action.Link(this);
-    }
-    if (this.isPlaying && this.IsActionEnabled(this.actions.length - 1) && Tr2TimelineController.#inRange(this.#time, entry))
+    if (this.isPlaying && this.IsActionEnabled(this.actions.length - 1) && Tr2TimelineController._inRange(this._time, entry))
     {
       action.Start(this);
     }
   }
 
   /**
-   * Removes an action by index.
+   * Removes an action and its entry, stopping and unlinking only when owned.
+   *
+   * Adapted: Returns false for an invalid index instead of a BlueStdResult error.
    */
   @carbon.method
   @impl.adapted
@@ -630,12 +635,12 @@ export class Tr2TimelineController extends EveThrottleable
       return false;
     }
     const action = this.actions[index];
-    const entry = this.#entryAt(index);
-    if (entry && this.isPlaying && this.IsActionEnabled(index) && Tr2TimelineController.#inRange(this.#time, entry))
+    const entry = this._entryAt(index);
+    if (this._owner && entry && this.isPlaying && this.IsActionEnabled(index) && Tr2TimelineController._inRange(this._time, entry))
     {
       action.Stop(this);
     }
-    if (this.#owner)
+    if (this._owner)
     {
       action.Unlink();
     }
@@ -651,8 +656,8 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   IsActionEnabled(index)
   {
-    const entry = this.#entryAt(index);
-    return !!entry && !this.#disabledTracks.has(entry.trackID);
+    const entry = this._entryAt(index);
+    return !!entry && !this._disabledTracks.has(entry.trackID);
   }
 
   /**
@@ -662,7 +667,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   IsTrackEnabled(trackID)
   {
-    return !this.#disabledTracks.has(trackID);
+    return !this._disabledTracks.has(trackID);
   }
 
   /**
@@ -675,18 +680,18 @@ export class Tr2TimelineController extends EveThrottleable
     const wasEnabled = this.IsTrackEnabled(trackID);
     if (enable)
     {
-      this.#disabledTracks.delete(trackID);
+      this._disabledTracks.delete(trackID);
     }
     else
     {
-      this.#disabledTracks.add(trackID);
+      this._disabledTracks.add(trackID);
     }
     if (this.isPlaying && wasEnabled !== enable)
     {
       for (let i = 0; i < this.actions.length; i++)
       {
-        const entry = this.#entryAt(i);
-        if (entry && entry.trackID === trackID && Tr2TimelineController.#inRange(this.#time, entry))
+        const entry = this._entryAt(i);
+        if (entry && entry.trackID === trackID && Tr2TimelineController._inRange(this._time, entry))
         {
           if (enable)
           {
@@ -708,7 +713,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.adapted
   RegisterCallback(name, callback)
   {
-    this.#callbacks.push({
+    this._callbacks.push({
       name,
       callback
     });
@@ -721,7 +726,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   ClearCallbacks()
   {
-    this.#callbacks = [];
+    this._callbacks = [];
   }
 
   /**
@@ -731,7 +736,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   GetTime()
   {
-    return this.#time;
+    return this._time;
   }
 
   /**
@@ -739,7 +744,7 @@ export class Tr2TimelineController extends EveThrottleable
    */
   CjsGetCurrentFrameTime()
   {
-    return this.#lastUpdateTime || GetControllerFrameTimeSeconds();
+    return this._lastUpdateTime || GetControllerFrameTimeSeconds();
   }
 
   /**
@@ -749,11 +754,11 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.adapted
   SetTime(time)
   {
-    if (!this.isPlaying || time === this.#time)
+    if (!this.isPlaying || time === this._time)
     {
       return;
     }
-    this.#setTime(time, false);
+    this._setTime(time, false);
   }
 
   /**
@@ -762,23 +767,23 @@ export class Tr2TimelineController extends EveThrottleable
    * skipped over in one step is started and stopped back to back so it is not
    * silently missed.
    */
-  #setTime(time, includePassedActions)
+  _setTime(time, includePassedActions)
   {
-    const oldTime = this.#time;
-    this.#time = time;
+    const oldTime = this._time;
+    this._time = time;
     for (let i = 0; i < this.actions.length; i++)
     {
       if (!this.IsActionEnabled(i))
       {
         continue;
       }
-      const entry = this.#entryAt(i);
+      const entry = this._entryAt(i);
       if (!entry)
       {
         continue;
       }
-      const wasActive = Tr2TimelineController.#inRange(oldTime, entry);
-      const isActive = Tr2TimelineController.#inRange(this.#time, entry);
+      const wasActive = Tr2TimelineController._inRange(oldTime, entry);
+      const isActive = Tr2TimelineController._inRange(this._time, entry);
       if (wasActive && !isActive)
       {
         this.actions[i].Stop(this);
@@ -787,7 +792,7 @@ export class Tr2TimelineController extends EveThrottleable
       {
         this.actions[i].Start(this);
       }
-      else if (includePassedActions && Tr2TimelineController.#crossedRange(oldTime, this.#time, entry))
+      else if (includePassedActions && Tr2TimelineController._crossedRange(oldTime, this._time, entry))
       {
         this.actions[i].Start(this);
         this.actions[i].Stop(this);
@@ -822,7 +827,7 @@ export class Tr2TimelineController extends EveThrottleable
   @impl.implemented
   ReLink()
   {
-    const owner = this.#owner;
+    const owner = this._owner;
     if (owner)
     {
       this.Link(owner);
@@ -833,7 +838,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Gets the timeline entry parallel to the action at an index, or null when the
    * lists are not the same length.
    */
-  #entryAt(index)
+  _entryAt(index)
   {
     return this.entries[index] ?? null;
   }
@@ -842,7 +847,7 @@ export class Tr2TimelineController extends EveThrottleable
    * Checks whether a time falls in an entry's range; the start is inclusive and
    * the end exclusive.
    */
-  static #inRange(time, entry)
+  static _inRange(time, entry)
   {
     return time >= entry.startTime && time < entry.endTime;
   }
@@ -851,9 +856,9 @@ export class Tr2TimelineController extends EveThrottleable
    * Checks whether an entry's whole range fell inside a single update step,
    * meaning the action was never observed active.
    */
-  static #crossedRange(oldTime, newTime, entry)
+  static _crossedRange(oldTime, newTime, entry)
   {
     const updateRange = { startTime: oldTime, endTime: newTime };
-    return Tr2TimelineController.#inRange(entry.startTime, updateRange) && Tr2TimelineController.#inRange(entry.endTime, updateRange);
+    return Tr2TimelineController._inRange(entry.startTime, updateRange) && Tr2TimelineController._inRange(entry.endTime, updateRange);
   }
 }

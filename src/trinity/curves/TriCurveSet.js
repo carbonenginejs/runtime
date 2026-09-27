@@ -69,25 +69,25 @@ export class TriCurveSet extends CjsModel
   @type.boolean
   isPlaying = false;
 
-  #stopOnNextFrame = false;
+  _stopOnNextFrame = false;
 
-  #isUsingSimTimeRebase = false;
+  _isUsingSimTimeRebase = false;
 
-  #hasTimeRange = false;
+  _hasTimeRange = false;
 
-  #loopedTimeRange = true;
+  _loopedTimeRange = true;
 
-  #startTime = 0;
+  _startTime = 0;
 
-  #lastTime = 0;
+  _lastTime = 0;
 
-  #endTime = 0;
+  _endTime = 0;
 
-  #timeRangeMin = 0;
+  _timeRangeMin = 0;
 
-  #timeRangeMax = 0;
+  _timeRangeMax = 0;
 
-  #callback = null;
+  _callback = null;
 
   /**
    * Updates playback using a single time value or Carbon's real/sim overload.
@@ -108,10 +108,10 @@ export class TriCurveSet extends CjsModel
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
-    this.#startTime += diff;
-    if (this.#endTime > 0)
+    this._startTime += diff;
+    if (this._endTime > 0)
     {
-      this.#endTime += diff;
+      this._endTime += diff;
     }
   }
 
@@ -124,33 +124,33 @@ export class TriCurveSet extends CjsModel
     {
       time = this.driver.GetCurveSetTime(time);
     }
-    if (this.#endTime < 0)
+    if (this._endTime < 0)
     {
-      this.#endTime = time - this.#endTime;
+      this._endTime = time - this._endTime;
     }
     if (this.isPlaying)
     {
-      if (this.#startTime < 0)
+      if (this._startTime < 0)
       {
-        this.#startTime = this.driver ? 0 : time;
+        this._startTime = this.driver ? 0 : time;
       }
-      const current = time - this.#startTime;
-      const delta = current - this.#lastTime;
-      this.#lastTime = current;
+      const current = time - this._startTime;
+      const delta = current - this._lastTime;
+      this._lastTime = current;
       this.scaledTime += this.scale * delta;
       this.ApplyTimeRange();
-      if (this.#endTime > 0 && this.#startTime + this.scaledTime >= this.#endTime)
+      if (this._endTime > 0 && this._startTime + this.scaledTime >= this._endTime)
       {
-        this.scaledTime = this.#endTime - this.#startTime - 0.001;
-        this.#stopOnNextFrame = true;
+        this.scaledTime = this._endTime - this._startTime - 0.001;
+        this._stopOnNextFrame = true;
       }
       this.Apply(renderContext);
     }
-    if (this.#stopOnNextFrame)
+    if (this._stopOnNextFrame)
     {
       this.CallStopCallback();
       this.isPlaying = false;
-      this.#stopOnNextFrame = false;
+      this._stopOnNextFrame = false;
     }
   }
 
@@ -193,7 +193,7 @@ export class TriCurveSet extends CjsModel
     {
       this.Play();
     }
-    this.#isUsingSimTimeRebase = this.useSimTimeRebase;
+    this._isUsingSimTimeRebase = this.useSimTimeRebase;
     return true;
   }
 
@@ -230,10 +230,10 @@ export class TriCurveSet extends CjsModel
   @impl.adapted
   PlayFrom(time)
   {
-    this.#startTime = -1;
-    this.#endTime = 0;
+    this._startTime = -1;
+    this._endTime = 0;
     this.isPlaying = true;
-    this.#lastTime = 0;
+    this._lastTime = 0;
     this.scaledTime = time;
     for (const curve of this.curves)
     {
@@ -259,7 +259,7 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   StopOnNextFrame()
   {
-    this.#stopOnNextFrame = true;
+    this._stopOnNextFrame = true;
   }
 
   /**
@@ -269,7 +269,7 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   StopAfter(seconds)
   {
-    this.#endTime = -seconds;
+    this._endTime = -seconds;
   }
 
   /**
@@ -280,7 +280,7 @@ export class TriCurveSet extends CjsModel
   StopAfterWithCallback(seconds, callback)
   {
     this.StopAfter(seconds);
-    this.#callback = callback;
+    this._callback = callback;
   }
 
   /**
@@ -441,10 +441,10 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   SetTimeRange(timeMin, timeMax, looped = true)
   {
-    this.#hasTimeRange = true;
-    this.#timeRangeMin = Math.min(timeMin, timeMax);
-    this.#timeRangeMax = Math.max(timeMin, timeMax);
-    this.#loopedTimeRange = looped;
+    this._hasTimeRange = true;
+    this._timeRangeMin = Math.min(timeMin, timeMax);
+    this._timeRangeMax = Math.max(timeMin, timeMax);
+    this._loopedTimeRange = looped;
   }
 
   /**
@@ -454,9 +454,9 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   ResetTimeRange()
   {
-    this.#hasTimeRange = false;
-    this.#timeRangeMin = 0;
-    this.#timeRangeMax = 0;
+    this._hasTimeRange = false;
+    this._timeRangeMin = 0;
+    this._timeRangeMax = 0;
   }
 
   /**
@@ -466,7 +466,7 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   HasTimeRange()
   {
-    return this.#hasTimeRange;
+    return this._hasTimeRange;
   }
 
   /**
@@ -476,7 +476,7 @@ export class TriCurveSet extends CjsModel
   @impl.implemented
   GetTimeRange()
   {
-    return [this.#timeRangeMin, this.#timeRangeMax];
+    return [this._timeRangeMin, this._timeRangeMax];
   }
 
   /**
@@ -484,7 +484,7 @@ export class TriCurveSet extends CjsModel
    */
   IsUsingSimTimeRebase()
   {
-    return this.#isUsingSimTimeRebase;
+    return this._isUsingSimTimeRebase;
   }
 
   /**
@@ -494,25 +494,23 @@ export class TriCurveSet extends CjsModel
    */
   ApplyTimeRange()
   {
-    if (!this.#hasTimeRange)
+    if (!this._hasTimeRange)
     {
       return;
     }
-    if (this.scaledTime < this.#timeRangeMin)
+    if (this.scaledTime < this._timeRangeMin)
     {
-      this.scaledTime = this.#timeRangeMin;
+      this.scaledTime = this._timeRangeMin;
     }
-    if (this.#loopedTimeRange)
+    if (this._loopedTimeRange)
     {
-      const length = this.#timeRangeMax - this.#timeRangeMin;
-      if (length !== 0)
-      {
-        this.scaledTime = (this.scaledTime - this.#timeRangeMin) % length + this.#timeRangeMin;
-      }
+      const length = this._timeRangeMax - this._timeRangeMin;
+      // Native quirk: zero-length loops produce NaN (TriCurveSet.cpp:125).
+      this.scaledTime = (this.scaledTime - this._timeRangeMin) % length + this._timeRangeMin;
     }
     else
     {
-      this.scaledTime = Math.min(this.scaledTime, this.#timeRangeMax);
+      this.scaledTime = Math.min(this.scaledTime, this._timeRangeMax);
     }
   }
 
@@ -523,20 +521,20 @@ export class TriCurveSet extends CjsModel
    */
   CallStopCallback()
   {
-    if (!this.#callback)
+    if (!this._callback)
     {
       return;
     }
-    if (typeof this.#callback === "function")
+    if (typeof this._callback === "function")
     {
-      this.#callback();
+      this._callback();
     }
     else
     {
-      this.#callback.CallVoid?.();
-      this.#callback.Destroy?.();
+      this._callback.CallVoid?.();
+      this._callback.Destroy?.();
     }
-    this.#callback = null;
+    this._callback = null;
   }
 
   /**
@@ -545,10 +543,10 @@ export class TriCurveSet extends CjsModel
    */
   DestroyStopCallback()
   {
-    if (this.#callback && typeof this.#callback !== "function")
+    if (this._callback && typeof this._callback !== "function")
     {
-      this.#callback.Destroy?.();
+      this._callback.Destroy?.();
     }
-    this.#callback = null;
+    this._callback = null;
   }
 }

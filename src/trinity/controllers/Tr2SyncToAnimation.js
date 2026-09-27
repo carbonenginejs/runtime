@@ -23,7 +23,14 @@ export class Tr2SyncToAnimation extends CjsModel
   mask = "";
 
   /**
-   * Carbon allows transition once the matching animation layer has finished.
+   * Allows transition when the matching animation layer has no remaining time.
+   * NaN and positive infinity do not satisfy Carbon's completion comparison.
+   *
+   * Adapted: Resolves the animation controller through the runtime owner adapter
+   * instead of Carbon's EveSpaceObject2 cast.
+   *
+   * @param {object} controller Controller owning the animated object.
+   * @returns {boolean} Whether the layer is absent or complete.
    */
   @carbon.method
   @impl.adapted
@@ -35,12 +42,12 @@ export class Tr2SyncToAnimation extends CjsModel
     {
       return true;
     }
-    const layer = ITr2ControllerAction.callTarget(animationController, "GetAnimationLayer", this.mask || null);
+    const layer = animationController.GetAnimationLayer(this.mask || null);
     if (!layer)
     {
       return true;
     }
-    const remaining = Number(ITr2ControllerAction.callTarget(layer, "GetAnimationRemainingTime") ?? 0);
-    return !Number.isFinite(remaining) || remaining <= 0;
+    const remaining = layer.GetAnimationRemainingTime();
+    return remaining <= 0;
   }
 }

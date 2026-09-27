@@ -17,30 +17,30 @@ import { ITr2Controller } from "./ITr2Controller/index.js";
 @carbon.inherit(ITr2Controller)
 export class Tr2ControllerReference extends CjsModel
 {
-  static #resourceResolver = null;
+  static _resourceResolver = null;
 
   /** Registers the runtime-owned controller resource resolver. */
   static registerResourceResolver(resolver)
   {
-    const previous = this.#resourceResolver;
-    this.#resourceResolver = resolver;
+    const previous = this._resourceResolver;
+    this._resourceResolver = resolver;
     return previous;
   }
 
   /** Clears the runtime-owned controller resource resolver. */
   static clearResourceResolver()
   {
-    this.#resourceResolver = null;
+    this._resourceResolver = null;
   }
 
   /** Resolves a controller resource without owning its lifecycle. */
   static resolveResource(path, owner = null)
   {
-    if (!path || !this.#resourceResolver)
+    if (!path || !this._resourceResolver)
     {
       return null;
     }
-    const resolved = this.#resourceResolver(path, owner);
+    const resolved = this._resourceResolver(path, owner);
     return resolved && typeof resolved === "object" ? resolved : null;
   }
 
@@ -54,33 +54,40 @@ export class Tr2ControllerReference extends CjsModel
   @type.path
   path = "";
 
-  #owner = null;
+  _owner = null;
 
 
   /**
-   * Initializes the referenced controller when it is already assigned.
+   * Resolves a nonempty resource path, preserving an assigned controller otherwise.
+   *
+   * Adapted: Uses the registered synchronous resolver instead of BeResMan.
    */
   @carbon.method
   @impl.adapted
   Initialize()
   {
-    this.ResolveController();
+    if (this.path)
+    {
+      this.ResolveController();
+    }
     return true;
   }
 
   /**
    * Handles the authored path notification by resolving and linking the controller.
+   *
+   * Adapted: Dispatches by exposed property name and loads through the registered
+   * synchronous resolver in place of BeResMan.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
     if (propertyName === "path")
     {
       this.controller = null;
       this.ResolveController();
-      if (this.controller && this.#owner) this.controller.Link(this.#owner);
+      if (this.controller && this._owner) this.controller.Link(this._owner);
     }
     return true;
   }
@@ -92,7 +99,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Link(owner)
   {
-    this.#owner = owner;
+    this._owner = owner;
     this.controller?.Link(owner);
   }
 
@@ -103,8 +110,8 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
+    this._owner = null;
     this.controller?.Unlink(reason);
-    this.#owner = null;
   }
 
   /**
@@ -114,7 +121,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   IsLinked()
   {
-    return this.#owner !== null;
+    return this._owner !== null;
   }
 
   /**
@@ -174,7 +181,7 @@ export class Tr2ControllerReference extends CjsModel
   @impl.implemented
   GetOwner()
   {
-    return this.#owner;
+    return this._owner;
   }
 
   /**
@@ -188,6 +195,6 @@ export class Tr2ControllerReference extends CjsModel
       this.controller = null;
       return;
     }
-    this.controller = Tr2ControllerReference.resolveResource(this.path, this.#owner);
+    this.controller = Tr2ControllerReference.resolveResource(this.path, this._owner);
   }
 }

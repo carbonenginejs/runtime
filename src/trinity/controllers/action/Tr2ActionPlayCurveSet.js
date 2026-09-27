@@ -33,49 +33,54 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   @type.boolean
   syncToRange = false;
 
-  #controller = null;
+  _controller = null;
 
-  #startTime = 0;
+  _startTime = 0;
 
-  #prevTime = 0;
+  _prevTime = 0;
 
-  #duration = 0;
+  _duration = 0;
 
   /**
-   * Plays the configured curve set.
+   * Plays the configured curve set and optionally tracks its range iterations.
+   *
+   * Adapted: Uses the runtime owner adapter and seconds-based frame-clock helper
+   * instead of Carbon's owner cast and BeOS clock.
    */
   @carbon.method
   @impl.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
-    this.#controller = controller;
-    this.#duration = 0;
-    if (!this.#play(owner))
+    this._controller = controller;
+    this._duration = 0;
+    if (!this._play(owner))
     {
       return;
     }
     if (this.syncToRange && this.rangeName)
     {
-      this.#duration = this.#getRangeDuration(owner);
-      this.#startTime = ITr2ControllerAction.getTime(controller, GetControllerTimeSeconds());
-      this.#prevTime = this.#startTime;
-      controller.RegisterUpdateable?.(this);
+      this._duration = this._getRangeDuration(owner);
+      this._startTime = GetControllerTimeSeconds();
+      this._prevTime = this._startTime;
+      controller.RegisterUpdateable(this);
     }
   }
 
   /**
-   * Stops the configured curve set.
+   * Unregisters updates and stops the configured curve set.
+   *
+   * Adapted: Uses the runtime owner adapter instead of Carbon's owner cast.
    */
   @carbon.method
   @impl.adapted
   Stop(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
-    controller.UnRegisterUpdateable?.(this);
-    if (this.#controller === controller)
+    controller.UnRegisterUpdateable(this);
+    if (this._controller === controller)
     {
-      this.#controller = null;
+      this._controller = null;
     }
     if (ITr2ControllerAction.hasFunction(owner, "StopCurveSet"))
     {
@@ -90,46 +95,51 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   @impl.implemented
   RebaseSimTime(diff)
   {
-    this.#startTime += diff;
-    this.#prevTime += diff;
+    this._startTime += diff;
+    this._prevTime += diff;
   }
 
   /**
-   * Prevents transition until a synced range iteration has completed.
+   * Allows transition when the frame clock crosses a synced range iteration.
+   * Iteration conversion truncates toward zero, including before the start time.
+   *
+   * Adapted: Uses the seconds-based frame-clock helper in place of BeOS.
    */
   @carbon.method
   @impl.adapted
   CanTransition()
   {
-    if (!this.syncToRange || this.#duration <= 0)
+    if (!this.syncToRange || this._duration <= 0)
     {
       return true;
     }
     const now = GetControllerTimeSeconds();
-    if (now === this.#startTime)
+    if (now === this._startTime)
     {
       return true;
     }
-    const previous = Math.floor((this.#prevTime - this.#startTime) / this.#duration);
-    const current = Math.floor((now - this.#startTime) / this.#duration);
+    const previous = Math.trunc((this._prevTime - this._startTime) / this._duration);
+    const current = Math.trunc((now - this._startTime) / this._duration);
     return previous !== current;
   }
 
   /**
-   * Stores the last update time for synced transitions.
+   * Records the frame clock for synced transitions, ignoring the update arguments.
+   *
+   * Adapted: Uses the seconds-based frame-clock helper in place of BeOS.
    */
   @carbon.method
-  @impl.implemented
-  Update(_realTime, simTime)
+  @impl.adapted
+  Update(_realTime, _simTime)
   {
-    this.#prevTime = simTime;
+    this._prevTime = GetControllerTimeSeconds();
   }
 
   /**
    * Starts the curve set on the owner, returning false when the owner exposes no
    * PlayCurveSet.
    */
-  #play(owner)
+  _play(owner)
   {
     if (ITr2ControllerAction.hasFunction(owner, "PlayCurveSet"))
     {
@@ -143,7 +153,7 @@ export class Tr2ActionPlayCurveSet extends CjsModel
    * Gets the authored range duration in seconds from the owner, or 0 when the
    * owner cannot report one.
    */
-  #getRangeDuration(owner)
+  _getRangeDuration(owner)
   {
     const ownerDuration = ITr2ControllerAction.callTarget(owner, "GetRangeDuration", this.curveSetName, this.rangeName);
     if (ownerDuration !== undefined)

@@ -27,19 +27,19 @@ export class Tr2StateMachineTransition extends CjsModel
   @type.string
   name = "";
 
-  #source = null;
+  _source = null;
 
-  #destination = null;
+  _destination = null;
 
-  #program = null;
+  _program = null;
 
-  #programSource = null;
+  _programSource = null;
 
-  #variableNames = [];
+  _variableNames = [];
 
-  #functionNames = [];
+  _functionNames = [];
 
-  #isConditionValid = false;
+  _isConditionValid = false;
 
   /**
    * Links this transition to its source state.
@@ -49,8 +49,8 @@ export class Tr2StateMachineTransition extends CjsModel
   Link(state)
   {
     this.Unlink();
-    this.#source = state;
-    this.#destination = this.#resolveDestination();
+    this._source = state;
+    this._destination = this._resolveDestination();
   }
 
   /**
@@ -60,33 +60,35 @@ export class Tr2StateMachineTransition extends CjsModel
   @impl.adapted
   Unlink()
   {
-    this.#source = null;
-    this.#destination = null;
-    this.#program = null;
-    this.#programSource = null;
-    this.#variableNames = [];
-    this.#functionNames = [];
+    this._source = null;
+    this._destination = null;
+    this._program = null;
+    this._programSource = null;
+    this._variableNames = [];
+    this._functionNames = [];
   }
 
   /**
-   * Refreshes cached destination/expression state after modification.
+   * Refreshes the condition or cached destination after an authored edit.
+   *
+   * Adapted: Dispatches by the exposed property name; Carbon's destinationName
+   * member is exposed as name. Conditions use the runtime AST evaluator.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
   OnModified(propertyName)
   {
-    if (!this.#source) return true;
+    if (!this._source) return true;
     if (propertyName === "condition")
     {
-      this.#program = null;
-      this.#programSource = null;
-      this.#variableNames = [];
-      this.#functionNames = [];
+      this._program = null;
+      this._programSource = null;
+      this._variableNames = [];
+      this._functionNames = [];
       this.Compile();
-      this.#source.UpdateVariableMask();
+      this._source.UpdateVariableMask();
     }
-    else if (propertyName === "destinationName") this.#destination = this.#resolveDestination();
+    else if (propertyName === "name") this._destination = this._resolveDestination();
     return true;
   }
 
@@ -95,27 +97,34 @@ export class Tr2StateMachineTransition extends CjsModel
    */
   Compile()
   {
-    if (!this.#program || this.#programSource !== this.condition)
+    if (!this._program || this._programSource !== this.condition)
     {
-      this.#program = CjsControllerExpressionProgram.Compile(this.condition, {
+      this._program = CjsControllerExpressionProgram.Compile(this.condition, {
         emptyValue: 1
       });
-      this.#programSource = this.condition;
-      this.#variableNames = this.#program.GetVariableNames();
-      this.#functionNames = this.#program.GetFunctionNames();
-      this.#isConditionValid = this.#program.IsValid();
+      this._programSource = this.condition;
+      this._variableNames = this._program.GetVariableNames();
+      this._functionNames = this._program.GetFunctionNames();
+      this._isConditionValid = this._program.IsValid();
     }
-    return this.#program;
+    return this._program;
   }
 
   /**
-   * Carbon-compatible alias for transition activation.
+   * Evaluates a linked transition when its referenced variables may have changed.
+   *
+   * Adapted: Uses the runtime AST evaluator and BigInt dirty masks in place of
+   * Carbon's bytecode evaluator and uint64 mask.
    */
   @carbon.method
   @impl.adapted
   CanActivate(variableDirtyMask = 0)
   {
-    const stateMachine = this.#source?.GetStateMachine?.() ?? null;
+    if (!this._source)
+    {
+      return false;
+    }
+    const stateMachine = this._source?.GetStateMachine?.() ?? null;
     const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = this.Compile();
@@ -123,11 +132,11 @@ export class Tr2StateMachineTransition extends CjsModel
     {
       return false;
     }
-    if (!Tr2StateMachineTransition.#dirtyMaskMatches(this.GetVariableMask(), variableDirtyMask))
+    if (!Tr2StateMachineTransition._dirtyMaskMatches(this.GetVariableMask(), variableDirtyMask))
     {
       return false;
     }
-    const context = this.#getExpressionContext(controller, owner, stateMachine);
+    const context = this._getExpressionContext(controller, owner, stateMachine);
     return program.EvaluateBoolean(context);
   }
 
@@ -138,7 +147,7 @@ export class Tr2StateMachineTransition extends CjsModel
   @impl.adapted
   GetDestination()
   {
-    return this.#destination ?? this.#resolveDestination();
+    return this._destination;
   }
 
   /**
@@ -148,7 +157,7 @@ export class Tr2StateMachineTransition extends CjsModel
   @impl.adapted
   GetSource()
   {
-    return this.#source;
+    return this._source;
   }
 
   /**
@@ -176,7 +185,7 @@ export class Tr2StateMachineTransition extends CjsModel
     {
       return 0n;
     }
-    const stateMachine = this.#source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine?.() ?? null;
     const controller = stateMachine?.GetController() ?? null;
     const variableView = controller?.GetVariableView?.();
     if (!Array.isArray(variableView))
@@ -184,7 +193,7 @@ export class Tr2StateMachineTransition extends CjsModel
       return 0n;
     }
     let mask = 0n;
-    for (const name of this.#variableNames)
+    for (const name of this._variableNames)
     {
       const index = variableView.find(variable => variable && typeof variable === "object" && "name" in variable && String(variable.name) === name)?.index;
       if (typeof index !== "number" || index < 0 || index >= 64)
@@ -223,7 +232,7 @@ export class Tr2StateMachineTransition extends CjsModel
   @impl.adapted
   EvaluateExpression(expression)
   {
-    const stateMachine = this.#source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine?.() ?? null;
     const controller = stateMachine?.GetController() ?? null;
     const owner = controller?.GetOwner() ?? null;
     const program = CjsControllerExpressionProgram.Compile(expression, {
@@ -233,7 +242,7 @@ export class Tr2StateMachineTransition extends CjsModel
     {
       return 0;
     }
-    return Number(program.Evaluate(this.#getExpressionContext(controller, owner, stateMachine)));
+    return Number(program.Evaluate(this._getExpressionContext(controller, owner, stateMachine)));
   }
 
   /**
@@ -245,7 +254,7 @@ export class Tr2StateMachineTransition extends CjsModel
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    const controller = this.#source?.GetStateMachine?.()?.GetController();
+    const controller = this._source?.GetStateMachine?.()?.GetController();
     controller?.GetExpressionTermInfo?.(result);
     return result;
   }
@@ -256,7 +265,7 @@ export class Tr2StateMachineTransition extends CjsModel
   GetVariableNames()
   {
     this.Compile();
-    return this.#variableNames.slice();
+    return this._variableNames.slice();
   }
 
   /**
@@ -265,7 +274,7 @@ export class Tr2StateMachineTransition extends CjsModel
   GetFunctionNames()
   {
     this.Compile();
-    return this.#functionNames.slice();
+    return this._functionNames.slice();
   }
 
   /**
@@ -273,7 +282,7 @@ export class Tr2StateMachineTransition extends CjsModel
    * GetExpressionContext when it has one and otherwise assembling controller,
    * owner and state machine directly.
    */
-  #getExpressionContext(controller, owner, stateMachine)
+  _getExpressionContext(controller, owner, stateMachine)
   {
     const runtime = controller;
     if (runtime?.GetExpressionContext)
@@ -292,9 +301,9 @@ export class Tr2StateMachineTransition extends CjsModel
    * state's machine; the authored name is the destination state name, not a
    * label for the edge.
    */
-  #resolveDestination()
+  _resolveDestination()
   {
-    const stateMachine = this.#source?.GetStateMachine?.() ?? null;
+    const stateMachine = this._source?.GetStateMachine?.() ?? null;
     if (!stateMachine || !this.name)
     {
       return null;
@@ -306,7 +315,7 @@ export class Tr2StateMachineTransition extends CjsModel
    * Checks whether any variable this condition reads is dirty; an empty variable
    * mask means the condition must always be evaluated.
    */
-  static #dirtyMaskMatches(variableMask, dirtyVariables)
+  static _dirtyMaskMatches(variableMask, dirtyVariables)
   {
     if (variableMask === 0n)
     {

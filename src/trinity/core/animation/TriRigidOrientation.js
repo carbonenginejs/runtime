@@ -46,12 +46,13 @@ export class TriRigidOrientation extends CjsModel
   @type.string
   name = "";
 
-  /** Carbon method Sort (MAP_METHOD_AND_WRAP). */
+  /** Sorts torque keys, resets the sampling cursor and propagates initial states. */
   @carbon.method
   @impl.implemented
   Sort()
   {
     this.states.sort((a, b) => a.time - b.time);
+    this._currentKey = 0;
     const tau = vec3.create();
     const converter = quat.create();
     for (let i = 1; i < this.states.length; i++)
@@ -102,24 +103,24 @@ export class TriRigidOrientation extends CjsModel
 
     if (time >= this.states[count - 1].time)
     {
-      this.#currentKey = count - 1;
-      return this.#currentKey;
+      this._currentKey = count - 1;
+      return this._currentKey;
     }
 
-    if (this.#currentKey === count - 1) this.#currentKey = 0;
+    if (this._currentKey === count - 1) this._currentKey = 0;
 
-    const key = this.states[this.#currentKey];
+    const key = this.states[this._currentKey];
 
-    if (time < key.time || time >= this.states[this.#currentKey + 1].time)
+    if (time < key.time || time >= this.states[this._currentKey + 1].time)
     {
-      for (this.#currentKey = 0; this.#currentKey < count - 1; this.#currentKey++)
+      for (this._currentKey = 0; this._currentKey < count - 1; this._currentKey++)
       {
-        if (time >= this.states[this.#currentKey].time
-          && time < this.states[this.#currentKey + 1].time) break;
+        if (time >= this.states[this._currentKey].time
+          && time < this.states[this._currentKey + 1].time) break;
       }
     }
 
-    return this.#currentKey;
+    return this._currentKey;
   }
 
   /**
@@ -192,7 +193,20 @@ export class TriRigidOrientation extends CjsModel
     return quat.copy(out, this.value);
   }
 
-  #currentKey = 0;
+  /**
+   * Samples and retains orientation for the curve-set update interface.
+   *
+   * @param {number} time Seconds relative to the curve start.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateValue(time)
+  {
+    this.Update(this.value, time);
+  }
+
+  _currentKey = 0;
 
 }
 
