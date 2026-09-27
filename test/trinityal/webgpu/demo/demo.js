@@ -2500,7 +2500,28 @@ export async function RunDemo(canvas)
     dirt: value => realScene ? (ship.dirtLevel = value) : globalThis.demo.shipData({ dirt: value }),
     age: weeks => globalThis.demo.dirt(DirtLevelFromWeeks(weeks)),
     // Normalized speed: the booster set divides the ship's speed by its maxVel.
-    speed: value => { if (ship?.speed) ship.speed.value = (Number(value) || 0) * (ship.boosters?.maxVel ?? 1); },
+    //
+    // THE CLIENT'S BALL, so effect children see the speed too. Carbon's
+    // ShipSpeed() is |GetWorldVelocity()| and ShipMaxSpeed() the ship's
+    // GetMaxSpeed() (Tr2ControllerExpression.cpp:142-190); the smart-light
+    // shipSpeed reads the same velocity. The velocity is the derivative of the
+    // ball position the client binds (m_ballPosition, EveSpaceObject2.cpp:
+    // 3063-3067). This ball holds the ship at the origin and reports the speed
+    // along the ship's local Z, and maxSpeed is the boosters' maxVel.
+    speed: value =>
+    {
+      if (!ship) return;
+      const maxSpeed = ship.boosters?.maxVel ?? 1;
+      const worldSpeed = (Number(value) || 0) * maxSpeed;
+      if (ship.speed) ship.speed.value = worldSpeed;
+      ship.maxSpeed = maxSpeed;
+      if (!ship.translationCurve)
+      {
+        const velocity = vec3.create();
+        ship.translationCurve = { velocity, Update: (_time, out) => vec3.set(out, 0, 0, 0), GetValueDotAt: (_time, out) => vec3.copy(out, velocity) };
+      }
+      vec3.set(ship.translationCurve.velocity, 0, 0, worldSpeed);
+    },
     // The ship's kill count, 0 to 999, shown by its kill-counter decals.
     kills: value => { if (ship) ship.displayKillCounterValue = DemoKillCount(value); return ship?.displayKillCounterValue ?? null; },
     activation: value => realScene ? (ship.activationStrength = value) : globalThis.demo.shipData({ activation: value }),
@@ -2573,6 +2594,8 @@ export async function RunDemo(canvas)
       next.displayKillCounterValue = old.displayKillCounterValue;
       ApplyDemoBanners(next);
       next.speed = old.speed;
+      next.translationCurve = old.translationCurve;
+      next.maxSpeed = old.maxSpeed;
       mat4.copy(next.worldTransform, old.worldTransform);
 
       // Wait for the new hull's geometry, so the swap does not start on an
