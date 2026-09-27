@@ -1,6 +1,4 @@
 // Source: audio/src/AudListener.h + AudListener.cpp
-// Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
-// Verify against audio/AudListener.json.
 import { carbon, impl, type } from "#schema";
 import { vec3 } from "#math/vec3";
 import { AudGameObjResource } from "./AudGameObjResource.js";
@@ -34,7 +32,15 @@ export class AudListener extends AudGameObjResource
     this.additionalCullingWeight = FLOAT_MAX;
   }
 
-  /** Carbon method SetPosition -> SetPlacementFromParent (Blue mapping). */
+  /**
+   * Forwards Carbon's Blue-exposed SetPosition call to SetPlacementFromParent.
+   * Source: audio/src/AudListener_Blue.cpp:17-20.
+   *
+   * @param {ArrayLike<number>} front Forward direction.
+   * @param {ArrayLike<number>} top Up direction.
+   * @param {ArrayLike<number>} position Listener position.
+   * @returns {number} The placement result.
+   */
   @carbon.renamed("SetPosition")
   @impl.implemented
   SetPosition(front, top, position)
@@ -42,10 +48,22 @@ export class AudListener extends AudGameObjResource
     return this.SetPlacementFromParent(front, top, position);
   }
 
-  /** Carbon override: listener stores position with a looser gate and uses the listener RH->LH flip. */
+  /**
+   * Orthonormalizes and stores the listener pose, then forwards it when the backend supports listener placement.
+   *
+   * Adapted: Carbon stores position only with an initialized manager and submits
+   * only after listener registration (audio/src/AudListener.cpp:52-73). JavaScript
+   * retains placement without those gates so a headless listener can be realized
+   * later. It passes right-handed vectors to the backend instead of performing
+   * Wwise's RH2LH::convertListener conversion.
+   *
+   * @param {ArrayLike<number>} front Forward direction.
+   * @param {ArrayLike<number>} top Up direction.
+   * @param {ArrayLike<number>} positionValue Listener position.
+   * @returns {number} AK_Success (1).
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Backend push (RH2LH::convertListener + default-listener registration) is realization; the headless graph stores the position.")
   SetPlacementFromParent(front, top, positionValue)
   {
     AudGameObjResource.Orthonormalize(
@@ -69,9 +87,17 @@ export class AudListener extends AudGameObjResource
     return 1;
   }
 
-  /** Pushes a stored listener pose once when a browser backend becomes available. */
+  /**
+   * Submits the retained pose once to each available backend instance.
+   *
+   * Custom: Browser audio may be created after a headless listener receives
+   * placement. This method replays the stored pose when SetListenerPosition
+   * becomes available and records which backend received it. Missing placement
+   * support leaves the pose eligible for a later retry.
+   *
+   * @returns {boolean} True when submitted; false when unsupported or already submitted to this backend.
+   */
   @impl.custom
-  @impl.reason("Browser audio is created on a user gesture, after a headless listener may already have received its placement.")
   RealizePlacement()
   {
     const backend = AudGameObjResource.backend;

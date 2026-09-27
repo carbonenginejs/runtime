@@ -19,10 +19,20 @@ export class AudPosition extends CjsModel
     position: vec3.create()
   });
 
-  /** Carbon IBluePlacementObserver method UpdatePlacement. */
+  /**
+   * Copies the placement vectors into the retained position record.
+   *
+   * Adapted: JavaScript vectors represent the native AkSoundPosition fields
+   * assigned by AudPosition::UpdatePlacement (audio/src/AudPosition.cpp:16-18).
+   * Components are copied unchanged; this method does not convert handedness.
+   *
+   * @param {ArrayLike<number>} front Forward direction.
+   * @param {ArrayLike<number>} top Up direction.
+   * @param {ArrayLike<number>} position Position.
+   * @returns {void}
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("AkSoundPosition is represented by browser-safe front, top, and position vectors.")
   UpdatePlacement(front, top, position)
   {
     vec3.copy(this.value.front, front);
@@ -30,7 +40,13 @@ export class AudPosition extends CjsModel
     vec3.copy(this.value.position, position);
   }
 
-  /** Carbon INotify method OnModified. */
+  /**
+   * Accepts a modification notification without further work.
+   *
+   * Matches AudPosition::OnModified (audio/src/AudPosition.cpp:21-24).
+   *
+   * @returns {boolean} Always true.
+   */
   @carbon.method
   @impl.implemented
   OnModified()

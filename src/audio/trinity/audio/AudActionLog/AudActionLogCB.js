@@ -27,10 +27,19 @@ export class AudActionLogCB extends IAudActionLog
 
   #queue = [];
 
-  /** Carbon method RegisterCallback. Null unregisters without discarding queued records. */
+  /**
+   * Registers the callback used by Flush; null unregisters without clearing records.
+   *
+   * Adapted: A JavaScript function or CallVoid object replaces BlueScriptCallback
+   * (audio/src/AudActionLog.cpp:131-134). Invalid input throws; undefined also
+   * unregisters the callback.
+   *
+   * @param {Function|{CallVoid: Function}|null|undefined} callback Record recipient.
+   * @returns {void}
+   * @throws {TypeError} If the callback cannot be invoked.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("BlueScriptCallback is represented by a JavaScript function or an object exposing CallVoid(record).")
   RegisterCallback(callback)
   {
     if (callback !== null && callback !== undefined
@@ -41,49 +50,115 @@ export class AudActionLogCB extends IAudActionLog
     this.#callback = callback ?? null;
   }
 
-  /** Carbon IAudActionLog method LogPostEvent. */
+  /**
+   * Queues one event-post record.
+   *
+   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
+   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
+   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   *
+   * @param {number} emitterID Emitter identifier.
+   * @param {number} playID Playing identifier.
+   * @param {number} eventID Event identifier.
+   * @param {string} name Event name.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   LogPostEvent(emitterID, playID, eventID, name)
   {
     this.#queue.push(new AudActionRecordPostEvent(Now(), emitterID, playID, eventID, name));
   }
 
-  /** Carbon IAudActionLog method LogExecuteActionOnPlayingID. */
+  /**
+   * Queues one action on a playing event.
+   *
+   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
+   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
+   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   *
+   * @param {number} emitterID Emitter identifier.
+   * @param {number} playID Playing identifier.
+   * @param {string} action Action name.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   LogExecuteActionOnPlayingID(emitterID, playID, action)
   {
     this.#queue.push(new AudActionRecordExecuteActionOnPlayingID(Now(), emitterID, playID, action));
   }
 
-  /** Carbon IAudActionLog method LogSetSwitch. */
+  /**
+   * Queues one emitter switch change.
+   *
+   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
+   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
+   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   *
+   * @param {number} emitterID Emitter identifier.
+   * @param {string} group Switch group.
+   * @param {string} state Selected state.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   LogSetSwitch(emitterID, group, state)
   {
     this.#queue.push(new AudActionRecordSetSwitch(Now(), emitterID, group, state));
   }
 
-  /** Carbon IAudActionLog method LogSetState. */
+  /**
+   * Queues one global state change.
+   *
+   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
+   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
+   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   *
+   * @param {string} group State group.
+   * @param {string} state Selected state.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   LogSetState(group, state)
   {
     this.#queue.push(new AudActionRecordSetState(Now(), group, state));
   }
 
-  /** Carbon IAudActionLog method LogSetRTPC. */
+  /**
+   * Queues one real-time parameter change.
+   *
+   * Adapted: The realm-local queue uses performance.now() milliseconds, falling
+   * back to Date.now(), instead of Carbon's BeOS->GetActualTime() timestamp
+   * (audio/src/AudActionLog.cpp:88-116). The JavaScript queue has no native mutex.
+   *
+   * @param {number} emitterID Emitter identifier.
+   * @param {string} name Parameter name.
+   * @param {number} value Parameter value.
+   * @param {number} [playID=0] Playing identifier.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   LogSetRTPC(emitterID, name, value, playID = 0)
   {
     this.#queue.push(new AudActionRecordSetRTPC(Now(), emitterID, name, value, playID));
   }
 
-  /** Carbon method Flush. Records remain queued until a callback exists. */
+  /**
+   * Delivers queued records in order while a callback remains registered.
+   *
+   * Adapted: JavaScript callbacks receive arrays instead of Python tuples and
+   * exceptions propagate. A throwing callback leaves its record at the queue
+   * head; Carbon does not branch on callback status and removes that record
+   * (audio/src/AudActionLog.cpp:118-129). No callback leaves records queued.
+   *
+   * @returns {void}
+   * @throws {*} Propagates callback exceptions without removing the current record.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Flush()
   {
     while (this.#callback && this.#queue.length)

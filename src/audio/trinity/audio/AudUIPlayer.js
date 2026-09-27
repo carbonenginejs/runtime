@@ -37,9 +37,18 @@ export class AudUIPlayer extends AudEmitter
     return false;
   }
 
-  /** Carbon method GetEventPlayPosition (MAP_METHOD_AND_WRAP). */
+  /**
+   * Returns the backend play position in milliseconds, or -1 when unavailable.
+   *
+   * Adapted: The injected backend returns the position directly instead of Wwise's
+   * result code and output parameter (audio/src/AudUIPlayer.cpp:76-89). A disabled
+   * manager or missing backend method also returns -1.
+   *
+   * @param {number} playingID Event playing identifier.
+   * @returns {number} Elapsed milliseconds, or -1.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetEventPlayPosition(playingID)
   {
     if (!this.constructor.manager?.enabled)
@@ -57,10 +66,24 @@ export class AudUIPlayer extends AudEmitter
     return this.constructor.manager?.enabled ? this.PostEvent(eventName, false, 0) : 0;
   }
 
-  /** Carbon method SendEventWithCallback (MAP_METHOD_AND_WRAP). */
+  /**
+   * Posts an event and captures its completion callback by playing ID.
+   *
+   * Adapted: Carbon retains one callback event name and reads the current callback
+   * at dispatch (audio/src/AudUIPlayer.cpp:33-48,100-133). JavaScript captures the
+   * callback and posted name for each playing ID, so overlapping requests and
+   * callback replacement do not change earlier registrations. A missing callback
+   * returns zero without Carbon's error log.
+   *
+   * The native prefix quirk prepares the name twice (AudUIPlayer.cpp:37-40 and
+   * AudGameObjResource.cpp:184,610-619); this implementation prepares it only
+   * through PostEvent and therefore does not reproduce that quirk.
+   *
+   * @param {string} name Event name.
+   * @returns {number} Playing identifier, or zero when not posted.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon stores one callback event name; CarbonEngineJS captures the callback per playing ID so overlapping UI events complete independently. Browser callbacks already run on the main event loop and are deferred to a microtask.")
   SendEventWithCallback(name)
   {
     if (!this.constructor.manager?.enabled || !this.eventSenderCallback)
@@ -79,10 +102,19 @@ export class AudUIPlayer extends AudEmitter
     return playingID;
   }
 
-  /** Carbon EventFinishedCallback override: base bookkeeping first, then the UI callback. */
+  /**
+   * Removes the completion registration, runs base bookkeeping, and schedules its callback.
+   *
+   * Adapted: A playing ID replaces Wwise's callback-info structure. Carbon queues
+   * a main-thread callback that reads the player's current callback and event name;
+   * JavaScript queues a microtask with this playing ID's captured registration
+   * (audio/src/AudUIPlayer.cpp:100-133).
+   *
+   * @param {number} playingID Completed event identifier.
+   * @returns {void}
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Wwise marshals its audio-thread callback to Carbon's main thread; WebAudio completion is already delivered on the browser event loop, so CarbonEngineJS defers one microtask.")
   EventFinishedCallback(playingID)
   {
     const callbackEvent = this.#callbackEvents.get(playingID) ?? null;

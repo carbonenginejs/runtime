@@ -25,20 +25,35 @@ export class AudParameter extends CjsModel
 
 
   /**
-   * Carbon's parent-list callback assigns the private game-object id when this
-   * parameter is inserted. Binding alone does not push its current value.
+   * Binds this parameter to an audio game object without pushing its value.
+   *
+   * Custom: Carbon's owner assigns the private m_ID through friendship
+   * (audio/src/AudGameObjResource.cpp:463-464). The JavaScript owner's list
+   * callback uses this method instead.
+   *
+   * @param {number} gameObjID Owner identifier; zero leaves the parameter unbound.
+   * @returns {void}
    */
   @impl.custom
-  @impl.reason("Carbon assigns AudParameter::m_ID through AudGameObjResource friendship; CarbonEngineJS exposes the narrow owner-binding seam needed by its cooperative list pipeline.")
   SetGameObjectID(gameObjID)
   {
     this.#gameObjID = Number(gameObjID) || 0;
   }
 
-  /** Carbon INotify consequence: only a value change pushes the object RTPC. */
+  /**
+   * Pushes a value notification to the enabled audio manager and backend.
+   * Other member notifications do not push the parameter.
+   *
+   * Adapted: A member name replaces Carbon's field-address comparison, and
+   * injected audio services replace Wwise and g_audioManager
+   * (audio/src/AudParameter.cpp:17-27). The current implementation skips
+   * missing backend and logging methods.
+   *
+   * @param {string} propertyName Modified member name.
+   * @returns {boolean} Always true when the calls complete.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("JS uses the exposed member name and the injected audio manager/backend instead of native field addresses and Wwise globals.")
   OnModified(propertyName)
   {
     if (propertyName === "value" && this.#gameObjID && AudGameObjResource.manager?.enabled)

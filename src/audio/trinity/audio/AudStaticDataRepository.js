@@ -1,6 +1,4 @@
 ﻿// Source: audio/src/AudStaticDataRepository.h + AudStaticDataRepository.cpp
-// Hand-owned since 2026-07-18 (behavior port); the generator skips this file.
-// Verify against audio/AudStaticDataRepository.json.
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 
@@ -26,10 +24,23 @@ export class AudStaticDataRepository extends CjsModel
 
   #initialized = false;
 
-  /** Carbon method Initialize (MAP_METHOD_AND_WRAP). Loads the metadata catalog. */
+  /**
+   * Merges event, sound-bank and source metadata into the catalog and marks it initialized.
+   * Existing records absent from the input remain present. Missing or non-object
+   * sections are warned about and skipped; processing object input still marks
+   * initialization complete.
+   *
+   * Adapted: JavaScript object or Map sections replace Python dictionaries
+   * (audio/src/AudStaticDataRepository.cpp:181-304). Records use JavaScript numeric,
+   * truth-value and string coercion rather than the donor's Python type checks.
+   * List fields accept arrays only; missing lists become empty arrays. An absent
+   * or non-object top-level input warns and leaves existing state unchanged.
+   *
+   * @param {object} audioMetadata Metadata containing Events, SoundBanks and WemFileIDs sections.
+   * @returns {void}
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon receives a Python dict; CarbonEngineJS receives the equivalent plain object with Events, SoundBanks, and WemFileIDs sections.")
   Initialize(audioMetadata)
   {
     if (!audioMetadata || typeof audioMetadata !== "object")
@@ -38,8 +49,8 @@ export class AudStaticDataRepository extends CjsModel
       return;
     }
 
-    // Mirrors the C++ tolerance: each missing/invalid section warns and is
-    // skipped; initialization still completes.
+    // Missing or non-object sections warn and are skipped; initialization
+    // still completes. Accepted section types differ from Carbon dictionaries.
     const events = SectionEntries(audioMetadata.Events, "Events");
     for (const [eventName, record] of events)
     {
@@ -70,7 +81,11 @@ export class AudStaticDataRepository extends CjsModel
     this.#initialized = true;
   }
 
-  /** Carbon method IsInitialized. */
+  /**
+   * Whether object input has completed initialization.
+   *
+   * @returns {boolean} Whether initialization completed.
+   */
   @carbon.method
   @impl.implemented
   IsInitialized()
@@ -96,7 +111,12 @@ export class AudStaticDataRepository extends CjsModel
     return data ? data[attribute] : defaultValue;
   }
 
-  /** Carbon method GetEventID: 32-bit Wwise id, AK_INVALID_UNIQUE_ID (0) when unknown. */
+  /**
+   * Returns the event uint32 ID, or zero when unknown.
+   *
+   * @param {string} eventName Event name.
+   * @returns {number} Event ID or zero.
+   */
   @carbon.method
   @impl.implemented
   GetEventID(eventName)
@@ -104,9 +124,17 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#events, eventName, "eventID", INVALID_UNIQUE_ID);
   }
 
-  /** Carbon method GetEventRadiusSq: squared max attenuation radius, 0 when unknown. */
+  /**
+   * Returns the squared maximum attenuation radius, or zero for an unknown event.
+   *
+   * Adapted: JavaScript multiplies Number values without Carbon's float32
+   * narrowing of the radius and result (audio/src/AudStaticDataRepository.cpp:106-116).
+   *
+   * @param {string} eventName Event name.
+   * @returns {number} Squared attenuation radius.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetEventRadiusSq(eventName)
   {
     const eventData = this.#GetData(this.#events, eventName);
@@ -117,7 +145,12 @@ export class AudStaticDataRepository extends CjsModel
     return eventData.maxAttenuationRadius * eventData.maxAttenuationRadius;
   }
 
-  /** Carbon method EventIsLoop. */
+  /**
+   * Returns the authored loop flag, or false when unknown.
+   *
+   * @param {string} eventName Event name.
+   * @returns {boolean} Whether the event loops.
+   */
   @carbon.method
   @impl.implemented
   EventIsLoop(eventName)
@@ -125,7 +158,12 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#events, eventName, "isLoop", false);
   }
 
-  /** Carbon method EventIs2D. */
+  /**
+   * Returns the authored 2D flag, or false when unknown.
+   *
+   * @param {string} eventName Event name.
+   * @returns {boolean} Whether the event is 2D.
+   */
   @carbon.method
   @impl.implemented
   EventIs2D(eventName)
@@ -133,7 +171,12 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#events, eventName, "is2D", false);
   }
 
-  /** Carbon method EventIsVital. */
+  /**
+   * Returns the authored vital flag, or false when unknown.
+   *
+   * @param {string} eventName Event name.
+   * @returns {boolean} Whether the event is vital.
+   */
   @carbon.method
   @impl.implemented
   EventIsVital(eventName)
@@ -141,7 +184,13 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#events, eventName, "isVital", false);
   }
 
-  /** Carbon method EventIsStopped: whether the second event stops the first. */
+  /**
+   * Checks whether the second event appears in the first event's stop list.
+   *
+   * @param {string} eventPotentiallyStopped Event whose stop list is queried.
+   * @param {string} eventPotentiallyStopping Potential stopping event.
+   * @returns {boolean} Whether the second event stops the first; false if the first is unknown.
+   */
   @carbon.method
   @impl.implemented
   EventIsStopped(eventPotentiallyStopped, eventPotentiallyStopping)
@@ -150,7 +199,12 @@ export class AudStaticDataRepository extends CjsModel
     return !!eventData && eventData.eventsStoppedBy.includes(String(eventPotentiallyStopping));
   }
 
-  /** Carbon method SourceIsEssential: keyed by numeric wem id. */
+  /**
+   * Returns the essential flag for a numeric WEM ID, or false when unknown.
+   *
+   * @param {number} sourceID WEM source ID.
+   * @returns {boolean} Whether the source is essential.
+   */
   @carbon.method
   @impl.implemented
   SourceIsEssential(sourceID)
@@ -158,7 +212,12 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#sources, sourceID, "isEssential", false);
   }
 
-  /** Carbon method SoundBankIsEssential. */
+  /**
+   * Returns the essential flag for a sound bank, or false when unknown.
+   *
+   * @param {string} soundBankName Sound-bank name.
+   * @returns {boolean} Whether the bank is essential.
+   */
   @carbon.method
   @impl.implemented
   SoundBankIsEssential(soundBankName)
@@ -166,7 +225,13 @@ export class AudStaticDataRepository extends CjsModel
     return this.#GetAttribute(this.#soundBanks, soundBankName, "isEssentialSoundBank", false);
   }
 
-  /** Carbon method SoundBanksRequiredForEvent: banks the event needs; empty when unknown. Treat as read-only. */
+  /**
+   * Returns the retained bank array, or a shared frozen empty array when unknown.
+   * Callers must not mutate the returned array.
+   *
+   * @param {string} eventName Event name.
+   * @returns {ReadonlyArray<string>} Required sound-bank names.
+   */
   @carbon.method
   @impl.implemented
   SoundBanksRequiredForEvent(eventName)

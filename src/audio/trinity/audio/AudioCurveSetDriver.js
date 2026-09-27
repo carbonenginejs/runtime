@@ -41,9 +41,19 @@ export class AudioCurveSetDriver extends CjsModel
 
   #registeredParameterName = "";
 
-  /** Carbon method GetCurveSetTime: refresh from the monitored-RTPC map; fall back to the curve when invalid. */
+  /**
+   * Refreshes the cached RTPC value and samples the fallback curve when invalid.
+   *
+   * Adapted: Carbon unconditionally queries g_audioManager
+   * (audio/src/AudioCurveSetDriver.cpp:37-54). JavaScript tolerates an absent
+   * manager or GetParameterInfo method and retains the cached value and existence
+   * flag when no information is returned.
+   *
+   * @param {number} time Time passed unchanged to the fallback curve.
+   * @returns {number} The fallback sample or cached audio parameter value.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetCurveSetTime(time)
   {
     const parameterInfo = AudGameObjResource.manager?.GetParameterInfo?.(this.audioParameterName);
@@ -59,7 +69,11 @@ export class AudioCurveSetDriver extends CjsModel
     return this.audioParameterValue;
   }
 
-  /** Carbon method IsValid: enabled manager + named + existing RTPC. */
+  /**
+   * Reports whether the manager is enabled and the named parameter was last found.
+   *
+   * @returns {boolean} Whether the monitored parameter is currently usable.
+   */
   @carbon.method
   @impl.implemented
   IsValid()
@@ -67,7 +81,11 @@ export class AudioCurveSetDriver extends CjsModel
     return !!AudGameObjResource.manager?.enabled && this.audioParameterName !== "" && this.#audioParameterExists;
   }
 
-  /** Carbon property getter GetAudioParameterName. */
+  /**
+   * Returns the monitored parameter name.
+   *
+   * @returns {string} Parameter name.
+   */
   @carbon.method
   @impl.implemented
   GetAudioParameterName()
@@ -75,9 +93,18 @@ export class AudioCurveSetDriver extends CjsModel
     return this.audioParameterName;
   }
 
-  /** Carbon method Initialize: registers the monitored parameter with the manager. */
+  /**
+   * Registers the named parameter once and remembers its owning manager.
+   *
+   * Adapted: Carbon registers on every Initialize call when the name is nonempty
+   * (audio/src/AudioCurveSetDriver.cpp:27-35). JavaScript tracks one registration
+   * for explicit disposal and skips registration when the manager is absent,
+   * uninitialized, or lacks RegisterParameter.
+   *
+   * @returns {boolean} Always true.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Initialize()
   {
     if (this.audioParameterName && !this.#registeredManager)
@@ -95,9 +122,19 @@ export class AudioCurveSetDriver extends CjsModel
     return true;
   }
 
-  /** Carbon method SetAudioParameterName: re-register under the new name. */
+  /**
+   * Releases the tracked registration and registers the new name when available.
+   *
+   * Adapted: Carbon unconditionally unregisters and registers through the current
+   * global manager (audio/src/AudioCurveSetDriver.cpp:67-72). JavaScript releases
+   * through the original manager, skips empty names or unavailable/uninitialized
+   * registration services, and tracks the new registration for explicit disposal.
+   *
+   * @param {string} name New parameter name; an empty name leaves it unregistered.
+   * @returns {void}
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetAudioParameterName(name)
   {
     const manager = AudGameObjResource.manager;
@@ -120,9 +157,18 @@ export class AudioCurveSetDriver extends CjsModel
     }
   }
 
-  /** Releases the monitored-parameter watcher owned by this driver. */
+  /**
+   * When registered, releases the watcher and clears the cached existence flag.
+   * Repeated disposal has no effect.
+   *
+   * Custom: JavaScript has no deterministic destructor. Owners call this method
+   * to release through the manager that registered the parameter, rather than
+   * Carbon's destructor using the current global manager and parameter name
+   * (audio/src/AudioCurveSetDriver.cpp:19-25). Missing unregister methods are skipped.
+   *
+   * @returns {void}
+   */
   @impl.custom
-  @impl.reason("JavaScript has no deterministic destructor; owners call Dispose to perform Carbon's destructor-time monitored-parameter release.")
   Dispose()
   {
     if (!this.#registeredManager)
