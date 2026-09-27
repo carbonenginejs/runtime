@@ -2249,10 +2249,8 @@ export class EveSpaceObject2 extends EveEntity
         mat4.multiply(transformed, source.childToObject, locatorTransform);
 
         const result = new Locator();
-        mat4.getTranslation(result.position, transformed);
-        mat4.getRotation(result.direction, transformed);
-        quat.normalize(result.direction, result.direction);
-        mat4.getScaling(result.scale, transformed);
+        // Carbon: Decompose(scale, direction, position, transform) (EveSpaceObject2.cpp:1932).
+        mat4.decomposeCarbon(transformed, result.direction, result.position, result.scale);
         result.boneIndex = -1;
         result.partTag = Number(locator.partTag) >>> 0;
         merged.locators.push(result);

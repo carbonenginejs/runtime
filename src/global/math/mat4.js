@@ -220,6 +220,8 @@ mat4.decomposeSigned = function (m, rotation, translation, scaling)
  *
  * Carbon: Decompose (math/src/Matrix.cpp:225-268, revision 540edbfb)
  * Carbon: RotationQuaternion(const Matrix&) (math/src/Quaternion.cpp:7-56)
+ * Matches the archived literal port (archive/math-carbon/src/matrix.js:1157) to
+ * float rounding; production does not import that archive.
  * Carbon's `m.m[r][c]` is `m[r * 4 + c]` in the shared byte layout, so no
  * transpose or operand swap is involved.
  *
