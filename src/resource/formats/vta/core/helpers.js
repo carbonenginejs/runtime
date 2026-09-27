@@ -221,6 +221,36 @@ function selectGrids(description, grid)
  */
 export async function decodeVolumes(bytes, values)
 {
+    let result = null;
+    for await (const payload of decodeVolumeFrames(bytes, values))
+    {
+        if (!result)
+        {
+            result = payload;
+        }
+        else
+        {
+            for (let grid = 0; grid < result.grids.length; grid++)
+            {
+                result.grids[grid].frames.push(payload.grids[grid].frames[0]);
+            }
+        }
+    }
+    return result;
+}
+
+/**
+ * Advances each selected grid's delta decoder once per requested frame.
+ * Working buffers retain only the preceding frame; yielded frames are detached
+ * copies so the consumer may upload or retain them while decoding continues.
+ * Mirrors ImageIO::Vta::FrameDecoder's Restart/AdvanceFrame sequence.
+ *
+ * @param {Uint8Array} bytes Whole VTA file.
+ * @param {object} values Normalized options; allFrames emits each frame, otherwise only frame.
+ * @returns {AsyncGenerator<object>} Volume payloads containing one frame per grid.
+ */
+export async function* decodeVolumeFrames(bytes, values)
+{
     const description = inspectBytes(bytes);
     const lastFrame = values.allFrames ? description.frameCount - 1 : values.frame;
     if (description.frameCount === 0)
@@ -229,32 +259,26 @@ export async function decodeVolumes(bytes, values)
     }
     if (lastFrame >= description.frameCount)
     {
-        throw new Error(`CjsVtaFormat frame ${lastFrame} is out of range 0..${description.frameCount - 1}.`);
+        throw new Error("CjsVtaFormat frame " + lastFrame + " is out of range 0.." + (description.frameCount - 1) + ".");
     }
-
-    const grids = [];
-    for (const { info, index } of selectGrids(description, values.grid))
+    const decoders = selectGrids(description, values.grid).map(({ info, index }) => ({
+        info, index, working: new Uint8Array(info.width * info.height * info.depth * bytesPerPixel(info.format))
+    }));
+    for (let frame = 0; frame <= lastFrame; frame++)
     {
-        const
-            voxelCount = info.width * info.height * info.depth * bytesPerPixel(info.format),
-            working = new Uint8Array(voxelCount),
-            frames = [];
-
-        for (let frame = 0; frame <= lastFrame; frame++)
+        const grids = [];
+        for (const { info, index, working } of decoders)
         {
-            const
-                blobIndex = frame * description.gridCount + index,
-                begin = description.offsets[blobIndex],
-                end = blobIndex + 1 === description.offsets.length
-                    ? description.dataEnd
-                    : description.offsets[blobIndex + 1],
-                inflated = await decompressBytes(bytes.subarray(begin, end), "deflate");
-
+            const blobIndex = frame * description.gridCount + index;
+            const begin = description.offsets[blobIndex];
+            const end = blobIndex + 1 === description.offsets.length
+                ? description.dataEnd : description.offsets[blobIndex + 1];
+            const inflated = await decompressBytes(bytes.subarray(begin, end), "deflate");
             if (info.encoding === VTA_ENCODING.NONE)
             {
-                if (inflated.length !== voxelCount)
+                if (inflated.length !== working.length)
                 {
-                    throw new Error(`CjsVtaFormat frame ${frame} inflated to ${inflated.length} bytes; expected ${voxelCount}.`);
+                    throw new Error("CjsVtaFormat frame " + frame + " inflated to " + inflated.length + " bytes; expected " + working.length + ".");
                 }
                 working.set(inflated);
             }
@@ -262,33 +286,24 @@ export async function decodeVolumes(bytes, values)
             {
                 decodeRle7(inflated, working, frame === 0 ? null : working);
             }
-
             if (values.allFrames || frame === lastFrame)
             {
-                frames.push(new Uint8Array(working));
+                grids.push({
+                    name: info.name, format: "r8unorm", encoding: info.encoding,
+                    width: info.width, height: info.height, depth: info.depth,
+                    firstFrame: frame, frames: [new Uint8Array(working)]
+                });
             }
         }
-
-        grids.push({
-            name: info.name,
-            format: "r8unorm",
-            encoding: info.encoding,
-            width: info.width,
-            height: info.height,
-            depth: info.depth,
-            firstFrame: values.allFrames ? 0 : lastFrame,
-            frames
-        });
+        if (values.allFrames || frame === lastFrame)
+        {
+            yield {
+                sourceFormat: "vta", version: description.version,
+                gridCount: description.gridCount, frameCount: description.frameCount,
+                metadata: description.metadata, grids
+            };
+        }
     }
-
-    return {
-        sourceFormat: "vta",
-        version: description.version,
-        gridCount: description.gridCount,
-        frameCount: description.frameCount,
-        metadata: description.metadata,
-        grids
-    };
 }
 
 /** Inspect entry shared by the instance and static surfaces. */

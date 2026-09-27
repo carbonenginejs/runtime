@@ -1,123 +1,438 @@
 // Source: trinity/trinity/Tr2TextureAnimation.h
-// Hand-maintained from Carbon source, promoted out of generated intake.
+// Source: trinity/trinity/Tr2TextureAnimation.cpp
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
+import { blue } from "#blue";
+import { BitmapDimensions } from "#imageio";
+import { PixelFormat, TextureType, Tr2GpuUsage, Tr2CpuUsage } from "#consts/render-context";
+import { CjsVtaFormat } from "../../../resource/formats/vta/CjsVtaFormat.js";
+import { Tr2SubresourceData } from "../../../trinityal/Tr2HalHelperStructures/Tr2SubresourceData.js";
+import { Tr2TextureSubresource } from "../../../trinityal/Tr2HalHelperStructures/Tr2TextureSubresource.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
 
 /** Advances a multi-channel texture flipbook, tracking frame and restart state per channel. */
 @type.define({ className: "Tr2TextureAnimation", family: "trinityCore" })
 export class Tr2TextureAnimation extends CjsModel
 {
+  _channels = new Map();
 
-  #channels = new Map();
+  _grids = [];
 
-  /** m_fps (float) [READWRITE, PERSIST] */
+  _asyncState = null;
+
+  _restartState = 0;
+
   @edit.readwrite
   @edit.persist
   @type.float32
   fps = 1;
 
-  /** m_frame (uint32_t) [READ] */
   @edit.read
   @type.uint32
   frame = 0;
 
-  /** m_time (float) [READ] */
   @edit.read
   @type.float32
   time = 0;
 
-  /** m_paused (bool) [READWRITE, PERSIST] */
   @edit.readwrite
   @edit.persist
   @type.boolean
   paused = false;
 
-  /** m_updateOnlyWhenRendered (bool) [READWRITE, PERSIST] */
   @edit.readwrite
   @edit.persist
   @type.boolean
   updateOnlyWhenRendered = true;
 
-  /** m_filename (std::wstring) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
   @edit.readwrite
   @edit.persist
   @type.string
   resPath = "";
 
-  /** m_looped (bool) [READWRITE, PERSIST] */
   @edit.readwrite
   @edit.persist
   @type.boolean
   looped = true;
 
-  /** Carbon method GetChannelNames (MAP_METHOD_AND_WRAP). */
   /**
-   * The names of the animated texture channels.
+   * Starts loading the authored VTA.
+   *
+   * Adapted: Schedules promise-based reads and decoding instead of native queues.
+   * @returns {boolean} True; asynchronous failures are reported by the load task.
+   */
+  @carbon.method
+  @impl.adapted
+  Initialize()
+  {
+    this.ReadData();
+    return true;
+  }
+
+  /**
+   * Reloads after a notification, matching Carbon's unconditional reload hook.
+   *
+   * Adapted: Uses promise-based resource reads instead of a native worker queue.
+   * @returns {boolean} True.
+   */
+  @carbon.method
+  @impl.adapted
+  OnModified()
+  {
+    this.ReadData();
+    return true;
+  }
+
+  /**
+   * Cancels the previous load, releases owned textures and reads the current path.
+   *
+   * Adapted: The shared resource manager supplies bytes through its injected
+   * sources; CjsVtaFormat streams decoded frames. No filesystem access is owned
+   * here. Low-detail VTA path substitution is not yet connected to the LOD manager.
+   * @returns {Promise<boolean>} Whether the initial frame decoded successfully.
+   */
+  @carbon.method
+  @impl.adapted
+  ReadData()
+  {
+    this._clear();
+    if (!this.resPath)
+    {
+      return Promise.resolve(true);
+    }
+    this._asyncState = { cancel: false, bitmapsReady: false, bytes: null, decoder: null, frameData: null, pending: null, error: null };
+    return this._queue(Tr2TextureAnimation.readFile);
+  }
+
+  /**
+   * Captures the request's path and state, marking its decoded frame unavailable.
+   *
+   * Adapted: A JavaScript record replaces the native shared-state request object.
+   * @returns {object} Request record.
+   */
+  @carbon.method
+  @impl.adapted
+  MakeRequest()
+  {
+    this._asyncState.bitmapsReady = false;
+    return { filename: this.resPath, state: this._asyncState };
+  }
+
+  /**
+   * Realizes frame zero and advances at most one ready frame per call.
+   *
+   * Adapted: Uses the ambient render context and asynchronous format iterator.
+   * The strict time > 1 threshold, remainder, pause and restart ordering match
+   * Carbon. Texture identity stays stable across frame uploads.
+   * @param {number} dt Elapsed seconds.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  AdvanceTime(dt)
+  {
+    const state = this._asyncState;
+    if (!state)
+    {
+      return;
+    }
+    if (state.bitmapsReady && this._grids.length === 0)
+    {
+      const context = Tr2RenderContext_GetMainThreadRenderContext();
+      for (const grid of state.frameData.grids)
+      {
+        const dimensions = new BitmapDimensions({
+          type: TextureType.TEX_TYPE_3D, format: PixelFormat.PIXEL_FORMAT_R8_UNORM,
+          width: grid.width, height: grid.height, depth: grid.depth, mipCount: 1
+        });
+        const texture = context.CreateTexture(dimensions, {
+          gpuUsage: Tr2GpuUsage.SHADER_RESOURCE, cpuUsage: Tr2CpuUsage.WRITE,
+          initialData: [new Tr2SubresourceData(grid.frames[0], grid.width, grid.width * grid.height)]
+        });
+        if (!texture)
+        {
+          console.error("Tr2TextureAnimation failed to create texture", this.resPath, grid.name);
+        }
+        this._grids.push({ name: grid.name, frame: texture });
+      }
+      this.frame = 0;
+      this.time = 0;
+      this._restartState = Tr2TextureAnimation.RestartState.NotRestarting;
+      this._queue(Tr2TextureAnimation.decodeNextFrame);
+    }
+    if (this._grids.length === 0)
+    {
+      return;
+    }
+    if (this._restartState === Tr2TextureAnimation.RestartState.WaitingToRestart)
+    {
+      if (state.bitmapsReady)
+      {
+        this._queue(Tr2TextureAnimation.restartAndDecodeFrame);
+        this._restartState = Tr2TextureAnimation.RestartState.WaitingForFrame;
+      }
+      return;
+    }
+    if (this._restartState === Tr2TextureAnimation.RestartState.WaitingForFrame)
+    {
+      if (state.bitmapsReady)
+      {
+        this.UpdateGrids();
+        this._queue(Tr2TextureAnimation.decodeNextFrame);
+        this.frame = 0;
+        this.time = 0;
+        this._restartState = Tr2TextureAnimation.RestartState.NotRestarting;
+      }
+      return;
+    }
+    if (!this.paused)
+    {
+      this.time = Math.fround(this.time + Math.fround(dt * this.fps));
+      if (this.time > 1 && state.bitmapsReady)
+      {
+        this.frame++;
+        if (this.frame >= state.frameData.frameCount)
+        {
+          if (!this.looped)
+          {
+            this.frame--;
+            this.time = 1;
+            return;
+          }
+          this.frame = 0;
+        }
+        this.time %= 1;
+        this.UpdateGrids();
+        this._queue(Tr2TextureAnimation.decodeNextFrame);
+      }
+    }
+  }
+
+  /**
+   * Uploads the decoded frame to each existing volume texture.
+   *
+   * Adapted: Calls the active AL backend through the ambient render context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  UpdateGrids()
+  {
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    for (let i = 0; i < this._grids.length; i++)
+    {
+      const grid = this._asyncState.frameData.grids[i];
+      const texture = this._grids[i].frame;
+      if (texture)
+      {
+        texture.UpdateSubresource(Tr2TextureSubresource.ForMipLevel(0), grid.frames[0], grid.width, grid.width * grid.height, context);
+      }
+    }
+  }
+
+  /**
+   * Schedules frame zero once the pending decode finishes.
+   *
+   * Adapted: Promises replace native worker tasks. Legacy SetChannels attachments
+   * retain their synchronous Restart/Reset adapter behavior when no VTA is loaded.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  RestartAnimation()
+  {
+    if (!this._asyncState)
+    {
+      this.frame = 0;
+      this.time = 0;
+      for (const channel of this._channels.values())
+      {
+        if (typeof channel?.Restart === "function") channel.Restart();
+        else if (typeof channel?.Reset === "function") channel.Reset();
+      }
+      return;
+    }
+    if (this._restartState === Tr2TextureAnimation.RestartState.NotRestarting)
+    {
+      if (this._asyncState.bitmapsReady)
+      {
+        this._queue(Tr2TextureAnimation.restartAndDecodeFrame);
+        this._restartState = Tr2TextureAnimation.RestartState.WaitingForFrame;
+      }
+      else
+      {
+        this._restartState = Tr2TextureAnimation.RestartState.WaitingToRestart;
+      }
+    }
+  }
+
+  /**
+   * Returns names of realized channels in file order.
+   *
+   * Adapted: Returns a JavaScript array instead of a vector of shared strings.
+   * @returns {string[]} Channel names.
    */
   @carbon.method
   @impl.adapted
   GetChannelNames()
   {
-    return Array.from(this.#channels.keys());
+    return this._asyncState ? this._grids.map(grid => grid.name) : Array.from(this._channels.keys());
   }
 
-  /** Carbon method RestartAnimation (MAP_METHOD_AND_WRAP). */
+  /**
+   * Returns the current channel texture, or null if it is unavailable.
+   *
+   * Adapted: Returns the live AL object instead of a native shared-handle copy.
+   * @param {string} channel Channel name.
+   * @returns {object|null} Texture handle.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("The browser resets its CPU frame clock and delegates decoder rewind to attached channel adapters instead of Carbon's VTA worker thread.")
-  RestartAnimation()
+  GetTexture(channel)
   {
-    this.frame = 0;
-    this.time = 0;
-    for (const channel of this.#channels.values())
+    if (this._asyncState)
     {
-      if (typeof channel?.Restart === "function")
-      {
-        channel.Restart();
-      }
-      else
-      {
-        channel?.Reset?.();
-      }
+      return this._grids.find(grid => grid.name === channel)?.frame ?? null;
     }
+    const value = this._channels.get(String(channel ?? ""));
+    return value?.texture ?? value ?? null;
   }
 
-  /** Attaches already-decoded browser VTA channel adapters. */
-  @impl.adapted
+  /** @returns {boolean} Whether the owner should advance only when rendered. */
+  @carbon.method
+  @impl.implemented
+  UpdateOnlyWhenRendered()
+  {
+    return this.updateOnlyWhenRendered;
+  }
+
+  /**
+   * Attaches caller-owned channel adapters without loading a VTA.
+   *
+   * Custom: Preserves the decoded-channel integration API; these adapters remain
+   * caller-owned and are not destroyed with this animation.
+   * @param {Map<string, object>|Object<string, object>} channels Channel adapters.
+   * @returns {void}
+   */
+  @impl.custom
   SetChannels(channels)
   {
-    this.#channels.clear();
-    if (channels instanceof Map)
+    this._clear();
+    const entries = channels instanceof Map ? channels : Object.entries(channels ?? {});
+    for (const [name, channel] of entries)
     {
-      for (const [name, channel] of channels)
-      {
-        this.#channels.set(String(name), channel);
-      }
-    }
-    else if (channels && typeof channels === "object")
-    {
-      for (const [name, channel] of Object.entries(channels))
-      {
-        this.#channels.set(name, channel);
-      }
+      this._channels.set(String(name), channel);
     }
   }
 
   /**
-   * The texture currently showing on one animated channel.
+   * Cancels pending tasks and releases textures owned by this animation.
+   *
+   * Custom: Explicit disposal provides Carbon's destructor cleanup in JavaScript.
+   * @returns {void}
    */
-  @impl.adapted
-  GetTexture(channel)
+  @impl.custom
+  Destroy()
   {
-    const value = this.#channels.get(String(channel ?? ""));
-    return value?.texture ?? value ?? null;
+    this._clear();
   }
 
-  static RestartState = Object.freeze({
-    NotRestarting: 0,
-    WaitingToRestart: 1,
-    WaitingForFrame: 2,
-  });
+  /** Clears state without releasing caller-owned SetChannels adapters. */
+  _clear()
+  {
+    if (this._asyncState) this._asyncState.cancel = true;
+    this._asyncState = null;
+    for (const grid of this._grids)
+    {
+      if (grid.frame) grid.frame.Destroy();
+    }
+    this._grids.length = 0;
+    this._channels.clear();
+  }
 
+  /** Schedules one decode task and reports failures without unhandled rejections. */
+  _queue(operation)
+  {
+    const request = this.MakeRequest();
+    request.state.pending = Promise.resolve().then(() => operation.call(Tr2TextureAnimation, request)).then(() => !request.state.cancel).catch(error =>
+    {
+      if (!request.state.cancel)
+      {
+        request.state.error = error;
+        console.error("Tr2TextureAnimation decode failed", request.filename, error);
+      }
+      return false;
+    });
+    return request.state.pending;
+  }
+
+  /**
+   * Loads cached source bytes, then decodes frame zero.
+   * Adapted: The resource manager and DecompressionStream replace native IO tasks.
+   * @param {object} request Captured load request.
+   * @returns {Promise<void>} Completion of the first decode.
+   */
+  @carbon.renamed("ReadFile")
+  @impl.adapted
+  static async readFile(request)
+  {
+    const bytes = await blue.resMan.ReadResource(request.filename);
+    if (request.state.cancel) return;
+    request.state.bytes = bytes;
+    await this.decodeFirstFrame(request);
+  }
+
+  /**
+   * Creates fresh grid decoders and prepares frame zero.
+   * Adapted: Uses the format's asynchronous frame iterator.
+   * @param {object} request Captured load request.
+   * @returns {Promise<void>} Decode completion.
+   */
+  @carbon.renamed("DecodeFirstFrame")
+  @impl.adapted
+  static async decodeFirstFrame(request)
+  {
+    request.state.decoder = CjsVtaFormat.readFrames(request.state.bytes);
+    await this.decodeNextFrame(request);
+  }
+
+  /**
+   * Prepares the next frame, restarting the delta chain at end of file.
+   * Adapted: Uses promise completion instead of an atomic worker-ready flag.
+   * @param {object} request Captured load request.
+   * @returns {Promise<void>} Decode completion.
+   */
+  @carbon.renamed("DecodeNextFrame")
+  @impl.adapted
+  static async decodeNextFrame(request)
+  {
+    const state = request.state;
+    if (state.cancel) return;
+    let next = await state.decoder.next();
+    if (state.cancel) return;
+    if (next.done)
+    {
+      state.decoder = CjsVtaFormat.readFrames(state.bytes);
+      next = await state.decoder.next();
+    }
+    if (state.cancel) return;
+    state.frameData = next.value;
+    state.bitmapsReady = true;
+  }
+
+  /**
+   * Rewinds the format decoder and prepares frame zero.
+   * Adapted: Recreates the asynchronous iterator instead of native decoder reset.
+   * @param {object} request Captured load request.
+   * @returns {Promise<void>} Decode completion.
+   */
+  @carbon.renamed("RestartAndDecodeFrame")
+  @impl.adapted
+  static async restartAndDecodeFrame(request)
+  {
+    await this.decodeFirstFrame(request);
+  }
+
+  static RestartState = Object.freeze({ NotRestarting: 0, WaitingToRestart: 1, WaitingForFrame: 2 });
 }

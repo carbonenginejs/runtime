@@ -640,7 +640,7 @@ export class CjsWebgpuTextureAL
       { texture: this.m_texture, mipLevel: mip, origin: { x: 0, y: 0, z: layer } },
       source,
       { offset: 0, bytesPerRow: pitch, rowsPerImage: pitch ? Math.max(1, Math.floor((slicePitch || source.byteLength) / pitch)) : undefined },
-      { width: this.m_desc.GetMipWidth(mip), height: this.m_desc.GetMipHeight(mip), depthOrArrayLayers: 1 }
+      { width: this.m_desc.GetMipWidth(mip), height: this.m_desc.GetMipHeight(mip), depthOrArrayLayers: this.m_desc.GetType() === TextureType.TEX_TYPE_3D ? this.m_desc.GetMipDepth(mip) : 1 }
     );
 
     return ALResult.S_OK;

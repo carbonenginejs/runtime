@@ -2,6 +2,7 @@ import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import {
     DEFAULT_VALUES,
+    decodeVolumeFrames,
     OUTPUT_JSON,
     OUTPUT_RAW,
     OUTPUT_VOLUME,
@@ -189,16 +190,30 @@ export class CjsVtaFormat extends CjsFormat
     }
 
     /**
-     * Grid payload encodings. Rle7/Rle7_5/Rle6 differ only in the encoder's
-     * quantization; one decoder serves all three.
+     * Streams selected grids from frame zero, retaining only decoder working data.
+     * Each yielded volume payload contains one detached frame per grid.
+     *
+     * @param {Uint8Array|ArrayBuffer|DataView} input VTA bytes.
+     * @param {object} [options] Grid selection; decoding always starts at frame zero.
+     * @returns {AsyncGenerator<object>} Sequential volume payloads.
      */
-
-    /** The only VTA container version Carbon ever wrote. */
+    static readFrames(input, options = {})
+    {
+        const values = normalizeValues(DEFAULT_VALUES, { ...options, emit: OUTPUT_VOLUME, allFrames: true, frame: 0 }, FORMAT_NAME);
+        return decodeVolumeFrames(asUint8Array(input, "VTA input"), values);
+    }
 
     /**
-     * Emit targets for this format (canonical frozen enum).
+     * Streams frames using this profile's grid selection.
+     *
+     * @param {Uint8Array|ArrayBuffer|DataView} input VTA bytes.
+     * @param {object} [options] Per-call grid selection.
+     * @returns {AsyncGenerator<object>} Sequential volume payloads.
      */
-
+    ReadFrames(input, options = {})
+    {
+        return CjsVtaFormat.readFrames(input, this.GetValues(options));
+    }
 
     static id = "CjsVtaFormat";
 

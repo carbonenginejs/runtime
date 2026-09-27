@@ -97,6 +97,42 @@ quat.fromYawPitchRoll = function(out, yaw, pitch, roll)
     return out;
 };
 
+/**
+ * Ports TriQuaternionRotationArc and TriQuaternionSqrt (Trinity TriMath.cpp:263-338).
+ * Normalizes both directions, then takes the native quaternion square root.
+ * The antiparallel fallback is always a half-turn about X, even for an X input
+ * axis; this native quirk differs from gl-matrix rotationTo.
+ *
+ * @param {Float32Array} out Destination quaternion.
+ * @param {ArrayLike<number>} from Starting direction.
+ * @param {ArrayLike<number>} to Target direction.
+ * @returns {Float32Array} The destination quaternion.
+ */
+quat.rotationArc = function(out, from, to)
+{
+    const fromLength = Math.hypot(from[0], from[1], from[2]);
+    const toLength = Math.hypot(to[0], to[1], to[2]);
+    const fx = fromLength ? from[0] / fromLength : 0;
+    const fy = fromLength ? from[1] / fromLength : 0;
+    const fz = fromLength ? from[2] / fromLength : 0;
+    const tx = toLength ? to[0] / toLength : 0;
+    const ty = toLength ? to[1] / toLength : 0;
+    const tz = toLength ? to[2] / toLength : 0;
+    // Carbon (row-vector): pure(from) * conjugate(pure(to)). Reversing the
+    // quaternion operands for gl-matrix gives cross(from,to) and dot(from,to).
+    quat.set(out, fy * tz - fz * ty, fz * tx - fx * tz, fx * ty - fy * tx, fx * tx + fy * ty + fz * tz);
+    if (out[3] + Math.fround(0.99999) < 0)
+    {
+        const x = out[0] * 1000000;
+        const y = out[1] * 1000000;
+        const z = out[2] * 1000000;
+        const length = Math.hypot(x, y, z);
+        return length ? quat.set(out, x / length, y / length, z / length, 0) : quat.set(out, 1, 0, 0, 0);
+    }
+    out[3] += 1;
+    return quat.normalize(out, out);
+};
+
 export const {
     add,
     calculateW,
@@ -128,6 +164,7 @@ export const {
     rotateY,
     rotateZ,
     rotationTo,
+    rotationArc,
     scale,
     set,
     setAxes,

@@ -333,6 +333,7 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       this._sampleLayer(layer, this._additiveMode);
     }
+    this.UpdateAimingBone(this._GetPoseModifierView().skeleton);
     // Carbon PrePhysicsAnimation (cpp:1704-1723) runs ModifyPose after
     // sampling and before bone offsets. Carbon restores m_sampledPose before
     // sampling so the modifier never compounds onto its own output; the
@@ -476,16 +477,67 @@ export class Tr2GrannyAnimation extends CjsModel
     return true;
   }
 
-  /** Carbon method AimBone (MAP_METHOD_AND_WRAP). */
+  /**
+   * Aims a named bone axis toward a target in skeleton coordinates on each update.
+   *
+   * Adapted: Stores the native vectors in gl-matrix arrays. The correction is
+   * applied after sampling and before pose modifiers and bone offsets.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("The browser graph retains Carbon's aim request; final IK realization can be refined by an engine adapter.")
   AimBone(boneName, targetX, targetY, targetZ, axisX, axisY, axisZ)
   {
     this._aimingBone = true;
     this._aimBone = String(boneName ?? "");
     vec3.set(this._aimBoneOrientation, targetX, targetY, targetZ);
     vec3.set(this._aimAxis, axisX, axisY, axisZ);
+  }
+
+  /**
+   * Replaces the first matching bone's local rotation with the aiming correction.
+   *
+   * Adapted: Uses the decoded runtime skeleton and gl-matrix world transforms.
+   * Native quirk (Tr2GrannyAnimation.cpp:1639): parent transpose is used even
+   * under non-uniform scale. Do not substitute a true inverse.
+   *
+   * @param {object} skeleton Skeleton view containing ordered bone names.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.adapted
+  UpdateAimingBone(skeleton)
+  {
+    if (!this._aimingBone || !this._runtimeModel)
+    {
+      return;
+    }
+    const name = this._aimBone.toLowerCase();
+    const index = skeleton.bones.findIndex(boneName => boneName.toLowerCase() === name);
+    if (index < 0)
+    {
+      return;
+    }
+    this._composePose();
+    const bone = this._runtimeModel.bones[index];
+    const world = bone.worldTransform;
+    const direction = vec3.fromValues(
+      this._aimBoneOrientation[0] - world[12],
+      this._aimBoneOrientation[1] - world[13],
+      this._aimBoneOrientation[2] - world[14]
+    );
+    vec3.normalize(direction, direction);
+    if (bone.parentIndex >= 0)
+    {
+      const parent = this._runtimeModel.bones[bone.parentIndex].worldTransform;
+      const x = direction[0], y = direction[1], z = direction[2];
+      // TransformNormal(direction, Transpose(parentWorld)); no translation.
+      vec3.set(direction,
+        parent[0] * x + parent[1] * y + parent[2] * z,
+        parent[4] * x + parent[5] * y + parent[6] * z,
+        parent[8] * x + parent[9] * y + parent[10] * z);
+      vec3.normalize(direction, direction);
+    }
+    quat.rotationArc(bone.orientation, this._aimAxis, direction);
   }
 
   /** Carbon method ChainAnimation (MAP_METHOD_AND_WRAP). */
