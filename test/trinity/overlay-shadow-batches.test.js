@@ -231,6 +231,8 @@ test("an overlay block batch carries the mesh's vertex declaration", () =>
 
   assert.notEqual(expected, 0, "the control declaration must not be handle 0");
   assert.equal(batch.vertexDeclaration, expected);
+  assert.equal(batch.geometrySource.lod, object.mesh.geometry.GetMeshLod(0, Infinity),
+    "the resolved LOD rides on the source, so submit realizes that LOD");
 });
 
 test("an overlay walk with no resolvable LOD commits nothing", () =>

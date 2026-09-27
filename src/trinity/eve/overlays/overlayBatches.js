@@ -3,6 +3,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstancedMeshes.cpp
 import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 import { EveMeshOverlayEffect } from "./EveMeshOverlayEffect.js";
 
 
@@ -112,6 +114,13 @@ export function EmitDamageOverlayBatches(
 }
 
 
+/**
+ * One overlay block batch (EveMeshOverlayEffect.cpp:338-351): the LOD's mesh
+ * declaration and allocations, drawn over the block's areas. The declaration
+ * is interned from the mesh's decoded elements, as Tr2MeshBase's area batches
+ * do; the LOD rides on the geometry source so the render context realizes
+ * the same LOD the draw arguments were resolved against.
+ */
 function CommitOverlayBlock(
   accumulator,
   perObjectData,
@@ -126,7 +135,14 @@ function CommitOverlayBlock(
   batch.SetMaterial(material);
   if (!batch.IsValid()) return false;
 
-  batch.SetGeometrySource(geometry, meshIndex, block.startIndex, block.count, false);
+  batch.SetGeometrySource(geometry, meshIndex, block.startIndex, block.count, false, lod);
+
+  const elements = CarbonVertexElements(geometry.GetMeshVertexElements(meshIndex));
+  if (elements.length)
+  {
+    batch.SetVertexDeclaration(Tr2EffectStateManager.getVertexDeclarationHandle(elements));
+  }
+
   batch.SetPerObjectData(perObjectData);
   if (priority !== 0) batch.SetPriority(priority);
 

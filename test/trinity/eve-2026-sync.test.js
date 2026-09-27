@@ -37,6 +37,8 @@ import {
 import { Tr2Lod } from "../../npm/dist/global/consts/trinity.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
+import { CarbonVertexElements } from "../../npm/dist/trinity/core/index.js";
+import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 
 
 const EPSILON = 1e-5;
@@ -332,6 +334,18 @@ test("child meshes emit own overlays before inherited parent overlays", () =>
     accumulator, {}, TriBatchType.TRIBATCHTYPE_OPAQUE), true);
   assert.deepEqual(accumulator.batches.map(batch => batch.material),
     [ ownMaterial, parentMaterial ]);
+
+  // EveMeshOverlayEffect.cpp:343: the block batch binds the LOD's mesh
+  // declaration and allocations. Without the declaration the realized batch
+  // has no input layout; without the LOD it realizes LOD 0 whatever LOD the
+  // draw arguments came from.
+  const expectedDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(
+    CarbonVertexElements(geometry.GetMeshVertexElements(0)));
+  for (const batch of accumulator.batches)
+  {
+    assert.equal(batch.vertexDeclaration, expectedDeclaration);
+    assert.ok(batch.geometrySource.lod, "the resolved LOD rides on the source");
+  }
 
   child.inheritOverlayEffects = false;
   child.UpdateAsyncronous(context, {

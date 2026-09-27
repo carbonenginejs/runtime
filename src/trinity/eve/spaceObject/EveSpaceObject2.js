@@ -22,13 +22,12 @@ import { EveComponentType, ShouldReflect } from "../EveComponentTypes.js";
 import { ImpactConfiguration } from "../../generated/include/enums.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
+import { EmitDamageOverlayBatches, EmitOverlayBatches } from "../overlays/overlayBatches.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
-import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
-import { CarbonVertexElements } from "../../core/vertex/vertexUsage.js";
 import { RawData } from "../../core/rawData/RawData.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
@@ -1508,11 +1507,11 @@ export class EveSpaceObject2 extends EveEntity
   /** Carbon ITr2Renderable contract (EveSpaceObject2.cpp:1097-1140): activated
    * attachments recurse, the impact overlay contributes, the hull mesh delegates
    * per batch type, and TRANSPARENT routes through the distance-sorted area
-   * path. GetBatchesFromOverlayVector (precomputed overlay area blocks) is
-   * deferred with the overlay realization work. */
+   * path, then GetBatchesFromOverlayVector adds the overlay batches. Adapted:
+   * the view position arrives via the appended render-context argument instead
+   * of Carbon's renderer global. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Overlay area-block batches are deferred; the view position arrives via the appended render-context argument instead of Carbon's renderer global.")
   GetBatches(batches, batchType, perObjectData, reason, renderContext = null)
   {
     if (!this.mesh)
@@ -1774,108 +1773,37 @@ export class EveSpaceObject2 extends EveEntity
     return committed;
   }
 
-  /** Carbon GetBatchesFromOverlayVector (EveSpaceObject2.cpp:1199-1285): the
+  /** Carbon GetBatchesFromOverlayVector (EveSpaceObject2.cpp:1236-1265): the
    * impact overlay's armor-damage shader draws over the TYPE_ALL blocks at
-   * maximum priority; each displayed overlay effect draws its per-batch-type
-   * effects over its overlay-type blocks (OPAQUE -> TYPE_OPAQUEONLY, everything
-   * else -> TYPE_ALL). */
+   * maximum priority, then each overlay effect draws over its overlay-type
+   * blocks, through the shared EmitDamageOverlayBatches/EmitOverlayBatches.
+   * The cached blocks are rebuilt lazily (see RebuildCachedData). */
   @carbon.method
   @impl.adapted
-  @impl.reason("Overlay selection is fully represented in the CPU graph; realized-LOD draw arguments are not ported yet.")
   GetBatchesFromOverlayVector(batches, perObjectData, batchType, mesh)
   {
-    const impactEffect = this.impactOverlay?.GetArmorDamageShader?.(batchType) ?? null;
+    const impactEffect = this.impactOverlay?.GetArmorDamageShader(batchType) ?? null;
     if (!impactEffect && !this.overlayEffects.length) return false;
-    if (!mesh) return false;
     this.#EnsureCachedAreaBlocks();
 
-    const committedBefore = batches.GetBatchCount?.() ?? 0;
+    const geometry = mesh.GetGeometryResource();
+    if (!geometry || !geometry.IsGood()) return false;
 
-    const geometry = mesh.GetGeometryResource() ?? null;
-    if (!geometry || geometry.IsGood() === false) return false;
-    const meshIndex = mesh.meshIndex ?? 0;
-
-    // Carbon resolves the LOD ONCE for the whole overlay walk
-    // (EveSpaceObject2.cpp:1198) and returns early when there is none. Resolving
-    // it per block instead re-walks the LOD list for every block of every effect
-    // of every overlay; EveChildMesh already hoists it, and this path was the
-    // outlier.
-    const lod = geometry.GetMeshLod?.(meshIndex, this.#meshScreenSize) ?? null;
+    const meshIndex = mesh.GetMeshIndex();
+    const lod = geometry.GetMeshLod(meshIndex, this.#meshScreenSize);
     if (!lod) return false;
 
-    // Carbon binds lod->m_mesh->m_vertexDeclarationHandle onto every block batch
-    // exactly as onto a mesh area batch (cpp:1214). Leaving it zero makes every
-    // overlay look like one declaration, and the handle is what binning and
-    // sorting compare - so blocks of different layouts would share a bin.
-    const overlayElements = CarbonVertexElements(geometry.GetMeshVertexElements?.(meshIndex));
-    const overlayDeclaration = overlayElements.length
-      ? Tr2EffectStateManager.getVertexDeclarationHandle(overlayElements)
-      : 0;
-
+    let committed = false;
     if (impactEffect)
     {
-      for (const block of this.#overlayMeshAreaBlocks[OVERLAY_TYPE_ALL])
-      {
-        this.#CommitBlockBatch(
-          batches, impactEffect, geometry, meshIndex, block, perObjectData, 0xFFFFFFFF, lod, overlayDeclaration);
-      }
+      committed = EmitDamageOverlayBatches(
+        batches, perObjectData, impactEffect, this.#overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
     }
 
-    for (const overlay of this.overlayEffects)
-    {
-      const effects = this.#OverlayEffectsFor(overlay, batchType);
-      if (!effects) continue;
-
-      const overlayType = overlay.GetType(batchType);
-      const blocks = this.#overlayMeshAreaBlocks[overlayType];
-      for (const effect of effects)
-      {
-        for (const block of blocks)
-        {
-          this.#CommitBlockBatch(
-            batches, effect, geometry, meshIndex, block, perObjectData, 0, lod, overlayDeclaration);
-        }
-      }
-    }
-
-    return (batches.GetBatchCount?.() ?? 0) > committedBefore;
-  }
-
-  /**
-   * Builds and commits one render batch drawing a single cached area block with
-   * the given material and optional priority, skipping the block when the
-   * material yields no valid batch.
-   */
-  #CommitBlockBatch(batches, material, geometry, meshIndex, block, perObjectData, priority, lod, vertexDeclaration)
-  {
-    const batch = new Tr2RenderBatch();
-    batch.SetMaterial(material);
-    if (!batch.IsValid()) return;
-    if (priority !== 0) batch.SetPriority(priority);
-    batch.SetGeometrySource(geometry, meshIndex, block.startIndex, block.count, false);
-    batch.SetVertexDeclaration(vertexDeclaration);
-    batch.SetPerObjectData(perObjectData ?? null);
-    const draw = Tr2RenderBatch.resolveDrawArguments(
-      lod, block.startIndex, block.count, false);
-    if (!draw) return;
-    batch.SetDrawIndexedInstanced(
-      draw.indexCountPerInstance,
-      draw.instanceCount,
-      draw.startIndexLocation,
-      draw.baseVertexLocation,
-      draw.startInstanceLocation);
-    batches.Commit(batch);
-  }
-
-  // EveMeshOverlayEffect::GetEffects (display-gated, per batch type).
-
-  /**
-   * Returns an overlay effect's display-gated effect list for a batch type, or
-   * null when it contributes none.
-   */
-  #OverlayEffectsFor(overlay, batchType)
-  {
-    return overlay?.GetEffects?.(batchType) ?? null;
+    committed = EmitOverlayBatches(
+      batches, perObjectData, batchType, this.overlayEffects,
+      this.#overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
+    return committed;
   }
 
   /**
