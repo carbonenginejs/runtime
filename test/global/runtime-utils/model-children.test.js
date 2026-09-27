@@ -13,11 +13,11 @@ class ChildModel extends CjsModel
     deleteRequested = false;
 }
 
-CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "test" });
 CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
 CjsSchema.defineField(ChildModel, "name", "edit", { persist: true });
 CjsSchema.defineField(ChildModel, "deleteRequested", "type", { kind: "boolean" });
 CjsSchema.defineField(ChildModel, "deleteRequested", "edit", { persist: true });
+CjsSchema.define(ChildModel, { className: "ChildMutationTestChild", family: "test" });
 
 class ParentModel extends CjsModel
 {
@@ -68,13 +68,13 @@ class ParentModel extends CjsModel
     }
 }
 
-CjsSchema.define(ParentModel, { className: "ChildMutationTestParent", family: "test" });
 CjsSchema.defineField(ParentModel, "children", "type", {
     kind: "list",
     itemType: "ChildMutationTestChild"
 });
 CjsSchema.defineField(ParentModel, "children", "edit", { persist: true, notify: true });
 CjsSchema.defineField(ParentModel, "children", "lifecycle", { ownership: "owned" });
+CjsSchema.define(ParentModel, { className: "ChildMutationTestParent", family: "test" });
 
 test("CjsModel child factories hydrate, append, notify and settle", () => {
     const parent = new ParentModel();
@@ -205,9 +205,9 @@ test("CjsModel child helpers reject non-child collections and values", () => {
         }
     }
 
-    CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent", family: "test" });
     CjsSchema.defineField(InvalidParent, "bytes", "type", { kind: "typedArray", arrayType: "Uint8Array" });
     CjsSchema.defineField(InvalidParent, "value", "type", { kind: "float32" });
+    CjsSchema.define(InvalidParent, { className: "InvalidChildMutationParent", family: "test" });
 
     const parent = new InvalidParent();
     assert.throws(() => CjsModel.addChild({}, "missing", {}), /CjsModel instance/);

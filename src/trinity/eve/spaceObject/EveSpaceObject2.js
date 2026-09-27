@@ -523,6 +523,8 @@ export class EveSpaceObject2 extends EveEntity
   #psData = RawData.create("EveSpaceObjectPSData");
 
   /** Alias for the mesh property; reads and writes go straight to mesh. */
+  @edit.persist
+  @type.objectRef("Tr2MeshBase")
   get meshLod()
   {
     return this.mesh;
@@ -4068,4 +4070,3 @@ export class EveSpaceObject2 extends EveEntity
 
 }
 
-CjsSchema.decorateField(EveSpaceObject2, "meshLod", edit.persist, type.objectRef("Tr2MeshBase"));

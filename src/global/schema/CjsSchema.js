@@ -37,6 +37,14 @@ const SETTING_DECORATOR = Object.freeze(Object.assign(
     SETTING_APPLIES
 ));
 const STAGE3_FIELD_METADATA = Symbol("carbonenginejs.schema.stage3Fields");
+const STAGE3_METHOD_METADATA = Symbol("carbonenginejs.schema.stage3Methods");
+
+// Where a class's decorator metadata lives: `Symbol.metadata`, which Babel's
+// 2023-11 decorators fall back to `Symbol.for("Symbol.metadata")` for.
+const DECORATOR_METADATA_KEY = Symbol.metadata ?? Symbol.for("Symbol.metadata");
+
+// Decorator metadata objects already replayed into a class schema.
+const CONSUMED_DECORATOR_METADATA = new WeakSet();
 
 // Declared here rather than beside describeDecorator: the CjsSchema class body
 // builds every decorator namespace in its static initializer, which runs before
@@ -190,7 +198,10 @@ export class CjsSchema
     /** Returns resolved schema metadata for a named field. */
     static getField(Constructor, fieldName)
     {
-        const field = getEffectiveFields(Constructor).find(field => field.name === fieldName);
+        const schema = CLASS_SCHEMA.get(Constructor);
+        const field = schema?.registered
+            ? schema.effectiveFieldsByName.get(fieldName)
+            : computeEffectiveFields(Constructor).find(candidate => candidate.name === fieldName);
         return field ? enrichEnumField(field, Constructor) : null;
     }
 
@@ -220,6 +231,7 @@ export class CjsSchema
     static getMethod(Constructor, methodName)
     {
         const schema = CLASS_SCHEMA.get(Constructor);
+        if (schema?.registered) return schema.effectiveMethodsByName.get(methodName) || null;
         return schema?.methodsByName.get(methodName) || null;
     }
 
@@ -1413,23 +1425,32 @@ function fieldDecorator(namespace, value)
         if (contextOrFieldName && typeof contextOrFieldName === "object")
         {
             const context = contextOrFieldName;
-            if (context.kind !== "field") throw new TypeError("CjsSchema decorators only support class fields.");
+
+            // A getter, setter or accessor declares a field as a class field
+            // does: a Blue member backed by an accessor pair. Its metadata is
+            // recorded at definition like a field's, and it has no initial value
+            // to capture.
+            if (context.kind === "getter" || context.kind === "setter" || context.kind === "accessor")
+            {
+                recordStage3FieldMetadata(context, namespace, value);
+                return undefined;
+            }
+            if (context.kind !== "field") throw new TypeError("CjsSchema decorators only support class fields and accessors.");
             recordStage3FieldMetadata(context, namespace, value);
 
-            // The class decorator replays the Stage-3 metadata recorded above, so
-            // schema inspection works before the first instance is constructed.
-            // Keep both runtime initializers as fallbacks: addInitializer covers
-            // spec-compliant runtimes, while the returned field initializer covers
-            // runtimes that do not fire field-decorator addInitializer. All paths
-            // register the same metadata idempotently through mergeNamespace.
+            // Registration (`define`) replays the Stage-3 metadata recorded
+            // above, so a registered class's table is complete before any
+            // instance exists. The per-instance initializers below are the
+            // fallback for a class that never registers; for a registered one
+            // they would only restate what registration already consumed.
             context.addInitializer(function initializeSchemaField()
             {
-                defineFieldMetadata(this.constructor, context.name, namespace, value);
+                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value);
             });
 
             return function initializeSchemaFieldValue(initialValue)
             {
-                defineFieldMetadata(this.constructor, context.name, namespace, value);
+                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value);
                 captureFieldInitialDefault(
                     this.constructor,
                     context.name,
@@ -1554,10 +1575,14 @@ function methodDecorator(namespace, value)
             const context = contextOrMethodName;
             if (context.kind !== "method") throw new TypeError("CjsSchema method decorators only support class methods.");
 
+            recordStage3MethodMetadata(context, namespace, value);
+
+            // As for fields: registration replays the record above, and the
+            // initializer is the fallback for a class that never registers.
             context.addInitializer(function initializeSchemaMethod()
             {
                 const Constructor = context.static ? this : this.constructor;
-                defineMethodMetadata(Constructor, context.name, namespace, value);
+                if (!isRegisteredClass(Constructor)) defineMethodMetadata(Constructor, context.name, namespace, value);
             });
             return;
         }
@@ -1600,6 +1625,16 @@ function defineFieldMetadata(Constructor, fieldName, namespace, value)
 
 function defineClassMetadata(Constructor, definition)
 {
+    if (isRegisteredClass(Constructor))
+    {
+        throw new TypeError(`CjsSchema.define: ${CLASS_SCHEMA.get(Constructor).className} is already registered.`);
+    }
+
+    // The decorators recorded this class's members, and those of any ancestor
+    // that never registers itself, on the classes' decorator metadata.
+    // Consumed here, so the table built below is complete.
+    consumeLineageDecoratorMetadata(Constructor);
+
     const schema = getOrCreateClassSchema(Constructor);
     if (definition.className)
     {
@@ -1629,6 +1664,53 @@ function defineClassMetadata(Constructor, definition)
     }
 
     registerClassMetadata(Constructor, schema);
+    sealClassSchema(Constructor, schema);
+}
+
+/**
+ * Builds a registered class's flattened member table, once: Carbon's
+ * `BlueRttiType`, built from the class's `ClassInfo` and cached on it
+ * (`blueexposure/BlueClasses.cpp:586-593`). Every later lookup reads it, and
+ * any later change to the class's members is an error (`defineMemberMetadata`).
+ * The base class registered first, because the subclass's module imports it.
+ */
+function sealClassSchema(Constructor, schema)
+{
+    const fields = computeEffectiveFields(Constructor);
+    for (const field of fields) Object.freeze(field);
+
+    schema.effectiveFields = Object.freeze(fields);
+    schema.effectiveFieldsByName = new Map(fields.map(field => [ field.name, field ]));
+    schema.effectiveMethodsByName = computeEffectiveMethods(Constructor);
+    schema.hiddenInheritedAll = computeHiddenInheritedFieldNames(Constructor);
+    schema.registered = true;
+    SCHEMA_GENERATION += 1;
+}
+
+/**
+ * A class's method provenance by name, its own merged over its ancestors':
+ * an inherited method reports the provenance of the class that declares it.
+ */
+function computeEffectiveMethods(Constructor)
+{
+    const byName = new Map();
+
+    for (const current of getSchemaLineage(Constructor))
+    {
+        for (const method of CLASS_SCHEMA.get(current)?.methods || [])
+        {
+            const existing = byName.get(method.name);
+            byName.set(method.name, mergeMemberMetadata(existing ? { ...existing } : { name: method.name }, method));
+        }
+    }
+
+    return byName;
+}
+
+/** Whether a class has registered, which fixes its member table. */
+function isRegisteredClass(Constructor)
+{
+    return CLASS_SCHEMA.get(Constructor)?.registered === true;
 }
 
 function defineManualMemberMetadata(Constructor, memberType, definition)
@@ -1648,6 +1730,13 @@ function defineMethodMetadata(Constructor, methodName, namespace, value)
 
 function defineMemberMetadata(Constructor, listKey, mapKey, name, namespace, value)
 {
+    // Fields are flattened into the table registration built, so a late field
+    // is refused. Method provenance is not flattened: `getMethod` reads the
+    // class's own map, so a late one (an interface's `decorateMethod` calls
+    // after its `define`) changes nothing already built.
+    if (listKey === "fields") RejectAfterRegistration(Constructor, `field "${String(name)}"`);
+    SCHEMA_GENERATION += 1;
+
     const schema = getOrCreateClassSchema(Constructor);
     let item = schema[mapKey].get(name);
 
@@ -1659,6 +1748,14 @@ function defineMemberMetadata(Constructor, listKey, mapKey, name, namespace, val
     }
 
     item[namespace] = mergeNamespace(item[namespace], value);
+
+    // A method arriving after registration also reaches the class's
+    // flattened provenance map (subclasses registered since do not see it).
+    if (listKey === "methods" && schema.registered)
+    {
+        const effective = schema.effectiveMethodsByName.get(name);
+        schema.effectiveMethodsByName.set(name, mergeMemberMetadata(effective ? { ...effective } : { name }, item));
+    }
 }
 
 function defineHiddenInheritedFields(Constructor, fieldNames)
@@ -1667,6 +1764,9 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     {
         throw new TypeError("CjsSchema.hideInherited requires a class constructor.");
     }
+
+    RejectAfterRegistration(Constructor, "hidden inherited fields");
+    SCHEMA_GENERATION += 1;
 
     const Parent = Object.getPrototypeOf(Constructor);
     const inheritedFields = new Set(getEffectiveFields(Parent).map(field => field.name));
@@ -1742,7 +1842,18 @@ function isObjectReference(value)
         && !Array.isArray(value) && !ArrayBuffer.isView(value);
 }
 
+/**
+ * A class's flattened field records, base first: the table registration built,
+ * or for a class that never registered, the lineage merged now.
+ */
 function getEffectiveFields(Constructor)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    return schema?.registered ? schema.effectiveFields : computeEffectiveFields(Constructor);
+}
+
+/** The lineage walk and merge a registered class does once, at `sealClassSchema`. */
+function computeEffectiveFields(Constructor)
 {
     const ordered = [];
     const byName = new Map();
@@ -1782,6 +1893,12 @@ function getEffectiveFields(Constructor)
 }
 
 function getHiddenInheritedFieldNames(Constructor)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    return schema?.registered ? schema.hiddenInheritedAll : computeHiddenInheritedFieldNames(Constructor);
+}
+
+function computeHiddenInheritedFieldNames(Constructor)
 {
     const hidden = new Set();
     for (const current of getSchemaLineage(Constructor))
@@ -1839,23 +1956,17 @@ function buildClassInfo(Constructor, namespaces)
         fields.push(enrichEnumField(exportField(field, namespaces), Constructor));
     }
 
-    // KNOWN DEFECT: methods are read from this class only, while fields resolve
-    // through the whole lineage above. A subclass therefore reports no inherited
-    // methods, and the decorated form hides that behind a second bug that
-    // cancels it out: method decorators register through addInitializer, where
-    // `this.constructor` is the *instance's* class, so constructing one
-    // Tr2LightProfileRes writes CjsResource's methods onto Tr2LightProfileRes.
-    // Which class owns which methods then depends on construction order, and
-    // before any instance exists a class reports no methods at all.
+    // Methods are exported from this class only, while fields resolve through
+    // the whole lineage above: a subclass's export lists the methods it
+    // declares, not those it inherits. Registration consumes each class's own
+    // decorator metadata, so the list is the same before and after any instance
+    // exists. `getMethod` answers for inherited methods too, from the
+    // flattened map registration builds (`computeEffectiveMethods`).
     //
-    // Declaring metadata as data (CjsSchema.define fields/methods) registers on
-    // the declaring class at module load, so it is deterministic - and it makes
-    // the missing inheritance visible rather than accidentally papered over.
-    //
-    // Left unfixed deliberately: nothing reads .methods off a runtime schema
-    // today (tools-core classTool parses source documents, not these), and the
-    // fix - walking the lineage here as getEffectiveFields does - changes
-    // exported schemas for every decorator-using class in the org.
+    // Left own-only deliberately: nothing reads .methods off a runtime schema
+    // today (tools-core classTool parses source documents, not these), and
+    // flattening here changes exported schemas for every decorator-using class
+    // in the org.
     for (const method of schema?.methods || [])
     {
         methods.push(exportField(method, namespaces));
@@ -1973,12 +2084,6 @@ function resolveFieldClass(type)
 
 function getOrCreateClassSchema(Constructor)
 {
-    // The only route by which class metadata is mutated, and therefore the only
-    // place exported schemas can go stale. A single global counter rather than
-    // per-class invalidation because a base class change invalidates every
-    // subclass, and lineage is not tracked in reverse.
-    SCHEMA_GENERATION += 1;
-
     let schema = CLASS_SCHEMA.get(Constructor);
     if (!schema)
     {
@@ -2049,9 +2154,78 @@ function recordStage3FieldMetadata(context, namespace, value)
     });
 }
 
+/**
+ * Refuses a change to a registered class's members. Registration built the
+ * class's table and every subclass's table copied it, so a late change would
+ * leave them disagreeing; it must be declared before `define`.
+ */
+function RejectAfterRegistration(Constructor, what)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    if (!schema?.registered) return;
+
+    throw new TypeError(
+        `CjsSchema: ${what} added to ${schema.className} after it registered. ` +
+        "Declare members before CjsSchema.define / @type.define runs."
+    );
+}
+
+function recordStage3MethodMetadata(context, namespace, value)
+{
+    const metadata = context?.metadata;
+    if (!metadata || typeof metadata !== "object") return;
+
+    if (!Object.prototype.hasOwnProperty.call(metadata, STAGE3_METHOD_METADATA))
+    {
+        Object.defineProperty(metadata, STAGE3_METHOD_METADATA, {
+            configurable: false,
+            enumerable: false,
+            value: [],
+            writable: false
+        });
+    }
+
+    metadata[STAGE3_METHOD_METADATA].push({ name: context.name, isStatic: context.static, namespace, value });
+}
+
+/**
+ * Consumes the decorator metadata of a class and of every ancestor that has
+ * not registered, base first, so a class registering below an unregistered
+ * base still carries the base's members.
+ */
+function consumeLineageDecoratorMetadata(Constructor)
+{
+    const pending = [];
+    let current = Constructor;
+
+    while (typeof current === "function" && current !== Function.prototype)
+    {
+        if (current !== Constructor && isRegisteredClass(current)) break;
+        pending.push(current);
+        current = Object.getPrototypeOf(current);
+    }
+
+    for (const Class of pending.reverse())
+    {
+        const metadata = Object.prototype.hasOwnProperty.call(Class, DECORATOR_METADATA_KEY) ? Class[DECORATOR_METADATA_KEY] : null;
+        registerStage3FieldMetadata(Class, metadata);
+    }
+}
+
 function registerStage3FieldMetadata(Constructor, metadata)
 {
     if (!metadata || typeof metadata !== "object") return;
+    if (CONSUMED_DECORATOR_METADATA.has(metadata)) return;
+    CONSUMED_DECORATOR_METADATA.add(metadata);
+
+    if (Object.prototype.hasOwnProperty.call(metadata, STAGE3_METHOD_METADATA))
+    {
+        for (const method of metadata[STAGE3_METHOD_METADATA])
+        {
+            defineMethodMetadata(Constructor, method.name, method.namespace, method.value);
+        }
+    }
+
     if (!Object.prototype.hasOwnProperty.call(metadata, STAGE3_FIELD_METADATA)) return;
 
     let declarations = FIELD_DECLARATION_METADATA.get(Constructor);

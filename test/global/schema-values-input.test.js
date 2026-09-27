@@ -13,17 +13,17 @@ class ValuesInputChild extends CjsModel
 {
   value = 0;
 }
-CjsSchema.define(ValuesInputChild, { className: "ValuesInputChild" });
 CjsSchema.defineField(ValuesInputChild, "value", "type", { kind: "float32" });
+CjsSchema.define(ValuesInputChild, { className: "ValuesInputChild" });
 
 class ValuesInputParent extends CjsModel
 {
   label = "";
   child = null;
 }
-CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 CjsSchema.defineField(ValuesInputParent, "label", "type", { kind: "string" });
 CjsSchema.decorateField(ValuesInputParent, "child", CjsSchema.type.model("ValuesInputChild"));
+CjsSchema.define(ValuesInputParent, { className: "ValuesInputParent" });
 
 const NOT_VALUES = [
   [ "a live instance", () => ValuesInputParent.from({ label: "x" }) ],

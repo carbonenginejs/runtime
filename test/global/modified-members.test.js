@@ -15,12 +15,12 @@ function fixture(model)
     seen = [];
     OnModified(name) { this.seen.push(name); return this.action?.(name) ?? true; }
   }
-  CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
   for (const name of ["a", "b", "quiet"])
   {
     CjsSchema.defineField(Probe, name, "type", { kind: "int32" });
     CjsSchema.defineField(Probe, name, "edit", { persist: true, notify: name !== "quiet" });
   }
+  CjsSchema.define(Probe, { className: `MemberNotificationProbe${serial++}` });
   if (!model)
   {
     CjsSchema.compose.values(Probe, { kind: "class" });

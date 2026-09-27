@@ -22,13 +22,13 @@ function declare(fields, { compose = true } = {})
   };
 
   Object.defineProperty(Fixture, "name", { value: className });
-  CjsSchema.define(Fixture, { className });
-
   for (const [ name, spec ] of Object.entries(fields))
   {
     CjsSchema.defineField(Fixture, name, "type", spec.type);
     if (spec.edit) CjsSchema.defineField(Fixture, name, "edit", spec.edit);
   }
+
+  CjsSchema.define(Fixture, { className });
 
   if (compose) CjsSchema.compose.values(Fixture, { kind: "class" });
   return Fixture;

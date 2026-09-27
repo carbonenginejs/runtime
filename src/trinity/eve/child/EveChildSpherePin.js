@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.h
 //   trinity/trinity/Eve/SpaceObject/Children/EveChildSpherePin.cpp
-import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -17,6 +17,9 @@ export class EveChildSpherePin extends EveChildMesh
   #pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon maps both Blue names to the same m_pinColor storage. */
+  @edit.notify
+  @edit.persist
+  @type.color
   get pinColor()
   {
     return this.#pinColor;
@@ -35,6 +38,9 @@ export class EveChildSpherePin extends EveChildMesh
   }
 
   /** Blue alias for pinColor. */
+  @edit.notify
+  @edit.persist
+  @type.color
   get color()
   {
     return this.#pinColor;
@@ -135,5 +141,3 @@ export class EveChildSpherePin extends EveChildMesh
 
 }
 
-CjsSchema.decorateField(EveChildSpherePin, "pinColor", edit.notify, edit.persist, type.color);
-CjsSchema.decorateField(EveChildSpherePin, "color", edit.notify, edit.persist, type.color);

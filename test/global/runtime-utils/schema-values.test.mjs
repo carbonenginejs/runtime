@@ -54,8 +54,8 @@ test("a plain decorated class without a setter goes through the state-free trans
   // This used to assert a placeholder throw naming the facade migration. The
   // transport landed 2026-09-08, so the third arm answers instead.
   class Plain { n = 0; }
-  CjsSchema.define(Plain, { className: "PlainStateFreeProbe" });
   CjsSchema.defineField(Plain, "n", "type", { kind: "int32" });
+  CjsSchema.define(Plain, { className: "PlainStateFreeProbe" });
 
   const plain = new Plain();
   assert.equal(typeof plain.SetValues, "undefined", "the class carries neither method");

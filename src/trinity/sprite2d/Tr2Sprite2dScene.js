@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Sprite2d/Tr2Sprite2dScene.cpp
 // Promoted from generated source: displayX/displayY are scalar Blue aliases
 // for m_translation.x/y, which the generator cannot currently express.
-import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { quat } from "#math/quat";
 import { vec2 } from "#math/vec2";
@@ -189,6 +189,8 @@ export class Tr2Sprite2dScene extends CjsModel
   defaultTextureUpdates = false;
 
   /** Blue scalar alias for m_translation.x. */
+  @edit.persist
+  @type.float32
   get displayX()
   {
     return this.translation[0];
@@ -201,6 +203,8 @@ export class Tr2Sprite2dScene extends CjsModel
   }
 
   /** Blue scalar alias for m_translation.y. */
+  @edit.persist
+  @type.float32
   get displayY()
   {
     return this.translation[1];
@@ -230,5 +234,3 @@ export class Tr2Sprite2dScene extends CjsModel
 
 }
 
-CjsSchema.decorateField(Tr2Sprite2dScene, "displayX", edit.persist, type.float32);
-CjsSchema.decorateField(Tr2Sprite2dScene, "displayY", edit.persist, type.float32);

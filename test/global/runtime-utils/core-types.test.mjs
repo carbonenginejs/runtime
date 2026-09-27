@@ -109,8 +109,8 @@ test("CjsModel exposes only the schema-backed construction surface", () => {
     assert.equal(CjsSchema.getClassName(SchemalessModel), null);
     assert.throws(() => new SchemalessModel(), /explicit CjsSchema className/);
 
-    CjsSchema.define(SurfaceModel, { className: "StableSurfaceModel" });
     CjsSchema.defineField(SurfaceModel, "value", "type", { kind: "float32" });
+    CjsSchema.define(SurfaceModel, { className: "StableSurfaceModel" });
 
     class TrackingSurfaceModel extends SurfaceModel {}
 
@@ -178,16 +178,16 @@ test("CjsModel Merge deep-merges raw value bags and updates once", () => {
         }
     }
 
-    CjsSchema.define(MergeSettings, { className: "MergeSettings", family: "test" });
     CjsSchema.defineField(MergeSettings, "left", "type", { kind: "uint32" });
     CjsSchema.defineField(MergeSettings, "right", "type", { kind: "uint32" });
-    CjsSchema.define(MergeModel, { className: "MergeModel", family: "test" });
+    CjsSchema.define(MergeSettings, { className: "MergeSettings", family: "test" });
     CjsSchema.defineField(MergeModel, "name", "type", { kind: "string" });
     CjsSchema.defineField(MergeModel, "name", "edit", { notify: true });
     CjsSchema.defineField(MergeModel, "count", "type", { kind: "uint32" });
     CjsSchema.defineField(MergeModel, "count", "edit", { notify: true });
     CjsSchema.defineField(MergeModel, "settings", "type", { kind: "struct", className: "MergeSettings" });
     CjsSchema.defineField(MergeModel, "settings", "edit", { notify: true });
+    CjsSchema.define(MergeModel, { className: "MergeModel", family: "test" });
 
     const target = new MergeModel();
     const returned = CjsModel.merge(
@@ -221,9 +221,9 @@ test("CjsModel Copy transfers an instantiated model through SetValues", () => {
         count = 0;
     }
 
-    CjsSchema.define(CopyModel, { className: "CopyModel", family: "test" });
     CjsSchema.defineField(CopyModel, "name", "type", { kind: "string" });
     CjsSchema.defineField(CopyModel, "count", "type", { kind: "uint32" });
+    CjsSchema.define(CopyModel, { className: "CopyModel", family: "test" });
 
     const source = new CopyModel();
     source.name = "source";
@@ -265,13 +265,12 @@ test("CjsModel settles cascading changes before emitting one modified event", ()
         }
     }
 
-    CjsSchema.define(SettledModel, { className: "SettledModel", family: "test" });
     CjsSchema.defineField(SettledModel, "name", "type", { kind: "string" });
     CjsSchema.defineField(SettledModel, "width", "type", { kind: "number" });
     CjsSchema.defineField(SettledModel, "area", "type", { kind: "number" });
-
     CjsSchema.defineField(SettledModel, "width", "edit", { notify: true });
     CjsSchema.defineField(SettledModel, "area", "edit", { notify: true });
+    CjsSchema.define(SettledModel, { className: "SettledModel", family: "test" });
     const model = new SettledModel();
     const source = {};
     const events = [];
@@ -303,9 +302,9 @@ test("edit.notify notifies an equal write without reporting a changed value", ()
         }
     }
 
-    CjsSchema.define(AlwaysModel, { className: "AlwaysModel" });
     CjsSchema.defineField(AlwaysModel, "value", "type", { kind: "float32" });
     CjsSchema.defineField(AlwaysModel, "value", "edit", { write: true, notify: true });
+    CjsSchema.define(AlwaysModel, { className: "AlwaysModel" });
     const model = new AlwaysModel();
     model.value = 4;
     const events = [];
@@ -338,12 +337,12 @@ test("from returns an initialized clean round-trippable graph", () => {
         }
     }
 
-    CjsSchema.define(ReadyModel, { className: "ReadyModel" });
     for (const fieldName of ["input", "output"])
     {
         CjsSchema.defineField(ReadyModel, fieldName, "type", { kind: "float32" });
         CjsSchema.defineField(ReadyModel, fieldName, "edit", { read: true, write: true, persist: true });
     }
+    CjsSchema.define(ReadyModel, { className: "ReadyModel" });
 
     const ready = ReadyModel.from({ input: 3 });
     assert.equal(ready.output, 6);
@@ -374,9 +373,9 @@ test("CjsModel supports binding-style direct mutations and retains failed update
         }
     }
 
-    CjsSchema.define(BoundModel, { className: "BoundModel", family: "test" });
     CjsSchema.defineField(BoundModel, "value", "type", { kind: "number" });
     CjsSchema.defineField(BoundModel, "value", "edit", { notify: true });
+    CjsSchema.define(BoundModel, { className: "BoundModel", family: "test" });
 
     const model = new BoundModel();
     const binding = {};
@@ -417,16 +416,16 @@ test("from initializes owned children last-to-first before their parent", () => 
         }
     }
 
-    CjsSchema.define(ChildModel, { className: "ChildModel" });
     CjsSchema.defineField(ChildModel, "name", "type", { kind: "string" });
     CjsSchema.defineField(ChildModel, "name", "edit", { read: true, write: true, persist: true });
-    CjsSchema.define(RootModel, { className: "RootModel" });
+    CjsSchema.define(ChildModel, { className: "ChildModel" });
     CjsSchema.defineField(RootModel, "children", "type", { kind: "array", itemType: { kind: "model", className: "ChildModel" } });
     CjsSchema.defineField(RootModel, "children", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(RootModel, "children", "lifecycle", { ownership: "owned" });
     CjsSchema.defineField(RootModel, "reference", "type", { kind: "object", className: "ChildModel" });
     CjsSchema.defineField(RootModel, "reference", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(RootModel, "reference", "lifecycle", { ownership: "reference" });
+    CjsSchema.define(RootModel, { className: "RootModel" });
 
     const reference = new ChildModel();
     reference.name = "reference";
@@ -471,13 +470,13 @@ test("from initializes owned children last-to-first before their parent", () => 
 
 test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel extends CjsModel {}
-    CjsSchema.define(GraphModel, { className: "GraphModel" });
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array" });
     CjsSchema.defineField(GraphModel, "children", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "children", "lifecycle", { ownership: "owned" });
     CjsSchema.defineField(GraphModel, "peer", "type", { kind: "object" });
     CjsSchema.defineField(GraphModel, "peer", "edit", { read: true, write: true, persist: true });
     CjsSchema.defineField(GraphModel, "peer", "lifecycle", { ownership: "reference" });
+    CjsSchema.define(GraphModel, { className: "GraphModel" });
 
     const root = new GraphModel();
     const branch = new GraphModel();
@@ -645,13 +644,13 @@ test("registers classes, structs, schema metadata, and enums", () => {
     class DemoNode {}
     const DemoEnum = Object.freeze({ A: 1, B: 2 });
 
+    CjsSchema.defineField(DemoNode, "name", "type", { kind: "string" });
     CjsSchema.define(DemoNode, {
         className: "DemoNode",
         family: "test",
         purpose: "  Carries a reviewed\n demonstration purpose.  ",
         alias: "LegacyDemoNode"
     });
-    CjsSchema.defineField(DemoNode, "name", "type", { kind: "string" });
     CjsSchema.defineEnum(DemoEnum, {
         name: "DemoEnum",
         members: [{ name: "A", value: 1 }]
@@ -724,15 +723,15 @@ test("schema.hideInherited removes inherited fields only from the schema surface
             { name: "secondHidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
     });
+    CjsSchema.hideInherited(["hidden"])(HideChild, {
+        kind: "class",
+        metadata: Object.create(null)
+    });
     CjsSchema.define(HideChild, {
         className: "HideChild",
         fields: [
             { name: "own", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
-    });
-    CjsSchema.hideInherited(["hidden"])(HideChild, {
-        kind: "class",
-        metadata: Object.create(null)
     });
 
     const child = HideChild.from({
@@ -777,16 +776,16 @@ test("schema.hideInherited removes inherited fields only from the schema surface
         extra = "extra-default";
     }
 
+    CjsSchema.hideInherited(["secondHidden"])(HideGrandchild, {
+        kind: "class",
+        metadata: Object.create(null)
+    });
     CjsSchema.define(HideGrandchild, {
         className: "HideGrandchild",
         fields: [
             { name: "hidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } },
             { name: "extra", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
-    });
-    CjsSchema.hideInherited(["secondHidden"])(HideGrandchild, {
-        kind: "class",
-        metadata: Object.create(null)
     });
 
     const grandchild = HideGrandchild.from({
@@ -879,15 +878,15 @@ test("document hydration and dehydration exclude hidden inherited fields", () =>
             { name: "hidden", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
     });
+    CjsSchema.hideInherited(["hidden"])(HiddenDocumentNode, {
+        kind: "class",
+        metadata: Object.create(null)
+    });
     CjsSchema.define(HiddenDocumentNode, {
         className: "HiddenDocumentNode",
         fields: [
             { name: "own", type: { kind: "string" }, edit: { read: true, write: true, persist: true } }
         ]
-    });
-    CjsSchema.hideInherited(["hidden"])(HiddenDocumentNode, {
-        kind: "class",
-        metadata: Object.create(null)
     });
 
     const registry = CjsClassRegistry.fromMaps({
@@ -1031,7 +1030,6 @@ test("records renamed Carbon method provenance", () => {
 test("registers component metadata and reads vector swizzles", () => {
     class PackedNode {}
 
-    CjsSchema.define(PackedNode, { className: "PackedNode", family: "test" });
     CjsSchema.decorateField(
         PackedNode,
         "shipData",
@@ -1044,6 +1042,7 @@ test("registers component metadata and reads vector swizzles", () => {
             xyz: { name: "shipVisibleState" }
         })
     );
+    CjsSchema.define(PackedNode, { className: "PackedNode", family: "test" });
 
     const field = CjsSchema.getField(PackedNode, "shipData");
     assert.equal(field.components.x.name, "boosterGlowIntensity");
@@ -1060,9 +1059,9 @@ test("registers component metadata and reads vector swizzles", () => {
 test("exposes canonical model descriptors", () => {
     class DescriptorNode {}
 
-    CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
     CjsSchema.decorateField(DescriptorNode, "child", CjsSchema.type.model("DescriptorChild"));
     CjsSchema.decorateField(DescriptorNode, "payload", CjsSchema.type.rawStruct("NativePayload"));
+    CjsSchema.define(DescriptorNode, { className: "DescriptorNode", family: "test" });
 
     assert.equal(CARBON_TYPE.MODEL, "model");
     assert.deepEqual(CjsSchema.getField(DescriptorNode, "child").type, {
@@ -1084,11 +1083,6 @@ test("stage-3 static method decorators register on the class constructor", () =>
         {}
     }
 
-    CjsSchema.define(StaticMethodNode, {
-        className: "StaticMethodNode",
-        family: "test"
-    });
-
     const initializers = [];
     const context = {
         kind: "method",
@@ -1107,6 +1101,11 @@ test("stage-3 static method decorators register on the class constructor", () =>
         initializer.call(StaticMethodNode);
     }
 
+    CjsSchema.define(StaticMethodNode, {
+        className: "StaticMethodNode",
+        family: "test"
+    });
+
     const rasterize = CjsSchema.getMethod(StaticMethodNode, "Rasterize");
     assert.equal(rasterize.carbon.method, true);
     assert.equal(rasterize.impl.status, "adapted");
@@ -1120,9 +1119,9 @@ test("hydrates and dehydrates explicitly schema-backed runtime models", () => {
         position = new Float32Array([0, 0, 0]);
     }
 
-    CjsSchema.define(HydratedSchemaNode, { className: "HydratedSchemaNode" });
     CjsSchema.defineField(HydratedSchemaNode, "name", "type", { kind: CARBON_TYPE.STRING });
     CjsSchema.defineField(HydratedSchemaNode, "position", "type", { kind: CARBON_TYPE.VECTOR3 });
+    CjsSchema.define(HydratedSchemaNode, { className: "HydratedSchemaNode" });
 
     const registry = CjsClassRegistry.fromMaps({ constructors: { HydratedSchemaNode } });
     const document = CjsCarbonDocument.create({
@@ -1160,14 +1159,14 @@ test("preserves canonical model references while hydrating neutral document grap
         children = [];
     }
 
-    CjsSchema.define(PlainDocumentChild, { className: "PlainDocumentChild" });
     CjsSchema.defineField(PlainDocumentChild, "value", "type", { kind: CARBON_TYPE.FLOAT32 });
-    CjsSchema.define(PlainDocumentParent, { className: "PlainDocumentParent" });
+    CjsSchema.define(PlainDocumentChild, { className: "PlainDocumentChild" });
     CjsSchema.decorateField(PlainDocumentParent, "child", CjsSchema.type.model("PlainDocumentChild"));
     CjsSchema.decorateField(PlainDocumentParent, "children", CjsSchema.type.list({
         kind: "model",
         className: "PlainDocumentChild"
     }));
+    CjsSchema.define(PlainDocumentParent, { className: "PlainDocumentParent" });
 
     const registry = CjsClassRegistry.fromMaps({
         constructors: { PlainDocumentChild, PlainDocumentParent }
@@ -1196,9 +1195,9 @@ test("accepts explicit singular schema aliases for model input", () => {
         dampingRatio = 0;
     }
 
-    CjsSchema.define(AliasedFieldNode, { className: "AliasedFieldNode" });
     CjsSchema.defineField(AliasedFieldNode, "dampingRatio", "type", { kind: CARBON_TYPE.FLOAT32 });
     CjsSchema.defineField(AliasedFieldNode, "dampingRatio", "alias", "m_dampingRatio");
+    CjsSchema.define(AliasedFieldNode, { className: "AliasedFieldNode" });
 
     const node = AliasedFieldNode.from({ m_dampingRatio: "0.5" });
     assert.equal(node.dampingRatio, 0.5);
@@ -1252,10 +1251,9 @@ test("uses schema metadata as the default CjsModel value shape", () => {
         uiLocked = "open";
     }
 
-    CjsSchema.define(SchemaChild, { className: "SchemaChild", family: "test" });
     CjsSchema.defineField(SchemaChild, "label", "type", { kind: "string" });
+    CjsSchema.define(SchemaChild, { className: "SchemaChild", family: "test" });
 
-    CjsSchema.define(SchemaNode, { className: "SchemaNode", family: "test" });
     CjsSchema.defineField(SchemaNode, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(SchemaNode, "position", "edit", { notify: true });
@@ -1268,6 +1266,7 @@ test("uses schema metadata as the default CjsModel value shape", () => {
     CjsSchema.defineField(SchemaNode, "computed", "edit", { read: true });
     CjsSchema.defineField(SchemaNode, "uiLocked", "type", { kind: "string" });
     CjsSchema.defineField(SchemaNode, "uiLocked", "jessica", { readOnly: true });
+    CjsSchema.define(SchemaNode, { className: "SchemaNode", family: "test" });
 
     const node = new SchemaNode();
     node.SetValues({
@@ -1328,9 +1327,8 @@ test("hydrates canonical model fields and lists without constructing raw objects
         reference = null;
     }
 
-    CjsSchema.define(CanonicalChild, { className: "CanonicalChild", family: "test-model" });
     CjsSchema.defineField(CanonicalChild, "label", "type", { kind: "string" });
-    CjsSchema.define(CanonicalParent, { className: "CanonicalParent", family: "test-model" });
+    CjsSchema.define(CanonicalChild, { className: "CanonicalChild", family: "test-model" });
     CjsSchema.defineField(CanonicalParent, "child", "type", { kind: "model", className: "CanonicalChild" });
     CjsSchema.defineField(CanonicalParent, "children", "type", {
         kind: "list",
@@ -1344,6 +1342,7 @@ test("hydrates canonical model fields and lists without constructing raw objects
         kind: "objectRef",
         className: "IRoot"
     });
+    CjsSchema.define(CanonicalParent, { className: "CanonicalParent", family: "test-model" });
 
     const parent = CanonicalParent.from({
         child: { label: "one" },
@@ -1384,11 +1383,11 @@ test("registered struct fields copy values into their constructor-owned instance
         data = new ValueStruct();
     }
 
-    CjsSchema.define(ValueStruct, { className: "ValueStruct" });
     CjsSchema.defineField(ValueStruct, "position", "type", { kind: "vec3" });
     CjsSchema.defineField(ValueStruct, "radius", "type", { kind: "float32" });
-    CjsSchema.define(StructOwner, { className: "StructOwner" });
+    CjsSchema.define(ValueStruct, { className: "ValueStruct" });
     CjsSchema.defineField(StructOwner, "data", "type", { kind: "struct", className: "ValueStruct" });
+    CjsSchema.define(StructOwner, { className: "StructOwner" });
 
     const owner = new StructOwner();
     const data = owner.data;
@@ -1426,10 +1425,10 @@ test("hydrates list schema items as registered model classes", () => {
         children = [];
     }
 
-    CjsSchema.define(ListedChild, { className: "ListedChild", family: "test-list" });
     CjsSchema.defineField(ListedChild, "label", "type", { kind: "string" });
-    CjsSchema.define(ListedParent, { className: "ListedParent", family: "test-list" });
+    CjsSchema.define(ListedChild, { className: "ListedChild", family: "test-list" });
     CjsSchema.defineField(ListedParent, "children", "type", { kind: "list", itemType: "ListedChild" });
+    CjsSchema.define(ListedParent, { className: "ListedParent", family: "test-list" });
 
     const parent = ListedParent.from({ children: [{ label: "nested" }] });
     assert.equal(parent.children[0] instanceof ListedChild, true);
@@ -1442,8 +1441,8 @@ test("keeps unknown list item types as plain values", () => {
         items = [];
     }
 
-    CjsSchema.define(UnknownListNode, { className: "UnknownListNode" });
     CjsSchema.defineField(UnknownListNode, "items", "type", { kind: "list", itemType: "unknown" });
+    CjsSchema.define(UnknownListNode, { className: "UnknownListNode" });
 
     const node = UnknownListNode.from({ items: [{ value: 7 }] });
     assert.deepEqual(node.items, [{ value: 7 }]);
@@ -2008,9 +2007,9 @@ test("CjsModel.from runs the settle hook with events suppressed", () => {
         }
     }
 
-    CjsSchema.define(PlacedModel, { className: "PlacedModel", family: "test" });
     CjsSchema.defineField(PlacedModel, "position", "type", { kind: "number" });
     CjsSchema.defineField(PlacedModel, "position", "edit", { persist: true, notify: true });
+    CjsSchema.define(PlacedModel, { className: "PlacedModel", family: "test" });
 
     // Construction dispatches notified members with events suppressed.
     const model = PlacedModel.from({ position: 5 });
@@ -2043,13 +2042,13 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
 
     const members = Object.freeze({ OFF: 0, ON: 1 });
 
-    CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
-    CjsSchema.define(EnumViaType, { className: "EnumViaType" });
     EnumViaSchema.EnumMode = members;
     EnumViaType.EnumMode = members;
 
     CjsSchema.decorateField(EnumViaSchema, "mode", CjsSchema.type.int32, CjsSchema.enum("EnumMode"));
     CjsSchema.decorateField(EnumViaType, "mode", CjsSchema.type.int32, CjsSchema.type.enum("EnumMode"));
+    CjsSchema.define(EnumViaSchema, { className: "EnumViaSchema" });
+    CjsSchema.define(EnumViaType, { className: "EnumViaType" });
 
     const viaSchema = CjsSchema.getSchema(EnumViaSchema).fields.find(field => field.name === "mode");
     const viaType = CjsSchema.getSchema(EnumViaType).fields.find(field => field.name === "mode");
@@ -2073,8 +2072,8 @@ test("type.enum and type.hideInherited are the same decorators as their schema.*
             { name: "dropped", type: { kind: "string" } }
         ]
     });
-    CjsSchema.define(HideViaType, { className: "HideViaType" });
     CjsSchema.type.hideInherited(["dropped"])(HideViaType, { kind: "class", metadata: Object.create(null) });
+    CjsSchema.define(HideViaType, { className: "HideViaType" });
 
     const names = CjsSchema.getSchema(HideViaType).fields.map(field => field.name);
     assert.equal(names.includes("kept"), true);

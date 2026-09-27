@@ -19,9 +19,9 @@ class Observed extends CjsModel
     name = "";
 }
 
-CjsSchema.define(Observed, { className: "ObjectRefTestObserved", family: "test" });
 CjsSchema.defineField(Observed, "name", "type", { kind: "string" });
 CjsSchema.defineField(Observed, "name", "edit", { persist: true });
+CjsSchema.define(Observed, { className: "ObjectRefTestObserved", family: "test" });
 
 class Observer extends CjsModel
 {
@@ -30,7 +30,6 @@ class Observer extends CjsModel
     observer = null;
 }
 
-CjsSchema.define(Observer, { className: "ObjectRefTestObserver", family: "test" });
 CjsSchema.defineField(Observer, "name", "type", { kind: "string" });
 CjsSchema.defineField(Observer, "name", "edit", { persist: true });
 // The declared type names an interface on purpose: no registry resolves it.
@@ -39,6 +38,7 @@ CjsSchema.defineField(Observer, "observer", "type", {
     className: "IObjectRefTestInterface"
 });
 CjsSchema.defineField(Observer, "observer", "edit", { persist: true });
+CjsSchema.define(Observer, { className: "ObjectRefTestObserver", family: "test" });
 
 test("SetValues aliases a live model in an objectRef field rather than copying it", () =>
 {
@@ -199,11 +199,11 @@ class ResourceHolder extends CjsModel
     resources = [];
 }
 
-CjsSchema.define(ResourceHolder, { className: "ObjectRefTestResourceHolder", family: "test" });
 CjsSchema.defineField(ResourceHolder, "resource", "type", { kind: "objectRef", className: "IObjectRefTestResource" });
 CjsSchema.defineField(ResourceHolder, "resource", "edit", { persist: true });
 CjsSchema.defineField(ResourceHolder, "resources", "type", { kind: "list", itemType: "IObjectRefTestResource" });
 CjsSchema.defineField(ResourceHolder, "resources", "edit", { persist: true });
+CjsSchema.define(ResourceHolder, { className: "ObjectRefTestResourceHolder", family: "test" });
 
 test("a live instance of a registered non-model class is assigned, not rebuilt", () =>
 {

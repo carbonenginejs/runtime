@@ -52,10 +52,6 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
         }
     }
 
-    CjsSchema.type.define({
-        className: "SchemaDefaultCaptureProbe",
-        family: "test"
-    })(SchemaDefaultCaptureProbe, { kind: "class", metadata });
     CjsSchema.defineField(
         SchemaDefaultCaptureProbe,
         "ID",
@@ -68,6 +64,10 @@ test("CjsSchema.getDefaults lazily captures field initializers without Initializ
         "edit",
         { read: true }
     );
+    CjsSchema.type.define({
+        className: "SchemaDefaultCaptureProbe",
+        family: "test"
+    })(SchemaDefaultCaptureProbe, { kind: "class", metadata });
 
     const first = CjsSchema.getDefaults(SchemaDefaultCaptureProbe);
     assert.deepEqual(first, {
@@ -153,15 +153,15 @@ test("CjsSchema.getDefaults reads an explicitly registered schema accessor", () 
         }
     }
 
-    CjsSchema.define(SchemaDefaultAccessorProbe, {
-        className: "SchemaDefaultAccessorProbe",
-        family: "test"
-    });
     CjsSchema.decorateField(
         SchemaDefaultAccessorProbe,
         "color",
         CjsSchema.type.color
     );
+    CjsSchema.define(SchemaDefaultAccessorProbe, {
+        className: "SchemaDefaultAccessorProbe",
+        family: "test"
+    });
 
     assert.deepEqual(CjsSchema.getDefaults(SchemaDefaultAccessorProbe), {
         _type: "SchemaDefaultAccessorProbe",
@@ -185,12 +185,12 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
         }
     }
 
+    CjsSchema.defineField(SchemaDefaultChild, "label", "type", { kind: "string" });
+    CjsSchema.defineField(SchemaDefaultChild, "enabled", "type", { kind: "boolean" });
     CjsSchema.define(SchemaDefaultChild, {
         className: "SchemaDefaultChild",
         family: "test"
     });
-    CjsSchema.defineField(SchemaDefaultChild, "label", "type", { kind: "string" });
-    CjsSchema.defineField(SchemaDefaultChild, "enabled", "type", { kind: "boolean" });
 
     class SchemaDefaultRoot extends CjsModel
     {
@@ -210,10 +210,6 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
         }
     }
 
-    CjsSchema.define(SchemaDefaultRoot, {
-        className: "SchemaDefaultRoot",
-        family: "test"
-    });
     CjsSchema.defineField(SchemaDefaultRoot, "name", "type", { kind: "string" });
     CjsSchema.defineField(SchemaDefaultRoot, "child", "type", {
         kind: "model",
@@ -227,6 +223,10 @@ test("CjsSchema.applyDefaults expands typed values without constructing a live g
     CjsSchema.defineField(SchemaDefaultRoot, "peer", "type", {
         kind: "objectRef",
         className: "SchemaDefaultChild"
+    });
+    CjsSchema.define(SchemaDefaultRoot, {
+        className: "SchemaDefaultRoot",
+        family: "test"
     });
 
     const expanded = CjsSchema.applyDefaults({
