@@ -251,7 +251,7 @@ test("Tr2GrannyAnimation runs the pose modifier after sampling without compoundi
   assert.ok(Math.abs(bones[3] - 105) < 1e-6, "sampled 5 plus the modifier's 100");
 
   // A second frame at the same clock must NOT compound the modifier's own
-  // output (Carbon restores the sampled pose; the per-frame reset covers it).
+  // output (Carbon restores m_sampledPose first, Tr2GrannyAnimation.cpp:1704-1709).
   animation.Update(0);
   bones = animation.GetMeshBoneMatrixList();
   assert.ok(Math.abs(bones[3] - 105) < 1e-6, "no frame-over-frame compounding");
@@ -267,7 +267,8 @@ test("Tr2GrannyAnimation runs the pose modifier after sampling without compoundi
 
 test("Tr2GrannyAnimation.StopAnimations pins a stop time and clears the queue", () =>
 {
-  // Immediate stop: the active animation is removed and the pose resets.
+  // Immediate stop: the active animation is removed and, as Carbon never
+  // rest-poses m_pose per frame (cpp:1704-1717), the bone keeps its last pose.
   const immediate = new Tr2GrannyAnimation();
   immediate.model_ = "Ship";
   immediate.SetGrannyResource(createResource());
@@ -276,7 +277,7 @@ test("Tr2GrannyAnimation.StopAnimations pins a stop time and clears the queue", 
   assert.ok(Math.abs(immediate.GetMeshBoneMatrixList()[3] - 5) < 1e-6);
   immediate.StopAnimations(0);
   immediate.Update(0);
-  assert.ok(Math.abs(immediate.GetMeshBoneMatrixList()[3]) < 1e-6, "immediate stop resets the pose");
+  assert.ok(Math.abs(immediate.GetMeshBoneMatrixList()[3] - 5) < 1e-6, "immediate stop holds the last pose");
 
   // Delayed stop: playback continues until the pinned stop time, then ends;
   // pending queue entries are dropped at the call.
@@ -291,9 +292,9 @@ test("Tr2GrannyAnimation.StopAnimations pins a stop time and clears the queue", 
   assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6,
     "still sampling before the stop time");
   delayed.Update(0.6);
-  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3]) < 1e-6,
-    "past the stop time the animation is retired, queue included");
+  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6,
+    "past the stop time the animation is retired and the last pose held");
   delayed.Update(1);
-  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3]) < 1e-6,
+  assert.ok(Math.abs(delayed.GetMeshBoneMatrixList()[3] - 7.5) < 1e-6,
     "the pending entry was dropped by the stop, not resumed");
 });

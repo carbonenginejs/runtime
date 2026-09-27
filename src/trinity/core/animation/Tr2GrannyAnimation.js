@@ -12,21 +12,16 @@ import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
 import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
+import { Tr2GrannyAnimationLayer } from "./Tr2GrannyAnimationLayer.js";
 
 
 function createLayer(name = "", weight = 1, allBones = false)
 {
-  return {
-    name,
-    weight,
-    allBones,
-    bones: new Set(),
-    queue: [],
-    controlParam: 0,
-    controlParamTarget: 0,
-    controlParamEnabled: false,
-    controlParamSkewRate: 0
-  };
+  const layer = new Tr2GrannyAnimationLayer();
+  layer.name = name;
+  layer.weight = weight;
+  layer.allBones = allBones;
+  return layer;
 }
 
 
@@ -128,6 +123,9 @@ export class Tr2GrannyAnimation extends CjsModel
 
   /** The cached skeleton/pose ducks handed to the pose modifier. */
   _poseModifierView = null;
+
+  /** Carbon m_sampledPose (Tr2GrannyAnimation.h:202): the pose before ModifyPose. */
+  _sampledPose = null;
 
   _runtimeModel = null;
 
@@ -244,6 +242,12 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   SetSharedGeometryRes(resource)
   {
+    // Carbon cpp:283-286: rebinding the same geometry (or null to null) is a
+    // no-op - no Cleanup, and m_resPath is kept.
+    if ((resource ?? null) === (this._sharedGeometry ? this.grannyRes : null))
+    {
+      return this._initialized;
+    }
     this.grannyRes = resource ?? null;
     this._sharedGeometry = !!resource;
     this.resPath_ = "";
@@ -295,7 +299,7 @@ export class Tr2GrannyAnimation extends CjsModel
     this._curveCache = new WeakMap();
     this._morphCurveCache = new WeakMap();
     this._morphAnimations.clear();
-    this.boneOffset?.ClearRigBindings?.();
+    this.boneOffset.ClearRigBindings();
     if (!model || sourceBones.length === 0)
     {
       this._initialized = false;
@@ -307,12 +311,25 @@ export class Tr2GrannyAnimation extends CjsModel
     this._runtimeModel = { source, model, skeleton, bones, boneByName };
     this._rebuildRestTransforms();
     this._rebuildMeshBoneIndices();
+    // Carbon cmf::RestPose(m_pose, skeleton) at setup (Tr2GrannyAnimation.cpp:624):
+    // the ONLY unconditional rest pose; Update never resets it again.
+    this._resetPose();
     this._initialized = true;
     this.Update(0);
     return true;
   }
 
-  /** Advances CPU animation controls and rebuilds browser bone matrices. */
+  /**
+   * Advances CPU animation controls and rebuilds browser bone matrices.
+   *
+   * Adapted: Carbon's CMF PrePhysicsAnimation (Tr2GrannyAnimation.cpp:1693-1745)
+   * driven by an explicit delta instead of Tr2Renderer's animation clock. The
+   * pose is PERSISTENT, as in Carbon: it is rest-posed once at setup
+   * (cpp:624) and sampling writes only bones of active animations
+   * (cmf AnimationSequencer::Sample, mesh/src/cmf/animation.cpp:810-819), so a
+   * bone nothing animates keeps its last value - an aimed bone keeps its aim
+   * after DisableAimBone.
+   */
   @impl.adapted
   Update(dt = 0)
   {
@@ -326,27 +343,69 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       this._advanceLayer(layer, deltaTime);
     }
-    this._resetPose();
     this._morphAnimations.clear();
+    // Carbon cpp:1704-1709: sampling only writes bones referenced by active
+    // animations, so the pre-modifier pose is restored first or the modifier
+    // compounds onto its own output.
+    if (this._poseModifier && this._sampledPose && this._sampledPose.model === this._runtimeModel)
+    {
+      this._restorePose(this._sampledPose);
+    }
     this._sampleLayer(this._baseLayer, false);
     for (const layer of this._getOrderedLayers())
     {
       this._sampleLayer(layer, this._additiveMode);
     }
-    this.UpdateAimingBone(this._GetPoseModifierView().skeleton);
-    // Carbon PrePhysicsAnimation (cpp:1704-1723) runs ModifyPose after
-    // sampling and before bone offsets. Carbon restores m_sampledPose before
-    // sampling so the modifier never compounds onto its own output; the
-    // _resetPose above already re-establishes that invariant every frame, so
-    // no snapshot/restore pair is needed here.
+    this._UpdateAimingBone(this._GetPoseModifierView().skeleton);
     if (this._poseModifier)
     {
+      // Carbon cpp:1719-1723: snapshot the sampled pose, then modify in place.
+      this._sampledPose = this._snapshotPose(this._sampledPose);
       const view = this._GetPoseModifierView();
       this._poseModifier.ModifyPose(view.skeleton, view.pose);
     }
+    // Carbon quirk (cpp:1727-1742 with GrannyBoneOffset.cpp:195-196): offsets
+    // are applied onto the persistent pose, so with no pose modifier to
+    // restore it they compound every frame on bones no animation rewrites.
     this._applyBoneOffsets();
     this._composePose();
     return true;
+  }
+
+  /**
+   * Copies the current local pose into `target` (allocated on first use or on
+   * a skeleton change) - Carbon's `m_sampledPose = m_pose` (cpp:1721).
+   */
+  _snapshotPose(target)
+  {
+    const bones = this._runtimeModel.bones;
+    let snapshot = target;
+    if (!snapshot || snapshot.model !== this._runtimeModel)
+    {
+      snapshot = {
+        model: this._runtimeModel,
+        bones: bones.map(() => ({ position: vec3.create(), orientation: quat.create(), scaleShear: mat3.create() }))
+      };
+    }
+    for (let index = 0; index < bones.length; index++)
+    {
+      vec3.copy(snapshot.bones[index].position, bones[index].position);
+      quat.copy(snapshot.bones[index].orientation, bones[index].orientation);
+      mat3.copy(snapshot.bones[index].scaleShear, bones[index].scaleShear);
+    }
+    return snapshot;
+  }
+
+  /** Writes a pose snapshot back into the live bones - Carbon's `m_pose = m_sampledPose` (cpp:1708). */
+  _restorePose(snapshot)
+  {
+    const bones = this._runtimeModel.bones;
+    for (let index = 0; index < bones.length; index++)
+    {
+      vec3.copy(bones[index].position, snapshot.bones[index].position);
+      quat.copy(bones[index].orientation, snapshot.bones[index].orientation);
+      mat3.copy(bones[index].scaleShear, snapshot.bones[index].scaleShear);
+    }
   }
 
   /** The registered pose modifier, or null (Carbon Tr2GrannyAnimation.cpp:2170-2173). */
@@ -494,18 +553,18 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /**
-   * Replaces the first matching bone's local rotation with the aiming correction.
+   * Carbon Tr2GrannyAnimation::UpdateAimingBone (Tr2GrannyAnimation.h:175,
+   * cpp:1611-1651, private): replaces the first matching bone's local rotation
+   * with the aiming correction.
    *
-   * Adapted: Uses the decoded runtime skeleton and gl-matrix world transforms.
+   * Uses the decoded runtime skeleton and gl-matrix world transforms.
    * Native quirk (Tr2GrannyAnimation.cpp:1639): parent transpose is used even
    * under non-uniform scale. Do not substitute a true inverse.
    *
    * @param {object} skeleton Skeleton view containing ordered bone names.
    * @returns {void}
    */
-  @carbon.method
-  @impl.adapted
-  UpdateAimingBone(skeleton)
+  _UpdateAimingBone(skeleton)
   {
     if (!this._aimingBone || !this._runtimeModel)
     {
@@ -556,39 +615,45 @@ export class Tr2GrannyAnimation extends CjsModel
     return this.PlayAnimation(animName, false, loopCount, delay, speed, true);
   }
 
-  /** Carbon method ClearAnimations (MAP_METHOD_AND_WRAP). */
+  /** Carbon method ClearAnimations (Tr2GrannyAnimation.cpp:1515-1518): the base layer's. */
   @carbon.method
   @impl.implemented
   ClearAnimations()
   {
-    this._baseLayer.queue.length = 0;
+    this._baseLayer.ClearAnimations();
   }
 
   /**
    * Stops all base-layer animations, current and queued, `delay` seconds from
-   * now (Carbon Tr2GrannyAnimation.cpp:1510-1513 delegating to the layer's
-   * queue clear + per-player stop time, Tr2GrannyAnimationLayer.cpp:462-475).
-   * A non-positive delay removes the active animation immediately, morphs
-   * included; a positive delay pins its stop time so playback holds its last
-   * sampled value until then. Distinct from EndAnimation (finish the current
-   * loop) and ClearAnimations (drop everything with no delay bookkeeping).
+   * now (Carbon Tr2GrannyAnimation.cpp:1510-1513 delegating to
+   * Tr2GrannyAnimationLayer::StopAnimations). Distinct from EndAnimation
+   * (finish the current loop) and ClearAnimations (drop everything with no
+   * delay bookkeeping).
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("Carbon pins a stop time per sequencer player; the browser layer's single active request carries the stop as a stopAt clock value with the pending queue dropped.")
+  @impl.implemented
   StopAnimations(delay = 0)
   {
-    const layer = this._baseLayer;
-    const request = layer.queue[0];
-    layer.queue.length = 0;
-    const stopDelay = Number(delay) || 0;
-    if (request && stopDelay > 0)
+    this._baseLayer.StopAnimations(delay);
+  }
+
+  /**
+   * The named animation layer, the base layer for a null name, or null when no
+   * layer has that name (Carbon Tr2GrannyAnimation.cpp:305-319). An empty
+   * string is a name, not the base layer, as in Carbon's map lookup.
+   *
+   * @param {?string} name
+   * @returns {?Tr2GrannyAnimationLayer}
+   */
+  @carbon.method
+  @impl.implemented
+  GetAnimationLayer(name = null)
+  {
+    if (name === null || name === undefined)
     {
-      // Carbon: player.SetStopTime(animationTime + delay) - the layer clock
-      // and our request.elapsed advance in the same unscaled seconds.
-      request.stopAt = request.elapsed + stopDelay;
-      layer.queue.push(request);
+      return this._baseLayer;
     }
+    return this._layers.get(String(name)) ?? null;
   }
 
   /** Carbon method ClearAnimationLayers (MAP_METHOD_AND_WRAP). */
@@ -607,23 +672,12 @@ export class Tr2GrannyAnimation extends CjsModel
     this._aimingBone = false;
   }
 
-  /** Carbon method EndAnimation (MAP_METHOD_AND_WRAP). */
+  /** Carbon method EndAnimation (Tr2GrannyAnimation.cpp:1505-1508): the base layer's. */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   EndAnimation()
   {
-    const request = this._baseLayer.queue[0];
-    this._baseLayer.queue.splice(1);
-    if (!request?.animation)
-    {
-      return;
-    }
-    const duration = this._getAnimationDuration(request.animation);
-    if (duration > 0)
-    {
-      const localTime = Math.max(0, request.elapsed) * Math.abs(request.speed);
-      request.loopCount = Math.floor(localTime / duration) + 1;
-    }
+    this._baseLayer.EndAnimation();
   }
 
   /** Carbon method GetAdditiveBlendMode (MAP_METHOD_AND_WRAP). */
@@ -976,21 +1030,20 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Applies configured bone offsets to the sampled local pose. */
   _applyBoneOffsets()
   {
+    // Carbon cpp:1727-1742: rebind when the rig changed, then apply per bone.
     const bones = this._runtimeModel?.bones ?? [];
     const offsets = this.boneOffset;
-    if (!bones.length || !offsets?.HaveTransforms?.())
+    if (offsets.NeedRebind(bones.length) && bones.length)
     {
-      return;
+      offsets.BindToRig(bones.map(bone => bone.name), bones.length);
     }
 
-    if (offsets.NeedRebind?.(bones.length))
+    if (offsets.HaveTransforms())
     {
-      offsets.BindToRig?.(bones.map(bone => bone.name), bones.length);
-    }
-
-    for (const bone of bones)
-    {
-      offsets.ApplyToLocal?.(bone.index, bone.orientation, bone.position);
+      for (const bone of bones)
+      {
+        offsets.ApplyToLocal(bone.index, bone.orientation, bone.position);
+      }
     }
   }
 
@@ -1297,6 +1350,14 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Samples the active request for one animation layer. */
   _sampleLayer(layer, additive)
   {
+    // Carbon's control-param paths rest-pose the RESULT pose before sampling,
+    // players or not (Tr2GrannyAnimationLayer.cpp:671 base, :725 layered).
+    // Quirk (cpp:725): on a non-additive named layer that is the shared pose,
+    // so it wipes what the base layer sampled this frame.
+    if (layer.controlParamEnabled && !additive)
+    {
+      this._resetPose();
+    }
     const request = layer.queue[0];
     const animation = request?.animation;
     if (!animation || request.elapsed < 0)
@@ -1304,7 +1365,7 @@ export class Tr2GrannyAnimation extends CjsModel
       return;
     }
     // Carbon cmf::AnimationPlayer::Sample returns false past the pinned stop
-    // time (animation.cpp:734-743), leaving the bone at its reset value.
+    // time (animation.cpp:734-743), leaving the bone at its last pose.
     if (request.stopAt !== undefined && request.elapsed >= request.stopAt)
     {
       return;
@@ -1352,9 +1413,13 @@ export class Tr2GrannyAnimation extends CjsModel
   _sampleTrack(bone, track, time, duration, weight, additive)
   {
     const curves = this._decodeTrack(track);
-    const position = vec3.clone(bone.restPosition);
-    const orientation = quat.clone(bone.restOrientation);
-    const scaleShear = mat3.clone(bone.restScaleShear);
+    // A missing curve leaves its channel as the pose holds it (cmf
+    // AnimationPlayer::SampleAtLocalTime writes only the curves it has,
+    // mesh/src/cmf/animation.cpp:750-767); the additive delta measures
+    // against rest, so it keeps rest defaults.
+    const position = vec3.clone(additive ? bone.restPosition : bone.position);
+    const orientation = quat.clone(additive ? bone.restOrientation : bone.orientation);
+    const scaleShear = mat3.clone(additive ? bone.restScaleShear : bone.scaleShear);
     if (curves.position)
     {
       CjsGrannyCurves.sampleGrannyCurve(position, curves.position, time, false, duration);

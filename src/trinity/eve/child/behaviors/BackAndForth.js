@@ -275,10 +275,9 @@ export class BackAndForth extends CjsModel
         // Set the rotation of the drone
         vec3.subtract(INV_DIR, data.locatorTarget, AGENT_POSITION_WS);
         vec3.normalize(INV_DIR, INV_DIR);
-        if (vec3.squaredLength(INV_DIR) > 0)
-        {
-          quat.rotationTo(agent.rotation, Z_AXIS, INV_DIR);
-        }
+        // Carbon TriQuaternionRotationArc(&newRotation, &zAxis, &invDir)
+        // (BackAndForth.cpp:165); a zero direction yields identity.
+        quat.rotationArc(agent.rotation, Z_AXIS, INV_DIR);
         data.timePassed = 0;
 
         // Start playing fx when slowing down

@@ -26,7 +26,6 @@ const BLEND_VECTOR = vec3.create();
 const PULL_FORCE = vec3.create();
 const FORCE_OFFSET = vec3.create();
 const SPAWN_POSITION = vec3.create();
-const SPAWN_ROTATION = vec3.create();
 
 /** ProcessLifetime (eve/child/behaviors) - generated from schema shapeHash 1fd3ebfa.... */
 @type.define({ className: "ProcessLifetime", family: "eve" })
@@ -694,11 +693,9 @@ export class ProcessLifetime extends CjsModel
     const randomNbr = Math.floor(Math.random() * potentialPoints.length);
     vec3.copy(group.spawnPosition, potentialPoints[randomNbr]);
     vec3.copy(agent.position, potentialPoints[randomNbr]);
-    vec3.normalize(SPAWN_ROTATION, potentialRotations[randomNbr]);
-    if (vec3.squaredLength(SPAWN_ROTATION) > 0)
-    {
-      quat.rotationTo(agent.rotation, Z_AXIS, SPAWN_ROTATION);
-    }
+    // Carbon TriQuaternionRotationArc(&agent.rotation, &zAxis, &potentialRotations[n])
+    // (ProcessLifetime.cpp:423); it normalizes internally.
+    quat.rotationArc(agent.rotation, Z_AXIS, potentialRotations[randomNbr]);
 
     data.assignedLifeTimeTunnel = tunnelIndex[randomNbr];
   }

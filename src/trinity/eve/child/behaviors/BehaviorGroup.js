@@ -17,7 +17,6 @@ import { EveComponentType } from "../../EveComponentTypes.js";
 const Z_AXIS = vec3.fromValues(0, 0, 1);
 const INTEREST_POINT = vec3.create();
 const ACTUAL_FACING = vec3.create();
-const FACING_NORMALIZED = vec3.create();
 const AGENT_SPHERE = vec4.create();
 const EMPTY_SEARCH_TREE = [];
 
@@ -566,13 +565,10 @@ export class BehaviorGroup extends EveEntity
       vec3.transformQuat(INTEREST_POINT, Z_AXIS, agent.rotation);
       vec3.lerp(ACTUAL_FACING, INTEREST_POINT, agent.velocity, vec3.squaredLength(agent.velocity) / maxVelocitySq);
 
-      // Carbon TriQuaternionRotationArc(zAxis -> actualFacingDir); rotationTo
-      // needs unit vectors, and a zero facing keeps the previous rotation.
-      vec3.normalize(FACING_NORMALIZED, ACTUAL_FACING);
-      if (vec3.squaredLength(FACING_NORMALIZED) > 0)
-      {
-        quat.rotationTo(agent.rotation, Z_AXIS, FACING_NORMALIZED);
-      }
+      // Carbon TriQuaternionRotationArc(&rotation, &zAxis, &actualFacingDir)
+      // (BehaviorGroup.cpp:611); it normalizes internally, and a zero facing
+      // yields identity as in Carbon.
+      quat.rotationArc(agent.rotation, Z_AXIS, ACTUAL_FACING);
       vec3.copy(agent.targetDirection, ACTUAL_FACING);
 
       ClampLength(agent.velocity, this.maxVelocity);

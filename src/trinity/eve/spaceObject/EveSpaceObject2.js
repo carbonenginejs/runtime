@@ -3339,6 +3339,17 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /**
+   * The Tr2GrannyAnimation driving this object, or null
+   * (ITr2GrannyAnimationOwner, EveSpaceObject2.h:450-453).
+   */
+  @carbon.method
+  @impl.implemented
+  GetAnimationController()
+  {
+    return this.animationUpdater;
+  }
+
+  /**
    * Gets the number of mesh-bound bones. Carbon dereferences the animation
    * updater unchecked; CarbonEngineJS reports 0 when none is attached.
    */

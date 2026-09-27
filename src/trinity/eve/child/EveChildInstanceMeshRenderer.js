@@ -35,7 +35,6 @@ const INVERSE_ARC = quat.create();
 const ROLL_ADJUSTMENT = quat.create();
 const MODIFICATION = quat.create();
 const QUATERNION_SCRATCH = quat.create();
-const QUATERNION_SCRATCH_2 = quat.create();
 const ROTATION_MATRIX = mat4.create();
 const ROW_ROTATION_MATRIX = mat4.create();
 const INVERSE_WORLD = mat4.create();
@@ -412,8 +411,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
         const angle = Math.PI / 2 - Math.atan2(CAMERA_DIRECTION[0], CAMERA_DIRECTION[2]) * 0.5;
         quat.set(ROLL_ADJUSTMENT, 0, 0, Math.cos(angle), Math.sin(angle));
-        EveChildInstanceMeshRenderer.#QuaternionRotationArc(ROTATION_ARC, UP, OBJECT_UP);
-        EveChildInstanceMeshRenderer.#QuaternionRotationArc(OBJECT_UP_TO_CAMERA, CAMERA_DIRECTION, UP);
+        // Carbon TriQuaternionRotationArc(out, from, to) - same argument order.
+        quat.rotationArc(ROTATION_ARC, UP, OBJECT_UP);
+        quat.rotationArc(OBJECT_UP_TO_CAMERA, CAMERA_DIRECTION, UP);
         quat.invert(INVERSE_ARC, OBJECT_UP_TO_CAMERA);
 
         // Carbon row-vector: rollAdjustment * rotationArc * inverse(cameraArc).
@@ -603,39 +603,6 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       quat.set(out, (matrix[2] + matrix[8]) / scale, (matrix[6] + matrix[9]) / scale, 0.25 * scale, (matrix[1] - matrix[4]) / scale);
     }
     return out;
-  }
-
-  /** Carbon TriQuaternionRotationArc, with row-vector products reversed. */
-  static #QuaternionRotationArc(out, from, to)
-  {
-    vec3.normalize(OBJECT_DIRECTION, from);
-    vec3.normalize(OBJECT_UP, to);
-    quat.set(QUATERNION_SCRATCH, OBJECT_DIRECTION[0], OBJECT_DIRECTION[1], OBJECT_DIRECTION[2], 0);
-    quat.set(QUATERNION_SCRATCH_2, -OBJECT_UP[0], -OBJECT_UP[1], -OBJECT_UP[2], 0);
-    quat.multiply(out, QUATERNION_SCRATCH_2, QUATERNION_SCRATCH);
-    return EveChildInstanceMeshRenderer.#QuaternionSqrt(out, out);
-  }
-
-  /** Carbon TriQuaternionSqrt. */
-  static #QuaternionSqrt(out, value)
-  {
-    quat.copy(out, value);
-    if (out[3] + 0.99999 < 0)
-    {
-      vec3.set(OBJECT_DIRECTION, out[0] * 1000000, out[1] * 1000000, out[2] * 1000000);
-      vec3.normalize(OBJECT_DIRECTION, OBJECT_DIRECTION);
-      if (vec3.squaredLength(OBJECT_DIRECTION) < 0.5)
-      {
-        quat.set(out, 1, 0, 0, 0);
-      }
-      else
-      {
-        quat.set(out, OBJECT_DIRECTION[0], OBJECT_DIRECTION[1], OBJECT_DIRECTION[2], 0);
-      }
-      return out;
-    }
-    out[3] += 1;
-    return quat.normalize(out, out);
   }
 
   /** Carbon TriQuaternionArcFromForward. */
