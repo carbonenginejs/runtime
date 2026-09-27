@@ -143,9 +143,12 @@ else
                 // Prefer a vocabulary in a file that cites THIS header; a bare name
                 // is not an identity, and Carbon reuses Status, Type, Result and
                 // Usage across unrelated classes.
+                // A struct wrapping one `enum Type` (Carbon's scoped-enum idiom,
+                // `Tr2GpuUsage::Type`) ports under the struct's own name.
                 const named = [
                     ...(vocabularies.get(declared.name) ?? []),
-                    ...(declared.owner ? vocabularies.get(`${declared.owner}${declared.name}`) ?? [] : [])
+                    ...(declared.owner ? vocabularies.get(`${declared.owner}${declared.name}`) ?? [] : []),
+                    ...(declared.owner && declared.name === "Type" ? vocabularies.get(declared.owner) ?? [] : [])
                 ];
                 // Attribution, not name collision. A vocabulary counts as this enum's
                 // port only if its file cites the donor header, or - for a nested

@@ -268,6 +268,18 @@ function PixelsFor(gl, type, bytes)
  */
 export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
 {
+  /**
+   * dx11's `DepthOption::Type` (Tr2TextureALDx11.h:71-79): which depth-stencil
+   * view `CreateViews` makes, writable or read-only. WebGL2 attaches the
+   * texture itself (`AttachToFramebuffer`) and has no views, so nothing here
+   * selects one; the vocabulary is kept with the port.
+   */
+  static DepthOption = Object.freeze({
+    READ_WRITE: 0,
+    READ_ONLY: 1,
+    COUNT: 2
+  });
+
   /** m_texture: the `WebGLTexture`, or null for a multisampled texture. */
   _texture = null;
 

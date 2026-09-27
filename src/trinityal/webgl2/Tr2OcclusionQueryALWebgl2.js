@@ -29,6 +29,12 @@ import { RenderContextALOf } from "../renderContextAL.js";
  */
 export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
 {
+  /** `Tr2OcclusionQueryAL::WaitMode` (Tr2OcclusionQueryAL.h:18-22): whether `GetPixelCount` blocks for the result. */
+  static WaitMode = Object.freeze({
+    WAIT: 0,
+    DO_NOT_WAIT: 1
+  });
+
   /** m_query */
   _query = null;
 
@@ -108,11 +114,11 @@ export class Tr2OcclusionQueryALWebgl2 extends Tr2DeviceResourceAL
    * head comment.
    *
    * @param {object} renderContext The context.
-   * @param {number} [_waitMode] An `OcclusionWaitMode`; WebGL2 cannot wait.
+   * @param {number} [_waitMode] A `WaitMode`; WebGL2 cannot wait.
    * @returns {{result: number, count: number}} dx11's out argument comes back here.
    */
   @impl.adapted
-  GetPixelCount(renderContext, _waitMode = 0)
+  GetPixelCount(renderContext, _waitMode = Tr2OcclusionQueryALWebgl2.WaitMode.WAIT)
   {
     if (!this._query) return { result: ALResult.E_INVALIDARG, count: 0 };
 
