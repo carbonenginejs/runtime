@@ -4,6 +4,8 @@ import {
     coerceCarbonTypedArrayInto,
     defaultValueForCarbonField,
     exportCarbonValue,
+    getCarbonTypeDefinition,
+    inferCarbonTypeFromCpp,
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
 import { composeAbstractDecorator } from "../compose/abstract.js";
@@ -2076,6 +2078,11 @@ function addSchemaBuckets(schema)
         // An undeclared field could hold anything, so it stays traversable.
         const kind = type?.kind;
         if (kind && !MODEL_KINDS.has(kind)) continue;
+        // A collection of values (strings, numbers, vectors, matrices) holds no
+        // model; an instance-transform array would otherwise cost a visit per
+        // matrix. Items naming a class, or an interface nothing registers,
+        // stay traversable.
+        if (MANY_KINDS.has(kind) && isValueItemType(type.itemType)) continue;
 
         const entry = { name: field.name, many: MANY_KINDS.has(kind) };
 
@@ -2092,6 +2099,26 @@ function addSchemaBuckets(schema)
     schema.byName = byName;
     schema.children = children;
     schema.resources = resources;
+}
+
+
+// Kinds an item may resolve to that hold no model: every Carbon kind except
+// the object-bearing ones and "unknown".
+const NON_VALUE_KINDS = new Set([ ...MODEL_KINDS, "unknown", "enum" ]);
+
+/**
+ * Whether a collection's declared item type is a value, not an object: a
+ * Carbon kind by name ("uint32", "mat4") or a C++ spelling of one
+ * ("std::string", "uint32_t"). An unresolved name is not a value - it is
+ * usually an interface ("ITr2ValueBinding") whose items are objects.
+ */
+function isValueItemType(itemType)
+{
+    if (!itemType) return false;
+    if (typeof itemType === "object") return !NON_VALUE_KINDS.has(itemType.kind);
+    if (typeof itemType !== "string" || CONSTRUCTOR_BY_NAME.has(itemType)) return false;
+    return !NON_VALUE_KINDS.has(getCarbonTypeDefinition(itemType).kind)
+        || !NON_VALUE_KINDS.has(inferCarbonTypeFromCpp(itemType).kind);
 }
 
 

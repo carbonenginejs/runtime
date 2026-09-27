@@ -411,6 +411,23 @@ test("from initializes owned children last-to-first before their parent", () => 
     assert.deepEqual(order, ["assigned-last", "assigned-first"]);
 });
 
+test("traversal children skip collections of values but keep interface-typed lists", () => {
+    // A list of matrices or strings holds no model; walking it costs a visit
+    // per item for nothing. A list typed by an interface nothing registers
+    // (ITr2ValueBinding) holds objects, so it stays a child.
+    class BucketModel extends CjsModel {}
+    CjsSchema.defineField(BucketModel, "instanceTransforms", "type", { kind: "array", itemType: "mat4" });
+    CjsSchema.defineField(BucketModel, "names", "type", { kind: "list", itemType: "std::string" });
+    CjsSchema.defineField(BucketModel, "indices", "type", { kind: "list", itemType: "uint32_t" });
+    CjsSchema.defineField(BucketModel, "bindings", "type", { kind: "list", itemType: "ITr2ValueBinding" });
+    CjsSchema.defineField(BucketModel, "items", "type", { kind: "list", itemType: "BucketModel" });
+    CjsSchema.defineField(BucketModel, "loose", "type", { kind: "list" });
+    CjsSchema.define(BucketModel, { className: "BucketModel" });
+
+    const children = CjsSchema.getSchema(BucketModel).children.map(child => child.name);
+    assert.deepEqual(children.sort(), ["bindings", "items", "loose"]);
+});
+
 test("Traverse is cycle-safe and GetResources visits every model", () => {
     class GraphModel extends CjsModel {}
     CjsSchema.defineField(GraphModel, "children", "type", { kind: "array" });
