@@ -142,3 +142,13 @@ A texture on a WebGL2 device.
 - Source: `src/trinityal/webgl2/Tr2TextureALWebgl2.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:Tr2VertexLayoutALWebgl2 -->
+## `Tr2VertexLayoutALWebgl2`
+
+A vertex layout on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2VertexLayoutALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
