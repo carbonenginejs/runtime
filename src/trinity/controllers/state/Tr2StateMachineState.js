@@ -38,27 +38,28 @@ export class Tr2StateMachineState extends CjsModel
   @type.string
   name = "";
 
-  #stateMachine = null;
+  _stateMachine = null;
 
-  #isActive = false;
+  _isActive = false;
 
-  #isFinalizing = false;
+  _isFinalizing = false;
 
-  #hasBeenVetoed = false;
+  _hasBeenVetoed = false;
 
-  #transitionVariableMask = 0n;
+  _transitionVariableMask = 0n;
 
   /**
    * Relinks the finalizer after it is modified.
+   *
+   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    */
   @carbon.method
-  @impl.implemented
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @impl.adapted
   OnModified(propertyName)
   {
     if (propertyName === "finalizer")
     {
-      const controller = this.#stateMachine?.GetController() ?? null;
+      const controller = this._stateMachine?.GetController() ?? null;
       if (this.finalizer && controller) this.finalizer.Link(controller);
     }
     return true;
@@ -73,11 +74,11 @@ export class Tr2StateMachineState extends CjsModel
   {
     if (list === this.actions)
     {
-      this.#onActionListModified(event, value);
+      this._onActionListModified(event, value);
     }
     else if (list === this.transitions)
     {
-      this.#onTransitionListModified(event, value);
+      this._onTransitionListModified(event, value);
     }
   }
 
@@ -89,14 +90,14 @@ export class Tr2StateMachineState extends CjsModel
   Link(stateMachine)
   {
     this.Unlink();
-    this.#stateMachine = stateMachine;
+    this._stateMachine = stateMachine;
     this.UpdateVariableMask();
     for (const transition of this.transitions)
     {
       transition.Link(this);
     }
     this.UpdateVariableMask();
-    const controller = this.#getController();
+    const controller = this._getController();
     if (controller)
     {
       for (const action of this.actions)
@@ -114,23 +115,23 @@ export class Tr2StateMachineState extends CjsModel
   @impl.implemented
   UpdateVariableMask()
   {
-    this.#transitionVariableMask = 0n;
+    this._transitionVariableMask = 0n;
     let hasMask = true;
     for (const transition of this.transitions)
     {
-      const mask = Tr2StateMachineState.#toBigIntMask(transition.GetVariableMask?.() ?? 0n);
+      const mask = Tr2StateMachineState._toBigIntMask(transition.GetVariableMask?.() ?? 0n);
       if (mask === 0n)
       {
         hasMask = false;
       }
       else
       {
-        this.#transitionVariableMask |= mask;
+        this._transitionVariableMask |= mask;
       }
     }
     if (!hasMask)
     {
-      this.#transitionVariableMask = 0n;
+      this._transitionVariableMask = 0n;
     }
   }
 
@@ -141,7 +142,7 @@ export class Tr2StateMachineState extends CjsModel
   @impl.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
-    if (!this.#stateMachine)
+    if (!this._stateMachine)
     {
       return;
     }
@@ -149,7 +150,7 @@ export class Tr2StateMachineState extends CjsModel
     {
       this.Stop();
     }
-    this.#stateMachine = null;
+    this._stateMachine = null;
     for (const transition of this.transitions)
     {
       transition.Unlink();
@@ -159,6 +160,7 @@ export class Tr2StateMachineState extends CjsModel
       action.Unlink();
     }
     this.finalizer?.Unlink();
+    this._transitionVariableMask = 0n;
   }
 
   /**
@@ -166,9 +168,9 @@ export class Tr2StateMachineState extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  Start(controller = this.#getController())
+  Start(controller = this._getController())
   {
-    if (this.#isActive)
+    if (this._isActive)
     {
       return;
     }
@@ -180,9 +182,9 @@ export class Tr2StateMachineState extends CjsModel
     {
       action.Start(controller);
     }
-    this.#isActive = true;
-    this.#isFinalizing = false;
-    this.#hasBeenVetoed = false;
+    this._isActive = true;
+    this._isFinalizing = false;
+    this._hasBeenVetoed = false;
   }
 
   /**
@@ -190,9 +192,9 @@ export class Tr2StateMachineState extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  Stop(controller = this.#getController())
+  Stop(controller = this._getController())
   {
-    if (!this.#isActive || this.#isFinalizing)
+    if (!this._isActive || this._isFinalizing)
     {
       return;
     }
@@ -205,10 +207,10 @@ export class Tr2StateMachineState extends CjsModel
     }
     if (this.finalizer && controller && !this.finalizer.CanTransition(controller))
     {
-      this.#isFinalizing = true;
+      this._isFinalizing = true;
       return;
     }
-    this.#isActive = false;
+    this._isActive = false;
   }
 
   /**
@@ -218,21 +220,21 @@ export class Tr2StateMachineState extends CjsModel
   @impl.adapted
   Update(dirtyVariables = 0n)
   {
-    if (!this.#isActive)
+    if (!this._isActive)
     {
       return null;
     }
-    const controller = this.#getController();
+    const controller = this._getController();
     if (!controller)
     {
       return null;
     }
-    if (this.#isFinalizing)
+    if (this._isFinalizing)
     {
-      const next = this.#getNextState();
+      const next = this._getNextState();
       if (!next)
       {
-        this.#isActive = false;
+        this._isActive = false;
         this.Start(controller);
       }
       if (!this.finalizer || this.finalizer.CanTransition(controller))
@@ -241,11 +243,11 @@ export class Tr2StateMachineState extends CjsModel
       }
       return null;
     }
-    if (this.#hasBeenVetoed)
+    if (this._hasBeenVetoed)
     {
       dirtyVariables = TR2_DIRTY_ALL;
     }
-    if (this.#transitionVariableMask !== 0n && !Tr2StateMachineState.#dirtyMaskMatches(this.#transitionVariableMask, dirtyVariables))
+    if (this._transitionVariableMask !== 0n && !Tr2StateMachineState._dirtyMaskMatches(this._transitionVariableMask, dirtyVariables))
     {
       return null;
     }
@@ -259,12 +261,12 @@ export class Tr2StateMachineState extends CjsModel
         {
           if (action.CanTransition && !action.CanTransition())
           {
-            this.#hasBeenVetoed = true;
+            this._hasBeenVetoed = true;
             return null;
           }
         }
         this.Stop(controller);
-        if (this.#isFinalizing)
+        if (this._isFinalizing)
         {
           return null;
         }
@@ -294,7 +296,7 @@ export class Tr2StateMachineState extends CjsModel
   @impl.implemented
   GetStateMachine()
   {
-    return this.#stateMachine;
+    return this._stateMachine;
   }
 
   /**
@@ -310,13 +312,13 @@ export class Tr2StateMachineState extends CjsModel
   /**
    * Checks whether actions and the finalizer allow transition.
    */
-  CanTransition(controller = this.#getController())
+  CanTransition(controller = this._getController())
   {
     for (const action of this.actions)
     {
       if (action.CanTransition && !action.CanTransition())
       {
-        this.#hasBeenVetoed = true;
+        this._hasBeenVetoed = true;
         return false;
       }
     }
@@ -327,7 +329,7 @@ export class Tr2StateMachineState extends CjsModel
    * Finds the destination of the first transition that activates against a fully
    * dirty variable mask, used to resolve where to go once finalizing completes.
    */
-  #getNextState()
+  _getNextState()
   {
     for (const transition of this.transitions)
     {
@@ -344,26 +346,26 @@ export class Tr2StateMachineState extends CjsModel
    * Gets the controller through the linked state machine, or null when this
    * state is unlinked.
    */
-  #getController()
+  _getController()
   {
-    return this.#stateMachine?.GetController() ?? null;
+    return this._stateMachine?.GetController() ?? null;
   }
 
   /**
    * Links and starts an inserted action when the state is already active, or
    * stops and unlinks a removed one.
    */
-  #onActionListModified(event, value)
+  _onActionListModified(event, value)
   {
-    const action = Tr2StateMachineState.#asAction(value);
-    const controller = this.#getController();
+    const action = Tr2StateMachineState._asAction(value);
+    const controller = this._getController();
     switch (event & BELIST_EVENTMASK)
     {
       case BELIST_INSERTED:
         if (controller && action)
         {
           action.Link(controller);
-          if (this.#isActive)
+          if (this._isActive)
           {
             action.Start(controller);
           }
@@ -372,7 +374,7 @@ export class Tr2StateMachineState extends CjsModel
       case BELIST_REMOVED:
         if (action)
         {
-          if (controller && this.#isActive)
+          if (controller && this._isActive)
           {
             action.Stop(controller);
           }
@@ -387,13 +389,13 @@ export class Tr2StateMachineState extends CjsModel
    * combined variable mask, which gates whether Update evaluates transitions at
    * all.
    */
-  #onTransitionListModified(event, value)
+  _onTransitionListModified(event, value)
   {
-    const transition = Tr2StateMachineState.#asTransition(value);
+    const transition = Tr2StateMachineState._asTransition(value);
     switch (event & BELIST_EVENTMASK)
     {
       case BELIST_INSERTED:
-        if (this.#stateMachine && transition)
+        if (this._stateMachine && transition)
         {
           transition.Link(this);
           this.UpdateVariableMask();
@@ -413,7 +415,7 @@ export class Tr2StateMachineState extends CjsModel
    * Narrows a list payload to an object reference before it is treated as an
    * action.
    */
-  static #asAction(value)
+  static _asAction(value)
   {
     return value && typeof value === "object" ? value : null;
   }
@@ -422,7 +424,7 @@ export class Tr2StateMachineState extends CjsModel
    * Narrows a list payload to an object reference before it is treated as a
    * transition.
    */
-  static #asTransition(value)
+  static _asTransition(value)
   {
     return value && typeof value === "object" ? value : null;
   }
@@ -431,7 +433,7 @@ export class Tr2StateMachineState extends CjsModel
    * Coerces a variable mask to BigInt so masks from different sources can be
    * combined exactly.
    */
-  static #toBigIntMask(value)
+  static _toBigIntMask(value)
   {
     return typeof value === "bigint" ? value : BigInt(value);
   }
@@ -440,8 +442,8 @@ export class Tr2StateMachineState extends CjsModel
    * Checks whether any variable this state's transitions depend on is marked
    * dirty this frame.
    */
-  static #dirtyMaskMatches(mask, dirtyVariables)
+  static _dirtyMaskMatches(mask, dirtyVariables)
   {
-    return (mask & Tr2StateMachineState.#toBigIntMask(dirtyVariables)) !== 0n;
+    return (mask & Tr2StateMachineState._toBigIntMask(dirtyVariables)) !== 0n;
   }
 }

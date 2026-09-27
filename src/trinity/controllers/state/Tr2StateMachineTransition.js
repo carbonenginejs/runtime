@@ -100,7 +100,7 @@ export class Tr2StateMachineTransition extends CjsModel
     if (!this._program || this._programSource !== this.condition)
     {
       this._program = CjsControllerExpressionProgram.Compile(this.condition, {
-        emptyValue: 1
+        allowEmpty: false
       });
       this._programSource = this.condition;
       this._variableNames = this._program.GetVariableNames();

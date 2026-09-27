@@ -104,6 +104,8 @@ export class CjsControllerExpressionProgram
 
   /**
    * Compiles a constrained expression into an AST.
+   * Set options.allowEmpty to false to require an expression, as Carbon does;
+   * other callers retain the existing emptyValue fallback.
    */
   Compile(source = this.source, options = this.options)
   {
@@ -113,7 +115,7 @@ export class CjsControllerExpressionProgram
     this.#error = null;
     this.variableNames.clear();
     this.functionNames.clear();
-    if (!this.source)
+    if (!this.source && this.options.allowEmpty !== false)
     {
       this.ast = {
         type: "literal",

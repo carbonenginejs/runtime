@@ -37,11 +37,11 @@ export class Tr2StateMachine extends CjsModel
   @type.string
   name = "";
 
-  #controller = null;
+  _controller = null;
 
-  #machineStartTime = 0;
+  _machineStartTime = 0;
 
-  #stateStartTime = 0;
+  _stateStartTime = 0;
 
   /**
    * Handles Carbon list notifications for the state list.
@@ -54,11 +54,11 @@ export class Tr2StateMachine extends CjsModel
     {
       return;
     }
-    const state = Tr2StateMachine.#asState(value);
+    const state = Tr2StateMachine._asState(value);
     switch (event & BELIST_EVENTMASK)
     {
       case BELIST_INSERTED:
-        if (this.#controller && state)
+        if (this._controller && state)
         {
           state.Link(this);
         }
@@ -71,8 +71,8 @@ export class Tr2StateMachine extends CjsModel
             state.Stop();
           }
           this.currentState = this.startState;
-          this.#stateStartTime = GetControllerTimeSeconds();
-          this.currentState?.Start(this.#controller);
+          this._stateStartTime = GetControllerTimeSeconds();
+          this.currentState?.Start(this._controller);
           state.Unlink();
         }
         break;
@@ -81,13 +81,14 @@ export class Tr2StateMachine extends CjsModel
 
   /**
    * Relinks the start state after it is modified.
+   *
+   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    */
   @carbon.method
-  @impl.implemented
-  @impl.reason("Dispatches Carbon member notifications by exposed property name; existing JS expression and resource adapters retain their owning methods.")
+  @impl.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "startState" && this.startState && this.#controller) this.startState.Link(this);
+    if (propertyName === "startState" && this.startState && this._controller) this.startState.Link(this);
     return true;
   }
 
@@ -99,8 +100,8 @@ export class Tr2StateMachine extends CjsModel
   OnSimClockRebase(oldTime, newTime)
   {
     const diff = newTime - oldTime;
-    this.#machineStartTime += diff;
-    this.#stateStartTime += diff;
+    this._machineStartTime += diff;
+    this._stateStartTime += diff;
     for (const state of this.states)
     {
       state.RebaseSimTime?.(diff);
@@ -115,7 +116,7 @@ export class Tr2StateMachine extends CjsModel
   Link(controller)
   {
     this.Unlink();
-    this.#controller = controller;
+    this._controller = controller;
     for (const state of this.states)
     {
       state.Link(this);
@@ -129,7 +130,7 @@ export class Tr2StateMachine extends CjsModel
   @impl.implemented
   Unlink(reason = UnlinkReason.UNLINKING)
   {
-    if (!this.#controller)
+    if (!this._controller)
     {
       return;
     }
@@ -141,7 +142,7 @@ export class Tr2StateMachine extends CjsModel
     {
       state.Unlink(reason);
     }
-    this.#controller = null;
+    this._controller = null;
   }
 
   /**
@@ -151,20 +152,20 @@ export class Tr2StateMachine extends CjsModel
   @impl.adapted
   Start()
   {
-    if (this.currentState || !this.#controller)
+    if (this.currentState || !this._controller)
     {
       return;
     }
     this.currentState = this.startState;
     const now = GetControllerTimeSeconds();
-    this.#machineStartTime = now;
-    this.#stateStartTime = now;
+    this._machineStartTime = now;
+    this._stateStartTime = now;
     if (!this.currentState)
     {
       return;
     }
-    this.currentState.Start(this.#controller);
-    this.#followTransitions(TR2_DIRTY_ALL);
+    this.currentState.Start(this._controller);
+    this._followTransitions(TR2_DIRTY_ALL);
   }
 
   /**
@@ -176,11 +177,11 @@ export class Tr2StateMachine extends CjsModel
   {
     if (this.currentState)
     {
-      this.currentState.Stop(this.#controller);
+      this.currentState.Stop(this._controller);
       this.currentState = null;
     }
-    this.#machineStartTime = 0;
-    this.#stateStartTime = 0;
+    this._machineStartTime = 0;
+    this._stateStartTime = 0;
   }
 
   /**
@@ -192,7 +193,7 @@ export class Tr2StateMachine extends CjsModel
   {
     if (this.currentState)
     {
-      this.#followTransitions(dirtyVariables);
+      this._followTransitions(dirtyVariables);
     }
   }
 
@@ -203,7 +204,7 @@ export class Tr2StateMachine extends CjsModel
   @impl.implemented
   GetController()
   {
-    return this.#controller;
+    return this._controller;
   }
 
   /**
@@ -239,7 +240,7 @@ export class Tr2StateMachine extends CjsModel
   @impl.adapted
   GetMachineRunTime()
   {
-    return this.#machineStartTime ? GetControllerTimeSeconds() - this.#machineStartTime : 0;
+    return this._machineStartTime ? GetControllerTimeSeconds() - this._machineStartTime : 0;
   }
 
   /**
@@ -249,7 +250,7 @@ export class Tr2StateMachine extends CjsModel
   @impl.adapted
   GetStateRunTime()
   {
-    return this.#stateStartTime ? GetControllerTimeSeconds() - this.#stateStartTime : 0;
+    return this._stateStartTime ? GetControllerTimeSeconds() - this._stateStartTime : 0;
   }
 
   /**
@@ -265,28 +266,38 @@ export class Tr2StateMachine extends CjsModel
    * state chain produces, resetting the state start time on each hop; after 10
    * hops it counts revisits and bails out at 20 to break a transition cycle.
    */
-  #followTransitions(dirtyVariables)
+  _followTransitions(dirtyVariables)
   {
     let next = this.currentState?.Update(dirtyVariables) ?? null;
     if (!next)
     {
       return;
     }
-    const seen = new Map();
+    const seen = [];
     for (let iteration = 0; next; iteration++)
     {
       if (iteration > 10)
       {
-        const count = (seen.get(next) ?? 0) + 1;
-        if (count > 20)
+        // Native quirk: append current before incrementing the first next-state
+        // record (Tr2StateMachine.cpp:128-145); duplicates remain in the list.
+        seen.push({ state: this.currentState, count: 1 });
+        const found = seen.find(entry => entry.state === next);
+        if (found)
         {
-          return;
+          found.count++;
+          if (found.count > 20)
+          {
+            return;
+          }
         }
-        seen.set(next, count);
+        else
+        {
+          seen.push({ state: next, count: 1 });
+        }
       }
       this.currentState = next;
-      this.currentState.Start(this.#controller);
-      this.#stateStartTime = GetControllerTimeSeconds();
+      this.currentState.Start(this._controller);
+      this._stateStartTime = GetControllerTimeSeconds();
       next = this.currentState.Update(TR2_DIRTY_ALL) ?? null;
     }
   }
@@ -295,7 +306,7 @@ export class Tr2StateMachine extends CjsModel
    * Narrows a list payload to an object reference before it is treated as a
    * state.
    */
-  static #asState(value)
+  static _asState(value)
   {
     return value && typeof value === "object" ? value : null;
   }

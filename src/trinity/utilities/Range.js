@@ -32,13 +32,13 @@ export class Range extends CjsModel
   @type.float32
   maxRangePoint = 0;
 
-  #minRange = 0;
+  _minRange = 0;
 
-  #maxRange = 0;
+  _maxRange = 0;
 
-  #sliderRangeMin = 0;
+  _sliderRangeMin = 0;
 
-  #sliderRangeMax = 0;
+  _sliderRangeMax = 0;
 
   /** Moves the range while preserving both distances from its center. */
   @carbon.method
@@ -47,9 +47,9 @@ export class Range extends CjsModel
   {
     const delta = value - this.centerPoint;
     this.centerPoint = value;
-    this.#minRange += delta;
-    this.#maxRange += delta;
-    this.#syncRangePoints();
+    this._minRange += delta;
+    this._maxRange += delta;
+    this._syncRangePoints();
   }
 
   /** Configures the symmetric range and its slider bounds. */
@@ -58,11 +58,11 @@ export class Range extends CjsModel
   Setup(rangeCenterPoint, rangeDeltaFromCenter, sliderMin, sliderMax)
   {
     this.centerPoint = rangeCenterPoint;
-    this.#minRange = this.centerPoint - rangeDeltaFromCenter;
-    this.#maxRange = this.centerPoint + rangeDeltaFromCenter;
-    this.#sliderRangeMin = sliderMin;
-    this.#sliderRangeMax = sliderMax;
-    this.#syncRangePoints();
+    this._minRange = this.centerPoint - rangeDeltaFromCenter;
+    this._maxRange = this.centerPoint + rangeDeltaFromCenter;
+    this._sliderRangeMin = sliderMin;
+    this._sliderRangeMax = sliderMax;
+    this._syncRangePoints();
   }
 
   /** Sets the lower range point and mirrors it when uniform. */
@@ -70,12 +70,12 @@ export class Range extends CjsModel
   @impl.implemented
   SetMinRangePoint(value)
   {
-    this.#minRange = Math.min(value, this.centerPoint);
+    this._minRange = Math.min(value, this.centerPoint);
     if (this.isUniform)
     {
-      this.#maxRange = this.centerPoint + (this.centerPoint - this.#minRange);
+      this._maxRange = this.centerPoint + (this.centerPoint - this._minRange);
     }
-    this.#syncRangePoints();
+    this._syncRangePoints();
   }
 
   /** Sets the upper range point and mirrors it when uniform. */
@@ -83,12 +83,12 @@ export class Range extends CjsModel
   @impl.implemented
   SetMaxRangePoint(value)
   {
-    this.#maxRange = Math.max(value, this.centerPoint);
+    this._maxRange = Math.max(value, this.centerPoint);
     if (this.isUniform)
     {
-      this.#minRange = this.centerPoint - (this.#maxRange - this.centerPoint);
+      this._minRange = this.centerPoint - (this._maxRange - this.centerPoint);
     }
-    this.#syncRangePoints();
+    this._syncRangePoints();
   }
 
   /** Returns the point both range points are measured from. */
@@ -152,10 +152,12 @@ export class Range extends CjsModel
    * Makes the range symmetric by adopting the smaller of the two distances from
    * the center on both sides, so uniformity narrows rather than widens.
    */
+  @carbon.method
+  @impl.implemented
   FixUniformity()
   {
-    const minRangeDelta = this.centerPoint - this.#minRange;
-    const maxRangeDelta = this.#maxRange - this.centerPoint;
+    const minRangeDelta = this.centerPoint - this._minRange;
+    const maxRangeDelta = this._maxRange - this.centerPoint;
     const newDelta = Math.min(minRangeDelta, maxRangeDelta);
     this.SetMinRangePoint(this.centerPoint - newDelta);
     this.SetMaxRangePoint(this.centerPoint + newDelta);
@@ -180,8 +182,8 @@ export class Range extends CjsModel
   @impl.implemented
   SetSliderMin(value)
   {
-    this.#sliderRangeMin = value;
-    this.#syncRangePoints();
+    this._sliderRangeMin = value;
+    this._syncRangePoints();
   }
 
   /**
@@ -192,8 +194,8 @@ export class Range extends CjsModel
   @impl.implemented
   SetSliderMax(value)
   {
-    this.#sliderRangeMax = value;
-    this.#syncRangePoints();
+    this._sliderRangeMax = value;
+    this._syncRangePoints();
   }
 
   /** Returns the lower slider bound used when clamping the exposed range points. */
@@ -201,7 +203,7 @@ export class Range extends CjsModel
   @impl.implemented
   GetSliderMin()
   {
-    return this.#sliderRangeMin;
+    return this._sliderRangeMin;
   }
 
   /** Returns the upper slider bound used when clamping the exposed range points. */
@@ -209,7 +211,7 @@ export class Range extends CjsModel
   @impl.implemented
   GetSliderMax()
   {
-    return this.#sliderRangeMax;
+    return this._sliderRangeMax;
   }
 
   /**
@@ -217,9 +219,9 @@ export class Range extends CjsModel
    * range and the slider bounds; Carbon derives these on read (Range.cpp:63-71)
    * and clamps both with min, which is reproduced here rather than corrected.
    */
-  #syncRangePoints()
+  _syncRangePoints()
   {
-    this.minRangePoint = Math.min(this.#minRange, this.#sliderRangeMin);
-    this.maxRangePoint = Math.min(this.#maxRange, this.#sliderRangeMax);
+    this.minRangePoint = Math.min(this._minRange, this._sliderRangeMin);
+    this.maxRangePoint = Math.min(this._maxRange, this._sliderRangeMax);
   }
 }

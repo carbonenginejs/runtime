@@ -33,7 +33,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
 
   resourceType = 0;
 
-  #materials = [];
+  _materials = [];
 
   /** The shader resource name the animated texture binds to. */
   @carbon.method
@@ -52,18 +52,18 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
   /**
-   * Marks every attached material's resource sets and constant buffers dirty
-   * after the animation reference changed.
+   * Invalidates each registered material's resource sets on an animation edit.
+   *
+   * Adapted: Dispatches by exposed property name instead of a native field pointer.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName !== "animation") return true;
-    for (const material of this.#materials)
+    for (const material of this._materials)
     {
-      CjsParameter.markMaterialResourcesDirty(material);
+      material.InvalidateResourceSets();
     }
     return true;
   }
@@ -89,18 +89,9 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    *
    * Carbon `Tr2TextureAnimationParameter::CopyToResourceSet`.
    *
-   * ONE DIVERGENCE, AND IT IS THE FALLBACK. With no animation attached Carbon
-   * binds `Tr2Renderer::GetFallbackTexture( m_resourceType, m_name )` — a
-   * magenta stand-in picked by texture dimensionality, so a missing texture
-   * draws visibly wrong rather than invisibly. We bind nothing, because
-   * `GetFallbackTexture` is a `Tr2Renderer` STATIC reaching process-global
-   * fallback textures, and ours is an instance the composition root creates
-   * (see the head comment on `Tr2Renderer`) that a parameter holds no
-   * reference to. Reaching it would mean widening Carbon's signature.
-   *
-   * Binding an empty srv is what Carbon itself does in the equivalent
-   * no-provider case in `TriVariable::CopyToResourceSet`, so this is a
-   * degraded diagnostic rather than a behavioural difference in what draws.
+   * Adapted: Uses the runtime texture interface. When no animation is attached,
+   * the native renderer fallback texture is still missing, so this binds null.
+   * This changes missing-texture rendering and remains an implementation gap.
    *
    * @param {object} resourceDesc A `Tr2ResourceSetDescriptionAL`.
    * @param {number} stage A `ShaderType`.
@@ -110,7 +101,6 @@ export class Tr2TextureAnimationParameter extends CjsParameter
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's fallback texture comes from a Tr2Renderer static; ours is an instance a parameter cannot reach without widening Carbon's signature.")
   CopyToResourceSet(resourceDesc, stage, registerIndex, flags = 0)
   {
     const colorSpace = (flags & ResourceFlags.RESOURCE_FLAG_SRGB)
@@ -134,31 +124,26 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   }
 
   /**
-   * Registers a material to be dirtied when the animation changes; duplicates
-   * are ignored.
+   * Registers one material occurrence for animation-reference invalidation.
    */
   @carbon.method
   @impl.implemented
   OnAddedToMaterial(material)
   {
-    if (!this.#materials.includes(material))
-    {
-      this.#materials.push(material);
-    }
+    this._materials.push(material);
   }
 
   /**
-   * Drops a material from the tracked list, so later frame advances no longer
-   * mark it dirty.
+   * Removes the first matching material registration, retaining duplicates.
    */
   @carbon.method
   @impl.implemented
   OnRemovedFromMaterial(material)
   {
-    const index = this.#materials.indexOf(material);
+    const index = this._materials.indexOf(material);
     if (index >= 0)
     {
-      this.#materials.splice(index, 1);
+      this._materials.splice(index, 1);
     }
   }
 
@@ -170,7 +155,7 @@ export class Tr2TextureAnimationParameter extends CjsParameter
   @impl.adapted
   GetTexture()
   {
-    return this.animation?.GetTexture?.(this.channel) ?? this.animation?.getTexture?.(this.channel) ?? null;
+    return this.animation ? this.animation.GetTexture(this.channel) : null;
   }
 
 }

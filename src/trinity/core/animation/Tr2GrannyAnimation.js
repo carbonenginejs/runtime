@@ -76,59 +76,62 @@ export function getBoneList(animationUpdater)
 export class Tr2GrannyAnimation extends CjsModel
 {
 
-  #additiveMode = false;
+  /** Last path resolved by Initialize; empty for explicitly attached resources. */
+  _resolvedPath = "";
 
-  #aimAxis = vec3.fromValues(0, 0, 1);
+  _additiveMode = false;
 
-  #aimBone = "";
+  _aimAxis = vec3.fromValues(0, 0, 1);
 
-  #aimBoneOrientation = vec3.fromValues(0, 0, 1);
+  _aimBone = "";
 
-  #aimingBone = false;
+  _aimBoneOrientation = vec3.fromValues(0, 0, 1);
 
-  #baseLayer = createLayer("", 1, true);
+  _aimingBone = false;
 
-  #curveCache = new WeakMap();
+  _baseLayer = createLayer("", 1, true);
 
-  #initialized = false;
+  _curveCache = new WeakMap();
 
-  #layers = new Map();
+  _initialized = false;
 
-  #meshBoneIndices = [];
+  _layers = new Map();
+
+  _meshBoneIndices = [];
 
   /**
    * Carbon's `Float4x3* m_meshBoneMatrixList` (Tr2GrannyAnimation.h:208) - one
    * contiguous palette, stride 12, allocated once and rewritten in place.
    */
-  #meshBonePalette = null;
+  _meshBonePalette = null;
 
   /** Carbon m_useMeshBinding (Tr2GrannyAnimation.cpp:81) - defaults false. */
-  #useMeshBinding = false;
+  _useMeshBinding = false;
 
   /** Whether grannyRes was borrowed from the mesh rather than resolved here. */
-  #sharedGeometry = false;
+  _sharedGeometry = false;
 
-  #morphAnimations = new Map();
+  _morphAnimations = new Map();
 
-  #morphCurveCache = new WeakMap();
+  _morphCurveCache = new WeakMap();
 
-  #morphSample = new Float32Array(1);
+  _morphSample = new Float32Array(1);
 
-  #paused = false;
+  _paused = false;
 
   /**
    * Carbon m_poseModifier (Tr2GrannyAnimation.h:230): a NON-OWNING
    * ITr2PoseModifier registration - the modifier must outlive it or be
    * cleared with SetPoseModifier(null) before it goes away.
    */
-  #poseModifier = null;
+  _poseModifier = null;
 
   /** The cached skeleton/pose ducks handed to the pose modifier. */
-  #poseModifierView = null;
+  _poseModifierView = null;
 
-  #runtimeModel = null;
+  _runtimeModel = null;
 
-  #secondaryResources = new Map();
+  _secondaryResources = new Map();
 
   /** m_resPath (std::string) [PERSISTONLY] */
   @edit.persistOnly
@@ -200,13 +203,20 @@ export class Tr2GrannyAnimation extends CjsModel
   @type.objectRef("GrannyBoneOffset")
   boneOffset = new GrannyBoneOffset();
 
-  /** Resolves an authored resource path from the shared CPU Granny registry. */
+  /**
+   * Refreshes an owned resource from its authored path and rebuilds cached bones.
+   *
+   * Adapted: Resolves decoded resources synchronously through CjsGrannyCurves.
+   * Explicit SetGrannyResource attachments survive a pathless Initialize; borrowed
+   * geometry remains authoritative until detached, as in Carbon.
+   */
   @impl.adapted
   Initialize()
   {
-    if (!this.grannyRes && this.resPath_)
+    if (!this._sharedGeometry && (this.resPath_ || this._resolvedPath))
     {
-      this.grannyRes = CjsGrannyCurves.resolveResource(this.resPath_);
+      this.grannyRes = this.resPath_ ? CjsGrannyCurves.resolveResource(this.resPath_) : null;
+      this._resolvedPath = this.resPath_;
     }
     return this.RebuildCachedData();
   }
@@ -216,7 +226,8 @@ export class Tr2GrannyAnimation extends CjsModel
   SetGrannyResource(resource)
   {
     this.grannyRes = resource ?? null;
-    this.#sharedGeometry = false;
+    this._sharedGeometry = false;
+    this._resolvedPath = "";
     return this.RebuildCachedData();
   }
 
@@ -234,7 +245,9 @@ export class Tr2GrannyAnimation extends CjsModel
   SetSharedGeometryRes(resource)
   {
     this.grannyRes = resource ?? null;
-    this.#sharedGeometry = !!resource;
+    this._sharedGeometry = !!resource;
+    this.resPath_ = "";
+    this._resolvedPath = "";
     return this.RebuildCachedData();
   }
 
@@ -250,7 +263,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   HasMeshBinding()
   {
-    return this.#useMeshBinding;
+    return this._useMeshBinding;
   }
 
   /** Carbon `SetUseMeshBinding` (Tr2GrannyAnimation.h:60). */
@@ -258,43 +271,43 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetUseMeshBinding(enable)
   {
-    this.#useMeshBinding = !!enable;
+    this._useMeshBinding = !!enable;
   }
 
   /** Whether the bound geometry was borrowed from the mesh. */
   @impl.adapted
   HasSharedGeometryRes()
   {
-    return this.#sharedGeometry;
+    return this._sharedGeometry;
   }
 
   /** Rebuilds browser bone state directly from format-gr2's stable payload. */
   @impl.adapted
   RebuildCachedData()
   {
-    const source = this.#getSource(this.grannyRes);
-    const models = this.#getArray(source, "models", "Models");
+    const source = this._getSource(this.grannyRes);
+    const models = this._getArray(source, "models", "Models");
     const model = models.find(item => getName(item) === this.model_) ?? models[0] ?? null;
     const skeleton = model?.skeleton ?? model?.Skeleton ?? null;
-    const sourceBones = this.#getArray(skeleton, "bones", "Bones");
-    this.#runtimeModel = null;
-    this.#meshBoneIndices.length = 0;
-    this.#curveCache = new WeakMap();
-    this.#morphCurveCache = new WeakMap();
-    this.#morphAnimations.clear();
+    const sourceBones = this._getArray(skeleton, "bones", "Bones");
+    this._runtimeModel = null;
+    this._meshBoneIndices.length = 0;
+    this._curveCache = new WeakMap();
+    this._morphCurveCache = new WeakMap();
+    this._morphAnimations.clear();
     this.boneOffset?.ClearRigBindings?.();
     if (!model || sourceBones.length === 0)
     {
-      this.#initialized = false;
+      this._initialized = false;
       return false;
     }
 
-    const bones = sourceBones.map((sourceBone, index) => this.#createBone(sourceBone, index));
+    const bones = sourceBones.map((sourceBone, index) => this._createBone(sourceBone, index));
     const boneByName = new Map(bones.map((bone, index) => [bone.name, index]));
-    this.#runtimeModel = { source, model, skeleton, bones, boneByName };
-    this.#rebuildRestTransforms();
-    this.#rebuildMeshBoneIndices();
-    this.#initialized = true;
+    this._runtimeModel = { source, model, skeleton, bones, boneByName };
+    this._rebuildRestTransforms();
+    this._rebuildMeshBoneIndices();
+    this._initialized = true;
     this.Update(0);
     return true;
   }
@@ -303,35 +316,35 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   Update(dt = 0)
   {
-    if (!this.#initialized || !this.animationEnabled)
+    if (!this._initialized || !this.animationEnabled)
     {
       return false;
     }
-    const deltaTime = this.#paused ? 0 : Math.max(0, Number(dt) || 0);
-    this.#advanceLayer(this.#baseLayer, deltaTime);
-    for (const layer of this.#getOrderedLayers())
+    const deltaTime = this._paused ? 0 : Math.max(0, Number(dt) || 0);
+    this._advanceLayer(this._baseLayer, deltaTime);
+    for (const layer of this._getOrderedLayers())
     {
-      this.#advanceLayer(layer, deltaTime);
+      this._advanceLayer(layer, deltaTime);
     }
-    this.#resetPose();
-    this.#morphAnimations.clear();
-    this.#sampleLayer(this.#baseLayer, false);
-    for (const layer of this.#getOrderedLayers())
+    this._resetPose();
+    this._morphAnimations.clear();
+    this._sampleLayer(this._baseLayer, false);
+    for (const layer of this._getOrderedLayers())
     {
-      this.#sampleLayer(layer, this.#additiveMode);
+      this._sampleLayer(layer, this._additiveMode);
     }
     // Carbon PrePhysicsAnimation (cpp:1704-1723) runs ModifyPose after
     // sampling and before bone offsets. Carbon restores m_sampledPose before
     // sampling so the modifier never compounds onto its own output; the
-    // #resetPose above already re-establishes that invariant every frame, so
+    // _resetPose above already re-establishes that invariant every frame, so
     // no snapshot/restore pair is needed here.
-    if (this.#poseModifier)
+    if (this._poseModifier)
     {
-      const view = this.#GetPoseModifierView();
-      this.#poseModifier.ModifyPose(view.skeleton, view.pose);
+      const view = this._GetPoseModifierView();
+      this._poseModifier.ModifyPose(view.skeleton, view.pose);
     }
-    this.#applyBoneOffsets();
-    this.#composePose();
+    this._applyBoneOffsets();
+    this._composePose();
     return true;
   }
 
@@ -340,7 +353,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   GetPoseModifier()
   {
-    return this.#poseModifier;
+    return this._poseModifier;
   }
 
   /**
@@ -351,7 +364,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetPoseModifier(poseModifier)
   {
-    this.#poseModifier = poseModifier ?? null;
+    this._poseModifier = poseModifier ?? null;
   }
 
   /**
@@ -361,13 +374,13 @@ export class Tr2GrannyAnimation extends CjsModel
    * pose exactly as Carbon's cmf::SkeletonPose& does. Rebuilt only when the
    * runtime model changes.
    */
-  #GetPoseModifierView()
+  _GetPoseModifierView()
   {
-    const model = this.#runtimeModel;
-    if (!this.#poseModifierView || this.#poseModifierView.model !== model)
+    const model = this._runtimeModel;
+    if (!this._poseModifierView || this._poseModifierView.model !== model)
     {
       const bones = model?.bones ?? [];
-      this.#poseModifierView = {
+      this._poseModifierView = {
         model,
         skeleton: {
           bones: bones.map(bone => bone.name),
@@ -382,7 +395,7 @@ export class Tr2GrannyAnimation extends CjsModel
         }
       };
     }
-    return this.#poseModifierView;
+    return this._poseModifierView;
   }
 
   /** Carbon method PlayAnimationEx (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
@@ -399,11 +412,11 @@ export class Tr2GrannyAnimation extends CjsModel
   AddAnimationLayer(layerName, layerWeight = 1)
   {
     const name = String(layerName ?? "");
-    if (!name || this.#layers.has(name))
+    if (!name || this._layers.has(name))
     {
       return false;
     }
-    this.#layers.set(name, createLayer(name, Number(layerWeight) || 0, false));
+    this._layers.set(name, createLayer(name, Number(layerWeight) || 0, false));
     return true;
   }
 
@@ -412,7 +425,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   AddAnimationLayerAllBones(layerName)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     if (!layer)
     {
       return false;
@@ -426,7 +439,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   AddAnimationLayerBone(layerName, boneName)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     if (!layer)
     {
       return false;
@@ -442,11 +455,11 @@ export class Tr2GrannyAnimation extends CjsModel
   AddSecondaryResPath(resPath)
   {
     const path = String(resPath ?? "");
-    if (!path || this.#secondaryResources.has(path))
+    if (!path || this._secondaryResources.has(path))
     {
       return false;
     }
-    this.#secondaryResources.set(path, CjsGrannyCurves.resolveResource(path));
+    this._secondaryResources.set(path, CjsGrannyCurves.resolveResource(path));
     return true;
   }
 
@@ -459,7 +472,7 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       return false;
     }
-    this.#secondaryResources.set(path, resource ?? null);
+    this._secondaryResources.set(path, resource ?? null);
     return true;
   }
 
@@ -469,10 +482,10 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.reason("The browser graph retains Carbon's aim request; final IK realization can be refined by an engine adapter.")
   AimBone(boneName, targetX, targetY, targetZ, axisX, axisY, axisZ)
   {
-    this.#aimingBone = true;
-    this.#aimBone = String(boneName ?? "");
-    vec3.set(this.#aimBoneOrientation, targetX, targetY, targetZ);
-    vec3.set(this.#aimAxis, axisX, axisY, axisZ);
+    this._aimingBone = true;
+    this._aimBone = String(boneName ?? "");
+    vec3.set(this._aimBoneOrientation, targetX, targetY, targetZ);
+    vec3.set(this._aimAxis, axisX, axisY, axisZ);
   }
 
   /** Carbon method ChainAnimation (MAP_METHOD_AND_WRAP). */
@@ -496,7 +509,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   ClearAnimations()
   {
-    this.#baseLayer.queue.length = 0;
+    this._baseLayer.queue.length = 0;
   }
 
   /**
@@ -513,7 +526,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.reason("Carbon pins a stop time per sequencer player; the browser layer's single active request carries the stop as a stopAt clock value with the pending queue dropped.")
   StopAnimations(delay = 0)
   {
-    const layer = this.#baseLayer;
+    const layer = this._baseLayer;
     const request = layer.queue[0];
     layer.queue.length = 0;
     const stopDelay = Number(delay) || 0;
@@ -531,7 +544,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   ClearAnimationLayers()
   {
-    this.#layers.clear();
+    this._layers.clear();
   }
 
   /** Carbon method DisableAimBone (MAP_METHOD_AND_WRAP). */
@@ -539,7 +552,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   DisableAimBone()
   {
-    this.#aimingBone = false;
+    this._aimingBone = false;
   }
 
   /** Carbon method EndAnimation (MAP_METHOD_AND_WRAP). */
@@ -547,13 +560,13 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   EndAnimation()
   {
-    const request = this.#baseLayer.queue[0];
-    this.#baseLayer.queue.splice(1);
+    const request = this._baseLayer.queue[0];
+    this._baseLayer.queue.splice(1);
     if (!request?.animation)
     {
       return;
     }
-    const duration = this.#getAnimationDuration(request.animation);
+    const duration = this._getAnimationDuration(request.animation);
     if (duration > 0)
     {
       const localTime = Math.max(0, request.elapsed) * Math.abs(request.speed);
@@ -566,7 +579,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   GetAdditiveBlendMode()
   {
-    return this.#additiveMode;
+    return this._additiveMode;
   }
 
   /** Carbon method GetLayerWeight (MAP_METHOD_AND_WRAP). */
@@ -574,7 +587,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   GetLayerWeight(layerName)
   {
-    return this.#getLayer(layerName)?.weight ?? 0;
+    return this._getLayer(layerName)?.weight ?? 0;
   }
 
   /** Carbon method GetSecondaryAnimationName (MAP_METHOD_AND_WRAP). */
@@ -582,7 +595,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   GetSecondaryAnimationName(resPath, index)
   {
-    const source = this.#getSource(this.#secondaryResources.get(String(resPath ?? "")));
+    const source = this._getSource(this._secondaryResources.get(String(resPath ?? "")));
     return getName(CjsGrannyCurves.getAnimations(source)[Number(index) || 0]);
   }
 
@@ -591,7 +604,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   PlayAnimation(animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
-    return this.#playLayer("", animName, replace, loopCount, delay, speed, clearWhenDone);
+    return this._playLayer("", animName, replace, loopCount, delay, speed, clearWhenDone);
   }
 
   /** Native-name alias retained for controller integrations. */
@@ -606,7 +619,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   PlayLayerAnimation(layerName, animName, replace = true, loopCount = 1, delay = 0, speed = 1, clearWhenDone = true)
   {
-    return this.#playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone);
+    return this._playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone);
   }
 
   /** Alias used by Carbon controller actions. */
@@ -621,7 +634,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   RemoveAnimationLayerBone(layerName, boneName)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     return layer ? layer.bones.delete(String(boneName ?? "")) : false;
   }
 
@@ -633,14 +646,14 @@ export class Tr2GrannyAnimation extends CjsModel
     const names = [];
     const append = resource =>
     {
-      const source = this.#getSource(resource);
+      const source = this._getSource(resource);
       for (const animation of CjsGrannyCurves.getAnimations(source))
       {
         names.push(getName(animation));
       }
     };
     append(this.grannyRes);
-    for (const resource of this.#secondaryResources.values())
+    for (const resource of this._secondaryResources.values())
     {
       append(resource);
     }
@@ -652,7 +665,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetAdditiveBlendMode(additive)
   {
-    this.#additiveMode = !!additive;
+    this._additiveMode = !!additive;
   }
 
   /** Carbon method SetLayerControlParam (MAP_METHOD_AND_WRAP). */
@@ -660,7 +673,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetLayerControlParam(layerName, controlParam)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     if (!layer)
     {
       return false;
@@ -675,7 +688,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetLayerControlParamSkewRate(layerName, skewRate)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     if (!layer)
     {
       return false;
@@ -689,7 +702,7 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   SetLayerWeight(layerName, layerWeight)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     if (!layer)
     {
       return false;
@@ -703,14 +716,14 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.implemented
   TogglePauseAnimations(pause)
   {
-    this.#paused = !!pause;
+    this._paused = !!pause;
   }
 
   /** Returns whether a model-bearing decoded Granny payload is ready. */
   @impl.implemented
   IsInitialized()
   {
-    return this.#initialized;
+    return this._initialized;
   }
 
   /**
@@ -730,19 +743,19 @@ export class Tr2GrannyAnimation extends CjsModel
   @impl.adapted
   GetMeshBoneMatrixList()
   {
-    const bones = this.#runtimeModel?.bones ?? [];
-    const count = this.#meshBoneIndices.length;
+    const bones = this._runtimeModel?.bones ?? [];
+    const count = this._meshBoneIndices.length;
 
-    if (!this.#meshBonePalette || this.#meshBonePalette.length !== count * 12)
+    if (!this._meshBonePalette || this._meshBonePalette.length !== count * 12)
     {
-      this.#meshBonePalette = new Float32Array(count * 12);
+      this._meshBonePalette = new Float32Array(count * 12);
     }
 
-    const palette = this.#meshBonePalette;
+    const palette = this._meshBonePalette;
 
     for (let index = 0; index < count; index++)
     {
-      const source = bones[this.#meshBoneIndices[index]]?.offsetTransform;
+      const source = bones[this._meshBoneIndices[index]]?.offsetTransform;
       const base = index * 12;
 
       if (!source)
@@ -780,19 +793,19 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Returns the number of mesh bones in the current palette. */
   GetMeshBoneCount()
   {
-    return this.#meshBoneIndices.length;
+    return this._meshBoneIndices.length;
   }
 
   @impl.adapted
   /** Copies a named bone's world transform into an output matrix. */
   GetBoneWorldTransform(boneName, out = mat4.create())
   {
-    const index = this.#runtimeModel?.boneByName.get(String(boneName ?? ""));
+    const index = this._runtimeModel?.boneByName.get(String(boneName ?? ""));
     if (index === undefined)
     {
       return false;
     }
-    mat4.copy(out, this.#runtimeModel.bones[index].worldTransform);
+    mat4.copy(out, this._runtimeModel.bones[index].worldTransform);
     return out;
   }
 
@@ -800,7 +813,7 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Copies an indexed bone's world transform into an output matrix. */
   GetBoneTransform(index, out = mat4.create())
   {
-    const bone = this.#runtimeModel?.bones[Number(index)];
+    const bone = this._runtimeModel?.bones[Number(index)];
     if (!bone)
     {
       return false;
@@ -824,21 +837,21 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Returns the current world transforms for every animation bone. */
   GetAnimationTransforms()
   {
-    return this.#runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
+    return this._runtimeModel?.bones.map(bone => bone.worldTransform) ?? [];
   }
 
   @impl.implemented
   /** Returns the ordered names of the current animation bones. */
   GetAnimationBoneList()
   {
-    return this.#runtimeModel?.bones.map(bone => bone.name) ?? [];
+    return this._runtimeModel?.bones.map(bone => bone.name) ?? [];
   }
 
   /** Returns a detached snapshot of morph values sampled during the last update. */
   @impl.implemented
   GetMorphAnimations()
   {
-    return new Map(this.#morphAnimations);
+    return new Map(this._morphAnimations);
   }
 
   /** Exposes retained aim state to an engine-side IK adapter. */
@@ -846,15 +859,15 @@ export class Tr2GrannyAnimation extends CjsModel
   GetAimBoneState()
   {
     return {
-      enabled: this.#aimingBone,
-      boneName: this.#aimBone,
-      target: vec3.clone(this.#aimBoneOrientation),
-      axis: vec3.clone(this.#aimAxis)
+      enabled: this._aimingBone,
+      boneName: this._aimBone,
+      target: vec3.clone(this._aimBoneOrientation),
+      axis: vec3.clone(this._aimAxis)
     };
   }
 
   /** Advances one animation layer and retires completed requests. */
-  #advanceLayer(layer, dt)
+  _advanceLayer(layer, dt)
   {
     if (layer.controlParamEnabled)
     {
@@ -874,7 +887,7 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       return;
     }
-    request.animation ??= this.#findAnimation(request.name);
+    request.animation ??= this._findAnimation(request.name);
     if (!request.animation)
     {
       return;
@@ -887,7 +900,7 @@ export class Tr2GrannyAnimation extends CjsModel
       layer.queue.shift();
       return;
     }
-    const duration = this.#getAnimationDuration(request.animation);
+    const duration = this._getAnimationDuration(request.animation);
     const speed = Math.abs(request.speed);
     if (duration <= 0 || request.elapsed < 0 || request.loopCount <= 0)
     {
@@ -909,9 +922,9 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Applies configured bone offsets to the sampled local pose. */
-  #applyBoneOffsets()
+  _applyBoneOffsets()
   {
-    const bones = this.#runtimeModel?.bones ?? [];
+    const bones = this._runtimeModel?.bones ?? [];
     const offsets = this.boneOffset;
     if (!bones.length || !offsets?.HaveTransforms?.())
     {
@@ -930,10 +943,10 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Composes local bone state into world and offset transforms. */
-  #composePose()
+  _composePose()
   {
     const rotationMatrix = mat4.create();
-    for (const bone of this.#runtimeModel.bones)
+    for (const bone of this._runtimeModel.bones)
     {
       // Granny composite applies ScaleShear FIRST, then Orientation, then
       // Position (row-vector SS*R*T - authority: the validated gr2->CMF
@@ -945,9 +958,9 @@ export class Tr2GrannyAnimation extends CjsModel
       bone.localTransform[12] = bone.position[0];
       bone.localTransform[13] = bone.position[1];
       bone.localTransform[14] = bone.position[2];
-      if (bone.parentIndex >= 0 && this.#runtimeModel.bones[bone.parentIndex])
+      if (bone.parentIndex >= 0 && this._runtimeModel.bones[bone.parentIndex])
       {
-        mat4.multiply(bone.worldTransform, this.#runtimeModel.bones[bone.parentIndex].worldTransform, bone.localTransform);
+        mat4.multiply(bone.worldTransform, this._runtimeModel.bones[bone.parentIndex].worldTransform, bone.localTransform);
       }
       else
       {
@@ -958,7 +971,7 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Creates one detached runtime bone record from a decoded source bone. */
-  #createBone(source, index)
+  _createBone(source, index)
   {
     const sourcePosition = source.position ?? source.Position ?? [0, 0, 0];
     const sourceOrientation = source.orientation ?? source.Orientation ?? [0, 0, 0, 1];
@@ -982,9 +995,9 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Decodes and caches the transform curves for one animation track. */
-  #decodeTrack(track)
+  _decodeTrack(track)
   {
-    let value = this.#curveCache.get(track);
+    let value = this._curveCache.get(track);
     if (!value)
     {
       value = {
@@ -992,22 +1005,22 @@ export class Tr2GrannyAnimation extends CjsModel
         orientation: CjsGrannyCurves.decodeGrannyCurve(track.orientation ?? track.Orientation, 4),
         scaleShear: CjsGrannyCurves.decodeGrannyCurve(track.scaleShear ?? track.ScaleShear, 9)
       };
-      this.#curveCache.set(track, value);
+      this._curveCache.set(track, value);
     }
     return value;
   }
 
   /** Finds a named animation across primary and secondary resources. */
-  #findAnimation(name)
+  _findAnimation(name)
   {
     const target = String(name ?? "");
-    const find = resource => CjsGrannyCurves.getAnimations(this.#getSource(resource)).find(animation => getName(animation) === target);
+    const find = resource => CjsGrannyCurves.getAnimations(this._getSource(resource)).find(animation => getName(animation) === target);
     let animation = find(this.grannyRes);
     if (animation)
     {
       return animation;
     }
-    for (const resource of this.#secondaryResources.values())
+    for (const resource of this._secondaryResources.values())
     {
       animation = find(resource);
       if (animation)
@@ -1019,34 +1032,34 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Returns a nonnegative duration for one animation. */
-  #getAnimationDuration(animation)
+  _getAnimationDuration(animation)
   {
     return Math.max(0, CjsGrannyCurves.getAnimationDuration(animation));
   }
 
   /** Reads a lower- or upper-case array property from decoded Granny data. */
-  #getArray(value, lowerName, upperName)
+  _getArray(value, lowerName, upperName)
   {
     return Array.isArray(value?.[lowerName]) ? value[lowerName] : Array.isArray(value?.[upperName]) ? value[upperName] : [];
   }
 
   /** Resolves a named layer or the unnamed base layer. */
-  #getLayer(layerName)
+  _getLayer(layerName)
   {
     const name = String(layerName ?? "");
-    return name ? this.#layers.get(name) ?? null : this.#baseLayer;
+    return name ? this._layers.get(name) ?? null : this._baseLayer;
   }
 
   /** Returns named animation layers in deterministic name order. */
-  #getOrderedLayers()
+  _getOrderedLayers()
   {
-    return [ ...this.#layers.entries() ]
+    return [ ...this._layers.entries() ]
       .sort(([ left ], [ right ]) => left < right ? -1 : left > right ? 1 : 0)
       .map(([, layer ]) => layer);
   }
 
   /** Unwraps a resource wrapper to its decoded Granny source object. */
-  #getSource(resource)
+  _getSource(resource)
   {
     let value = resource?.GetPayload?.() ?? resource;
     const seen = new Set();
@@ -1063,16 +1076,16 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Queues or replaces one animation request on a layer. */
-  #playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone)
+  _playLayer(layerName, animName, replace, loopCount, delay, speed, clearWhenDone)
   {
-    const layer = this.#getLayer(layerName);
+    const layer = this._getLayer(layerName);
     const name = String(animName ?? "");
     if (!layer || !name)
     {
       return false;
     }
-    const animation = this.#findAnimation(name);
-    if (!animation && this.#getSource(this.grannyRes))
+    const animation = this._findAnimation(name);
+    if (!animation && this._getSource(this.grannyRes))
     {
       return false;
     }
@@ -1093,37 +1106,37 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Rebuilds the mesh-to-skeleton bone index map. */
-  #rebuildMeshBoneIndices()
+  _rebuildMeshBoneIndices()
   {
-    const { source, model, bones, boneByName } = this.#runtimeModel;
-    const meshBindings = this.#getArray(model, "meshBindings", "MeshBindings");
-    const meshes = this.#getArray(source, "meshes", "Meshes");
+    const { source, model, bones, boneByName } = this._runtimeModel;
+    const meshBindings = this._getArray(model, "meshBindings", "MeshBindings");
+    const meshes = this._getArray(source, "meshes", "Meshes");
     const mesh = meshes[Number(meshBindings[0]) || 0];
-    const bindings = this.#getArray(mesh, "boneBindings", "BoneBindings");
-    this.#meshBoneIndices = bindings
+    const bindings = this._getArray(mesh, "boneBindings", "BoneBindings");
+    this._meshBoneIndices = bindings
       .map(binding => boneByName.get(getName(binding)))
       .filter(index => index !== undefined);
-    if (this.#meshBoneIndices.length === 0)
+    if (this._meshBoneIndices.length === 0)
     {
-      this.#meshBoneIndices = bones.map((_, index) => index);
+      this._meshBoneIndices = bones.map((_, index) => index);
     }
   }
 
   /** Rebuilds rest-world and inverse-rest transforms for every bone. */
-  #rebuildRestTransforms()
+  _rebuildRestTransforms()
   {
     const rotationMatrix = mat4.create();
-    for (const bone of this.#runtimeModel.bones)
+    for (const bone of this._runtimeModel.bones)
     {
-      // Granny composite: ScaleShear first, then Orientation (see #composePose).
+      // Granny composite: ScaleShear first, then Orientation (see _composePose).
       mat4.fromMat3(bone.localTransform, bone.restScaleShear);
       mat4.multiply(bone.localTransform, mat4.fromQuat(rotationMatrix, bone.restOrientation), bone.localTransform);
       bone.localTransform[12] = bone.restPosition[0];
       bone.localTransform[13] = bone.restPosition[1];
       bone.localTransform[14] = bone.restPosition[2];
-      if (bone.parentIndex >= 0 && this.#runtimeModel.bones[bone.parentIndex])
+      if (bone.parentIndex >= 0 && this._runtimeModel.bones[bone.parentIndex])
       {
-        mat4.multiply(bone.worldTransform, this.#runtimeModel.bones[bone.parentIndex].worldTransform, bone.localTransform);
+        mat4.multiply(bone.worldTransform, this._runtimeModel.bones[bone.parentIndex].worldTransform, bone.localTransform);
       }
       else
       {
@@ -1137,9 +1150,9 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Restores every runtime bone to its authored rest pose. */
-  #resetPose()
+  _resetPose()
   {
-    for (const bone of this.#runtimeModel.bones)
+    for (const bone of this._runtimeModel.bones)
     {
       vec3.copy(bone.position, bone.restPosition);
       quat.copy(bone.orientation, bone.restOrientation);
@@ -1148,24 +1161,24 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /** Decodes and caches one modern or legacy morph curve. */
-  #decodeMorphCurve(curve, modern)
+  _decodeMorphCurve(curve, modern)
   {
     if (!curve || typeof curve !== "object")
     {
       return null;
     }
 
-    if (!this.#morphCurveCache.has(curve))
+    if (!this._morphCurveCache.has(curve))
     {
-      this.#morphCurveCache.set(curve, modern
+      this._morphCurveCache.set(curve, modern
         ? CjsGrannyCurves.decodeAnimationCurve(curve, 1)
         : CjsGrannyCurves.decodeGrannyCurve(curve, 1));
     }
-    return this.#morphCurveCache.get(curve);
+    return this._morphCurveCache.get(curve);
   }
 
   /** Samples every supported morph channel from one animation. */
-  #sampleMorphs(animation, time, duration, weight, additive)
+  _sampleMorphs(animation, time, duration, weight, additive)
   {
     if (!(duration > 0) || time < 0 || time >= duration)
     {
@@ -1173,8 +1186,8 @@ export class Tr2GrannyAnimation extends CjsModel
     }
 
     const amount = Number(weight) || 0;
-    const channels = this.#getArray(animation, "channels", "Channels");
-    const curves = this.#getArray(animation, "curves", "Curves");
+    const channels = this._getArray(animation, "channels", "Channels");
+    const curves = this._getArray(animation, "curves", "Curves");
     for (const channel of channels)
     {
       const targetType = channel.targetType ?? channel.TargetType;
@@ -1185,7 +1198,7 @@ export class Tr2GrannyAnimation extends CjsModel
 
       const name = String(channel.target ?? channel.Target ?? "");
       const curve = curves[Number(channel.curveIndex ?? channel.CurveIndex)];
-      this.#sampleMorph(name, this.#decodeMorphCurve(curve, true), time, duration, amount, additive);
+      this._sampleMorph(name, this._decodeMorphCurve(curve, true), time, duration, amount, additive);
     }
 
     for (const group of CjsGrannyCurves.getTrackGroups(animation))
@@ -1195,7 +1208,7 @@ export class Tr2GrannyAnimation extends CjsModel
         continue;
       }
 
-      for (const track of this.#getArray(group, "vectorTracks", "VectorTracks"))
+      for (const track of this._getArray(group, "vectorTracks", "VectorTracks"))
       {
         const curve = track.valueCurve ?? track.ValueCurve;
         const dimension = Number(track.dimension ?? track.Dimension ?? curve?.dimension ?? curve?.Dimension);
@@ -1203,34 +1216,34 @@ export class Tr2GrannyAnimation extends CjsModel
         {
           continue;
         }
-        this.#sampleMorph(getName(track), this.#decodeMorphCurve(curve, false), time, duration, amount, additive);
+        this._sampleMorph(getName(track), this._decodeMorphCurve(curve, false), time, duration, amount, additive);
       }
       break;
     }
   }
 
   /** Accumulates one sampled morph curve into retained output state. */
-  #sampleMorph(name, curve, time, duration, weight, additive)
+  _sampleMorph(name, curve, time, duration, weight, additive)
   {
     if (!name || !curve)
     {
       return;
     }
 
-    this.#morphSample[0] = 0;
-    CjsGrannyCurves.sampleGrannyCurve(this.#morphSample, curve, time, false, duration);
-    const value = this.#morphSample[0] * weight;
+    this._morphSample[0] = 0;
+    CjsGrannyCurves.sampleGrannyCurve(this._morphSample, curve, time, false, duration);
+    const value = this._morphSample[0] * weight;
     if (!Number.isFinite(value))
     {
       return;
     }
 
-    const previous = this.#morphAnimations.get(name);
-    this.#morphAnimations.set(name, additive && previous !== undefined ? previous + value : value);
+    const previous = this._morphAnimations.get(name);
+    this._morphAnimations.set(name, additive && previous !== undefined ? previous + value : value);
   }
 
   /** Samples the active request for one animation layer. */
-  #sampleLayer(layer, additive)
+  _sampleLayer(layer, additive)
   {
     const request = layer.queue[0];
     const animation = request?.animation;
@@ -1244,7 +1257,7 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       return;
     }
-    const duration = this.#getAnimationDuration(animation);
+    const duration = this._getAnimationDuration(animation);
     const speed = Math.abs(request.speed);
     let time = layer.controlParamEnabled ? layer.controlParam * duration : request.elapsed * speed;
     if (duration > 0)
@@ -1263,30 +1276,30 @@ export class Tr2GrannyAnimation extends CjsModel
         }
       }
     }
-    this.#sampleMorphs(animation, time, duration, layer.weight, additive);
+    this._sampleMorphs(animation, time, duration, layer.weight, additive);
     const trackGroups = CjsGrannyCurves.getTrackGroups(animation);
-    const modelName = getName(this.#runtimeModel.model);
+    const modelName = getName(this._runtimeModel.model);
     const matchingGroups = trackGroups.filter(group => getName(group) === modelName);
     for (const group of matchingGroups.length ? matchingGroups : trackGroups)
     {
-      const tracks = this.#getArray(group, "transformTracks", "TransformTracks");
+      const tracks = this._getArray(group, "transformTracks", "TransformTracks");
       for (const track of tracks)
       {
-        const boneIndex = this.#runtimeModel.boneByName.get(getName(track));
-        const bone = this.#runtimeModel.bones[boneIndex];
+        const boneIndex = this._runtimeModel.boneByName.get(getName(track));
+        const bone = this._runtimeModel.bones[boneIndex];
         if (!bone || (!layer.allBones && !layer.bones.has(bone.name)))
         {
           continue;
         }
-        this.#sampleTrack(bone, track, time, duration, layer.weight, additive);
+        this._sampleTrack(bone, track, time, duration, layer.weight, additive);
       }
     }
   }
 
   /** Samples and blends one transform track into a runtime bone. */
-  #sampleTrack(bone, track, time, duration, weight, additive)
+  _sampleTrack(bone, track, time, duration, weight, additive)
   {
-    const curves = this.#decodeTrack(track);
+    const curves = this._decodeTrack(track);
     const position = vec3.clone(bone.restPosition);
     const orientation = quat.clone(bone.restOrientation);
     const scaleShear = mat3.clone(bone.restScaleShear);
