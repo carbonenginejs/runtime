@@ -196,6 +196,46 @@ export function IsCompressedFormat(format)
 }
 
 /**
+ * The sRGB twin of a format, or the format itself when it has none
+ * (`Tr2RenderContextEnum::MakeSrgb`, `Tr2RenderContextEnum.cpp:135-170`).
+ *
+ * A backend creates a texture's sRGB shader and render-target views in this
+ * format. Typeless and UNORM inputs both map to the `_SRGB` member.
+ *
+ * @param {number} format A `PixelFormat` value.
+ * @returns {number} A `PixelFormat` value.
+ */
+export function MakeSrgb(format)
+{
+    switch (format)
+    {
+        case PixelFormat.PIXEL_FORMAT_R8G8B8A8_TYPELESS:
+        case PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM:
+            return PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_BC1_TYPELESS:
+        case PixelFormat.PIXEL_FORMAT_BC1_UNORM:
+            return PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_BC2_TYPELESS:
+        case PixelFormat.PIXEL_FORMAT_BC2_UNORM:
+            return PixelFormat.PIXEL_FORMAT_BC2_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_BC3_TYPELESS:
+        case PixelFormat.PIXEL_FORMAT_BC3_UNORM:
+            return PixelFormat.PIXEL_FORMAT_BC3_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM:
+        case PixelFormat.PIXEL_FORMAT_B8G8R8A8_TYPELESS:
+            return PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM:
+        case PixelFormat.PIXEL_FORMAT_B8G8R8X8_TYPELESS:
+            return PixelFormat.PIXEL_FORMAT_B8G8R8X8_UNORM_SRGB;
+        case PixelFormat.PIXEL_FORMAT_BC7_TYPELESS:
+        case PixelFormat.PIXEL_FORMAT_BC7_UNORM:
+            return PixelFormat.PIXEL_FORMAT_BC7_UNORM_SRGB;
+        default:
+            return format;
+    }
+}
+
+/**
  * Bytes in one compressed block, or 0 when the format is not a block image.
  *
  * @param {number} format A `PixelFormat` value.
