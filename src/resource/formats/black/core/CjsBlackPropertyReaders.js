@@ -488,7 +488,16 @@ export class CjsBlackPropertyReaders
         const structure = descriptor.structure;
         if (structure)
         {
-            if (count < 0 || structureSize !== structure.size)
+            // Carbon throws on any size but its own (BlackReader.cpp:585-588).
+            // A class-derived layout also takes a record that ends exactly on
+            // one of its member boundaries: data written before a later Carbon
+            // revision appended members (Locator.partTag, trinity a9a60056,
+            // leaves build-3503375 locators at 44 of 48 bytes). The missing
+            // members keep the class defaults. Not Carbon
+            // (docs/architecture/non-carbon-extensions.md).
+            const exact = structureSize === structure.size;
+            const earlier = !exact && Array.isArray(structure.boundaries) && structure.boundaries.includes(structureSize);
+            if (count < 0 || (!exact && !earlier))
             {
                 throw new RangeError(`Incompatible Black structure ${structure.name}: ${count} x ${structureSize}`);
             }
@@ -498,8 +507,15 @@ export class CjsBlackPropertyReaders
             {
                 const record = records.ReadBinaryReader(structureSize);
                 const value = {};
-                for (const member of structure.members)
+                for (const [ memberIndex, member ] of structure.members.entries())
                 {
+                    if (earlier && structure.boundaries[memberIndex] > structureSize)
+                    {
+                        // A copy per record: an array default must not be shared.
+                        const fallback = structure.defaults[member.name];
+                        value[member.name] = ArrayBuffer.isView(fallback) || Array.isArray(fallback) ? fallback.slice() : fallback;
+                        continue;
+                    }
                     record.offset = member.offset;
                     value[member.name] = CjsBlackPropertyReaders.readValue(record, {
                         jsType: { kind: member.type }

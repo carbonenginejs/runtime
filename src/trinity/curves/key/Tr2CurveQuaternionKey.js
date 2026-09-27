@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveQuaternion.cpp
 import { quat } from "#math/quat";
 import { CjsModel } from "#model";
-import { type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2CurveInterpolation } from "../enums.js";
 
 
@@ -16,15 +16,19 @@ import { Tr2CurveInterpolation } from "../enums.js";
 })
 export class Tr2CurveQuaternionKey extends CjsModel
 {
+  @edit.persist
   @type.float32
   time = 0;
 
+  @edit.persist
   @type.quat
   value = quat.create();
 
+  @edit.persist
   @type.uint16
   id = 0;
 
+  @edit.persist
   @type.uint16
   interpolation = Tr2CurveInterpolation.LINEAR;
 }

@@ -10,6 +10,7 @@ import {
 } from "./blackConstants.js";
 import { CjsBlackBinaryReader } from "./CjsBlackBinaryReader.js";
 import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
+import { classStructureLayout } from "./blackClassStructures.js";
 import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 
 /**
@@ -548,7 +549,7 @@ export class CjsBlackReader extends CjsBlueReader
         {
             return target.unknown
                 ? this.ReadUnknownFieldValue(reader, kind, blackName)
-                : CjsBlackPropertyReaders.readValue(reader, target.field);
+                : CjsBlackPropertyReaders.readValue(reader, WithClassStructure(target.field, kind, blackName));
         }
         catch (error)
         {
@@ -936,3 +937,16 @@ export class CjsBlackReader extends CjsBlueReader
 const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
     SIMPLEPRIMARY: "SimplePrimary"
 });
+
+/**
+ * A structure-list field's descriptor with its layout taken from the
+ * registered item class (blackClassStructures.js), which wins over the
+ * snapshot's; unchanged for any other field or when no class layout exists.
+ */
+function WithClassStructure(field, className, fieldName)
+{
+    const black = field?.black;
+    if (!black || black.container !== "list" || !/StructureList/u.test(String(black.cppType ?? ""))) return field;
+    const layout = classStructureLayout(className, fieldName);
+    return layout ? { ...field, black: { ...black, structure: layout } } : field;
+}

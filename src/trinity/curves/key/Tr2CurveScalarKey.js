@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveScalar.h
 // Source: trinity/trinity/Curves/Tr2CurveScalar.cpp
 import { CjsModel } from "#model";
-import { type } from "#schema";
+import { edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 
 
@@ -16,24 +16,31 @@ import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 })
 export class Tr2CurveScalarKey extends CjsModel
 {
+  @edit.persist
   @type.float32
   time = 0;
 
+  @edit.persist
   @type.float32
   value = 0;
 
+  @edit.persist
   @type.float32
   leftTangent = 0;
 
+  @edit.persist
   @type.float32
   rightTangent = 0;
 
+  @edit.persist
   @type.uint16
   id = 0;
 
+  @edit.persist
   @type.uint8
   interpolation = Tr2CurveInterpolation.HERMITE;
 
+  @edit.persist
   @type.uint8
   tangentType = Tr2CurveTangentType.AUTO_CLAMP;
 }

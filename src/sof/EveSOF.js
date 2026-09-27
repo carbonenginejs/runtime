@@ -327,6 +327,9 @@ export class EveSOF extends CjsModel
 
   #asyncResources = Object.freeze({ getObject: null, exists: null });
 
+  /** True during BuildFromDNAAsync's collect-only pass, whose resolvers return null. */
+  #collectingResources = false;
+
   #dataPath = "";
 
   #dataLoadOperations = new Map();
@@ -1020,6 +1023,7 @@ export class EveSOF extends CjsModel
 
     try
     {
+      this.#collectingResources = true;
       if (getObject)
       {
         this.#childResourceResolver = (path, context) =>
@@ -1046,6 +1050,7 @@ export class EveSOF extends CjsModel
     }
     finally
     {
+      this.#collectingResources = false;
       this.#childResourceResolver = collectionPrevious.child;
       this.#objectResourceResolver = collectionPrevious.object;
       this.#resourceExists = collectionPrevious.exists;
@@ -2027,6 +2032,10 @@ export class EveSOF extends CjsModel
     }
     if (descriptor === null || descriptor === undefined)
     {
+      // The collection pass only gathers paths; its null is not "unresolved".
+      // Only the projection pass's null is Carbon's failed LoadObject, which
+      // logs (EveSOF.cpp:2008, 2171).
+      if (this.#collectingResources) return null;
       // Preserve build diagnostics as well as Carbon's log (EveSOF.cpp:2008,2171).
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "resource file %s is invalid!", String(redFilePath ?? ""));
       this.#buildDiagnostics.push({
