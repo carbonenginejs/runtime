@@ -377,7 +377,16 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     });
     showLevel();
   }
-  for (const name of [ "shieldhardening", "shieldboost", "armorhardening", "armorrepair", "hullrepair" ])
+  // The shield two draw only while their kick-in runs (HasShieldActivity reads
+  // IsKickInZero, EveImpactOverlay.cpp:337), so each switch-on plays once: a
+  // button. The armor and hull three stay on while their fader is up
+  // (IsZero): a checkbox.
+  for (const name of [ "shieldhardening", "shieldboost" ])
+  {
+    const play = row(name, Object.assign(document.createElement("button"), { type: "button", textContent: "play" }));
+    play.addEventListener("click", () => effect(name, true));
+  }
+  for (const name of [ "armorhardening", "armorrepair", "hullrepair" ])
   {
     const toggle = row(name, Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
     toggle.addEventListener("change", () => effect(name, toggle.checked));
