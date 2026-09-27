@@ -24,6 +24,7 @@ import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocatio
 import { Tr2VertexDefinition, Tr2VertexDefinitionItem } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
 
 /** sizeof( EveBannerSet::Vertex ) (cpp:65-84): position float3, normal half4, texCoord half2. */
 const BANNER_VERTEX_SIZE = 24;
@@ -121,6 +122,25 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   _vertexBuffer = null;
 
   _indexBuffer = null;
+
+  /**
+   * Carbon's constructor (cpp:86-99): a Tr2DeviceResource, so the device
+   * prepares it again once resources can be created - a set built before the
+   * device exists gets its declaration and buffers then.
+   */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /** Carbon ReleaseResources (cpp:362-364): nothing to release. */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources(_storage)
+  {
+  }
 
   /** Carbon m_activationStrength (ctor 0, EveBannerSet.cpp:94). Lights are
    * BLACK until UpdateLights runs. */

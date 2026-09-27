@@ -54,3 +54,24 @@ test("curved banners take one segment per 5 degrees plus one (cpp:535-693)", () 
   assert.ok(row[0][2] < 0 && row[19][2] < 0);
   assert.ok(Math.max(...row.map(position => position[2])) > -1e-2);
 });
+
+test("a banner set initialized before the device exists is prepared by the device later", async () =>
+{
+  // Carbon's EveBannerSet is a Tr2DeviceResource (cpp:86-99): the device
+  // prepares it once resources can be created. Built before that, it had no
+  // buffers and no declaration, and drew nothing (the demo's invisible logos).
+  const { TriDevice, Tr2RenderContext_GetMainThreadRenderContext } = await import("../../npm/dist/trinity/core/index.js");
+  const { FixtureEffect } = await import("../support/fixtureEffect.js");
+
+  const set = new EveBannerSet();
+  set.effect = FixtureEffect({ id: "banner" });
+  set.banners.push(banner({}));
+  set.Initialize();
+  assert.equal(set._vertexBuffer, null, "no device yet");
+
+  Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+  new TriDevice().PrepareDeviceResources();
+
+  assert.notEqual(set._vertexBuffer, null);
+  assert.notEqual(set._vertexDeclaration, 0xFFFFFFFF);
+});

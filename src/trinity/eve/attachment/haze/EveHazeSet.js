@@ -17,6 +17,7 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/conte
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
 
 // Carbon's function-local s_hazeVertexDecl (EveHazeSet.cpp:131-145), stream 0:
 // it lands on HazeVertex (cpp:15-31) - three transform rows, three inverse
@@ -92,6 +93,16 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
 
   /** m_cachedTransforms: each haze's local transform. */
   _cachedTransforms = [];
+
+  /**
+   * A Tr2DeviceResource: the device prepares it again once resources can be
+   * created, so a set initialized before the device exists gets its buffer.
+   */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
 
   /** Sets the effect that draws the haze volumes. */
   @carbon.method
