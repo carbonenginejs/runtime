@@ -73,8 +73,7 @@ export class StubResMan extends IBlueResMan
 
   /**
    * What this manager already holds with its data, as `CjsResMan.Lookup`
-   * answers; `blue.paths.FileExistsLocally` asks it ("already fetched"). A
-   * stub loads nothing, so it holds nothing.
+   * answers. A stub loads nothing, so it holds nothing.
    */
   Lookup()
   {
