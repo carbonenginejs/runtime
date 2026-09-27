@@ -234,7 +234,7 @@ export class Copier extends ICopier
       return true;
     }
 
-    if (CONTAINER_KINDS.has(kind) && Copier.#HoldsObjects(field.type))
+    if (CONTAINER_KINDS.has(kind) && Copier.#HoldsObjects(field.type, from))
     {
       return kind === "map"
         ? this._AssignMap(field, from, dest)
@@ -289,12 +289,24 @@ export class Copier extends ICopier
     return (value.length ?? value.size ?? 0) === 0;
   }
 
-  /** Whether a container's declared items are objects, not values. */
-  static #HoldsObjects(type)
+  /**
+   * Whether a container holds objects, not values. Carbon's member type says
+   * so: a BlueList of IRoot pointers copies every item through the copier
+   * (BlueListUtil.h:507-540), whatever interface it is typed by. Here the
+   * declared item class may be an interface nothing registers
+   * (`ITr2ValueBinding`, `ITriFunction`), so the items themselves decide
+   * when the declaration cannot.
+   */
+  static #HoldsObjects(type, items)
   {
     const item = type?.valueType ?? type?.itemType;
-    if (typeof item === "string") return CjsSchema.GetConstructor(item) !== null;
-    return OBJECT_KINDS.has(item?.kind) || item?.kind === "struct";
+    if (typeof item === "string" && CjsSchema.GetConstructor(item) !== null) return true;
+    if (OBJECT_KINDS.has(item?.kind) || item?.kind === "struct") return true;
+    for (const value of (items instanceof Map ? items.values() : items) ?? [])
+    {
+      if (value && typeof value === "object" && CjsSchema.getClassName(value.constructor) !== null) return true;
+    }
+    return false;
   }
 }
 

@@ -218,3 +218,29 @@ test("Copier is exported and implements ICopier", () =>
 {
   assert.ok(new Copier() instanceof ICopier);
 });
+
+test("a list typed by an unregistered interface still copies its items as objects", () =>
+{
+  // BlueListUtil.h:507-540: a BlueList of IRoot pointers copies every item
+  // through the copier, whatever interface types it (TriCurveSet.bindings is
+  // ITr2ValueBinding, which nothing registers).
+  class CopierInterfaceHost
+  {
+    bindings = [];
+  }
+  CjsSchema.define(CopierInterfaceHost, { className: "CopierInterfaceHost", fields: {
+    bindings: [ type.list("ICopierUnregisteredBinding"), edit.persist ]
+  } });
+
+  const leaf = new CopierLeaf();
+  leaf.value = 5;
+  const host = new CopierInterfaceHost();
+  host.bindings = [ leaf, leaf ];
+
+  const copy = blue.classes.CopyTo(host);
+  assert.equal(copy.bindings.length, 2);
+  assert.equal(copy.bindings[0] instanceof CopierLeaf, true);
+  assert.notEqual(copy.bindings[0], leaf);
+  assert.equal(copy.bindings[0].value, 5);
+  assert.equal(copy.bindings[1], copy.bindings[0], "a shared item stays shared");
+});
