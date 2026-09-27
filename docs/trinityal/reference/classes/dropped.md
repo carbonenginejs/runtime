@@ -82,3 +82,43 @@ Carbon's per-stage bind masks; dropped because WebGPU resolves binding validity 
 - Source: `src/trinityal/dropped/ShaderResourceMask.js`
 - Visibility: Internal
 - Kind: Carbon dropped
+
+<!-- class:Tr2BufferALWebgl2 -->
+## `Tr2BufferALWebgl2`
+
+A buffer on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2BufferALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2ConstantBufferALWebgl2 -->
+## `Tr2ConstantBufferALWebgl2`
+
+A constant buffer on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2ConstantBufferALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2SamplerStateALWebgl2 -->
+## `Tr2SamplerStateALWebgl2`
+
+A sampler state on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2SamplerStateALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureALWebgl2 -->
+## `Tr2TextureALWebgl2`
+
+A texture on a WebGL2 device.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2TextureALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon

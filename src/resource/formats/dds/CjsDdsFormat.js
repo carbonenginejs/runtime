@@ -1,6 +1,7 @@
 import { asUint8Array } from "#utils/bytes";
 import { CjsFormat } from "../../format/CjsFormat.js";
 import { CjsImageFormat } from "../../format/CjsImageFormat.js";
+import { bcDecompress } from "./core/bcDecompress.js";
 import { BitmapDimensions, Cutout, ImageIOResult } from "#imageio";
 import { PixelFormat, PixelFormatFromCanonical, TextureType } from "#consts/render-context";
 import {
@@ -406,6 +407,30 @@ export class CjsDdsFormat extends CjsImageFormat
     {
         return canDecodeDdsBlockFormat(pixelFormat);
     }
+
+    /**
+     * Carbon's Metal-backend CPU decode, grouped apart from this format's own
+     * statics as `CjsBnkFormat.wwise` groups its Wwise toolkit.
+     *
+     * `bcDecompress(width, height, depth, format, src, decompressed)` is
+     * Carbon's `BcDecompress` (`trinity/trinityal/BcDecompress.cpp`), which
+     * Carbon calls only from Metal, to decompress BC volume textures a macOS
+     * GPU cannot hold (`Tr2TextureALMetal.mm:166-186`). BC1, BC2 or BC3 to
+     * BGRA8, every depth slice, returned as a `Uint8Array` of
+     * `width * height * depth * 4` bytes, or null for a format it does not
+     * handle (where Carbon answers false).
+     *
+     * IT REPRODUCES CARBON'S DEFECTS: 565 expanded by truncation, BC1's
+     * transparent texel keeping color2's RGB (CE-37), and whole-block writes
+     * that scramble widths that are not a multiple of four (CE-36). On PC,
+     * D3D11 decodes BC in hardware to the specification, which is what
+     * `decodeBlockSlice` matches. Use this only where Carbon's Metal output is
+     * the thing being reproduced; `core/bcDecompress.js` has the details, and
+     * `trinityal/BcDecompress.js` is its door under Carbon's own name.
+     */
+    static metal = {
+        bcDecompress
+    };
 
     static id = "CjsDdsFormat";
     static mediaTypes = [ "texture", "image" ];

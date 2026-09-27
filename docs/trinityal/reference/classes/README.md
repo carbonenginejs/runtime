@@ -5,6 +5,15 @@ Scope: `@carbonenginejs/runtime/trinityal`, `@carbonenginejs/runtime/trinityal/s
 Audience: Backend authors realizing a Trinity graph on a device
 Summary: Catalogs the device-facing descriptions and the GPU-free stub backend that Carbon's abstraction layer defines, which a concrete backend implements.
 
+<!-- class:BcDecompress -->
+## `BcDecompress`
+
+Carbon's BC1-BC3 CPU decompressor (`trinity/trinityal/BcDecompress.cpp`).
+
+- Source: `src/trinityal/BcDecompress.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:Tr2BufferALStub -->
 ## `Tr2BufferALStub`
 
