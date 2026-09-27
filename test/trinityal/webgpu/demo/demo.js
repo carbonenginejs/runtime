@@ -253,7 +253,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -391,6 +391,11 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     const toggle = row(name, Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
     toggle.addEventListener("change", () => effect(name, toggle.checked));
   }
+
+  // Cloak: the cloaking overlay's 6 s curve set dissolves the hull; unticking
+  // removes it and restores the ship.
+  const cloakToggle = row("cloak", Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
+  cloakToggle.addEventListener("change", () => cloak(cloakToggle.checked));
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -2498,6 +2503,35 @@ export async function RunDemo(canvas)
     // armorhardening, armorrepair or hullrepair (SetImpactAnimation,
     // cpp:3580). The fade takes a quarter of the duration, in seconds.
     effect: (name, on, duration = 4) => { if (realScene) ship.SetImpactAnimation(name, !!on, Number(duration)); },
+    // Cloaks the ship with res:/fisfx/cloaking/<name>.black, an
+    // EveMeshOverlayEffect, doing the client's part: its "self_" bindings
+    // (clipSphereFactor, activationStrength) are pointed at the ship, the
+    // overlay joins ship.overlayEffects, and its curve set plays (6 s). The
+    // _skinned variant is picked when the hull's shaders are skinned.
+    // demo.cloak(false) removes it and restores the ship.
+    cloak: async (on = true, name = null) =>
+    {
+      if (!realScene) return null;
+      for (const overlay of ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
+      {
+        ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
+      }
+      ship.clipSphereFactor = 0;
+      ship.activationStrength = 1;
+      if (!on) return null;
+      const skinned = (ship.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
+      const file = name ?? (skinned ? "cloaking_skinned" : "cloaking");
+      const overlay = CjsBlackFormat.read(await ResourceBytes(`fisfx/cloaking/${file}.black`), { emit: "runtime" }).root;
+      for (const binding of overlay.curveSet?.bindings ?? [])
+      {
+        if (!binding.name.startsWith("self_")) continue;
+        binding.destinationObject = ship;
+        binding.Initialize();
+      }
+      ship.overlayEffects.push(overlay);
+      overlay.PlayCurveSet(overlay.curveSet.name);
+      return file;
+    },
     ship,
     scene: realScene
   };
@@ -3216,6 +3250,7 @@ export async function RunDemo(canvas)
     kills: value => globalThis.demo.kills(value),
     damage: (shield, armor, hull) => globalThis.demo.damage(shield, armor, hull),
     effect: (name, on) => globalThis.demo.effect(name, on),
+    cloak: on => globalThis.demo.cloak(on),
     clientDefaults: {
       enabled: () => clientState.enabled,
       set: enabled => { clientState.enabled = enabled; ApplyClientDefaults(); }
