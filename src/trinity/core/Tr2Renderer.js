@@ -42,7 +42,7 @@ import { gTriDev } from "./device/gTriDev.js";
 import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
-import { TR2SHADERMODEL } from "../generated/trinityCore/enums.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 import { ShaderType } from "#consts/render-context";
 
 

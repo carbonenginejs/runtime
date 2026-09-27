@@ -10,7 +10,7 @@ import { carbon, impl, edit, type } from "#schema";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
-import { TR2SHADERMODEL } from "../../../generated/trinityCore/enums.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import { TriBatchType } from "#consts/graphics";
 // A cycle with EveBoosterSet2.js; each side reads the other only inside methods.

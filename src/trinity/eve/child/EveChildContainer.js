@@ -17,7 +17,8 @@ import { EveChildInheritProperties } from "./EveChildInheritProperties.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveComponentType } from "../EveComponentTypes.js";
 import { Origin } from "../../generated/eve/child/enums.js";
-import { Tr2RenderReason, TR2SHADERMODEL } from "../../generated/trinityCore/enums.js";
+import { Tr2RenderReason } from "../../generated/trinityCore/enums.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import {
@@ -958,6 +959,35 @@ export class EveChildContainer extends EveChildTransform
       }
     }
     return success;
+  }
+
+  /** Carbon EveChildContainer::AddQuadsToQuadRenderer (cpp:460-488): the
+   * children add theirs, then the attachments in world space at full
+   * activation, posed by the animation owner's bones. */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display || !this.#hasUpdated)
+    {
+      return;
+    }
+    if (!this.IsRendering())
+    {
+      return;
+    }
+    for (const child of this.objects)
+    {
+      child?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    }
+    if (this.attachments.length)
+    {
+      const { bones, boneCount } = getBoneList(this.animationOwner?.GetAnimationController());
+      for (const attachment of this.attachments)
+      {
+        attachment?.AddToQuadRenderer(quadRenderer, this.worldTransform, 1.0, 0.0, bones, boneCount);
+      }
+    }
   }
 
   /** Carbon EveChildContainer::GetLocalToWorldTransform (cpp:644-647); the

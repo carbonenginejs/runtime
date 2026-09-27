@@ -10,6 +10,8 @@ import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionE
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { vec3 } from "#math/vec3";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 
 /**
  * Carbon's BlueCastPtr on a controller's owner, the class asked of Blue by its
@@ -38,6 +40,20 @@ function ShipSpeedOf(owner)
   vec3.set(SPEED_SCRATCH, 0, 0, 0);
   spaceObject.GetWorldVelocity(SPEED_SCRATCH);
   return vec3.length(SPEED_SCRATCH);
+}
+
+/**
+ * Carbon ShaderQuality (Tr2ControllerExpression.cpp:162-177): the renderer's
+ * shader model as 0 (low), 1 (high) or 2 (depth); any other model is 0.
+ */
+function ShaderQuality()
+{
+  switch (Tr2Renderer.GetShaderModel())
+  {
+    case TR2SHADERMODEL.TR2SM_3_0_HI: return 1;
+    case TR2SHADERMODEL.TR2SM_3_0_DEPTH: return 2;
+    default: return 0;
+  }
 }
 
 /**
@@ -451,7 +467,7 @@ export const DEFAULT_FUNCTIONS = {
   ShipBoosterIntensity: ctx => CallContextFunction(ctx, "ShipBoosterIntensity"),
   KillCount: ctx => CallContextFunction(ctx, "KillCount"),
   BoundingSphereRadius: ctx => CallContextFunction(ctx, "BoundingSphereRadius"),
-  ShaderQuality: ctx => CallContextFunction(ctx, "ShaderQuality"),
+  ShaderQuality: () => ShaderQuality(),
   IsWeekend: ctx => GetServerDatePart(ctx, "dayOfWeek") % 6 === 0 ? 1 : 0,
   ServerYear: ctx => GetServerDatePart(ctx, "year"),
   ServerMonth: ctx => GetServerDatePart(ctx, "month"),

@@ -48,17 +48,6 @@ export const Tr2RenderReason = Object.freeze({
   TR2RENDERREASON_VOLUMETRIC: 2,
 });
 
-export const TR2SHADERMODEL = Object.freeze({
-  TR2SM_1_1: 0,
-  TR2SM_2_0_LO: 1,
-  TR2SM_2_0_HI: 2,
-  TR2SM_3_0_LO: 3,
-  TR2SM_3_0_HI: 4,
-  TR2SM_3_0_DEPTH: 5,
-  TR2SM_AUTHORING: 6,
-  TR2SM_COUNT: 7,
-});
-
 export const Tr2StandardIlluminant = Object.freeze({
   TR2STANDARDILLUMINANT_A: 0,
   TR2STANDARDILLUMINANT_D50: 1,

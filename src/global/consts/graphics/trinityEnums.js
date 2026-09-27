@@ -97,3 +97,17 @@ export const TriStorageFlags = Object.freeze({
     TRISTORAGE_MANAGEDMEMORY: 1 << 1,
     TRISTORAGE_ALL: (1 << 2) - 1
 });
+
+/** Trinity shader model from Tr2Renderer.h:14-26. Shared: the renderer, the
+ * scene driver, boosters, child containers and controller expressions
+ * (ShaderQuality) all key on it. */
+export const TR2SHADERMODEL = Object.freeze({
+    TR2SM_1_1: 0,
+    TR2SM_2_0_LO: 1,
+    TR2SM_2_0_HI: 2,
+    TR2SM_3_0_LO: 3,
+    TR2SM_3_0_HI: 4,
+    TR2SM_3_0_DEPTH: 5,
+    TR2SM_AUTHORING: 6,
+    TR2SM_COUNT: 7
+});

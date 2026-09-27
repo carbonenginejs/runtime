@@ -625,6 +625,19 @@ export class EveChildEffectPropagator extends EveChildContainer
     return out;
   }
 
+  /** Carbon EveChildEffectPropagator::AddQuadsToQuadRenderer (cpp:370-381):
+   * only the propagated effect adds quads, not the container's objects. */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.IsRendering())
+    {
+      return;
+    }
+    this.effect?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+  }
+
   /** Carbon EveChildEffectPropagator::ProcessLocalLocators (cpp:410-438):
    * sample the owned locator set through the completeness gate; the trigger
    * sphere scalar becomes twice the farthest locator distance. */

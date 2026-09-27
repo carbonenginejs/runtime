@@ -17,7 +17,7 @@ import { TriDevice } from "../../../core/device/TriDevice.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
 import { Tr2VertexDefinition } from "../../../core/vertex/Tr2VertexDefinition/index.js";
-import { TR2SHADERMODEL } from "../../../generated/trinityCore/enums.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
 import {
   AddBoosterLights,

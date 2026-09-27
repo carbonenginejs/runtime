@@ -27,7 +27,8 @@ import { PixelFormat, TextureType, Tr2GpuUsage, Tr2LoadAction, Tr2StoreAction } 
 import { Tr2ColorAttachment, Tr2DepthAttachment, Tr2SubresourceData, Tr2TextureSubresource } from "#trinityal";
 import { Tr2Effect } from "../../shader/Tr2Effect.js";
 import { AmbientOcclusionQuality, AntiAliasingQuality, EveVisualizeMethod } from "../../generated/eve/enums.js";
-import { ShadowQuality, SSAOQuality, TR2SHADERMODEL, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
+import { ShadowQuality, SSAOQuality, Tr2VolumerticQuality } from "../../generated/trinityCore/enums.js";
+import { TR2SHADERMODEL } from "#consts/graphics";
 import { Quality } from "../../generated/postProcess/enums.js";
 import { RenderingMode, TriBatchType } from "#consts/graphics";
 import { CjsBatchManager } from "../../core/batch/CjsBatchManager.js";

@@ -103,6 +103,7 @@ import { Tr2GpuResourcePool } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { EveComponentType } from "../../../../npm/dist/trinity/eve/EveComponentTypes.js";
 import { CjsBatchManager, Tr2QuadRenderer, Tr2LightManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { TR2SHADERMODEL } from "../../../../npm/dist/global/consts/graphics/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
 import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
@@ -1738,6 +1739,9 @@ RegisterObjectResources(blue.resMan);
 // Effects resolve their platform path when they hydrate, so the defaults are
 // set before any SOF ship is built.
 SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
+// The renderer's shader model follows the tier, as the client sets it:
+// controllers read it through ShaderQuality() (the hull fire gates on 2).
+Tr2Renderer.SetShaderModel({ lo: TR2SHADERMODEL.TR2SM_3_0_LO, hi: TR2SHADERMODEL.TR2SM_3_0_HI }[TIER] ?? TR2SHADERMODEL.TR2SM_3_0_DEPTH);
 
 /**
  * A scene texture's path: a client file, or a flat colour as Carbon's

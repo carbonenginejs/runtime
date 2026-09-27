@@ -277,6 +277,14 @@ export class EveChildInstanceContainer extends EveChildTransform
     return out;
   }
 
+  /** Carbon EveChildInstanceContainer::AddQuadsToQuadRenderer (cpp:475-478). */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    this.#RunOnInstances(child => child.AddQuadsToQuadRenderer(frustum, quadRenderer));
+  }
+
   /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):
    * forwards the instances; with no instances (and edit mode enabled -
    * m_disableEditMode has no JS field yet, read duck-typed) the source
