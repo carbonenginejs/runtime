@@ -15,6 +15,34 @@ import { Saturate } from "../EveSpaceObjectAttachmentUtils.js";
 import { Tr2Light } from "../../lights/Tr2Light.js";
 import { FLOAT_MAX } from "../../../core/view/TriFrustum.js";
 import { CreateItemSetBoundingBoxes, GetItemSetAabb } from "../itemSetBounds.js";
+import { num } from "#math/num";
+import { RenderingMode, TriBatchType } from "#consts/graphics";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2VertexDefinition, Tr2VertexDefinitionItem } from "../../../core/vertex/Tr2VertexDefinition/index.js";
+import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+
+/** sizeof( EveBannerSet::Vertex ) (cpp:65-84): position float3, normal half4, texCoord half2. */
+const BANNER_VERTEX_SIZE = 24;
+
+/** Carbon's TransformCoord: a point through a row-vector matrix (gl-matrix's bytes agree). */
+function TransformCoord(out, v, m)
+{
+  return vec3.transformMat4(out, v, m);
+}
+
+/** Carbon's TransformNormal: a direction through the upper 3x3 (no translation). */
+function TransformNormal(out, v, m)
+{
+  const [ x, y, z ] = v;
+  out[0] = x * m[0] + y * m[4] + z * m[8];
+  out[1] = x * m[1] + y * m[5] + z * m[9];
+  out[2] = x * m[2] + y * m[6] + z * m[10];
+  return out;
+}
 import {
   AsPerPointLightData,
   CopyLightData,
@@ -86,28 +114,38 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** m_isVisible - the result of the last UpdateVisibility. */
   #isVisible = false;
 
+  /** m_vertexDeclaration */
+  _vertexDeclaration = Tr2EffectStateManager.Unknown;
+
+  /** m_vertexBuffer / m_indexBuffer: shared-buffer allocations, null until built. */
+  _vertexBuffer = null;
+
+  _indexBuffer = null;
+
   /** Carbon m_activationStrength (ctor 0, EveBannerSet.cpp:94). Lights are
    * BLACK until UpdateLights runs. */
   #activationStrength = 0;
 
   /**
-   * Recomputes the bounds a banner set answers with - the static box, the
-   * per-bone boxes and the largest single banner half-diagonal - and marks the
-   * packed geometry stale; a set without an effect builds no bounds at all, so
-   * it reads as invisible rather than unbounded.
+   * Carbon Rebuild (cpp:397-431): the bounds - the static box, the per-bone
+   * boxes and the largest single banner half-diagonal - and every banner's
+   * geometry into the shared buffer. A set without an effect builds neither,
+   * so it reads as invisible rather than unbounded.
+   *
+   * Adapted: Tr2SuballocatedBuffer has no Free, so the old allocations are
+   * dropped rather than returned.
    */
   @carbon.method
   @impl.adapted
   Rebuild()
   {
-    // Physical geometry, buffers and batches are backend work; the bounds are
-    // not. Carbon rebuilds both together (cpp:397-431).
     this.#rebuildRevision++;
-
 
     box3.empty(this.#staticBounds);
     this.#boneBounds.length = 0;
     this.#maxBannerRadius = 0;
+    this._vertexBuffer = null;
+    this._indexBuffer = null;
 
     // Carbon bails before building ANY bounds when the set has no effect
     // (cpp:406-409) - an effectless banner set is invisible, not unbounded.
@@ -128,6 +166,266 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
         box3.radius(EveBannerSet.#bannerScratch)
       );
     }
+
+    const vertices = [];
+    const indices = [];
+    for (const banner of this.banners) this.CreateBannerGeometry(vertices, indices, banner);
+
+    if (vertices.length)
+    {
+      const bytes = new Uint8Array(vertices.length * BANNER_VERTEX_SIZE);
+      const view = new DataView(bytes.buffer);
+      vertices.forEach((vertex, i) =>
+      {
+        const base = i * BANNER_VERTEX_SIZE;
+        for (let c = 0; c < 3; c++) view.setFloat32(base + c * 4, vertex.position[c], true);
+        for (let c = 0; c < 3; c++) view.setUint16(base + 12 + c * 2, num.toHalfFloat(vertex.normal[c]), true);
+        // Carbon writes the bone as an int8 into both bytes of normal.w (cpp:80-81).
+        bytes[base + 18] = vertex.bone & 0xff;
+        bytes[base + 19] = vertex.bone & 0xff;
+        view.setUint16(base + 20, num.toHalfFloat(vertex.texCoord[0]), true);
+        view.setUint16(base + 22, num.toHalfFloat(vertex.texCoord[1]), true);
+      });
+
+      const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+      const shared = SharedGeometryBuffer(renderContext);
+      this._vertexBuffer = shared.Allocate(BANNER_VERTEX_SIZE, vertices.length, bytes, renderContext);
+      this._indexBuffer = shared.Allocate(2, indices.length, Uint16Array.from(indices), renderContext);
+    }
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+  }
+
+  /**
+   * Carbon OnPrepareResources (cpp:366-390): position, normal and texcoord,
+   * plus BLENDINDICES pushed straight into the items at offset 16 without
+   * advancing the ledger - so it reads the normal's z and w, where w carries
+   * the bone. The buffers are built if they are missing.
+   */
+  @carbon.method
+  @impl.implemented
+  OnPrepareResources()
+  {
+    const definition = new Tr2VertexDefinition();
+    definition.Add("FLOAT32_3", "POSITION");
+    definition.Add("FLOAT16_4", "NORMAL");
+    definition.Add("FLOAT16_2", "TEXCOORD");
+
+    const item = new Tr2VertexDefinitionItem();
+    item.type = "BYTE_4";
+    item.offset = 4 * 3 + 2 * 2;
+    item.stream = 0;
+    item.usage = Tr2VertexUsageCode.BLENDINDICES;
+    item.usageIndex = 0;
+    item.instanceStepRate = 0;
+    definition.items.push(item);
+
+    this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+    if (!this._vertexBuffer || !this._indexBuffer) this.Rebuild();
+    return true;
+  }
+
+  /**
+   * Carbon GetBatches (cpp:185-217): one batch of every banner, additive (or
+   * picking when pickable), not until the primary texture has loaded.
+   */
+  @carbon.method
+  @impl.implemented
+  GetBatches(batches, batchType, perObjectData, _reason)
+  {
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
+    if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && !this.isPickable) return;
+    if (!this.display || !this.#isVisible || !this.effect || !this._vertexBuffer) return;
+    if (this.primaryTextureParameter && !this.primaryTextureParameter.GetResource()) return;
+
+    const vertices = this._vertexBuffer;
+    const indices = this._indexBuffer;
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(this.effect);
+    batch.SetPerObjectData(perObjectData);
+    batch.SetPickingData(this.GetPickingID());
+    batch.SetGeometryFromAllocations(this._vertexDeclaration, vertices, indices);
+    batch.SetDrawIndexedInstanced(indices.GetSize() / indices.GetStride(), 1, indices.GetStartIndex(), vertices.GetOffset() / vertices.GetStride(), 0);
+    if (batchType === TriBatchType.TRIBATCHTYPE_ADDITIVE) batch.SetRenderingMode(RenderingMode.RM_ALPHA_ADDITIVE);
+    batches.Commit(batch);
+  }
+
+  /** Carbon CreateBannerGeometry (cpp:493-513): flat, or curved along one or both axes. */
+  @carbon.method
+  @impl.implemented
+  CreateBannerGeometry(vertices, indices, item)
+  {
+    const flatX = item.angleX <= 0;
+    const flatY = item.angleY <= 0;
+    if (flatX && flatY) this.CreateFlatBannerGeometry(vertices, indices, item);
+    else if (flatX) this.CreateVerticalCurvedBannerGeometry(vertices, indices, item);
+    else if (flatY) this.CreateHorizontalCurvedBannerGeometry(vertices, indices, item);
+    else this.CreateCurvedBannerGeometry(vertices, indices, item);
+  }
+
+  /** Carbon CreateFlatBannerGeometry (cpp:515-533): one quad. */
+  @carbon.method
+  @impl.implemented
+  CreateFlatBannerGeometry(vertices, indices, item)
+  {
+    const start = vertices.length;
+    const transform = EveBannerSet._Transform(item);
+    const normal = vec3.normalize(vec3.create(), TransformNormal(vec3.create(), [ 0, 0, 1 ], transform));
+    const corner = (x, y, u, v) => vertices.push({ position: TransformCoord(vec3.create(), [ x, y, 0 ], transform), normal, texCoord: [ u, v ], bone: item.bone });
+
+    corner(-0.5, -0.5, 0, 1);
+    corner(-0.5, 0.5, 0, 0);
+    corner(0.5, -0.5, 1, 1);
+    corner(0.5, 0.5, 1, 0);
+    indices.push(start, start + 1, start + 2, start + 2, start + 1, start + 3);
+  }
+
+  /** Carbon CreateVerticalCurvedBannerGeometry (cpp:535-583): bent around X, a segment per 5 degrees. */
+  @carbon.method
+  @impl.implemented
+  CreateVerticalCurvedBannerGeometry(vertices, indices, item)
+  {
+    const start = vertices.length;
+    const transform = EveBannerSet._Transform(item);
+    const normalTransform = EveBannerSet._NormalTransform(transform);
+    const angleY = Math.max(0, Math.min(item.angleY, 180));
+    const segmentsY = 1 + Math.trunc(angleY / 5);
+    const halfAngleY = angleY / 180 * Math.PI / 2;
+    const scaleY = 0.5 / Math.sin(halfAngleY);
+
+    for (let j = 0; j <= segmentsY; ++j)
+    {
+      const y = j / segmentsY;
+      const angle = -halfAngleY + y * 2 * halfAngleY;
+      const sinY = Math.sin(angle + Math.PI / 2);
+      const cosY = Math.cos(angle + Math.PI / 2);
+      for (let i = 0; i <= 1; ++i)
+      {
+        const sinX = i === 0 ? -0.5 : 0.5;
+        const normal = [ 0, cosY / scaleY, sinY / scaleY ];
+        vertices.push({
+          position: TransformCoord(vec3.create(), [ sinX, cosY * scaleY, (sinY - 1) * scaleY ], transform),
+          normal: vec3.normalize(vec3.create(), TransformNormal(vec3.create(), normal, normalTransform)),
+          texCoord: [ i, y ],
+          bone: item.bone
+        });
+      }
+    }
+
+    const index = (x, y) => x + 2 * y;
+    for (let j = 0; j < segmentsY; ++j)
+    {
+      indices.push(start + index(0, j), start + index(1, j), start + index(0, j + 1), start + index(0, j + 1), start + index(1, j), start + index(1, j + 1));
+    }
+  }
+
+  /** Carbon CreateHorizontalCurvedBannerGeometry (cpp:585-634): bent around Y. */
+  @carbon.method
+  @impl.implemented
+  CreateHorizontalCurvedBannerGeometry(vertices, indices, item)
+  {
+    const start = vertices.length;
+    const transform = EveBannerSet._Transform(item);
+    const normalTransform = EveBannerSet._NormalTransform(transform);
+    const angleX = Math.max(0, Math.min(item.angleX, 180));
+    const segmentsX = 1 + Math.trunc(angleX / 5);
+    const halfAngleX = angleX / 180 * Math.PI / 2;
+    const scaleX = 0.5 / Math.sin(halfAngleX);
+
+    for (let j = 0; j <= 1; ++j)
+    {
+      const y = j;
+      const cosY = j === 0 ? 0.5 : -0.5;
+      for (let i = 0; i <= segmentsX; ++i)
+      {
+        const x = i / segmentsX;
+        const angle = -halfAngleX + x * 2 * halfAngleX;
+        const sinX = Math.sin(angle);
+        const cosX = Math.cos(angle);
+        const normal = [ sinX / scaleX, 0, cosX / scaleX ];
+        vertices.push({
+          position: TransformCoord(vec3.create(), [ sinX * scaleX, cosY, (cosX - 1) * scaleX ], transform),
+          normal: vec3.normalize(vec3.create(), TransformNormal(vec3.create(), normal, normalTransform)),
+          texCoord: [ x, y ],
+          bone: item.bone
+        });
+      }
+    }
+
+    const index = (x, y) => x + (segmentsX + 1) * y;
+    for (let i = 0; i < segmentsX; ++i)
+    {
+      indices.push(start + index(i, 0), start + index(i + 1, 0), start + index(i, 1), start + index(i, 1), start + index(i + 1, 0), start + index(i + 1, 1));
+    }
+  }
+
+  /** Carbon CreateCurvedBannerGeometry (cpp:636-693): bent around both axes. */
+  @carbon.method
+  @impl.implemented
+  CreateCurvedBannerGeometry(vertices, indices, item)
+  {
+    const start = vertices.length;
+    const transform = EveBannerSet._Transform(item);
+    const normalTransform = EveBannerSet._NormalTransform(transform);
+    const angleX = Math.max(0, Math.min(item.angleX, 180));
+    const angleY = Math.max(0, Math.min(item.angleY, 180));
+    const segmentsX = 1 + Math.trunc(angleX / 5);
+    const segmentsY = 1 + Math.trunc(angleY / 5);
+    const halfAngleX = angleX / 180 * Math.PI / 2;
+    const halfAngleY = angleY / 180 * Math.PI / 2;
+    const scaleX = 0.5 / Math.sin(halfAngleX);
+    const scaleY = 0.5 / Math.sin(halfAngleY);
+    const scaleZ = Math.min(scaleX, scaleY);
+
+    for (let j = 0; j <= segmentsY; ++j)
+    {
+      const y = j / segmentsY;
+      const angleOfY = -halfAngleY + y * 2 * halfAngleY;
+      const sinY = Math.sin(angleOfY + Math.PI / 2);
+      const cosY = Math.cos(angleOfY + Math.PI / 2);
+      for (let i = 0; i <= segmentsX; ++i)
+      {
+        const x = i / segmentsX;
+        const angleOfX = -halfAngleX + x * 2 * halfAngleX;
+        const sinX = Math.sin(angleOfX);
+        const cosX = Math.cos(angleOfX);
+        const normal = [ sinX * sinY / scaleX, cosY / scaleY, cosX * sinY / scaleZ ];
+        vertices.push({
+          position: TransformCoord(vec3.create(), [ sinX * sinY * scaleX, cosY * scaleY, (cosX * sinY - 1) * scaleZ ], transform),
+          normal: vec3.normalize(vec3.create(), TransformNormal(vec3.create(), normal, normalTransform)),
+          texCoord: [ x, y ],
+          bone: item.bone
+        });
+      }
+    }
+
+    const index = (x, y) => x + (segmentsX + 1) * y;
+    for (let j = 0; j < segmentsY; ++j)
+    {
+      for (let i = 0; i < segmentsX; ++i)
+      {
+        indices.push(start + index(i, j), start + index(i + 1, j), start + index(i, j + 1), start + index(i, j + 1), start + index(i + 1, j), start + index(i + 1, j + 1));
+      }
+    }
+  }
+
+  /** Carbon TransformationMatrix( scaling, rotation, position ). */
+  static _Transform(item)
+  {
+    return mat4.fromRotationTranslationScale(mat4.create(), item.rotation, item.position, item.scaling);
+  }
+
+  /** Carbon Inverse( Transpose( transform ) ). */
+  static _NormalTransform(transform)
+  {
+    const out = mat4.transpose(mat4.create(), transform);
+    return mat4.invert(out, out);
   }
 
   /** Carbon EveBannerSet::GetAabb (cpp:392-395): the item-set bounds. The bone
@@ -388,14 +686,18 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   }
 
   /**
-   * Runs the first Rebuild so the set has bounds before its first visibility
-   * test.
+   * Carbon Initialize (cpp:105-109) is Rebuild; the declaration comes from the
+   * constructor's PrepareResources (cpp:98).
+   *
+   * Adapted: a JS object is usually constructed before the device exists, so
+   * the declaration is prepared here, after the first Rebuild.
    */
   @carbon.method
   @impl.adapted
   Initialize()
   {
     this.Rebuild();
+    this.PrepareResources();
     return true;
   }
 
