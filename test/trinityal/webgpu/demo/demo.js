@@ -253,7 +253,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -400,6 +400,11 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // removes it and restores the ship.
   const cloakToggle = row("cloak", Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
   cloakToggle.addEventListener("change", () => cloak(cloakToggle.checked));
+
+  // Skin change: swaps between the start DNA and angelbase through the
+  // client skin-change transition (3 s).
+  const skinButton = row("skin", Object.assign(document.createElement("button"), { type: "button", textContent: "change" }));
+  skinButton.addEventListener("click", async () => { skinButton.disabled = true; try { await skin(); } finally { skinButton.disabled = false; } });
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -995,6 +1000,8 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
  * The DNA whose built SOF document names this hull's maps, constants and
  * geometry. `?dna=` picks another, e.g. `?dna=at1_t1:amarrbase:amarr`.
  */
+// The other skin demo.skin() swaps to: the same hull in Angel base colours.
+const SKIN_ALTERNATE = "angb1_t1:angelbase:angel";
 const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "angb1_t1:capsuleerday_25_angel:angel:pattern?capsuleerday_25_angel;green_carapace_darker_polished;green_carapace_mirror";
 
 /**
@@ -2324,6 +2331,7 @@ export async function RunDemo(canvas)
   let bounds = null;
   let geometry = null;
   let ship = null;
+  let currentDna = DNA;
   const textures = { loaded: 0, failed: [] };
 
   // EACH AREA GETS ITS OWN SHADER. The report and the console read areas as
@@ -2516,29 +2524,14 @@ export async function RunDemo(canvas)
     cloak: async (on = true, name = null) =>
     {
       if (!realScene) return null;
-      const current = ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_"));
-      const remove = () =>
+      for (const overlay of ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
       {
-        for (const overlay of current) ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
-        ship.clipSphereFactor = 0;
-        ship.activationStrength = 1;
-      };
-      if (!on)
-      {
-        // Uncloak: the file has no uncloak range, so the curve set plays back
-        // from its end (scale -1), then the overlay goes. Our reading of the
-        // client, not Carbon.
-        for (const overlay of current)
-        {
-          const duration = overlay.curveSet.GetMaxCurveDuration?.() ?? 6;
-          overlay.curveSet.scale = -1;
-          overlay.curveSet.PlayFrom(duration);
-          setTimeout(remove, duration * 1000);
-        }
-        if (!current.length) remove();
-        return null;
+        ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
       }
-      remove();
+      ship.clipSphereFactor = 0;
+      ship.activationStrength = 1;
+      ship.OnModified("clipSphereFactor");
+      if (!on) return null;
       const skinned = (ship.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
       const file = name ?? (skinned ? "cloaking_skinned" : "cloaking");
       const overlay = CjsBlackFormat.read(await ResourceBytes(`fisfx/cloaking/${file}.black`), { emit: "runtime" }).root;
@@ -2551,6 +2544,62 @@ export async function RunDemo(canvas)
       ship.overlayEffects.push(overlay);
       overlay.PlayCurveSet(overlay.curveSet.name);
       return file;
+    },
+    // Changes the skin as the client does: the new-skin ship is built and
+    // placed exactly on the old one, and res:/fisfx/skinchange/skin_change.black
+    // (3 s) plays on both. Its old_* bindings dissolve the old ship
+    // (clipSphereFactor, activationStrength) while new_* bring in the new one
+    // (clipSphereFactor2, activationStrength); then the old ship goes. Each
+    // ship gets its own copy of the overlay, so each curve set is updated once
+    // a frame. With no DNA it toggles between the start DNA and SKIN_ALTERNATE.
+    skin: async (dna = null) =>
+    {
+      if (!realScene) return null;
+      const old = ship;
+      const next = await BuildSofShip(dna ?? (currentDna === DNA ? SKIN_ALTERNATE : DNA));
+      currentDna = dna ?? (currentDna === DNA ? SKIN_ALTERNATE : DNA);
+      next.displayKillCounterValue = old.displayKillCounterValue;
+      ApplyDemoBanners(next);
+      next.speed = old.speed;
+      mat4.copy(next.worldTransform, old.worldTransform);
+
+      // Wait for the new hull's geometry, so the swap does not start on an
+      // invisible ship.
+      for (let wait = 0; wait < 100 && !next.mesh?.GetGeometryResource()?.IsGood(); wait++)
+      {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      }
+
+      const skinned = (old.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
+      const bytes = await ResourceBytes(`fisfx/skinchange/${skinned ? "skin_change_skinned" : "skin_change"}.black`);
+      const overlays = [ old, next ].map(owner =>
+      {
+        const overlay = CjsBlackFormat.read(bytes, { emit: "runtime" }).root;
+        for (const binding of overlay.curveSet?.bindings ?? [])
+        {
+          binding.destinationObject = binding.name.startsWith("old_") ? old : next;
+          binding.Initialize();
+        }
+        owner.overlayEffects.push(overlay);
+        overlay.curveSet.ApplyTime(0);
+        overlay.PlayCurveSet(overlay.curveSet.name);
+        return overlay;
+      });
+
+      realScene.objects.push(next);
+      const duration = overlays[0].curveSet.GetMaxCurveDuration();
+      await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
+
+      realScene.objects.splice(realScene.objects.indexOf(old), 1);
+      next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
+      next.clipSphereFactor = 0;
+      next.clipSphereFactor2 = 0;
+      next.activationStrength = 1;
+      // Direct writes skip the notify, which switches SPACE_OBJECT_CLIPPING off.
+      next.OnModified("clipSphereFactor2");
+      ship = next;
+      globalThis.demo.ship = next;
+      return currentDna;
     },
     ship,
     scene: realScene
@@ -3279,6 +3328,7 @@ export async function RunDemo(canvas)
     damage: (shield, armor, hull) => globalThis.demo.damage(shield, armor, hull),
     effect: (name, on) => globalThis.demo.effect(name, on),
     cloak: on => globalThis.demo.cloak(on),
+    skin: () => globalThis.demo.skin(),
     clientDefaults: {
       enabled: () => clientState.enabled,
       set: enabled => { clientState.enabled = enabled; ApplyClientDefaults(); }
