@@ -2516,13 +2516,29 @@ export async function RunDemo(canvas)
     cloak: async (on = true, name = null) =>
     {
       if (!realScene) return null;
-      for (const overlay of ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
+      const current = ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_"));
+      const remove = () =>
       {
-        ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
+        for (const overlay of current) ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
+        ship.clipSphereFactor = 0;
+        ship.activationStrength = 1;
+      };
+      if (!on)
+      {
+        // Uncloak: the file has no uncloak range, so the curve set plays back
+        // from its end (scale -1), then the overlay goes. Our reading of the
+        // client, not Carbon.
+        for (const overlay of current)
+        {
+          const duration = overlay.curveSet.GetMaxCurveDuration?.() ?? 6;
+          overlay.curveSet.scale = -1;
+          overlay.curveSet.PlayFrom(duration);
+          setTimeout(remove, duration * 1000);
+        }
+        if (!current.length) remove();
+        return null;
       }
-      ship.clipSphereFactor = 0;
-      ship.activationStrength = 1;
-      if (!on) return null;
+      remove();
       const skinned = (ship.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
       const file = name ?? (skinned ? "cloaking_skinned" : "cloaking");
       const overlay = CjsBlackFormat.read(await ResourceBytes(`fisfx/cloaking/${file}.black`), { emit: "runtime" }).root;
