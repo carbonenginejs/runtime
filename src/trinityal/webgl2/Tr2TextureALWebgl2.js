@@ -821,20 +821,7 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
     if (!this._framebuffer) this._framebuffer = gl.createFramebuffer();
 
     gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._framebuffer);
-
-    if (this._renderbuffer)
-    {
-      gl.framebufferRenderbuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.RENDERBUFFER, this._renderbuffer);
-    }
-    else if (this._target === gl.TEXTURE_3D || this._target === gl.TEXTURE_2D_ARRAY)
-    {
-      gl.framebufferTextureLayer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, this._texture, mip, slice);
-    }
-    else
-    {
-      const faceTarget = this._target === gl.TEXTURE_CUBE_MAP ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + slice : gl.TEXTURE_2D;
-      gl.framebufferTexture2D(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, faceTarget, this._texture, mip);
-    }
+    this.AttachToFramebuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, mip, slice);
 
     return this._framebuffer;
   }
@@ -1279,6 +1266,50 @@ export class Tr2TextureALWebgl2 extends Tr2DeviceResourceAL
   GetRenderbuffer()
   {
     return this._renderbuffer;
+  }
+
+  /**
+   * Attaches one subresource of this texture to the framebuffer bound at
+   * `target`: dx11's render-target and depth-stencil views
+   * (`m_renderTarget[colorSpace + slice * 2]`, `m_depthStencil`), which WebGL2
+   * expresses as attachments. A multisampled texture attaches its renderbuffer.
+   *
+   * @param {number} target `FRAMEBUFFER`, `DRAW_FRAMEBUFFER` or `READ_FRAMEBUFFER`.
+   * @param {number} attachment The attachment point.
+   * @param {number} mip The mip level.
+   * @param {number} slice The array slice, cube face or depth slice.
+   */
+  @impl.custom
+  AttachToFramebuffer(target, attachment, mip, slice)
+  {
+    const gl = this._gl;
+
+    if (this._renderbuffer)
+    {
+      gl.framebufferRenderbuffer(target, attachment, gl.RENDERBUFFER, this._renderbuffer);
+    }
+    else if (this._target === gl.TEXTURE_3D || this._target === gl.TEXTURE_2D_ARRAY)
+    {
+      gl.framebufferTextureLayer(target, attachment, this._texture, mip, slice);
+    }
+    else
+    {
+      const faceTarget = this._target === gl.TEXTURE_CUBE_MAP ? gl.TEXTURE_CUBE_MAP_POSITIVE_X + slice : gl.TEXTURE_2D;
+      gl.framebufferTexture2D(target, attachment, faceTarget, this._texture, mip);
+    }
+  }
+
+  /**
+   * The attachment point a depth-stencil texture takes: depth with stencil,
+   * or depth alone.
+   *
+   * @returns {number} `DEPTH_STENCIL_ATTACHMENT` or `DEPTH_ATTACHMENT`.
+   */
+  @impl.custom
+  GetDepthAttachmentPoint()
+  {
+    const gl = this._gl;
+    return this._layout && this._layout.format === gl.DEPTH_STENCIL ? gl.DEPTH_STENCIL_ATTACHMENT : gl.DEPTH_ATTACHMENT;
   }
 }
 

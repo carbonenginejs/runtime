@@ -12,6 +12,7 @@ import { CjsSchema, impl } from "#schema";
 import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
+import { Tr2PipelineStatsDataALWebgl2 } from "./Tr2PipelineStatsDataALWebgl2.js";
 
 
 /**
@@ -72,12 +73,12 @@ export class Tr2PipelineStatsQueryALWebgl2 extends Tr2DeviceResourceAL
   /**
    * dx11's answer for a query never created (`:66-77`).
    *
-   * @returns {{result: number, data: Array}} dx11's out argument comes back here.
+   * @returns {{result: number, data: Tr2PipelineStatsDataALWebgl2}} dx11's out argument comes back here.
    */
   @impl.adapted
   GetStats(_renderContext)
   {
-    return { result: ALResult.E_INVALIDARG, data: [] };
+    return { result: ALResult.E_INVALIDARG, data: new Tr2PipelineStatsDataALWebgl2() };
   }
 
   /**

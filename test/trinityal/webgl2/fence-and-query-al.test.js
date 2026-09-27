@@ -177,6 +177,8 @@ test("a pipeline statistics query cannot be created on WebGL2", () =>
     assert.equal(query.Create(FakeRenderContext(gl)), ALResult.E_FAIL);
     assert.equal(query.IsValid(), false);
     assert.equal(query.Begin(FakeRenderContext(gl)), ALResult.E_INVALIDARG);
-    assert.deepEqual(query.GetStats(FakeRenderContext(gl)), { result: ALResult.E_INVALIDARG, data: [] });
+    const stats = query.GetStats(FakeRenderContext(gl));
+    assert.equal(stats.result, ALResult.E_INVALIDARG);
+    assert.deepEqual(stats.data.data, []);
     assert.equal(Tr2PipelineStatsQueryALWebgl2.GetValueCount([]), 0);
 });

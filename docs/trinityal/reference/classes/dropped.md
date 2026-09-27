@@ -143,6 +143,16 @@ An occlusion query on a WebGL2 device.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2PipelineStatsDataALWebgl2 -->
+## `Tr2PipelineStatsDataALWebgl2`
+
+A pipeline statistics record on a WebGL2 device, which holds no values.
+
+- Export: `@carbonenginejs/runtime/trinityal/webgl2`
+- Source: `src/trinityal/webgl2/Tr2PipelineStatsDataALWebgl2.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2PipelineStatsQueryALWebgl2 -->
 ## `Tr2PipelineStatsQueryALWebgl2`
 
