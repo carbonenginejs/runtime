@@ -18,6 +18,10 @@ import { CjsSchema } from "#schema";
 
 /** Schema field kinds -> the reader's member kind and its byte size. */
 const MEMBER_KINDS = Object.freeze({
+    // A BlueSharedString member is 8 bytes on the 64-bit writer: a u16
+    // string-table index the reader patches, then padding
+    // (Be::SHAREDSTRING_1, e.g. Tr2EffectParameterStructureDef, Tr2Effect.cpp:33-37).
+    string: [ "string", 8 ],
     float32: [ "float32", 4 ],
     int8: [ "int8", 1 ],
     uint8: [ "uint8", 1 ],
