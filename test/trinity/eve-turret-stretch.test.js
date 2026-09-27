@@ -90,7 +90,7 @@ test("EveFiringEffectElementContainer owns active element lifecycle", () =>
   assert.deepEqual(calls.map(value => value[0]), ["start", "transform", "update", "stop"]);
 });
 
-test("EveStretch2 retains Carbon curve timing and portable render data", () =>
+test("EveStretch2 retains Carbon curve timing and portable render data", async () =>
 {
   const events = [];
   const curveSet = name => ({
@@ -129,6 +129,10 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
   // which exists once a device does and quads are reserved.
   Tr2RenderContext_GetMainThreadRenderContext().GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
   Tr2Renderer.ReserveQuadListIndexBuffer(EveStretch2.MAX_QUAD_COUNT);
+  // A Tr2DeviceResource (EveStretch2.h:28): built before the device, it and the
+  // shared "EveStretch2VB" quads are prepared when the device prepares.
+  const { TriDevice } = await import("../../npm/dist/trinity/core/index.js");
+  new TriDevice().PrepareDeviceResources();
   assert.equal(stretch.GetBatches(batches, TriBatchType.TRIBATCHTYPE_ADDITIVE, data, 0), true);
   assert.equal(stretch.HasTransparentBatches(), false);
   assert.equal(stretch.GetSortValue(), 0);
@@ -136,8 +140,13 @@ test("EveStretch2 retains Carbon curve timing and portable render data", () =>
   assert.equal(committed[0].objectData, data);
   assert.equal(committed[0].indexCountPerInstance, 24);
   assert.equal(committed[0].instanceCount, 1);
-  assert.equal(committed[0].vertexStreams[0], EveStretch2.VertexSource);
-  assert.equal(committed[0].vertexStreams[0].maxQuadCount, EveStretch2.MAX_QUAD_COUNT);
+  // The shared 128-quad (quadIndex, cornerIndex) float2 buffer (cpp:51-72),
+  // based at its allocation, under the FLOAT32_2 POSITION declaration.
+  const vb = stretch._vb.GetSharedResource();
+  assert.equal(committed[0].vertexStreams[0], vb.GetBuffer());
+  assert.equal(committed[0].stride[0], 8);
+  assert.equal(committed[0].baseVertexLocation, vb.GetOffset() / vb.GetStride());
+  assert.equal(committed[0].vertexDeclaration, stretch._vertexDeclHandle);
   stretch.StopFiring();
   assert.ok(events.some(value => value[0] === "end" && value[1] === "end"));
 });

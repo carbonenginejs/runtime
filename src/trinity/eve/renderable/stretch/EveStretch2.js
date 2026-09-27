@@ -12,6 +12,35 @@ import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { ITr2GenericEmitterUpdateArguments } from "../../../particle/ITr2GenericEmitter/index.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2ProceduralBuffer } from "../../../core/Tr2ProceduralBuffer.js";
+import { SharedGeometryBuffer } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+
+/**
+ * Carbon GetEveStretch2Quads (EveStretch2.cpp:51-72): MAX_QUAD_COUNT quads of
+ * four vertices, each (quadIndex, cornerIndex) as two floats, in the shared
+ * geometry buffer. The shader places every corner from these and the
+ * per-object source/destination.
+ */
+function GetEveStretch2Quads(renderContext)
+{
+  const count = 128;
+  const data = new Float32Array(count * 4 * 2);
+  for (let quad = 0; quad < count; quad++)
+  {
+    for (let corner = 0; corner < 4; corner++)
+    {
+      data[(quad * 4 + corner) * 2] = quad;
+      data[(quad * 4 + corner) * 2 + 1] = corner;
+    }
+  }
+  return SharedGeometryBuffer(renderContext).Allocate(8, count * 4, data, renderContext);
+}
+
+/** Carbon OnPrepareResources' declaration (cpp:380-383): one FLOAT32_2 POSITION. */
+const STRETCH_VERTEX_DECL = [ { usage: Tr2VertexUsageCode.POSITION, usageIndex: 0, type: "FLOAT32_2", offset: 0 } ];
 
 
 /**
@@ -78,33 +107,76 @@ export class EveStretch2 extends IEveFiringEffectElement
   #intensity = 1;
   #effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
 
+  /** m_vb (Tr2ProceduralBuffer "EveStretch2VB"): the shared quad vertices (cpp:90). */
+  _vb = new Tr2ProceduralBuffer("EveStretch2VB", GetEveStretch2Quads);
+
+  /** m_vertexDeclHandle (cpp:84), set by OnPrepareResources. */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+
   /**
-   * Post-hydration hook; validates the authored quad count. Carbon also builds
-   * the procedural GPU buffers here, which is engine work in this port.
+   * A Tr2DeviceResource (EveStretch2.h:28): registered with the device so a
+   * stretch built before the device is prepared once it exists.
+   */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Carbon Initialize (cpp:96-100): prepares the device half. Adapted: Carbon
+   * asserts an authored quadCount over 128 (cpp:105); this throws.
    */
   @carbon.method @impl.adapted
-  @impl.reason("GPU buffer preparation belongs to runtime-engine; initialization validates the graph-owned quad count.")
   Initialize()
   {
     if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
     {
       throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
     }
+    this.PrepareResources();
     return true;
   }
 
-  /**
-   * Re-validates quadCount against the 128-quad procedural geometry limit after
-   * a model update and throws a RangeError when it is exceeded.
-   */
+  /** Carbon OnModified (cpp:102-111): a new quad count re-prepares; over 128 throws (Carbon asserts). */
   @carbon.method @impl.adapted
-  @impl.reason("Carbon rebuilds procedural GPU buffers here; the runtime Trinity layer only enforces the authored 128-quad contract.")
   OnModified(propertyName)
   {
-    if (propertyName === "quadCount" && this.quadCount > EveStretch2.MAX_QUAD_COUNT)
+    if (propertyName === "quadCount")
     {
-      throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
+      if (this.quadCount > EveStretch2.MAX_QUAD_COUNT)
+      {
+        throw new RangeError(`EveStretch2.quadCount must be <= ${EveStretch2.MAX_QUAD_COUNT}`);
+      }
+      this.ReleaseResources();
+      this.PrepareResources();
     }
+    return true;
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources: prepare when a device allows it. */
+  @carbon.method @impl.implemented
+  PrepareResources()
+  {
+    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+  }
+
+  /** Carbon ReleaseResources (cpp:371-374): forgets the declaration. */
+  @carbon.method @impl.implemented
+  ReleaseResources(_storage = null)
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+  }
+
+  /**
+   * Carbon OnPrepareResources (cpp:376-386): the FLOAT32_2 POSITION
+   * declaration, and the quad-list index buffer reserved for quadCount.
+   */
+  @carbon.method @impl.implemented
+  OnPrepareResources()
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(STRETCH_VERTEX_DECL);
+    Tr2Renderer.ReserveQuadListIndexBuffer(this.quadCount);
     return true;
   }
 
@@ -320,28 +392,30 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /**
-   * Emits Carbon's additive procedural-quad batch. Trinity records the shared
-   * vertex/index sources and draw arguments; the selected engine realizes the
-   * buffers and vertex declaration.
+   * Carbon GetBatches (cpp:339-360): one additive batch over the shared quad
+   * vertices and the renderer's quad-list index buffer, 6 indices a quad,
+   * based at the allocation's first vertex.
    * @returns {Boolean} whether the batch was committed
    */
-  @carbon.method @impl.adapted
-  @impl.reason("GPU-free: records Carbon's procedural stretch vertices and shared quad indices and the upload is not ported yet.")
+  @carbon.method @impl.implemented
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !this.quadCount)
+    const vb = this._vb.GetSharedResource();
+    if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE || !this.effect || !vb?.IsValid())
     {
       return false;
     }
 
-    const batch = new Tr2RenderBatch();
-    batch.SetMaterial(this.effect);
-    // Carbon binds the renderer's quad-list index buffer (cpp:343-347).
     const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
     if (!indexBuffer.IsValid()) return false;
-    batch.SetGeometry(0, EveStretch2.VertexSource, 8, indexBuffer.GetBuffer(), indexBuffer.GetStride());
+
+    const batch = new Tr2RenderBatch();
+    batch.SetMaterial(this.effect);
     batch.SetPerObjectData(perObjectData);
-    batch.SetDrawIndexedInstanced(6 * this.quadCount, 1, indexBuffer.GetStartIndex(), 0, 0);
+    batch.SetVertexDeclaration(this._vertexDeclHandle);
+    batch.SetStreamSource(0, vb.GetBuffer(), vb.GetStride());
+    batch.SetIndices(indexBuffer.GetBuffer(), indexBuffer.GetStride());
+    batch.SetDrawIndexedInstanced(6 * this.quadCount, 1, indexBuffer.GetStartIndex(), vb.GetOffset() / vb.GetStride(), 0);
     return batches.Commit(batch);
   }
 
@@ -429,7 +503,6 @@ export class EveStretch2 extends IEveFiringEffectElement
   }
 
   /** Deferred descriptor for Carbon's MAX_QUAD_COUNT float2 vertex buffer. */
-  static VertexSource = Object.freeze({ eveStretch2Buffer: "quad-vertices", maxQuadCount: EveStretch2.MAX_QUAD_COUNT });
 
   static #sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 
