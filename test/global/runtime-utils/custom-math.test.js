@@ -179,11 +179,11 @@ test("matrix helpers preserve view, scale, projection, arc, and reflection invar
         outTranslation = vec3.create(),
         outScale = vec3.create();
 
-    mat4.decompose(reflected, outRotation, outTranslation, outScale);
+    mat4.decomposeSigned(reflected, outRotation, outTranslation, outScale);
     const recomposed = mat4.fromRotationTranslationScale(mat4.create(), outRotation, outTranslation, outScale);
     almostEqualArray(recomposed, reflected);
 
-    mat4.decompose(
+    mat4.decomposeSigned(
         mat4.fromRotationTranslationScale(mat4.create(), rotation, [ 1, 2, 3 ], [ 0, 2, 3 ]),
         outRotation,
         outTranslation,
@@ -199,7 +199,7 @@ test("matrix helpers preserve view, scale, projection, arc, and reflection invar
             [ 1, 2, 3 ],
             oneAxisScale
         );
-        mat4.decompose(singular, outRotation, outTranslation, outScale);
+        mat4.decomposeSigned(singular, outRotation, outTranslation, outScale);
         almostEqualArray(
             mat4.fromRotationTranslationScale(mat4.create(), outRotation, outTranslation, outScale),
             singular

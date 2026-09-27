@@ -98,7 +98,7 @@ export class EveChildModifierCameraOrientedRotationConstrained extends IEveChild
     const { rotation, translation, scale, p, rotMatrix, result } = this.constructor.scratch;
 
     // Carbon: Decompose(scale, rotation, translation, transform).
-    mat4.decompose(transform, rotation, translation, scale);
+    mat4.decomposeCarbon(transform, rotation, translation, scale);
     mat4.fromQuat(rotMatrix, rotation);
 
     const camPos = renderContext.GetViewPosition();

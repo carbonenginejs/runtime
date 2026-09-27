@@ -19,7 +19,7 @@ const mat4 = { ...glMat4 };
 
 // XMMatrixDecompose scratch is private to synchronous calls in this module.
 // Reflections negate the largest scale axis (X, then Y, then Z on ties),
-// whereas mat4.decompose always negates X. Keep these policies separate.
+// whereas mat4.decomposeSigned always negates X. Keep these policies separate.
 const DIRECTX_DECOMPOSE_BASIS = [new Float32Array(3), new Float32Array(3), new Float32Array(3)];
 const DIRECTX_DECOMPOSE_CANONICAL = [new Float32Array([1, 0, 0]), new Float32Array([0, 1, 0]), new Float32Array([0, 0, 1])];
 const DIRECTX_DECOMPOSE_CROSS = new Float32Array(3);
@@ -58,7 +58,7 @@ export { mat4 };
  *
  * A zero-length column has no direction in it, so a matrix with one is reported
  * as unrotated rather than as NaN - the stock version divides by zero there.
- * `mat4.decompose` repairs such a matrix before it gets here.
+ * `mat4.decomposeSigned` repairs such a matrix before it gets here.
  *
  * @param {quat} out
  * @param {mat4} m
@@ -96,6 +96,15 @@ mat4.getRotation = function (out, m)
 };
 
 /**
+ * Decomposes into a signed scale that recomposes a mirrored matrix, repairing a
+ * degenerate basis instead of giving up on the rotation.
+ *
+ * NOT Carbon: this is CarbonEngineJS's own policy, for callers that must
+ * rebuild the exact matrix (glTF node matrices, SKINR placements). A reflected
+ * basis always negates X; zero-length axes are rebuilt from the others. Ports
+ * of Carbon's `Decompose` use `mat4.decomposeCarbon`, ports of
+ * `XMMatrixDecompose` use `mat4.decomposeDirectX`. gl-matrix's own
+ * `mat4.decompose(outR, outT, outS, m)` is left untouched.
  *
  * @param {mat4} m
  * @param {quat} rotation
@@ -103,7 +112,7 @@ mat4.getRotation = function (out, m)
  * @param {vec3} scaling
  * @returns {mat4} m
  */
-mat4.decompose = function (m, rotation, translation, scaling)
+mat4.decomposeSigned = function (m, rotation, translation, scaling)
 {
     let
         scaleX = Math.hypot(m[0], m[1], m[2]),
@@ -204,8 +213,98 @@ mat4.decompose = function (m, rotation, translation, scaling)
 };
 
 /**
+ * Carbon's `Decompose`: unsigned scale lengths, translation, and a rotation read
+ * from the scale-normalized basis. A reflected basis keeps positive scale, so
+ * its rotation is read from an improper matrix exactly as Carbon reads it; any
+ * zero scale gives the identity rotation without repair.
+ *
+ * Carbon: Decompose (math/src/Matrix.cpp:225-268, revision 540edbfb)
+ * Carbon: RotationQuaternion(const Matrix&) (math/src/Quaternion.cpp:7-56)
+ * Carbon's `m.m[r][c]` is `m[r * 4 + c]` in the shared byte layout, so no
+ * transpose or operand swap is involved.
+ *
+ * @param {mat4} m
+ * @param {quat} rotation
+ * @param {vec3} translation
+ * @param {vec3} scaling
+ * @returns {mat4} m
+ */
+mat4.decomposeCarbon = function (m, rotation, translation, scaling)
+{
+    const scaleX = Math.hypot(m[0], m[1], m[2]);
+    const scaleY = Math.hypot(m[4], m[5], m[6]);
+    const scaleZ = Math.hypot(m[8], m[9], m[10]);
+    scaling[0] = scaleX;
+    scaling[1] = scaleY;
+    scaling[2] = scaleZ;
+    translation[0] = m[12];
+    translation[1] = m[13];
+    translation[2] = m[14];
+    if (scaleX === 0 || scaleY === 0 || scaleZ === 0)
+    {
+        rotation[0] = 0;
+        rotation[1] = 0;
+        rotation[2] = 0;
+        rotation[3] = 1;
+        return m;
+    }
+    carbonRotationQuaternion(rotation,
+        m[0] / scaleX, m[1] / scaleX, m[2] / scaleX,
+        m[4] / scaleY, m[5] / scaleY, m[6] / scaleY,
+        m[8] / scaleZ, m[9] / scaleZ, m[10] / scaleZ);
+    return m;
+};
+
+/**
+ * Carbon's `RotationQuaternion(const Matrix&)` on a 3x3 basis given row by row
+ * (`mRC` is Carbon's `m.m[R][C]`). Carbon's own branch order and trace test are
+ * kept; the result is not renormalized, as in Carbon.
+ */
+function carbonRotationQuaternion(out, m00, m01, m02, m10, m11, m12, m20, m21, m22)
+{
+    const trace = m00 + m11 + m22 + 1;
+    if (trace > 1)
+    {
+        const root = Math.sqrt(trace);
+        out[0] = (m12 - m21) / (2 * root);
+        out[1] = (m20 - m02) / (2 * root);
+        out[2] = (m01 - m10) / (2 * root);
+        out[3] = root / 2;
+        return out;
+    }
+    let maxi = 0;
+    if (m11 > m00) maxi = 1;
+    if (m22 > (maxi === 1 ? m11 : m00)) maxi = 2;
+    if (maxi === 0)
+    {
+        const s = 2 * Math.sqrt(1 + m00 - m11 - m22);
+        out[0] = 0.25 * s;
+        out[1] = (m01 + m10) / s;
+        out[2] = (m02 + m20) / s;
+        out[3] = (m12 - m21) / s;
+    }
+    else if (maxi === 1)
+    {
+        const s = 2 * Math.sqrt(1 + m11 - m00 - m22);
+        out[0] = (m01 + m10) / s;
+        out[1] = 0.25 * s;
+        out[2] = (m12 + m21) / s;
+        out[3] = (m20 - m02) / s;
+    }
+    else
+    {
+        const s = 2 * Math.sqrt(1 + m22 - m00 - m11);
+        out[0] = (m02 + m20) / s;
+        out[1] = (m12 + m21) / s;
+        out[2] = 0.25 * s;
+        out[3] = (m01 - m10) / s;
+    }
+    return out;
+}
+
+/**
  * Decomposes with DirectXMath's signed-scale and degenerate-basis policy.
- * Unlike mat4.decompose's negative-X convention, reflected bases negate their
+ * Unlike mat4.decomposeSigned's negative-X convention, reflected bases negate their
  * largest scale axis and its basis vector. Axes shorter than 0.0001 are repaired
  * before the handedness test. This is XMMatrixDecompose, not Carbon's separate
  * Decompose function in math/src/Matrix.cpp, which keeps positive scale lengths.
@@ -1033,7 +1132,7 @@ mat4.getSkinr = function (out, m)
     const local = new Array(3).fill(0);
     const inverse = new Array(4).fill(0);
 
-    mat4.decompose(m, rotation, translation, scaling);
+    mat4.decomposeSigned(m, rotation, translation, scaling);
     normalizeQuat(rotation, rotation);
 
     // (the offsets are read below, once the orbit they belong to is known)
@@ -1066,7 +1165,7 @@ mat4.getSkinr = function (out, m)
     out.offsetV = local[2];
     out.depth = -local[0];
 
-    // Its magnitude. `decompose` signs X negative for a reflected frame, which a
+    // Its magnitude. `decomposeSigned` signs X negative for a reflected frame, which a
     // placement never is, so a negative here is a malformed matrix rather than a
     // case to carry - and a caller still gets the scale it asked for.
     out.scale = Math.abs(scaling[0]);
@@ -1082,7 +1181,9 @@ export const {
     copy,
     create,
     decompose,
+    decomposeCarbon,
     decomposeDirectX,
+    decomposeSigned,
     determinant,
     equals,
     exactEquals,

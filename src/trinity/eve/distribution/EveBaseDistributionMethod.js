@@ -572,7 +572,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     const placementMatrix = this.#getInitialPlacementMatrix(placement);
     // Carbon (row-vector): m = m * boneMatrix - placement first, bone last.
     mat4.multiply(placementMatrix, boneMatrix, placementMatrix);
-    mat4.decompose(placementMatrix, placement.initialRotation, placement.initialTranslation, placement.initialScale);
+    mat4.decomposeCarbon(placementMatrix, placement.initialRotation, placement.initialTranslation, placement.initialScale);
   }
 
   /**

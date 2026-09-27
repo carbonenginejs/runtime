@@ -674,7 +674,7 @@ function decomposeMatrix(matrix)
         position = new Float32Array(3),
         scale = new Float32Array(3),
         recomposed = mat4.create();
-    mat4.decompose(source, orientation, position, scale);
+    mat4.decomposeSigned(source, orientation, position, scale);
     mat4.fromRotationTranslationScale(recomposed, orientation, position, scale);
 
     const tolerance = 1e-5;

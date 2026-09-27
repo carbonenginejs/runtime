@@ -101,7 +101,7 @@ test("the existing decompose keeps its distinct negative-X policy", () =>
 {
     const matrix = mat4.fromScaling(mat4.create(), [-2, 3, 4]);
     const rotation = quat.create(), translation = new Float32Array(3), scale = new Float32Array(3);
-    assert.equal(mat4.decompose(matrix, rotation, translation, scale), matrix);
+    assert.equal(mat4.decomposeSigned(matrix, rotation, translation, scale), matrix);
     close(scale, [-2, 3, 4]);
     assert.equal(mat4.decomposeDirectX(matrix, rotation, translation, scale), true);
     close(scale, [2, 3, -4]);
