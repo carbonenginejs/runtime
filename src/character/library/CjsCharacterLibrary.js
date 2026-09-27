@@ -3,6 +3,7 @@ import { CjsSchema, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsCharacterLibraryDocuments } from "./CjsCharacterLibraryDocuments.js";
 import { CjsCharacterTextureMetadata } from "../model/catalog/CjsCharacterTextureMetadata.js";
+import { CjsCharacterUnresolvedRelationship } from "./CjsCharacterUnresolvedRelationship.js";
 
 /**
  * Hydrated character library whose public fields have the same shape as its JSON values.
@@ -24,13 +25,147 @@ export class CjsCharacterLibrary extends CjsModel
 
     #resourceManager = null;
 
+    /**
+     * The source relationships between documents: owning document, path to
+     * the member (`*` spans an array), target document. The builder turns
+     * each into a `{ _ref }`; a schema-10 library is migrated along them.
+     */
+    static relationships = [
+        [ "ancestries", [ "bloodlineID" ], "bloodlines" ],
+        [ "bloodlines", [ "raceID" ], "races" ],
+        [ "characterResources", [ "clothingAlsoCoversCategory" ], "characterModifierLocations" ],
+        [ "characterResources", [ "clothingAlsoCoversCategory2" ], "characterModifierLocations" ],
+        [ "characterResources", [ "clothingRemovesCategory" ], "characterModifierLocations" ],
+        [ "characterResources", [ "clothingRemovesCategory2" ], "characterModifierLocations" ],
+        [ "paperdolls", [ "modifiers", "*", "modifierLocationID" ], "characterModifierLocations" ],
+        [ "paperdolls", [ "modifiers", "*", "paperdollResourceID" ], "characterResources" ],
+        [ "paperdolls", [ "colorSelections", "*", "colorID" ], "characterColorLocations" ],
+        [ "paperdolls", [ "colorSelections", "*", "colorNameA" ], "characterColorNames" ],
+        [ "paperdolls", [ "colorSelections", "*", "colorNameBC" ], "characterColorNames" ],
+        [ "paperdolls", [ "sculptWeights", "*", "sculptLocationID" ], "characterSculptingLocations" ],
+        [ "paperdolls", [ "backgroundID" ], "characterPortraitResources" ],
+        [ "characterPartTypes", [ "partSource" ], "characterPartSources" ],
+        [ "characterPartTypes", [ "partSources", "*" ], "characterPartSources" ],
+        [ "characterPartSources", [ "metadata" ], "characterPartMetadata" ],
+        [ "characterPartSources", [ "versions", "*", "metadata" ], "characterPartMetadata" ],
+        [ "characterPartMetadata", [ "dependencies", "*", "partSource" ], "characterPartSources" ],
+        [ "characterPartMetadata", [ "dependencies", "*", "modifierLocation" ], "characterModifierLocations" ],
+        [ "characterPartMetadata", [ "occlusions", "*", "partSource" ], "characterPartSources" ],
+        [ "characterPartMetadata", [ "occlusions", "*", "modifierLocation" ], "characterModifierLocations" ]
+    ];
+
+    /**
+     * Visits every relationship member along `path` in one source record:
+     * `visit(owner, key, label)`, where `label` names the member from the
+     * record (`paperdolls.30.modifiers[1].paperdollResourceID`).
+     */
+    static visitRelationshipField(value, path, index, label, visit)
+    {
+        if (index === path.length - 1)
+        {
+            if (!IsPlainObject(value))
+            {
+                throw new TypeError(`${label} must be an object`);
+            }
+
+            const field = path[index];
+
+            if (Object.hasOwn(value, field))
+            {
+                visit(value, field, `${label}.${field}`);
+            }
+
+            return;
+        }
+
+        if (!IsPlainObject(value))
+        {
+            throw new TypeError(`${label} must be an object`);
+        }
+
+        const field = path[index];
+
+        if (!Object.hasOwn(value, field) || value[field] === null)
+        {
+            return;
+        }
+
+        if (path[index + 1] === "*")
+        {
+            if (!Array.isArray(value[field]))
+            {
+                throw new TypeError(`${label}.${field} must be an array`);
+            }
+
+            if (index + 2 === path.length)
+            {
+                for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++)
+                {
+                    visit(
+                        value[field],
+                        itemIndex,
+                        `${label}.${field}[${itemIndex}]`
+                    );
+                }
+
+                return;
+            }
+
+            for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++)
+            {
+                CjsCharacterLibrary.visitRelationshipField(
+                    value[field][itemIndex],
+                    path,
+                    index + 2,
+                    `${label}.${field}[${itemIndex}]`,
+                    visit
+                );
+            }
+
+            return;
+        }
+
+        CjsCharacterLibrary.visitRelationshipField(value[field], path, index + 1, `${label}.${field}`, visit);
+    }
+
+    /**
+     * Sets each relationship that holds a scalar instead of a `{ _ref }` to
+     * null in place, and returns one unresolved-relationship record per member
+     * - a schema-10 library kept a dangling identity in the member itself.
+     */
+    static nullDanglingRelationships(documents)
+    {
+        const unresolved = [];
+        for (const [ sourceName, path, targetName ] of CjsCharacterLibrary.relationships)
+        {
+            for (const record of documents[sourceName] ?? [])
+            {
+                const prefix = `${sourceName}.${record.recordID}.`;
+                CjsCharacterLibrary.visitRelationshipField(record, path, 0, `${sourceName}.${record.recordID}`, (owner, key, label) =>
+                {
+                    const value = owner[key];
+                    if (value === null || value === undefined || typeof value === "object") return;
+                    unresolved.push({
+                        document: sourceName,
+                        recordID: String(record.recordID),
+                        field: label.slice(prefix.length),
+                        targetDocument: targetName,
+                        targetID: String(value)
+                    });
+                    owner[key] = null;
+                });
+            }
+        }
+        return unresolved;
+    }
+
     @edit.readwrite
     @type.string
     schema = "carbonenginejs.characterLibrary";
 
     @edit.readwrite
     @type.uint32
-    schemaVersion = 10;
+    schemaVersion = 11;
 
     @edit.readwrite
     @type.string
@@ -55,6 +190,14 @@ export class CjsCharacterLibrary extends CjsModel
     @edit.readwrite
     @type.model("CjsCharacterLibraryDocuments")
     documents = new CjsCharacterLibraryDocuments();
+
+    /**
+     * Source relationships whose target record does not exist. Each owning
+     * member holds null; the builder records here which identity it named.
+     */
+    @edit.readwrite
+    @type.list("CjsCharacterUnresolvedRelationship")
+    unresolvedRelationships = [];
 
     /** Hydrates a complete library after applying the explicit legacy migration. */
     static from(values = {}, options = {})
@@ -83,10 +226,10 @@ export class CjsCharacterLibrary extends CjsModel
         RequirePlainObject(value, "Character library");
 
         if (value.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9, 10 ].includes(value.schemaVersion))
+            || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion))
         {
             throw new TypeError(
-                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, or 10"
+                "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, or 11"
             );
         }
 
@@ -99,18 +242,29 @@ export class CjsCharacterLibrary extends CjsModel
             );
         }
 
-        const normalized = value.schemaVersion < 10
-            ? {
-                ...value,
-                schemaVersion: 10,
-                documents: value.schemaVersion < 9
-                    ? {
-                        ...value.documents,
-                        characterTextureMetadata: []
-                    }
-                    : value.documents
-            }
-            : value;
+        let normalized = value;
+        if (value.schemaVersion < 9)
+        {
+            normalized = {
+                ...normalized,
+                documents: { ...normalized.documents, characterTextureMetadata: [] }
+            };
+        }
+        if (value.schemaVersion < 11)
+        {
+            // Schema 10 and older kept a dangling identity inside its typed
+            // member; 11 holds null there and lists it. Migrated on a copy.
+            const documents = structuredClone(normalized.documents);
+            normalized = {
+                ...normalized,
+                schemaVersion: 11,
+                documents,
+                unresolvedRelationships: [
+                    ...(normalized.unresolvedRelationships ?? []),
+                    ...CjsCharacterLibrary.nullDanglingRelationships(documents)
+                ]
+            };
+        }
 
         for (const name of CjsCharacterLibraryDocuments.listDocumentNames())
         {
@@ -263,6 +417,22 @@ export class CjsCharacterLibrary extends CjsModel
     Has(documentName, recordID)
     {
         return this.Get(documentName, recordID) !== null;
+    }
+
+    /**
+     * The unresolved relationship recorded for one member, or null: which
+     * identity `document` record `recordID` named at `field`
+     * (`modifiers[1].paperdollResourceID`) that its target document lacks.
+     */
+    GetUnresolvedRelationship(documentName, recordID, field)
+    {
+        const document = String(documentName);
+        const identity = String(recordID);
+        for (const entry of this.unresolvedRelationships)
+        {
+            if (entry.document === document && entry.recordID === identity && entry.field === field) return entry;
+        }
+        return null;
     }
 
     /** Returns one hydrated source record by its named recordID field. */
@@ -586,6 +756,13 @@ function RequirePlainObject(value, label)
     {
         throw new TypeError(`${label} must be a plain object`);
     }
+}
+
+function IsPlainObject(value)
+{
+    if (value === null || typeof value !== "object" || Array.isArray(value)) return false;
+    const prototype = Object.getPrototypeOf(value);
+    return prototype === Object.prototype || prototype === null;
 }
 
 function IsCompleteLibraryValue(value)

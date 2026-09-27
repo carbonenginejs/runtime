@@ -86,6 +86,7 @@ test("diagnoses dangling source relationships without fabricating selections or 
         "MODIFIER_LOCATION_UNRESOLVED",
         "CHARACTER_RESOURCE_UNRESOLVED"
     ]);
+    assert.match(plan.diagnostics[1].message, /paperdolls 30 field modifiers\[1\]\.paperdollResourceID/u);
 });
 
 test("requires strict version identity and preserves ambiguous candidate inventories", () =>

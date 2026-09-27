@@ -21,6 +21,7 @@ import {
     CjsCharacterTextureMetadata
 } from "../../../npm/dist/character/index.js";
 import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
+import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
 import {
     CjsFsd64ReaderSetCharacterStaticData,
 } from "../../../npm/dist/resource/formats/fsd/64/readers/index.js";
@@ -125,8 +126,18 @@ function CreateEmptyMapContainer(schemaID)
     return bytes;
 }
 
-test("builds model-shaped character JSON with separate domain and graph identities", () =>
+test("builds model-shaped character JSON with separate domain and graph identities", (t) =>
 {
+    const warnings = [];
+    const sink = (_channel, _type, _userData, message) => warnings.push(message);
+    CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+    CcpLog.RegisterLogEcho(sink, CcpLog.LogType.LOGTYPE_WARN);
+    t.after(() =>
+    {
+        CcpLog.UnregisterLogEcho(sink);
+        CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+    });
+
     const documents = CreateDocuments();
     const value = CjsCharacterLibraryBuilder.build(documents, {
         sourceTarget: "example-target",
@@ -134,7 +145,14 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     });
 
     assert.equal(value.schema, "carbonenginejs.characterLibrary");
-    assert.equal(value.schemaVersion, 10);
+    assert.equal(value.schemaVersion, 11);
+    assert.deepEqual(value.unresolvedRelationships, [ {
+        document: "paperdolls",
+        recordID: "30",
+        field: "modifiers[1].paperdollResourceID",
+        targetDocument: "characterResources",
+        targetID: "404"
+    } ]);
     assert.equal(value.sourceTarget, "example-target");
     assert.ok(Array.isArray(value.documents.ancestries));
     assert.equal(value.documents.ancestries[0].recordID, "1");
@@ -148,11 +166,14 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     assert.equal(value.documents.races[0].recordID, "3");
     assert.equal(value.documents.races[1]._id, undefined);
     assert.equal(value.documents.characterResources[0].clothingRemovesCategory, null);
-    assert.equal(
-        value.documents.paperdolls[0].modifiers[1].paperdollResourceID,
-        "404",
-        "a dangling domain identity remains visible instead of becoming an invalid _ref"
+    // A dangling identity is a data fault: the typed member holds null, and
+    // the build reports the missing record (6d, 2026-09-29).
+    assert.equal(value.documents.paperdolls[0].modifiers[1].paperdollResourceID, null);
+    assert.ok(
+        warnings.some(message => message.includes("paperdolls 30 field modifiers[1].paperdollResourceID names characterResources 404")),
+        warnings.join("\n")
     );
+    assert.ok(warnings.some(message => /\d+ unresolved relationship/u.test(message)));
 
 });
 
@@ -182,7 +203,9 @@ test("from and SetValues hydrate the same character-library model shape", () =>
         assert.strictEqual(ancestry.bloodlineID, bloodline);
         assert.strictEqual(bloodline.raceID, race);
         assert.strictEqual(paperdoll.modifiers[0].paperdollResourceID, resource);
-        assert.equal(paperdoll.modifiers[1].paperdollResourceID, "404");
+        // A dangling identity: null in the member, recorded on the library.
+        assert.equal(paperdoll.modifiers[1].paperdollResourceID, null);
+        assert.equal(library.GetUnresolvedRelationship("paperdolls", 30, "modifiers[1].paperdollResourceID").targetID, "404");
         assert.equal(resource.typeID, "9001");
         assert.equal(library.sourceProvider, "synthetic");
         assert.equal(library.GetDocument("races"), library.documents.races);
@@ -194,7 +217,7 @@ test("from and SetValues hydrate the same character-library model shape", () =>
     assert.equal(typeof CjsCharacterLibrary.schema.getSchema, "function");
 });
 
-test("migrates complete schema-v8 values to the canonical schema-v10 shape", () =>
+test("migrates complete schema-v8 values to the canonical schema-v11 shape", () =>
 {
     const legacy = CjsCharacterLibraryBuilder.build(CreateDocuments());
     legacy.schemaVersion = 8;
@@ -204,12 +227,33 @@ test("migrates complete schema-v8 values to the canonical schema-v10 shape", () 
     const assigned = new CjsCharacterLibrary();
     assigned.SetValues(legacy);
 
-    assert.equal(from.schemaVersion, 10);
-    assert.equal(assigned.schemaVersion, 10);
+    assert.equal(from.schemaVersion, 11);
+    assert.equal(assigned.schemaVersion, 11);
     assert.deepEqual(from.documents.characterTextureMetadata, []);
     assert.deepEqual(assigned.GetValues({ refs: true }), from.GetValues({ refs: true }));
     assert.equal(legacy.schemaVersion, 8, "migration does not mutate caller values");
     assert.equal(Object.hasOwn(legacy.documents, "characterTextureMetadata"), false);
+});
+
+test("migrates a schema-v10 library's dangling identities out of their typed members", () =>
+{
+    // Schema 10 kept a dangling identity in the member itself (a prepared
+    // tools-core cache holds exactly this); 11 holds null and lists it.
+    const legacy = CjsCharacterLibraryBuilder.build(CreateDocuments());
+    legacy.schemaVersion = 10;
+    delete legacy.unresolvedRelationships;
+    legacy.documents.paperdolls[0].modifiers[1].paperdollResourceID = "404";
+
+    const library = CjsCharacterLibrary.from(legacy);
+
+    assert.equal(library.schemaVersion, 11);
+    assert.equal(library.Get("paperdolls", 30).modifiers[1].paperdollResourceID, null);
+    assert.deepEqual(
+        library.unresolvedRelationships.map(entry => [ entry.document, entry.recordID, entry.field, entry.targetDocument, entry.targetID ]),
+        [ [ "paperdolls", "30", "modifiers[1].paperdollResourceID", "characterResources", "404" ] ]
+    );
+    assert.equal(legacy.documents.paperdolls[0].modifiers[1].paperdollResourceID, "404", "migration does not mutate caller values");
+    assert.equal(legacy.schemaVersion, 10);
 });
 
 test("lists document names without exporting the complete library graph", () =>
@@ -839,7 +883,7 @@ test("combined character library installation is atomic", () =>
 
     assert.throws(
         () => manager.InstallLibrary({ schema: "wrong", schemaVersion: 7 }),
-        /schema version 7, 8, 9, or 10/u
+        /schema version 7, 8, 9, 10, or 11/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 
@@ -848,7 +892,7 @@ test("combined character library installation is atomic", () =>
     retired.schemaVersion = 5;
     assert.throws(
         () => manager.InstallLibrary(retired),
-        /schema version 7, 8, 9, or 10/u
+        /schema version 7, 8, 9, 10, or 11/u
     );
     assert.strictEqual(manager.GetLibrary(), installed);
 

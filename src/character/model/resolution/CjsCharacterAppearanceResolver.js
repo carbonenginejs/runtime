@@ -67,7 +67,7 @@ export class CjsCharacterAppearanceResolver
     {
         if (!library
             || library.schema !== "carbonenginejs.characterLibrary"
-            || ![ 7, 8, 9, 10 ].includes(library.schemaVersion)
+            || ![ 7, 8, 9, 10, 11 ].includes(library.schemaVersion)
             || typeof library.Get !== "function"
             || typeof library.GetDocument !== "function")
         {
@@ -258,7 +258,13 @@ function ResolveModifier(
         AddDiagnostic(
             plan,
             "CHARACTER_RESOURCE_UNRESOLVED",
-            `Selection ${JSON.stringify(selection.groupID)} has no resolved character resource.`,
+            DescribeUnresolved(
+                library,
+                "paperdolls",
+                paperdoll.recordID,
+                `modifiers[${modifierIndex}].paperdollResourceID`,
+                `Selection ${JSON.stringify(selection.groupID)} has no resolved character resource`
+            ),
             "warning",
             selectionOrigin
         );
@@ -340,6 +346,7 @@ function ResolveModifier(
         plan,
         version.metadata,
         partSource,
+        versionIndex,
         selectionOrigin
     );
     CollectUtilityShapes(
@@ -491,10 +498,29 @@ function DiagnoseCharacterRules(plan, resource, selection, origin)
     }
 }
 
-function DiagnosePartMetadata(library, plan, metadata, partSource, origin)
+function DiagnosePartMetadata(library, plan, metadata, partSource, versionIndex, origin)
 {
     if (metadata === null)
     {
+        // Null is "no metadata" unless the source named a record that does
+        // not exist (the library lists those).
+        const field = `versions[${versionIndex}].metadata`;
+        if (library.GetUnresolvedRelationship("characterPartSources", partSource.recordID, field) !== null)
+        {
+            AddDiagnostic(
+                plan,
+                "PART_METADATA_UNRESOLVED",
+                DescribeUnresolved(
+                    library,
+                    "characterPartSources",
+                    partSource.recordID,
+                    field,
+                    `Part source ${JSON.stringify(partSource.recordID)} has no exact effective metadata relationship`
+                ),
+                "warning",
+                origin
+            );
+        }
         return null;
     }
 
@@ -995,6 +1021,7 @@ function ResolvePartDependencies(
             plan,
             version.metadata,
             target,
+            versionIndex,
             relationOrigin
         );
         // Dependency metadata is retained evidence, not recursively active
@@ -1194,6 +1221,19 @@ function ResolveModifierOrderIdentity(groupID)
 function AddOrigin(plan, values)
 {
     return plan.CreateOrigin(values);
+}
+
+/**
+ * A diagnostic message naming the record and member, and the missing identity
+ * when the library recorded one.
+ */
+function DescribeUnresolved(library, documentName, recordID, field, subject)
+{
+    const entry = library.GetUnresolvedRelationship(documentName, recordID, field);
+    const where = `${documentName} ${recordID} field ${field}`;
+    return entry === null
+        ? `${subject}: ${where}.`
+        : `${subject}: ${where} names ${entry.targetDocument} ${entry.targetID}, which does not exist.`;
 }
 
 function AddDiagnostic(plan, code, message, severity, origin = null)

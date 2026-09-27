@@ -1,7 +1,7 @@
 /**
  * Runtime character: source documents and CPU appearance planning.
  *
- * Flow: decoded records -> `CjsCharacterLibraryBuilder` -> schema-v10
+ * Flow: decoded records -> `CjsCharacterLibraryBuilder` -> schema-v11
  * `CjsCharacterLibrary` -> `CjsCharacterAppearanceResolver` -> standalone
  * `CjsCharacterAppearancePlan` -> `CjsCharacterAppearanceConstruction` ->
  * injected appearance AL -> resource preparation, composition and scene
@@ -24,6 +24,7 @@ export { CjsCharacterLibraryBuilder } from "./library-builder/CjsCharacterLibrar
 export { CjsCharacterLibrary } from "./library/CjsCharacterLibrary.js";
 export { CjsCharacterLibraryDocuments } from "./library/CjsCharacterLibraryDocuments.js";
 export { CjsCharacterLibraryManager } from "./library/CjsCharacterLibraryManager.js";
+export { CjsCharacterUnresolvedRelationship } from "./library/CjsCharacterUnresolvedRelationship.js";
 export { CjsCharacter } from "./CjsCharacter.js";
 export { CjsCharacterAppearanceConstruction } from "./CjsCharacterAppearanceConstruction.js";
 export { CjsCharacterAppearanceManager } from "./CjsCharacterAppearanceManager.js";

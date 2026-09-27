@@ -349,17 +349,8 @@ export class DictReader extends IRootReaderBase
       return source !== current;
     }
 
-    // A scalar or list in an object member is kept as it is. Carbon's reader
-    // throws "Incorrect type for member" here, but the character library
-    // stores relationship IDs in model-typed members and diagnoses the dangling
-    // ones; that convention is open with the character lane (research page
-    // `blue-values-engine.md`).
-    if (!IsPlainObject(source))
-    {
-      const kept = normalizeCarbonValue(source, field.type);
-      instance[field.name] = kept;
-      return !IRootReaderBase.areEquivalent(current, kept);
-    }
+    // A scalar or list is not an object (IRootReader.cpp:229).
+    if (!IsPlainObject(source)) this._ThrowError("Incorrect type for member");
 
     const created = this.ReadIRootClass(field);
     instance[field.name] = created;

@@ -320,6 +320,16 @@ Installs, loads, and queries one combined hydrated character library.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsCharacterUnresolvedRelationship -->
+## `CjsCharacterUnresolvedRelationship`
+
+One source relationship whose target record does not exist: the owning member holds null, and this records which identity it named.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/library/CjsCharacterUnresolvedRelationship.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsCharacterArchetype -->
 ## `CjsCharacterArchetype`
 

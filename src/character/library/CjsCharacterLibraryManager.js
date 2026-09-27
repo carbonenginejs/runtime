@@ -199,6 +199,12 @@ export class CjsCharacterLibraryManager
         return this.#library.Get(documentName, recordID);
     }
 
+    /** Returns the installed library's unresolved relationship for one member, or null. */
+    GetUnresolvedRelationship(documentName, recordID, field)
+    {
+        return this.#library.GetUnresolvedRelationship(documentName, recordID, field);
+    }
+
     /** Lists the installed combined-library document collections. */
     ListDocuments()
     {
@@ -251,10 +257,10 @@ function PrepareLibrary(value)
     }
 
     if (value.schema !== "carbonenginejs.characterLibrary"
-        || ![ 7, 8, 9, 10 ].includes(value.schemaVersion))
+        || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion))
     {
         throw new TypeError(
-            "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, or 10"
+            "Character library must use carbonenginejs.characterLibrary schema version 7, 8, 9, 10, or 11"
         );
     }
 

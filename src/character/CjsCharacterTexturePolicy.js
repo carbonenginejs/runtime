@@ -717,7 +717,7 @@ function NormalizeOptional(value)
 function RequireLibrary(value)
 {
     if (!value || value.schema !== "carbonenginejs.characterLibrary"
-        || ![ 7, 8, 9, 10 ].includes(value.schemaVersion)
+        || ![ 7, 8, 9, 10, 11 ].includes(value.schemaVersion)
         || typeof value.Get !== "function")
     {
         throw new TypeError(

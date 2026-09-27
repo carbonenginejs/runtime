@@ -1,32 +1,9 @@
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { CjsCharacterLibrary } from "../library/CjsCharacterLibrary.js";
 import { CjsCharacterLibraryDocuments } from "../library/CjsCharacterLibraryDocuments.js";
 import { createCharacterResourceReader } from "./resourceSource.js";
 
 const DOCUMENT_NAMES = CjsCharacterLibraryDocuments.listDocumentNames();
-
-const RELATIONSHIPS = [
-    [ "ancestries", [ "bloodlineID" ], "bloodlines" ],
-    [ "bloodlines", [ "raceID" ], "races" ],
-    [ "characterResources", [ "clothingAlsoCoversCategory" ], "characterModifierLocations" ],
-    [ "characterResources", [ "clothingAlsoCoversCategory2" ], "characterModifierLocations" ],
-    [ "characterResources", [ "clothingRemovesCategory" ], "characterModifierLocations" ],
-    [ "characterResources", [ "clothingRemovesCategory2" ], "characterModifierLocations" ],
-    [ "paperdolls", [ "modifiers", "*", "modifierLocationID" ], "characterModifierLocations" ],
-    [ "paperdolls", [ "modifiers", "*", "paperdollResourceID" ], "characterResources" ],
-    [ "paperdolls", [ "colorSelections", "*", "colorID" ], "characterColorLocations" ],
-    [ "paperdolls", [ "colorSelections", "*", "colorNameA" ], "characterColorNames" ],
-    [ "paperdolls", [ "colorSelections", "*", "colorNameBC" ], "characterColorNames" ],
-    [ "paperdolls", [ "sculptWeights", "*", "sculptLocationID" ], "characterSculptingLocations" ],
-    [ "paperdolls", [ "backgroundID" ], "characterPortraitResources" ],
-    [ "characterPartTypes", [ "partSource" ], "characterPartSources" ],
-    [ "characterPartTypes", [ "partSources", "*" ], "characterPartSources" ],
-    [ "characterPartSources", [ "metadata" ], "characterPartMetadata" ],
-    [ "characterPartSources", [ "versions", "*", "metadata" ], "characterPartMetadata" ],
-    [ "characterPartMetadata", [ "dependencies", "*", "partSource" ], "characterPartSources" ],
-    [ "characterPartMetadata", [ "dependencies", "*", "modifierLocation" ], "characterModifierLocations" ],
-    [ "characterPartMetadata", [ "occlusions", "*", "partSource" ], "characterPartSources" ],
-    [ "characterPartMetadata", [ "occlusions", "*", "modifierLocation" ], "characterModifierLocations" ]
-];
 
 const METADATA_FIELDS = [
     "sourceTarget",
@@ -42,7 +19,7 @@ export class CjsCharacterLibraryBuilder
 
     static schema = "carbonenginejs.characterLibrary";
 
-    static schemaVersion = 10;
+    static schemaVersion = 11;
 
     /** Hydrates the deterministic values produced by build(). */
     static buildLibrary(documents = {}, options = {})
@@ -122,7 +99,8 @@ export class CjsCharacterLibraryBuilder
             documents: NormalizeDocuments(documents)
         };
 
-        ApplyRelationships(result.documents);
+        result.unresolvedRelationships = ApplyRelationships(result.documents);
+        ReportUnresolvedRelationships(result.unresolvedRelationships);
 
         for (const field of METADATA_FIELDS)
         {
@@ -278,10 +256,12 @@ function AddDocument(documents, value, data)
 
 /**
  * Replaces proven relationship fields with graph-local `{ _ref }` tokens.
- * A zero source identity becomes `null`; a positive identity whose target is
- * missing keeps its named value, so the dangling fact stays visible without
- * an unresolved `_ref` or placeholder. Existing `_id`s are reserved and only
- * referenced targets receive a new one. A character resource's `resPath`
+ * A zero source identity becomes `null`, and so does a positive identity
+ * whose target is missing: the member is typed as the target's class and
+ * holds only that or null. The dangling identity is a data fault: returned
+ * for the library's `unresolvedRelationships` and reported by the build.
+ * Existing
+ * `_id`s are reserved and only referenced targets receive a new one. A character resource's `resPath`
  * links to `partType` only when an exact part-type record exists; `resPath`
  * itself is unchanged.
  */
@@ -292,6 +272,7 @@ function ApplyRelationships(documents)
         new Map(documents[name].map(record => [ record.recordID, record ]))
     ]));
     const reservedGraphIDs = CollectGraphIDs(documents);
+    const unresolved = [];
     const relationshipGraphIDs = new Map();
     let nextGraphID = 1;
 
@@ -318,11 +299,11 @@ function ApplyRelationships(documents)
         return { _ref: graphID };
     };
 
-    for (const [ sourceName, path, targetName ] of RELATIONSHIPS)
+    for (const [ sourceName, path, targetName ] of CjsCharacterLibrary.relationships)
     {
         for (const source of documents[sourceName])
         {
-            VisitRelationshipField(
+            CjsCharacterLibrary.visitRelationshipField(
                 source,
                 path,
                 0,
@@ -346,7 +327,14 @@ function ApplyRelationships(documents)
 
                     if (!target)
                     {
-                        owner[field] = targetID;
+                        unresolved.push({
+                            document: sourceName,
+                            recordID: source.recordID,
+                            field: label.slice(`${sourceName}.${source.recordID}.`.length),
+                            targetDocument: targetName,
+                            targetID
+                        });
+                        owner[field] = null;
                         return;
                     }
 
@@ -385,75 +373,32 @@ function ApplyRelationships(documents)
             resource.partType = CreateReference("characterPartTypes", targetID, target);
         }
     }
+
+    return unresolved;
 }
 
-function VisitRelationshipField(value, path, index, label, visit)
+/**
+ * Reports each relationship whose target record is missing, as a warning on
+ * the character channel, then the count. The source data is at fault; the
+ * library holds `null` in each member.
+ */
+function ReportUnresolvedRelationships(unresolved)
 {
-    if (index === path.length - 1)
+    if (!unresolved.length) return;
+    const channel = CcpLog.GetModuleChannel("character");
+    for (const entry of unresolved)
     {
-        if (!IsPlainObject(value))
-        {
-            throw new TypeError(`${label} must be an object`);
-        }
-
-        const field = path[index];
-
-        if (Object.hasOwn(value, field))
-        {
-            visit(value, field, `${label}.${field}`);
-        }
-
-        return;
+        CcpLog.CCP_LOGWARN_CH(
+            channel,
+            "Character library %s %s field %s names %s %s, which does not exist",
+            entry.document,
+            entry.recordID,
+            entry.field,
+            entry.targetDocument,
+            entry.targetID
+        );
     }
-
-    if (!IsPlainObject(value))
-    {
-        throw new TypeError(`${label} must be an object`);
-    }
-
-    const field = path[index];
-
-    if (!Object.hasOwn(value, field) || value[field] === null)
-    {
-        return;
-    }
-
-    if (path[index + 1] === "*")
-    {
-        if (!Array.isArray(value[field]))
-        {
-            throw new TypeError(`${label}.${field} must be an array`);
-        }
-
-        if (index + 2 === path.length)
-        {
-            for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++)
-            {
-                visit(
-                    value[field],
-                    itemIndex,
-                    `${label}.${field}[${itemIndex}]`
-                );
-            }
-
-            return;
-        }
-
-        for (let itemIndex = 0; itemIndex < value[field].length; itemIndex++)
-        {
-            VisitRelationshipField(
-                value[field][itemIndex],
-                path,
-                index + 2,
-                `${label}.${field}[${itemIndex}]`,
-                visit
-            );
-        }
-
-        return;
-    }
-
-    VisitRelationshipField(value[field], path, index + 1, `${label}.${field}`, visit);
+    CcpLog.CCP_LOGWARN_CH(channel, "Character library: %d unresolved relationship(s)", unresolved.length);
 }
 
 function NormalizeIdentity(value, label)
