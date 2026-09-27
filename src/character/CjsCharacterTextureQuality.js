@@ -8,19 +8,19 @@
  */
 export class CjsCharacterTextureQuality
 {
-    static levels = Object.freeze([
+    static levels = [
         "4k",
         "standard",
         "512",
         "256"
-    ]);
+    ];
 
-    static #extensionOrder = Object.freeze({
-        "4k": Object.freeze([ "png", "dds" ]),
-        standard: Object.freeze([ "dds", "png" ]),
-        "512": Object.freeze([ "png", "dds" ]),
-        "256": Object.freeze([ "dds", "png" ])
-    });
+    static #extensionOrder = {
+        "4k": [ "png", "dds" ],
+        standard: [ "dds", "png" ],
+        "512": [ "png", "dds" ],
+        "256": [ "dds", "png" ]
+    };
 
     /** Normalizes one caller-supplied quality tier. */
     static normalize(value)

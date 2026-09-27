@@ -410,7 +410,7 @@ export class CjsCharacterAppearanceManager
     }
 }
 
-const CONSTRUCTION_DOMAIN_NAMES = Object.freeze([
+const CONSTRUCTION_DOMAIN_NAMES = [
     "foundation",
     "geometry",
     "bodyComposition",
@@ -418,7 +418,7 @@ const CONSTRUCTION_DOMAIN_NAMES = Object.freeze([
     "privateComposition",
     "morphs",
     "coverage"
-]);
+];
 
 function NormalizeCapabilities(value)
 {

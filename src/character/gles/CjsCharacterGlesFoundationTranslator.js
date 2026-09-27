@@ -6,18 +6,18 @@ const DEFAULT_SHADER_PATH =
 const DEFAULT_NEUTRAL_NORMAL_PATH =
     "res:/graphics/shared_texture/global/normal_flat.dds";
 
-const HAND_PALETTE_COMPATIBILITY = Object.freeze({
+const HAND_PALETTE_COMPATIBILITY = {
     status: "policy",
     rule: "legacy-opengl-bone-capacity-mask-v1",
     shaderCapacity: 58,
     requiredBoneCount: 69,
-    bonePrefixes: Object.freeze([ "RightHand" ])
-});
+    bonePrefixes: [ "RightHand" ]
+};
 
-const BODY_DIFFUSE_FOUNDATIONS = Object.freeze({
+const BODY_DIFFUSE_FOUNDATIONS = {
     female: "res:/graphics/character/female/paperdoll/archetypes/ccshape/cd_female_body_d_4k.png",
     male: "res:/graphics/character/male/paperdoll/archetypes/ccshape/cd_male_body_d_4k.png"
-});
+};
 
 /**
  * Translates renderer-neutral foundation construction into the reviewed GLES

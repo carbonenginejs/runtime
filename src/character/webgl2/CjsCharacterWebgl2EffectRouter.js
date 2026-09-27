@@ -1,6 +1,6 @@
 const DX11_AVATAR_ROOT = "res:/graphics/effect.dx11/managed/interior/avatar/";
 
-const ROUTES = Object.freeze([
+const ROUTES = [
     {
         family: "linear",
         names: [ "skinnedavatarbrdflinear" ],
@@ -41,14 +41,14 @@ const ROUTES = Object.freeze([
             "HairSpecularFactors1", "HairSpecularFactors2", "TangentMapParameters"
         ]
     }
-]);
+];
 
-const TEXTURE_PARAMETERS = Object.freeze([
+const TEXTURE_PARAMETERS = [
     "DiffuseMap", "NormalMap", "SpecularMap", "TangentMap", "IrradianceMap",
     "ColorNdotLLookupMap", "ReflectionMap", "ClothingReflectionCube", "ShadowCubeMap0",
     "CutMaskMap", "FresnelLookupMap", "SpotlightShadow0", "SpotlightShadow1",
     "SpotlightShadow2", "SpotlightShadow3"
-]);
+];
 
 /**
  * Backend-only router from audited avatar effects to DX11 shader paths, which
