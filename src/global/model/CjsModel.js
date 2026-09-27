@@ -538,6 +538,8 @@ export class CjsModel extends CjsEventEmitter
      * @param {boolean} [options.refs] Tracks shared models: repeats export as
      *     `{ _ref }` and their first occurrence carries `_id`. Also guards
      *     against cyclic graphs.
+     * @param {boolean} [options.roundTrip] Exports only members an import
+     *     writes back (no READ-only ones), so the bag rebuilds the graph.
      * @returns {object} The supplied output object.
      * @throws {TypeError} If the source or output target is invalid.
      */
@@ -762,12 +764,20 @@ export class CjsModel extends CjsEventEmitter
         // referenced twice exports as two full copies and rebuilds as two
         // separate objects, silently. It was the caller's to pass until now,
         // and none of the three in `src` passed it.
-        return this.from(value.GetValues({ ...options, refs: true }), { ...options, refs: true });
+        // `typeTags` likewise: a member declared as a base or interface
+        // (ITriEffectTextureParameter) holding a concrete class rebuilds as the
+        // declared class without its `_type`. And `roundTrip`: only members the
+        // import reads back are exported; a READ-only member
+        // (EveImpactOverlay.damageOverlay) was written, skipped on the way in,
+        // and an anchor inside it left every later `_ref` dangling.
+        return this.from(value.GetValues({ ...options, refs: true, typeTags: true, roundTrip: true }), { ...options, refs: true });
     }
 
 }
 
 CjsSchema.define(CjsModel, { className: "CjsModel" });
+// GetValues is the writer; it must never ask a model for its own values.
+DictWriter.registerDelegate(CjsModel.prototype.GetValues);
 
 export const carbon = CjsSchema.carbon;
 export { CjsSchema };

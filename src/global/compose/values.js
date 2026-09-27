@@ -150,6 +150,10 @@ export function isWritableField(field)
  */
 export function isExportableField(field, options = {})
 {
+    // A round trip (clone) exports exactly what the import reads back: a
+    // READ-only member is otherwise written, skipped on the way in, and any
+    // anchor inside it leaves later `{ _ref }`s dangling.
+    if (options.roundTrip && !isWritableField(field)) return false;
     const edit = field?.edit;
     const persist = edit?.persist || edit?.persistOnly;
     return !options.persistOnly || !!persist;

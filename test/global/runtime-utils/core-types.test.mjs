@@ -411,6 +411,94 @@ test("from initializes owned children last-to-first before their parent", () => 
     assert.deepEqual(order, ["assigned-last", "assigned-first"]);
 });
 
+test("objects nested in a raw struct's records keep their identity through clone", () => {
+    // Tr2EffectPassParameters.stageInput: records holding the effect's texture
+    // parameters. The writer anchors the first sight inside a record; the
+    // reader must build and register it there, or later aliases dangle.
+    class NestedParam extends CjsModel {}
+    CjsSchema.defineField(NestedParam, "name", "type", { kind: "string" });
+    CjsSchema.defineField(NestedParam, "name", "edit", { read: true, write: true, persist: true });
+    CjsSchema.define(NestedParam, { className: "NestedParam" });
+
+    class NestedHolder extends CjsModel {}
+    CjsSchema.defineField(NestedHolder, "records", "type", { kind: "rawStruct", className: "NestedRecord" });
+    CjsSchema.defineField(NestedHolder, "params", "type", { kind: "list", itemType: "NestedParam" });
+    CjsSchema.define(NestedHolder, { className: "NestedHolder" });
+
+    const holder = new NestedHolder();
+    const a = NestedParam.from({ name: "a" });
+    const b = NestedParam.from({ name: "b" });
+    holder.records = [ { textures: [ { sourceValue: a } ] }, { textures: [ { sourceValue: b } ] } ];
+    holder.params = [ b, a ];
+
+    const clone = holder.Clone();
+    const [ ca, cb ] = [ clone.records[0].textures[0].sourceValue, clone.records[1].textures[0].sourceValue ];
+    assert.equal(ca instanceof NestedParam, true);
+    assert.equal(ca.name, "a");
+    assert.notEqual(ca, a);
+    assert.equal(clone.params[0], cb, "the list shares the record's object");
+    assert.equal(clone.params[1], ca);
+
+    // A forward alias inside a record fills in at the end of the read.
+    const forward = NestedHolder.from({
+        records: [ { textures: [ { sourceValue: { _ref: 7 } } ] } ],
+        params: [ { _type: "NestedParam", _id: 7, name: "late" } ]
+    });
+    assert.equal(forward.records[0].textures[0].sourceValue, forward.params[0]);
+});
+
+test("clone keeps a member's concrete class and ignores read-only members", () => {
+    // A member declared as a base holds a subclass: without its _type the clone
+    // rebuilt the base. A READ-only member is not persisted: an object first
+    // reached through it anchored there, and the reader, skipping the member,
+    // left the later { _ref } dangling (EveImpactOverlay.damageOverlay).
+    class BaseItem extends CjsModel {}
+    CjsSchema.defineField(BaseItem, "name", "type", { kind: "string" });
+    CjsSchema.defineField(BaseItem, "name", "edit", { read: true, write: true, persist: true });
+    CjsSchema.define(BaseItem, { className: "CloneBaseItem" });
+    class DerivedItem extends BaseItem {}
+    CjsSchema.defineField(DerivedItem, "extra", "type", { kind: "string" });
+    CjsSchema.defineField(DerivedItem, "extra", "edit", { read: true, write: true, persist: true });
+    CjsSchema.define(DerivedItem, { className: "CloneDerivedItem" });
+
+    class Owner extends CjsModel {}
+    CjsSchema.defineField(Owner, "view", "type", { kind: "objectRef", className: "CloneBaseItem" });
+    CjsSchema.defineField(Owner, "view", "edit", { read: true });
+    CjsSchema.defineField(Owner, "item", "type", { kind: "objectRef", className: "CloneBaseItem" });
+    CjsSchema.defineField(Owner, "item", "edit", { read: true, write: true, persist: true });
+    CjsSchema.define(Owner, { className: "CloneOwner" });
+
+    const owner = new Owner();
+    owner.item = DerivedItem.from({ name: "a", extra: "b" });
+    owner.view = owner.item;
+
+    const clone = owner.Clone();
+    assert.equal(clone.item instanceof DerivedItem, true);
+    assert.equal(clone.item.extra, "b");
+    assert.notEqual(clone.item, owner.item);
+});
+
+test("a field-less model exports and clones inside a graph", () => {
+    // Its GetValues is the writer itself; asking it for its own values must
+    // not recurse (EveChildModifierHalo overflowed the stack on clone).
+    class EmptyModel extends CjsModel {}
+    CjsSchema.define(EmptyModel, { className: "EmptyModel" });
+    class HolderModel extends CjsModel {}
+    CjsSchema.defineField(HolderModel, "items", "type", { kind: "list", itemType: "EmptyModel" });
+    CjsSchema.defineField(HolderModel, "items", "edit", { read: true, write: true, persist: true });
+    CjsSchema.define(HolderModel, { className: "HolderModel" });
+
+    const holder = new HolderModel();
+    holder.items = [ new EmptyModel(), new EmptyModel() ];
+    assert.deepEqual(new EmptyModel().GetValues(), {});
+    assert.deepEqual(holder.GetValues(), { items: [ {}, {} ] });
+
+    const clone = holder.Clone();
+    assert.equal(clone.items.length, 2);
+    assert.equal(clone.items[0] instanceof EmptyModel, true);
+    assert.notEqual(clone.items[0], holder.items[0]);
+});
+
 test("traversal children skip collections of values but keep interface-typed lists", () => {
     // A list of matrices or strings holds no model; walking it costs a visit
     // per item for nothing. A list typed by an interface nothing registers

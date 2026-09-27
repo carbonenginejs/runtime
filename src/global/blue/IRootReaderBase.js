@@ -118,6 +118,15 @@ export class IRootReaderBase
 
     const source = this.ReadValue();
 
+    // Objects nested inside a value (a raw struct's records): resolved in
+    // place and assigned as read, since normalizing would copy the records a
+    // pending `{ _ref }` still has to fill.
+    if (this.HasNestedObjects(source))
+    {
+      instance[field.name] = this.ReadNestedObjects(source);
+      return true;
+    }
+
     // FLOATARRAY: into the existing buffer, so anything holding it keeps
     // seeing live values.
     const inPlace = coerceCarbonMathInto(current, source, field.type) ?? coerceCarbonTypedArrayInto(current, source, field.type);
@@ -185,6 +194,18 @@ export class IRootReaderBase
   ReadValue()
   {
     throw new Error("IRootReaderBase.ReadValue is provided by a reader.");
+  }
+
+  /** Whether a value holds objects below its top level; a subclass that reads them says so. */
+  HasNestedObjects(_value)
+  {
+    return false;
+  }
+
+  /** Reads a value whose records hold objects; a subclass provides it. */
+  ReadNestedObjects(_value)
+  {
+    throw new Error("IRootReaderBase.ReadNestedObjects is provided by a reader.");
   }
 
   /** Reads an object pointer member (`HandlePropertyIRootPtr`); a subclass provides it. */

@@ -25,6 +25,8 @@ import { IRootWriter } from "./IRootWriter.js";
 import { BeObjectMetadata } from "./BlueObjectMetadata.js";
 import { BLUE_OBJECT_METADATA_KEY } from "./IBlueObjectMetadata.js";
 
+/** GetValues methods that ARE this writer (CjsModel's), never asked for values. */
+const DELEGATES = new WeakSet();
 
 /**
  * `DictWriter` - writes an object as a plain values bag.
@@ -39,6 +41,9 @@ export class DictWriter extends IRootWriter
 
   /** m_classEventMap: each object written, to the bag written for it. */
   _written = new Map();
+
+  /** The member names records interrupted, restored as each record ends. */
+  _recordNames = [];
 
   /** m_anchorNumber: the next `_id`. */
   _anchorNumber = 1;
@@ -111,6 +116,23 @@ export class DictWriter extends IRootWriter
     this._WriteObjectInto(instance, out, declaredClassName);
   }
 
+  /** Begins a plain record in the container being filled. */
+  WriteRecordBegin()
+  {
+    const record = {};
+    const savedName = this._pendingName;
+    this.WriteValue(record);
+    this._stack.push(record);
+    this._recordNames.push(savedName);
+  }
+
+  /** Ends the record being filled. */
+  WriteRecordEnd()
+  {
+    this._stack.pop();
+    this._pendingName = this._recordNames.pop();
+  }
+
   /** Begins a list in the container being filled. */
   WriteVectorBegin(_size)
   {
@@ -142,8 +164,11 @@ export class DictWriter extends IRootWriter
     const metadata = BeObjectMetadata.GetMetadata(instance);
     if (metadata) out[BLUE_OBJECT_METADATA_KEY] = { ...metadata };
 
+    // Only an object with its OWN GetValues is asked: one whose GetValues
+    // delegates to this writer (a field-less CjsModel) has no members, and
+    // asking it would re-enter here.
     const fields = CjsSchema.getSchema(instance.constructor).fields;
-    if (!fields.length && typeof instance.GetValues === "function")
+    if (!fields.length && typeof instance.GetValues === "function" && !DELEGATES.has(instance.GetValues))
     {
       Object.assign(out, instance.GetValues(options), out);
       return;
@@ -156,10 +181,23 @@ export class DictWriter extends IRootWriter
     this._pendingName = savedName;
   }
 
+  /**
+   * Registers a GetValues method that delegates to this writer, so an object
+   * using it is never asked for its own values. Our own seam: CjsModel's
+   * GetValues is `DictWriter.WriteObject`.
+   *
+   * @param {Function} method The delegating GetValues.
+   */
+  static registerDelegate(method)
+  {
+    DELEGATES.add(method);
+  }
+
   /** `Cleanup` (YamlWriter.cpp:245-254). */
   _Cleanup()
   {
     this._stack.length = 0;
+    this._recordNames.length = 0;
     this._pendingName = null;
     this._written.clear();
     this._anchorNumber = 1;

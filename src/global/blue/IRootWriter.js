@@ -58,7 +58,7 @@ export class IRootWriter
       }
       else
       {
-        this.WriteValue(exportCarbonValue(value));
+        this.WriteNestedValue(value);
       }
     }
   }
@@ -76,9 +76,61 @@ export class IRootWriter
     for (const item of list)
     {
       if (IsObject(item)) this.WriteIRoot(item, declaredClassName);
-      else this.WriteValue(exportCarbonValue(item));
+      else this.WriteNestedValue(item);
     }
     this.WriteVectorEnd(list.length);
+  }
+
+  /**
+   * Writes a value. A plain record or array holding objects below its top
+   * level (a raw struct's records, `Tr2EffectPassParameters.stageInput`) is
+   * walked, so each object is written as one and may be aliased; anything
+   * else is exported as a value. Carbon's typed members cannot nest objects in
+   * a value; ours can.
+   *
+   * @param {*} value The value.
+   */
+  WriteNestedValue(value)
+  {
+    if (!HasNestedObject(value))
+    {
+      this.WriteValue(exportCarbonValue(value));
+      return;
+    }
+    if (Array.isArray(value))
+    {
+      this.WriteVectorBegin(value.length);
+      for (const item of value)
+      {
+        if (IsObject(item)) this.WriteIRoot(item, null);
+        else this.WriteNestedValue(item);
+      }
+      this.WriteVectorEnd(value.length);
+      return;
+    }
+    this.WriteRecordBegin();
+    for (const key of Object.keys(value))
+    {
+      // As exportCarbonValue: underscored keys are private state.
+      if (key.startsWith("_")) continue;
+      this.WriteMemberName(key);
+      const item = value[key];
+      if (IsObject(item)) this.WriteIRoot(item, null);
+      else this.WriteNestedValue(item);
+    }
+    this.WriteRecordEnd();
+  }
+
+  /** Begins a plain record inside a value; a writer provides it. */
+  WriteRecordBegin()
+  {
+    throw new Error("IRootWriter.WriteRecordBegin is provided by a writer.");
+  }
+
+  /** Ends the plain record being written; a writer provides it. */
+  WriteRecordEnd()
+  {
+    throw new Error("IRootWriter.WriteRecordEnd is provided by a writer.");
   }
 
   /** Writes the next member's name; a writer provides it. */
@@ -131,6 +183,21 @@ export function DeclaredClassName(fieldType)
 }
 
 /** Whether a list item is an object rather than a value. */
+/** Whether a plain record or array holds an object at any depth. */
+function HasNestedObject(value)
+{
+  if (Array.isArray(value)) return value.some(item => IsObject(item) || HasNestedObject(item));
+  if (!value || typeof value !== "object" || ArrayBuffer.isView(value)) return false;
+  const prototype = Object.getPrototypeOf(value);
+  if (prototype !== Object.prototype && prototype !== null) return false;
+  for (const key in value)
+  {
+    const item = value[key];
+    if (item && typeof item === "object" && (IsObject(item) || HasNestedObject(item))) return true;
+  }
+  return false;
+}
+
 function IsObject(value)
 {
   return value !== null && typeof value === "object" && !Array.isArray(value) && !ArrayBuffer.isView(value)

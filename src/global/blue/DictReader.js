@@ -251,6 +251,69 @@ export class DictReader extends IRootReaderBase
   }
 
   /**
+   * Whether a value's plain records hold an alias or a `_type` bag anywhere
+   * below its top level. Carbon's typed members cannot nest objects in a
+   * value; ours can (a raw struct's records, `Tr2EffectPassParameters.stageInput`),
+   * and the writer anchors every object it reaches.
+   */
+  HasNestedObjects(value)
+  {
+    if (Array.isArray(value)) return value.some(item => IsObjectItem(item) || this.HasNestedObjects(item));
+    if (!IsPlainObject(value)) return false;
+    for (const key in value)
+    {
+      const item = value[key];
+      if (item && typeof item === "object" && (IsObjectItem(item) || this.HasNestedObjects(item))) return true;
+    }
+    return false;
+  }
+
+  /**
+   * A value with objects in its records, rebuilt with each alias resolved (or
+   * filled at the end of the read) and each `_type` bag built - registering
+   * its `_id` - as a list item is. Live objects are kept.
+   */
+  ReadNestedObjects(value)
+  {
+    if (Array.isArray(value))
+    {
+      const list = new Array(value.length);
+      for (let i = 0; i < value.length; i++) list[i] = this._ReadNestedItem(value[i], list, i);
+      return list;
+    }
+    const record = {};
+    for (const key of Object.keys(value)) record[key] = this._ReadNestedItem(value[key], record, key);
+    return record;
+  }
+
+  /** One slot of a nested value: an alias, a `_type` bag, a record to descend, or a value. */
+  _ReadNestedItem(item, container, key)
+  {
+    if (IsReference(item))
+    {
+      const resolved = this._anchors.byId.get(item._ref);
+      if (resolved !== undefined) return resolved;
+      this._anchors.defer(item._ref, object => { container[key] = object; });
+      return null;
+    }
+    if (IsPlainObject(item) && typeof item._type === "string")
+    {
+      const saved = this._currentSource;
+      this._currentSource = item;
+      try
+      {
+        return this.ReadIRootClass(null, null);
+      }
+      finally
+      {
+        this._currentSource = saved;
+      }
+    }
+    if ((Array.isArray(item) || IsPlainObject(item)) && this.HasNestedObjects(item)) return this.ReadNestedObjects(item);
+    return item;
+  }
+
+  /**
    * An object pointer member (`HandlePropertyIRootPtr`, IRootReader.cpp:223-245):
    * null, an anchored object, a live object assigned as a reference, or a new
    * object from a dictionary.
