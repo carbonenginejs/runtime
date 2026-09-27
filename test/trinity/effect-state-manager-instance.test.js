@@ -5,6 +5,7 @@ import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { CullMode, Topology } from "../../npm/dist/global/consts/renderContext/index.js";
+import { ALResult } from "../../npm/dist/trinityal/index.js";
 
 const { Unknown, RenderingMode } = Tr2EffectStateManager;
 
@@ -204,13 +205,13 @@ test("the binding verbs reach a backend even on a bare context", () =>
   // same guarantee, so a bare context is headless rather than broken.
   const context = new Tr2RenderContext();
 
-  assert.equal(context.SetTopology(1), true);
-  assert.equal(context.SetStreamSource(0, {}, 0, 32), true);
+  assert.equal(context.SetTopology(1), ALResult.S_OK);
+  assert.equal(context.SetStreamSource(0, {}, 0, 32), ALResult.S_OK);
   // The stub accepts the draw and counts it. It does NOT check for a bound
   // index buffer - Carbon's stub validates only the user-pointer draws, where a
   // null pointer is a caller error catchable without a GPU.
   const drawsBefore = context.GetRenderContextAL().GetDrawCount();
-  assert.equal(context.DrawIndexedInstanced(3, 1, 0, 0, 0), true);
+  assert.equal(context.DrawIndexedInstanced(3, 1, 0, 0, 0), ALResult.S_OK);
   assert.equal(context.GetRenderContextAL().GetDrawCount(), drawsBefore + 1);
 });
 
@@ -229,7 +230,7 @@ test("the batch-to-draw sequence reaches the device", () =>
 
   states.BeginManagedRendering();
 
-  assert.equal(context.SetTopology(Topology.TOP_TRIANGLES), true);
+  assert.equal(context.SetTopology(Topology.TOP_TRIANGLES), ALResult.S_OK);
 
   // An INTERNED declaration, not a bare 0. Since 2026-09-09 applying one
   // creates the backend layout and binds it, so a handle that names nothing
@@ -240,7 +241,7 @@ test("the batch-to-draw sequence reaches the device", () =>
   assert.equal(states.ApplyVertexDeclaration(declaration), true);
   assert.equal(states.ApplyStreamSource(0, { id: "vertices" }, 0, 32), true);
   assert.equal(states.ApplyIndexBuffer({ id: "indices" }, 2), true);
-  assert.equal(context.DrawIndexedInstanced(36, 1, 0, 0, 0), true);
+  assert.equal(context.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
 
   assert.equal(al.GetDrawCount(), 1);
 });
@@ -257,7 +258,7 @@ test("NullDeclaration unbinds and Unknown does not, because they are different s
   const bound = [];
 
   al.CreateDevice();
-  al.SetVertexLayout = layout => { bound.push(layout); return true; };
+  al.SetVertexLayout = layout => { bound.push(layout); return ALResult.S_OK; };
   context.SetRenderContextAL(al);
 
   const states = context.GetEffectStateManager();

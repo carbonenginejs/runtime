@@ -5,6 +5,7 @@ import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/int
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinityal/index.js";
 import { ALResult } from "../../../npm/dist/trinityal/index.js";
 import { Topology, Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { Failed } from "../../../npm/dist/trinityal/index.js";
 
 const ready = () =>
 {
@@ -31,9 +32,9 @@ test("the batch-to-draw sequence records one pass and one draw", () =>
   // declaration, streams and indices, then the draw.
   const al = ready();
 
-  assert.equal(al.SetTopology(Topology.TOP_TRIANGLES), true);
+  assert.equal(al.SetTopology(Topology.TOP_TRIANGLES), ALResult.S_OK);
   geometry(al);
-  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
 
   const events = al.DrainTransitions();
 
@@ -50,12 +51,12 @@ test("an indexed draw with nothing to index is refused", () =>
 
   al.SetShaderProgram({ id: "program" });
 
-  assert.equal(al.DrawIndexedInstanced(36, 1), false, "no index buffer");
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)), "no index buffer");
   assert.deepEqual(al.DrainTransitions(), [], "and nothing was recorded");
 
   al.SetIndices({ id: "indices" }, 2);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
 });
 
 test("a declared clear becomes the pass load operation", () =>
@@ -120,9 +121,9 @@ test("a topology the AL has no name for is refused", () =>
 {
   const al = ready();
 
-  assert.equal(al.SetTopology(Topology.TOP_MAX_TOPOLOGY), false);
-  assert.equal(al.SetTopology(99), false);
-  assert.equal(al.SetTopology(Topology.TOP_INVALID), false, "INVALID is not a topology either");
+  assert.ok(Failed(al.SetTopology(Topology.TOP_MAX_TOPOLOGY)));
+  assert.ok(Failed(al.SetTopology(99)));
+  assert.ok(Failed(al.SetTopology(Topology.TOP_INVALID)), "INVALID is not a topology either");
 });
 
 test("ending the scene closes the pass and commits once", () =>
@@ -225,7 +226,7 @@ test("render-target stacks are per slot", () =>
 
   assert.equal(al.GetRenderTarget(0), first, "slot zero restored its own");
   assert.equal(al.GetRenderTarget(1), second, "slot one untouched");
-  assert.equal(al.PopRenderTarget(0), false, "nothing left");
+  assert.ok(Failed(al.PopRenderTarget(0)), "nothing left");
 });
 
 test("the depth-stencil target stacks too", () =>
@@ -239,9 +240,9 @@ test("the depth-stencil target stacks too", () =>
 
   assert.equal(al.GetDepthStencil(), null);
   assert.equal(al.GetStackSizeDS(), 1);
-  assert.equal(al.PopDepthStencil(), true);
+  assert.equal(al.PopDepthStencil(), ALResult.S_OK);
   assert.equal(al.GetDepthStencil(), depth);
-  assert.equal(al.PopDepthStencil(), false);
+  assert.ok(Failed(al.PopDepthStencil()));
 });
 
 test("a clear becomes the next pass's load operation", () =>
@@ -281,7 +282,7 @@ test("compute refuses, because nothing dispatches", () =>
   // the GPU never touched - with no validation error, because no command
   // existed to be rejected. Carbon's stub refuses too
   // (stub/Tr2RenderContextStub.h:171-178).
-  assert.equal(al.RunComputeShader(1, 1, 1), false);
+  assert.ok(Failed(al.RunComputeShader(1, 1, 1)));
 
   // And nothing is recorded, so the render pass it was in stays open.
   assert.deepEqual(al.DrainTransitions(), []);
@@ -369,7 +370,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
   // A stand-in program cannot resolve a pipeline, so the draw is refused with
   // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
   // (MetalWorkQueue.mm:2922-2944), and so does this.
-  assert.equal(al.DrawIndexedInstanced(3, 1, 0, 0, 0), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(3, 1, 0, 0, 0)));
   assert.match(al.m_pipelineFailure, /a program this backend linked/);
   assert.equal(al.GetDrawnBatchCount(), 0, "a refused draw is not counted");
 
@@ -377,7 +378,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
   // resolves inside its own verb. Nothing is prepared at the end of the frame.
   const ended = al.EndScene();
 
-  assert.equal(ended, true);
+  assert.equal(ended, ALResult.S_OK);
   assert.deepEqual(log, [ "beginRenderPass", "pass.end", "finish", "submit:command-buffer" ]);
   assert.equal(al.GetWorkQueue().GetRenderPass(), null, "nothing is left open");
 });
@@ -440,7 +441,7 @@ test("SetConstants binds per stage and register, and rejects what Carbon rejects
   const al = ready();
   const buffer = { id: "constants" };
 
-  assert.equal(al.SetConstants(buffer, 1, 3), true);
+  assert.equal(al.SetConstants(buffer, 1, 3), ALResult.S_OK);
   assert.equal(al.GetConstants(1, 3), buffer);
 
   // A different stage at the same register is a different slot.
@@ -448,8 +449,8 @@ test("SetConstants binds per stage and register, and rejects what Carbon rejects
 
   // Carbon returns E_INVALIDARG past its constant-buffer count
   // (Tr2RenderContextMetal.mm:664-672).
-  assert.equal(al.SetConstants(buffer, 1, 20), false);
-  assert.equal(al.SetConstants(buffer, 6, 0), false);
+  assert.ok(Failed(al.SetConstants(buffer, 1, 20)));
+  assert.ok(Failed(al.SetConstants(buffer, 6, 0)));
 });
 
 test("a single render state is stored and dirties the pipeline, and a redundant one does not", () =>
@@ -459,12 +460,12 @@ test("a single render state is stored and dirties the pipeline, and a redundant 
   al.SetRenderStates({ id: "setup" });
   assert.equal(al.IsPipelineDirty(), true);
 
-  assert.equal(al.SetRenderState(7, 1), true);
+  assert.equal(al.SetRenderState(7, 1), ALResult.S_OK);
   assert.equal(al.GetRenderStateInputs().states.get(7), 1);
 
   // Carbon's setters compare before dirtying, so a redundant apply costs nothing.
   const inputs = al.GetRenderStateInputs();
-  assert.equal(al.SetRenderState(7, 1), true);
+  assert.equal(al.SetRenderState(7, 1), ALResult.S_OK);
   assert.equal(inputs.states.size, 1);
 });
 
@@ -474,13 +475,13 @@ test("the verbs this backend cannot encode refuse rather than report success", (
 
   // Reporting success here would leave a caller reading stale contents it
   // believes are zero, or missing geometry it believes it drew.
-  assert.equal(al.ClearUav({ IsValid: () => true }, [ 0, 0, 0, 0 ]), false);
-  assert.equal(al.DrawPrimitiveUP(2, new Float32Array(12), 16), false);
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, new Uint16Array(6), new Float32Array(12), 16), false);
+  assert.ok(Failed(al.ClearUav({ IsValid: () => true }, [ 0, 0, 0, 0 ])));
+  assert.ok(Failed(al.DrawPrimitiveUP(2, new Float32Array(12), 16)));
+  assert.ok(Failed(al.DrawIndexedPrimitiveUP(4, 2, new Uint16Array(6), new Float32Array(12), 16)));
 
   // Indirect compute refuses for the same reason as direct: the group counts
   // coming from a buffer changes nothing about there being no dispatch.
-  assert.equal(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0), false);
+  assert.ok(Failed(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0)));
 });
 
 // The rest of Carbon's render-context surface, added 2026-09-09. Trinity does
@@ -577,17 +578,17 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
 
   // copyBufferToBuffer is a command-encoder verb, so it needs the encoder
   // BeginScene creates and nothing else.
-  assert.equal(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 64), false);
+  assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 64)));
 
   al.CreateDevice();
   al.BeginScene();
 
-  assert.equal(al.CopySubBuffer(buffer("dst"), 16, buffer("src"), 4, 64), true);
+  assert.equal(al.CopySubBuffer(buffer("dst"), 16, buffer("src"), 4, 64), ALResult.S_OK);
   assert.deepEqual(copies, [ [ "src", 4, "dst", 16, 64 ] ]);
 
   // An invalid buffer or an empty range is a caller error a backend catches.
-  assert.equal(al.CopySubBuffer(buffer("dst"), 0, { IsValid: () => false }, 0, 64), false);
-  assert.equal(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 0), false);
+  assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, { IsValid: () => false }, 0, 64)));
+  assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 0)));
   assert.equal(copies.length, 1);
 });
 
@@ -635,19 +636,19 @@ test("read-only depth is stored, and the rest report what WebGPU can honestly sa
   // rather than a breadcrumb. None of these is a gap a later browser fills.
   assert.equal(al.SupportsBindlessTextures(), false);
   assert.equal(al.GetTotalVideoMemory(), 0);
-  assert.equal(al.DispatchRays(), false);
-  assert.equal(al.GetGpuStateMarker(), false);
-  assert.equal(al.GetGpuPageFaultResource(), false);
+  assert.ok(Failed(al.DispatchRays()));
+  assert.ok(Failed(al.GetGpuStateMarker()));
+  assert.ok(Failed(al.GetGpuPageFaultResource()));
 
   // Residency and barriers are the browser's job, so honouring these is
   // nothing rather than unimplemented.
-  assert.equal(al.UseResources(null, 0, []), true);
-  assert.equal(al.UseAccelerationStructure(null), true);
+  assert.equal(al.UseResources(null, 0, []), ALResult.S_OK);
+  assert.equal(al.UseAccelerationStructure(null), ALResult.S_OK);
 
   // The indirect draws refuse: the work queue owns every draw and has no
   // indirect verb, and a second draw path here would break that split.
-  assert.equal(al.DrawInstancedIndirect(), false);
-  assert.equal(al.DrawIndexedInstancedIndirect(), false);
+  assert.ok(Failed(al.DrawInstancedIndirect()));
+  assert.ok(Failed(al.DrawIndexedInstancedIndirect()));
 });
 
 test("the upscaling family answers exactly as Carbon's stub does", () =>
@@ -950,16 +951,16 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Tr2PostProcessRenderer's histogram clears (cpp:1210-1215): uint zeros.
-  assert.equal(al.ClearUav(histogram, new Uint32Array(4)), true);
-  assert.equal(al.ClearUav(histogram, [ 0, 0, 0, 0 ], true), true, "float zero is the same bits");
+  assert.equal(al.ClearUav(histogram, new Uint32Array(4)), ALResult.S_OK);
+  assert.equal(al.ClearUav(histogram, [ 0, 0, 0, 0 ], true), ALResult.S_OK, "float zero is the same bits");
 
   // The open pass ends first: clearBuffer is a command-encoder verb.
   assert.deepEqual(log, [ "beginRenderPass", "pass.end", "clearBuffer:histogram", "clearBuffer:histogram" ]);
 
   // Metal clears these through a compute shader or ClearTexture, which this has not.
-  assert.equal(al.ClearUav(histogram, [ 1, 0, 0, 0 ]), false, "a non-zero value");
-  assert.equal(al.ClearUav(histogram, [ -0, 0, 0, 0 ], true), false, "negative zero has other bits");
-  assert.equal(al.ClearUav({ GetDeviceTextureView: () => null }, [ 0, 0, 0, 0 ]), false, "a texture");
+  assert.ok(Failed(al.ClearUav(histogram, [ 1, 0, 0, 0 ])), "a non-zero value");
+  assert.ok(Failed(al.ClearUav(histogram, [ -0, 0, 0, 0 ], true)), "negative zero has other bits");
+  assert.ok(Failed(al.ClearUav({ GetDeviceTextureView: () => null }, [ 0, 0, 0, 0 ])), "a texture");
   assert.equal(log.length, 4);
 });
 
@@ -1039,7 +1040,7 @@ test("Clear honours Carbon's flags and clears one colour slot", () =>
   al.SetDepthStencil(boundTexture("depthBuffer", "depth32float"));
 
   // CLEARFLAGS_TARGET at slot 1 only (EveSpaceScene.cpp:2057 clears velocity to 0).
-  assert.equal(al.Clear({ clearColor: true, color: 0, slot: 1 }), true);
+  assert.equal(al.Clear({ clearColor: true, color: 0, slot: 1 }), ALResult.S_OK);
   al.SetIndices({ id: "indices" }, 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
@@ -1050,9 +1051,9 @@ test("Clear honours Carbon's flags and clears one colour slot", () =>
   assert.equal(passes[0].depthStencilAttachment.depthLoadOp, "load", "depth was not flagged");
 
   // Metal refuses a flagged clear of something unbound (Tr2RenderContextMetal.mm:311-331).
-  assert.equal(al.Clear({ clearColor: true, slot: 3 }), false);
+  assert.ok(Failed(al.Clear({ clearColor: true, slot: 3 })));
   al.SetDepthStencil(null);
-  assert.equal(al.Clear({ clearDepth: true, depth: 0 }), false);
+  assert.ok(Failed(al.Clear({ clearDepth: true, depth: 0 })));
 });
 
 test("Present does not end the frame: it resets the targets, as Metal's does (Tr2RenderContextMetal.mm:879-886)", () =>
@@ -1061,7 +1062,7 @@ test("Present does not end the frame: it resets the targets, as Metal's does (Tr
 
   // TriDevice::HandleRenderTick presents before Render opens the next scene;
   // a Present that ended the scene closed whatever frame was open.
-  assert.equal(al.Present(), true);
+  assert.equal(al.Present(), ALResult.S_OK);
   assert.equal(al.GetWorkQueue()._inFrame, true);
 
   al.EndScene();

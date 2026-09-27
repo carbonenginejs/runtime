@@ -138,14 +138,13 @@ export class Tr2DrawUPHelper
 
     if (Failed(filled)) return filled;
 
-    if (!renderContext.SetStreamSource(0, this._vertexUP[slot], 0, vertexStreamZeroStride))
-    {
-      return ALResult.E_FAIL;
-    }
+    const streamed = renderContext.SetStreamSource(0, this._vertexUP[slot], 0, vertexStreamZeroStride);
+
+    if (Failed(streamed)) return streamed;
 
     this._nextRingVB = (this._nextRingVB + 1) % RING_SIZE;
 
-    return renderContext.DrawPrimitive(0, primitiveCount) ? ALResult.S_OK : ALResult.E_FAIL;
+    return renderContext.DrawPrimitive(0, primitiveCount);
   }
 
   /**
@@ -195,10 +194,9 @@ export class Tr2DrawUPHelper
 
     if (Failed(filled)) return filled;
 
-    if (!renderContext.SetStreamSource(0, this._vertexUP[vertexSlot], 0, vertexStreamZeroStride))
-    {
-      return ALResult.E_FAIL;
-    }
+    const streamed = renderContext.SetStreamSource(0, this._vertexUP[vertexSlot], 0, vertexStreamZeroStride);
+
+    if (Failed(streamed)) return streamed;
 
     this._nextRingVB = (this._nextRingVB + 1) % RING_SIZE;
 
@@ -208,12 +206,14 @@ export class Tr2DrawUPHelper
 
     if (Failed(indices)) return indices;
 
-    if (!renderContext.SetIndices(ring[indexSlot], bytesPerIndex)) return ALResult.E_FAIL;
+    const indexed = renderContext.SetIndices(ring[indexSlot], bytesPerIndex);
+
+    if (Failed(indexed)) return indexed;
 
     if (bytesPerIndex === 2) this._nextRingIB16 = (this._nextRingIB16 + 1) % RING_SIZE;
     else this._nextRingIB32 = (this._nextRingIB32 + 1) % RING_SIZE;
 
-    return renderContext.DrawIndexedPrimitive(numVertices, 0, primitiveCount) ? ALResult.S_OK : ALResult.E_FAIL;
+    return renderContext.DrawIndexedPrimitive(numVertices, 0, primitiveCount);
   }
 
   /**

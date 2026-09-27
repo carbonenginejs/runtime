@@ -179,7 +179,7 @@ export class Tr2Material extends CjsModel
       this.#RebuildResourceSetHash();
     }
 
-    return renderContext.SetResourceSet(pass.resourceSet);
+    return !Failed(renderContext.SetResourceSet(pass.resourceSet));
   }
 
   /**
@@ -282,7 +282,7 @@ export class Tr2Material extends CjsModel
 
     this.UpdateConstants(shaderType, input, hasReroutables, renderContext);
 
-    return renderContext.SetConstants(input.constantBuffer, shaderType, EFFECT_CONSTANTS);
+    return !Failed(renderContext.SetConstants(input.constantBuffer, shaderType, EFFECT_CONSTANTS));
   }
 
   /**

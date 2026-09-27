@@ -6,6 +6,7 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { Topology } from "../../npm/dist/global/consts/renderContext/index.js";
 import { SCREEN_VERTEX_BYTES } from "../../npm/dist/trinity/core/index.js";
 import { Tr2EffectStateManager } from "../../npm/dist/trinity/shader/index.js";
+import { ALResult } from "../../npm/dist/trinityal/index.js";
 
 /** A Tr2RenderContext with the stub backend installed, which is what Carbon ships. */
 function stubContext()
@@ -89,8 +90,8 @@ test("the quad reaches the vertex buffer, as a triangle strip", () =>
 
   const topologies = [];
   const draws = [];
-  al.SetTopology = (topology) => { topologies.push(topology); return true; };
-  al.DrawPrimitive = (startVertex, primitiveCount) => { draws.push([ startVertex, primitiveCount ]); return true; };
+  al.SetTopology = (topology) => { topologies.push(topology); return ALResult.S_OK; };
+  al.DrawPrimitive = (startVertex, primitiveCount) => { draws.push([ startVertex, primitiveCount ]); return ALResult.S_OK; };
 
   assert.equal(blitter.Draw(context, material()), true);
 

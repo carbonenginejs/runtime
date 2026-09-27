@@ -5,6 +5,7 @@ import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/int
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js";
 import { ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { ALResult, Failed } from "../../../npm/dist/trinityal/index.js";
 
 // The user-pointer draws, which Carbon emulates in `Tr2DrawUPHelper` rather
 // than in any backend. These tests watch the SCRATCH BUFFERS, because the whole
@@ -121,7 +122,7 @@ test("a non-indexed user-pointer draw stages the vertices and draws them", () =>
   const { al, log, buffers, writes } = composed();
   const data = vertices(6);
 
-  assert.equal(al.DrawPrimitiveUP(2, data, 12), true);
+  assert.equal(al.DrawPrimitiveUP(2, data, 12), ALResult.S_OK);
 
   // One scratch vertex buffer, described in words as Carbon describes it, and
   // carrying the VERTEX usage a stream source needs.
@@ -140,7 +141,7 @@ test("an indexed user-pointer draw stages both halves and picks the ring by inde
   const data = vertices(4);
   const indices = Uint16Array.of(0, 1, 2, 0, 2, 3);
 
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, indices, data, 12), true);
+  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, indices, data, 12), ALResult.S_OK);
 
   assert.equal(buffers.length, 2, "one vertex buffer, one index buffer");
   assert.equal((buffers[1].descriptor.usage & BUFFER_USAGE.INDEX) !== 0, true);
@@ -160,7 +161,7 @@ test("a 32-bit index array binds uint32 and its own ring", () =>
 {
   const { al, log } = composed();
 
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, Uint32Array.of(0, 1, 2, 0, 2, 3), vertices(4), 12), true);
+  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, Uint32Array.of(0, 1, 2, 0, 2, 3), vertices(4), 12), ALResult.S_OK);
   assert.equal(log.some(entry => entry.includes(":uint32:")), true);
 });
 
@@ -168,13 +169,13 @@ test("four draws use four slots and the fifth comes back around", () =>
 {
   const { al, buffers } = composed();
 
-  for (let i = 0; i < 4; ++i) assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), true);
+  for (let i = 0; i < 4; ++i) assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
 
   assert.equal(buffers.length, 4, "the ring is four deep, so four draws never share a buffer");
 
   // The fifth draw is the same size as the first, so the slot it comes back to
   // is large enough and nothing is created.
-  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), true);
+  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
   assert.equal(buffers.length, 4);
 });
 
@@ -182,18 +183,18 @@ test("a slot grows for a bigger batch and never shrinks again", () =>
 {
   const { al, buffers } = composed();
 
-  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), true);
+  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
   for (let i = 0; i < 3; ++i) al.DrawPrimitiveUP(2, vertices(6), 12);
   assert.equal(buffers.length, 4);
 
   // Back to slot zero with ten times the geometry: that slot is recreated.
-  assert.equal(al.DrawPrimitiveUP(20, vertices(60), 12), true);
+  assert.equal(al.DrawPrimitiveUP(20, vertices(60), 12), ALResult.S_OK);
   assert.equal(buffers.length, 5);
   assert.equal(buffers[4].descriptor.size, 720);
 
   // Around again at the small size: the grown slot still fits, so no sixth.
   for (let i = 0; i < 3; ++i) al.DrawPrimitiveUP(2, vertices(6), 12);
-  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), true);
+  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
   assert.equal(buffers.length, 5);
 });
 
@@ -202,8 +203,8 @@ test("nothing to draw is not a failure, and nothing is staged", () =>
   const { al, log, buffers } = composed();
 
   // Carbon returns S_OK for a zero primitive count before it touches a buffer.
-  assert.equal(al.DrawPrimitiveUP(0, vertices(6), 12), true);
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 0, Uint16Array.of(0, 1, 2), vertices(4), 12), true);
+  assert.equal(al.DrawPrimitiveUP(0, vertices(6), 12), ALResult.S_OK);
+  assert.equal(al.DrawIndexedPrimitiveUP(4, 0, Uint16Array.of(0, 1, 2), vertices(4), 12), ALResult.S_OK);
   assert.equal(buffers.length, 0);
   assert.deepEqual(log, []);
 });
@@ -213,8 +214,8 @@ test("a short array refuses rather than reading past its end", () =>
   const { al, log } = composed();
 
   // Two triangles need six vertices; three are given.
-  assert.equal(al.DrawPrimitiveUP(2, vertices(3), 12), false);
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, Uint16Array.of(0, 1, 2), vertices(4), 12), false);
+  assert.ok(Failed(al.DrawPrimitiveUP(2, vertices(3), 12)));
+  assert.ok(Failed(al.DrawIndexedPrimitiveUP(4, 2, Uint16Array.of(0, 1, 2), vertices(4), 12)));
   assert.deepEqual(log, [], "a refusal encodes nothing");
 });
 
@@ -222,7 +223,7 @@ test("an unsupported index width refuses", () =>
 {
   const { al } = composed();
 
-  assert.equal(al.DrawIndexedPrimitiveUP(4, 2, Uint8Array.of(0, 1, 2, 0, 2, 3), vertices(4), 12), false);
+  assert.ok(Failed(al.DrawIndexedPrimitiveUP(4, 2, Uint8Array.of(0, 1, 2, 0, 2, 3), vertices(4), 12)));
 });
 
 test("destroying the context drops the scratch buffers", () =>
@@ -236,5 +237,5 @@ test("destroying the context drops the scratch buffers", () =>
 
   // The ring is rewound, so the next context's first draw stages afresh rather
   // than binding a buffer whose device is gone.
-  assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), false);
+  assert.ok(Failed(al.DrawPrimitiveUP(2, vertices(6), 12)));
 });

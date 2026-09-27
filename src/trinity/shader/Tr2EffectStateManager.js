@@ -833,7 +833,7 @@ export class Tr2EffectStateManager extends CjsModel
     // was being dropped here. The WebGPU backend already accepts one, so a
     // caller rendering into a cascade or a cube face was silently writing
     // slice 0 - a correct-looking image in the wrong place.
-    const bound = this.#renderContext.SetRenderTarget(index, renderTarget, slice);
+    const bound = !Failed(this.#renderContext.SetRenderTarget(index, renderTarget, slice));
 
     if (index === 0 && updateViewport) this.#RefreshRenderTargetViewport();
 
@@ -874,7 +874,7 @@ export class Tr2EffectStateManager extends CjsModel
    */
   PopRenderTarget(slot = 0)
   {
-    const popped = this.#renderContext.PopRenderTarget(slot);
+    const popped = !Failed(this.#renderContext.PopRenderTarget(slot));
 
     if (slot === 0) this.#RefreshRenderTargetViewport();
 
@@ -889,7 +889,7 @@ export class Tr2EffectStateManager extends CjsModel
    */
   SetDepthStencilBuffer(depthStencil)
   {
-    return this.#renderContext.SetDepthStencil(depthStencil);
+    return !Failed(this.#renderContext.SetDepthStencil(depthStencil));
   }
 
   /**
@@ -919,7 +919,7 @@ export class Tr2EffectStateManager extends CjsModel
    */
   PopDepthStencilBuffer()
   {
-    return this.#renderContext.PopDepthStencil();
+    return !Failed(this.#renderContext.PopDepthStencil());
   }
 
   /** Reads the bound target's extent and resets the viewport to it. */
@@ -1357,7 +1357,7 @@ export class Tr2EffectStateManager extends CjsModel
 
     if (!setup || !this.#renderContext) return false;
 
-    return this.#renderContext.SetRenderStates(this.#OverMode(handle, setup), this.GetRenderStateOverrides());
+    return !Failed(this.#renderContext.SetRenderStates(this.#OverMode(handle, setup), this.GetRenderStateOverrides()));
   }
 
   /**

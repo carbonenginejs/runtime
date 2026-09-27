@@ -31,7 +31,7 @@
 // detail. They lived in the WebGPU engine until now, where a second backend
 // could not have reached them without copying them.
 
-import * as CcpLog from "../../global/logging/CcpLog.js";
+import * as CcpLog from "../../global/logging/ccpLog.js";
 import { carbon, impl, type } from "#schema";
 import { Tr2Blitter } from "./Tr2Blitter.js";
 import { TriSettingsRegistrar } from "./TriSettingsRegistrar.js";
@@ -39,6 +39,7 @@ import { AdjustTextureCoordsToViewport } from "./Tr2RenderUtils.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "./context/Tr2RenderContext.js";
 import { Tr2VariableStore } from "./variable/Tr2VariableStore.js";
 import { gTriDev } from "./device/gTriDev.js";
+import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2SuballocatedBufferAllocation } from "./device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer } from "./mesh/TriGeometryResAllocations.js";
 import { TR2SHADERMODEL } from "../generated/trinityCore/enums.js";
@@ -706,7 +707,7 @@ export class Tr2Renderer
       shader.ApplyAllStateForPass(techniqueIndex, passIndex, renderContext);
       effect.ApplyMaterialDataForPass(techniqueIndex, passIndex, renderContext);
 
-      if (!renderContext.RunComputeShader(groupDimX, groupDimY, groupDimZ)) return false;
+      if (Failed(renderContext.RunComputeShader(groupDimX, groupDimY, groupDimZ))) return false;
 
       result = true;
     }
@@ -747,7 +748,7 @@ export class Tr2Renderer
       shader.ApplyAllStateForPass(0, passIndex, renderContext);
       effect.ApplyMaterialDataForPass(0, passIndex, renderContext);
 
-      if (!renderContext.RunComputeShaderIndirect(indirectParams, offset)) return false;
+      if (Failed(renderContext.RunComputeShaderIndirect(indirectParams, offset))) return false;
     }
 
     return true;

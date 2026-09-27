@@ -593,7 +593,7 @@ test("TriStepClear preserves raw defaults, optional initializer rules, and color
   // The clamp is the step's, so read what the step hands the backend.
   let cleared = null;
   const al = context.GetRenderContextAL();
-  al.Clear = (options) => { cleared = options; return true; };
+  al.Clear = (options) => { cleared = options; return ALResult.S_OK; };
   assertEquals(clear.Execute(0, 0, context), TriRenderJob.StepResult.RS_OK);
   assertEquals(Array.from(cleared.color).join(","), "0,0.25,1,1");
   assertEquals(cleared.depth, 0.5);
@@ -687,7 +687,7 @@ test("TriStepSetVisualizationMode remains a CPU object-graph command", () =>
 test("an observed depth-stencil failure stops the shared render job", () =>
 {
   const context = stubContext();
-  context.SetDepthStencil = () => false;
+  context.SetDepthStencil = () => ALResult.E_FAIL;
   let tailRuns = 0;
   const job = new TriRenderJob();
   job.steps.push(new TriStepSetDepthStencil(), step("tail", () => { tailRuns++; }));

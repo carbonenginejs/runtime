@@ -7,6 +7,7 @@ import { CreateLodAllocations, RealizeBatchGeometry, SharedGeometryBuffer } from
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
 import { Tr2BufferALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
+import { ALResult } from "../../npm/dist/trinityal/index.js";
 
 // Carbon puts a LOD's vertices and indices into one shared suballocated buffer
 // at load (TriGeometryRes.cpp:2019-2140) and the batch carries the buffer plus
@@ -175,8 +176,8 @@ test("a descriptor batch whose LOD cannot be realized yet is not drawn", () =>
 
   batch.SetGeometrySource(geometry, 0, 0, 1, false, null);
   batch.topology = 4;
-  renderContext.DrawInstanced = () => { draws += 1; return true; };
-  renderContext.DrawIndexedInstanced = () => { draws += 1; return true; };
+  renderContext.DrawInstanced = () => { draws += 1; return ALResult.S_OK; };
+  renderContext.DrawIndexedInstanced = () => { draws += 1; return ALResult.S_OK; };
 
   al.BeginScene();
   assert.equal(renderContext.SubmitGeometry(batch), false);

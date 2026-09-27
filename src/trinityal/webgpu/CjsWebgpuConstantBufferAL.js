@@ -142,7 +142,9 @@ export class CjsWebgpuConstantBufferAL
 
     const al = RenderContextALOf(renderContext);
 
-    return al && al.SetConstants(this, shaderType, constantIndex) ? ALResult.S_OK : ALResult.E_INVALIDARG;
+    if (!al) return ALResult.E_INVALIDARG;
+
+    return al.SetConstants(this, shaderType, constantIndex);
   }
 
   /** Whether the buffer has a shadow copy, which `Create` gives it. */

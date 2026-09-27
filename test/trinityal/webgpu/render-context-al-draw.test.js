@@ -7,6 +7,7 @@ import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js"
 import { ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
 import { Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
+import { ALResult, Failed } from "../../../npm/dist/trinityal/index.js";
 
 // A draw verb resolves its pipeline from BOUND STATE, inside the verb, the way
 // Metal's EmitRenderPipelineState (MetalWorkQueue.mm:1595-1747) and DX12's
@@ -143,8 +144,8 @@ test("a draw resolves a pipeline from bound state once, and the next draw reuses
 
   bindGeometry(al, program);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), true);
-  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK);
   assert.equal(al.m_pipelineFailure, null);
 
   const events = al.DrainTransitions();
@@ -203,9 +204,9 @@ test("a state change dirties the pipeline and the next draw resolves a second on
   bindGeometry(al, programFor(al));
   al.DrawIndexedInstanced(36, 1);
 
-  assert.equal(al.SetTopology(Topology.TOP_LINES), true);
+  assert.equal(al.SetTopology(Topology.TOP_LINES), ALResult.S_OK);
   assert.equal(al.IsPipelineDirty(), true);
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.equal(pipelines.length, 2);
   assert.equal(pipelines[1].descriptor.primitive.topology, "line-list");
 
@@ -221,7 +222,7 @@ test("a non-indexed draw binds no index buffer and draws vertices", () =>
   const { al, log } = composed();
 
   bindGeometry(al, programFor(al));
-  assert.equal(al.DrawPrimitive(0, 2), true);
+  assert.equal(al.DrawPrimitive(0, 2), ALResult.S_OK);
   assert.deepEqual(log, [ "setPipeline:1", "setVertexBuffer:0:vb:0", "draw:6,1,0,0" ]);
 });
 
@@ -230,7 +231,7 @@ test("a program without a pixel stage resolves a depth-only pipeline", () =>
   const { al, pipelines } = composed();
 
   bindGeometry(al, programFor(al, { fragment: false }));
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.equal("fragment" in pipelines[0].descriptor, false, "WebGPU spells depth-only by omitting the fragment stage");
 });
 
@@ -274,8 +275,8 @@ test("a program that declares bind groups draws with the bound constant buffer a
   al.SetConstants(constants, ShaderType.VERTEX_SHADER, 0);
   al.SetResourceSet(set);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.equal(pipelines.length, 1);
   assert.equal(bindGroups.length, 1, "one bind group for two draws of the same state");
   assert.equal(created.buffers.length, 1, "the arena's one page; no null buffer was needed");
@@ -320,7 +321,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   // before it can draw - a draw straight after BeginScene has no program.
   await al.EndScene();
   al.BeginScene();
-  assert.equal(al.DrawIndexedInstanced(36, 1), false, "nothing is bound yet");
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)), "nothing is bound yet");
 
   bindGeometry(al, program);
   al.SetConstants(other, ShaderType.VERTEX_SHADER, 0);
@@ -337,7 +338,7 @@ test("slots nothing filled take dummies, as Metal's Create fills them", () =>
   // No constant buffer bound, no resource set bound: DX12's null CB and
   // Metal's dummy texture and sampler.
   bindGeometry(al, program);
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
 
   const entries = bindGroups[0].descriptor.entries;
 
@@ -371,19 +372,19 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /stride for vertex stream 0/);
 
   // A stream that is a geometry descriptor rather than a device buffer, which
   // is what a mesh batch carries today.
   al.SetStreamSource(0, { geometry: "descriptor" }, 0, 12);
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /device buffer on vertex stream 0/);
 
   // An index stride WebGPU has no format for.
   al.SetStreamSource(0, deviceBuffer("vb"), 0, 12);
   al.SetIndices(deviceBuffer("ib"), 3);
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /index format for a 3-byte stride/);
 
   // A declaration whose element type this backend cannot name: WebGPU has no
@@ -391,7 +392,7 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   // IS nameable - float32x3.)
   al.SetIndices(deviceBuffer("ib"), 2);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "UBYTE_3", offset: 0 } ]));
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /vertex format for stream 0/);
 
   assert.equal(log.length, 0, "no refusal reached the encoder");
@@ -402,7 +403,7 @@ test("a program the backend did not link cannot resolve", () =>
   const { al } = composed();
 
   bindGeometry(al, { IsValid: () => true, id: "foreign" });
-  assert.equal(al.DrawIndexedInstanced(36, 1), false);
+  assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /a program this backend linked/);
 });
 
@@ -462,7 +463,7 @@ test("inputs the mesh lacks read a constant dummy stream, as Metal's do", () =>
 
   bindGeometry(al, program);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), true, al.m_pipelineFailure ?? "drew");
+  assert.equal(al.DrawIndexedInstanced(36, 1, 0, 0, 0), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
 
   const buffers = pipelines[0].descriptor.vertex.buffers;
 
@@ -519,7 +520,7 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   bindGeometry(al, program);
   al.SetResourceSet(set);
 
-  assert.equal(al.DrawIndexedInstanced(36, 1), true);
+  assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.notEqual(al._addressModes, null, "the backend recognised the buffer");
 
   const modes = new Float32Array(al._addressModes.m_shadowCopy.buffer, 0, 16);

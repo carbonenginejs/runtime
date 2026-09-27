@@ -280,7 +280,7 @@ export class Tr2SSAO extends CjsModel
       this._FillCortaoPerObjectData(new DataView(data.buffer, data.byteOffset, CORTAO_PER_OBJECT_DATA_SIZE), width, height, packed.GetMipCount(), temporal, renderContext);
 
       if (Failed(this._cortaoConstantBuffer.Unlock(renderContext))) return new GpuResourceHandle();
-      if (!renderContext.SetConstants(this._cortaoConstantBuffer, ShaderType.COMPUTE_SHADER, PER_OBJECT_VS)) return new GpuResourceHandle();
+      if (Failed(renderContext.SetConstants(this._cortaoConstantBuffer, ShaderType.COMPUTE_SHADER, PER_OBJECT_VS))) return new GpuResourceHandle();
 
       const outputFormat = this.cortaoBentNormal ? PixelFormat.PIXEL_FORMAT_R8G8B8A8_SNORM : PixelFormat.PIXEL_FORMAT_R8_UNORM;
       const outputTarget = gpuResourcePool.GetTempTexture("cortao_output", this._Target(width, height, 1, outputFormat));

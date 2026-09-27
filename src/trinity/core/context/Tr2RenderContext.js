@@ -250,7 +250,7 @@ export class Tr2RenderContext extends CjsModel
   /**
    * Opens the backend's scene for this frame.
    *
-   * @returns {*} Whatever the backend returns; the stub returns true.
+   * @returns {number} The backend's `ALResult`.
    */
   BeginScene()
   {
@@ -260,7 +260,7 @@ export class Tr2RenderContext extends CjsModel
   /**
    * Closes the backend's scene, submitting whatever it recorded.
    *
-   * @returns {*} Whatever the backend returns; WebGPU's returns a promise.
+   * @returns {number} The backend's `ALResult`.
    */
   EndScene()
   {
@@ -325,7 +325,7 @@ export class Tr2RenderContext extends CjsModel
    * `SetRtDsToDevice`), so restoring without binding would leave the pushed
    * target live for the rest of the frame.
    *
-   * @returns {boolean} False when nothing was pushed for that slot.
+   * @returns {number} `E_FAIL` when nothing was pushed for that slot.
    */
   PopRenderTarget(slot = 0)
   {
@@ -353,7 +353,7 @@ export class Tr2RenderContext extends CjsModel
   /**
    * Restores the saved depth-stencil, binding it again.
    *
-   * @returns {boolean} False when nothing was pushed.
+   * @returns {number} `E_FAIL` when nothing was pushed.
    */
   PopDepthStencil()
   {
@@ -469,7 +469,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {object} options `{ color, depth, stencil, clearColor, clearDepth,
    *   clearStencil }`.
-   * @returns {boolean} Whether the backend accepted the clear.
+   * @returns {number} An `ALResult`: whether the backend accepted the clear.
    */
   Clear(options)
   {
@@ -629,7 +629,7 @@ export class Tr2RenderContext extends CjsModel
    * Sets the primitive topology for following draws.
    *
    * @param {number} topology A `Topology` value, NOT a `D3dPrimitiveTopology`.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetTopology(topology)
   {
@@ -693,7 +693,7 @@ export class Tr2RenderContext extends CjsModel
    * it into whatever its API calls a bind group, and this binds the result.
    *
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetResourceSet(resourceSet)
   {
@@ -707,7 +707,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
    * @param {number} [maxRegisterCount] Carbon's optional bound.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetConstants(buffer, constantType, registerIndex, maxRegisterCount = 0)
   {
@@ -722,7 +722,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} offset Byte offset into the buffer.
    * @param {number} stride Bytes per vertex.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetStreamSource(stream, buffer, offset, stride)
   {
@@ -734,7 +734,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} [stride] Bytes per index.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetIndices(buffer, stride = 0)
   {
@@ -892,7 +892,7 @@ export class Tr2RenderContext extends CjsModel
    * handle and bound nothing.
    *
    * @param {object|null} shaderProgram A `Tr2ShaderProgramAL`, or null to unbind.
-   * @returns {boolean} Whether the backend accepted it.
+   * @returns {number} An `ALResult`: whether the backend accepted it.
    */
   SetShaderProgram(shaderProgram)
   {
@@ -935,7 +935,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {number} startVertex First vertex to read.
    * @param {number} primitiveCount Primitives to draw.
-   * @returns {boolean} Whether the AL accepted the draw.
+   * @returns {number} An `ALResult`: whether the AL accepted the draw.
    */
   DrawPrimitive(startVertex, primitiveCount)
   {
@@ -949,7 +949,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {number} startIndex First index to read.
    * @param {number} primitiveCount Primitives to draw.
    * @param {number} [minimumIndex] Smallest index value in the range.
-   * @returns {boolean} Whether the AL accepted the draw.
+   * @returns {number} An `ALResult`: whether the AL accepted the draw.
    */
   DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex = 0)
   {
@@ -962,7 +962,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {number} primitiveCount Primitives to draw.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} Whether the AL accepted the draw.
+   * @returns {number} An `ALResult`: whether the AL accepted the draw.
    */
   DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
   {
@@ -978,7 +978,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {ArrayBufferView} indexData The indices.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} Whether the AL accepted the draw.
+   * @returns {number} An `ALResult`: whether the AL accepted the draw.
    */
   DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
   {
@@ -990,7 +990,7 @@ export class Tr2RenderContext extends CjsModel
    * Binds the vertex declaration. Reached through `ApplyVertexDeclaration`.
    *
    * @param {object} layout A `Tr2VertexLayoutAL`.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetVertexLayout(layout)
   {
@@ -1005,7 +1005,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {number} startIndexLocation First index to read.
    * @param {number} baseVertexLocation Value added to every index.
    * @param {number} startInstanceLocation First instance id.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   DrawIndexedInstanced(
     indexCountPerInstance,
@@ -1031,7 +1031,7 @@ export class Tr2RenderContext extends CjsModel
    * @param {number} instanceCount Instances to draw.
    * @param {number} startVertexLocation First vertex to read.
    * @param {number} startInstanceLocation First instance id.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation, startInstanceLocation)
   {
@@ -1149,21 +1149,21 @@ export class Tr2RenderContext extends CjsModel
     {
       this.#esm.ApplyIndexBuffer(batch.indexBuffer, batch.indexStride);
 
-      return this.DrawIndexedInstanced(
+      return !Failed(this.DrawIndexedInstanced(
         batch.indexCountPerInstance,
         batch.instanceCount,
         batch.startIndexLocation,
         batch.baseVertexLocation,
         batch.startInstanceLocation
-      );
+      ));
     }
 
-    return this.DrawInstanced(
+    return !Failed(this.DrawInstanced(
       batch.indexCountPerInstance,
       batch.instanceCount,
       batch.startIndexLocation,
       batch.startInstanceLocation
-    );
+    ));
   }
 
   /**
@@ -1412,7 +1412,7 @@ export class Tr2RenderContext extends CjsModel
    * Sets the viewport. The viewport object is held by reference, not copied.
    *
    * @param {object} viewport `{ x, y, width, height, minZ, maxZ }`.
-   * @returns {boolean} Whether the backend accepted it.
+   * @returns {number} An `ALResult`: whether the backend accepted it.
    */
   SetViewport(viewport)
   {
@@ -1724,7 +1724,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {number} state A `RenderState` value.
    * @param {number} value The value to set.
-   * @returns {boolean} Whether the backend accepted it.
+   * @returns {number} An `ALResult`: whether the backend accepted it.
    */
   SetRenderState(state, value)
   {
@@ -1743,7 +1743,7 @@ export class Tr2RenderContext extends CjsModel
    *
    * @param {object} setup A `Tr2RenderStateSetup`.
    * @param {object} [overrides] The state manager's render-state overrides.
-   * @returns {boolean} Whether the backend accepted it.
+   * @returns {number} An `ALResult`: whether the backend accepted it.
    */
   SetRenderStates(setup, overrides = null)
   {

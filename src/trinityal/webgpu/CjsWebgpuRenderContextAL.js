@@ -622,13 +622,13 @@ export class CjsWebgpuRenderContextAL
   /**
    * Creates the device. Carbon gates every resource create on this.
    *
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   CreateDevice()
   {
     this._isValid = true;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** @returns {boolean} Whether a device exists. */
@@ -640,7 +640,7 @@ export class CjsWebgpuRenderContextAL
   /**
    * Opens the frame's command buffer.
    *
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   BeginScene()
   {
@@ -670,7 +670,7 @@ export class CjsWebgpuRenderContextAL
     // inheriting the previous frame's bound targets.
     this.ResetRenderTargets();
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -760,7 +760,7 @@ export class CjsWebgpuRenderContextAL
    * and `queue.submit()` are synchronous calls. A caller that awaits this
    * still may; awaiting a non-promise costs nothing.
    *
-   * @returns {boolean} Whether the scene ended cleanly.
+   * @returns {number} An `ALResult`: whether the scene ended cleanly.
    */
   EndScene()
   {
@@ -797,7 +797,7 @@ export class CjsWebgpuRenderContextAL
       this._frame = null;
     }
 
-    return true;
+    return ALResult.S_OK;
   }
 
 
@@ -835,11 +835,11 @@ export class CjsWebgpuRenderContextAL
    * @param {number} slot The slot.
    * @param {object|null} renderTarget A `Tr2TextureAL`, or null to detach.
    * @param {number} [slice] The array slice or cube face.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetRenderTarget(slot, renderTarget, slice = 0)
   {
-    if (slot >= MAX_RENDER_TARGET) return false;
+    if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
     this._Record(this._workQueue.SetRenderAttachments(renderTarget ?? null, slot, slice));
 
@@ -856,7 +856,7 @@ export class CjsWebgpuRenderContextAL
       this.SetViewport({ x: 0, y: 0, width: primary.GetWidth(), height: primary.GetHeight() });
     }
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -878,32 +878,32 @@ export class CjsWebgpuRenderContextAL
    * then slot 1 and popping slot 0 restores the wrong surface.
    *
    * @param {number} [slot] The slot.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   PushRenderTarget(slot = 0)
   {
-    if (slot >= MAX_RENDER_TARGET) return false;
+    if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
     this._renderTargetStacks[slot].push(this._boundRenderTargets[slot] ?? null);
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
    * Restores the target saved for one slot.
    *
    * @param {number} [slot] The slot.
-   * @returns {boolean} Whether anything was saved.
+   * @returns {number} An `ALResult`: whether anything was saved.
    */
   PopRenderTarget(slot = 0)
   {
     const stack = this._renderTargetStacks[slot];
 
-    if (!stack?.length) return false;
+    if (!stack?.length) return ALResult.E_FAIL;
 
     this.SetRenderTarget(slot, stack.pop());
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -921,7 +921,7 @@ export class CjsWebgpuRenderContextAL
    * Binds the depth-stencil target.
    *
    * @param {object|null} depthStencil A `Tr2TextureAL`, or null to detach.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetDepthStencil(depthStencil)
   {
@@ -937,7 +937,7 @@ export class CjsWebgpuRenderContextAL
 
     this._depthStencil = depthStencil ?? null;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** @returns {object|null} The bound depth-stencil target. */
@@ -946,22 +946,22 @@ export class CjsWebgpuRenderContextAL
     return this._depthStencil;
   }
 
-  /** Saves the bound depth-stencil target. @returns {boolean} True. */
+  /** Saves the bound depth-stencil target. @returns {number} `S_OK`. */
   PushDepthStencil()
   {
     this._depthStencilStack.push(this._depthStencil);
 
-    return true;
+    return ALResult.S_OK;
   }
 
-  /** Restores the saved depth-stencil target. @returns {boolean} Whether one was saved. */
+  /** Restores the saved depth-stencil target. @returns {number} An `ALResult`: whether one was saved. */
   PopDepthStencil()
   {
-    if (!this._depthStencilStack.length) return false;
+    if (!this._depthStencilStack.length) return ALResult.E_FAIL;
 
     this.SetDepthStencil(this._depthStencilStack.pop());
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** @returns {number} Depth of the depth-stencil stack. */
@@ -989,7 +989,7 @@ export class CjsWebgpuRenderContextAL
    * Sets the viewport following draws use.
    *
    * @param {object} viewport `{ x, y, width, height }`.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetViewport(viewport)
   {
@@ -999,7 +999,7 @@ export class CjsWebgpuRenderContextAL
     // A viewport without depth bounds has Tr2Viewport's defaults, 0 and 1.
     if (viewport) this._workQueue.SetViewport(viewport.x, viewport.y, viewport.width, viewport.height, viewport.minZ ?? 0, viewport.maxZ ?? 1);
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** @returns {object|null} The current viewport. */
@@ -1027,7 +1027,7 @@ export class CjsWebgpuRenderContextAL
    * Metal, a cleared target or depth that is not bound is E_INVALIDCALL.
    *
    * @param {object} [options] `{ color, depth, stencil, clearColor, clearDepth, clearStencil, slot }`.
-   * @returns {boolean} Whether the clear was declared.
+   * @returns {number} An `ALResult`: whether the clear was declared.
    */
   Clear(options = {})
   {
@@ -1037,8 +1037,8 @@ export class CjsWebgpuRenderContextAL
     const slot = options.slot ?? 0;
     const attachments = this._workQueue.GetAttachments();
 
-    if (clearTarget && !attachments.colors[slot]) return false;
-    if (flagged && clearDepth && !attachments.depth) return false;
+    if (clearTarget && !attachments.colors[slot]) return ALResult.E_FAIL;
+    if (flagged && clearDepth && !attachments.depth) return ALResult.E_FAIL;
 
     const colors = [];
 
@@ -1058,7 +1058,7 @@ export class CjsWebgpuRenderContextAL
 
     this._Record(this._workQueue.ClearAttachment(colors, depth));
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1073,18 +1073,22 @@ export class CjsWebgpuRenderContextAL
    * @param {number} x Thread groups along x.
    * @param {number} y Thread groups along y.
    * @param {number} z Thread groups along z.
-   * @returns {boolean} Whether the dispatch was encoded.
+   * @returns {number} An `ALResult`: whether the dispatch was encoded.
    */
   RunComputeShader(x, y, z)
   {
-    if (!this._webgpu) return false;
+    if (!this._webgpu) return ALResult.E_FAIL;
 
     const program = this._shaderProgram;
     const module = program && typeof program.GetModuleFor === "function"
       ? program.GetModuleFor(ShaderType.COMPUTE_SHADER)
       : null;
 
-    if (!module) return this._RefusePipeline("a compute program");
+    if (!module)
+    {
+      this._RefusePipeline("a compute program");
+      return ALResult.E_FAIL;
+    }
 
     let pipeline = this._computePipelines.get(program) ?? null;
 
@@ -1098,12 +1102,12 @@ export class CjsWebgpuRenderContextAL
       this._computePipelines.set(program, pipeline);
     }
 
-    if (!this._EmitBindGroups()) return false;
+    if (!this._EmitBindGroups()) return ALResult.E_FAIL;
 
     this._workQueue.SetComputePipeline(pipeline);
     this._Record(this._workQueue.DispatchThreadgroups(x, y, z));
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** Compute pipelines by program; a program's compute pipeline has no other state. */
@@ -1136,11 +1140,11 @@ export class CjsWebgpuRenderContextAL
    * @param {object} _effect The compute effect to run.
    * @param {object} _indirectionBuffer A buffer holding the group counts.
    * @param {number} [_offsetForArgs] Byte offset to them.
-   * @returns {boolean} False; nothing is dispatched.
+   * @returns {number} `E_FAIL`; nothing is dispatched.
    */
   RunComputeShaderIndirect(_effect, _indirectionBuffer, _offsetForArgs = 0)
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   /**
@@ -1161,22 +1165,22 @@ export class CjsWebgpuRenderContextAL
    * @param {object} resource The buffer or texture to clear.
    * @param {number[]} value The clear value, four components.
    * @param {boolean} [_clearWithFloat] Whether the value is float or integer.
-   * @returns {boolean} Whether the clear was encoded.
+   * @returns {number} An `ALResult`: whether the clear was encoded.
    */
   ClearUav(resource, value, _clearWithFloat = false)
   {
     const buffer = DeviceBufferOf(resource);
 
-    if (!buffer) return false;
+    if (!buffer) return ALResult.E_FAIL;
 
     for (let index = 0; index < 4; index += 1)
     {
-      if (!Object.is(Number(value?.[index] ?? 0), 0)) return false;
+      if (!Object.is(Number(value?.[index] ?? 0), 0)) return ALResult.E_FAIL;
     }
 
     this._Record(this._workQueue.ClearBuffer(buffer));
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1189,39 +1193,41 @@ export class CjsWebgpuRenderContextAL
    * The browser presents a configured canvas after the submission that drew
    * into its current texture, so the swap-chain half has nothing to do.
    *
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   Present()
   {
-    return this.ResetRenderTargets();
+    this.ResetRenderTargets();
+
+    return ALResult.S_OK;
   }
 
   /**
    * Sets the primitive topology following draws use.
    *
    * @param {number} topology A `Topology` value.
-   * @returns {boolean} Whether the AL knows it.
+   * @returns {number} An `ALResult`: whether the AL knows it.
    */
   SetTopology(topology)
   {
-    if (topology >= Topology.TOP_MAX_TOPOLOGY || !VERTICES_PER_PRIMITIVE[topology]) return false;
+    if (topology >= Topology.TOP_MAX_TOPOLOGY || !VERTICES_PER_PRIMITIVE[topology]) return ALResult.E_FAIL;
 
     this._topology = topology;
     this._psoDescription.topology = topology;
     this._pipelineDirty = true;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
    * Binds the vertex declaration.
    *
    * @param {object} layout A `Tr2VertexLayoutAL`.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetVertexLayout(layout)
   {
-    if (this._vertexLayout === layout) return true;
+    if (this._vertexLayout === layout) return ALResult.S_OK;
 
     // DIRTIES THE PIPELINE, AS DX12'S DOES (`Tr2RenderContextDx12.cpp:321`).
     // The descriptor itself is built at the draw, not here: Metal's
@@ -1232,7 +1238,7 @@ export class CjsWebgpuRenderContextAL
     this._vertexLayout = layout;
     this._pipelineDirty = true;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1242,7 +1248,7 @@ export class CjsWebgpuRenderContextAL
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} offset Byte offset.
    * @param {number} stride Bytes per vertex.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetStreamSource(stream, buffer, offset, stride)
   {
@@ -1254,7 +1260,7 @@ export class CjsWebgpuRenderContextAL
 
     this._streams[stream] = { buffer, offset, stride };
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1262,31 +1268,31 @@ export class CjsWebgpuRenderContextAL
    *
    * @param {object} buffer A `Tr2BufferAL`.
    * @param {number} [stride] Bytes per index.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetIndices(buffer, stride = 0)
   {
     this._indexBuffer = buffer;
     this._indexStride = stride;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
    * Binds the shader program following draws run.
    *
    * @param {object} shaderProgram A `Tr2ShaderProgramAL`.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetShaderProgram(shaderProgram)
   {
-    if (this._shaderProgram === shaderProgram) return true;
+    if (this._shaderProgram === shaderProgram) return ALResult.S_OK;
 
     this._shaderProgram = shaderProgram;
     this._psoDescription.shaderProgram = shaderProgram;
     this._pipelineDirty = true;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1306,17 +1312,17 @@ export class CjsWebgpuRenderContextAL
    *
    * @param {object} setup A `Tr2RenderStateSetup`.
    * @param {object} [overrides] The state manager's render-state overrides.
-   * @returns {boolean} Whether a setup was supplied.
+   * @returns {number} An `ALResult`: whether a setup was supplied.
    */
   SetRenderStates(setup, overrides = null)
   {
-    if (!setup) return false;
+    if (!setup) return ALResult.E_FAIL;
 
     // Carbon's setters compare before dirtying, so a redundant apply costs
     // nothing (Tr2RenderContextDx12.cpp:315-338). The overrides are compared BY
     // VALUE: the state manager hands a fresh copy each apply, and comparing
     // references made every apply dirty the pipeline.
-    if (this._renderStateSetup === setup && CanonicalKey(this._renderStateOverrides) === CanonicalKey(overrides)) return true;
+    if (this._renderStateSetup === setup && CanonicalKey(this._renderStateOverrides) === CanonicalKey(overrides)) return ALResult.S_OK;
 
     this._renderStateSetup = setup;
     this._renderStateOverrides = overrides;
@@ -1324,7 +1330,7 @@ export class CjsWebgpuRenderContextAL
     this._psoDescription.renderStateOverrides = overrides;
     this._pipelineDirty = true;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -1353,13 +1359,13 @@ export class CjsWebgpuRenderContextAL
    *
    * @param {number} state A `RenderState` value.
    * @param {number} value The value to set.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   SetRenderState(state, value)
   {
     const key = state >>> 0;
 
-    if (this._renderStates.get(key) === (value >>> 0)) return true;
+    if (this._renderStates.get(key) === (value >>> 0)) return ALResult.S_OK;
 
     this._renderStates.set(key, value >>> 0);
     this._pipelineDirty = true;
@@ -1372,7 +1378,7 @@ export class CjsWebgpuRenderContextAL
       this._psoDescription.unclippedDepth = value === 0 && this._webgpu.GetDevice().features.has("depth-clip-control");
     }
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /** The setup, overrides and single states a pipeline should be resolved from. */
@@ -2195,7 +2201,7 @@ export class CjsWebgpuRenderContextAL
    * Binds a prepared set of textures, samplers and buffers.
    *
    * @param {object} resourceSet A `Tr2ResourceSetAL`.
-   * @returns {boolean} True.
+   * @returns {number} `S_OK`.
    */
   @impl.adapted
   @impl.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
@@ -2203,7 +2209,7 @@ export class CjsWebgpuRenderContextAL
   {
     this._resourceSet = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -2227,16 +2233,16 @@ export class CjsWebgpuRenderContextAL
    * @param {number} constantType A `ShaderType`.
    * @param {number} registerIndex The constant-buffer register.
    * @param {number} [_maxRegisterCount] Carbon's optional bound.
-   * @returns {boolean} Whether the AL accepted it.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
    */
   SetConstants(buffer, constantType, registerIndex, _maxRegisterCount = 0)
   {
-    if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return false;
-    if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT) return false;
+    if (registerIndex < 0 || registerIndex >= CONSTANT_BUFFER_REGISTERS) return ALResult.E_FAIL;
+    if (constantType < 0 || constantType >= ShaderType.SHADER_TYPE_COUNT) return ALResult.E_FAIL;
 
     this._constantBuffers.set(constantType * CONSTANT_BUFFER_REGISTERS + registerIndex, buffer ?? null);
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -2578,13 +2584,13 @@ export class CjsWebgpuRenderContextAL
    * @param {object} source The source `Tr2BufferAL`.
    * @param {number} sourceOffset Byte offset into it.
    * @param {number} size Bytes to copy.
-   * @returns {boolean} Whether the copy was encoded.
+   * @returns {number} An `ALResult`: whether the copy was encoded.
    */
   CopySubBuffer(destination, destinationOffset, source, sourceOffset, size)
   {
-    if (!this._commandEncoder) return false;
-    if (!destination || !source || !destination.IsValid() || !source.IsValid()) return false;
-    if (size <= 0) return false;
+    if (!this._commandEncoder) return ALResult.E_FAIL;
+    if (!destination || !source || !destination.IsValid() || !source.IsValid()) return ALResult.E_FAIL;
+    if (size <= 0) return ALResult.E_FAIL;
 
     this._commandEncoder.copyBufferToBuffer(
       source.GetDeviceBuffer(),
@@ -2594,7 +2600,7 @@ export class CjsWebgpuRenderContextAL
       size
     );
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -2605,21 +2611,21 @@ export class CjsWebgpuRenderContextAL
    * second draw path beside the queue's, which is the split this backend is
    * built around.
    *
-   * @returns {boolean} False.
+   * @returns {number} `E_FAIL`.
    */
   DrawInstancedIndirect()
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   /**
    * Draws indexed indirectly.
    *
-   * @returns {boolean} False; see `DrawInstancedIndirect`.
+   * @returns {number} `E_FAIL`; see `DrawInstancedIndirect`.
    */
   DrawIndexedInstancedIndirect()
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   /**
@@ -2628,55 +2634,55 @@ export class CjsWebgpuRenderContextAL
    * @param {object} _destination Where they are used.
    * @param {number} _usage How they are used.
    * @param {object[]} _resources The resources.
-   * @returns {boolean} True. This is a residency and barrier hint for backends
+   * @returns {number} `S_OK`. This is a residency and barrier hint for backends
    *   that place their own memory; WebGPU tracks both itself, so honouring it
    *   is nothing rather than unimplemented.
    */
   UseResources(_destination, _usage, _resources)
   {
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
    * Declares a ray-tracing acceleration structure in use.
    *
    * @param {object} _tlas The top-level structure.
-   * @returns {boolean} True, as the stub reports.
+   * @returns {number} `S_OK`, as the stub reports.
    */
   UseAccelerationStructure(_tlas)
   {
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
    * Dispatches rays.
    *
-   * @returns {boolean} False; WebGPU has no ray-tracing pipeline.
+   * @returns {number} `E_FAIL`; WebGPU has no ray-tracing pipeline.
    */
   DispatchRays()
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   /**
    * Whether the device recorded a GPU state marker after a fault.
    *
-   * @returns {boolean} False; WebGPU surfaces device loss as a promise and a
+   * @returns {number} `E_FAIL`; WebGPU surfaces device loss as a promise and a
    *   reason string, with no marker or breadcrumb to read.
    */
   GetGpuStateMarker()
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   /**
    * The resource a GPU page fault named.
    *
-   * @returns {boolean} False; see `GetGpuStateMarker`.
+   * @returns {number} `E_FAIL`; see `GetGpuStateMarker`.
    */
   GetGpuPageFaultResource()
   {
-    return false;
+    return ALResult.E_FAIL;
   }
 
   // THE UPSCALING FAMILY. Every answer is the stub's, and the stub's are
@@ -2817,7 +2823,7 @@ export class CjsWebgpuRenderContextAL
    * @param {number} startIndexLocation First index.
    * @param {number} baseVertexLocation Value added to every index.
    * @param {number} startInstanceLocation First instance id.
-   * @returns {boolean} Whether the draw was recorded.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
   DrawIndexedInstanced(
     indexCountPerInstance,
@@ -2827,8 +2833,8 @@ export class CjsWebgpuRenderContextAL
     startInstanceLocation = 0
   )
   {
-    if (!this._indexBuffer) return false;
-    if (!this._shaderProgram) return false;
+    if (!this._indexBuffer) return ALResult.E_FAIL;
+    if (!this._shaderProgram) return ALResult.E_FAIL;
 
     // Metal (`MetalWorkQueue.mm:2922-2944`): `GetRenderEncoder()` FIRST, then
     // `if( EmitRenderEncoderState() ) { [renderEncoder drawIndexed...] }`. The
@@ -2836,7 +2842,7 @@ export class CjsWebgpuRenderContextAL
     // `CR_RETURN_HR( SetAllState() )` at the top of the verb.
     this._Record(this._workQueue.GetRenderEncoder());
 
-    if (!this.EmitRenderEncoderState(true)) return false;
+    if (!this.EmitRenderEncoderState(true)) return ALResult.E_FAIL;
 
     this._Record(this._workQueue.DrawIndexedPrimitives(
       indexCountPerInstance,
@@ -2847,7 +2853,7 @@ export class CjsWebgpuRenderContextAL
     ));
     this._drawnBatchCount += 1;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -2857,15 +2863,15 @@ export class CjsWebgpuRenderContextAL
    * @param {number} instanceCount Instances to draw.
    * @param {number} startVertexLocation First vertex.
    * @param {number} startInstanceLocation First instance id.
-   * @returns {boolean} Whether the draw was recorded.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
   DrawInstanced(vertexCountPerInstance, instanceCount, startVertexLocation = 0, startInstanceLocation = 0)
   {
-    if (!this._shaderProgram) return false;
+    if (!this._shaderProgram) return ALResult.E_FAIL;
 
     this._Record(this._workQueue.GetRenderEncoder());
 
-    if (!this.EmitRenderEncoderState(false)) return false;
+    if (!this.EmitRenderEncoderState(false)) return ALResult.E_FAIL;
 
     this._Record(this._workQueue.DrawPrimitives(
       vertexCountPerInstance,
@@ -2875,7 +2881,7 @@ export class CjsWebgpuRenderContextAL
     ));
     this._drawnBatchCount += 1;
 
-    return true;
+    return ALResult.S_OK;
   }
 
   /**
@@ -2885,7 +2891,7 @@ export class CjsWebgpuRenderContextAL
    * @param {number} startIndex First index.
    * @param {number} primitiveCount Primitives to draw.
    * @param {number} [minimumIndex] Lowest index present.
-   * @returns {boolean} Whether the draw was recorded.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
   DrawIndexedPrimitive(numVertices, startIndex, primitiveCount, minimumIndex = 0)
   {
@@ -2897,7 +2903,7 @@ export class CjsWebgpuRenderContextAL
    *
    * @param {number} startVertex First vertex.
    * @param {number} primitiveCount Primitives to draw.
-   * @returns {boolean} Whether the draw was recorded.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
   DrawPrimitive(startVertex, primitiveCount)
   {
@@ -2918,17 +2924,17 @@ export class CjsWebgpuRenderContextAL
    * @param {number} primitiveCount Primitives to draw.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} Whether the draw was encoded.
+   * @returns {number} An `ALResult`: whether the draw was encoded.
    */
   DrawPrimitiveUP(primitiveCount, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return !Failed(this._drawUP.DrawPrimitiveUP(
+    return this._drawUP.DrawPrimitiveUP(
       this._topology,
       primitiveCount,
       vertexStreamZeroData,
       vertexStreamZeroStride,
       this
-    ));
+    );
   }
 
   /**
@@ -2942,11 +2948,11 @@ export class CjsWebgpuRenderContextAL
    * @param {Uint16Array|Uint32Array} indexData The indices.
    * @param {ArrayBufferView} vertexStreamZeroData The vertices.
    * @param {number} vertexStreamZeroStride Bytes per vertex.
-   * @returns {boolean} Whether the draw was encoded.
+   * @returns {number} An `ALResult`: whether the draw was encoded.
    */
   DrawIndexedPrimitiveUP(numVertices, primitiveCount, indexData, vertexStreamZeroData, vertexStreamZeroStride)
   {
-    return !Failed(this._drawUP.DrawIndexedPrimitiveUP(
+    return this._drawUP.DrawIndexedPrimitiveUP(
       this._topology,
       numVertices,
       primitiveCount,
@@ -2954,7 +2960,7 @@ export class CjsWebgpuRenderContextAL
       vertexStreamZeroData,
       vertexStreamZeroStride,
       this
-    ));
+    );
   }
 
   /**

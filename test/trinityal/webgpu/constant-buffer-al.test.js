@@ -175,7 +175,7 @@ test("SetConstants on the buffer binds on the context, as Metal's does", () =>
 {
   const { renderContext } = context();
   const bound = [];
-  const binding = { ...renderContext, SetConstants: (buffer, stage, register) => (bound.push([ buffer, stage, register ]), true) };
+  const binding = { ...renderContext, SetConstants: (buffer, stage, register) => (bound.push([ buffer, stage, register ]), ALResult.S_OK) };
   const buffer = new CjsWebgpuConstantBufferAL();
 
   assert.equal(buffer.SetConstants(1, 0, binding), ALResult.E_INVALIDCALL, "an invalid buffer binds nothing");

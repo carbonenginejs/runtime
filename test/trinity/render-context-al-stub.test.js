@@ -13,6 +13,7 @@ import {
   Tr2StoreAction
 } from "../../npm/dist/global/consts/renderContext/index.js";
 import { StubContext, StubTarget } from "../support/stubContext.js";
+import { ALResult, Failed } from "../../npm/dist/trinityal/index.js";
 
 const ready = () =>
 {
@@ -30,7 +31,7 @@ test("a context is invalid until a device is created", () =>
   const al = new Tr2RenderContextALStub();
 
   assert.equal(al.IsValid(), false);
-  assert.equal(al.CreateDevice(), true);
+  assert.equal(al.CreateDevice(), ALResult.S_OK);
   assert.equal(al.IsValid(), true);
 });
 
@@ -96,8 +97,8 @@ test("an unbalanced pop reports failure rather than throwing", () =>
   // :365-374 for the depth stencil). A stray pop is reported, not fatal.
   const al = ready();
 
-  assert.equal(al.PopRenderTarget(0), false);
-  assert.equal(al.PopDepthStencil(), false);
+  assert.ok(Failed(al.PopRenderTarget(0)));
+  assert.ok(Failed(al.PopDepthStencil()));
 
   // And nothing was rebound by the refusal.
   assert.equal(al.GetStackSizeRT(0), 0);
@@ -120,7 +121,7 @@ test("ClearUav and buffer copies refuse, as Carbon's stub does", () =>
   // succeeding would hide that.
   const al = ready();
 
-  assert.equal(al.ClearUav(), false);
+  assert.ok(Failed(al.ClearUav()));
 });
 
 test("draws are counted, so a headless frame can be asserted", () =>
@@ -195,7 +196,7 @@ test("a bare context is headless, not backendless", () =>
   assert.equal(al.IsValid(), false, "and it is invalid until CreateDevice, as Carbon's is");
 
   al.CreateDevice({ mode: { width: 64, height: 64 } });
-  assert.equal(context.Clear({ clearColor: true }), true);
+  assert.equal(context.Clear({ clearColor: true }), ALResult.S_OK);
   assert.equal(al.GetClearCount(), 1, "the clear reached a real backend");
 });
 
@@ -549,15 +550,15 @@ test("the binding family accepts what a draw needs bound", () =>
   // of them between picking a batch and drawing it.
   const al = ready();
 
-  assert.equal(al.BeginScene(), true);
-  assert.equal(al.SetVertexLayout({ id: "layout" }), true);
-  assert.equal(al.SetStreamSource(0, { id: "vertices" }, 0, 32), true);
-  assert.equal(al.SetIndices({ id: "indices" }, 2), true);
-  assert.equal(al.SetShaderProgram({ id: "program" }), true);
-  assert.equal(al.SetResourceSet({ id: "resources" }), true);
-  assert.equal(al.SetConstants({ id: "perObject" }, ShaderType.PIXEL_SHADER, 4), true);
-  assert.equal(al.SetRenderStates([ 1, 2 ], 1), true);
-  assert.equal(al.EndScene(), true);
+  assert.equal(al.BeginScene(), ALResult.S_OK);
+  assert.equal(al.SetVertexLayout({ id: "layout" }), ALResult.S_OK);
+  assert.equal(al.SetStreamSource(0, { id: "vertices" }, 0, 32), ALResult.S_OK);
+  assert.equal(al.SetIndices({ id: "indices" }, 2), ALResult.S_OK);
+  assert.equal(al.SetShaderProgram({ id: "program" }), ALResult.S_OK);
+  assert.equal(al.SetResourceSet({ id: "resources" }), ALResult.S_OK);
+  assert.equal(al.SetConstants({ id: "perObject" }, ShaderType.PIXEL_SHADER, 4), ALResult.S_OK);
+  assert.equal(al.SetRenderStates([ 1, 2 ], 1), ALResult.S_OK);
+  assert.equal(al.EndScene(), ALResult.S_OK);
 });
 
 test("topology is the one bound argument the stub checks", () =>
@@ -567,10 +568,10 @@ test("topology is the one bound argument the stub checks", () =>
   // fails rather than reaching a backend that would guess.
   const al = ready();
 
-  assert.equal(al.SetTopology(Topology.TOP_TRIANGLES), true);
-  assert.equal(al.SetTopology(Topology.TOP_POINTS), true);
-  assert.equal(al.SetTopology(Topology.TOP_MAX_TOPOLOGY), false);
-  assert.equal(al.SetTopology(99), false);
+  assert.equal(al.SetTopology(Topology.TOP_TRIANGLES), ALResult.S_OK);
+  assert.equal(al.SetTopology(Topology.TOP_POINTS), ALResult.S_OK);
+  assert.ok(Failed(al.SetTopology(Topology.TOP_MAX_TOPOLOGY)));
+  assert.ok(Failed(al.SetTopology(99)));
 });
 
 test("a user-pointer draw with nothing behind the pointer fails", () =>
@@ -582,10 +583,10 @@ test("a user-pointer draw with nothing behind the pointer fails", () =>
   const indices = new Uint16Array([ 0, 1, 2 ]);
   const vertices = new Float32Array(9);
 
-  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, indices, vertices, 12), true);
-  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, null, vertices, 12), false);
-  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, indices, null, 12), false);
-  assert.equal(al.DrawPrimitiveUP(1, null, 12), true, "Carbon does not check this one");
+  assert.equal(al.DrawIndexedPrimitiveUP(3, 1, indices, vertices, 12), ALResult.S_OK);
+  assert.ok(Failed(al.DrawIndexedPrimitiveUP(3, 1, null, vertices, 12)));
+  assert.ok(Failed(al.DrawIndexedPrimitiveUP(3, 1, indices, null, 12)));
+  assert.equal(al.DrawPrimitiveUP(1, null, 12), ALResult.S_OK, "Carbon does not check this one");
 
   assert.equal(al.GetDrawCount(), 2, "a refused draw is not a draw");
 });
@@ -597,9 +598,9 @@ test("the draws that need a GPU to read their arguments are refused", () =>
   // on a device.
   const al = ready();
 
-  assert.equal(al.DrawIndexedInstancedIndirect({ id: "args" }, 0), false);
-  assert.equal(al.DrawInstancedIndirect({ id: "args" }, 0), false);
-  assert.equal(al.CopySubBuffer({}, 0, {}, 0, 16), false);
+  assert.ok(Failed(al.DrawIndexedInstancedIndirect({ id: "args" }, 0)));
+  assert.ok(Failed(al.DrawInstancedIndirect({ id: "args" }, 0)));
+  assert.ok(Failed(al.CopySubBuffer({}, 0, {}, 0, 16)));
   assert.equal(al.GetDrawCount(), 0);
 });
 
@@ -622,7 +623,7 @@ test("the pass hint is accepted and read-only depth is refused", () =>
   al.SetReadOnlyDepth(true);
   assert.equal(al.GetReadOnlyDepth(), false, "the stub has no read-only depth path");
   assert.equal(al.SupportsBindlessTextures(), false);
-  assert.equal(al.UseResources(), true, "a residency hint, not a bind");
+  assert.equal(al.UseResources(), ALResult.S_OK, "a residency hint, not a bind");
 });
 
 test("an attachment says nothing until it is told to", () =>
