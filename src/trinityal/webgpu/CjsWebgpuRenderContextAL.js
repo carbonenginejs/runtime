@@ -79,6 +79,7 @@ import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
 import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
+import { CjsWebgpuFenceAL } from "./CjsWebgpuFenceAL.js";
 import { CARBON_BACKEND_ADDRESS_MODES_SYMBOL } from "#resource/format";
 import { CjsWebgpuSamplerStateAL } from "./CjsWebgpuSamplerStateAL.js";
 import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
@@ -432,6 +433,20 @@ export class CjsWebgpuRenderContextAL
     if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * This backend's `Tr2FenceAL`, created against this context: Carbon's
+   * `new Tr2FenceAL` then `fence->Create( renderContext )`
+   * (`Tr2DynamicRingBuffer.cpp:AllocateFence`), as one call.
+   *
+   * @returns {object|null} The fence, or null when Create refused.
+   */
+  CreateFence()
+  {
+    const fence = new CjsWebgpuFenceAL();
+
+    return Failed(fence.Create(this)) ? null : fence;
   }
 
   /**

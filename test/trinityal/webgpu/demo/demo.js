@@ -102,7 +102,7 @@
 import { Tr2GpuResourcePool } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../../npm/dist/trinity/core/context/Tr2RenderContext.js";
 import { EveComponentType } from "../../../../npm/dist/trinity/eve/EveComponentTypes.js";
-import { CjsBatchManager, Tr2LightManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
+import { CjsBatchManager, Tr2QuadRenderer, Tr2LightManager, Tr2MeshArea, Tr2MeshBase, Tr2RenderContext, Tr2Renderer, Tr2RingBuffer, Tr2RingBufferOffsets, Tr2VariableStore, RawData, TriRenderBatchAccumulator } from "../../../../npm/dist/trinity/core/index.js";
 import { Tr2RenderTarget } from "../../../../npm/dist/trinity/core/device/Tr2RenderTarget.js";
 import { Tr2ReflectionProbe } from "../../../../npm/dist/trinity/core/Tr2ReflectionProbe.js";
 import { RealizeTexture } from "../../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
@@ -2337,7 +2337,12 @@ export async function RunDemo(canvas)
   }).Configure({ width: canvas.width, height: canvas.height });
 
   const batchManager = new CjsBatchManager({
-    batchTypes: [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL ],
+    // Carbon's scene makes these four of its lists (EveSpaceScene.cpp:224-228).
+    // Without TRANSPARENT and ADDITIVE the driver's transparent pass had no
+    // accumulators to draw: no sprite, glow, booster or other additive batch
+    // ever reached the screen. The transparent list keeps insertion order
+    // (Carbon's TriRenderBatchAccumulator<>), the gather's back-to-front order.
+    batchTypes: [ TriBatchType.TRIBATCHTYPE_OPAQUE, TriBatchType.TRIBATCHTYPE_DECAL, TriBatchType.TRIBATCHTYPE_TRANSPARENT, TriBatchType.TRIBATCHTYPE_ADDITIVE ],
     // THE ACCUMULATOR CARRIES THE RENDERING MODE, and nothing was setting it.
     // `TriRenderBatchAccumulator.Commit` stamps its mode onto every batch, and
     // the walk skips `ApplyStandardStates` for RM_ANY - so with the default no
@@ -2353,9 +2358,13 @@ export async function RunDemo(canvas)
     {
       const accumulator = new TriRenderBatchAccumulator();
 
-      const mode = batchType === TriBatchType.TRIBATCHTYPE_DECAL
-        ? RenderingMode.RM_DECAL
-        : RenderingMode.RM_OPAQUE;
+      // The modes the driver applies to each list (RenderTransparentBatches,
+      // EveSpaceScene.cpp:1170-1173).
+      const mode = {
+        [TriBatchType.TRIBATCHTYPE_DECAL]: RenderingMode.RM_DECAL,
+        [TriBatchType.TRIBATCHTYPE_TRANSPARENT]: RenderingMode.RM_ALPHA,
+        [TriBatchType.TRIBATCHTYPE_ADDITIVE]: RenderingMode.RM_ALPHA_ADDITIVE
+      }[batchType] ?? RenderingMode.RM_OPAQUE;
 
       // `Clear` resets the mode back to RM_ANY every frame, so it has to be
       // re-applied every frame - Carbon sets it at collection time for the same
@@ -2404,6 +2413,25 @@ export async function RunDemo(canvas)
   const dummies = [];
   const createResourceSet = al.CreateResourceSet.bind(al);
   const getDummyTexture = al.GetDummyTexture.bind(al);
+  // THE QUAD STEP OF CARBON'S GatherBatches (EveSpaceScene.cpp:1512-1514):
+  // after the renderables' batches and before FinalizeBatches, the scene's
+  // objects add their sprite and spotlight quads, the quad renderer uploads
+  // them, and its batches join the opaque and additive lists. The batch
+  // manager's collector is where that step runs here.
+  batchManager.RegisterCollector("Tr2QuadRenderer", {
+    Collect: (_renderables, batchMap) =>
+    {
+      if (!realScene) return;
+
+      const context = realScene.updateContext;
+      realScene.UpdateQuadRenderer(context.GetFrustum(), realScene.objects, context.renderContext);
+
+      const quads = Tr2QuadRenderer.Instance();
+      quads.GetBatches(TriBatchType.TRIBATCHTYPE_OPAQUE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_OPAQUE));
+      quads.GetBatches(TriBatchType.TRIBATCHTYPE_ADDITIVE, batchMap.GetAccumulator(TriBatchType.TRIBATCHTYPE_ADDITIVE));
+    }
+  });
+
 
   al.GetDummyTexture = dimension => { dummies.push(dimension); return getDummyTexture(dimension); };
   al.CreateResourceSet = (description, program, implementationOnly = false) =>

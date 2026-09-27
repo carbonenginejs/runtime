@@ -61,7 +61,7 @@ function getRecordBySize(renderer, size)
 
 function getRecordData(renderer, record)
 {
-  const bytes = renderer.GetMergedData();
+  const bytes = renderer._buffer;
   const floats = new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 4);
   const start = record.bufferOffset / 4;
   return floats.slice(start, start + record.count * record.instanceSize / 4);
@@ -220,7 +220,7 @@ test("EveTacticalOverlay emits exact anchor, connector and velocity instance rec
   const renderer = new Tr2QuadRenderer();
   overlay.RegisterWithQuadRenderer(renderer);
   overlay.AddQuadsToQuadRenderer(context.GetFrustum(), renderer);
-  renderer.BeginRendering();
+  renderer.MergeBuffers();
   assert.equal(renderer.GetEffectRecords().size, 3,
     "equal content hashes remain distinct by effect identity");
 

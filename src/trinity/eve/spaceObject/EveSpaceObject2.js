@@ -1415,6 +1415,50 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Collects the hull and explicitly owned Carbon child/decal renderables. */
+  /**
+   * Carbon RegisterWithQuadRenderer (EveSpaceObject2.cpp:2224-2234): the
+   * effect children and the attachments (sprite and spotlight sets) register
+   * their quad effects.
+   *
+   * @param {object} quadRenderer The scene's Tr2QuadRenderer.
+   */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    for (const child of this.effectChildren) child?.RegisterWithQuadRenderer(quadRenderer);
+    for (const attachment of this.attachments) attachment?.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /**
+   * Carbon AddQuadsToQuadRenderer (EveSpaceObject2.cpp:2242-2264): each
+   * attachment adds its quads in world space, with the ship data's activation
+   * (y) and booster gain (x); the effect children follow the child display
+   * rule.
+   *
+   * @param {object} frustum The frame's frustum.
+   * @param {object} quadRenderer The scene's Tr2QuadRenderer.
+   */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.isVisible || !this.display || this.#impostorMode) return;
+
+    const { bones, boneCount } = getBoneList(this.animationUpdater);
+
+    for (const attachment of this.attachments)
+    {
+      attachment?.AddToQuadRenderer(quadRenderer, this.worldTransform, this.spaceObjectShipData[1], this.spaceObjectShipData[0], bones, boneCount);
+    }
+
+    const displayChildren = this.DisplayChildren();
+    for (const child of this.effectChildren)
+    {
+      if (child && (displayChildren || child.IsAlwaysOn())) child.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    }
+  }
+
   @carbon.method
   @impl.adapted
   @impl.reason("Impostor submission and decal mesh caches are not ported yet; Trinity returns the backend-neutral renderable graph.")

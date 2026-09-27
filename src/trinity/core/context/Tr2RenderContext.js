@@ -766,6 +766,17 @@ export class Tr2RenderContext extends CjsModel
   }
 
   /**
+   * Creates a fence of the running backend's kind, for the reason
+   * `CreateBuffer` is here: Carbon's `new Tr2FenceAL` compiles to one backend.
+   *
+   * @returns {object|null} A created `Tr2FenceAL`, or null when refused.
+   */
+  CreateFence()
+  {
+    return this.#requireAL("CreateFence").CreateFence();
+  }
+
+  /**
    * The running backend's sampler state for a description.
    *
    * Carbon's `Tr2SamplerStateAL::Create` is a factory lookup on the primary

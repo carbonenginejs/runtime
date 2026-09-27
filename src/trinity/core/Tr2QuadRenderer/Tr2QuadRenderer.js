@@ -1,29 +1,45 @@
 // Source: trinity/trinity/Tr2QuadRenderer.h
 //   trinity/trinity/Tr2QuadRenderer.cpp
 // Hand-maintained from Carbon source, promoted out of generated intake.
-// CPU half implemented 2026-07-23 (batch-plan P5 scene-global quad collector).
-// The generator had flattened the internal EffectRecord/PerThreadData members
-// onto the class; corrected to Carbon's nested shape.
-//
-// NOT PORTED: UpdateInstanceBuffer (cpp:178), RecreateQuadBuffers (cpp:206)
-// and OnPrepareResources (cpp:278) are all methods of this class in Carbon.
-// Five classes stop forwarding here because of it - EveChildQuad,
-// EveChildTurret, EveSmartLightQuad, EveBoosterSet2, EveChildBoosterSet.
+// The CPU half was implemented 2026-07-23 and the GPU half on 2026-09-27: the
+// ring instance buffer (UpdateInstanceBuffer), the shared quad vertex and index
+// buffers (RecreateQuadBuffers) and the vertex declarations (OnPrepareResources).
 import { Tr2QuadRendererEffectRecord } from "./Tr2QuadRendererEffectRecord.js";
 import { carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
-import { TriBatchType } from "#consts/graphics";
+import { TriBatchType, TriStorageFlags } from "#consts/graphics";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2BufferDescriptionAL } from "#trinityal";
+import { Tr2RingVertexBuffer } from "../device/Tr2DynamicRingBuffer.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 
+/** Initial size of the instance buffer (cpp:17). */
+const BUFFER_INITIAL_SIZE = 4 * 1024 * 1024;
+
+/** Carbon's anonymous `Align` (cpp:19-22). */
+function Align(offset, alignment)
+{
+  return Math.floor((offset + alignment - 1) / alignment) * alignment;
+}
+
+/** The lowest common multiple, Carbon's `std::lcm` (cpp:81). */
+function Lcm(a, b)
+{
+  const gcd = (x, y) => (y ? gcd(y, x % y) : x);
+  return (a * b) / gcd(a, b);
+}
 
 /** Collects quads from every registered effect into one merged instance buffer and emits them as batches. */
 @type.define({ className: "Tr2QuadRenderer", family: "trinityCore" })
 export class Tr2QuadRenderer extends CjsModel
 {
 
-  /** m_vertexBufferOffset (uint32_t) - ring offset; engine stamps the real one. */
-  @type.uint32
-  vertexBufferOffset = 0;
+  /** m_vertexBufferOffset: the frame's ring offset, -1 when the upload failed (cpp:27). */
+  @type.int32
+  vertexBufferOffset = -1;
 
   /** m_lastInstanceDataSize (uint32_t) */
   @type.uint32
@@ -38,16 +54,30 @@ export class Tr2QuadRenderer extends CjsModel
   bufferSize = 0;
 
   /** m_effects - EffectKey -> Tr2QuadRendererEffectRecord. */
-  #effects = new Map();
+  _effects = new Map();
 
-  /** The merged terminal CPU instance bytes for the frame. */
-  #mergedData = null;
+  /** m_buffer - the merged CPU instance bytes. */
+  _buffer = null;
 
-  /** Largest quadCount among records with instances (RecreateQuadBuffers input). */
-  #maxQuadCount = 0;
+  /** m_quad - quad corner indices 0..4n-1 as floats; null until created. */
+  _quad = null;
+
+  /** m_quadIB - six uint16 indices per quad; null until created. */
+  _quadIB = null;
+
+  /** m_vertexBuffer - the ring the merged instances are uploaded into. */
+  _vertexBuffer = null;
+
+  /** Carbon's constructor (cpp:25-35): the ring grows 512 KiB at a time. */
+  constructor()
+  {
+    super();
+    this._vertexBuffer = new Tr2RingVertexBuffer();
+    this._vertexBuffer.SetSizeIncrement(512 * 1024);
+  }
 
   /**
-   * Registers a quad effect once per key (Carbon Tr2QuadRenderer.cpp:30-53).
+   * Registers a quad effect once per key (Carbon Tr2QuadRenderer.cpp:61-83).
    * instanceSize is in bytes; the buffer alignment grows to the lcm of all
    * registered instance sizes.
    */
@@ -55,7 +85,7 @@ export class Tr2QuadRenderer extends CjsModel
   @impl.implemented
   RegisterEffect(key, batchType, instanceSize, quadCount, definition, effect)
   {
-    if (this.#effects.has(key))
+    if (this._effects.has(key))
     {
       return;
     }
@@ -63,10 +93,12 @@ export class Tr2QuadRenderer extends CjsModel
     record.effect = effect ?? null;
     record.batchType = batchType;
     record.instanceSize = instanceSize >>> 0;
+    record.count = 0;
     record.quadCount = quadCount >>> 0;
+    record.vertexDeclHandle = Tr2EffectStateManager.Unknown;
     record.definition = definition ?? null;
-    this.#effects.set(key, record);
-    this.bufferAlignment = Tr2QuadRenderer.#Lcm(this.bufferAlignment, record.instanceSize || 1);
+    this._effects.set(key, record);
+    this.bufferAlignment = Lcm(this.bufferAlignment, record.instanceSize || 1);
   }
 
   /**
@@ -76,25 +108,22 @@ export class Tr2QuadRenderer extends CjsModel
   @impl.implemented
   UnregisterEffect(key)
   {
-    this.#effects.delete(key);
+    this._effects.delete(key);
   }
 
   /**
-   * Accumulates instance data for a registered effect (Carbon cpp:60-79).
-   * Accepts terminal byte views or legacy float32-compatible number arrays
-   * covering count * instanceSize bytes; unknown keys are ignored like Carbon.
+   * Accumulates instance data for a registered effect (Carbon cpp:106-126).
    *
-   * The bytes are copied raw into the merged buffer. A producer with a
-   * mixed-width record, float16 tails included, packs it before calling: a
-   * number array is only ever packed as float32. Engines upload the merged
-   * bytes as they are.
+   * Adapted: Carbon keeps a buffer per TBB thread; single-threaded JS keeps
+   * one pending list per record. The bytes are copied raw, as Carbon's memcpy;
+   * a number array is packed as float32, so a mixed-width record (float16
+   * tails) is packed by its producer first.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Single-threaded JS collapses the per-thread TLS buffers to one pending list while preserving Carbon's raw memcpy byte boundary.")
   AddQuads(effectKey, sprites, count = 1)
   {
-    const record = this.#effects.get(effectKey);
+    const record = this._effects.get(effectKey);
     if (!record)
     {
       return;
@@ -106,32 +135,32 @@ export class Tr2QuadRenderer extends CjsModel
       return;
     }
 
-    const bytes = Tr2QuadRenderer.#CopyInstanceBytes(sprites, size);
-    record.pending.push(bytes);
+    record.pending.push(Tr2QuadRenderer._CopyInstanceBytes(sprites, size));
     record.addedSize += size;
     this.bufferSize += size;
   }
 
   /**
    * Concatenates every record's pending instances into one aligned CPU
-   * buffer, stamping per-record bufferOffset/count (Carbon cpp:81-115).
+   * buffer, stamping per-record bufferOffset/count (Carbon cpp:134-170).
    * Returns the largest quadCount among live records.
    */
   @carbon.method
   @impl.implemented
   MergeBuffers()
   {
-    let padded = this.bufferSize;
-    for (const record of this.#effects.values())
+    // Add padding to accommodate alignment.
+    for (const record of this._effects.values())
     {
-      padded += record.instanceSize;
+      this.bufferSize += record.instanceSize;
     }
-    const merged = new Uint8Array(padded);
+
+    const merged = new Uint8Array(this.bufferSize);
     let offset = 0;
     let quadCount = 0;
-    for (const record of this.#effects.values())
+    for (const record of this._effects.values())
     {
-      offset = Tr2QuadRenderer.#Align(offset, record.instanceSize || 1);
+      offset = Align(offset, record.instanceSize || 1);
       record.bufferOffset = offset;
       for (const chunk of record.pending)
       {
@@ -146,77 +175,167 @@ export class Tr2QuadRenderer extends CjsModel
         quadCount = Math.max(quadCount, record.quadCount);
       }
     }
-    this.#mergedData = merged;
-    this.#maxQuadCount = quadCount;
+    this._buffer = merged;
     return quadCount;
   }
 
   /**
-   * Frame-start CPU work (Carbon cpp:160-166): merge the accumulated
-   * instances. Buffer upload and quad-buffer creation are not ported yet;
-   * the engine reads GetMergedData()/GetMaxQuadCount() and stamps
-   * vertexBufferOffset with the ring allocation.
+   * Carbon UpdateInstanceBuffer (cpp:178-199): uploads the merged instances
+   * into the ring and remembers where they landed.
    */
   @carbon.method
-  @impl.adapted
-  @impl.reason("UpdateInstanceBuffer (cpp:178), RecreateQuadBuffers (cpp:206) and OnPrepareResources (cpp:278) are not ported; all three are methods of this class in Carbon. The merged CPU state is exposed meanwhile.")
-  BeginRendering(_renderContext = null)
+  @impl.implemented
+  UpdateInstanceBuffer(renderContext)
   {
-    const quadCount = this.MergeBuffers();
+    if (this.bufferSize && !this._vertexBuffer.IsValid())
+    {
+      this._vertexBuffer.Create(BUFFER_INITIAL_SIZE);
+    }
+
+    const { result, offset } = this._vertexBuffer.PutData(this._buffer, this.bufferSize, this.bufferAlignment, renderContext);
+    if (result < 0)
+    {
+      this.vertexBufferOffset = -1;
+      return;
+    }
+    this.vertexBufferOffset = offset;
     this.lastInstanceDataSize = this.bufferSize;
-    return quadCount;
   }
 
-  /** Frame-end reset (Carbon cpp:55-58). */
+  /**
+   * Carbon RecreateQuadBuffers (cpp:206-236): the quad corner stream (each
+   * vertex is its own index as a float) and the index list, grown to the
+   * largest quad count seen.
+   */
   @carbon.method
   @impl.implemented
-  DoneRendering(_renderContext = null)
+  RecreateQuadBuffers(quadCount)
   {
+    if (!quadCount) return;
+
+    const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+
+    if (!this._quad?.IsValid() || this._quad.GetSize() / 4 < quadCount * 4)
+    {
+      const quad = new Float32Array(quadCount * 4);
+      for (let i = 0; i < quad.length; ++i) quad[i] = i;
+
+      this._quad?.Destroy();
+      this._quad = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 4 * quadCount, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.NONE), quad);
+    }
+    if (!this._quadIB?.IsValid() || this._quadIB.GetDesc().count < quadCount * 6)
+    {
+      const corners = [ 0, 2, 1, 0, 3, 2 ];
+      const quadIB = new Uint16Array(quadCount * 6);
+      for (let i = 0; i < quadCount; ++i)
+      {
+        for (let j = 0; j < 6; ++j) quadIB[i * 6 + j] = i * 4 + corners[j];
+      }
+
+      this._quadIB?.Destroy();
+      this._quadIB = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(2, quadCount * 6, Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.NONE), quadIB);
+    }
+  }
+
+  /**
+   * Carbon BeginRendering (cpp:244-253): merge, upload, size the quad
+   * buffers, make the declarations.
+   */
+  @carbon.method
+  @impl.implemented
+  BeginRendering(renderContext)
+  {
+    const quadCount = this.MergeBuffers();
+    this.UpdateInstanceBuffer(renderContext);
+    this.RecreateQuadBuffers(quadCount);
+    this.PrepareResources();
+  }
+
+  /** Carbon DoneRendering (cpp:89-93): the ring region is fenced, the size reset. */
+  @carbon.method
+  @impl.implemented
+  DoneRendering(renderContext)
+  {
+    this._vertexBuffer.DoneUsingData(renderContext);
     this.bufferSize = 0;
+  }
+
+  /** Carbon ReleaseResources (cpp:262-271): declarations are recreated on prepare. */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources(storage)
+  {
+    if (storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)
+    {
+      for (const record of this._effects.values())
+      {
+        record.vertexDeclHandle = Tr2EffectStateManager.Unknown;
+      }
+    }
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources: creation only when the device allows it. */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    return Tr2Renderer.IsResourceCreationAllowed() ? this.OnPrepareResources() : true;
+  }
+
+  /** Carbon OnPrepareResources (cpp:279-289): a declaration per registered effect. */
+  @carbon.method
+  @impl.implemented
+  OnPrepareResources()
+  {
+    for (const record of this._effects.values())
+    {
+      if (record.vertexDeclHandle === Tr2EffectStateManager.Unknown)
+      {
+        record.vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(record.definition);
+      }
+    }
+    return true;
   }
 
   /**
    * Emits one instanced batch per live record of the requested type
-   * (Carbon cpp:188-207). The quad vertex/index buffers are shared engine
-   * resources, carried as descriptors on the batch; startInstanceLocation
-   * derives from the ring offset + record offset exactly like Carbon.
-   * Returns whether any batch was committed (JS convention).
+   * (Carbon cpp:297-318).
+   *
+   * Adapted: Carbon commits a stack batch the accumulator copies; the
+   * accumulator allocates it here.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Quad and ring buffers are emitted as deferred descriptors; Carbon binds live AL buffers here, and doing the same is not ported yet.")
   GetBatches(batchType, accumulator)
   {
-    let committed = false;
-    for (const record of this.#effects.values())
+    if (this.vertexBufferOffset === -1 || !this._quadIB?.IsValid())
     {
-      if (!record.count || record.batchType !== batchType)
-      {
-        continue;
-      }
-      const batch = accumulator.Allocate(Tr2RenderBatch);
-      batch.SetMaterial(record.effect);
-      batch.SetGeometry(record.definition, Tr2QuadRenderer.QuadVertexSource, 4, Tr2QuadRenderer.QuadIndexSource, 2);
-      batch.SetStreamSource(1, {
-        quadInstanceData: this.#mergedData,
-        byteOffset: record.bufferOffset,
-        instanceSize: record.instanceSize
-      }, record.instanceSize);
-      batch.SetDrawIndexedInstanced(
-        6 * record.quadCount,
-        record.count,
-        0,
-        0,
-        record.instanceSize ? (this.vertexBufferOffset + record.bufferOffset) / record.instanceSize : 0
-      );
-      committed = accumulator.Commit(batch) || committed;
+      return;
     }
-    return committed;
+
+    for (const record of this._effects.values())
+    {
+      if (record.count && record.batchType === batchType && record.vertexDeclHandle !== Tr2EffectStateManager.Unknown)
+      {
+        const batch = accumulator.Allocate(Tr2RenderBatch);
+        batch.SetMaterial(record.effect);
+        batch.SetGeometry(record.vertexDeclHandle, this._quad, 4, this._quadIB, this._quadIB.GetDesc().stride);
+        batch.SetStreamSource(1, this._vertexBuffer.GetBuffer(), record.instanceSize);
+        batch.SetDrawIndexedInstanced(6 * record.quadCount, record.count, 0, 0, (this.vertexBufferOffset + record.bufferOffset) / record.instanceSize);
+        accumulator.Commit(batch);
+      }
+    }
   }
 
-  /**
-   * The per-instance byte size an engine allocates for a registered effect.
-   */
+  /** Carbon GetInstanceBufferSize (cpp:324-327). */
+  @carbon.method
+  @impl.implemented
+  GetInstanceBufferSize()
+  {
+    return this._vertexBuffer.GetBufferSize();
+  }
+
+  /** Carbon GetInstanceDataSize (cpp:333-336). */
   @carbon.method
   @impl.implemented
   GetInstanceDataSize()
@@ -224,53 +343,24 @@ export class Tr2QuadRenderer extends CjsModel
     return this.lastInstanceDataSize;
   }
 
-  /** The frame's merged CPU instance buffer for the engine uploader. */
-  GetMergedData()
-  {
-    return this.#mergedData;
-  }
-
-  /** The largest quadCount among live records (quad IB sizing). */
-  GetMaxQuadCount()
-  {
-    return this.#maxQuadCount;
-  }
-
-  /** The registered effect records (engine declaration resolution). */
+  /** The registered effect records, for tests and diagnostics. */
   GetEffectRecords()
   {
-    return this.#effects;
+    return this._effects;
   }
 
   /** Carbon Tr2QuadRenderer::Instance - the scene-global singleton. */
   static Instance()
   {
-    if (!Tr2QuadRenderer.#instance)
+    if (!Tr2QuadRenderer._instance)
     {
-      Tr2QuadRenderer.#instance = new Tr2QuadRenderer();
+      Tr2QuadRenderer._instance = new Tr2QuadRenderer();
     }
-    return Tr2QuadRenderer.#instance;
-  }
-
-  /**
-   * Rounds an offset up to the next multiple of an alignment.
-   */
-  static #Align(offset, alignment)
-  {
-    return Math.ceil(offset / alignment) * alignment;
-  }
-
-  /**
-   * The lowest common multiple of two sizes, used to align a shared instance stride.
-   */
-  static #Lcm(a, b)
-  {
-    const gcd = (x, y) => (y ? gcd(y, x % y) : x);
-    return (a * b) / gcd(a, b);
+    return Tr2QuadRenderer._instance;
   }
 
   /** Copies one AddQuads input as the exact bytes Carbon memcpy would receive. */
-  static #CopyInstanceBytes(source, size)
+  static _CopyInstanceBytes(source, size)
   {
     let bytes;
 
@@ -300,13 +390,7 @@ export class Tr2QuadRenderer extends CjsModel
     return bytes.slice(0, size);
   }
 
-  static #instance = null;
-
-  /** Deferred descriptor for the engine-owned shared quad vertex buffer. */
-  static QuadVertexSource = Object.freeze({ quadRendererBuffer: "quad-vertices" });
-
-  /** Deferred descriptor for the engine-owned shared quad index buffer. */
-  static QuadIndexSource = Object.freeze({ quadRendererBuffer: "quad-indices" });
+  static _instance = null;
 
   static TriBatchType = TriBatchType;
 

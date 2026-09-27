@@ -1,11 +1,14 @@
-// Tr2QuadRenderer CPU half: register/accumulate/merge/emit (batch-plan P5).
+// Tr2QuadRenderer: register, accumulate and merge on the CPU, then upload into
+// the ring and emit instanced batches on a device.
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
   EveSmartLightQuad,
   Tr2QuadRenderer,
   Tr2Effect,
-  TriRenderBatchAccumulator
+  Tr2VertexDefinition,
+  TriRenderBatchAccumulator,
+  Tr2RenderContext_GetMainThreadRenderContext
 } from "../../npm/dist/trinity/index.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
@@ -32,36 +35,63 @@ test("Tr2QuadRenderer merges per-effect instances and emits instanced batches", 
   renderer.AddQuads("missing", [0], 1); // unknown key ignored
   assert.equal(renderer.bufferSize, 8 * 3 + 16);
 
-  const quadCount = renderer.BeginRendering();
+  const quadCount = renderer.MergeBuffers();
   assert.equal(quadCount, 2, "largest live quadCount");
-  assert.equal(renderer.lastInstanceDataSize, 40);
+  assert.equal(renderer.bufferSize, 40 + 8 + 16, "one instance of padding per record (cpp:137-140)");
 
   const records = renderer.GetEffectRecords();
   assert.equal(records.get("a").count, 3);
   assert.equal(records.get("b").count, 1);
-  const mergedBytes = renderer.GetMergedData();
+  const mergedBytes = renderer._buffer;
   const merged = new Float32Array(mergedBytes.buffer, mergedBytes.byteOffset, mergedBytes.byteLength / 4);
   assert.equal(merged[0], 1);
   assert.equal(merged[records.get("b").bufferOffset / 4], 7, "aligned record offset");
 
-  const accumulator = new TriRenderBatchAccumulator();
-  assert.equal(renderer.GetBatches(OPAQUE, accumulator), true);
-  assert.equal(renderer.GetBatches(OPAQUE, accumulator), true);
-  assert.equal(accumulator.GetBatchCount(), 2);
-  const batch = accumulator.GetBatches()[0];
-  assert.equal(batch.instanceCount, 3, "instances for the opaque record");
-  assert.equal(batch.indexCountPerInstance, 6, "6 indices x quadCount 1");
+  assert.equal(Tr2QuadRenderer.Instance(), Tr2QuadRenderer.Instance(), "singleton");
+});
 
-  // Only matching batch types emit.
+test("Tr2QuadRenderer uploads into its ring and emits one instanced batch per live record on a device", () =>
+{
+  // Device resources are made through the main-thread context once it has a
+  // device (Tr2Renderer.IsResourceCreationAllowed).
+  const renderContext = Tr2RenderContext_GetMainThreadRenderContext();
+  renderContext.GetRenderContextAL().CreateDevice({ mode: { width: 64, height: 64 } });
+
+  const renderer = new Tr2QuadRenderer();
+  const effect = FixtureEffect({ GetShaderStateInterface: () => ({ GetSortValue: () => 1 }) });
+  const definition = new Tr2VertexDefinition();
+  definition.Add("FLOAT32_2", "TEXCOORD", 0, 1, 1);
+
+  renderer.RegisterEffect("a", OPAQUE, 8, 1, definition, effect);
+  renderer.RegisterEffect("b", ADDITIVE, 16, 2, definition, effect);
+  renderer.AddQuads("a", [ 1, 2, 3, 4, 5, 6 ], 3);
+  renderer.AddQuads("b", [ 7, 8, 9, 10 ], 1);
+
+  // Nothing is emitted before BeginRendering uploads (cpp:299-302).
+  const early = new TriRenderBatchAccumulator();
+  renderer.GetBatches(OPAQUE, early);
+  assert.equal(early.GetBatchCount(), 0);
+
+  renderer.BeginRendering(renderContext);
+  assert.notEqual(renderer.vertexBufferOffset, -1, "the ring took the frame's instances");
+  assert.equal(renderer.GetInstanceDataSize(), 40 + 8 + 16);
+  assert.equal(renderer._quadIB.GetDesc().count, 12, "six indices per quad for the largest quadCount (cpp:218-231)");
+
+  const opaque = new TriRenderBatchAccumulator();
+  renderer.GetBatches(OPAQUE, opaque);
+  assert.equal(opaque.GetBatchCount(), 1);
+  const batch = opaque.GetBatches()[0];
+  assert.equal(batch.instanceCount, 3);
+  assert.equal(batch.indexCountPerInstance, 6, "6 indices x quadCount 1");
+  assert.equal(batch.vertexStreams[1], renderer._vertexBuffer.GetBuffer(), "instances come from the ring");
+
   const additive = new TriRenderBatchAccumulator();
-  assert.equal(renderer.GetBatches(ADDITIVE, additive), true);
+  renderer.GetBatches(ADDITIVE, additive);
   assert.equal(additive.GetBatchCount(), 1);
   assert.equal(additive.GetBatches()[0].indexCountPerInstance, 12, "6 x quadCount 2");
 
-  renderer.DoneRendering();
+  renderer.DoneRendering(renderContext);
   assert.equal(renderer.bufferSize, 0, "frame reset");
-
-  assert.equal(Tr2QuadRenderer.Instance(), Tr2QuadRenderer.Instance(), "singleton");
 });
 
 
@@ -89,9 +119,9 @@ test("EveSmartLightQuad packs Carbon's 108-byte mixed-width instance record", ()
   };
 
   quad.AddQuadsToQuadRenderer([ placement ], 1, { IsSphereVisible: () => true }, renderer);
-  renderer.BeginRendering();
+  renderer.MergeBuffers();
 
-  const bytes = renderer.GetMergedData();
+  const bytes = renderer._buffer;
   assert.ok(bytes instanceof Uint8Array);
   assert.equal(renderer.GetEffectRecords().get(0x1234).count, 1);
   assert.equal(bytes.byteLength >= EveSmartLightQuad.QUAD_INSTANCE_SIZE, true);

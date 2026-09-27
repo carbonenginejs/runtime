@@ -30,7 +30,7 @@
 
 import { CjsSchema, impl } from "#schema";
 import { Tr2ResourceSetAL } from "../../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
+import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferALStub, Tr2CapsALStub, Tr2ConstantBufferALStub, Tr2ConstantUsageAL, Tr2FenceALStub, Tr2ResourceSetALStub, Tr2SamplerStateALStub, Tr2ShaderALStub, Tr2ShaderProgramALStub, Tr2TextureALStub, Tr2VertexLayoutALStub } from "../../../trinityal/index.js";
 import { SamplerDescriptionKey } from "../../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { INVALID_UPSCALING_CONTEXT_ID, PixelFormat, ShaderType, Topology, Tr2GpuUsage, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "../../../global/consts/renderContext/index.js";
 
@@ -255,6 +255,20 @@ export class Tr2RenderContextALStub
     if (size > 0 && Failed(buffer.Create(size, usage, initialData, this))) return null;
 
     return buffer;
+  }
+
+  /**
+   * This backend's `Tr2FenceAL`, created against this context: Carbon's
+   * `new Tr2FenceAL` then `fence->Create( renderContext )`
+   * (`Tr2DynamicRingBuffer.cpp:AllocateFence`), as one call.
+   *
+   * @returns {object|null} The fence, or null when Create refused.
+   */
+  CreateFence()
+  {
+    const fence = new Tr2FenceALStub();
+
+    return Failed(fence.Create(this)) ? null : fence;
   }
 
   /**

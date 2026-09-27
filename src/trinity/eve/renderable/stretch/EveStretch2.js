@@ -7,7 +7,6 @@ import { TriBatchType } from "#consts/graphics";
 import { carbon, impl, edit, type } from "#schema";
 import { IEveFiringEffectElement } from "../../IEveFiringEffectElement.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
-import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { getCurveDuration, getOriginShift, getTime, makeEndpointTransforms, updateCurveSet } from "./CjsStretchRuntime.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -336,7 +335,7 @@ export class EveStretch2 extends IEveFiringEffectElement
 
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.effect);
-    batch.SetGeometry(0, EveStretch2.VertexSource, 8, Tr2QuadRenderer.QuadIndexSource, 2);
+    batch.SetGeometry(0, EveStretch2.VertexSource, 8, EveStretch2.IndexSource, 2);
     batch.SetPerObjectData(perObjectData);
     batch.SetDrawIndexedInstanced(6 * this.quadCount, 1, 0, 0, 0);
     return batches.Commit(batch);
@@ -427,6 +426,9 @@ export class EveStretch2 extends IEveFiringEffectElement
 
   /** Deferred descriptor for Carbon's MAX_QUAD_COUNT float2 vertex buffer. */
   static VertexSource = Object.freeze({ eveStretch2Buffer: "quad-vertices", maxQuadCount: EveStretch2.MAX_QUAD_COUNT });
+
+  /** Placeholder until the draw binds Carbon's Tr2Renderer::GetQuadListIndexBuffer() (EveStretch2.cpp:343). */
+  static IndexSource = Object.freeze({ quadRendererBuffer: "quad-indices" });
 
   static #sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 

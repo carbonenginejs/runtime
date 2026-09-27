@@ -36,6 +36,7 @@ import { ResourceRequirement } from "#resource";
 import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
+import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
 import { ShadowQuality, Tr2RenderReason } from "../../generated/trinityCore/enums.js";
@@ -1308,13 +1309,17 @@ export class EveSpaceScene extends CjsModel
       this.#envMapTextureRes = this.#staticEnvMapTextureRes;
     }
 
-    // cpp:3247-3257: every object entity joins the scene's component registry
+    // cpp:3247-3263: every object entity joins the scene's component registry
     // - its light owners, post-process owners, shadow casters - and so does
+    const quadRenderer = Tr2QuadRenderer.Instance();
     // the camera attachment parent. Without it GatherLights finds no owners
-    // and no attachment light reaches a shader. The quad-renderer
-    // registration beside it is not ported, nor is the list-insert
-    // registration (OnListChanged, cpp:3465-3470): objects pushed after
-    // Initialize join through ReregisterEntities.
+    // and no attachment light reaches a shader. Each also registers its quad
+    // effects (sprite and spotlight sets), and so do the UI objects. The
+      object?.RegisterWithQuadRenderer(quadRenderer);
+    // list-insert registration (OnListChanged, cpp:3455-3470) is not ported:
+    // objects pushed after Initialize join through ReregisterEntities.
+    this.cameraAttachmentParent?.RegisterWithQuadRenderer(quadRenderer);
+    for (const object of this.uiObjects) object?.RegisterWithQuadRenderer(quadRenderer);
     // Carbon's BlueCastPtr<EveEntity> is CjsSchema.cast.
     for (const object of this.objects)
     {
@@ -1422,6 +1427,8 @@ export class EveSpaceScene extends CjsModel
 
     mat4.identity(this.jitterMatrix);
     mat4.copy(this.jitteredProjection, this.projection);
+   * - the quad renderer's DoneRendering (cpp:2806), which fences the ring
+   *   region this frame's quads were uploaded into;
     this.jitter[0] = 0;
     this.jitter[1] = 0;
   }
@@ -1440,6 +1447,10 @@ export class EveSpaceScene extends CjsModel
    * this runtime's driver does not run yet.
    *
    * @param {Tr2RenderContext} renderContext The frame's context.
+    if (!this.display) return;
+
+    Tr2QuadRenderer.Instance().DoneRendering(renderContext);
+
    * @returns {void}
    */
   @carbon.method
@@ -1458,6 +1469,35 @@ export class EveSpaceScene extends CjsModel
         this.RenderRenderables(visible, this.#secondaryAdditiveBatches, TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
         renderContext.SetReadOnlyDepth(false);
       }
+  /**
+   * Carbon UpdateQuadRenderer (cpp:1715-1733): every object adds its quads for
+   * the frame, then the renderer merges and uploads them. Carbon runs the adds
+   * in parallel; here they run in order.
+   *
+   * @param {object} frustum The frame's frustum.
+   * @param {Array<object>} objects The objects to add quads from.
+   * @param {Tr2RenderContext} renderContext The frame's context.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateQuadRenderer(frustum, objects, renderContext)
+  {
+    const quadRenderer = Tr2QuadRenderer.Instance();
+
+    for (const object of objects) object?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+
+    quadRenderer.BeginRendering(renderContext);
+  }
+
+  /** Carbon GetQuadRenderer (cpp:1759-1762): the shared quad renderer. */
+  @carbon.method
+  @impl.implemented
+  GetQuadRenderer()
+  {
+    return Tr2QuadRenderer.Instance();
+  }
+
     }
 
     mat4.copy(this.viewLast, renderContext.GetViewTransform());

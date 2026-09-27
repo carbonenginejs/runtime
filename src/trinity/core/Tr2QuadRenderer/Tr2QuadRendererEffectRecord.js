@@ -3,9 +3,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 // CPU half implemented 2026-07-23 (batch-plan P5 scene-global quad collector).
 // The generator had flattened the internal EffectRecord/PerThreadData members
-// onto the class; corrected to Carbon's nested shape. GPU realization (quad
-// vertex/index buffers, ring instance buffer upload, vertex-declaration
-// handles) is not ported yet and reads the merged CPU state emitted here.
+// onto the class; corrected to Carbon's nested shape.
 
 
 /** One registered quad effect (Carbon Tr2QuadRenderer::EffectRecord). */
@@ -22,7 +20,10 @@ export class Tr2QuadRendererEffectRecord
   /** Number of quads to render per instance. */
   quadCount = 0;
 
-  /** Vertex definition (engine resolves the declaration handle from it). */
+  /** vertexDeclHandle - Tr2EffectStateManager.Unknown until OnPrepareResources. */
+  vertexDeclHandle = 0xFFFFFFFF;
+
+  /** Vertex definition the declaration is made from. */
   definition = null;
 
   /** Byte offset of this record's instances in the merged buffer. */
