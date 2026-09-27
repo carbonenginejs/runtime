@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import "#blue/registerTrinityEnums";
 import { carbon, impl, edit, type } from "#schema";
+import { quat } from "#math/quat";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
@@ -19,6 +20,24 @@ import { ITr2GenericEmitterUpdateArguments } from "../../particle/ITr2GenericEmi
 @carbon.inherit(ITr2Renderable)
 export class EveChildParticleSystem extends EveChildTransform
 {
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:25 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:26 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildParticleSystem_Blue.cpp:27 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_reflectionMode (EntityComponents::ReflectionMode - enum ReflectionMode) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify

@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
+import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveSocketParameterString } from "../socket/EveSocketParameterString.js";
 
@@ -8,6 +10,24 @@ import { EveSocketParameterString } from "../socket/EveSocketParameterString.js"
 @type.define({ className: "EveChildSocket", family: "eve/child" })
 export class EveChildSocket extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:28 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:29 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildSocket_Blue.cpp:30 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** Runtime resource-resolution seam supplied by an engine package. */
   @type.objectRef("CjsEveChildResourceLoader")

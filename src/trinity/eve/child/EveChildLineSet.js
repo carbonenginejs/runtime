@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildLineSet.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
+import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
@@ -12,6 +14,18 @@ import { blue, EnumRegistrationType } from "#blue";
 @carbon.inherit(ITr2Renderable)
 export class EveChildLineSet extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:31 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildLineSet_Blue.cpp:32 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
 
   /** m_type (lineSetType - enum lineSetType) [READWRITE, PERSIST, ENUM, NOTIFY] */
   @edit.notify

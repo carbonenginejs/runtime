@@ -2,6 +2,7 @@
 //   trinity/trinity/Eve/UI/EveEllipseSet.cpp
 import { vec3 } from "#math/vec3";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
+import { quat } from "#math/quat";
 import { BLUELISTEVENT } from "#consts/blue";
 import { IListNotify } from "../../../global/blue/IListNotify.js";
 import { EveChildTransform } from "../child/EveChildTransform.js";
@@ -18,6 +19,24 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @carbon.inherit(IListNotify)
 export class EveEllipseSet extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:22 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:23 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveEllipseSet_Blue.cpp:24 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
   #geometryDirty = true;
 
   @edit.notify

@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.h
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildBehaviorSystem.cpp
 import { carbon, impl, edit, type } from "#schema";
+import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { TriBatchType } from "#consts/graphics";
 import { mat4 } from "#math/mat4";
@@ -18,6 +20,24 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @carbon.inherit(ITr2Renderable)
 export class EveChildBehaviorSystem extends EveChildTransform
 {
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildBehaviorSystem_Blue.cpp:18 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildBehaviorSystem_Blue.cpp:19 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildBehaviorSystem_Blue.cpp:20 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_splineTunnels (PSplineTunnelGroupVector) [READ, PERSIST, NOTIFY] */
   @edit.notify

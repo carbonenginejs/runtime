@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/ProceduralContainer/EveChildProceduralContainer.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
+import { quat } from "#math/quat";
 import { IEveInheritPropertiesOwner } from "../../IEveInheritPropertiesOwner.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -14,6 +15,24 @@ import { Tr2Lod } from "../../EveLODHelper.js";
 @carbon.inherit(IEveInheritPropertiesOwner)
 export class EveChildProceduralContainer extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildProceduralContainer_Blue.cpp:24 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildProceduralContainer_Blue.cpp:25 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildProceduralContainer_Blue.cpp:26 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   #proceduralContainerVariables = new Map();
 

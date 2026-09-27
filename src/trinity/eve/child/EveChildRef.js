@@ -4,6 +4,8 @@
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { blue } from "#blue";
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
@@ -19,6 +21,24 @@ import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 @type.define({ className: "EveChildRef", family: "eve/child" })
 export class EveChildRef extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:28 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:29 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildRef_Blue.cpp:30 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify

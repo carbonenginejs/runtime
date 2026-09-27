@@ -1,6 +1,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
@@ -13,6 +14,24 @@ import "./EveChildContainer.js";
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
 export class EveChildInstanceContainer extends EveChildTransform
 {
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:30 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:31 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildInstanceContainer_Blue.cpp:32 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
 
   #controllerVariables = new Map();
 

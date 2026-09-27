@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildQuad.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
+import { vec3 } from "#math/vec3";
+import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { mat4 } from "#math/mat4";
 import { sph3 } from "#math/sph3";
@@ -14,6 +16,24 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 @carbon.inherit(ITr2Renderable)
 export class EveChildQuad extends EveChildTransform
 {
+
+  /** m_rotation (Quaternion) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:23 */
+  @edit.readwrite
+  @edit.persist
+  @type.quat
+  rotation = quat.create();
+
+  /** m_translation (Vector3) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:24 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  translation = vec3.create();
+
+  /** m_scaling (Vector3) [READWRITE, PERSIST] - EveChildQuad_Blue.cpp:25 */
+  @edit.readwrite
+  @edit.persist
+  @type.vec3
+  scaling = vec3.fromValues(1, 1, 1);
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
   @edit.readwrite
