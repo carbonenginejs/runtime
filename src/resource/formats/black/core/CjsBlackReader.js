@@ -13,6 +13,9 @@ import { CjsBlackPropertyReaders } from "./CjsBlackPropertyReaders.js";
 import { classStructureLayout } from "./blackClassStructures.js";
 import { CjsBlackSchemaRegistry } from "./CjsBlackSchemaRegistry.js";
 
+/** Carbon's `BLUE_OBJECT_METADATA_KEY` (blue/include/IBlueObjectMetadata.h:5). */
+const BLUE_OBJECT_METADATA_KEY = "__bluemetadata__";
+
 /**
  * Reads a `.black` stream into a payload/document/runtime graph.
  *
@@ -564,6 +567,7 @@ export class CjsBlackReader extends CjsBlueReader
      */
     AssignFieldValue(node, target, value)
     {
+        if (target.discard) return;
         if (target.unknown)
         {
             node.raw = node.raw || {};
@@ -657,6 +661,15 @@ export class CjsBlackReader extends CjsBlueReader
                     key
                 };
             }
+        }
+
+        // Object metadata is authoring data Carbon's BlackWriter never writes;
+        // its free-form strings can identify a person or machine. If a file
+        // carries it anyway, the value is read past and discarded, in every
+        // output mode and whatever the capture options say.
+        if (blackName === BLUE_OBJECT_METADATA_KEY)
+        {
+            return { ...this.ResolveUnknownFieldTarget(kind, shape, blackName), discard: true };
         }
 
         if (this.ShouldCaptureUnknownField(blackName, kind, shape))

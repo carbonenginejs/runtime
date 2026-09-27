@@ -322,6 +322,7 @@ export class CjsBlueReader extends CjsReader
      */
     AssignRuntimeFieldValue(targetObject, target, value)
     {
+        if (target.discard) return;
         if (target.unknown)
         {
             targetObject[target.wireName] = value;
@@ -350,6 +351,7 @@ export class CjsBlueReader extends CjsReader
      */
     AssignPayloadFieldValue(targetObject, target, value)
     {
+        if (target.discard) return;
         this.AssertPayloadFieldAvailable(target.unknown ? target.wireName : target.field.name);
         if (target.unknown)
         {

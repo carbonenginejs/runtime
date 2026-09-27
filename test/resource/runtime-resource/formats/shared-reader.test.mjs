@@ -590,6 +590,43 @@ test("Black preserves custom payload fields and falsy-kind class lookup", () =>
 
 });
 
+test("Black reads past object metadata and never surfaces it (privacy)", () =>
+{
+    const builder = new BlackFixtureBuilder();
+    const child = builder.Object(2, "TestChild", [
+        [ "name", builder.StringValue("child") ]
+    ]);
+    const input = builder.Finish(builder.Object(1, "TestRoot", [
+        [ "name", builder.StringValue("root") ],
+        [ "__bluemetadata__", builder.StringValue("C:/Users/someone/graphite") ],
+        [ "child", child ],
+        [ "again", u32(2) ]
+    ]));
+    const seen = new WeakSet();
+    const text = value => JSON.stringify(value, (key, item) =>
+    {
+        if (item && typeof item === "object")
+        {
+            if (seen.has(item)) return undefined;
+            seen.add(item);
+        }
+        return item;
+    });
+    for (const options of [ {}, { captureUnknownBlackFields: true, captureUnknownWhenNoBlackFields: true } ])
+    {
+        const reader = () => new CjsBlackReader(input, { schema: BLACK_SCHEMA, ...options });
+        for (const output of [ reader().ReadPayload(), reader().ReadDocument(), reader().ReadRuntime() ])
+        {
+            const serialized = text(output);
+            assert.equal(serialized.includes("__bluemetadata__"), false);
+            assert.equal(serialized.includes("someone"), false);
+        }
+        const payload = reader().ReadPayload().object;
+        assert.equal(payload.name, "root");
+        assert.deepEqual(payload.again, { _ref: 2 });
+    }
+});
+
 const BLACK_SCHEMA = {
     TestRoot: {
         name: "string",
