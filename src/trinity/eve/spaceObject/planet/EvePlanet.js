@@ -3,14 +3,33 @@
 // Hand-maintained after promotion from generated schema intake.
 import { carbon, impl, edit, type } from "#schema";
 import { EveEffectRoot2 } from "../EveEffectRoot2.js";
+import { ITr2SecondaryLightSource } from "../../../core/lighting/ITr2SecondaryLightSource.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 
 /** Represents a planet scene object with CPU-side visibility state for its depth-only child mesh. */
 @type.define({ className: "EvePlanet", family: "eve/spaceObject" })
+@carbon.mapInterface(ITr2SecondaryLightSource)
 export class EvePlanet extends EveEffectRoot2
 {
+  /**
+   * A planet lights its neighbours with its own radius, albedo and emissive
+   * colour (EvePlanet.cpp:34-37); unregistering is EveEffectRoot2's, by the
+   * same translation view.
+   * Adapted: Carbon passes the radius as a pointer the manager reads live;
+   * ours passes its value at registration.
+   *
+   * @param {import("../../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
+   * @returns {boolean} Whether the manager registered it.
+   */
+  @carbon.method
+  @impl.adapted
+  RegisterSecondaryLightSource(manager)
+  {
+    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), this.radius, this.albedoColor, this.emissiveColor);
+  }
+
 
   _renderScale = 1000000;
 

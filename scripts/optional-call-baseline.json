@@ -102,7 +102,7 @@
   "src/trinity/eve/scene/EveSpaceSceneRenderDriver.js": 7,
   "src/trinity/eve/smartLights/attributeModifiers/EveSmartLightAttributeModifierCameraDependency.js": 1,
   "src/trinity/eve/smartLights/EveSmartLightQuad.js": 1,
-  "src/trinity/eve/spaceObject/EveEffectRoot2.js": 30,
+  "src/trinity/eve/spaceObject/EveEffectRoot2.js": 28,
   "src/trinity/eve/spaceObject/EveMissile.js": 13,
   "src/trinity/eve/spaceObject/EveMissileWarhead.js": 5,
   "src/trinity/eve/spaceObject/EveMobile.js": 10,

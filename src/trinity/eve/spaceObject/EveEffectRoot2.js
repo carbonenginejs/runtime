@@ -12,6 +12,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2BoundingBox } from "#interfaces";
+import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
@@ -26,7 +27,8 @@ import { BLUELISTEVENT } from "#consts/blue";
  * attached to a hull.
  */
 @type.define({ className: "EveEffectRoot2", family: "eve/spaceObject" })
-@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2)
+@carbon.inherit(ITr2BoundingBox, IEveSpaceObject2, ITr2SecondaryLightSource)
+@carbon.mapInterface(ITr2SecondaryLightSource)
 export class EveEffectRoot2 extends EveEntity
 {
 
@@ -182,6 +184,9 @@ export class EveEffectRoot2 extends EveEntity
   _localTransform = mat4.create();
   _secondaryLightingSphereRadiusWorld = 0.5;
   _worldTransform = mat4.create();
+
+  /** The translation view registered with the SH lighting manager (_GetWorldTranslation). */
+  _worldTranslation = null;
 
   /** Links authored controllers after graph hydration. */
   @carbon.method
@@ -673,27 +678,55 @@ export class EveEffectRoot2 extends EveEntity
     return { vs: vsData, ps: psData };
   }
 
-  /** Registers this root as a secondary light source with an injected manager. */
+  /**
+   * Registers this root as a secondary light source (EveEffectRoot2.cpp:520-528).
+   * Carbon hands the manager pointers it reads live; the translation here is
+   * one live view of the world transform (_GetWorldTranslation), and the same
+   * view is what unregistering matches by identity - a fresh subarray per call
+   * never matched, so a removed root was never unregistered.
+   * Adapted: Carbon passes the radius as a pointer the manager reads live;
+   * ours passes its value at registration.
+   *
+   * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
+   * @returns {boolean} Whether the manager registered it.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("The SH lighting manager is injected; Trinity owns only the authored source values.")
   RegisterSecondaryLightSource(manager)
   {
-    return manager?.RegisterSecondaryLightSource?.(
-      this._worldTransform.subarray(12, 15),
+    return manager.RegisterSecondaryLightSource(
+      this._GetWorldTranslation(),
       this._secondaryLightingSphereRadiusWorld,
       EveEffectRoot2._noAlbedo,
       this.secondaryLightingEmissiveColor
     );
   }
 
-  /** Unregisters this root from an injected secondary-light manager. */
+  /**
+   * Unregisters this root as a secondary light source (EveEffectRoot2.cpp:530-533),
+   * by the same translation view it registered with.
+   *
+   * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
+   * @returns {boolean} Whether the manager removed it.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("The SH lighting manager is injected; Trinity owns only the authored source values.")
   UnregisterSecondaryLightSource(manager)
   {
-    return manager?.UnregisterSecondaryLightSource?.(this._worldTransform.subarray(12, 15));
+    return manager.UnregisterSecondaryLightSource(this._GetWorldTranslation());
+  }
+
+  /**
+   * The live translation view of the world transform - Carbon's
+   * `&m_worldTransform.GetTranslation()` - made once, after construction, so
+   * a subclass's own transform field is the one viewed.
+   *
+   * @returns {Float32Array} Elements 12-14 of the world transform.
+   */
+  _GetWorldTranslation()
+  {
+    this._worldTranslation ??= this._worldTransform.subarray(12, 15);
+    return this._worldTranslation;
   }
 
   /** Plays root and child-owned curve sets. */

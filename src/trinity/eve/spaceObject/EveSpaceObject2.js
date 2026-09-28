@@ -6,6 +6,8 @@ import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { IEveInheritPropertiesOwner } from "../IEveInheritPropertiesOwner.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
 import { ITr2BoundingBox } from "#interfaces";
+import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
+import { ITr2ShLightingReceiver } from "../../core/lighting/ITr2ShLightingReceiver.js";
 import { EveEntity } from "../EveEntity.js";
 import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { EveChildInheritProperties } from "../child/EveChildInheritProperties.js";
@@ -57,7 +59,8 @@ const OVERLAY_TYPE_ALL = 1;
  * and batch submission that drive them each frame.
  */
 @type.define({ className: "EveSpaceObject2", family: "eve/spaceObject" })
-@carbon.inherit(ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, IEveInheritPropertiesOwner)
+@carbon.inherit(ITr2BoundingBox, ITr2Renderable, IEveSpaceObject2, ITr2ShLightingReceiver, ITr2SecondaryLightSource, IEveInheritPropertiesOwner)
+@carbon.mapInterface(ITr2ShLightingReceiver, ITr2SecondaryLightSource)
 export class EveSpaceObject2 extends EveEntity
 {
 
@@ -392,6 +395,9 @@ export class EveSpaceObject2 extends EveEntity
   @edit.read
   @type.mat4
   worldTransform = mat4.create();
+
+  /** The translation view registered with the SH lighting manager (_GetWorldTranslation). */
+  _worldTranslation = null;
 
   @edit.read
   @type.mat4
@@ -1084,6 +1090,51 @@ export class EveSpaceObject2 extends EveEntity
 
     return true;
   }
+
+  /**
+   * Registers this hull as a secondary light source (EveSpaceObject2.cpp:510-514):
+   * its world translation, its secondary-lighting sphere radius and albedo, and
+   * no emissive colour. The translation is one live view, which unregistering
+   * matches by identity.
+   * Adapted: Carbon passes the radius as a pointer the manager reads live;
+   * ours passes its value at registration.
+   *
+   * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
+   * @returns {boolean} Whether the manager registered it.
+   */
+  @carbon.method
+  @impl.adapted
+  RegisterSecondaryLightSource(manager)
+  {
+    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), this.secondaryLightingSphereRadius, this.albedoColor, EveSpaceObject2._noEmissiveColor);
+  }
+
+  /**
+   * Unregisters this hull as a secondary light source (EveSpaceObject2.cpp:516-519).
+   *
+   * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
+   * @returns {boolean} Whether the manager removed it.
+   */
+  @carbon.method
+  @impl.adapted
+  UnregisterSecondaryLightSource(manager)
+  {
+    return manager.UnregisterSecondaryLightSource(this._GetWorldTranslation());
+  }
+
+  /**
+   * The live translation view of the world transform, made once.
+   *
+   * @returns {Float32Array} Elements 12-14 of the world transform.
+   */
+  _GetWorldTranslation()
+  {
+    this._worldTranslation ??= this.worldTransform.subarray(12, 15);
+    return this._worldTranslation;
+  }
+
+  /** Carbon's `s_noEmissiveColor` (EveSpaceObject2.cpp:512). */
+  static _noEmissiveColor = vec4.create();
 
   /**
    * Carbon EveSpaceObject2::ClearShLighting (cpp:1423-1426): drops this hull's

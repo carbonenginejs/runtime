@@ -463,6 +463,26 @@ A value whose storage can be pointed elsewhere, notifying its bindings.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:ITr2SecondaryLightSource -->
+## `ITr2SecondaryLightSource`
+
+Contract for a secondary light source Tr2ShLightingManager can register.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/lighting/ITr2SecondaryLightSource.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:ITr2ShLightingReceiver -->
+## `ITr2ShLightingReceiver`
+
+Contract for an object that receives SH lighting from Tr2ShLightingManager.
+
+- Export: `@carbonenginejs/runtime/trinity/core`
+- Source: `src/trinity/core/lighting/ITr2ShLightingReceiver.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2KelvinColor -->
 ## `Tr2KelvinColor`
 
