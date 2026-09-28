@@ -14,20 +14,20 @@ export const CjsResManQueue = Object.freeze({
  */
 export class CjsResManWorkQueue
 {
-  #active = new Map();
-  #concurrency = 1;
-  #head = 0;
-  #items = [];
-  #name;
-  #nextId = 1;
-  #onReady;
-  #paused = false;
-  #queued = new Map();
+  _active = new Map();
+  _concurrency = 1;
+  _head = 0;
+  _items = [];
+  _name;
+  _nextId = 1;
+  _onReady;
+  _paused = false;
+  _queued = new Map();
 
   /** Creates a CjsResManWorkQueue with caller-provided initial state. */
   constructor(name, options = {}) {
-    this.#name = CjsResManWorkQueue.normalizeName(name);
-    this.#onReady = typeof options.onReady === "function" ? options.onReady : null;
+    this._name = CjsResManWorkQueue.normalizeName(name);
+    this._onReady = typeof options.onReady === "function" ? options.onReady : null;
     this.SetConcurrency(options.concurrency ?? 1);
   }
 
@@ -39,8 +39,8 @@ export class CjsResManWorkQueue
     if (!Number.isInteger(value) || value < 1) {
       throw new TypeError("CjsResMan queue concurrency must be a positive integer.");
     }
-    this.#concurrency = value;
-    this.#NotifyReady();
+    this._concurrency = value;
+    this._NotifyReady();
     return this;
   }
 
@@ -49,7 +49,7 @@ export class CjsResManWorkQueue
    * work queue.
    */
   GetConcurrency() {
-    return this.#concurrency;
+    return this._concurrency;
   }
 
   /**
@@ -57,17 +57,17 @@ export class CjsResManWorkQueue
    * work queue.
    */
   GetNextId() {
-    return this.#nextId;
+    return this._nextId;
   }
 
   /** Returns the number of tasks waiting to start for the resource work queue. */
   GetQueuedCount() {
-    return this.#queued.size;
+    return this._queued.size;
   }
 
   /** Returns the number of tasks currently executing for the resource work queue. */
   GetActiveCount() {
-    return this.#active.size;
+    return this._active.size;
   }
 
   /**
@@ -75,7 +75,7 @@ export class CjsResManWorkQueue
    * work queue.
    */
   GetPendingCount() {
-    return this.#queued.size + this.#active.size;
+    return this._queued.size + this._active.size;
   }
 
   /**
@@ -83,7 +83,7 @@ export class CjsResManWorkQueue
    * work queue.
    */
   IsPaused() {
-    return this.#paused;
+    return this._paused;
   }
 
   /**
@@ -95,7 +95,7 @@ export class CjsResManWorkQueue
       throw new TypeError("CjsResMan queue items require a callback.");
     }
 
-    const id = this.#nextId++;
+    const id = this._nextId++;
     let resolve;
     let reject;
     const promise = new Promise((onResolve, onReject) => {
@@ -104,7 +104,7 @@ export class CjsResManWorkQueue
     });
     const item = {
       id,
-      queue: this.#name,
+      queue: this._name,
       callback,
       context,
       metadata,
@@ -114,9 +114,9 @@ export class CjsResManWorkQueue
       state: "queued"
     };
 
-    this.#items.push(item);
-    this.#queued.set(id, item);
-    this.#NotifyReady();
+    this._items.push(item);
+    this._queued.set(id, item);
+    this._NotifyReady();
     return item;
   }
 
@@ -125,12 +125,12 @@ export class CjsResManWorkQueue
    * queue.
    */
   Cancel(id, reason = "") {
-    const item = this.#queued.get(id);
+    const item = this._queued.get(id);
     if (!item) return false;
-    this.#queued.delete(id);
+    this._queued.delete(id);
     item.state = "cancelled";
-    item.reject(CjsResManWorkQueue.createCancelledError(this.#name, id, reason));
-    this.#Compact();
+    item.reject(CjsResManWorkQueue.createCancelledError(this._name, id, reason));
+    this._Compact();
     return true;
   }
 
@@ -139,23 +139,23 @@ export class CjsResManWorkQueue
    * queue.
    */
   Pause() {
-    this.#paused = true;
+    this._paused = true;
     return this;
   }
 
   /** Allows queued tasks to start after a pause for the resource work queue. */
   Resume() {
-    if (!this.#paused) return this;
-    this.#paused = false;
-    this.#NotifyReady();
+    if (!this._paused) return this;
+    this._paused = false;
+    this._NotifyReady();
     return this;
   }
 
   /** Cancels every task that has not started for the resource work queue. */
   Clear(reason = "Queue cleared.") {
-    const ids = [ ...this.#queued.keys() ];
+    const ids = [ ...this._queued.keys() ];
     for (const id of ids) this.Cancel(id, reason);
-    this.#Compact(true);
+    this._Compact(true);
     return ids.length;
   }
 
@@ -167,23 +167,23 @@ export class CjsResManWorkQueue
     const startedAt = now();
     let processed = 0;
 
-    if (!this.#paused) {
-      while (this.#active.size < this.#concurrency && processed < maxItems) {
-        const item = this.#TakeNext();
+    if (!this._paused) {
+      while (this._active.size < this._concurrency && processed < maxItems) {
+        const item = this._TakeNext();
         if (!item) break;
-        this.#Start(item);
+        this._Start(item);
         processed++;
         if (processed > 0 && now() - startedAt >= maxTime) break;
       }
     }
 
-    this.#Compact();
+    this._Compact();
     return {
       processed,
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
-      paused: this.#paused
+      paused: this._paused
     };
   }
 
@@ -193,31 +193,31 @@ export class CjsResManWorkQueue
    */
   GetStats() {
     return {
-      name: this.#name,
-      nextId: this.#nextId,
-      concurrency: this.#concurrency,
+      name: this._name,
+      nextId: this._nextId,
+      concurrency: this._concurrency,
       queued: this.GetQueuedCount(),
       active: this.GetActiveCount(),
       pending: this.GetPendingCount(),
-      paused: this.#paused
+      paused: this._paused
     };
   }
 
   /** Removes and returns the next runnable work item for the resource work queue. */
-  #TakeNext() {
-    while (this.#head < this.#items.length) {
-      const item = this.#items[this.#head++];
+  _TakeNext() {
+    while (this._head < this._items.length) {
+      const item = this._items[this._head++];
       if (item.state !== "queued") continue;
-      this.#queued.delete(item.id);
+      this._queued.delete(item.id);
       return item;
     }
     return null;
   }
 
   /** Starts one queued work item for the resource work queue. */
-  #Start(item) {
+  _Start(item) {
     item.state = "active";
-    this.#active.set(item.id, item);
+    this._active.set(item.id, item);
 
     let result;
     try {
@@ -227,44 +227,44 @@ export class CjsResManWorkQueue
         metadata: item.metadata
       });
     } catch (error) {
-      this.#Settle(item, false, error);
+      this._Settle(item, false, error);
       return;
     }
 
     if (result && typeof result.then === "function") {
       Promise.resolve(result).then(
-        value => this.#Settle(item, true, value),
-        error => this.#Settle(item, false, error)
+        value => this._Settle(item, true, value),
+        error => this._Settle(item, false, error)
       );
       return;
     }
-    this.#Settle(item, true, result);
+    this._Settle(item, true, result);
   }
 
   /**
    * Settles one active work item and advances the queue for the resource work
    * queue.
    */
-  #Settle(item, didResolve, value) {
-    if (!this.#active.delete(item.id)) return;
+  _Settle(item, didResolve, value) {
+    if (!this._active.delete(item.id)) return;
     item.state = didResolve ? "resolved" : "rejected";
     if (didResolve) item.resolve(value);
     else item.reject(value);
-    this.#NotifyReady();
+    this._NotifyReady();
   }
 
   /** Removes settled work items from the queue for the resource work queue. */
-  #Compact(force = false) {
-    if (force || (this.#head > 256 && this.#head > this.#items.length * 0.5)) {
-      this.#items = this.#items.slice(this.#head);
-      this.#head = 0;
+  _Compact(force = false) {
+    if (force || (this._head > 256 && this._head > this._items.length * 0.5)) {
+      this._items = this._items.slice(this._head);
+      this._head = 0;
     }
   }
 
   /** Notifies waiters when the queue becomes ready for the resource work queue. */
-  #NotifyReady() {
-    if (this.#onReady && !this.#paused && this.GetQueuedCount() > 0) {
-      this.#onReady(this);
+  _NotifyReady() {
+    if (this._onReady && !this._paused && this.GetQueuedCount() > 0) {
+      this._onReady(this);
     }
   }
 

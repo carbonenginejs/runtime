@@ -32,9 +32,9 @@ export class CjsError extends Error
     constructor(code, message, options = {})
     {
         const
-            normalizedCode = CjsError.#NormalizeCode(code),
-            normalizedMessage = CjsError.#NormalizeMessage(message),
-            normalizedOptions = CjsError.#NormalizeOptions(options),
+            normalizedCode = CjsError._NormalizeCode(code),
+            normalizedMessage = CjsError._NormalizeMessage(message),
+            normalizedOptions = CjsError._NormalizeOptions(options),
             errorOptions = Object.hasOwn(normalizedOptions, "cause")
                 ? { cause: normalizedOptions.cause }
                 : undefined;
@@ -51,7 +51,7 @@ export class CjsError extends Error
                 writable: false
             },
             details: {
-                value: CjsError.#NormalizeDetails(normalizedOptions.details),
+                value: CjsError._NormalizeDetails(normalizedOptions.details),
                 enumerable: true,
                 configurable: false,
                 writable: false
@@ -67,7 +67,7 @@ export class CjsError extends Error
      */
     static hasCode(error, code)
     {
-        if (!CjsError.#IsCode(code) || error === null || error === undefined)
+        if (!CjsError._IsCode(code) || error === null || error === undefined)
         {
             return false;
         }
@@ -83,15 +83,15 @@ export class CjsError extends Error
     }
 
     /** Reports whether a value is one valid stable error code. */
-    static #IsCode(value)
+    static _IsCode(value)
     {
         return typeof value === "string" && ERROR_CODE_PATTERN.test(value);
     }
 
     /** Validates and returns one stable error code. */
-    static #NormalizeCode(value)
+    static _NormalizeCode(value)
     {
-        if (!CjsError.#IsCode(value))
+        if (!CjsError._IsCode(value))
         {
             throw new TypeError("code must be an uppercase CJS_* identifier.");
         }
@@ -100,7 +100,7 @@ export class CjsError extends Error
     }
 
     /** Validates and returns one non-empty error message. */
-    static #NormalizeMessage(value)
+    static _NormalizeMessage(value)
     {
         if (typeof value !== "string" || value.trim() === "")
         {
@@ -111,7 +111,7 @@ export class CjsError extends Error
     }
 
     /** Validates and returns one plain constructor-options record. */
-    static #NormalizeOptions(value)
+    static _NormalizeOptions(value)
     {
         if (!isPlainObject(value))
         {
@@ -122,7 +122,7 @@ export class CjsError extends Error
     }
 
     /** Converts optional details into detached deeply frozen data. */
-    static #NormalizeDetails(value)
+    static _NormalizeDetails(value)
     {
         if (value === undefined || value === null)
         {
@@ -134,11 +134,11 @@ export class CjsError extends Error
             throw new TypeError("details must be a JSON-safe plain object or null.");
         }
 
-        return CjsError.#CloneDetailsValue(value, "details", new Set());
+        return CjsError._CloneDetailsValue(value, "details", new Set());
     }
 
     /** Clones one JSON-safe details value while detecting active cycles. */
-    static #CloneDetailsValue(value, path, active)
+    static _CloneDetailsValue(value, path, active)
     {
         if (value === null || typeof value === "string" || typeof value === "boolean")
         {
@@ -168,15 +168,15 @@ export class CjsError extends Error
         active.add(value);
 
         const clone = Array.isArray(value)
-            ? CjsError.#CloneDetailsArray(value, path, active)
-            : CjsError.#CloneDetailsRecord(value, path, active);
+            ? CjsError._CloneDetailsArray(value, path, active)
+            : CjsError._CloneDetailsRecord(value, path, active);
 
         active.delete(value);
         return clone;
     }
 
     /** Clones one dense JSON-safe details array. */
-    static #CloneDetailsArray(value, path, active)
+    static _CloneDetailsArray(value, path, active)
     {
         const clone = [];
 
@@ -204,7 +204,7 @@ export class CjsError extends Error
                 throw new TypeError(`${path} arrays must contain dense data properties.`);
             }
 
-            clone.push(CjsError.#CloneDetailsValue(
+            clone.push(CjsError._CloneDetailsValue(
                 descriptor.value,
                 `${path}[${i}]`,
                 active
@@ -215,7 +215,7 @@ export class CjsError extends Error
     }
 
     /** Clones one plain JSON-safe details record. */
-    static #CloneDetailsRecord(value, path, active)
+    static _CloneDetailsRecord(value, path, active)
     {
         const clone = {};
 
@@ -234,7 +234,7 @@ export class CjsError extends Error
             }
 
             Object.defineProperty(clone, key, {
-                value: CjsError.#CloneDetailsValue(
+                value: CjsError._CloneDetailsValue(
                     descriptor.value,
                     `${path}[${JSON.stringify(key)}]`,
                     active

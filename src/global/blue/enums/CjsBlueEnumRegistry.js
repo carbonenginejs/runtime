@@ -25,8 +25,8 @@ export const EnumRegistrationType = Object.freeze({
  */
 export class CjsBlueEnumRegistry
 {
-    #byName = new Map();
-    #byObject = new WeakMap();
+    _byName = new Map();
+    _byObject = new WeakMap();
 
     /**
      * Registers a read-only named-value object and its ordered chooser metadata.
@@ -124,7 +124,7 @@ export class CjsBlueEnumRegistry
             else if (typeof definition[key] !== "string") throw new TypeError(`Enum ${key} must be a string.`);
             info[key] = definition[key];
         }
-        const existing = this.#byName.get(name);
+        const existing = this._byName.get(name);
         if (existing)
         {
             if (existing.type !== values || JSON.stringify({ ...existing, type: null }) !== JSON.stringify({ ...info, type: null }))
@@ -133,17 +133,17 @@ export class CjsBlueEnumRegistry
             }
             return values;
         }
-        if (this.#byObject.has(values)) throw new TypeError("Enum object already has a canonical name.");
+        if (this._byObject.has(values)) throw new TypeError("Enum object already has a canonical name.");
         Object.freeze(values);
-        this.#byName.set(name, info);
-        this.#byObject.set(values, name);
+        this._byName.set(name, info);
+        this._byObject.set(values, name);
         return values;
     }
 
     /** Reports whether an enum name is registered without resolving a domain. */
     HasEnum(name)
     {
-        return this.#byName.has(name);
+        return this._byName.has(name);
     }
 
     /** Returns the registered read-only named-value object. */
@@ -155,7 +155,7 @@ export class CjsBlueEnumRegistry
     /** Returns ordered chooser metadata, descriptions and donor provenance. */
     GetEnumInfo(name)
     {
-        const info = this.#byName.get(name);
+        const info = this._byName.get(name);
         if (!info) throw new ReferenceError(`Enum is not registered: ${name}`);
         return info;
     }
@@ -163,7 +163,7 @@ export class CjsBlueEnumRegistry
     /** Returns an object's canonical registration name, or null. */
     GetEnumName(values)
     {
-        return this.#byObject.get(values) || null;
+        return this._byObject.get(values) || null;
     }
 
     /** Joins every exact alias in chooser order, matching GetEnumValueName_Impl. */

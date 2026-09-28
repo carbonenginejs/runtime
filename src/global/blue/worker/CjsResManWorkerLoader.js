@@ -31,10 +31,10 @@ const DEFAULT_WORKER_OPTIONS = {
  */
 export class CjsResManWorkerLoader
 {
-  #boundError;
-  #boundMessage;
-  #nextId = 1;
-  #pending = new Map();
+  _boundError;
+  _boundMessage;
+  _nextId = 1;
+  _pending = new Map();
 
   /**
    * @param {object} [options={}] Worker construction and fallback options.
@@ -65,9 +65,9 @@ export class CjsResManWorkerLoader
     this.enabled = options.enabled !== false;
     this.failed = false;
     this.worker = options.worker || null;
-    this.#boundMessage = event => this.#OnMessage(event);
-    this.#boundError = event => this.#OnError(event);
-    if (this.worker) this.#Attach(this.worker);
+    this._boundMessage = event => this._OnMessage(event);
+    this._boundError = event => this._OnError(event);
+    if (this.worker) this._Attach(this.worker);
   }
 
   /**
@@ -88,7 +88,7 @@ export class CjsResManWorkerLoader
         throw new TypeError("Worker factory did not return a Worker-compatible object.");
       }
       this.worker = worker;
-      this.#Attach(worker);
+      this._Attach(worker);
       return true;
     } catch {
       this.worker = null;
@@ -106,22 +106,22 @@ export class CjsResManWorkerLoader
   Disable(reason = null) {
     const worker = this.worker;
     if (worker) {
-      this.#Detach(worker);
+      this._Detach(worker);
       worker.terminate?.();
     }
     this.worker = null;
     this.enabled = false;
     this.failed = reason !== null && reason !== undefined;
 
-    if (this.#pending.size) {
+    if (this._pending.size) {
       const error = normalizeWorkerError(
         reason || createWorkerUnavailableError("Resource worker was disabled.")
       );
-      for (const request of this.#pending.values()) {
+      for (const request of this._pending.values()) {
         cleanupPendingRequest(request);
         request.reject(error);
       }
-      this.#pending.clear();
+      this._pending.clear();
     }
     return this;
   }
@@ -255,7 +255,7 @@ export class CjsResManWorkerLoader
     const signal = options.signal || null;
     if (signal?.aborted) return Promise.reject(createAbortError(signal.reason));
 
-    const id = this.#nextId++;
+    const id = this._nextId++;
     let resolve;
     let reject;
     const promise = new Promise((onResolve, onReject) => {
@@ -271,7 +271,7 @@ export class CjsResManWorkerLoader
     };
     if (signal && typeof signal.addEventListener === "function") {
       request.onAbort = () => {
-        if (!this.#pending.delete(id)) return;
+        if (!this._pending.delete(id)) return;
         cleanupPendingRequest(request);
         try {
           this.worker?.postMessage({
@@ -285,7 +285,7 @@ export class CjsResManWorkerLoader
       };
       signal.addEventListener("abort", request.onAbort, { once: true });
     }
-    this.#pending.set(id, request);
+    this._pending.set(id, request);
 
     try {
       this.worker.postMessage({
@@ -295,7 +295,7 @@ export class CjsResManWorkerLoader
         payload
       }, normalizeTransferList(options.transfer));
     } catch (error) {
-      this.#pending.delete(id);
+      this._pending.delete(id);
       cleanupPendingRequest(request);
       reject(error);
     }
@@ -308,49 +308,49 @@ export class CjsResManWorkerLoader
    * @returns {number}
    */
   GetPendingCount() {
-    return this.#pending.size;
+    return this._pending.size;
   }
 
   /** Attach this loader's result and failure listeners to a worker. */
-  #Attach(worker) {
+  _Attach(worker) {
     if (typeof worker.addEventListener === "function") {
-      worker.addEventListener("message", this.#boundMessage);
-      worker.addEventListener("error", this.#boundError);
-      worker.addEventListener("messageerror", this.#boundError);
+      worker.addEventListener("message", this._boundMessage);
+      worker.addEventListener("error", this._boundError);
+      worker.addEventListener("messageerror", this._boundError);
     } else {
-      worker.onmessage = this.#boundMessage;
-      worker.onerror = this.#boundError;
-      worker.onmessageerror = this.#boundError;
+      worker.onmessage = this._boundMessage;
+      worker.onerror = this._boundError;
+      worker.onmessageerror = this._boundError;
     }
   }
 
   /** Detach this loader's result and failure listeners from a worker. */
-  #Detach(worker) {
+  _Detach(worker) {
     if (typeof worker.removeEventListener === "function") {
-      worker.removeEventListener("message", this.#boundMessage);
-      worker.removeEventListener("error", this.#boundError);
-      worker.removeEventListener("messageerror", this.#boundError);
+      worker.removeEventListener("message", this._boundMessage);
+      worker.removeEventListener("error", this._boundError);
+      worker.removeEventListener("messageerror", this._boundError);
     } else {
-      if (worker.onmessage === this.#boundMessage) worker.onmessage = null;
-      if (worker.onerror === this.#boundError) worker.onerror = null;
-      if (worker.onmessageerror === this.#boundError) worker.onmessageerror = null;
+      if (worker.onmessage === this._boundMessage) worker.onmessage = null;
+      if (worker.onerror === this._boundError) worker.onerror = null;
+      if (worker.onmessageerror === this._boundError) worker.onmessageerror = null;
     }
   }
 
   /** Settle the pending request identified by one worker result message. */
-  #OnMessage(event) {
+  _OnMessage(event) {
     const data = event?.data;
     if (!data || data.type !== Message.RESULT) return;
-    const request = this.#pending.get(data.id);
+    const request = this._pending.get(data.id);
     if (!request) return;
-    this.#pending.delete(data.id);
+    this._pending.delete(data.id);
     cleanupPendingRequest(request);
     if (data.ok) request.resolve(data.result);
     else request.reject(normalizeWorkerError(data.error));
   }
 
   /** Disable worker execution after a fatal worker or message failure. */
-  #OnError(event) {
+  _OnError(event) {
     const reason = event?.error || event || new Error("Resource worker failed.");
     this.Disable(reason);
   }

@@ -16,7 +16,7 @@ export class CjsScriptCallback
 {
 
     /** Carbon's `m_callback` (BlueScriptValue): the stored callable, or null. */
-    #callback = null;
+    _callback = null;
 
     /**
      * Wraps one already-validated callable.
@@ -29,7 +29,7 @@ export class CjsScriptCallback
      */
     constructor(callback = null)
     {
-        this.#callback = callback ?? null;
+        this._callback = callback ?? null;
     }
 
     /**
@@ -62,7 +62,7 @@ export class CjsScriptCallback
      */
     IsValid()
     {
-        return this.#callback !== null;
+        return this._callback !== null;
     }
 
     /**
@@ -72,7 +72,7 @@ export class CjsScriptCallback
      */
     Destroy()
     {
-        this.#callback = null;
+        this._callback = null;
     }
 
     /**
@@ -89,7 +89,7 @@ export class CjsScriptCallback
      */
     Call(...args)
     {
-        const callback = this.#callback;
+        const callback = this._callback;
 
         if (callback === null) return undefined;
         return typeof callback === "function" ? callback(...args) : callback.Call(...args);
@@ -108,7 +108,7 @@ export class CjsScriptCallback
      */
     CallVoid(...args)
     {
-        const callback = this.#callback;
+        const callback = this._callback;
 
         if (callback === null) return;
         if (typeof callback === "function") callback(...args);

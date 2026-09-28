@@ -433,7 +433,7 @@ export class CjsSchema
      * facade migration's work, and changes nothing for callers of these
      * statics.
      */
-    static #valuesService = null;
+    static _valuesService = null;
 
     /**
      * Installs the values-transport implementation.
@@ -450,7 +450,7 @@ export class CjsSchema
         {
             throw new TypeError("CjsSchema.registerValuesService requires getValues, setValues and from functions.");
         }
-        CjsSchema.#valuesService = service;
+        CjsSchema._valuesService = service;
         return this;
     }
 
@@ -460,13 +460,13 @@ export class CjsSchema
      * @param {string} method The calling method's name, for the message.
      * @returns {object} The values service.
      */
-    static #requireValuesService(method)
+    static _requireValuesService(method)
     {
-        if (!CjsSchema.#valuesService)
+        if (!CjsSchema._valuesService)
         {
             throw new Error(`CjsSchema.${method} requires the values service; import the model layer before calling it.`);
         }
-        return CjsSchema.#valuesService;
+        return CjsSchema._valuesService;
     }
 
     /**
@@ -483,7 +483,7 @@ export class CjsSchema
         // decorated class, which is what lets a reader work with only the
         // schema layer loaded - hydration.js states that as its whole reason
         // for calling SetValues directly rather than through here.
-        const service = CjsSchema.#valuesService;
+        const service = CjsSchema._valuesService;
         return service
             ? service.getValues(target, out, options)
             : CjsSchema.getValuesFromSchema(target, out, options);
@@ -548,7 +548,7 @@ export class CjsSchema
     static setValues(target, values = {}, options = {})
     {
         if (!CjsSchema.assertValues(values, "CjsSchema.setValues")) return false;
-        const service = CjsSchema.#valuesService;
+        const service = CjsSchema._valuesService;
         return service
             ? service.setValues(target, values, options)
             : CjsSchema.setValuesFromSchema(target, values, options);
@@ -564,7 +564,7 @@ export class CjsSchema
      * Registered as the values service's third arm, which threw by name until
      * this existed. Also what `@compose.values` installs.
      */
-    static #statelessTransport = createValuesTransport({
+    static _statelessTransport = createValuesTransport({
         GetFields: Constructor => getEffectiveFields(Constructor),
         Export: (value, field, options) => exportCarbonValue(value, field.type, options),
         Import: (value, field) => importDeclaredValue(value, field),
@@ -577,13 +577,13 @@ export class CjsSchema
     /** Reads declared fields off any decorated class, without a model base. */
     static getValuesFromSchema(target, out = {}, options = {})
     {
-        return CjsSchema.#statelessTransport.getValues(target, out, options);
+        return CjsSchema._statelessTransport.getValues(target, out, options);
     }
 
     /** Writes declared fields onto any decorated class, without a model base. */
     static setValuesFromSchema(target, values = {}, options = {})
     {
-        return CjsSchema.#statelessTransport.setValues(target, values, options);
+        return CjsSchema._statelessTransport.setValues(target, values, options);
     }
 
     /**
@@ -600,7 +600,7 @@ export class CjsSchema
     static from(className, values = {}, options = {})
     {
         if (!CjsSchema.assertValues(values, "CjsSchema.from")) values = {};
-        return CjsSchema.#requireValuesService("from").from(className, values, options);
+        return CjsSchema._requireValuesService("from").from(className, values, options);
     }
 
     /** Returns the stable registered name for an enum object. */
@@ -832,7 +832,7 @@ export class CjsSchema
     static compose = {
         abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
-        values: composeValuesDecorator(CjsSchema.#statelessTransport)
+        values: composeValuesDecorator(CjsSchema._statelessTransport)
     };
 
     /**
@@ -888,7 +888,7 @@ export class CjsSchema
      * @param {String} name The member.
      * @returns {Array<Function>} Decorators for `decorateMethod`.
      */
-    static #inheritedImplDecorators(Contract, name)
+    static _inheritedImplDecorators(Contract, name)
     {
         let declared = null;
         for (
@@ -921,7 +921,7 @@ export class CjsSchema
         inherit: (...Bases) => carbonInheritDecorator(
             Bases,
             (Constructor, name, Contract) => CjsSchema.decorateMethod(
-                Constructor, name, ...CjsSchema.#inheritedImplDecorators(Contract, name))),
+                Constructor, name, ...CjsSchema._inheritedImplDecorators(Contract, name))),
         mapInterface: (...Interfaces) => carbonMapInterfaceDecorator(Interfaces),
         method: methodDecorator("carbon", { method: true }),
         renamed: originalName => {

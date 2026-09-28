@@ -22,31 +22,31 @@ const TICKS_PER_MILLISECOND = 10000;
 export class CjsBlueOS extends IBlueOS
 {
   /** Wallclock at construction, in Blue UTC ticks, as the anchor for elapsed host time. */
-  #utcAnchor = 0;
+  _utcAnchor = 0;
 
   /** The host clock at construction, in milliseconds. */
-  #originMs = 0;
+  _originMs = 0;
 
   /** `m_pumpTicksTotal` - pump cycles since creation. */
-  #pumpTicks = 0;
+  _pumpTicks = 0;
 
   /** The cached actual-time sample, in Blue UTC ticks. */
-  #currentFrameTime = 0;
+  _currentFrameTime = 0;
 
   /** Registrants of `RegisterForTicks`, each with the cookie it supplied. */
-  #tickers = [];
+  _tickers = [];
 
   /** Registrants of `RegisterForSimTimeRebase`. */
-  #rebaseListeners = [];
+  _rebaseListeners = [];
 
   /** Anchors the host clock to the current UTC wallclock. */
   constructor()
   {
     super();
     const wallclock = Date.now();
-    this.#originMs = CjsBlueOS.Monotonic();
-    this.#utcAnchor = FILETIME_EPOCH_OFFSET + Math.round(wallclock * TICKS_PER_MILLISECOND);
-    this.#currentFrameTime = this.#utcAnchor;
+    this._originMs = CjsBlueOS.Monotonic();
+    this._utcAnchor = FILETIME_EPOCH_OFFSET + Math.round(wallclock * TICKS_PER_MILLISECOND);
+    this._currentFrameTime = this._utcAnchor;
   }
 
   /**
@@ -76,8 +76,8 @@ export class CjsBlueOS extends IBlueOS
    */
   GetActualTime()
   {
-    const elapsedMs = CjsBlueOS.Monotonic() - this.#originMs;
-    return this.#utcAnchor + Math.round(elapsedMs * TICKS_PER_MILLISECOND);
+    const elapsedMs = CjsBlueOS.Monotonic() - this._originMs;
+    return this._utcAnchor + Math.round(elapsedMs * TICKS_PER_MILLISECOND);
   }
 
   /**
@@ -90,7 +90,7 @@ export class CjsBlueOS extends IBlueOS
    */
   GetCurrentFrameTime()
   {
-    return this.#currentFrameTime;
+    return this._currentFrameTime;
   }
 
   /**
@@ -112,14 +112,14 @@ export class CjsBlueOS extends IBlueOS
    */
   PumpOS()
   {
-    this.#pumpTicks++;
-    this.#currentFrameTime = this.GetActualTime();
+    this._pumpTicks++;
+    this._currentFrameTime = this.GetActualTime();
 
     const realTime = this.GetRealTime();
     let failure = null;
 
     // Snapshot entries remain eligible even if removed during an earlier callback.
-    for (const { cb, cookie } of [ ...this.#tickers ])
+    for (const { cb, cookie } of [ ...this._tickers ])
     {
       try
       {
@@ -147,7 +147,7 @@ export class CjsBlueOS extends IBlueOS
    */
   GetRealTime()
   {
-    return Math.round((CjsBlueOS.Monotonic() - this.#originMs) * TICKS_PER_MILLISECOND);
+    return Math.round((CjsBlueOS.Monotonic() - this._originMs) * TICKS_PER_MILLISECOND);
   }
 
   /**
@@ -165,8 +165,8 @@ export class CjsBlueOS extends IBlueOS
     const info = new BeInfo();
     info.realTime = this.GetActualTime();
     info.simTime = info.realTime;
-    info.startTime = this.#utcAnchor;
-    info.pumpTicksTotal = this.#pumpTicks;
+    info.startTime = this._utcAnchor;
+    info.pumpTicksTotal = this._pumpTicks;
     return info;
   }
 
@@ -188,9 +188,9 @@ export class CjsBlueOS extends IBlueOS
     {
       throw new TypeError("CjsBlueOS.RegisterForTicks expects an IBlueEvents.");
     }
-    if (!this.#tickers.some(entry => entry.cb === cb && entry.cookie === cookie))
+    if (!this._tickers.some(entry => entry.cb === cb && entry.cookie === cookie))
     {
-      this.#tickers.push({ cb, cookie });
+      this._tickers.push({ cb, cookie });
     }
     return this;
   }
@@ -206,8 +206,8 @@ export class CjsBlueOS extends IBlueOS
    */
   UnregisterForTicks(cb, cookie = null)
   {
-    const index = this.#tickers.findIndex(entry => entry.cb === cb && entry.cookie === cookie);
-    if (index >= 0) this.#tickers.splice(index, 1);
+    const index = this._tickers.findIndex(entry => entry.cb === cb && entry.cookie === cookie);
+    if (index >= 0) this._tickers.splice(index, 1);
     return this;
   }
 
@@ -222,7 +222,7 @@ export class CjsBlueOS extends IBlueOS
    */
   IsRegisteredForTicks(cb)
   {
-    return this.#tickers.some(entry => entry.cb === cb);
+    return this._tickers.some(entry => entry.cb === cb);
   }
 
   /**
@@ -242,7 +242,7 @@ export class CjsBlueOS extends IBlueOS
     {
       throw new TypeError("CjsBlueOS.RegisterForSimTimeRebase expects an ISimTimeRebaseNotify.");
     }
-    if (!this.#rebaseListeners.includes(cb)) this.#rebaseListeners.push(cb);
+    if (!this._rebaseListeners.includes(cb)) this._rebaseListeners.push(cb);
     return this;
   }
 
@@ -256,8 +256,8 @@ export class CjsBlueOS extends IBlueOS
    */
   UnregisterForSimTimeRebase(cb)
   {
-    const index = this.#rebaseListeners.indexOf(cb);
-    if (index >= 0) this.#rebaseListeners.splice(index, 1);
+    const index = this._rebaseListeners.indexOf(cb);
+    if (index >= 0) this._rebaseListeners.splice(index, 1);
     return this;
   }
 

@@ -194,7 +194,7 @@ export class Copier extends ICopier
       if (written === false) continue;
       if (written === null)
       {
-        if (Copier.#IsUnchanged(kind, from, to)) continue;
+        if (Copier._IsUnchanged(kind, from, to)) continue;
         if (!this._CopyMember(field, kind, from, to, dest)) return false;
       }
 
@@ -234,7 +234,7 @@ export class Copier extends ICopier
       return true;
     }
 
-    if (CONTAINER_KINDS.has(kind) && Copier.#HoldsObjects(field.type, from))
+    if (CONTAINER_KINDS.has(kind) && Copier._HoldsObjects(field.type, from))
     {
       return kind === "map"
         ? this._AssignMap(field, from, dest)
@@ -273,17 +273,17 @@ export class Copier extends ICopier
   }
 
   /** The `memcmp` skip (Copier.cpp:141-150), asked per kind. */
-  static #IsUnchanged(kind, from, to)
+  static _IsUnchanged(kind, from, to)
   {
     if (Object.is(from, to)) return true;
     if (CONTAINER_KINDS.has(kind))
     {
-      return Copier.#IsEmpty(from) && Copier.#IsEmpty(to);
+      return Copier._IsEmpty(from) && Copier._IsEmpty(to);
     }
     return false;
   }
 
-  static #IsEmpty(value)
+  static _IsEmpty(value)
   {
     if (value == null) return true;
     return (value.length ?? value.size ?? 0) === 0;
@@ -297,7 +297,7 @@ export class Copier extends ICopier
    * (`ITr2ValueBinding`, `ITriFunction`), so the items themselves decide
    * when the declaration cannot.
    */
-  static #HoldsObjects(type, items)
+  static _HoldsObjects(type, items)
   {
     const item = type?.valueType ?? type?.itemType;
     if (typeof item === "string" && CjsSchema.GetConstructor(item) !== null) return true;

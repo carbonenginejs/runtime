@@ -38,10 +38,10 @@ import { ResourceHandlerMode } from "./ResourceHandlerMode.js";
  */
 export class CjsResource
 {
-  #payload = null;
+  _payload = null;
 
   /** Reloads attempted since the last successful load. */
-  #reloadAttempts = 0;
+  _reloadAttempts = 0;
 
   /**
    * How many times a purged or failed resource reloads itself before giving up.
@@ -290,7 +290,7 @@ export class CjsResource
     this.state = state;
     // A successful load clears the budget, so the cap bounds consecutive
     // failures rather than how many times a resource may ever be purged.
-    if (state === CjsResource.State.PREPARED) this.#reloadAttempts = 0;
+    if (state === CjsResource.State.PREPARED) this._reloadAttempts = 0;
     this.EmitEvent?.(state, this, ...details);
     this.EmitEvent?.("statechange", this, state, previous);
     // Fires again after a purge and reload, so subscribers rebuild whatever
@@ -413,8 +413,8 @@ export class CjsResource
    * @returns {CjsResource} This resource with the supplied payload reference.
    */
   SetPayload(payload = null) {
-    const previous = this.#payload;
-    this.#payload = payload;
+    const previous = this._payload;
+    this._payload = payload;
     if (this.object === previous) this.object = payload;
     if (this.HasPayload()) this.KeepPayloadAlive();
     return this;
@@ -559,7 +559,7 @@ export class CjsResource
    * @returns {*} Current payload reference, or `null` after release.
    */
   GetPayload() {
-    return this.#payload;
+    return this._payload;
   }
 
   /**
@@ -569,7 +569,7 @@ export class CjsResource
    * @returns {boolean} Whether a non-null payload is attached.
    */
   HasPayload() {
-    return this.#payload !== null && this.#payload !== undefined;
+    return this._payload !== null && this._payload !== undefined;
   }
 
   /**
@@ -582,8 +582,8 @@ export class CjsResource
    * @returns {CjsResource} This resource without its former payload reference.
    */
   ReleasePayload() {
-    const payload = this.#payload;
-    this.#payload = null;
+    const payload = this._payload;
+    this._payload = null;
     if (this.object === payload) this.object = null;
     return this;
   }
@@ -678,10 +678,10 @@ export class CjsResource
   Reload(options = {})
   {
     if (!this.IsPurged() && !this.IsFailed()) return false;
-    if (this.#reloadAttempts >= this.constructor.maxReloadAttempts) return false;
+    if (this._reloadAttempts >= this.constructor.maxReloadAttempts) return false;
     if (typeof this.__reloadHook !== "function") return false;
 
-    this.#reloadAttempts += 1;
+    this._reloadAttempts += 1;
     return this.__reloadHook(options) !== false;
   }
 
@@ -715,7 +715,7 @@ export class CjsResource
    */
   GetReloadAttempts()
   {
-    return this.#reloadAttempts;
+    return this._reloadAttempts;
   }
 
   /**
@@ -731,7 +731,7 @@ export class CjsResource
    */
   ResetReloadAttempts()
   {
-    this.#reloadAttempts = 0;
+    this._reloadAttempts = 0;
     return this;
   }
 

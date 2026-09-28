@@ -248,31 +248,31 @@ export class CjsResMan
   // Carbon keeps it: FileExistsLocally is IBluePaths.h:38, a different
   // service behind a different extern.
 
-  #autoPurgePolicy = null;
-  #activeResourceOperations = 0;
-  #invalidResourceOwnership = new WeakSet();
-  #lastAutoPurgeTime = null;
-  #nextResourceReloadGeneration = 1;
-  #nextResourceOwnershipGeneration = 1;
-  #nextResourceOperationId = 1;
-  #queueOperations = new Map();
-  #resourceOwnership = new WeakMap();
-  #resourceOperations = new Map();
-  #reloadCandidates = new WeakMap();
-  #reloadGenerations = new Map();
-  #reloadOperations = new WeakMap();
-  #extensionRoutes = new Map();
-  #resourceExtensionRoutes = new WeakMap();
-  #resourceHandlerModes = new WeakMap();
-  #resourceTypeCandidates = new Map();
+  _autoPurgePolicy = null;
+  _activeResourceOperations = 0;
+  _invalidResourceOwnership = new WeakSet();
+  _lastAutoPurgeTime = null;
+  _nextResourceReloadGeneration = 1;
+  _nextResourceOwnershipGeneration = 1;
+  _nextResourceOperationId = 1;
+  _queueOperations = new Map();
+  _resourceOwnership = new WeakMap();
+  _resourceOperations = new Map();
+  _reloadCandidates = new WeakMap();
+  _reloadGenerations = new Map();
+  _reloadOperations = new WeakMap();
+  _extensionRoutes = new Map();
+  _resourceExtensionRoutes = new WeakMap();
+  _resourceHandlerModes = new WeakMap();
+  _resourceTypeCandidates = new Map();
   // BlueResMan::m_dynamicConstructors (BlueResMan.h:154-155).
-  #dynamicConstructors = new Map();
-  #dynamicResources = new WeakSet();
+  _dynamicConstructors = new Map();
+  _dynamicResources = new WeakSet();
   // Carbon caches a LoadObject BUILDER and creates a new object per call
   // (BlueResMan.cpp:653-795). For an OBJECT-mode route that hydrates, the
   // payload is the decoded plain values - the builder - and this records what
   // builds from them.
-  #objectBuilders = new WeakMap();
+  _objectBuilders = new WeakMap();
 
   /**
    * Create a GPU-free resource manager and apply its initial registration.
@@ -355,18 +355,18 @@ export class CjsResMan
         const nextMotherLode = value || new CjsMotherLode();
         if (nextMotherLode !== this.motherLode)
         {
-          if (this.#activeResourceOperations > 0)
+          if (this._activeResourceOperations > 0)
           {
-            throw activeResourceOperationsError(this.#activeResourceOperations);
+            throw activeResourceOperationsError(this._activeResourceOperations);
           }
           const previousMotherLode = this.motherLode;
-          this.#InvalidateMotherLodeOwnership(previousMotherLode);
+          this._InvalidateMotherLodeOwnership(previousMotherLode);
           previousMotherLode?.Shutdown();
           this.motherLode = nextMotherLode;
           this.motherLode.Startup();
-          this.#BindMotherLodeResources();
-          this.#reloadGenerations.clear();
-          this.#lastAutoPurgeTime = null;
+          this._BindMotherLodeResources();
+          this._reloadGenerations.clear();
+          this._lastAutoPurgeTime = null;
         }
       },
       cacheSize: value => this.motherLode.SetCacheSize(
@@ -875,8 +875,8 @@ export class CjsResMan
     }
 
     const snapshot = new Set([
-      ...this.#resourceOperations.values(),
-      ...this.#queueOperations.values()
+      ...this._resourceOperations.values(),
+      ...this._queueOperations.values()
     ]);
     if (snapshot.size === 0) return this;
 
@@ -926,7 +926,7 @@ export class CjsResMan
    */
   QueueTask(queue, callback, context = null, metadata = null)
   {
-    return this.#TrackQueueTask(this.GetWorkQueue(queue).Add(callback, context, metadata));
+    return this._TrackQueueTask(this.GetWorkQueue(queue).Add(callback, context, metadata));
   }
 
   /** Requests a later background-queue scheduling pass for the resource manager. */
@@ -992,10 +992,10 @@ export class CjsResMan
     }
 
     const candidates = inferredRequirement
-      ? this.#resourceTypeCandidates.get(key) || new Set()
+      ? this._resourceTypeCandidates.get(key) || new Set()
       : new Set();
     candidates.add(Constructor);
-    this.#resourceTypeCandidates.set(key, candidates);
+    this._resourceTypeCandidates.set(key, candidates);
     this.resourceTypes.set(key, Constructor);
 
     for (const alias of options.aliases || [])
@@ -1003,7 +1003,7 @@ export class CjsResMan
       const aliasKey = normalizeRequirement(alias);
       if (aliasKey)
       {
-        this.#resourceTypeCandidates.set(aliasKey, new Set([ Constructor ]));
+        this._resourceTypeCandidates.set(aliasKey, new Set([ Constructor ]));
         this.resourceTypes.set(aliasKey, Constructor);
       }
     }
@@ -1159,7 +1159,7 @@ export class CjsResMan
       Target,
       Identify
     };
-    this.#extensionRoutes.set(ext, route);
+    this._extensionRoutes.set(ext, route);
     return this;
   }
 
@@ -1171,7 +1171,7 @@ export class CjsResMan
    */
   GetExtensionRoute(extension)
   {
-    return this.#extensionRoutes.get(normalizeResourceExtension(extension)) || null;
+    return this._extensionRoutes.get(normalizeResourceExtension(extension)) || null;
   }
 
   /**
@@ -1195,7 +1195,7 @@ export class CjsResMan
     {
       throw new TypeError(`CjsResMan dynamic resource constructor "${key}" must implement IBlueDynamicResourceConstructor (GetResource and IsCacheable).`);
     }
-    this.#dynamicConstructors.set(key, constructor);
+    this._dynamicConstructors.set(key, constructor);
     return this;
   }
 
@@ -1207,7 +1207,7 @@ export class CjsResMan
    */
   UnregisterResourceConstructor(name)
   {
-    this.#dynamicConstructors.delete(String(name ?? "").toLowerCase());
+    this._dynamicConstructors.delete(String(name ?? "").toLowerCase());
     return this;
   }
 
@@ -1267,7 +1267,7 @@ export class CjsResMan
     const cacheKey = getMotherLodeKey(key, variant);
     const existing = this.motherLode.Lookup(cacheKey);
     const extensionRoute = existing
-      ? this.#resourceExtensionRoutes.get(existing) || null
+      ? this._resourceExtensionRoutes.get(existing) || null
       : this.GetExtensionRoute(ext);
     if (options.emit !== undefined)
     {
@@ -1290,7 +1290,7 @@ export class CjsResMan
     }
     if (existing && options.reload !== true)
     {
-      this.#BindResourceLifecycle(cacheKey, existing);
+      this._BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive(cacheKey);
       return existing;
     }
@@ -1298,7 +1298,7 @@ export class CjsResMan
     // queries share one resource.
     if (isDynamicResourcePath(key))
     {
-      return this.#CreateDynamicResource(key, cacheKey);
+      return this._CreateDynamicResource(key, cacheKey);
     }
     if (!existing && options.reload === true)
     {
@@ -1316,10 +1316,10 @@ export class CjsResMan
     );
     if (existing && options.reload === true)
     {
-      this.#BindResourceLifecycle(cacheKey, existing);
+      this._BindResourceLifecycle(cacheKey, existing);
       this.motherLode.KeepAlive(cacheKey);
-      const expectedOwnership = this.#RequireResourceOwnership(existing, "reload-candidate:create");
-      const generation = this.#nextResourceReloadGeneration++;
+      const expectedOwnership = this._RequireResourceOwnership(existing, "reload-candidate:create");
+      const generation = this._nextResourceReloadGeneration++;
       const loaderOptions = getResourceLoaderOptions(
         options,
         options.source || this.source
@@ -1334,11 +1334,11 @@ export class CjsResMan
         resource,
         loaderOptions
       };
-      this.#reloadCandidates.set(resource, candidate);
-      this.#reloadGenerations.set(cacheKey, generation);
+      this._reloadCandidates.set(resource, candidate);
+      this._reloadGenerations.set(cacheKey, generation);
       const reloadOptions = { ...loaderOptions, reload: true };
       resource.SetObjectLoader(
-        loadOptions => this.#GetReloadCandidateObject(resource, {
+        loadOptions => this._GetReloadCandidateObject(resource, {
           ...mergeResourceLoaderOptions(reloadOptions, loadOptions),
           reload: true
         }),
@@ -1351,14 +1351,14 @@ export class CjsResMan
     const canonical = insertion?.resource || resource;
     if (insertion?.displaced && insertion.displaced !== canonical)
     {
-      this.#InvalidateResourceOwnership(insertion.displaced);
+      this._InvalidateResourceOwnership(insertion.displaced);
     }
     else if (existing && existing !== canonical
       && this.motherLode.Lookup(cacheKey) !== existing)
     {
-      this.#InvalidateResourceOwnership(existing);
+      this._InvalidateResourceOwnership(existing);
     }
-    this.#BindResourceLifecycle(cacheKey, canonical);
+    this._BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);
 
     // A reload request drives its own load (ReloadResource / GetObject).
@@ -1417,39 +1417,39 @@ export class CjsResMan
       resource.GetObjectRequest?.() || {},
       options
     );
-    if (this.#reloadCandidates.has(resource))
+    if (this._reloadCandidates.has(resource))
     {
-      return this.#GetReloadCandidateObject(resource, operationOptions);
+      return this._GetReloadCandidateObject(resource, operationOptions);
     }
-    const ownership = this.#RequireResourceOwnership(resource, "object:begin");
+    const ownership = this._RequireResourceOwnership(resource, "object:begin");
     const existing = this.objectOperations.get(resource);
     if (existing?.ownership === ownership)
     {
       // Joining an in-flight load shares its promise - unless the route builds
       // per caller, when the load's own caller receives the instance built at
       // publication and a joiner gets its own.
-      const route = this.#resourceExtensionRoutes.get(resource);
+      const route = this._resourceExtensionRoutes.get(resource);
       if (!route?.Target && !route?.Identify) return existing.promise;
-      return existing.promise.then(result => this.#objectBuilders.has(resource)
-        ? this.#BuildObject(resource)
+      return existing.promise.then(result => this._objectBuilders.has(resource)
+        ? this._BuildObject(resource)
         : result);
     }
 
     if (resource.HasPayload?.())
     {
       resource.KeepPayloadAlive?.();
-      if (this.#objectBuilders.has(resource))
+      if (this._objectBuilders.has(resource))
       {
-        return Promise.resolve().then(() => this.#BuildObject(resource));
+        return Promise.resolve().then(() => this._BuildObject(resource));
       }
       return Promise.resolve(getPublishedResourceObject(
         resource,
-        this.#resourceExtensionRoutes.get(resource) || null,
-        this.#resourceHandlerModes.get(resource) || null
+        this._resourceExtensionRoutes.get(resource) || null,
+        this._resourceHandlerModes.get(resource) || null
       ));
     }
 
-    if (this.#dynamicResources.has(resource))
+    if (this._dynamicResources.has(resource))
     {
       // One still building is waited for: a texture made from a pipeline loads
       // its inputs first, as Carbon's .ctr texture does (TriTextureRes.cpp:238-258).
@@ -1585,33 +1585,33 @@ export class CjsResMan
    * @param {object} options Reload source, format, and queue options.
    * @returns {Promise<*>} Candidate object outcome after conditional publication.
    */
-  #GetReloadCandidateObject(resource, options)
+  _GetReloadCandidateObject(resource, options)
   {
-    const candidate = this.#reloadCandidates.get(resource) || null;
+    const candidate = this._reloadCandidates.get(resource) || null;
     if (!candidate)
     {
       return Promise.reject(reloadCandidateUnavailableError(resource));
     }
 
-    const existing = this.#reloadOperations.get(resource);
+    const existing = this._reloadOperations.get(resource);
     if (existing?.candidate === candidate) return existing.promise;
 
     const operation = {
       candidate,
-      promise: this.#RunReloadCandidate(candidate, options)
+      promise: this._RunReloadCandidate(candidate, options)
     };
-    this.#reloadOperations.set(resource, operation);
+    this._reloadOperations.set(resource, operation);
     operation.promise.then(() =>
     {
-      if (this.#reloadOperations.get(resource) === operation)
+      if (this._reloadOperations.get(resource) === operation)
       {
-        this.#reloadOperations.delete(resource);
+        this._reloadOperations.delete(resource);
       }
     }, () =>
     {
-      if (this.#reloadOperations.get(resource) === operation)
+      if (this._reloadOperations.get(resource) === operation)
       {
-        this.#reloadOperations.delete(resource);
+        this._reloadOperations.delete(resource);
       }
     });
     return operation.promise;
@@ -1627,38 +1627,38 @@ export class CjsResMan
    * @param {object} options Reload source, format, queue, and prepare options.
    * @returns {Promise<*>} Published object outcome after a successful commit.
    */
-  async #RunReloadCandidate(candidate, options)
+  async _RunReloadCandidate(candidate, options)
   {
     let committed = false;
     let releaseLock = noop;
-    const finishOperation = this.#BeginResourceOperation(true);
+    const finishOperation = this._BeginResourceOperation(true);
 
     try
     {
-      this.#AssertReloadCandidate(candidate, "reload:begin");
-      releaseLock = this.#AcquireResourcePurgeLock(candidate.expectedOwnership);
-      const read = this.#BeginReadOperation(candidate.resource.GetPath(), {
+      this._AssertReloadCandidate(candidate, "reload:begin");
+      releaseLock = this._AcquireResourcePurgeLock(candidate.expectedOwnership);
+      const read = this._BeginReadOperation(candidate.resource.GetPath(), {
         ...options,
         reload: true
       });
 
-      this.#AssertReloadCandidate(candidate, "reload:requested");
+      this._AssertReloadCandidate(candidate, "reload:requested");
       candidate.resource.error = null;
       candidate.resource.MarkRequested();
-      this.#AssertReloadCandidate(candidate, "reload:requested-settled");
+      this._AssertReloadCandidate(candidate, "reload:requested-settled");
 
-      const bytes = await this.#QueueReadResource(read.context, read.options);
-      this.#AssertReloadCandidate(candidate, "reload:loading");
+      const bytes = await this._QueueReadResource(read.context, read.options);
+      this._AssertReloadCandidate(candidate, "reload:loading");
       candidate.resource.MarkLoading();
-      this.#AssertReloadCandidate(candidate, "reload:loading-settled");
+      this._AssertReloadCandidate(candidate, "reload:loading-settled");
 
-      const object = await this.#PrepareResourceObjectQueued(
+      const object = await this._PrepareResourceObjectQueued(
         candidate.resource,
         bytes,
         read.options,
         candidate
       );
-      this.#AssertReloadCandidate(candidate, "reload:commit");
+      this._AssertReloadCandidate(candidate, "reload:commit");
 
       try
       {
@@ -1666,14 +1666,14 @@ export class CjsResMan
           candidate.key,
           candidate.expected,
           candidate.resource,
-          { commitGuard: () => this.#IsReloadCandidateCurrent(candidate) }
+          { commitGuard: () => this._IsReloadCandidateCurrent(candidate) }
         );
         if (!result.committed)
         {
           throw staleReloadCandidateError(candidate, "reload:commit-compare");
         }
         committed = true;
-        this.#FinalizeCommittedReload(candidate);
+        this._FinalizeCommittedReload(candidate);
       }
       catch (error)
       {
@@ -1684,7 +1684,7 @@ export class CjsResMan
           committed = true;
           try
           {
-            this.#FinalizeCommittedReload(candidate);
+            this._FinalizeCommittedReload(candidate);
           }
           catch (finalizeError)
           {
@@ -1708,7 +1708,7 @@ export class CjsResMan
     {
       if (!committed)
       {
-        throw this.#CreateReloadCandidateFailure(candidate, error);
+        throw this._CreateReloadCandidateFailure(candidate, error);
       }
       throw error;
     }
@@ -1716,9 +1716,9 @@ export class CjsResMan
     {
       releaseLock();
       finishOperation();
-      if (this.#reloadGenerations.get(candidate.key) === candidate.generation)
+      if (this._reloadGenerations.get(candidate.key) === candidate.generation)
       {
-        this.#reloadGenerations.delete(candidate.key);
+        this._reloadGenerations.delete(candidate.key);
       }
     }
   }
@@ -1731,10 +1731,10 @@ export class CjsResMan
    * @param {CjsResourceReloadCandidate} candidate Committed candidate authority.
    * @returns {void}
    */
-  #FinalizeCommittedReload(candidate)
+  _FinalizeCommittedReload(candidate)
   {
-    this.#InvalidateResourceOwnership(candidate.expected);
-    this.#reloadCandidates.delete(candidate.resource);
+    this._InvalidateResourceOwnership(candidate.expected);
+    this._reloadCandidates.delete(candidate.resource);
     const errors = [];
     try
     {
@@ -1752,7 +1752,7 @@ export class CjsResMan
     }
     try
     {
-      this.#BindResourceLifecycle(candidate.key, candidate.resource);
+      this._BindResourceLifecycle(candidate.key, candidate.resource);
     }
     catch (error)
     {
@@ -1786,7 +1786,7 @@ export class CjsResMan
    * @param {*} cause Original operation failure.
    * @returns {*} Original error or a contextual AggregateError.
    */
-  #CreateReloadCandidateFailure(candidate, cause)
+  _CreateReloadCandidateFailure(candidate, cause)
   {
     const errors = [ cause ];
     try
@@ -1799,7 +1799,7 @@ export class CjsResMan
     }
     try
     {
-      this.#CleanupReloadCandidate(candidate.resource);
+      this._CleanupReloadCandidate(candidate.resource);
     }
     catch (error)
     {
@@ -1823,7 +1823,7 @@ export class CjsResMan
    * @returns {void}
    * @throws {AggregateError} If adapter destruction, payload release, or lifecycle detachment fails.
    */
-  #CleanupReloadCandidate(resource)
+  _CleanupReloadCandidate(resource)
   {
     const errors = [];
     try
@@ -1877,7 +1877,7 @@ export class CjsResMan
       options.ext || getResourceExtension(normalizedPath)
     );
     const route = existing
-      ? this.#resourceExtensionRoutes.get(existing) || null
+      ? this._resourceExtensionRoutes.get(existing) || null
       : this.GetExtensionRoute(ext);
     return route?.handlerMode === ResourceHandlerMode.RESOURCE
       ? this.FetchResource(path, options)
@@ -1899,21 +1899,21 @@ export class CjsResMan
    */
   async LoadResourceObject(resource, options = {})
   {
-    const read = this.#BeginReadOperation(resource.GetPath(), options);
-    const ownership = this.#RequireResourceOwnership(resource, "direct-load:begin");
-    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
-    const finishOperation = this.#BeginResourceOperation(false);
+    const read = this._BeginReadOperation(resource.GetPath(), options);
+    const ownership = this._RequireResourceOwnership(resource, "direct-load:begin");
+    const releaseLock = this._AcquireResourcePurgeLock(ownership);
+    const finishOperation = this._BeginResourceOperation(false);
 
     try {
-      this.#AssertResourceOwnership(ownership, "direct-load:loading");
+      this._AssertResourceOwnership(ownership, "direct-load:loading");
       resource.error = null;
       resource.MarkLoading();
-      this.#AssertResourceOwnership(ownership, "direct-load:loading-settled");
-      const bytes = await this.#ReadResource(read.context, read.options);
-      this.#AssertResourceOwnership(ownership, "direct-load:source-settled");
-      return await this.#PrepareResourceObject(resource, bytes, read.options, ownership);
+      this._AssertResourceOwnership(ownership, "direct-load:loading-settled");
+      const bytes = await this._ReadResource(read.context, read.options);
+      this._AssertResourceOwnership(ownership, "direct-load:source-settled");
+      return await this._PrepareResourceObject(resource, bytes, read.options, ownership);
     } catch (error) {
-      if (this.#IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
+      if (this._IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
       throw error;
     } finally {
       releaseLock();
@@ -1933,18 +1933,18 @@ export class CjsResMan
    * @throws {TypeError} If the resource cannot be queued or its options are invalid.
    */
   QueueResourceObject(resource, options = {}) {
-    const read = this.#BeginReadOperation(resource.GetPath(), options);
-    const ownership = this.#RequireResourceOwnership(resource, "queue:begin");
-    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
-    const finishOperation = this.#BeginResourceOperation(true);
+    const read = this._BeginReadOperation(resource.GetPath(), options);
+    const ownership = this._RequireResourceOwnership(resource, "queue:begin");
+    const releaseLock = this._AcquireResourcePurgeLock(ownership);
+    const finishOperation = this._BeginResourceOperation(true);
     let load;
 
     try {
-      this.#AssertResourceOwnership(ownership, "queue:requested");
+      this._AssertResourceOwnership(ownership, "queue:requested");
       resource.error = null;
       resource.MarkRequested();
-      this.#AssertResourceOwnership(ownership, "queue:requested-settled");
-      load = this.#QueueReadResource(read.context, read.options);
+      this._AssertResourceOwnership(ownership, "queue:requested-settled");
+      load = this._QueueReadResource(read.context, read.options);
     } catch (error) {
       releaseLock();
       finishOperation();
@@ -1953,13 +1953,13 @@ export class CjsResMan
 
     const operation = load
       .then(bytes => {
-        this.#AssertResourceOwnership(ownership, "queue:loading");
+        this._AssertResourceOwnership(ownership, "queue:loading");
         resource.MarkLoading();
-        this.#AssertResourceOwnership(ownership, "queue:loading-settled");
-        return this.#PrepareResourceObjectQueued(resource, bytes, read.options, ownership);
+        this._AssertResourceOwnership(ownership, "queue:loading-settled");
+        return this._PrepareResourceObjectQueued(resource, bytes, read.options, ownership);
       })
       .catch(error => {
-        if (this.#IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
+        if (this._IsResourceOwnershipCurrent(ownership)) resource.SetError(error);
         throw error;
       })
       .finally(releaseLock);
@@ -1981,8 +1981,8 @@ export class CjsResMan
    */
   QueueReadResource(path, options = {})
   {
-    const read = this.#BeginReadOperation(path, options);
-    return this.#QueueReadResource(read.context, read.options);
+    const read = this._BeginReadOperation(path, options);
+    return this._QueueReadResource(read.context, read.options);
   }
 
   /**
@@ -1999,17 +1999,17 @@ export class CjsResMan
    * @throws {Error} If reading/preparation fails or canonical ownership becomes stale.
    */
   async PrepareResourceObject(resource, bytes, options = {}) {
-    const ownership = this.#GetResourceOwnership(resource, "direct-prepare:begin");
+    const ownership = this._GetResourceOwnership(resource, "direct-prepare:begin");
     if (!ownership)
     {
-      return this.#PrepareResourceObject(resource, bytes, options, null);
+      return this._PrepareResourceObject(resource, bytes, options, null);
     }
 
-    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
-    const finishOperation = this.#BeginResourceOperation(false);
+    const releaseLock = this._AcquireResourcePurgeLock(ownership);
+    const finishOperation = this._BeginResourceOperation(false);
     try
     {
-      return await this.#PrepareResourceObject(resource, bytes, options, ownership);
+      return await this._PrepareResourceObject(resource, bytes, options, ownership);
     }
     finally
     {
@@ -2032,17 +2032,17 @@ export class CjsResMan
    * @throws {Error} If queueing/preparation fails or canonical ownership becomes stale.
    */
   async PrepareResourceObjectQueued(resource, bytes, options = {}) {
-    const ownership = this.#GetResourceOwnership(resource, "queued-prepare:begin");
+    const ownership = this._GetResourceOwnership(resource, "queued-prepare:begin");
     if (!ownership)
     {
-      return this.#PrepareResourceObjectQueued(resource, bytes, options, null);
+      return this._PrepareResourceObjectQueued(resource, bytes, options, null);
     }
 
-    const releaseLock = this.#AcquireResourcePurgeLock(ownership);
-    const finishOperation = this.#BeginResourceOperation(true);
+    const releaseLock = this._AcquireResourcePurgeLock(ownership);
+    const finishOperation = this._BeginResourceOperation(true);
     try
     {
-      return await this.#PrepareResourceObjectQueued(resource, bytes, options, ownership);
+      return await this._PrepareResourceObjectQueued(resource, bytes, options, ownership);
     }
     finally
     {
@@ -2062,18 +2062,18 @@ export class CjsResMan
    * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
    * @returns {Promise<*>} Final plain payload or semantic resource handle.
    */
-  async #PrepareResourceObject(resource, bytes, options, ownership) {
-    this.#AssertOptionalResourceOwnership(ownership, "prepare:read");
-    const resolved = this.#ResolveResourceObjectRead(resource, bytes, options);
-    const decoded = await this.#ReadResolvedResourceObjectPayload(
+  async _PrepareResourceObject(resource, bytes, options, ownership) {
+    this._AssertOptionalResourceOwnership(ownership, "prepare:read");
+    const resolved = this._ResolveResourceObjectRead(resource, bytes, options);
+    const decoded = await this._ReadResolvedResourceObjectPayload(
       resource,
       bytes,
       options,
       resolved
     );
-    const object = this.#HydrateExtensionObject(resource, decoded, options, resolved);
-    this.#AssertOptionalResourceOwnership(ownership, "prepare:read-settled");
-    return this.#PublishResourceObject(ownership, resource, object, options);
+    const object = this._HydrateExtensionObject(resource, decoded, options, resolved);
+    this._AssertOptionalResourceOwnership(ownership, "prepare:read-settled");
+    return this._PublishResourceObject(ownership, resource, object, options);
   }
 
   /**
@@ -2087,9 +2087,9 @@ export class CjsResMan
    * @param {CjsResourceMutationAuthority|null} ownership Captured canonical or reload-candidate authority.
    * @returns {Promise<*>} Final plain payload or semantic resource handle.
    */
-  async #PrepareResourceObjectQueued(resource, bytes, options, ownership) {
+  async _PrepareResourceObjectQueued(resource, bytes, options, ownership) {
     let object = bytes;
-    const resolved = this.#ResolveResourceObjectRead(resource, bytes, options);
+    const resolved = this._ResolveResourceObjectRead(resource, bytes, options);
     const formatOptions = resolved.descriptor
       ? createFormatReadOptions(resolved.descriptor, options)
       : null;
@@ -2109,8 +2109,8 @@ export class CjsResMan
     let read;
     if (runInWorker)
     {
-      this.#AssertOptionalResourceOwnership(ownership, "worker-stage:read:run");
-      read = await this.#ReadResolvedResourceObjectPayload(
+      this._AssertOptionalResourceOwnership(ownership, "worker-stage:read:run");
+      read = await this._ReadResolvedResourceObjectPayload(
         resource,
         bytes,
         options,
@@ -2119,11 +2119,11 @@ export class CjsResMan
     }
     else
     {
-      this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:enqueue");
+      this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:enqueue");
       const readTask = this.QueueTask(CjsResManQueue.MAIN, () =>
       {
-        this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:run");
-        return this.#ReadResolvedResourceObjectPayload(
+        this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:run");
+        return this._ReadResolvedResourceObjectPayload(
           resource,
           bytes,
           options,
@@ -2136,22 +2136,22 @@ export class CjsResMan
       });
       read = await readTask.promise;
     }
-    this.#AssertOptionalResourceOwnership(ownership, "queue-stage:read:settled");
+    this._AssertOptionalResourceOwnership(ownership, "queue-stage:read:settled");
     if (read !== undefined) object = read;
 
-    this.#AssertOptionalResourceOwnership(ownership, "queue-stage:publish:enqueue");
+    this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:enqueue");
     const publishTask = this.QueueTask(CjsResManQueue.MAIN, () =>
     {
-      this.#AssertOptionalResourceOwnership(ownership, "queue-stage:publish:run");
-      const hydrated = this.#HydrateExtensionObject(resource, object, options, resolved);
-      return this.#PublishResourceObject(ownership, resource, hydrated, options);
+      this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:run");
+      const hydrated = this._HydrateExtensionObject(resource, object, options, resolved);
+      return this._PublishResourceObject(ownership, resource, hydrated, options);
     }, resource, {
       kind: "prepare",
       stage: "publish",
       path: resource.GetPath()
     });
     const published = await publishTask.promise;
-    this.#AssertOptionalResourceOwnership(ownership, "queue-stage:publish:settled");
+    this._AssertOptionalResourceOwnership(ownership, "queue-stage:publish:settled");
     if (published !== undefined) object = published;
     return object;
   }
@@ -2168,11 +2168,11 @@ export class CjsResMan
    * @throws {Error|TypeError} If no registered reader matches or its read contract fails.
    */
   async ReadResourceObjectPayload(resource, bytes, options = {}) {
-    return this.#ReadResolvedResourceObjectPayload(
+    return this._ReadResolvedResourceObjectPayload(
       resource,
       bytes,
       options,
-      this.#ResolveResourceObjectRead(resource, bytes, options)
+      this._ResolveResourceObjectRead(resource, bytes, options)
     );
   }
 
@@ -2185,8 +2185,8 @@ export class CjsResMan
    * @param {object} options Requested output options.
    * @returns {{loader: Function|null, descriptor: object|null, route: object|null}} Resolved reader.
    */
-  #ResolveResourceObjectRead(resource, bytes, options) {
-    const route = this.#resourceExtensionRoutes.get(resource) || null;
+  _ResolveResourceObjectRead(resource, bytes, options) {
+    const route = this._resourceExtensionRoutes.get(resource) || null;
     const explicitLoader = route?.loader || (!route && this.GetObjectLoader(resource.GetExt()));
     if (explicitLoader)
     {
@@ -2219,7 +2219,7 @@ export class CjsResMan
    * @param {{loader: Function|null, descriptor: object|null}} resolved Reader selection.
    * @returns {Promise<*>} Reader result.
    */
-  #ReadResolvedResourceObjectPayload(resource, bytes, options, resolved) {
+  _ReadResolvedResourceObjectPayload(resource, bytes, options, resolved) {
     if (resolved.loader)
     {
       return resolved.loader(
@@ -2241,9 +2241,9 @@ export class CjsResMan
    * @param {{descriptor: object|null, route: object|null}} resolved Captured reader route.
    * @returns {*} Original or hydrated object value.
    */
-  #HydrateExtensionObject(resource, values, options, resolved)
+  _HydrateExtensionObject(resource, values, options, resolved)
   {
-    this.#objectBuilders.delete(resource);
+    this._objectBuilders.delete(resource);
     const route = resolved.route;
     if (!route || (!route.Target && !route.Identify)) return values;
 
@@ -2282,10 +2282,10 @@ export class CjsResMan
       }
     }
 
-    const hydrated = this.#HydrateTarget(resource, Target, values, context);
+    const hydrated = this._HydrateTarget(resource, Target, values, context);
     // Publication decides whether this route builds per caller: only an
     // OBJECT-mode handle hands its object out, so only it keeps the builder.
-    this.#objectBuilders.set(resource, { Target, context, values, hydrated });
+    this._objectBuilders.set(resource, { Target, context, values, hydrated });
     return hydrated;
   }
 
@@ -2301,7 +2301,7 @@ export class CjsResMan
    * @param {object} context Hydration context captured at publication.
    * @returns {*} A new hydrated object.
    */
-  #HydrateTarget(resource, Target, values, context)
+  _HydrateTarget(resource, Target, values, context)
   {
     let copy;
     try
@@ -2336,10 +2336,10 @@ export class CjsResMan
    * @param {CjsResource} resource Resource holding the decoded values as payload.
    * @returns {*} A new hydrated object.
    */
-  #BuildObject(resource)
+  _BuildObject(resource)
   {
-    const builder = this.#objectBuilders.get(resource);
-    return this.#HydrateTarget(resource, builder.Target, resource.GetPayload(), builder.context);
+    const builder = this._objectBuilders.get(resource);
+    return this._HydrateTarget(resource, builder.Target, resource.GetPayload(), builder.context);
   }
 
   /**
@@ -2353,13 +2353,13 @@ export class CjsResMan
    * @returns {CjsResource} Canonical dynamic resource.
    * @throws {Error} If no constructor is registered or it yields no resource.
    */
-  #CreateDynamicResource(key, cacheKey)
+  _CreateDynamicResource(key, cacheKey)
   {
     const rest = key.slice(DYNAMIC_PREFIX_LENGTH);
     const slash = rest.indexOf("/");
     const name = slash === -1 ? rest : rest.slice(0, slash);
     const query = slash === -1 ? "" : rest.slice(slash + 1);
-    const constructor = this.#dynamicConstructors.get(name);
+    const constructor = this._dynamicConstructors.get(name);
     if (!constructor)
     {
       throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_CONSTRUCTOR_MISSING",
@@ -2371,11 +2371,11 @@ export class CjsResMan
       throw dynamicResourceError(key, name, "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE",
         `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
     }
-    this.#dynamicResources.add(resource);
+    this._dynamicResources.add(resource);
     resource.SetObjectLoader(() => this.GetObject(key));
     const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
     const canonical = insertion?.resource || resource;
-    this.#BindResourceLifecycle(cacheKey, canonical);
+    this._BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);
     return canonical;
   }
@@ -2395,16 +2395,16 @@ export class CjsResMan
    * @throws {TypeError|Error} If ownership, semantic payload validation, or loaded-state publication fails.
    */
   PublishResourceObject(resource, object, options = {}) {
-    const ownership = this.#GetResourceOwnership(resource, "publish:begin");
+    const ownership = this._GetResourceOwnership(resource, "publish:begin");
     if (!ownership)
     {
-      return this.#PublishResourceObjectValue(resource, object, options);
+      return this._PublishResourceObjectValue(resource, object, options);
     }
 
-    const finishOperation = this.#BeginResourceOperation(false);
+    const finishOperation = this._BeginResourceOperation(false);
     try
     {
-      return this.#PublishResourceObject(ownership, resource, object, options);
+      return this._PublishResourceObject(ownership, resource, object, options);
     }
     finally
     {
@@ -2423,10 +2423,10 @@ export class CjsResMan
    * @param {object} options Semantic resource publication options.
    * @returns {*} Plain payload or semantic resource handle.
    */
-  #PublishResourceObject(ownership, resource, object, options) {
-    this.#AssertOptionalResourceOwnership(ownership, "publish");
-    const result = this.#PublishResourceObjectValue(resource, object, options);
-    this.#AssertOptionalResourceOwnership(ownership, "publish-settled");
+  _PublishResourceObject(ownership, resource, object, options) {
+    this._AssertOptionalResourceOwnership(ownership, "publish");
+    const result = this._PublishResourceObjectValue(resource, object, options);
+    this._AssertOptionalResourceOwnership(ownership, "publish-settled");
     return result;
   }
 
@@ -2439,14 +2439,14 @@ export class CjsResMan
    * @param {object} options Semantic resource publication options.
    * @returns {*} Plain payload or semantic resource handle.
    */
-  #PublishResourceObjectValue(resource, object, options) {
+  _PublishResourceObjectValue(resource, object, options) {
     const mode = resolveResourceHandlerMode(
       resource,
-      this.#resourceExtensionRoutes.get(resource) ? this.#resourceHandlerModes.get(resource) : null
+      this._resourceExtensionRoutes.get(resource) ? this._resourceHandlerModes.get(resource) : null
     );
-    const builder = this.#objectBuilders.get(resource);
+    const builder = this._objectBuilders.get(resource);
     const buildsPerCaller = mode === ResourceHandlerMode.OBJECT && builder?.hydrated === object;
-    if (builder && !buildsPerCaller) this.#objectBuilders.delete(resource);
+    if (builder && !buildsPerCaller) this._objectBuilders.delete(resource);
     // A per-caller route retains the decoded values - the builder - and hands
     // `object` to this publication's caller only. The values then live under the
     // payload lease, like any payload.
@@ -2566,7 +2566,7 @@ export class CjsResMan
     const resource = this.motherLode.Lookup(key);
     if (resource)
     {
-      this.#BindResourceLifecycle(key, resource);
+      this._BindResourceLifecycle(key, resource);
       this.motherLode.KeepAlive(key);
     }
     return resource;
@@ -2599,9 +2599,9 @@ export class CjsResMan
       {
         if (resource && this.motherLode.Lookup(key) !== resource)
         {
-          this.#InvalidateResourceOwnership(resource);
+          this._InvalidateResourceOwnership(resource);
         }
-        this.#reloadGenerations.delete(key);
+        this._reloadGenerations.delete(key);
       }
     }
 
@@ -2619,10 +2619,10 @@ export class CjsResMan
     {
       for (const [ key, resource ] of entries)
       {
-        this.#reloadGenerations.delete(key);
+        this._reloadGenerations.delete(key);
         if (this.motherLode.Lookup(key) !== resource)
         {
-          this.#InvalidateResourceOwnership(resource);
+          this._InvalidateResourceOwnership(resource);
         }
       }
     }
@@ -2660,8 +2660,8 @@ export class CjsResMan
    */
   SetAutoPurgePolicy(policy = null)
   {
-    this.#autoPurgePolicy = normalizeAutoPurgePolicy(policy);
-    this.#lastAutoPurgeTime = null;
+    this._autoPurgePolicy = normalizeAutoPurgePolicy(policy);
+    this._lastAutoPurgeTime = null;
     return this;
   }
 
@@ -2672,7 +2672,7 @@ export class CjsResMan
    */
   GetAutoPurgePolicy()
   {
-    return this.#autoPurgePolicy;
+    return this._autoPurgePolicy;
   }
 
   /**
@@ -2683,7 +2683,7 @@ export class CjsResMan
    */
   IsAutoPurgeEnabled()
   {
-    return this.#autoPurgePolicy !== null;
+    return this._autoPurgePolicy !== null;
   }
 
   /**
@@ -2701,26 +2701,26 @@ export class CjsResMan
   PumpAutoPurge(options = {})
   {
     const pump = normalizeAutoPurgePumpOptions(options);
-    const policy = this.#autoPurgePolicy;
+    const policy = this._autoPurgePolicy;
     if (!policy) return null;
 
     const time = pump.time === undefined ? policy.now() : pump.time;
     assertNonNegativeNumber(time, "CjsResMan automatic purge time");
 
-    if (this.#lastAutoPurgeTime !== null)
+    if (this._lastAutoPurgeTime !== null)
     {
-      if (time < this.#lastAutoPurgeTime)
+      if (time < this._lastAutoPurgeTime)
       {
-        this.#lastAutoPurgeTime = time;
+        this._lastAutoPurgeTime = time;
         return null;
       }
-      if (time - this.#lastAutoPurgeTime < policy.intervalMilliseconds)
+      if (time - this._lastAutoPurgeTime < policy.intervalMilliseconds)
       {
         return null;
       }
     }
 
-    this.#lastAutoPurgeTime = time;
+    this._lastAutoPurgeTime = time;
     return this.PurgeInactive({
       time,
       maxIdleMilliseconds: policy.maxIdleMilliseconds,
@@ -2739,7 +2739,7 @@ export class CjsResMan
    * @throws {AggregateError} If one or more canonical resources fail cleanup.
    */
   Clear() {
-    this.#InvalidateMotherLodeOwnership(this.motherLode);
+    this._InvalidateMotherLodeOwnership(this.motherLode);
     this._loadQueue.Clear();
     this._prepareQueue.Clear();
     this.motherLode.Clear();
@@ -2747,8 +2747,8 @@ export class CjsResMan
     this.sourceOperations = new WeakMap();
     this.queuedSourceOperations = new WeakMap();
     this.formatOperations = new WeakMap();
-    this.#reloadGenerations.clear();
-    this.#lastAutoPurgeTime = null;
+    this._reloadGenerations.clear();
+    this._lastAutoPurgeTime = null;
     return this;
   }
 
@@ -2795,7 +2795,7 @@ export class CjsResMan
       throw new TypeError("CjsResMan.InvalidateReadCache source must provide Read(path, options).");
     }
 
-    return this.#InvalidateReadCache(source, normalizedPath, revisionKey);
+    return this._InvalidateReadCache(source, normalizedPath, revisionKey);
   }
 
   /**
@@ -2814,8 +2814,8 @@ export class CjsResMan
    */
   ReadResource(path, options = {})
   {
-    const read = this.#BeginReadOperation(path, options);
-    return this.#ReadResource(read.context, read.options);
+    const read = this._BeginReadOperation(path, options);
+    return this._ReadResource(read.context, read.options);
   }
 
   /**
@@ -2827,7 +2827,7 @@ export class CjsResMan
    * @returns {{context: Readonly<CjsResourceReadContext>, options: object}} Context and detached operation options.
    * @throws {TypeError} If source provenance or options are invalid.
    */
-  #BeginReadOperation(path, options)
+  _BeginReadOperation(path, options)
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
     {
@@ -2875,7 +2875,7 @@ export class CjsResMan
 
     if (options.reload === true)
     {
-      this.#InvalidateReadCache(source, normalizedPath, null);
+      this._InvalidateReadCache(source, normalizedPath, null);
     }
     return { context, options: operationOptions };
   }
@@ -2888,7 +2888,7 @@ export class CjsResMan
    * @param {object} options Detached read options.
    * @returns {Promise<*>} Promise for source bytes/data.
    */
-  #QueueReadResource(context, options)
+  _QueueReadResource(context, options)
   {
     const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
     const operations = getOwnerOperations(this.queuedSourceOperations, context.source, true);
@@ -2915,7 +2915,7 @@ export class CjsResMan
     };
     record.promise = this.QueueTask(
       CjsResManQueue.BACKGROUND,
-      () => this.#ReadResource(context, options, record),
+      () => this._ReadResource(context, options, record),
       context.source,
       { kind: "load", path: context.path }
     ).promise;
@@ -2924,7 +2924,7 @@ export class CjsResMan
     record.promise.then(value =>
     {
       if (cachePolicy === false || operations.get(key) !== record) return;
-      if (record.retain) this.#RetainSourceResult(context, value);
+      if (record.retain) this._RetainSourceResult(context, value);
       operations.delete(key);
     }, () =>
     {
@@ -2941,7 +2941,7 @@ export class CjsResMan
    * @param {CjsResourceReadOperationRecord|null} [queuedRecord=null] Parent queued record whose retention may be promoted by a later join.
    * @returns {Promise<*>} Promise for source bytes/data.
    */
-  #ReadResource(context, options, queuedRecord = null)
+  _ReadResource(context, options, queuedRecord = null)
   {
     const cachePolicy = normalizeCachePolicy(options.cacheSource, "cacheSource");
     const operations = getOwnerOperations(this.sourceOperations, context.source, true);
@@ -2993,7 +2993,7 @@ export class CjsResMan
    * @param {*} value Settled source result.
    * @returns {void}
    */
-  #RetainSourceResult(context, value)
+  _RetainSourceResult(context, value)
   {
     const operations = getOwnerOperations(this.sourceOperations, context.source, true);
     const key = getReadOperationKey(context);
@@ -3020,7 +3020,7 @@ export class CjsResMan
    * @param {string|null} revisionKey Exact revision key or `null` for all.
    * @returns {{path: string, queuedSource: number, source: number, format: number}} Detached counts.
    */
-  #InvalidateReadCache(source, path, revisionKey)
+  _InvalidateReadCache(source, path, revisionKey)
   {
     const queuedSource = removeOperationRecords(
       getOwnerOperations(this.queuedSourceOperations, source, false),
@@ -3070,13 +3070,13 @@ export class CjsResMan
     }
     if (extensionRoute)
     {
-      this.#resourceExtensionRoutes.set(resource, extensionRoute);
+      this._resourceExtensionRoutes.set(resource, extensionRoute);
       const handlerMode = Constructor === extensionRoute.Handler
         ? extensionRoute.handlerMode
         : Object.values(ResourceHandlerMode).includes(Constructor.handlerMode)
           ? Constructor.handlerMode
           : ResourceHandlerMode.RESOURCE;
-      this.#resourceHandlerModes.set(resource, handlerMode);
+      this._resourceHandlerModes.set(resource, handlerMode);
     }
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
     const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
@@ -3112,7 +3112,7 @@ export class CjsResMan
         return extensionRoute.Handler;
       }
 
-      const candidates = this.#resourceTypeCandidates.get(requested);
+      const candidates = this._resourceTypeCandidates.get(requested);
       if (candidates?.size > 1)
       {
         throw createAmbiguousResourceTypeError(requested, candidates);
@@ -3169,20 +3169,20 @@ export class CjsResMan
    * @param {object} task Queue task returned by `CjsResManWorkQueue.Add()`.
    * @returns {object} The supplied task.
    */
-  #TrackQueueTask(task)
+  _TrackQueueTask(task)
   {
-    this.#queueOperations.set(task, task.promise);
+    this._queueOperations.set(task, task.promise);
     task.promise.then(() =>
     {
-      if (this.#queueOperations.get(task) === task.promise)
+      if (this._queueOperations.get(task) === task.promise)
       {
-        this.#queueOperations.delete(task);
+        this._queueOperations.delete(task);
       }
     }, () =>
     {
-      if (this.#queueOperations.get(task) === task.promise)
+      if (this._queueOperations.get(task) === task.promise)
       {
-        this.#queueOperations.delete(task);
+        this._queueOperations.delete(task);
       }
     });
     return task;
@@ -3197,24 +3197,24 @@ export class CjsResMan
    * @param {boolean} queued Whether the operation belongs to the queued fence.
    * @returns {() => void} Idempotent record completion callback.
    */
-  #BeginResourceOperation(queued)
+  _BeginResourceOperation(queued)
   {
-    this.#activeResourceOperations += 1;
-    const id = queued ? this.#nextResourceOperationId++ : 0;
+    this._activeResourceOperations += 1;
+    const id = queued ? this._nextResourceOperationId++ : 0;
     let resolveDone = noop;
     const done = queued
       ? new Promise(resolve => { resolveDone = resolve; })
       : null;
-    if (queued) this.#resourceOperations.set(id, done);
+    if (queued) this._resourceOperations.set(id, done);
     let finished = false;
     return () =>
     {
       if (finished) return;
       finished = true;
-      this.#activeResourceOperations = Math.max(0, this.#activeResourceOperations - 1);
-      if (queued && this.#resourceOperations.get(id) === done)
+      this._activeResourceOperations = Math.max(0, this._activeResourceOperations - 1);
+      if (queued && this._resourceOperations.get(id) === done)
       {
-        this.#resourceOperations.delete(id);
+        this._resourceOperations.delete(id);
       }
       resolveDone();
     };
@@ -3230,11 +3230,11 @@ export class CjsResMan
    * @returns {CjsResourceOwnership|null} Current authority or `null` when never bound.
    * @throws {Error} If a previously bound resource is no longer canonical.
    */
-  #GetResourceOwnership(resource, phase)
+  _GetResourceOwnership(resource, phase)
   {
-    const ownership = this.#resourceOwnership.get(resource) || null;
+    const ownership = this._resourceOwnership.get(resource) || null;
     if (!ownership) return null;
-    this.#AssertResourceOwnership(ownership, phase);
+    this._AssertResourceOwnership(ownership, phase);
     return ownership;
   }
 
@@ -3246,9 +3246,9 @@ export class CjsResMan
    * @returns {CjsResourceOwnership} Current canonical authority.
    * @throws {Error} If the resource is unknown or no longer canonical.
    */
-  #RequireResourceOwnership(resource, phase)
+  _RequireResourceOwnership(resource, phase)
   {
-    const ownership = this.#GetResourceOwnership(resource, phase);
+    const ownership = this._GetResourceOwnership(resource, phase);
     if (ownership) return ownership;
     throw resourceNotOwnedError(resource, phase);
   }
@@ -3261,14 +3261,14 @@ export class CjsResMan
    * @param {CjsResourceOwnership} ownership Captured authority.
    * @returns {boolean} Whether the exact generation remains canonical.
    */
-  #IsResourceOwnershipCurrent(ownership)
+  _IsResourceOwnershipCurrent(ownership)
   {
     try
     {
       return Boolean(ownership
         && this.motherLode === ownership.owner
-        && this.#resourceOwnership.get(ownership.resource) === ownership
-        && !this.#invalidResourceOwnership.has(ownership.resource)
+        && this._resourceOwnership.get(ownership.resource) === ownership
+        && !this._invalidResourceOwnership.has(ownership.resource)
         && ownership.owner.Lookup(ownership.key) === ownership.resource
         && !ownership.resource.IsPurged?.());
     }
@@ -3286,9 +3286,9 @@ export class CjsResMan
    * @returns {void}
    * @throws {Error} Stable stale-operation error when ownership changed.
    */
-  #AssertResourceOwnership(ownership, phase)
+  _AssertResourceOwnership(ownership, phase)
   {
-    if (!this.#IsResourceOwnershipCurrent(ownership))
+    if (!this._IsResourceOwnershipCurrent(ownership))
     {
       throw staleResourceOperationError(ownership, phase);
     }
@@ -3301,15 +3301,15 @@ export class CjsResMan
    * @param {string} phase Human-readable operation phase.
    * @returns {void}
    */
-  #AssertOptionalResourceOwnership(ownership, phase)
+  _AssertOptionalResourceOwnership(ownership, phase)
   {
     if (!ownership) return;
     if (ownership.reloadCandidate === true)
     {
-      this.#AssertReloadCandidate(ownership, phase);
+      this._AssertReloadCandidate(ownership, phase);
       return;
     }
-    this.#AssertResourceOwnership(ownership, phase);
+    this._AssertResourceOwnership(ownership, phase);
   }
 
   /**
@@ -3320,17 +3320,17 @@ export class CjsResMan
    * @param {CjsResourceReloadCandidate} candidate Candidate authority.
    * @returns {boolean} Whether this candidate alone may still commit.
    */
-  #IsReloadCandidateCurrent(candidate)
+  _IsReloadCandidateCurrent(candidate)
   {
     try
     {
       return Boolean(candidate
         && candidate.reloadCandidate === true
         && this.motherLode === candidate.owner
-        && this.#reloadCandidates.get(candidate.resource) === candidate
-        && this.#reloadGenerations.get(candidate.key) === candidate.generation
-        && this.#resourceOwnership.get(candidate.expected) === candidate.expectedOwnership
-        && this.#IsResourceOwnershipCurrent(candidate.expectedOwnership)
+        && this._reloadCandidates.get(candidate.resource) === candidate
+        && this._reloadGenerations.get(candidate.key) === candidate.generation
+        && this._resourceOwnership.get(candidate.expected) === candidate.expectedOwnership
+        && this._IsResourceOwnershipCurrent(candidate.expectedOwnership)
         && candidate.owner.Lookup(candidate.key) === candidate.expected);
     }
     catch
@@ -3348,9 +3348,9 @@ export class CjsResMan
    * @returns {void}
    * @throws {Error} Stable stale-candidate error when authority changed.
    */
-  #AssertReloadCandidate(candidate, phase)
+  _AssertReloadCandidate(candidate, phase)
   {
-    if (!this.#IsReloadCandidateCurrent(candidate))
+    if (!this._IsReloadCandidateCurrent(candidate))
     {
       throw staleReloadCandidateError(candidate, phase);
     }
@@ -3362,11 +3362,11 @@ export class CjsResMan
    * @param {object|Function} resource Removed or displaced resource.
    * @returns {void}
    */
-  #InvalidateResourceOwnership(resource)
+  _InvalidateResourceOwnership(resource)
   {
     if (resource && (typeof resource === "object" || typeof resource === "function"))
     {
-      this.#invalidResourceOwnership.add(resource);
+      this._invalidResourceOwnership.add(resource);
     }
   }
 
@@ -3378,13 +3378,13 @@ export class CjsResMan
    * @param {CjsMotherLode|null|undefined} owner Registry losing ownership.
    * @returns {void}
    */
-  #InvalidateMotherLodeOwnership(owner)
+  _InvalidateMotherLodeOwnership(owner)
   {
     if (typeof owner?.Entries !== "function") return;
     for (const [ , resource ] of owner.Entries())
     {
-      const ownership = this.#resourceOwnership.get(resource);
-      if (ownership?.owner === owner) this.#invalidResourceOwnership.add(resource);
+      const ownership = this._resourceOwnership.get(resource);
+      if (ownership?.owner === owner) this._invalidResourceOwnership.add(resource);
     }
   }
 
@@ -3397,7 +3397,7 @@ export class CjsResMan
    * @param {CjsResourceOwnership} ownership Captured canonical authority.
    * @returns {() => void} Idempotent balanced release callback.
    */
-  #AcquireResourcePurgeLock(ownership)
+  _AcquireResourcePurgeLock(ownership)
   {
     const { owner, key } = ownership;
     if (typeof owner?.Lock !== "function" || typeof owner?.Unlock !== "function")
@@ -3405,14 +3405,14 @@ export class CjsResMan
       return noop;
     }
 
-    this.#AssertResourceOwnership(ownership, "lock:acquire");
+    this._AssertResourceOwnership(ownership, "lock:acquire");
     owner.Lock(key);
     let released = false;
     return () =>
     {
       if (released) return;
       released = true;
-      if (this.#IsResourceOwnershipCurrent(ownership)) owner.Unlock(key);
+      if (this._IsResourceOwnershipCurrent(ownership)) owner.Unlock(key);
     };
   }
 
@@ -3446,7 +3446,7 @@ export class CjsResMan
    * @param {CjsResource} resource The purged handle to restore.
    * @returns {boolean} Whether a reload was started.
    */
-  #ReloadPurgedResource(key, resource)
+  _ReloadPurgedResource(key, resource)
   {
     if (!resource?.IsPurged?.()) return false;
 
@@ -3463,8 +3463,8 @@ export class CjsResMan
       // so binding before this would produce a controller that no-ops.
       resource.MarkRequested();
       if (!current) this.motherLode.Insert(key, resource, { replace: true });
-      this.#invalidResourceOwnership.delete(resource);
-      this.#BindResourceLifecycle(key, resource);
+      this._invalidResourceOwnership.delete(resource);
+      this._BindResourceLifecycle(key, resource);
 
       // Failure is recorded on the resource and observed through `completed`.
       this.GetObject(path, request).catch(() => {});
@@ -3490,30 +3490,30 @@ export class CjsResMan
    * @param {object} resource Resource handle to bind.
    * @returns {object} The same resource handle.
    */
-  #BindResourceLifecycle(key, resource)
+  _BindResourceLifecycle(key, resource)
   {
     const owner = this.motherLode;
-    let ownership = this.#resourceOwnership.get(resource) || null;
+    let ownership = this._resourceOwnership.get(resource) || null;
     if (!ownership
       || ownership.owner !== owner
       || ownership.key !== key
       || ownership.resource !== resource
-      || !this.#IsResourceOwnershipCurrent(ownership))
+      || !this._IsResourceOwnershipCurrent(ownership))
     {
       ownership = {
-        generation: this.#nextResourceOwnershipGeneration++,
+        generation: this._nextResourceOwnershipGeneration++,
         owner,
         key,
         resource
       };
-      this.#resourceOwnership.set(resource, ownership);
-      this.#invalidResourceOwnership.delete(resource);
+      this._resourceOwnership.set(resource, ownership);
+      this._invalidResourceOwnership.delete(resource);
     }
 
     // Bound outside the lifecycle controller, which is detached when canonical
     // ownership ends - which is precisely when a handle needs to come back.
     if (!resource) return resource;
-    resource.SetReloadHook(() => this.#ReloadPurgedResource(key, resource));
+    resource.SetReloadHook(() => this._ReloadPurgedResource(key, resource));
 
     // No hedging on the owner's methods: `owner` is a CjsMotherLode and
     // `resource` a CjsResource, both of which declare every method called here
@@ -3521,21 +3521,21 @@ export class CjsResMan
     // therefore unreachable, and it silently downgraded a payload keep-alive to
     // a handle keep-alive for anything that ever did reach it.
     resource.SetLifecycleController({
-      isCurrent: () => this.#IsResourceOwnershipCurrent(ownership),
-      keepAlive: options => this.#IsResourceOwnershipCurrent(ownership)
+      isCurrent: () => this._IsResourceOwnershipCurrent(ownership),
+      keepAlive: options => this._IsResourceOwnershipCurrent(ownership)
         ? owner.KeepAlive(key, options)
         : null,
-      keepPayloadAlive: options => this.#IsResourceOwnershipCurrent(ownership)
+      keepPayloadAlive: options => this._IsResourceOwnershipCurrent(ownership)
         ? owner.KeepPayloadAlive(key, options)
         : null,
-      lock: () => this.#IsResourceOwnershipCurrent(ownership)
+      lock: () => this._IsResourceOwnershipCurrent(ownership)
         ? owner.Lock(key) || 0
         : 0,
-      unlock: () => this.#IsResourceOwnershipCurrent(ownership)
+      unlock: () => this._IsResourceOwnershipCurrent(ownership)
         ? owner.Unlock(key) || 0
         : 0
     });
-    if (resource.HasPayload() && this.#IsResourceOwnershipCurrent(ownership))
+    if (resource.HasPayload() && this._IsResourceOwnershipCurrent(ownership))
     {
       owner.KeepPayloadAlive(key);
     }
@@ -3548,12 +3548,12 @@ export class CjsResMan
    *
    * @returns {CjsResMan} This resource manager.
    */
-  #BindMotherLodeResources()
+  _BindMotherLodeResources()
   {
     if (typeof this.motherLode?.Entries !== "function") return this;
     for (const [ key, resource ] of this.motherLode.Entries())
     {
-      this.#BindResourceLifecycle(key, resource);
+      this._BindResourceLifecycle(key, resource);
     }
     return this;
   }
@@ -3580,7 +3580,7 @@ export class CjsResMan
    */
   ReadFormatOnce(resource, descriptor, bytes, options = {})
   {
-    const read = this.#BeginReadOperation(resource.GetPath(), options);
+    const read = this._BeginReadOperation(resource.GetPath(), options);
     const cachePolicy = normalizeCachePolicy(read.options.cacheFormat, "cacheFormat");
     const key = getFormatOperationKey(read.context, read.options);
     const cacheableOptions = key !== null && cachePolicy !== false;

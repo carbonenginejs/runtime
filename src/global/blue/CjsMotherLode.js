@@ -149,12 +149,12 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
 export class CjsMotherLode
 {
 
-  #active = false;
-  #activityFrame = 0;
-  #cacheSize = DEFAULT_CACHE_SIZE;
-  #entries = new Map();
-  #nextCacheSequence = 1;
-  #now = defaultNow;
+  _active = false;
+  _activityFrame = 0;
+  _cacheSize = DEFAULT_CACHE_SIZE;
+  _entries = new Map();
+  _nextCacheSequence = 1;
+  _now = defaultNow;
 
   /**
    * Create an active deterministic resource registry.
@@ -174,7 +174,7 @@ export class CjsMotherLode
       {
         throw new TypeError("CjsMotherLode now must be a function.");
       }
-      this.#now = options.now;
+      this._now = options.now;
     }
     if (options.cacheSize !== undefined)
     {
@@ -191,7 +191,7 @@ export class CjsMotherLode
    */
   Startup()
   {
-    this.#active = true;
+    this._active = true;
     return this;
   }
 
@@ -212,7 +212,7 @@ export class CjsMotherLode
     }
     finally
     {
-      this.#active = false;
+      this._active = false;
     }
     return this;
   }
@@ -224,7 +224,7 @@ export class CjsMotherLode
    */
   IsStarted()
   {
-    return this.#active;
+    return this._active;
   }
 
   /**
@@ -245,7 +245,7 @@ export class CjsMotherLode
    */
   Insert(keyOrResource, resourceOrPath, optionsOrVariant = {})
   {
-    if (!this.#active)
+    if (!this._active)
     {
       throw motherLodeInactiveError();
     }
@@ -257,13 +257,13 @@ export class CjsMotherLode
     );
     assertResource(resource);
 
-    const existing = this.#entries.get(key) || null;
+    const existing = this._entries.get(key) || null;
     if (existing && existing.resource === resource)
     {
       const updated = { ...existing };
-      this.#UpdateRecord(updated, options);
-      this.#AssertRecordedBytesTotal(updated, existing);
-      this.#TouchRecord(updated, options);
+      this._UpdateRecord(updated, options);
+      this._AssertRecordedBytesTotal(updated, existing);
+      this._TouchRecord(updated, options);
       Object.assign(existing, updated);
       return freezeInsertResult(key, resource, false, false, null);
     }
@@ -272,13 +272,13 @@ export class CjsMotherLode
       return freezeInsertResult(key, existing.resource, false, false, null);
     }
 
-    const record = this.#CreateRecord(key, resource, options, existing);
+    const record = this._CreateRecord(key, resource, options, existing);
 
     if (existing)
     {
-      this.#CleanupRecord(existing, options, "replace", true);
+      this._CleanupRecord(existing, options, "replace", true);
     }
-    this.#entries.set(key, record);
+    this._entries.set(key, record);
 
     return freezeInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
   }
@@ -309,7 +309,7 @@ export class CjsMotherLode
    */
   ReplaceExpected(key, expected, resource, options = {})
   {
-    if (!this.#active)
+    if (!this._active)
     {
       throw motherLodeInactiveError();
     }
@@ -329,7 +329,7 @@ export class CjsMotherLode
       throw error;
     }
 
-    const existing = this.#entries.get(resolvedKey) || null;
+    const existing = this._entries.get(resolvedKey) || null;
     if (!existing || existing.resource !== expected)
     {
       return freezeConditionalReplaceResult(
@@ -346,26 +346,26 @@ export class CjsMotherLode
       cacheable: policy.cacheable === undefined ? existing.cacheable : policy.cacheable,
       cached: policy.cached === undefined ? false : policy.cached
     };
-    const record = this.#CreateRecord(resolvedKey, resource, recordOptions, existing);
+    const record = this._CreateRecord(resolvedKey, resource, recordOptions, existing);
 
     // Re-check after clock/metadata validation, then publish with no user code
     // between the exact-record comparison and Map mutation.
     if ((policy.commitGuard && !policy.commitGuard())
-      || this.#entries.get(resolvedKey) !== existing)
+      || this._entries.get(resolvedKey) !== existing)
     {
       return freezeConditionalReplaceResult(
         resolvedKey,
         false,
-        this.#entries.get(resolvedKey)?.resource || null,
+        this._entries.get(resolvedKey)?.resource || null,
         null
       );
     }
-    this.#entries.set(resolvedKey, record);
+    this._entries.set(resolvedKey, record);
 
     const result = freezeConditionalReplaceResult(resolvedKey, true, resource, expected);
     try
     {
-      this.#CleanupRecord(existing, policy, "conditional replace");
+      this._CleanupRecord(existing, policy, "conditional replace");
     }
     catch (cause)
     {
@@ -391,7 +391,7 @@ export class CjsMotherLode
    */
   HasKey(key, variant = undefined)
   {
-    return this.#entries.has(normalizeLookupKey(key, variant));
+    return this._entries.has(normalizeLookupKey(key, variant));
   }
 
   /**
@@ -405,7 +405,7 @@ export class CjsMotherLode
    */
   Lookup(key, variant = undefined)
   {
-    return this.#entries.get(normalizeLookupKey(key, variant))?.resource || null;
+    return this._entries.get(normalizeLookupKey(key, variant))?.resource || null;
   }
 
   /**
@@ -423,11 +423,11 @@ export class CjsMotherLode
   Delete(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
     const { resolvedKey, options } = normalizeDeleteArguments(key, variantOrOptions, maybeOptions);
-    const record = this.#entries.get(resolvedKey);
+    const record = this._entries.get(resolvedKey);
     if (!record) return false;
 
-    this.#entries.delete(resolvedKey);
-    this.#CleanupRecord(record, options, "delete");
+    this._entries.delete(resolvedKey);
+    this._CleanupRecord(record, options, "delete");
     return true;
   }
 
@@ -447,16 +447,16 @@ export class CjsMotherLode
     const prefix = `${normalizedPath}\u0000`;
     const records = [];
 
-    for (const [ key, record ] of this.#entries)
+    for (const [ key, record ] of this._entries)
     {
       if (key === normalizedPath || key.startsWith(prefix))
       {
         records.push(record);
-        this.#entries.delete(key);
+        this._entries.delete(key);
       }
     }
 
-    this.#CleanupRecords(records, options, "delete variants");
+    this._CleanupRecords(records, options, "delete variants");
     return records.length > 0;
   }
 
@@ -470,9 +470,9 @@ export class CjsMotherLode
    */
   Clear(options = {})
   {
-    const records = [ ...this.#entries.values() ];
-    this.#entries.clear();
-    this.#CleanupRecords(records, options, "clear");
+    const records = [ ...this._entries.values() ];
+    this._entries.clear();
+    this._CleanupRecords(records, options, "clear");
     return this;
   }
 
@@ -489,15 +489,15 @@ export class CjsMotherLode
   ClearCached(options = {})
   {
     const records = [];
-    for (const [ key, record ] of this.#entries)
+    for (const [ key, record ] of this._entries)
     {
       if (record.cached && record.lockCount === 0)
       {
         records.push(record);
-        this.#entries.delete(key);
+        this._entries.delete(key);
       }
     }
-    this.#CleanupRecords(records, options, "clear cached");
+    this._CleanupRecords(records, options, "clear cached");
     return records.length;
   }
 
@@ -515,11 +515,11 @@ export class CjsMotherLode
   KeepAlive(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
     const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
-    const record = this.#entries.get(resolvedKey);
+    const record = this._entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
     record.cacheSequence = 0;
-    this.#TouchRecord(record, options);
+    this._TouchRecord(record, options);
     return record.resource;
   }
 
@@ -537,11 +537,11 @@ export class CjsMotherLode
   KeepPayloadAlive(key, variantOrOptions = undefined, maybeOptions = undefined)
   {
     const { resolvedKey, options } = normalizeActivityArguments(key, variantOrOptions, maybeOptions);
-    const record = this.#entries.get(resolvedKey);
+    const record = this._entries.get(resolvedKey);
     if (!record) return null;
     record.cached = false;
     record.cacheSequence = 0;
-    this.#TouchRecord(record, options);
+    this._TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
     return record.resource;
@@ -558,12 +558,12 @@ export class CjsMotherLode
    */
   Lock(key, variant = undefined)
   {
-    const record = this.#entries.get(normalizeLookupKey(key, variant));
+    const record = this._entries.get(normalizeLookupKey(key, variant));
     if (!record) return 0;
     record.lockCount += 1;
     record.cached = false;
     record.cacheSequence = 0;
-    this.#TouchRecord(record, {});
+    this._TouchRecord(record, {});
     return record.lockCount;
   }
 
@@ -578,7 +578,7 @@ export class CjsMotherLode
    */
   Unlock(key, variant = undefined)
   {
-    const record = this.#entries.get(normalizeLookupKey(key, variant));
+    const record = this._entries.get(normalizeLookupKey(key, variant));
     if (!record) return 0;
     if (record.lockCount > 0) record.lockCount -= 1;
     return record.lockCount;
@@ -604,15 +604,15 @@ export class CjsMotherLode
    */
   PurgeInactive(options = {})
   {
-    const policy = normalizePurgeOptions(options, this.#activityFrame, this.#now);
-    this.#activityFrame = Math.max(this.#activityFrame, policy.frame);
+    const policy = normalizePurgeOptions(options, this._activityFrame, this._now);
+    this._activityFrame = Math.max(this._activityFrame, policy.frame);
 
     const purgedKeys = [];
     const payloadKeys = [];
     const errors = [];
     let locked = 0;
 
-    for (const [ key, record ] of [ ...this.#entries ])
+    for (const [ key, record ] of [ ...this._entries ])
     {
       if (record.lockCount > 0)
       {
@@ -631,7 +631,7 @@ export class CjsMotherLode
       {
         try
         {
-          this.#CleanupRecord(record, policy, "purge inactive", true);
+          this._CleanupRecord(record, policy, "purge inactive", true);
         }
         catch (error)
         {
@@ -639,7 +639,7 @@ export class CjsMotherLode
           continue;
         }
 
-        this.#entries.delete(key);
+        this._entries.delete(key);
         purgedKeys.push(key);
         try
         {
@@ -710,15 +710,15 @@ export class CjsMotherLode
   TrimCache(options = {})
   {
     const policy = normalizeOptions(options, "cache trim");
-    const beforeBytes = this.#GetCacheBytes();
+    const beforeBytes = this._GetCacheBytes();
     const evictedKeys = [];
     const failedKeys = [];
     const errors = [];
     let evictedBytes = 0;
 
-    if (beforeBytes > this.#cacheSize)
+    if (beforeBytes > this._cacheSize)
     {
-      const candidates = [ ...this.#entries.values() ]
+      const candidates = [ ...this._entries.values() ]
         .filter(record => record.cacheable
           && record.cached
           && record.lockCount === 0
@@ -727,8 +727,8 @@ export class CjsMotherLode
 
       for (const record of candidates)
       {
-        if (this.#GetCacheBytes() <= this.#cacheSize) break;
-        if (this.#entries.get(record.key) !== record
+        if (this._GetCacheBytes() <= this._cacheSize) break;
+        if (this._entries.get(record.key) !== record
           || !record.cacheable
           || !record.cached
           || record.lockCount > 0
@@ -739,7 +739,7 @@ export class CjsMotherLode
 
         try
         {
-          this.#CleanupRecord(record, policy, "trim cache", true);
+          this._CleanupRecord(record, policy, "trim cache", true);
         }
         catch (error)
         {
@@ -748,9 +748,9 @@ export class CjsMotherLode
           continue;
         }
 
-        if (this.#entries.get(record.key) === record)
+        if (this._entries.get(record.key) === record)
         {
-          this.#entries.delete(record.key);
+          this._entries.delete(record.key);
         }
         evictedKeys.push(record.key);
         evictedBytes += record.bytes;
@@ -767,9 +767,9 @@ export class CjsMotherLode
       }
     }
 
-    const afterBytes = this.#GetCacheBytes();
+    const afterBytes = this._GetCacheBytes();
     const result = freezeCacheTrimResult(
-      this.#cacheSize,
+      this._cacheSize,
       beforeBytes,
       afterBytes,
       evictedBytes,
@@ -801,7 +801,7 @@ export class CjsMotherLode
   {
     assertNonNegativeInteger(bytes, "CjsMotherLode cache size");
     const policy = normalizeOptions(options, "set cache size");
-    this.#cacheSize = bytes;
+    this._cacheSize = bytes;
     this.TrimCache(policy);
     return this;
   }
@@ -813,7 +813,7 @@ export class CjsMotherLode
    */
   GetCacheSize()
   {
-    return this.#cacheSize;
+    return this._cacheSize;
   }
 
   /**
@@ -823,7 +823,7 @@ export class CjsMotherLode
    */
   GetKeys()
   {
-    return [ ...this.#entries.keys() ];
+    return [ ...this._entries.keys() ];
   }
 
   /**
@@ -833,7 +833,7 @@ export class CjsMotherLode
    */
   GetValues()
   {
-    return [ ...this.#entries.values() ].map(record => record.resource);
+    return [ ...this._entries.values() ].map(record => record.resource);
   }
 
   /**
@@ -843,7 +843,7 @@ export class CjsMotherLode
    */
   GetSize()
   {
-    return this.#entries.size;
+    return this._entries.size;
   }
 
   /**
@@ -863,7 +863,7 @@ export class CjsMotherLode
     const paths = new Set();
     const states = {};
 
-    for (const record of this.#entries.values())
+    for (const record of this._entries.values())
     {
       bytes += record.bytes;
       if (record.cached)
@@ -882,16 +882,16 @@ export class CjsMotherLode
     }
 
     return {
-      count: this.#entries.size,
-      size: this.#entries.size,
-      live: this.#entries.size - cached,
+      count: this._entries.size,
+      size: this._entries.size,
+      live: this._entries.size - cached,
       cached,
       locked,
       payloads,
       bytes,
       cacheBytes,
-      cacheSize: this.#cacheSize,
-      activityFrame: this.#activityFrame,
+      cacheSize: this._cacheSize,
+      activityFrame: this._activityFrame,
       states: states,
       paths: [ ...paths ]
     };
@@ -905,7 +905,7 @@ export class CjsMotherLode
    */
   Entries()
   {
-    return this.GetKeys().map(key => [ key, this.#entries.get(key).resource ])[Symbol.iterator]();
+    return this.GetKeys().map(key => [ key, this._entries.get(key).resource ])[Symbol.iterator]();
   }
 
   /**
@@ -954,7 +954,7 @@ export class CjsMotherLode
    * @param {object|null} [displaced=null] Existing record excluded from aggregate byte validation.
    * @returns {object} Mutable internal ownership record.
    */
-  #CreateRecord(key, resource, options, displaced = null)
+  _CreateRecord(key, resource, options, displaced = null)
   {
     const record = {
       key,
@@ -969,9 +969,9 @@ export class CjsMotherLode
       payloadLastUsedFrame: 0,
       payloadLastUsedTime: 0
     };
-    this.#UpdateRecord(record, options);
-    this.#AssertRecordedBytesTotal(record, displaced);
-    this.#TouchRecord(record, options);
+    this._UpdateRecord(record, options);
+    this._AssertRecordedBytesTotal(record, displaced);
+    this._TouchRecord(record, options);
     record.payloadLastUsedFrame = record.lastUsedFrame;
     record.payloadLastUsedTime = record.lastUsedTime;
     return record;
@@ -984,7 +984,7 @@ export class CjsMotherLode
    * @param {CjsMotherLodeInsertOptions} options Metadata updates.
    * @returns {object} The updated record.
    */
-  #UpdateRecord(record, options)
+  _UpdateRecord(record, options)
   {
     if (options.bytes !== undefined)
     {
@@ -995,7 +995,7 @@ export class CjsMotherLode
     if (options.cached !== undefined)
     {
       record.cached = record.cacheable && record.lockCount === 0 && Boolean(options.cached);
-      record.cacheSequence = record.cached ? this.#nextCacheSequence++ : 0;
+      record.cacheSequence = record.cached ? this._nextCacheSequence++ : 0;
     }
     if (!record.cacheable || record.lockCount > 0)
     {
@@ -1015,10 +1015,10 @@ export class CjsMotherLode
    * @returns {void}
    * @throws {RangeError} If aggregate recorded bytes exceed the safe-integer range.
    */
-  #AssertRecordedBytesTotal(candidate, excluded = null)
+  _AssertRecordedBytesTotal(candidate, excluded = null)
   {
     let total = BigInt(candidate.bytes);
-    for (const record of this.#entries.values())
+    for (const record of this._entries.values())
     {
       if (record === excluded) continue;
       total += BigInt(record.bytes);
@@ -1035,10 +1035,10 @@ export class CjsMotherLode
    *
    * @returns {number} Exact explicit-cache byte total.
    */
-  #GetCacheBytes()
+  _GetCacheBytes()
   {
     let bytes = 0;
-    for (const record of this.#entries.values())
+    for (const record of this._entries.values())
     {
       if (record.cacheable && record.cached) bytes += record.bytes;
     }
@@ -1053,14 +1053,14 @@ export class CjsMotherLode
    * @returns {object} The updated record.
    * @throws {TypeError} If frame or time is invalid.
    */
-  #TouchRecord(record, options)
+  _TouchRecord(record, options)
   {
-    const frame = options.frame === undefined ? this.#activityFrame + 1 : options.frame;
+    const frame = options.frame === undefined ? this._activityFrame + 1 : options.frame;
     assertNonNegativeInteger(frame, "CjsMotherLode activity frame");
-    this.#activityFrame = Math.max(this.#activityFrame, frame);
+    this._activityFrame = Math.max(this._activityFrame, frame);
     record.lastUsedFrame = frame;
 
-    const time = options.time === undefined ? this.#now() : options.time;
+    const time = options.time === undefined ? this._now() : options.time;
     if (typeof time !== "number" || !Number.isFinite(time) || time < 0)
     {
       throw new TypeError("CjsMotherLode activity time must be a non-negative finite number.");
@@ -1079,7 +1079,7 @@ export class CjsMotherLode
    * @returns {void}
    * @throws {Error} Contextual `CJS_MOTHERLODE_CLEANUP_FAILED` error on failure.
    */
-  #CleanupRecord(record, options, operation, preserveOnFailure = false)
+  _CleanupRecord(record, options, operation, preserveOnFailure = false)
   {
     let cleanupComplete = false;
     try
@@ -1114,7 +1114,7 @@ export class CjsMotherLode
    * @returns {void}
    * @throws {AggregateError} Contextual errors for every failed cleanup.
    */
-  #CleanupRecords(records, options, operation)
+  _CleanupRecords(records, options, operation)
   {
     const errors = [];
     for (const record of records)
