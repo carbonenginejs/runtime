@@ -1,12 +1,16 @@
-// Source: blueexposure/include/BlueRegistration.h (enum registration only)
-// Source: blueexposure/BlueRegistration.cpp:10-91 (ordered name lookup)
-// Source: blueexposure/BlueRegistrationPython.cpp (PyBlueEnumObject / blue.BlueEnum)
-// Absorbed: EnumRegistration<T> -> ordered member records; EnumTypeRegistration
-// -> RegisterEnum; PyBlueEnumObject -> read-only values and registry lookups.
-// BlueRegistration's non-enum facilities and other VarChooser uses survive.
-// JS adaptation: qualified names share one table instead of per-module tables;
-// module bodies replace static constructors; no Python extension object exists.
-// Schema attribution is installed by CjsSchema after its own initialization.
+// Source: blueexposure/include/BlueRegistration.h:117 (BlueRegistration::GetEnumRegs)
+// Source: blueexposure/include/BlueRegistration.h:242-268 (EnumRegistration<T>)
+// Source: blueexposure/include/BlueRegistration.h:270-301 (EnumTypeRegistration)
+// Source: blueexposure/BlueRegistration.cpp:9-91 (value-name lookup)
+// Source: blueexposure/BlueRegistrationPython.cpp:24-209 (PyBlueEnumObject, blue.BlueEnum)
+//
+// One registry folds those four together: a registration's member records
+// (EnumRegistration<T>), registration by name (EnumTypeRegistration), the
+// name-to-values table (GetEnumRegs), and the Python enum object's lookups
+// (PyBlueEnumObject). BlueRegistration's non-enum facilities stay where they
+// are. Schema attribution is installed by CjsSchema after its own
+// initialization, because schema and Blue both need this storage while their
+// modules load.
 
 /** Native enum exposure flags, retained as metadata without Python module mutation. */
 export const EnumRegistrationType = Object.freeze({
@@ -16,6 +20,10 @@ export const EnumRegistrationType = Object.freeze({
 
 /**
  * Combines Carbon enum registration and BlueEnum lookup in a dependency-free registry.
+ *
+ * Adapted from the donors in the file header: module execution replaces
+ * Carbon's static registrars, qualified names share one table where Carbon
+ * keeps one per module, and JS errors replace Python exceptions.
  *
  * Values are signed or unsigned 32-bit integers, and both spellings of one bit
  * pattern compare equal. Errors: a missing enum throws ReferenceError, a value
@@ -30,6 +38,11 @@ export class CjsBlueEnumRegistry
 
     /**
      * Registers a read-only named-value object and its ordered chooser metadata.
+     *
+     * Carbon: the EnumTypeRegistration constructor (BlueRegistration.h:272-288),
+     * which inserts the type into GetEnumRegs and calls
+     * EnumRegistration<T>::RegisterValue (:252-257) for each chooser entry. Here
+     * one call does both.
      *
      * Freezes and returns the same object. Values may repeat as aliases; names
      * must be non-numeric. `definition.members` orders and describes members
@@ -140,19 +153,36 @@ export class CjsBlueEnumRegistry
         return values;
     }
 
-    /** Reports whether an enum name is registered without resolving a domain. */
+    /**
+     * Reports whether an enum name is registered without resolving a domain.
+     *
+     * Carbon: a lookup in `BlueRegistration::GetEnumRegs`
+     * (BlueRegistration.h:117), as EnumTypeRegistration::GetTypeValuesGetter
+     * does (:290-300), tested for presence.
+     */
     HasEnum(name)
     {
         return this._byName.has(name);
     }
 
-    /** Returns the registered read-only named-value object. */
+    /**
+     * Returns the registered read-only named-value object.
+     *
+     * Carbon: EnumTypeRegistration::GetTypeValuesGetter (BlueRegistration.h:290-300)
+     * finds the registration in GetEnumRegs, and its getter returns the values.
+     */
     GetEnum(name)
     {
         return this.GetEnumInfo(name).type;
     }
 
-    /** Returns ordered chooser metadata, descriptions and donor provenance. */
+    /**
+     * Returns ordered chooser metadata, descriptions and donor provenance.
+     *
+     * Carbon: the GetEnumRegs entry (BlueRegistration.h:117) with its
+     * EnumRegistration<T>::GetValues records (:245-250). Differs: an unknown
+     * name throws ReferenceError, where GetTypeValuesGetter returns NULL.
+     */
     GetEnumInfo(name)
     {
         const info = this._byName.get(name);
@@ -160,13 +190,31 @@ export class CjsBlueEnumRegistry
         return info;
     }
 
-    /** Returns an object's canonical registration name, or null. */
+    /**
+     * Returns an object's canonical registration name, or null.
+     *
+     * No single Carbon originator: a PyBlueEnumObject (BlueRegistrationPython.cpp:24)
+     * is created per registration name, so Carbon never has to look the name up
+     * from the values object. This reverse lookup is ours.
+     */
     GetEnumName(values)
     {
         return this._byObject.get(values) || null;
     }
 
-    /** Joins every exact alias in chooser order, matching GetEnumValueName_Impl. */
+    /**
+     * Joins every exact alias in chooser order.
+     *
+     * Carbon: blue.BlueEnum.GetNameFromValue, the same name
+     * (BlueRegistrationPython.cpp:47, PyGetNameFromValue :141), which calls
+     * GetEnumValueName_Impl (BlueRegistration.cpp:58-78); C++ callers reach the
+     * same lookup as EnumRegistration<T>::GetValueName (BlueRegistration.h:264)
+     * and GetEnumValueName (BlueRegistration.cpp:80-91). Carbon quirk: the
+     * Python docstring says "the first value found", but the implementation
+     * joins every exact match, as this does. Differs: no match throws
+     * RangeError where Python raises AttributeError("Enum value not found"),
+     * and the C++ functions return an empty string.
+     */
     GetNameFromValue(name, value)
     {
         const info = this.GetEnumInfo(name);
@@ -179,6 +227,14 @@ export class CjsBlueEnumRegistry
 
     /**
      * Returns the first exact mask name, or every contained nonzero chooser entry.
+     *
+     * Carbon: blue.BlueEnum.GetNameFromBitmask, the same name
+     * (BlueRegistrationPython.cpp:53, PyGetNameFromBitmask :175), which calls
+     * GetEnumValuesAsBitMask_Impl (BlueRegistration.cpp:9-42); C++ callers
+     * reach it as EnumRegistration<T>::GetValueNameAsBitMask
+     * (BlueRegistration.h:259) and GetEnumValueNameAsBitMask
+     * (BlueRegistration.cpp:44-56). Differs: no match throws RangeError, where
+     * Python raises AttributeError and C++ returns an empty string.
      *
      * An exact match wins; otherwise every non-zero entry whose bits are all in
      * the mask is joined with " | ", including aliases and composites. Unknown

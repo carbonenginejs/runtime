@@ -2731,7 +2731,5 @@ CjsSchema.define(CjsBlueEnumRegistry, {
     methods: Object.fromEntries([
         "RegisterEnum", "HasEnum", "GetEnum", "GetEnumInfo", "GetEnumName",
         "GetNameFromValue", "GetNameFromBitmask"
-    ].map(name => [name, [CjsSchema.impl.adapted, CjsSchema.impl.reason(
-        "Combines BlueRegistration enum storage, EnumRegistration/EnumTypeRegistration and PyBlueEnumObject exposure; JS module execution replaces static registrars, qualified names replace module tables, and JS errors replace Python exceptions."
-    )]]))
+    ].map(name => [name, [CjsSchema.impl.adapted]]))
 });
