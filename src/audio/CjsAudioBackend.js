@@ -17,6 +17,7 @@
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { CjsSchema, impl } from "#schema";
+import { ICjsAudioBackend } from "./ICjsAudioBackend.js";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {
     evaluateWwiseRtpcCurve,
@@ -94,7 +95,7 @@ const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
  * master gain connects straight to the destination. Shared-bus route
  * qualification stays all-or-nothing.
  */
-export class CjsAudioBackend
+export class CjsAudioBackend extends ICjsAudioBackend
 {
     _context = null;
 
@@ -222,6 +223,7 @@ export class CjsAudioBackend
         busMixer,
     } = {})
     {
+        super();
         this._context = context ?? null;
         this._loadBuffer = loadBuffer ?? null;
         this._isLoop = isLoop ?? (() => false);

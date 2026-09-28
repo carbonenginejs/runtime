@@ -15,6 +15,16 @@ WebAudio backend for the audio graph: emitter nodes, playing sources, listener p
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:CjsAudioBackendStub -->
+## `CjsAudioBackendStub`
+
+A headless `ICjsAudioBackend`: coherent state, no sound.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/CjsAudioBackendStub.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 
@@ -99,6 +109,16 @@ Owns speculative SFX selection leases, snapshots, and settlement.
 
 - Source: `src/audio/CjsSfxEngine.js`
 - Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:ICjsAudioBackend -->
+## `ICjsAudioBackend`
+
+What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...) calls on `AudGameObjResource.backend`.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/ICjsAudioBackend.js`
+- Visibility: Public
 - Kind: CarbonEngineJS
 
 <!-- class:CjsBusDuckingController -->
