@@ -312,13 +312,68 @@ async function LoadPostTemplate(name)
  * @param {boolean} [isDisabled] Dirt switched off.
  * @returns {number} The dirt level, never below 0.
  */
+/**
+ * The ship states a hull's controllers read, as presets: warp, docked, siege
+ * and attack mode. After skindr's ShipControls (web/src/render/ShipControls.mjs,
+ * FLAGS and FLAG_SHAPE): a variable belongs to a state when its name names the
+ * subject AND has the shape of a state flag (`IsWarping`, `isDocked`,
+ * `InSiegeMode`), so `WarpTopSpeed` or `WarpDirection` never receive a 1.
+ *
+ * Unlike skindr, one call sets a state: Carbon's SetControllerVariable reaches
+ * the hull's controllers, effect children and overlays, and replays onto any
+ * added later. skindr's drivesSomething filter is not ported, so every state a
+ * hull's controllers name is offered.
+ */
+const SHIP_STATE_FLAGS = [
+  { kind: "warp", label: "warp", test: /warp/iu },
+  { kind: "dock", label: "docked", test: /dock/iu },
+  { kind: "siege", label: "siege", test: /siege/iu },
+  { kind: "attack", label: "attack mode", test: /attack|aggress|combat/iu }
+];
+const SHIP_STATE_SHAPE = /^_?(?:[iI]s|[iI]n|[hH]as|[uU]se)[A-Z]|(?:^|_|[a-z])(?:Mode|On|Enabled|Active|Requested)$/u;
+
+/**
+ * The state presets a ship's controllers name, with the variable names behind
+ * each.
+ *
+ * @param {object} ship The EveShip2.
+ * @returns {{kind: string, label: string, names: string[]}[]} One per state found.
+ */
+function ShipStates(ship)
+{
+  const byKind = new Map();
+  const seen = new Set();
+  const visit = owner =>
+  {
+    if (!owner || seen.has(owner)) return;
+    seen.add(owner);
+    for (const controller of owner.controllers ?? [])
+    {
+      for (const variable of controller?.variables ?? [])
+      {
+        const name = variable?.name ?? "";
+        const flag = SHIP_STATE_FLAGS.find(entry => entry.test.test(name));
+        if (!flag || !SHIP_STATE_SHAPE.test(name)) continue;
+        if (!byKind.has(flag.kind)) byKind.set(flag.kind, { kind: flag.kind, label: flag.label, names: new Set() });
+        byKind.get(flag.kind).names.add(name);
+      }
+    }
+    for (const child of owner.effectChildren ?? []) visit(child);
+    for (const overlay of owner.overlayEffects ?? []) visit(overlay);
+  };
+  visit(ship);
+  return SHIP_STATE_FLAGS
+    .filter(flag => byKind.has(flag.kind))
+    .map(flag => ({ ...byKind.get(flag.kind), names: [ ...byKind.get(flag.kind).names ] }));
+}
+
 function DirtLevelFromWeeks(weeks, isDisabled = false)
 {
   if (isDisabled || Number.isNaN(Number(weeks))) return 0;
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin, shipStates = [], setShipState })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -590,6 +645,17 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // removes it and restores the ship.
   const cloakToggle = row("cloak", Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
   cloakToggle.addEventListener("change", () => cloak(cloakToggle.checked));
+
+  // Ship states (ShipStates): each preset sets every variable its hull's
+  // controllers name for that state, and the state machines do the rest.
+  begin("ship state");
+  if (!shipStates.length) row("none", document.createTextNode("this hull's controllers name no state"));
+  for (const state of shipStates)
+  {
+    const toggle = row(state.label, Object.assign(document.createElement("input"), { type: "checkbox", checked: false, title: state.names.join(", ") }));
+    toggle.addEventListener("change", () => setShipState(state.kind, toggle.checked));
+  }
+  end();
 
   // Skin change: swaps between the start DNA and angelbase through the
   // client skin-change transition (3 s).
@@ -1596,7 +1662,14 @@ const SCENE_UNIVERSE = `res:/dx9/scene/universe/${new URLSearchParams(globalThis
 async function BuildSofShip(dna)
 {
   const sof = new EveSOF().Register({
-    lazyData: { source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")) },
+    lazyData: {
+      source: path => ResourceBytes(String(path).replace(/^res:\/+/u, "")),
+      // The file index, once composed: a material it does not list is absent,
+      // as Carbon's GetMaterialData answers nullptr (CjsSofLibraryBuilder).
+      // Before the index is there every file counts as present, so a missing
+      // one still fails loudly rather than vanishing.
+      exists: path => !bePathsReady || blue.paths.FileExists(path)
+    },
     // THE HOST'S OBJECT LOADER, so the async build inlines each effect child
     // as Carbon's SOF does (BeResMan->LoadObject, EveSOF.cpp:2005, 2168)
     // instead of emitting an EveChildRef: the file's root as model values.
@@ -2305,6 +2378,8 @@ SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
 // nothing at module level waits for it (a top-level await on it once stalled
 // the whole page). BuildSofShip waits for it, capped, before building.
 let bePathsUrl = "/build";
+/** Whether BePaths composed from the page build's index (ComposeBePaths). */
+let bePathsReady = false;
 const BEPATHS_COMPOSED = ComposeBePaths();
 
 // SKIN CHANGES RUN ONE AT A TIME. Choosing a skin in the ship panel already
@@ -2343,6 +2418,7 @@ async function ComposeBePaths()
     // local byte store, and this page has none - its bytes come from the
     // runner - so the lookup threw inside texture setup and stalled the page.
     blue.paths.RegisterFileSystem(new BlueResFileSystemRemote(remoteFileCache));
+    bePathsReady = true;
     console.info(`BePaths composed from ${url}: ${text.length} bytes in ${Math.round(performance.now() - started)} ms`);
   }
   catch (error)
@@ -3098,6 +3174,24 @@ export async function RunDemo(canvas)
     ship.speed = new TriFloat();
     realScene.objects.push(ship);
 
+    // THE CLIENT'S GPU PARTICLE SYSTEM: the resource index holds exactly one
+    // Tr2GpuParticleSystem, and the client assigns it to the scene's Blue
+    // property (EveSpaceScene_Blue.cpp:472), which hands it to every emitter
+    // through the update context. The client code is Python and not in
+    // Carbon, so this is its step. ?gpuParticles=0 leaves the scene without.
+    if (new URLSearchParams(globalThis.location?.search ?? "").get("gpuParticles") !== "0")
+    {
+      try
+      {
+        realScene.gpuParticleSystem = await blue.resMan.LoadObject("res:/fisfx/gpuparticles/system.black");
+        console.log(`gpu particles: ${realScene.gpuParticleSystem.constructor.name}, maxParticles ${realScene.gpuParticleSystem.maxParticles}`);
+      }
+      catch (error)
+      {
+        console.error(`gpu particles: ${error.message}`);
+      }
+    }
+
     HULL = ship.mesh?.geometryResPath?.replace(/^res:\/+/u, "") ?? "";
     bounds = { centre: vec3.clone(ship.boundingSphereCenter), radius: ship.boundingSphereRadius || 1 };
     for (const area of ship.mesh?.opaqueAreas ?? [])
@@ -3276,6 +3370,15 @@ export async function RunDemo(canvas)
     // armorhardening, armorrepair or hullrepair (SetImpactAnimation,
     // cpp:3580). The fade takes a quarter of the duration, in seconds.
     effect: (name, on, duration = 4) => { if (realScene) ship.SetImpactAnimation(name, !!on, Number(duration)); },
+    // The hull's state presets (ShipStates) and a setter; the setter writes 1
+    // or 0 into every variable behind the state, through the ship.
+    shipStates: realScene ? ShipStates(ship) : [],
+    setShipState: (kind, on) =>
+    {
+      const state = realScene ? ShipStates(ship).find(entry => entry.kind === kind) : null;
+      for (const name of state?.names ?? []) ship.SetControllerVariable(name, on ? 1 : 0);
+      return state?.names ?? [];
+    },
     // Cloaks the ship with res:/fisfx/cloaking/<name>.black, an
     // EveMeshOverlayEffect, doing the client's part: its "self_" bindings
     // (clipSphereFactor, activationStrength) are pointed at the ship, the
@@ -4221,6 +4324,8 @@ export async function RunDemo(canvas)
     damage: (shield, armor, hull) => globalThis.demo.damage(shield, armor, hull),
     effect: (name, on) => globalThis.demo.effect(name, on),
     cloak: on => globalThis.demo.cloak(on),
+    shipStates: globalThis.demo.shipStates,
+    setShipState: (kind, on) => globalThis.demo.setShipState(kind, on),
     skin: () => globalThis.demo.skin(),
     clientDefaults: {
       enabled: () => clientState.enabled,
