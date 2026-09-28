@@ -1,3 +1,6 @@
+// Source: blue/src/BlueResMan.h
+// Source: blue/src/BlueResMan.cpp
+// Consumer interface: blue/include/IBlueResMan.h (see IBlueResMan.js).
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
 import { CjsSchema, compose } from "#schema";

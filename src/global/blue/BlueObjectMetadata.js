@@ -1,4 +1,4 @@
-// Source: blue/src/BlueObjectMetadata.h
+// Source: blue/include/BlueObjectMetadata.h
 // Source: blue/src/BlueObjectMetadata.cpp
 //
 // The object-metadata store: string keys to string values per object.

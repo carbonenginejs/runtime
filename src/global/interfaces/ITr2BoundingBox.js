@@ -1,3 +1,4 @@
+// Source: trinity/trinity/Include/ITr2BoundingBox.h
 import { CjsSchema, impl } from "../schema/index.js";
 
 
