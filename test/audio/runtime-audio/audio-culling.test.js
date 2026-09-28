@@ -1,5 +1,5 @@
 import test from "node:test";
-import { FakeAudioBackend, FakeAudioManager } from "../../support/fakeAudio.js";
+import { AudioBackendStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
@@ -27,7 +27,7 @@ function makeWorld()
   });
   const prioritization = new SoundPrioritization();
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.manager = FakeAudioManager({
+  AudGameObjResource.manager = AudioManagerWith({
     enabled: true,
     audioCullingEnabled: true,
     soundPrioritization: prioritization,
@@ -132,7 +132,7 @@ test("missing attenuation metadata cannot silence a one-shot at the listener", (
     WemFileIDs: {},
   });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.manager = FakeAudioManager({
+  AudGameObjResource.manager = AudioManagerWith({
     enabled: true,
     audioCullingEnabled: true,
     soundPrioritization: prioritization,
@@ -140,7 +140,7 @@ test("missing attenuation metadata cannot silence a one-shot at the listener", (
     GetSoundBankStatus: () => "loaded",
     LogPostEvent() {},
   });
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     RegisterGameObj() {},
     SetPosition() {},
     SetScalingFactor() {},
@@ -210,7 +210,7 @@ test("AudioCurveSetDriver falls back to the curve until the RTPC exists", async 
   driver.fallbackCurve = { GetValueAt: time => time * 2 };
   // Headless: invalid RTPC -> fallback curve sampled at time.
   assert.equal(driver.GetCurveSetTime(3), 6);
-  AudGameObjResource.manager = FakeAudioManager({
+  AudGameObjResource.manager = AudioManagerWith({
     enabled: true,
     GetParameterInfo: () => ({ parameterValue: 42, parameterExists: true })
   });
@@ -234,7 +234,7 @@ test("AudManager refreshes monitored RTPC values after each enabled render", asy
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RenderAudio: () => order.push("render"),
@@ -281,7 +281,7 @@ test("AudioCurveSetDriver deterministically releases its monitored watcher", asy
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
   });
@@ -334,7 +334,11 @@ test("AudManager lifecycle: enable, async bank load, deferred-event flush with b
   const manager = new AudManager();
   AudGameObjResource.manager = manager;
   const posted = [];
-  AudGameObjResource.backend = FakeAudioBackend({ PostEvent: eventID => (posted.push(eventID), 100 + posted.length) });
+  AudGameObjResource.backend = AudioBackendStubWith({
+    PostEvent: eventID => (posted.push(eventID), 100 + posted.length),
+    // Loads stay pending: the test completes them through UpdateSoundBankStatus.
+    LoadBank: () => {}
+  });
   try
   {
     assert.equal(manager.GetStateValue(), 0);
@@ -385,7 +389,7 @@ test("permanent unregister purges deferred bank posts while culling preserves th
   });
   AudGameObjResource.staticDataRepository = repository;
   const posted = [];
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank() {},
     PostEvent: eventID =>
@@ -455,7 +459,7 @@ test("AudManager ignores stale asynchronous bank callbacks", async () =>
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     LoadBank(name, callback)
     {
       loads.push({ name, callback });
@@ -520,7 +524,7 @@ test("StretchAudio projects the listener onto the beam segment", async () =>
   AudGameObjResource.manager = manager;
   // Minimal backend so Enable succeeds: a true-null (backendless) manager
   // stays un-enabled by contract, and this test wants the enabled premise.
-  AudGameObjResource.backend = FakeAudioBackend();
+  AudGameObjResource.backend = AudioBackendStubWith();
   try
   {
     manager.Enable([]);
@@ -588,7 +592,7 @@ test("AudManager exposes portable culling/debug methods and marks native device 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend();
+  AudGameObjResource.backend = AudioBackendStubWith();
   try
   {
     manager.Enable();
@@ -626,7 +630,7 @@ test("a non-finite position cannot wake, and the awake set is enumerable without
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend();
+  AudGameObjResource.backend = AudioBackendStubWith();
   try
   {
     manager.Enable();

@@ -1,5 +1,5 @@
 import test from "node:test";
-import { FakeAudioBackend, FakeAudioManager } from "../../support/fakeAudio.js";
+import { AudioBackendStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
 import {
   AudActionLogCB,
@@ -46,7 +46,7 @@ test("game-object controls propagate Wwise-compatible value failures", () =>
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -102,7 +102,7 @@ test("AudActionLogCB receives Carbon-shaped records from live manager and emitte
   manager.log = log;
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -184,7 +184,7 @@ test("portable stop relationships dispatch the backend action Wwise normally own
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -240,7 +240,7 @@ test("authored Stop programs suppress the duplicate metadata stop dispatch", () 
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -339,7 +339,7 @@ test("AudObstructionOcclusion preserves Carbon fade, cull, retry, and clear sema
   let failNextSend = false;
   let geometryEnabled = false;
   let now = 10;
-  const manager = FakeAudioManager({
+  const manager = AudioManagerWith({
     GetState: () => "enabled",
     GetSpatialAudioGeometryEnabled: () => geometryEnabled,
     WithCallbackGameObject(emitterID, callback)
@@ -351,7 +351,7 @@ test("AudObstructionOcclusion preserves Carbon fade, cull, retry, and clear sema
       return true;
     },
   });
-  const backend = FakeAudioBackend({
+  const backend = AudioBackendStubWith({
     SetObjectObstructionAndOcclusion(...args)
     {
       sends.push(args);
@@ -445,7 +445,7 @@ test("AudManager owns obstruction lifecycle and delivers it before render", () =
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     SetObjectObstructionAndOcclusion(...args)
@@ -509,7 +509,7 @@ test("pre-enabled spatial geometry participates in Carbon manager initialization
   manager.SetSpatialAudioGeometryEnabled(true);
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  const createBackend = () => FakeAudioBackend({
+  const createBackend = () => AudioBackendStubWith({
     Init: () => true,
     InitSpatialAudioGeometry(settings)
     {
@@ -570,7 +570,7 @@ test("AudGeometry preserves Carbon set reference counts and RH-to-LH backend pro
   const manager = new AudManager();
   manager.SetSpatialAudioGeometryEnabled(true);
   AudGameObjResource.manager = manager;
-  AudGameObjResource.backend = FakeAudioBackend({
+  AudGameObjResource.backend = AudioBackendStubWith({
     SetGeometry: (id, params) => calls.push([ "set", id, params ]),
     SetGeometryInstance: (id, params) => calls.push([ "instance", id, params ]),
     RemoveGeometryInstance: id => calls.push([ "remove-instance", id ]),
