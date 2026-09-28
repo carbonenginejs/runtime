@@ -346,6 +346,8 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     #settings .column { min-width: 0; }
     #settings .column h4 { margin: 4px 0 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge { margin: 0 0 4px; font-size: 11px; line-height: 1.5; color: #aab3c2; }
+    #settings .group { margin: 4px 0 6px; padding: 2px 6px 4px; border: 1px solid #2a3444; border-radius: 3px; }
+    #settings .group h5 { margin: 0; font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     @media (max-width: 900px) { #settings .columns { grid-template-columns: minmax(0, 1fr); } }
     #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
@@ -389,6 +391,16 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     target.append(element);
     return control;
   };
+  // RELATED CONTROLS SIT TOGETHER: a titled box holding a control and the
+  // read-outs it moves (begin/end bracket the rows that go in it).
+  const begin = title =>
+  {
+    const box = Object.assign(document.createElement("div"), { className: "group" });
+    box.append(Object.assign(document.createElement("h5"), { textContent: title }));
+    target.append(box);
+    target = box;
+  };
+  const end = () => { target = target.parentElement; };
   const choose = (options, value) =>
   {
     const control = document.createElement("select");
@@ -402,11 +414,26 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   const templateNames = Object.keys(POST_TEMPLATES);
   const templates = choose([ [ "(none)", "" ], ...templateNames.filter(IsSunTemplate).map(name => [ name, name ]) ], initialTemplate);
-  row("sun template", templates);
   // THE SUN TEMPLATE IS THE ONE SUN CHOICE: it sets the scene's default post
-  // process and names the flare. The flare picker below stays as an override,
-  // and this says when the two disagree.
+  // process and names the flare. The flare picker stays as an override, and
+  // the read-out says when the two disagree.
+  begin("sun");
+  row("template", templates);
+  // The flare list is the client's own folder, read through the resource proxy.
+  const flares = row("flare override", choose([ [ "off", "off" ], [ flare.current, flare.current ] ], flare.current));
+  flares.addEventListener("change", async () => { await flare.select(flares.value); UpdatePairing(); });
+  fetch("/resource/fisfx/lensflare/")
+    .then(response => response.json())
+    .then(listing =>
+    {
+      const names = listing.children.map(child => child.name).filter(name => name.endsWith(".black")).map(name => name.slice(0, -".black".length));
+      flares.replaceChildren(...[ "off", ...names ].map(name => new Option(name, name)));
+      flares.value = flare.current;
+      UpdatePairing();
+    })
+    .catch(error => console.error(`lens flare list: ${error.message}`));
   const pairing = row("sun / flare", Object.assign(document.createElement("output"), { value: "" }));
+  end();
   const UpdatePairing = () =>
   {
     const expected = templates.value ? FlareForSunTemplate(templates.value) : null;
@@ -416,6 +443,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // THE LOCATION IS A VOLUME: its template blends in by the camera's place in
   // the ellipsoid, which the volume resolves every frame; the read-out shows it.
   const locations = choose([ [ "(none)", "" ], ...templateNames.filter(name => !IsSunTemplate(name)).map(name => [ name, name ]) ], locationPost.initial);
+  begin("location");
   row("location template", locations);
   locations.addEventListener("change", async () =>
   {
@@ -439,6 +467,10 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // override is one such case). The flare follows the sun either way.
   const mode = row("location mode", choose([ [ "volume", "volume" ], [ "replaces scene default", "replace" ] ], locationPost.mode()));
   mode.addEventListener("change", () => locationPost.setMode(mode.value));
+  end();
+
+  // Falloff: the radii and the intensity they resolve to at the camera.
+  begin("location falloff");
   for (const key of [ "inner", "outer" ])
   {
     const input = row(`location ${key} (m)`, Object.assign(document.createElement("input"), { type: "number", min: "0", step: "1000", value: String(locationPost.radii[key]) }));
@@ -448,19 +480,23 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       locationPost.setRadii();
     });
   }
+  const intensity = row("intensity at camera", Object.assign(document.createElement("output"), { value: "-" }));
+  end();
+
   // Carbon's PostProcessEnums::Priority names (Tr2PostProcessEnums.h:58-66);
   // the attribute's priority is that enum, so only its values are offered.
   const priorityNames = [ "SCENE_DEFAULT_PRIORITY", "LOW_PRIORITY", "MEDIUM_PRIORITY", "HIGH_PRIORITY", "UI_PRIORITY" ];
   const PriorityName = value => priorityNames.find(name => Tr2PostProcessAttributes[name] === value) ?? String(value);
+  begin("priority");
   const priority = row("location priority", choose(priorityNames.map(name => [ name, Tr2PostProcessAttributes[name] ]), locationPost.priority()));
   priority.addEventListener("change", () => locationPost.setPriority(Number(priority.value)));
   row("scene default priority", Object.assign(document.createElement("output"), {
     value: `SCENE_DEFAULT_PRIORITY (${Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY})`
   }));
-  const intensity = row("location intensity", Object.assign(document.createElement("output"), { value: "-" }));
   target.append(Object.assign(document.createElement("div"), { textContent: "merge order" }));
   const mergeOrder = Object.assign(document.createElement("div"), { className: "merge" });
   target.append(mergeOrder);
+  end();
   setInterval(() =>
   {
     const value = locationPost.intensity();
@@ -603,20 +639,6 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       if (values.every(Number.isFinite) && values.some(value => value !== 0)) sun.direction.set(values);
     });
   }
-
-  // The flare list is the client's own folder, read through the resource proxy.
-  const flares = row("flare", choose([ [ "off", "off" ], [ flare.current, flare.current ] ], flare.current));
-  flares.addEventListener("change", async () => { await flare.select(flares.value); UpdatePairing(); });
-  fetch("/resource/fisfx/lensflare/")
-    .then(response => response.json())
-    .then(listing =>
-    {
-      const names = listing.children.map(child => child.name).filter(name => name.endsWith(".black")).map(name => name.slice(0, -".black".length));
-      flares.replaceChildren(...[ "off", ...names ].map(name => new Option(name, name)));
-      flares.value = flare.current;
-      UpdatePairing();
-    })
-    .catch(error => console.error(`lens flare list: ${error.message}`));
 
   // The engine's registered settings (Tr2Renderer.getSettings(), Carbon's
   // trinity.settings), one control per setting, written straight through.
