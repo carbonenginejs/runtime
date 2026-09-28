@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsAudioSystem } from "../../../npm/dist/audio/index.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
+import { MusicEngineWith } from "../../support/audioStub.js";
 
 function FakeParam(value = 0)
 {
@@ -37,7 +38,7 @@ function FakeContext()
 function CustomMusicEngine(log)
 {
   const active = new Map();
-  return {
+  return MusicEngineWith({
     HandlesEvent: eventName => eventName === "play_my_music",
     PostEvent(eventName, playingID, onFinished)
     {
@@ -55,7 +56,7 @@ function CustomMusicEngine(log)
     Process() { log.push([ "process" ]); },
     SetMusicVolume(value) { log.push([ "volume", value ]); },
     Dispose() { log.push([ "dispose" ]); }
-  };
+  });
 }
 
 test("custom music engines are created only at gesture-time enable and accept arbitrary music events", () =>

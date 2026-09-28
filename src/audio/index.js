@@ -22,6 +22,7 @@ export * from "./trinity/index.js";
 export { CjsAudioBackend } from "./CjsAudioBackend.js";
 export { ICjsAudioBackend } from "./ICjsAudioBackend.js";
 export { CjsAudioBackendStub } from "./CjsAudioBackendStub.js";
+export { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 export { CjsAudioMan } from "./CjsAudioMan.js";
 export { CjsAudioSystem } from "./CjsAudioSystem.js";
 export { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";

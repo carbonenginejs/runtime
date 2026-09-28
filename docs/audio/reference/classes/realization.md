@@ -121,6 +121,16 @@ What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...) calls 
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ICjsMusicEngine -->
+## `ICjsMusicEngine`
+
+What `CjsAudioBackend` and `CjsAudioSystem` call on a music engine.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/ICjsMusicEngine.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsBusDuckingController -->
 ## `CjsBusDuckingController`
 

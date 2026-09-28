@@ -21,6 +21,8 @@ import {
     indexBusStateCatalog,
 } from "./internal/busState.js";
 import { wwiseFilterPercentToHz } from "./internal/wwiseFilter.js";
+import { CjsSchema, impl } from "#schema";
+import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import {
     createBusEffectChain,
     indexBusEffectCatalog,
@@ -1619,7 +1621,7 @@ class MusicInstance
 }
 
 /** Interactive-music engine over the extracted Wwise music graph. */
-export class CjsMusicEngine
+export class CjsMusicEngine extends ICjsMusicEngine
 {
     _graph = null;
 
@@ -1690,6 +1692,7 @@ export class CjsMusicEngine
         busMixer,
     } = {})
     {
+        super();
         this._graph = graph ?? null;
         this._context = context ?? null;
         this._loadMedia = loadMedia ?? null;
@@ -1819,6 +1822,15 @@ export class CjsMusicEngine
         this._loadMedia = null;
         this._destination = null;
         this._context = null;
+    }
+
+    /**
+     * Music play positions are not tracked, so a music id reports -1, the
+     * invalid position, as it did before this method was declared.
+     */
+    GetSourcePlayPosition(_playingID)
+    {
+        return -1;
     }
 
     /** True when this engine owns the event or one retained music program. */
@@ -2411,7 +2423,11 @@ export class CjsMusicEngine
         return changed;
     }
 
-    /** Switch/state input by name or id; music treats both as tree arguments. */
+    /**
+     * Switch input by name or id; music treats switches and states as tree
+     * arguments. Music switches are global, so the posting game object is
+     * not read.
+     */
     SetSwitch(group, value)
     {
         this._SetValue(wwiseIdFromName(group), wwiseIdFromName(value));
@@ -4839,3 +4855,6 @@ export class CjsMusicEngine
         this._MaybeFinishGroup(group);
     }
 }
+
+CjsSchema.define(CjsMusicEngine, { className: "CjsMusicEngine", family: "audio", fields: {} });
+CjsSchema.decorateMethod(CjsMusicEngine, "GetSourcePlayPosition", impl.notImplemented);

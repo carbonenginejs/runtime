@@ -5,6 +5,7 @@ import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
 import { FakeDynamicsCompressor } from "../../support/webAudioNodes.js";
+import { MusicEngineWith } from "../../support/audioStub.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -1420,7 +1421,7 @@ test("one authored event can keep SFX and music alive under one playing id", asy
 {
   let finishMusic = null;
   const musicPosts = [];
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     HandlesEvent: eventName => eventName === "hybrid",
     PostEvent(eventName, playingID, onFinished)
     {
@@ -1430,7 +1431,7 @@ test("one authored event can keep SFX and music alive under one playing id", asy
     ExecuteAction() {},
     Process() {},
     Dispose() {},
-  };
+  });
   const { context, finished, emitter, backend } = Harness({
     hasSfxEvent: eventName => eventName === "hybrid",
     loadBuffer: async () => ({
@@ -5219,7 +5220,7 @@ test("Layer and structural State Stops terminate parallel Continuous sessions", 
 
 test("synchronous custom music completion is deferred past id retention", async () =>
 {
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     HandlesEvent: eventName => eventName === "instant_music",
     PostEvent(_eventName, _playingID, onFinished)
     {
@@ -5228,7 +5229,7 @@ test("synchronous custom music completion is deferred past id retention", async 
     ExecuteAction() {},
     Process() {},
     Dispose() {},
-  };
+  });
   const { finished, emitter, backend } = Harness({
     hasSfxEvent: () => false,
     musicEngine,
@@ -6699,9 +6700,9 @@ test("State aliasing preserves numeric music-engine setter arguments", () =>
 {
   const calls = [];
   const { backend } = Harness({
-    musicEngine: {
+    musicEngine: MusicEngineWith({
       SetState: (...args) => calls.push(args),
-    },
+    }),
     stateTransitions: [ {
       groupId: "10",
       group: "combat",
@@ -9227,7 +9228,7 @@ test("authored bus controls supersede legacy hard-coded music volume mapping", (
 {
   let legacyWrites = 0;
   let rtpcRefreshes = 0;
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     SetMusicVolume()
     {
       legacyWrites++;
@@ -9236,7 +9237,7 @@ test("authored bus controls supersede legacy hard-coded music volume mapping", (
     {
       rtpcRefreshes++;
     },
-  };
+  });
   const { backend } = Harness({
     musicEngine,
     busRtpcs: {
@@ -9267,7 +9268,7 @@ test("music receives its emitter Bus Volume state map and refresh notifications"
   let receivedStates = null;
   let receivedGameObjID = null;
   let refreshes = 0;
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     HandlesEvent: eventName => eventName === "music_play",
     PostEvent(_eventName, _playingID, _complete, options)
     {
@@ -9280,7 +9281,7 @@ test("music receives its emitter Bus Volume state map and refresh notifications"
     {
       refreshes++;
     },
-  };
+  });
   const action = {
     kind: "set-bus-volume",
     actionIndex: 0,
@@ -11865,13 +11866,13 @@ test("game-object Stop-All includes flat fallback SFX but excludes other emitter
 test("authored SFX Stop-All never dispatches into the music engine", async () =>
 {
   const musicActions = [];
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     HandlesEvent: eventName => eventName === "music_play",
     PostEvent() {},
     ExecuteAction: (...args) => musicActions.push(args),
     Process() {},
     Dispose() {},
-  };
+  });
   const loadBuffer = async (_eventID, eventName, controls) =>
   {
     controls.installSfxProgram(eventName === "stop_all"

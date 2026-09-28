@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { CjsAudioMan } from "../../../npm/dist/audio/index.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
+import { MusicEngineWith } from "../../support/audioStub.js";
 
 function CreateDocument({ direct = null, embedded = null } = {})
 {
@@ -1049,7 +1050,7 @@ test("effective media configuration changes clear the attached music cache", () 
 {
     const log = [];
     let clears = 0;
-    const musicEngine = {
+    const musicEngine = MusicEngineWith({
         HandlesEvent: () => false,
         PostEvent() {},
         ExecuteAction() {},
@@ -1060,7 +1061,7 @@ test("effective media configuration changes clear the attached music cache", () 
             clears++;
             return 0;
         },
-    };
+    });
     const man = new CjsAudioMan(CreateDocument(), {
         createContext: () => FakeContext(log),
         mediaProvider: {

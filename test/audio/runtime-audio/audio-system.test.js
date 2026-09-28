@@ -14,6 +14,7 @@ import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js"
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
+import { MusicEngineWith } from "../../support/audioStub.js";
 
 
 function FakeParam()
@@ -2102,13 +2103,13 @@ test("CjsAudioSystem owns one Bus graph runtime for a library generation", () =>
     {
       captured = options.busGraphRuntime;
       capturedMixer = options.busMixer;
-      return {
+      return MusicEngineWith({
         HandlesEvent: () => false,
         PostEvent: () => false,
         ExecuteAction() {},
         Process() {},
         Dispose() { disposed = true; },
-      };
+      });
     },
   });
 
@@ -2151,13 +2152,13 @@ test("CjsAudioSystem forwards explicit Meter and voice-limit policies", () =>
     {
       runtime = options.busGraphRuntime;
       mixer = options.busMixer;
-      return {
+      return MusicEngineWith({
         HandlesEvent: () => false,
         PostEvent: () => false,
         ExecuteAction() {},
         Process() {},
         Dispose() {},
-      };
+      });
     },
   });
 

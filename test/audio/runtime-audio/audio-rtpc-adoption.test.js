@@ -8,6 +8,7 @@ import {
   CjsAudioSystem
 } from "../../../npm/dist/audio/index.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
+import { MusicEngineWith } from "../../support/audioStub.js";
 
 function FakeParam(value = 0)
 {
@@ -52,14 +53,14 @@ test("AudParameter binds to its owning object and backend RTPC/switch state rema
   const applied = [];
   const logged = [];
   const switches = [];
-  const musicEngine = {
+  const musicEngine = MusicEngineWith({
     HandlesEvent: () => false,
     PostEvent() {},
     ExecuteAction() {},
     SetSwitch: (...args) => switches.push(args),
     Process() {},
     Dispose() {}
-  };
+  });
   const system = new CjsAudioSystem({
     createContext: FakeContext,
     audioMetadata: EmptyMetadata(),

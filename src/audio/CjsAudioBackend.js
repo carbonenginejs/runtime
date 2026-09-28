@@ -544,7 +544,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             record.stopped = true;
             if (record.music)
             {
-                record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
+                record.musicEngine?.ExecuteAction("stop", playingID, 0);
             }
             for (const voice of record.voices ?? [])
             {
@@ -977,7 +977,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
      */
     PostMusicEvent(eventName, onFinished)
     {
-        if (!this._musicEngine?.HandlesEvent?.(eventName))
+        if (!this._musicEngine?.HandlesEvent(eventName))
         {
             return 0;
         }
@@ -1011,7 +1011,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         }
         if (record.music)
         {
-            record.musicEngine?.ExecuteAction?.(action, playingID, fadeOutDuration);
+            record.musicEngine?.ExecuteAction(action, playingID, fadeOutDuration);
             if (!record.sfx)
             {
                 return;
@@ -1239,7 +1239,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         }
         if (record.music && !record.sfx)
         {
-            return record.musicEngine?.GetSourcePlayPosition?.(playingID) ?? -1;
+            return record.musicEngine?.GetSourcePlayPosition(playingID) ?? -1;
         }
         const voice = record.voices?.find(value =>
             !value.ended
@@ -1460,7 +1460,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         }
         if (gameObjID === 3)
         {
-            this._musicEngine?.SetSwitch?.(group, state, gameObjID);
+            this._musicEngine?.SetSwitch(group, state, gameObjID);
         }
     }
 
@@ -1568,7 +1568,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             this._AdvanceContinuousSwitchSlots("state", group);
         }
         this._musicEngine?.SetState(stateGroup, stateName);
-        this._musicEngine?.RefreshBusStates?.();
+        this._musicEngine?.RefreshBusStates();
     }
 
     /** Global state query for authored SFX selection. */
@@ -1884,7 +1884,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
 
             if (record.music)
             {
-                record.musicEngine?.ExecuteAction?.("stop", playingID, 0);
+                record.musicEngine?.ExecuteAction("stop", playingID, 0);
             }
             if (record.sfx)
             {
@@ -2156,7 +2156,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
     _PostMusicEvent(eventName, { gameObjID = 3, emitter = null, onFinished = null } = {})
     {
         const musicEngine = this._musicEngine;
-        if (!musicEngine?.HandlesEvent?.(eventName))
+        if (!musicEngine?.HandlesEvent(eventName))
         {
             return 0;
         }
@@ -2817,7 +2817,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                 ApplyBusVolumeAction(nodes.busVolumes, action);
             }
             this._RefreshSfxBusVolumes();
-            this._musicEngine?.RefreshBusVolumeGains?.();
+            this._musicEngine?.RefreshBusVolumeGains();
             return;
         }
 
@@ -2828,7 +2828,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         }
         ApplyBusVolumeAction(action.emitterNodes.busVolumes, action);
         this._RefreshSfxBusVolumes(action.gameObjID);
-        this._musicEngine?.RefreshBusVolumeGains?.();
+        this._musicEngine?.RefreshBusVolumeGains();
     }
 
     /**
@@ -3021,7 +3021,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         );
         if (scope === "global")
         {
-            this._musicEngine?.RefreshBusRtpcs?.();
+            this._musicEngine?.RefreshBusRtpcs();
         }
         return true;
     }
@@ -3256,7 +3256,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         {
             this._musicEngine?.SetMusicVolume(value);
         }
-        this._musicEngine?.RefreshBusRtpcs?.();
+        this._musicEngine?.RefreshBusRtpcs();
         return true;
     }
 
@@ -7049,7 +7049,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                 if (!voice.ended) this._ApplyVoiceBusGain(voice);
             }
         }
-        this._musicEngine?.RefreshBusDucking?.();
+        this._musicEngine?.RefreshBusDucking();
         this._busMixer?.RefreshBusControls();
     }
 

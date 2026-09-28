@@ -13,6 +13,7 @@ import { AudStaticDataRepository } from "./trinity/audio/AudStaticDataRepository
 import { AudioCurveSetDriver } from "./trinity/audio/AudioCurveSetDriver.js";
 import { CjsAudioBackend } from "./CjsAudioBackend.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
+import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
 import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
@@ -56,11 +57,15 @@ export class CjsAudioSystem
         {
             throw new TypeError("A music-engine factory must return an engine synchronously.");
         }
-        const required = [ "HandlesEvent", "PostEvent", "ExecuteAction", "Process", "Dispose" ];
+        // A host-injected engine is the one boundary here: it must declare
+        // every ICjsMusicEngine method, so a gap fails at injection instead of
+        // at the first call.
+        const required = Object.getOwnPropertyNames(ICjsMusicEngine.prototype)
+            .filter(name => name !== "constructor");
         const missing = required.filter(name => typeof engine[name] !== "function");
         if (missing.length)
         {
-            throw new TypeError(`A music engine must implement: ${required.join(", ")}. Missing: ${missing.join(", ")}.`);
+            throw new TypeError(`A music engine must implement ICjsMusicEngine. Missing: ${missing.join(", ")}.`);
         }
         return engine;
     }
@@ -473,13 +478,13 @@ export class CjsAudioSystem
      */
     ReleaseMusicMedia(sourceId)
     {
-        return this.musicEngine?.ReleaseMedia?.(sourceId) ?? false;
+        return this.musicEngine?.ReleaseMedia(sourceId) ?? false;
     }
 
     /** Releases all inactive decoded sources retained by the music engine. */
     ClearMusicMedia()
     {
-        return this.musicEngine?.ClearMedia?.() ?? 0;
+        return this.musicEngine?.ClearMedia() ?? 0;
     }
 
     /** Creates and adopts one Carbon AudEmitter from a plain descriptor. */
@@ -659,7 +664,7 @@ export class CjsAudioSystem
             this.ReleaseCurveSetDriver(driver);
         }
         this.backend?.SetMusicEngine(null);
-        this.musicEngine?.Dispose?.();
+        this.musicEngine?.Dispose();
         this.musicEngine = null;
         this._providedMusicEngine = null;
         this.backend?.Dispose();
