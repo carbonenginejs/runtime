@@ -2557,6 +2557,67 @@ function OrbitCamera(bounds)
   return camera;
 }
 
+/**
+ * A frame-rate readout in the bottom-left corner, after skindr's FpsMeter: the
+ * number is a one-second average, the graph is every frame's rate over the last
+ * two seconds against a fixed 60 ceiling, so a single stalled frame shows.
+ * Fed from the loop's own requestAnimationFrame timestamps.
+ *
+ * @returns {{Sample: (timestamp: number) => void}} The meter.
+ */
+function CreateFpsMeter()
+{
+  const SAMPLES = 120, CEILING = 60;
+  const host = document.createElement("div");
+  host.id = "fps";
+  host.style.cssText = "position: fixed; left: 12px; bottom: 12px; z-index: 2; display: flex; gap: 8px; align-items: center;"
+    + " color: #cfd6e4; font: 13px/1 ui-monospace, monospace; text-shadow: 0 0 3px #000, 0 0 1px #000; pointer-events: none;";
+  const label = document.createElement("span");
+  label.textContent = "-- fps";
+  const canvas = document.createElement("canvas");
+  canvas.width = SAMPLES;
+  canvas.height = 24;
+  host.append(label, canvas);
+  document.body.append(host);
+  const context = canvas.getContext("2d");
+  const samples = new Float32Array(SAMPLES);
+  let at = 0, last = 0, windowStart = 0, windowFrames = 0;
+
+  return {
+    Sample(timestamp)
+    {
+      if (last)
+      {
+        const dt = (timestamp - last) / 1000;
+        samples[at] = dt > 0 ? 1 / dt : 0;
+        at = (at + 1) % SAMPLES;
+      }
+      last = timestamp;
+
+      if (!windowStart) windowStart = timestamp;
+      windowFrames += 1;
+      if (timestamp - windowStart >= 1000)
+      {
+        label.textContent = `${Math.round(windowFrames * 1000 / (timestamp - windowStart))} fps`;
+        windowStart = timestamp;
+        windowFrames = 0;
+      }
+
+      context.clearRect(0, 0, SAMPLES, 24);
+      context.beginPath();
+      for (let i = 0; i < SAMPLES; i++)
+      {
+        const y = 24 - Math.min(1, samples[(at + i) % SAMPLES] / CEILING) * 24;
+        if (i === 0) context.moveTo(i, y);
+        else context.lineTo(i, y);
+      }
+      context.strokeStyle = "#f7941d";
+      context.lineWidth = 1;
+      context.stroke();
+    }
+  };
+}
+
 
 /**
  * Keeps the canvas's backing size equal to its displayed size.
@@ -4408,8 +4469,11 @@ export async function RunDemo(canvas)
     globalThis.__demoLoop = loop;
     device.lost.then(info => { loop.deviceLost = `${info.reason}: ${info.message}`; });
 
-    const tick = () =>
+    const fpsMeter = CreateFpsMeter();
+
+    const tick = timestamp =>
     {
+      fpsMeter.Sample(timestamp);
       try
       {
         FitCanvas(canvas, renderTarget, frame);
