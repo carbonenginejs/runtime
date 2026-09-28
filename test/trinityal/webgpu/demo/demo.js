@@ -612,6 +612,344 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 }
 
 /**
+ * A ship DNA taken apart: `hull:faction:race`, then `command?arg;arg` clauses
+ * (src/sof/EveSOFDNA.js). `material` and its skin spelling `mesh` both carry
+ * one material per generic material prefix; clauses the panel does not edit
+ * (`variant`, `class`, `layout`...) are kept verbatim.
+ *
+ * @param {string} dna A ship DNA.
+ * @returns {{hull: string, faction: string, race: string, materialCommand: string, materials: string[]|null, pattern: string[]|null, respathinsert: string|null, others: string[]}}
+ */
+function ParseShipDna(dna)
+{
+  const [ hull = "", faction = "", race = "", ...clauses ] = String(dna).split(":");
+  const parsed = { hull, faction, race, materialCommand: "material", materials: null, pattern: null, respathinsert: null, others: [] };
+  for (const clause of clauses)
+  {
+    const [ command, args = "" ] = clause.split("?");
+    const values = args.split(";");
+    if (command === "material" || command === "mesh")
+    {
+      parsed.materialCommand = command;
+      parsed.materials = values;
+    }
+    else if (command === "pattern") parsed.pattern = values;
+    else if (command === "respathinsert") parsed.respathinsert = values[0];
+    else parsed.others.push(clause);
+  }
+  return parsed;
+}
+
+/**
+ * The inverse of ParseShipDna. The material clause is written only when a
+ * material is chosen (blank slots become `none`); the respathinsert clause
+ * only when one is chosen, so its absence keeps the faction's own insert
+ * (EveSOFDNA.cpp:963-964), while `none` suppresses it.
+ *
+ * @param {ReturnType<typeof ParseShipDna>} parts The DNA's parts.
+ * @returns {string} The DNA.
+ */
+function FormatShipDna(parts)
+{
+  const clauses = [ parts.hull, parts.faction, parts.race ];
+  if (parts.materials && parts.materials.some(Boolean))
+  {
+    clauses.push(`${parts.materialCommand}?${parts.materials.map(value => value || "none").join(";")}`);
+  }
+  if (parts.pattern && parts.pattern[0])
+  {
+    clauses.push(`pattern?${parts.pattern[0]};${parts.pattern[1] || "none"};${parts.pattern[2] || "none"}`);
+  }
+  if (parts.respathinsert !== null) clauses.push(`respathinsert?${parts.respathinsert}`);
+  clauses.push(...parts.others);
+  return clauses.join(":");
+}
+
+/**
+ * THE SHIP PANEL: load a ship by type and skin, or edit its SOF DNA directly,
+ * as the cppc harness and the Blender tools do. Either side fills the other:
+ * a type/skin resolves to its DNA (tools-core dna/resolve), and an edited DNA
+ * finds its type/skin by an exact record match (dna/search, `exact`). SDE
+ * routes are pinned to the SDE build and SOF catalogs to the resources build
+ * (the get-eve-resources skill: `latest` is two builds). The chosen DNA loads
+ * through `apply` and goes into the URL as `?dna=`, so a view can be shared.
+ *
+ * @param {object} options
+ * @param {string} options.initialDna The DNA the page started with.
+ * @param {(dna: string) => Promise<unknown>} options.apply Loads a DNA.
+ * @param {number} [options.materialCount=4] Generic material prefixes.
+ */
+async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
+{
+  const document = globalThis.document;
+  if (!document) return;
+
+  const style = document.createElement("style");
+  style.textContent = `
+    #ship { position: fixed; top: 52px; right: 12px; z-index: 2; width: 300px; padding: 8px 10px;
+            max-height: calc(100vh - 64px); overflow: auto;
+            background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
+            font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
+    #ship summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
+    #ship h4 { margin: 6px 0 2px; font-size: 11px; color: #8a93a3; text-transform: uppercase; letter-spacing: 0.04em; }
+    #ship label { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+    #ship input, #ship select { width: 170px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #ship textarea { width: 100%; box-sizing: border-box; font: 11px/1.4 monospace; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #ship .note { color: #8a93a3; font-size: 11px; min-height: 1.4em; }
+    #ship button { font: inherit; }
+  `;
+  document.head.append(style);
+
+  const panel = document.createElement("details");
+  panel.id = "ship";
+  panel.open = true;
+  panel.innerHTML = "<summary>Ship</summary>";
+  document.body.append(panel);
+
+  const heading = text => panel.append(Object.assign(document.createElement("h4"), { textContent: text }));
+  const row = (label, control) =>
+  {
+    const element = document.createElement("label");
+    element.append(label, control);
+    panel.append(element);
+    return control;
+  };
+  const listInput = name =>
+  {
+    const list = Object.assign(document.createElement("datalist"), { id: `ship-${name}` });
+    panel.append(list);
+    const input = Object.assign(document.createElement("input"), { type: "text", spellcheck: false });
+    input.setAttribute("list", list.id);
+    return { input, fill: values => list.replaceChildren(...values.map(value => new Option(value, value))) };
+  };
+  const select = () => document.createElement("select");
+  const note = Object.assign(document.createElement("div"), { className: "note" });
+
+  // THE PAGE'S OWN BUILD, never `latest`: the runner reports the resource
+  // build its bytes come from (and where tools-core is), so no catalog lists a
+  // hull this build lacks. tools-core answers cross-origin, so the page asks it
+  // directly; `?tools=` points elsewhere.
+  const pageBuild = await (await fetch("/build")).json();
+  const origin = new URLSearchParams(globalThis.location?.search ?? "").get("tools") || pageBuild.tools;
+  const getJson = async path =>
+  {
+    const response = await fetch(`${origin}${path}`);
+    const body = await response.json();
+    if (!response.ok || body.error) throw new Error(body.error ?? `${path}: ${response.status}`);
+    return body;
+  };
+
+  // Two facets (the get-eve-resources skill): resource routes take the page's
+  // resource build, SDE routes the SDE that build reports.
+  const { builds } = await getJson(`/eve/${pageBuild.resources}/build`);
+  const sde = `/eve/${builds.sde}`;
+  const resources = `/eve/${builds.resources}`;
+
+  // TYPE AND SKIN.
+  heading("Type");
+  const search = row("search", Object.assign(document.createElement("input"), { type: "search", placeholder: "ship name" }));
+  const typeSelect = row("type", select());
+  const skinSelect = row("skin", select());
+
+  // SOF.
+  heading("SOF");
+  const hull = listInput("hull");
+  const faction = listInput("faction");
+  const race = select();
+  row("hull", hull.input);
+  row("faction", faction.input);
+  row("race", race);
+  const material = listInput("material");
+  const materialInputs = [];
+  for (let index = 0; index < materialCount; index++)
+  {
+    const input = Object.assign(document.createElement("input"), { type: "text", spellcheck: false, placeholder: "(none)" });
+    input.setAttribute("list", "ship-material");
+    materialInputs.push(row(`material${index + 1}`, input));
+  }
+  const pattern = listInput("pattern");
+  row("pattern", pattern.input);
+  const patternMaterials = [ 1, 2 ].map(index =>
+  {
+    const input = Object.assign(document.createElement("input"), { type: "text", spellcheck: false, placeholder: "(none)" });
+    input.setAttribute("list", "ship-material");
+    return row(`pattern material${index}`, input);
+  });
+  const respathinsert = row("respathinsert", select());
+
+  heading("DNA");
+  const dnaText = Object.assign(document.createElement("textarea"), { rows: 3, spellcheck: false });
+  panel.append(dnaText);
+  const load = Object.assign(document.createElement("button"), { type: "button", textContent: "load" });
+  panel.append(load, note);
+
+  // Catalogs. WORKAROUND: the per-hull pattern route
+  // (/sof/hulls/<hull>/patterns/) fails for every hull while one pattern file
+  // (cny_2025_triglavian.black) names itself cny_2026_triglavian, so the full
+  // pattern list stands in until tools-core is fixed; it can offer patterns
+  // the hull has no data for.
+  const [ hulls, factions, races, materials, patterns ] = await Promise.all(
+    [ "hulls", "factions", "races", "materials", "patterns" ].map(name => getJson(`${resources}/sof/${name}`)));
+  hull.fill(hulls);
+  faction.fill(factions);
+  race.replaceChildren(...races.map(name => new Option(name, name)));
+  material.fill([ "none", ...materials ]);
+  pattern.fill(patterns);
+
+  // THE THREE respathinsert STATES (EveSOFDNA.cpp:963-964): no clause keeps
+  // the faction's insert, "none" suppresses it, a name replaces it.
+  const FACTION_DEFAULT = "\u0000faction";
+  const fillInserts = async (hullName, current) =>
+  {
+    let inserts = [];
+    try { inserts = await getJson(`${resources}/sof/hulls/${encodeURIComponent(hullName)}/respathinserts`); }
+    catch { inserts = []; }
+    const names = [ ...new Set([ ...inserts, ...(current && current !== "none" ? [ current ] : []) ]) ];
+    respathinsert.replaceChildren(new Option("(faction default)", FACTION_DEFAULT), new Option("none", "none"), ...names.map(name => new Option(name, name)));
+    respathinsert.value = current === null ? FACTION_DEFAULT : current;
+  };
+
+  const readFields = previous => ({
+    hull: hull.input.value.trim(),
+    faction: faction.input.value.trim(),
+    race: race.value,
+    materialCommand: previous.materialCommand,
+    materials: materialInputs.map(input => input.value.trim()),
+    pattern: [ pattern.input.value.trim(), ...patternMaterials.map(input => input.value.trim()) ],
+    respathinsert: respathinsert.value === FACTION_DEFAULT ? null : respathinsert.value,
+    others: previous.others
+  });
+
+  let parts = ParseShipDna(initialDna);
+  const writeFields = async next =>
+  {
+    parts = next;
+    hull.input.value = next.hull;
+    faction.input.value = next.faction;
+    race.value = next.race;
+    materialInputs.forEach((input, index) => { input.value = next.materials?.[index] && next.materials[index] !== "none" ? next.materials[index] : ""; });
+    pattern.input.value = next.pattern?.[0] ?? "";
+    patternMaterials.forEach((input, index) =>
+    {
+      const value = next.pattern?.[index + 1];
+      input.value = value && value !== "none" ? value : "";
+    });
+    await fillInserts(next.hull, next.respathinsert);
+    dnaText.value = FormatShipDna(next);
+  };
+
+  // Types found by name, kept to ships and anything with a model: published
+  // types that carry a graphicID. Skins list the type's SKIN records.
+  const fillSkins = async (typeID, selected = "") =>
+  {
+    const { items } = await getJson(`${sde}/sde/skins?field=types&contains=${typeID}&limit=200`);
+    skinSelect.replaceChildren(new Option("(default)", ""), ...items.map(item => new Option(item.payload.internalName ?? `skin ${item.id}`, item.id)));
+    skinSelect.value = String(selected ?? "");
+  };
+  const setType = async (typeID, name, skinID = "") =>
+  {
+    if (![ ...typeSelect.options ].some(option => option.value === String(typeID)))
+    {
+      typeSelect.replaceChildren(new Option(name, String(typeID)));
+    }
+    typeSelect.value = String(typeID);
+    await fillSkins(typeID, skinID);
+  };
+  const clearType = () =>
+  {
+    typeSelect.replaceChildren();
+    skinSelect.replaceChildren();
+  };
+
+  // DNA -> type/skin: the exact record match only; none clears the type side.
+  const findType = async dna =>
+  {
+    try
+    {
+      const { matches = [] } = await getJson(`${sde}/dna/search?q=${encodeURIComponent(dna)}&limit=40`);
+      const match = matches.find(entry => entry.exact && entry.dna === dna) ?? matches.find(entry => entry.exact);
+      if (!match) { clearType(); return; }
+      const type = await getJson(`${sde}/sde/types/${match.typeID}`);
+      await setType(match.typeID, type.payload?.name?.en ?? `type ${match.typeID}`, match.skinID ?? "");
+    }
+    catch (error) { clearType(); note.textContent = error.message; }
+  };
+
+  const loadDna = async dna =>
+  {
+    note.textContent = `loading ${dna}`;
+    try
+    {
+      await apply(dna);
+      const url = new URL(globalThis.location.href);
+      url.searchParams.set("dna", dna);
+      globalThis.history.replaceState(null, "", url);
+      note.textContent = "";
+    }
+    catch (error) { note.textContent = `load failed: ${error.message}`; }
+  };
+
+  // Type/skin -> DNA: resolve, fill the SOF side, load.
+  const resolveSelection = async () =>
+  {
+    if (!typeSelect.value) return;
+    const skin = skinSelect.value ? `&skinID=${skinSelect.value}` : "";
+    try
+    {
+      const { dna } = await getJson(`${sde}/dna/resolve?typeID=${typeSelect.value}${skin}`);
+      await writeFields(ParseShipDna(dna));
+      await loadDna(dna);
+    }
+    catch (error) { note.textContent = `no DNA: ${error.message}`; }
+  };
+
+  let searchTimer = null;
+  search.addEventListener("input", () =>
+  {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(async () =>
+    {
+      const query = search.value.trim();
+      if (query.length < 2) return;
+      const { items } = await getJson(`${sde}/sde/types?field=name&contains=${encodeURIComponent(query)}&limit=60`);
+      const types = items.filter(item => item.payload.published && item.payload.graphicID);
+      typeSelect.replaceChildren(new Option(`${types.length} found`, ""), ...types.map(item => new Option(item.payload.name?.en ?? item.id, item.id)));
+      skinSelect.replaceChildren();
+    }, 250);
+  });
+  typeSelect.addEventListener("change", async () =>
+  {
+    if (!typeSelect.value) return;
+    await fillSkins(typeSelect.value);
+    await resolveSelection();
+  });
+  skinSelect.addEventListener("change", resolveSelection);
+
+  // SOF edits -> DNA text and the type side; loading waits for "load".
+  const onSofEdit = async () =>
+  {
+    const next = readFields(parts);
+    if (next.hull !== parts.hull) await fillInserts(next.hull, next.respathinsert);
+    parts = next;
+    dnaText.value = FormatShipDna(next);
+    await findType(dnaText.value);
+  };
+  for (const control of [ hull.input, faction.input, race, ...materialInputs, pattern.input, ...patternMaterials, respathinsert ])
+  {
+    control.addEventListener("change", onSofEdit);
+  }
+  dnaText.addEventListener("change", async () =>
+  {
+    await writeFields(ParseShipDna(dnaText.value.trim()));
+    await findType(dnaText.value.trim());
+  });
+  load.addEventListener("click", () => loadDna(dnaText.value.trim()));
+
+  await writeFields(parts);
+  await findType(initialDna);
+}
+
+/**
  * DIAGNOSTIC COUNTS for `demo.post()`. Tr2Renderer's draw verbs return
  * whether they drew; an effect that has not loaded, or a blit with no
  * material, returns false and throws nothing - which is how a black canvas
@@ -3447,6 +3785,13 @@ export async function RunDemo(canvas)
       if (vec3.length(direction) > 0) SUN.direction.set(vec3.normalize(direction, direction));
     }
   });
+
+  // The ship panel loads through the skin swap, so the new ship dissolves in.
+  if (realScene)
+  {
+    BuildShipPanel({ initialDna: DNA, apply: dna => globalThis.demo.skin(dna) })
+      .catch(error => console.warn(`ship panel: ${error.message}`));
+  }
 
   const sunScratch = vec3.create();
   const lastFrameScratch = mat4.create();

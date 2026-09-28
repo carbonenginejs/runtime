@@ -75,6 +75,16 @@ const server = createServer(async (request, response) =>
     return;
   }
 
+  // The resource build the page's bytes come from, so a page asking tools-core
+  // anything else (SOF catalogs, the SDE) pins to the same build rather than
+  // to `latest`, which can list hulls this build does not have.
+  if (requested.pathname === "/build")
+  {
+    response.writeHead(200, { "content-type": "application/json; charset=utf-8" });
+    response.end(JSON.stringify({ tools: TOOLS_CORE_ROOT.replace(/\/eve\/[^/]+\/$/u, ""), resources: TOOLS_CORE_ROOT.match(/\/eve\/([^/]+)\/$/u)[1] }));
+    return;
+  }
+
   if (requested.pathname.startsWith("/resource/"))
   {
     const source = TOOLS_CORE + requested.pathname.slice("/resource/".length);
