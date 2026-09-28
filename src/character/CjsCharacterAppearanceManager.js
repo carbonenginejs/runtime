@@ -1,3 +1,9 @@
+import { ICjsCharacterAppearanceAL } from "./ICjsCharacterAppearanceAL.js";
+
+/** The methods an appearance AL implements, read from the interface. */
+const APPEARANCE_AL_METHODS = Object.getOwnPropertyNames(ICjsCharacterAppearanceAL.prototype)
+    .filter(name => name !== "constructor");
+
 /**
  * Serializes one character's appearance realization and publishes only complete
  * staged revisions. The injected appearance AL owns resource and GPU work;
@@ -44,15 +50,14 @@ export class CjsCharacterAppearanceManager
     /** Replaces the appearance realization AL before work is queued. */
     SetAdapter(adapter = null)
     {
-        if (adapter !== null
-            && (typeof adapter?.Prepare !== "function"
-                || typeof adapter?.Commit !== "function"
-                || typeof adapter?.Release !== "function"))
+        if (adapter !== null)
         {
-            throw new TypeError(
-                "Character appearance AL must expose Prepare(construction, context), "
-                + "Commit(stage, context), and Release(stage, context)"
-            );
+            // Every ICjsCharacterAppearanceAL method is required.
+            const missing = APPEARANCE_AL_METHODS.filter(name => typeof adapter[name] !== "function");
+            if (missing.length)
+            {
+                throw new TypeError(`Character appearance AL must implement ICjsCharacterAppearanceAL; missing ${missing.join(", ")}`);
+            }
         }
         if (this._metrics.queueDepth)
         {
@@ -103,7 +108,7 @@ export class CjsCharacterAppearanceManager
     /** Warms immutable configured-model templates when the current AL supports it. */
     WarmConfiguredModelTemplates(paths)
     {
-        if (typeof this._adapter?.WarmConfiguredModelTemplates !== "function")
+        if (this._adapter === null)
         {
             return Promise.resolve({
                 status: "unavailable",
@@ -120,9 +125,9 @@ export class CjsCharacterAppearanceManager
         {
             throw new Error("Character appearance manager has no committed appearance");
         }
-        if (typeof this._adapter?.SetConfiguredPartDisplay !== "function")
+        if (this._adapter === null)
         {
-            throw new Error("Character appearance AL cannot isolate configured parts");
+            throw new Error("Character appearance manager has no appearance AL to isolate configured parts");
         }
 
         const result = this._adapter.SetConfiguredPartDisplay(
@@ -141,9 +146,9 @@ export class CjsCharacterAppearanceManager
         {
             throw new Error("Character appearance manager has no committed appearance");
         }
-        if (typeof this._adapter?.SetFoundationDisplay !== "function")
+        if (this._adapter === null)
         {
-            throw new Error("Character appearance AL cannot isolate foundations");
+            throw new Error("Character appearance manager has no appearance AL to isolate foundations");
         }
 
         const result = this._adapter.SetFoundationDisplay(this._committed, role, display);
@@ -227,7 +232,7 @@ export class CjsCharacterAppearanceManager
             released: Boolean(committed)
         };
         this._lastResult = result;
-        if (!committed || typeof this._adapter?.Release !== "function") return result;
+        if (!committed || this._adapter === null) return result;
 
         const completion = this._adapter.Release(committed, { reason, revision, source });
         if (completion && typeof completion.catch === "function")
@@ -294,8 +299,7 @@ export class CjsCharacterAppearanceManager
 
         if (this._committed
             && appearanceChange.dirtyDomains.length === 1
-            && appearanceChange.dirtyDomains[0] === "morphs"
-            && typeof this._adapter.UpdateMorphTargets === "function")
+            && appearanceChange.dirtyDomains[0] === "morphs")
         {
             if (requestRevision !== this._requestedRevision)
             {
@@ -348,7 +352,7 @@ export class CjsCharacterAppearanceManager
         const previous = this._committed;
         try
         {
-            if (previous && typeof this._adapter.Handoff === "function")
+            if (previous)
             {
                 await this._adapter.Handoff(previous, staged, context);
                 this._metrics.handoffs++;
@@ -384,7 +388,7 @@ export class CjsCharacterAppearanceManager
      */
     async _Release(value, context)
     {
-        if (value && typeof this._adapter?.Release === "function")
+        if (value && this._adapter !== null)
         {
             await this._adapter.Release(value, context);
             this._metrics.releases++;
@@ -394,7 +398,7 @@ export class CjsCharacterAppearanceManager
     /** Adds adapter diagnostics to the result when the adapter provides them. */
     _AppendDiagnostics(result, appearance)
     {
-        if (typeof this._adapter?.GetDiagnostics === "function")
+        if (this._adapter !== null)
         {
             result.details = this._adapter.GetDiagnostics(appearance);
         }

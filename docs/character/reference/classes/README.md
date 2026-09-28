@@ -230,6 +230,16 @@ Reversibly masks triangles for reviewed GLES foundation-coverage policies.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ICjsCharacterAppearanceAL -->
+## `ICjsCharacterAppearanceAL`
+
+The appearance realization layer `CjsCharacterAppearanceManager` drives: prepare a hidden stage from neutral construction data, publish it, hand visible ownership between stages, and release them.
+
+- Export: `@carbonenginejs/runtime/character`
+- Source: `src/character/ICjsCharacterAppearanceAL.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:Tr2ColorCurve -->
 ## `Tr2ColorCurve`
 

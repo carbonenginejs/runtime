@@ -5,7 +5,8 @@ import {
     CjsCharacter,
     CjsCharacterAppearanceManager,
     CjsCharacterTextureContributions,
-    CjsCharacterTextureQuality
+    CjsCharacterTextureQuality,
+    ICjsCharacterAppearanceAL
 } from "../../../npm/dist/character/index.js";
 
 test("selects retained texture tiers deterministically without a renderer", () =>
@@ -50,7 +51,7 @@ test("requires the complete appearance AL lifecycle before staging work", () =>
 {
     assert.throws(
         () => new CjsCharacterAppearanceManager({ adapter: { Prepare() {} } }),
-        /Prepare\(construction, context\), Commit\(stage, context\), and Release/u
+        /must implement ICjsCharacterAppearanceAL; missing Commit, Release/u
     );
 });
 
@@ -123,31 +124,73 @@ test("keeps resolution and realization as injected character seams", async () =>
     assert.deepEqual(character.GetDiagnostics().selection, { recordID: "3000001", revision: 1 });
 });
 
+/** An appearance AL that records the lifecycle; the rest are explicit no-ops. */
+class RecordingAppearanceAL extends ICjsCharacterAppearanceAL
+{
+    constructor(calls)
+    {
+        super();
+        this.calls = calls;
+    }
+
+    async Prepare(construction, context)
+    {
+        this.calls.push([ "prepare", construction, context.appearanceChange ]);
+        return { construction };
+    }
+
+    async Commit(stage)
+    {
+        this.calls.push([ "commit", stage ]);
+    }
+
+    async Release(stage)
+    {
+        this.calls.push([ "release", stage ]);
+    }
+
+    UpdateMorphTargets(stage, morphTargets)
+    {
+        this.calls.push([ "morph", stage, morphTargets ]);
+        return { updated: morphTargets.length };
+    }
+
+    /** No template cache to warm. */
+    WarmConfiguredModelTemplates(_paths)
+    {
+        return { status: "unavailable" };
+    }
+
+    /** No part isolation. */
+    SetConfiguredPartDisplay(_stage, _partSourceRecordID, _display)
+    {
+        return null;
+    }
+
+    /** No foundation isolation. */
+    SetFoundationDisplay(_stage, _role, _display)
+    {
+        return null;
+    }
+
+    /** No visible ownership to hand over. */
+    async Handoff(_previous, _staged, _context)
+    {
+    }
+
+    /** No diagnostics. */
+    GetDiagnostics(_stage)
+    {
+        return null;
+    }
+}
+
 test("publishes atomic stages through a supplied appearance AL", async () =>
 {
     const calls = [];
     const appearanceManager = new CjsCharacterAppearanceManager({
         capabilities: { backend: "webgl2", maximumBones: 256, requiredBones: 69 },
-        adapter: {
-            async Prepare(construction, context)
-            {
-                calls.push([ "prepare", construction, context.appearanceChange ]);
-                return { construction };
-            },
-            async Commit(stage)
-            {
-                calls.push([ "commit", stage ]);
-            },
-            async Release(stage)
-            {
-                calls.push([ "release", stage ]);
-            },
-            async UpdateMorphTargets(stage, morphTargets)
-            {
-                calls.push([ "morph", stage, morphTargets ]);
-                return { updated: morphTargets.length };
-            }
-        }
+        adapter: new RecordingAppearanceAL(calls)
     });
     const baseline = { operations: [], morphTargets: [] };
     const morphed = {
@@ -157,7 +200,8 @@ test("publishes atomic stages through a supplied appearance AL", async () =>
 
     assert.deepEqual(await appearanceManager.ApplyConstruction(baseline), {
         status: "committed",
-        revision: 1
+        revision: 1,
+        details: null
     });
     const reused = await appearanceManager.ApplyConstruction(baseline);
     assert.equal(reused.reused, true);

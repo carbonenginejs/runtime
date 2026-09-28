@@ -28,6 +28,7 @@ export { CjsCharacterUnresolvedRelationship } from "./library/CjsCharacterUnreso
 export { CjsCharacter } from "./CjsCharacter.js";
 export { CjsCharacterAppearanceConstruction } from "./CjsCharacterAppearanceConstruction.js";
 export { CjsCharacterAppearanceManager } from "./CjsCharacterAppearanceManager.js";
+export { ICjsCharacterAppearanceAL } from "./ICjsCharacterAppearanceAL.js";
 export { CjsCharacterDiagnostics } from "./CjsCharacterDiagnostics.js";
 export {
     CjsCharacterFoundationConstruction,

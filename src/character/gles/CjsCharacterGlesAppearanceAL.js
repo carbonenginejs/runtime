@@ -1,3 +1,4 @@
+import { ICjsCharacterAppearanceAL } from "../ICjsCharacterAppearanceAL.js";
 import { CjsCharacterGlesFoundationTranslator } from "./CjsCharacterGlesFoundationTranslator.js";
 
 /**
@@ -8,7 +9,7 @@ import { CjsCharacterGlesFoundationTranslator } from "./CjsCharacterGlesFoundati
  * details. Complex configured-part operations deliberately remain host
  * delegated until their backend-specific material realization is migrated.
  */
-export class CjsCharacterGlesAppearanceAL
+export class CjsCharacterGlesAppearanceAL extends ICjsCharacterAppearanceAL
 {
     _foundationTranslator;
 
@@ -29,6 +30,7 @@ export class CjsCharacterGlesAppearanceAL
         foundationTranslator = new CjsCharacterGlesFoundationTranslator()
     } = {})
     {
+        super();
         this._resourceHost = RequireResourceHost(resourceHost);
         this._visualHost = RequireVisualHost(visualHost);
         this._operationHost = RequireOptionalOperationHost(operationHost);
