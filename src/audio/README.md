@@ -27,6 +27,12 @@ of spatial-audio geometry or diffraction, and Wwise middleware rendering. The
 Carbon methods for them stay on their classes with implementation metadata;
 geometry data, settings and refcounts still reach an injected backend.
 
+Web Audio baseline methods (AudioParam scheduling, node `disconnect`/`stop`)
+are called directly. Two feature checks remain because a target browser may
+ship only one side: `AudioParam.cancelAndHoldAtTime`, which is newer than
+`cancelScheduledValues` and falls back to it, and `PannerNode.setOrientation`,
+the deprecated form beside the orientation AudioParams.
+
 Playback imports the WEM format lazily, only when original WEM bytes need
 preparing.
 
