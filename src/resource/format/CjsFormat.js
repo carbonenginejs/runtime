@@ -250,11 +250,11 @@ export class CjsFormat
     try
     {
       await this.readAsync(input, { ...values, emit: capability.output });
-      return freezeVerification(report, capability, true, null);
+      return createVerification(report, capability, true, null);
     }
     catch (error)
     {
-      return freezeVerification(report, capability, false, error);
+      return createVerification(report, capability, false, error);
     }
   }
 
@@ -294,7 +294,7 @@ export class CjsFormat
   }
 
   /**
-   * Freeze and validate one format's authoritative input map.
+   * Validate one format's authoritative input map.
    *
    * Mirrors `defineOutputs`, including the one-default rule: a format that can
    * be written from several payloads still has one obvious answer to "write
@@ -344,7 +344,7 @@ export class CjsFormat
     return inputs;
   }
 
-  /** Freeze and validate one format's authoritative output map. */
+  /** Validate one format's authoritative output map. */
   static defineOutputs(definitions = {})
   {
     if (!definitions || typeof definitions !== "object" || Array.isArray(definitions))
@@ -621,7 +621,7 @@ function resolvePreferredOutput(preferredOutput, outputs)
   return direct?.output || "";
 }
 
-function freezeVerification(report, capability, supported, error)
+function createVerification(report, capability, supported, error)
 {
   const errorReport = error ? serializeError(error) : null;
   const outputs = report.outputs.map(entry => entry.output === capability.output

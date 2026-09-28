@@ -226,7 +226,7 @@ function translatePassUnit(pass, programForKey, source, bindingPolicy)
  * @param {object} effectRes Loaded version-15 `Tr2EffectRes`.
  * @param {object} permutationGraph Validated derived `CJS_EFFECT_PERMUTATION_GRAPH` document (no chunk is stored).
  * @param {object} [options] Source label, stage selection, and binding policy.
- * @returns {object} Frozen `CJS_WGSL_BODY_SET` document.
+ * @returns {object} `CJS_WGSL_BODY_SET` document.
  */
 export function buildEffectBackendBodySet(effectRes, permutationGraph, options = {})
 {

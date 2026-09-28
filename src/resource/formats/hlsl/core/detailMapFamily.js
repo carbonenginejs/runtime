@@ -48,7 +48,7 @@ export const DETAIL_MAP_ARRAY_FAMILY = DETAIL_DEFINITION.family;
  *
  * @param {Array<object>} resources Reflected resources.
  * @param {object} [options] Recognition options.
- * @returns {object|null} Frozen plan, or null when the family is absent or unusable.
+ * @returns {object|null} Plan, or null when the family is absent or unusable.
  */
 export function recogniseDetailMapFamily(resources, options = {})
 {

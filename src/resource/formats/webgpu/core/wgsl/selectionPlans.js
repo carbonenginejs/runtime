@@ -689,7 +689,7 @@ function buildLoopPlan(program, region, values, live, dominators, stage)
  * break-terminated case clauses, immediate selectors, and per-clause merge
  * incoming values at the after-endswitch join.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {string} stage Stage label for diagnostics ("vertex" or "fragment").
  * @returns {Map<number, object>} Region plans keyed by region start instruction.
  */

@@ -126,9 +126,6 @@ export class CjsGifFormat extends CjsImageFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsGifFormat";
     static mediaTypes = [ "image" ];
     static outputs = CjsFormat.defineOutputs({

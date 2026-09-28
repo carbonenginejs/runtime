@@ -271,9 +271,6 @@ export class CjsRedFormat extends CjsFormat
         return copyReaderOptions(values);
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static classKeys = CLASS_KEYS;
     static schema = blackDefinitions;
     static id = "CjsRedFormat";

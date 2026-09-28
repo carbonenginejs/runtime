@@ -1062,7 +1062,7 @@ function decorate(curve, dimension)
 }
 
 /**
- * Frozen convenience namespace for animation-curve decoding helpers.
+ * Convenience namespace for animation-curve decoding helpers.
  *
  * The same constants and functions are also exported directly from curves.js.
  */

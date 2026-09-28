@@ -353,7 +353,7 @@ export function computeWorkgroupVariableDeclarations(program)
  *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC or CJS IR.
  * @param {object} [options] Source/provenance options.
- * @returns {object} Frozen WGSL shader descriptor.
+ * @returns {object} WGSL shader descriptor.
  */
 export function buildWgsl(input, options = {})
 {

@@ -204,7 +204,7 @@ export class CjsWebgpuFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC input.
      * @param {object} [options] IR provenance options.
-     * @returns {object} Frozen shader IR program.
+     * @returns {object} Shader IR program.
      */
     BuildShaderIr(input, options = {})
     {
@@ -216,7 +216,7 @@ export class CjsWebgpuFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC or shader IR.
      * @param {object} [options] Source/provenance options.
-     * @returns {object} Frozen WGSL shader descriptor.
+     * @returns {object} WGSL shader descriptor.
      */
     BuildWgsl(input, options = {})
     {
@@ -231,7 +231,7 @@ export class CjsWebgpuFormat extends CjsFormat
      * @param {object} [options] Pass-level binding policy.
      * @param {string[]} [options.sharedIdentities] Compatible D3D identities
      * confirmed to represent one resource across stages.
-     * @returns {object} Frozen CJS_WGSL_BINDING_PLAN document.
+     * @returns {object} CJS_WGSL_BINDING_PLAN document.
      */
     BuildWgslBindingPlan(programs, options = {})
     {
@@ -242,7 +242,7 @@ export class CjsWebgpuFormat extends CjsFormat
      * Assembles emitted shader descriptors into a portable WGSL set.
      *
      * @param {object[]} entries Canonically keyed emitted shader descriptors.
-     * @returns {object} Frozen CJS_WGSL_SET document.
+     * @returns {object} CJS_WGSL_SET document.
      */
     BuildWgslSet(entries)
     {
@@ -343,7 +343,7 @@ export class CjsWebgpuFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC input.
      * @param {object} [options] IR provenance options.
-     * @returns {object} Frozen shader IR program.
+     * @returns {object} Shader IR program.
      */
     static buildShaderIr(input, options = {})
     {
@@ -355,7 +355,7 @@ export class CjsWebgpuFormat extends CjsFormat
      *
      * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC or shader IR.
      * @param {object} [options] Source/provenance options.
-     * @returns {object} Frozen WGSL shader descriptor.
+     * @returns {object} WGSL shader descriptor.
      */
     static buildWgsl(input, options = {})
     {
@@ -370,7 +370,7 @@ export class CjsWebgpuFormat extends CjsFormat
      * @param {object} [options] Pass-level binding policy.
      * @param {string[]} [options.sharedIdentities] Compatible D3D identities
      * confirmed to represent one resource across stages.
-     * @returns {object} Frozen CJS_WGSL_BINDING_PLAN document.
+     * @returns {object} CJS_WGSL_BINDING_PLAN document.
      */
     static buildWgslBindingPlan(programs, options = {})
     {
@@ -381,7 +381,7 @@ export class CjsWebgpuFormat extends CjsFormat
      * Static WGSL-set assembly helper.
      *
      * @param {object[]} entries Canonically keyed emitted shader descriptors.
-     * @returns {object} Frozen CJS_WGSL_SET document.
+     * @returns {object} CJS_WGSL_SET document.
      */
     static buildWgslSet(entries)
     {

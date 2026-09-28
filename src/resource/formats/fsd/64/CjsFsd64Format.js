@@ -12,7 +12,7 @@ export class CjsFsd64Format extends CjsFormat
      * Describe a validated modern cFSD envelope.
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.
      * @param {object} [options] Inspection options.
-     * @returns {object} Frozen container metadata.
+     * @returns {object} Container metadata.
      */
     static describe(input, options = {})
     {

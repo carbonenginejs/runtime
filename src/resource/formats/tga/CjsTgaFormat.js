@@ -208,11 +208,6 @@ export class CjsTgaFormat extends CjsImageFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
-
-
     static id = "CjsTgaFormat";
 
     static mediaTypes = [ "image" ];

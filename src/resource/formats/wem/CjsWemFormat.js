@@ -231,9 +231,6 @@ export class CjsWemFormat extends CjsFormat
         return CjsWemFormat.read(input, { ...options, emit: OUTPUT_PCM });
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsWemFormat";
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({

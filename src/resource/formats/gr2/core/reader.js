@@ -705,7 +705,7 @@ export function readGr2Raw(buf)
 export const readGr2 = readGr2Raw;
 
 /**
- * Frozen convenience namespace for low-level GR2 reader helpers.
+ * Convenience namespace for low-level GR2 reader helpers.
  *
  * The same constants and functions are also exported directly from reader.js.
  */

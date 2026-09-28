@@ -242,7 +242,7 @@ function rejectCandidate()
  * @param {Array<{ir: object, semanticBindings: object[]}>} entries Pass stages.
  * @param {object} options Planner options.
  * @param {string} options.layoutKey Canonical pass key.
- * @returns {object|null} Frozen transform plan, or null when proof is absent.
+ * @returns {object|null} Transform plan, or null when proof is absent.
  */
 export function buildResourceTransformPlan(entries, options = {})
 {

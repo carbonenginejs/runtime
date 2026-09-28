@@ -117,7 +117,7 @@ function bytesEqual(left, right)
  * rather than "distinct offsets".
  *
  * @param {object} effectRes Loaded version-15 effect resource.
- * @returns {ReadonlyArray<object>} Frozen groups, each with its representative
+ * @returns {ReadonlyArray<object>} Groups, each with its representative
  *     permutation index, source record, and every variant that shares it.
  */
 export function enumerateUniqueEffectBodies(effectRes)

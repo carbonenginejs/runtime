@@ -195,7 +195,7 @@ export const TEXTURE_ARRAY_FAMILIES = [
  * @param {Array<object>} resources Reflected resources.
  * @param {object} [options] Recognition options.
  * @param {number} [options.registerSpace] Default register space.
- * @returns {object|null} Frozen plan, or null when the family is absent or unusable.
+ * @returns {object|null} Plan, or null when the family is absent or unusable.
  */
 export function recogniseTextureArrayFamily(definition, resources, options = {})
 {

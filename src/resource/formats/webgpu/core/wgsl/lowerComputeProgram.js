@@ -645,9 +645,9 @@ function applyBindingPlan(bindings, bindingPlan)
 /**
  * Lowers the two scalar typed-buffer bindings used by the first compute slice.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object|null} [bindingPlan] Optional exact compute-only binding plan.
- * @returns {object[]} Frozen WebGPU binding records.
+ * @returns {object[]} WebGPU binding records.
  */
 export function lowerComputeBindingLayout(program, bindingPlan = null)
 {
@@ -903,9 +903,9 @@ function validateBlockOutput(program, state)
  * stores avoid inferring a general typed-buffer width. Out-of-bounds loads
  * clamp the eager access and select zero; stores branch and drop the write.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object} [options] Optional exact compute-only binding plan.
- * @returns {object} Frozen typed compute program.
+ * @returns {object} Typed compute program.
  */
 function lowerScalarWordComputeProgram(program, options = {})
 {
@@ -1091,9 +1091,9 @@ function lowerScalarWordComputeProgram(program, options = {})
  * the package proves neither premise. No profile claims it; re-check that it
  * still fails closed whenever the general path's instruction set widens.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object} [options] Optional exact compute-only binding plan.
- * @returns {object} Frozen typed compute program.
+ * @returns {object} Typed compute program.
  */
 export function lowerComputeProgram(program, options = {})
 {

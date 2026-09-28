@@ -138,7 +138,7 @@ export function validateIndexableTempOperand(program, operand, role)
 /**
  * Cross-checks a fixed source operand against its canonical SSA read record.
  *
- * @param {object} program Frozen shader IR program.
+ * @param {object} program Shader IR program.
  * @param {object} operand Indexable-temp source operand.
  * @param {object} read Register-read or index-read dataflow record.
  * @param {string[]} expectedComponents Components selected by the current operand metadata.
@@ -171,7 +171,7 @@ export function validateIndexableTempRead(program, operand, read, expectedCompon
 /**
  * Cross-checks a fixed destination operand against its canonical SSA write.
  *
- * @param {object} program Frozen shader IR program.
+ * @param {object} program Shader IR program.
  * @param {object} operand Indexable-temp destination operand.
  * @param {object} write Register-write dataflow record.
  * @returns {{registerIndex:number, slotIndex:number,key:string}} Validated fixed address.

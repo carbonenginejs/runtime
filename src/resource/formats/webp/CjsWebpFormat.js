@@ -123,11 +123,6 @@ export class CjsWebpFormat extends CjsFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
-
-
     static id = "CjsWebpFormat";
 
     static mediaTypes = [ "image" ];

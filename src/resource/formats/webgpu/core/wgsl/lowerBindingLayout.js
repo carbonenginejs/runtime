@@ -710,11 +710,11 @@ function normalizeTypedBufferViews(value)
  * Register spaces participate in ordering and identity; SM 5.1 range ids are
  * deliberately not treated as globally unique bindings.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object|null} [bindingPlan] Optional pass-global canonical binding plan.
  * @param {object|null} [layoutPolicy] Exact-profile-only typed-layout policy.
  * @param {object|null} [resourceTransformPlan] Validated physical-resource overlay.
- * @returns {object[]} Frozen WebGPU binding records.
+ * @returns {object[]} WebGPU binding records.
  */
 export function lowerBindingLayout(
     program,

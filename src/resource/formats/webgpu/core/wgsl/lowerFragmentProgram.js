@@ -2006,7 +2006,7 @@ function containsOutputAssignment(statements)
  * after the loop (the break edges carry non-uniformity to the merge). Nested
  * loops are skipped — their breaks belong to the inner loop, not this one.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object} region Loop control-flow region.
  * @param {Set<string>} varying Varying value ids from computeVaryingValues.
  * @returns {boolean} True when at least one exit is non-uniform.
@@ -2043,9 +2043,9 @@ function loopHasNonUniformExit(program, region, varying)
  * Lowers the bounded copyblit-style fragment slice with structured no-else
  * selections and scalar component merges.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object} [options] Binding-plan and lowering options.
- * @returns {object} Frozen typed fragment program.
+ * @returns {object} Typed fragment program.
  */
 export function lowerFragmentProgram(program, options = {})
 {

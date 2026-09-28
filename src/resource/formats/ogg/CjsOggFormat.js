@@ -130,9 +130,6 @@ export class CjsOggFormat extends CjsFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsOggFormat";
     static mediaTypes = [ "audio", "video" ];
     static outputs = CjsFormat.defineOutputs({

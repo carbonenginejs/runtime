@@ -899,9 +899,9 @@ function lowerBody(program, bindings)
  * accesses and select zero when absent, TGSM stays inside initialized words,
  * and the final particle write requires a complete eight-word record.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object} [options] Optional exact compute binding plan.
- * @returns {object} Frozen typed compute program.
+ * @returns {object} Typed compute program.
  */
 export function lowerParticleEmitComputeProgram(program, options = {})
 {

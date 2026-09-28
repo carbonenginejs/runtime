@@ -27,7 +27,7 @@ const VARYING_PRODUCERS = new Set([
 /**
  * Computes the set of value ids whose result can vary per pixel.
  *
- * @param {object} program Frozen CJS_SHADER_IR fragment program.
+ * @param {object} program CJS_SHADER_IR fragment program.
  * @returns {Set<string>} Ids of varying (non-uniform) values.
  */
 export function computeVaryingValues(program)

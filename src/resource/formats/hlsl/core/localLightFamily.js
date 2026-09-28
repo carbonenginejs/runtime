@@ -43,7 +43,7 @@ const CARBON_STRUCTURED_BUFFER = 7;
  *
  * @param {Array<object>} resources Reflected resources, each carrying
  *   `registerIndex`, `name` and `type`.
- * @returns {object|null} Frozen plan, or null when the family is absent.
+ * @returns {object|null} Plan, or null when the family is absent.
  */
 export function recogniseLocalLightFamily(resources)
 {

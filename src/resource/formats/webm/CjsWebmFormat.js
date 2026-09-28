@@ -178,11 +178,6 @@ export class CjsWebmFormat extends CjsFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
-
-
     static id = "CjsWebmFormat";
 
     static mediaTypes = [ "video" ];

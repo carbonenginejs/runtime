@@ -274,9 +274,6 @@ export class CjsStlFormat extends CjsGeometryFormat
         return isBinaryStl(input);
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static classKeys = CLASS_KEYS;
     static id = "CjsStlFormat";
     // STL takes the shared geometry root directly rather than going through

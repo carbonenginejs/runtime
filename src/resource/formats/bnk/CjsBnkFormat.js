@@ -311,12 +311,6 @@ export class CjsBnkFormat extends CjsFormat
         parseSfxLayer
     };
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
-
-
-
     static id = "CjsBnkFormat";
 
     static mediaTypes = [ "audio" ];

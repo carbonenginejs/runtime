@@ -237,9 +237,6 @@ export class CjsPngFormat extends CjsImageFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsPngFormat";
     static mediaTypes = [ "image" ];
     static inputs = CjsFormat.defineInputs({

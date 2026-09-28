@@ -7,7 +7,7 @@ import { CARBON_VIEW_FORMATS, unboundUavRegistersFor } from "../../../hlsl/core/
  * nothing, as D3D11 drops a write to an empty UAV slot. The instructions and
  * blocks are untouched, so every position the program records still holds.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object[]} semanticBindings The stage's effect-description bindings.
  * @returns {object} The program, or a copy without those UAVs.
  */

@@ -233,7 +233,7 @@ const SAMPLE_OPCODES = new Set([ "sample", "sample_b", "sample_l", "sample_d" ])
  * override that keeps an emulated mode is honoured; one that adds border to a
  * sampler the container did not author with it is not gated here.
  *
- * @param {object} program Frozen CJS shader IR.
+ * @param {object} program CJS shader IR.
  * @param {object[]} semanticBindings The stage's effect-description bindings.
  * @returns {object} The program, or a copy with emulated addressing.
  */

@@ -460,7 +460,7 @@ export function decompressOodle1(bytes, expandedSize, { first16, first8 })
 }
 
 /**
- * Frozen convenience namespace for Granny Oodle1 section decompression.
+ * Convenience namespace for Granny Oodle1 section decompression.
  *
  * The same constants and functions are also exported directly from oodle1.js.
  */

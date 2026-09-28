@@ -183,9 +183,6 @@ export class CjsWavFormat extends CjsFormat
         }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsWavFormat";
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({

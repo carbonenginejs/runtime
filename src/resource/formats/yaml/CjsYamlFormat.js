@@ -140,9 +140,6 @@ export class CjsYamlFormat extends CjsFormat
         return toJsonGraph(value, normalizeValues(DEFAULT_VALUES, options, FORMAT_NAME));
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsYamlFormat";
     static extensions = [ ".yaml", ".yml" ];
     static mediaTypes = [ "data" ];

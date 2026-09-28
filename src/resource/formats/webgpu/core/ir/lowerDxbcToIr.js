@@ -517,7 +517,7 @@ function validateProgram(program)
  *
  * @param {Uint8Array|ArrayBuffer|ArrayBufferView|object} input DXBC bytes or decoded result.
  * @param {object} [options] IR provenance options.
- * @returns {object} Frozen, validated shader IR program.
+ * @returns {object} Validated shader IR program.
  */
 export function lowerDxbcToIr(input, options = {})
 {

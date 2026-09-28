@@ -65,7 +65,7 @@ function fingerprint(binding)
  * @param {object|null} [options.effectProfileProof] Opaque exact-effect proof.
  * @param {Object<string, string>} [options.typedViews] D3D identity to
  * bound view format for typed buffers (`typedViewsFor`).
- * @returns {object} Frozen pass-global binding plan.
+ * @returns {object} Pass-global binding plan.
  */
 export function buildWgslBindingPlan(programs, options = {})
 {

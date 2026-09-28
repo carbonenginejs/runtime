@@ -308,9 +308,6 @@ export class CjsBlackFormat extends CjsFormat
         );
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static classKeys = CLASS_KEYS;
     static id = "CjsBlackFormat";
     static extensions = [CJS_BLACK_EXTENSION];

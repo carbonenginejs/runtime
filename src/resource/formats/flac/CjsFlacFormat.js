@@ -101,9 +101,6 @@ export class CjsFlacFormat extends CjsFormat
         catch { return false; }
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static id = "CjsFlacFormat";
     static mediaTypes = [ "audio" ];
     static outputs = CjsFormat.defineOutputs({

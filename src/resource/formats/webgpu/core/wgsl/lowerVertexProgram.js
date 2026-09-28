@@ -1166,8 +1166,8 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
  * Lowers the bounded straight-line vertex slice into typed SSA expressions,
  * interface assignments, and canonical uniform-buffer bindings.
  *
- * @param {object} program Frozen CJS shader IR.
- * @returns {object} Frozen typed vertex program.
+ * @param {object} program CJS shader IR.
+ * @returns {object} Typed vertex program.
  */
 export function lowerVertexProgram(program, options = {})
 {

@@ -446,9 +446,6 @@ export class CjsCmfFormat extends CjsGeometryFormat
         return writeCmfAsync({ ...packed.graph, buffers: packed.buffers }, options);
     }
 
-    /**
-     * Emit targets for this format (canonical frozen enum).
-     */
     static classKeys = CLASS_KEYS;
     static id = "CjsCmfFormat";
     // The writer's own graph is the default: `write` takes a CMF-native graph,
