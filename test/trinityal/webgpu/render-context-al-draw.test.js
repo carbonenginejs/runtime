@@ -317,6 +317,54 @@ test("a hit restores the dummy vertex stream slot its pipeline was built with", 
   assert.equal(al.m_pipelineFailure, null);
 });
 
+test("a hit binds the streams of the pipeline it found, not of the last miss", () =>
+{
+  // The operator's patterned hull (54daec1f): one program drawn from a mesh
+  // with its UVs interleaved on stream 0 and one with them on stream 1. A hit
+  // kept the last miss's buffer layouts, so the stream-1 pipeline drew with
+  // slot 1 unset and WebGPU invalidated the command buffer.
+  const { al, pipelines } = composed();
+  const signature = {
+    registers: [],
+    pipelineInputs: [
+      { usage: 0, usageIndex: 0, registerIndex: 0, type: 0 },
+      { usage: 5, usageIndex: 0, registerIndex: 1, type: 0 }
+    ],
+    backendBlock: null
+  };
+  const program = al.CreateShaderProgram([
+    al.CreateShader(ShaderType.VERTEX_SHADER, VERTEX_WGSL, signature, "v.wgsl"),
+    al.CreateShader(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signature, "f.wgsl")
+  ]);
+  const interleaved = al.CreateVertexLayout([
+    { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 },
+    { usage: 5, usageIndex: 0, type: "Float32", elementCount: 2, offset: 12, stream: 0 }
+  ]);
+  const split = al.CreateVertexLayout([
+    { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 },
+    { usage: 5, usageIndex: 0, type: "Float32", elementCount: 2, offset: 0, stream: 1 }
+  ]);
+  const drawWith = (layout) =>
+  {
+    al.SetVertexLayout(layout);
+    assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+    return al.GetPsoDescription().vertexBufferLayouts.filter(Boolean).length;
+  };
+
+  al.SetTopology(Topology.TOP_TRIANGLES);
+  al.SetStreamSource(0, deviceBuffer("vb0"), 0, 20);
+  al.SetStreamSource(1, deviceBuffer("vb1"), 0, 8);
+  al.SetIndices(deviceBuffer("ib"), 2);
+  al.SetShaderProgram(program);
+  al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
+
+  assert.equal(drawWith(interleaved), 1, "miss: one stream");
+  assert.equal(drawWith(split), 2, "miss: two streams");
+  assert.equal(drawWith(interleaved), 1, "hit: the interleaved pipeline's one stream");
+  assert.equal(drawWith(split), 2, "hit: the split pipeline's two streams, slot 1 included");
+  assert.equal(pipelines.length, 2);
+});
+
 test("a non-indexed draw binds no index buffer and draws vertices", () =>
 {
   const { al, log } = composed();

@@ -1443,7 +1443,8 @@ export class CjsWebgpuRenderContextAL
 
   /**
    * Resolved pipelines by description hash: each bucket holds the entries whose
-   * blocks hashed alike, `{ block, pipeline, dummyVertexStream }`, and a hit
+   * blocks hashed alike, `{ block, pipeline, vertexBufferLayouts,
+   * dummyVertexStream }`, and a hit
    * compares the block (`CjsWebgpuPsoDescription.BlockEquals`).
    *
    * Carbon keeps this on the DEVICE (`m_ownerDevice->m_pipelineStates`,
@@ -1559,9 +1560,16 @@ export class CjsWebgpuRenderContextAL
         return this._RefusePipeline(`a projectable state: ${error.message}`);
       }
 
-      // The dummy vertex stream slot comes out of the layout build; a hit
-      // restores it from the entry instead.
-      entry = { block: description.CopyBlock(), pipeline: this._CreateRenderPipeline(program, recipe), dummyVertexStream: this._dummyVertexStream };
+      // The buffer layouts and the dummy vertex stream slot come out of the
+      // layout build, and EmitRenderEncoderState binds streams by them; a hit
+      // restores both from the entry, or the draw binds the streams of
+      // whichever pipeline missed last.
+      entry = {
+        block: description.CopyBlock(),
+        pipeline: this._CreateRenderPipeline(program, recipe),
+        vertexBufferLayouts,
+        dummyVertexStream: this._dummyVertexStream
+      };
 
       if (!bucket)
       {
@@ -1573,6 +1581,7 @@ export class CjsWebgpuRenderContextAL
     }
     else
     {
+      description.vertexBufferLayouts = entry.vertexBufferLayouts;
       this._dummyVertexStream = entry.dummyVertexStream;
     }
 
