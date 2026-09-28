@@ -52,7 +52,7 @@ export class IRootWriter
       {
         this.WriteIRoot(value, DeclaredClassName(field.type));
       }
-      else if ((LIST_KINDS.has(kind) || value?.some?.(IsObject)) && Array.isArray(value))
+      else if (Array.isArray(value) && (LIST_KINDS.has(kind) || value.some(IsObject)))
       {
         this.WriteList(value, DeclaredClassName(field.type));
       }

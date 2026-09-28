@@ -291,11 +291,11 @@ export class CjsResource
     // A successful load clears the budget, so the cap bounds consecutive
     // failures rather than how many times a resource may ever be purged.
     if (state === CjsResource.State.PREPARED) this._reloadAttempts = 0;
-    this.EmitEvent?.(state, this, ...details);
-    this.EmitEvent?.("statechange", this, state, previous);
+    this.EmitEvent(state, this, ...details);
+    this.EmitEvent("statechange", this, state, previous);
     // Fires again after a purge and reload, so subscribers rebuild whatever
     // they derived from the payload that was deleted.
-    if (this.HasCompleted()) this.EmitEvent?.("completed", this, ...details);
+    if (this.HasCompleted()) this.EmitEvent("completed", this, ...details);
     return this;
   }
 
@@ -625,7 +625,7 @@ export class CjsResource
    */
   IsCurrent()
   {
-    return Boolean(this.__lifecycleController?.isCurrent?.());
+    return Boolean(this.__lifecycleController?.isCurrent());
   }
 
   /**
@@ -645,7 +645,7 @@ export class CjsResource
    */
   KeepAlive(options = {})
   {
-    this.__lifecycleController?.keepAlive?.(options);
+    this.__lifecycleController?.keepAlive(options);
     if (this.IsPurged()) this.Reload(options);
     return this;
   }
@@ -746,7 +746,7 @@ export class CjsResource
    */
   KeepPayloadAlive(options = {})
   {
-    this.__lifecycleController?.keepPayloadAlive?.(options);
+    this.__lifecycleController?.keepPayloadAlive(options);
     return this;
   }
 
@@ -758,7 +758,7 @@ export class CjsResource
    */
   Lock()
   {
-    return this.__lifecycleController?.lock?.() || 0;
+    return this.__lifecycleController?.lock() || 0;
   }
 
   /**
@@ -769,7 +769,7 @@ export class CjsResource
    */
   Unlock()
   {
-    return this.__lifecycleController?.unlock?.() || 0;
+    return this.__lifecycleController?.unlock() || 0;
   }
 
   /**

@@ -361,7 +361,7 @@ export class CjsResMan
           }
           const previousMotherLode = this.motherLode;
           this._InvalidateMotherLodeOwnership(previousMotherLode);
-          previousMotherLode?.Shutdown();
+          previousMotherLode.Shutdown();
           this.motherLode = nextMotherLode;
           this.motherLode.Startup();
           this._BindMotherLodeResources();
@@ -651,7 +651,7 @@ export class CjsResMan
   AddToQueue(queue, callback, context = null, flags = 0) {
     const task = this.QueueTask(queue, callback, context, { flags });
     task.promise.catch(error => {
-      this.EmitEvent?.("queueerror", this, task.queue, task.id, error);
+      this.EmitEvent("queueerror", this, task.queue, task.id, error);
     });
     return task.id;
   }
@@ -1414,7 +1414,7 @@ export class CjsResMan
   {
     const resource = this.GetResource(path, options);
     const operationOptions = mergeResourceLoaderOptions(
-      resource.GetObjectRequest?.() || {},
+      resource.GetObjectRequest() || {},
       options
     );
     if (this._reloadCandidates.has(resource))
@@ -1435,9 +1435,9 @@ export class CjsResMan
         : result);
     }
 
-    if (resource.HasPayload?.())
+    if (resource.HasPayload())
     {
-      resource.KeepPayloadAlive?.();
+      resource.KeepPayloadAlive();
       if (this._objectBuilders.has(resource))
       {
         return Promise.resolve().then(() => this._BuildObject(resource));
@@ -1791,7 +1791,7 @@ export class CjsResMan
     const errors = [ cause ];
     try
     {
-      candidate.resource.SetError?.(cause);
+      candidate.resource.SetError(cause);
     }
     catch (error)
     {
@@ -1828,7 +1828,7 @@ export class CjsResMan
     const errors = [];
     try
     {
-      resource.DestroyAdapterResources?.({ destroy: true });
+      resource.DestroyAdapterResources({ destroy: true });
     }
     catch (error)
     {
@@ -1836,7 +1836,7 @@ export class CjsResMan
     }
     try
     {
-      resource.ReleasePayload?.();
+      resource.ReleasePayload();
     }
     catch (error)
     {
@@ -1844,7 +1844,7 @@ export class CjsResMan
     }
     try
     {
-      resource.SetLifecycleController?.(null);
+      resource.SetLifecycleController(null);
     }
     catch (error)
     {
@@ -2456,7 +2456,7 @@ export class CjsResMan
       delete builder.values;
       delete builder.hydrated;
     }
-    resource.SetPayload?.(payload, options);
+    resource.SetPayload(payload, options);
     // The two modes differ in one thing only: what `object` names and what the
     // caller is handed back. RESOURCE publishes the stable handle, so both
     // point at the resource; OBJECT publishes the reader outcome.
@@ -2467,7 +2467,7 @@ export class CjsResMan
     // LOADED means raw source data is in hand and still has to be prepared - a
     // resource in that state is not yet good, and marking it here left IsGood()
     // permanently false for every resource that does not prepare itself.
-    if (!resource.IsPrepared?.()) resource.MarkPrepared();
+    if (!resource.IsPrepared()) resource.MarkPrepared();
     return published;
   }
 
@@ -2607,10 +2607,8 @@ export class CjsResMan
 
     const normalizedPath = normalizeResourcePath(path);
     const prefix = `${normalizedPath}\u0000`;
-    const entries = typeof this.motherLode?.Entries === "function"
-      ? [ ...this.motherLode.Entries() ].filter(([ key ]) =>
-        key === normalizedPath || key.startsWith(prefix))
-      : [];
+    const entries = [ ...this.motherLode.Entries() ].filter(([ key ]) =>
+      key === normalizedPath || key.startsWith(prefix));
     try
     {
       return this.motherLode.DeleteAllVariants(normalizedPath);
@@ -2640,10 +2638,6 @@ export class CjsResMan
    */
   PurgeInactive(options = {})
   {
-    if (typeof this.motherLode?.PurgeInactive !== "function")
-    {
-      throw new TypeError("CjsResMan MotherLode does not support PurgeInactive().");
-    }
     return this.motherLode.PurgeInactive(options);
   }
 
@@ -3270,7 +3264,7 @@ export class CjsResMan
         && this._resourceOwnership.get(ownership.resource) === ownership
         && !this._invalidResourceOwnership.has(ownership.resource)
         && ownership.owner.Lookup(ownership.key) === ownership.resource
-        && !ownership.resource.IsPurged?.());
+        && !ownership.resource.IsPurged());
     }
     catch
     {
@@ -3380,7 +3374,6 @@ export class CjsResMan
    */
   _InvalidateMotherLodeOwnership(owner)
   {
-    if (typeof owner?.Entries !== "function") return;
     for (const [ , resource ] of owner.Entries())
     {
       const ownership = this._resourceOwnership.get(resource);
@@ -3400,10 +3393,6 @@ export class CjsResMan
   _AcquireResourcePurgeLock(ownership)
   {
     const { owner, key } = ownership;
-    if (typeof owner?.Lock !== "function" || typeof owner?.Unlock !== "function")
-    {
-      return noop;
-    }
 
     this._AssertResourceOwnership(ownership, "lock:acquire");
     owner.Lock(key);
@@ -3448,14 +3437,14 @@ export class CjsResMan
    */
   _ReloadPurgedResource(key, resource)
   {
-    if (!resource?.IsPurged?.()) return false;
+    if (!resource.IsPurged()) return false;
 
     try
     {
       const current = this.motherLode.Lookup(key);
       if (current && current !== resource) return false;
 
-      const request = resource.GetObjectRequest?.() || {};
+      const request = resource.GetObjectRequest() || {};
       const path = normalizeResourcePath(resource.GetPath());
       if (getMotherLodeKey(path, this.GetResourceVariant(request)) !== key) return false;
 
@@ -3550,7 +3539,6 @@ export class CjsResMan
    */
   _BindMotherLodeResources()
   {
-    if (typeof this.motherLode?.Entries !== "function") return this;
     for (const [ key, resource ] of this.motherLode.Entries())
     {
       this._BindResourceLifecycle(key, resource);
@@ -4619,7 +4607,7 @@ function getResourceDiagnosticPath(resource)
 {
   try
   {
-    return String(resource?.GetPath?.() || resource?.path || "<unknown>");
+    return String(resource?.GetPath() || "<unknown>");
   }
   catch
   {
