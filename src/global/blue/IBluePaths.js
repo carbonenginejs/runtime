@@ -69,11 +69,11 @@ for (const method of [
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-for (const method of [
-  "SetSearchPath", "GetSearchPath", "ResolvePath", "ResolvePathForWriting", "ResolvePathToRoot", "GetStreamFromPath"
-])
-{
-  CjsSchema.decorateMethod(IBluePaths, method, carbon.renamed(`${method}W`));
-}
+CjsSchema.decorateMethod(IBluePaths, "SetSearchPath", carbon.renamed("SetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "GetSearchPath", carbon.renamed("GetSearchPathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePath", carbon.renamed("ResolvePathW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathForWriting", carbon.renamed("ResolvePathForWritingW"));
+CjsSchema.decorateMethod(IBluePaths, "ResolvePathToRoot", carbon.renamed("ResolvePathToRootW"));
+CjsSchema.decorateMethod(IBluePaths, "GetStreamFromPath", carbon.renamed("GetStreamFromPathW"));
 
 CjsSchema.define(IBluePaths, { className: "IBluePaths", carbon: "IBluePaths", family: "blue", fields: {} });

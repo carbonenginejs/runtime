@@ -17,7 +17,15 @@
 // JS method resolution credits the full chain: own methods, base classes,
 // and contract mixins - `withITr2ControllerAction(CjsModel)` credits both
 // CjsModel's chain AND ITr2ControllerAction's declared methods, because the
-// mixin installs the contract's bodies. @carbon.renamed("X") counts as X.
+// mixin installs the contract's bodies. @carbon.renamed("X") counts as X, and
+// so does carbon.renamed("X") given at define time - in a
+// `CjsSchema.define(Class, { methods: { Name: [ ... ] } })` map or a
+// `CjsSchema.decorateMethod(Class, "Name", ...)` call - which is the only form
+// src/global/blue may use (no decorator syntax there). Both forms are read from
+// the AST: src cannot be imported under Node (decorator syntax), so the
+// runtime metadata is reachable only through a build of npm/dist, which
+// would tie this lint to the freshness of that build. Only string literals
+// are read; a computed name or original is not credited.
 
 import fs from "node:fs/promises";
 import path from "node:path";
@@ -214,6 +222,7 @@ async function ReadJavaScriptClasses(directory)
       continue;
     }
 
+    const defineRenamed = DefineTimeRenamed(ast.program.body);
     for (const statement of ast.program.body)
     {
       const declaration = statement.type === "ExportNamedDeclaration" ? statement.declaration : statement;
@@ -276,12 +285,73 @@ async function ReadJavaScriptClasses(directory)
       // The mixin tower this used to read is gone: additional bases now arrive
       // through `@carbon.inherit(A, B)`, which states the same Carbon fact.
       contracts.push(...InheritedBases(declaration));
+      for (const original of defineRenamed.get(className) ?? []) methods.add(original);
       const record = { className, baseClass, contracts, methods, file: relativeFile };
       const existing = records.get(className);
       if (!existing || existing.file.includes("/generated/")) records.set(className, record);
     }
   }
   return records;
+}
+
+/**
+ * Carbon originals from define-time `carbon.renamed("X")`, keyed by the class
+ * binding the call names: `CjsSchema.define(Class, { methods: { Name: [...] } })`
+ * and `CjsSchema.decorateMethod(Class, "Name", ...)` at module top level.
+ */
+function DefineTimeRenamed(body)
+{
+  const byClass = new Map();
+  const add = (className, original) =>
+  {
+    if (!byClass.has(className)) byClass.set(className, new Set());
+    byClass.get(className).add(original);
+  };
+  for (const statement of body)
+  {
+    const call = statement.type === "ExpressionStatement" ? statement.expression : null;
+    if (call?.type !== "CallExpression") continue;
+    const callee = call.callee;
+    if (callee?.type !== "MemberExpression" || callee.object?.name !== "CjsSchema") continue;
+    const target = call.arguments[0];
+    if (target?.type !== "Identifier") continue;
+    if (callee.property?.name === "decorateMethod")
+    {
+      for (const argument of call.arguments.slice(2))
+      {
+        const original = RenamedCallOriginal(argument);
+        if (original) add(target.name, original);
+      }
+    }
+    else if (callee.property?.name === "define")
+    {
+      const definition = call.arguments[1];
+      if (definition?.type !== "ObjectExpression") continue;
+      const methods = definition.properties.find(property => MemberName(property) === "methods");
+      if (methods?.value?.type !== "ObjectExpression") continue;
+      for (const method of methods.value.properties)
+      {
+        if (method.value?.type !== "ArrayExpression") continue;
+        for (const element of method.value.elements)
+        {
+          const original = RenamedCallOriginal(element);
+          if (original) add(target.name, original);
+        }
+      }
+    }
+  }
+  return byClass;
+}
+
+/** The string literal passed to `carbon.renamed(...)`, or null. */
+function RenamedCallOriginal(expression)
+{
+  if (expression?.type !== "CallExpression") return null;
+  const callee = expression.callee;
+  if (callee?.type !== "MemberExpression" || callee.property?.name !== "renamed") return null;
+  if (callee.object?.name !== "carbon") return null;
+  const argument = expression.arguments?.[0];
+  return argument?.type === "StringLiteral" ? argument.value : null;
 }
 
 /** Additional base names declared by `@carbon.inherit(A, B)`. */
@@ -334,13 +404,8 @@ function RenamedOriginal(member)
 {
   for (const decorator of member.decorators ?? [])
   {
-    const expression = decorator.expression;
-    if (expression?.type !== "CallExpression") continue;
-    const callee = expression.callee;
-    if (callee?.type !== "MemberExpression" || callee.property?.name !== "renamed") continue;
-    if (callee.object?.name !== "carbon") continue;
-    const argument = expression.arguments?.[0];
-    if (argument?.type === "StringLiteral") return argument.value;
+    const original = RenamedCallOriginal(decorator.expression);
+    if (original) return original;
   }
   return null;
 }

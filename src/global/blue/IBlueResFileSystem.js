@@ -54,10 +54,8 @@ for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "Get
 }
 
 // Carbon declares only the wide-character forms; a JS string covers both.
-for (const method of [ "GetStreamFromPath", "ResolvePath" ])
-{
-  CjsSchema.decorateMethod(IBlueResFileSystem, method, carbon.renamed(`${method}W`));
-}
+CjsSchema.decorateMethod(IBlueResFileSystem, "GetStreamFromPath", carbon.renamed("GetStreamFromPathW"));
+CjsSchema.decorateMethod(IBlueResFileSystem, "ResolvePath", carbon.renamed("ResolvePathW"));
 
 CjsSchema.define(IBlueResFileSystem, {
   className: "IBlueResFileSystem",
