@@ -65,6 +65,10 @@
         }
         catch (error)
         {
+            // Also to the console: shown only in the panel, a boot failure was
+            // invisible to devtools and to headless checks, and a null-store
+            // TypeError passed for a silent hang.
+            console.error(error);
             result.textContent = `${error.message}\n\n${error.stack ?? ""}`;
             result.className = "fail";
             toggle.className = "fail";
