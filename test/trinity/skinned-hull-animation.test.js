@@ -19,6 +19,8 @@ import path from "node:path";
 import test from "node:test";
 
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
+import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
 import { EveChildContainer, EveChildMesh, EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
@@ -265,4 +267,55 @@ test("a child mesh without an updater uploads the identity rest pose", (t) =>
 
   assert.deepEqual(BoneOffsets(child.GetPerObjectData()).slice(0, 3), [ 0, 0, 1 ]);
   assert.equal(ring.head, 1);
+});
+
+test("the CMF branch animates a hull's CMF projection as the gr2 branch animates the hull", { skip: corpusSkipReason() }, async () =>
+{
+  // Two geometries from the same bytes: one read as a granny file (the gr2
+  // branch, GetFileInfo), one holding only its CMF projection, as a .cmf read
+  // would (the CMF branch, Tr2GrannyAnimation.cpp:577-660). The projection was
+  // shown lossless for gb1 (skeleton, bindings, animations), so the two must
+  // pose alike at every time.
+  const bytes = new Uint8Array(await readFile(path.join(CORPUS_DIR, "gb1_t1.gr2")));
+  await ReadHull("gb1_t1.gr2");
+  const granny = new TriGeometryRes();
+  granny.SetPayload(granny.ReadGrannyFile(bytes));
+  const cmf = new TriGeometryRes();
+  cmf.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true })));
+
+  const viaGr2 = BindToGeometry(granny);
+  const viaCmf = BindToGeometry(cmf);
+  assert.equal(viaGr2.IsUsingCMF(), false);
+  assert.equal(viaCmf.IsUsingCMF(), true);
+  assert.equal(viaCmf.IsInitialized(), true);
+  assert.equal(viaCmf.GetMeshBoneCount(), viaGr2.GetMeshBoneCount());
+  assert.deepEqual(viaCmf.GetAnimationNames(), viaGr2.GetAnimationNames());
+  const count = viaGr2.GetMeshBoneCount();
+
+  // Measured worst over these runs: 2.2e-5 in the rotation/scale columns and
+  // 4.1e-3 units in translation, while Normal2Warp moves bones 131 units. The
+  // CMF curves are the converter's re-knotting of gr2's, so they agree to its
+  // tolerance, not exactly. Sampling one 0.05 s step apart gives 0.65 and 131.
+  const ROTATION_TOLERANCE = 1e-3;
+  const TRANSLATION_TOLERANCE = 0.05;
+  for (const name of [ "NormalLoop", "Normal2Warp", "Warp", "Warp2Normal" ])
+  {
+    viaGr2.PlayAnimation(name, true, 0, 0, 1);
+    viaCmf.PlayAnimation(name, true, 0, 0, 1);
+    for (let step = 1; step <= 200; step++)
+    {
+      viaGr2.Update(0.05);
+      viaCmf.Update(0.05);
+      const expected = viaGr2.GetMeshBoneMatrixList();
+      const actual = viaCmf.GetMeshBoneMatrixList();
+      for (let i = 0; i < count * 12; i++)
+      {
+        const tolerance = i % 4 === 3 ? TRANSLATION_TOLERANCE : ROTATION_TOLERANCE;
+        if (Math.abs(actual[i] - expected[i]) > tolerance)
+        {
+          assert.fail(`${name} at ${(step * 0.05).toFixed(2)} s: palette[${i}] ${actual[i]} vs ${expected[i]}`);
+        }
+      }
+    }
+  }
 });

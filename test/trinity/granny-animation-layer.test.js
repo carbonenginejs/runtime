@@ -16,7 +16,7 @@ const identity4 = [0, 0, 0, 1];
  */
 function geometryOf(grannyFile)
 {
-  return { GetGrannyInfo: () => grannyFile, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
+  return { GetGrannyInfo: () => grannyFile, IsUsingCMF: () => false, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
 }
 
 

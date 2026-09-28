@@ -8,6 +8,7 @@ import { CjsGeometryFormat } from "../../format/CjsGeometryFormat.js";
  * data by default.
  */
 
+import { decodeAnimationCurve, sampleAnimationCurve, sampleQuaternionCurve } from "./core/animation.js";
 import { packGraphBuffers } from "./core/pack.js";
 import { buildCmfFromShared } from "./core/shared.js";
 import { writeCmf, writeCmfAsync } from "./core/writer.js";
@@ -309,6 +310,46 @@ export class CjsCmfFormat extends CjsGeometryFormat
     static loadShared(input, options = {})
     {
         return loadSharedWithValues(input, normalizeValues(DEFAULT_VALUES, options));
+    }
+
+    /**
+     * Decodes an animation curve's tagged byte arrays to Float32 knots and
+     * values, once, for sampleAnimationCurve and sampleQuaternionCurve.
+     *
+     * @param {object} curve A CMF AnimationCurve.
+     * @returns {{ dimension: number, interpolation: string, knots: Float32Array, values: Float32Array }}
+     */
+    static decodeAnimationCurve(curve)
+    {
+        return decodeAnimationCurve(curve);
+    }
+
+    /**
+     * Samples a decoded curve as Carbon's cmf SampleCurve does: Step or Linear
+     * (mesh/src/cmf/animation.cpp:140-158).
+     *
+     * @param {ArrayLike<number>} out Receives the value's components.
+     * @param {object} curve A decoded curve.
+     * @param {number} time The sample time.
+     * @returns {ArrayLike<number>} out.
+     */
+    static sampleAnimationCurve(out, curve, time)
+    {
+        return sampleAnimationCurve(out, curve, time);
+    }
+
+    /**
+     * Samples a decoded rotation curve as Carbon's cmf SampleQuaternionCurve
+     * does: Linear interpolates with Carbon's Slerp (animation.cpp:203-226).
+     *
+     * @param {ArrayLike<number>} out Receives x, y, z, w.
+     * @param {object} curve A decoded 4-component curve.
+     * @param {number} time The sample time.
+     * @returns {ArrayLike<number>} out.
+     */
+    static sampleQuaternionCurve(out, curve, time)
+    {
+        return sampleQuaternionCurve(out, curve, time);
     }
 
     /**

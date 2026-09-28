@@ -11,6 +11,8 @@ import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { CjsGrannyCurves } from "../../curves/track/CjsGrannyCurves.js";
+import { CjsCmfFormat } from "#resource/formats/cmf";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { GrannyBoneOffset } from "./GrannyBoneOffset.js";
 import { Tr2GrannyAnimationLayer } from "./Tr2GrannyAnimationLayer.js";
 
@@ -66,6 +68,41 @@ export function getBoneList(animationUpdater)
 }
 
 
+/** Carbon MAX_JOINT_COUNT (Tr2GrannyAnimation.cpp:66): the most mesh bones a palette holds. */
+const MAX_JOINT_COUNT = 254;
+
+/** CMF bone channel target types, by the runtime bone slot each one writes. */
+const CMF_CHANNEL_SLOTS = Object.freeze({
+  BonePosition: "position",
+  BoneRotation: "orientation",
+  BoneScale: "scaleShear"
+});
+
+/** Scratch for a sampled CMF scale, written into a scaleShear diagonal. */
+const cmfScale = vec3.create();
+
+/**
+ * Samples one CMF channel of a bone into its runtime slot: position and
+ * orientation directly, scale onto the scaleShear diagonal.
+ */
+function sampleCmfChannel(out, curves, channel, time)
+{
+  if (channel === "position")
+  {
+    CjsCmfFormat.sampleAnimationCurve(out, curves.position, time);
+  }
+  else if (channel === "orientation")
+  {
+    CjsCmfFormat.sampleQuaternionCurve(out, curves.orientation, time);
+  }
+  else
+  {
+    CjsCmfFormat.sampleAnimationCurve(cmfScale, curves.scaleShear, time);
+    mat3.set(out, cmfScale[0], 0, 0, 0, cmfScale[1], 0, 0, 0, cmfScale[2]);
+  }
+}
+
+
 /** Tr2GrannyAnimation (trinityCore) - promoted from generated; shapeHash 056bad2a. */
 @type.define({ className: "Tr2GrannyAnimation", family: "trinityCore" })
 export class Tr2GrannyAnimation extends CjsModel
@@ -114,7 +151,7 @@ export class Tr2GrannyAnimation extends CjsModel
   _geometryCompleted = (_event, resource) =>
   {
     if (resource !== this.grannyRes) return;
-    if (this._runtimeModel && this._runtimeModel.source === this.GetFileInfo()) return;
+    if (this._runtimeModel && this._runtimeModel.source === this._GetAnimationSource()) return;
     this.RebuildCachedData();
   };
 
@@ -338,21 +375,63 @@ export class Tr2GrannyAnimation extends CjsModel
     return this._getSource(this.grannyRes);
   }
 
+  /**
+   * Whether the bound file is CMF.
+   *
+   * Carbon `IsUsingCMF` (cpp:393-403) asks the granny resource, then the
+   * borrowed geometry, each of which knows by the reader that loaded it.
+   * Adapted: a standalone resource here is a decoded gr2 payload
+   * (CjsGrannyCurves), so only borrowed geometry can be CMF until a .cmf
+   * animation-file route exists.
+   *
+   * @returns {boolean} True when animating a CMF file.
+   */
+  @carbon.method
+  @impl.adapted
+  IsUsingCMF()
+  {
+    return this._sharedGeometry ? this.grannyRes.IsUsingCMF() : false;
+  }
+
+  /**
+   * The CMF data this updater animates, or null (Carbon `GetCMFData`,
+   * cpp:405-429; adapted as IsUsingCMF is).
+   *
+   * @returns {object|null} The CMF payload.
+   */
+  @carbon.method
+  @impl.adapted
+  GetCMFData()
+  {
+    return this._sharedGeometry ? this.grannyRes.GetCMFData() : null;
+  }
+
+  /** The file whose animations this updater plays: the CMF data or the granny file. */
+  _GetAnimationSource()
+  {
+    return this.IsUsingCMF() ? this.GetCMFData() : this.GetFileInfo();
+  }
+
   /** Rebuilds browser bone state directly from format-gr2's stable payload. */
   @impl.adapted
   RebuildCachedData()
   {
-    const source = this.GetFileInfo();
-    const models = this._getArray(source, "models", "Models");
-    const model = models.find(item => getName(item) === this.model_) ?? models[0] ?? null;
-    const skeleton = model?.skeleton ?? model?.Skeleton ?? null;
-    const sourceBones = this._getArray(skeleton, "bones", "Bones");
     this._runtimeModel = null;
     this._meshBoneIndices.length = 0;
     this._curveCache = new WeakMap();
     this._morphCurveCache = new WeakMap();
     this._morphAnimations.clear();
     this.boneOffset.ClearRigBindings();
+    if (this.IsUsingCMF())
+    {
+      return this._RebuildFromCMF();
+    }
+
+    const source = this.GetFileInfo();
+    const models = this._getArray(source, "models", "Models");
+    const model = models.find(item => getName(item) === this.model_) ?? models[0] ?? null;
+    const skeleton = model?.skeleton ?? model?.Skeleton ?? null;
+    const sourceBones = this._getArray(skeleton, "bones", "Bones");
     if (!model || sourceBones.length === 0)
     {
       this._initialized = false;
@@ -368,6 +447,81 @@ export class Tr2GrannyAnimation extends CjsModel
     // the ONLY unconditional rest pose; Update never resets it again.
     this._resetPose();
     this._initialized = true;
+    this.Update(0);
+    return true;
+  }
+
+  /**
+   * Carbon's CMF setup (Tr2GrannyAnimation.cpp:577-660), into the same runtime
+   * bone model the gr2 branch builds, so posing, layers and the palette are
+   * shared.
+   *
+   * The skeleton is the mesh's (`meshes[0].skeleton`, 0xff for none) with a
+   * mesh binding, else the one named by `model`, else the first. Each bone's
+   * inverse rest transform is the skeleton's STORED invBindTransforms, which
+   * Carbon's palette multiplies by (cpp:1753), not an inverse computed here.
+   * The mesh bone mapping is Carbon's CreateMapping (cpp:48-63): by name,
+   * clamped to MAX_JOINT_COUNT, an unmapped bone -1.
+   *
+   * Verified equal to the gr2 branch on a gr2 hull's CMF projection
+   * (skinned-hull-animation.test.js). No natively authored animated .cmf has
+   * been checked yet: Serenity ships gr2, including its animated skins.
+   *
+   * @returns {boolean} Whether a skeleton was found.
+   */
+  _RebuildFromCMF()
+  {
+    const data = this.GetCMFData();
+    if (!data || !Array.isArray(data.skeletons) || data.skeletons.length === 0)
+    {
+      this._initialized = false;
+      return false;
+    }
+
+    let modelIndex = 0;
+    if (this._useMeshBinding)
+    {
+      modelIndex = data.meshes.length > 0 && data.meshes[0].skeleton !== 0xff ? data.meshes[0].skeleton : -1;
+    }
+    else if (this.model_)
+    {
+      modelIndex = data.skeletons.findIndex(skeleton => skeleton.name === this.model_);
+    }
+    if (modelIndex === -1)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Model '%s' not found in '%s'", this.model_, this.resPath_);
+      this._initialized = false;
+      return false;
+    }
+
+    const skeleton = data.skeletons[modelIndex];
+    const bones = Array.from(skeleton.bones, (name, index) =>
+    {
+      const rest = skeleton.restTransforms[index];
+      const parent = skeleton.parents[index];
+      const bone = this._createBone({
+        name,
+        parentIndex: parent === 0xffffffff ? -1 : parent,
+        position: rest.position,
+        orientation: rest.rotation,
+        scaleShear: [ rest.scale[0], 0, 0, 0, rest.scale[1], 0, 0, 0, rest.scale[2] ]
+      }, index);
+      mat4.copy(bone.inverseRestTransform, skeleton.invBindTransforms[index]);
+      return bone;
+    });
+    const boneByName = new Map(bones.map((bone, index) => [ bone.name, index ]));
+    this._runtimeModel = { source: data, model: skeleton, skeleton, bones, boneByName, cmf: true };
+
+    if (this._useMeshBinding)
+    {
+      const bindings = data.meshes[0].boneBindings;
+      const count = Math.min(bindings.length, MAX_JOINT_COUNT);
+      this._meshBoneIndices = Array.from({ length: count }, (_, index) => boneByName.get(bindings[index].name) ?? -1);
+    }
+
+    this._resetPose();
+    this._initialized = true;
+    // cpp:668-672: pump once so there is a valid pose before the next update.
     this.Update(0);
     return true;
   }
@@ -811,7 +965,7 @@ export class Tr2GrannyAnimation extends CjsModel
         names.push(getName(animation));
       }
     };
-    append(this.GetFileInfo());
+    append(this._GetAnimationSource());
     for (const resource of this._secondaryResources.values())
     {
       append(resource);
@@ -1180,7 +1334,7 @@ export class Tr2GrannyAnimation extends CjsModel
       const source = this._getSource(resource);
       return source ? CjsGrannyCurves.getAnimations(source).find(animation => getName(animation) === target) : undefined;
     };
-    let animation = find(this.GetFileInfo());
+    let animation = find(this._GetAnimationSource());
     if (animation)
     {
       return animation;
@@ -1250,7 +1404,7 @@ export class Tr2GrannyAnimation extends CjsModel
       return false;
     }
     const animation = this._findAnimation(name);
-    if (!animation && this.GetFileInfo())
+    if (!animation && this._GetAnimationSource())
     {
       return false;
     }
@@ -1449,6 +1603,11 @@ export class Tr2GrannyAnimation extends CjsModel
         }
       }
     }
+    if (this._runtimeModel.cmf)
+    {
+      this._sampleCmfAnimation(animation, time, layer, additive);
+      return;
+    }
     this._sampleMorphs(animation, time, duration, layer.weight, additive);
     const trackGroups = CjsGrannyCurves.getTrackGroups(animation);
     const modelName = getName(this._runtimeModel.model);
@@ -1469,10 +1628,87 @@ export class Tr2GrannyAnimation extends CjsModel
     }
   }
 
+  /**
+   * Samples a CMF animation's bone channels into the pose.
+   *
+   * Carbon cmf AnimationPlayer (mesh/src/cmf/animation.cpp:551-590, 750-767):
+   * each BonePosition/BoneRotation/BoneScale channel resolves its bone by name,
+   * and only the curves an animation has are written. Blending by layer weight
+   * is the gr2 branch's, shared through _blendSampledBone. Morph channels are
+   * not sampled on this branch.
+   */
+  _sampleCmfAnimation(animation, time, layer, additive)
+  {
+    for (const [ boneIndex, curves ] of this._getCmfChannels(animation))
+    {
+      const bone = this._runtimeModel.bones[boneIndex];
+      if (!layer.allBones && !layer.bones.has(bone.name))
+      {
+        continue;
+      }
+      this._blendSampledBone(
+        bone,
+        channel => !!curves[channel],
+        (out, channel, at) => sampleCmfChannel(out, curves, channel, at),
+        time,
+        layer.weight,
+        additive
+      );
+    }
+  }
+
+  /** Decodes and caches a CMF animation's bone curves, grouped by bone index. */
+  _getCmfChannels(animation)
+  {
+    let channels = this._curveCache.get(animation);
+    if (!channels)
+    {
+      channels = new Map();
+      for (const channel of animation.channels)
+      {
+        const slot = CMF_CHANNEL_SLOTS[channel.targetType];
+        const boneIndex = this._runtimeModel.boneByName.get(channel.target);
+        if (!slot || boneIndex === undefined)
+        {
+          continue;
+        }
+        if (!channels.has(boneIndex)) channels.set(boneIndex, {});
+        channels.get(boneIndex)[slot] = CjsCmfFormat.decodeAnimationCurve(animation.curves[channel.curveIndex]);
+      }
+      this._curveCache.set(animation, channels);
+    }
+    return channels;
+  }
+
   /** Samples and blends one transform track into a runtime bone. */
   _sampleTrack(bone, track, time, duration, weight, additive)
   {
     const curves = this._decodeTrack(track);
+    this._blendSampledBone(
+      bone,
+      channel => !!curves[channel],
+      (out, channel, at) => CjsGrannyCurves.sampleGrannyCurve(out, curves[channel], at, false, duration),
+      time,
+      weight,
+      additive
+    );
+  }
+
+  /**
+   * Blends one bone's sampled channels into its pose, weighted or additively.
+   * Shared by the gr2 tracks and the CMF channels, which differ only in how a
+   * channel is sampled.
+   *
+   * @param {object} bone The runtime bone.
+   * @param {function(string): boolean} has Whether a channel
+   *   ("position", "orientation", "scaleShear") has a curve.
+   * @param {function(*, string, number): void} sample Samples a channel into out.
+   * @param {number} time The local animation time.
+   * @param {number} weight The layer weight.
+   * @param {boolean} additive Whether the layer blends additively.
+   */
+  _blendSampledBone(bone, has, sample, time, weight, additive)
+  {
     // A missing curve leaves its channel as the pose holds it (cmf
     // AnimationPlayer::SampleAtLocalTime writes only the curves it has,
     // mesh/src/cmf/animation.cpp:750-767); the additive delta measures
@@ -1480,18 +1716,18 @@ export class Tr2GrannyAnimation extends CjsModel
     const position = vec3.clone(additive ? bone.restPosition : bone.position);
     const orientation = quat.clone(additive ? bone.restOrientation : bone.orientation);
     const scaleShear = mat3.clone(additive ? bone.restScaleShear : bone.scaleShear);
-    if (curves.position)
+    if (has("position"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(position, curves.position, time, false, duration);
+      sample(position, "position", time);
     }
-    if (curves.orientation)
+    if (has("orientation"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(orientation, curves.orientation, time, false, duration);
+      sample(orientation, "orientation", time);
       quat.normalize(orientation, orientation);
     }
-    if (curves.scaleShear)
+    if (has("scaleShear"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(scaleShear, curves.scaleShear, time, false, duration);
+      sample(scaleShear, "scaleShear", time);
     }
     const amount = Math.max(0, Number(weight) || 0);
     if (!additive)
@@ -1508,18 +1744,18 @@ export class Tr2GrannyAnimation extends CjsModel
     const referencePosition = vec3.clone(bone.restPosition);
     const referenceOrientation = quat.clone(bone.restOrientation);
     const referenceScaleShear = mat3.clone(bone.restScaleShear);
-    if (curves.position)
+    if (has("position"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(referencePosition, curves.position, 0, false, duration);
+      sample(referencePosition, "position", 0);
     }
-    if (curves.orientation)
+    if (has("orientation"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(referenceOrientation, curves.orientation, 0, false, duration);
+      sample(referenceOrientation, "orientation", 0);
       quat.normalize(referenceOrientation, referenceOrientation);
     }
-    if (curves.scaleShear)
+    if (has("scaleShear"))
     {
-      CjsGrannyCurves.sampleGrannyCurve(referenceScaleShear, curves.scaleShear, 0, false, duration);
+      sample(referenceScaleShear, "scaleShear", 0);
     }
     vec3.scaleAndAdd(bone.position, bone.position, vec3.subtract(position, position, referencePosition), amount);
     // Additive delta = orientation . reference^-1, applied on the LEFT of the
