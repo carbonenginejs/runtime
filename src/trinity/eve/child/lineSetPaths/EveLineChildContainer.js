@@ -13,13 +13,13 @@ import { IEveLineSetPath } from "./IEveLineSetPath.js";
 export class EveLineChildContainer extends IEveLineSetPath
 {
 
-  #boundingSphere = sph3.create();
+  _boundingSphere = sph3.create();
 
-  #meshSize = 0;
+  _meshSize = 0;
 
-  #parentTransform = mat4.create();
+  _parentTransform = mat4.create();
 
-  #regenerate = false;
+  _regenerate = false;
 
   /** m_isVisible (bool) [READ] */
   @edit.read
@@ -49,7 +49,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   @impl.implemented
   OnModified(_value = null)
   {
-    this.#regenerate = true;
+    this._regenerate = true;
     return true;
   }
 
@@ -58,7 +58,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   @impl.implemented
   OnListModified(_event = 0, _key = 0, _key2 = 0, _value = null, _list = null)
   {
-    this.#regenerate = true;
+    this._regenerate = true;
   }
 
   /** Updates every child and rebuilds points or aggregate bounds when required. */
@@ -72,7 +72,7 @@ export class EveLineChildContainer extends IEveLineSetPath
       updateBounds = line.Update(updateContext, params) || updateBounds;
     }
 
-    if (this.#regenerate)
+    if (this._regenerate)
     {
       this.GeneratePoints();
       this.CalculateBoundingSphere();
@@ -91,23 +91,23 @@ export class EveLineChildContainer extends IEveLineSetPath
   /** Regenerates child points beneath this container's composed world transform. */
   @carbon.method
   @impl.implemented
-  GeneratePoints(parentTransform = EveLineChildContainer.#identity)
+  GeneratePoints(parentTransform = EveLineChildContainer._identity)
   {
-    if (!mat4.exactEquals(parentTransform, EveLineChildContainer.#identity))
+    if (!mat4.exactEquals(parentTransform, EveLineChildContainer._identity))
     {
       this.UpdateTransform(parentTransform);
-      mat4.copy(this.#parentTransform, parentTransform);
+      mat4.copy(this._parentTransform, parentTransform);
     }
     else
     {
-      this.UpdateTransform(this.#parentTransform);
+      this.UpdateTransform(this._parentTransform);
     }
 
     for (const line of this.lines)
     {
       line.GeneratePoints(this.worldTransform);
     }
-    this.#regenerate = false;
+    this._regenerate = false;
   }
 
   /** Returns the sum of every child path's generated-point count. */
@@ -134,11 +134,11 @@ export class EveLineChildContainer extends IEveLineSetPath
     meshSize = Number(meshSize);
     if (meshSize !== 0)
     {
-      this.#meshSize = meshSize;
+      this._meshSize = meshSize;
     }
-    else if (this.#meshSize !== 0)
+    else if (this._meshSize !== 0)
     {
-      meshSize = this.#meshSize;
+      meshSize = this._meshSize;
     }
 
     if (this.lines.length === 0)
@@ -176,7 +176,7 @@ export class EveLineChildContainer extends IEveLineSetPath
       const z = childSphere[2] - centre[2];
       distanceSquared = Math.max(distanceSquared, x * x + y * y + z * z);
     }
-    sph3.set(this.#boundingSphere, centre[0], centre[1], centre[2], Math.sqrt(distanceSquared) + biggestRadius);
+    sph3.set(this._boundingSphere, centre[0], centre[1], centre[2], Math.sqrt(distanceSquared) + biggestRadius);
   }
 
   /** Writes the aggregate sphere after applying this container's local transform. */
@@ -184,7 +184,7 @@ export class EveLineChildContainer extends IEveLineSetPath
   @impl.implemented
   GetBoundingSphere(out = vec4.create())
   {
-    return sph3.transformMat4(out, this.#boundingSphere, this.localTransform);
+    return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }
 
   /** Culls the container before forwarding visibility to every child path. */
@@ -197,7 +197,7 @@ export class EveLineChildContainer extends IEveLineSetPath
       return;
     }
 
-    const sphere = sph3.transformMat4(vec4.create(), this.#boundingSphere, this.worldTransform);
+    const sphere = sph3.transformMat4(vec4.create(), this._boundingSphere, this.worldTransform);
     if (!frustum.IsSphereVisible(sphere))
     {
       this.isVisible = false;
@@ -233,6 +233,6 @@ export class EveLineChildContainer extends IEveLineSetPath
   {
   }
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
 }

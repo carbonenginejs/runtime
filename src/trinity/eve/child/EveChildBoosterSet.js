@@ -201,20 +201,20 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   items = [];
 
   // Carbon m_singleBoosters (SingleBoosterData records).
-  #singleBoosters = [];
+  _singleBoosters = [];
 
   // The exact exhaust-point bounding sphere (positions only; padded in
   // GetBoundingSphere) plus Carbon's uninitialized sentinel as a flag.
-  #boosterBoundingSphere = vec4.create();
+  _boosterBoundingSphere = vec4.create();
 
-  #boosterBoundingSphereInitialized = false;
+  _boosterBoundingSphereInitialized = false;
 
   // The packed Tr2ChildBoosterInstanceData rows (CPU half of cpp:107-117).
-  #instanceData = new Float32Array(0);
+  _instanceData = new Float32Array(0);
 
-  #instanceDataU32 = new Uint32Array(0);
+  _instanceDataU32 = new Uint32Array(0);
 
-  #instanceCount = 0;
+  _instanceCount = 0;
 
   // The AL ring buffer (Carbon's Tr2RingBuffer singleton) and this set's
   // per-consumer cursor (Carbon m_ringBufferOffsets, a Tr2RingBufferOffsets
@@ -222,23 +222,23 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   // real classes the engine installs both; a null pair keeps the frame
   // offset INVALID and the set undrawn, exactly as Carbon's invalid ring
   // offset does.
-  #ringBuffer = null;
+  _ringBuffer = null;
 
-  #ringBufferOffsets = null;
+  _ringBufferOffsets = null;
 
-  #parentTransform = mat4.create();
+  _parentTransform = mat4.create();
 
-  #parentScale = 1;
+  _parentScale = 1;
 
-  #boosterHighLod = false;
+  _boosterHighLod = false;
 
-  #boostersVisible = false;
+  _boostersVisible = false;
 
-  #glowsVisible = false;
+  _glowsVisible = false;
 
-  #isVisible = false;
+  _isVisible = false;
 
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   /** Replays authored items through Add (Carbon SOF calls Add directly). */
   @carbon.method
@@ -246,11 +246,11 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.reason("Carbon persists no items; document-delivered placements replay through Add here.")
   Initialize()
   {
-    if (this.items.length && !this.#singleBoosters.length)
+    if (this.items.length && !this._singleBoosters.length)
     {
       for (const item of this.items)
       {
-        this.#AddSingleBooster(item.transform, item.atlasIndex0, item.atlasIndex1, item.lightScale);
+        this._AddSingleBooster(item.transform, item.atlasIndex0, item.atlasIndex1, item.lightScale);
       }
     }
     return true;
@@ -264,9 +264,9 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (this.glows)
     {
       this.glows.Clear();
-      for (const booster of this.#singleBoosters)
+      for (const booster of this._singleBoosters)
       {
-        CreateBoosterFlares(this.glows, booster.transform, this.#GetFlareParams());
+        CreateBoosterFlares(this.glows, booster.transform, this._GetFlareParams());
       }
       this.glows.Rebuild();
     }
@@ -274,7 +274,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Collects this booster's glow and halo settings for flare creation. */
-  #GetFlareParams()
+  _GetFlareParams()
   {
     return {
       warpGlowColor: this.warpGlowColor,
@@ -302,15 +302,15 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
    */
   SetRingBuffer(ringBuffer, ringBufferOffsets = null)
   {
-    this.#ringBuffer = ringBuffer ?? null;
-    this.#ringBufferOffsets = this.#ringBuffer ? (ringBufferOffsets ?? null) : null;
+    this._ringBuffer = ringBuffer ?? null;
+    this._ringBufferOffsets = this._ringBuffer ? (ringBufferOffsets ?? null) : null;
   }
 
   /** The current ring frame offset, INVALID without an AL backend. */
-  #CurrentFrameOffset()
+  _CurrentFrameOffset()
   {
-    return this.#ringBufferOffsets
-      ? this.#ringBufferOffsets.GetCurrentFrameOffset()
+    return this._ringBufferOffsets
+      ? this._ringBufferOffsets.GetCurrentFrameOffset()
       : INVALID_RING_OFFSET;
   }
 
@@ -318,8 +318,8 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   GetInstanceBufferData()
   {
     return {
-      data: this.#instanceData.subarray(0, this.#instanceCount * CHILD_BOOSTER_INSTANCE_STRIDE),
-      count: this.#instanceCount,
+      data: this._instanceData.subarray(0, this._instanceCount * CHILD_BOOSTER_INSTANCE_STRIDE),
+      count: this._instanceCount,
       stride: CHILD_BOOSTER_INSTANCE_STRIDE
     };
   }
@@ -337,67 +337,67 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   {
     // Carbon cpp:103; the offsets cursor owns its methods - nullability is
     // state, method existence is contract.
-    if (this.#ringBufferOffsets)
+    if (this._ringBufferOffsets)
     {
-      this.#ringBufferOffsets.AdvanceFrame();
+      this._ringBufferOffsets.AdvanceFrame();
     }
 
     if (params?.isVisible)
     {
-      const lanes = this.#singleBoosters.length * CHILD_BOOSTER_INSTANCE_STRIDE;
-      if (this.#instanceData.length < lanes)
+      const lanes = this._singleBoosters.length * CHILD_BOOSTER_INSTANCE_STRIDE;
+      if (this._instanceData.length < lanes)
       {
-        this.#instanceData = new Float32Array(lanes);
-        this.#instanceDataU32 = new Uint32Array(this.#instanceData.buffer);
+        this._instanceData = new Float32Array(lanes);
+        this._instanceDataU32 = new Uint32Array(this._instanceData.buffer);
       }
       let lane = 0;
-      for (const booster of this.#singleBoosters)
+      for (const booster of this._singleBoosters)
       {
         const transform = booster.transform;
         // Float4x3 rows are the transpose's rows: (m0 m4 m8 m12) ...
-        this.#instanceData[lane + 0] = transform[0];
-        this.#instanceData[lane + 1] = transform[4];
-        this.#instanceData[lane + 2] = transform[8];
-        this.#instanceData[lane + 3] = transform[12];
-        this.#instanceData[lane + 4] = transform[1];
-        this.#instanceData[lane + 5] = transform[5];
-        this.#instanceData[lane + 6] = transform[9];
-        this.#instanceData[lane + 7] = transform[13];
-        this.#instanceData[lane + 8] = transform[2];
-        this.#instanceData[lane + 9] = transform[6];
-        this.#instanceData[lane + 10] = transform[10];
-        this.#instanceData[lane + 11] = transform[14];
-        this.#instanceData[lane + 12] = this.thrust;
-        this.#instanceData[lane + 13] = booster.wavePhase;
-        this.#instanceDataU32[lane + 14] = booster.atlasIndex0;
-        this.#instanceDataU32[lane + 15] = booster.atlasIndex1;
+        this._instanceData[lane + 0] = transform[0];
+        this._instanceData[lane + 1] = transform[4];
+        this._instanceData[lane + 2] = transform[8];
+        this._instanceData[lane + 3] = transform[12];
+        this._instanceData[lane + 4] = transform[1];
+        this._instanceData[lane + 5] = transform[5];
+        this._instanceData[lane + 6] = transform[9];
+        this._instanceData[lane + 7] = transform[13];
+        this._instanceData[lane + 8] = transform[2];
+        this._instanceData[lane + 9] = transform[6];
+        this._instanceData[lane + 10] = transform[10];
+        this._instanceData[lane + 11] = transform[14];
+        this._instanceData[lane + 12] = this.thrust;
+        this._instanceData[lane + 13] = booster.wavePhase;
+        this._instanceDataU32[lane + 14] = booster.atlasIndex0;
+        this._instanceDataU32[lane + 15] = booster.atlasIndex1;
         lane += CHILD_BOOSTER_INSTANCE_STRIDE;
       }
-      this.#instanceCount = this.#singleBoosters.length;
+      this._instanceCount = this._singleBoosters.length;
 
-      if (this.#ringBuffer && this.#ringBufferOffsets)
+      if (this._ringBuffer && this._ringBufferOffsets)
       {
         // Carbon cpp:118: offsets.UploadTransforms(ring, data, count) is
         // void; the frame offset is read back from the cursor.
-        this.#ringBufferOffsets.UploadTransforms(
-          this.#ringBuffer, this.GetInstanceBufferData().data, this.#instanceCount);
+        this._ringBufferOffsets.UploadTransforms(
+          this._ringBuffer, this.GetInstanceBufferData().data, this._instanceCount);
       }
     }
 
     const parentTransform = params?.localToWorldTransform;
     if (parentTransform && parentTransform.length === 16)
     {
-      mat4.copy(this.#parentTransform, parentTransform);
+      mat4.copy(this._parentTransform, parentTransform);
     }
 
     // Scale with the highest axis factor - single sqrt of the max squared
     // basis-row length (Carbon cpp:123-128; keep the shape).
-    const scaleXSq = this.#parentTransform[0] ** 2 + this.#parentTransform[1] ** 2 + this.#parentTransform[2] ** 2;
-    const scaleYSq = this.#parentTransform[4] ** 2 + this.#parentTransform[5] ** 2 + this.#parentTransform[6] ** 2;
-    const scaleZSq = this.#parentTransform[8] ** 2 + this.#parentTransform[9] ** 2 + this.#parentTransform[10] ** 2;
-    this.#parentScale = Math.sqrt(Math.max(scaleXSq, scaleYSq, scaleZSq));
+    const scaleXSq = this._parentTransform[0] ** 2 + this._parentTransform[1] ** 2 + this._parentTransform[2] ** 2;
+    const scaleYSq = this._parentTransform[4] ** 2 + this._parentTransform[5] ** 2 + this._parentTransform[6] ** 2;
+    const scaleZSq = this._parentTransform[8] ** 2 + this._parentTransform[9] ** 2 + this._parentTransform[10] ** 2;
+    this._parentScale = Math.sqrt(Math.max(scaleXSq, scaleYSq, scaleZSq));
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
   }
 
   /** Clears every booster, the glows and the bounds (Carbon cpp:142-157). */
@@ -405,12 +405,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.implemented
   Clear()
   {
-    this.#singleBoosters.length = 0;
+    this._singleBoosters.length = 0;
     if (this.glows) this.glows.Clear();
     this.maxSize = 0;
-    this.#boosterBoundingSphereInitialized = false;
-    vec4.set(this.#boosterBoundingSphere, 0, 0, 0, 0);
-    this.#instanceCount = 0;
+    this._boosterBoundingSphereInitialized = false;
+    vec4.set(this._boosterBoundingSphere, 0, 0, 0, 0);
+    this._instanceCount = 0;
   }
 
   /**
@@ -424,14 +424,14 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.implemented
   Add(localMatrix, atlasIndex0, atlasIndex1, lightScale = 1)
   {
-    this.#AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale);
+    this._AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale);
   }
 
   /**
    * Stores one booster transform and its light data, creates flares and extends
    * the bounds.
    */
-  #AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale)
+  _AddSingleBooster(localMatrix, atlasIndex0, atlasIndex1, lightScale)
   {
     const transform = mat4.clone(localMatrix);
     const scale = Math.max(
@@ -447,16 +447,16 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
       atlasIndex1: Number(atlasIndex1) >>> 0,
       wavePhase: Math.random()
     };
-    this.#singleBoosters.push(booster);
+    this._singleBoosters.push(booster);
 
     if (this.glows)
     {
-      CreateBoosterFlares(this.glows, booster.transform, this.#GetFlareParams());
+      CreateBoosterFlares(this.glows, booster.transform, this._GetFlareParams());
     }
 
     // Exact positions only - the exhaust size padding happens in
     // GetBoundingSphere (Carbon's warning comment, cpp:183-186).
-    this.#IncludeBoundingPoint(transform[12], transform[13], transform[14]);
+    this._IncludeBoundingPoint(transform[12], transform[13], transform[14]);
 
     if (scale > this.maxSize)
     {
@@ -465,12 +465,12 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   }
 
   /** Carbon BoundingSphereUpdate: grow the exact sphere to include a point. */
-  #IncludeBoundingPoint(x, y, z)
+  _IncludeBoundingPoint(x, y, z)
   {
-    const sphere = this.#boosterBoundingSphere;
-    if (!this.#boosterBoundingSphereInitialized)
+    const sphere = this._boosterBoundingSphere;
+    if (!this._boosterBoundingSphereInitialized)
     {
-      this.#boosterBoundingSphereInitialized = true;
+      this._boosterBoundingSphereInitialized = true;
       vec4.set(sphere, x, y, z, 0);
       return;
     }
@@ -550,11 +550,11 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.implemented
   UpdateVisibility(updateContext, _parentTransform = null, _parentLod = 0)
   {
-    this.#glowsVisible = false;
-    this.#isVisible = false;
-    this.#boostersVisible = false;
+    this._glowsVisible = false;
+    this._isVisible = false;
+    this._boostersVisible = false;
 
-    if (!this.#hasUpdated) return false;
+    if (!this._hasUpdated) return false;
 
     if (this.display)
     {
@@ -562,21 +562,21 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
       const frustum = typeof updateContext?.GetFrustum === "function"
         ? updateContext.GetFrustum()
         : updateContext?.frustum;
-      if (!frustum) return this.#isVisible;
+      if (!frustum) return this._isVisible;
 
       const boosterLod = 2 * frustum.GetPixelSizeAccross(SPHERE_SCRATCH);
       const mediumThreshold = Number(updateContext.GetMediumDetailThreshold?.() ?? updateContext.mediumDetailThreshold ?? 0);
       const lowThreshold = Number(updateContext.GetLowDetailThreshold?.() ?? updateContext.lowDetailThreshold ?? 0);
-      this.#boosterHighLod = boosterLod > mediumThreshold * 1.5;
-      this.#boostersVisible = boosterLod > lowThreshold;
-      this.#isVisible = !!frustum.IsSphereVisible(SPHERE_SCRATCH);
+      this._boosterHighLod = boosterLod > mediumThreshold * 1.5;
+      this._boostersVisible = boosterLod > lowThreshold;
+      this._isVisible = !!frustum.IsSphereVisible(SPHERE_SCRATCH);
 
-      if (this.glows && this.glows.UpdateVisibility(updateContext, this.#parentTransform, null, 0))
+      if (this.glows && this.glows.UpdateVisibility(updateContext, this._parentTransform, null, 0))
       {
-        this.#glowsVisible = true;
+        this._glowsVisible = true;
       }
     }
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /** Adds this set as a renderable when displayed, lit and visible (Carbon cpp:330-343). */
@@ -585,7 +585,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   GetRenderables(renderables)
   {
     if (!this.display) return renderables;
-    if (this.effect && this.#isVisible)
+    if (this.effect && this._isVisible)
     {
       renderables.push(this);
     }
@@ -601,9 +601,9 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.implemented
   GetBoundingSphere(sphere = vec4.create(), _query = 0)
   {
-    if (!this.#hasUpdated) return false;
-    PadBoosterBoundingSphere(sphere, this.#boosterBoundingSphere, this.#parentTransform);
-    sphere[3] *= this.#parentScale;
+    if (!this._hasUpdated) return false;
+    PadBoosterBoundingSphere(sphere, this._boosterBoundingSphere, this._parentTransform);
+    sphere[3] *= this._parentScale;
     return true;
   }
 
@@ -622,11 +622,11 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.reason("EveSpriteSet.AddBoosterGlowToQuadRenderer is not ported yet and not yet ported; the CPU gating is Carbon's.")
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
-    if (!this.glows || !this.#glowsVisible || !this.display) return;
-    if (this.#boostersVisible || !this.flareLodEnabled)
+    if (!this.glows || !this._glowsVisible || !this.display) return;
+    if (this._boostersVisible || !this.flareLodEnabled)
     {
       this.glows.AddBoosterGlowToQuadRenderer?.(
-        quadRenderer, this.#parentTransform, this.thrust, this.warpIntensity);
+        quadRenderer, this._parentTransform, this.thrust, this.warpIntensity);
     }
     void frustum;
   }
@@ -640,22 +640,22 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   @impl.implemented
   GetLights(lightManager)
   {
-    if (!this.#hasUpdated) return;
+    if (!this._hasUpdated) return;
     if (this.lightRadius <= 0 && this.lightWarpRadius <= 0) return;
     if (this.thrust <= 0) return;
     if (!lightManager) return;
 
     const params = {
-      lightWarpRadius: this.lightWarpRadius * this.#parentScale,
+      lightWarpRadius: this.lightWarpRadius * this._parentScale,
       lightWarpColor: this.lightWarpColor,
-      lightRadius: this.lightRadius * this.#parentScale,
+      lightRadius: this.lightRadius * this._parentScale,
       lightColor: this.lightColor,
       lightFlickerAmplitude: this.lightFlickerAmplitude,
       lightFlickerFrequency: this.lightFlickerFrequency
     };
     const time = Tr2Renderer.GetAnimationTime();
     AddBoosterLights(
-      lightManager, this.#singleBoosters, this.#parentTransform,
+      lightManager, this._singleBoosters, this._parentTransform,
       this.thrust, this.warpIntensity, params, time);
   }
 
@@ -703,14 +703,14 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
     if (!this.display) return;
-    if (this.#CurrentFrameOffset() === INVALID_RING_OFFSET) return;
-    if (!this.#singleBoosters.length) return;
-    if (!this.#boostersVisible) return;
+    if (this._CurrentFrameOffset() === INVALID_RING_OFFSET) return;
+    if (!this._singleBoosters.length) return;
+    if (!this._boostersVisible) return;
 
     const batch = new Tr2RenderBatch();
-    batch.SetMaterial((this.#boosterHighLod || !this.effectFar) ? this.effect : this.effectFar);
+    batch.SetMaterial((this._boosterHighLod || !this.effectFar) ? this.effect : this.effectFar);
     batch.SetPerObjectData(perObjectData);
-    batch.SetDrawIndexedInstanced(3 * 2 * 6, this.#singleBoosters.length, 0, 0, 0);
+    batch.SetDrawIndexedInstanced(3 * 2 * 6, this._singleBoosters.length, 0, 0, 0);
     batch.proceduralVertexBufferName = CHILD_BOOSTER_BOX_BUFFER_NAME;
     batches.Commit(batch);
   }
@@ -728,9 +728,9 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
     if (typeof accumulator?.Alloc !== "function") return null;
     const vs = accumulator.Alloc("EveChildBoosterSetVSData");
     const ps = accumulator.Alloc("EveChildBoosterSetPSData");
-    vs.SetAndTranspose("worldMatrix", this.#parentTransform);
+    vs.SetAndTranspose("worldMatrix", this._parentTransform);
     vs.Set("maxBoosterSize", this.maxSize);
-    vs.Set("instanceOffset", this.#CurrentFrameOffset());
+    vs.Set("instanceOffset", this._CurrentFrameOffset());
     ps.Set("warpIntensity", this.warpIntensity);
     return { vs, ps };
   }
@@ -738,7 +738,7 @@ export class EveChildBoosterSet extends EveSpaceObjectChild
   /** The booster records for tests and tooling; live references. */
   GetSingleBoosters()
   {
-    return this.#singleBoosters;
+    return this._singleBoosters;
   }
 
 }

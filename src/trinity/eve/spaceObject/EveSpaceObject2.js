@@ -412,7 +412,7 @@ export class EveSpaceObject2 extends EveEntity
   @type.boolean
   isVisible = false;
 
-  #controllerVariables = new Map([
+  _controllerVariables = new Map([
     ["DirtLevel", 0],
     ["ActivationStrength", 1],
     ["ShieldDamage", 1],
@@ -422,73 +422,73 @@ export class EveSpaceObject2 extends EveEntity
     ["ClipSphereFactor2", 0]
   ]);
 
-  #lastUpdateTransformTime = null;
+  _lastUpdateTransformTime = null;
 
   // Carbon m_lastCurveUpdateTime: stamped by the sync-side LOD gate; the async
   // side updates curve sets only when it matches the frame time.
-  #lastCurveUpdateTime = 0;
+  _lastCurveUpdateTime = 0;
 
   // Carbon m_dynamicBoundingSphere: disabled while w is -1; a future animation
   // updater port publishes skinned bounds here.
-  #dynamicBoundingSphere = sph3.set(sph3.create(), 0, 0, 0, -1);
+  _dynamicBoundingSphere = sph3.set(sph3.create(), 0, 0, 0, -1);
 
   // Carbon keeps the realized world sphere separate from the authored local
   // sphere. UpdateWorldBounds refreshes it from PrepareShaderData, which is
   // Carbon's only refresh point - so a reader sees one value for a whole frame.
-  #boundingSphereWorldRadius = -1;
+  _boundingSphereWorldRadius = -1;
 
   // Carbon visibility and mesh LOD state are runtime-only renderer results.
-  #isInFrustum = false;
+  _isInFrustum = false;
 
-  #isMeshVisible = false;
+  _isMeshVisible = false;
 
-  #lodLevelWithChildren = Tr2Lod.TR2_LOD_UNSPECIFIED;
+  _lodLevelWithChildren = Tr2Lod.TR2_LOD_UNSPECIFIED;
 
-  #meshScreenSize = 0;
+  _meshScreenSize = 0;
 
-  #overlayMeshAreaBlocks = [ [], [] ];
+  _overlayMeshAreaBlocks = [ [], [] ];
 
-  #shadowMeshOpaqueAreas = [];
+  _shadowMeshOpaqueAreas = [];
 
-  #cachedAreaBlocksBuilt = false;
+  _cachedAreaBlocksBuilt = false;
 
-  #mergedLocatorSets = [];
+  _mergedLocatorSets = [];
 
-  #mergedDamageLocatorSources = [];
+  _mergedDamageLocatorSources = [];
 
-  #damageLocatorEnabled = [];
+  _damageLocatorEnabled = [];
 
-  #mergedLocatorSetsDirty = true;
+  _mergedLocatorSetsDirty = true;
 
-  #damageLocatorFilterRequested = false;
+  _damageLocatorFilterRequested = false;
 
-  #damageFilterOccluders = [];
+  _damageFilterOccluders = [];
 
   // Carbon m_damageFilterAreas (EveSpaceObject2.h:829): the shared area pool
   // the occluders' areaStart/areaCount ranges index into.
-  #damageFilterAreas = [];
+  _damageFilterAreas = [];
 
   // 0 idle, 1 pending, 2 active raycast session. Carbon initializes Idle
   // (EveSpaceObject2.cpp:208); SOF's eager RunDamageLocatorFilter was removed
   // upstream (ae5680b3), so filtering runs only when requested or auto-enabled.
-  #damageFilterState = 0;
+  _damageFilterState = 0;
 
   // Carbon m_oldClipSphereFactor/2: the last notified clip factors, so
   // OnModified switches SPACE_OBJECT_CLIPPING only on crossing zero.
-  #oldClipSphereFactor = 0;
-  #oldClipSphereFactor2 = 0;
+  _oldClipSphereFactor = 0;
+  _oldClipSphereFactor2 = 0;
 
   // Carbon m_localAabbMin/Max: cached so GetLocalBoundingBox can answer before
   // LOD selection assigns a mesh (at worst it lags one frame).
-  #localAabbMin = vec3.create();
+  _localAabbMin = vec3.create();
 
-  #localAabbMax = vec3.create();
+  _localAabbMax = vec3.create();
 
   // Carbon m_allowLodSelection: cleared by FreezeHighDetailMesh.
-  #allowLodSelection = true;
+  _allowLodSelection = true;
 
   // Carbon m_impostorMode: the impostor system that raises it is unported.
-  #impostorMode = false;
+  _impostorMode = false;
 
   /** EVE_SPACEOBJECT_CUSTOWMASK_MAX (EveSpaceObject2.h:49) - custom-mask slots. */
   static CUSTOM_MASK_MAX = EveCustomMask.CUSTOM_MASK_COUNT;
@@ -502,11 +502,11 @@ export class EveSpaceObject2 extends EveEntity
   static secondaryLightingRadiusCutoffFactor = 0.3;
 
   /** Scratch for the per-frame shader-data fill; never allocate in it. */
-  static #clipSphereCenterScratch = vec3.create();
+  static _clipSphereCenterScratch = vec3.create();
 
-  static #shapeCenterScratch = vec3.create();
+  static _shapeCenterScratch = vec3.create();
 
-  static #shapeRadiusScratch = vec3.create();
+  static _shapeRadiusScratch = vec3.create();
 
   // Carbon m_vsData / m_psData: the PERSISTENT per-object records. They are
   // owner-held members across frames rather than pool leases, because the
@@ -516,11 +516,11 @@ export class EveSpaceObject2 extends EveEntity
   // engine's business; Invalidate on these records carries the same signal.
   /** The ParentData Carbon builds on the stack for the decal pass
    * (EveSpaceObject2.cpp:1696), held here so the pass does not allocate. */
-  #decalParentData = new IEveSpaceObject2ParentData();
+  _decalParentData = new IEveSpaceObject2ParentData();
 
-  #vsData = RawData.create("EveSpaceObjectVSData");
+  _vsData = RawData.create("EveSpaceObjectVSData");
 
-  #psData = RawData.create("EveSpaceObjectPSData");
+  _psData = RawData.create("EveSpaceObjectPSData");
 
   /** Alias for the mesh property; reads and writes go straight to mesh. */
   @edit.persist
@@ -559,7 +559,7 @@ export class EveSpaceObject2 extends EveEntity
     // SetInheritProperties authoring path.
     if (this.inheritProperties)
     {
-      this.#PropagateInheritProperties();
+      this._PropagateInheritProperties();
     }
 
     for (const child of this.effectChildren) child.SetOwner(this);
@@ -643,11 +643,11 @@ export class EveSpaceObject2 extends EveEntity
       this.inheritProperties = new EveChildInheritProperties();
     }
     this.inheritProperties.SetProperties(colorSet);
-    this.#PropagateInheritProperties();
+    this._PropagateInheritProperties();
   }
 
   /** Pushes the current inherited properties to every effect child and light. */
-  #PropagateInheritProperties()
+  _PropagateInheritProperties()
   {
     const properties = this.inheritProperties.GetProperties();
     for (const child of this.effectChildren)
@@ -706,7 +706,7 @@ export class EveSpaceObject2 extends EveEntity
       if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
-        EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
+        EveSpaceObject2._ApplyControllerVariables(value, this._controllerVariables, "SetVariable");
       }
       else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
       else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -720,7 +720,7 @@ export class EveSpaceObject2 extends EveEntity
       if (masked === BLUELISTEVENT.BELIST_INSERTED)
       {
         value.SetOwner(this);
-        EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+        EveSpaceObject2._ApplyControllerVariables(value, this._controllerVariables, "SetControllerVariable");
         // Carbon casts to EveEntityPtr before registering (cpp:333-341).
         const inserted = registry ? CjsSchema.cast(value, EveEntity) : null;
         if (inserted) inserted.Register(registry);
@@ -743,7 +743,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     else if (list === this.overlayEffects && !loading && masked === BLUELISTEVENT.BELIST_INSERTED)
     {
-      EveSpaceObject2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+      EveSpaceObject2._ApplyControllerVariables(value, this._controllerVariables, "SetControllerVariable");
     }
 
     // Independent of the LOADING guard above: inherited properties reach a
@@ -755,8 +755,8 @@ export class EveSpaceObject2 extends EveEntity
       value.SetInheritProperties(this.inheritProperties.GetProperties());
     }
 
-    if (list === this.lights) this.#OnLightListModified(masked);
-    if (list === this.decals) this.#OnDecalListModified(masked, key, key2);
+    if (list === this.lights) this._OnLightListModified(masked);
+    if (list === this.decals) this._OnDecalListModified(masked, key, key2);
   }
 
   /**
@@ -764,7 +764,7 @@ export class EveSpaceObject2 extends EveEntity
    * first light registers it, the last removal or an unload drops it. The same
    * size rule RegisterComponents applies at registration time.
    */
-  #OnLightListModified(masked)
+  _OnLightListModified(masked)
   {
     const registry = this.GetComponentRegistry();
     if (!registry) return;
@@ -784,7 +784,7 @@ export class EveSpaceObject2 extends EveEntity
    * Carbon's own comment - "in case someone calls the append function of
    * bluelist from python" - and it renumbers the last entry alone.
    */
-  #OnDecalListModified(masked, key, key2)
+  _OnDecalListModified(masked, key, key2)
   {
     const decals = this.decals;
     if (masked === BLUELISTEVENT.BELIST_INSERTED && key === decals.length)
@@ -913,18 +913,18 @@ export class EveSpaceObject2 extends EveEntity
   UpdateWorldTransform(time)
   {
     const nextTime = Number(time) || 0;
-    if (this.#lastUpdateTransformTime === nextTime)
+    if (this._lastUpdateTransformTime === nextTime)
     {
       return false;
     }
-    this.#lastUpdateTransformTime = nextTime;
+    this._lastUpdateTransformTime = nextTime;
     mat4.copy(this.lastWorldTransform, this.worldTransform);
     // Carbon cpp:2675-2676: the OUTGOING transform becomes worldTransformLast,
     // stored transposed in both records, before the new one is built.
-    this.#vsData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
-    this.#psData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
+    this._vsData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
+    this._psData.SetAndTranspose("worldTransformLast", this.lastWorldTransform);
 
-    EveSpaceObject2.#UpdateCurve(this.translationCurve, nextTime, this.worldPosition, EveSpaceObject2.#zero);
+    EveSpaceObject2._UpdateCurve(this.translationCurve, nextTime, this.worldPosition, EveSpaceObject2._zero);
     if (this.translationCurve?.GetValueDotAt)
     {
       this.translationCurve.GetValueDotAt(nextTime, this.worldVelocity);
@@ -934,12 +934,12 @@ export class EveSpaceObject2 extends EveEntity
       vec3.set(this.worldVelocity, 0, 0, 0);
     }
 
-    EveSpaceObject2.#UpdateCurve(this.rotationCurve, nextTime, this.worldRotation, EveSpaceObject2.#identityRotation);
+    EveSpaceObject2._UpdateCurve(this.rotationCurve, nextTime, this.worldRotation, EveSpaceObject2._identityRotation);
     const rotation = quat.clone(this.worldRotation);
     if (this.modelRotationCurve)
     {
       const modelRotation = quat.create();
-      EveSpaceObject2.#UpdateCurve(this.modelRotationCurve, nextTime, modelRotation, EveSpaceObject2.#identityRotation);
+      EveSpaceObject2._UpdateCurve(this.modelRotationCurve, nextTime, modelRotation, EveSpaceObject2._identityRotation);
       // Carbon (row-vector): rotation = modelRotation * m_worldRotation - model first.
       quat.multiply(rotation, rotation, modelRotation);
     }
@@ -958,7 +958,7 @@ export class EveSpaceObject2 extends EveEntity
     if (this.modelTranslationCurve)
     {
       const modelTranslation = vec3.create();
-      EveSpaceObject2.#UpdateCurve(this.modelTranslationCurve, nextTime, modelTranslation, EveSpaceObject2.#zero);
+      EveSpaceObject2._UpdateCurve(this.modelTranslationCurve, nextTime, modelTranslation, EveSpaceObject2._zero);
       vec3.transformMat4(modelTranslation, modelTranslation, this.worldTransform);
       this.worldTransform[12] = this.worldPosition[0] + modelTranslation[0];
       this.worldTransform[13] = this.worldPosition[1] + modelTranslation[1];
@@ -990,11 +990,11 @@ export class EveSpaceObject2 extends EveEntity
     if (this.dynamicBoundingSphereEnabled && updater && updater.IsInitialized())
     {
       updater.GetDynamicBounds(
-        this.#dynamicBoundingSphere, this.#localAabbMin, this.#localAabbMax);
-      if (this.#dynamicBoundingSphere[3] > 0)
+        this._dynamicBoundingSphere, this._localAabbMin, this._localAabbMax);
+      if (this._dynamicBoundingSphere[3] > 0)
       {
-        vec3.transformMat4(this.modelWorldPosition, this.#dynamicBoundingSphere, this.worldTransform);
-        this.#boundingSphereWorldRadius = this.modelScale * this.#dynamicBoundingSphere[3];
+        vec3.transformMat4(this.modelWorldPosition, this._dynamicBoundingSphere, this.worldTransform);
+        this._boundingSphereWorldRadius = this.modelScale * this._dynamicBoundingSphere[3];
 
         return;
       }
@@ -1002,7 +1002,7 @@ export class EveSpaceObject2 extends EveEntity
     if (this.boundingSphereRadius > 0)
     {
       vec3.transformMat4(this.modelWorldPosition, this.boundingSphereCenter, this.worldTransform);
-      this.#boundingSphereWorldRadius = this.modelScale * this.boundingSphereRadius;
+      this._boundingSphereWorldRadius = this.modelScale * this.boundingSphereRadius;
     }
   }
 
@@ -1033,18 +1033,18 @@ export class EveSpaceObject2 extends EveEntity
     const dissolveRadius = this.clipSphereFactor * normalizedBoundingRadius * (1 + insideSpherePercentage);
 
     const center = this.GetBoundingSphereCenter();
-    const clipSphereCenter = EveSpaceObject2.#clipSphereCenterScratch;
+    const clipSphereCenter = EveSpaceObject2._clipSphereCenterScratch;
     vec3.add(clipSphereCenter, this.clipSphereCenter, center);
     const clipRadiusSq = Math.sign(dissolveRadius) * dissolveRadius * dissolveRadius;
 
-    this.#psData.Set("clipSphereCenter", clipSphereCenter);
-    this.#psData.Set("clipRadiusSq", [clipRadiusSq]);
-    this.#vsData.Set("clipData", [clipSphereCenter[0], clipSphereCenter[1], clipSphereCenter[2], clipRadiusSq]);
+    this._psData.Set("clipSphereCenter", clipSphereCenter);
+    this._psData.Set("clipRadiusSq", [clipRadiusSq]);
+    this._vsData.Set("clipData", [clipSphereCenter[0], clipSphereCenter[1], clipSphereCenter[2], clipRadiusSq]);
 
     const dissolveRadius2 = this.clipSphereFactor2 * normalizedBoundingRadius * (1 + insideSpherePercentage);
-    this.#psData.Set("clipRadius2Sq", [Math.sign(dissolveRadius2) * dissolveRadius2 * dissolveRadius2]);
-    this.#psData.Set("clipSphereFactor", [this.clipSphereFactor]);
-    this.#psData.Set("clipSphereFactor2", [this.clipSphereFactor2]);
+    this._psData.Set("clipRadius2Sq", [Math.sign(dissolveRadius2) * dissolveRadius2 * dissolveRadius2]);
+    this._psData.Set("clipSphereFactor", [this.clipSphereFactor]);
+    this._psData.Set("clipSphereFactor2", [this.clipSphereFactor2]);
   }
 
   /**
@@ -1060,18 +1060,18 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   UpdateShLighting(manager, updateContext = null)
   {
-    const coefficients = this.#psData.Get("shLightingCoefficients");
+    const coefficients = this._psData.Get("shLightingCoefficients");
 
     coefficients.fill(0);
 
-    const lowThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+    const lowThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
 
     if (!(this.estimatedPixelDiameterWithChildren > lowThreshold) || typeof manager?.GetLighting !== "function")
     {
       return false;
     }
 
-    const mediumThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
+    const mediumThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
     const intensityFadeRadius = (mediumThreshold - lowThreshold) * 0.25;
     const intensity = Math.min(Math.max((this.estimatedPixelDiameterWithChildren - lowThreshold) / intensityFadeRadius, 0), 1);
 
@@ -1093,7 +1093,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   ClearShLighting()
   {
-    this.#psData.Get("shLightingCoefficients").fill(0);
+    this._psData.Get("shLightingCoefficients").fill(0);
 
     return true;
   }
@@ -1113,13 +1113,13 @@ export class EveSpaceObject2 extends EveEntity
     // Carbon memsets the record and never assigns killCount on this path.
     out.killCount = 0;
     vec4.copy(out.shipData, this.spaceObjectShipData);
-    vec3.copy(out.clipSphereCenter, this.#psData.Get("clipSphereCenter"));
-    out.clipRadiusSq = this.#psData.Get("clipRadiusSq")[0];
-    out.clipRadius2Sq = this.#psData.Get("clipRadius2Sq")[0];
-    out.clipFactor = this.#psData.Get("clipSphereFactor")[0];
-    out.clipFactor2 = this.#psData.Get("clipSphereFactor2")[0];
-    out.shLighting = this.#psData.Get("shLightingCoefficients");
-    vec4.copy(out.customData, this.#psData.Get("customData"));
+    vec3.copy(out.clipSphereCenter, this._psData.Get("clipSphereCenter"));
+    out.clipRadiusSq = this._psData.Get("clipRadiusSq")[0];
+    out.clipRadius2Sq = this._psData.Get("clipRadius2Sq")[0];
+    out.clipFactor = this._psData.Get("clipSphereFactor")[0];
+    out.clipFactor2 = this._psData.Get("clipSphereFactor2")[0];
+    out.shLighting = this._psData.Get("shLightingCoefficients");
+    vec4.copy(out.customData, this._psData.Get("customData"));
 
     return out;
   }
@@ -1134,9 +1134,9 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetPerObjectStructs(vsData = RawData.create("EveSpaceObjectVSData"), psData = RawData.create("EveSpaceObjectPSData"))
   {
-    vsData.CopyFrom(this.#vsData);
-    psData.CopyFrom(this.#psData);
-    vsData.Set("customData", this.#psData.Get("customData"));
+    vsData.CopyFrom(this._vsData);
+    psData.CopyFrom(this._psData);
+    vsData.Set("customData", this._psData.Get("customData"));
     return { vs: vsData, ps: psData };
   }
 
@@ -1148,7 +1148,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveSpaceObject2.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = EveSpaceObject2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
     this.UpdateWorldTransform(time);
     if (!this.update)
     {
@@ -1166,9 +1166,9 @@ export class EveSpaceObject2 extends EveEntity
     // adapted to lodLevel, m_lodLevelWithChildren is unported). Overlay effects
     // receive the context time as BOTH clocks, as Carbon does; the async pass
     // updates curve sets only on frames stamped here.
-    if (EveLODHelper.ShouldUpdate(this.lodLevel, time - this.#lastCurveUpdateTime))
+    if (EveLODHelper.ShouldUpdate(this.lodLevel, time - this._lastCurveUpdateTime))
     {
-      this.#lastCurveUpdateTime = time;
+      this._lastCurveUpdateTime = time;
       for (const overlay of this.overlayEffects)
       {
         overlay?.Update(time, time);
@@ -1208,7 +1208,7 @@ export class EveSpaceObject2 extends EveEntity
       return 0;
     }
 
-    const threshold = EveSpaceObject2.#GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
+    const threshold = EveSpaceObject2._GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
     const frequency = this.isVisible && threshold > 0
       ? Math.min(1, this.estimatedPixelDiameter / threshold)
       : 0;
@@ -1219,8 +1219,8 @@ export class EveSpaceObject2 extends EveEntity
 
     // Carbon cpp:626-663: the persistent buffers are invalidated once per
     // frame, then the shader data is prepared and copied into both records.
-    this.#vsData.Invalidate();
-    this.#psData.Invalidate();
+    this._vsData.Invalidate();
+    this._psData.Invalidate();
 
     const previousActivationStrength = this.spaceObjectShipData[1];
     this.PrepareShaderData(updateContext);
@@ -1229,38 +1229,38 @@ export class EveSpaceObject2 extends EveEntity
       this.SetControllerVariable("ActivationStrength", this.spaceObjectShipData[1]);
     }
 
-    this.#psData.Set("shipData", this.spaceObjectShipData);
-    this.#vsData.Set("shipData", this.spaceObjectShipData);
+    this._psData.Set("shipData", this.spaceObjectShipData);
+    this._vsData.Set("shipData", this.spaceObjectShipData);
     // m_psData.customData is script/SOF-driven; the model field is its author.
-    this.#psData.Set("customData", this.customShaderData);
+    this._psData.Set("customData", this.customShaderData);
     // Both records carry the same two matrices; each is written from the
     // LOGICAL transform, which produces the bytes Carbon's `m_psData.x =
     // m_vsData.x` copy of the already-transposed value produces.
-    this.#vsData.SetAndTranspose("worldTransform", this.worldTransform);
-    this.#vsData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
-    this.#psData.SetAndTranspose("worldTransform", this.worldTransform);
-    this.#psData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
+    this._vsData.SetAndTranspose("worldTransform", this.worldTransform);
+    this._vsData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
+    this._psData.SetAndTranspose("worldTransform", this.worldTransform);
+    this._psData.SetAndTranspose("invWorldTransform", this.inverseWorldTransform);
 
-    const shapeCenter = EveSpaceObject2.#shapeCenterScratch;
-    const shapeRadius = EveSpaceObject2.#shapeRadiusScratch;
+    const shapeCenter = EveSpaceObject2._shapeCenterScratch;
+    const shapeRadius = EveSpaceObject2._shapeRadiusScratch;
     this.GetShapeEllipsoid(shapeCenter, shapeRadius);
-    this.#vsData.Set("ellpsoidRadii", [ shapeRadius[0], shapeRadius[1], shapeRadius[2], 0 ]);
-    this.#vsData.Set("ellpsoidCenter", [ shapeCenter[0], shapeCenter[1], shapeCenter[2], 0 ]);
+    this._vsData.Set("ellpsoidRadii", [ shapeRadius[0], shapeRadius[1], shapeRadius[2], 0 ]);
+    this._vsData.Set("ellpsoidCenter", [ shapeCenter[0], shapeCenter[1], shapeCenter[2], 0 ]);
 
     if (this.impactOverlay)
     {
-      this.#psData.Set("impactDataOffset", [ this.impactOverlay.GetDataTextureOffset() ]);
+      this._psData.Set("impactDataOffset", [ this.impactOverlay.GetDataTextureOffset() ]);
     }
 
     for (let slot = 0; slot < EveSpaceObject2.CUSTOM_MASK_MAX; slot++)
     {
       if (this.customMasks.length > slot)
       {
-        this.customMasks[slot]?.FillPerObjectData?.(slot, this.#vsData, this.#psData);
+        this.customMasks[slot]?.FillPerObjectData?.(slot, this._vsData, this._psData);
       }
       else
       {
-        EveCustomMask.ZeroPerObjectData(slot, this.#vsData, this.#psData);
+        EveCustomMask.ZeroPerObjectData(slot, this._vsData, this._psData);
       }
     }
 
@@ -1268,8 +1268,8 @@ export class EveSpaceObject2 extends EveEntity
     // stamped, receiving the context time as BOTH realTime and simTime
     // (Carbon EveSpaceObject2::UpdateAsyncronous: if (m_lastCurveUpdateTime ==
     // time) (*it)->Update(time, time)).
-    const time = EveSpaceObject2.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
-    if (this.#lastCurveUpdateTime === time)
+    const time = EveSpaceObject2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    if (this._lastCurveUpdateTime === time)
     {
       for (const curveSet of this.curveSets)
       {
@@ -1308,37 +1308,37 @@ export class EveSpaceObject2 extends EveEntity
   @carbon.method
   @impl.adapted
   @impl.reason("Native impostor, raytracing, and audio-emitter realization are not ported yet; graph visibility and LOD state are preserved.")
-  UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2.#identityTransform)
+  UpdateVisibility(updateContext = null, _parentTransform = EveSpaceObject2._identityTransform)
   {
     this.isVisible = false;
-    this.#isMeshVisible = false;
-    this.#isInFrustum = false;
+    this._isMeshVisible = false;
+    this._isInFrustum = false;
     if (!this.display)
     {
       return false;
     }
 
     this.lodLevel = Tr2Lod.TR2_LOD_LOW;
-    this.#lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
-    this.#impostorMode = false;
+    this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
+    this._impostorMode = false;
 
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    const lowThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
-    const mediumThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
-    const visibilityThreshold = EveSpaceObject2.#GetContextValue(updateContext, "GetVisibilityThreshold", "visibilityThreshold");
-    const lodFactor = EveSpaceObject2.#GetContextValue(updateContext, "GetLodFactor", "lodFactor") || 1;
+    const lowThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+    const mediumThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
+    const visibilityThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetVisibilityThreshold", "visibilityThreshold");
+    const lodFactor = EveSpaceObject2._GetContextValue(updateContext, "GetLodFactor", "lodFactor") || 1;
 
-    if (this.boundingSphereRadius > 0 && this.#boundingSphereWorldRadius > 0)
+    if (this.boundingSphereRadius > 0 && this._boundingSphereWorldRadius > 0)
     {
-      EveSpaceObject2.#SetSphere(
-        EveSpaceObject2.#worldSphere,
+      EveSpaceObject2._SetSphere(
+        EveSpaceObject2._worldSphere,
         this.modelWorldPosition,
-        this.#boundingSphereWorldRadius
+        this._boundingSphereWorldRadius
       );
-      if (frustum?.IsSphereVisible(EveSpaceObject2.#worldSphere) !== false)
+      if (frustum?.IsSphereVisible(EveSpaceObject2._worldSphere) !== false)
       {
         this.EstimatePixelDiameter(frustum);
-        this.#isMeshVisible = true;
+        this._isMeshVisible = true;
       }
     }
 
@@ -1351,7 +1351,7 @@ export class EveSpaceObject2 extends EveEntity
       if (!attachment) continue;
       if (attachment.UpdateVisibility(updateContext, this.worldTransform, bones, boneCount))
       {
-        this.#isMeshVisible = true;
+        this._isMeshVisible = true;
         this.isVisible = true;
       }
     }
@@ -1364,11 +1364,11 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
-    if (this.GetBoundingSphere(EveSpaceObject2.#worldSphere, 1))
+    if (this.GetBoundingSphere(EveSpaceObject2._worldSphere, 1))
     {
-      this.#isInFrustum = frustum?.IsSphereVisible(EveSpaceObject2.#worldSphere) !== false;
-      this.estimatedPixelDiameterWithChildren = EveSpaceObject2.#GetPixelSize(frustum, EveSpaceObject2.#worldSphere);
-      if (this.#isInFrustum && this.estimatedPixelDiameterWithChildren >= visibilityThreshold)
+      this._isInFrustum = frustum?.IsSphereVisible(EveSpaceObject2._worldSphere) !== false;
+      this.estimatedPixelDiameterWithChildren = EveSpaceObject2._GetPixelSize(frustum, EveSpaceObject2._worldSphere);
+      if (this._isInFrustum && this.estimatedPixelDiameterWithChildren >= visibilityThreshold)
       {
         this.isVisible = true;
       }
@@ -1379,9 +1379,9 @@ export class EveSpaceObject2 extends EveEntity
       if (this.estimatedPixelDiameter > mediumThreshold) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
       else if (this.estimatedPixelDiameter > lowThreshold) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
 
-      if (this.estimatedPixelDiameterWithChildren > mediumThreshold) this.#lodLevelWithChildren = Tr2Lod.TR2_LOD_HIGH;
-      else if (this.estimatedPixelDiameterWithChildren > lowThreshold) this.#lodLevelWithChildren = Tr2Lod.TR2_LOD_MEDIUM;
-      else this.#lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
+      if (this.estimatedPixelDiameterWithChildren > mediumThreshold) this._lodLevelWithChildren = Tr2Lod.TR2_LOD_HIGH;
+      else if (this.estimatedPixelDiameterWithChildren > lowThreshold) this._lodLevelWithChildren = Tr2Lod.TR2_LOD_MEDIUM;
+      else this._lodLevelWithChildren = Tr2Lod.TR2_LOD_LOW;
     }
 
     for (const observer of this.observers)
@@ -1391,14 +1391,14 @@ export class EveSpaceObject2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      child?.UpdateVisibility(updateContext, this.worldTransform, this.#lodLevelWithChildren);
+      child?.UpdateVisibility(updateContext, this.worldTransform, this._lodLevelWithChildren);
     }
 
     // Carbon cpp:1694-1706: the decals take one ParentData built for the pass,
     // after the mesh bone palette when the updater has one.
-    if (this.#isMeshVisible)
+    if (this._isMeshVisible)
     {
-      const parentData = this.GetParentData(this.#decalParentData);
+      const parentData = this.GetParentData(this._decalParentData);
       for (const decal of this.decals)
       {
         if (boneCount) decal.SetBoneMatrix(bones, boneCount);
@@ -1408,16 +1408,16 @@ export class EveSpaceObject2 extends EveEntity
 
     // Carbon EveSpaceObject2.cpp:1715-1716 sizes EVERY object, mesh or not: a
     // mesh-less modular object still draws its impacts at this LOD.
-    EveSpaceObject2.#SetSphere(
-      EveSpaceObject2.#worldSphere,
+    EveSpaceObject2._SetSphere(
+      EveSpaceObject2._worldSphere,
       this.modelWorldPosition,
-      this.#boundingSphereWorldRadius
+      this._boundingSphereWorldRadius
     );
-    this.#meshScreenSize = EveSpaceObject2.#GetEstimatedPixelSize(frustum, EveSpaceObject2.#worldSphere) * lodFactor;
-    if (!this.#allowLodSelection) this.#meshScreenSize = Infinity;
-    if (this.mesh && this.#boundingSphereWorldRadius > 0)
+    this._meshScreenSize = EveSpaceObject2._GetEstimatedPixelSize(frustum, EveSpaceObject2._worldSphere) * lodFactor;
+    if (!this._allowLodSelection) this._meshScreenSize = Infinity;
+    if (this.mesh && this._boundingSphereWorldRadius > 0)
     {
-      this.mesh.UseWithScreenSize?.(this.#meshScreenSize, this.#boundingSphereWorldRadius);
+      this.mesh.UseWithScreenSize?.(this._meshScreenSize, this._boundingSphereWorldRadius);
     }
     return this.isVisible;
   }
@@ -1450,7 +1450,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
-    if (!this.isVisible || !this.display || this.#impostorMode) return;
+    if (!this.isVisible || !this.display || this._impostorMode) return;
 
     const { bones, boneCount } = getBoneList(this.animationUpdater);
 
@@ -1473,15 +1473,15 @@ export class EveSpaceObject2 extends EveEntity
   GetRenderables(out = [])
   {
     if (!this.display || !this.isVisible) return out;
-    if (this.#allowLodSelection && this.#isMeshVisible)
+    if (this._allowLodSelection && this._isMeshVisible)
     {
-      this.mesh?.GetBoundingBox?.(this.#localAabbMin, this.#localAabbMax);
+      this.mesh?.GetBoundingBox?.(this._localAabbMin, this._localAabbMax);
     }
-    if (this.mesh && this.#isMeshVisible && this.mesh.IsLoading?.() !== true)
+    if (this.mesh && this._isMeshVisible && this.mesh.IsLoading?.() !== true)
     {
       out.push(this);
     }
-    else if (!this.mesh && this.impactOverlay && this.#isMeshVisible)
+    else if (!this.mesh && this.impactOverlay && this._isMeshVisible)
     {
       // A mesh-less modular object still draws its impacts (Carbon
       // EveSpaceObject2.cpp:1545-1548).
@@ -1495,7 +1495,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       if (this.DisplayChildren() || child?.IsAlwaysOn?.()) child?.GetRenderables(out);
     }
-    if (this.mesh && this.#isMeshVisible)
+    if (this.mesh && this._isMeshVisible)
     {
       // Not optional-chained: a mesh HAS a geometry resource accessor and a
       // decal HAS GetRenderables. Guarding them turned a missing method into a
@@ -1505,7 +1505,7 @@ export class EveSpaceObject2 extends EveEntity
       {
         for (const decal of this.decals)
         {
-          decal.GetRenderables(out, null, geometryResource, this.#meshScreenSize);
+          decal.GetRenderables(out, null, geometryResource, this._meshScreenSize);
         }
       }
     }
@@ -1527,7 +1527,7 @@ export class EveSpaceObject2 extends EveEntity
       // Mesh-less objects (modular ships) still render their impact effects
       // (Carbon EveSpaceObject2.cpp:1127-1135).
       if (!this.impactOverlay) return false;
-      return this.impactOverlay.GetBatches(batches, batchType, perObjectData, this.#meshScreenSize);
+      return this.impactOverlay.GetBatches(batches, batchType, perObjectData, this._meshScreenSize);
     }
     if (this.mesh.display === false) return false;
 
@@ -1544,7 +1544,7 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
-    this.impactOverlay?.GetBatches?.(batches, batchType, perObjectData, this.#meshScreenSize);
+    this.impactOverlay?.GetBatches?.(batches, batchType, perObjectData, this._meshScreenSize);
 
     const areas = this.mesh.GetAreas(batchType);
     if (areas)
@@ -1554,11 +1554,11 @@ export class EveSpaceObject2 extends EveEntity
         // Carbon EveSpaceObject2.cpp:1130 passes the screen size resolved in
         // UpdateVisibility, so the mesh draws the LOD this object was culled
         // at; reverseWinding is left default on every EveSpaceObject2 path.
-        this.mesh.GetBatches(batches, areas, perObjectData, this.#meshScreenSize);
+        this.mesh.GetBatches(batches, areas, perObjectData, this._meshScreenSize);
       }
       else
       {
-        this.#GetSortedTransparentBatches(areas, batches, perObjectData, renderContext);
+        this._GetSortedTransparentBatches(areas, batches, perObjectData, renderContext);
       }
     }
 
@@ -1581,7 +1581,7 @@ export class EveSpaceObject2 extends EveEntity
    * bounding-box center and falling back to the object origin when the geometry
    * resource cannot supply a box.
    */
-  #GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
+  _GetSortedTransparentBatches(areas, batches, perObjectData, renderContext)
   {
     const geometry = this.mesh.GetGeometryResource() ?? null;
     const viewPosition = renderContext?.GetViewPosition();
@@ -1591,7 +1591,7 @@ export class EveSpaceObject2 extends EveEntity
     // returns early when there is none. This port keeps collecting so a
     // GPU-free graph still produces batches; the LOD only supplies draw
     // arguments.
-    const lod = geometry?.GetMeshLod?.(meshIndex, this.#meshScreenSize) ?? null;
+    const lod = geometry?.GetMeshLod?.(meshIndex, this._meshScreenSize) ?? null;
 
     const sorted = [];
     for (const area of areas)
@@ -1636,24 +1636,24 @@ export class EveSpaceObject2 extends EveEntity
     this.ReleaseCachedData();
     if (!this.mesh) return;
 
-    const all = this.#overlayMeshAreaBlocks[OVERLAY_TYPE_ALL];
+    const all = this._overlayMeshAreaBlocks[OVERLAY_TYPE_ALL];
     this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_OPAQUE);
     this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_TRANSPARENT);
     this.mesh.CollectAreaBlocks(all, TriBatchType.TRIBATCHTYPE_DECAL);
     this.mesh.CollectAreaBlocks(
-      this.#overlayMeshAreaBlocks[OVERLAY_TYPE_OPAQUEONLY], TriBatchType.TRIBATCHTYPE_OPAQUE);
-    for (const blocks of this.#overlayMeshAreaBlocks)
+      this._overlayMeshAreaBlocks[OVERLAY_TYPE_OPAQUEONLY], TriBatchType.TRIBATCHTYPE_OPAQUE);
+    for (const blocks of this._overlayMeshAreaBlocks)
     {
       TriRenderBatchAreaBlock.Optimize(blocks);
     }
 
     this.mesh.CollectAreaBlocksWithSharedMaterials(
-      this.#shadowMeshOpaqueAreas, TriBatchType.TRIBATCHTYPE_OPAQUE);
-    for (const collector of this.#shadowMeshOpaqueAreas)
+      this._shadowMeshOpaqueAreas, TriBatchType.TRIBATCHTYPE_OPAQUE);
+    for (const collector of this._shadowMeshOpaqueAreas)
     {
       collector.Optimize();
     }
-    this.#cachedAreaBlocksBuilt = true;
+    this._cachedAreaBlocksBuilt = true;
   }
 
   /**
@@ -1664,21 +1664,21 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   ReleaseCachedData()
   {
-    for (const blocks of this.#overlayMeshAreaBlocks)
+    for (const blocks of this._overlayMeshAreaBlocks)
     {
       blocks.length = 0;
     }
-    this.#shadowMeshOpaqueAreas.length = 0;
-    this.#cachedAreaBlocksBuilt = false;
+    this._shadowMeshOpaqueAreas.length = 0;
+    this._cachedAreaBlocksBuilt = false;
   }
 
   /**
    * Rebuilds the cached area blocks on first use when a mesh is attached; Carbon
    * instead rebuilds them from the geometry-resource load callback.
    */
-  #EnsureCachedAreaBlocks()
+  _EnsureCachedAreaBlocks()
   {
-    if (!this.#cachedAreaBlocksBuilt && this.mesh) this.RebuildCachedData();
+    if (!this._cachedAreaBlocksBuilt && this.mesh) this.RebuildCachedData();
   }
 
   /**
@@ -1758,13 +1758,13 @@ export class EveSpaceObject2 extends EveEntity
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
     if (!this.mesh || this.mesh.display === false) return false;
-    this.#EnsureCachedAreaBlocks();
+    this._EnsureCachedAreaBlocks();
 
     const geometry = this.mesh.GetGeometryResource() ?? null;
     const meshIndex = this.mesh.meshIndex ?? 0;
 
     let committed = false;
-    for (const collector of this.#shadowMeshOpaqueAreas)
+    for (const collector of this._shadowMeshOpaqueAreas)
     {
       const material = collector.shaderMaterial;
       if (!material) continue;
@@ -1792,25 +1792,25 @@ export class EveSpaceObject2 extends EveEntity
   {
     const impactEffect = this.impactOverlay?.GetArmorDamageShader(batchType) ?? null;
     if (!impactEffect && !this.overlayEffects.length) return false;
-    this.#EnsureCachedAreaBlocks();
+    this._EnsureCachedAreaBlocks();
 
     const geometry = mesh.GetGeometryResource();
     if (!geometry || !geometry.IsGood()) return false;
 
     const meshIndex = mesh.GetMeshIndex();
-    const lod = geometry.GetMeshLod(meshIndex, this.#meshScreenSize);
+    const lod = geometry.GetMeshLod(meshIndex, this._meshScreenSize);
     if (!lod) return false;
 
     let committed = false;
     if (impactEffect)
     {
       committed = EmitDamageOverlayBatches(
-        batches, perObjectData, impactEffect, this.#overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
+        batches, perObjectData, impactEffect, this._overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
     }
 
     committed = EmitOverlayBatches(
       batches, perObjectData, batchType, this.overlayEffects,
-      this.#overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
+      this._overlayMeshAreaBlocks, geometry, meshIndex, lod) || committed;
     return committed;
   }
 
@@ -1869,11 +1869,11 @@ export class EveSpaceObject2 extends EveEntity
       : null;
     if (boneCount !== null)
     {
-      this.#vsData.SetIndex("boneOffsets", 2, [ boneCount ]);
+      this._vsData.SetIndex("boneOffsets", 2, [ boneCount ]);
     }
-    this.#vsData.Set("customData", this.#psData.Get("customData"));
+    this._vsData.Set("customData", this._psData.Get("customData"));
 
-    return { vs: this.#vsData, ps: this.#psData };
+    return { vs: this._vsData, ps: this._psData };
   }
 
   /** Carbon forwards the shadow pass to the same per-object record. */
@@ -1923,7 +1923,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.reason("The optional length-one array replaces Carbon's float& sizeInShadow out-parameter.")
   IsCastingShadow(cameraFrustum, shadowFrustum, renderReason, sizeInShadowOut = null)
   {
-    if (!this.display || this.#boundingSphereWorldRadius <= 0)
+    if (!this.display || this._boundingSphereWorldRadius <= 0)
     {
       return false;
     }
@@ -1933,10 +1933,10 @@ export class EveSpaceObject2 extends EveEntity
       return false;
     }
 
-    EveSpaceObject2.#SetSphere(
-      EveSpaceObject2.#worldSphere,
+    EveSpaceObject2._SetSphere(
+      EveSpaceObject2._worldSphere,
       this.modelWorldPosition,
-      this.#boundingSphereWorldRadius
+      this._boundingSphereWorldRadius
     );
 
     let sizeInShadow = 0;
@@ -1944,9 +1944,9 @@ export class EveSpaceObject2 extends EveEntity
     {
       sizeInShadowOut[0] = 0;
     }
-    if (shadowFrustum.IsVisible(cameraFrustum, EveSpaceObject2.#worldSphere))
+    if (shadowFrustum.IsVisible(cameraFrustum, EveSpaceObject2._worldSphere))
     {
-      sizeInShadow = shadowFrustum.GetSizeInShadow(EveSpaceObject2.#worldSphere);
+      sizeInShadow = shadowFrustum.GetSizeInShadow(EveSpaceObject2._worldSphere);
       if (sizeInShadowOut)
       {
         sizeInShadowOut[0] = sizeInShadow;
@@ -2137,7 +2137,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   PlayAnimationEx(animName, loopCount, start, speed, clearWhenDone = true)
   {
-    this.#PlayAnimation(animName, true, loopCount, start, speed, clearWhenDone);
+    this._PlayAnimation(animName, true, loopCount, start, speed, clearWhenDone);
   }
 
   /**
@@ -2194,11 +2194,11 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   InvalidateMergedLocators(reason = "structure")
   {
-    this.#mergedLocatorSetsDirty = true;
-    this.#ReleaseDamageFilterSessions();
-    if (reason === "structure" || this.damageLocatorAutoFilterEnabled || this.#damageFilterState !== 0)
+    this._mergedLocatorSetsDirty = true;
+    this._ReleaseDamageFilterSessions();
+    if (reason === "structure" || this.damageLocatorAutoFilterEnabled || this._damageFilterState !== 0)
     {
-      this.#damageFilterState = 1;
+      this._damageFilterState = 1;
     }
   }
 
@@ -2210,10 +2210,10 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   EnsureChildLocatorMerged()
   {
-    if (!this.#mergedLocatorSetsDirty) return;
+    if (!this._mergedLocatorSetsDirty) return;
 
-    this.#mergedLocatorSets.length = 0;
-    this.#mergedDamageLocatorSources.length = 0;
+    this._mergedLocatorSets.length = 0;
+    this._mergedDamageLocatorSources.length = 0;
     const childSources = [];
     const identity = mat4.create();
     for (const child of this.effectChildren) child.CollectOwnedLocatorSets(identity, childSources);
@@ -2224,7 +2224,7 @@ export class EveSpaceObject2 extends EveEntity
       if (!locators.length) continue;
       const copy = new EveLocatorSets();
       copy.Set(authored.GetName(), locators);
-      this.#mergedLocatorSets.push(copy);
+      this._mergedLocatorSets.push(copy);
     }
 
     const locatorTransform = mat4.create();
@@ -2232,12 +2232,12 @@ export class EveSpaceObject2 extends EveEntity
     for (const source of childSources)
     {
       const sourceSet = source.sets;
-      let merged = this.#mergedLocatorSets.find(set => set.HasName(sourceSet.GetName()));
+      let merged = this._mergedLocatorSets.find(set => set.HasName(sourceSet.GetName()));
       if (!merged)
       {
         merged = new EveLocatorSets();
         merged.SetName(sourceSet.GetName());
-        this.#mergedLocatorSets.push(merged);
+        this._mergedLocatorSets.push(merged);
       }
 
       const start = merged.locators.length;
@@ -2256,9 +2256,9 @@ export class EveSpaceObject2 extends EveEntity
         merged.locators.push(result);
       }
 
-      if (sourceSet.HasName(EveSpaceObject2.#damageLocatorSetName))
+      if (sourceSet.HasName(EveSpaceObject2._damageLocatorSetName))
       {
-        this.#mergedDamageLocatorSources.push({
+        this._mergedDamageLocatorSources.push({
           owner: source.owner,
           // The SOURCE's tag, not the owner's (Carbon EveSpaceObject2.cpp:1941):
           // one shared instanced child owns many parts' sets.
@@ -2273,28 +2273,28 @@ export class EveSpaceObject2 extends EveEntity
       }
     }
 
-    this.#mergedLocatorSetsDirty = false;
+    this._mergedLocatorSetsDirty = false;
   }
 
   /** Releases every active raycast preparation session used by damage filtering. */
-  #ReleaseDamageFilterSessions()
+  _ReleaseDamageFilterSessions()
   {
-    if (this.#damageFilterState !== 2) return;
-    for (const occluder of this.#damageFilterOccluders) occluder.geometry.ResetRayCaster();
-    this.#damageFilterOccluders.length = 0;
-    this.#damageFilterAreas.length = 0;
+    if (this._damageFilterState !== 2) return;
+    for (const occluder of this._damageFilterOccluders) occluder.geometry.ResetRayCaster();
+    this._damageFilterOccluders.length = 0;
+    this._damageFilterAreas.length = 0;
   }
 
   /**
    * Collects prepared hull and child geometry and opens raycast sessions
    * (Carbon CollectOccluders, EveSpaceObject2.cpp:1960-2028): occluders carry
-   * areaStart/areaCount ranges into the shared #damageFilterAreas pool, and
+   * areaStart/areaCount ranges into the shared _damageFilterAreas pool, and
    * records with no matching areas are skipped rather than raycast whole.
    */
-  #CollectDamageFilterOccluders()
+  _CollectDamageFilterOccluders()
   {
-    this.#damageFilterOccluders.length = 0;
-    this.#damageFilterAreas.length = 0;
+    this._damageFilterOccluders.length = 0;
+    this._damageFilterAreas.length = 0;
     if (this.mesh)
     {
       const geometry = this.mesh.GetGeometryResource();
@@ -2306,12 +2306,12 @@ export class EveSpaceObject2 extends EveEntity
         }
         if (geometry.IsGood())
         {
-          const areaStart = this.#damageFilterAreas.length;
-          EveCollectAreas(TriBatchType.TRIBATCHTYPE_OPAQUE, this.mesh, this.#damageFilterAreas);
-          const areaCount = this.#damageFilterAreas.length - areaStart;
+          const areaStart = this._damageFilterAreas.length;
+          EveCollectAreas(TriBatchType.TRIBATCHTYPE_OPAQUE, this.mesh, this._damageFilterAreas);
+          const areaCount = this._damageFilterAreas.length - areaStart;
           if (areaCount !== 0)
           {
-            this.#damageFilterOccluders.push({
+            this._damageFilterOccluders.push({
               geometry,
               fromObject: mat4.create(),
               areaStart,
@@ -2327,7 +2327,7 @@ export class EveSpaceObject2 extends EveEntity
     for (const child of this.effectChildren)
     {
       child.CollectOwnedGeometry(
-        TriBatchType.TRIBATCHTYPE_OPAQUE, identity, childGeometry, this.#damageFilterAreas);
+        TriBatchType.TRIBATCHTYPE_OPAQUE, identity, childGeometry, this._damageFilterAreas);
     }
 
     for (const source of childGeometry)
@@ -2335,15 +2335,15 @@ export class EveSpaceObject2 extends EveEntity
       if (source.areaCount === 0) continue;
       if (!source.geometry.IsPrepared())
       {
-        this.#damageFilterOccluders.length = 0;
-        this.#damageFilterAreas.length = 0;
+        this._damageFilterOccluders.length = 0;
+        this._damageFilterAreas.length = 0;
         return false;
       }
       if (!source.geometry.IsGood()) continue;
 
       const fromObject = mat4.create();
       if (!mat4.invert(fromObject, source.childToObject)) mat4.identity(fromObject);
-      this.#damageFilterOccluders.push({
+      this._damageFilterOccluders.push({
         geometry: source.geometry,
         fromObject,
         areaStart: source.areaStart,
@@ -2351,20 +2351,20 @@ export class EveSpaceObject2 extends EveEntity
       });
     }
 
-    for (const occluder of this.#damageFilterOccluders) occluder.geometry.PrepareRayCaster();
+    for (const occluder of this._damageFilterOccluders) occluder.geometry.PrepareRayCaster();
     return true;
   }
 
   /** Reports whether all pending raycast sessions are ready or failed. */
-  #AreDamageFilterOccludersReady()
+  _AreDamageFilterOccludersReady()
   {
-    for (let index = 0; index < this.#damageFilterOccluders.length;)
+    for (let index = 0; index < this._damageFilterOccluders.length;)
     {
-      const occluder = this.#damageFilterOccluders[index];
+      const occluder = this._damageFilterOccluders[index];
       if (occluder.geometry.HasRayCasterPreparationFailed())
       {
         occluder.geometry.ResetRayCaster();
-        this.#damageFilterOccluders.splice(index, 1);
+        this._damageFilterOccluders.splice(index, 1);
         continue;
       }
       if (!occluder.geometry.IsRayCasterReady()) return false;
@@ -2374,18 +2374,18 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Rebuilds the enabled mask by testing each locator ray against occluders. */
-  #RefreshDamageLocatorMask(damageLocators)
+  _RefreshDamageLocatorMask(damageLocators)
   {
-    this.#damageLocatorEnabled = damageLocators.map(locator =>
+    this._damageLocatorEnabled = damageLocators.map(locator =>
     {
-      const direction = vec3.transformQuat(vec3.create(), EveSpaceObject2.#unitY, locator.direction);
+      const direction = vec3.transformQuat(vec3.create(), EveSpaceObject2._unitY, locator.direction);
       const origin = vec3.scaleAndAdd(vec3.create(), locator.position, direction, 0.1);
       let occluded = false;
       let backfacing = false;
       let rayLength = Infinity;
       const frontFaceMinDistance = 0.05 * this.boundingSphereRadius;
 
-      for (const occluder of this.#damageFilterOccluders)
+      for (const occluder of this._damageFilterOccluders)
       {
         if (occluder.areaCount === 0) continue;
 
@@ -2401,7 +2401,7 @@ export class EveSpaceObject2 extends EveEntity
         // under-tests multi-area geometry.
         for (let poolIndex = occluder.areaStart; poolIndex < occluder.areaStart + occluder.areaCount; poolIndex++)
         {
-          const area = this.#damageFilterAreas[poolIndex];
+          const area = this._damageFilterAreas[poolIndex];
           for (let areaIndex = area.index; areaIndex < area.index + area.count; areaIndex++)
           {
             const hit = {};
@@ -2430,37 +2430,37 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   UpdateDamageLocatorFilter()
   {
-    if (this.#damageFilterState === 0) return;
-    if (!this.damageLocatorAutoFilterEnabled && !this.#damageLocatorFilterRequested)
+    if (this._damageFilterState === 0) return;
+    if (!this.damageLocatorAutoFilterEnabled && !this._damageLocatorFilterRequested)
     {
-      this.#damageLocatorEnabled.length = 0;
-      this.#ReleaseDamageFilterSessions();
-      this.#damageFilterState = 0;
+      this._damageLocatorEnabled.length = 0;
+      this._ReleaseDamageFilterSessions();
+      this._damageFilterState = 0;
       return;
     }
 
-    const damageLocators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const damageLocators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!damageLocators?.length)
     {
-      this.#damageLocatorEnabled.length = 0;
-      this.#ReleaseDamageFilterSessions();
-      this.#damageFilterState = 0;
-      this.#damageLocatorFilterRequested = false;
+      this._damageLocatorEnabled.length = 0;
+      this._ReleaseDamageFilterSessions();
+      this._damageFilterState = 0;
+      this._damageLocatorFilterRequested = false;
       return;
     }
-    this.#damageLocatorEnabled = Array.from({ length: damageLocators.length }, () => true);
+    this._damageLocatorEnabled = Array.from({ length: damageLocators.length }, () => true);
 
-    if (this.#damageFilterState === 1)
+    if (this._damageFilterState === 1)
     {
-      if (!this.#CollectDamageFilterOccluders()) return;
-      this.#damageFilterState = 2;
+      if (!this._CollectDamageFilterOccluders()) return;
+      this._damageFilterState = 2;
     }
-    if (!this.#AreDamageFilterOccludersReady()) return;
+    if (!this._AreDamageFilterOccludersReady()) return;
 
-    this.#RefreshDamageLocatorMask(damageLocators);
-    this.#ReleaseDamageFilterSessions();
-    this.#damageFilterState = 0;
-    this.#damageLocatorFilterRequested = false;
+    this._RefreshDamageLocatorMask(damageLocators);
+    this._ReleaseDamageFilterSessions();
+    this._damageFilterState = 0;
+    this._damageLocatorFilterRequested = false;
 
     if (this.impactOverlay && this.impactOverlay.GetArmorImpactGoalCount() > 0)
     {
@@ -2475,8 +2475,8 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   RunDamageLocatorFilter()
   {
-    this.#damageLocatorFilterRequested = true;
-    if (this.#damageFilterState === 0) this.#damageFilterState = 1;
+    this._damageLocatorFilterRequested = true;
+    if (this._damageFilterState === 0) this._damageFilterState = 1;
   }
 
   /**
@@ -2488,7 +2488,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     if (this.impactOverlay) this.impactOverlay.Clear();
     this.EnsureChildLocatorMerged();
-    for (const range of this.#mergedDamageLocatorSources)
+    for (const range of this._mergedDamageLocatorSources)
     {
       const overlay = range.owner.GetPartDamageOverlay(range.partTag);
       if (overlay) overlay.Clear();
@@ -2512,7 +2512,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   CreateImpactFromPosition(position, direction, lifeTime, size)
   {
-    const closestDamageLocator = this.#GetClosestLocatorIndex(position, EveSpaceObject2.#damageLocatorSetName);
+    const closestDamageLocator = this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
     return this.CreateImpact(closestDamageLocator, direction, lifeTime, size);
   }
 
@@ -2530,13 +2530,13 @@ export class EveSpaceObject2 extends EveEntity
         configuration === ImpactConfiguration.IMPACT_HULL)
       {
         this.EnsureChildLocatorMerged();
-        for (const range of this.#mergedDamageLocatorSources)
+        for (const range of this._mergedDamageLocatorSources)
         {
           if (damageLocatorIndex < range.start || damageLocatorIndex >= range.start + range.count) continue;
           // Carbon EveSpaceObject2.cpp:3644-3651: parts honour the impact
           // switch here, and spawn debris except at low LOD.
           if (!EveDamageOverlay.impactEffectEnabled) return -1;
-          return this.#EnsureChildDamageOverlay(range).CreateImpact(
+          return this._EnsureChildDamageOverlay(range).CreateImpact(
             damageLocatorIndex - range.start, size, this.lodLevel !== Tr2Lod.TR2_LOD_LOW);
         }
       }
@@ -2564,7 +2564,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   FreezeHighDetailMesh()
   {
-    this.#allowLodSelection = false;
+    this._allowLodSelection = false;
     for (const decal of this.decals)
     {
       decal?.SetHighDetailDecalState?.(true);
@@ -2578,7 +2578,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetDamageLocatorCount()
   {
-    return this.GetLocatorCount(EveSpaceObject2.#damageLocatorSetName);
+    return this.GetLocatorCount(EveSpaceObject2._damageLocatorSetName);
   }
 
   /**
@@ -2588,7 +2588,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetLocatorCount(locatorSetName)
   {
-    return this.#GetLocatorsForSet(locatorSetName)?.length ?? 0;
+    return this._GetLocatorsForSet(locatorSetName)?.length ?? 0;
   }
 
   /**
@@ -2599,7 +2599,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetLocatorsForSet(locatorSetName)
   {
-    return this.#GetLocatorsForSet(locatorSetName);
+    return this._GetLocatorsForSet(locatorSetName);
   }
 
   /** Appends copies of a named locator set, merging with an existing authored set. */
@@ -2649,7 +2649,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetCloseLocatorIndex(position, locatorSetName)
   {
-    const locators = this.#GetLocatorsForSet(locatorSetName);
+    const locators = this._GetLocatorsForSet(locatorSetName);
     if (!locators)
     {
       return -1;
@@ -2661,10 +2661,10 @@ export class EveSpaceObject2 extends EveEntity
     let closestIndex = -1;
     for (let index = 0; index < locators.length; index++)
     {
-      if (locatorSetName === EveSpaceObject2.#damageLocatorSetName &&
-        index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
+      if (locatorSetName === EveSpaceObject2._damageLocatorSetName &&
+        index < this._damageLocatorEnabled.length && !this._damageLocatorEnabled[index]) continue;
       this.GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index],
-        locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
+        locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
       const distance = vec3.squaredDistance(locatorPosition, posInObjectSpace);
       if (distance < closestLength)
       {
@@ -2699,7 +2699,7 @@ export class EveSpaceObject2 extends EveEntity
     const targetableCall = typeof inWorldSpaceOrOut === "boolean";
     const inWorldSpace = targetableCall && inWorldSpaceOrOut;
     if (!targetableCall) out = inWorldSpaceOrOut;
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       vec3.set(out, 0, targetableCall ? 1 : 0, 0);
@@ -2707,7 +2707,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     const position = vec3.create();
     this.GetLocatorInObjectSpace(position, out, locators[index], index);
-    if (inWorldSpace) EveSpaceObject2.#TransformNormal(out, out, this.worldTransform);
+    if (inWorldSpace) EveSpaceObject2._TransformNormal(out, out, this.worldTransform);
     return targetableCall ? true : out;
   }
 
@@ -2717,14 +2717,14 @@ export class EveSpaceObject2 extends EveEntity
   @impl.reason("CarbonEngineJS keeps output parameters last and returns a validity flag for targetable callers.")
   GetDamageLocatorPosition(index, inWorldSpace, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       if (inWorldSpace) vec3.set(out, this.worldTransform[12], this.worldTransform[13], this.worldTransform[14]);
       else vec3.set(out, 0, 0, 0);
       return false;
     }
-    this.GetLocatorInObjectSpace(out, EveSpaceObject2.#locatorDirection, locators[index], index);
+    this.GetLocatorInObjectSpace(out, EveSpaceObject2._locatorDirection, locators[index], index);
     if (inWorldSpace) vec3.transformMat4(out, out, this.worldTransform);
     return true;
   }
@@ -2738,7 +2738,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetDamageLocatorBindPosition(index, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       vec3.set(out, 0, 0, 0);
@@ -2753,7 +2753,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetClosestDamageLocatorIndex(position)
   {
-    return this.#GetClosestLocatorIndex(position, EveSpaceObject2.#damageLocatorSetName);
+    return this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName);
   }
 
   /** Ports Carbon's randomized distance/direction fit for impact variation. */
@@ -2762,26 +2762,26 @@ export class EveSpaceObject2 extends EveEntity
   @impl.reason("TriRand is represented by Math.random; all locator scoring remains source-faithful.")
   GetGoodDamageLocatorIndex(position)
   {
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators) return 0;
 
-    const objectPosition = vec3.transformMat4(EveSpaceObject2.#objectPosition, position, this.inverseWorldTransform);
+    const objectPosition = vec3.transformMat4(EveSpaceObject2._objectPosition, position, this.inverseWorldTransform);
     let minDistance = Infinity;
     let maxDistance = Number.MIN_VALUE;
     let bestDirectionFit = 0;
 
     for (let index = 0; index < locators.length; index++)
     {
-      if (index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
+      if (index < this._damageLocatorEnabled.length && !this._damageLocatorEnabled[index]) continue;
       const locator = locators[index];
-      this.GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locator, index);
-      if (!EveSpaceObject2.#IsLocatorFacingPosition(EveSpaceObject2.#locatorDirection, objectPosition)) continue;
-      vec3.subtract(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorPosition, objectPosition);
-      const distance = vec3.length(EveSpaceObject2.#locatorOffset);
+      this.GetLocatorInObjectSpace(EveSpaceObject2._locatorPosition, EveSpaceObject2._locatorDirection, locator, index);
+      if (!EveSpaceObject2._IsLocatorFacingPosition(EveSpaceObject2._locatorDirection, objectPosition)) continue;
+      vec3.subtract(EveSpaceObject2._locatorOffset, EveSpaceObject2._locatorPosition, objectPosition);
+      const distance = vec3.length(EveSpaceObject2._locatorOffset);
       minDistance = Math.min(minDistance, distance);
       maxDistance = Math.max(maxDistance, distance);
-      if (distance) vec3.scale(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorOffset, 1 / distance);
-      bestDirectionFit = Math.max(bestDirectionFit, EveSpaceObject2.#GetDirectionFit(EveSpaceObject2.#locatorDirection, EveSpaceObject2.#locatorOffset));
+      if (distance) vec3.scale(EveSpaceObject2._locatorOffset, EveSpaceObject2._locatorOffset, 1 / distance);
+      bestDirectionFit = Math.max(bestDirectionFit, EveSpaceObject2._GetDirectionFit(EveSpaceObject2._locatorDirection, EveSpaceObject2._locatorOffset));
     }
 
     const desiredFit = Math.random() * (0.25 - (1 - bestDirectionFit)) + 0.75;
@@ -2789,18 +2789,18 @@ export class EveSpaceObject2 extends EveEntity
     let bestLocator = -1;
     for (let index = 0; index < locators.length; index++)
     {
-      if (index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
-      this.GetLocatorInObjectSpace(EveSpaceObject2.#locatorPosition, EveSpaceObject2.#locatorDirection, locators[index], index);
-      if (!EveSpaceObject2.#IsLocatorFacingPosition(EveSpaceObject2.#locatorDirection, objectPosition)) continue;
-      vec3.subtract(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorPosition, objectPosition);
-      const distance = vec3.length(EveSpaceObject2.#locatorOffset);
+      if (index < this._damageLocatorEnabled.length && !this._damageLocatorEnabled[index]) continue;
+      this.GetLocatorInObjectSpace(EveSpaceObject2._locatorPosition, EveSpaceObject2._locatorDirection, locators[index], index);
+      if (!EveSpaceObject2._IsLocatorFacingPosition(EveSpaceObject2._locatorDirection, objectPosition)) continue;
+      vec3.subtract(EveSpaceObject2._locatorOffset, EveSpaceObject2._locatorPosition, objectPosition);
+      const distance = vec3.length(EveSpaceObject2._locatorOffset);
       const range = maxDistance - minDistance;
       let scale = range > 0 ? 1 - (distance - minDistance) / range : 1;
       let value = 2 * scale - 1;
       value = value < 0 ? 1 - Math.sqrt(Math.abs(value)) : Math.sqrt(Math.abs(value)) + 1;
       value *= 0.5;
-      if (distance) vec3.scale(EveSpaceObject2.#locatorOffset, EveSpaceObject2.#locatorOffset, 1 / distance);
-      value *= EveSpaceObject2.#GetDirectionFit(EveSpaceObject2.#locatorDirection, EveSpaceObject2.#locatorOffset);
+      if (distance) vec3.scale(EveSpaceObject2._locatorOffset, EveSpaceObject2._locatorOffset, 1 / distance);
+      value *= EveSpaceObject2._GetDirectionFit(EveSpaceObject2._locatorDirection, EveSpaceObject2._locatorOffset);
       const fit = Math.abs(value - desiredFit);
       if (fit < bestFit)
       {
@@ -2808,7 +2808,7 @@ export class EveSpaceObject2 extends EveEntity
         bestLocator = index;
       }
     }
-    return bestLocator < 0 ? this.#GetClosestLocatorIndex(position, EveSpaceObject2.#damageLocatorSetName) : bestLocator;
+    return bestLocator < 0 ? this._GetClosestLocatorIndex(position, EveSpaceObject2._damageLocatorSetName) : bestLocator;
   }
 
   /** Gets the model-scaled target radius. */
@@ -2829,14 +2829,14 @@ export class EveSpaceObject2 extends EveEntity
       vec3.copy(out, this.modelWorldPosition);
       if (hit && source)
       {
-        vec3.subtract(EveSpaceObject2.#missOffset, hit, out);
-        vec3.subtract(EveSpaceObject2.#missDirection, hit, source);
-        const directionLength = vec3.length(EveSpaceObject2.#missDirection);
-        if (directionLength) vec3.scale(EveSpaceObject2.#missDirection, EveSpaceObject2.#missDirection, 1 / directionLength);
-        vec3.scaleAndAdd(EveSpaceObject2.#missOffset, EveSpaceObject2.#missOffset, EveSpaceObject2.#missDirection, -vec3.dot(EveSpaceObject2.#missDirection, EveSpaceObject2.#missOffset));
-        const offsetLength = vec3.length(EveSpaceObject2.#missOffset);
-        if (offsetLength) vec3.scale(EveSpaceObject2.#missOffset, EveSpaceObject2.#missOffset, 1 / offsetLength);
-        vec3.scaleAndAdd(out, out, EveSpaceObject2.#missOffset, this.GetBoundingSphereRadius() * 1.125);
+        vec3.subtract(EveSpaceObject2._missOffset, hit, out);
+        vec3.subtract(EveSpaceObject2._missDirection, hit, source);
+        const directionLength = vec3.length(EveSpaceObject2._missDirection);
+        if (directionLength) vec3.scale(EveSpaceObject2._missDirection, EveSpaceObject2._missDirection, 1 / directionLength);
+        vec3.scaleAndAdd(EveSpaceObject2._missOffset, EveSpaceObject2._missOffset, EveSpaceObject2._missDirection, -vec3.dot(EveSpaceObject2._missDirection, EveSpaceObject2._missOffset));
+        const offsetLength = vec3.length(EveSpaceObject2._missOffset);
+        if (offsetLength) vec3.scale(EveSpaceObject2._missOffset, EveSpaceObject2._missOffset, 1 / offsetLength);
+        vec3.scaleAndAdd(out, out, EveSpaceObject2._missOffset, this.GetBoundingSphereRadius() * 1.125);
       }
     }
     else
@@ -2893,17 +2893,17 @@ export class EveSpaceObject2 extends EveEntity
       return vec3.squaredDistance(posNow, out) < Number(epsilon);
     }
 
-    vec3.transformMat4(EveSpaceObject2.#rayOrigin, posPrev, this.inverseWorldTransform);
-    vec3.transformMat4(EveSpaceObject2.#rayEnd, posNow, this.inverseWorldTransform);
-    vec3.subtract(EveSpaceObject2.#rayDirection, EveSpaceObject2.#rayEnd, EveSpaceObject2.#rayOrigin);
-    this.GetShapeEllipsoid(EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii);
-    const t = EveSpaceObject2.#IntersectEllipsoidRay(out, EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii, EveSpaceObject2.#rayOrigin, EveSpaceObject2.#rayDirection);
+    vec3.transformMat4(EveSpaceObject2._rayOrigin, posPrev, this.inverseWorldTransform);
+    vec3.transformMat4(EveSpaceObject2._rayEnd, posNow, this.inverseWorldTransform);
+    vec3.subtract(EveSpaceObject2._rayDirection, EveSpaceObject2._rayEnd, EveSpaceObject2._rayOrigin);
+    this.GetShapeEllipsoid(EveSpaceObject2._ellipsoidCenter, EveSpaceObject2._ellipsoidRadii);
+    const t = EveSpaceObject2._IntersectEllipsoidRay(out, EveSpaceObject2._ellipsoidCenter, EveSpaceObject2._ellipsoidRadii, EveSpaceObject2._rayOrigin, EveSpaceObject2._rayDirection);
     if (t !== null && t >= -1 && t <= 1)
     {
       vec3.transformMat4(out, out, this.worldTransform);
       return true;
     }
-    if (EveSpaceObject2.#IsPointInsideEllipsoid(EveSpaceObject2.#ellipsoidCenter, EveSpaceObject2.#ellipsoidRadii, EveSpaceObject2.#rayEnd))
+    if (EveSpaceObject2._IsPointInsideEllipsoid(EveSpaceObject2._ellipsoidCenter, EveSpaceObject2._ellipsoidRadii, EveSpaceObject2._rayEnd))
     {
       vec3.copy(out, posNow);
       return true;
@@ -2920,7 +2920,7 @@ export class EveSpaceObject2 extends EveEntity
     if (this.impactOverlay.UpdateImpact(out, direction, impactIndex)) return true;
 
     this.EnsureChildLocatorMerged();
-    for (const range of this.#mergedDamageLocatorSources)
+    for (const range of this._mergedDamageLocatorSources)
     {
       const overlay = range.owner.GetPartDamageOverlay(range.partTag);
       if (overlay && overlay.HasImpact(impactIndex)) return true;
@@ -2936,7 +2936,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetDamageLocator(index, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       return vec3.set(out, 0, 0, 0);
@@ -2954,7 +2954,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetTransformedDamageLocator(index, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(EveSpaceObject2.#damageLocatorSetName);
+    const locators = this._GetLocatorsForSet(EveSpaceObject2._damageLocatorSetName);
     if (!locators || !(index >= 0 && index < locators.length))
     {
       return vec3.set(out, 0, 0, 0);
@@ -2972,7 +2972,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   IsImpostor()
   {
-    return this.#impostorMode;
+    return this._impostorMode;
   }
 
   /**
@@ -2984,7 +2984,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetLocatorPositionFromSet(index, inWorldSpace, locatorSetName, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(locatorSetName);
+    const locators = this._GetLocatorsForSet(locatorSetName);
     if (index < 0 || !locators || index >= locators.length)
     {
       if (inWorldSpace)
@@ -2995,7 +2995,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     const direction = vec3.create();
     this.GetLocatorInObjectSpace(out, direction, locators[index],
-      locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
+      locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
       vec3.transformMat4(out, out, this.worldTransform);
@@ -3011,17 +3011,17 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetLocatorRotationFromSet(index, inWorldSpace, locatorSetName, out = vec3.create())
   {
-    const locators = this.#GetLocatorsForSet(locatorSetName);
+    const locators = this._GetLocatorsForSet(locatorSetName);
     if (index < 0 || !locators || index >= locators.length)
     {
       return vec3.set(out, 0, 1, 0);
     }
     const position = vec3.create();
     this.GetLocatorInObjectSpace(position, out, locators[index],
-      locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
+      locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
     if (inWorldSpace)
     {
-      EveSpaceObject2.#TransformNormal(out, out, this.worldTransform);
+      EveSpaceObject2._TransformNormal(out, out, this.worldTransform);
     }
     return out;
   }
@@ -3057,7 +3057,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   PlayAnimation(animName)
   {
-    this.#PlayAnimation(animName, true, 1, 0, 1, true);
+    this._PlayAnimation(animName, true, 1, 0, 1, true);
   }
 
   /**
@@ -3067,7 +3067,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   ChainAnimation(animName)
   {
-    this.#PlayAnimation(animName, false, 1, 0, 1, true);
+    this._PlayAnimation(animName, false, 1, 0, 1, true);
   }
 
   /**
@@ -3078,7 +3078,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   ChainAnimationEx(animName, loopCount, start, speed)
   {
-    this.#PlayAnimation(animName, false, loopCount, start, speed, true);
+    this._PlayAnimation(animName, false, loopCount, start, speed, true);
   }
 
   // Carbon EveSpaceObject2::PlayAnimation: every playback wrapper funnels
@@ -3089,7 +3089,7 @@ export class EveSpaceObject2 extends EveEntity
    * Forwards a playback request to the animation updater, which owns all
    * animation state; a hull without an updater does nothing, as in Carbon.
    */
-  #PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
+  _PlayAnimation(animName, replace, loopCount, delay, speed, clearWhenDone)
   {
     this.animationUpdater?.PlayAnimation?.(String(animName ?? ""), replace, loopCount, delay, speed, clearWhenDone);
   }
@@ -3146,7 +3146,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetControllerVariables()
   {
-    return Object.fromEntries(this.#controllerVariables);
+    return Object.fromEntries(this._controllerVariables);
   }
 
   /** Gets Carbon's most recently selected geometry LOD. */
@@ -3157,8 +3157,8 @@ export class EveSpaceObject2 extends EveEntity
   {
     const geometryResource = this.mesh?.GetGeometryResource();
     if (!geometryResource) return -1;
-    if (!this.#allowLodSelection) return 0;
-    return geometryResource.GetLodIndexForScreenSize?.(this.mesh?.GetMeshIndex?.() ?? 0, this.#meshScreenSize) ?? 0;
+    if (!this._allowLodSelection) return 0;
+    return geometryResource.GetLodIndexForScreenSize?.(this.mesh?.GetMeshIndex?.() ?? 0, this._meshScreenSize) ?? 0;
   }
 
   /**
@@ -3209,18 +3209,18 @@ export class EveSpaceObject2 extends EveEntity
     {
       const sphere = vec4.create();
       updater.GetDynamicBounds(sphere, min, max);
-      vec3.copy(this.#localAabbMin, min);
-      vec3.copy(this.#localAabbMax, max);
+      vec3.copy(this._localAabbMin, min);
+      vec3.copy(this._localAabbMax, max);
     }
     else if (this.mesh && this.mesh.GetBoundingBox(min, max))
     {
-      vec3.copy(this.#localAabbMin, min);
-      vec3.copy(this.#localAabbMax, max);
+      vec3.copy(this._localAabbMin, min);
+      vec3.copy(this._localAabbMax, max);
     }
     else
     {
-      vec3.copy(min, this.#localAabbMin);
-      vec3.copy(max, this.#localAabbMax);
+      vec3.copy(min, this._localAabbMin);
+      vec3.copy(max, this._localAabbMax);
     }
     if (minBounds && maxBounds)
     {
@@ -3236,12 +3236,12 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   GetWorldBoundingBox(minBounds, maxBounds)
   {
-    box3.fromBounds(EveSpaceObject2.#localBox, this.#localAabbMin, this.#localAabbMax);
-    box3.transformMat4(EveSpaceObject2.#worldBox, EveSpaceObject2.#localBox, this.worldTransform);
+    box3.fromBounds(EveSpaceObject2._localBox, this._localAabbMin, this._localAabbMax);
+    box3.transformMat4(EveSpaceObject2._worldBox, EveSpaceObject2._localBox, this.worldTransform);
     const min = minBounds ?? vec3.create();
     const max = maxBounds ?? vec3.create();
-    vec3.set(min, EveSpaceObject2.#worldBox[0], EveSpaceObject2.#worldBox[1], EveSpaceObject2.#worldBox[2]);
-    vec3.set(max, EveSpaceObject2.#worldBox[3], EveSpaceObject2.#worldBox[4], EveSpaceObject2.#worldBox[5]);
+    vec3.set(min, EveSpaceObject2._worldBox[0], EveSpaceObject2._worldBox[1], EveSpaceObject2._worldBox[2]);
+    vec3.set(max, EveSpaceObject2._worldBox[3], EveSpaceObject2._worldBox[4], EveSpaceObject2._worldBox[5]);
     return minBounds && maxBounds ? true : { min, max };
   }
 
@@ -3263,21 +3263,21 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetBoundingSphere(out = sph3.create(), query = 0)
   {
-    if (this.boundingSphereRadius <= 0 && this.#dynamicBoundingSphere[3] <= 0) return false;
-    EveSpaceObject2.#SetSphere(out, this.modelWorldPosition, this.#boundingSphereWorldRadius);
+    if (this.boundingSphereRadius <= 0 && this._dynamicBoundingSphere[3] <= 0) return false;
+    EveSpaceObject2._SetSphere(out, this.modelWorldPosition, this._boundingSphereWorldRadius);
     if (!query || !this.DisplayChildren()) return true;
     for (const child of this.children)
     {
-      if (child.GetBoundingSphere(EveSpaceObject2.#childSphere, query))
+      if (child.GetBoundingSphere(EveSpaceObject2._childSphere, query))
       {
-        sph3.union(out, out, EveSpaceObject2.#childSphere);
+        sph3.union(out, out, EveSpaceObject2._childSphere);
       }
     }
     for (const child of this.effectChildren)
     {
-      if (child.GetBoundingSphere(EveSpaceObject2.#childSphere, query))
+      if (child.GetBoundingSphere(EveSpaceObject2._childSphere, query))
       {
-        sph3.union(out, out, EveSpaceObject2.#childSphere);
+        sph3.union(out, out, EveSpaceObject2._childSphere);
       }
     }
     return true;
@@ -3289,14 +3289,14 @@ export class EveSpaceObject2 extends EveEntity
   @impl.reason("TriFrustum is supplied structurally by the active engine; both exact and estimated browser frustum methods are supported.")
   EstimatePixelDiameter(frustum)
   {
-    if (this.mesh?.GetBoundingBox?.(EveSpaceObject2.#boundsMin, EveSpaceObject2.#boundsMax))
+    if (this.mesh?.GetBoundingBox?.(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax))
     {
-      vec3.copy(this.#localAabbMin, EveSpaceObject2.#boundsMin);
-      vec3.copy(this.#localAabbMax, EveSpaceObject2.#boundsMax);
+      vec3.copy(this._localAabbMin, EveSpaceObject2._boundsMin);
+      vec3.copy(this._localAabbMax, EveSpaceObject2._boundsMax);
     }
-    sph3.fromBounds(EveSpaceObject2.#localSphere, this.#localAabbMin, this.#localAabbMax);
-    sph3.transformMat4(EveSpaceObject2.#worldSphere, EveSpaceObject2.#localSphere, this.worldTransform);
-    this.estimatedPixelDiameter = EveSpaceObject2.#GetPixelSize(frustum, EveSpaceObject2.#worldSphere);
+    sph3.fromBounds(EveSpaceObject2._localSphere, this._localAabbMin, this._localAabbMax);
+    sph3.transformMat4(EveSpaceObject2._worldSphere, EveSpaceObject2._localSphere, this.worldTransform);
+    this.estimatedPixelDiameter = EveSpaceObject2._GetPixelSize(frustum, EveSpaceObject2._worldSphere);
     return this.estimatedPixelDiameter;
   }
 
@@ -3314,7 +3314,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   IsInFrustum()
   {
-    return this.#isInFrustum;
+    return this._isInFrustum;
   }
 
   /**
@@ -3325,9 +3325,9 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetBoundingSphereCenter(out = vec3.create())
   {
-    if (this.#dynamicBoundingSphere[3] !== -1)
+    if (this._dynamicBoundingSphere[3] !== -1)
     {
-      return vec3.set(out, this.#dynamicBoundingSphere[0], this.#dynamicBoundingSphere[1], this.#dynamicBoundingSphere[2]);
+      return vec3.set(out, this._dynamicBoundingSphere[0], this._dynamicBoundingSphere[1], this._dynamicBoundingSphere[2]);
     }
     return vec3.copy(out, this.boundingSphereCenter);
   }
@@ -3340,9 +3340,9 @@ export class EveSpaceObject2 extends EveEntity
   @impl.implemented
   GetBoundingSphereRadius()
   {
-    if (this.#dynamicBoundingSphere[3] !== -1)
+    if (this._dynamicBoundingSphere[3] !== -1)
     {
-      return this.modelScale * this.#dynamicBoundingSphere[3];
+      return this.modelScale * this._dynamicBoundingSphere[3];
     }
     return this.modelScale * this.boundingSphereRadius;
   }
@@ -3393,12 +3393,12 @@ export class EveSpaceObject2 extends EveEntity
   {
     if (this.impactOverlay)
     {
-      this.impactOverlay.GetDamageOverlay().SetEnabledDamageLocators(this.#damageLocatorEnabled);
+      this.impactOverlay.GetDamageOverlay().SetEnabledDamageLocators(this._damageLocatorEnabled);
       this.impactOverlay.SetDamageState(shield, armor, hull, doCreateArmorImpacts);
       this.EnsureChildLocatorMerged();
-      for (const range of this.#mergedDamageLocatorSources)
+      for (const range of this._mergedDamageLocatorSources)
       {
-        this.#EnsureChildDamageOverlay(range).SetDamageState(
+        this._EnsureChildDamageOverlay(range).SetDamageState(
           shield, armor, hull, doCreateArmorImpacts);
       }
     }
@@ -3419,14 +3419,14 @@ export class EveSpaceObject2 extends EveEntity
     if (name === "shieldboost" || name === "shieldhardening") return;
 
     this.EnsureChildLocatorMerged();
-    for (const range of this.#mergedDamageLocatorSources)
+    for (const range of this._mergedDamageLocatorSources)
     {
-      this.#EnsureChildDamageOverlay(range).ToggleEffect(name, enable, duration);
+      this._EnsureChildDamageOverlay(range).ToggleEffect(name, enable, duration);
     }
   }
 
   /** Creates and synchronizes the damage overlay owned by one child-locator range. */
-  #EnsureChildDamageOverlay(range)
+  _EnsureChildDamageOverlay(range)
   {
     let overlay = range.owner.GetPartDamageOverlay(range.partTag);
     if (!overlay)
@@ -3446,7 +3446,7 @@ export class EveSpaceObject2 extends EveEntity
 
     overlay.SetDamageLocatorCount(range.count);
     overlay.SetEnabledDamageLocators(
-      this.#damageLocatorEnabled.slice(range.start, range.start + range.count));
+      this._damageLocatorEnabled.slice(range.start, range.start + range.count));
     overlay.SetImpactIndexSource(this.impactOverlay.GetDamageOverlay());
     return overlay;
   }
@@ -3461,7 +3461,7 @@ export class EveSpaceObject2 extends EveEntity
   CollectPartDamageOverlays(out = [])
   {
     this.EnsureChildLocatorMerged();
-    for (const range of this.#mergedDamageLocatorSources)
+    for (const range of this._mergedDamageLocatorSources)
     {
       if (!range.owner) continue;
       const overlay = range.owner.GetPartDamageOverlay(range.partTag);
@@ -3493,13 +3493,13 @@ export class EveSpaceObject2 extends EveEntity
       case "clipSphereFactor2":
       {
         const clipping = this.clipSphereFactor !== 0 || this.clipSphereFactor2 !== 0;
-        const oldClipping = this.#oldClipSphereFactor !== 0 || this.#oldClipSphereFactor2 !== 0;
+        const oldClipping = this._oldClipSphereFactor !== 0 || this._oldClipSphereFactor2 !== 0;
         if (clipping !== oldClipping)
         {
           this.SetShaderOption("SPACE_OBJECT_CLIPPING", clipping ? "SOC_ENABLED" : "SOC_DISABLED");
         }
-        this.#oldClipSphereFactor = this.clipSphereFactor;
-        this.#oldClipSphereFactor2 = this.clipSphereFactor2;
+        this._oldClipSphereFactor = this.clipSphereFactor;
+        this._oldClipSphereFactor2 = this.clipSphereFactor2;
         this.SetControllerVariable("ClipSphereFactor", this.clipSphereFactor);
         this.SetControllerVariable("ClipSphereFactor2", this.clipSphereFactor2);
         break;
@@ -3520,7 +3520,7 @@ export class EveSpaceObject2 extends EveEntity
         break;
 
       case "damageLocatorAutoFilterEnabled":
-        if (this.#damageFilterState === 0) this.#damageFilterState = 1;
+        if (this._damageFilterState === 0) this._damageFilterState = 1;
         break;
     }
     return true;
@@ -3552,7 +3552,7 @@ export class EveSpaceObject2 extends EveEntity
   {
     const key = String(name ?? "");
     const next = Number(value);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const controller of this.controllers)
     {
       controller?.SetVariable(key, next);
@@ -3621,13 +3621,13 @@ export class EveSpaceObject2 extends EveEntity
       const record = Array.isArray(locator)
         ? { position: locator[0], rotation: locator[1], boneIndex: locator[2] }
         : { position: locator?.position, rotation: locator?.direction ?? locator?.rotation, boneIndex: locator?.boneIndex };
-      const position = vec3.clone(record.position ?? EveSpaceObject2.#zero);
-      const rotation = quat.clone(record.rotation ?? EveSpaceObject2.#identityRotation);
+      const position = vec3.clone(record.position ?? EveSpaceObject2._zero);
+      const rotation = quat.clone(record.rotation ?? EveSpaceObject2._identityRotation);
       const boneIndex = Number(record.boneIndex ?? 0);
-      this.#TransformLocator(position, rotation, boneIndex);
+      this._TransformLocator(position, rotation, boneIndex);
       if (this.modelTranslationCurve || this.modelRotationCurve)
       {
-        this.#ApplyModelTransform(position, rotation);
+        this._ApplyModelTransform(position, rotation);
       }
       result.push([position, rotation, boneIndex]);
     }
@@ -3649,10 +3649,10 @@ export class EveSpaceObject2 extends EveEntity
     {
       const position = vec3.clone(locator.position);
       const rotation = quat.clone(locator.direction);
-      this.#TransformLocator(position, rotation, locator.boneIndex);
+      this._TransformLocator(position, rotation, locator.boneIndex);
       if (this.modelTranslationCurve || this.modelRotationCurve)
       {
-        this.#ApplyModelTransform(position, rotation);
+        this._ApplyModelTransform(position, rotation);
       }
       result.push([position, rotation, locator.boneIndex]);
     }
@@ -3667,14 +3667,14 @@ export class EveSpaceObject2 extends EveEntity
    * bone-attached locators; the authored values pass through unchanged when
    * there is no usable bone data.
    */
-  #TransformLocator(position, rotation, boneIndex)
+  _TransformLocator(position, rotation, boneIndex)
   {
     const updater = this.animationUpdater;
     if (boneIndex <= 0 || !updater?.IsInitialized?.())
     {
       return;
     }
-    const bone = EveSpaceObject2.#GetBoneMatrix(updater, boneIndex);
+    const bone = EveSpaceObject2._GetBoneMatrix(updater, boneIndex);
     if (!bone)
     {
       return;
@@ -3693,7 +3693,7 @@ export class EveSpaceObject2 extends EveEntity
    * locator position and rotation, matching Carbon's Blue locator surface, which
    * reads the curves without advancing playback.
    */
-  #ApplyModelTransform(position, rotation)
+  _ApplyModelTransform(position, rotation)
   {
     if (this.modelTranslationCurve)
     {
@@ -3716,11 +3716,11 @@ export class EveSpaceObject2 extends EveEntity
    * Returns the locator list of the first locator set carrying the name, or null
    * when no set matches; the list stays owned by the locator set.
    */
-  #GetLocatorsForSet(locatorSetName)
+  _GetLocatorsForSet(locatorSetName)
   {
     const target = String(locatorSetName ?? "");
     this.EnsureChildLocatorMerged();
-    for (const set of this.#mergedLocatorSets)
+    for (const set of this._mergedLocatorSets)
     {
       if (set.HasName(target))
       {
@@ -3751,7 +3751,7 @@ export class EveSpaceObject2 extends EveEntity
     if (mergedDamageIndex >= 0)
     {
       this.EnsureChildLocatorMerged();
-      for (const range of this.#mergedDamageLocatorSources)
+      for (const range of this._mergedDamageLocatorSources)
       {
         if (range.owner && mergedDamageIndex >= range.start && mergedDamageIndex < range.start + range.count)
         {
@@ -3759,7 +3759,7 @@ export class EveSpaceObject2 extends EveEntity
             range.partTag, mergedDamageIndex - range.start, outPosition, outDirection))
           {
             vec3.transformMat4(outPosition, outPosition, range.childToObject);
-            EveSpaceObject2.#TransformNormal(outDirection, outDirection, range.childToObject);
+            EveSpaceObject2._TransformNormal(outDirection, outDirection, range.childToObject);
             vec3.normalize(outDirection, outDirection);
             return;
           }
@@ -3779,9 +3779,9 @@ export class EveSpaceObject2 extends EveEntity
    * world position - 0 when the set is missing, -1 when no locator faces the
    * position.
    */
-  #GetClosestLocatorIndex(position, locatorSetName)
+  _GetClosestLocatorIndex(position, locatorSetName)
   {
-    const locators = this.#GetLocatorsForSet(locatorSetName);
+    const locators = this._GetLocatorsForSet(locatorSetName);
     if (!locators)
     {
       return 0;
@@ -3793,11 +3793,11 @@ export class EveSpaceObject2 extends EveEntity
     let closestIndex = -1;
     for (let index = 0; index < locators.length; index++)
     {
-      if (locatorSetName === EveSpaceObject2.#damageLocatorSetName &&
-        index < this.#damageLocatorEnabled.length && !this.#damageLocatorEnabled[index]) continue;
+      if (locatorSetName === EveSpaceObject2._damageLocatorSetName &&
+        index < this._damageLocatorEnabled.length && !this._damageLocatorEnabled[index]) continue;
       this.GetLocatorInObjectSpace(locatorPosition, locatorDirection, locators[index],
-        locatorSetName === EveSpaceObject2.#damageLocatorSetName ? index : -1);
-      if (!EveSpaceObject2.#IsLocatorFacingPosition(locatorDirection, posInObjectSpace))
+        locatorSetName === EveSpaceObject2._damageLocatorSetName ? index : -1);
+      if (!EveSpaceObject2._IsLocatorFacingPosition(locatorDirection, posInObjectSpace))
       {
         continue;
       }
@@ -3815,14 +3815,14 @@ export class EveSpaceObject2 extends EveEntity
    * Reports whether a locator faces a position, by testing that stepping the
    * object-space position back along the locator direction shortens it.
    */
-  static #IsLocatorFacingPosition(locatorDirection, posInObjectSpace)
+  static _IsLocatorFacingPosition(locatorDirection, posInObjectSpace)
   {
     const moved = vec3.subtract(vec3.create(), posInObjectSpace, locatorDirection);
     return vec3.squaredLength(moved) < vec3.squaredLength(posInObjectSpace);
   }
 
   /** Rotates a direction by a matrix's rotation basis, ignoring its translation. */
-  static #TransformNormal(out, direction, matrix)
+  static _TransformNormal(out, direction, matrix)
   {
     const x = direction[0];
     const y = direction[1];
@@ -3845,15 +3845,15 @@ export class EveSpaceObject2 extends EveEntity
     }
     else
     {
-      const bounds = this.GetLocalBoundingBox(EveSpaceObject2.#boundsMin, EveSpaceObject2.#boundsMax);
+      const bounds = this.GetLocalBoundingBox(EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax);
       if (bounds === false)
       {
-        vec3.set(EveSpaceObject2.#boundsMin, -1, -1, -1);
-        vec3.set(EveSpaceObject2.#boundsMax, 1, 1, 1);
+        vec3.set(EveSpaceObject2._boundsMin, -1, -1, -1);
+        vec3.set(EveSpaceObject2._boundsMax, 1, 1, 1);
       }
-      vec3.subtract(outRadii, EveSpaceObject2.#boundsMax, EveSpaceObject2.#boundsMin);
+      vec3.subtract(outRadii, EveSpaceObject2._boundsMax, EveSpaceObject2._boundsMin);
       vec3.scale(outRadii, outRadii, Math.sqrt(3) * 0.5);
-      vec3.lerp(outCenter, EveSpaceObject2.#boundsMin, EveSpaceObject2.#boundsMax, 0.5);
+      vec3.lerp(outCenter, EveSpaceObject2._boundsMin, EveSpaceObject2._boundsMax, 0.5);
     }
     vec3.copy(this.generatedShapeEllipsoidCenter, outCenter);
     vec3.copy(this.generatedShapeEllipsoidRadius, outRadii);
@@ -3864,7 +3864,7 @@ export class EveSpaceObject2 extends EveEntity
    * onto Carbon's square-root fit score, the ranking used to pick a varied
    * damage locator.
    */
-  static #GetDirectionFit(v0, v1)
+  static _GetDirectionFit(v0, v1)
   {
     const direction = -vec3.dot(v0, v1);
     return direction < 0
@@ -3876,7 +3876,7 @@ export class EveSpaceObject2 extends EveEntity
    * Intersects a ray with an axis-aligned ellipsoid in the ellipsoid's own space and writes the hit point into out.
    * @returns {number|null} The ray parameter at the hit, or null when the ray is degenerate or misses.
    */
-  static #IntersectEllipsoidRay(out, center, radii, origin, direction)
+  static _IntersectEllipsoidRay(out, center, radii, origin, direction)
   {
     const vx = direction[0] / radii[0];
     const vy = direction[1] / radii[1];
@@ -3898,7 +3898,7 @@ export class EveSpaceObject2 extends EveEntity
   }
 
   /** Reports whether a point lies inside an axis-aligned ellipsoid. */
-  static #IsPointInsideEllipsoid(center, radii, point)
+  static _IsPointInsideEllipsoid(center, radii, point)
   {
     const x = (point[0] - center[0]) / radii[0];
     const y = (point[1] - center[1]) / radii[1];
@@ -3917,7 +3917,7 @@ export class EveSpaceObject2 extends EveEntity
    * 12 - so a bone is expanded rather than borrowed. Carbon does the same at
    * every read site with TriMatrixCopyFrom3x4.
    */
-  static #GetBoneMatrix(updater, boneIndex)
+  static _GetBoneMatrix(updater, boneIndex)
   {
     const bones = updater.GetMeshBoneMatrixList?.();
 
@@ -3934,7 +3934,7 @@ export class EveSpaceObject2 extends EveEntity
    * effect child through the named setter, so late additions start with the same
    * state.
    */
-  static #ApplyControllerVariables(target, variables, methodName)
+  static _ApplyControllerVariables(target, variables, methodName)
   {
     const setter = target?.[methodName];
     if (typeof setter !== "function")
@@ -3952,7 +3952,7 @@ export class EveSpaceObject2 extends EveEntity
    * exposes, writing the fallback when there is no curve and copying back curves
    * that return a new array instead of filling out.
    */
-  static #UpdateCurve(curve, time, out, fallback)
+  static _UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)
     {
@@ -3987,7 +3987,7 @@ export class EveSpaceObject2 extends EveEntity
    * and falling back to the named properties, and yields 0 when nothing supplies
    * it.
    */
-  static #GetContextValue(context, methodName, ...propertyNames)
+  static _GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
     if (typeof method === "function")
@@ -4008,7 +4008,7 @@ export class EveSpaceObject2 extends EveEntity
    * Returns a world sphere's on-screen diameter in pixels from the frustum's
    * exact query, or 0 when the frustum does not expose it.
    */
-  static #GetPixelSize(frustum, sphere)
+  static _GetPixelSize(frustum, sphere)
   {
     const method = frustum?.GetPixelSizeAccross;
     return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
@@ -4019,46 +4019,46 @@ export class EveSpaceObject2 extends EveEntity
    * frustum's cheaper estimated query and falling back to the exact one, or 0
    * when the frustum exposes neither.
    */
-  static #GetEstimatedPixelSize(frustum, sphere)
+  static _GetEstimatedPixelSize(frustum, sphere)
   {
     const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
     return Number(typeof method === "function" ? method.call(frustum, sphere) : 0) || 0;
   }
 
   /** Writes a center and radius into a caller-owned sph3. */
-  static #SetSphere(out, center, radius)
+  static _SetSphere(out, center, radius)
   {
     return sph3.set(out, center[0], center[1], center[2], radius);
   }
 
-  static #zero = [0, 0, 0];
+  static _zero = [0, 0, 0];
 
-  static #unitY = [0, 1, 0];
+  static _unitY = [0, 1, 0];
 
-  static #locatorDirection = vec3.create();
-  static #locatorPosition = vec3.create();
-  static #locatorOffset = vec3.create();
-  static #objectPosition = vec3.create();
-  static #missOffset = vec3.create();
-  static #missDirection = vec3.create();
-  static #rayOrigin = vec3.create();
-  static #rayEnd = vec3.create();
-  static #rayDirection = vec3.create();
-  static #ellipsoidCenter = vec3.create();
-  static #ellipsoidRadii = vec3.create();
-  static #boundsMin = vec3.create();
-  static #boundsMax = vec3.create();
-  static #childSphere = sph3.create();
-  static #localSphere = sph3.create();
-  static #worldSphere = sph3.create();
-  static #localBox = box3.create();
-  static #worldBox = box3.create();
+  static _locatorDirection = vec3.create();
+  static _locatorPosition = vec3.create();
+  static _locatorOffset = vec3.create();
+  static _objectPosition = vec3.create();
+  static _missOffset = vec3.create();
+  static _missDirection = vec3.create();
+  static _rayOrigin = vec3.create();
+  static _rayEnd = vec3.create();
+  static _rayDirection = vec3.create();
+  static _ellipsoidCenter = vec3.create();
+  static _ellipsoidRadii = vec3.create();
+  static _boundsMin = vec3.create();
+  static _boundsMax = vec3.create();
+  static _childSphere = sph3.create();
+  static _localSphere = sph3.create();
+  static _worldSphere = sph3.create();
+  static _localBox = box3.create();
+  static _worldBox = box3.create();
 
-  static #identityRotation = [0, 0, 0, 1];
+  static _identityRotation = [0, 0, 0, 1];
 
-  static #identityTransform = mat4.create();
+  static _identityTransform = mat4.create();
 
-  static #damageLocatorSetName = "damage";
+  static _damageLocatorSetName = "damage";
 
   static ReflectionMode = ReflectionMode;
 

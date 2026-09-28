@@ -100,16 +100,16 @@ export class EveStretch extends IEveFiringEffectElement
   @edit.persist
  @type.model("EveTransform") moveObject = null;
 
-  #sourcePosition = vec3.create();
-  #destinationPosition = vec3.create();
-  #sourceTransform = mat4.create();
-  #destinationTransform = mat4.create();
-  #useTransforms = false;
-  #displaySource = true;
-  #displayDestination = true;
-  #sourceScale = 1;
-  #destinationScale = 1;
-  #negativeZ = false;
+  _sourcePosition = vec3.create();
+  _destinationPosition = vec3.create();
+  _sourceTransform = mat4.create();
+  _destinationTransform = mat4.create();
+  _useTransforms = false;
+  _displaySource = true;
+  _displayDestination = true;
+  _sourceScale = 1;
+  _destinationScale = 1;
+  _negativeZ = false;
 
   /**
    * Samples the source and destination position curves for the frame; with no
@@ -122,9 +122,9 @@ export class EveStretch extends IEveFiringEffectElement
   {
     if (!this.update) return true;
     const time = getTime(context);
-    if (this.source) sampleVector(this.source, time, this.#sourcePosition);
-    else if (this.#useTransforms) mat4.getTranslation(this.#sourcePosition, this.#sourceTransform);
-    if (this.dest) sampleVector(this.dest, time, this.#destinationPosition);
+    if (this.source) sampleVector(this.source, time, this._sourcePosition);
+    else if (this._useTransforms) mat4.getTranslation(this._sourcePosition, this._sourceTransform);
+    if (this.dest) sampleVector(this.dest, time, this._destinationPosition);
     return true;
   }
 
@@ -145,15 +145,15 @@ export class EveStretch extends IEveFiringEffectElement
   {
     if (!this.update) return true;
     this.UpdateCurves(context);
-    this.length.value = vec3.distance(this.#sourcePosition, this.#destinationPosition);
-    if (this.#displaySource) updateChildAsync(this.sourceObject, context);
-    if (this.#displayDestination) updateChildAsync(this.destObject, context);
+    this.length.value = vec3.distance(this._sourcePosition, this._destinationPosition);
+    if (this._displaySource) updateChildAsync(this.sourceObject, context);
+    if (this._displayDestination) updateChildAsync(this.destObject, context);
     updateChildAsync(this.stretchObject, context);
     updateChildAsync(this.moveObject, context);
-    this.audio?.Update?.(this.#sourcePosition, this.#destinationPosition);
+    this.audio?.Update?.(this._sourcePosition, this._destinationPosition);
     if (this.stretchAudio)
     {
-      this.stretchAudio.Update(this.#sourcePosition, this.#destinationPosition);
+      this.stretchAudio.Update(this._sourcePosition, this._destinationPosition);
     }
     return true;
   }
@@ -231,32 +231,32 @@ export class EveStretch extends IEveFiringEffectElement
    */
   @carbon.method @impl.adapted
   @impl.reason("The transforms are computed in Trinity, while child rendering is not ported yet.")
-  UpdateVisibility(context, parentTransform = EveStretch.#identity)
+  UpdateVisibility(context, parentTransform = EveStretch._identity)
   {
     if (!this.display) return;
-    const sourceTransform = EveStretch.#sourceMatrix;
-    const destinationTransform = EveStretch.#destinationMatrix;
-    if (this.#useTransforms)
+    const sourceTransform = EveStretch._sourceMatrix;
+    const destinationTransform = EveStretch._destinationMatrix;
+    if (this._useTransforms)
     {
-      mat4.multiply(sourceTransform, this.#sourceTransform, EveStretch.#sourceCorrection);
-      mat4.copy(destinationTransform, this.#destinationTransform);
-      destinationTransform[0] *= this.#destinationScale;
-      destinationTransform[1] *= this.#destinationScale;
-      destinationTransform[2] *= this.#destinationScale;
-      destinationTransform[4] *= this.#destinationScale;
-      destinationTransform[5] *= this.#destinationScale;
-      destinationTransform[6] *= this.#destinationScale;
-      destinationTransform[8] *= this.#destinationScale;
-      destinationTransform[9] *= this.#destinationScale;
-      destinationTransform[10] *= this.#destinationScale;
+      mat4.multiply(sourceTransform, this._sourceTransform, EveStretch._sourceCorrection);
+      mat4.copy(destinationTransform, this._destinationTransform);
+      destinationTransform[0] *= this._destinationScale;
+      destinationTransform[1] *= this._destinationScale;
+      destinationTransform[2] *= this._destinationScale;
+      destinationTransform[4] *= this._destinationScale;
+      destinationTransform[5] *= this._destinationScale;
+      destinationTransform[6] *= this._destinationScale;
+      destinationTransform[8] *= this._destinationScale;
+      destinationTransform[9] *= this._destinationScale;
+      destinationTransform[10] *= this._destinationScale;
     }
     else
     {
-      makeEndpointTransforms(this.#sourcePosition, this.#destinationPosition, sourceTransform, destinationTransform);
+      makeEndpointTransforms(this._sourcePosition, this._destinationPosition, sourceTransform, destinationTransform);
       for (const index of [0, 1, 2, 4, 5, 6, 8, 9, 10])
       {
-        sourceTransform[index] *= this.#sourceScale;
-        destinationTransform[index] *= this.#destinationScale;
+        sourceTransform[index] *= this._sourceScale;
+        destinationTransform[index] *= this._destinationScale;
       }
       if (parentTransform?.length === 16)
       {
@@ -265,21 +265,21 @@ export class EveStretch extends IEveFiringEffectElement
       }
     }
 
-    if (this.#displaySource) updateChildVisibility(this.sourceObject, context, sourceTransform);
-    if (this.#displayDestination) updateChildVisibility(this.destObject, context, destinationTransform);
+    if (this._displaySource) updateChildVisibility(this.sourceObject, context, sourceTransform);
+    if (this._displayDestination) updateChildVisibility(this.destObject, context, destinationTransform);
 
-    const stretchTransform = EveStretch.#stretchMatrix;
-    if (this.#useTransforms)
+    const stretchTransform = EveStretch._stretchMatrix;
+    if (this._useTransforms)
     {
-      mat4.copy(stretchTransform, this.#sourceTransform);
-      const stretchLength = this.length.value * (this.#negativeZ ? -1 : 1);
+      mat4.copy(stretchTransform, this._sourceTransform);
+      const stretchLength = this.length.value * (this._negativeZ ? -1 : 1);
       stretchTransform[8] *= stretchLength;
       stretchTransform[9] *= stretchLength;
       stretchTransform[10] *= stretchLength;
     }
     else
     {
-      makeStretchTransform(this.#sourcePosition, this.#destinationPosition, stretchTransform, this.#negativeZ);
+      makeStretchTransform(this._sourcePosition, this._destinationPosition, stretchTransform, this._negativeZ);
       if (parentTransform?.length === 16) mat4.multiply(stretchTransform, parentTransform, stretchTransform);
     }
     updateChildVisibility(this.stretchObject, context, stretchTransform);
@@ -287,8 +287,8 @@ export class EveStretch extends IEveFiringEffectElement
     if (this.moveObject)
     {
       const progression = Number(this.progressCurve?.value ?? this.progressCurve?.GetValue?.() ?? 0);
-      vec3.lerp(EveStretch.#movePosition, this.#sourcePosition, this.#destinationPosition, progression);
-      updateChildVisibility(this.moveObject, context, translationMatrix(EveStretch.#movePosition, EveStretch.#moveMatrix));
+      vec3.lerp(EveStretch._movePosition, this._sourcePosition, this._destinationPosition, progression);
+      updateChildVisibility(this.moveObject, context, translationMatrix(EveStretch._movePosition, EveStretch._moveMatrix));
       if (progression >= 1 && !this.moveCompleted)
       {
         this.moveCompleted = true;
@@ -307,8 +307,8 @@ export class EveStretch extends IEveFiringEffectElement
   GetRenderables(out = [])
   {
     if (!this.display) return out;
-    if (this.#displaySource) collectRenderables(this.sourceObject, out);
-    if (this.#displayDestination) collectRenderables(this.destObject, out);
+    if (this._displaySource) collectRenderables(this.sourceObject, out);
+    if (this._displayDestination) collectRenderables(this.destObject, out);
     collectRenderables(this.stretchObject, out);
     collectRenderables(this.moveObject, out);
     return out;
@@ -356,8 +356,8 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetSourcePosition(value)
   {
-    this.#useTransforms = false;
-    vec3.copy(this.#sourcePosition, value);
+    this._useTransforms = false;
+    vec3.copy(this._sourcePosition, value);
   }
 
   /**
@@ -367,8 +367,8 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestinationPosition(value)
   {
-    vec3.copy(this.#destinationPosition, value);
-    translationMatrix(value, this.#destinationTransform);
+    vec3.copy(this._destinationPosition, value);
+    translationMatrix(value, this._destinationTransform);
   }
 
   /**
@@ -379,9 +379,9 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetSourceTransform(value)
   {
-    this.#useTransforms = true;
-    mat4.copy(this.#sourceTransform, value);
-    mat4.getTranslation(this.#sourcePosition, value);
+    this._useTransforms = true;
+    mat4.copy(this._sourceTransform, value);
+    mat4.getTranslation(this._sourcePosition, value);
   }
 
   /**
@@ -391,8 +391,8 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestinationTransform(value)
   {
-    mat4.copy(this.#destinationTransform, value);
-    mat4.getTranslation(this.#destinationPosition, value);
+    mat4.copy(this._destinationTransform, value);
+    mat4.getTranslation(this._destinationPosition, value);
   }
 
   /**
@@ -402,7 +402,7 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetIsNegZForward(value)
   {
-    this.#negativeZ = !!value;
+    this._negativeZ = !!value;
   }
 
   /**
@@ -492,8 +492,8 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   DisplayEndPoints(displaySource, displayDestination)
   {
-    this.#displaySource = !!displaySource;
-    this.#displayDestination = !!displayDestination;
+    this._displaySource = !!displaySource;
+    this._displayDestination = !!displayDestination;
   }
 
   /**
@@ -503,7 +503,7 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetSourceObjectScale(scale)
   {
-    this.#sourceScale = Number(scale);
+    this._sourceScale = Number(scale);
   }
 
   /**
@@ -513,7 +513,7 @@ export class EveStretch extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
-    this.#destinationScale = Number(scale);
+    this._destinationScale = Number(scale);
   }
 
   /**
@@ -537,9 +537,9 @@ export class EveStretch extends IEveFiringEffectElement
     vec4.set(out, 0, 0, 0, 0);
     for (const child of [this.sourceObject, this.destObject, this.stretchObject])
     {
-      if (typeof child?.GetBoundingSphere === "function" && child.GetBoundingSphere(EveStretch.#sphere) !== false)
+      if (typeof child?.GetBoundingSphere === "function" && child.GetBoundingSphere(EveStretch._sphere) !== false)
       {
-        mergeSphere(out, EveStretch.#sphere);
+        mergeSphere(out, EveStretch._sphere);
       }
     }
     return out[3] > 0;
@@ -555,10 +555,10 @@ export class EveStretch extends IEveFiringEffectElement
   GetLights(lightManager)
   {
     if (!this.display) return;
-    const source = translationMatrix(this.#sourcePosition, EveStretch.#lightSource, this.#sourceScale);
-    const destination = translationMatrix(this.#destinationPosition, EveStretch.#lightDestination, this.#destinationScale);
-    if (this.#displaySource) for (const light of this.sourceLights) light?.AddLight(lightManager, source, this.#sourceScale);
-    if (this.#displayDestination) for (const light of this.destLights) light?.AddLight(lightManager, destination, this.#destinationScale);
+    const source = translationMatrix(this._sourcePosition, EveStretch._lightSource, this._sourceScale);
+    const destination = translationMatrix(this._destinationPosition, EveStretch._lightDestination, this._destinationScale);
+    if (this._displaySource) for (const light of this.sourceLights) light?.AddLight(lightManager, source, this._sourceScale);
+    if (this._displayDestination) for (const light of this.destLights) light?.AddLight(lightManager, destination, this._destinationScale);
   }
 
   /** Carbon EveStretch::RegisterComponents (cpp:606-613): LightOwner leaf
@@ -574,14 +574,14 @@ export class EveStretch extends IEveFiringEffectElement
   }
 
   static Tr2Lod = Tr2Lod;
-  static #identity = mat4.create();
-  static #sourceMatrix = mat4.create();
-  static #destinationMatrix = mat4.create();
-  static #stretchMatrix = mat4.create();
-  static #moveMatrix = mat4.create();
-  static #movePosition = vec3.create();
-  static #sphere = vec4.create();
-  static #lightSource = mat4.create();
-  static #lightDestination = mat4.create();
-  static #sourceCorrection = mat4.fromXRotation(mat4.create(), -Math.PI * 0.5);
+  static _identity = mat4.create();
+  static _sourceMatrix = mat4.create();
+  static _destinationMatrix = mat4.create();
+  static _stretchMatrix = mat4.create();
+  static _moveMatrix = mat4.create();
+  static _movePosition = vec3.create();
+  static _sphere = vec4.create();
+  static _lightSource = mat4.create();
+  static _lightDestination = mat4.create();
+  static _sourceCorrection = mat4.fromXRotation(mat4.create(), -Math.PI * 0.5);
 }

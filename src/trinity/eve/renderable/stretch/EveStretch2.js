@@ -95,17 +95,17 @@ export class EveStretch2 extends IEveFiringEffectElement
   @edit.persist
  @type.float32 boundingRadius = 100;
 
-  #source = vec3.create();
-  #destination = vec3.create();
-  #sourceTransform = mat4.create();
-  #destinationTransform = mat4.create();
-  #destinationScale = 1;
-  #currentDestinationScale = 1;
-  #visible = true;
-  #inFrustum = true;
-  #startTime = 0;
-  #intensity = 1;
-  #effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
+  _source = vec3.create();
+  _destination = vec3.create();
+  _sourceTransform = mat4.create();
+  _destinationTransform = mat4.create();
+  _destinationScale = 1;
+  _currentDestinationScale = 1;
+  _visible = true;
+  _inFrustum = true;
+  _startTime = 0;
+  _intensity = 1;
+  _effectData = [vec4.fromValues(0, 0, 0, Math.random()), vec4.fromValues(1, 0, 0, 0)];
 
   /** m_vb (Tr2ProceduralBuffer "EveStretch2VB"): the shared quad vertices (cpp:90). */
   _vb = new Tr2ProceduralBuffer("EveStretch2VB", GetEveStretch2Quads);
@@ -187,7 +187,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
-    this.#destinationScale = this.#currentDestinationScale = Number(scale);
+    this._destinationScale = this._currentDestinationScale = Number(scale);
   }
 
   /** IEveFiringEffectElement move hook; EveStretch2 has no travelling child. */
@@ -211,7 +211,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @impl.reason("Carbon uses rand(); the browser uses Math.random for the per-shot shader seed.")
   StartFiring(delay = 0)
   {
-    this.#effectData[0][3] = Math.random();
+    this._effectData[0][3] = Math.random();
     this.start?.PlayFrom(-delay);
     this.loop?.PlayFrom(-delay);
     this.end?.Stop();
@@ -234,9 +234,9 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetFiringTransform(source, destination)
   {
-    if (source?.length === 16) mat4.getTranslation(this.#source, source);
-    else vec3.copy(this.#source, source);
-    vec3.copy(this.#destination, destination);
+    if (source?.length === 16) mat4.getTranslation(this._source, source);
+    else vec3.copy(this._source, source);
+    vec3.copy(this._destination, destination);
   }
 
   /**
@@ -246,7 +246,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   DisplayEndPoints(_displaySource, displayDestination)
   {
-    this.#currentDestinationScale = displayDestination ? this.#destinationScale : 0;
+    this._currentDestinationScale = displayDestination ? this._destinationScale : 0;
   }
 
   /**
@@ -256,7 +256,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDisplay(display)
   {
-    this.#visible = !!display;
+    this._visible = !!display;
   }
 
   /**
@@ -266,7 +266,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetIntensity(intensity)
   {
-    this.#intensity = Math.max(0, Number(intensity));
+    this._intensity = Math.max(0, Number(intensity));
   }
 
   /**
@@ -297,35 +297,35 @@ export class EveStretch2 extends IEveFiringEffectElement
   Update(context)
   {
     const time = getTime(context);
-    if (this.#startTime === 0) this.#startTime = time;
-    const relative = time - this.#startTime;
+    if (this._startTime === 0) this._startTime = time;
+    const relative = time - this._startTime;
     const sets = [this.start, this.loop, this.end];
     for (let index = 0; index < sets.length; index++)
     {
       updateCurveSet(sets[index], relative, context.renderContext);
-      this.#effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
+      this._effectData[0][index] = Number(sets[index]?.GetScaledTime?.() ?? sets[index]?.scaledTime ?? 0);
     }
-    makeEndpointTransforms(this.#source, this.#destination, this.#sourceTransform, this.#destinationTransform);
-    this.sourceObserver?.Update(this.#sourceTransform);
-    this.destinationObserver?.Update(this.#destinationTransform);
+    makeEndpointTransforms(this._source, this._destination, this._sourceTransform, this._destinationTransform);
+    this.sourceObserver?.Update(this._sourceTransform);
+    this.destinationObserver?.Update(this._destinationTransform);
     const gpuParticleSystem = context?.GetGpuParticleSystem?.() ?? context?.gpuParticleSystem ?? null;
     const originShift = getOriginShift(context);
     if (this.sourceEmitter)
     {
-      const argumentsValue = EveStretch2.#sourceEmitterArguments;
+      const argumentsValue = EveStretch2._sourceEmitterArguments;
       argumentsValue.time = time;
       argumentsValue.system = gpuParticleSystem;
-      mat4.copy(argumentsValue.parentTransform, this.#sourceTransform);
+      mat4.copy(argumentsValue.parentTransform, this._sourceTransform);
       vec3.copy(argumentsValue.originShift, originShift);
       argumentsValue.emitCountFactor = 1;
       this.sourceEmitter.Update(argumentsValue);
     }
     if (this.destinationEmitter)
     {
-      const argumentsValue = EveStretch2.#destinationEmitterArguments;
+      const argumentsValue = EveStretch2._destinationEmitterArguments;
       argumentsValue.time = time;
       argumentsValue.system = gpuParticleSystem;
-      mat4.copy(argumentsValue.parentTransform, this.#destinationTransform);
+      mat4.copy(argumentsValue.parentTransform, this._destinationTransform);
       vec3.copy(argumentsValue.originShift, originShift);
       argumentsValue.emitCountFactor = 1;
       this.destinationEmitter.Update(argumentsValue);
@@ -341,19 +341,19 @@ export class EveStretch2 extends IEveFiringEffectElement
   @impl.reason("The browser frustum is duck-typed and receives a portable axis-aligned box descriptor.")
   UpdateVisibility(context)
   {
-    if (!(this.#visible && this.#intensity > 0))
+    if (!(this._visible && this._intensity > 0))
     {
-      this.#inFrustum = false;
+      this._inFrustum = false;
       return false;
     }
     const frustum = context?.GetFrustum?.() ?? context?.frustum;
     const bounds = {
       min: vec3.fromValues(-this.boundingRadius, -this.boundingRadius, -this.boundingRadius),
-      max: vec3.fromValues(this.boundingRadius, this.boundingRadius, vec3.distance(this.#source, this.#destination) + this.boundingRadius),
-      transform: this.#sourceTransform
+      max: vec3.fromValues(this.boundingRadius, this.boundingRadius, vec3.distance(this._source, this._destination) + this.boundingRadius),
+      transform: this._sourceTransform
     };
-    this.#inFrustum = frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(bounds) : true;
-    return this.#inFrustum;
+    this._inFrustum = frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(bounds) : true;
+    return this._inFrustum;
   }
 
   /**
@@ -364,7 +364,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   @impl.reason("The class is collected as a renderable; GPU batch realization is not ported yet.")
   GetRenderables(out = [])
   {
-    if (this.#visible && this.#intensity > 0 && this.#inFrustum) out.push(this);
+    if (this._visible && this._intensity > 0 && this._inFrustum) out.push(this);
     return out;
   }
 
@@ -375,18 +375,18 @@ export class EveStretch2 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   GetPerObjectData(accumulator)
   {
-    this.#effectData[1][0] = this.#intensity;
+    this._effectData[1][0] = this._intensity;
 
     const data = accumulator.Alloc("EveStretch2PerObjectData");
 
     data.Set("sourceData", [
-      this.#source[0], this.#source[1], this.#source[2], this.#currentDestinationScale
+      this._source[0], this._source[1], this._source[2], this._currentDestinationScale
     ]);
     data.Set("destinationData", [
-      this.#destination[0], this.#destination[1], this.#destination[2], this.#destinationScale
+      this._destination[0], this._destination[1], this._destination[2], this._destinationScale
     ]);
-    data.SetIndex("effectData", 0, this.#effectData[0]);
-    data.SetIndex("effectData", 1, this.#effectData[1]);
+    data.SetIndex("effectData", 0, this._effectData[0]);
+    data.SetIndex("effectData", 1, this._effectData[1]);
 
     return data;
   }
@@ -442,9 +442,9 @@ export class EveStretch2 extends IEveFiringEffectElement
   @impl.reason("Light objects are forwarded without registering against Carbon's native light manager component registry.")
   GetLights(lightManager)
   {
-    if (!(this.#visible && this.#intensity > 0)) return;
-    this.sourceLight?.AddLight(lightManager, this.#sourceTransform, 1);
-    this.destinationLight?.AddLight(lightManager, this.#destinationTransform, this.#currentDestinationScale);
+    if (!(this._visible && this._intensity > 0)) return;
+    this.sourceLight?.AddLight(lightManager, this._sourceTransform, 1);
+    this.destinationLight?.AddLight(lightManager, this._destinationTransform, this._currentDestinationScale);
   }
 
   /** Carbon EveStretch2::RegisterComponents (cpp:389-398): LightOwner leaf
@@ -454,7 +454,7 @@ export class EveStretch2 extends IEveFiringEffectElement
   RegisterComponents()
   {
     const registry = this.GetComponentRegistry();
-    const isActive = this.#visible && this.#intensity > 0;
+    const isActive = this._visible && this._intensity > 0;
     const hasLights = this.sourceLight || this.destinationLight;
     if (registry && isActive && hasLights)
     {
@@ -469,7 +469,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
   GetSourcePosition(out = vec3.create())
   {
-    return vec3.copy(out, this.#source);
+    return vec3.copy(out, this._source);
   }
 
   /**
@@ -479,7 +479,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
   GetDestinationPosition(out = vec3.create())
   {
-    return vec3.copy(out, this.#destination);
+    return vec3.copy(out, this._destination);
   }
 
   /**
@@ -489,7 +489,7 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
   GetSourceTransform(out = mat4.create())
   {
-    return mat4.copy(out, this.#sourceTransform);
+    return mat4.copy(out, this._sourceTransform);
   }
 
   /**
@@ -499,12 +499,12 @@ export class EveStretch2 extends IEveFiringEffectElement
    */
   GetDestinationTransform(out = mat4.create())
   {
-    return mat4.copy(out, this.#destinationTransform);
+    return mat4.copy(out, this._destinationTransform);
   }
 
   /** Deferred descriptor for Carbon's MAX_QUAD_COUNT float2 vertex buffer. */
 
-  static #sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
+  static _sourceEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 
-  static #destinationEmitterArguments = new ITr2GenericEmitterUpdateArguments();
+  static _destinationEmitterArguments = new ITr2GenericEmitterUpdateArguments();
 }

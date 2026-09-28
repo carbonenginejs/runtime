@@ -97,8 +97,8 @@ export class EveTransform extends Tr2Transform
   @type.boolean
   useLodLevel = true;
 
-  #isVisible = true;
-  #lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
+  _isVisible = true;
+  _lastCurveUpdateDelta = EveLODHelper.lowUpdateRate;
 
   /**
    * Adopts an authored meshLod as the node's mesh when no mesh was set, so a
@@ -124,7 +124,7 @@ export class EveTransform extends Tr2Transform
   @carbon.contextual(["camera"])
   @impl.adapted
   @impl.reason("Renderer-owned modifier state is supplied through the update context; standard SRT and parent composition stay in Trinity.")
-  UpdateViewDependentData(context, parentTransform = EveTransform.#identity)
+  UpdateViewDependentData(context, parentTransform = EveTransform._identity)
   {
     const frustum = context.GetFrustum();
     super.UpdateViewDependentData(context.renderContext, parentTransform);
@@ -164,10 +164,10 @@ export class EveTransform extends Tr2Transform
     if (!this.update) return false;
     const time = Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
-    this.#lastCurveUpdateDelta += deltaTime;
-    if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this.#lastCurveUpdateDelta))
+    this._lastCurveUpdateDelta += deltaTime;
+    if (!this.useLodLevel || EveLODHelper.ShouldUpdate(this.lodLevel, this._lastCurveUpdateDelta))
     {
-      this.#lastCurveUpdateDelta = 0;
+      this._lastCurveUpdateDelta = 0;
       for (const curveSet of this.curveSets) curveSet.Update(time, undefined, context.renderContext);
     }
     for (const child of this.children) child?.Update?.(context);
@@ -176,7 +176,7 @@ export class EveTransform extends Tr2Transform
       system?.UpdateTransform(this.worldTransform);
       system?.Update(context);
     }
-    const originShift = context?.GetOriginShift?.() ?? context?.originShift ?? EveTransform.#zero;
+    const originShift = context?.GetOriginShift?.() ?? context?.originShift ?? EveTransform._zero;
     for (const emitter of this.particleEmitters)
     {
       emitter?.Update({ time, transform: this.worldTransform, originShift, context });
@@ -191,32 +191,32 @@ export class EveTransform extends Tr2Transform
   @carbon.method
   @impl.adapted
   @impl.reason("Browser frustum and quality state are read from the explicit update context instead of renderer globals.")
-  UpdateVisibility(context, parentTransform = EveTransform.#identity)
+  UpdateVisibility(context, parentTransform = EveTransform._identity)
   {
     this.lodLevel = Tr2Lod.TR2_LOD_LOW;
-    this.#isVisible = false;
+    this._isVisible = false;
     if (!this.display || (this.hideOnLowQuality && (context?.lowQuality ?? context?.device?.lowQuality))) return false;
 
     this.UpdateViewDependentData(context, parentTransform);
     const frustum = context?.GetFrustum?.() ?? context?.frustum;
     if (this.mesh)
     {
-      const valid = this.GetBoundingSphere(EveTransform.#sphere);
-      const visible = !valid || this.visibilityThreshold < 0 || frustum?.IsSphereVisible(EveTransform.#sphere) !== false;
+      const valid = this.GetBoundingSphere(EveTransform._sphere);
+      const visible = !valid || this.visibilityThreshold < 0 || frustum?.IsSphereVisible(EveTransform._sphere) !== false;
       if (visible)
       {
-        const size = Number(frustum?.GetPixelSizeAccross?.(EveTransform.#sphere) ?? Infinity);
-        this.mesh.UseWithScreenSize?.(size, EveTransform.#sphere[3]);
+        const size = Number(frustum?.GetPixelSizeAccross?.(EveTransform._sphere) ?? Infinity);
+        this.mesh.UseWithScreenSize?.(size, EveTransform._sphere[3]);
         const medium = Number(context?.GetMediumDetailThreshold?.() ?? context?.mediumDetailThreshold ?? 0);
         const low = Number(context?.GetLowDetailThreshold?.() ?? context?.lowDetailThreshold ?? 0);
         if (size >= medium) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
         else if (size >= low) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
-        if (size > this.visibilityThreshold) this.#isVisible = true;
+        if (size > this.visibilityThreshold) this._isVisible = true;
       }
     }
     else
     {
-      this.#isVisible = true;
+      this._isVisible = true;
     }
     if (this.particleSystems.length) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
     for (const child of this.children)
@@ -224,7 +224,7 @@ export class EveTransform extends Tr2Transform
       child?.UpdateVisibility(context, this.worldTransform);
       this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, child?.GetLODLevel?.() ?? Tr2Lod.TR2_LOD_UNSPECIFIED);
     }
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /**
@@ -238,7 +238,7 @@ export class EveTransform extends Tr2Transform
   {
     if (!this.display) return out;
     for (const system of this.particleSystems) system?.SortParticles?.();
-    if (this.#isVisible && this.mesh) out.push(this);
+    if (this._isVisible && this.mesh) out.push(this);
     for (const child of this.children) child?.GetRenderables(out);
     return out;
   }
@@ -354,7 +354,7 @@ export class EveTransform extends Tr2Transform
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
-    const bounds = EveTransform.#worldBounds;
+    const bounds = EveTransform._worldBounds;
     box3.fromBounds(bounds, min, max);
     box3.transformMat4(bounds, bounds, this.worldTransform);
     vec3.set(min, bounds[0], bounds[1], bounds[2]);
@@ -367,7 +367,7 @@ export class EveTransform extends Tr2Transform
   @impl.implemented
   IsBoundingBoxReady()
   {
-    return this.GetLocalBoundingBox(EveTransform.#boundsMin, EveTransform.#boundsMax);
+    return this.GetLocalBoundingBox(EveTransform._boundsMin, EveTransform._boundsMax);
   }
 
   /**
@@ -382,24 +382,24 @@ export class EveTransform extends Tr2Transform
     let valid = false;
     if (!vec3.equals(this.overrideBoundsMin, this.overrideBoundsMax))
     {
-      sph3.fromBounds(EveTransform.#localSphere, this.overrideBoundsMin, this.overrideBoundsMax);
-      sph3.transformMat4(out, EveTransform.#localSphere, this.worldTransform);
+      sph3.fromBounds(EveTransform._localSphere, this.overrideBoundsMin, this.overrideBoundsMax);
+      sph3.transformMat4(out, EveTransform._localSphere, this.worldTransform);
       valid = true;
     }
-    else if (this.mesh && this.mesh.GetBoundingBox(EveTransform.#boundsMin, EveTransform.#boundsMax))
+    else if (this.mesh && this.mesh.GetBoundingBox(EveTransform._boundsMin, EveTransform._boundsMax))
     {
-      sph3.fromBounds(EveTransform.#localSphere, EveTransform.#boundsMin, EveTransform.#boundsMax);
-      sph3.transformMat4(out, EveTransform.#localSphere, this.worldTransform);
+      sph3.fromBounds(EveTransform._localSphere, EveTransform._boundsMin, EveTransform._boundsMax);
+      sph3.transformMat4(out, EveTransform._localSphere, this.worldTransform);
       valid = true;
     }
     if (query)
     {
       for (const child of this.children)
       {
-        if (child?.GetBoundingSphere?.(EveTransform.#childSphere, query))
+        if (child?.GetBoundingSphere?.(EveTransform._childSphere, query))
         {
-          if (valid) sph3.union(out, out, EveTransform.#childSphere);
-          else vec4.copy(out, EveTransform.#childSphere);
+          if (valid) sph3.union(out, out, EveTransform._childSphere);
+          else vec4.copy(out, EveTransform._childSphere);
           valid = true;
         }
       }
@@ -513,12 +513,12 @@ export class EveTransform extends Tr2Transform
 
   static Tr2Lod = Tr2Lod;
 
-  static #identity = mat4.create();
-  static #zero = vec3.create();
-  static #sphere = vec4.create();
-  static #localSphere = vec4.create();
-  static #childSphere = vec4.create();
-  static #boundsMin = vec3.create();
-  static #boundsMax = vec3.create();
-  static #worldBounds = box3.create();
+  static _identity = mat4.create();
+  static _zero = vec3.create();
+  static _sphere = vec4.create();
+  static _localSphere = vec4.create();
+  static _childSphere = vec4.create();
+  static _boundsMin = vec3.create();
+  static _boundsMax = vec3.create();
+  static _worldBounds = box3.create();
 }

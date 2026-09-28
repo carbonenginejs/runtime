@@ -93,16 +93,16 @@ export class EveSmartLightQuad extends EveChildTransform
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** m_effectKey (unsigned) - cached Tr2Effect hash used as the quad-renderer bucket key (EveSmartLightQuad.h:59). */
-  #effectKey = 0;
+  _effectKey = 0;
 
   /** m_activationStrength (float) - captured from the update params (EveSmartLightQuad.h:54). */
-  #activationStrength = 1;
+  _activationStrength = 1;
 
   /** Last softQuad value the settle hook applied (JS-only change detection). */
 
@@ -116,8 +116,8 @@ export class EveSmartLightQuad extends EveChildTransform
       this.customColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet,
-      this.#resolvedGroupColor
+      this._parentColorSet,
+      this._resolvedGroupColor
     );
   }
 
@@ -141,7 +141,7 @@ export class EveSmartLightQuad extends EveChildTransform
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
     }
 
     for (const attributeModifier of this.attributeModifiers)
@@ -174,11 +174,11 @@ export class EveSmartLightQuad extends EveChildTransform
     if (
       list === this.attributeModifiers &&
       Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#parentColorSet &&
+      this._parentColorSet &&
       value
     )
     {
-      value.SetInheritProperties(this.#parentColorSet);
+      value.SetInheritProperties(this._parentColorSet);
     }
   }
 
@@ -188,7 +188,7 @@ export class EveSmartLightQuad extends EveChildTransform
   @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "softQuad") this.#ApplyEffectPath();
+    if (propertyName === "softQuad") this._ApplyEffectPath();
     return true;
   }
 
@@ -205,9 +205,9 @@ export class EveSmartLightQuad extends EveChildTransform
     if (!this.effect)
     {
       this.effect = new Tr2Effect();
-      this.#ApplyEffectPath();
+      this._ApplyEffectPath();
     }
-    this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
+    this._effectKey = Number(this.effect.GetHashValue()) >>> 0;
     return true;
   }
 
@@ -218,7 +218,7 @@ export class EveSmartLightQuad extends EveChildTransform
   RegisterWithQuadRenderer(quadRenderer)
   {
     quadRenderer.RegisterEffect(
-      this.#effectKey,
+      this._effectKey,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,
       EveSmartLightQuad.QUAD_INSTANCE_SIZE,
       1,
@@ -237,16 +237,16 @@ export class EveSmartLightQuad extends EveChildTransform
   @impl.reason("Carbon re-registers through the Tr2QuadRenderer singleton; the relocated renderer arrives via the threaded update context when present.")
   UpdateSyncronous(updateContext, params, _distribution)
   {
-    this.#activationStrength = params?.activationStrength ?? 1;
+    this._activationStrength = params?.activationStrength ?? 1;
 
     if (this.editMode)
     {
       if (this.effect)
       {
         const key = Number(this.effect.GetHashValue()) >>> 0;
-        if (key !== this.#effectKey)
+        if (key !== this._effectKey)
         {
-          this.#effectKey = key;
+          this._effectKey = key;
           const quadRenderer = updateContext?.GetQuadRenderer?.() ?? updateContext?.quadRenderer;
           if (quadRenderer)
           {
@@ -256,7 +256,7 @@ export class EveSmartLightQuad extends EveChildTransform
       }
       else
       {
-        this.#effectKey = 0;
+        this._effectKey = 0;
       }
     }
 
@@ -275,12 +275,12 @@ export class EveSmartLightQuad extends EveChildTransform
   @impl.implemented
   UpdateAsyncronous(_updateContext, params, _distribution)
   {
-    let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad.#identity;
+    let localToWorld = params?.localToWorldTransform ?? EveSmartLightQuad._identity;
 
     const parent = params?.childParent ?? params?.spaceObjectParent;
     if (parent)
     {
-      const transform = parent.GetLocalToWorldTransform(EveSmartLightQuad.#parentTransform);
+      const transform = parent.GetLocalToWorldTransform(EveSmartLightQuad._parentTransform);
       if (transform)
       {
         localToWorld = transform;
@@ -309,13 +309,13 @@ export class EveSmartLightQuad extends EveChildTransform
     }
 
     const statics = EveSmartLightQuad;
-    const quad = statics.#quad;
-    const rotation = statics.#rotation;
-    const position = statics.#position;
-    const direction = statics.#direction;
-    const worldPosition = statics.#worldPosition;
-    const sphere = statics.#sphere;
-    const color = statics.#color;
+    const quad = statics._quad;
+    const rotation = statics._rotation;
+    const position = statics._position;
+    const direction = statics._direction;
+    const worldPosition = statics._worldPosition;
+    const sphere = statics._sphere;
+    const color = statics._color;
     const m = this.worldTransform;
     const groupColor = this.GetGroupColor();
     const count = Math.min(Number(size ?? placements?.length ?? 0), placements?.length ?? 0);
@@ -342,7 +342,7 @@ export class EveSmartLightQuad extends EveChildTransform
       vec3.set(direction, 0, 1, 0);
       vec3.transformQuat(direction, direction, rotation);
       // TriVectorRotateMatrix: rotate by the world basis only (no translation).
-      statics.#TransformNormal(direction, direction, m);
+      statics._TransformNormal(direction, direction, m);
 
       vec3.add(position, position, placement.initialTranslation);
       vec3.add(position, position, placement.additionalTranslation);
@@ -353,7 +353,7 @@ export class EveSmartLightQuad extends EveChildTransform
 
       if (!frustum || frustum.IsSphereVisible(sphere))
       {
-        const strength = this.#activationStrength;
+        const strength = this._activationStrength;
         vec3.set(color, groupColor[0] * strength, groupColor[1] * strength, groupColor[2] * strength);
 
         for (const attributeModifier of this.attributeModifiers)
@@ -371,13 +371,13 @@ export class EveSmartLightQuad extends EveChildTransform
         quad.brightness[0] = this.brightness;
         quad.brightness[1] = 0;
 
-        quadRenderer.AddQuads(this.#effectKey, packQuadInstanceData(quad, statics.#quadBytes), 1);
+        quadRenderer.AddQuads(this._effectKey, packQuadInstanceData(quad, statics._quadBytes), 1);
       }
     }
   }
 
   /** Applies the softQuad-selected flare effect path (EveSmartLightQuad.cpp:25-33 and cpp:40-51). */
-  #ApplyEffectPath()
+  _ApplyEffectPath()
   {
     if (this.effect)
     {
@@ -393,7 +393,7 @@ export class EveSmartLightQuad extends EveChildTransform
   static QUAD_INSTANCE_SIZE = QUAD_INSTANCE_SIZE;
 
   /** TriVectorRotateMatrix (TriMath.cpp:81-94): basis-rows multiply, no translation. */
-  static #TransformNormal(out, direction, matrix)
+  static _TransformNormal(out, direction, matrix)
   {
     const x = direction[0];
     const y = direction[1];
@@ -406,7 +406,7 @@ export class EveSmartLightQuad extends EveChildTransform
 
   // m_quad-equivalent CPU record (SimplifiedQuad, EveSmartLightQuad.h:38-49) -
   // scratch reused across placements; the quad renderer copies on AddQuads.
-  static #quad = {
+  static _quad = {
     parentTransform0: vec4.create(),
     parentTransform1: vec4.create(),
     parentTransform2: vec4.create(),
@@ -417,22 +417,22 @@ export class EveSmartLightQuad extends EveChildTransform
     brightness: new Float32Array(2)
   };
 
-  static #quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
+  static _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
-  static #parentTransform = mat4.create();
+  static _parentTransform = mat4.create();
 
-  static #rotation = quat.create();
+  static _rotation = quat.create();
 
-  static #position = vec3.create();
+  static _position = vec3.create();
 
-  static #direction = vec3.create();
+  static _direction = vec3.create();
 
-  static #worldPosition = vec3.create();
+  static _worldPosition = vec3.create();
 
-  static #sphere = vec4.create();
+  static _sphere = vec4.create();
 
-  static #color = vec3.create();
+  static _color = vec3.create();
 
 }

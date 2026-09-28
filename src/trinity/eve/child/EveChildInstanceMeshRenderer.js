@@ -116,20 +116,20 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   _refreshStaticGeometry = false;
 
   /** Carbon m_totalObjectCount. */
-  #totalObjectCount = 0;
+  _totalObjectCount = 0;
 
   /** Carbon m_boundingSphere, kept in distribution-local space. */
-  #boundingSphere = vec4.create();
+  _boundingSphere = vec4.create();
 
   /** Subclass visibility state used by Carbon's synchronous upload gate. */
-  #placementVisible = false;
+  _placementVisible = false;
 
   /**
    * Keeps a skipped first-frame/count refresh armed until CPU bytes are
    * actually published. This JS adaptation records deferred publication
    * explicitly instead of consuming the count/refresh latch while invisible.
    */
-  #geometryDirty = false;
+  _geometryDirty = false;
 
   /** Distribution-local bound, valid whenever mesh and distribution exist. */
   @carbon.method
@@ -140,7 +140,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     {
       return false;
     }
-    vec4.copy(out, this.#boundingSphere);
+    vec4.copy(out, this._boundingSphere);
     return true;
   }
 
@@ -151,14 +151,14 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @impl.reason("Carbon reads the active renderer frustum through EveUpdateContext; the CPU sphere and threshold policy are unchanged.")
   IsVisible(updateContext)
   {
-    if (this.GetNumberOfEntities() === 0 || this.#boundingSphere[3] === 0)
+    if (this.GetNumberOfEntities() === 0 || this._boundingSphere[3] === 0)
     {
       return false;
     }
 
-    vec3.transformMat4(WORLD_POSITION, this.#boundingSphere, this.worldTransform);
+    vec3.transformMat4(WORLD_POSITION, this._boundingSphere, this.worldTransform);
     const frustum = updateContext.GetFrustum();
-    const radius = this.#boundingSphere[3];
+    const radius = this._boundingSphere[3];
     return frustum.IsSphereVisible(WORLD_POSITION, radius) &&
       frustum.GetPixelSizeAccrossEst(WORLD_POSITION, radius) >= updateContext.GetVisibilityThreshold();
   }
@@ -185,7 +185,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       return false;
     }
 
-    sph3.transformMat4(WORLD_SPHERE, this.#boundingSphere, this.worldTransform);
+    sph3.transformMat4(WORLD_SPHERE, this._boundingSphere, this.worldTransform);
     let sizeInShadow = 0;
     if (WORLD_SPHERE[3] <= 0)
     {
@@ -226,16 +226,16 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, parentLod)
   {
-    this.#placementVisible = this.IsVisible(updateContext);
-    if (this.#placementVisible)
+    this._placementVisible = this.IsVisible(updateContext);
+    if (this._placementVisible)
     {
-      this.#placementVisible = super.UpdateVisibility(updateContext, parentTransform, parentLod);
+      this._placementVisible = super.UpdateVisibility(updateContext, parentTransform, parentLod);
     }
     else
     {
       this._ResetVisibilityState();
     }
-    return this.#placementVisible;
+    return this._placementVisible;
   }
 
   /** Updates the distribution and republishes instance bytes when required. */
@@ -269,16 +269,16 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     if (missingResource)
     {
       this.ConfigureInstanceData();
-      this.#geometryDirty = true;
+      this._geometryDirty = true;
     }
     if (updateCount)
     {
-      this.#geometryDirty = true;
+      this._geometryDirty = true;
     }
 
     const alwaysUpdate = distribution.GetHasDynamicMovement() ||
       this.rotationConstraint !== RotationalConstraints.NONE;
-    if (this.#geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
+    if (this._geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
     {
       const published = this.UpdateGeometryResource(
         placements,
@@ -288,7 +288,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       this.UpdateBoundingSphere(placements, distribution);
       if (published)
       {
-        this.#geometryDirty = false;
+        this._geometryDirty = false;
         this._refreshStaticGeometry = false;
       }
     }
@@ -335,7 +335,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   RefreshStaticGeometry()
   {
     this._refreshStaticGeometry = true;
-    this.#geometryDirty = true;
+    this._geometryDirty = true;
   }
 
   /**
@@ -347,8 +347,8 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   @impl.reason("Carbon reads the global renderer camera, packs Tr2DirectInstanceData, and stores transposed auxiliary matrices; JS receives the active context, keeps auxiliary ray/filter transforms logical, and delegates row packing to Tr2RuntimeInstanceData.")
   UpdateGeometryResource(placements, size, renderContext)
   {
-    this.#totalObjectCount = Number(size) >>> 0;
-    if (this.#totalObjectCount === 0)
+    this._totalObjectCount = Number(size) >>> 0;
+    if (this._totalObjectCount === 0)
     {
       // The zero-count transition is logically handled without rewriting the
       // provider: old bytes remain retained but hidden by the zero count. A
@@ -356,7 +356,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       return true;
     }
     if (
-      !this.#placementVisible ||
+      !this._placementVisible ||
       !this.display ||
       this.currentScreenSize < this.minScreenSize
     )
@@ -368,13 +368,13 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     const instances = [];
     const logicalTransforms = [];
 
-    for (let index = 0; index < this.#totalObjectCount; index++)
+    for (let index = 0; index < this._totalObjectCount; index++)
     {
       const placement = placements[index];
 
       // Carbon row-vector: additionalRotation * initialRotation.
       quat.multiply(ROTATION, placement.initialRotation, placement.additionalRotation);
-      EveChildInstanceMeshRenderer.#RotateVectorQuaternion(
+      EveChildInstanceMeshRenderer._RotateVectorQuaternion(
         LOCAL_POSITION,
         this.staticOffsetTranslation,
         ROTATION
@@ -393,9 +393,9 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
         // Carbon RotationQuaternion intentionally reads the raw non-uniformly
         // scaled 3x3. mat4.getRotation normalizes scale and is not equivalent.
-        EveChildInstanceMeshRenderer.#RotationQuaternionRaw(ORIGIN_ROTATION, this.worldTransform);
+        EveChildInstanceMeshRenderer._RotationQuaternionRaw(ORIGIN_ROTATION, this.worldTransform);
         quat.invert(ORIGIN_ROTATION, ORIGIN_ROTATION);
-        EveChildInstanceMeshRenderer.#RotateVectorQuaternion(
+        EveChildInstanceMeshRenderer._RotateVectorQuaternion(
           OBJECT_DIRECTION,
           UP,
           ORIGIN_ROTATION
@@ -427,7 +427,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
         mat4.fromQuat(ROTATION_MATRIX, ROTATION);
         // Carbon row-vector: RotationMatrix(rotation) * worldTransform.
         mat4.multiply(ROW_ROTATION_MATRIX, this.worldTransform, ROTATION_MATRIX);
-        EveChildInstanceMeshRenderer.#TransformMatrixTimesDirection(
+        EveChildInstanceMeshRenderer._TransformMatrixTimesDirection(
           ROW_VECTOR,
           ROW_ROTATION_MATRIX,
           CAMERA_DIRECTION
@@ -438,7 +438,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
       }
       else
       {
-        EveChildInstanceMeshRenderer.#RotateVectorQuaternion(
+        EveChildInstanceMeshRenderer._RotateVectorQuaternion(
           MESH_DIRECTION,
           UP,
           ROTATION
@@ -496,7 +496,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     const center = distribution.GetPlacementDataCenter();
     let longestDistanceSquared = 0;
     let largestScale = 0;
-    for (let index = 0; index < this.#totalObjectCount; index++)
+    for (let index = 0; index < this._totalObjectCount; index++)
     {
       const placement = placements[index];
       const x = placement.initialTranslation[0] + placement.additionalTranslation[0] - center[0];
@@ -512,7 +512,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
     }
 
     vec4.set(
-      this.#boundingSphere,
+      this._boundingSphere,
       center[0],
       center[1],
       center[2],
@@ -543,7 +543,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Carbon TriVectorRotateQuaternion, including non-unit quaternion scale. */
-  static #RotateVectorQuaternion(out, value, quaternion)
+  static _RotateVectorQuaternion(out, value, quaternion)
   {
     const x = value[0];
     const y = value[1];
@@ -570,7 +570,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
   }
 
   /** Carbon CcpMath::RotationQuaternion(Matrix), including raw matrix scale. */
-  static #RotationQuaternionRaw(out, matrix)
+  static _RotationQuaternionRaw(out, matrix)
   {
     const trace = matrix[0] + matrix[5] + matrix[10] + 1;
     if (trace > 1)
@@ -607,7 +607,7 @@ export class EveChildInstanceMeshRenderer extends EveChildMesh
 
 
   /** Carbon's literal Matrix * Vector4(w=0) row-dot operation. */
-  static #TransformMatrixTimesDirection(out, matrix, direction)
+  static _TransformMatrixTimesDirection(out, matrix, direction)
   {
     const x = direction[0];
     const y = direction[1];

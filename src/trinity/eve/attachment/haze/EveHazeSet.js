@@ -67,20 +67,20 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @type.list("EveHazeSetLight")
   lights = [];
 
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_aabb - the union of every haze that rides the parent transform. */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** Carbon m_activationStrength (ctor 0, EveHazeSet.cpp:66) and
    * m_boosterGain (ctor `false` = 0.0f, cpp:67 - a float initialized with a
    * bool, verbatim quirk). Lights are BLACK until UpdateLights runs. */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
-  #boosterGain = 0;
+  _boosterGain = 0;
 
   /** m_vertexDeclHandle */
   _vertexDeclHandle = Tr2EffectStateManager.Unknown;
@@ -130,7 +130,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @impl.implemented
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
     this.ReleaseResources(0);
     this.PrepareResources();
     this.CreateBoundingBox();
@@ -258,7 +258,7 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @impl.implemented
   CreateBoundingBox()
   {
-    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.hazes);
+    CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, true, this.hazes);
   }
 
   /** Carbon EveHazeSet::UpdateVisibility (cpp:208-218). Unlike the other sets
@@ -269,9 +269,9 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
     const aabb = GetItemSetAabb(
-      EveHazeSet.#aabbScratch,
-      this.#staticBounds,
-      this.#boneBounds,
+      EveHazeSet._aabbScratch,
+      this._staticBounds,
+      this._boneBounds,
       bones,
       boneCount
     );
@@ -360,8 +360,8 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
-    this.#boosterGain = Number(boosterGain) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
+    this._boosterGain = Number(boosterGain) || 0;
   }
 
   /** Carbon EveHazeSet::GetLights (cpp:403-418): parentBrightness is set
@@ -373,17 +373,17 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   @impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")
   GetLights(lightManager)
   {
-    const features = EveHazeSet.#features;
+    const features = EveHazeSet._features;
     features.parentScale = 1;
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EveHazeSet.#lightRecord;
+    const record = EveHazeSet._lightRecord;
 
     for (const light of this.lights)
     {
-      features.parentBrightness = this.#activationStrength;
+      features.parentBrightness = this._activationStrength;
       if (light.boosterGainInfluence)
       {
-        features.parentBrightness *= this.#boosterGain;
+        features.parentBrightness *= this._boosterGain;
       }
       AsPerPointLightData(record, light.lightData, light.boneMatrix, features, quality);
       record.lightType = Tr2Light.POINT_LIGHT;
@@ -395,9 +395,9 @@ export class EveHazeSet extends IEveSpaceObjectAttachment
   }
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 }

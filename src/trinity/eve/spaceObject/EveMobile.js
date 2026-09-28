@@ -25,8 +25,8 @@ export class EveMobile extends EveSpaceObject2
   @type.uint32
   ActiveTurretCount = 0;
 
-  #turretSetsLocatorInfo = [];
-  #turretLocatorCountingInfo = new Map();
+  _turretSetsLocatorInfo = [];
+  _turretLocatorCountingInfo = new Map();
 
   /**
    * Runs the base initialization, then seeds the turret locator counters from
@@ -37,7 +37,7 @@ export class EveMobile extends EveSpaceObject2
   Initialize()
   {
     super.Initialize();
-    this.#resetTurretLocatorCounter(true);
+    this._resetTurretLocatorCounter(true);
     this.RebuildTurretPositions();
     return true;
   }
@@ -93,7 +93,7 @@ export class EveMobile extends EveSpaceObject2
   @impl.implemented
   GetTurretLocatorIndex(turretSetIndex, slotIndex)
   {
-    return this.#turretSetsLocatorInfo[turretSetIndex]?.locators?.[slotIndex]?.index ?? 0;
+    return this._turretSetsLocatorInfo[turretSetIndex]?.locators?.[slotIndex]?.index ?? 0;
   }
 
   /**
@@ -107,9 +107,9 @@ export class EveMobile extends EveSpaceObject2
   @impl.reason("Authored EveLocator2 transforms and optional animation-updater bone transforms replace Carbon's locator-type pointer surface.")
   RebuildTurretPositions()
   {
-    this.#turretSetsLocatorInfo.length = 0;
-    this.#resetTurretLocatorCounter(false);
-    const records = this.#locatorRecords();
+    this._turretSetsLocatorInfo.length = 0;
+    this._resetTurretLocatorCounter(false);
+    const records = this._locatorRecords();
     for (const turretSet of this.turretSets)
     {
       if (!turretSet) continue;
@@ -118,16 +118,16 @@ export class EveMobile extends EveSpaceObject2
       let locatorNumber = 0;
       if (!turretInName)
       {
-        let counting = this.#getTurretLocatorCountingInfo(name);
+        let counting = this._getTurretLocatorCountingInfo(name);
         if (!counting)
         {
           name = "locator_turret_";
-          counting = this.#getTurretLocatorCountingInfo(name);
+          counting = this._getTurretLocatorCountingInfo(name);
           turretInName = true;
         }
         if (!counting)
         {
-          this.#turretSetsLocatorInfo.push({ type: "none", locators: [] });
+          this._turretSetsLocatorInfo.push({ type: "none", locators: [] });
           continue;
         }
         locatorNumber = counting.current;
@@ -136,12 +136,12 @@ export class EveMobile extends EveSpaceObject2
           if (!turretInName)
           {
             name = "locator_turret_";
-            counting = this.#getTurretLocatorCountingInfo(name);
+            counting = this._getTurretLocatorCountingInfo(name);
             turretInName = true;
           }
           if (!counting || counting.current > counting.total)
           {
-            this.#turretSetsLocatorInfo.push({ type: "none", locators: [] });
+            this._turretSetsLocatorInfo.push({ type: "none", locators: [] });
             continue;
           }
           locatorNumber = counting.current;
@@ -156,13 +156,13 @@ export class EveMobile extends EveSpaceObject2
       for (let index = 0; index < matched.length && index < EveTurretSet.MAX_TURRETS_PER_SET; index++)
       {
         const record = matched[index];
-        const transform = this.#getLocatorRecordTransform(record, EveMobile.#locatorTransform);
+        const transform = this._getLocatorRecordTransform(record, EveMobile._locatorTransform);
         if (!transform) continue;
         turretSet.SetLocalTransform?.(index, transform);
         locatorInfo.locators.push(record);
       }
-      this.#turretSetsLocatorInfo.push(locatorInfo);
-      const counter = this.#turretLocatorCountingInfo.get(name);
+      this._turretSetsLocatorInfo.push(locatorInfo);
+      const counter = this._turretLocatorCountingInfo.get(name);
       if (counter) counter.currentCount++;
     }
     return true;
@@ -179,7 +179,7 @@ export class EveMobile extends EveSpaceObject2
   {
     let foundA = 0;
     let foundB = 0;
-    for (const record of this.#locatorRecords())
+    for (const record of this._locatorRecords())
     {
       const match = /^locator_turret_(\d+)([ab])$/.exec(record.name);
       if (!match) continue;
@@ -226,12 +226,12 @@ export class EveMobile extends EveSpaceObject2
       const turretSet = this.turretSets[setIndex];
       if (!turretSet) continue;
       if (turretSet.state > EveTurretSet.State.STATE_TARGETING) activeCount++;
-      const locatorInfo = this.#turretSetsLocatorInfo[setIndex];
+      const locatorInfo = this._turretSetsLocatorInfo[setIndex];
       if (locatorInfo?.type === "bone")
       {
         for (let turretIndex = 0; turretIndex < locatorInfo.locators.length; turretIndex++)
         {
-          const transform = this.#getLocatorRecordTransform(locatorInfo.locators[turretIndex], EveMobile.#locatorTransform);
+          const transform = this._getLocatorRecordTransform(locatorInfo.locators[turretIndex], EveMobile._locatorTransform);
           if (transform) turretSet.SetLocalTransform?.(turretIndex, transform);
         }
         turretSet.UpdateTurretTransforms?.(this.GetTurretTransform(turretSet.swarmID));
@@ -270,7 +270,7 @@ export class EveMobile extends EveSpaceObject2
    */
   @carbon.method
   @impl.implemented
-  UpdateVisibility(context, _parentTransform = EveMobile.#identity)
+  UpdateVisibility(context, _parentTransform = EveMobile._identity)
   {
     const visible = super.UpdateVisibility(context, _parentTransform);
     if (!this.display) return false;
@@ -308,10 +308,10 @@ export class EveMobile extends EveSpaceObject2
     if (result === false) return false;
     for (const turretSet of this.turretSets)
     {
-      if (turretSet?.GetLocalBoundingBox?.(EveMobile.#boundsMin, EveMobile.#boundsMax))
+      if (turretSet?.GetLocalBoundingBox?.(EveMobile._boundsMin, EveMobile._boundsMax))
       {
-        vec3.min(outMin, outMin, EveMobile.#boundsMin);
-        vec3.max(outMax, outMax, EveMobile.#boundsMax);
+        vec3.min(outMin, outMin, EveMobile._boundsMin);
+        vec3.max(outMax, outMax, EveMobile._boundsMax);
       }
     }
     return returnObject ? { min: outMin, max: outMax } : true;
@@ -371,18 +371,18 @@ export class EveMobile extends EveSpaceObject2
    * locators, resetting each prefix's running count and, when asked, recomputing
    * its total from the digit that follows the prefix.
    */
-  #resetTurretLocatorCounter(updateTotal)
+  _resetTurretLocatorCounter(updateTotal)
   {
-    for (const record of this.#locatorRecords())
+    for (const record of this._locatorRecords())
     {
       const separator = record.name.lastIndexOf("_");
       if (separator < 0) continue;
       const prefix = record.name.slice(0, separator + 1);
-      let info = this.#turretLocatorCountingInfo.get(prefix);
+      let info = this._turretLocatorCountingInfo.get(prefix);
       if (!info)
       {
         info = { currentCount: 0, totalCount: 0 };
-        this.#turretLocatorCountingInfo.set(prefix, info);
+        this._turretLocatorCountingInfo.set(prefix, info);
       }
       else info.currentCount = 0;
       if (updateTotal)
@@ -397,9 +397,9 @@ export class EveMobile extends EveSpaceObject2
    * Returns the next locator number to allocate for a name prefix together with
    * that prefix's total, or null when the prefix is unknown.
    */
-  #getTurretLocatorCountingInfo(name)
+  _getTurretLocatorCountingInfo(name)
   {
-    const info = this.#turretLocatorCountingInfo.get(name);
+    const info = this._turretLocatorCountingInfo.get(name);
     return info ? { current: info.currentCount + 1, total: info.totalCount } : null;
   }
 
@@ -408,7 +408,7 @@ export class EveMobile extends EveSpaceObject2
    * that turret binding searches; a bone whose name is already taken by a
    * locator is skipped.
    */
-  #locatorRecords()
+  _locatorRecords()
   {
     const records = [];
     for (let index = 0; index < this.locators.length; index++)
@@ -433,7 +433,7 @@ export class EveMobile extends EveSpaceObject2
    * animated bone world transform for bone records, the authored transform for
    * locator records - and returns null when neither is available.
    */
-  #getLocatorRecordTransform(record, out)
+  _getLocatorRecordTransform(record, out)
   {
     if (record.type === "bone")
     {
@@ -447,8 +447,8 @@ export class EveMobile extends EveSpaceObject2
     return value?.length === 16 ? mat4.copy(out, value) : null;
   }
 
-  static #identity = mat4.create();
-  static #locatorTransform = mat4.create();
-  static #boundsMin = vec3.create();
-  static #boundsMax = vec3.create();
+  static _identity = mat4.create();
+  static _locatorTransform = mat4.create();
+  static _boundsMin = vec3.create();
+  static _boundsMax = vec3.create();
 }

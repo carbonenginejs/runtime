@@ -94,19 +94,19 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @type.list("EveSpotlightLight")
   lights = [];
 
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_aabb - the union of every unskinned spotlight (cpp:311). */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** Carbon m_activationStrength / m_boosterGain (ctor 0 / 0,
    * EveSpotlightSet.cpp:90-91). Lights are BLACK until UpdateLights runs. */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
-  #boosterGain = 0;
+  _boosterGain = 0;
 
   /** m_coneEffectHash / m_glowEffectHash: the quad renderer's keys. */
   _coneEffectHash = 0;
@@ -132,7 +132,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @impl.implemented
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
 
     const n = this.spotlightItems.length;
     this._coneBuffer = new Uint8Array(n * CONE_POOL_VERTEX_SIZE);
@@ -159,7 +159,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
       return { transform: item.transform, boneIndex: item.boneIndex >>> 0, boosterGainInfluence: item.boosterGainInfluence ? 1 : 0 };
     });
 
-    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spotlightItems);
+    CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, this.skinned, this.spotlightItems);
   }
 
   /** Carbon Initialize (cpp:106-122): the effect keys, then the first Rebuild. */
@@ -336,8 +336,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   {
     return GetItemSetAabb(
       out,
-      this.#staticBounds,
-      this.#boneBounds,
+      this._staticBounds,
+      this._boneBounds,
       bones,
       this.skinned ? boneCount : 0
     );
@@ -350,7 +350,7 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
-    const aabb = this.GetAabb(EveSpotlightSet.#aabbScratch, bones, boneCount);
+    const aabb = this.GetAabb(EveSpotlightSet._aabbScratch, bones, boneCount);
     if (box3.isEmpty(aabb))
     {
       return false;
@@ -479,8 +479,8 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
-    this.#boosterGain = Number(boosterGain) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
+    this._boosterGain = Number(boosterGain) || 0;
   }
 
   /** Carbon EveSpotlightSet::GetLights (cpp:536-552): the haze pattern
@@ -494,17 +494,17 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   @impl.reason("Profile-index packing is by-reference per lightConversion.js conventions.")
   GetLights(lightManager)
   {
-    const features = EveSpotlightSet.#features;
+    const features = EveSpotlightSet._features;
     features.parentScale = 1;
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EveSpotlightSet.#lightRecord;
+    const record = EveSpotlightSet._lightRecord;
 
     for (const light of this.lights)
     {
-      features.parentBrightness = this.#activationStrength;
+      features.parentBrightness = this._activationStrength;
       if (light.boosterGainInfluence)
       {
-        features.parentBrightness *= this.#boosterGain;
+        features.parentBrightness *= this._boosterGain;
       }
       AsPerSpotLightData(record, light.lightData, light.boneMatrix, features, quality);
       record.lightType = Tr2Light.SPOT_LIGHT;
@@ -516,9 +516,9 @@ export class EveSpotlightSet extends IEveSpaceObjectAttachment
   }
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 }

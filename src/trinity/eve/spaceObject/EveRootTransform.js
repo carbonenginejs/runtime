@@ -46,7 +46,7 @@ export class EveRootTransform extends EveTransform
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
-  #lastUpdateMatrix = mat4.create();
+  _lastUpdateMatrix = mat4.create();
 
   /** Evaluates the detached ball/model curves, then advances inherited content. */
   @carbon.method
@@ -54,24 +54,24 @@ export class EveRootTransform extends EveTransform
   @impl.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveRootTransform.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
-    EveRootTransform.#UpdateCurve(this.translationCurve, time, EveRootTransform.#translation, EveRootTransform.#zero);
-    EveRootTransform.#UpdateCurve(this.rotationCurve, time, EveRootTransform.#rotation, EveRootTransform.#identityRotation);
+    const time = EveRootTransform._GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    EveRootTransform._UpdateCurve(this.translationCurve, time, EveRootTransform._translation, EveRootTransform._zero);
+    EveRootTransform._UpdateCurve(this.rotationCurve, time, EveRootTransform._rotation, EveRootTransform._identityRotation);
     if (this.modelRotationCurve)
     {
-      EveRootTransform.#UpdateCurve(this.modelRotationCurve, time, EveRootTransform.#modelRotation, EveRootTransform.#identityRotation);
+      EveRootTransform._UpdateCurve(this.modelRotationCurve, time, EveRootTransform._modelRotation, EveRootTransform._identityRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
-      quat.multiply(EveRootTransform.#rotation, EveRootTransform.#rotation, EveRootTransform.#modelRotation);
+      quat.multiply(EveRootTransform._rotation, EveRootTransform._rotation, EveRootTransform._modelRotation);
     }
 
-    mat4.fromRotationTranslation(this.#lastUpdateMatrix, EveRootTransform.#rotation, EveRootTransform.#translation);
+    mat4.fromRotationTranslation(this._lastUpdateMatrix, EveRootTransform._rotation, EveRootTransform._translation);
     if (this.modelTranslationCurve)
     {
-      EveRootTransform.#UpdateCurve(this.modelTranslationCurve, time, EveRootTransform.#modelTranslation, EveRootTransform.#zero);
-      vec3.transformMat4(EveRootTransform.#modelTranslation, EveRootTransform.#modelTranslation, this.#lastUpdateMatrix);
-      this.#lastUpdateMatrix[12] = EveRootTransform.#modelTranslation[0];
-      this.#lastUpdateMatrix[13] = EveRootTransform.#modelTranslation[1];
-      this.#lastUpdateMatrix[14] = EveRootTransform.#modelTranslation[2];
+      EveRootTransform._UpdateCurve(this.modelTranslationCurve, time, EveRootTransform._modelTranslation, EveRootTransform._zero);
+      vec3.transformMat4(EveRootTransform._modelTranslation, EveRootTransform._modelTranslation, this._lastUpdateMatrix);
+      this._lastUpdateMatrix[12] = EveRootTransform._modelTranslation[0];
+      this._lastUpdateMatrix[13] = EveRootTransform._modelTranslation[1];
+      this._lastUpdateMatrix[14] = EveRootTransform._modelTranslation[2];
     }
 
     super.UpdateSyncronous(updateContext);
@@ -100,7 +100,7 @@ export class EveRootTransform extends EveTransform
   @impl.implemented
   UpdateViewDependentData(context)
   {
-    return super.UpdateViewDependentData(context, this.#lastUpdateMatrix);
+    return super.UpdateViewDependentData(context, this._lastUpdateMatrix);
   }
 
   /** Root transforms have no damage locators. */
@@ -196,19 +196,19 @@ export class EveRootTransform extends EveTransform
   {
     this.GetDamageLocatorPosition(-1, true, out);
     if (!hit || !source) return out;
-    vec3.subtract(EveRootTransform.#missOffset, hit, out);
-    vec3.subtract(EveRootTransform.#missDirection, hit, source);
-    const directionLength = vec3.length(EveRootTransform.#missDirection);
-    if (directionLength) vec3.scale(EveRootTransform.#missDirection, EveRootTransform.#missDirection, 1 / directionLength);
+    vec3.subtract(EveRootTransform._missOffset, hit, out);
+    vec3.subtract(EveRootTransform._missDirection, hit, source);
+    const directionLength = vec3.length(EveRootTransform._missDirection);
+    if (directionLength) vec3.scale(EveRootTransform._missDirection, EveRootTransform._missDirection, 1 / directionLength);
     vec3.scaleAndAdd(
-      EveRootTransform.#missOffset,
-      EveRootTransform.#missOffset,
-      EveRootTransform.#missDirection,
-      -vec3.dot(EveRootTransform.#missDirection, EveRootTransform.#missOffset)
+      EveRootTransform._missOffset,
+      EveRootTransform._missOffset,
+      EveRootTransform._missDirection,
+      -vec3.dot(EveRootTransform._missDirection, EveRootTransform._missOffset)
     );
-    const offsetLength = vec3.length(EveRootTransform.#missOffset);
-    if (offsetLength) vec3.scale(EveRootTransform.#missOffset, EveRootTransform.#missOffset, 1 / offsetLength);
-    return vec3.scaleAndAdd(out, out, EveRootTransform.#missOffset, this.boundingSphereRadius * 1.125);
+    const offsetLength = vec3.length(EveRootTransform._missOffset);
+    if (offsetLength) vec3.scale(EveRootTransform._missOffset, EveRootTransform._missOffset, 1 / offsetLength);
+    return vec3.scaleAndAdd(out, out, EveRootTransform._missOffset, this.boundingSphereRadius * 1.125);
   }
 
   /** Returns the authored bounding-sphere radius. */
@@ -224,7 +224,7 @@ export class EveRootTransform extends EveTransform
    * and falling back to the named properties, and yields 0 when nothing supplies
    * it.
    */
-  static #GetContextValue(context, methodName, ...propertyNames)
+  static _GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
     if (typeof method === "function") return Number(method.call(context)) || 0;
@@ -243,7 +243,7 @@ export class EveRootTransform extends EveTransform
    * exposes, writing the fallback when there is no curve and copying back curves
    * that return a new array instead of filling out.
    */
-  static #UpdateCurve(curve, time, out, fallback)
+  static _UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)
     {
@@ -260,13 +260,13 @@ export class EveRootTransform extends EveTransform
     return out;
   }
 
-  static #zero = vec3.create();
-  static #translation = vec3.create();
-  static #modelTranslation = vec3.create();
-  static #missOffset = vec3.create();
-  static #missDirection = vec3.create();
-  static #identityRotation = quat.create();
-  static #rotation = quat.create();
-  static #modelRotation = quat.create();
+  static _zero = vec3.create();
+  static _translation = vec3.create();
+  static _modelTranslation = vec3.create();
+  static _missOffset = vec3.create();
+  static _missDirection = vec3.create();
+  static _identityRotation = quat.create();
+  static _rotation = quat.create();
+  static _modelRotation = quat.create();
 
 }

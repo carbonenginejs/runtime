@@ -111,26 +111,26 @@ export class EveSmartLightPointLight extends EveEntity
   lightType = Tr2Light.POINT_LIGHT;
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** m_activationStrength (float) - captured from the update params (EveSmartLightPointLight.h:49). */
-  #activationStrength = 1;
+  _activationStrength = 1;
 
   /** m_worldTransform (Matrix) - captured from the update params (EveSmartLightPointLight.h:45). */
-  #worldTransform = mat4.create();
+  _worldTransform = mat4.create();
 
   /** m_distribution (IEveDistributionMethodPtr) - captured from the update pass (EveSmartLightPointLight.h:52). */
-  #distribution = null;
+  _distribution = null;
 
   /** Last lightProfilePath the settle hook applied (JS-only change detection). */
 
   // Compat view over the flattened m_lightGroupData fields (2026-07-23
   // flatten decision); light-manager records and the pre-flatten hydration
   // shape keep reading a LightData-shaped object.
-  #lightDataView = null;
+  _lightDataView = null;
 
   /** IEveSmartLightGroup default: point-light groups have no async work. */
   @carbon.method
@@ -174,8 +174,8 @@ export class EveSmartLightPointLight extends EveEntity
    */
   get lightData()
   {
-    this.#lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
-    return this.#lightDataView;
+    this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
+    return this._lightDataView;
   }
 
   /**
@@ -202,8 +202,8 @@ export class EveSmartLightPointLight extends EveEntity
       this.customColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet,
-      this.#resolvedGroupColor
+      this._parentColorSet,
+      this._resolvedGroupColor
     );
   }
 
@@ -227,7 +227,7 @@ export class EveSmartLightPointLight extends EveEntity
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
     }
 
     for (const attributeModifier of this.attributeModifiers)
@@ -260,11 +260,11 @@ export class EveSmartLightPointLight extends EveEntity
     if (
       list === this.attributeModifiers &&
       Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#parentColorSet &&
+      this._parentColorSet &&
       value
     )
     {
-      value.SetInheritProperties(this.#parentColorSet);
+      value.SetInheritProperties(this._parentColorSet);
     }
   }
 
@@ -273,7 +273,7 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.implemented
   Initialize()
   {
-    this.#ResolveLightProfile();
+    this._ResolveLightProfile();
     return true;
   }
 
@@ -283,7 +283,7 @@ export class EveSmartLightPointLight extends EveEntity
    * m_lightProfilePath, L"lp", profile )`, the extension being its own
    * argument and the requested type deduced from the destination.
    */
-  #ResolveLightProfile()
+  _ResolveLightProfile()
   {
     if (!this.lightProfilePath)
     {
@@ -305,7 +305,7 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "lightProfilePath") this.#ResolveLightProfile();
+    if (propertyName === "lightProfilePath") this._ResolveLightProfile();
     return true;
   }
 
@@ -317,15 +317,15 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.implemented
   UpdateSyncronous(updateContext, params, distribution)
   {
-    this.#activationStrength = params?.activationStrength ?? 1;
-    mat4.copy(this.#worldTransform, params?.localToWorldTransform ?? EveSmartLightPointLight.#identity);
+    this._activationStrength = params?.activationStrength ?? 1;
+    mat4.copy(this._worldTransform, params?.localToWorldTransform ?? EveSmartLightPointLight._identity);
 
     for (const attributeModifier of this.attributeModifiers)
     {
       attributeModifier.UpdateSyncronous(updateContext, params, 1);
     }
 
-    this.#distribution = distribution ?? null;
+    this._distribution = distribution ?? null;
   }
 
   /** Registers this entity as a light owner (EveSmartLightPointLight.cpp:56-63). */
@@ -356,15 +356,15 @@ export class EveSmartLightPointLight extends EveEntity
   @impl.reason("Physical per-light packing (half floats, profile-index flag bits) moves to the renderer backend; Trinity submits the typed CPU record per placement.")
   GetLights(lightManager)
   {
-    if (!this.display || !this.#distribution)
+    if (!this.display || !this._distribution)
     {
       return;
     }
 
-    const placements = this.#distribution.GetPlacementData();
-    const size = Number(this.#distribution.GetNumberOfPlacements());
+    const placements = this._distribution.GetPlacementData();
+    const size = Number(this._distribution.GetNumberOfPlacements());
     const statics = EveSmartLightPointLight;
-    const m = this.#worldTransform;
+    const m = this._worldTransform;
 
     // Carbon: (|X| + |Y| + |Z|) / 3 of the world basis rows - single-matrix
     // reads, no composition (cpp:75-78).
@@ -374,10 +374,10 @@ export class EveSmartLightPointLight extends EveEntity
       Math.hypot(m[8], m[9], m[10])
     ) / 3;
     const groupColor = this.GetGroupColor();
-    const record = statics.#lightRecord;
-    const rotation = statics.#rotation;
-    const position = statics.#position;
-    const direction = statics.#direction;
+    const record = statics._lightRecord;
+    const rotation = statics._rotation;
+    const position = statics._position;
+    const direction = statics._direction;
 
     for (let index = 0; index < size; index++)
     {
@@ -412,15 +412,15 @@ export class EveSmartLightPointLight extends EveEntity
       vec3.transformQuat(direction, direction, rotation);
       vec3.scale(direction, direction, -1);
       // TriVectorRotateMatrix: rotate by the world basis only (no translation).
-      statics.#TransformNormal(direction, direction, m);
+      statics._TransformNormal(direction, direction, m);
       vec3.normalize(record.direction, direction);
 
-      const strength = this.brightness * this.#activationStrength;
+      const strength = this.brightness * this._activationStrength;
       vec3.set(record.color, groupColor[0] * strength, groupColor[1] * strength, groupColor[2] * strength);
 
       for (const attributeModifier of this.attributeModifiers)
       {
-        attributeModifier.ProcessAttributeModifier(record.color, placement, position, direction, this.#activationStrength);
+        attributeModifier.ProcessAttributeModifier(record.color, placement, position, direction, this._activationStrength);
       }
 
       record.outerAngle = 0;
@@ -455,7 +455,7 @@ export class EveSmartLightPointLight extends EveEntity
   static LightDataFields = ["flags", "innerRadius", "brightness", "radius"];
 
   /** TriVectorRotateMatrix (TriMath.cpp:81-94): basis-rows multiply, no translation. */
-  static #TransformNormal(out, direction, matrix)
+  static _TransformNormal(out, direction, matrix)
   {
     const x = direction[0];
     const y = direction[1];
@@ -466,17 +466,17 @@ export class EveSmartLightPointLight extends EveEntity
     return out;
   }
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
-  static #rotation = quat.create();
+  static _rotation = quat.create();
 
-  static #position = vec3.create();
+  static _position = vec3.create();
 
-  static #direction = vec3.create();
+  static _direction = vec3.create();
 
   // Scratch per-light record (Carbon Tr2LightManager::PerLightData,
   // Tr2LightManager.h:55-68) - reused across placements; the manager copies.
-  static #lightRecord = {
+  static _lightRecord = {
     owner: null,
     lightData: null,
     lightProfile: null,

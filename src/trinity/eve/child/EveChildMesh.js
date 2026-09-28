@@ -63,11 +63,11 @@ const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 @carbon.inherit(IListNotify)
 export class EveChildMesh extends EveChildTransform
 {
-  #isMorphsBaked = false;
+  _isMorphsBaked = false;
 
-  #morphAnimationBuffer = [];
+  _morphAnimationBuffer = [];
 
-  #morphAnimationOffsets = {
+  _morphAnimationOffsets = {
     runtimeEvaluatedOffset: 0,
     runtimeEvaluatedCount: 0,
     bakedOffset: 0,
@@ -78,42 +78,42 @@ export class EveChildMesh extends EveChildTransform
   // Carbon m_isVisible/m_instancesVisible/m_hasUpdated/m_activationStrength:
   // runtime-only frame state (never persisted; Carbon keeps them out of the
   // Blue surface too).
-  #isVisible = false;
+  _isVisible = false;
 
-  #instancesVisible = false;
+  _instancesVisible = false;
 
-  #hasUpdated = false;
+  _hasUpdated = false;
 
-  #activationStrength = 1;
+  _activationStrength = 1;
 
   /** m_vsData / m_psData - this child's PERSISTENT per-object record pair. */
-  #perObjectData = createChildPerObjectRecords();
+  _perObjectData = createChildPerObjectRecords();
 
   /** Carbon's local `lastWorldTransform` (cpp:912), kept across frames here. */
-  #lastWorldTransform = mat4.create();
+  _lastWorldTransform = mat4.create();
 
   // Carbon m_worldBoundingBox/m_worldBoundingSphere: world-space bounds
   // refreshed by UpdateAsyncronous; the sphere is invalid while radius <= 0.
-  #worldBoundsMin = vec3.create();
+  _worldBoundsMin = vec3.create();
 
-  #worldBoundsMax = vec3.create();
+  _worldBoundsMax = vec3.create();
 
-  #worldBoundsValid = false;
+  _worldBoundsValid = false;
 
-  #worldBoundingSphere = vec4.create();
+  _worldBoundingSphere = vec4.create();
 
   /** Identity rest-pose palette for skinned shaders without live animation. */
-  #restPoseBoneTransforms = null;
+  _restPoseBoneTransforms = null;
 
-  #parentOverlayEffects = null;
+  _parentOverlayEffects = null;
 
   /** m_parentData (IEveSpaceObject2::ParentData) - refreshed from the space
    * object parent in UpdateSyncronous and handed to the decals (cpp:1015, 450). */
-  #parentData = new IEveSpaceObject2ParentData();
+  _parentData = new IEveSpaceObject2ParentData();
 
-  #overlayAreaBlocks = [ [], [] ];
+  _overlayAreaBlocks = [ [], [] ];
 
-  #overlayAreaBlocksBuilt = false;
+  _overlayAreaBlocksBuilt = false;
 
   // Carbon sets these two programmatically from SOF (EveSOF.cpp:3971-3972);
   // CarbonEngineJS delivers built objects as documents, so both persist.
@@ -135,16 +135,16 @@ export class EveChildMesh extends EveChildTransform
    */
   _ResetVisibilityState()
   {
-    this.#isVisible = false;
+    this._isVisible = false;
     this.currentScreenSize = -1;
-    this.#instancesVisible = false;
+    this._instancesVisible = false;
     this.currentInstanceScreenSize = -1;
   }
 
   /** Carbon-derived classes read m_activationStrength after the mesh update. */
   _GetActivationStrength()
   {
-    return this.#activationStrength;
+    return this._activationStrength;
   }
 
   @edit.notify
@@ -473,8 +473,8 @@ export class EveChildMesh extends EveChildTransform
   SetMesh(mesh)
   {
     this.mesh = mesh ?? null;
-    this.#overlayAreaBlocksBuilt = false;
-    this.#restPoseBoneTransforms = null;
+    this._overlayAreaBlocksBuilt = false;
+    this._restPoseBoneTransforms = null;
   }
 
   /** Appends an overlay owned by this child; inherited hull overlays render after it. */
@@ -732,7 +732,7 @@ export class EveChildMesh extends EveChildTransform
   {
     const names = this.mesh?.GetMorphTargetNames?.();
 
-    this.#morphAnimationOffsets = {
+    this._morphAnimationOffsets = {
       runtimeEvaluatedOffset: 0,
       runtimeEvaluatedCount: 0,
       bakedOffset: 0,
@@ -742,7 +742,7 @@ export class EveChildMesh extends EveChildTransform
 
     if (!Array.isArray(names))
     {
-      this.#morphAnimationBuffer = [];
+      this._morphAnimationBuffer = [];
       return 0;
     }
 
@@ -791,12 +791,12 @@ export class EveChildMesh extends EveChildTransform
       }
     }
 
-    this.#morphAnimationBuffer = [ ...runtime, ...baked, ...inactive ];
-    this.#morphAnimationOffsets.runtimeEvaluatedCount = runtime.length;
-    this.#morphAnimationOffsets.bakedOffset = runtime.length;
-    this.#morphAnimationOffsets.bakedCount = baked.length;
-    this.#morphAnimationOffsets.allCount = runtime.length + baked.length;
-    return this.#morphAnimationOffsets.allCount;
+    this._morphAnimationBuffer = [ ...runtime, ...baked, ...inactive ];
+    this._morphAnimationOffsets.runtimeEvaluatedCount = runtime.length;
+    this._morphAnimationOffsets.bakedOffset = runtime.length;
+    this._morphAnimationOffsets.bakedCount = baked.length;
+    this._morphAnimationOffsets.allCount = runtime.length + baked.length;
+    return this._morphAnimationOffsets.allCount;
   }
 
   /** Returns detached active indexed morph records for the native filter. */
@@ -809,24 +809,24 @@ export class EveChildMesh extends EveChildTransform
 
     if (normalized === 2)
     {
-      count = this.#morphAnimationOffsets.allCount;
+      count = this._morphAnimationOffsets.allCount;
     }
     else if (normalized === 0)
     {
-      offset = this.#isMorphsBaked
-        ? this.#morphAnimationOffsets.runtimeEvaluatedOffset
+      offset = this._isMorphsBaked
+        ? this._morphAnimationOffsets.runtimeEvaluatedOffset
         : 0;
-      count = this.#isMorphsBaked
-        ? this.#morphAnimationOffsets.runtimeEvaluatedCount
-        : this.#morphAnimationOffsets.allCount;
+      count = this._isMorphsBaked
+        ? this._morphAnimationOffsets.runtimeEvaluatedCount
+        : this._morphAnimationOffsets.allCount;
     }
     else
     {
-      offset = this.#morphAnimationOffsets.bakedOffset;
-      count = this.#morphAnimationOffsets.bakedCount;
+      offset = this._morphAnimationOffsets.bakedOffset;
+      count = this._morphAnimationOffsets.bakedCount;
     }
 
-    return this.#morphAnimationBuffer.slice(offset, offset + count)
+    return this._morphAnimationBuffer.slice(offset, offset + count)
       .map(value => ({ index: value.index, weight: value.weight }));
   }
 
@@ -881,7 +881,7 @@ export class EveChildMesh extends EveChildTransform
     const parentTransform = params?.localToWorldTransform;
 
     // Carbon captures the OUTGOING transform before rebuilding (cpp:912).
-    mat4.copy(this.#lastWorldTransform, this.worldTransform);
+    mat4.copy(this._lastWorldTransform, this.worldTransform);
 
     if (parentTransform && parentTransform.length === 16)
     {
@@ -898,38 +898,38 @@ export class EveChildMesh extends EveChildTransform
     // Carbon cpp:932-954: inherit the hull's per-object values, rebase the clip
     // data by this child's translation, then stamp our own transforms.
     const parent = params?.spaceObjectParent ?? null;
-    inheritParentPerObjectData(this.#perObjectData, parent, this.translation);
+    inheritParentPerObjectData(this._perObjectData, parent, this.translation);
     // Carbon cpp:1015: the decals' parent data comes from the space object
     // parent, then is made relevant to this child below.
-    if (parent) parent.GetParentData(this.#parentData);
-    this.#parentOverlayEffects = this.inheritOverlayEffects && Array.isArray(parent?.overlayEffects)
+    if (parent) parent.GetParentData(this._parentData);
+    this._parentOverlayEffects = this.inheritOverlayEffects && Array.isArray(parent?.overlayEffects)
       ? parent.overlayEffects
       : null;
     if (parent && !this.inheritOverlayEffects)
     {
-      this.#perObjectData.vs.Set("clipData", [ 0, 0, 0, 0 ]);
-      this.#perObjectData.ps.Set("clipRadiusSq", [ 0 ]);
-      this.#perObjectData.ps.Set("clipRadius2Sq", [ 0 ]);
-      this.#perObjectData.ps.Set("clipSphereFactor", [ 0 ]);
-      this.#perObjectData.ps.Set("clipSphereFactor2", [ 0 ]);
+      this._perObjectData.vs.Set("clipData", [ 0, 0, 0, 0 ]);
+      this._perObjectData.ps.Set("clipRadiusSq", [ 0 ]);
+      this._perObjectData.ps.Set("clipRadius2Sq", [ 0 ]);
+      this._perObjectData.ps.Set("clipSphereFactor", [ 0 ]);
+      this._perObjectData.ps.Set("clipSphereFactor2", [ 0 ]);
       // cpp:1033-1036: the decals lose the inherited clip sphere too.
-      this.#parentData.clipRadiusSq = 0;
-      this.#parentData.clipRadius2Sq = 0;
-      this.#parentData.clipFactor = 0;
-      this.#parentData.clipFactor2 = 0;
+      this._parentData.clipRadiusSq = 0;
+      this._parentData.clipRadius2Sq = 0;
+      this._parentData.clipFactor = 0;
+      this._parentData.clipFactor2 = 0;
     }
     // cpp:1044: the decals are placed by this child's world transform.
-    if (parent) mat4.copy(this.#parentData.transform, this.worldTransform);
-    stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
+    if (parent) mat4.copy(this._parentData.transform, this.worldTransform);
+    stampChildTransforms(this._perObjectData, this.worldTransform, this._lastWorldTransform);
 
-    this.#activationStrength = Number(params?.activationStrength ?? 1);
+    this._activationStrength = Number(params?.activationStrength ?? 1);
     if (this.damageOverlay)
     {
       const flicker = this.damageOverlay.GetActivationStrength(updateContext);
-      this.#activationStrength *= flicker;
-      const shipData = this.#perObjectData.ps.Get("shipData");
-      this.#perObjectData.ps.Set("shipData", [ shipData[0], parent ? shipData[1] * flicker : flicker, shipData[2], shipData[3] ]);
-      this.#perObjectData.ps.Set("impactDataOffset", [ this.damageOverlay.GetDataTextureOffset() ]);
+      this._activationStrength *= flicker;
+      const shipData = this._perObjectData.ps.Get("shipData");
+      this._perObjectData.ps.Set("shipData", [ shipData[0], parent ? shipData[1] * flicker : flicker, shipData[2], shipData[3] ]);
+      this._perObjectData.ps.Set("impactDataOffset", [ this.damageOverlay.GetDataTextureOffset() ]);
     }
 
     // Carbon (cpp:962-970): attachments refresh their lights from the updated
@@ -938,7 +938,7 @@ export class EveChildMesh extends EveChildTransform
     for (const attachment of this.attachments)
     {
       if (!attachment) continue;
-      attachment.UpdateLights(this.worldTransform, null, 0, this.#activationStrength, 0);
+      attachment.UpdateLights(this.worldTransform, null, 0, this._activationStrength, 0);
     }
 
     this.UpdateMorphAnimationBuffer();
@@ -947,13 +947,13 @@ export class EveChildMesh extends EveChildTransform
     // enclosing it. The skinned GetBounds overload (animation transforms +
     // morph targets, cpp:977-982) awaits the animation seam; the maintained
     // Tr2MeshBase GetBounds supplies the static/material bounds meanwhile.
-    this.#worldBoundsValid = false;
+    this._worldBoundsValid = false;
     const bounds = this.mesh ? this.mesh.GetBounds() : null;
 
     if (bounds?.min && bounds?.max)
     {
-      this.#worldBoundsMin[0] = this.#worldBoundsMin[1] = this.#worldBoundsMin[2] = Infinity;
-      this.#worldBoundsMax[0] = this.#worldBoundsMax[1] = this.#worldBoundsMax[2] = -Infinity;
+      this._worldBoundsMin[0] = this._worldBoundsMin[1] = this._worldBoundsMin[2] = Infinity;
+      this._worldBoundsMax[0] = this._worldBoundsMax[1] = this._worldBoundsMax[2] = -Infinity;
       for (let index = 0; index < 8; index++)
       {
         vec3.set(
@@ -963,15 +963,15 @@ export class EveChildMesh extends EveChildTransform
           index & 4 ? bounds.max[2] : bounds.min[2]
         );
         vec3.transformMat4(BOX_CORNER_SCRATCH, BOX_CORNER_SCRATCH, this.worldTransform);
-        vec3.min(this.#worldBoundsMin, this.#worldBoundsMin, BOX_CORNER_SCRATCH);
-        vec3.max(this.#worldBoundsMax, this.#worldBoundsMax, BOX_CORNER_SCRATCH);
+        vec3.min(this._worldBoundsMin, this._worldBoundsMin, BOX_CORNER_SCRATCH);
+        vec3.max(this._worldBoundsMax, this._worldBoundsMax, BOX_CORNER_SCRATCH);
       }
-      this.#worldBoundsValid = true;
-      sph3.fromBounds(this.#worldBoundingSphere, this.#worldBoundsMin, this.#worldBoundsMax);
+      this._worldBoundsValid = true;
+      sph3.fromBounds(this._worldBoundingSphere, this._worldBoundsMin, this._worldBoundsMax);
     }
     else
     {
-      sph3.set(this.#worldBoundingSphere, 0, 0, 0, 0);
+      sph3.set(this._worldBoundingSphere, 0, 0, 0, 0);
     }
 
     if (this.damageOverlay)
@@ -988,14 +988,14 @@ export class EveChildMesh extends EveChildTransform
       this.damageOverlay.UpdateAsyncronous(updateContext, {
         boundingSphere: localSphere,
         estimatedPixelDiameter: Math.max(this.currentScreenSize, 0),
-        isInFrustum: this.#isVisible,
+        isInFrustum: this._isVisible,
         // Bind pose, not animated: the overlay seeds decals at the stable
         // authored position (Carbon EveChildMesh.cpp:1130, commit 98ee5e08).
         getDamageLocatorPositionOS: (index, out) => this.GetDamageLocatorBindPositionLocal(index, out)
       }, 0, false);
     }
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
     return this.worldTransform;
   }
 
@@ -1064,17 +1064,17 @@ export class EveChildMesh extends EveChildTransform
     const mesh = geometry.GetMeshData(meshIndex);
     const boneCount = Math.max(mesh?.boneBindings?.length ?? 0, 1);
 
-    if (!this.#restPoseBoneTransforms || this.#restPoseBoneTransforms.length !== boneCount * 12)
+    if (!this._restPoseBoneTransforms || this._restPoseBoneTransforms.length !== boneCount * 12)
     {
       const identity = Float4x3.fromMat4(mat4.create());
-      this.#restPoseBoneTransforms = new Float32Array(boneCount * 12);
+      this._restPoseBoneTransforms = new Float32Array(boneCount * 12);
       for (let index = 0; index < boneCount; index++)
       {
-        this.#restPoseBoneTransforms.set(identity, index * 12);
+        this._restPoseBoneTransforms.set(identity, index * 12);
       }
     }
 
-    return { bones: this.#restPoseBoneTransforms, boneCount };
+    return { bones: this._restPoseBoneTransforms, boneCount };
   }
 
   /**
@@ -1087,12 +1087,12 @@ export class EveChildMesh extends EveChildTransform
   @impl.reason("Bone-fed decal bounds still await the decal seam and the raytracing refresh is not ported yet; the LOD/screen-size math and the bone-fed attachment pass are ported.")
   UpdateVisibility(updateContext, _parentTransform = null, parentLod = Tr2Lod.TR2_LOD_HIGH)
   {
-    this.#isVisible = false;
+    this._isVisible = false;
     this.currentScreenSize = -1;
-    this.#instancesVisible = false;
+    this._instancesVisible = false;
     this.currentInstanceScreenSize = -1;
 
-    if (!this.#hasUpdated)
+    if (!this._hasUpdated)
     {
       return false;
     }
@@ -1102,7 +1102,7 @@ export class EveChildMesh extends EveChildTransform
 
     if (this.mesh)
     {
-      this.currentScreenSize = Number(frustum?.GetPixelSizeAccross?.(this.#worldBoundingSphere) ?? Infinity) || 0;
+      this.currentScreenSize = Number(frustum?.GetPixelSizeAccross?.(this._worldBoundingSphere) ?? Infinity) || 0;
 
       // Cached Tr2InstancedMesh downcast in Carbon (m_instancedMesh); the JS
       // port duck-types the instanced surface instead.
@@ -1143,22 +1143,22 @@ export class EveChildMesh extends EveChildTransform
         // Carbon uses std::numeric_limits<float>::max(); Infinity keeps the
         // instance gate permanently open the same way.
         this.currentInstanceScreenSize = Infinity;
-        this.mesh.UseWithScreenSize?.(this.currentScreenSize, this.#worldBoundingSphere[3]);
+        this.mesh.UseWithScreenSize?.(this.currentScreenSize, this._worldBoundingSphere[3]);
       }
 
       this.currentScreenSize *= invLodFactor;
       this.currentInstanceScreenSize *= invLodFactor;
 
-      BOX_QUERY_SCRATCH.min = this.#worldBoundsMin;
-      BOX_QUERY_SCRATCH.max = this.#worldBoundsMax;
-      const boxVisible = this.#worldBoundsValid &&
+      BOX_QUERY_SCRATCH.min = this._worldBoundsMin;
+      BOX_QUERY_SCRATCH.max = this._worldBoundsMax;
+      const boxVisible = this._worldBoundsValid &&
         (frustum?.IsBoxVisible ? !!frustum.IsBoxVisible(BOX_QUERY_SCRATCH) : true);
 
       if (boxVisible)
       {
-        this.#isVisible = parentLod >= this.lowestLodVisible && this.currentScreenSize >= this.minScreenSize;
-        this.#instancesVisible = this.#isVisible &&
-          this.currentInstanceScreenSize >= EveChildMesh.#instanceScreenSizeThreshold;
+        this._isVisible = parentLod >= this.lowestLodVisible && this.currentScreenSize >= this.minScreenSize;
+        this._instancesVisible = this._isVisible &&
+          this.currentInstanceScreenSize >= EveChildMesh._instanceScreenSizeThreshold;
       }
     }
 
@@ -1172,18 +1172,18 @@ export class EveChildMesh extends EveChildTransform
       attachment.UpdateVisibility(updateContext, this.worldTransform, bones, boneCount);
     }
 
-    if (this.#isVisible)
+    if (this._isVisible)
     {
       for (const decal of this.decals)
       {
         // Carbon (cpp:441-446) feeds animated bone matrices to the decal first
         // - skipped until the JS animation seam exists. Carbon passes
         // &m_parentData (cpp:450), refreshed in UpdateSyncronous.
-        decal?.UpdateVisibility(updateContext, this.#parentData);
+        decal?.UpdateVisibility(updateContext, this._parentData);
       }
     }
 
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /**
@@ -1198,7 +1198,7 @@ export class EveChildMesh extends EveChildTransform
   @impl.reason("The decal mesh cache is not ported yet (null placeholder); collection structure is ported.")
   GetRenderables(out = [])
   {
-    if (!this.#isVisible)
+    if (!this._isVisible)
     {
       return out;
     }
@@ -1207,7 +1207,7 @@ export class EveChildMesh extends EveChildTransform
 
     if (instanced)
     {
-      if (this.#instancesVisible)
+      if (this._instancesVisible)
       {
         out.push(this);
         if (this.decals.length && this.mesh.GetGeometryResource())
@@ -1241,9 +1241,9 @@ export class EveChildMesh extends EveChildTransform
   @impl.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
-    if (this.#worldBoundingSphere[3] > 0)
+    if (this._worldBoundingSphere[3] > 0)
     {
-      vec4.copy(out, this.#worldBoundingSphere);
+      vec4.copy(out, this._worldBoundingSphere);
       return true;
     }
     return false;
@@ -1261,7 +1261,7 @@ export class EveChildMesh extends EveChildTransform
       {
         if (overlay.HasTransparentArea()) return true;
       }
-      for (const overlay of this.#parentOverlayEffects ?? [])
+      for (const overlay of this._parentOverlayEffects ?? [])
       {
         if (overlay.HasTransparentArea()) return true;
       }
@@ -1276,13 +1276,13 @@ export class EveChildMesh extends EveChildTransform
   @impl.reason("Frustum and threshold arrive via the duck-typed update context instead of renderer state.")
   IsVisible(updateContext)
   {
-    if (this.#worldBoundingSphere[3] > 0)
+    if (this._worldBoundingSphere[3] > 0)
     {
       const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-      if (frustum?.IsSphereVisible(this.#worldBoundingSphere) !== false)
+      if (frustum?.IsSphereVisible(this._worldBoundingSphere) !== false)
       {
         const method = frustum?.GetPixelSizeAccrossEst ?? frustum?.GetPixelSizeAccross;
-        const size = Number(typeof method === "function" ? method.call(frustum, this.#worldBoundingSphere) : 0) || 0;
+        const size = Number(typeof method === "function" ? method.call(frustum, this._worldBoundingSphere) : 0) || 0;
         const threshold = Number(updateContext?.GetVisibilityThreshold?.() ?? updateContext?.visibilityThreshold) || 0;
         return size >= threshold;
       }
@@ -1319,7 +1319,7 @@ export class EveChildMesh extends EveChildTransform
         mat4.determinant(this.worldTransform) < 0) === true;
     }
 
-    if (this.#activationStrength !== 0)
+    if (this._activationStrength !== 0)
     {
       for (const attachment of this.attachments)
       {
@@ -1341,16 +1341,16 @@ export class EveChildMesh extends EveChildTransform
     const damageEffect = this.damageOverlay
       ? this.damageOverlay.GetArmorDamageShader(batchType)
       : null;
-    const parentOverlays = this.#parentOverlayEffects;
+    const parentOverlays = this._parentOverlayEffects;
     if (!this.mesh || (!damageEffect && !this.overlayEffects.length && !parentOverlays?.length)) return false;
 
     const geometry = this.mesh.GetGeometryResource();
     if (!geometry || geometry.IsGood() === false) return false;
 
-    if (!this.#overlayAreaBlocksBuilt)
+    if (!this._overlayAreaBlocksBuilt)
     {
-      CollectOverlayAreaBlocks(this.mesh, this.#overlayAreaBlocks);
-      this.#overlayAreaBlocksBuilt = true;
+      CollectOverlayAreaBlocks(this.mesh, this._overlayAreaBlocks);
+      this._overlayAreaBlocksBuilt = true;
     }
 
     const meshIndex = this.mesh.GetMeshIndex();
@@ -1361,19 +1361,19 @@ export class EveChildMesh extends EveChildTransform
     if (damageEffect)
     {
       committed = EmitDamageOverlayBatches(
-        batches, perObjectData, damageEffect, this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+        batches, perObjectData, damageEffect, this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }
     if (this.overlayEffects.length)
     {
       committed = EmitOverlayBatches(
         batches, perObjectData, batchType, this.overlayEffects,
-        this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+        this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }
     if (parentOverlays?.length)
     {
       committed = EmitOverlayBatches(
         batches, perObjectData, batchType, parentOverlays,
-        this.#overlayAreaBlocks, geometry, meshIndex, lod) || committed;
+        this._overlayAreaBlocks, geometry, meshIndex, lod) || committed;
     }
     return committed;
   }
@@ -1386,7 +1386,7 @@ export class EveChildMesh extends EveChildTransform
   @impl.implemented
   GetShadowBatches(batches, perObjectData, shadowPixelSize = Infinity)
   {
-    if (this.display && this.mesh && this.#hasUpdated)
+    if (this.display && this.mesh && this._hasUpdated)
     {
       return this.mesh.GetBatches(
         batches,
@@ -1436,17 +1436,17 @@ export class EveChildMesh extends EveChildTransform
   @impl.reason("GPU ring-buffer offsets have no CPU derivation and keep their defaults; every CPU-known field is filled.")
   GetPerObjectData(_accumulator = null)
   {
-    this.#perObjectData.vs.Set("activeMorphTargetsCount", [ 0 ]);
+    this._perObjectData.vs.Set("activeMorphTargetsCount", [ 0 ]);
     // Carbon seeds the baked-morph offset with UINT32_MAX, not zero.
-    this.#perObjectData.vs.Set("bakedMorphTargetVertexDataOffset", [ 0xffffffff ]);
+    this._perObjectData.vs.Set("bakedMorphTargetVertexDataOffset", [ 0xffffffff ]);
 
     if (this.animationUpdater && this.animationUpdater.IsInitialized())
     {
       const boneCount = this.animationUpdater.GetMeshBoneCount();
-      this.#perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
+      this._perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
     }
 
-    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
+    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
 
   /**
@@ -1466,7 +1466,7 @@ export class EveChildMesh extends EveChildTransform
   @impl.reason("Overload dispatch by argument shape and a length-1 out array replace C++ overloading and the float& out-param; the shadow math is ported.")
   IsCastingShadow(cameraFrustum, shadowFrustumOrPosition, renderReasonOrRadius, sizeInShadowOutOrRenderReason = null)
   {
-    if (!this.display || !this.castShadow || !this.#hasUpdated)
+    if (!this.display || !this.castShadow || !this._hasUpdated)
     {
       return false;
     }
@@ -1510,15 +1510,15 @@ export class EveChildMesh extends EveChildTransform
       sizeOut[0] = 0;
     }
 
-    if (this.#worldBoundingSphere[3] <= 0)
+    if (this._worldBoundingSphere[3] <= 0)
     {
       return false;
     }
 
     let sizeInShadow = 0;
-    if (shadowFrustum?.IsVisible?.(cameraFrustum, this.#worldBoundingSphere))
+    if (shadowFrustum?.IsVisible?.(cameraFrustum, this._worldBoundingSphere))
     {
-      let sphere = this.#worldBoundingSphere;
+      let sphere = this._worldBoundingSphere;
       if (typeof this.mesh?.GetInstanceBoundsClosestToPoint === "function")
       {
         // Carbon: TransformCoord(shadowFrustum.GetEyePos(), Inverse(
@@ -1640,7 +1640,7 @@ export class EveChildMesh extends EveChildTransform
     for (const light of this.lights)
     {
       light?.AddLight(lightManager, this.worldTransform, 1, bones, boneCount);
-      light?.SetBrightnessMultiplier?.(this.#activationStrength);
+      light?.SetBrightnessMultiplier?.(this._activationStrength);
     }
   }
 
@@ -1933,7 +1933,7 @@ export class EveChildMesh extends EveChildTransform
   }
 
   // Carbon s_instanceScreenSizeThreshold (EveChildMesh.cpp:22).
-  static #instanceScreenSizeThreshold = 1;
+  static _instanceScreenSizeThreshold = 1;
 
   static Origin = Origin;
 

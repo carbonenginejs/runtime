@@ -120,22 +120,22 @@ export class EveCircle extends IEveLineSetPath
   @type.float32
   animValue = 0;
 
-  #points = [];
+  _points = [];
 
-  #parentTransform = mat4.create();
+  _parentTransform = mat4.create();
 
-  #boundingSphere = vec4.create();
+  _boundingSphere = vec4.create();
 
-  #meshSize = 0;
+  _meshSize = 0;
 
-  #regeneratePoints = true;
+  _regeneratePoints = true;
 
   /** Marks the point chain dirty so the first update regenerates it. */
   @carbon.method
   @impl.implemented
   Initialize()
   {
-    this.#regeneratePoints = true;
+    this._regeneratePoints = true;
     return true;
   }
 
@@ -151,7 +151,7 @@ export class EveCircle extends IEveLineSetPath
     if (propertyName === "completeness") this.completeness = Math.min(2, Math.max(0, this.completeness));
     if (propertyName === "numSegments") this.numSegments = Math.min(128, Math.max(1, this.numSegments));
     if (propertyName === "startPoint") this.startPoint %= 1;
-    this.#regeneratePoints = true;
+    this._regeneratePoints = true;
     return true;
   }
 
@@ -166,9 +166,9 @@ export class EveCircle extends IEveLineSetPath
   {
     if (this.movementSpeed !== 0)
     {
-      this.animValue = (this.animValue + this.movementSpeed * EveCircle.#getDeltaT(updateContext)) % 1;
+      this.animValue = (this.animValue + this.movementSpeed * EveCircle._getDeltaT(updateContext)) % 1;
     }
-    if (!this.#regeneratePoints)
+    if (!this._regeneratePoints)
     {
       return false;
     }
@@ -185,19 +185,19 @@ export class EveCircle extends IEveLineSetPath
   @impl.adapted
   GeneratePoints(parentTransform = mat4.create())
   {
-    const segmentCount = this.#getSegmentCount();
+    const segmentCount = this._getSegmentCount();
     if (segmentCount <= 1)
     {
       return;
     }
-    if (!mat4.exactEquals(parentTransform, EveCircle.#identityMatrix))
+    if (!mat4.exactEquals(parentTransform, EveCircle._identityMatrix))
     {
       this.UpdateTransform(parentTransform);
-      mat4.copy(this.#parentTransform, parentTransform);
+      mat4.copy(this._parentTransform, parentTransform);
     }
     else
     {
-      this.UpdateTransform(this.#parentTransform);
+      this.UpdateTransform(this._parentTransform);
     }
     const totalArc = (1 - Math.abs(this.completeness - 1)) * Math.PI * 2;
     const startOffset = this.startPoint * Math.PI * 2 + Math.max(this.completeness - 1, 0) * Math.PI * 2 + totalArc / (2 * segmentCount);
@@ -216,8 +216,8 @@ export class EveCircle extends IEveLineSetPath
       }
       points.push(vec3.fromValues(cos * this.circleRadius, y, sin * this.circleRadius));
     }
-    this.#points = points;
-    this.#regeneratePoints = false;
+    this._points = points;
+    this._regeneratePoints = false;
   }
 
   /** Number of generated points; zero until GeneratePoints has run. */
@@ -225,7 +225,7 @@ export class EveCircle extends IEveLineSetPath
   @impl.adapted
   GetPointCount()
   {
-    return this.#points.length;
+    return this._points.length;
   }
 
   /**
@@ -238,13 +238,13 @@ export class EveCircle extends IEveLineSetPath
   {
     if (meshSize !== 0)
     {
-      this.#meshSize = meshSize;
+      this._meshSize = meshSize;
     }
-    else if (this.#meshSize !== 0)
+    else if (this._meshSize !== 0)
     {
-      meshSize = this.#meshSize;
+      meshSize = this._meshSize;
     }
-    vec4.set(this.#boundingSphere, 0, 0, 0, this.circleRadius + this.lineWidth + meshSize);
+    vec4.set(this._boundingSphere, 0, 0, 0, this.circleRadius + this.lineWidth + meshSize);
   }
 
   /**
@@ -256,7 +256,7 @@ export class EveCircle extends IEveLineSetPath
   @impl.adapted
   GetBoundingSphere(out = vec4.create())
   {
-    return sph3.transformMat4(out, this.#boundingSphere, this.localTransform);
+    return sph3.transformMat4(out, this._boundingSphere, this.localTransform);
   }
 
   /**
@@ -275,7 +275,7 @@ export class EveCircle extends IEveLineSetPath
     this.isVisible = false;
     // Carbon (row-vector): m_localTransform * systemLocation - local first.
     const transform = mat4.multiply(mat4.create(), systemLocation, this.localTransform);
-    const sphere = sph3.transformMat4(vec4.create(), this.#boundingSphere, transform);
+    const sphere = sph3.transformMat4(vec4.create(), this._boundingSphere, transform);
     this.isVisible = !!frustum.IsSphereVisible(sphere);
   }
 
@@ -292,12 +292,12 @@ export class EveCircle extends IEveLineSetPath
     {
       return;
     }
-    if (this.#regeneratePoints)
+    if (this._regeneratePoints)
     {
       this.GeneratePoints();
       this.CalculateBoundingSphere();
     }
-    const segmentCount = Math.min(this.#getSegmentCount(), this.#points.length);
+    const segmentCount = Math.min(this._getSegmentCount(), this._points.length);
     for (let i = 0; i < segmentCount; i++)
     {
       const next = (i + 1) % segmentCount;
@@ -305,8 +305,8 @@ export class EveCircle extends IEveLineSetPath
       {
         continue;
       }
-      const start = EveCircle.#transformPoint(this.#points[i], this.localTransform);
-      const end = EveCircle.#transformPoint(this.#points[next], this.localTransform);
+      const start = EveCircle._transformPoint(this._points[i], this.localTransform);
+      const end = EveCircle._transformPoint(this._points[next], this.localTransform);
       const id = lineSet.AddStraightLine(start, color, end, color, this.lineWidth);
       if (scrollSpeed !== 0)
       {
@@ -326,18 +326,18 @@ export class EveCircle extends IEveLineSetPath
    * Rounded segment count, scaled down by how far completeness is from a full
    * sweep when scaleSegmentsByCompleteness is set.
    */
-  #getSegmentCount()
+  _getSegmentCount()
   {
     const completenessScale = 1 - Math.abs(this.completeness - 1);
     return Math.trunc(this.scaleSegmentsByCompleteness ? (this.numSegments + 0.5) * completenessScale : this.numSegments + 0.5);
   }
 
-  static #identityMatrix = mat4.create();
+  static _identityMatrix = mat4.create();
 
   /**
    * Finite frame delta read from the required update-context contract.
    */
-  static #getDeltaT(context)
+  static _getDeltaT(context)
   {
     const value = context.GetDeltaT();
     return Number.isFinite(Number(value)) ? Number(value) : 0;
@@ -347,7 +347,7 @@ export class EveCircle extends IEveLineSetPath
    * Returns a newly allocated vector holding the point moved through the given
    * transform.
    */
-  static #transformPoint(point, transform)
+  static _transformPoint(point, transform)
   {
     return vec3.transformMat4(vec3.create(), point, transform);
   }
