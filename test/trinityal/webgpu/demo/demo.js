@@ -4127,7 +4127,9 @@ export async function RunDemo(canvas)
       if (name === "off") return;
       try
       {
-        const lensflare = CjsBlackFormat.read(await ResourceBytes(`fisfx/lensflare/${name}.black`), { emit: "runtime" }).root;
+        // Carbon's path: the flare is an object file, so LoadObject - a new
+        // object from the manager's cached builder (BlueResMan::LoadObject).
+        const lensflare = await blue.resMan.LoadObject(`res:/fisfx/lensflare/${name}.black`);
         if (flare.current !== name) return;
         perFrameScene.lensflares.push(lensflare);
         console.log(`lens flare res:/fisfx/lensflare/${name}.black: ${lensflare.constructor.name}, ${lensflare.occluders.length} occluder(s)`);
