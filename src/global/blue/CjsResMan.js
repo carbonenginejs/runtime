@@ -3,7 +3,7 @@
 // Consumer interface: blue/include/IBlueResMan.h (see IBlueResMan.js).
 import { assertNonNegativeInteger, assertNonNegativeNumber, assertPositiveInteger } from "#utils/validation";
 import { CjsMotherLode, getMotherLodeKey } from "./CjsMotherLode.js";
-import { CjsSchema, compose } from "#schema";
+import { CjsSchema, compose, impl } from "#schema";
 import { IBlueResMan } from "./IBlueResMan.js";
 import { IBlueEvents } from "./IBlueEvents.js";
 import { hasOwnThen } from "#utils/object";
@@ -1271,11 +1271,38 @@ export class CjsResMan
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Promised output, semantic resource, source provenance, and reload settings.
+   * Adapted: for an object file (.black/.red, a RegisterObjectBuilder
+   * extension) Carbon logs "No factory found for extension" and returns null
+   * (BlueResMan.cpp:269-272); ours throws, because an object file through
+   * GetResource is always a caller bug.
+   *
    * @returns {CjsResource} Canonical handle, or an off-registry reload candidate.
-   * @throws {TypeError} If the path, identity settings, or resource constructor are invalid.
+   * @throws {TypeError} If the path is an object file, or the path, identity settings, or resource constructor are invalid.
    * @throws {Error} If MotherLode is inactive or displaced-resource cleanup fails.
    */
   GetResource(path, options = {}) {
+    // AN OBJECT FILE IS NOT A RESOURCE. Carbon's GetResource finds a resource
+    // factory by extension and has none for .black or .red ("No factory found
+    // for extension", BlueResMan.cpp:266-273);
+    // those are LoadObject's, which builds a new object per call. Handing out
+    // the cached builder would let a caller hold what every load builds from.
+    if (typeof path === "string" && path
+      && this._objectBuilderLoaders.has(this.GetObjectLoader(options?.ext || getResourceExtension(normalizeResourcePath(path)))))
+    {
+      throw new TypeError(`CjsResMan.GetResource: ${path} is an object file; load it with LoadObject.`);
+    }
+    return this._GetResource(path, options);
+  }
+
+  /**
+   * GetResource's body, also the handle the manager's own object path uses
+   * for an object file (the cached builder's resource).
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} [options={}] Resource identity and loader options.
+   * @returns {CjsResource} The canonical resource.
+   */
+  _GetResource(path, options = {}) {
     // An invalid call throws; a resource that cannot be fetched is recorded on
     // the resource instead (_RequestResource).
     if (typeof path !== "string" || !path)
@@ -1456,7 +1483,7 @@ export class CjsResMan
    */
   _GetObject(path, options, build)
   {
-    const resource = this.GetResource(path, options);
+    const resource = this._GetResource(path, options);
     const operationOptions = mergeResourceLoaderOptions(
       resource.GetObjectRequest() || {},
       options
@@ -4993,4 +5020,5 @@ function createExtensionTargetError(resource, message, cause = null)
 // Ours is modelled on BlueResMan, not a replica: its browser work (workers,
 // fetch, routes) diverges too far to carry Carbon's name.
 CjsSchema.carbon.inherit(IBlueResMan, IBlueEvents)(CjsResMan);
+CjsSchema.decorateMethod(CjsResMan, "GetResource", impl.adapted);
 CjsSchema.define(CjsResMan, { className: "CjsResMan", modelledOn: "BlueResMan" });

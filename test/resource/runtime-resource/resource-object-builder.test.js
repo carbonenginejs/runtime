@@ -200,8 +200,9 @@ test("an object builder is parsed once and builds a new object for every caller"
   assert.equal(counter.reads, 1);
   assert.equal(counter.builders, 1);
   assert.equal(counter.objects, 3);
-  // The payload is the builder, never an object a caller holds.
-  const payload = resMan.GetResource(path).GetPayload();
+  // The payload is the builder, never an object a caller holds (the manager's
+  // own handle: GetResource refuses an object file).
+  const payload = resMan._GetResource(path).GetPayload();
   assert.equal(typeof payload.CreateObject, "function");
   assert.notEqual(payload, first);
 });
@@ -225,9 +226,20 @@ test("a released builder payload is read and parsed again on the next load", asy
   const { resMan, counter } = builderManager();
   const path = "res:/data/lease.obj";
   await resMan.LoadObject(path);
-  resMan.GetResource(path).ReleasePayload();
+  resMan._GetResource(path).ReleasePayload();
   const rebuilt = await resMan.LoadObject(path);
   assert.equal(rebuilt.read, 2);
   assert.equal(counter.reads, 2);
   assert.equal(counter.builders, 2);
+});
+
+test("GetResource refuses an object file; a routed or plain extension still answers", () =>
+{
+  const { resMan } = builderManager();
+  assert.throws(() => resMan.GetResource("res:/data/refused.obj"), /is an object file; load it with LoadObject/u);
+  assert.throws(() => resMan.GetResource("RES:/Data/Refused.OBJ"), /is an object file/u);
+  // Negative control: a Target route and an unregistered extension are resources.
+  const { resMan: routed } = graphManager();
+  assert.equal(typeof routed.GetResource("res:/data/a.graph").GetPath, "function");
+  assert.equal(typeof resMan.GetResource("res:/data/plain.bin").GetPath, "function");
 });
