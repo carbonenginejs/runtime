@@ -34,10 +34,13 @@ function fakeDevice()
   return { device, calls };
 }
 
-/** A render context AL stand-in: Create only asks it for validity and the device. */
+/**
+ * A render context AL stand-in: Create asks it for validity and the device, a
+ * WRITE_OFTEN map for the frame being recorded (`frame`, advanced by tests).
+ */
 function contextFor(webgpu, valid = true)
 {
-  return { IsValid: () => valid, GetWebgpu: () => webgpu };
+  return { IsValid: () => valid, GetWebgpu: () => webgpu, frame: 1, GetRecordingFrameNumber() { return this.frame; } };
 }
 
 function deviceAndContext()
@@ -122,6 +125,42 @@ test("the shadow is retained across maps, so a partial rewrite keeps the rest", 
   assert.equal(uploaded.length, 2);
   assert.equal(uploaded[1][3][0], 3);
   assert.equal(uploaded[1][3][50], 2);
+});
+
+test("a WRITE_OFTEN buffer mapped twice in one frame renames, and reuses its storage the next frame", () =>
+{
+  const { fake, context } = deviceAndContext();
+  const buffer = new CjsWebgpuBufferAL();
+  buffer.Create(quadDescription(), null, context);
+
+  // The frame's draws run after every write in it, so a draw recorded between
+  // two maps must keep the first storage: the nebula's camera-space quad was
+  // drawn with the tonemap's screen quad when both shared one GPUBuffer.
+  buffer.MapForWriting(context).data[0] = 1;
+  buffer.UnmapForWriting();
+  const first = buffer.GetDeviceBuffer();
+
+  buffer.MapForWriting(context).data[0] = 2;
+  buffer.UnmapForWriting();
+  const second = buffer.GetDeviceBuffer();
+
+  assert.notEqual(second, first);
+  const uploaded = writes(fake.calls);
+  assert.equal(uploaded[0][1], first);
+  assert.equal(uploaded[1][1], second);
+  assert.equal(uploaded[1][3][0], 2);
+
+  // Next frame: its writes queue after this frame's submit, so the first
+  // storage is free again and nothing new is created.
+  context.frame += 1;
+  const created = fake.calls.filter(call => call[0] === "createBuffer").length;
+  buffer.MapForWriting(context);
+  buffer.UnmapForWriting();
+  assert.equal(buffer.GetDeviceBuffer(), first);
+  assert.equal(fake.calls.filter(call => call[0] === "createBuffer").length, created);
+
+  buffer.Destroy();
+  assert.equal(fake.calls.filter(call => call[0] === "destroyBuffer").length, 2);
 });
 
 test("a nested map is refused rather than silently uploading twice", () =>

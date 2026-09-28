@@ -18,10 +18,17 @@
 // STATIC and Metal plain WRITE instead hand back a CPU scratch and upload the
 // whole buffer on unmap.
 //
-// This is the second family, because it is the one WebGPU can express.
-// `queue.writeBuffer` is already ordered on the queue, so the upload lands
-// before any subsequently submitted draw reads it - which gives the guarantee
-// the renaming backends buy with renaming, without needing to rename.
+// This is the second family for plain WRITE. For WRITE_OFTEN it is not enough,
+// and the buffer renames as the first family does. `queue.writeBuffer` lands
+// before the next SUBMIT, but a frame's draws are recorded into one command
+// buffer submitted at EndScene - so every write in the frame lands before ANY
+// of its draws run, and all of them read the last one. The blitter's quad
+// (WRITE_OFTEN, `Tr2Blitter.cpp:181`) showed it: the nebula's camera-space
+// quad was drawn with the tonemap's screen quad, off screen. A second map of
+// a WRITE_OFTEN buffer in one frame therefore moves to fresh storage, as
+// DX11's WRITE_DISCARD does (`Tr2BufferALDx11.cpp:419-429`); see
+// `MapForWriting`. Storage is reused from the next frame on, which is safe
+// because that frame's writes are queued after this frame's submit.
 //
 // The shadow is RETAINED, not reallocated per map - which is DX11's behaviour
 // specifically, not the family's. DX11 allocates `m_writeLockMemory` once and
@@ -99,8 +106,23 @@ export class CjsWebgpuBufferAL
   /** The device that owns the buffer, for writes and destruction. */
   _webgpu = null;
 
-  /** The opaque `CreateDeviceBuffer` handle. */
+  /** The opaque `CreateDeviceBuffer` handle: the storage draws bind now. */
   _handle = null;
+
+  /** Every storage a WRITE_OFTEN buffer has renamed through; `_handle` is one of them. */
+  _handles = [];
+
+  /** Which of `_handles` is current. */
+  _handleIndex = 0;
+
+  /** The `GPUBufferUsage` mask every renamed storage is created with. */
+  _usageMask = 0;
+
+  /** The AL context, whose recording frame number decides when to rename. */
+  _al = null;
+
+  /** The recording frame of the last map, or -1. */
+  _mappedFrame = -1;
 
   /** The retained CPU shadow; see the head comment on why it is retained. */
   _shadow = null;
@@ -162,6 +184,11 @@ export class CjsWebgpuBufferAL
     const mask = gpuMask | cpuReadUsage(desc.cpuUsage, webgpu.GetBufferUsage());
 
     this._handle = webgpu.CreateDeviceBuffer({ label: desc.label ?? "Tr2BufferAL", size, usage: mask });
+    this._handles = [ this._handle ];
+    this._handleIndex = 0;
+    this._usageMask = mask;
+    this._al = al;
+    this._mappedFrame = -1;
     this._webgpu = webgpu;
     this._desc = desc;
     this._shadow = new Uint8Array(this._handle.size);
@@ -218,9 +245,40 @@ export class CjsWebgpuBufferAL
     // nested map here would upload twice and hide which write won.
     if (this._mapped) return { result: ALResult.E_INVALIDCALL, data: null };
 
+    if (HasFlag(this._desc.cpuUsage, Tr2CpuUsage.WRITE_OFTEN)) this._Rename();
+
     this._mapped = true;
 
     return { result: ALResult.S_OK, data: this._shadow };
+  }
+
+  /**
+   * WRITE_OFTEN renaming: the first map in a frame writes the first storage,
+   * each later map in the same frame the next one, created on demand. Draws
+   * already recorded keep the storage they bound (`GetDeviceBuffer` is read at
+   * the draw).
+   */
+  _Rename()
+  {
+    const frame = this._al.GetRecordingFrameNumber();
+
+    if (frame !== this._mappedFrame)
+    {
+      this._mappedFrame = frame;
+      this._handleIndex = 0;
+    }
+    else
+    {
+      this._handleIndex += 1;
+      if (this._handleIndex === this._handles.length)
+      {
+        const first = this._handles[0];
+        const label = this._desc.label ?? "Tr2BufferAL";
+        this._handles.push(this._webgpu.CreateDeviceBuffer({ label: `${label} (renamed ${this._handleIndex})`, size: first.requestedSize, usage: this._usageMask }));
+      }
+    }
+
+    this._handle = this._handles[this._handleIndex];
   }
 
   /**
@@ -290,9 +348,13 @@ export class CjsWebgpuBufferAL
   /** Releases the GPU buffer and the shadow. */
   Destroy()
   {
-    if (this._handle) this._handle.Destroy();
+    for (const handle of this._handles) handle.Destroy();
 
     this._handle = null;
+    this._handles = [];
+    this._handleIndex = 0;
+    this._al = null;
+    this._mappedFrame = -1;
     this._webgpu = null;
     this._desc = null;
     this._shadow = null;

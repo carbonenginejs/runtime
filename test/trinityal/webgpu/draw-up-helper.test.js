@@ -173,10 +173,17 @@ test("four draws use four slots and the fifth comes back around", () =>
 
   assert.equal(buffers.length, 4, "the ring is four deep, so four draws never share a buffer");
 
-  // The fifth draw is the same size as the first, so the slot it comes back to
-  // is large enough and nothing is created.
+  // A fifth draw IN THE SAME FRAME comes back to slot zero, whose storage the
+  // first draw still reads when the frame runs: the WRITE_OFTEN slot renames
+  // to fresh storage, as DX11's WRITE_DISCARD does.
   assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
-  assert.equal(buffers.length, 4);
+  assert.equal(buffers.length, 5);
+
+  // In the next frame every slot's first storage is free again, so a full
+  // cycle at the same size - slot zero included - creates nothing.
+  al._frameNumber += 1;
+  for (let i = 0; i < 4; ++i) assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
+  assert.equal(buffers.length, 5);
 });
 
 test("a slot grows for a bigger batch and never shrinks again", () =>
@@ -187,13 +194,17 @@ test("a slot grows for a bigger batch and never shrinks again", () =>
   for (let i = 0; i < 3; ++i) al.DrawPrimitiveUP(2, vertices(6), 12);
   assert.equal(buffers.length, 4);
 
+  // Each ring cycle in its own frame, so only the growth creates storage (a
+  // same-frame revisit renames; see the test above).
   // Back to slot zero with ten times the geometry: that slot is recreated.
+  al._frameNumber += 1;
   assert.equal(al.DrawPrimitiveUP(20, vertices(60), 12), ALResult.S_OK);
   assert.equal(buffers.length, 5);
   assert.equal(buffers[4].descriptor.size, 720);
 
   // Around again at the small size: the grown slot still fits, so no sixth.
   for (let i = 0; i < 3; ++i) al.DrawPrimitiveUP(2, vertices(6), 12);
+  al._frameNumber += 1;
   assert.equal(al.DrawPrimitiveUP(2, vertices(6), 12), ALResult.S_OK);
   assert.equal(buffers.length, 5);
 });

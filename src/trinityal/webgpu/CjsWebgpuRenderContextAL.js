@@ -45,9 +45,9 @@
 //   encoding across threads. There is one thread here, and `Tr2RenderContext`
 //   already records the same omission for the same reason.
 // - `BufferRewritten` notifies the context that a buffer allocation was RENAMED
-//   under it. WebGPU cannot rename: `queue.writeBuffer` is ordered on the queue,
-//   which gives the guarantee renaming buys without renaming, and
-//   `CjsWebgpuBufferAL`'s head comment argues that at length.
+//   under it, so bound state picks up the new one. A WRITE_OFTEN
+//   `CjsWebgpuBufferAL` does rename (see its head comment), but draws read
+//   `GetDeviceBuffer` when they bind, so there is no stale binding to notify.
 // - `CheckDrawResources` does not validate, which the first version of this
 //   note claimed. Carbon BINDS dummy resources into unfilled slots and installs
 //   the vertex descriptor, on every draw (`Tr2RenderContextMetal.mm:524-541`).
