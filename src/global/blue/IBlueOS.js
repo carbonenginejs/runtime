@@ -137,3 +137,5 @@ for (const method of [
 {
   CjsSchema.decorateMethod(IBlueOS, method, compose.abstract, impl.abstract);
 }
+
+CjsSchema.define(IBlueOS, { className: "IBlueOS", carbon: "IBlueOS", family: "blue", fields: {} });

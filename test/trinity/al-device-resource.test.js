@@ -168,8 +168,8 @@ test("the abstract registry obligations require an implementation", () =>
 {
   clean();
   const resource = new Tr2BaseDeviceResourceAL();
-  assert.throws(() => resource.IsResourceValid(), /must implement IsResourceValid/);
-  assert.throws(() => resource.GetResourceMemoryClass(), /must implement GetResourceMemoryClass/);
+  assert.throws(() => resource.IsResourceValid(), /^Error: Tr2BaseDeviceResourceAL\.IsResourceValid must be implemented\.$/u);
+  assert.throws(() => resource.GetResourceMemoryClass(), /^Error: Tr2BaseDeviceResourceAL\.GetResourceMemoryClass must be implemented\.$/u);
   resource.Destroy();
 });
 

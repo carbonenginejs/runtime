@@ -20,3 +20,5 @@ export class IVariableTicker
 }
 
 CjsSchema.decorateMethod(IVariableTicker, "OnTick", compose.abstract, impl.abstract);
+
+CjsSchema.define(IVariableTicker, { className: "IVariableTicker", carbon: "IVariableTicker", family: "blue", fields: {} });

@@ -21,18 +21,45 @@
  * which a minifying bundler rewrites - a shipped consumer would otherwise read
  * `e.GetResource must be implemented`.
  */
-function AbstractMessage(getClassName, instance, declaringName, methodName)
+function AbstractMessage(getClassName, instance, thrower, methodName)
 {
-    const runtimeName = instance?.constructor
-        ? getClassName(instance.constructor)
-        : null;
-    const declaring = declaringName || runtimeName || "<unregistered>";
+    const isClass = typeof instance === "function";
+    const runtimeName = isClass ? getClassName(instance) : (instance?.constructor ? getClassName(instance.constructor) : null);
+    const Declaring = DeclaringClass(instance, methodName, thrower);
+    const declaring = (Declaring ? getClassName(Declaring) : null) || runtimeName || "<unregistered>";
 
     if (!runtimeName || runtimeName === declaring)
     {
         return `${declaring}.${methodName} must be implemented.`;
     }
     return `${runtimeName} does not implement ${declaring}.${methodName}.`;
+}
+
+/**
+ * The class whose prototype (or, for a static, the class itself) holds this
+ * thrower. Found when the thrower runs, because neither decorator form can
+ * name it earlier: `decorateMethod` runs before `define` registers the
+ * name, and a 2022 method decorator's initializer sees whichever instance is
+ * constructed first, often a subclass.
+ *
+ * @param {object|Function} instance The receiver (an instance, or a class for a static).
+ * @param {string} methodName The abstract method's name.
+ * @param {Function} thrower The installed throwing body.
+ * @returns {Function|null} The declaring class, or `null`.
+ */
+function DeclaringClass(instance, methodName, thrower)
+{
+    const isClass = typeof instance === "function";
+    let current = isClass ? instance : (instance === null || instance === undefined ? null : Object.getPrototypeOf(instance));
+    while (current)
+    {
+        if (Object.hasOwn(current, methodName) && Object.getOwnPropertyDescriptor(current, methodName).value === thrower)
+        {
+            return isClass ? current : current.constructor;
+        }
+        current = Object.getPrototypeOf(current);
+    }
+    return null;
 }
 
 /**
@@ -54,19 +81,11 @@ export function composeAbstractDecorator(getClassName)
                 throw new TypeError("compose.abstract only supports methods.");
             }
             const methodName = String(context.name);
-            let declaringName = null;
-            context.addInitializer?.(function ()
+            const thrower = function (...args)
             {
-                // Runs with `this` as the instance (or the class, for a static),
-                // which is the first moment the declaring class is knowable.
-                const Constructor = typeof this === "function" ? this : this?.constructor;
-                declaringName = declaringName
-                    || (Constructor ? getClassName(Constructor) : null);
-            });
-            return function (...args)
-            {
-                throw new Error(AbstractMessage(getClassName, this, declaringName, methodName));
+                throw new Error(AbstractMessage(getClassName, this, thrower, methodName));
             };
+            return thrower;
         }
 
         // The legacy form used by `CjsSchema.decorateMethod`, which hands over a
@@ -77,17 +96,15 @@ export function composeAbstractDecorator(getClassName)
         {
             throw new TypeError("compose.abstract only supports methods.");
         }
-        const declaringName = prototype.constructor
-            ? getClassName(prototype.constructor)
-            : null;
+        const thrower = function (...args)
+        {
+            throw new Error(AbstractMessage(getClassName, this, thrower, methodName));
+        };
         Object.defineProperty(prototype, methodName, {
             configurable: true,
             writable: true,
             enumerable: false,
-            value: function (...args)
-            {
-                throw new Error(AbstractMessage(getClassName, this, declaringName, methodName));
-            }
+            value: thrower
         });
         return undefined;
     };

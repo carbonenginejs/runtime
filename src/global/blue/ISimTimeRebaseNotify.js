@@ -24,3 +24,5 @@ export class ISimTimeRebaseNotify
 }
 
 CjsSchema.decorateMethod(ISimTimeRebaseNotify, "OnSimClockRebase", compose.abstract, impl.abstract);
+
+CjsSchema.define(ISimTimeRebaseNotify, { className: "ISimTimeRebaseNotify", carbon: "ISimTimeRebaseNotify", family: "blue", fields: {} });
