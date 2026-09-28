@@ -1,0 +1,297 @@
+{
+ "_type": "EveChildParticleSystem",
+ "name": "Dark_Center",
+ "mesh": {
+  "_type": "Tr2InstancedMesh",
+  "instanceGeometryResource": {
+   "_type": "Tr2ParticleSystem",
+   "name": "redSmoke_PS",
+   "elements": [
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "elementType": 1
+    },
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "elementType": 0
+    },
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "elementType": 2
+    },
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "customName": "sizeDynamic",
+     "dimension": 2
+    },
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "customName": "rotation",
+     "usageIndex": 1
+    },
+    {
+     "_type": "Tr2ParticleElementDeclaration",
+     "customName": "rotationVelocity",
+     "usageIndex": 2
+    }
+   ],
+   "requiresSorting": true,
+   "forces": [
+    {
+     "_type": "Tr2ParticleDragForce",
+     "drag": 0
+    },
+    {
+     "_type": "Tr2ParticleTurbulenceForce",
+     "noiseLevel": 5
+    }
+   ],
+   "maxParticleCount": 10,
+   "_id": 285
+  },
+  "boundsMethod": 1,
+  "maxInstanceSize": 60,
+  "geometryResPath": "res:/graphics/generic/unitplane/unitplane.gr2",
+  "transparentAreas": [
+   {
+    "_type": "Tr2MeshArea",
+    "effect": {
+     "_type": "Tr2Effect",
+     "effectFilePath": "res:/graphics/effect/managed/space/specialfx/particles/motionvector.fx",
+     "options": [
+      {
+       "name": "PARTICLE_TYPE",
+       "value": "PARTICLE_DYNAMIC"
+      },
+      {
+       "name": "NEBULA_BLEEDING",
+       "value": "NEBULA_BLEEDING_DISABLED"
+      },
+      {
+       "name": "NEAR_FADE",
+       "value": "NEAR_FADE_DISABLED"
+      },
+      {
+       "name": "COLOR_RAMP",
+       "value": "COLOR_RAMP_ENABLED"
+      }
+     ],
+     "parameters": [
+      {
+       "_type": "Tr2Vector4Parameter",
+       "name": "Colors",
+       "value": [
+        0,
+        1,
+        0.009999999776482582,
+        0
+       ],
+       "_id": 296
+      }
+     ],
+     "constParameters": [
+      {
+       "name": "SpriteFactors",
+       "value": [
+        0,
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "name": "UseWorldScale",
+       "value": [
+        1,
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "name": "VelocityStretch",
+       "value": [
+        0,
+        0,
+        0,
+        0
+       ]
+      },
+      {
+       "name": "SpriteFactors2",
+       "value": [
+        0.05000000074505806,
+        1,
+        1,
+        1
+       ]
+      },
+      {
+       "name": "AtlasInfo",
+       "value": [
+        4,
+        4,
+        64,
+        1
+       ]
+      },
+      {
+       "name": "Colors2",
+       "value": [
+        0,
+        0,
+        0,
+        10
+       ]
+      },
+      {
+       "name": "Depth",
+       "value": [
+        15,
+        0,
+        0,
+        0
+       ]
+      }
+     ],
+     "resources": [
+      {
+       "_type": "TriTextureParameter",
+       "name": "ColorRampMap",
+       "resourcePath": "res:/texture/fx/gradients/vertical_photon_04a.dds"
+      },
+      {
+       "_type": "TriTextureParameter",
+       "name": "GradientMap",
+       "resourcePath": "res:/texture/fx/motionparticles/mpramp_smoke_03a_flw.dds"
+      },
+      {
+       "_type": "TriTextureParameter",
+       "name": "TextureMap",
+       "resourcePath": "res:/texture/fx/motionparticles/mpramp_smoke_04a.dds"
+      }
+     ]
+    }
+   }
+  ]
+ },
+ "particleEmitters": [
+  {
+   "_type": "Tr2DynamicEmitter",
+   "name": "emitter",
+   "generators": [
+    {
+     "_type": "Tr2SphereShapeAttributeGenerator",
+     "minRadius": 15,
+     "maxRadius": 20,
+     "minTheta": 180,
+     "maxTheta": 0,
+     "parentVelocityFactor": 0
+    },
+    {
+     "_type": "Tr2RandomUniformAttributeGenerator",
+     "elementType": 0,
+     "minRange": [
+      0,
+      6.25,
+      0,
+      0
+     ],
+     "maxRange": [
+      0,
+      8,
+      0,
+      0
+     ]
+    },
+    {
+     "_type": "Tr2RandomUniformAttributeGenerator",
+     "customName": "rotation",
+     "minRange": [
+      -180,
+      0,
+      0,
+      0
+     ],
+     "maxRange": [
+      180,
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "_type": "Tr2RandomUniformAttributeGenerator",
+     "customName": "rotationVelocity",
+     "minRange": [
+      -0.10000000149011612,
+      0,
+      0,
+      0
+     ],
+     "maxRange": [
+      0.10000000149011612,
+      0,
+      0,
+      0
+     ]
+    },
+    {
+     "_type": "Tr2RandomUniformAttributeGenerator",
+     "customName": "sizeDynamic",
+     "minRange": [
+      30,
+      30,
+      30,
+      30
+     ],
+     "maxRange": [
+      65,
+      65,
+      65,
+      65
+     ]
+    }
+   ],
+   "particleSystem": {
+    "_ref": 285
+   },
+   "_id": 300
+  }
+ ],
+ "particleSystems": [
+  {
+   "_ref": 285
+  }
+ ],
+ "translation": [
+  0,
+  5.710136413574219,
+  -112.54231262207031
+ ],
+ "scaling": [
+  5.333197116851807,
+  4.291935920715332,
+  5.918383598327637
+ ],
+ "localTransform": [
+  5.333197116851807,
+  0,
+  0,
+  0,
+  0,
+  4.291935920715332,
+  0,
+  0,
+  0,
+  0,
+  5.918383598327637,
+  0,
+  0,
+  5.710136413574219,
+  -112.54231262207031,
+  1
+ ],
+ "lodSphereRadius": 100,
+ "minScreenSize": 20
+}

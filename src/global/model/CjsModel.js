@@ -810,6 +810,28 @@ function initializeModelState(target)
     return state;
 }
 
+/**
+ * Initializes, through the same owned walk and `visited` set, every model of
+ * this import (`options.created`) that `value` references by a non-owned
+ * field and that the walk has not reached yet.
+ */
+function initializeReferencedFirst(value, options)
+{
+    for (const field of CjsSchema.getSchema(value.constructor).children)
+    {
+        if (field.owned) continue;
+        const target = value[field.name];
+        const targets = Array.isArray(target) ? target : [ target ];
+        for (const model of targets)
+        {
+            if (model instanceof CjsModel && options.created.has(model) && !options.visited.has(model))
+            {
+                initializeOwnedGraph(model, options);
+            }
+        }
+    }
+}
+
 function initializeOwnedGraph(root, options = {})
 {
     root.Traverse(value =>
@@ -825,6 +847,17 @@ function initializeOwnedGraph(root, options = {})
                 // marked for one settle.
                 value.__state.dirty = true;
             }
+
+            // REFERENCED MODELS FIRST. Carbon's BlackReader initializes an object
+            // right after its members are read (BlackReader.cpp:388-402), so a
+            // model met first as a REFERENCE is initialized there, before the
+            // model referencing it. The owned walk alone reaches such a model
+            // only through its owner, which can come later: a Tr2DynamicEmitter
+            // referencing its particle system then Rebinds against a system
+            // not yet valid and never emits. Models of this import that a
+            // value references are initialized before it; others were
+            // initialized when they were made.
+            if (options.created instanceof Set) initializeReferencedFirst(value, options);
 
             // Initialize arguments belong to the class's Carbon/adapted contract.
             // Owned-graph traversal is coordinated here and must not occupy arg 0.
@@ -1083,10 +1116,11 @@ function createImportContext()
         initializeCreated(options)
         {
             const visited = new Set();
+            const createdSet = new Set(created);
 
             for (let index = created.length - 1; index >= 0; index--)
             {
-                initializeOwnedGraph(created[index], { ...options, visited });
+                initializeOwnedGraph(created[index], { ...options, visited, created: createdSet });
             }
 
             created.length = 0;
