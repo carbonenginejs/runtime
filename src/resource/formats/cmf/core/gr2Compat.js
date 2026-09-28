@@ -1,7 +1,7 @@
 import { decodeElementArray } from "./utils/vertex.js";
 import { normalizeQuaternionSeries } from "./utils/quaternion.js";
 
-const NO_CURVE = Object.freeze({ format: 0, degree: 0, error: "no curve data" });
+const NO_CURVE = { format: 0, degree: 0, error: "no curve data" };
 
 function copyNoCurve()
 {

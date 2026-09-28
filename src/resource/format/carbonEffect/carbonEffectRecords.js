@@ -88,7 +88,7 @@ export const CARBON_ANNOTATION_TYPE = Object.freeze({
  * counts are read with no limit at all, guarded only by the end-of-buffer
  * check. We do not invent caps Carbon does not have.
  */
-export const CARBON_EFFECT_COUNT_CAPS = Object.freeze({
+export const CARBON_EFFECT_COUNT_CAPS = {
     pipelineInputs: 64,
     passes: 64,
     stages: 6,
@@ -97,7 +97,7 @@ export const CARBON_EFFECT_COUNT_CAPS = Object.freeze({
     uavs: 64,
     renderStates: 64,
     effectAnnotations: 256
-});
+};
 
 /**
  * `SHADER_CONSTANTS_MAX` (`Tr2EffectDescription.h:160`) — Carbon clamps a

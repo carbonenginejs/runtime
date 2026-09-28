@@ -20,10 +20,10 @@ import {
 
 export const OUTPUT_JSON = "json";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     source: "memory"
-});
+};
 
 const VALID_EMITS = new Set([ OUTPUT_JSON ]);
 const OPTION_KEYS = new Set([ "emit", "source" ]);

@@ -11,11 +11,11 @@ export const OUTPUT_RGBA = "rgba";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "",
     source: ""
-});
+};
 
 const DEBUG_OUTPUTS = Object.freeze({
     png: "pngJson",

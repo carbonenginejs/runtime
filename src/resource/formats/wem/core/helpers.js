@@ -9,11 +9,11 @@ export const OUTPUT_WEM_JSON = "wemJson";
 export const OUTPUT_OGG = "ogg";
 export const OUTPUT_PCM = "pcm";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "wem",
     source: ""
-});
+};
 
 /**
  * Wwise RIFF format tags mapped to codec names.

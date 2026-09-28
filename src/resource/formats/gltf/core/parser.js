@@ -30,7 +30,7 @@ const TYPE_WIDTHS = Object.freeze({
     MAT4: 16
 });
 
-const CHANNEL_TEMPLATE = Object.freeze({
+const CHANNEL_TEMPLATE = {
     position: null,
     blendIndice: null,
     tangent: null,
@@ -40,7 +40,7 @@ const CHANNEL_TEMPLATE = Object.freeze({
     color0: null,
     binormal: null,
     blendWeight: null
-});
+};
 
 function fr(value)
 {

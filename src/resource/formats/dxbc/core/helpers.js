@@ -18,11 +18,11 @@ import { DxbcReadError } from "./DxbcReadError.js";
 export const OUTPUT_JSON = "json";
 export const OUTPUT_RAW = "raw";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     source: "memory",
     decodeInstructions: true
-});
+};
 
 const VALID_EMITS = new Set([ OUTPUT_JSON, OUTPUT_RAW ]);
 

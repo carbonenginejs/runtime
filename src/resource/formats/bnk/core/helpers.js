@@ -9,11 +9,11 @@ export const OUTPUT_JSON = "json";
 export const OUTPUT_BNK_JSON = "bnkJson";
 export const OUTPUT_MEDIA = "media";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "bnk",
     source: ""
-});
+};
 
 /**
  * Advisory names for classic HIRC object type ids.

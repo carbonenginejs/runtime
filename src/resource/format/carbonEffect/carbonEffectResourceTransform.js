@@ -50,7 +50,7 @@ export const CARBON_BACKEND_TRANSFORM_FAMILY = [
 ];
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
-export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
+export const DETAIL_MAP_ARRAY_DEFAULTS = {
     version: 1,
     kind: "texture-2d-array",
     stage: "fragment",
@@ -61,7 +61,7 @@ export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
     // here. It has been renamed once already (DetailMapArray -> DetailArrayMap),
     // and a second literal is a second place for the next rename to miss.
     outputName: DETAIL_MAP_ARRAY_NAME
-});
+};
 
 /**
  * Constants a `local-light-profile-neutral` transform restores rather than
@@ -77,7 +77,7 @@ export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
  * is one, not zero. That is the same value the shader's own no-profile path
  * produces, which is why dropping it is neutral rather than dark.
  */
-export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
+export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = {
     version: 1,
     kind: "constant",
     stage: "fragment",
@@ -85,7 +85,7 @@ export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
     missingLayer: "ignore",
     viewDimension: null,
     outputName: null
-});
+};
 
 /**
  * Per-family constant sets, keyed by family name.
@@ -105,14 +105,14 @@ export const LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS = Object.freeze({
  * cannot be resolved leaves a channel carrying another map's data, which reads
  * as a plausible image rather than an absence.
  */
-const CHANNEL_PACK_DEFAULTS = Object.freeze({
+const CHANNEL_PACK_DEFAULTS = {
     version: 1,
     kind: "texture-2d-packed",
     stage: "fragment",
     representation: "rgba8",
     missingLayer: "reject",
     viewDimension: "2d"
-});
+};
 
 /** Packing families, and the output name each restores. */
 const CHANNEL_PACK_FAMILIES = Object.freeze({

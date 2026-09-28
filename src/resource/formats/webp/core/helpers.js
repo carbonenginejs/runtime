@@ -4,11 +4,11 @@ import { asUint8Array, readU16LE, readU24LE, readU32LE } from "#utils/bytes";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_JSON = "json";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "webp",
     source: ""
-});
+};
 
 /**
  * Normalizes reader options against their supported defaults for the WebP format

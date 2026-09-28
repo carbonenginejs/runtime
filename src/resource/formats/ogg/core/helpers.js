@@ -7,11 +7,11 @@ export const OUTPUT_JSON = "json";
 export const OUTPUT_PCM = "pcm";
 export const OUTPUT_AUDIO = "audio";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "ogg",
     source: ""
-});
+};
 
 /**
  * Normalizes reader options against their supported defaults for the Ogg format

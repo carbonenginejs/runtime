@@ -3,7 +3,7 @@
  * CarbonEngineJS JSON mesh schema.
  */
 
-const CHANNEL_TEMPLATE = Object.freeze({
+const CHANNEL_TEMPLATE = {
     position: null,
     blendIndice: null,
     tangent: null,
@@ -12,7 +12,7 @@ const CHANNEL_TEMPLATE = Object.freeze({
     texcoord1: null,
     binormal: null,
     blendWeight: null
-});
+};
 
 /**
  * Return a finite JSON number.

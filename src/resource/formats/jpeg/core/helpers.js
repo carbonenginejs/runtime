@@ -13,11 +13,11 @@ export const OUTPUT_JSON = "json";
 
 import { canDecodeJpeg, decodeJpegToRgba } from "./jpeg.js";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "",
     source: ""
-});
+};
 
 const DEBUG_OUTPUTS = Object.freeze({
     png: "pngJson",

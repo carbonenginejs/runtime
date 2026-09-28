@@ -43,12 +43,12 @@ const BYTES_PER_PIXEL = Object.freeze({
     61: 1 // PIXEL_FORMAT_R8_UNORM
 });
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     frame: 0,
     allFrames: false,
     grid: null
-});
+};
 
 const textDecoder = new TextDecoder("utf-8", { fatal: false });
 
