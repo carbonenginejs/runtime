@@ -141,6 +141,16 @@ What `CjsAudioBackend` and `CjsAudioSystem` call on a music engine.
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ICjsSfxControls -->
+## `ICjsSfxControls`
+
+One SFX post's live evaluation context: what `CjsSfxEngine` and `CjsAudioMan` read and write while resolving and playing an event.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/ICjsSfxControls.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:CjsBusDuckingController -->
 ## `CjsBusDuckingController`
 
@@ -174,6 +184,15 @@ Owns stable, generation-scoped handles into one installed Audio Bus graph.
 Reads global RTPC and State values from one `CjsAudioBackend`.
 
 - Source: `src/audio/internal/CjsAudioBackendGlobalReaders.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendSfxControls -->
+## `CjsAudioBackendSfxControls`
+
+Live SFX controls for one emitter's post, reading the backend's switch, state, RTPC and voice-property state for that game object.
+
+- Source: `src/audio/internal/CjsAudioBackendSfxControls.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
@@ -219,6 +238,15 @@ Owns backend SFX voice-limit reservations and their owner/key invariants.
 Owns one shared acquisition, its caller leases, and orphan cancellation.
 
 - Source: `src/audio/internal/CjsAudioManSharedAcquisition.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsSfxEngineRtpcOverlayControls -->
+## `CjsSfxEngineRtpcOverlayControls`
+
+A post's controls with the RTPC values a program's own Set Game Parameter actions have applied so far laid over them.
+
+- Source: `src/audio/internal/CjsSfxEngineRtpcOverlayControls.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 

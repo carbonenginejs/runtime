@@ -14,7 +14,7 @@ import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js"
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
-import { MusicEngineWith, GlobalReadersWith } from "../../support/audioStub.js";
+import { MusicEngineWith, GlobalReadersWith, SfxControlsWith } from "../../support/audioStub.js";
 
 
 function FakeParam()
@@ -2568,13 +2568,13 @@ test("temporary culling preserves authored per-object SFX container state", () =
     system.AdoptEmitter(emitter);
 
     assert.equal(
-      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      sfx.ResolveEvent("step", SfxControlsWith({ gameObjID: emitter.ID }))[0].mediaID,
       "10",
     );
     emitter.Cull();
     emitter.Wake();
     assert.equal(
-      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      sfx.ResolveEvent("step", SfxControlsWith({ gameObjID: emitter.ID }))[0].mediaID,
       "11",
       "Cull/Wake preserves selection state across temporary node retirement",
     );
@@ -2592,7 +2592,7 @@ test("temporary culling preserves authored per-object SFX container state", () =
     assert.equal(system.ReleaseEmitter(emitter), true);
     assert.equal(system.ReleaseEmitter(emitter), false);
     assert.equal(
-      sfx.ResolveEvent("step", { gameObjID: emitter.ID })[0].mediaID,
+      sfx.ResolveEvent("step", SfxControlsWith({ gameObjID: emitter.ID }))[0].mediaID,
       "10",
       "permanent graph release clears object-scoped selection state",
     );

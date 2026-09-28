@@ -24,6 +24,7 @@ export { ICjsAudioBackend } from "./ICjsAudioBackend.js";
 export { CjsAudioBackendStub } from "./CjsAudioBackendStub.js";
 export { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 export { ICjsAudioGlobalReaders } from "./ICjsAudioGlobalReaders.js";
+export { ICjsSfxControls } from "./ICjsSfxControls.js";
 export { CjsAudioMan } from "./CjsAudioMan.js";
 export { CjsAudioSystem } from "./CjsAudioSystem.js";
 export { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";

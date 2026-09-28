@@ -3,6 +3,7 @@
 // It selects media identities only; CjsAudioMan retains ownership of delivery
 // and decode, while CjsAudioBackend owns Web Audio voices.
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
+import { CjsSfxEngineRtpcOverlayControls } from "./internal/CjsSfxEngineRtpcOverlayControls.js";
 import {
     evaluateWwiseRtpcCurve,
     wwiseDbRtpcValueToDb,
@@ -460,7 +461,7 @@ export class CjsSfxEngine
      * Random history and step-sequence positions are isolated per game object.
      * Parallel roots and blend nodes may return multiple simultaneous leaves.
      */
-    ResolveEvent(eventName, controls = {})
+    ResolveEvent(eventName, controls)
     {
         const program = this.ResolveProgram(eventName, controls);
 
@@ -488,7 +489,7 @@ export class CjsSfxEngine
      * Immediate SetSwitch, SetState, and Game Parameter actions execute in
      * their authored position so each later Play sees the updated controls.
      */
-    ResolveProgram(eventName, controls = {})
+    ResolveProgram(eventName, controls)
     {
         const name = String(eventName);
         const roots = this._graph.events?.[name] ?? [];
@@ -503,16 +504,11 @@ export class CjsSfxEngine
         const operations = [];
         const objectRtpcOverlay = new Map();
         const globalRtpcOverlay = new Map();
-        const resolvedControls = {
-            ...controls,
-            getRTPC: (rtpc, at) => objectRtpcOverlay.has(String(rtpc))
-                ? objectRtpcOverlay.get(String(rtpc))
-                : controls.getRTPC?.(rtpc, at),
-            getGlobalRTPC: (rtpc, at) =>
-                globalRtpcOverlay.has(String(rtpc))
-                    ? globalRtpcOverlay.get(String(rtpc))
-                    : controls.getGlobalRTPC?.(rtpc, at),
-        };
+        const resolvedControls = new CjsSfxEngineRtpcOverlayControls(
+            controls,
+            objectRtpcOverlay,
+            globalRtpcOverlay,
+        );
         const resolve = (
             child,
             actionIndex,
@@ -800,7 +796,7 @@ export class CjsSfxEngine
      * The opaque token comes from ResolveProgram and remains owned by this
      * interpreter. Backend code only retains it between physical batches.
      */
-    ContinueProgram(token, controls = {})
+    ContinueProgram(token, controls)
     {
         if (!token
             || typeof token !== "object"
@@ -951,7 +947,7 @@ export class CjsSfxEngine
      * Selection state is committed only when the prepared batch reaches its
      * audible boundary; cancellation leaves the traversal unchanged.
      */
-    PrepareProgram(token, controls = {})
+    PrepareProgram(token, controls)
     {
         if (!token
             || typeof token !== "object"
@@ -1037,7 +1033,7 @@ export class CjsSfxEngine
      */
     EvaluateGain(
         selection,
-        controls = {},
+        controls,
         voiceVolumeDb = undefined,
         at = undefined,
     )
@@ -1071,7 +1067,7 @@ export class CjsSfxEngine
         ).gainDb;
         gainDb += voiceVolumeDb === undefined
             ? Number(
-                controls.getVoiceVolumeDb?.(selection?.matchIds),
+                controls.getVoiceVolumeDb(selection?.matchIds),
             ) || 0
             : Number(voiceVolumeDb) || 0;
 
@@ -1090,7 +1086,7 @@ export class CjsSfxEngine
     /** Evaluates one qualified source-effect RTPC curve at a control time. */
     EvaluateSourceEffectRTPC(
         curve,
-        controls = {},
+        controls,
         at = undefined,
         readControl = false,
     )
@@ -1105,7 +1101,7 @@ export class CjsSfxEngine
     /** Evaluates one resolved leaf's current playback rate from global states. */
     EvaluatePlaybackRate(
         selection,
-        controls = {},
+        controls,
         voicePitchCents = undefined,
         at = undefined,
     )
@@ -1116,7 +1112,7 @@ export class CjsSfxEngine
             ?? selection?.[AUTHORED_PITCH_CENTS];
         const actionPitch = voicePitchCents === undefined
             ? Number(
-                controls.getVoicePitchCents?.(selection?.matchIds),
+                controls.getVoicePitchCents(selection?.matchIds),
             ) || 0
             : Number(voicePitchCents) || 0;
 
@@ -1163,7 +1159,7 @@ export class CjsSfxEngine
     /** Evaluates one resolved leaf's current Wwise low-pass percentage. */
     EvaluateLowPass(
         selection,
-        controls = {},
+        controls,
         at = undefined,
         additionalPercent = 0,
     )
@@ -1180,7 +1176,7 @@ export class CjsSfxEngine
     /** Evaluates one resolved leaf's current Wwise high-pass percentage. */
     EvaluateHighPass(
         selection,
-        controls = {},
+        controls,
         at = undefined,
         additionalPercent = 0,
     )
@@ -1443,8 +1439,8 @@ export class CjsSfxEngine
                 return;
             }
             const value = node.scope === "state"
-                ? controls.getState?.(node.group)
-                : controls.getSwitch?.(node.group);
+                ? controls.getState(node.group)
+                : controls.getSwitch(node.group);
             const nested = value === undefined || value === null
                 ? node.default
                 : FindCase(node.cases, value) ?? node.default;
@@ -1671,8 +1667,8 @@ export class CjsSfxEngine
     )
     {
         const value = node.scope === "state"
-            ? controls.getState?.(node.group)
-            : controls.getSwitch?.(node.group);
+            ? controls.getState(node.group)
+            : controls.getSwitch(node.group);
         const selected = ResolveSwitchCase(node, value);
 
         session.route.push({
@@ -2784,11 +2780,11 @@ function ApplySetter(action, controls)
 {
     if (action.kind === "state")
     {
-        controls.setState?.(action.group, action.value);
+        controls.setState(action.group, action.value);
     }
     else if (action.kind === "switch")
     {
-        controls.setSwitch?.(action.group, action.value);
+        controls.setSwitch(action.group, action.value);
     }
 }
 
@@ -2811,9 +2807,9 @@ function ApplyGameParameterOverlay(
     const current = values.has(name)
         ? values.get(name)
         : action.scope === "global"
-            ? controls.getGlobalRTPC?.(name) ?? action.defaultValue
-            : controls.getRTPC?.(name)
-                ?? controls.getGlobalRTPC?.(name)
+            ? controls.getGlobalRTPC(name) ?? action.defaultValue
+            : controls.getRTPC(name)
+                ?? controls.getGlobalRTPC(name)
                 ?? action.defaultValue;
     const target = action.kind === "reset-game-parameter"
         ? action.defaultValue
@@ -2871,15 +2867,15 @@ function ReadRTPC(
     if (curve.scope === "global")
     {
         return NormalizeControlValue(
-            controls.getGlobalRTPC?.(curve.rtpc, at),
+            controls.getGlobalRTPC(curve.rtpc, at),
             fallback,
         );
     }
 
-    const objectValue = controls.getRTPC?.(curve.rtpc, at);
+    const objectValue = controls.getRTPC(curve.rtpc, at);
 
     return NormalizeControlValue(
-        objectValue ?? controls.getGlobalRTPC?.(curve.rtpc, at),
+        objectValue ?? controls.getGlobalRTPC(curve.rtpc, at),
         fallback,
     );
 }
@@ -2893,7 +2889,7 @@ function EvaluateStateProperties(properties, controls, at = undefined)
 
     for (const property of properties ?? [])
     {
-        const weights = controls.getStatePropertyWeights?.(
+        const weights = controls.getStatePropertyWeights(
             property.group,
             at,
         );
@@ -2918,7 +2914,7 @@ function EvaluateStateProperties(properties, controls, at = undefined)
             continue;
         }
 
-        const state = controls.getState?.(property.group);
+        const state = controls.getState(property.group);
         const stateCase = state === undefined || state === null
             ? null
             : FindCase(property.cases, state);
@@ -3002,8 +2998,8 @@ function EvaluateFilterProperty(
     );
     const action = Number(
         property === "lowPass"
-            ? controls.getVoiceLowPass?.(selection?.matchIds, at)
-            : controls.getVoiceHighPass?.(selection?.matchIds, at),
+            ? controls.getVoiceLowPass(selection?.matchIds, at)
+            : controls.getVoiceHighPass(selection?.matchIds, at),
     ) || 0;
 
     return Clamp(

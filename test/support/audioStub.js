@@ -2,7 +2,7 @@
 // manager, with a test's overrides on top. A method a test does not override
 // behaves as it does for any caller - the stub keeps coherent state - instead
 // of silently doing nothing.
-import { AudManager, CjsAudioBackendStub, ICjsAudioGlobalReaders, ICjsMusicEngine } from "../../npm/dist/audio/index.js";
+import { AudManager, CjsAudioBackendStub, ICjsAudioGlobalReaders, ICjsMusicEngine, ICjsSfxControls } from "../../npm/dist/audio/index.js";
 
 /** Puts each override on the instance as its own property, shadowing a method or an accessor. */
 function Override(instance, overrides)
@@ -88,4 +88,47 @@ class NullGlobalReaders extends ICjsAudioGlobalReaders
 export function GlobalReadersWith(overrides = {})
 {
     return Override(new NullGlobalReaders(), overrides);
+}
+
+/**
+ * SFX controls that answer nothing, as an empty controls record did before
+ * the interface: every reader returns undefined and every setter does nothing.
+ */
+class NullSfxControls extends ICjsSfxControls
+{
+    gameObjID = 0;
+
+    signal = null;
+
+    installSfxProgram() { return undefined; }
+
+    getSwitch() { return undefined; }
+
+    getState() { return undefined; }
+
+    getStatePropertyWeights() { return undefined; }
+
+    getRTPC() { return undefined; }
+
+    getGlobalRTPC() { return undefined; }
+
+    getVoiceVolumeDb() { return undefined; }
+
+    getVoicePitchCents() { return undefined; }
+
+    getVoiceLowPass() { return undefined; }
+
+    getVoiceHighPass() { return undefined; }
+
+    setSwitch() {}
+
+    setState() {}
+
+    getSfxProgramSignal() { return undefined; }
+}
+
+/** SFX controls with the test's overrides (members or data) over NullSfxControls. */
+export function SfxControlsWith(overrides = {})
+{
+    return Override(new NullSfxControls(), overrides);
 }

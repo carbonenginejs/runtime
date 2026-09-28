@@ -1377,7 +1377,7 @@ export class CjsAudioMan
     async _LoadEventBuffer(
         eventID,
         eventName,
-        controls = {},
+        controls,
         resolvedProgram = null,
     )
     {
@@ -1394,7 +1394,7 @@ export class CjsAudioMan
 
             if (!Array.isArray(resolvedProgram))
             {
-                program = controls.installSfxProgram?.(program) ?? program;
+                program = controls.installSfxProgram(program) ?? program;
             }
 
             const selections = program.flatMap(operation =>
@@ -1417,7 +1417,7 @@ export class CjsAudioMan
                     const programSlotId = selection.programSlotId
                         ?? `${selection.actionIndex}:${selection.leafIndex}`;
                     const selectionSignal =
-                        controls.getSfxProgramSignal?.(
+                        controls.getSfxProgramSignal(
                             programSlotId,
                             selection.actionIndex,
                             selection.leafIndex,

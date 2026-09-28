@@ -5,6 +5,7 @@ import { CjsSfxEngine } from "../../../npm/dist/audio/index.js";
 import {
     evaluateWwiseInterpolation,
 } from "../../../npm/dist/audio/internal/wwiseCurve.js";
+import { SfxControlsWith } from "../../support/audioStub.js";
 
 function Graph(events, nodes)
 {
@@ -51,14 +52,14 @@ test("authored NodeBase properties and randomizers resolve once per post", () =>
         random: () => samples.shift(),
     });
 
-    const selection = engine.ResolveEvent("fire")[0];
+    const selection = engine.ResolveEvent("fire", SfxControlsWith())[0];
 
     assert.equal(selection.gainDb, -5);
     assert.ok(
         Math.abs(selection.playbackRate - 2 ** (1150 / 1200)) < 1e-12,
     );
-    assert.equal(engine.EvaluateLowPass(selection), 20);
-    assert.equal(engine.EvaluateHighPass(selection), 1);
+    assert.equal(engine.EvaluateLowPass(selection, SfxControlsWith()), 20);
+    assert.equal(engine.EvaluateHighPass(selection, SfxControlsWith()), 1);
     assert.equal(selection.delayMs, 340);
     assert.deepEqual(samples, []);
 });
@@ -93,9 +94,9 @@ test("timed silence resolves as a finite physical selection", () =>
             },
         ),
     });
-    const selection = engine.ResolveProgram("wait", {
+    const selection = engine.ResolveProgram("wait", SfxControlsWith({
         gameObjID: "ship",
-    })[0].selections[0];
+    }))[0].selections[0];
 
     assert.equal(selection.silenceDurationMs, 8000);
     assert.equal(selection.delayMs, 10500);
@@ -132,7 +133,7 @@ test("Sound voice-limit policy reaches every resolved physical selection", () =>
     });
 
     assert.deepEqual(
-        engine.ResolveEvent("capped")[0].voiceLimit,
+        engine.ResolveEvent("capped", SfxControlsWith())[0].voiceLimit,
         voiceLimit,
     );
 });
@@ -153,19 +154,19 @@ test("authored relative volume and pitch clamp after hierarchy accumulation", ()
         ),
     });
 
-    const selection = engine.ResolveEvent("fire")[0];
+    const selection = engine.ResolveEvent("fire", SfxControlsWith())[0];
 
     assert.equal(selection.gainDb, 250);
     assert.equal(selection.playbackRate, 4);
-    assert.equal(engine.EvaluateGain(selection), 10 ** 10);
+    assert.equal(engine.EvaluateGain(selection, SfxControlsWith()), 10 ** 10);
 });
 
 test("Immediate state properties add to inherited volume and pitch", () =>
 {
     let currentState = null;
-    const controls = {
+    const controls = SfxControlsWith({
         getState: () => currentState,
-    };
+    });
     const engine = new CjsSfxEngine({
         graph: Graph(
             { fire: [ { nodeId: "1" } ] },
@@ -281,13 +282,13 @@ test("State-property weights interpolate every supported live property", () =>
             },
         ),
     });
-    const controls = {
+    const controls = SfxControlsWith({
         getState: () => "danger",
         getStatePropertyWeights: (_group, at) => [
             { state: "calm", weight: 1 - at },
             { state: "danger", weight: at },
         ],
-    };
+    });
     const selection = engine.ResolveEvent("fire", controls)[0];
 
     assert.ok(Math.abs(
@@ -301,7 +302,7 @@ test("State-property weights interpolate every supported live property", () =>
     assert.equal(engine.EvaluateLowPass(selection, controls, 0.25), 20);
     assert.equal(engine.EvaluateHighPass(selection, controls, 0.25), 30);
     assert.equal(
-        engine.EvaluateLowPass(selection, { getState: () => "danger" }),
+        engine.EvaluateLowPass(selection, SfxControlsWith({ getState: () => "danger" })),
         50,
         "callers without a weight reader retain immediate-State behavior",
     );
@@ -314,10 +315,10 @@ test("Wwise filters accumulate static, State, and live RTPC values", () =>
         [ "engine_filter", 0.5 ],
         [ "engine_cut", 1 ],
     ]);
-    const controls = {
+    const controls = SfxControlsWith({
         getRTPC: name => values.get(name),
         getState: () => currentState,
-    };
+    });
     const curve = (rtpc, property, to) => ({
         rtpc,
         scope: "object",
@@ -399,10 +400,10 @@ test("source-effect RTPC curves retain object, global, and authored-default prec
     };
     const objectValues = new Map([ [ "ship_Roll", 180 ] ]);
     const globalValues = new Map([ [ "ship_Roll", 270 ] ]);
-    const controls = {
+    const controls = SfxControlsWith({
         getRTPC: name => objectValues.get(name),
         getGlobalRTPC: name => globalValues.get(name),
-    };
+    });
 
     assert.equal(
         engine.EvaluateSourceEffectRTPC(curve, controls),
@@ -446,11 +447,11 @@ test("NodeBase RTPC curves add live volume and pitch but capture delay", () =>
     const globalValues = new Map([
         [ "load", 0 ],
     ]);
-    const controls = {
+    const controls = SfxControlsWith({
         getRTPC: name => objectValues.get(name),
         getGlobalRTPC: name => globalValues.get(name),
         getState: () => "danger",
-    };
+    });
     const curve = (
         rtpc,
         property,
@@ -618,15 +619,15 @@ test("NodeBase RTPC curves use enriched defaults and clamp raw volume", () =>
             },
         ),
     });
-    const selection = engine.ResolveEvent("fire")[0];
+    const selection = engine.ResolveEvent("fire", SfxControlsWith())[0];
 
     assert.ok(
-        Math.abs(engine.EvaluateGain(selection) - 2) < 1e-12,
+        Math.abs(engine.EvaluateGain(selection, SfxControlsWith()) - 2) < 1e-12,
         "raw Volume values clamp at one before Wwise dB conversion",
     );
     assert.ok(
         Math.abs(
-            engine.EvaluatePlaybackRate(selection) - Math.SQRT2,
+            engine.EvaluatePlaybackRate(selection, SfxControlsWith()) - Math.SQRT2,
         ) < 1e-12,
     );
 });
@@ -654,16 +655,16 @@ test("authored random containers honor weights and per-object repeat avoidance",
     });
 
     assert.equal(
-        engine.ResolveEvent("fire", { gameObjID: 7 })[0].mediaID,
+        engine.ResolveEvent("fire", SfxControlsWith({ gameObjID: 7 }))[0].mediaID,
         "100",
     );
     assert.equal(
-        engine.ResolveEvent("fire", { gameObjID: 7 })[0].mediaID,
+        engine.ResolveEvent("fire", SfxControlsWith({ gameObjID: 7 }))[0].mediaID,
         "200",
         "the previous child is excluded even when the sample repeats",
     );
     assert.equal(
-        engine.ResolveEvent("fire", { gameObjID: 8 })[0].mediaID,
+        engine.ResolveEvent("fire", SfxControlsWith({ gameObjID: 8 }))[0].mediaID,
         "200",
         "another game object owns independent history",
     );
@@ -700,18 +701,18 @@ test("shuffle containers exhaust a pool and global container state is shared", (
     });
 
     assert.deepEqual([
-        engine.ResolveEvent("shuffle", { gameObjID: 1 })[0].mediaID,
-        engine.ResolveEvent("shuffle", { gameObjID: 2 })[0].mediaID,
-        engine.ResolveEvent("shuffle", { gameObjID: 3 })[0].mediaID,
-        engine.ResolveEvent("shuffle", { gameObjID: 4 })[0].mediaID,
+        engine.ResolveEvent("shuffle", SfxControlsWith({ gameObjID: 1 }))[0].mediaID,
+        engine.ResolveEvent("shuffle", SfxControlsWith({ gameObjID: 2 }))[0].mediaID,
+        engine.ResolveEvent("shuffle", SfxControlsWith({ gameObjID: 3 }))[0].mediaID,
+        engine.ResolveEvent("shuffle", SfxControlsWith({ gameObjID: 4 }))[0].mediaID,
     ], [ "101", "102", "103", "101" ]);
 
     assert.equal(
-        engine.ResolveEvent("sequence", { gameObjID: 1 })[0].mediaID,
+        engine.ResolveEvent("sequence", SfxControlsWith({ gameObjID: 1 }))[0].mediaID,
         "101",
     );
     assert.equal(
-        engine.ResolveEvent("sequence", { gameObjID: 2 })[0].mediaID,
+        engine.ResolveEvent("sequence", SfxControlsWith({ gameObjID: 2 }))[0].mediaID,
         "102",
     );
 });
@@ -740,7 +741,7 @@ test("shuffle repeat avoidance delays a child without deleting it from the pool"
     for (let index = 0; index < 6; index++)
     {
         selected.push(
-            engine.ResolveEvent("shuffle", { gameObjID: 1 })[0].mediaID,
+            engine.ResolveEvent("shuffle", SfxControlsWith({ gameObjID: 1 }))[0].mediaID,
         );
     }
 
@@ -775,25 +776,25 @@ test("authored step sequences advance independently and may terminate", () =>
     });
 
     assert.equal(
-        engine.ResolveEvent("burst", { gameObjID: 3 })[0].mediaID,
+        engine.ResolveEvent("burst", SfxControlsWith({ gameObjID: 3 }))[0].mediaID,
         "100",
     );
     assert.equal(
-        engine.ResolveEvent("burst", { gameObjID: 3 })[0].mediaID,
+        engine.ResolveEvent("burst", SfxControlsWith({ gameObjID: 3 }))[0].mediaID,
         "200",
     );
     assert.deepEqual(
-        engine.ResolveEvent("burst", { gameObjID: 3 }),
+        engine.ResolveEvent("burst", SfxControlsWith({ gameObjID: 3 })),
         [],
     );
     assert.equal(
-        engine.ResolveEvent("burst", { gameObjID: 4 })[0].mediaID,
+        engine.ResolveEvent("burst", SfxControlsWith({ gameObjID: 4 }))[0].mediaID,
         "100",
     );
 
     engine.ReleaseGameObj(3);
     assert.equal(
-        engine.ResolveEvent("burst", { gameObjID: 3 })[0].mediaID,
+        engine.ResolveEvent("burst", SfxControlsWith({ gameObjID: 3 }))[0].mediaID,
         "100",
         "a reused game object starts with fresh object-scoped state",
     );
@@ -834,7 +835,7 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
     });
     const first = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const token = first.continuations[0].token;
     const slot = first.continuations[0].programSlotId;
@@ -848,7 +849,7 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
 
     const second = engine.ContinueProgram(
         token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
 
     assert.equal(second.continuations[0].delayMs, 150);
@@ -857,17 +858,17 @@ test("Continuous Sequence advances whole child batches with authored Delay", () 
         [ "300" ],
     );
     assert.deepEqual(
-        engine.ContinueProgram(token, { gameObjID: 7 })[0]
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 }))[0]
             .selections.map(value => value.mediaID),
         [ "100", "200" ],
     );
     assert.deepEqual(
-        engine.ContinueProgram(token, { gameObjID: 7 })[0]
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 }))[0]
             .selections.map(value => value.mediaID),
         [ "300" ],
     );
     assert.deepEqual(
-        engine.ContinueProgram(token, { gameObjID: 7 }),
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 })),
         [],
     );
 });
@@ -920,7 +921,7 @@ test("parallel Continuous children advance as independent sessions", () =>
     });
     const first = engine.ResolveProgram(
         "hangar",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const [ firstBranch, secondBranch ] = first.continuations;
 
@@ -935,14 +936,14 @@ test("parallel Continuous children advance as independent sessions", () =>
     assert.deepEqual(
         engine.ContinueProgram(
             firstBranch.token,
-            { gameObjID: 7 },
+            SfxControlsWith({ gameObjID: 7 }),
         )[0].selections.map(value => value.mediaID),
         [ "102" ],
     );
     assert.deepEqual(
         engine.ContinueProgram(
             secondBranch.token,
-            { gameObjID: 7 },
+            SfxControlsWith({ gameObjID: 7 }),
         )[0].selections.map(value => value.mediaID),
         [ "202" ],
     );
@@ -977,7 +978,7 @@ test("Continuous Trigger Rate samples only intervals with a next child", () =>
     });
     const first = engine.ResolveProgram(
         "rapid",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const continuation = first.continuations[0];
 
@@ -989,7 +990,7 @@ test("Continuous Trigger Rate samples only intervals with a next child", () =>
 
     const second = engine.ContinueProgram(
         continuation.token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
 
     assert.equal(second.selections[0].mediaID, "200");
@@ -1004,7 +1005,7 @@ test("Continuous Trigger Rate samples only intervals with a next child", () =>
     assert.deepEqual(
         engine.ContinueProgram(
             continuation.token,
-            { gameObjID: 7 },
+            SfxControlsWith({ gameObjID: 7 }),
         ),
         [],
     );
@@ -1044,7 +1045,7 @@ test("nested Trigger Rate bursts wait on outer completion Delay", () =>
     const engine = new CjsSfxEngine({ graph });
     const first = engine.ResolveProgram(
         "warning",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const token = first.continuations[0].token;
 
@@ -1057,12 +1058,12 @@ test("nested Trigger Rate bursts wait on outer completion Delay", () =>
     );
     assert.equal(first.continuations[0].delayMs, 2000);
     assert.throws(
-        () => engine.PrepareProgram(token, { gameObjID: 7 }),
+        () => engine.PrepareProgram(token, SfxControlsWith({ gameObjID: 7 })),
         /nested Trigger Rate sessions cannot be prepared/u,
     );
 
-    const second = engine.ContinueProgram(token, { gameObjID: 7 })[0];
-    const third = engine.ContinueProgram(token, { gameObjID: 7 })[0];
+    const second = engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 }))[0];
+    const third = engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 }))[0];
 
     assert.equal(second.selections[0].mediaID, "200");
     assert.equal(second.continuations[0].advance, "trigger-rate");
@@ -1072,7 +1073,7 @@ test("nested Trigger Rate bursts wait on outer completion Delay", () =>
     assert.equal(third.continuations[0].completionBarrier, true);
     assert.equal(third.continuations[0].doneAfterBatch, false);
 
-    const restarted = engine.ContinueProgram(token, { gameObjID: 7 })[0];
+    const restarted = engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 7 }))[0];
 
     assert.equal(restarted.selections[0].mediaID, "100");
     assert.equal(restarted.selections[0].delayMs, 60000);
@@ -1088,7 +1089,7 @@ test("nested Trigger Rate bursts wait on outer completion Delay", () =>
     assert.throws(
         () => new CjsSfxEngine({ graph: modified }).ResolveProgram(
             "warning",
-            { gameObjID: 7 },
+            SfxControlsWith({ gameObjID: 7 }),
         ),
         /Nested Continuous container 2 is unsupported/u,
     );
@@ -1148,7 +1149,7 @@ test("nested Crossfade passes reapply inner and outer delays", () =>
     });
     const first = engine.ResolveProgram(
         "incidentals",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const token = first.continuations[0].token;
 
@@ -1160,7 +1161,7 @@ test("nested Crossfade passes reapply inner and outer delays", () =>
 
     const rolledBack = engine.PrepareProgram(
         token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     );
 
     assert.equal(rolledBack.program[0].selections[0].mediaID, "200");
@@ -1173,7 +1174,7 @@ test("nested Crossfade passes reapply inner and outer delays", () =>
 
     const prepared = engine.PrepareProgram(
         token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     );
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
@@ -1181,7 +1182,7 @@ test("nested Crossfade passes reapply inner and outer delays", () =>
 
     const restarted = engine.ContinueProgram(
         token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
 
     assert.equal(restarted.selections[0].mediaID, "100");
@@ -1219,7 +1220,7 @@ test("Continuous Crossfade samples only overlaps with a successor", () =>
     });
     const first = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
     const continuation = first.continuations[0];
 
@@ -1234,7 +1235,7 @@ test("Continuous Crossfade samples only overlaps with a successor", () =>
 
     const second = engine.ContinueProgram(
         continuation.token,
-        { gameObjID: 7 },
+        SfxControlsWith({ gameObjID: 7 }),
     )[0];
 
     assert.equal(second.selections[0].mediaID, "200");
@@ -1266,11 +1267,11 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
     const rollbackEngine = new CjsSfxEngine({ graph });
     const initial = rollbackEngine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const prepared = rollbackEngine.PrepareProgram(
         initial.continuations[0].token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
@@ -1280,7 +1281,7 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
     assert.equal(
         rollbackEngine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "200",
         "cancelled prefetch does not skip an unheard sequence child",
@@ -1289,11 +1290,11 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
     const commitEngine = new CjsSfxEngine({ graph });
     const committedInitial = commitEngine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const committed = commitEngine.PrepareProgram(
         committedInitial.continuations[0].token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
 
     committed.commit();
@@ -1302,7 +1303,7 @@ test("speculative Crossfade selection commits only at the audible boundary", () 
     assert.equal(
         commitEngine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "100",
         "audible prefetch commits the persistent next position",
@@ -1338,23 +1339,23 @@ test("failed speculative selection restores state and releases its lease", () =>
     });
     const initial = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const token = initial.continuations[0].token;
 
     fail = true;
     assert.throws(
-        () => engine.PrepareProgram(token, { gameObjID: 9 }),
+        () => engine.PrepareProgram(token, SfxControlsWith({ gameObjID: 9 })),
         /selection failed/u,
     );
     fail = false;
 
-    const retried = engine.PrepareProgram(token, { gameObjID: 9 });
+    const retried = engine.PrepareProgram(token, SfxControlsWith({ gameObjID: 9 }));
 
     assert.equal(retried.program[0].selections[0].mediaID, "100");
     retried.rollback();
     assert.equal(
-        engine.ContinueProgram(token, { gameObjID: 9 })[0]
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 9 }))[0]
             .selections[0].mediaID,
         "100",
     );
@@ -1383,16 +1384,16 @@ test("speculative Crossfade sequence commits merge concurrent heard selections",
     const engine = new CjsSfxEngine({ graph });
     const initial = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const token = initial.continuations[0].token;
     const prepared = engine.PrepareProgram(
         token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
     const concurrent = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
@@ -1405,7 +1406,7 @@ test("speculative Crossfade sequence commits merge concurrent heard selections",
     assert.equal(
         engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "100",
         "the prepared and concurrent heard batches both advance shared state",
@@ -1435,15 +1436,15 @@ test("rolled-back Crossfade sequence prefetch cannot repeat a concurrent post", 
     const engine = new CjsSfxEngine({ graph });
     const initial = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const prepared = engine.PrepareProgram(
         initial.continuations[0].token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
     const concurrent = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
@@ -1452,7 +1453,7 @@ test("rolled-back Crossfade sequence prefetch cannot repeat a concurrent post", 
     assert.equal(
         engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "300",
     );
@@ -1484,15 +1485,15 @@ test("rolled-back nested step-sequence prefetch preserves heard cursor order", (
     const engine = new CjsSfxEngine({ graph });
     const initial = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const prepared = engine.PrepareProgram(
         initial.continuations[0].token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
     const concurrent = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
 
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
@@ -1501,7 +1502,7 @@ test("rolled-back nested step-sequence prefetch preserves heard cursor order", (
     assert.equal(
         engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "300",
     );
@@ -1530,18 +1531,18 @@ test("speculative Crossfade leases its continuation token until settlement", () 
     const engine = new CjsSfxEngine({ graph });
     const initial = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0];
     const token = initial.continuations[0].token;
     const prepared = engine.PrepareProgram(
         token,
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     );
     assert.equal(prepared.program[0].selections[0].mediaID, "200");
     assert.throws(
         () => engine.ContinueProgram(
             token,
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         ),
         /continuation token is being prepared/u,
     );
@@ -1549,7 +1550,7 @@ test("speculative Crossfade leases its continuation token until settlement", () 
     assert.equal(
         engine.ContinueProgram(
             token,
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0].selections[0].mediaID,
         "200",
     );
@@ -1584,15 +1585,15 @@ for (const mode of [ "random", "shuffle" ])
         });
         const initial = engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0];
         const prepared = engine.PrepareProgram(
             initial.continuations[0].token,
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         );
         const concurrent = engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0];
 
         assert.equal(initial.selections[0].mediaID, "100");
@@ -1602,7 +1603,7 @@ for (const mode of [ "random", "shuffle" ])
         assert.equal(
             engine.ResolveProgram(
                 "ambience",
-                { gameObjID: 9 },
+                SfxControlsWith({ gameObjID: 9 }),
             )[0].selections[0].mediaID,
             "100",
         );
@@ -1634,18 +1635,18 @@ for (const invalidate of [ "Reset", "ReleaseGameObj" ])
         const engine = new CjsSfxEngine({ graph });
         const initial = engine.ResolveProgram(
             "ambience",
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         )[0];
         const prepared = engine.PrepareProgram(
             initial.continuations[0].token,
-            { gameObjID: 9 },
+            SfxControlsWith({ gameObjID: 9 }),
         );
 
         engine[invalidate](...(invalidate === "Reset" ? [] : [ 9 ]));
         assert.throws(
             () => engine.ContinueProgram(
                 initial.continuations[0].token,
-                { gameObjID: 9 },
+                SfxControlsWith({ gameObjID: 9 }),
             ),
             /continuation token has been invalidated/u,
         );
@@ -1653,7 +1654,7 @@ for (const invalidate of [ "Reset", "ReleaseGameObj" ])
         assert.equal(
             engine.ResolveProgram(
                 "ambience",
-                { gameObjID: 9 },
+                SfxControlsWith({ gameObjID: 9 }),
             )[0].selections[0].mediaID,
             "100",
         );
@@ -1686,7 +1687,7 @@ test("interrupted Continuous Sequence resumes only when reset is disabled", () =
     });
     const firstMedia = engine => engine.ResolveProgram(
         "ambience",
-        { gameObjID: 9 },
+        SfxControlsWith({ gameObjID: 9 }),
     )[0].selections[0].mediaID;
 
     assert.equal(firstMedia(retained), "100");
@@ -1727,18 +1728,18 @@ test("Continuous Random preserves selection scope and exact pass count", () =>
     });
     const first = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 1 },
+        SfxControlsWith({ gameObjID: 1 }),
     )[0];
     const token = first.continuations[0].token;
 
     assert.equal(first.selections[0].mediaID, "100");
     assert.equal(
-        engine.ContinueProgram(token, { gameObjID: 1 })[0]
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 1 }))[0]
             .selections[0].mediaID,
         "200",
     );
     assert.deepEqual(
-        engine.ContinueProgram(token, { gameObjID: 1 }),
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 1 })),
         [],
     );
 });
@@ -1769,7 +1770,7 @@ test("Continuous Shuffle never repeats the last child across a pool reset", () =
     });
     const first = engine.ResolveProgram(
         "ambience",
-        { gameObjID: 1 },
+        SfxControlsWith({ gameObjID: 1 }),
     )[0];
     const token = first.continuations[0].token;
     const selected = [ first.selections[0].mediaID ];
@@ -1777,14 +1778,14 @@ test("Continuous Shuffle never repeats the last child across a pool reset", () =
     for (let index = 0; index < 3; index++)
     {
         selected.push(
-            engine.ContinueProgram(token, { gameObjID: 1 })[0]
+            engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 1 }))[0]
                 .selections[0].mediaID,
         );
     }
 
     assert.deepEqual(selected, [ "100", "200", "100", "200" ]);
     assert.deepEqual(
-        engine.ContinueProgram(token, { gameObjID: 1 }),
+        engine.ContinueProgram(token, SfxControlsWith({ gameObjID: 1 })),
         [],
     );
 });
@@ -1805,7 +1806,7 @@ test("authored finite Sound play counts reach the backend selection", () =>
     });
 
     assert.deepEqual(
-        engine.ResolveEvent("repeated_shot", { gameObjID: 3 }),
+        engine.ResolveEvent("repeated_shot", SfxControlsWith({ gameObjID: 3 })),
         [
             {
                 mediaID: "100",
@@ -1844,11 +1845,11 @@ test("SFX selections preserve authored and metadata infinite-loop fallbacks", ()
     });
     const authored = engine.ResolveEvent(
         "authored_loop",
-        { gameObjID: 3 },
+        SfxControlsWith({ gameObjID: 3 }),
     )[0];
     const metadata = engine.ResolveEvent(
         "metadata_loop",
-        { gameObjID: 3 },
+        SfxControlsWith({ gameObjID: 3 }),
     )[0];
 
     assert.equal(authored.loop, true);
@@ -1900,7 +1901,7 @@ test("SFX selections retain each Sound leaf's distance curve and source EQ", () 
             },
         ),
     });
-    const selection = engine.ResolveEvent("spatial_event")[0];
+    const selection = engine.ResolveEvent("spatial_event", SfxControlsWith())[0];
 
     assert.equal(selection.spatial, true);
     assert.deepEqual(selection.dryVolumeCurve, curve);
@@ -1961,13 +1962,13 @@ test("switch/state selection and parallel RTPC gains resolve without acquisition
             },
         ),
     });
-    const controls = {
+    const controls = SfxControlsWith({
         gameObjID: 9,
         getSwitch: () => "LARGE",
         getState: () => "storm",
         getRTPC: () => speed,
         getGlobalRTPC: () => 0,
-    };
+    });
     const fire = engine.ResolveEvent("fire", controls);
 
     assert.deepEqual(
@@ -2001,10 +2002,10 @@ test("Continuous Switch sessions follow nested game-sync decisions", () =>
         [ "mode", "idle" ],
         [ "detail", "low" ],
     ]);
-    const controls = {
+    const controls = SfxControlsWith({
         gameObjID: 7,
         getSwitch: group => values.get(group),
-    };
+    });
     const engine = new CjsSfxEngine({
         graph: Graph(
             { engine: [ { nodeId: "1" } ] },
@@ -2116,10 +2117,10 @@ test("Continuous Switch sessions follow nested game-sync decisions", () =>
 test("Continuous Switch keeps distinct fades for parallel assigned children", () =>
 {
     const values = new Map([ [ "mode", "layered" ] ]);
-    const controls = {
+    const controls = SfxControlsWith({
         gameObjID: 9,
         getSwitch: group => values.get(group),
-    };
+    });
     const engine = new CjsSfxEngine({
         graph: Graph(
             { layered: [ { nodeId: "1" } ] },
@@ -2241,12 +2242,12 @@ test("event setters update controls before resolving the same post", () =>
             },
         },
     });
-    const controls = {
+    const controls = SfxControlsWith({
         getSwitch: group => switches.get(group),
         getState: group => states.get(group),
         setSwitch: (group, value) => switches.set(group, value),
         setState: (group, value) => states.set(group, value),
-    };
+    });
 
     assert.equal(engine.HandlesEvent("set_storm"), true);
     assert.deepEqual(engine.ResolveEvent("set_storm", controls), []);
@@ -2312,10 +2313,10 @@ test("event programs preserve authored Play and setter interleaving", () =>
             },
         },
     });
-    const controls = {
+    const controls = SfxControlsWith({
         getSwitch: group => switches.get(group),
         setSwitch: (group, value) => switches.set(group, value),
-    };
+    });
 
     assert.deepEqual(
         engine.ResolveEvent("interleaved", controls)
@@ -2363,7 +2364,7 @@ test("event programs preserve Stop order, hierarchy matches, and sampled timing"
         },
     });
 
-    const program = engine.ResolveProgram("staged_stop");
+    const program = engine.ResolveProgram("staged_stop", SfxControlsWith());
 
     assert.deepEqual(
         program.map(action => action.kind),
@@ -2422,7 +2423,7 @@ test("event programs preserve stacked Pause and Resume transport actions", () =>
         },
     });
 
-    assert.deepEqual(engine.ResolveProgram("voice_pause"), [
+    assert.deepEqual(engine.ResolveProgram("voice_pause", SfxControlsWith()), [
         {
             kind: "pause",
             actionIndex: 0,
@@ -2437,7 +2438,7 @@ test("event programs preserve stacked Pause and Resume transport actions", () =>
             exceptions: [],
         },
     ]);
-    assert.deepEqual(engine.ResolveProgram("voice_resume"), [
+    assert.deepEqual(engine.ResolveProgram("voice_resume", SfxControlsWith()), [
         {
             kind: "resume",
             actionIndex: 0,
@@ -2507,7 +2508,7 @@ test("event programs preserve Set and Reset Voice Volume operations", () =>
         },
     });
 
-    const program = engine.ResolveProgram("staged_volume");
+    const program = engine.ResolveProgram("staged_volume", SfxControlsWith());
 
     assert.deepEqual(
         program.map(action => action.kind),
@@ -2538,13 +2539,13 @@ test("event programs preserve Set and Reset Voice Volume operations", () =>
     assert.ok(
         Math.abs(engine.EvaluateGain(
             program[1].selections[0],
-            { getVoiceVolumeDb: () => -6 },
+            SfxControlsWith({ getVoiceVolumeDb: () => -6 }),
         ) - 10 ** (-6 / 20)) < 1e-12,
     );
     assert.ok(
         Math.abs(engine.EvaluateGain(
             program[1].selections[0],
-            { getVoiceVolumeDb: () => -6 },
+            SfxControlsWith({ getVoiceVolumeDb: () => -6 }),
             3,
         ) - 10 ** (3 / 20)) < 1e-12,
     );
@@ -2607,7 +2608,7 @@ test("Bus-target Voice Volume marks routed future voices", () =>
         },
     });
 
-    assert.deepEqual(engine.ResolveProgram("begin"), [ {
+    assert.deepEqual(engine.ResolveProgram("begin", SfxControlsWith()), [ {
         kind: "set-bus-voice-volume",
         actionIndex: 0,
         targetId: "928",
@@ -2620,7 +2621,7 @@ test("Bus-target Voice Volume marks routed future voices", () =>
         valueMode: "absolute",
         volumeDb: -30,
     } ]);
-    const climax = engine.ResolveProgram("climax");
+    const climax = engine.ResolveProgram("climax", SfxControlsWith());
 
     assert.equal(
         climax[0].selections[0].busVoiceVolumeActionControlled,
@@ -2629,7 +2630,7 @@ test("Bus-target Voice Volume marks routed future voices", () =>
     assert.equal(climax[1].delayMs, 6000);
     assert.equal(climax[1].transitionMs, 2000);
     assert.equal(
-        engine.ResolveProgram("unrelated")[0].selections[0]
+        engine.ResolveProgram("unrelated", SfxControlsWith())[0].selections[0]
             .busVoiceVolumeActionControlled,
         undefined,
     );
@@ -2687,7 +2688,7 @@ test("event programs preserve Bus Volume forms and bus routing", () =>
         },
     });
 
-    const program = engine.ResolveProgram("staged_bus");
+    const program = engine.ResolveProgram("staged_bus", SfxControlsWith());
 
     assert.deepEqual(program.map(action => action.kind), [
         "set-bus-volume",
@@ -2777,7 +2778,7 @@ test("event programs preserve Set and Reset Voice Pitch operations", () =>
         },
     });
 
-    const program = engine.ResolveProgram("staged_pitch");
+    const program = engine.ResolveProgram("staged_pitch", SfxControlsWith());
 
     assert.deepEqual(
         program.map(action => action.kind),
@@ -2808,14 +2809,14 @@ test("event programs preserve Set and Reset Voice Pitch operations", () =>
     assert.equal(
         engine.EvaluatePlaybackRate(
             program[1].selections[0],
-            { getVoicePitchCents: () => 1200 },
+            SfxControlsWith({ getVoicePitchCents: () => 1200 }),
         ),
         2,
     );
     assert.equal(
         engine.EvaluatePlaybackRate(
             program[1].selections[0],
-            { getVoicePitchCents: () => 1200 },
+            SfxControlsWith({ getVoicePitchCents: () => 1200 }),
             -1200,
         ),
         0.5,
@@ -2834,13 +2835,13 @@ test("event programs preserve Set and Reset Voice Pitch operations", () =>
             },
         ),
     });
-    const clamped = clampedEngine.ResolveEvent("clamped")[0];
+    const clamped = clampedEngine.ResolveEvent("clamped", SfxControlsWith())[0];
 
     assert.equal(clamped.playbackRate, 4);
     assert.equal(
         clampedEngine.EvaluatePlaybackRate(
             clamped,
-            { getVoicePitchCents: () => 2400 },
+            SfxControlsWith({ getVoicePitchCents: () => 2400 }),
         ),
         4,
         "NodeBase and Voice Pitch contributions clamp after accumulation",
@@ -2917,7 +2918,7 @@ test("event programs preserve Voice LPF and HPF operations", () =>
         },
     });
 
-    const program = engine.ResolveProgram("staged_filters");
+    const program = engine.ResolveProgram("staged_filters", SfxControlsWith());
 
     assert.deepEqual(
         program.map(action => action.kind),
@@ -2957,14 +2958,14 @@ test("event programs preserve Voice LPF and HPF operations", () =>
     assert.equal(
         engine.EvaluateLowPass(
             program[1].selections[0],
-            { getVoiceLowPass: () => 30 },
+            SfxControlsWith({ getVoiceLowPass: () => 30 }),
         ),
         30,
     );
     assert.equal(
         engine.EvaluateHighPass(
             program[1].selections[0],
-            { getVoiceHighPass: () => 30 },
+            SfxControlsWith({ getVoiceHighPass: () => 30 }),
         ),
         30,
     );
@@ -3052,10 +3053,10 @@ test("Game Parameter programs sample once and overlay capture-time RTPCs in orde
             },
         },
     });
-    const controls = {
+    const controls = SfxControlsWith({
         getRTPC: () => 0,
         getGlobalRTPC: () => 0,
-    };
+    });
     const program = engine.ResolveProgram("staged_rtpc", controls);
 
     assert.deepEqual(program.map(action => action.kind), [
@@ -3128,7 +3129,7 @@ test("Play actions preserve probability, randomized delay, and fade-in", () =>
     });
 
     assert.deepEqual(
-        engine.ResolveEvent("impact"),
+        engine.ResolveEvent("impact", SfxControlsWith()),
         [
             {
                 mediaID: "100",
@@ -3145,7 +3146,7 @@ test("Play actions preserve probability, randomized delay, and fade-in", () =>
         "one probability sample gates the action before its randomizers",
     );
     assert.equal(
-        engine.ResolveEvent("nested_delay")[0].delayMs,
+        engine.ResolveEvent("nested_delay", SfxControlsWith())[0].delayMs,
         150,
         "nested Play-Event delays remain independent and additive",
     );
@@ -3183,12 +3184,12 @@ test("nested Play-Event probability gates remain independent", () =>
     });
 
     assert.equal(
-        engine.ResolveEvent("gated")[0].delayMs,
+        engine.ResolveEvent("gated", SfxControlsWith())[0].delayMs,
         150,
         "the outer and inner actions both pass and keep their own delays",
     );
     assert.deepEqual(
-        engine.ResolveEvent("gated"),
+        engine.ResolveEvent("gated", SfxControlsWith()),
         [],
         "the inner gate can fail after the outer gate passes",
     );
@@ -3311,9 +3312,9 @@ test("linear-gain curves preserve Wwise shapes and duplicate-x steps", () =>
             },
         },
     });
-    const controls = {
+    const controls = SfxControlsWith({
         getRTPC: () => speed,
-    };
+    });
     const selection = engine.ResolveEvent("engine", controls)[0];
 
     speed = 0.25;

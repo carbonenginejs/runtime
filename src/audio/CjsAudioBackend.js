@@ -18,6 +18,7 @@
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { CjsSchema, impl } from "#schema";
 import { ICjsAudioBackend } from "./ICjsAudioBackend.js";
+import { CjsAudioBackendSfxControls } from "./internal/CjsAudioBackendSfxControls.js";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {
     evaluateWwiseRtpcCurve,
@@ -4517,97 +4518,72 @@ export class CjsAudioBackend extends ICjsAudioBackend
         record = null,
     )
     {
-        return {
+        return new CjsAudioBackendSfxControls(
+            this,
             gameObjID,
             signal,
-            installSfxProgram: program =>
-                this._InstallSfxProgram(
-                    playingID,
-                    record,
-                    program,
-                ),
-            getSwitch: group =>
-                this.GetSwitchValue(group, gameObjID),
-            getState: group =>
-                this.GetGlobalState(group),
-            getStatePropertyWeights: (group, at = undefined) =>
-                this._ReadStatePropertyWeights(
-                    group,
-                    at ?? (Number(this._context?.currentTime) || 0),
-                ),
-            getRTPC: (name, at = undefined) =>
-                record?.emitterNodes?.retiredRtpcValues instanceof Map
-                    ? ReadRetiredRtpcValue(
-                        record.emitterNodes,
-                        String(name),
-                        at ?? (Number(this._context?.currentTime) || 0),
-                    )
-                    : this._ReadRtpcValue(
-                        "game-object",
-                        String(name),
-                        gameObjID,
-                        at ?? (Number(this._context?.currentTime) || 0),
-                    ),
-            getGlobalRTPC: (name, at = undefined) =>
-                this._ReadRtpcValue(
-                    "global",
-                    String(name),
-                    undefined,
-                    at ?? (Number(this._context?.currentTime) || 0),
-                ),
-            getVoiceVolumeDb: matchIds =>
-                EvaluateVoiceVolumeTargets(
-                    record?.emitterNodes?.voiceVolumes,
-                    matchIds,
-                    Number(this._context?.currentTime) || 0,
-                ),
-            getVoicePitchCents: matchIds =>
-                EvaluateVoicePitchTargets(
-                    record?.emitterNodes?.voicePitches,
-                    matchIds,
-                    Number(this._context?.currentTime) || 0,
-                ),
-            getVoiceLowPass: (matchIds, at = undefined) =>
-                EvaluateVoiceFilterTargets(
-                    record?.emitterNodes?.voiceLowPasses,
-                    matchIds,
-                    at ?? (Number(this._context?.currentTime) || 0),
-                ),
-            getVoiceHighPass: (matchIds, at = undefined) =>
-                EvaluateVoiceFilterTargets(
-                    record?.emitterNodes?.voiceHighPasses,
-                    matchIds,
-                    at ?? (Number(this._context?.currentTime) || 0),
-                ),
-            setSwitch: (group, value) =>
-                this.SetSwitch(group, value, gameObjID),
-            setState: (group, value) =>
-                this.SetGlobalState(group, value),
-            getSfxProgramSignal: (
-                programSlotId,
-                actionIndex,
-                leafIndex,
-                programBatchId,
-            ) =>
-            {
-                const slot = record?.programSlots?.get(
-                    String(programSlotId),
-                );
-                const batch = programBatchId === undefined
-                    ? null
-                    : slot?.batches?.get(String(programBatchId));
-                const selectionSignal =
-                    (batch?.selectionControllers
-                        ?? slot?.selectionControllers)
-                        ?.get(ProgramSelectionKey({
-                            actionIndex,
-                            leafIndex,
-                            programBatchId,
-                        }))?.signal;
+            playingID,
+            record,
+        );
+    }
 
-                return selectionSignal ?? slot?.controller?.signal ?? signal;
-            },
-        };
+    /** An SFX post's object RTPC: its retired emitter's value once retired, else live. */
+    _ReadSfxObjectRtpc(record, gameObjID, name, at)
+    {
+        return record?.emitterNodes?.retiredRtpcValues instanceof Map
+            ? ReadRetiredRtpcValue(record.emitterNodes, String(name), at)
+            : this._ReadRtpcValue("game-object", String(name), gameObjID, at);
+    }
+
+    /**
+     * An SFX post's live Voice property offset for the matched voices:
+     * `volume` (dB), `pitch` (cents), `lowPass` or `highPass`.
+     */
+    _EvaluateSfxVoiceTargets(property, record, matchIds, at)
+    {
+        const nodes = record?.emitterNodes;
+
+        switch (property)
+        {
+            case "volume":
+                return EvaluateVoiceVolumeTargets(nodes?.voiceVolumes, matchIds, at);
+            case "pitch":
+                return EvaluateVoicePitchTargets(nodes?.voicePitches, matchIds, at);
+            case "lowPass":
+                return EvaluateVoiceFilterTargets(nodes?.voiceLowPasses, matchIds, at);
+            case "highPass":
+                return EvaluateVoiceFilterTargets(nodes?.voiceHighPasses, matchIds, at);
+            default:
+                throw new TypeError(`Unknown SFX voice property: ${property}`);
+        }
+    }
+
+    /** The AbortSignal ending one program leaf: its selection's, else its slot's, else `signal`. */
+    _ReadSfxProgramSignal(
+        record,
+        signal,
+        programSlotId,
+        actionIndex,
+        leafIndex,
+        programBatchId,
+    )
+    {
+        const slot = record?.programSlots?.get(
+            String(programSlotId),
+        );
+        const batch = programBatchId === undefined
+            ? null
+            : slot?.batches?.get(String(programBatchId));
+        const selectionSignal =
+            (batch?.selectionControllers
+                ?? slot?.selectionControllers)
+                ?.get(ProgramSelectionKey({
+                    actionIndex,
+                    leafIndex,
+                    programBatchId,
+                }))?.signal;
+
+        return selectionSignal ?? slot?.controller?.signal ?? signal;
     }
 
     /**
