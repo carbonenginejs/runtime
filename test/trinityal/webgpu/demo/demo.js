@@ -3382,7 +3382,10 @@ export async function RunDemo(canvas)
   // scene copies it into the combined post process each frame
   // (EveSpaceScene.cpp, SetTaa( postprocess->GetTaaIfAvailable() )). A
   // template's own TAA slot is not what Carbon reads, so it stays emptied.
-  perFrameScene.postprocess = new Tr2PostProcess2();
+  // Only the stand-in scene is given an empty one here: a real scene already
+  // holds the selected template (postState.apply), and replacing it silently
+  // dropped `?post=<template>` at start-up.
+  if (!realScene) perFrameScene.postprocess = new Tr2PostProcess2();
   const taaOnlyPostProcess = new Tr2PostProcess2();
 
   // THE SUN'S LENS FLARE. Carbon draws no god rays without one: the rays read
