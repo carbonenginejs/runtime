@@ -44,11 +44,11 @@ export class HlslEffectStageInput
             uavs: mapToJson(this.uavs),
             samplers: mapToJson(this.samplers),
             m_shader: this.m_shader,
-            constants: this.constants.map((entry) => entry?.toJSON?.() ?? entry),
+            constants: this.constants.map((entry) => entry.toJSON()),
             m_constantValueSize: this.m_constantValueSize,
             constantValues: Array.from(this.constantValues),
             signature: cloneJson(this.signature),
-            annotation: this.annotation.map((entry) => entry?.toJSON?.() ?? entry),
+            annotation: this.annotation.map((entry) => entry.toJSON()),
             cjsShaderBytecode: this.cjsShaderBytecode?.toJSON?.() ?? this.cjsShaderBytecode
         };
     }

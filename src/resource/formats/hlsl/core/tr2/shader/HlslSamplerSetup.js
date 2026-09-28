@@ -23,7 +23,7 @@ export class HlslSamplerSetup
     {
         return {
             name: this.name,
-            sampler: this.sampler?.toJSON?.() ?? this.sampler
+            sampler: this.sampler?.toJSON() ?? null
         };
     }
 }

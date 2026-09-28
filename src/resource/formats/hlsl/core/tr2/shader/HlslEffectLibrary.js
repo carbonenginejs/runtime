@@ -44,7 +44,7 @@ export class HlslEffectLibrary
             exports: this.exports.map((entry) => ({ ...entry })),
             globalInput: this.globalInput.toJSON(),
             localInput: this.localInput.toJSON(),
-            globalResourceSetDesc: this.globalResourceSetDesc?.toJSON?.() ?? this.globalResourceSetDesc
+            globalResourceSetDesc: this.globalResourceSetDesc?.toJSON() ?? null
         };
     }
 }

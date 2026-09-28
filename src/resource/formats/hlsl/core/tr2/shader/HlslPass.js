@@ -31,13 +31,13 @@ export class HlslPass
     toJSON()
     {
         return {
-            stageInputs: this.stageInputs.map((entry) => entry?.toJSON?.() ?? entry),
+            stageInputs: this.stageInputs.map((entry) => entry.toJSON()),
             renderStates: this.renderStates,
             shaderTypeMask: this.shaderTypeMask,
             shaderProgram: this.shaderProgram,
-            resourceSetDesc: this.resourceSetDesc?.toJSON?.() ?? this.resourceSetDesc,
+            resourceSetDesc: this.resourceSetDesc?.toJSON() ?? null,
             indirectLayout: this.indirectLayout,
-            cjsRenderStateSetup: this.cjsRenderStateSetup?.toJSON?.() ?? this.cjsRenderStateSetup
+            cjsRenderStateSetup: this.cjsRenderStateSetup?.toJSON() ?? null
         };
     }
 }

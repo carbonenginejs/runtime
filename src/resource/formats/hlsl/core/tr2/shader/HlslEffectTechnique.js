@@ -23,8 +23,8 @@ export class HlslEffectTechnique
     {
         return {
             name: this.name,
-            passes: this.passes.map((entry) => entry?.toJSON?.() ?? entry),
-            libraries: this.libraries.map((entry) => entry?.toJSON?.() ?? entry),
+            passes: this.passes.map((entry) => entry.toJSON()),
+            libraries: this.libraries.map((entry) => entry.toJSON()),
             shaderTypeMask: this.shaderTypeMask
         };
     }
