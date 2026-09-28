@@ -149,9 +149,9 @@ import { decodeTangentFrame } from "../../../../npm/dist/global/math/tangent.js"
 const TIER = new URLSearchParams(globalThis.location?.search ?? "").get("tier") || "depth";
 
 /**
- * `?post=off` draws the scene straight into the canvas, as before the post
- * process was wired: a null destination keeps the driver's direct path. It
- * splits "the scene does not draw" from "the post process does not".
+ * `?post=off` runs with an empty post process (copy, sharpen, tonemap only).
+ * The driver still renders into its own targets, as Carbon always does, so
+ * the scene depth the high-tier shaders sample stays published.
  */
 const POST_PARAMETER = new URLSearchParams(globalThis.location?.search ?? "").get("post") ?? "";
 const POST_OFF = POST_PARAMETER === "off";
@@ -309,7 +309,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   };
 
   const postToggle = row("post", Object.assign(document.createElement("input"), { type: "checkbox", checked: !postState.off }));
-  postToggle.addEventListener("change", () => { postState.off = !postToggle.checked; });
+  postToggle.addEventListener("change", () => { postState.off = !postToggle.checked; postState.apply(); });
 
   const templates = choose([ [ "(none)", "" ], ...Object.keys(POST_TEMPLATES).map(name => [ name, name ]) ], initialTemplate);
   row("template", templates);
@@ -3290,6 +3290,18 @@ export async function RunDemo(canvas)
 
   let postTemplate = null;
 
+  // POST OFF IS AN EMPTY POST PROCESS, as in Carbon: the driver always renders
+  // into its own colour and depth and always post-processes into the
+  // destination (EveSpaceSceneRenderDriver.cpp:600-608); with no effects that
+  // is copy, sharpen and tonemap. The scene depth is therefore always
+  // published as DepthMap, which the high-tier light, sprite and flare shaders
+  // sample to hide behind the hull.
+  const postState = { off: POST_OFF, apply: () => {} };
+  postState.apply = () =>
+  {
+    if (realScene) realScene.postprocess = !postState.off && postTemplate ? postTemplate.postProcess : new Tr2PostProcess2();
+  };
+
   // Whether the demo plays the client's part (the settings panel's "client
   // defaults", ?clientDefaults=0 to start without).
   const clientState = { enabled: new URLSearchParams(globalThis.location?.search ?? "").get("clientDefaults") !== "0" };
@@ -3336,7 +3348,7 @@ export async function RunDemo(canvas)
     // A REAL SCENE'S TEMPLATE IS ITS DEFAULT POST PROCESS (m_sceneDefaultPostProcess),
     // which Update merges into the combined one the driver reads; the driver's
     // PropagateSettings keeps TAA on it.
-    if (realScene) realScene.postprocess = postTemplate?.postProcess ?? new Tr2PostProcess2();
+    postState.apply();
     ApplyClientDefaults();
 
     if (postTemplate)
@@ -3351,7 +3363,7 @@ export async function RunDemo(canvas)
   globalThis.demo.postProcess = null;
   if (POST_TEMPLATE) await SelectPostTemplate(POST_TEMPLATE);
 
-  const postState = { off: POST_OFF };
+  postState.apply();
 
 
   // THE FOUR THINGS THE DRIVER ASKS A SCENE FOR. The update hooks are no-ops on
@@ -3499,7 +3511,7 @@ export async function RunDemo(canvas)
     GetPostProcess: () =>
     {
       const taa = perFrameScene.postprocess.GetTaaIfAvailable();
-      const combined = postTemplate?.postProcess ?? (taa ? taaOnlyPostProcess : null);
+      const combined = (!postState.off && postTemplate ? postTemplate.postProcess : null) ?? (taa ? taaOnlyPostProcess : null);
 
       if (combined) combined.SetTaa(taa);
       return combined;
@@ -3573,7 +3585,7 @@ export async function RunDemo(canvas)
     device.pushErrorScope("validation");
 
     PlaceSun();
-    driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
+    driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
 
     al.EndScene();
 
@@ -3671,7 +3683,7 @@ export async function RunDemo(canvas)
         al.SetRenderTarget(0, renderTarget);
         al.SetDepthStencil(renderTarget);
         PlaceSun();
-        driver.Execute(postState.off ? null : [ renderTarget ], null, clock(), clock(), null, renderContext);
+        driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
         al.EndScene();
         al.DrainTransitions();
 
