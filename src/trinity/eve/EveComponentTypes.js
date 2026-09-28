@@ -51,9 +51,9 @@ export const EveComponentType = Object.freeze({
  * sphere-overload IsCastingShadow - are not required). ITr2Renderable and
  * ITr2FroxelFogSettings are enforced nominally by EveComponentRegistry.
  */
-export const EveComponentRequiredMethods = Object.freeze({
+export const EveComponentRequiredMethods = {
   /** ITr2VolumetricRenderable.h:44-51 pure virtuals. */
-  VolumetricRenderable: Object.freeze([
+  VolumetricRenderable: [
     "GetSortValue",
     "GetVolumetricBatches",
     "UpdateVolumetricLightmap",
@@ -62,29 +62,29 @@ export const EveComponentRequiredMethods = Object.freeze({
     "GetVolumetricShadowInfo",
     "PrepareCloudShadowMap",
     "SetCloudShadowMapHandle"
-  ]),
+  ],
 
   /** ITr2MeshMorph.h:11. */
-  MeshMorph: Object.freeze(["UpdateMeshMorphs"]),
+  MeshMorph: ["UpdateMeshMorphs"],
 
   /** PostProcess/ITr2PostProcessOwner.h:12. */
-  PostProcessOwner: Object.freeze(["GetPostProcessAttributes"]),
+  PostProcessOwner: ["GetPostProcessAttributes"],
 
   /** Eve/EveInstancedMeshManager.h:270. */
-  InstancedMeshProvider: Object.freeze(["AddMeshesToManager"]),
+  InstancedMeshProvider: ["AddMeshesToManager"],
 
   /** Lights/ITr2LightOwner.h:13. */
-  LightOwner: Object.freeze(["GetLights"]),
+  LightOwner: ["GetLights"],
 
   /** Tr2VolumetricsRenderer.h:55. */
-  FroxelFogSettings: Object.freeze(["GetFroxelFogSettings"]),
+  FroxelFogSettings: ["GetFroxelFogSettings"],
 
   /** Eve/IEveShadowCaster.h:143-149 pure virtuals. */
-  ShadowCaster: Object.freeze(["IsCastingShadow", "GetShadowBatches", "GetShadowPerObjectData"]),
+  ShadowCaster: ["IsCastingShadow", "GetShadowBatches", "GetShadowPerObjectData"],
 
   /** EveChildLightingOverride.h:31. */
-  EveLightingOverride: Object.freeze(["GetOverrides"])
-});
+  EveLightingOverride: ["GetOverrides"]
+};
 
 // Carbon's global reflection knob g_eveReflectionMode (scene setting
 // "eveReflectionSetting"). CARBON QUIRK: EveSpaceScene.cpp:112 initializes the

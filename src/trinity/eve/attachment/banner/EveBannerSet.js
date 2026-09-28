@@ -951,13 +951,13 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   static #debugLightColor = new Float32Array(4);
 
-  static #debugBoxMin = Object.freeze([-0.5, -0.5, -0.005]);
+  static #debugBoxMin = [-0.5, -0.5, -0.005];
 
-  static #debugBoxMax = Object.freeze([0.5, 0.5, 0.005]);
+  static #debugBoxMax = [0.5, 0.5, 0.005];
 
-  static #debugBannerColor = Object.freeze([0.1, 0.1, 0.7, 0.5]);
+  static #debugBannerColor = [0.1, 0.1, 0.7, 0.5];
 
-  static #debugMissingBoneColor = Object.freeze([0.7, 0.1, 0.1, 0.5]);
+  static #debugMissingBoneColor = [0.7, 0.1, 0.1, 0.5];
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
   static #aabbScratch = box3.create();
@@ -971,7 +971,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   static #bannerScratch = box3.create();
 
   /** Carbon passes a single 1.0 density (cpp:154) - a banner is one flat quad. */
-  static #uvDensities = Object.freeze([1]);
+  static #uvDensities = [1];
 
   static #features = { parentBrightness: 0, parentScale: 1 };
 

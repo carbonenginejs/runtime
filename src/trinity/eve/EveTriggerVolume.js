@@ -433,8 +433,8 @@ export class EveTriggerVolume extends CjsModel
     return Number(updateContext.currentTime ?? updateContext.time ?? 0) || 0;
   }
 
-  static #zeroTranslation = Object.freeze([ 0, 0, 0 ]);
+  static #zeroTranslation = [ 0, 0, 0 ];
 
-  static #identityRotation = Object.freeze([ 0, 0, 0, 1 ]);
+  static #identityRotation = [ 0, 0, 0, 1 ];
 
 }

@@ -1190,7 +1190,7 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Carbon's neutral hull data: full activation, unit bounding radius. */
-  static #neutralShipData = Object.freeze([ 0, 1, 0, 1 ]);
+  static #neutralShipData = [ 0, 1, 0, 1 ];
 
   static #identity = mat4.create();
   static #centerTransform = mat4.create();

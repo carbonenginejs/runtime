@@ -42,7 +42,7 @@ export const BOOSTER_BOX_POSITIONS = Object.freeze([
 ]);
 
 /** The star buffer's 16 vertices as [x, y, z, u, v] tuples (cpp:62-89). */
-export const BOOSTER_STAR_VERTICES = Object.freeze((() =>
+export const BOOSTER_STAR_VERTICES = (() =>
 {
   const vertices = [];
   for (let index = 0; index < 16; index += 4)
@@ -56,7 +56,7 @@ export const BOOSTER_STAR_VERTICES = Object.freeze((() =>
     vertices.push(x, y, 0, 0, 1);
   }
   return vertices;
-})());
+})();
 
 /**
  * Carbon's GetBoxVB<Vertex> (cpp:23-58): the box positions in a vertex of

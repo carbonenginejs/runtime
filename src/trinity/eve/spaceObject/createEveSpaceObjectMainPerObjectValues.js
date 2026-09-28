@@ -1,7 +1,7 @@
 import { RawData } from "../../core/rawData/RawData.js";
 
 
-const VS_FIELDS = Object.freeze(new Set([
+const VS_FIELDS = new Set([
   "worldTransform",
   "worldTransformLast",
   "invWorldTransform",
@@ -17,9 +17,9 @@ const VS_FIELDS = Object.freeze(new Set([
   "activeMorphTargetsCount",
   "bakedMorphTargetVertexDataOffset",
   "customData"
-]));
+]);
 
-const PS_FIELDS = Object.freeze(new Set([
+const PS_FIELDS = new Set([
   "worldTransform",
   "worldTransformLast",
   "invWorldTransform",
@@ -36,7 +36,7 @@ const PS_FIELDS = Object.freeze(new Set([
   "customMaskClamps",
   "screenSize",
   "customData"
-]));
+]);
 
 const SHARED_VS_FIELDS = Object.freeze([
   "clipData",

@@ -1074,11 +1074,11 @@ export class EveBoosterSet2 extends EveEntity
 
   static #sphereScratch = sph3.create();
 
-  static #zero = Object.freeze([0, 0, 0]);
+  static #zero = [0, 0, 0];
 
-  static #identityRotation = Object.freeze([0, 0, 0, 1]);
+  static #identityRotation = [0, 0, 0, 1];
 
-  static #defaultFunctionality = Object.freeze([0, 1, 1, 1]);
+  static #defaultFunctionality = [0, 1, 1, 1];
 
   static Shape = Object.freeze({
     STAR: 0,

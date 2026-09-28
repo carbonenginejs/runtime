@@ -4031,9 +4031,9 @@ export class EveSpaceObject2 extends EveEntity
     return sph3.set(out, center[0], center[1], center[2], radius);
   }
 
-  static #zero = Object.freeze([0, 0, 0]);
+  static #zero = [0, 0, 0];
 
-  static #unitY = Object.freeze([0, 1, 0]);
+  static #unitY = [0, 1, 0];
 
   static #locatorDirection = vec3.create();
   static #locatorPosition = vec3.create();
@@ -4054,7 +4054,7 @@ export class EveSpaceObject2 extends EveEntity
   static #localBox = box3.create();
   static #worldBox = box3.create();
 
-  static #identityRotation = Object.freeze([0, 0, 0, 1]);
+  static #identityRotation = [0, 0, 0, 1];
 
   static #identityTransform = mat4.create();
 

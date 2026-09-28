@@ -847,9 +847,9 @@ export class EveBoosterSet2Renderable extends CjsModel
     return ((index % count) + count) % count;
   }
 
-  static #zero = Object.freeze([0, 0, 0]);
+  static #zero = [0, 0, 0];
 
-  static #zAxis = Object.freeze([0, 0, 1]);
+  static #zAxis = [0, 0, 1];
 
   static #controlPointCount = 5;
 

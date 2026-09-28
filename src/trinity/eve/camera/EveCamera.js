@@ -953,6 +953,6 @@ export class EveCamera extends CjsModel
     vec3.set(right, transform[0], transform[4], transform[8]);
   }
 
-  static #WORLD_UP = Object.freeze([0, 1, 0]);
+  static #WORLD_UP = [0, 1, 0];
 
 }

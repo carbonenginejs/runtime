@@ -101,7 +101,7 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
     return out;
   }
 
-  static #worldUp = Object.freeze([0, 1, 0]);
+  static #worldUp = [0, 1, 0];
 
   static #scratch = {
     scaleVec: vec3.create(),

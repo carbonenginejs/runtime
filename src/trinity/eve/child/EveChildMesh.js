@@ -50,7 +50,7 @@ const BOX_QUERY_SCRATCH = { min: vec3.create(), max: vec3.create() };
 const ZERO_VEC3 = vec3.create();
 
 // Carbon's (nullptr, 0) bone result - frozen so callers cannot mutate it.
-const NO_BONE_TRANSFORMS = Object.freeze({ bones: null, boneCount: 0 });
+const NO_BONE_TRANSFORMS = { bones: null, boneCount: 0 };
 
 
 /**

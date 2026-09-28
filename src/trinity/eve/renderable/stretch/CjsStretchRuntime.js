@@ -220,11 +220,11 @@ function writeBasis(out, xAxis, yAxis, zAxis, translation)
   return out;
 }
 
-const CjsStretchRuntime = Object.freeze({
+const CjsStretchRuntime = {
   ZERO: vec3.create(),
   DIRECTION: vec3.create(),
   UP: vec3.create(),
   X: vec3.create(),
   Y: vec3.create(),
   MATRIX: mat4.create()
-});
+};
