@@ -32,24 +32,24 @@ export const OUTPUT_FBX_JSON = "fbxJson";
 export const COMPATIBILITY_SOURCE = "source";
 export const COMPATIBILITY_CARBON = "carbon";
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...GR2_CLASS_KEYS,
     ...CMF_CLASS_KEYS
-])));
+]));
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_RAW,
     inputType: "fbx",
     source: "",
     flipV: true,
     compatibility: COMPATIBILITY_SOURCE,
-    classes: Object.freeze({}),
+    classes: {},
     maxBytes: 256 * 1024 * 1024,
     maxNodes: 250000,
     maxDepth: 128,
     maxProperties: 4096,
     maxArrayLength: 20000000
-});
+};
 
 const BINARY_SIGNATURE = "Kaydara FBX Binary  \u0000\u001a\u0000";
 const BINARY_HEADER_SIZE = 27;
@@ -86,7 +86,7 @@ const IDENTITY_MATRIX4 = Object.freeze([
 const DEFAULT_ROTATION_ORDER = "XYZ";
 const FBX_ROTATION_ORDERS = Object.freeze([ "XYZ", "XZY", "YZX", "YXZ", "ZXY", "ZYX" ]);
 const FBX_TICKS_PER_SECOND = 46186158000;
-const CMF_VERTEX_CHANNELS = Object.freeze([
+const CMF_VERTEX_CHANNELS = [
     [ "position", "Position", 3 ],
     [ "normal", "Normal", 3 ],
     [ "tangent", "Tangent", 3 ],
@@ -96,8 +96,8 @@ const CMF_VERTEX_CHANNELS = Object.freeze([
     [ "color0", "Color", 4, 0 ],
     [ "blendIndice", "BoneIndices", 4, 0, "UInt8" ],
     [ "blendWeight", "BoneWeights", 4, 0 ]
-]);
-const CMF_MORPH_CHANNELS = Object.freeze(CMF_VERTEX_CHANNELS.slice(0, 4));
+];
+const CMF_MORPH_CHANNELS = CMF_VERTEX_CHANNELS.slice(0, 4);
 const FEATURE_SCAN_ROOT_NODES = Object.freeze([ "GlobalSettings", "Objects", "Connections" ]);
 const SUPPORTED_GEOMETRY_CLASSES = new Set([ "", "Mesh", "Shape" ]);
 const SUPPORTED_LAYER_ELEMENTS = new Set([

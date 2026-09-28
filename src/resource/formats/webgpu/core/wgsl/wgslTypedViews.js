@@ -21,11 +21,11 @@ export function withoutUnboundUavs(program, semanticBindings)
         && (binding.range?.registerSpace ?? 0) === 0
         && unbound.has(binding.range?.lowerBound ?? binding.registerIndex)));
 
-    return Object.freeze({
+    return {
         ...program,
-        bindings: Object.freeze(bindings),
-        unboundUavRegisters: Object.freeze(registers)
-    });
+        bindings: bindings,
+        unboundUavRegisters: registers
+    };
 }
 
 /**
@@ -40,46 +40,46 @@ export function withoutUnboundUavs(program, semanticBindings)
  * buffers as raw words and writes uint UAVs atomically, in the audited
  * histogram profiles among others, and those layouts stay as they are.
  */
-export const TYPED_VIEW_FORMATS = Object.freeze({
-    R32_FLOAT: Object.freeze({
+export const TYPED_VIEW_FORMATS = {
+    R32_FLOAT: {
         returnType: CARBON_VIEW_FORMATS.R32_FLOAT.componentClass,
         element: "f32",
         storageTextureFormat: "r32float",
         renderStagesOnly: false,
         expand: (value) => `vec4<f32>(${value}, 0.0, 0.0, 1.0)`
-    }),
-    R32_UINT: Object.freeze({
+    },
+    R32_UINT: {
         returnType: CARBON_VIEW_FORMATS.R32_UINT.componentClass,
         element: "u32",
         storageTextureFormat: "r32uint",
         renderStagesOnly: true,
         expand: (value) => `vec4<u32>(${value}, 0u, 0u, 1u)`
-    }),
-    R32_SINT: Object.freeze({
+    },
+    R32_SINT: {
         returnType: CARBON_VIEW_FORMATS.R32_SINT.componentClass,
         element: "i32",
         storageTextureFormat: "r32sint",
         renderStagesOnly: true,
         expand: (value) => `vec4<i32>(${value}, 0i, 0i, 1i)`
-    }),
+    },
     // Four channels: a write-only storage texture and nothing else. Core
     // WebGPU has no read-write rgba8snorm, and no typed buffer takes it, since
     // an array element cannot hold four packed snorm bytes.
-    R8G8B8A8_SNORM: Object.freeze({
+    R8G8B8A8_SNORM: {
         returnType: CARBON_VIEW_FORMATS.R8G8B8A8_SNORM.componentClass,
         element: "f32",
         storageTextureFormat: "rgba8snorm",
         renderStagesOnly: false,
         writeOnly: true,
         expand: (value) => value
-    })
-});
+    }
+};
 
-const SCALAR_EXPANSION = Object.freeze({
+const SCALAR_EXPANSION = {
     f32: (value) => `vec4<f32>(${value}, 0.0, 0.0, 1.0)`,
     u32: (value) => `vec4<u32>(${value}, 0u, 0u, 1u)`,
     i32: (value) => `vec4<i32>(${value}, 0i, 0i, 1i)`
-});
+};
 
 /**
  * A typed-buffer `ld` from a storage array of `element`, zero out of bounds.

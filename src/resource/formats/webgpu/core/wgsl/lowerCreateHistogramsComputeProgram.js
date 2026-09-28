@@ -86,7 +86,7 @@ const body = (opcodeName, operands = [], options = {}) => ({
     resinfoReturnTypeName: options.resinfoReturnTypeName
 });
 
-const BODY_SM50 = Object.freeze([
+const BODY_SM50 = [
     body("resinfo", [
         mask("temp", 0, "xy"),
         immediate(0),
@@ -305,9 +305,9 @@ const BODY_SM50 = Object.freeze([
     ]),
     body("endif"),
     body("ret")
-]);
+];
 
-const BODY_SM51 = Object.freeze([
+const BODY_SM51 = [
     body("resinfo", [
         mask("temp", 0, "xy"),
         immediate(0),
@@ -526,7 +526,7 @@ const BODY_SM51 = Object.freeze([
     ]),
     body("endif"),
     body("ret")
-]);
+];
 
 function buildBlocks(instructions)
 {

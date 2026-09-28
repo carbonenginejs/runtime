@@ -172,7 +172,7 @@ function copyChannel(vertices, memberName, destWidth, preserveWidth = false)
     return out;
 }
 
-const VERTEX_CHANNELS = Object.freeze([
+const VERTEX_CHANNELS = [
     [ "position", "Position", 3, true ],
     [ "blendIndice", "BoneIndices", 4 ],
     [ "tangent", "Tangent", 4, true ],
@@ -181,7 +181,7 @@ const VERTEX_CHANNELS = Object.freeze([
     [ "texcoord1", "TextureCoordinates1", 2, true ],
     [ "binormal", "Binormal", 4, true ],
     [ "blendWeight", "BoneWeights", 4 ]
-]);
+];
 
 function emitVertexChannels(vertices)
 {

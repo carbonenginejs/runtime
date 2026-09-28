@@ -25,12 +25,12 @@ export const OUTPUT_JSON = "json";
 export const OUTPUT_RAW = "raw";
 export const OUTPUT_METADATA = "metadata";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     source: "memory",
     permutation: null,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const VALID_EMITS = new Set([ OUTPUT_JSON, OUTPUT_RAW, OUTPUT_METADATA ]);
 const OPTION_KEYS = new Set([ "emit", "source", "permutation", "classes" ]);

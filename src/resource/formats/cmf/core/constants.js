@@ -131,7 +131,7 @@ export const GR2_CLASS_KEYS = Object.freeze([
     "Curve"
 ]);
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...CMF_CLASS_KEYS,
     ...GR2_CLASS_KEYS
-])));
+]));

@@ -101,12 +101,12 @@ const BODY_OPERANDS_SM50 = Object.freeze([
     "",
     ""
 ]);
-const BODY_OPERANDS_SM51 = Object.freeze(BODY_OPERANDS_SM50.map((signature) =>
+const BODY_OPERANDS_SM51 = BODY_OPERANDS_SM50.map((signature) =>
     signature
         .replaceAll("resource:0:xyzw:0::", "resource:0:xyzw:0,0::")
         .replaceAll("uav:0:xyxx:0::", "uav:0:xyxx:0,0::")
         .replaceAll("uav:0:xxyx:0::", "uav:0:xxyx:0,0::")
-        .replaceAll("uav:0:xy:0::", "uav:0:xy:0,0::")));
+        .replaceAll("uav:0:xy:0::", "uav:0:xy:0,0::"));
 const BLOCK_BEFORE = new Set([ "loop", "else", "endif", "endloop", "case", "default", "endswitch" ]);
 const BLOCK_AFTER = new Set([
     "if", "loop", "switch", "break", "breakc", "continue", "continuec",

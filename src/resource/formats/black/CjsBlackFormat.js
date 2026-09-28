@@ -43,7 +43,7 @@ export class CjsBlackFormat extends CjsFormat
     static worker = {
         module: import.meta.url,
         exportName: "CjsBlackFormat",
-        outputTypes: Object.freeze([ OUTPUT_JSON, OUTPUT_PAYLOAD ]),
+        outputTypes: [ OUTPUT_JSON, OUTPUT_PAYLOAD ],
         defaultOutput: OUTPUT_JSON
     };
 

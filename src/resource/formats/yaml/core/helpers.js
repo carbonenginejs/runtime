@@ -7,11 +7,11 @@ export const TAG_PRESERVE = "preserve";
 export const TAG_REJECT = "reject";
 export const TAG_HANDLE = "handle";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_PAYLOAD,
     tagPolicy: TAG_PRESERVE,
     allowedTags: null,
-    tagHandlers: Object.freeze({}),
+    tagHandlers: {},
     sourceName: null,
     maxAliasCount: 100,
     uniqueKeys: true,
@@ -21,7 +21,7 @@ export const DEFAULT_VALUES = Object.freeze({
     valuesField: "$yamlValues",
     tagField: "$yamlTag",
     valueField: "$yamlValue"
-});
+};
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 

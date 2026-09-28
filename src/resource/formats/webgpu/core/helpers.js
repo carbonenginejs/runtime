@@ -25,14 +25,14 @@ export const CARBON_WEBGPU_FORMAT = "CARBON_WEBGPU";
 export const CARBON_WEBGPU_ANALYSIS_FORMAT = "CARBON_WEBGPU_ANALYSIS";
 export const CARBON_WEBGPU_ANALYSIS_VERSION = 1;
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     source: "memory",
     decodeInstructions: true,
     permutation: null,
     schema: null,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set([ "emit", "source", "decodeInstructions", "permutation", "schema", "classes" ]);
 // One emit, as WebGL has. `Read` returns the container-backed document and that

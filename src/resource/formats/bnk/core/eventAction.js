@@ -6,13 +6,13 @@ import { WwiseCursor } from "./nodeBase.js";
 
 export const WWISE_EVENT_ACTION_VERSION = 150;
 
-const PROPERTY_NAMES = Object.freeze({
+const PROPERTY_NAMES = {
     0x39: "delayTime",
     0x3a: "transitionTime",
     0x3b: "probability",
-});
+};
 
-const ACTION_NAMES = Object.freeze({
+const ACTION_NAMES = {
     0x0102: "stop",
     0x0103: "stop",
     0x0105: "stop",
@@ -67,7 +67,7 @@ const ACTION_NAMES = Object.freeze({
     0x3005: "reset-voice-high-pass",
     0x3008: "reset-voice-high-pass",
     0x3009: "reset-voice-high-pass",
-});
+};
 
 const ACTIVE_ACTION_TYPES = new Set([
     0x0102,

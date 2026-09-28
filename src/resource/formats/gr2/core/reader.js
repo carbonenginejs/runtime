@@ -709,7 +709,7 @@ export const readGr2 = readGr2Raw;
  *
  * The same constants and functions are also exported directly from reader.js.
  */
-export const reader = Object.freeze({
+export const reader = {
     MEMBER_TYPES: GRANNY_MEMBER_TYPES,
     TRANSFORM_SIZE: GRANNY_TRANSFORM_SIZE,
     MAGICS: GR2_MAGICS,
@@ -722,4 +722,4 @@ export const reader = Object.freeze({
     readGr2Raw,
     decompressSection: decompressGr2Section,
     decompressGr2Section
-});
+};

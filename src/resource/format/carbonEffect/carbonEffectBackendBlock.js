@@ -258,12 +258,12 @@ const STORAGE_TEXTURE_TYPE = /^texture_storage_(2d|2d_array|3d)<(\w+), (write|re
 const STORAGE_TEXTURE_ACCESS = Object.freeze({ write: "write-only", read: "read-only", read_write: "read-write" });
 
 /** Texture descriptors by WGSL type (`lowerBindingLayout.js:90-95`). */
-const TEXTURE_DESCRIPTORS = Object.freeze({
-    "texture_2d<f32>": Object.freeze({ sampleType: "float", viewDimension: "2d", multisampled: false }),
-    "texture_cube<f32>": Object.freeze({ sampleType: "float", viewDimension: "cube", multisampled: false }),
-    "texture_3d<f32>": Object.freeze({ sampleType: "float", viewDimension: "3d", multisampled: false }),
-    "texture_2d_array<f32>": Object.freeze({ sampleType: "float", viewDimension: "2d-array", multisampled: false })
-});
+const TEXTURE_DESCRIPTORS = {
+    "texture_2d<f32>": { sampleType: "float", viewDimension: "2d", multisampled: false },
+    "texture_cube<f32>": { sampleType: "float", viewDimension: "cube", multisampled: false },
+    "texture_3d<f32>": { sampleType: "float", viewDimension: "3d", multisampled: false },
+    "texture_2d_array<f32>": { sampleType: "float", viewDimension: "2d-array", multisampled: false }
+};
 
 /**
  * Serialises one pass's backend block.

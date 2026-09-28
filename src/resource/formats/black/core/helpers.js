@@ -7,7 +7,7 @@ export const OUTPUT_DOCUMENT = "document";
 export const OUTPUT_PAYLOAD = "payload";
 export const OUTPUT_RUNTIME = "runtime";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     schema: blackDefinitions,
     registry: null,
@@ -33,8 +33,8 @@ export const DEFAULT_VALUES = Object.freeze({
     payloadReferenceField: "_ref",
     pathHandler: null,
     adapter: null,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 

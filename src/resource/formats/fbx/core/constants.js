@@ -17,7 +17,7 @@ export const FBX_MODEL_TRANSFORM_PROPERTY_NAMES = Object.freeze([
 ]);
 
 /** Properties that cannot safely share the bone Properties70 namespace with masks. */
-export const FBX_RESERVED_BONE_MASK_PROPERTY_NAMES = Object.freeze([
+export const FBX_RESERVED_BONE_MASK_PROPERTY_NAMES = [
     ...FBX_MODEL_TRANSFORM_PROPERTY_NAMES,
     "CjsSkeletonName"
-]);
+];

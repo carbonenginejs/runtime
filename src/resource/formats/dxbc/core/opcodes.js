@@ -57,9 +57,9 @@ export const DxbcOpcodeNames = Object.freeze([
 /**
  * Opcodes whose control bits carry a zero/nonzero boolean test.
  */
-export const DxbcBooleanTestOpcodeNames = Object.freeze(new Set([
+export const DxbcBooleanTestOpcodeNames = new Set([
     "breakc", "callc", "continuec", "discard", "if", "retc"
-]));
+]);
 
 const DECLARATION_RANGES = [
     [ 88, 106 ],

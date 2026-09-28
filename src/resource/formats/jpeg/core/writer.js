@@ -105,7 +105,7 @@ const COSINE = Array.from({ length: 8 }, (_, x) =>
 
 const SCALE = Array.from({ length: 8 }, (_, value) => value === 0 ? 1 / Math.sqrt(2) : 1);
 
-const SUBSAMPLINGS = Object.freeze({ "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] });
+const SUBSAMPLINGS = { "4:2:0": [ 2, 2 ], "4:4:4": [ 1, 1 ] };
 
 /** Collects bytes and packs Huffman codes, stuffing 0x00 after every 0xFF. */
 class BitWriter

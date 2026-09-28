@@ -22,7 +22,7 @@ export const DEFAULT_VALUES = Object.freeze({
  * observed by community tooling (ww2ogg, vgmstream, wwiser). Unknown tags are
  * reported as `wwise-format-0x<tag>` rather than rejected.
  */
-export const WEM_CODEC_NAMES = Object.freeze({
+export const WEM_CODEC_NAMES = {
     0x0001: "pcm",
     0x0002: "wwise-ima-adpcm",
     0x0069: "wwise-ima-adpcm",
@@ -35,7 +35,7 @@ export const WEM_CODEC_NAMES = Object.freeze({
     0xaac0: "aac",
     0xfffe: "pcm-extensible",
     0xffff: "wwise-vorbis"
-});
+};
 
 /**
  * Normalizes reader options against their supported defaults for the WEM format

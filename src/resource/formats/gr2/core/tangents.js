@@ -51,7 +51,7 @@ export function cross(a, b)
     return crossInto([ 0, 0, 0 ], a, b);
 }
 
-export const tangents = Object.freeze({
+export const tangents = {
     TAU: TANGENT_TAU,
     PI: TANGENT_PI,
     NULL_TANGENT_UNORM,
@@ -71,4 +71,4 @@ export const tangents = Object.freeze({
     generateNormals,
     generateTangents,
     generateBiNormals
-});
+};

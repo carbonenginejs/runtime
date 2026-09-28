@@ -14,7 +14,7 @@ import { CjsAudioBufferRes } from "./CjsAudioBufferRes.js";
 export class CjsAudioRes extends CjsResource
 {
 
-    #audioInfo = Object.freeze({});
+    #audioInfo = {};
 
     #backing = null;
 

@@ -73,7 +73,7 @@ export class CjsBnkFormat extends CjsFormat
     static worker = {
         module: import.meta.url,
         exportName: "CjsBnkFormat",
-        outputTypes: Object.freeze([ OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON ]),
+        outputTypes: [ OUTPUT_RAW, OUTPUT_MEDIA, OUTPUT_BNK_JSON ],
         defaultOutput: OUTPUT_RAW
     };
 

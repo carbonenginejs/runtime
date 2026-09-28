@@ -131,7 +131,7 @@ export function compareAnnotationNames(a, b)
  * through this resolver must reproduce the original description bytes exactly,
  * whatever the arena happens to contain.
  */
-export const passthroughArena = Object.freeze({
+export const passthroughArena = {
     /**
      * Returns a parsed string reference's original offset.
      *
@@ -153,7 +153,7 @@ export const passthroughArena = Object.freeze({
     {
         return reference.offset;
     }
-});
+};
 
 /**
  * Creates a resolver that re-interns every reference into a fresh string table,
@@ -281,7 +281,7 @@ function writeBlobRef(writer, arena, reference)
  * An absent sized blob: zero length, Carbon's null offset. The offset word is
  * still written, and a reader must not dereference it.
  */
-const EMPTY_BLOB = Object.freeze({ size: 0, offset: 0xffffffff, bytes: new Uint8Array(0) });
+const EMPTY_BLOB = { size: 0, offset: 0xffffffff, bytes: new Uint8Array(0) };
 
 /**
  * Error factory used by the write path's cap checks.

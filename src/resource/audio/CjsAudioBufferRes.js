@@ -11,7 +11,7 @@ import { CjsResource } from "#blue";
 export class CjsAudioBufferRes extends CjsResource
 {
 
-    #audioInfo = Object.freeze({});
+    #audioInfo = {};
 
     /** Creates an unregistered physical audio resource with optional metadata. */
     constructor(values = null)

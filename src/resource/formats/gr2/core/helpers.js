@@ -7,10 +7,10 @@ import { decompressAnimationCurves } from "./curves.js";
 import { buildCmfFromShared, CMF_CLASS_KEYS, reassembleGr2Lods } from "./targets.js";
 import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...GR2_CLASS_KEYS,
     ...CMF_CLASS_KEYS
-])));
+]));
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_GR2 = "gr2";
@@ -18,7 +18,7 @@ export const OUTPUT_GR2_JSON = "gr2Json";
 export const OUTPUT_CMF = "cmf";
 export const OUTPUT_RAW = "raw";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     decompressCurves: false,
     unpackTangents: false,
@@ -26,8 +26,8 @@ export const DEFAULT_VALUES = Object.freeze({
     rebuildMissingTangents: false,
     rebuildMissingBiNormals: false,
     rebuildMissingBounds: false,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set([
     "emit",

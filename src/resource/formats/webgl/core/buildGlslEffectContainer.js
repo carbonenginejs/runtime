@@ -50,7 +50,7 @@ function encodeBackendBlock(unit, passKey)
 }
 
 /** The WebGL encoders, as the shared builder's backend argument. */
-export const GLSL_CONTAINER_BACKEND = Object.freeze({ encodeProgram, encodeBackendBlock });
+export const GLSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
 
 /**
  * Builds the complete WebGL 2 effect container.

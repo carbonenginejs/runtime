@@ -27,10 +27,10 @@ import {
     normalize
 } from "#math/vec3";
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...GR2_CLASS_KEYS,
     ...CMF_CLASS_KEYS
-])));
+]));
 
 export { isGlb };
 
@@ -40,7 +40,7 @@ export const OUTPUT_SHARED = "shared";
 export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_CMF = "cmf";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_SHARED,
     source: "memory",
     buffers: null,
@@ -49,8 +49,8 @@ export const DEFAULT_VALUES = Object.freeze({
     rebuildMissingNormals: false,
     rebuildMissingTangents: false,
     rebuildMissingBiNormals: false,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set([
     "emit",

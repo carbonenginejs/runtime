@@ -46,7 +46,7 @@
  * disagrees with the format, so a different effect reusing a name cannot be
  * read with the wrong element type.
  */
-export const CARBON_TYPED_VIEWS = Object.freeze({
+export const CARBON_TYPED_VIEWS = {
     Exposure: "R32_FLOAT",
     ExposureBuffer: "R32_FLOAT",
     Histogram: "R32_UINT",
@@ -56,7 +56,7 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
     OutputBuffer: "R8G8B8A8_SNORM",
     SSAOOutputBuffer: "R8G8B8A8_SNORM",
     LightIndexCount: "R32_SINT"
-});
+};
 
 /**
  * UAVs a shipped effect declares and Carbon's renderer never binds, so on
@@ -70,9 +70,9 @@ export const CARBON_TYPED_VIEWS = Object.freeze({
  *
  * A backend may leave these out of its binding layout, with their writes.
  */
-export const CARBON_UNBOUND_UAVS = Object.freeze(new Set(
+export const CARBON_UNBOUND_UAVS = new Set(
     Array.from({ length: 8 }, (_unused, index) => `PackedOutputBuffer${index + 8}`)
-));
+);
 
 /**
  * The registers of one stage's never-bound UAVs (`CARBON_UNBOUND_UAVS`), in
@@ -95,12 +95,12 @@ export function unboundUavRegistersFor(semanticBindings)
  * a declaration of them must carry, the channel count and the element size.
  * D3D11 returns missing channels as 0 and a missing alpha as 1.
  */
-export const CARBON_VIEW_FORMATS = Object.freeze({
-    R32_FLOAT: Object.freeze({ componentClass: "float", channels: 1, bytesPerElement: 4 }),
-    R32_UINT: Object.freeze({ componentClass: "uint", channels: 1, bytesPerElement: 4 }),
-    R32_SINT: Object.freeze({ componentClass: "sint", channels: 1, bytesPerElement: 4 }),
-    R8G8B8A8_SNORM: Object.freeze({ componentClass: "float", channels: 4, bytesPerElement: 4 })
-});
+export const CARBON_VIEW_FORMATS = {
+    R32_FLOAT: { componentClass: "float", channels: 1, bytesPerElement: 4 },
+    R32_UINT: { componentClass: "uint", channels: 1, bytesPerElement: 4 },
+    R32_SINT: { componentClass: "sint", channels: 1, bytesPerElement: 4 },
+    R8G8B8A8_SNORM: { componentClass: "float", channels: 4, bytesPerElement: 4 }
+};
 
 /**
  * The effect-parameter annotation our containers carry the format in: a

@@ -24,10 +24,10 @@ const COMPONENTS = [ "x", "y", "z", "w" ];
 const SYSTEM_BUILTINS = Object.freeze({
     SV_POSITION: "position"
 });
-const INPUT_BUILTINS = Object.freeze({
+const INPUT_BUILTINS = {
     SV_VERTEXID: { name: "vertex_index", scalarType: "uint32" },
     SV_INSTANCEID: { name: "instance_index", scalarType: "uint32" }
-});
+};
 const SUPPORTED_OPCODES = new Set([
     "add", "and", "div", "dp2", "dp3", "dp4", "eq", "exp", "f16tof32",
     "f32tof16", "frc", "ftoi", "ftou",
@@ -39,12 +39,12 @@ const SUPPORTED_OPCODES = new Set([
 ]);
 const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_return_type" ]);
 const SAMPLE_OFFSET_OPCODES = new Set([ "sample_d", "sample_l" ]);
-const NUMERIC_CONVERSIONS = Object.freeze({
+const NUMERIC_CONVERSIONS = {
     itof: [ "int32", "float32" ],
     utof: [ "uint32", "float32" ],
     ftoi: [ "float32", "int32" ],
     ftou: [ "float32", "uint32" ]
-});
+};
 
 function sampleOffsetArgument(instruction, viewDimension)
 {

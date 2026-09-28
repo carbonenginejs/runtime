@@ -5,7 +5,7 @@ import { bytesPerIndex, firstTriangle, totalIndexCount } from "./utils/indices.j
 import { calculateUvDensities } from "./utils/uvDensity.js";
 import { elementTypeSize, estimateStrideFromDecl } from "./utils/vertex.js";
 
-const VERTEX_CHANNELS = Object.freeze([
+const VERTEX_CHANNELS = [
     [ "position", "Position", 3 ],
     [ "normal", "Normal", 3 ],
     [ "tangent", "Tangent", 3 ],
@@ -17,7 +17,7 @@ const VERTEX_CHANNELS = Object.freeze([
     [ "blendWeight", "BoneWeights", 4, 0 ],
     [ "packedTangent", "PackedTangent", 4, 0, "Int16Norm" ],
     [ "packedTangentLegacy", "PackedTangentLegacy", 4, 0, "UInt16Norm" ]
-]);
+];
 
 /**
  * Builds a CMF document from normalized shared geometry for the CMF format

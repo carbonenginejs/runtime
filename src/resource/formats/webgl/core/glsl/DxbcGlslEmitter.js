@@ -30,10 +30,10 @@ const CUBE_DIMENSION = 6;
  * The data texture a Carbon-named Buffer<> view becomes: a one-channel texture
  * of the view's format, so texelFetch returns D3D's (x, 0, 0, 1).
  */
-const BUFFER_TEXTURE_BY_VIEW = Object.freeze({
-    R32_FLOAT: Object.freeze({ format: "R32F", sampler: "sampler2D", componentClass: CARBON_VIEW_FORMATS.R32_FLOAT.componentClass }),
-    R32_UINT: Object.freeze({ format: "R32UI", sampler: "usampler2D", componentClass: CARBON_VIEW_FORMATS.R32_UINT.componentClass })
-});
+const BUFFER_TEXTURE_BY_VIEW = {
+    R32_FLOAT: { format: "R32F", sampler: "sampler2D", componentClass: CARBON_VIEW_FORMATS.R32_FLOAT.componentClass },
+    R32_UINT: { format: "R32UI", sampler: "usampler2D", componentClass: CARBON_VIEW_FORMATS.R32_UINT.componentClass }
+};
 
 const SAMPLER_TYPE_BY_DIMENSION = {
     2: "sampler2D",
@@ -3692,10 +3692,10 @@ DxbcGlslEmitter.prototype._gather4Channel = function _gather4Channel(operand)
 const CLIP_Y_FLIP_UNIFORM = "ssyf";
 
 /** @type {ReadonlyArray<string>} */
-const CLIP_Y_FLIP_TAIL = Object.freeze([
+const CLIP_Y_FLIP_TAIL = [
     `gl_Position.xy += ${CLIP_Y_FLIP_UNIFORM}.xy * gl_Position.w;`,
     `gl_Position.y *= ${CLIP_Y_FLIP_UNIFORM}.z;`
-]);
+];
 
 const DEPTH_RANGE_FIXUP = Object.freeze({
     reversed: "gl_Position.z = gl_Position.w - 2.0 * gl_Position.z;",

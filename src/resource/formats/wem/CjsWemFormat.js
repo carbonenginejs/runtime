@@ -37,7 +37,7 @@ export class CjsWemFormat extends CjsFormat
     static worker = {
         module: import.meta.url,
         exportName: "CjsWemFormat",
-        outputTypes: Object.freeze([ OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON ]),
+        outputTypes: [ OUTPUT_RAW, OUTPUT_OGG, OUTPUT_PCM, OUTPUT_WEM_JSON ],
         defaultOutput: OUTPUT_RAW
     };
 

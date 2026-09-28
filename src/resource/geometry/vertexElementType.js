@@ -26,7 +26,7 @@ import { elementTypeSize } from "../formats/cmf/core/utils/vertex.js";
  * shader sees it as a float in [0,1] or [-1,1] rather than as its integer
  * value, which is exactly the distinction both backends draw.
  */
-const ELEMENT_TYPES = Object.freeze({
+const ELEMENT_TYPES = {
   Float32: { base: "float", normalized: false },
   Float16: { base: "float", normalized: false },
   UInt16Norm: { base: "uint", normalized: true },
@@ -37,7 +37,7 @@ const ELEMENT_TYPES = Object.freeze({
   UInt8: { base: "uint", normalized: false },
   Int8Norm: { base: "sint", normalized: true },
   Int8: { base: "sint", normalized: false }
-});
+};
 
 
 // Carbon's own element vocabulary: Tr2VertexDefinition::DataType

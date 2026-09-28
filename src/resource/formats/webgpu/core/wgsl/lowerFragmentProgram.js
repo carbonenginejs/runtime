@@ -41,25 +41,25 @@ const METADATA_OPCODE_EXTENSIONS = new Set([ "resource_dimension", "resource_ret
  * programs lowered here (see `lowerGeneralComputeProgram`). Names match the
  * signatures `computeEntryPointParameters` accepts.
  */
-const COMPUTE_BUILTINS = Object.freeze({
-    "input_thread_id[]": Object.freeze({ builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" }),
-    "input_thread_id_in_group[]": Object.freeze({ builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" }),
-    "input_thread_group_id[]": Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" }),
+const COMPUTE_BUILTINS = {
+    "input_thread_id[]": { builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" },
+    "input_thread_id_in_group[]": { builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" },
+    "input_thread_group_id[]": { builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" },
     // SV_GroupIndex, a scalar: read without a component suffix.
-    "input_thread_id_in_group_flattened[]": Object.freeze({ builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" })
-});
+    "input_thread_id_in_group_flattened[]": { builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" }
+};
 const SAMPLE_OFFSET_OPCODES = new Set([ "sample", "sample_b", "sample_d", "sample_l" ]);
-const NUMERIC_CONVERSIONS = Object.freeze({
+const NUMERIC_CONVERSIONS = {
     itof: [ "int32", "float32" ],
     utof: [ "uint32", "float32" ],
     ftoi: [ "float32", "int32" ],
     ftou: [ "float32", "uint32" ]
-});
+};
 
-const INPUT_BUILTINS = Object.freeze({
+const INPUT_BUILTINS = {
     SV_POSITION: { name: "position" },
     SV_ISFRONTFACE: { name: "front_facing", scalarType: "bool" }
-});
+};
 const DERIVATIVES = Object.freeze({
     deriv_rtx: "dpdx", deriv_rty: "dpdy",
     deriv_rtx_coarse: "dpdxCoarse", deriv_rty_coarse: "dpdyCoarse",

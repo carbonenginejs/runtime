@@ -464,7 +464,7 @@ export function decompressOodle1(bytes, expandedSize, { first16, first8 })
  *
  * The same constants and functions are also exported directly from oodle1.js.
  */
-export const oodle1 = Object.freeze({
+export const oodle1 = {
     BACKREF_SIZES: OODLE1_BACKREF_SIZES,
     PARAMETER_BYTES: OODLE1_PARAMETER_BYTES,
     STREAM_PADDING: OODLE1_STREAM_PADDING,
@@ -473,4 +473,4 @@ export const oodle1 = Object.freeze({
     readOodle1Parameters,
     decompress: decompressOodle1,
     decompressOodle1
-});
+};

@@ -30,14 +30,14 @@ const DDS_LUMINANCE = 0x00020000;
 const DDSCAPS2_CUBEMAP = 0x00000200;
 const DDSCAPS2_VOLUME = 0x00200000;
 
-const DDS_CUBE_FACE_FLAGS = Object.freeze([
+const DDS_CUBE_FACE_FLAGS = [
     [ "positive-x", 0x00000400 ],
     [ "negative-x", 0x00000800 ],
     [ "positive-y", 0x00001000 ],
     [ "negative-y", 0x00002000 ],
     [ "positive-z", 0x00004000 ],
     [ "negative-z", 0x00008000 ]
-]);
+];
 
 const FOURCC_PIXEL_FORMATS = Object.freeze({
     DXT1: "bc1-rgba-unorm",

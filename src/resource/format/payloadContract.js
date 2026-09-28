@@ -57,12 +57,12 @@ export const ResourcePayloadType = Object.freeze({
     MEDIA: "media"
 });
 
-export const ResourcePayloadValues = Object.freeze({
-    imageOrigins: Object.freeze([ "top-left" ]),
-    colorSpaces: Object.freeze([ "srgb", "linear", "unknown" ]),
-    alphaModes: Object.freeze([ "straight", "premultiplied", "opaque", "unknown" ]),
-    textureDimensions: Object.freeze([ "2d", "cube", "3d", "array" ])
-});
+export const ResourcePayloadValues = {
+    imageOrigins: [ "top-left" ],
+    colorSpaces: [ "srgb", "linear", "unknown" ],
+    alphaModes: [ "straight", "premultiplied", "opaque", "unknown" ],
+    textureDimensions: [ "2d", "cube", "3d", "array" ]
+};
 
 /**
  * Validates dimensions, stride, and byte storage for a decoded RGBA payload for

@@ -237,12 +237,12 @@ export function computeEntryPointParameters(program)
 }
 
 /** The compute builtins the lowering emits, in their fixed order. */
-const COMPUTE_BUILTIN_SCHEMA = Object.freeze([
-    Object.freeze({ builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" }),
-    Object.freeze({ builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" }),
-    Object.freeze({ builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" }),
-    Object.freeze({ builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" })
-]);
+const COMPUTE_BUILTIN_SCHEMA = [
+    { builtin: "workgroup_id", name: "workgroup_id", type: "vec3<u32>" },
+    { builtin: "local_invocation_id", name: "local_invocation_id", type: "vec3<u32>" },
+    { builtin: "global_invocation_id", name: "dispatch_thread_id", type: "vec3<u32>" },
+    { builtin: "local_invocation_index", name: "local_invocation_index", type: "u32" }
+];
 
 function collectStatementNames(statements, names)
 {

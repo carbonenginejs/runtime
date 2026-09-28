@@ -23,10 +23,10 @@ import {
 
 export { GR2_CLASS_KEYS };
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...GR2_CLASS_KEYS,
     ...CMF_CLASS_KEYS
-])));
+]));
 
 export { isBinaryStl, isStl, toText };
 
@@ -36,7 +36,7 @@ export const OUTPUT_SHARED = "shared";
 export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_CMF = "cmf";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_STL_JSON,
     source: "memory",
     binary: true,
@@ -47,8 +47,8 @@ export const DEFAULT_VALUES = Object.freeze({
     weldTolerance: 1e-5,
     skipDegenerate: true,
     requireWatertight: false,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set([
     "emit",

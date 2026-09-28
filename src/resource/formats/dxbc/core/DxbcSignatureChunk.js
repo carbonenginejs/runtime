@@ -12,7 +12,7 @@ const semanticNameDecoder = new TextDecoder("latin1");
  * a stream index. `ISG1`/`OSG1`/`PSG1` prefix a stream index and append a
  * minimum-precision field.
  */
-const SIGNATURE_ELEMENT_LAYOUTS = Object.freeze({
+const SIGNATURE_ELEMENT_LAYOUTS = {
     ISGN: { stride: 24, hasStream: false, hasMinPrecision: false },
     OSGN: { stride: 24, hasStream: false, hasMinPrecision: false },
     PCSG: { stride: 24, hasStream: false, hasMinPrecision: false },
@@ -20,7 +20,7 @@ const SIGNATURE_ELEMENT_LAYOUTS = Object.freeze({
     ISG1: { stride: 32, hasStream: true, hasMinPrecision: true },
     OSG1: { stride: 32, hasStream: true, hasMinPrecision: true },
     PSG1: { stride: 32, hasStream: true, hasMinPrecision: true }
-});
+};
 
 /**
  * Register component type names indexed by DXBC signature component-type ids.

@@ -48,7 +48,7 @@ export const HIRC_TYPE_NAMES = Object.freeze({
 });
 
 /** Version-qualified HIRC names for Wwise bank versions 128 through 154. */
-export const HIRC_V150_TYPE_NAMES = Object.freeze({
+export const HIRC_V150_TYPE_NAMES = {
     ...HIRC_TYPE_NAMES,
     16: "fx-share-set",
     17: "fx-custom",
@@ -57,7 +57,7 @@ export const HIRC_V150_TYPE_NAMES = Object.freeze({
     20: "envelope",
     21: "audio-device",
     22: "time-modulator"
-});
+};
 
 /**
  * Normalizes reader options against their supported defaults for the BNK format

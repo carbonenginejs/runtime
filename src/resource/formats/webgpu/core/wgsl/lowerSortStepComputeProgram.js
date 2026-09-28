@@ -46,7 +46,7 @@ const BODY_OPERANDS_BASE_SM50 = Object.freeze([
     "",
     ""
 ]);
-const BODY_COMPONENT_COUNTS = Object.freeze([
+const BODY_COMPONENT_COUNTS = [
     [ 4, 4, 4 ],
     [ 4, 4, 1, 4 ],
     [ 4, 4, 1 ],
@@ -67,20 +67,20 @@ const BODY_COMPONENT_COUNTS = Object.freeze([
     [],
     [],
     []
-]);
-const BODY_OPERANDS_SM50 = Object.freeze(BODY_OPERANDS_BASE_SM50.map((signature, instructionIndex) =>
+];
+const BODY_OPERANDS_SM50 = BODY_OPERANDS_BASE_SM50.map((signature, instructionIndex) =>
     signature
         ? signature.split(" | ").map((operand, operandIndex) =>
             `${operand}:${BODY_COMPONENT_COUNTS[instructionIndex][operandIndex]}`).join(" | ")
-        : ""));
-const BODY_OPERANDS_SM51 = Object.freeze(BODY_OPERANDS_SM50.map((signature) =>
+        : "");
+const BODY_OPERANDS_SM51 = BODY_OPERANDS_SM50.map((signature) =>
     signature
         .replaceAll("constant_buffer:3:", "constant_buffer:0:")
         .replaceAll(":3,0::none:default:uniform", ":0,3,0::none:default:uniform")
         .replaceAll("resource:0:xyzw:0::", "resource:0:xyzw:0,0::")
         .replaceAll("uav:0:xxyx:0::", "uav:0:xxyx:0,0::")
         .replaceAll("uav:0:xyxx:0::", "uav:0:xyxx:0,0::")
-        .replaceAll("uav:0:xy:0::", "uav:0:xy:0,0::")));
+        .replaceAll("uav:0:xy:0::", "uav:0:xy:0,0::"));
 const BLOCK_BEFORE = new Set([ "endif" ]);
 const BLOCK_AFTER = new Set([ "if", "endif", "ret" ]);
 const CONTROL_KIND = Object.freeze({

@@ -94,12 +94,12 @@ function uniformLayout(program, binding)
     };
 }
 
-const TEXTURE_DIMENSIONS = Object.freeze({
+const TEXTURE_DIMENSIONS = {
     texture2d: { type: "texture_2d<f32>", viewDimension: "2d" },
     texturecube: { type: "texture_cube<f32>", viewDimension: "cube" },
     texture3d: { type: "texture_3d<f32>", viewDimension: "3d" },
     texture2darray: { type: "texture_2d_array<f32>", viewDimension: "2d-array" }
-});
+};
 
 /** Instructions that read a texture without filtering: a texel load and a size query. */
 const UNFILTERED_TEXTURE_OPCODES = new Set([ "ld", "ld_ms", "resinfo" ]);
@@ -370,10 +370,10 @@ function uavBufferLayout(program, binding, policy)
  * UAV-compatible (Tr2ReflectionProbe.cpp:235-236). A render target bound here
  * must be created in it.
  */
-const STORAGE_TEXTURE_DIMENSIONS = Object.freeze({
+const STORAGE_TEXTURE_DIMENSIONS = {
     texture2d: { type: "texture_storage_2d", viewDimension: "2d" },
     texture2darray: { type: "texture_storage_2d_array", viewDimension: "2d-array" }
-});
+};
 
 const STORAGE_TEXTURE_FORMAT = "rgba16float";
 

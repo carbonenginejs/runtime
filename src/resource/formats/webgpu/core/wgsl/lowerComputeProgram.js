@@ -50,40 +50,40 @@ const DECLARATION_OPCODES = Object.freeze([
     "dcl_temps",
     "dcl_thread_group"
 ]);
-const ARITHMETIC_RULES = Object.freeze({
-    imul: Object.freeze({
+const ARITHMETIC_RULES = {
+    imul: {
         rule: "signed-integer",
         resultType: "int32",
         destinationOperand: 1,
-        sourceOperands: Object.freeze([ 2, 3 ]),
+        sourceOperands: [ 2, 3 ],
         sourceType: "int32",
         operator: "*"
-    }),
-    umax: Object.freeze({
+    },
+    umax: {
         rule: "unsigned-integer",
         resultType: "uint32",
         destinationOperand: 0,
-        sourceOperands: Object.freeze([ 1, 2 ]),
+        sourceOperands: [ 1, 2 ],
         sourceType: "uint32",
         functionName: "max"
-    }),
-    iadd: Object.freeze({
+    },
+    iadd: {
         rule: "signed-integer",
         resultType: "int32",
         destinationOperand: 0,
-        sourceOperands: Object.freeze([ 1, 2 ]),
+        sourceOperands: [ 1, 2 ],
         sourceType: "int32",
         operator: "+"
-    }),
-    ushr: Object.freeze({
+    },
+    ushr: {
         rule: "unsigned-integer",
         resultType: "uint32",
         destinationOperand: 0,
-        sourceOperands: Object.freeze([ 1, 2 ]),
+        sourceOperands: [ 1, 2 ],
         sourceType: "uint32",
         operator: ">>"
-    })
-});
+    }
+};
 const SUPPORTED_OPCODES = new Set([
     "ld", ...Object.keys(ARITHMETIC_RULES), "store_uav_typed", "ret"
 ]);

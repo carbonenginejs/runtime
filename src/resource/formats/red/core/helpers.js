@@ -5,7 +5,7 @@ export const OUTPUT_PAYLOAD = "payload";
 export const OUTPUT_RUNTIME = "runtime";
 export const OUTPUT_RAW = "raw";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_JSON,
     schema: null,
     registry: null,
@@ -16,8 +16,8 @@ export const DEFAULT_VALUES = Object.freeze({
     payloadIdField: "_id",
     payloadReferenceField: "_ref",
     payloadValuesField: "_values",
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set(Object.keys(DEFAULT_VALUES));
 

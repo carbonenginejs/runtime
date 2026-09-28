@@ -1,8 +1,8 @@
-const DOT_LANES = Object.freeze({
-    dp2: Object.freeze([ "x", "y" ]),
-    dp3: Object.freeze([ "x", "y", "z" ]),
-    dp4: Object.freeze([ "x", "y", "z", "w" ])
-});
+const DOT_LANES = {
+    dp2: [ "x", "y" ],
+    dp3: [ "x", "y", "z" ],
+    dp4: [ "x", "y", "z", "w" ]
+};
 
 const XY = Object.freeze([ "x", "y" ]);
 const XYZ = Object.freeze([ "x", "y", "z" ]);

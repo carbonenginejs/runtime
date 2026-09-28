@@ -51,9 +51,9 @@ import {
  * here by path, for every tier and backend directory, so a wider general
  * compute path can never let it through.
  */
-const REFUSED_EFFECTS = Object.freeze([
+const REFUSED_EFFECTS = [
     { pattern: /\/managed\/space\/system\/crash\.[^/]*$/iu, reason: "system/crash never terminates without its sentinel and races across workgroups" }
-]);
+];
 
 /** Throws for an effect this backend refuses by name. */
 export function rejectRefusedEffect(source)

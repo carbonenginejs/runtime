@@ -1,37 +1,37 @@
-const BINDING_DECLARATIONS = Object.freeze({
-    dcl_constant_buffer: Object.freeze({
+const BINDING_DECLARATIONS = {
+    dcl_constant_buffer: {
         resourceKind: "uniform-buffer",
         operandType: "constant_buffer"
-    }),
-    dcl_sampler: Object.freeze({
+    },
+    dcl_sampler: {
         resourceKind: "sampler",
         operandType: "sampler"
-    }),
-    dcl_resource: Object.freeze({
+    },
+    dcl_resource: {
         resourceKind: "sampled-resource",
         operandType: "resource"
-    }),
-    dcl_resource_raw: Object.freeze({
+    },
+    dcl_resource_raw: {
         resourceKind: "sampled-resource",
         operandType: "resource"
-    }),
-    dcl_resource_structured: Object.freeze({
+    },
+    dcl_resource_structured: {
         resourceKind: "sampled-resource",
         operandType: "resource"
-    }),
-    dcl_unordered_access_view_typed: Object.freeze({
+    },
+    dcl_unordered_access_view_typed: {
         resourceKind: "storage-resource",
         operandType: "uav"
-    }),
-    dcl_unordered_access_view_raw: Object.freeze({
+    },
+    dcl_unordered_access_view_raw: {
         resourceKind: "storage-resource",
         operandType: "uav"
-    }),
-    dcl_unordered_access_view_structured: Object.freeze({
+    },
+    dcl_unordered_access_view_structured: {
         resourceKind: "storage-resource",
         operandType: "uav"
-    })
-});
+    }
+};
 
 const RANGE_FIELDS = Object.freeze([
     "bindingModel",

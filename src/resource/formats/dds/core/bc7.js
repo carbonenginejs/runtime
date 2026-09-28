@@ -4,7 +4,7 @@
 
 import { CjsBitReader } from "../../../format/CjsBitReader.js";
 
-const MODE = Object.freeze([
+const MODE = [
     { subsets: 3, partitionBits: 4, rotationBits: 0, selectionBits: 0, colorBits: 4, alphaBits: 0, endpointPBits: 1, sharedPBits: 0, indexBits: 3, secondaryIndexBits: 0 },
     { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 6, alphaBits: 0, endpointPBits: 0, sharedPBits: 1, indexBits: 3, secondaryIndexBits: 0 },
     { subsets: 3, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 5, alphaBits: 0, endpointPBits: 0, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 0 },
@@ -13,13 +13,13 @@ const MODE = Object.freeze([
     { subsets: 1, partitionBits: 0, rotationBits: 2, selectionBits: 0, colorBits: 7, alphaBits: 8, endpointPBits: 0, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 2 },
     { subsets: 1, partitionBits: 0, rotationBits: 0, selectionBits: 0, colorBits: 7, alphaBits: 7, endpointPBits: 1, sharedPBits: 0, indexBits: 4, secondaryIndexBits: 0 },
     { subsets: 2, partitionBits: 6, rotationBits: 0, selectionBits: 0, colorBits: 5, alphaBits: 5, endpointPBits: 1, sharedPBits: 0, indexBits: 2, secondaryIndexBits: 0 }
-]);
+];
 
-const WEIGHTS = Object.freeze({
+const WEIGHTS = {
     2: new Uint8Array([ 0, 21, 43, 64 ]),
     3: new Uint8Array([ 0, 9, 18, 27, 37, 46, 55, 64 ]),
     4: new Uint8Array([ 0, 4, 9, 13, 17, 21, 26, 30, 34, 38, 43, 47, 51, 55, 60, 64 ])
-});
+};
 
 // One bit per texel, in y-major order.
 const PARTITIONS_2 = new Uint16Array([

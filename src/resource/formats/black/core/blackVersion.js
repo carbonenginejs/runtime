@@ -18,7 +18,7 @@ export const generatedAt = schemaGeneratedAt;
 export const schema = schemaName;
 export const version = schemaVersion;
 
-export default Object.freeze({
+export default {
     extension,
     formatId,
     formatVersion,
@@ -26,4 +26,4 @@ export default Object.freeze({
     generatedAt,
     schema,
     version
-});
+};

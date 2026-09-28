@@ -24,7 +24,7 @@ import { TEXTURE_ARRAY_FAMILIES } from "../../formats/hlsl/core/textureArrayFami
  * pinning the format to one recognizer: a second family costs an enum value
  * rather than a format version bump.
  */
-export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
+export const CARBON_BACKEND_TRANSFORM_FAMILY = [
     "detail-map-array",
     "local-light-profile-neutral",
     // APPENDED, never inserted: a family's position in this list is the value
@@ -47,7 +47,7 @@ export const CARBON_BACKEND_TRANSFORM_FAMILY = Object.freeze([
     "ambient-occlusion-channel-pack",
     "curvature-channel-pack",
     "noise-channel-pack"
-]);
+];
 
 /** Constants a `detail-map-array` transform restores rather than storing. */
 export const DETAIL_MAP_ARRAY_DEFAULTS = Object.freeze({
@@ -122,21 +122,21 @@ const CHANNEL_PACK_FAMILIES = Object.freeze({
     "noise-channel-pack": "NoisePackMap"
 });
 
-const TRANSFORM_DEFAULTS_BY_FAMILY = Object.freeze({
+const TRANSFORM_DEFAULTS_BY_FAMILY = {
     ...Object.fromEntries(TEXTURE_ARRAY_FAMILIES.map((definition) => [
         definition.family,
         // Every array family restores the same constants; only the output name
         // differs, and that is read from the family table rather than restated,
         // for the reason the detail defaults give.
-        Object.freeze({ ...DETAIL_MAP_ARRAY_DEFAULTS, outputName: definition.outputName })
+        { ...DETAIL_MAP_ARRAY_DEFAULTS, outputName: definition.outputName }
     ])),
     "detail-map-array": DETAIL_MAP_ARRAY_DEFAULTS,
     ...Object.fromEntries(Object.entries(CHANNEL_PACK_FAMILIES).map(([ family, outputName ]) => [
         family,
-        Object.freeze({ ...CHANNEL_PACK_DEFAULTS, outputName })
+        { ...CHANNEL_PACK_DEFAULTS, outputName }
     ])),
     "local-light-profile-neutral": LOCAL_LIGHT_PROFILE_NEUTRAL_DEFAULTS
-});
+};
 
 /**
  * Refuses a transform whose restored fields disagree with its family.

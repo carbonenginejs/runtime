@@ -715,27 +715,27 @@ export const decodeD3I1K8uC8u = decodeD3I1u;
  * Each entry exposes the numeric format and the function used by
  * {@link decodeCurve}.
  */
-export const CURVE_DECODERS = Object.freeze([
-    Object.freeze({ format: FORMAT_DA_KEYFRAMES_32F, decode: decodeDaKeyframes32f }),
-    Object.freeze({ format: FORMAT_DA_K32F_C32F, decode: decodeDaK32fC32f }),
-    Object.freeze({ format: FORMAT_DA_IDENTITY, decode: decodeDaIdentity }),
-    Object.freeze({ format: FORMAT_DA_CONSTANT_32F, decode: decodeDaConstant32f }),
-    Object.freeze({ format: FORMAT_D3_CONSTANT_32F, decode: decodeD3Constant32f }),
-    Object.freeze({ format: FORMAT_D4_CONSTANT_32F, decode: decodeD4Constant32f }),
-    Object.freeze({ format: FORMAT_DA_K16U_C16U, decode: decodeDaK16uC16u }),
-    Object.freeze({ format: FORMAT_DA_K8U_C8U, decode: decodeDaK8uC8u }),
-    Object.freeze({ format: FORMAT_D4N_K16U_C15U, decode: decodeD4nK16uC15u }),
-    Object.freeze({ format: FORMAT_D4N_K8U_C7U, decode: decodeD4nK8uC7u }),
-    Object.freeze({ format: FORMAT_D3_K16U_C16U, decode: decodeD3K16uC16u }),
-    Object.freeze({ format: FORMAT_D3_K8U_C8U, decode: decodeD3K8uC8u }),
-    Object.freeze({ format: FORMAT_D9I1_K16U_C16U, decode: decodeD9I1K16uC16u }),
-    Object.freeze({ format: FORMAT_D9I3_K16U_C16U, decode: decodeD9I3K16uC16u }),
-    Object.freeze({ format: FORMAT_D9I1_K8U_C8U, decode: decodeD9I1K8uC8u }),
-    Object.freeze({ format: FORMAT_D9I3_K8U_C8U, decode: decodeD9I3K8uC8u }),
-    Object.freeze({ format: FORMAT_D3I1_K32F_C32F, decode: decodeD3I1K32fC32f }),
-    Object.freeze({ format: FORMAT_D3I1_K16U_C16U, decode: decodeD3I1K16uC16u }),
-    Object.freeze({ format: FORMAT_D3I1_K8U_C8U, decode: decodeD3I1K8uC8u })
-]);
+export const CURVE_DECODERS = [
+    { format: FORMAT_DA_KEYFRAMES_32F, decode: decodeDaKeyframes32f },
+    { format: FORMAT_DA_K32F_C32F, decode: decodeDaK32fC32f },
+    { format: FORMAT_DA_IDENTITY, decode: decodeDaIdentity },
+    { format: FORMAT_DA_CONSTANT_32F, decode: decodeDaConstant32f },
+    { format: FORMAT_D3_CONSTANT_32F, decode: decodeD3Constant32f },
+    { format: FORMAT_D4_CONSTANT_32F, decode: decodeD4Constant32f },
+    { format: FORMAT_DA_K16U_C16U, decode: decodeDaK16uC16u },
+    { format: FORMAT_DA_K8U_C8U, decode: decodeDaK8uC8u },
+    { format: FORMAT_D4N_K16U_C15U, decode: decodeD4nK16uC15u },
+    { format: FORMAT_D4N_K8U_C7U, decode: decodeD4nK8uC7u },
+    { format: FORMAT_D3_K16U_C16U, decode: decodeD3K16uC16u },
+    { format: FORMAT_D3_K8U_C8U, decode: decodeD3K8uC8u },
+    { format: FORMAT_D9I1_K16U_C16U, decode: decodeD9I1K16uC16u },
+    { format: FORMAT_D9I3_K16U_C16U, decode: decodeD9I3K16uC16u },
+    { format: FORMAT_D9I1_K8U_C8U, decode: decodeD9I1K8uC8u },
+    { format: FORMAT_D9I3_K8U_C8U, decode: decodeD9I3K8uC8u },
+    { format: FORMAT_D3I1_K32F_C32F, decode: decodeD3I1K32fC32f },
+    { format: FORMAT_D3I1_K16U_C16U, decode: decodeD3I1K16uC16u },
+    { format: FORMAT_D3I1_K8U_C8U, decode: decodeD3I1K8uC8u }
+];
 
 for (let i = 0; i < CURVE_DECODERS.length; i++)
 {
@@ -1066,7 +1066,7 @@ function decorate(curve, dimension)
  *
  * The same constants and functions are also exported directly from curves.js.
  */
-export const curves = Object.freeze({
+export const curves = {
     FORMAT_DA_KEYFRAMES_32F,
     FORMAT_DA_K32F_C32F,
     FORMAT_DA_IDENTITY,
@@ -1131,4 +1131,4 @@ export const curves = Object.freeze({
     decodeD3I1u,
     decodeD3I1K16uC16u,
     decodeD3I1K8uC8u
-});
+};

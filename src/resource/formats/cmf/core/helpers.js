@@ -7,12 +7,12 @@ import { validateCmfGraph } from "./validate.js";
 
 export { CLASS_KEYS, OUTPUT_CMF, OUTPUT_CMF_JSON, OUTPUT_GR2, OUTPUT_JSON, OUTPUT_NATIVE, OUTPUT_RAW, OUTPUT_SHARED };
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_CMF,
     validateCrc: true,
     decodeBuffers: true,
     classes: {}
-});
+};
 
 /**
  * Normalizes reader options against their supported defaults for the CMF format

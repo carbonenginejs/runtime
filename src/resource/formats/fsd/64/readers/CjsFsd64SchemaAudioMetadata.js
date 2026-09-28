@@ -2,11 +2,11 @@ import { CjsFsd64Binary } from "../core/CjsFsd64Binary.js";
 import { CjsFsd64SchemaDecoder } from "../core/CjsFsd64SchemaDecoder.js";
 import { CjsFsd64SchemaReader } from "../core/CjsFsd64SchemaReader.js";
 
-const SECTIONS = Object.freeze([
-    Object.freeze({ name: "Events", countOffset: 8 }),
-    Object.freeze({ name: "SoundBanks", countOffset: 24 }),
-    Object.freeze({ name: "WemFileIDs", countOffset: 40 }),
-]);
+const SECTIONS = [
+    { name: "Events", countOffset: 8 },
+    { name: "SoundBanks", countOffset: 24 },
+    { name: "WemFileIDs", countOffset: 40 },
+];
 
 /**
  * Reads res:/staticdata/audiometadata.fsdbinary.

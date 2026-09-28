@@ -25,7 +25,7 @@ const MODE_LAYOUTS = Object.freeze([
     "M0 M1 M2 M3 M4 RW0 RW1 RW2 RW3 RW4 RW5 RW6 RW7 RW8 RW9 GW0 GW1 GW2 GW3 GW4 GW5 GW6 GW7 GW8 GW9 BW0 BW1 BW2 BW3 BW4 BW5 BW6 BW7 BW8 BW9 RX0 RX1 RX2 RX3 RW15 RW14 RW13 RW12 RW11 RW10 GX0 GX1 GX2 GX3 GW15 GW14 GW13 GW12 GW11 GW10 BX0 BX1 BX2 BX3 BW15 BW14 BW13 BW12 BW11 BW10 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0 NA0"
 ]);
 
-const MODES = Object.freeze([
+const MODES = [
     { code: 0x00, subsets: 2, transformed: true, indexBits: 3, endpointBits: 10, deltaBits: [ 5, 5, 5 ] },
     { code: 0x01, subsets: 2, transformed: true, indexBits: 3, endpointBits: 7, deltaBits: [ 6, 6, 6 ] },
     { code: 0x02, subsets: 2, transformed: true, indexBits: 3, endpointBits: 11, deltaBits: [ 5, 4, 4 ] },
@@ -40,7 +40,7 @@ const MODES = Object.freeze([
     { code: 0x07, subsets: 1, transformed: true, indexBits: 4, endpointBits: 11, deltaBits: [ 9, 9, 9 ] },
     { code: 0x0b, subsets: 1, transformed: true, indexBits: 4, endpointBits: 12, deltaBits: [ 8, 8, 8 ] },
     { code: 0x0f, subsets: 1, transformed: true, indexBits: 4, endpointBits: 16, deltaBits: [ 4, 4, 4 ] }
-]);
+];
 
 const MODE_BY_CODE = new Int8Array(32).fill(-1);
 for (let index = 0; index < MODES.length; index++) MODE_BY_CODE[MODES[index].code] = index;

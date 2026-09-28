@@ -251,12 +251,12 @@ export function withEmulatedAddressing(program, semanticBindings)
         const axes = [ state.addressU, state.addressV, state.addressW ];
         if (!NeedsEmulation(axes)) continue;
 
-        samplerModes[binding.registerIndex] = Object.freeze({
+        samplerModes[binding.registerIndex] = {
             u: axes[0],
             v: axes[1],
             w: axes[2],
-            borderColor: Object.freeze([ ...(state.borderColor ?? [ 0, 0, 0, 0 ]) ])
-        });
+            borderColor: [ ...(state.borderColor ?? [ 0, 0, 0, 0 ]) ]
+        };
     }
 
     const registers = Object.keys(samplerModes).map(Number);
@@ -272,14 +272,14 @@ export function withEmulatedAddressing(program, semanticBindings)
         throw new Error(`WGSL emulated addressing needs constant-buffer register ${ADDRESS_MODES_REGISTER}, which the shader already declares`);
     }
 
-    const modesBuffer = Object.freeze({
+    const modesBuffer = {
         kind: "binding",
         id: `uniform-buffer:space0:range${ADDRESS_MODES_REGISTER}`,
         resourceKind: "uniform-buffer",
         operandType: "constant_buffer",
         declarationOffset: -1,
         registerIndex: ADDRESS_MODES_REGISTER,
-        range: Object.freeze({
+        range: {
             bindingModel: "sm5.0-register",
             rangeId: null,
             lowerBound: ADDRESS_MODES_REGISTER,
@@ -287,21 +287,21 @@ export function withEmulatedAddressing(program, semanticBindings)
             unbounded: false,
             registerCount: 1,
             registerSpace: 0
-        }),
+        },
         accessPattern: "dynamic_indexed",
         resourceDimension: null,
         structureStride: null,
         returnType: null,
         synthetic: "emulated-addressing"
-    });
+    };
 
-    return Object.freeze({
+    return {
         ...program,
-        bindings: Object.freeze([ ...program.bindings, modesBuffer ]),
-        emulatedAddressing: Object.freeze({
-            samplerModes: Object.freeze(samplerModes),
+        bindings: [ ...program.bindings, modesBuffer ],
+        emulatedAddressing: {
+            samplerModes: samplerModes,
             bufferRegister: ADDRESS_MODES_REGISTER,
             sizeInVec4: Math.max(...registers) + 1
-        })
-    });
+        }
+    };
 }

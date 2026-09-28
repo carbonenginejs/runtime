@@ -55,7 +55,7 @@ const SUPPORTED_VERTEX_CHANNELS = Object.freeze({
     blendIndice: 4,
     blendWeight: 4
 });
-const DECL_CHANNELS = Object.freeze({
+const DECL_CHANNELS = {
     Position: [ "position", 0 ],
     Normal: [ "normal", 0 ],
     Tangent: [ "tangent", 0 ],
@@ -64,7 +64,7 @@ const DECL_CHANNELS = Object.freeze({
     Color: [ "color", null ],
     BoneIndices: [ "blendIndice", 0 ],
     BoneWeights: [ "blendWeight", 0 ]
-});
+};
 
 function node(name, properties = [], children = [], forceSentinel = false)
 {

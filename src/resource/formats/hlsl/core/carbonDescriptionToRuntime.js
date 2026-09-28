@@ -161,7 +161,7 @@ function mapClosed(record, rules, target, what)
 const consumed = () => {};
 
 /** Texture record rules. `count` is Carbon's name for `arrayElements`. */
-const TEXTURE_RULES = Object.freeze({
+const TEXTURE_RULES = {
     // Carried as the map key by the caller, not as a payload field.
     registerIndex: consumed,
     name: (target, value) => { target.name = text(value); },
@@ -172,20 +172,20 @@ const TEXTURE_RULES = Object.freeze({
     count: (target, value) => { target.arrayElements = value; },
     isSRGB: (target, value) => { target.isSRGB = flag(value); },
     isAutoregister: (target, value) => { target.isAutoregister = flag(value); }
-});
+};
 
 /** UAV record rules. A UAV record has no `isSRGB`; it is synthesised. */
-const UAV_RULES = Object.freeze({
+const UAV_RULES = {
     registerIndex: consumed,
     name: (target, value) => { target.name = text(value); },
     type: (target, value) => { target.type = value; },
     // RENAME: same as the texture record.
     count: (target, value) => { target.arrayElements = value; },
     isAutoregister: (target, value) => { target.isAutoregister = flag(value); }
-});
+};
 
 /** Sampler record rules. The wire record is flat; the runtime shape is nested. */
-const SAMPLER_RULES = Object.freeze({
+const SAMPLER_RULES = {
     registerIndex: consumed,
     // Handled after the walk: the name depends on `isDynamic`, which the walk
     // may not have reached yet.
@@ -204,7 +204,7 @@ const SAMPLER_RULES = Object.freeze({
     borderColor: (target, value) => { target.sampler.borderColor = value.slice(0, 4); },
     minLOD: (target, value) => { target.sampler.minLOD = value; },
     maxLOD: (target, value) => { target.sampler.maxLOD = value; }
-});
+};
 
 /** Static sampler rules. `borderColor` is a one-byte enum here, not four floats. */
 /**
@@ -217,13 +217,13 @@ const SAMPLER_RULES = Object.freeze({
  * cloud samplers are opaque white, so this table is load-bearing and not a
  * formality.
  */
-const STATIC_BORDER_COLORS = Object.freeze({
-    1: Object.freeze([ 0, 0, 0, 1 ]),
-    2: Object.freeze([ 1, 1, 1, 1 ]),
-    default: Object.freeze([ 0, 0, 0, 0 ])
-});
+const STATIC_BORDER_COLORS = {
+    1: [ 0, 0, 0, 1 ],
+    2: [ 1, 1, 1, 1 ],
+    default: [ 0, 0, 0, 0 ]
+};
 
-const STATIC_SAMPLER_RULES = Object.freeze({
+const STATIC_SAMPLER_RULES = {
     registerIndex: (target, value) => { target.registerIndex = value; },
     registerSpace: (target, value) => { target.registerSpace = value; },
     comparison: (target, value) => { target.sampler.comparison = flag(value); },
@@ -239,10 +239,10 @@ const STATIC_SAMPLER_RULES = Object.freeze({
     borderColor: (target, value) => { target.sampler.borderColor = value; },
     minLOD: (target, value) => { target.sampler.minLOD = value; },
     maxLOD: (target, value) => { target.sampler.maxLOD = value; }
-});
+};
 
 /** Constant record rules. */
-const CONSTANT_RULES = Object.freeze({
+const CONSTANT_RULES = {
     name: (target, value) => { target.name = text(value); },
     offset: (target, value) => { target.offset = value; },
     size: (target, value) => { target.size = value; },
@@ -251,10 +251,10 @@ const CONSTANT_RULES = Object.freeze({
     elements: (target, value) => { target.elements = value; },
     isSRGB: (target, value) => { target.isSRGB = flag(value); },
     isAutoregister: (target, value) => { target.isAutoregister = flag(value); }
-});
+};
 
 /** Register declaration rules. */
-const REGISTER_RULES = Object.freeze({
+const REGISTER_RULES = {
     registerType: (target, value) => { target.registerType = value; },
     registerIndex: (target, value) => { target.registerIndex = value; },
     // Carbon stores one field its reader calls `arrayCount` and its writer calls
@@ -262,7 +262,7 @@ const REGISTER_RULES = Object.freeze({
     // producer refuses to write them when they disagree.
     registerCount: (target, value) => { target.registerCount = value; target.arrayCount = value; },
     registerSpace: (target, value) => { target.registerSpace = value; }
-});
+};
 
 /**
  * Pipeline input rules.
@@ -271,7 +271,7 @@ const REGISTER_RULES = Object.freeze({
  * display name looked up from a table, exactly as Carbon derives it through
  * `GetStringForUsageCode` (`EffectData.h:86`). Nothing goes on the wire for it.
  */
-const PIPELINE_INPUT_RULES = Object.freeze({
+const PIPELINE_INPUT_RULES = {
     usage: (target, value) =>
     {
         target.usage = value;
@@ -282,10 +282,10 @@ const PIPELINE_INPUT_RULES = Object.freeze({
     usedMask: (target, value) => { target.usedMask = value; },
     type: (target, value) => { target.type = value; },
     dimension: (target, value) => { target.dimension = value; }
-});
+};
 
 /** Annotation rules. */
-const ANNOTATION_RULES = Object.freeze({
+const ANNOTATION_RULES = {
     name: (target, value) => { target.name = text(value); },
     type: (target, value) => { target.type = value; },
     stringValue: (target, value) => { if (value) target.stringValue = text(value); },
@@ -302,7 +302,7 @@ const ANNOTATION_RULES = Object.freeze({
         target.intValue = bits | 0;
         target.floatValue = floatFromBits(bits);
     }
-});
+};
 
 /**
  * Maps one texture record onto its runtime resource object.
@@ -671,7 +671,7 @@ const LIBRARY_EXPORT_NAME_FIELDS = Object.freeze([
 ]);
 
 /** Library record rules; the nested pieces are handled by `buildLibrary`. */
-const LIBRARY_RULES = Object.freeze({
+const LIBRARY_RULES = {
     payloadSize: (target, value) => { target.payloadSize = value; },
     hitGroupName: (target, value) => { target.hitGroupName = text(value); },
     // Consumed by buildLibrary: the blob becomes the registered bytecode.
@@ -680,7 +680,7 @@ const LIBRARY_RULES = Object.freeze({
     exports: consumed,
     globalInputs: consumed,
     localInputs: consumed
-});
+};
 
 /**
  * Rebuilds one runtime shader library from a wire library record.

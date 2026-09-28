@@ -73,7 +73,7 @@ function encodeBackendBlock(unit, passKey)
 }
 
 /** The WebGPU encoders, as the shared builder's backend argument. */
-export const WGSL_CONTAINER_BACKEND = Object.freeze({ encodeProgram, encodeBackendBlock });
+export const WGSL_CONTAINER_BACKEND = { encodeProgram, encodeBackendBlock };
 
 /**
  * Builds the complete WebGPU effect container.

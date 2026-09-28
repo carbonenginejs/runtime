@@ -24,11 +24,11 @@ const LIGHT_DATA_BUFFER = "LightBuffer";
 const LIGHT_PROFILE_ARRAY = "LightProfileArray";
 
 /** Every resource name in the family, for callers that need to strip them. */
-export const LOCAL_LIGHT_RESOURCE_NAMES = Object.freeze([
+export const LOCAL_LIGHT_RESOURCE_NAMES = [
     LIGHT_INDEX_BUFFER,
     LIGHT_DATA_BUFFER,
     LIGHT_PROFILE_ARRAY
-]);
+];
 
 /** Carbon's resource type code for a structured buffer, as `BoneTransforms` uses. */
 const CARBON_STRUCTURED_BUFFER = 7;

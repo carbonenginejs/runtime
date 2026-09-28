@@ -32,9 +32,8 @@ export const CARBON_BACKEND_ENGINE_ID = Object.freeze({
 });
 
 /** Wire value to name, for error messages. */
-const TYPE_NAMES = Object.freeze(
-    Object.fromEntries(Object.entries(CARBON_BACKEND_ENGINE_ID).map(([ name, value ]) => [ value, name ]))
-);
+const TYPE_NAMES = Object.fromEntries(
+    Object.entries(CARBON_BACKEND_ENGINE_ID).map(([ name, value ]) => [ value, name ]));
 
 /**
  * Reads a block's engine id without consuming it or validating it.

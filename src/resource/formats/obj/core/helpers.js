@@ -20,10 +20,10 @@ import { hydrateCmf } from "../../cmf/core/utils/hydration.js";
 
 export { CMF_CLASS_KEYS, GR2_CLASS_KEYS };
 
-export const CLASS_KEYS = Object.freeze(Array.from(new Set([
+export const CLASS_KEYS = Array.from(new Set([
     ...GR2_CLASS_KEYS,
     ...CMF_CLASS_KEYS
-])));
+]));
 
 export const OUTPUT_JSON = "json";
 export const OUTPUT_OBJ_JSON = "objJson";
@@ -31,7 +31,7 @@ export const OUTPUT_SHARED = "shared";
 export const OUTPUT_GR2 = "gr2";
 export const OUTPUT_CMF = "cmf";
 
-export const DEFAULT_VALUES = Object.freeze({
+export const DEFAULT_VALUES = {
     emit: OUTPUT_OBJ_JSON,
     source: "memory",
     packTangents: false,
@@ -39,8 +39,8 @@ export const DEFAULT_VALUES = Object.freeze({
     rebuildMissingNormals: false,
     rebuildMissingTangents: false,
     rebuildMissingBiNormals: false,
-    classes: Object.freeze({})
-});
+    classes: {}
+};
 
 const OPTION_KEYS = new Set([
     "emit",

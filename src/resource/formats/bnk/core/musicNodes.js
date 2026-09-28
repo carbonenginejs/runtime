@@ -440,12 +440,12 @@ export function parseMusicSwitch(bytes, knownIds, options = {})
     return null;
 }
 
-const MUSIC_PARSERS = Object.freeze({
+const MUSIC_PARSERS = {
     10: (payload, knownIds, options) => parseMusicSegment(payload, knownIds, options),
     11: (payload, knownIds, options) => parseMusicTrack(payload, options),
     12: (payload, knownIds, options) => parseMusicSwitch(payload, knownIds, options),
     13: (payload, knownIds, options) => parseMusicPlaylist(payload, knownIds, options)
-});
+};
 
 const MUSIC_TYPE_NAMES = Object.freeze({
     10: "music-segment",

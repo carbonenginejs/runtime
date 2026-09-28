@@ -98,35 +98,35 @@ const CARBON_TEXTURE_2D = 2;
  * The minimum is how few members still merit a merge. Two is the floor
  * everywhere, because one map in a one-layer array saves nothing.
  */
-export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
-    Object.freeze({
+export const TEXTURE_ARRAY_FAMILIES = [
+    {
         kind: "array",
         family: "detail-map-array",
         outputName: "DetailArrayMap",
-        parameters: Object.freeze([ "Detail1Map", "Detail2Map", "Detail3Map" ]),
+        parameters: [ "Detail1Map", "Detail2Map", "Detail3Map" ],
         minimum: 2
-    }),
-    Object.freeze({
+    },
+    {
         kind: "array",
         family: "roughness-map-array",
         outputName: "RoughnessArrayMap",
-        parameters: Object.freeze([ "Roughness1Map", "Roughness2Map", "Roughness3Map", "Roughness4Map" ]),
+        parameters: [ "Roughness1Map", "Roughness2Map", "Roughness3Map", "Roughness4Map" ],
         minimum: 2
-    }),
-    Object.freeze({
+    },
+    {
         kind: "array",
         family: "atlas-map-array",
         outputName: "AtlasArrayMap",
-        parameters: Object.freeze([ "AtlasAOMap", "AtlasPaintMap", "AtlasCurvatureMap" ]),
+        parameters: [ "AtlasAOMap", "AtlasPaintMap", "AtlasCurvatureMap" ],
         minimum: 2
-    }),
-    Object.freeze({
+    },
+    {
         kind: "array",
         family: "dirt-map-array",
         outputName: "DirtArrayMap",
-        parameters: Object.freeze([ "DirtMap1", "DirtMap2" ]),
+        parameters: [ "DirtMap1", "DirtMap2" ],
         minimum: 2
-    }),
+    },
     // Frontier's pbr material tree, which the quad sweep missed entirely and
     // which is where the structure and asteroid shaders were failing to link.
     //
@@ -137,33 +137,33 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
     //
     // Each read is a single channel, measured from the emitted GLSL rather than
     // assumed - `.x` for every member of all three.
-    Object.freeze({
+    {
         kind: "pack",
         family: "ambient-occlusion-channel-pack",
         outputName: "AmbientOcclusionPackMap",
-        parameters: Object.freeze([ "AmbientOcclusion1Map", "AmbientOcclusion2Map" ]),
+        parameters: [ "AmbientOcclusion1Map", "AmbientOcclusion2Map" ],
         minimum: 2
-    }),
-    Object.freeze({
+    },
+    {
         kind: "pack",
         family: "curvature-channel-pack",
         outputName: "CurvaturePackMap",
-        parameters: Object.freeze([ "Curvature1Map", "Curvature2Map" ]),
+        parameters: [ "Curvature1Map", "Curvature2Map" ],
         minimum: 2
-    }),
+    },
     // The numbered series only. `NoiseMap` is a separate map that happens to be
     // scalar too, and folding it in here would be grouping by storage rather
     // than by what the map is. It is one more unit if one is ever needed.
-    Object.freeze({
+    {
         kind: "pack",
         family: "noise-channel-pack",
         outputName: "NoisePackMap",
-        parameters: Object.freeze([ "Noise1Map", "Noise2Map", "Noise3Map" ]),
+        parameters: [ "Noise1Map", "Noise2Map", "Noise3Map" ],
         minimum: 2
-    }),
+    },
     // Last, so it is reached only by a stage that nothing above it could bring
     // under the budget. On EVE that is `quadheatdetailv5` alone.
-    Object.freeze({
+    {
         kind: "pack",
         family: "pmdg-channel-pack",
         outputName: "PmdgPackMap",
@@ -172,10 +172,10 @@ export const TEXTURE_ARRAY_FAMILIES = Object.freeze([
         // requires ascending registers in parameter order. Which scalar lands
         // in which channel does not matter as long as the emitter and whatever
         // builds the texture read it from here, and they both do.
-        parameters: Object.freeze([ "GlowMap", "DirtMap", "MaterialMap", "PaintMaskMap" ]),
+        parameters: [ "GlowMap", "DirtMap", "MaterialMap", "PaintMaskMap" ],
         minimum: 2
-    })
-]);
+    }
+];
 
 /**
  * Recognises one declared family in a stage's reflected resources.
@@ -246,7 +246,7 @@ export function recogniseTextureArrayFamily(definition, resources, options = {})
         layers.push({ parameter, layer, registerIndex, registerSpace: space });
     }
 
-    return Object.freeze({
+    return {
         kind: definition.kind ?? "array",
         family: definition.family,
         outputName: definition.outputName,
@@ -254,7 +254,7 @@ export function recogniseTextureArrayFamily(definition, resources, options = {})
         layerCount: layers.length,
         layers: layers.map((entry) => entry),
         registers: layers.map((entry) => entry.registerIndex)
-    });
+    };
 }
 
 /**
