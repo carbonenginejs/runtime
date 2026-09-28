@@ -124,7 +124,7 @@ import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
 import { POST_TEMPLATES } from "./postTemplates.js";
-import { blue } from "../../../../npm/dist/global/blue/index.js";
+import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
   RegisterSolidColorTexture,
@@ -890,13 +890,15 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
   };
 
   // Type/skin -> DNA: resolve, fill the SOF side, load.
+  // A search result is a type ("typeID") or a skin on its type ("typeID:skinID").
+  const selectedTypeID = () => typeSelect.value.split(":")[0];
   const resolveSelection = async () =>
   {
     if (!typeSelect.value) return;
     const skin = skinSelect.value ? `&skinID=${skinSelect.value}` : "";
     try
     {
-      const { dna } = await getJson(`${sde}/dna/resolve?typeID=${typeSelect.value}${skin}`);
+      const { dna } = await getJson(`${sde}/dna/resolve?typeID=${selectedTypeID()}${skin}`);
       await writeFields(ParseShipDna(dna));
       await loadDna(dna);
     }
@@ -904,6 +906,7 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
   };
 
   let searchTimer = null;
+  let skinLibrary = null;
   search.addEventListener("input", () =>
   {
     clearTimeout(searchTimer);
@@ -911,19 +914,34 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
     {
       const query = search.value.trim();
       if (query.length < 2) return;
-      // `query=` is the table's case-insensitive substring search over names;
-      // `field=name&contains=` is not a substring test (it matches one
-      // localised name exactly), so it cannot serve a search box.
-      const { items } = await getJson(`${sde}/sde/types?query=${encodeURIComponent(query)}&limit=100`);
-      const types = items.filter(item => item.payload.published && item.payload.graphicID);
-      typeSelect.replaceChildren(new Option(`${types.length} found`, ""), ...types.map(item => new Option(item.payload.name?.en ?? item.id, item.id)));
+      // TYPES AND SKINS BY NAME, as skindr searches: the SKIN library's name
+      // index (`/skin`, `names`: lowercased name -> type and skin entries),
+      // loaded once. Types are kept only when they have a graphic (a thing
+      // that can be drawn); that also drops SKIN licence items, which are
+      // graphic-less types named like their skin.
+      skinLibrary ??= getJson(`${sde}/skin`);
+      const { names, skins } = await skinLibrary;
+      const needle = query.toLowerCase();
+      const results = [];
+      for (const [ name, entries ] of Object.entries(names))
+      {
+        if (!name.includes(needle)) continue;
+        for (const entry of entries)
+        {
+          if (entry.kind === "type" && entry.graphicID !== null) results.push([ name, String(entry.typeID) ]);
+          else if (entry.kind === "skin") results.push([ skins[entry.skinID]?.internalName ?? name, `${entry.typeID}:${entry.skinID}` ]);
+        }
+        if (results.length >= 200) break;
+      }
+      typeSelect.replaceChildren(new Option(`${results.length} found`, ""), ...results.map(([ label, value ]) => new Option(label, value)));
       skinSelect.replaceChildren();
     }, 250);
   });
   typeSelect.addEventListener("change", async () =>
   {
     if (!typeSelect.value) return;
-    await fillSkins(typeSelect.value);
+    const [ typeID, skinID = "" ] = typeSelect.value.split(":");
+    await fillSkins(typeID, skinID);
     await resolveSelection();
   });
   skinSelect.addEventListener("change", resolveSelection);
@@ -1412,6 +1430,13 @@ async function BuildSofShip(dna)
   });
 
   await sof.InitializeAsync();
+  // Inserts need BePaths, so the build waits for it (about 0.3 s). The 15 s cap
+  // is for a network failure only, and says so.
+  const composed = await Promise.race([
+    BEPATHS_COMPOSED.then(() => true),
+    new Promise(done => setTimeout(() => done(false), 15000))
+  ]);
+  if (!composed) console.warn(`BePaths still loading from ${bePathsUrl} after 15 s; ${dna} is built without resPathInserts.`);
   const values = await sof.BuildValuesFromDNAAsync(dna);
   const diagnostics = sof.GetBuildDiagnostics();
   if (diagnostics?.length) console.warn(`SOF ${dna}: ${JSON.stringify(diagnostics).slice(0, 400)}`);
@@ -2085,6 +2110,46 @@ RegisterObjectResources(blue.resMan);
 // Effects resolve their platform path when they hydrate, so the defaults are
 // set before any SOF ship is built.
 SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
+
+// BEPATHS, composed as Carbon's client composes it (ResourceLoading.cpp): a
+// RemoteFileCache over THIS build's resfileindex, registered as a file system.
+// SOF's resPathInsert selection asks BePaths whether each inserted texture
+// exists (EveSOFDNA.cpp:11-14), so without this no DNA or faction insert
+// (navy, bloodraider...) ever applies. A faction whose insert folder a hull
+// lacks (most *base factions) falls back to the default textures, as in game.
+// The index is ~20 MB from local tools-core, so it loads in the BACKGROUND:
+// nothing at module level waits for it (a top-level await on it once stalled
+// the whole page). BuildSofShip waits for it, capped, before building.
+let bePathsUrl = "/build";
+const BEPATHS_COMPOSED = ComposeBePaths();
+
+/** Composes BePaths over the page build's resfileindex; never throws. */
+async function ComposeBePaths()
+{
+  const started = performance.now();
+  let url = "/build";
+  try
+  {
+    const pageBuild = await (await fetch(url, { signal: AbortSignal.timeout(10000) })).json();
+    url = `${pageBuild.tools}/eve/${pageBuild.resources}/app/resfileindex.txt`;
+    bePathsUrl = url;
+    const index = await fetch(url, { signal: AbortSignal.timeout(120000) });
+    if (!index.ok) throw new Error(`HTTP ${index.status}`);
+    const text = await index.text();
+    const remoteFileCache = new RemoteFileCache();
+    remoteFileCache.AddFileIndex(text);
+    // Registered for EXISTENCE only (BePaths->FileExists). It is not installed
+    // with SetRemoteFileCache: that makes FileExistsLocally ask this cache's
+    // local byte store, and this page has none - its bytes come from the
+    // runner - so the lookup threw inside texture setup and stalled the page.
+    blue.paths.RegisterFileSystem(new BlueResFileSystemRemote(remoteFileCache));
+    console.info(`BePaths composed from ${url}: ${text.length} bytes in ${Math.round(performance.now() - started)} ms`);
+  }
+  catch (error)
+  {
+    console.warn(`BePaths not composed from ${url} after ${Math.round(performance.now() - started)} ms; resPathInserts will not apply: ${error.message}`);
+  }
+}
 // The renderer's shader model follows the tier, as the client sets it:
 // controllers read it through ShaderQuality() (the hull fire gates on 2).
 Tr2Renderer.SetShaderModel({ lo: TR2SHADERMODEL.TR2SM_3_0_LO, hi: TR2SHADERMODEL.TR2SM_3_0_HI }[TIER] ?? TR2SHADERMODEL.TR2SM_3_0_DEPTH);
