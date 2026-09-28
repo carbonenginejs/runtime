@@ -56,7 +56,7 @@ export class AudioCurveSetDriver extends CjsModel
   @impl.adapted
   GetCurveSetTime(time)
   {
-    const parameterInfo = AudGameObjResource.manager?.GetParameterInfo?.(this.audioParameterName);
+    const parameterInfo = AudGameObjResource.manager?.GetParameterInfo(this.audioParameterName);
     if (parameterInfo)
     {
       this.audioParameterValue = parameterInfo.parameterValue;
@@ -112,7 +112,7 @@ export class AudioCurveSetDriver extends CjsModel
       const manager = AudGameObjResource.manager;
 
       if (typeof manager?.RegisterParameter === "function"
-        && manager.GetState?.() !== "uninitialized")
+        && manager.GetState() !== "uninitialized")
       {
         manager.RegisterParameter(this.audioParameterName);
         this._registeredManager = manager;
@@ -149,7 +149,7 @@ export class AudioCurveSetDriver extends CjsModel
     this.audioParameterName = String(name ?? "");
     if (this.audioParameterName
       && typeof manager?.RegisterParameter === "function"
-      && manager.GetState?.() !== "uninitialized")
+      && manager.GetState() !== "uninitialized")
     {
       manager.RegisterParameter(this.audioParameterName);
       this._registeredManager = manager;

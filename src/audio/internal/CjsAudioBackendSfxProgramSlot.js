@@ -84,7 +84,7 @@ export class CjsAudioBackendSfxProgramSlot
     Abort()
     {
         this.controller?.abort();
-        for (const controller of this.selectionControllers?.values?.() ?? [])
+        for (const controller of this.selectionControllers?.values() ?? [])
         {
             controller.abort();
         }
@@ -131,7 +131,7 @@ export class CjsAudioBackendSfxProgramBatch
         this.transaction?.rollback?.();
         this.transaction = null;
         this.controller?.abort();
-        for (const controller of this.selectionControllers?.values?.() ?? [])
+        for (const controller of this.selectionControllers?.values() ?? [])
         {
             controller.abort();
         }

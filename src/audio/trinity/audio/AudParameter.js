@@ -58,8 +58,8 @@ export class AudParameter extends CjsModel
   {
     if (propertyName === "value" && this._gameObjID && AudGameObjResource.manager?.enabled)
     {
-      AudGameObjResource.backend?.SetRTPCValue?.(this.name, this.value, this._gameObjID);
-      AudGameObjResource.manager.LogSetRTPC?.(this._gameObjID, this.name, this.value);
+      AudGameObjResource.backend?.SetRTPCValue(this.name, this.value, this._gameObjID);
+      AudGameObjResource.manager.LogSetRTPC(this._gameObjID, this.name, this.value);
     }
     return true;
   }

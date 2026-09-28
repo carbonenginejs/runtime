@@ -73,7 +73,7 @@ export class Tr2AudioStretchBase extends CjsModel
     StretchAudio.GetStretchOrientation(sourcePosition, destPosition, this._front, this._top);
     this.sourceEmitter?.SetPosition(this._front, this._top, sourcePosition);
     this.destinationEmitter?.SetPosition(this._front, this._top, destPosition);
-    const listenerPosition = AudGameObjResource.manager?.GetListener?.()?.GetPosition?.() ?? sourcePosition;
+    const listenerPosition = AudGameObjResource.manager?.GetListener()?.GetPosition?.() ?? sourcePosition;
     this.stretchEmitter?.SetPosition(
       this._front,
       this._top,

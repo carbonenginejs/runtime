@@ -319,7 +319,7 @@ function ScheduleMusicBusGain(
             readGlobalRtpc,
             at,
         );
-        db += busDuckingController?.EvaluateGainDb?.(path, at) ?? 0;
+        db += busDuckingController?.EvaluateGainDb(path, at) ?? 0;
         return 10 ** (db / 20);
     };
     const boundaries = [];
@@ -349,7 +349,7 @@ function ScheduleMusicBusGain(
         );
     }
     boundaries.push(
-        ...(busDuckingController?.TransitionBoundaries?.(path, now) ?? []),
+        ...(busDuckingController?.TransitionBoundaries(path, now) ?? []),
     );
     boundaries.sort((left, right) => left - right);
 
@@ -1715,7 +1715,7 @@ export class CjsMusicEngine
         this._busEffectCatalog = indexBusEffectCatalog(busEffects);
         this._busGraphRuntime = busGraphRuntime ?? null;
         this._busMixer = busMixer ?? null;
-        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe?.(
+        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe(
             () => this.RefreshBusDucking(),
         ) ?? null;
         if (random) this._random = random;
@@ -1744,7 +1744,7 @@ export class CjsMusicEngine
         {
             gain.value = volume;
         }
-        this._busMixer?.SetCategoryVolume?.("music", volume);
+        this._busMixer?.SetCategoryVolume("music", volume);
     }
 
     /**
@@ -3317,7 +3317,7 @@ export class CjsMusicEngine
         {
             for (const scheduled of instance.active)
             {
-                for (const route of scheduled.routeGains?.values?.() ?? [])
+                for (const route of scheduled.routeGains?.values() ?? [])
                 {
                     ScheduleMusicBusGain(
                         route.gain.gain,
@@ -4387,7 +4387,7 @@ export class CjsMusicEngine
                 };
             },
             scheduleDuck: (startCtx, endCtx) =>
-                this._busDuckingController?.ScheduleActivity?.(
+                this._busDuckingController?.ScheduleActivity(
                     track.busPathIds,
                     startCtx,
                     endCtx,
@@ -4541,7 +4541,7 @@ export class CjsMusicEngine
             "highPass",
         ) ? this._context.createBiquadFilter?.() ?? null : null;
         const mixerInput = busGraphRoute
-            ? this._busMixer?.GetInput?.(busGraphRoute, "music") ?? null
+            ? this._busMixer?.GetInput(busGraphRoute, "music") ?? null
             : null;
         const busEffectChain = mixerInput
             ? null

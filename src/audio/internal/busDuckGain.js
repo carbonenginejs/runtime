@@ -12,13 +12,13 @@ export function scheduleSharedBusDuckGain({
     const path = (busPathIds ?? []).map(String);
     const now = Number(context?.currentTime) || 0;
     const evaluate = at => 10 ** ((
-        busDuckingController?.EvaluateGainDb?.(
+        busDuckingController?.EvaluateGainDb(
             path,
             at,
             "bus-volume",
         ) ?? 0
     ) / 20);
-    const boundaries = busDuckingController?.TransitionBoundaries?.(
+    const boundaries = busDuckingController?.TransitionBoundaries(
         path,
         now,
         "bus-volume",

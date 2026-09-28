@@ -595,7 +595,7 @@ export class CjsAudioSystem
         }
         emitter.StopAll();
         emitter.UnregisterWwiseObject();
-        this.backend?.ReleaseGameObj?.(emitter.ID);
+        this.backend?.ReleaseGameObj(emitter.ID);
         this.manager.RemoveCallbackGameObject(emitter.ID);
         this.manager.UnregisterGameObject(emitter.ID);
         this._adoptedEmitters.delete(emitter);
@@ -662,13 +662,13 @@ export class CjsAudioSystem
         this.musicEngine?.Dispose?.();
         this.musicEngine = null;
         this._providedMusicEngine = null;
-        this.backend?.Dispose?.();
+        this.backend?.Dispose();
         this.backend = null;
-        this._busMixer?.Dispose?.();
+        this._busMixer?.Dispose();
         this._busMixer = null;
-        this._busGraphRuntime?.Dispose?.();
+        this._busGraphRuntime?.Dispose();
         this._busGraphRuntime = null;
-        this._busDuckingController?.Dispose?.();
+        this._busDuckingController?.Dispose();
         this._busDuckingController = null;
         this.Detach();
     }

@@ -118,7 +118,7 @@ export class AudManager extends CjsModel
       // The backend seam is the sound engine: absent, or an Init that
       // explicitly fails, means Carbon's Init() failure - stay un-enabled.
       // A backend without an Init method counts as initialized.
-      if (!backend || backend.Init?.(this.settings) === false)
+      if (!backend || backend.Init(this.settings) === false)
       {
         return;
       }
@@ -190,7 +190,7 @@ export class AudManager extends CjsModel
       waitingEventsAfterLoad: [],
       operation
     });
-    AudGameObjResource.backend?.LoadBank?.(String(name), loaded =>
+    AudGameObjResource.backend?.LoadBank(String(name), loaded =>
     {
       if (this._soundBankInfoMap.get(key)?.operation === operation)
       {
@@ -222,7 +222,7 @@ export class AudManager extends CjsModel
 
     info.operation = operation;
     this.UpdateSoundBankStatus(key, "unloading");
-    AudGameObjResource.backend?.UnloadBank?.(String(name), () =>
+    AudGameObjResource.backend?.UnloadBank(String(name), () =>
     {
       if (this._soundBankInfoMap.get(key)?.operation === operation)
       {
@@ -238,7 +238,7 @@ export class AudManager extends CjsModel
   {
     if (this._state !== "uninitialized")
     {
-      AudGameObjResource.backend?.ClearBanks?.();
+      AudGameObjResource.backend?.ClearBanks();
       this._soundBankInfoMap.clear();
     }
   }
@@ -325,7 +325,7 @@ export class AudManager extends CjsModel
     {
       return false;
     }
-    if (AudGameObjResource.backend?.SetGlobalRTPCValue?.(rtpcName, value) === false)
+    if (AudGameObjResource.backend?.SetGlobalRTPCValue(rtpcName, value) === false)
     {
       return false;
     }
@@ -342,7 +342,7 @@ export class AudManager extends CjsModel
     {
       return false;
     }
-    AudGameObjResource.backend?.SetGlobalState?.(stateGroup, stateName);
+    AudGameObjResource.backend?.SetGlobalState(stateGroup, stateName);
     this.LogSetState(stateGroup, stateName);
     return true;
   }
@@ -1064,7 +1064,7 @@ export class AudManager extends CjsModel
   {
     for (const [name, entry] of this._monitoredParameters)
     {
-      const value = AudGameObjResource.backend?.GetGlobalRTPCValue?.(name);
+      const value = AudGameObjResource.backend?.GetGlobalRTPCValue(name);
       entry.parameterExists = value !== undefined && value !== null;
       entry.parameterValue = entry.parameterExists ? Number(value) : 0;
     }
@@ -1105,7 +1105,7 @@ export class AudManager extends CjsModel
       this._obstructionOcclusion.Update(
         AudGameObjResource.backend,
       );
-      AudGameObjResource.backend?.RenderAudio?.();
+      AudGameObjResource.backend?.RenderAudio();
       // Carbon refreshes monitored values from its end-render callback. The
       // portable backend has no Wwise callback thread, so Process owns the
       // equivalent post-render refresh.

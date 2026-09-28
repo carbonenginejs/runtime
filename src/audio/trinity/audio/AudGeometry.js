@@ -123,7 +123,7 @@ export class AudGeometry extends CjsModel
     const manager = AudGameObjResource.manager;
     const backend = AudGameObjResource.backend;
     if (!geometryData?.vertices?.length || !geometryData?.indices?.length
-      || !manager?.GetSpatialAudioGeometryEnabled?.()
+      || !manager?.GetSpatialAudioGeometryEnabled()
       || typeof backend?.SetGeometry !== "function"
       || typeof backend?.SetGeometryInstance !== "function")
     {
@@ -162,7 +162,7 @@ export class AudGeometry extends CjsModel
   {
     const manager = AudGameObjResource.manager;
     const backend = AudGameObjResource.backend;
-    if (!manager?.GetSpatialAudioGeometryEnabled?.()
+    if (!manager?.GetSpatialAudioGeometryEnabled()
       || !geometrySets.has(geometrySetId)
       || typeof backend?.SetGeometryInstance !== "function")
     {

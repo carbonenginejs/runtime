@@ -1,4 +1,5 @@
 import test from "node:test";
+import { FakeAudioManager } from "../../support/fakeAudio.js";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import { AudEmitter, AudEventCurve, AudEventKey, AudStaticDataRepository } from "../../../npm/dist/audio/index.js";
@@ -195,11 +196,11 @@ test("values-hydrated emitters count as positioned and can Wake", async () =>
 {
   const { AudEmitter, AudGameObjResource } = await import("../../../npm/dist/audio/index.js");
   const registered = [];
-  AudGameObjResource.manager = {
+  AudGameObjResource.manager = FakeAudioManager({
     enabled: true,
     audioCullingEnabled: true,
     RegisterGameObject: (id, gameObject) => registered.push(id)
-  };
+  });
   try
   {
     const emitter = AudEmitter.from({

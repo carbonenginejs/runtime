@@ -187,7 +187,7 @@ export class StretchAudio extends IStretchAudio
   {
     if (!this._listener)
     {
-      this._listener = AudGameObjResource.manager?.GetListener?.() ?? null;
+      this._listener = AudGameObjResource.manager?.GetListener() ?? null;
       if (!this._listener)
       {
         return [0, 0, 0];

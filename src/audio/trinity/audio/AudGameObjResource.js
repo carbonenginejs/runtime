@@ -201,7 +201,7 @@ export class AudGameObjResource extends CjsModel
       {
         this.#culled = false;
       }
-      manager.RegisterGameObject?.(this.ID, this);
+      manager.RegisterGameObject(this.ID, this);
     }
   }
 
@@ -271,13 +271,13 @@ export class AudGameObjResource extends CjsModel
       let soundbanksLoaded = true;
       for (const bank of banks)
       {
-        const status = manager.GetSoundBankStatus?.(bank);
+        const status = manager.GetSoundBankStatus(bank);
         if (status !== "loaded")
         {
           soundbanksLoaded = false;
           if (status === "loading")
           {
-            manager.RegisterEventAfterSoundBankLoad?.(bank, fullEventName, this);
+            manager.RegisterEventAfterSoundBankLoad(bank, fullEventName, this);
             break;
           }
           return INVALID_PLAYING_ID;
@@ -286,8 +286,8 @@ export class AudGameObjResource extends CjsModel
       if (soundbanksLoaded)
       {
         const eventID = repository.GetEventID(fullEventName);
-        playingID = AudGameObjResource.backend?.PostEvent?.(eventID, this.ID, additionalFlags, this, fullEventName) ?? INVALID_PLAYING_ID;
-        manager.LogPostEvent?.(this.ID, playingID, eventID, fullEventName);
+        playingID = AudGameObjResource.backend?.PostEvent(eventID, this.ID, additionalFlags, this, fullEventName) ?? INVALID_PLAYING_ID;
+        manager.LogPostEvent(this.ID, playingID, eventID, fullEventName);
         if (playingID !== INVALID_PLAYING_ID)
         {
           this.ApplyEventStopRelationships(fullEventName);
@@ -363,7 +363,7 @@ export class AudGameObjResource extends CjsModel
     {
       return false;
     }
-    return AudGameObjResource.backend?.SeekOnEventPercent?.(playingID, percentToSeek) === true;
+    return AudGameObjResource.backend?.SeekOnEventPercent(playingID, percentToSeek) === true;
   }
 
   /** Carbon method SeekOnEventMs: seek a playing event owned by this object. */
@@ -375,7 +375,7 @@ export class AudGameObjResource extends CjsModel
     {
       return false;
     }
-    return AudGameObjResource.backend?.SeekOnEventMs?.(playingID, msToSeek) === true;
+    return AudGameObjResource.backend?.SeekOnEventMs(playingID, msToSeek) === true;
   }
 
   /** Carbon method StopAll. */
@@ -401,9 +401,9 @@ export class AudGameObjResource extends CjsModel
     {
       return false;
     }
-    AudGameObjResource.backend?.ExecuteActionOnPlayingID?.(action, playingID, fadeOutDuration);
+    AudGameObjResource.backend?.ExecuteActionOnPlayingID(action, playingID, fadeOutDuration);
     const actionName = String(action).toLowerCase() === "break" ? "Break" : "Stop";
-    AudGameObjResource.manager?.LogExecuteActionOnPlayingID?.(this.ID, playingID, actionName);
+    AudGameObjResource.manager?.LogExecuteActionOnPlayingID(this.ID, playingID, actionName);
     return true;
   }
 
@@ -443,11 +443,11 @@ export class AudGameObjResource extends CjsModel
     }
     if (this.#gameObjRegistered)
     {
-      if (AudGameObjResource.backend?.SetRTPCValue?.(rtpcName, rtpcValue, this.ID) === false)
+      if (AudGameObjResource.backend?.SetRTPCValue(rtpcName, rtpcValue, this.ID) === false)
       {
         return false;
       }
-      AudGameObjResource.manager?.LogSetRTPC?.(this.ID, rtpcName, rtpcValue);
+      AudGameObjResource.manager?.LogSetRTPC(this.ID, rtpcName, rtpcValue);
       return true;
     }
     return false;
@@ -465,11 +465,11 @@ export class AudGameObjResource extends CjsModel
     }
     if (this.#gameObjRegistered)
     {
-      if (AudGameObjResource.backend?.SetSwitch?.(switchGroup, switchState, this.ID) === false)
+      if (AudGameObjResource.backend?.SetSwitch(switchGroup, switchState, this.ID) === false)
       {
         return false;
       }
-      AudGameObjResource.manager?.LogSetSwitch?.(this.ID, switchGroup, switchState);
+      AudGameObjResource.manager?.LogSetSwitch(this.ID, switchGroup, switchState);
       return true;
     }
     return false;
@@ -675,7 +675,7 @@ export class AudGameObjResource extends CjsModel
     }
     if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.SetPosition?.(
+      AudGameObjResource.backend?.SetPosition(
         this.ID,
         this.#effectiveFront,
         this.#effectiveTop,
@@ -735,7 +735,7 @@ export class AudGameObjResource extends CjsModel
   {
     if (AudGameObjResource.manager?.enabled && this.#gameObjRegistered)
     {
-      if (AudGameObjResource.backend?.SetScalingFactor?.(this.ID, value) === false)
+      if (AudGameObjResource.backend?.SetScalingFactor(this.ID, value) === false)
       {
         return false;
       }
@@ -821,7 +821,7 @@ export class AudGameObjResource extends CjsModel
   {
     if (AudGameObjResource.manager?.enabled && !this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.RegisterGameObj?.(this.ID, this.name);
+      AudGameObjResource.backend?.RegisterGameObj(this.ID, this.name);
       this.#gameObjRegistered = true;
     }
   }
@@ -833,7 +833,7 @@ export class AudGameObjResource extends CjsModel
   {
     if (AudGameObjResource.manager && this.#gameObjRegistered)
     {
-      AudGameObjResource.backend?.UnregisterGameObj?.(this.ID);
+      AudGameObjResource.backend?.UnregisterGameObj(this.ID);
       this.#gameObjRegistered = false;
     }
   }

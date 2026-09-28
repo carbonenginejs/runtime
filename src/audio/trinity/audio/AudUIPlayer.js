@@ -55,7 +55,7 @@ export class AudUIPlayer extends AudEmitter
     {
       return -1;
     }
-    return this.constructor.backend?.GetSourcePlayPosition?.(playingID) ?? -1;
+    return this.constructor.backend?.GetSourcePlayPosition(playingID) ?? -1;
   }
 
   /** Carbon method PostDialogueEvent (MAP_METHOD_AND_WRAP). */

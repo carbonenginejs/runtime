@@ -265,7 +265,7 @@ export class CjsAudioBackend
             );
         this._busGraphRuntime = busGraphRuntime ?? null;
         this._busMixer = busMixer ?? null;
-        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe?.(
+        this._unsubscribeBusDucking = this._busDuckingController?.Subscribe(
             () => this._RefreshBusDucking(),
         ) ?? null;
 
@@ -319,7 +319,7 @@ export class CjsAudioBackend
         const volume = Math.max(0, Math.min(1, Number(value) || 0));
 
         SetAudioParam(this._sfxGain?.gain, volume, this._context);
-        this._busMixer?.SetCategoryVolume?.("sfx", volume);
+        this._busMixer?.SetCategoryVolume("sfx", volume);
     }
 
     /** Attaches the system-owned shared Bus mixer before any voices realize. */
@@ -761,7 +761,7 @@ export class CjsAudioBackend
                     realizedSlots.add(slot.id);
                 }
             }
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 if (!IsOverlappingAdvanceMode(slot.advanceMode))
                 {
@@ -958,7 +958,7 @@ export class CjsAudioBackend
         if (!breaking)
         {
             record.stopped = true;
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 if (!slot.continuation)
                 {
@@ -968,7 +968,7 @@ export class CjsAudioBackend
                 slot.broken = true;
                 slot.generation++;
                 this._AbortSfxProgramSlot(record, slot);
-                for (const batch of slot.batches?.values?.() ?? [])
+                for (const batch of slot.batches?.values() ?? [])
                 {
                     if (batch.state === "loading"
                         || batch.state === "pending")
@@ -1655,7 +1655,7 @@ export class CjsAudioBackend
     /** WebAudio renders continuously; the tick drives music-engine lookahead scheduling. */
     RenderAudio()
     {
-        this._busDuckingController?.Prune?.(
+        this._busDuckingController?.Prune(
             Number(this._context?.currentTime) || 0,
         );
         this._ProcessScheduledSfxActions();
@@ -1678,7 +1678,7 @@ export class CjsAudioBackend
             {
                 continue;
             }
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 if (slot.advanceMode !== "trigger-rate"
                     || slot.state === "ended"
@@ -1739,7 +1739,7 @@ export class CjsAudioBackend
             {
                 continue;
             }
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 if (slot.advanceMode !== "crossfade"
                     || slot.state === "ended"
@@ -1843,7 +1843,7 @@ export class CjsAudioBackend
         const currentBoundary = now
             + RenderQuantumSeconds(this._context);
 
-        for (const slot of record.programSlots?.values?.() ?? [])
+        for (const slot of record.programSlots?.values() ?? [])
         {
             if (!slot.continuation)
             {
@@ -1862,7 +1862,7 @@ export class CjsAudioBackend
                 );
             }
             slot.preparedBatch = null;
-            for (const batch of slot.batches?.values?.() ?? [])
+            for (const batch of slot.batches?.values() ?? [])
             {
                 if (batch.state === "loading"
                     || batch.state === "pending")
@@ -1996,7 +1996,7 @@ export class CjsAudioBackend
         const nodes = this._emitterNodes.get(gameObjID);
         const analysers = [
             nodes?.analyser,
-            ...[ ...(nodes?.routeBranches?.values?.() ?? []) ]
+            ...[ ...(nodes?.routeBranches?.values() ?? []) ]
                 .flatMap(modes => [ ...modes.values() ])
                 .map(branch => branch.analyser),
         ].filter(analyser => analyser?.getFloatTimeDomainData);
@@ -2175,12 +2175,12 @@ export class CjsAudioBackend
             }
         }
         const hasRestrictedContinuous = [
-            ...record.programSlots?.values?.() ?? [],
+            ...record.programSlots?.values() ?? [],
         ].some(slot =>
             slot.advanceMode === "trigger-rate"
             || slot.advanceMode === "crossfade");
         const canSeekSfx = !record.sfxProgram
-            || [ ...record.programSlots?.values?.() ?? [] ]
+            || [ ...record.programSlots?.values() ?? [] ]
                 .some(slot =>
                     slot.advanceMode !== "trigger-rate"
                     && slot.advanceMode !== "crossfade");
@@ -2327,7 +2327,7 @@ export class CjsAudioBackend
             record,
             slot?.selections,
         );
-        for (const batch of slot?.batches?.values?.() ?? [])
+        for (const batch of slot?.batches?.values() ?? [])
         {
             this._voiceLimitLedger.ReleasePending(
                 record,
@@ -3094,7 +3094,7 @@ export class CjsAudioBackend
             }
         }
         for (const transition of
-            record.emitterNodes?.retiredRtpcTransitions?.values?.() ?? [])
+            record.emitterNodes?.retiredRtpcTransitions?.values() ?? [])
         {
             add(transition);
         }
@@ -3567,7 +3567,7 @@ export class CjsAudioBackend
                 continue;
             }
 
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 if (slot.advanceMode !== "switch"
                     || !slot.continuation
@@ -4146,7 +4146,7 @@ export class CjsAudioBackend
     /** Applies one Stop across every overlapping Trigger Rate batch. */
     _ApplyTriggerRateStop(record, slot, stop, actionTime)
     {
-        const batches = [ ...slot.batches?.values?.() ?? [] ];
+        const batches = [ ...slot.batches?.values() ?? [] ];
         const eligibleSelections = [];
         const matchingSelections = [];
         const eligibleBatches = batches.filter(batch =>
@@ -4568,12 +4568,12 @@ export class CjsAudioBackend
         {
             return branch;
         }
-        const mixerInput = this._busMixer?.GetInput?.(
+        const mixerInput = this._busMixer?.GetInput(
             busGraphRoute,
             "sfx",
         ) ?? null;
         const sharedBusFilters = Boolean(mixerInput)
-            && this._busMixer?.OwnsRouteStateFilters?.(busGraphRoute) === true;
+            && this._busMixer?.OwnsRouteStateFilters(busGraphRoute) === true;
         const sharedBusDucking = sharedBusFilters;
         const analyser = mixerInput
             ? this._context.createAnalyser?.() ?? null
@@ -5338,7 +5338,7 @@ export class CjsAudioBackend
             source.stop(voice.scheduledEndContextTime);
         }
         this._ApplyVoicePlaybackRate(voice);
-        voice.duckActivity = this._busDuckingController?.ScheduleActivity?.(
+        voice.duckActivity = this._busDuckingController?.ScheduleActivity(
             voice.busPathIds,
             startContextTime,
         ) ?? null;
@@ -6443,7 +6443,7 @@ export class CjsAudioBackend
             slot.preparedBatch,
         );
         slot.preparedBatch = null;
-        for (const batch of slot.batches?.values?.() ?? [])
+        for (const batch of slot.batches?.values() ?? [])
         {
             this._SettleCrossfadeBatchTransaction(batch);
             if (batch.state === "loading"
@@ -6468,7 +6468,7 @@ export class CjsAudioBackend
     {
         const activeVoices = [ ...slot.voices ]
             .filter(voice => !voice.ended);
-        const acquiring = [ ...slot.batches?.values?.() ?? [] ]
+        const acquiring = [ ...slot.batches?.values() ?? [] ]
             .some(batch =>
                 batch.state === "loading"
                 || batch.state === "pending");
@@ -6497,7 +6497,7 @@ export class CjsAudioBackend
             || record.stopped
             || this._playing.get(playingID) !== record
             || [ ...slot.voices ].some(voice => !voice.ended)
-            || [ ...slot.batches?.values?.() ?? [] ].some(batch =>
+            || [ ...slot.batches?.values() ?? [] ].some(batch =>
                 batch.state === "loading" || batch.state === "pending"))
         {
             return false;
@@ -6523,7 +6523,7 @@ export class CjsAudioBackend
 
         for (const record of this._playing.values())
         {
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 this._SettleCrossfadeBatchTransaction(
                     slot.preparedBatch,
@@ -6675,7 +6675,7 @@ export class CjsAudioBackend
                 }
             }
         }
-        this._busMixer?.RefreshBusControls?.();
+        this._busMixer?.RefreshBusControls();
     }
 
     /** Re-evaluates the live Voice Volume contribution during transitions. */
@@ -6974,7 +6974,7 @@ export class CjsAudioBackend
             }
         }
         this._musicEngine?.RefreshBusDucking?.();
-        this._busMixer?.RefreshBusControls?.();
+        this._busMixer?.RefreshBusControls();
     }
 
     /** Settles one disposable source's bus activity exactly once. */
@@ -7342,10 +7342,10 @@ export class CjsAudioBackend
                 .filter(value => value.ownerPlayingID !== playingID);
             record.stopped = true;
             record.controller?.abort();
-            for (const slot of record.programSlots?.values?.() ?? [])
+            for (const slot of record.programSlots?.values() ?? [])
             {
                 slot.Abort();
-                for (const batch of slot.batches?.values?.() ?? [])
+                for (const batch of slot.batches?.values() ?? [])
                 {
                     this._SettleCrossfadeBatchTransaction(batch);
                     batch.Abort();
@@ -7412,7 +7412,7 @@ export class CjsAudioBackend
     /** Disconnects a no-longer-used emitter node generation. */
     _DisconnectEmitterNodes(nodes)
     {
-        for (const modes of nodes.routeBranches?.values?.() ?? [])
+        for (const modes of nodes.routeBranches?.values() ?? [])
         {
             for (const branch of modes.values())
             {
@@ -7426,7 +7426,7 @@ export class CjsAudioBackend
             }
             modes.clear();
         }
-        nodes.routeBranches?.clear?.();
+        nodes.routeBranches?.clear();
         nodes.gain.disconnect?.();
         nodes.flatGain?.disconnect?.();
         nodes.panner.disconnect?.();
@@ -8225,7 +8225,7 @@ function ProgramSlotSelections(slot)
     {
         return slot.selections ?? [];
     }
-    return [ ...slot.batches?.values?.() ?? [] ]
+    return [ ...slot.batches?.values() ?? [] ]
         .flatMap(batch => batch.selections ?? []);
 }
 
@@ -9272,7 +9272,7 @@ function ScheduleBusVolumeGain(
         ...(voice.controlTransitionBoundaries ?? [])
             .map(Number)
             .filter(value => Number.isFinite(value) && value > now),
-        ...(busDuckingController?.TransitionBoundaries?.(
+        ...(busDuckingController?.TransitionBoundaries(
             busPathIds,
             now,
             voice.sharedBusDucking ? "voice-volume" : null,
@@ -9300,7 +9300,7 @@ function ScheduleBusVolumeGain(
             readGlobalStateWeights,
             at,
         ))
-        + (busDuckingController?.EvaluateGainDb?.(
+        + (busDuckingController?.EvaluateGainDb(
             busPathIds,
             at,
             voice.sharedBusDucking ? "voice-volume" : null,

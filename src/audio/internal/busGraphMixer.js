@@ -367,7 +367,7 @@ export class CjsSharedBusMixer
             && route.outputBusId === route.busPathIds[0];
         const pathIds = new Set();
         const hasIncomingDuckTarget = Boolean(
-            this._busDuckingController?.PathHasTarget?.(route.busPathIds),
+            this._busDuckingController?.PathHasTarget(route.busPathIds),
         );
         const routeControlIndexes = [];
         let hasAudibleEffect = false;
@@ -596,7 +596,7 @@ export class CjsSharedBusMixer
             if ((reasonSet.has("rtpc") && !this._busRtpcs.has(id))
                 || (reasonSet.has("state") && !this._busStates.has(id))
                 || (reasonSet.has("ducking")
-                    && !this._busDuckingController?.HasSource?.(id)))
+                    && !this._busDuckingController?.HasSource(id)))
             {
                 throw new TypeError(
                     "Audio Bus distributed control catalog is incomplete",
@@ -672,7 +672,7 @@ export class CjsSharedBusMixer
         if (!this._CanSplitDuckingProperties(combined)
             || !this._CanRealizeRouteFilters(dryPath)
             || !this._CanRealizeRouteFilters(wetPath)
-            || this._busDuckingController?.PathHasTarget?.(
+            || this._busDuckingController?.PathHasTarget(
                 wetExclusive,
                 "voice-volume",
             ))
@@ -715,7 +715,7 @@ export class CjsSharedBusMixer
 
             if (busStatePathUses(this._busStates, [ busId ], "pitchCents")
                 || (wetOnly
-                    && this._busDuckingController?.HasSource?.(busId))
+                    && this._busDuckingController?.HasSource(busId))
                 || (wetExclusive.includes(busId)
                     && busRtpcPathUses(
                         this._busRtpcs,
@@ -739,7 +739,7 @@ export class CjsSharedBusMixer
     _CanSplitDuckingProperties(busPathIds)
     {
         return !this._busDuckingController
-            || this._busDuckingController.CanSplitTargetProperties?.(
+            || this._busDuckingController.CanSplitTargetProperties(
                 busPathIds,
             ) === true;
     }
@@ -860,7 +860,7 @@ export class CjsSharedBusMixer
                 : String(bus.parentBusId);
         }
         if (valid
-            && this._busDuckingController?.PathHasTarget?.(path))
+            && this._busDuckingController?.PathHasTarget(path))
         {
             valid = false;
         }
@@ -1095,7 +1095,7 @@ export class CjsSharedBusMixer
     /** Creates one whole-route Bus-target duck gain when the path needs it. */
     _CreateRouteDuckGain(busPathIds)
     {
-        if (!this._busDuckingController?.PathHasTarget?.(
+        if (!this._busDuckingController?.PathHasTarget(
             busPathIds,
             "bus-volume",
         ))
