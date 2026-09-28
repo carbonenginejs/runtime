@@ -13,6 +13,7 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { EveEntity } from "../EveEntity.js";
+import { BLUELISTEVENT } from "#consts/blue";
 import { EveComponentRegistry } from "./components/EveComponentRegistry.js";
 import { Tr2PostProcess2 } from "../../postProcess/Tr2PostProcess2.js";
 import { Tr2PostProcessAttributes } from "../../postProcess/Tr2PostProcessAttributes.js";
@@ -41,6 +42,8 @@ import { RawData } from "../../core/rawData/RawData.js";
 import { Tr2ShadowMap } from "../../core/Tr2ShadowMap.js";
 import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { ITr2SecondaryLightSource } from "../../core/lighting/ITr2SecondaryLightSource.js";
+import { ITr2ShLightingReceiver } from "../../core/lighting/ITr2ShLightingReceiver.js";
 import { Tr2VolumetricsRenderer } from "../../core/volumetrics/Tr2VolumetricsRenderer.js";
 import { convertProjectionCoordToWorldPickRay, screenToProjection } from "../../core/view/pickRay.js";
 import { EveVisualizeMethod } from "../../generated/eve/enums.js";
@@ -155,7 +158,10 @@ function EmptyShadowResources()
 //     `scene.componentRegistry.Clear("MeshMorph")` after bake),
 //     "ReflectionRenderable" (secondary gather cpp:1886-1895).
 //
-// One-shot registration trigger: after graph build/mutation call
+// Registration triggers: adding or removing through the notified list helpers
+// (`CjsModel.addChild` / `removeChild(scene, "objects", object)`) raises
+// OnListModified, which registers or unregisters that one object as Carbon's
+// BlueList does. After a plain-array graph build or mutation, call
 // `scene.ReregisterEntities()` - covers objects + backgroundObjects + planets
 // (entity-guarded) + cameraAttachmentParent (cpp:4064-4089, matching what
 // OnListModified registers incrementally, cpp:3435-3491). uiObjects are
@@ -2441,15 +2447,83 @@ export class EveSpaceScene extends CjsModel
     out.Set("SplitInfo", split.SplitInfo);
   }
 
+  /**
+   * Carbon EveSpaceScene::OnListModified (cpp:3414-3491): the scene's lists
+   * register what enters them and unregister what leaves. An inserted object
+   * joins the SH lighting manager as a secondary light source and the quad
+   * renderer, and an entity in objects, backgroundObjects or planets joins the
+   * component registry; a removed one leaves the manager (its SH lighting
+   * cleared) and the registry; unloading a list does the same for all of it.
+   * Casts are Carbon's BlueCastPtr, CjsSchema.cast.
+   *
+   * The events come from the notified list helpers - CjsModel.addChild /
+   * removeChild(scene, "objects", object) - as Carbon's BlueList raises them;
+   * a plain array push raises none, and ReregisterEntities joins such late
+   * objects instead.
+   *
+   * @param {number} event A BLUELISTEVENT value.
+   * @param {number} _key Index of the change.
+   * @param {number} _key2 Second index (swap/move).
+   * @param {object|null} value The inserted or removed item.
+   * @param {Array} list The list that changed.
+   */
+  @carbon.method
+  @impl.implemented
+  OnListModified(event, _key = 0, _key2 = 0, value = null, list = null)
+  {
+    const entityList = list === this.objects || list === this.backgroundObjects || list === this.planets;
+    switch (event & BLUELISTEVENT.BELIST_EVENTMASK)
+    {
+      case BLUELISTEVENT.BELIST_UNLOADSTART:
+        if (this.shLightingManager)
+        {
+          for (const item of list)
+          {
+            CjsSchema.cast(item, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+            CjsSchema.cast(item, ITr2ShLightingReceiver)?.ClearShLighting();
+          }
+        }
+        if (entityList && this.componentRegistry)
+        {
+          for (const item of list) CjsSchema.cast(item, EveEntity)?.UnRegister(this.componentRegistry);
+        }
+        break;
+      case BLUELISTEVENT.BELIST_INSERTED:
+        if (this.shLightingManager)
+        {
+          CjsSchema.cast(value, ITr2SecondaryLightSource)?.RegisterSecondaryLightSource(this.shLightingManager);
+        }
+        CjsSchema.cast(value, IEveSpaceObject2)?.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
+        if (entityList && this.componentRegistry)
+        {
+          CjsSchema.cast(value, EveEntity)?.Register(this.componentRegistry);
+        }
+        break;
+      case BLUELISTEVENT.BELIST_REMOVED:
+        if (this.shLightingManager)
+        {
+          CjsSchema.cast(value, ITr2SecondaryLightSource)?.UnregisterSecondaryLightSource(this.shLightingManager);
+          CjsSchema.cast(value, ITr2ShLightingReceiver)?.ClearShLighting();
+        }
+        if (entityList && this.componentRegistry)
+        {
+          CjsSchema.cast(value, EveEntity)?.UnRegister(this.componentRegistry);
+        }
+        break;
+      default:
+        break;
+    }
+  }
+
   /** Carbon method ReregisterEntities (MAP_METHOD_AND_WRAP, cpp:4064-4089).
    * Guarded no-op after ClearComponentRegistry has nulled the registry
    * (destroy-only path; Carbon would never call this afterwards). */
   //
   // Adapted: Carbon's list-insert handler registers every inserted object with
-  // the quad renderer (cpp:3455-3470). Our object lists are plain arrays with
-  // no insert event, and this method is where late objects join, so the
-  // objects register their quad effects here too. RegisterEffect ignores a key
-  // it already has, so registering again is harmless.
+  // the quad renderer (OnListModified, cpp:3455-3470). An object pushed onto
+  // the plain array raises no insert event, so this method, where such late
+  // objects join, registers their quad effects too. RegisterEffect ignores a
+  // key it already has, so registering again is harmless.
   @carbon.method
   @impl.adapted
   ReregisterEntities()
