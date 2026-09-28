@@ -58,8 +58,6 @@ export class EveChildLink extends EveChildMesh
   @type.float32
   targetRadius = 0.5;
 
-  /** m_isVisible (bool, EveChildMesh) - result of the last UpdateVisibility pass. */
-  #isVisible = false;
 
   /**
    * Resolves the link direction and distance from the parent's model center to
@@ -77,7 +75,7 @@ export class EveChildLink extends EveChildMesh
       return;
     }
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
-    const targetPosition = EveChildLink.#targetPosition;
+    const targetPosition = EveChildLink._targetPosition;
     vec3.set(targetPosition, 0, 0, 0);
     const targetResult = this.target.GetValueAt?.(time, targetPosition);
     if (targetResult && targetResult !== targetPosition && targetResult.length >= 3)
@@ -89,7 +87,7 @@ export class EveChildLink extends EveChildMesh
       // EveChildLink.cpp:57-60: without a source parent there is no direction.
       return;
     }
-    const sourcePosition = EveChildLink.#sourcePosition;
+    const sourcePosition = EveChildLink._sourcePosition;
     vec3.set(sourcePosition, 0, 0, 0);
     const sourceResult = params.spaceObjectParent.GetModelCenterWorldPosition?.(sourcePosition);
     if (sourceResult && sourceResult !== sourcePosition && sourceResult.length >= 3)
@@ -125,19 +123,19 @@ export class EveChildLink extends EveChildMesh
 
     // Parent world matrix and the parent's shield ellipsoid offset
     // (EveChildLink.cpp:87-106).
-    const shieldEllipsoidCenter = EveChildLink.#shieldEllipsoidCenter;
+    const shieldEllipsoidCenter = EveChildLink._shieldEllipsoidCenter;
     vec3.set(shieldEllipsoidCenter, 0, 0, 0);
     if (params?.childParent)
     {
-      EveChildLink.#CopyLocalToWorld(this.worldTransform, params.childParent);
+      EveChildLink._CopyLocalToWorld(this.worldTransform, params.childParent);
     }
     else if (params?.spaceObjectParent)
     {
-      EveChildLink.#CopyLocalToWorld(this.worldTransform, params.spaceObjectParent);
+      EveChildLink._CopyLocalToWorld(this.worldTransform, params.spaceObjectParent);
       // Carbon queries the EveSpaceObject2 interface for GetShapeEllipsoid
       // (EveChildLink.cpp:96-101); parents without the duck-typed accessor
       // keep the zero center.
-      params.spaceObjectParent.GetShapeEllipsoid?.(shieldEllipsoidCenter, EveChildLink.#shieldEllipsoidRadii);
+      params.spaceObjectParent.GetShapeEllipsoid?.(shieldEllipsoidCenter, EveChildLink._shieldEllipsoidRadii);
     }
     else
     {
@@ -146,9 +144,9 @@ export class EveChildLink extends EveChildMesh
 
     // Link rotation arcs the authored +Y mesh axis onto the current direction
     // (EveChildLink.cpp:108-111, TriMatrixRotationArc).
-    const linkRotation = EveChildLink.#linkRotation;
-    quat.rotationTo(EveChildLink.#arcQuat, EveChildLink.#meshDirection, this.currentDirection);
-    mat4.fromQuat(linkRotation, EveChildLink.#arcQuat);
+    const linkRotation = EveChildLink._linkRotation;
+    quat.rotationTo(EveChildLink._arcQuat, EveChildLink._meshDirection, this.currentDirection);
+    mat4.fromQuat(linkRotation, EveChildLink._arcQuat);
 
     if (this.currentDistance <= this.targetRadius)
     {
@@ -163,7 +161,7 @@ export class EveChildLink extends EveChildMesh
     }
 
     // Inverse rotation-only world matrix (EveChildLink.cpp:125-128).
-    const inverseRotationWorld = EveChildLink.#inverseRotationWorld;
+    const inverseRotationWorld = EveChildLink._inverseRotationWorld;
     mat4.copy(inverseRotationWorld, this.worldTransform);
     inverseRotationWorld[12] = 0;
     inverseRotationWorld[13] = 0;
@@ -184,7 +182,7 @@ export class EveChildLink extends EveChildMesh
     linkRotation[14] = this.currentDistance * this.currentDirection[2];
 
     // Carbon (row-vector): TranslationMatrix(shieldEllipsoidCenter) * m_worldTransform - translate first. (EveChildLink.cpp:138-140)
-    const finalWorld = EveChildLink.#finalWorld;
+    const finalWorld = EveChildLink._finalWorld;
     mat4.translate(finalWorld, this.worldTransform, shieldEllipsoidCenter);
 
     // Carbon cpp:143-151: invalidate, inherit the hull's structs, then stamp
@@ -212,11 +210,11 @@ export class EveChildLink extends EveChildMesh
     {
       return;
     }
-    this.#isVisible = false;
+    this._isVisible = false;
     this.currentScreenSize = -1;
     if (this.mesh)
     {
-      this.#isVisible = true;
+      this._isVisible = true;
     }
   }
 
@@ -265,7 +263,7 @@ export class EveChildLink extends EveChildMesh
    * Copies a parent's local-to-world matrix into out, tolerating both the
    * out-parameter and the return-the-matrix JS signatures.
    */
-  static #CopyLocalToWorld(out, parent)
+  static _CopyLocalToWorld(out, parent)
   {
     const source = parent.GetLocalToWorldTransform?.(out);
     if (source && source !== out && source.length === 16)
@@ -275,22 +273,22 @@ export class EveChildLink extends EveChildMesh
     return out;
   }
 
-  static #meshDirection = vec3.fromValues(0, 1, 0);
+  static _meshDirection = vec3.fromValues(0, 1, 0);
 
-  static #arcQuat = quat.create();
+  static _arcQuat = quat.create();
 
-  static #linkRotation = mat4.create();
+  static _linkRotation = mat4.create();
 
-  static #inverseRotationWorld = mat4.create();
+  static _inverseRotationWorld = mat4.create();
 
-  static #finalWorld = mat4.create();
+  static _finalWorld = mat4.create();
 
-  static #shieldEllipsoidCenter = vec3.create();
+  static _shieldEllipsoidCenter = vec3.create();
 
-  static #shieldEllipsoidRadii = vec3.create();
+  static _shieldEllipsoidRadii = vec3.create();
 
-  static #targetPosition = vec3.create();
+  static _targetPosition = vec3.create();
 
-  static #sourcePosition = vec3.create();
+  static _sourcePosition = vec3.create();
 
 }
