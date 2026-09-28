@@ -911,7 +911,10 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
     {
       const query = search.value.trim();
       if (query.length < 2) return;
-      const { items } = await getJson(`${sde}/sde/types?field=name&contains=${encodeURIComponent(query)}&limit=60`);
+      // `query=` is the table's case-insensitive substring search over names;
+      // `field=name&contains=` is not a substring test (it matches one
+      // localised name exactly), so it cannot serve a search box.
+      const { items } = await getJson(`${sde}/sde/types?query=${encodeURIComponent(query)}&limit=100`);
       const types = items.filter(item => item.payload.published && item.payload.graphicID);
       typeSelect.replaceChildren(new Option(`${types.length} found`, ""), ...types.map(item => new Option(item.payload.name?.en ?? item.id, item.id)));
       skinSelect.replaceChildren();
