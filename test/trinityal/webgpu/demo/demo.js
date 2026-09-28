@@ -2123,6 +2123,22 @@ SetEffectPathDefaults({ platformName: "webgpu", shaderModel: TIER });
 let bePathsUrl = "/build";
 const BEPATHS_COMPOSED = ComposeBePaths();
 
+// SKIN CHANGES RUN ONE AT A TIME. Choosing a skin in the ship panel already
+// loads it, so a "load" click, or another choice inside the 3 s transition,
+// started a second change that took the same old ship. The finishing change
+// then spliced index -1 (the scene's LAST object) and left the demo's ship
+// pointing at a ship no longer drawn, so every later change dissolved the
+// wrong one. Each change now starts from the ship the previous one left.
+let skinChangeQueue = Promise.resolve();
+function SerializeSkinChange(change)
+{
+  const run = skinChangeQueue.then(change);
+  // The queue only needs to know the change ENDED; the caller still gets the
+  // rejection through `run`.
+  skinChangeQueue = run.then(() => undefined, () => undefined);
+  return run;
+}
+
 /** Composes BePaths over the page build's resfileindex; never throws. */
 async function ComposeBePaths()
 {
@@ -3044,7 +3060,7 @@ export async function RunDemo(canvas)
     // (clipSphereFactor2, activationStrength); then the old ship goes. Each
     // ship gets its own copy of the overlay, so each curve set is updated once
     // a frame. With no DNA it toggles between the start DNA and SKIN_ALTERNATE.
-    skin: async (dna = null) =>
+    skin: (dna = null) => SerializeSkinChange(async () =>
     {
       if (!realScene) return null;
       const old = ship;
@@ -3084,7 +3100,9 @@ export async function RunDemo(canvas)
       const duration = overlays[0].curveSet.GetMaxCurveDuration();
       await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
 
-      realScene.objects.splice(realScene.objects.indexOf(old), 1);
+      const oldIndex = realScene.objects.indexOf(old);
+      if (oldIndex === -1) throw new Error("skin change: the old ship is no longer in the scene");
+      realScene.objects.splice(oldIndex, 1);
       next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
       next.clipSphereFactor = 0;
       next.clipSphereFactor2 = 0;
@@ -3094,7 +3112,7 @@ export async function RunDemo(canvas)
       ship = next;
       globalThis.demo.ship = next;
       return currentDna;
-    },
+    }),
     ship,
     scene: realScene
   };
