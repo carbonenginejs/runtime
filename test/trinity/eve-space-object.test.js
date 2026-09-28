@@ -477,7 +477,7 @@ test("EveSpaceObject2 propagates Carbon inherit properties to existing and futur
 test("EveSpaceObject2 owns the Carbon controller graph and mesh alias", () =>
 {
   const object = new EveSpaceObject2();
-  const mesh = {};
+  const mesh = { GetGeometryResource: () => null };
   const calls = [];
   const controller = {
     linked: false,
@@ -1110,7 +1110,7 @@ test("EveSpaceObject2 rebuilds the authored bounding sphere from ready geometry"
 test("EveSpaceObject2 delegates animation playback with Carbon wrapper constants", () =>
 {
   const object = new EveSpaceObject2();
-  // No updater: every playback call is a Carbon-faithful no-op.
+  // An updater with no file bound: every playback call queues or is a no-op.
   object.PlayAnimation("gate");
   object.EndAnimation();
   object.ClearAnimations();

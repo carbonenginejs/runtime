@@ -106,6 +106,18 @@ export class Tr2GrannyAnimation extends CjsModel
   /** Whether grannyRes was borrowed from the mesh rather than resolved here. */
   _sharedGeometry = false;
 
+  /**
+   * The borrowed geometry finished loading or reloading (Carbon's notify
+   * target, Tr2GrannyAnimation.cpp:293): rebuild from its granny file unless
+   * the model was already built from that same file.
+   */
+  _geometryCompleted = (_event, resource) =>
+  {
+    if (resource !== this.grannyRes) return;
+    if (this._runtimeModel && this._runtimeModel.source === this.GetFileInfo()) return;
+    this.RebuildCachedData();
+  };
+
   _morphAnimations = new Map();
 
   _morphCurveCache = new WeakMap();
@@ -248,11 +260,17 @@ export class Tr2GrannyAnimation extends CjsModel
     {
       return this._initialized;
     }
+    // Carbon cpp:288-294: leave the old geometry's notify targets, join the
+    // new one's, so a geometry still loading rebuilds this updater when it
+    // arrives - otherwise a ship bound before its .gr2 loaded never animates.
+    if (this._sharedGeometry) this.grannyRes.OffEvent("completed", this._geometryCompleted, this);
     this.grannyRes = resource ?? null;
     this._sharedGeometry = !!resource;
     this.resPath_ = "";
     this._resolvedPath = "";
-    return this.RebuildCachedData();
+    const initialized = this.RebuildCachedData();
+    if (resource) resource.OnCompleted(this._geometryCompleted, this);
+    return initialized;
   }
 
   /**
@@ -1140,7 +1158,14 @@ export class Tr2GrannyAnimation extends CjsModel
   _findAnimation(name)
   {
     const target = String(name ?? "");
-    const find = resource => CjsGrannyCurves.getAnimations(this._getSource(resource)).find(animation => getName(animation) === target);
+    // No file bound yet is no animation, not an error: the request queues by
+    // name until a file arrives, as Carbon's ConsumeAnimationQueue drains it
+    // on rebuild (cpp:662-666).
+    const find = resource =>
+    {
+      const source = this._getSource(resource);
+      return source ? CjsGrannyCurves.getAnimations(source).find(animation => getName(animation) === target) : undefined;
+    };
     let animation = find(this.GetFileInfo());
     if (animation)
     {

@@ -36,11 +36,11 @@ function assertClose(actual, expected, message)
 
 /**
  * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
- * answers (GetGrannyInfo; Carbon m_pGrannyFile).
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile), already loaded.
  */
 function geometryOf(grannyFile)
 {
-  return { GetGrannyInfo: () => grannyFile };
+  return { GetGrannyInfo: () => grannyFile, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
 }
 
 function createResource()

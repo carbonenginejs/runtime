@@ -28,7 +28,7 @@ import { EveDamageOverlay } from "../overlays/EveDamageOverlay.js";
 import { EmitDamageOverlayBatches, EmitOverlayBatches } from "../overlays/overlayBatches.js";
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
-import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
+import { Tr2GrannyAnimation, getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { RawData } from "../../core/rawData/RawData.js";
@@ -156,10 +156,10 @@ export class EveSpaceObject2 extends EveEntity
   @type.vec3
   generatedShapeEllipsoidRadius = vec3.fromValues(-1, -1, -1);
 
-  /** m_animationUpdater (Tr2GrannyAnimationPtr) [READ] */
+  /** m_animationUpdater (Tr2GrannyAnimationPtr) [READ] - Carbon's constructor creates it (cpp:214). */
   @edit.read
   @type.objectRef("Tr2GrannyAnimation")
-  animationUpdater = null;
+  animationUpdater = new Tr2GrannyAnimation();
 
   /** m_dna (std::string) [READ, PERSIST] */
   @edit.read
@@ -434,6 +434,9 @@ export class EveSpaceObject2 extends EveEntity
   // side updates curve sets only when it matches the frame time.
   _lastCurveUpdateTime = 0;
 
+  /** Carbon m_geometryResFromMesh: the mesh geometry the updater last borrowed. */
+  _geometryResFromMesh = null;
+
   // Carbon m_dynamicBoundingSphere: disabled while w is -1; a future animation
   // updater port publishes skinned bounds here.
   _dynamicBoundingSphere = sph3.set(sph3.create(), 0, 0, 0, -1);
@@ -553,6 +556,9 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   Initialize()
   {
+    // Carbon cpp:259-264.
+    if (this.mesh) this.PrepareForAnimation();
+
     for (const controller of this.controllers)
     {
       if (!controller?.IsLinked())
@@ -599,6 +605,30 @@ export class EveSpaceObject2 extends EveEntity
   SetMesh(mesh)
   {
     this.mesh = mesh ?? null;
+    // Carbon cpp:2294-2306.
+    if (this.mesh) this.PrepareForAnimation();
+  }
+
+  /**
+   * Hands the updater the mesh's geometry the first time it is seen, so a
+   * skinned hull animates from the granny file that geometry keeps.
+   *
+   * Carbon `PrepareForAnimation` (cpp:3176-3199). Carbon also moves the ship's
+   * own notify target to the new geometry; the updater's rebuild on load is
+   * the updater's own subscription here (Tr2GrannyAnimation.SetSharedGeometryRes),
+   * and the audio geometry is not ported.
+   */
+  @carbon.method
+  @impl.adapted
+  PrepareForAnimation()
+  {
+    const geometryRes = this.mesh.GetGeometryResource();
+    if (geometryRes && geometryRes !== this._geometryResFromMesh)
+    {
+      this._geometryResFromMesh = geometryRes;
+      this.animationUpdater.SetUseMeshBinding(true);
+      this.animationUpdater.SetSharedGeometryRes(geometryRes);
+    }
   }
 
   /** Borrowed overlay vector used by child mesh inheritance. */
@@ -1211,6 +1241,10 @@ export class EveSpaceObject2 extends EveEntity
     {
       observer?.Update(observerTransform);
     }
+
+    // Carbon cpp:560-566: PrePhysicsAnimation reads Tr2Renderer's animation
+    // clock; this port's updater steps by the frame's delta instead.
+    this.animationUpdater.Update(EveSpaceObject2._GetContextValue(updateContext, "GetDeltaT"));
 
     // LOD-gated curve/overlay stamp (Carbon EveSpaceObject2::UpdateSyncronous:
     // ShouldUpdate(m_lodLevelWithChildren, time - m_lastCurveUpdateTime) -

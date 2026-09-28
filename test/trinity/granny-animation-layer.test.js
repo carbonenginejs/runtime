@@ -12,11 +12,11 @@ const identity4 = [0, 0, 0, 1];
 
 /**
  * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
- * answers (GetGrannyInfo; Carbon m_pGrannyFile).
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile), already loaded.
  */
 function geometryOf(grannyFile)
 {
-  return { GetGrannyInfo: () => grannyFile };
+  return { GetGrannyInfo: () => grannyFile, OnCompleted(listener, source) { listener.call(source, "completed", this); return this; }, OffEvent() {} };
 }
 
 
@@ -142,7 +142,8 @@ test("owner End/Stop/ClearAnimations delegate to the base layer (Tr2GrannyAnimat
 test("EveSpaceObject2.GetAnimationController returns the animation updater (EveSpaceObject2.h:450-453)", () =>
 {
   const object = new EveSpaceObject2();
-  assert.equal(object.GetAnimationController(), null);
+  // Carbon's constructor creates the updater (EveSpaceObject2.cpp:214).
+  assert.ok(object.GetAnimationController() instanceof Tr2GrannyAnimation);
   const animation = createAnimation();
   object.animationUpdater = animation;
   assert.equal(object.GetAnimationController(), animation);

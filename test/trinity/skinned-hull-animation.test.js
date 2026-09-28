@@ -19,7 +19,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
-import { Tr2GrannyAnimation } from "../../npm/dist/trinity/index.js";
+import { EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation } from "../../npm/dist/trinity/index.js";
 
 const CORPUS_DIR = process.env.SKINNED_GR2_CORPUS_DIR || "";
 
@@ -92,4 +92,51 @@ test("at rest the palette is identity, and an animation moves it", { skip: corpu
   animation.Update(2);
 
   assert.ok(DistanceFromIdentity(animation.GetMeshBoneMatrixList(), count) > 1e-2, "2 s into Normal2Warp the bones have moved");
+});
+
+test("a ship binds its updater to the mesh geometry, and geometry still loading binds when it completes", { skip: corpusSkipReason() }, async () =>
+{
+  const loaded = await ReadHull("gb1_t1.gr2");
+
+  // Carbon's constructor creates the updater (EveSpaceObject2.cpp:214) and
+  // SetMesh hands it the mesh geometry (PrepareForAnimation, cpp:3176-3199).
+  const geometry = new TriGeometryRes();
+  const ship = new EveSpaceObject2();
+  ship.SetMesh({ GetGeometryResource: () => geometry });
+
+  assert.equal(ship.animationUpdater.HasMeshBinding(), true);
+  assert.equal(ship.animationUpdater.IsInitialized(), false, "nothing loaded yet");
+
+  // The geometry arrives: the updater's notify target rebuilds it
+  // (Tr2GrannyAnimation.cpp:293).
+  geometry.SetPayload(geometry.ReadGrannyFile(await readFile(path.join(CORPUS_DIR, "gb1_t1.gr2"))));
+  geometry.MarkPrepared();
+
+  assert.equal(ship.animationUpdater.IsInitialized(), true, "rebuilt on completion");
+  assert.equal(ship.animationUpdater.GetMeshBoneCount(), loaded.GetGrannyInfo().meshes[0].boneBindings.length);
+});
+
+test("the ship steps its animation in UpdateSyncronous", { skip: corpusSkipReason() }, async () =>
+{
+  const geometry = await ReadHull("gb1_t1.gr2");
+  const ship = new EveSpaceObject2();
+  ship.SetMesh({ GetGeometryResource: () => geometry });
+  const updater = ship.animationUpdater;
+  const count = updater.GetMeshBoneCount();
+
+  updater.PlayAnimation("Normal2Warp", true, 1, 0, 1);
+  const context = new EveUpdateContext();
+  // GetDeltaT reads a last time of 0 as no previous frame, so the clock starts at 1 s.
+  context.SetTime(1);
+  ship.UpdateSyncronous(context);
+  const start = Float32Array.from(updater.GetMeshBoneMatrixList());
+
+  // Carbon cpp:560-566 steps it each synchronous update; 2 s later the bones
+  // have moved from where the animation started.
+  context.SetTime(3);
+  ship.UpdateSyncronous(context);
+  const now = updater.GetMeshBoneMatrixList();
+  let moved = 0;
+  for (let i = 0; i < count * 12; i++) moved = Math.max(moved, Math.abs(now[i] - start[i]));
+  assert.ok(moved > 1e-2, `2 s of Normal2Warp moved the palette (${moved})`);
 });
