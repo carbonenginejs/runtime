@@ -40,7 +40,7 @@ export class TriPerlinCurve extends CjsModel
   @edit.readwrite
   @edit.persist
   @type.int32
-  N = 3;
+  n = 3;
 
   @edit.readwrite
   @edit.persist
@@ -113,7 +113,7 @@ export class TriPerlinCurve extends CjsModel
       position = (position + this.#startOffset) * this.speed;
     }
 
-    const noise = TriPerlinCurve.PerlinNoise1D(position, this.alpha, this.beta, this.N);
+    const noise = TriPerlinCurve.PerlinNoise1D(position, this.alpha, this.beta, this.n);
     return ((noise + 1) / 2) * this.scale + this.offset;
   }
 

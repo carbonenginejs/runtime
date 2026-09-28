@@ -111,12 +111,12 @@ test("TriPerlinCurve follows Carbon fixed-seed noise and update caching", () =>
   assertEquals(curve.beta, 2);
   assertEquals(curve.offset, 0);
   assertEquals(curve.scale, 1);
-  assertEquals(curve.N, 3);
+  assertEquals(curve.n, 3);
 
   TriPerlinCurve.expressionCurveFakeRandom = true;
   try
   {
-    curve.N = 1;
+    curve.n = 1;
     assertAlmostEquals(curve.GetValueAt(0), 0.5061580654296876, 1e-12);
 
     const cached = curve.Update(2);
@@ -127,7 +127,7 @@ test("TriPerlinCurve follows Carbon fixed-seed noise and update caching", () =>
     curve.offset = 0;
     curve.ScaleTime(4);
     assertAlmostEquals(curve.GetValueAt(0), 0.5061580654296876 * 4, 1e-12);
-    curve.N = -1;
+    curve.n = -1;
     assertEquals(curve.GetValueAt(0), 2);
   }
   finally
