@@ -10,6 +10,7 @@ import { CjsControllerExpressionEvaluateError } from "./CjsControllerExpressionE
 import { CjsSchema } from "#schema";
 import { blue } from "#blue";
 import { vec3 } from "#math/vec3";
+import { carbonPerlin1D } from "#math/noise";
 import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { TR2SHADERMODEL } from "#consts/graphics";
 
@@ -453,8 +454,11 @@ export const DEFAULT_FUNCTIONS = {
   randomConstant: (ctx, min = 0, max = 1) => ToNumber(min) + GetRandomConstant(ctx) * (ToNumber(max) - ToNumber(min)),
   randconst: (ctx, min = 0, max = 1) => DEFAULT_FUNCTIONS.randomConstant(ctx, min, max),
   randhash: (_ctx, min = 0, max = 1, value = 0) => ToNumber(min) + Hash01(ToNumber(value)) * (ToNumber(max) - ToNumber(min)),
-  noise: (ctx, x) => Hash01(ToNumber(x) + GetRandomConstant(ctx)),
-  fractal: (ctx, x) => Hash01(ToNumber(x) + GetRandomConstant(ctx)),
+  // Carbon Noise / Fractal (Tr2CurveScalarExpression.cpp:19-28): smooth 1D Perlin
+  // noise remapped from [-1, 1] to [0, 1], offset by the curve's random constant.
+  noise: (ctx, x) => (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), 1, 1, 1) + 1) / 2,
+  fractal: (ctx, x, alpha, beta, n) =>
+    (carbonPerlin1D(ToNumber(x) + GetRandomConstant(ctx), ToNumber(alpha), ToNumber(beta), Math.trunc(ToNumber(n) + 0.5)) + 1) / 2,
   input: (ctx, index) => GetInputValue(ctx, index),
   inputAt: (ctx, index, time) => GetInputValue(ctx, index, time),
   StateTime: ctx => ctx.stateMachine?.GetStateTime ? ctx.stateMachine.GetStateTime() : ToNumber(ctx.stateTime),
