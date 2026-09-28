@@ -459,6 +459,9 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     finally
     {
       locations.disabled = false;
+      // In "replaces scene default" mode the location IS the default, so the
+      // effect switches follow it.
+      RebuildEffects();
     }
   });
   // LOCATION MODE: a volume blends the location over the sun's default; the
@@ -466,7 +469,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // is how a client could bring a site's fog and god rays in (the Triglavian
   // override is one such case). The flare follows the sun either way.
   const mode = row("location mode", choose([ [ "volume", "volume" ], [ "replaces scene default", "replace" ] ], locationPost.mode()));
-  mode.addEventListener("change", () => locationPost.setMode(mode.value));
+  mode.addEventListener("change", () => { locationPost.setMode(mode.value); RebuildEffects(); });
   end();
 
   // Falloff: the radii and the intensity they resolve to at the camera.
@@ -4141,7 +4144,9 @@ export async function RunDemo(canvas)
     postState,
     initialTemplate: POST_SUN,
     select: SelectPostTemplate,
-    current: () => postTemplate,
+    // The effect switches act on the template that is the scene default now:
+    // the location's in "replaces scene default" mode, else the sun's.
+    current: () => (locationPost.mode === "replace" && locationPost.record ? locationPost.record : postTemplate),
     locationPost: {
       initial: POST_LOCATION,
       select: SelectLocationTemplate,
