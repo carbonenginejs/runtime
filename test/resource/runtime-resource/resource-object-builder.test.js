@@ -3,6 +3,7 @@ import { test } from "node:test";
 import { CjsSchema } from "../../../src/global/schema/index.js";
 import {
   CjsLoadingObject,
+  CjsMotherLode,
   CjsResMan,
   CjsResource
 } from "../../../src/resource/index.js";
@@ -327,4 +328,35 @@ test("object builds drain FIFO within the prepare budget, never split, re-entran
   // 6 ms builds under a 10 ms budget: at most two per pump, at least one.
   assert.ok(perPump.every(count => count >= 0 && count <= 2), JSON.stringify(perPump));
   assert.ok(perPump.filter(count => count > 0).length >= 10, JSON.stringify(perPump));
+});
+
+test("an idle sweep releases a builder's cached bytes, and the next load reads and parses again", async () =>
+{
+  let time = 0;
+  const counter = { reads: 0, builders: 0 };
+  const resMan = new CjsResMan({
+    motherLode: new CjsMotherLode({ now: () => time }),
+    source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
+  });
+  resMan.RegisterObjectBuilder("obj", bytes =>
+  {
+    counter.builders += 1;
+    return { CreateObject() { return { read: bytes[0] }; } };
+  });
+  const path = "res:/data/idle.obj";
+  assert.equal((await resMan.LoadObject(path)).read, 1);
+  assert.equal((await resMan.LoadObject(path)).read, 1);
+  assert.equal(counter.reads, 1);
+
+  // Negative control: a sweep before the payload is idle long enough keeps it.
+  time = 1;
+  assert.equal(resMan.PurgeInactive({ time, maxIdleMilliseconds: 1000, payloadMaxIdleMilliseconds: 100 }).payloadsReleased, 0);
+  assert.equal((await resMan.LoadObject(path)).read, 1);
+
+  time = 500;
+  assert.equal(resMan.PurgeInactive({ time, maxIdleMilliseconds: 1000, payloadMaxIdleMilliseconds: 100 }).payloadsReleased, 1);
+  const reloaded = await resMan.LoadObject(path);
+  assert.equal(reloaded.read, 2);
+  assert.equal(counter.reads, 2);
+  assert.equal(counter.builders, 2);
 });
