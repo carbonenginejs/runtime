@@ -5,7 +5,7 @@ const ROOT_KINDS = Object.freeze([
   "EveSwarm"
 ]);
 
-const INITIALIZE_KINDS = Object.freeze([
+const INITIALIZE_KINDS = [
   ...ROOT_KINDS,
   "EveSpaceObjectDecal",
   "EveImpactOverlay",
@@ -19,7 +19,7 @@ const INITIALIZE_KINDS = Object.freeze([
   "EveBoosterSet2",
   "EveChildMesh",
   "EveChildContainer"
-]);
+];
 
 /**
  * Creates the compatibility hydration adapter for the deprecated

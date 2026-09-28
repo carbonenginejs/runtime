@@ -133,7 +133,7 @@ const SPACE_OBJECT_CHILD_KINDS = new Set([
   "EveEllipseSet"
 ]);
 
-const OBJECT_RESOURCE_ROLE_GATES = Object.freeze({
+const OBJECT_RESOURCE_ROLE_GATES = {
   controller: {
     interfaceName: "ITr2Controller",
     kinds: new Set([
@@ -171,7 +171,7 @@ const OBJECT_RESOURCE_ROLE_GATES = Object.freeze({
       "TriVectorSequencer"
     ])
   }
-});
+};
 
 // Sentinel returned when a resolved child root fails Carbon's type gate; the
 // callers mirror Carbon's early return rather than skipping one item.
@@ -258,15 +258,15 @@ const SWARM_BEHAVIOR_FIELD_NAMES = Object.freeze([
   "wanderRadius"
 ]);
 
-const SOF_INSTANCE_LAYOUT = Object.freeze([
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_4", name: "transform0" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "transform1" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 2, type: "FLOAT32_4", name: "transform2" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 3, type: "FLOAT32_4", name: "lastTransform0" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 4, type: "FLOAT32_4", name: "lastTransform1" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_4", name: "lastTransform2" }),
-  Object.freeze({ usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" })
-]);
+const SOF_INSTANCE_LAYOUT = [
+  { usage: "TEXCOORD", usageIndex: 0, type: "FLOAT32_4", name: "transform0" },
+  { usage: "TEXCOORD", usageIndex: 1, type: "FLOAT32_4", name: "transform1" },
+  { usage: "TEXCOORD", usageIndex: 2, type: "FLOAT32_4", name: "transform2" },
+  { usage: "TEXCOORD", usageIndex: 3, type: "FLOAT32_4", name: "lastTransform0" },
+  { usage: "TEXCOORD", usageIndex: 4, type: "FLOAT32_4", name: "lastTransform1" },
+  { usage: "TEXCOORD", usageIndex: 5, type: "FLOAT32_4", name: "lastTransform2" },
+  { usage: "TEXCOORD", usageIndex: 6, type: "BYTE_4", name: "boneIndex" }
+];
 
 /**
  * Carbon-first SOF builder whose sole supported public output is a GPU-free model-values graph.
@@ -317,7 +317,7 @@ export class EveSOF extends CjsModel
 
   #existingFilesCache = new Map();
 
-  #asyncResources = Object.freeze({ getObject: null, exists: null });
+  #asyncResources = { getObject: null, exists: null };
 
   /** True during BuildFromDNAAsync's collect-only pass, whose resolvers return null. */
   #collectingResources = false;

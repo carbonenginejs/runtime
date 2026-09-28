@@ -7,44 +7,44 @@ import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 const DEFAULT_BASE_PATH = "res:/dx9/model/spaceobjectfactory";
 const GENERIC_FILE_NAME = "generic.black";
 const NONE = "none";
-const CATALOGS = Object.freeze({
-  hull: Object.freeze({
+const CATALOGS = {
+  hull: {
     directory: "hulls",
     has: "HasHullData",
     get: "GetHullData",
     update: "UpdateHull"
-  }),
-  faction: Object.freeze({
+  },
+  faction: {
     directory: "factions",
     has: "HasFactionData",
     get: "GetFactionData",
     update: "UpdateFaction"
-  }),
-  race: Object.freeze({
+  },
+  race: {
     directory: "races",
     has: "HasRaceData",
     get: "GetRaceData",
     update: "UpdateRace"
-  }),
-  material: Object.freeze({
+  },
+  material: {
     directory: "materials",
     has: "HasMaterialData",
     get: "GetMaterialData",
     update: "UpdateMaterial"
-  }),
-  pattern: Object.freeze({
+  },
+  pattern: {
     directory: "patterns",
     has: "HasPatternData",
     get: "GetPatternData",
     update: "UpdatePattern"
-  }),
-  layout: Object.freeze({
+  },
+  layout: {
     directory: "layouts",
     has: "HasLayoutData",
     get: "GetLayoutData",
     update: "UpdateLayout"
-  })
-});
+  }
+};
 
 
 /**
