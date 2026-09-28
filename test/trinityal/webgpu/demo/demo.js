@@ -297,7 +297,7 @@ async function LoadPostTemplate(name)
  * @param {string} options.initialTemplate The starting sun template, if any.
  * @param {(name: string) => Promise<object|null>} options.select Loads a sun template.
  * @param {() => object|null} options.current The loaded sun template record.
- * @param {{initial: string, select: (name: string) => Promise<object|null>, radii: {inner: number, outer: number}, setRadii: () => void, intensity: () => number|null, priority: () => number, setPriority: (value: number) => void, mergeOrder: () => object[]}} options.locationPost
+ * @param {{initial: string, select: (name: string) => Promise<object|null>, radii: {inner: number, outer: number}, setRadii: () => void, intensity: () => number|null, priority: () => number, setPriority: (value: number) => void, mode: () => string, setMode: (value: string) => void, mergeOrder: () => object[]}} options.locationPost
  *   The location volume: its template picker, radii and resolved intensity.
  * @param {{direction: Float32Array}} options.sun The demo's one sun.
  * @param {{current: string, select: (name: string) => Promise<void>}} options.flare The lens flare.
@@ -335,19 +335,25 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   style.textContent = `
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-regular.otf") format("opentype"); font-weight: 400; }
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-bold.otf") format("opentype"); font-weight: 700; }
-    #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: 260px; padding: 8px 10px;
+    #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: min(920px, calc(100vw - 24px)); box-sizing: border-box; padding: 8px 10px;
                 background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
                 font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
     #settings summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     #settings summary { cursor: pointer; }
-    #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-    #settings select { max-width: 150px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-width: 0; }
+    #settings select { max-width: 60%; min-width: 0; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings .columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 18px; }
+    #settings .column { min-width: 0; }
+    #settings .column h4 { margin: 4px 0 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
+    #settings .merge { margin: 0 0 4px; font-size: 11px; line-height: 1.5; color: #aab3c2; }
+    #settings .merge div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    @media (max-width: 900px) { #settings .columns { grid-template-columns: minmax(0, 1fr); } }
     #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
     #settings .note { color: #8a93a3; }
     #settings .fields { margin: 0 0 4px 10px; color: #aab3c2; }
     #settings .fields summary { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
     #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
-    #settings { max-height: calc(100vh - 24px); overflow: auto; }
+    #settings { max-height: calc(100vh - 24px); overflow-x: hidden; overflow-y: auto; }
     #settings .sun { display: flex; gap: 4px; }
     #settings .sun input[type=range] { width: 50px; margin: 0; }
     #settings .slider { display: flex; gap: 6px; align-items: center; }
@@ -362,11 +368,25 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   panel.innerHTML = `<summary>Settings</summary>`;
   document.body.append(panel);
 
+  // THREE COLUMNS BY TOPIC: scene and post, ship, sun and engine. Rows land in
+  // the current column; the grid stacks them when the window is narrow.
+  const grid = document.createElement("div");
+  grid.className = "columns";
+  panel.append(grid);
+  const columns = [ "scene and post", "ship", "sun and engine" ].map(title =>
+  {
+    const column = document.createElement("div");
+    column.className = "column";
+    column.append(Object.assign(document.createElement("h4"), { textContent: title }));
+    grid.append(column);
+    return column;
+  });
+  let target = columns[0];
   const row = (label, control) =>
   {
     const element = document.createElement("label");
     element.append(label, control);
-    panel.append(element);
+    target.append(element);
     return control;
   };
   const choose = (options, value) =>
@@ -413,6 +433,12 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       locations.disabled = false;
     }
   });
+  // LOCATION MODE: a volume blends the location over the sun's default; the
+  // other choice makes the location template the scene default itself, which
+  // is how a client could bring a site's fog and god rays in (the Triglavian
+  // override is one such case). The flare follows the sun either way.
+  const mode = row("location mode", choose([ [ "volume", "volume" ], [ "replaces scene default", "replace" ] ], locationPost.mode()));
+  mode.addEventListener("change", () => locationPost.setMode(mode.value));
   for (const key of [ "inner", "outer" ])
   {
     const input = row(`location ${key} (m)`, Object.assign(document.createElement("input"), { type: "number", min: "0", step: "1000", value: String(locationPost.radii[key]) }));
@@ -432,15 +458,16 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     value: `SCENE_DEFAULT_PRIORITY (${Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY})`
   }));
   const intensity = row("location intensity", Object.assign(document.createElement("output"), { value: "-" }));
-  const mergeOrder = row("merge order", Object.assign(document.createElement("output"), { value: "-" }));
-  mergeOrder.style.whiteSpace = "pre";
+  target.append(Object.assign(document.createElement("div"), { textContent: "merge order" }));
+  const mergeOrder = Object.assign(document.createElement("div"), { className: "merge" });
+  target.append(mergeOrder);
   setInterval(() =>
   {
     const value = locationPost.intensity();
     intensity.value = value === null ? "- (no location)" : value.toFixed(3);
-    mergeOrder.value = locationPost.mergeOrder()
-      .map(source => `${source.name}: ${PriorityName(source.priority)}, ${source.intensity.toFixed(3)}`)
-      .join("\n") || "-";
+    const lines = locationPost.mergeOrder()
+      .map(source => `${source.name}: ${PriorityName(source.priority)}, ${source.intensity.toFixed(3)}`);
+    mergeOrder.replaceChildren(...(lines.length ? lines : [ "-" ]).map(line => Object.assign(document.createElement("div"), { textContent: line, title: line })));
   }, 250);
 
   // What the EVE client adds to the scene's default post process: tonemapping
@@ -469,6 +496,8 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // Distortion: the DISTORTION batches warp the scene colour (Distortion.fx).
   const distortion = row("distortion", Object.assign(document.createElement("input"), { type: "checkbox", checked: driver.enableDistortion }));
   distortion.addEventListener("change", () => { driver.enableDistortion = distortion.checked; });
+
+  target = columns[1];
 
   // Ship speed, normalized: 0 stopped, 1 at the booster set's maxVel, up to 2
   // (the booster intensity is capped at 2). The boosters' glow and the hull's
@@ -548,6 +577,8 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   shipAge.addEventListener("input", () => { age(Number(shipAge.value)); showAge(); });
   showAge();
 
+  target = columns[2];
+
   // The sun as three sliders, x y z on one line; a zero vector is ignored
   // rather than normalised.
   const sunInputs = [ 0, 1, 2 ].map(index => Object.assign(document.createElement("input"), { type: "range", min: "-1", max: "1", step: "0.01", title: "xyz"[index], value: String(Math.round(sun.direction[index] * 100) / 100) }));
@@ -591,7 +622,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // trinity.settings), one control per setting, written straight through.
   const engineSettings = document.createElement("details");
   engineSettings.innerHTML = `<summary>engine settings</summary>`;
-  panel.append(engineSettings);
+  target.append(engineSettings);
   const registry = Tr2Renderer.getSettings();
   for (const name of registry.GetNames())
   {
@@ -621,7 +652,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   const effects = document.createElement("div");
   effects.className = "effects";
-  panel.append(effects);
+  target.append(effects);
 
   // One switch per populated slot; the template's own effect is kept aside so
   // switching back on restores exactly what the file held.
@@ -3872,7 +3903,8 @@ export async function RunDemo(canvas)
     volume: new EveChildPostProcessVolume(),
     root: new EveEffectRoot2(),
     radii: { ...LOCATION_RADII },
-    priority: Tr2PostProcessAttributes.MEDIUM_PRIORITY
+    priority: Tr2PostProcessAttributes.MEDIUM_PRIORITY,
+    mode: "volume"
   };
   locationPost.root.name = "demo location";
   locationPost.root.effectChildren.push(locationPost.volume);
@@ -3927,7 +3959,13 @@ export async function RunDemo(canvas)
       priority: owner.GetPostProcessAttributes().priority,
       intensity: owner.GetPostProcessAttributes().intensity
     }));
-    if (realScene.postprocess) sources.push({ name: "scene default", priority: Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY, intensity: 1 });
+    if (realScene.postprocess)
+    {
+      const replaced = locationPost.mode === "replace" && locationPost.record;
+      const source = replaced ? locationPost.record : postTemplate;
+      const name = source ? source.path.split("/").pop().replace(/\.black$/u, "") : "empty";
+      sources.push({ name: `scene default (${replaced ? "location" : "sun"}: ${name})`, priority: Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY, intensity: 1 });
+    }
     return sources.sort((a, b) => b.priority - a.priority);
   };
 
@@ -3940,8 +3978,12 @@ export async function RunDemo(canvas)
   const postState = { off: POST_OFF, apply: () => {} };
   postState.apply = () =>
   {
-    if (realScene) realScene.postprocess = !postState.off && postTemplate ? postTemplate.postProcess : new Tr2PostProcess2();
+    // "replaces scene default" puts the location template where the sun's
+    // would go; "volume" keeps the sun's and blends the location over it.
+    const sceneDefault = locationPost.mode === "replace" && locationPost.record ? locationPost.record : postTemplate;
+    if (realScene) realScene.postprocess = !postState.off && sceneDefault ? sceneDefault.postProcess : new Tr2PostProcess2();
     FillLocationAttributes();
+    AttachLocation(locationPost.mode === "volume" && locationPost.record !== null);
   };
 
   // Whether the demo plays the client's part (the settings panel's "client
@@ -4010,8 +4052,8 @@ export async function RunDemo(canvas)
   async function SelectLocationTemplate(name)
   {
     locationPost.record = name ? await LoadPostTemplate(name) : null;
-    FillLocationAttributes();
-    AttachLocation(locationPost.record !== null);
+    postState.apply();
+    ApplyClientDefaults();
     if (name && !realScene) console.warn(`location ${name}: only a real scene merges post-process volumes`);
     if (locationPost.record) console.log(`location template ${locationPost.record.path}: populates ${locationPost.record.populated.join(", ") || "(nothing)"}`);
     return locationPost.record;
@@ -4091,6 +4133,8 @@ export async function RunDemo(canvas)
       intensity: () => (realScene && locationPost.record ? locationPost.attributes.intensity : null),
       priority: () => locationPost.priority,
       setPriority: value => { locationPost.priority = value; FillLocationAttributes(); },
+      mode: () => locationPost.mode,
+      setMode: value => { locationPost.mode = value; postState.apply(); ApplyClientDefaults(); },
       mergeOrder: MergeOrder
     },
     sun: SUN,
