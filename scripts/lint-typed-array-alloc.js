@@ -1,32 +1,33 @@
-// Guards per-frame garbage: typed arrays created freely inside functions, and
-// math-pool scratch that is taken and never given back.
+// Checks docs/standards/source-style.md § "Typed arrays and scratch": typed
+// arrays and math values allocated per call, scratch slots that are misnamed
+// or escape, and math-pool values that are taken and never given back.
 //
 // WHY THIS SCRIPT EXISTS. The demo slowed the longer it ran (2026-09-28): the
 // JS heap swung 330-555 MB, about 7 MB/s of garbage, most of it small typed
 // arrays and gl-matrix vectors made fresh every frame. ccpwgl hit the same wall
-// on Chromium. This only counts the sites. Which scratch form replaces them is
-// for docs/standards/source-style.md to say once it is agreed.
+// on Chromium.
 //
-// WHAT IT FLAGS, inside a function or method body:
-//   - `new <X>Array(` for every typed-array type, and `<X>Array.from(`;
-//   - gl-matrix `vec2/vec3/vec4/quat/mat2/mat3/mat4.create()`, `.clone(`
-//     and `.fromValues(`;
-//   - `.subarray(` (typed arrays only), and `.slice(` on a name this file
-//     assigned a typed array to.
-// WHAT IT ALLOWS: module top level, class field initialisers (static or not),
-// constructors, static blocks, functions whose job is allocation (a name
-// starting Create/Alloc/Clone, any case), and a line carrying a
-// `// alloc: <why>` comment (the value escapes to the caller or is stored).
-// The pool's own `X.alloc()` is not counted here; the balance check owns it.
+// ALLOCATIONS:
+//   - `new <X>Array(<number>)` and `new <X>Array([ <numbers> ])` are fixed-size
+//     values and are flagged ANYWHERE (constructors, field initialisers, top
+//     level) except inside `static scratch = {...}`: use the math type's create;
+//   - inside a function or method body, any other `new <X>Array(...)` and the
+//     math namespaces' `create`, `clone` and `fromValues` (vec*, quat, mat*,
+//     box3, sph3, ray3, lne3, tri3, pln, color).
+//   A line carrying `// alloc: <why>` is not counted.
 //
-// THE POOL BALANCE CHECK. Every `const v = X.alloc()` (no arguments: the math
-// pools; per-object data's `alloc(accumulator, ...)` is a frame lease the
-// accumulator reclaims) in a function must reach
-// `X.unalloc(v)` with the same X on every exit: a missing unalloc, a return or
-// throw between the alloc and the unalloc (outside a finally that releases
-// it), and `vec3.alloc` given back through `vec2.unalloc` are flagged. A value
-// returned to the caller carries `// pool-return: <why>` on its alloc line.
-// Alloc/unalloc in a function that does not call itself is listed as INFO only.
+// SCRATCH: a slot in `static scratch = {...}` is named type_index (vec3_0);
+// a local bound from `...scratch` keeps the slot's name; and a scratch-bound
+// local assigned to `this.x`, returned, or captured by a closure is flagged.
+//
+// POOL BALANCE. Every `const v = X.alloc()` (no arguments: the math pools;
+// per-object data's `alloc(accumulator, ...)` is a frame lease the accumulator
+// reclaims) in a function must reach `X.unalloc(v)` with the same X on every
+// exit: a missing unalloc, a return or throw between the alloc and the unalloc
+// (outside a finally that releases it), and `vec3.alloc` given back through
+// `vec2.unalloc` are flagged. A value returned to the caller carries
+// `// pool-return: <why>` on its alloc line. Pool use in a function that does
+// not call itself is listed as INFO only, as a scratch candidate.
 //
 // HOW THE BASELINE WORKS. Same ratchet as lint-instanceof: counts per file are
 // frozen in scripts/typed-array-alloc-baseline.json, the check fails only when
@@ -37,7 +38,7 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { scanTypedArrayAlloc } from "./typed-array-alloc.js";
+import { RULE, scanTypedArrayAlloc } from "./typed-array-alloc.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const sourceRoot = path.join(root, "src");
@@ -60,14 +61,17 @@ const slash = value => value.replaceAll(path.sep, "/");
 
 const counts = {};
 const sites = {};
+const scratch = {};
+const scratchSites = {};
 const pool = {};
 const poolSites = {};
 const info = [];
 for (const file of await sourceFiles(sourceRoot))
 {
   const relativeFile = slash(path.relative(root, file));
-  const { allocations, poolProblems, poolInfo } = scanTypedArrayAlloc(await fs.readFile(file, "utf8"), relativeFile);
+  const { allocations, scratchProblems, poolProblems, poolInfo } = scanTypedArrayAlloc(await fs.readFile(file, "utf8"), relativeFile);
   if (allocations.length) { counts[relativeFile] = allocations.length; sites[relativeFile] = allocations; }
+  if (scratchProblems.length) { scratch[relativeFile] = scratchProblems.length; scratchSites[relativeFile] = scratchProblems; }
   if (poolProblems.length) { pool[relativeFile] = poolProblems.length; poolSites[relativeFile] = poolProblems; }
   info.push(...poolInfo);
 }
@@ -98,6 +102,8 @@ if (process.argv.includes("--list"))
     console.log(`${file}: ${found.length}`);
     for (const site of found) console.log(`    ${site.line}  ${site.kind}`);
   }
+  console.log("\nScratch:");
+  for (const problems of Object.values(scratchSites)) for (const problem of problems) console.log(`  ${problem}`);
   console.log("\nPool balance:");
   for (const problems of Object.values(poolSites)) for (const problem of problems) console.log(`  ${problem}`);
   console.log("\nInfo (pool use in functions that do not call themselves):");
@@ -107,8 +113,8 @@ if (process.argv.includes("--list"))
 
 if (process.argv.includes("--write"))
 {
-  await fs.writeFile(baselineFile, `${JSON.stringify({ allocations: counts, pool }, null, 2)}\n`);
-  console.log(`typed-array alloc baseline written: ${Object.keys(counts).length} files, ${Object.keys(pool).length} with pool problems`);
+  await fs.writeFile(baselineFile, `${JSON.stringify({ allocations: counts, scratch, pool }, null, 2)}\n`);
+  console.log(`typed-array alloc baseline written: ${Object.keys(counts).length} files, ${Object.keys(scratch).length} with scratch problems, ${Object.keys(pool).length} with pool problems`);
   process.exit(0);
 }
 
@@ -120,21 +126,26 @@ for (const [ file, found ] of Object.entries(counts))
   if (found > allowed)
   {
     problems.push(`${file}: ${found} typed-array allocations inside functions, baseline ${allowed}. `
-      + "Reuse scratch instead of allocating per call, or mark a value that escapes with `// alloc: why`. --list prints the sites.");
+      + `Use the math type's create for a fixed-size value and class scratch for a per-call one (${RULE}). --list prints the sites.`);
   }
+}
+for (const [ file, found ] of Object.entries(scratch))
+{
+  const allowed = baseline.scratch?.[file] ?? 0;
+  if (found > allowed) problems.push(...scratchSites[file].map(line => `${line} (scratch baseline ${allowed} for this file; ${RULE})`));
 }
 for (const [ file, found ] of Object.entries(pool))
 {
   const allowed = baseline.pool?.[file] ?? 0;
-  if (found > allowed) problems.push(...poolSites[file].map(line => `${line} (pool baseline ${allowed} for this file)`));
+  if (found > allowed) problems.push(...poolSites[file].map(line => `${line} (pool baseline ${allowed} for this file; ${RULE})`));
 }
 
 const total = Object.values(counts).reduce((a, b) => a + b, 0);
 if (problems.length)
 {
   console.error(problems.join("\n"));
-  console.error(`\n${problems.length} problem(s) above baseline.`);
+  console.error(`\n${problems.length} problem(s) above baseline. ${RULE}`);
   process.exit(1);
 }
 console.log(`Typed-array alloc: ${total} sites in ${Object.keys(counts).length} files held at baseline; `
-  + `${Object.values(pool).reduce((a, b) => a + b, 0)} pool-balance problems held; ${info.length} info notes.`);
+  + `${Object.values(pool).reduce((a, b) => a + b, 0)} pool-balance problems held; ${Object.values(scratch).reduce((a, b) => a + b, 0)} scratch problems held; ${info.length} info notes.`);
