@@ -16,9 +16,14 @@ import {
   EveSpaceObject2,
   EveTransform,
   EveTurretSet,
+  EveUpdateContext,
   Locator,
-  TriRenderBatchAccumulator
+  TriFrustum,
+  TriRenderBatchAccumulator,
+  Tr2Mesh,
+  Tr2Renderer
 } from "../../npm/dist/trinity/index.js";
+import { TR2SHADERMODEL } from "../../npm/dist/global/consts/graphics/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
@@ -186,3 +191,116 @@ class EveMissileTest
 {
   static locatorPosition = vec3.create();
 }
+
+// EveMissileWarhead::UpdateVisibility (EveMissileWarhead.cpp:109-157) and
+// GetRenderables (:179-182), against a real frustum looking down -Z. The lod
+// thresholds are placed around the warhead's own pixel size, so each case lands
+// on a known side of them.
+function MakeWarheadScene(distance = 500)
+{
+  const frustum = new TriFrustum();
+  const view = mat4.lookAt(mat4.create(), [ 0, 0, 0 ], [ 0, 0, -1 ], [ 0, 1, 0 ]);
+  const projection = mat4.perspective(mat4.create(), Math.PI / 2, 1, 0.1, 100000);
+  frustum.DeriveFrustum(view, [ 0, 0, 0 ], projection, { width: 1024, height: 1024 });
+
+  const context = new EveUpdateContext();
+  context.SetFrustum(frustum);
+
+  const warhead = new EveMissileWarhead();
+  warhead.startDataValid = true;
+  warhead.display = true;
+  warhead.mesh = new Tr2Mesh();
+  warhead.warheadLength = 20;
+
+  const parent = mat4.fromTranslation(mat4.create(), [ 0, 0, -distance ]);
+  // The pixel size the frustum gives this warhead's world sphere.
+  warhead.UpdateVisibility(context, parent);
+  const sphere = vec4.create();
+  warhead.GetBoundingSphere(sphere);
+  const pixels = frustum.GetPixelSizeAccross(sphere);
+  return { context, warhead, parent, pixels };
+}
+
+test("EveMissileWarhead is not visible before valid start data, when dead, when hidden on low quality, or with display off", () =>
+{
+  const { context, warhead, parent } = MakeWarheadScene();
+
+  warhead.startDataValid = false;
+  assert.equal(warhead.UpdateVisibility(context, parent), false);
+  assert.deepEqual(warhead.GetRenderables([]), []);
+  warhead.startDataValid = true;
+
+  warhead._state = EveMissileWarhead.State.STATE_DEAD;
+  assert.equal(warhead.UpdateVisibility(context, parent), false);
+  warhead._state = EveMissileWarhead.State.STATE_DELAYED;
+
+  const shaderModel = Tr2Renderer.GetShaderModel();
+  try
+  {
+    Tr2Renderer.SetShaderModel(TR2SHADERMODEL.TR2SM_3_0_LO);
+    warhead.hideOnLowQuality = true;
+    assert.equal(warhead.UpdateVisibility(context, parent), false);
+    assert.equal(warhead.lodLevel, EveTransform.Tr2Lod.TR2_LOD_LOW);
+  }
+  finally
+  {
+    Tr2Renderer.SetShaderModel(shaderModel);
+    warhead.hideOnLowQuality = false;
+  }
+
+  warhead.display = false;
+  assert.equal(warhead.UpdateVisibility(context, parent), false);
+  assert.deepEqual(warhead.GetRenderables([]), []);
+});
+
+test("EveMissileWarhead lod comes from the medium-detail and visibility thresholds; below MEDIUM it returns nothing", () =>
+{
+  const { context, warhead, parent, pixels } = MakeWarheadScene();
+  assert.ok(pixels > 2, `warhead covers ${pixels} px`);
+
+  context.SetMediumDetailThreshold(pixels - 1);
+  context.SetVisibilityThreshold(pixels - 2);
+  assert.equal(warhead.UpdateVisibility(context, parent), true);
+  assert.equal(warhead.lodLevel, EveTransform.Tr2Lod.TR2_LOD_HIGH);
+  assert.deepEqual(warhead.GetRenderables([]), [ warhead ]);
+
+  context.SetMediumDetailThreshold(pixels + 1);
+  context.SetVisibilityThreshold(pixels - 1);
+  warhead.UpdateVisibility(context, parent);
+  assert.equal(warhead.lodLevel, EveTransform.Tr2Lod.TR2_LOD_MEDIUM);
+  assert.deepEqual(warhead.GetRenderables([]), [ warhead ]);
+
+  // Below the VISIBILITY threshold (not the low-detail one): visible, but LOW,
+  // so the mesh is hidden entirely (cpp:143-146, 179-182).
+  context.SetMediumDetailThreshold(pixels + 2);
+  context.SetVisibilityThreshold(pixels + 1);
+  assert.equal(warhead.UpdateVisibility(context, parent), true);
+  assert.equal(warhead.lodLevel, EveTransform.Tr2Lod.TR2_LOD_LOW);
+  assert.deepEqual(warhead.GetRenderables([]), []);
+});
+
+test("negative control: the old super-call UpdateVisibility renders a warhead below the visibility threshold", () =>
+{
+  // The pre-port shape: set visible, then run EveTransform's pass, which picks
+  // MEDIUM from the LOW-detail threshold (0 here), so the mesh stays drawn.
+  class SuperCallWarhead extends EveMissileWarhead
+  {
+    UpdateVisibility(context, parentTransform)
+    {
+      this._isVisible = true;
+      EveTransform.prototype.UpdateVisibility.call(this, context, parentTransform);
+      this._isVisible = true;
+      return true;
+    }
+  }
+  const { context, parent, pixels } = MakeWarheadScene();
+  const warhead = new SuperCallWarhead();
+  warhead.startDataValid = true;
+  warhead.display = true;
+  warhead.mesh = new Tr2Mesh();
+  warhead.warheadLength = 20;
+  context.SetMediumDetailThreshold(pixels + 2);
+  context.SetVisibilityThreshold(pixels + 1);
+  warhead.UpdateVisibility(context, parent);
+  assert.notDeepEqual(warhead.GetRenderables([]), []);
+});

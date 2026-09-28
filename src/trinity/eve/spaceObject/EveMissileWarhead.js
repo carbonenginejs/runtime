@@ -9,6 +9,7 @@ import { vec4 } from "#math/vec4";
 import { carbon, impl, edit, type } from "#schema";
 import { ShaderType } from "#consts/render-context";
 import { EveTransform } from "./EveTransform.js";
+import { Tr2Renderer } from "../../core/Tr2Renderer.js";
 import { State, StateChangeEvent } from "../../generated/eve/spaceObject/enums.js";
 
 
@@ -60,29 +61,28 @@ export class EveMissileWarhead extends EveTransform
   @edit.persist
  @type.float32 warheadRadius = 1;
 
-  #state = EveMissileWarhead.State.STATE_DELAYED;
-  #flyingTime = 0;
-  #movement = vec3.create();
-  #positionLastFrame = vec3.create();
-  #lastRelativePosition = vec3.create();
-  #currentStartOffset = vec3.create();
-  #startOrientation = quat.create();
-  #oldEndOffset = vec3.create();
-  #currentEndOffset = vec3.create();
-  #endOffset = vec3.create();
-  #currentOffset = vec3.create();
-  #currentOrientation = quat.create();
-  #currentEjectVelocity = 0;
-  #currentDurationEjectPhase = 0;
-  #currentOffsetTransform = mat4.create();
-  #finalDestinationTimer = 0;
-  #finalTargetTime = 0.75 - Math.random() * 0.1;
-  #speedModifier = 1.04 - Math.random() * 0.08;
-  #explosionDistance = 0;
-  #bombFlightpath = false;
-  #lastPositionValid = false;
-  #noisePhase = EveMissileWarhead.#nextNoisePhase++ & 0xfff;
-  #isVisible = true;
+  _state = EveMissileWarhead.State.STATE_DELAYED;
+  _flyingTime = 0;
+  _movement = vec3.create();
+  _positionLastFrame = vec3.create();
+  _lastRelativePosition = vec3.create();
+  _currentStartOffset = vec3.create();
+  _startOrientation = quat.create();
+  _oldEndOffset = vec3.create();
+  _currentEndOffset = vec3.create();
+  _endOffset = vec3.create();
+  _currentOffset = vec3.create();
+  _currentOrientation = quat.create();
+  _currentEjectVelocity = 0;
+  _currentDurationEjectPhase = 0;
+  _currentOffsetTransform = mat4.create();
+  _finalDestinationTimer = 0;
+  _finalTargetTime = 0.75 - Math.random() * 0.1;
+  _speedModifier = 1.04 - Math.random() * 0.08;
+  _explosionDistance = 0;
+  _bombFlightpath = false;
+  _lastPositionValid = false;
+  _noisePhase = EveMissileWarhead._nextNoisePhase++ & 0xfff;
 
   /**
    * Resets the warhead to its pre-launch state and re-rolls the randomized
@@ -93,28 +93,28 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   PrepareLaunch()
   {
-    this.#currentEjectVelocity = this.startEjectVelocity;
-    this.#currentDurationEjectPhase = this.durationEjectPhase;
+    this._currentEjectVelocity = this.startEjectVelocity;
+    this._currentDurationEjectPhase = this.durationEjectPhase;
     const distance = this.maxExplosionDistance - Math.random() * this.maxExplosionDistance * 0.5;
-    this.#explosionDistance = distance * distance;
-    this.#state = EveMissileWarhead.State.STATE_DELAYED;
-    this.#flyingTime = 0;
-    vec3.set(this.#currentStartOffset, 0, 0, 0);
-    quat.identity(this.#startOrientation);
+    this._explosionDistance = distance * distance;
+    this._state = EveMissileWarhead.State.STATE_DELAYED;
+    this._flyingTime = 0;
+    vec3.set(this._currentStartOffset, 0, 0, 0);
+    quat.identity(this._startOrientation);
     this.startDataValid = false;
-    vec3.set(this.#oldEndOffset, 0, 0, 0);
-    vec3.set(this.#currentEndOffset, 0, 0, 0);
-    vec3.set(this.#endOffset, 0, 0, 0);
-    vec3.set(this.#currentOffset, 0, 0, 0);
-    quat.identity(this.#currentOrientation);
-    this.#finalDestinationTimer = 0;
+    vec3.set(this._oldEndOffset, 0, 0, 0);
+    vec3.set(this._currentEndOffset, 0, 0, 0);
+    vec3.set(this._endOffset, 0, 0, 0);
+    vec3.set(this._currentOffset, 0, 0, 0);
+    quat.identity(this._currentOrientation);
+    this._finalDestinationTimer = 0;
     this.targetLocatorID = -1;
     vec3.set(this.explosionPosition, 0, 0, 0);
-    mat4.identity(this.#currentOffsetTransform);
-    this.#speedModifier = 1.04 - Math.random() * 0.08;
-    this.#finalTargetTime = 0.75 - Math.random() * 0.1;
-    this.#bombFlightpath = false;
-    this.#lastPositionValid = false;
+    mat4.identity(this._currentOffsetTransform);
+    this._speedModifier = 1.04 - Math.random() * 0.08;
+    this._finalTargetTime = 0.75 - Math.random() * 0.1;
+    this._bombFlightpath = false;
+    this._lastPositionValid = false;
   }
 
   /**
@@ -126,12 +126,12 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   Launch(startTransform)
   {
-    mat4.getRotation(this.#startOrientation, startTransform);
-    vec3.set(this.#currentStartOffset, startTransform[12], startTransform[13], startTransform[14]);
-    quat.copy(this.#currentOrientation, this.#startOrientation);
-    vec3.copy(this.#currentOffset, this.#currentStartOffset);
+    mat4.getRotation(this._startOrientation, startTransform);
+    vec3.set(this._currentStartOffset, startTransform[12], startTransform[13], startTransform[14]);
+    quat.copy(this._currentOrientation, this._startOrientation);
+    vec3.copy(this._currentOffset, this._currentStartOffset);
     this.startDataValid = true;
-    this.#lastPositionValid = false;
+    this._lastPositionValid = false;
   }
 
   /**
@@ -143,11 +143,11 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   UpdateEndTransform(endTransform, switchLocators)
   {
-    vec3.set(this.#endOffset, endTransform[12], endTransform[13], endTransform[14]);
+    vec3.set(this._endOffset, endTransform[12], endTransform[13], endTransform[14]);
     if (switchLocators)
     {
-      this.#finalDestinationTimer = this.#flyingTime;
-      vec3.copy(this.#oldEndOffset, this.#currentEndOffset);
+      this._finalDestinationTimer = this._flyingTime;
+      vec3.copy(this._oldEndOffset, this._currentEndOffset);
     }
   }
 
@@ -159,43 +159,43 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   UpdateState(deltaTime, estimatedTotalAliveTime, target)
   {
-    this.#bombFlightpath = !target;
+    this._bombFlightpath = !target;
     let event = EveMissileWarhead.StateChangeEvent.EVT_NONE;
-    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this.#speedModifier, Number.EPSILON);
-    const flight = clamp01(this.#flyingTime / totalFlyingTime);
-    switch (this.#state)
+    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this._speedModifier, Number.EPSILON);
+    const flight = clamp01(this._flyingTime / totalFlyingTime);
+    switch (this._state)
     {
       case EveMissileWarhead.State.STATE_DELAYED:
-        if (this.startDataValid) this.#state = EveMissileWarhead.State.STATE_LAUNCH;
+        if (this.startDataValid) this._state = EveMissileWarhead.State.STATE_LAUNCH;
         break;
       case EveMissileWarhead.State.STATE_LAUNCH:
         this.EnableParticleEmitting(true);
-        this.#state = EveMissileWarhead.State.STATE_EJECTING;
+        this._state = EveMissileWarhead.State.STATE_EJECTING;
         break;
       case EveMissileWarhead.State.STATE_EJECTING:
-        this.#currentDurationEjectPhase -= Number(deltaTime);
-        if (this.#currentDurationEjectPhase <= 0)
+        this._currentDurationEjectPhase -= Number(deltaTime);
+        if (this._currentDurationEjectPhase <= 0)
         {
-          this.#currentDurationEjectPhase = 0;
-          this.#state = EveMissileWarhead.State.STATE_START_TRACKING;
+          this._currentDurationEjectPhase = 0;
+          this._state = EveMissileWarhead.State.STATE_START_TRACKING;
         }
         break;
       case EveMissileWarhead.State.STATE_START_TRACKING:
         this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex?.(this.GetWorldPosition()) ?? -1) | 0 : -1;
-        this.#state = estimatedTotalAliveTime >= 5 && this.doSpread
+        this._state = estimatedTotalAliveTime >= 5 && this.doSpread
           ? EveMissileWarhead.State.STATE_TRACKING_SPREAD
           : EveMissileWarhead.State.STATE_TRACKING_FINAL;
         break;
       case EveMissileWarhead.State.STATE_TRACKING_SPREAD:
-        if (flight >= this.#finalTargetTime)
+        if (flight >= this._finalTargetTime)
         {
           this.targetLocatorID = target ? Number(target.GetGoodDamageLocatorIndex?.(this.GetWorldPosition()) ?? -1) | 0 : -1;
           event = EveMissileWarhead.StateChangeEvent.EVT_SWITCH_TARGET;
-          this.#state = EveMissileWarhead.State.STATE_TRACKING_FINAL;
+          this._state = EveMissileWarhead.State.STATE_TRACKING_FINAL;
         }
         break;
       case EveMissileWarhead.State.STATE_EXPLODED:
-        this.#state = EveMissileWarhead.State.STATE_DEAD;
+        this._state = EveMissileWarhead.State.STATE_DEAD;
         break;
       default:
         break;
@@ -212,31 +212,31 @@ export class EveMissileWarhead extends EveTransform
   @impl.reason("Targetable output parameters use the org-standard out-last calling convention.")
   CheckImpact(deltaTime, estimatedTotalAliveTime, target)
   {
-    if (this.#state !== EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
-    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this.#speedModifier, Number.EPSILON);
-    const flight = clamp01((this.#flyingTime - Number(deltaTime)) / totalFlyingTime);
-    const positionNow = this.GetWorldPosition(EveMissileWarhead.#positionNow);
+    if (this._state !== EveMissileWarhead.State.STATE_TRACKING_FINAL || this.id < 0) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
+    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this._speedModifier, Number.EPSILON);
+    const flight = clamp01((this._flyingTime - Number(deltaTime)) / totalFlyingTime);
+    const positionNow = this.GetWorldPosition(EveMissileWarhead._positionNow);
     if (!target)
     {
       vec3.copy(this.explosionPosition, positionNow);
-      this.#state = EveMissileWarhead.State.STATE_EXPLODED;
+      this._state = EveMissileWarhead.State.STATE_EXPLODED;
       return EveMissileWarhead.StateChangeEvent.EVT_EXPLODE;
     }
 
-    vec3.subtract(EveMissileWarhead.#positionLast, positionNow, this.#movement);
-    vec3.copy(EveMissileWarhead.#targetPosition, positionNow);
-    const hit = target.GetImpactPosition?.(this.targetLocatorID, EveMissileWarhead.#positionLast, positionNow, this.#explosionDistance, EveMissileWarhead.#targetPosition) ?? false;
+    vec3.subtract(EveMissileWarhead._positionLast, positionNow, this._movement);
+    vec3.copy(EveMissileWarhead._targetPosition, positionNow);
+    const hit = target.GetImpactPosition?.(this.targetLocatorID, EveMissileWarhead._positionLast, positionNow, this._explosionDistance, EveMissileWarhead._targetPosition) ?? false;
     if (flight < 1 && !hit) return EveMissileWarhead.StateChangeEvent.EVT_NONE;
 
     vec3.copy(this.explosionPosition, positionNow);
-    vec3.subtract(EveMissileWarhead.#impactDirection, EveMissileWarhead.#targetPosition, positionNow);
-    if (vec3.dot(EveMissileWarhead.#impactDirection, this.#movement) < 0) vec3.copy(this.explosionPosition, EveMissileWarhead.#targetPosition);
+    vec3.subtract(EveMissileWarhead._impactDirection, EveMissileWarhead._targetPosition, positionNow);
+    if (vec3.dot(EveMissileWarhead._impactDirection, this._movement) < 0) vec3.copy(this.explosionPosition, EveMissileWarhead._targetPosition);
     if (this.impactSize > 0)
     {
-      vec3.negate(EveMissileWarhead.#impactDirection, this.#movement);
-      target.CreateImpact?.(this.targetLocatorID, EveMissileWarhead.#impactDirection, this.impactDuration, this.impactSize);
+      vec3.negate(EveMissileWarhead._impactDirection, this._movement);
+      target.CreateImpact?.(this.targetLocatorID, EveMissileWarhead._impactDirection, this.impactDuration, this.impactSize);
     }
-    this.#state = EveMissileWarhead.State.STATE_EXPLODED;
+    this._state = EveMissileWarhead.State.STATE_EXPLODED;
     return EveMissileWarhead.StateChangeEvent.EVT_EXPLODE;
   }
 
@@ -251,15 +251,15 @@ export class EveMissileWarhead extends EveTransform
   @impl.reason("Carbon's pointer-derived Perlin phase is replaced with a stable per-instance 12-bit sequence.")
   Update(context)
   {
-    const position = this.#flyingTime * this.pathOffsetNoiseSpeed + this.#noisePhase;
+    const position = this._flyingTime * this.pathOffsetNoiseSpeed + this._noisePhase;
     this.pathOffset[0] = carbonPerlin1D(position, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     this.pathOffset[1] = carbonPerlin1D(position + 10.1, 1.1, 2, 3) * this.pathOffsetNoiseScale;
     this.pathOffset[2] = carbonPerlin1D(position + 18.3, 1.1, 2, 3) * this.pathOffsetNoiseScale;
-    vec3.subtract(this.#positionLastFrame, this.#positionLastFrame, context?.GetOriginShift?.() ?? context?.originShift ?? EveMissileWarhead.#zero);
+    vec3.subtract(this._positionLastFrame, this._positionLastFrame, context?.GetOriginShift?.() ?? context?.originShift ?? EveMissileWarhead._zero);
     super.Update(context);
-    this.GetWorldPosition(EveMissileWarhead.#positionNow);
-    vec3.subtract(this.#movement, EveMissileWarhead.#positionNow, this.#positionLastFrame);
-    vec3.copy(this.#positionLastFrame, EveMissileWarhead.#positionNow);
+    this.GetWorldPosition(EveMissileWarhead._positionNow);
+    vec3.subtract(this._movement, EveMissileWarhead._positionNow, this._positionLastFrame);
+    vec3.copy(this._positionLastFrame, EveMissileWarhead._positionNow);
   }
 
   /**
@@ -271,56 +271,56 @@ export class EveMissileWarhead extends EveTransform
   @carbon.method
   @impl.adapted
   @impl.reason("The CPU flight calculation is source-faithful; current world composition is also published immediately for headless graph consumers.")
-  UpdateWarhead(deltaTime, estimatedTotalAliveTime, currentBallVelocity, currentInheritedVelocity, inverseBallRotation, missileTransform, originShift = EveMissileWarhead.#zero)
+  UpdateWarhead(deltaTime, estimatedTotalAliveTime, currentBallVelocity, currentInheritedVelocity, inverseBallRotation, missileTransform, originShift = EveMissileWarhead._zero)
   {
     const dt = Number(deltaTime) || 0;
-    vec3.set(EveMissileWarhead.#ejectVelocity, 0, 0, this.#currentEjectVelocity);
-    vec3.transformQuat(EveMissileWarhead.#ejectVelocity, EveMissileWarhead.#ejectVelocity, this.#startOrientation);
-    transformNormal(EveMissileWarhead.#globalBallVelocity, currentBallVelocity, inverseBallRotation);
-    if (this.#state >= EveMissileWarhead.State.STATE_START_TRACKING) this.#flyingTime += dt;
+    vec3.set(EveMissileWarhead._ejectVelocity, 0, 0, this._currentEjectVelocity);
+    vec3.transformQuat(EveMissileWarhead._ejectVelocity, EveMissileWarhead._ejectVelocity, this._startOrientation);
+    transformNormal(EveMissileWarhead._globalBallVelocity, currentBallVelocity, inverseBallRotation);
+    if (this._state >= EveMissileWarhead.State.STATE_START_TRACKING) this._flyingTime += dt;
 
-    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this.#speedModifier, Number.EPSILON);
-    const flight = clamp01(this.#flyingTime / totalFlyingTime);
+    const totalFlyingTime = Math.max((Number(estimatedTotalAliveTime) + 0.1) * this._speedModifier, Number.EPSILON);
+    const flight = clamp01(this._flyingTime / totalFlyingTime);
     const quickFlight = clamp01(3 * flight);
-    if (this.#state >= EveMissileWarhead.State.STATE_EJECTING) vec3.scaleAndAdd(this.#currentStartOffset, this.#currentStartOffset, EveMissileWarhead.#ejectVelocity, dt);
-    vec3.scaleAndAdd(this.#currentStartOffset, this.#currentStartOffset, currentInheritedVelocity, dt);
+    if (this._state >= EveMissileWarhead.State.STATE_EJECTING) vec3.scaleAndAdd(this._currentStartOffset, this._currentStartOffset, EveMissileWarhead._ejectVelocity, dt);
+    vec3.scaleAndAdd(this._currentStartOffset, this._currentStartOffset, currentInheritedVelocity, dt);
 
-    const denominator = totalFlyingTime - this.#finalDestinationTimer;
-    const targetTime = denominator ? clamp01((this.#flyingTime - this.#finalDestinationTimer) / denominator) : 1;
-    vec3.scale(EveMissileWarhead.#modifiedOldOffset, this.#oldEndOffset, 1 - clamp01(targetTime * 2));
-    vec3.lerp(this.#currentEndOffset, EveMissileWarhead.#modifiedOldOffset, this.#endOffset, targetTime);
-    vec3.lerp(this.#currentOffset, this.#currentStartOffset, this.#currentEndOffset, Math.pow(flight, 1 + this.acceleration));
+    const denominator = totalFlyingTime - this._finalDestinationTimer;
+    const targetTime = denominator ? clamp01((this._flyingTime - this._finalDestinationTimer) / denominator) : 1;
+    vec3.scale(EveMissileWarhead._modifiedOldOffset, this._oldEndOffset, 1 - clamp01(targetTime * 2));
+    vec3.lerp(this._currentEndOffset, EveMissileWarhead._modifiedOldOffset, this._endOffset, targetTime);
+    vec3.lerp(this._currentOffset, this._currentStartOffset, this._currentEndOffset, Math.pow(flight, 1 + this.acceleration));
 
-    vec3.scale(EveMissileWarhead.#globalBallVelocity, EveMissileWarhead.#globalBallVelocity, 1 - flight);
-    vec3.scaleAndAdd(this.#currentStartOffset, this.#currentStartOffset, EveMissileWarhead.#globalBallVelocity, -dt);
-    this.#currentEjectVelocity = this.startEjectVelocity * (1 - Math.pow(quickFlight, 1 + this.acceleration));
-    vec3.scaleAndAdd(this.#currentOffset, this.#currentOffset, this.pathOffset, Math.sin(Math.PI * flight) ** 2);
-    if (this.#bombFlightpath) vec3.scale(this.#currentOffset, this.#currentOffset, (1 - quickFlight) ** 2);
+    vec3.scale(EveMissileWarhead._globalBallVelocity, EveMissileWarhead._globalBallVelocity, 1 - flight);
+    vec3.scaleAndAdd(this._currentStartOffset, this._currentStartOffset, EveMissileWarhead._globalBallVelocity, -dt);
+    this._currentEjectVelocity = this.startEjectVelocity * (1 - Math.pow(quickFlight, 1 + this.acceleration));
+    vec3.scaleAndAdd(this._currentOffset, this._currentOffset, this.pathOffset, Math.sin(Math.PI * flight) ** 2);
+    if (this._bombFlightpath) vec3.scale(this._currentOffset, this._currentOffset, (1 - quickFlight) ** 2);
 
-    vec3.transformMat4(EveMissileWarhead.#relativePosition, this.#currentOffset, missileTransform);
-    vec3.subtract(EveMissileWarhead.#translation, this.#lastRelativePosition, EveMissileWarhead.#relativePosition);
-    vec3.add(EveMissileWarhead.#translation, EveMissileWarhead.#translation, originShift);
-    vec3.copy(this.#lastRelativePosition, EveMissileWarhead.#relativePosition);
-    if (this.#lastPositionValid && this.startDataValid)
+    vec3.transformMat4(EveMissileWarhead._relativePosition, this._currentOffset, missileTransform);
+    vec3.subtract(EveMissileWarhead._translation, this._lastRelativePosition, EveMissileWarhead._relativePosition);
+    vec3.add(EveMissileWarhead._translation, EveMissileWarhead._translation, originShift);
+    vec3.copy(this._lastRelativePosition, EveMissileWarhead._relativePosition);
+    if (this._lastPositionValid && this.startDataValid)
     {
-      const distanceSquared = vec3.squaredLength(EveMissileWarhead.#translation);
+      const distanceSquared = vec3.squaredLength(EveMissileWarhead._translation);
       if (distanceSquared > 0)
       {
-        transformNormal(EveMissileWarhead.#translation, EveMissileWarhead.#translation, inverseBallRotation);
-        mat4.arcFromForward(EveMissileWarhead.#orientationMatrix, EveMissileWarhead.#translation);
-        mat4.getRotation(EveMissileWarhead.#orientationNow, EveMissileWarhead.#orientationMatrix);
+        transformNormal(EveMissileWarhead._translation, EveMissileWarhead._translation, inverseBallRotation);
+        mat4.arcFromForward(EveMissileWarhead._orientationMatrix, EveMissileWarhead._translation);
+        mat4.getRotation(EveMissileWarhead._orientationNow, EveMissileWarhead._orientationMatrix);
         if (distanceSquared < 1)
         {
-          quat.slerp(this.#currentOrientation, this.#currentOrientation, EveMissileWarhead.#orientationNow, distanceSquared);
-          quat.normalize(this.#currentOrientation, this.#currentOrientation);
+          quat.slerp(this._currentOrientation, this._currentOrientation, EveMissileWarhead._orientationNow, distanceSquared);
+          quat.normalize(this._currentOrientation, this._currentOrientation);
         }
-        else quat.copy(this.#currentOrientation, EveMissileWarhead.#orientationNow);
+        else quat.copy(this._currentOrientation, EveMissileWarhead._orientationNow);
       }
     }
-    else this.#lastPositionValid = true;
+    else this._lastPositionValid = true;
 
-    mat4.fromRotationTranslation(this.#currentOffsetTransform, this.#currentOrientation, this.#currentOffset);
-    mat4.multiply(this.worldTransform, missileTransform, this.#currentOffsetTransform);
+    mat4.fromRotationTranslation(this._currentOffsetTransform, this._currentOrientation, this._currentOffset);
+    mat4.multiply(this.worldTransform, missileTransform, this._currentOffsetTransform);
   }
 
   /**
@@ -336,20 +336,40 @@ export class EveMissileWarhead extends EveTransform
   }
 
   /**
-   * Snaps the world transform to the supplied parent transform and runs the base
-   * visibility pass; returns false while the warhead is unlaunched, dead or
-   * hidden.
+   * Carbon EveMissileWarhead::UpdateVisibility (cpp:109-157), which does not
+   * call EveTransform's: not visible until the start data is valid and the
+   * warhead alive; LOW lod when hidden on low quality or not displayed;
+   * otherwise visible, the view-dependent data updated from the parent, and
+   * the lod raised from the bounding sphere's pixel size - HIGH from the
+   * medium-detail threshold, MEDIUM from the VISIBILITY threshold (Carbon:
+   * the warhead mesh is hidden entirely at LOW, so the low-detail threshold
+   * is not used). Returns the visibility.
    */
   @carbon.method
   @impl.implemented
   UpdateVisibility(context, parentTransform)
   {
-    this.#isVisible = false;
-    if (!this.startDataValid || this.#state === EveMissileWarhead.State.STATE_DEAD || !this.display) return false;
-    mat4.copy(this.worldTransform, parentTransform);
-    this.#isVisible = true;
-    super.UpdateVisibility(context, parentTransform);
-    return true;
+    this._isVisible = false;
+    if (!this.startDataValid || this._state === EveMissileWarhead.State.STATE_DEAD) return false;
+
+    this.lodLevel = EveTransform.Tr2Lod.TR2_LOD_LOW;
+    if ((this.hideOnLowQuality && Tr2Renderer.IsLowQuality()) || !this.display) return false;
+
+    const frustum = context.GetFrustum();
+    this._isVisible = true;
+    this.UpdateViewDependentData(context, parentTransform);
+
+    if (this.mesh)
+    {
+      const sphere = EveMissileWarhead._visibilitySphere;
+      if (this.GetBoundingSphere(sphere) && frustum.IsSphereVisible(sphere))
+      {
+        const size = frustum.GetPixelSizeAccross(sphere);
+        if (size >= context.GetMediumDetailThreshold()) this.lodLevel = EveTransform.Tr2Lod.TR2_LOD_HIGH;
+        else if (size >= context.GetVisibilityThreshold()) this.lodLevel = EveTransform.Tr2Lod.TR2_LOD_MEDIUM;
+      }
+    }
+    return this._isVisible;
   }
 
   /**
@@ -362,7 +382,7 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   GetRenderables(out = [])
   {
-    if (!this.#isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
+    if (!this._isVisible || this.lodLevel <= EveTransform.Tr2Lod.TR2_LOD_LOW) return out;
     if (this.mesh) out.push(this);
     return out;
   }
@@ -375,8 +395,8 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   GetBoundingSphere(out = vec4.create())
   {
-    vec4.set(EveMissileWarhead.#localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
-    sph3.transformMat4(out, EveMissileWarhead.#localSphere, this.worldTransform);
+    vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
+    sph3.transformMat4(out, EveMissileWarhead._localSphere, this.worldTransform);
     return true;
   }
 
@@ -388,8 +408,8 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   GetLocalBoundingSphere(out = vec4.create())
   {
-    vec4.set(EveMissileWarhead.#localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
-    sph3.transformMat4(out, EveMissileWarhead.#localSphere, this.#currentOffsetTransform);
+    vec4.set(EveMissileWarhead._localSphere, 0, 0, this.warheadLength * 0.5, this.warheadLength * 0.5);
+    sph3.transformMat4(out, EveMissileWarhead._localSphere, this._currentOffsetTransform);
     return true;
   }
 
@@ -401,7 +421,7 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   GetCurrentOffsetTransform()
   {
-    return this.#currentOffsetTransform;
+    return this._currentOffsetTransform;
   }
 
   /**
@@ -428,7 +448,7 @@ export class EveMissileWarhead extends EveTransform
   @impl.implemented
   GetState()
   {
-    return this.#state;
+    return this._state;
   }
 
   /**
@@ -487,10 +507,10 @@ export class EveMissileWarhead extends EveTransform
   {
     if (shaderType === ShaderType.PIXEL_SHADER) return;
 
-    mat4.transpose(EveMissileWarhead.#transposedWorld, this.worldTransform);
+    mat4.transpose(EveMissileWarhead._transposedWorld, this.worldTransform);
     for (let i = 0; i < 16; i++)
     {
-      data.setFloat32(i * 4, EveMissileWarhead.#transposedWorld[i], true);
+      data.setFloat32(i * 4, EveMissileWarhead._transposedWorld[i], true);
     }
     data.setFloat32(64, this.warheadRadius, true);
     data.setFloat32(68, this.warheadLength, true);
@@ -502,21 +522,24 @@ export class EveMissileWarhead extends EveTransform
 
   static StateChangeEvent = StateChangeEvent;
 
-  static #nextNoisePhase = 1;
-  static #transposedWorld = mat4.create();
-  static #zero = vec3.create();
-  static #localSphere = vec4.create();
-  static #positionNow = vec3.create();
-  static #positionLast = vec3.create();
-  static #targetPosition = vec3.create();
-  static #impactDirection = vec3.create();
-  static #ejectVelocity = vec3.create();
-  static #globalBallVelocity = vec3.create();
-  static #modifiedOldOffset = vec3.create();
-  static #relativePosition = vec3.create();
-  static #translation = vec3.create();
-  static #orientationNow = quat.create();
-  static #orientationMatrix = mat4.create();
+  static _nextNoisePhase = 1;
+  static _transposedWorld = mat4.create();
+  static _zero = vec3.create();
+  static _localSphere = vec4.create();
+
+  /** UpdateVisibility's world sphere (GetBoundingSphere writes through _localSphere). */
+  static _visibilitySphere = vec4.create();
+  static _positionNow = vec3.create();
+  static _positionLast = vec3.create();
+  static _targetPosition = vec3.create();
+  static _impactDirection = vec3.create();
+  static _ejectVelocity = vec3.create();
+  static _globalBallVelocity = vec3.create();
+  static _modifiedOldOffset = vec3.create();
+  static _relativePosition = vec3.create();
+  static _translation = vec3.create();
+  static _orientationNow = quat.create();
+  static _orientationMatrix = mat4.create();
 }
 
 function clamp01(value)
