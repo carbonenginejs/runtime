@@ -37,45 +37,45 @@ export const CARBON_TYPE = Object.freeze({
     TYPED_ARRAY: "typedArray"
 });
 
-const FLOAT32_VECTOR_DEFINITIONS = Object.freeze({
-    [CARBON_TYPE.VECTOR2]: Object.freeze({ kind: CARBON_TYPE.VECTOR2, js: "vec2", scalar: CARBON_TYPE.FLOAT32, length: 2, default: [0, 0] }),
-    [CARBON_TYPE.VECTOR3]: Object.freeze({ kind: CARBON_TYPE.VECTOR3, js: "vec3", scalar: CARBON_TYPE.FLOAT32, length: 3, default: [0, 0, 0] }),
-    [CARBON_TYPE.VECTOR4]: Object.freeze({ kind: CARBON_TYPE.VECTOR4, js: "vec4", scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 0] }),
-    [CARBON_TYPE.COLOR]: Object.freeze({ kind: CARBON_TYPE.COLOR, js: "vec4", semantic: CARBON_TYPE.COLOR, scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 0] }),
-    [CARBON_TYPE.QUATERNION]: Object.freeze({ kind: CARBON_TYPE.QUATERNION, js: "quat", scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 1] }),
-    [CARBON_TYPE.MATRIX3]: Object.freeze({ kind: CARBON_TYPE.MATRIX3, js: "mat3", scalar: CARBON_TYPE.FLOAT32, length: 9, default: [1, 0, 0, 0, 1, 0, 0, 0, 1] }),
-    [CARBON_TYPE.MATRIX4]: Object.freeze({ kind: CARBON_TYPE.MATRIX4, js: "mat4", scalar: CARBON_TYPE.FLOAT32, length: 16, default: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] })
-});
+const FLOAT32_VECTOR_DEFINITIONS = {
+    [CARBON_TYPE.VECTOR2]: { kind: CARBON_TYPE.VECTOR2, js: "vec2", scalar: CARBON_TYPE.FLOAT32, length: 2, default: [0, 0] },
+    [CARBON_TYPE.VECTOR3]: { kind: CARBON_TYPE.VECTOR3, js: "vec3", scalar: CARBON_TYPE.FLOAT32, length: 3, default: [0, 0, 0] },
+    [CARBON_TYPE.VECTOR4]: { kind: CARBON_TYPE.VECTOR4, js: "vec4", scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 0] },
+    [CARBON_TYPE.COLOR]: { kind: CARBON_TYPE.COLOR, js: "vec4", semantic: CARBON_TYPE.COLOR, scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 0] },
+    [CARBON_TYPE.QUATERNION]: { kind: CARBON_TYPE.QUATERNION, js: "quat", scalar: CARBON_TYPE.FLOAT32, length: 4, default: [0, 0, 0, 1] },
+    [CARBON_TYPE.MATRIX3]: { kind: CARBON_TYPE.MATRIX3, js: "mat3", scalar: CARBON_TYPE.FLOAT32, length: 9, default: [1, 0, 0, 0, 1, 0, 0, 0, 1] },
+    [CARBON_TYPE.MATRIX4]: { kind: CARBON_TYPE.MATRIX4, js: "mat4", scalar: CARBON_TYPE.FLOAT32, length: 16, default: [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1] }
+};
 
-const TYPE_DEFINITIONS = Object.freeze({
-    [CARBON_TYPE.UNKNOWN]: Object.freeze({ kind: CARBON_TYPE.UNKNOWN, js: "*" }),
-    [CARBON_TYPE.BOOLEAN]: Object.freeze({ kind: CARBON_TYPE.BOOLEAN, js: "boolean" }),
-    [CARBON_TYPE.STRING]: Object.freeze({ kind: CARBON_TYPE.STRING, js: "string" }),
-    [CARBON_TYPE.PATH]: Object.freeze({ kind: CARBON_TYPE.PATH, js: "string" }),
-    [CARBON_TYPE.EXPRESSION]: Object.freeze({ kind: CARBON_TYPE.EXPRESSION, js: "string", semantic: CARBON_TYPE.EXPRESSION }),
-    [CARBON_TYPE.ENUM]: Object.freeze({ kind: CARBON_TYPE.ENUM, js: "number|string|null" }),
-    [CARBON_TYPE.FLOAT32]: Object.freeze({ kind: CARBON_TYPE.FLOAT32, js: "number", bits: 32, signed: true, floating: true }),
-    [CARBON_TYPE.FLOAT64]: Object.freeze({ kind: CARBON_TYPE.FLOAT64, js: "number", bits: 64, signed: true, floating: true }),
-    [CARBON_TYPE.INT8]: Object.freeze({ kind: CARBON_TYPE.INT8, js: "number", bits: 8, signed: true, integer: true }),
-    [CARBON_TYPE.UINT8]: Object.freeze({ kind: CARBON_TYPE.UINT8, js: "number", bits: 8, signed: false, integer: true }),
-    [CARBON_TYPE.INT16]: Object.freeze({ kind: CARBON_TYPE.INT16, js: "number", bits: 16, signed: true, integer: true }),
-    [CARBON_TYPE.UINT16]: Object.freeze({ kind: CARBON_TYPE.UINT16, js: "number", bits: 16, signed: false, integer: true }),
-    [CARBON_TYPE.INT32]: Object.freeze({ kind: CARBON_TYPE.INT32, js: "number", bits: 32, signed: true, integer: true }),
-    [CARBON_TYPE.UINT32]: Object.freeze({ kind: CARBON_TYPE.UINT32, js: "number", bits: 32, signed: false, integer: true }),
-    [CARBON_TYPE.INT64]: Object.freeze({ kind: CARBON_TYPE.INT64, js: "bigint", bits: 64, signed: true, integer: true }),
-    [CARBON_TYPE.UINT64]: Object.freeze({ kind: CARBON_TYPE.UINT64, js: "bigint", bits: 64, signed: false, integer: true }),
-    [CARBON_TYPE.ARRAY]: Object.freeze({ kind: CARBON_TYPE.ARRAY, js: "Array" }),
-    [CARBON_TYPE.MAP]: Object.freeze({ kind: CARBON_TYPE.MAP, js: "Map" }),
-    [CARBON_TYPE.SET]: Object.freeze({ kind: CARBON_TYPE.SET, js: "Set" }),
-    [CARBON_TYPE.MODEL]: Object.freeze({ kind: CARBON_TYPE.MODEL, js: "object|null" }),
-    [CARBON_TYPE.OBJECT_REF]: Object.freeze({ kind: CARBON_TYPE.OBJECT_REF, js: "object|null" }),
-    [CARBON_TYPE.STRUCT]: Object.freeze({ kind: CARBON_TYPE.STRUCT, js: "object" }),
-    [CARBON_TYPE.RAW_STRUCT]: Object.freeze({ kind: CARBON_TYPE.RAW_STRUCT, js: "object" }),
-    [CARBON_TYPE.TYPED_ARRAY]: Object.freeze({ kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" }),
+const TYPE_DEFINITIONS = {
+    [CARBON_TYPE.UNKNOWN]: { kind: CARBON_TYPE.UNKNOWN, js: "*" },
+    [CARBON_TYPE.BOOLEAN]: { kind: CARBON_TYPE.BOOLEAN, js: "boolean" },
+    [CARBON_TYPE.STRING]: { kind: CARBON_TYPE.STRING, js: "string" },
+    [CARBON_TYPE.PATH]: { kind: CARBON_TYPE.PATH, js: "string" },
+    [CARBON_TYPE.EXPRESSION]: { kind: CARBON_TYPE.EXPRESSION, js: "string", semantic: CARBON_TYPE.EXPRESSION },
+    [CARBON_TYPE.ENUM]: { kind: CARBON_TYPE.ENUM, js: "number|string|null" },
+    [CARBON_TYPE.FLOAT32]: { kind: CARBON_TYPE.FLOAT32, js: "number", bits: 32, signed: true, floating: true },
+    [CARBON_TYPE.FLOAT64]: { kind: CARBON_TYPE.FLOAT64, js: "number", bits: 64, signed: true, floating: true },
+    [CARBON_TYPE.INT8]: { kind: CARBON_TYPE.INT8, js: "number", bits: 8, signed: true, integer: true },
+    [CARBON_TYPE.UINT8]: { kind: CARBON_TYPE.UINT8, js: "number", bits: 8, signed: false, integer: true },
+    [CARBON_TYPE.INT16]: { kind: CARBON_TYPE.INT16, js: "number", bits: 16, signed: true, integer: true },
+    [CARBON_TYPE.UINT16]: { kind: CARBON_TYPE.UINT16, js: "number", bits: 16, signed: false, integer: true },
+    [CARBON_TYPE.INT32]: { kind: CARBON_TYPE.INT32, js: "number", bits: 32, signed: true, integer: true },
+    [CARBON_TYPE.UINT32]: { kind: CARBON_TYPE.UINT32, js: "number", bits: 32, signed: false, integer: true },
+    [CARBON_TYPE.INT64]: { kind: CARBON_TYPE.INT64, js: "bigint", bits: 64, signed: true, integer: true },
+    [CARBON_TYPE.UINT64]: { kind: CARBON_TYPE.UINT64, js: "bigint", bits: 64, signed: false, integer: true },
+    [CARBON_TYPE.ARRAY]: { kind: CARBON_TYPE.ARRAY, js: "Array" },
+    [CARBON_TYPE.MAP]: { kind: CARBON_TYPE.MAP, js: "Map" },
+    [CARBON_TYPE.SET]: { kind: CARBON_TYPE.SET, js: "Set" },
+    [CARBON_TYPE.MODEL]: { kind: CARBON_TYPE.MODEL, js: "object|null" },
+    [CARBON_TYPE.OBJECT_REF]: { kind: CARBON_TYPE.OBJECT_REF, js: "object|null" },
+    [CARBON_TYPE.STRUCT]: { kind: CARBON_TYPE.STRUCT, js: "object" },
+    [CARBON_TYPE.RAW_STRUCT]: { kind: CARBON_TYPE.RAW_STRUCT, js: "object" },
+    [CARBON_TYPE.TYPED_ARRAY]: { kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" },
     ...FLOAT32_VECTOR_DEFINITIONS
-});
+};
 
-const TYPE_ALIASES = Object.freeze({
+const TYPE_ALIASES = {
     bool: CARBON_TYPE.BOOLEAN,
     float: CARBON_TYPE.FLOAT32,
     double: CARBON_TYPE.FLOAT64,
@@ -85,9 +85,9 @@ const TYPE_ALIASES = Object.freeze({
     quat: CARBON_TYPE.QUATERNION,
     mat3: CARBON_TYPE.MATRIX3,
     mat4: CARBON_TYPE.MATRIX4
-});
+};
 
-const TYPED_ARRAY_CTORS = Object.freeze({
+const TYPED_ARRAY_CTORS = {
     Int8Array,
     Uint8Array,
     Uint8ClampedArray,
@@ -99,10 +99,10 @@ const TYPED_ARRAY_CTORS = Object.freeze({
     Float64Array,
     BigInt64Array,
     BigUint64Array
-});
+};
 
 /** The typed array each declared scalar stores into. */
-const TYPED_ARRAY_FOR_SCALAR = Object.freeze({
+const TYPED_ARRAY_FOR_SCALAR = {
     [CARBON_TYPE.INT8]: "Int8Array",
     [CARBON_TYPE.UINT8]: "Uint8Array",
     [CARBON_TYPE.INT16]: "Int16Array",
@@ -111,9 +111,9 @@ const TYPED_ARRAY_FOR_SCALAR = Object.freeze({
     [CARBON_TYPE.UINT32]: "Uint32Array",
     [CARBON_TYPE.FLOAT32]: "Float32Array",
     [CARBON_TYPE.FLOAT64]: "Float64Array"
-});
+};
 
-const num = Object.freeze({
+const num = {
     int8,
     uint8,
     int16,
@@ -124,7 +124,7 @@ const num = Object.freeze({
     uint64,
     float32,
     float64
-});
+};
 
 const CARBON_MATH_KINDS = new Set(Object.keys(FLOAT32_VECTOR_DEFINITIONS));
 
@@ -155,14 +155,14 @@ function mathStorageFor(descriptor)
  * unlike `instanceof` also answers correctly for a typed array that arrived
  * from a worker or another realm, where the constructor is a different object.
  */
-const MATH_STORAGE = Object.freeze(Object.fromEntries(
+const MATH_STORAGE = Object.fromEntries(
     Object.entries(TYPED_ARRAY_FOR_SCALAR)
-        .map(([ scalar, name ]) => [ scalar, Object.freeze({
+        .map(([ scalar, name ]) => [ scalar, {
             Ctor: TYPED_ARRAY_CTORS[name],
             round: num[scalar],
             tag: `[object ${name}]`
-        }) ])
-        .filter(([ , storage ]) => storage.Ctor && storage.round)));
+        } ])
+        .filter(([ , storage ]) => storage.Ctor && storage.round));
 
 
 /** Creates the declared typed array for a Carbon math shape, with its defaults. */
@@ -589,11 +589,11 @@ export function typedArrayConstructor(name)
 
 
 /** Per-declared-name storage for the length-free `typedArray` kind. */
-const TYPED_ARRAY_STORAGE = Object.freeze(Object.fromEntries(
-    Object.keys(TYPED_ARRAY_CTORS).map(name => [ name, Object.freeze({
+const TYPED_ARRAY_STORAGE = Object.fromEntries(
+    Object.keys(TYPED_ARRAY_CTORS).map(name => [ name, {
         Ctor: TYPED_ARRAY_CTORS[name],
         tag: `[object ${name}]`
-    }) ])));
+    } ]));
 
 
 /**

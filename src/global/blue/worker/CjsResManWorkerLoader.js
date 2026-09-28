@@ -1,10 +1,10 @@
 import { Message, Operation, assertResourceSource } from "./protocol.js";
 import { CjsResManMainThreadLoader } from "./CjsResManMainThreadLoader.js";
 
-const DEFAULT_WORKER_OPTIONS = Object.freeze({
+const DEFAULT_WORKER_OPTIONS = {
   type: "module",
   name: "CjsResManWorker"
-});
+};
 
 /**
  * Browser module-worker strategy that correlates source/format requests, transfers owned buffers, propagates cancellation and fatal failure, and delegates unsupported operations to a main-thread loader.

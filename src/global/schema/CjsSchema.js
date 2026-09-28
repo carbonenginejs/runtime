@@ -34,10 +34,10 @@ const CONSTRUCTOR_BY_NAME = new Map();
 const SETTINGS = [];
 const CARBON_SETTING_NAMES = new Set(TriSettingNames);
 const SETTING_APPLIES = Object.freeze({ ALWAYS: "always", CREATE: "create", LOAD: "load" });
-const SETTING_DECORATOR = Object.freeze(Object.assign(
+const SETTING_DECORATOR = Object.assign(
     (name, options) => settingDecorator(name, options),
     SETTING_APPLIES
-));
+);
 const STAGE3_FIELD_METADATA = Symbol("carbonenginejs.schema.stage3Fields");
 const STAGE3_METHOD_METADATA = Symbol("carbonenginejs.schema.stage3Methods");
 
@@ -703,7 +703,7 @@ export class CjsSchema
      * - `rawStruct(nativeType)` is an opaque native payload whose plain values
      *   never construct a model.
      */
-    static type = Object.freeze({
+    static type = {
         array: itemType => fieldDecorator("type", { kind: "array", itemType }),
         boolean: fieldDecorator("type", { kind: "boolean" }),
         color: fieldDecorator("type", { kind: "color" }),
@@ -748,7 +748,7 @@ export class CjsSchema
          * that genuinely does not carry part of its parent's shape.
          */
         hideInherited: fieldNames => hiddenInheritedFieldsDecorator(normalizeHiddenInheritedFields(fieldNames))
-    });
+    };
 
     // Be::EDITFLAGS, exactly (`blueexposure/include/BlueTypes.h:282-311`).
     // Every member below is one of Carbon's; nothing else belongs here. The
@@ -771,7 +771,7 @@ export class CjsSchema
      * - Values transport does not enforce READ, and direct JS field access is
      *   never intercepted.
      */
-    static edit = Object.freeze({
+    static edit = {
         none: fieldDecorator("edit", {}),
         // MODMASK 0x00F
         read: fieldDecorator("edit", { read: true }),
@@ -808,7 +808,7 @@ export class CjsSchema
         persistOnly: fieldDecorator("edit", { persist: true, persistOnly: true, hidden: true }),
 
 
-    });
+    };
 
     // Not EDITFLAGS and not type: WHO runs a child's construction, and later
     // its teardown. `owned` marks a donor BY-VALUE member, destroyed with its
@@ -816,19 +816,19 @@ export class CjsSchema
     // it - `entry.owned` (built below) gates the `ownedOnly` walk that runs
     // Initialize in CjsModel.from - so the flag is half installed rather than
     // unused: there is no teardown traversal yet to honour the other half.
-    static lifecycle = Object.freeze({
+    static lifecycle = {
         owned: fieldDecorator("lifecycle", { ownership: "owned" }),
         reference: fieldDecorator("lifecycle", { ownership: "reference" })
-    });
+    };
 
     // Composition decorators: type/edit/carbon/impl/jessica DESCRIBE, compose
     // INSTALLS (design record, direction item 11). All three are live; the
     // migration of existing classes onto them is separate work.
-    static compose = Object.freeze({
+    static compose = {
         abstract: composeAbstractDecorator(Constructor => CjsSchema.getClassName(Constructor)),
         notify: composeNotifyDecorator,
         values: composeValuesDecorator(CjsSchema.#statelessTransport)
-    });
+    };
 
     /**
      * Editor-facing presentation hints: `group(name)`, `hidden`, `readOnly`
@@ -836,19 +836,19 @@ export class CjsSchema
      * `jessica.hidden` is not `hideInherited`, and `jessica.readOnly` does not
      * block SetValues.
      */
-    static jessica = Object.freeze({
+    static jessica = {
         group: name => fieldDecorator("jessica", { group: name }),
         hidden: fieldDecorator("jessica", { hidden: true }),
         readOnly: fieldDecorator("jessica", { readOnly: true }),
         widget: name => fieldDecorator("jessica", { widget: name })
-    });
+    };
 
     // impl decorators apply to methods AND fields: a promoted/diverging field
     // (e.g. a Carbon-hidden authored value exposed for values interchange) is
     // an implementation decision, so it carries impl.adapted/impl.custom +
     // impl.reason just like a diverging method. carbon.* stays factual
     // provenance and remains method-only.
-    static impl = Object.freeze({
+    static impl = {
         abstract: memberDecorator("impl", { abstract: true, status: "abstract" }),
         adapted: memberDecorator("impl", { adapted: true, status: "adapted" }),
         custom: memberDecorator("impl", { custom: true, status: "custom" }),
@@ -861,7 +861,7 @@ export class CjsSchema
         invalidates: (...members) => memberDecorator("impl", { invalidates: members }),
         note: text => memberDecorator("impl", { note: String(text) }),
         reason: text => memberDecorator("impl", { reason: String(text) })
-    });
+    };
 
     /**
      * What an installed interface member should be marked as on its consumer.
@@ -908,7 +908,7 @@ export class CjsSchema
         return decorators;
     }
 
-    static carbon = Object.freeze({
+    static carbon = {
         // Carbon's base list and Carbon's exposure table: two different facts,
         // two decorators, both factual and so both here rather than in
         // `compose`. See compose/interface.js for the black-reader branch that
@@ -974,7 +974,7 @@ export class CjsSchema
                 return base(targetOrValue, contextOrMethodName);
             }, described.namespace, described.value);
         }
-    });
+    };
 
     static components = createComponentsNamespace();
 }
@@ -1703,9 +1703,8 @@ function defineClassMetadata(Constructor, definition)
 function sealClassSchema(Constructor, schema)
 {
     const fields = computeEffectiveFields(Constructor);
-    for (const field of fields) Object.freeze(field);
 
-    schema.effectiveFields = Object.freeze(fields);
+    schema.effectiveFields = fields;
     schema.effectiveFieldsByName = new Map(fields.map(field => [ field.name, field ]));
     schema.effectiveMethodsByName = computeEffectiveMethods(Constructor);
     schema.hiddenInheritedAll = computeHiddenInheritedFieldNames(Constructor);

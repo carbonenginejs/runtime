@@ -39,7 +39,7 @@ const
  *
  * @type {number[]}
  */
-export const NULL_TANGENT_UNORM = Object.freeze([ 0, 1, 0, 1 ]);
+export const NULL_TANGENT_UNORM = [ 0, 1, 0, 1 ];
 
 /**
  * Test whether a packed tangent payload is the null-frame sentinel.
@@ -269,7 +269,7 @@ export function packTangentFrames(normals, tangents, binormals)
     return packed;
 }
 
-export const tangent = Object.freeze({
+export const tangent = {
     TAU: TANGENT_TAU,
     PI: TANGENT_PI,
     NULL_TANGENT_UNORM,
@@ -288,4 +288,4 @@ export const tangent = Object.freeze({
     generateTangents,
     generateTangentFrames,
     generateBiNormals
-});
+};

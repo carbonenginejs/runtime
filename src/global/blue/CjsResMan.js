@@ -26,7 +26,7 @@ import {
 const READ_CONTEXTS = new WeakMap();
 
 /** Small request fields retained only so a released payload can be rebuilt. */
-const RESOURCE_REQUEST_OPTION_KEYS = Object.freeze([
+const RESOURCE_REQUEST_OPTION_KEYS = [
   "variant",
   "requirement",
   "payload",
@@ -35,22 +35,22 @@ const RESOURCE_REQUEST_OPTION_KEYS = Object.freeze([
   "format",
   "classes",
   "formatOptions"
-]);
+];
 
 /** Requested-output fields pinned by a bound resource handle. */
-const RESOURCE_OUTPUT_OPTION_KEYS = Object.freeze([
+const RESOURCE_OUTPUT_OPTION_KEYS = [
   "variant",
   "emit",
   "requirement",
   "payload"
-]);
+];
 
 /** Source provenance retained by a bound resource handle when present. */
-const RESOURCE_PROVENANCE_OPTION_KEYS = Object.freeze([
+const RESOURCE_PROVENANCE_OPTION_KEYS = [
   "source",
   "sourceRevision",
   "ext"
-]);
+];
 
 /** Process-local tokens used only by parsed-format operation caching. */
 const LOCAL_VALUE_IDENTITIES = new WeakMap();
@@ -1033,8 +1033,8 @@ export class CjsResMan
   /**
    * Register a reusable format facade for each accepted input extension.
    * Multiple candidates may share an extension and are resolved by requested
-   * output/media type or by their support probes. Defaults are copied into a
-   * deeply frozen plain-object/array snapshot so later caller mutation cannot
+   * output/media type or by their support probes. Defaults are deep-copied into
+   * a detached plain-object/array snapshot so later caller mutation cannot
    * rewrite the registered configuration. Format methods are read from the
    * currently registered facade when an operation runs.
    *
@@ -2492,7 +2492,7 @@ export class CjsResMan
 
   /**
    * Return detached references to the current format descriptors for one input
-   * extension. Each descriptor contains its facade and frozen defaults.
+   * extension. Each descriptor contains its facade and snapshotted defaults.
    *
    * @param {string} inputType Input extension with or without a leading dot.
    * @returns {object[]} Descriptor list in registration order.
@@ -2524,7 +2524,7 @@ export class CjsResMan
   }
 
   /**
-   * Invoke one format descriptor using its frozen registration defaults and
+   * Invoke one format descriptor using its snapshotted registration defaults and
    * the request's explicit format options. Static async/sync readers take
    * precedence over instance `ReadAsync`/`Read` compatibility methods.
    *
@@ -2651,8 +2651,8 @@ export class CjsResMan
    * Replace or disable the opt-in automatic inactivity policy. Configuration
    * resets cadence, so the first subsequent pump performs a sweep immediately.
    * Frame-based limits are rejected because manager updates are not a reliable
-   * renderer-frame clock. The normalized policy is frozen and never reloads
-   * resources.
+   * renderer-frame clock. The normalized policy is a fresh object and never
+   * reloads resources.
    *
    * @param {CjsResManAutoPurgePolicy|false|null} [policy=null] Time-based policy, or `false`/`null` to disable automatic sweeping.
    * @returns {CjsResMan} This resource manager.
@@ -2765,7 +2765,7 @@ export class CjsResMan
    *
    * @param {string} path Carbon-style source resource path.
    * @param {CjsResManReadCacheOptions} [options={}] Optional `source` and exact `sourceRevision` selection.
-   * @returns {Readonly<{path: string, queuedSource: number, source: number, format: number}>} Frozen detached-record counts.
+   * @returns {{path: string, queuedSource: number, source: number, format: number}} Detached-record counts.
    * @throws {TypeError} If path, source, revision, or options are invalid.
    */
   InvalidateReadCache(path, options = {})
@@ -3018,7 +3018,7 @@ export class CjsResMan
    * @param {object|Function} source Selected source.
    * @param {string} path Normalized source path.
    * @param {string|null} revisionKey Exact revision key or `null` for all.
-   * @returns {Readonly<{path: string, queuedSource: number, source: number, format: number}>} Frozen detached counts.
+   * @returns {{path: string, queuedSource: number, source: number, format: number}} Detached counts.
    */
   #InvalidateReadCache(source, path, revisionKey)
   {
@@ -3559,7 +3559,7 @@ export class CjsResMan
   }
 
   /**
-   * Run or join one format read under source/path/revision, frozen descriptor,
+   * Run or join one format read under source/path/revision, registered descriptor,
    * and effective output-option identity. Descriptor identity prevents a
    * re-registration with different defaults from reusing an old parse, while
    * source identity prevents same-path reads from different sources colliding.
@@ -3572,7 +3572,7 @@ export class CjsResMan
    * sharing regardless of cache policy.
    *
    * @param {CjsResource} resource Resource whose normalized path identifies the source data.
-   * @param {object} descriptor Frozen registered format descriptor.
+   * @param {object} descriptor Registered format descriptor.
    * @param {*} bytes Source bytes or source-compatible reader input.
    * @param {object} [options={}] Source provenance, reload, cacheFormat, emit, classes, and format options.
    * @returns {Promise<*>} Promise for the parsed or converted format result.
@@ -3635,14 +3635,14 @@ export class CjsResMan
 compose.notify(CjsResMan);
 
 /**
- * Copy supported registered format defaults into a deeply frozen snapshot.
+ * Deep-copy supported registered format defaults into a detached snapshot.
  * Plain objects and arrays may be cyclic. Functions and primitives are stable
- * leaves; values with hidden mutable state are rejected because freezing their
- * wrapper would not make the represented behavior immutable.
+ * leaves; values with hidden mutable state are rejected because copying their
+ * wrapper would not detach the state it represents.
  *
  * @param {object} defaults Registered format defaults.
  * @param {WeakMap<object, object>} [seen=new WeakMap()] Source-to-snapshot cycle map.
- * @returns {Readonly<object>} Deeply frozen plain defaults snapshot.
+ * @returns {object} Detached plain defaults snapshot.
  * @throws {TypeError} If defaults contain unsupported objects, accessors, symbols, or byte buffers.
  */
 function snapshotFormatDefaults(defaults, seen = new WeakMap())
@@ -3660,7 +3660,7 @@ function snapshotFormatDefaults(defaults, seen = new WeakMap())
  * @param {*} value Source value.
  * @param {WeakMap<object, object>} seen Source-to-snapshot cycle map.
  * @param {string} path Diagnostic property path.
- * @returns {*} Frozen snapshot value or stable primitive/function leaf.
+ * @returns {*} Snapshot value or stable primitive/function leaf.
  * @throws {TypeError} If the value cannot be made structurally immutable.
  */
 function snapshotFormatDefaultValue(value, seen, path)
@@ -3784,11 +3784,11 @@ function getReadOperationKey(context)
 
 /**
  * Get the descriptor-specific format operation map for a selected source.
- * Frozen descriptor identity isolates changed registration defaults.
+ * Descriptor identity isolates changed registration defaults.
  *
  * @param {WeakMap<object|Function, Map<object, Map<string, CjsResourceReadOperationRecord>>>} ledger Format ledger.
  * @param {object|Function} source Selected source owner.
- * @param {object} descriptor Frozen registered descriptor.
+ * @param {object} descriptor Registered descriptor.
  * @param {boolean} create Whether missing maps should be allocated.
  * @returns {Map<string, CjsResourceReadOperationRecord>|null} Descriptor map or `null`.
  */
@@ -4394,10 +4394,10 @@ function getPublishedResourceObject(resource, route = null, handlerMode = null)
 
 
 /**
- * Normalize and freeze an opt-in time-based automatic purge policy.
+ * Normalize an opt-in time-based automatic purge policy into a fresh object.
  *
  * @param {CjsResManAutoPurgePolicy|false|null} policy Caller policy or disable marker.
- * @returns {Readonly<CjsResManAutoPurgePolicy>|null} Frozen normalized policy, or `null` when disabled.
+ * @returns {CjsResManAutoPurgePolicy|null} Normalized policy, or `null` when disabled.
  * @throws {TypeError} If fields, limits, cleanup controls, or the cadence clock are invalid.
  */
 function normalizeAutoPurgePolicy(policy)
@@ -4665,7 +4665,7 @@ function isResourceLoader(loader)
 }
 
 /**
- * Merge frozen registration defaults with one request's format overrides.
+ * Merge snapshotted registration defaults with one request's format overrides.
  *
  * @param {object} descriptor Registered format descriptor.
  * @param {object} options Resource read options.

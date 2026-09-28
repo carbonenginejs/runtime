@@ -462,7 +462,7 @@ export function generateBiNormals(normals, tangents, options = {})
     return binormals;
 }
 
-export const mesh = Object.freeze({
+export const mesh = {
     triangleNormal,
     triangleNormalTo,
     triangleArea2,
@@ -473,4 +473,4 @@ export const mesh = Object.freeze({
     generateTangents,
     generateTangentFrames,
     generateBiNormals
-});
+};

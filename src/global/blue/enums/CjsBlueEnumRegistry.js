@@ -86,18 +86,18 @@ export class CjsBlueEnumRegistry
                 if (typeof member.description !== "string") throw new TypeError("Enum descriptions must be strings.");
                 record.description = member.description;
             }
-            ordered.push(Object.freeze(record));
+            ordered.push(record);
             records.delete(member.name);
         }
-        for (const record of records.values()) ordered.push(Object.freeze(record));
-        const info = { name, type: values, members: Object.freeze(ordered) };
+        for (const record of records.values()) ordered.push(record);
+        const info = { name, type: values, members: ordered };
         // Native VarChooser names are exposed labels, not necessarily C++ enum
         // identifiers. Its ordered selection may omit sentinels and aliases.
         if (definition.chooser !== undefined)
         {
             if (!Array.isArray(definition.chooser)) throw new TypeError("Enum chooser must be an array.");
             const allowed = new Set(ordered.map(member => uint32(member.value)));
-            info.chooser = Object.freeze(definition.chooser.map(member => {
+            info.chooser = definition.chooser.map(member => {
                 if (typeof member.name !== "string" || !member.name || !allowed.has(uint32(member.value)))
                 {
                     throw new TypeError("Enum chooser entries must name declared enum values.");
@@ -108,8 +108,8 @@ export class CjsBlueEnumRegistry
                     if (typeof member.description !== "string") throw new TypeError("Enum descriptions must be strings.");
                     entry.description = member.description;
                 }
-                return Object.freeze(entry);
-            }));
+                return entry;
+            });
         }
         for (const key of ["source", "family", "line", "exposure", "exposedName", "chooserSource"])
         {
@@ -135,7 +135,7 @@ export class CjsBlueEnumRegistry
         }
         if (this.#byObject.has(values)) throw new TypeError("Enum object already has a canonical name.");
         Object.freeze(values);
-        this.#byName.set(name, Object.freeze(info));
+        this.#byName.set(name, info);
         this.#byObject.set(values, name);
         return values;
     }

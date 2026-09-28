@@ -10,7 +10,7 @@
  * How it answers is free to change behind the method - today a boolean that
  * `@compose.notify` maintains where it creates and drops its listener map.
  */
-export const RUNTIME_STATE_PROTOTYPE = Object.freeze({
+export const RUNTIME_STATE_PROTOTYPE = {
     /**
      * Whether anything is listening on the owner of this state.
      *
@@ -30,7 +30,7 @@ export const RUNTIME_STATE_PROTOTYPE = Object.freeze({
     {
         return false;
     }
-});
+};
 
 
 /**

@@ -188,7 +188,7 @@ function GetEventListenerCount(eventName = "*")
 }
 
 /** The notify surface, one implementation for both deliveries. */
-export const NOTIFY_METHODS = Object.freeze({
+export const NOTIFY_METHODS = {
     AddEvents,
     OnEvent,
     OnceEvent,
@@ -198,7 +198,7 @@ export const NOTIFY_METHODS = Object.freeze({
     ClearEvent,
     GetEventNames,
     GetEventListenerCount
-});
+};
 
 /**
  * Installs the notify surface onto a class's prototype, install-if-absent:

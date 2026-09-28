@@ -16,8 +16,8 @@ import { CjsSchema, impl } from "#schema";
 import { BLUE_OBJECT_METADATA_KEY, IBlueObjectMetadata } from "./IBlueObjectMetadata.js";
 
 /** `BlueStdResult` codes the store answers with (`BLUE_STD_RESULT_OK`, `BLUE_STD_RESULT_KEY_ERROR`). */
-const OK = Object.freeze({ ok: true, message: "" });
-const KeyError = message => Object.freeze({ ok: false, message });
+const OK = { ok: true, message: "" };
+const KeyError = message => { ok: false, message };
 
 
 /** `BlueObjectMetadata` - the object-metadata store. */

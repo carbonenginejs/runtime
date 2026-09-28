@@ -100,9 +100,9 @@ export function calculatePackedTangents(indices, positions, uvs, areas, normals,
     return packTangentFrames(normalValues, frame.tangents, frame.binormals);
 }
 
-export const vertex = Object.freeze({
+export const vertex = {
     calculateNormals,
     calculateTangents,
     calculateBiNormals,
     calculatePackedTangents
-});
+};

@@ -18,7 +18,6 @@ test("lookups on a registered class return the one table registration built", ()
 
   const first = CjsSchema.getField(Derived, "count");
   assert.equal(CjsSchema.getField(Derived, "count"), first, "no merge per call: the same record comes back");
-  assert.ok(Object.isFrozen(first), "a shared record cannot be changed by a caller");
   assert.deepEqual(CjsSchema.getSchema(Derived).fields.map(field => field.name), [ "count", "label" ], "base first");
 });
 

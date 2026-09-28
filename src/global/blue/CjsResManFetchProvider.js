@@ -1,6 +1,6 @@
 import { Operation } from "./worker/protocol.js";
 
-const FETCH_OPTION_KEYS = Object.freeze([
+const FETCH_OPTION_KEYS = [
   "body",
   "cache",
   "credentials",
@@ -15,7 +15,7 @@ const FETCH_OPTION_KEYS = Object.freeze([
   "referrer",
   "referrerPolicy",
   "window"
-]);
+];
 
 /**
  * `CjsResMan` provider that fetches an already-resolved URL on the caller

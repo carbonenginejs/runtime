@@ -37,7 +37,7 @@ import { normalizeResourcePath } from "#utils/path";
  * "depth" is the mistake that makes a texture-budget measurement describe the
  * wrong thing.
  */
-export const ShaderModelSuffixes = Object.freeze({
+export const ShaderModelSuffixes = {
     low: "sm_lo",
     lo: "sm_lo",
     medium: "sm_hi",
@@ -48,7 +48,7 @@ export const ShaderModelSuffixes = Object.freeze({
     sm_lo: "sm_lo",
     sm_hi: "sm_hi",
     sm_depth: "sm_depth"
-});
+};
 
 
 /** Lowercases and slash-normalizes a resource path for routing. */
@@ -82,7 +82,7 @@ export function ShaderModelSuffix(quality = "high")
  * shader. Carbon's own trees (`dx11`, `dx12`, `metal`) carry stock bodies with
  * no block.
  */
-export const TranslatedEffectPlatforms = Object.freeze([ "webgl", "webgl2", "webgpu" ]);
+export const TranslatedEffectPlatforms = [ "webgl", "webgl2", "webgpu" ];
 
 
 /**
