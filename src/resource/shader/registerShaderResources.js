@@ -67,11 +67,6 @@ export const ShaderResourceExtensions = Object.freeze([
  */
 export function RegisterShaderResources(resourceManager, { translator = null, permutations = "onDemand" } = {})
 {
-  if (typeof resourceManager?.RegisterExtension !== "function"
-    || typeof resourceManager?.RegisterObjectLoader !== "function")
-  {
-    throw new TypeError("RegisterShaderResources requires a CjsResMan.");
-  }
   if (translator !== null && typeof translator?.buildEffect !== "function")
   {
     throw new TypeError("RegisterShaderResources translator must expose buildEffect.");

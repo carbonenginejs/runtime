@@ -24,12 +24,6 @@ export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);
  */
 export function RegisterGeometryResources(resourceManager)
 {
-  if (typeof resourceManager?.RegisterExtension !== "function"
-    || typeof resourceManager?.RegisterObjectLoader !== "function")
-  {
-    throw new TypeError("RegisterGeometryResources requires a CjsResMan.");
-  }
-
   // BOUNDS FROM THE VERTICES. A granny file carries no mesh-level box, and
   // Carbon's TriGeometryRes::SetupModels starts each mesh's box empty and
   // accumulates it from the vertices (TriGeometryRes.cpp:1016-1017). Without

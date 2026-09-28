@@ -74,12 +74,6 @@ async function ReadImageResource(bytes, context)
  */
 export function RegisterTextureResources(resourceManager, options = {})
 {
-  if (typeof resourceManager?.RegisterExtension !== "function"
-    || typeof resourceManager?.RegisterObjectLoader !== "function")
-  {
-    throw new TypeError("RegisterTextureResources requires a CjsResMan.");
-  }
-
   const Handler = options.Handler ?? TriTextureRes;
 
   if (Handler !== TriTextureRes && Handler !== Tr2ImageRes)

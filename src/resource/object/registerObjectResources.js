@@ -34,11 +34,6 @@ function ReadBlackObject(bytes, context)
  */
 export function RegisterObjectResources(resourceManager)
 {
-  if (typeof resourceManager?.RegisterObjectLoader !== "function")
-  {
-    throw new TypeError("RegisterObjectResources requires a CjsResMan.");
-  }
-
   for (const extension of ObjectResourceExtensions)
   {
     resourceManager.RegisterObjectLoader(extension, ReadBlackObject);
