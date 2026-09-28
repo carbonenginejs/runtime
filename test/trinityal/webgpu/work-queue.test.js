@@ -400,3 +400,25 @@ test("a viewport reaches the pass at the next draw, again in every new pass, cut
 
   queue.EndFrame();
 });
+
+test("a LOAD hint keeps a pending CLEAR, taking the hint's store and clear value (MetalWorkQueue.mm:783-805)", async () =>
+{
+  const { MergeHintOverClear } = await import("../../../npm/dist/trinityal/webgpu/core/CjsWebgpuWorkQueue.js");
+  const { Tr2LoadAction, Tr2StoreAction } = await import("../../../npm/dist/global/consts/renderContext/index.js");
+  const clear = {
+    colors: [ { load: Tr2LoadAction.CLEAR, store: Tr2StoreAction.STORE, clearColor: [ 0.1, 0.2, 0.3, 1 ] } ],
+    depth: { load: Tr2LoadAction.CLEAR, store: Tr2StoreAction.STORE, clearValue: 0 }
+  };
+  const hint = {
+    colors: [ { load: Tr2LoadAction.LOAD, store: Tr2StoreAction.STORE, clearColor: 0 } ],
+    depth: { load: Tr2LoadAction.LOAD, store: Tr2StoreAction.STORE, clearValue: 0 }
+  };
+  const merged = MergeHintOverClear(hint, clear);
+  assert.equal(merged.colors[0].load, Tr2LoadAction.CLEAR);
+  assert.equal(merged.depth.load, Tr2LoadAction.CLEAR);
+  // Quirk: the hint's clear value wins.
+  assert.equal(merged.colors[0].clearColor, 0);
+  // Without a pending clear the hint stands; without a hint the clear does.
+  assert.equal(MergeHintOverClear(hint, null), hint);
+  assert.equal(MergeHintOverClear(null, clear), clear);
+});

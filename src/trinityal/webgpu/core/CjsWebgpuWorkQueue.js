@@ -882,10 +882,11 @@ export class CjsWebgpuWorkQueue
   {
     this._ReleaseEncoder();
 
-    // A hint's actions win over a pending clear's, as Metal applies the hint
-    // over a descriptor already holding the clear; opening the pass consumes
+    // Metal applies the hint over a descriptor already holding the clear
+    // (`MetalWorkQueue.mm:783-805`): an attachment the clear set to CLEAR stays
+    // CLEAR, everything else takes the hint's load; opening the pass consumes
     // both (`ApplyRenderPassHint`, then `ResetClearState`).
-    const hint = this._pendingRenderPassHint ?? this._pendingClear;
+    const hint = MergeHintOverClear(this._pendingRenderPassHint, this._pendingClear);
     const attachments = ApplyRenderPassHint(hint);
 
     this._pendingRenderPassHint = null;
@@ -963,6 +964,38 @@ function sameOffsets(first, second)
  * @param {object} [hint] A pending hint.
  * @returns {object|null} `{ colors, depth }` with `load`/`store` per attachment.
  */
+/**
+ * Carbon's hint application over a pending clear (`MetalWorkQueue.mm:783-805`).
+ * Per attachment: a CLEAR load from the clear survives, any other load comes
+ * from the hint, and the store action and clear value always come from the
+ * hint. Quirk, reproduced: the hint's clear value replaces the clear's, so a
+ * cleared attachment clears to the hint's value (Tr2ColorAttachment defaults
+ * it to 0), not to the colour Clear asked for. An attachment the hint does not
+ * describe keeps the clear's entry.
+ *
+ * @param {object|null} hint The pending hint, `{ colors, depth }`.
+ * @param {object|null} clear The pending clear, `{ colors, depth }`.
+ * @returns {object|null} The attachments the pass opens with.
+ */
+export function MergeHintOverClear(hint, clear)
+{
+  if (!hint) return clear;
+  if (!clear) return hint;
+
+  const merge = (fromHint, fromClear) =>
+  {
+    if (!fromHint) return fromClear;
+    if (!fromClear || fromClear.load !== Tr2LoadAction.CLEAR) return fromHint;
+    return { load: Tr2LoadAction.CLEAR, store: fromHint.store, clearColor: fromHint.clearColor ?? fromHint.clearValue };
+  };
+
+  const count = Math.max(hint.colors.length, clear.colors.length);
+  const colors = [];
+  for (let slot = 0; slot < count; slot++) colors.push(merge(hint.colors[slot], clear.colors[slot]));
+
+  return { colors, depth: merge(hint.depth, clear.depth) };
+}
+
 export function ApplyRenderPassHint(hint)
 {
   if (!hint) return null;
