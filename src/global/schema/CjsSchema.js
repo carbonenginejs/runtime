@@ -1044,7 +1044,7 @@ function getDefaultsTemplate(ConstructorOrName)
         }
         catch (err)
         {
-            const className = CjsSchema.getClassName(Constructor) || Constructor.name || "<anonymous>";
+            const className = CjsSchema.getClassName(Constructor) || "<unregistered>";
             throw new TypeError(
                 `CjsSchema.getDefaults could not construct ${className} with zero arguments: ` +
                 `${err instanceof Error ? err.message : String(err)}`,

@@ -24,7 +24,7 @@
 function AbstractMessage(getClassName, instance, declaringName, methodName)
 {
     const runtimeName = instance?.constructor
-        ? (getClassName(instance.constructor) || instance.constructor.name || null)
+        ? getClassName(instance.constructor)
         : null;
     const declaring = declaringName || runtimeName || "<unregistered>";
 
@@ -61,7 +61,7 @@ export function composeAbstractDecorator(getClassName)
                 // which is the first moment the declaring class is knowable.
                 const Constructor = typeof this === "function" ? this : this?.constructor;
                 declaringName = declaringName
-                    || (Constructor ? getClassName(Constructor) || Constructor.name : null);
+                    || (Constructor ? getClassName(Constructor) : null);
             });
             return function (...args)
             {
@@ -78,7 +78,7 @@ export function composeAbstractDecorator(getClassName)
             throw new TypeError("compose.abstract only supports methods.");
         }
         const declaringName = prototype.constructor
-            ? getClassName(prototype.constructor) || prototype.constructor.name
+            ? getClassName(prototype.constructor)
             : null;
         Object.defineProperty(prototype, methodName, {
             configurable: true,

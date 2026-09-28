@@ -540,7 +540,7 @@ export class CjsResource
    * @throws {Error} When the concrete resource does not implement it.
    */
   DoLoad(data, options = null) {
-    const className = this.constructor?.name || "CjsResource";
+    const className = CjsSchema.getClassName(this.constructor);
     const error = new Error(
       `${className}.DoLoad is not implemented. A resource reached by the loader `
       + "must turn its own source bytes into itself; implement DoLoad, or register "

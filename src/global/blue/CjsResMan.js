@@ -4240,7 +4240,7 @@ function resolveFormatDescriptorCandidates(descriptors, ext, options)
  */
 function createAmbiguousResourceTypeError(requirement, candidates)
 {
-  const names = [ ...candidates ].map(Constructor => Constructor.name || "resource");
+  const names = [ ...candidates ].map(Constructor => CjsSchema.getClassName(Constructor));
   const error = new Error(
     `Ambiguous resource types registered for requirement ${JSON.stringify(requirement)}: `
     + `${names.join(", ")}. Register an extension handler to select the concrete `

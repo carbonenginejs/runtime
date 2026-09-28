@@ -155,7 +155,7 @@ export class DictReader extends IRootReaderBase
     if (!IsPlainObject(source)) this._ThrowError("Expected a dictionary");
 
     const Constructor = this._ResolveClass(source._type, Declared);
-    this._contextStack[this._contextStack.length - 1] += `(${CjsSchema.getClassName(Constructor) ?? Constructor.name})`;
+    this._contextStack[this._contextStack.length - 1] += `(${CjsSchema.getClassName(Constructor)})`;
 
     // A class's own `from` is its factory; it reads through a reader sharing
     // this one's anchors.

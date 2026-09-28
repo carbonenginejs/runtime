@@ -67,7 +67,7 @@ export class IRootReaderBase
     const field = this.FindEntry(attributeName, instance.constructor);
     if (!field)
     {
-      throw new InvalidAttributeException(`Invalid attribute: ${attributeName} on ${CjsSchema.getClassName(instance.constructor) ?? instance.constructor.name}`);
+      throw new InvalidAttributeException(`Invalid attribute: ${attributeName} on ${CjsSchema.getClassName(instance.constructor)}`);
     }
     if (!CjsSchema.isFieldWritable(field)) return false;
 
