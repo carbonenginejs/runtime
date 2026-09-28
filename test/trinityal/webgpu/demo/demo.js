@@ -335,21 +335,20 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   style.textContent = `
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-regular.otf") format("opentype"); font-weight: 400; }
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-bold.otf") format("opentype"); font-weight: 700; }
-    #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: min(920px, calc(100vw - 24px)); box-sizing: border-box; padding: 8px 10px;
+    #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: min(400px, calc(100vw - 24px)); box-sizing: border-box; padding: 8px 10px;
                 background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
                 font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
     #settings summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     #settings summary { cursor: pointer; }
     #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-width: 0; }
     #settings select { max-width: 60%; min-width: 0; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
-    #settings .columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px 18px; }
+    #settings .columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
     #settings .column { min-width: 0; }
     #settings .column h4 { margin: 4px 0 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge { margin: 0 0 4px; font-size: 11px; line-height: 1.5; color: #aab3c2; }
     #settings .group { margin: 4px 0 6px; padding: 2px 6px 4px; border: 1px solid #2a3444; border-radius: 3px; }
     #settings .group h5 { margin: 0; font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    @media (max-width: 900px) { #settings .columns { grid-template-columns: minmax(0, 1fr); } }
     #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
     #settings .note { color: #8a93a3; }
     #settings .fields { margin: 0 0 4px 10px; color: #aab3c2; }
@@ -370,8 +369,8 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   panel.innerHTML = `<summary>Settings</summary>`;
   document.body.append(panel);
 
-  // THREE COLUMNS BY TOPIC: scene and post, ship, sun and engine. Rows land in
-  // the current column; the grid stacks them when the window is narrow.
+  // ONE COLUMN IN TOPIC SECTIONS - scene and post, ship, sun and engine - each
+  // holding titled groups of related controls (operator, 2026-09-28).
   const grid = document.createElement("div");
   grid.className = "columns";
   panel.append(grid);
