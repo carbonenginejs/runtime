@@ -17,7 +17,7 @@
 // - isLoop(eventName) - loop flag source (usually the static data repository).
 import * as CcpLog from "../global/logging/ccpLog.js";
 import { CjsSchema, impl } from "#schema";
-import { ICjsAudioBackend } from "./ICjsAudioBackend.js";
+import { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
 import { CjsAudioBackendSfxControls } from "./internal/CjsAudioBackendSfxControls.js";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {
@@ -91,7 +91,7 @@ const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
  *
  * Shared-bus route qualification is all-or-nothing.
  */
-export class CjsAudioBackend extends ICjsAudioBackend
+export class CjsWebAudioSoundEngine extends ICjsWwiseSoundEngine
 {
     _context = null;
 
@@ -528,7 +528,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         CcpLog.CCP_LOGWARN_CH(
             CcpLog.GetModuleChannel("audio"),
             "%s",
-            "CjsAudioBackend: spatial-audio geometry is not ported yet; geometry is ignored"
+            "CjsWebAudioSoundEngine: spatial-audio geometry is not ported yet; geometry is ignored"
         );
     }
 
@@ -9947,8 +9947,8 @@ function EvaluateCrossfadeGain(from, to, progress, mode)
     return from + (to - from) * ratio;
 }
 
-CjsSchema.define(CjsAudioBackend, { className: "CjsAudioBackend", family: "audio", fields: {} });
+CjsSchema.define(CjsWebAudioSoundEngine, { className: "CjsWebAudioSoundEngine", family: "audio", fields: {} });
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
-    CjsSchema.decorateMethod(CjsAudioBackend, method, impl.notImplemented);
+    CjsSchema.decorateMethod(CjsWebAudioSoundEngine, method, impl.notImplemented);
 }

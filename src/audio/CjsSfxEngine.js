@@ -1,7 +1,7 @@
 // CarbonEngineJS original (no Carbon counterpart). Browser-safe interpreter
 // for the optional authored SFX program installed with one audio library.
 // It selects media identities only; CjsAudioMan retains ownership of delivery
-// and decode, while CjsAudioBackend owns Web Audio voices.
+// and decode, while CjsWebAudioSoundEngine owns Web Audio voices.
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import { CjsSfxEngineRtpcOverlayControls } from "./internal/CjsSfxEngineRtpcOverlayControls.js";
 import {

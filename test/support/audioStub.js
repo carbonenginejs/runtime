@@ -2,7 +2,7 @@
 // manager, with a test's overrides on top. A method a test does not override
 // behaves as it does for any caller - the stub keeps coherent state - instead
 // of silently doing nothing.
-import { AudManager, CjsAudioBackendStub, ICjsAudioGlobalReaders, ICjsMusicEngine, ICjsSfxControls } from "../../npm/dist/audio/index.js";
+import { AudManager, CjsWwiseSoundEngineStub, ICjsAudioGlobalReaders, ICjsMusicEngine, ICjsSfxControls } from "../../npm/dist/audio/index.js";
 
 /** Puts each override on the instance as its own property, shadowing a method or an accessor. */
 function Override(instance, overrides)
@@ -15,9 +15,9 @@ function Override(instance, overrides)
 }
 
 /** A headless audio backend with the test's overrides. */
-export function AudioBackendStubWith(overrides = {})
+export function WwiseSoundEngineStubWith(overrides = {})
 {
-    return Override(new CjsAudioBackendStub(), overrides);
+    return Override(new CjsWwiseSoundEngineStub(), overrides);
 }
 
 /** A real AudManager with the test's overrides. */

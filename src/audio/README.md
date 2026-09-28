@@ -37,7 +37,7 @@ Playback imports the WEM format lazily, only when original WEM bytes need
 preparing.
 
 The application's SFX and music sliders are separate category gains
-(`CjsAudioBackend.SetSfxVolume`, `CjsMusicEngine.SetMusicVolume`, through
+(`CjsWebAudioSoundEngine.SetSfxVolume`, `CjsMusicEngine.SetMusicVolume`, through
 `busMixer.SetCategoryVolume`). Bus Volume actions, Voice/Bus Volume RTPCs and
 Bus Volume States never move them.
 
@@ -54,7 +54,7 @@ Owned elsewhere:
 ## SFX program playback
 
 `CjsSfxEngine` resolves an installed `sfx` program into selections;
-`CjsAudioBackend` schedules its actions and owns the voices. The document
+`CjsWebAudioSoundEngine` schedules its actions and owns the voices. The document
 shape and the per-kind validation rules live in `library/README.md`.
 
 **Scheduling.** Every delayed action (Stop, Pause, Resume, property setters,

@@ -6,7 +6,7 @@
 import { CjsSchema, impl } from "#schema";
 
 /**
- * What `CjsAudioBackend` and `CjsAudioSystem` call on a music engine. Every
+ * What `CjsWebAudioSoundEngine` and `CjsAudioSystem` call on a music engine. Every
  * method is required; an engine with nothing to do for one says so in its own
  * body. `CjsMusicEngine` implements it, and a host-injected engine must too.
  */

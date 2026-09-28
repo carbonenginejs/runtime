@@ -4,10 +4,10 @@
 // trinityal stub keeps AL state without a device. Node hosts and tests use it.
 // Name held for the operator (docs research/audio-backend-interface.md).
 import { CjsSchema, impl } from "#schema";
-import { ICjsAudioBackend } from "./ICjsAudioBackend.js";
+import { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
 
-/** A headless `ICjsAudioBackend`: coherent state, no sound. */
-export class CjsAudioBackendStub extends ICjsAudioBackend
+/** A headless `ICjsWwiseSoundEngine`: coherent state, no sound. */
+export class CjsWwiseSoundEngineStub extends ICjsWwiseSoundEngine
 {
     /** Whether Init has run. */
     _initialized = false;
@@ -275,8 +275,8 @@ export class CjsAudioBackendStub extends ICjsAudioBackend
     }
 }
 
-CjsSchema.define(CjsAudioBackendStub, { className: "CjsAudioBackendStub", family: "audio", fields: {} });
+CjsSchema.define(CjsWwiseSoundEngineStub, { className: "CjsWwiseSoundEngineStub", family: "audio", fields: {} });
 for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
 {
-    CjsSchema.decorateMethod(CjsAudioBackendStub, method, impl.notImplemented);
+    CjsSchema.decorateMethod(CjsWwiseSoundEngineStub, method, impl.notImplemented);
 }

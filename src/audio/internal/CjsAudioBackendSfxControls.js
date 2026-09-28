@@ -18,7 +18,7 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
     _record = null;
 
     /**
-     * @param {import("../CjsAudioBackend.js").CjsAudioBackend} backend - Owning backend.
+     * @param {import("../CjsWebAudioSoundEngine.js").CjsWebAudioSoundEngine} backend - Owning backend.
      * @param {number} gameObjID - Posting game object.
      * @param {AbortSignal|null} signal - The post's signal.
      * @param {number} playingID - The post's playing id.

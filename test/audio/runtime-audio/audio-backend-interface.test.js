@@ -1,14 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsAudioBackend, CjsAudioBackendStub, ICjsAudioBackend } from "../../../npm/dist/audio/index.js";
+import { CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub, ICjsWwiseSoundEngine } from "../../../npm/dist/audio/index.js";
 
-const METHODS = Object.getOwnPropertyNames(ICjsAudioBackend.prototype).filter(name => name !== "constructor");
+const METHODS = Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype).filter(name => name !== "constructor");
 
-test("both backends implement every ICjsAudioBackend method themselves", () =>
+test("both backends implement every ICjsWwiseSoundEngine method themselves", () =>
 {
   // An inherited method would be the interface's throwing default.
   assert.equal(METHODS.length, 26);
-  for (const Backend of [ CjsAudioBackend, CjsAudioBackendStub ])
+  for (const Backend of [ CjsWebAudioSoundEngine, CjsWwiseSoundEngineStub ])
   {
     const missing = METHODS.filter(name => !Object.hasOwn(Backend.prototype, name));
     assert.deepEqual(missing, [], `${Backend.name} lacks ${missing.join(", ")}`);
@@ -17,7 +17,7 @@ test("both backends implement every ICjsAudioBackend method themselves", () =>
 
 test("the headless backend keeps coherent state and makes no sound", () =>
 {
-  const backend = new CjsAudioBackendStub();
+  const backend = new CjsWwiseSoundEngineStub();
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
 

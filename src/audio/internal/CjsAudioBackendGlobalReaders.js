@@ -1,12 +1,12 @@
 import { CjsSchema } from "#schema";
 import { ICjsAudioGlobalReaders } from "../ICjsAudioGlobalReaders.js";
 
-/** Reads global RTPC and State values from one `CjsAudioBackend`. */
+/** Reads global RTPC and State values from one `CjsWebAudioSoundEngine`. */
 export class CjsAudioBackendGlobalReaders extends ICjsAudioGlobalReaders
 {
     _backend = null;
 
-    /** @param {import("../CjsAudioBackend.js").CjsAudioBackend} backend */
+    /** @param {import("../CjsWebAudioSoundEngine.js").CjsWebAudioSoundEngine} backend */
     constructor(backend)
     {
         super();

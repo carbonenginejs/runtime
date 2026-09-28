@@ -10,9 +10,9 @@ import { CjsSchema, impl } from "#schema";
  * What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...)
  * calls on `AudGameObjResource.backend`. Every method is required; an
  * implementation with nothing to do for one says so in its own body.
- * `CjsAudioBackend` (Web Audio) and `CjsAudioBackendStub` (headless) implement it.
+ * `CjsWebAudioSoundEngine` (Web Audio) and `CjsWwiseSoundEngineStub` (headless) implement it.
  */
-export class ICjsAudioBackend
+export class ICjsWwiseSoundEngine
 {
 
     /**
@@ -22,7 +22,7 @@ export class ICjsAudioBackend
      */
     Init()
     {
-        throw new Error("ICjsAudioBackend.Init must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.Init must be overridden by an audio backend.");
     }
 
     /**
@@ -33,7 +33,7 @@ export class ICjsAudioBackend
      */
     LoadBank(_name, _callback)
     {
-        throw new Error("ICjsAudioBackend.LoadBank must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.LoadBank must be overridden by an audio backend.");
     }
 
     /**
@@ -44,13 +44,13 @@ export class ICjsAudioBackend
      */
     UnloadBank(_name, _callback)
     {
-        throw new Error("ICjsAudioBackend.UnloadBank must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.UnloadBank must be overridden by an audio backend.");
     }
 
     /** Unloads every bank (`AK::SoundEngine::ClearBanks`). */
     ClearBanks()
     {
-        throw new Error("ICjsAudioBackend.ClearBanks must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.ClearBanks must be overridden by an audio backend.");
     }
 
     /**
@@ -60,7 +60,7 @@ export class ICjsAudioBackend
      */
     RegisterGameObj(_gameObjID)
     {
-        throw new Error("ICjsAudioBackend.RegisterGameObj must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.RegisterGameObj must be overridden by an audio backend.");
     }
 
     /**
@@ -70,7 +70,7 @@ export class ICjsAudioBackend
      */
     UnregisterGameObj(_gameObjID)
     {
-        throw new Error("ICjsAudioBackend.UnregisterGameObj must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.UnregisterGameObj must be overridden by an audio backend.");
     }
 
     /**
@@ -85,7 +85,7 @@ export class ICjsAudioBackend
      */
     PostEvent(_eventID, _gameObjID, _additionalFlags, _emitter, _eventName)
     {
-        throw new Error("ICjsAudioBackend.PostEvent must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.PostEvent must be overridden by an audio backend.");
     }
 
     /**
@@ -97,7 +97,7 @@ export class ICjsAudioBackend
      */
     ExecuteActionOnPlayingID(_action, _playingID, _fadeOutDuration)
     {
-        throw new Error("ICjsAudioBackend.ExecuteActionOnPlayingID must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.ExecuteActionOnPlayingID must be overridden by an audio backend.");
     }
 
     /**
@@ -107,7 +107,7 @@ export class ICjsAudioBackend
      */
     SeekOnEventMs(_playingID, _msToSeek)
     {
-        throw new Error("ICjsAudioBackend.SeekOnEventMs must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SeekOnEventMs must be overridden by an audio backend.");
     }
 
     /**
@@ -117,13 +117,13 @@ export class ICjsAudioBackend
      */
     SeekOnEventPercent(_playingID, _percentToSeek)
     {
-        throw new Error("ICjsAudioBackend.SeekOnEventPercent must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SeekOnEventPercent must be overridden by an audio backend.");
     }
 
     /** Places a game object (`AK::SoundEngine::SetPosition`). */
     SetPosition(_gameObjID, _front, _top, _position)
     {
-        throw new Error("ICjsAudioBackend.SetPosition must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetPosition must be overridden by an audio backend.");
     }
 
     /**
@@ -133,7 +133,7 @@ export class ICjsAudioBackend
      */
     SetListenerPosition(_gameObjID, _front, _top, _position)
     {
-        throw new Error("ICjsAudioBackend.SetListenerPosition must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetListenerPosition must be overridden by an audio backend.");
     }
 
     /**
@@ -143,13 +143,13 @@ export class ICjsAudioBackend
      */
     SetScalingFactor(_gameObjID, _value)
     {
-        throw new Error("ICjsAudioBackend.SetScalingFactor must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetScalingFactor must be overridden by an audio backend.");
     }
 
     /** Sets a game object's switch (`AK::SoundEngine::SetSwitch`). */
     SetSwitch(_switchGroup, _switchState, _gameObjID)
     {
-        throw new Error("ICjsAudioBackend.SetSwitch must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetSwitch must be overridden by an audio backend.");
     }
 
     /**
@@ -159,7 +159,7 @@ export class ICjsAudioBackend
      */
     SetRTPCValue(_rtpcName, _value, _gameObjID)
     {
-        throw new Error("ICjsAudioBackend.SetRTPCValue must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetRTPCValue must be overridden by an audio backend.");
     }
 
     /**
@@ -169,7 +169,7 @@ export class ICjsAudioBackend
      */
     SetGlobalRTPCValue(_rtpcName, _value)
     {
-        throw new Error("ICjsAudioBackend.SetGlobalRTPCValue must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetGlobalRTPCValue must be overridden by an audio backend.");
     }
 
     /**
@@ -179,13 +179,13 @@ export class ICjsAudioBackend
      */
     GetGlobalRTPCValue(_rtpcName, _at)
     {
-        throw new Error("ICjsAudioBackend.GetGlobalRTPCValue must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.GetGlobalRTPCValue must be overridden by an audio backend.");
     }
 
     /** Sets a global state (`AK::SoundEngine::SetState`). */
     SetGlobalState(_stateGroup, _stateName)
     {
-        throw new Error("ICjsAudioBackend.SetGlobalState must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetGlobalState must be overridden by an audio backend.");
     }
 
     /**
@@ -196,7 +196,7 @@ export class ICjsAudioBackend
      */
     SetObjectObstructionAndOcclusion(_gameObjID, _listenerID, _obstruction, _occlusion)
     {
-        throw new Error("ICjsAudioBackend.SetObjectObstructionAndOcclusion must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetObjectObstructionAndOcclusion must be overridden by an audio backend.");
     }
 
     /**
@@ -206,13 +206,13 @@ export class ICjsAudioBackend
      */
     GetSourcePlayPosition(_playingID)
     {
-        throw new Error("ICjsAudioBackend.GetSourcePlayPosition must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.GetSourcePlayPosition must be overridden by an audio backend.");
     }
 
     /** Advances the engine one tick (`AK::SoundEngine::RenderAudio`). */
     RenderAudio()
     {
-        throw new Error("ICjsAudioBackend.RenderAudio must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.RenderAudio must be overridden by an audio backend.");
     }
 
     /**
@@ -222,7 +222,7 @@ export class ICjsAudioBackend
      */
     InitSpatialAudioGeometry(_settings)
     {
-        throw new Error("ICjsAudioBackend.InitSpatialAudioGeometry must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.InitSpatialAudioGeometry must be overridden by an audio backend.");
     }
 
     /**
@@ -232,7 +232,7 @@ export class ICjsAudioBackend
      */
     SetGeometry(_geometrySetId, _params)
     {
-        throw new Error("ICjsAudioBackend.SetGeometry must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetGeometry must be overridden by an audio backend.");
     }
 
     /**
@@ -242,26 +242,26 @@ export class ICjsAudioBackend
      */
     SetGeometryInstance(_geometryInstanceId, _params)
     {
-        throw new Error("ICjsAudioBackend.SetGeometryInstance must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.SetGeometryInstance must be overridden by an audio backend.");
     }
 
     /** Removes a geometry set (`AK::SpatialAudio::RemoveGeometry`). */
     RemoveGeometry(_geometrySetId)
     {
-        throw new Error("ICjsAudioBackend.RemoveGeometry must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.RemoveGeometry must be overridden by an audio backend.");
     }
 
     /** Removes a geometry instance (`AK::SpatialAudio::RemoveGeometryInstance`). */
     RemoveGeometryInstance(_geometryInstanceId)
     {
-        throw new Error("ICjsAudioBackend.RemoveGeometryInstance must be overridden by an audio backend.");
+        throw new Error("ICjsWwiseSoundEngine.RemoveGeometryInstance must be overridden by an audio backend.");
     }
 
 }
 
-for (const method of Object.getOwnPropertyNames(ICjsAudioBackend.prototype))
+for (const method of Object.getOwnPropertyNames(ICjsWwiseSoundEngine.prototype))
 {
-    if (method !== "constructor") CjsSchema.decorateMethod(ICjsAudioBackend, method, impl.abstract);
+    if (method !== "constructor") CjsSchema.decorateMethod(ICjsWwiseSoundEngine, method, impl.abstract);
 }
 
-CjsSchema.define(ICjsAudioBackend, { className: "ICjsAudioBackend", family: "audio", fields: {} });
+CjsSchema.define(ICjsWwiseSoundEngine, { className: "ICjsWwiseSoundEngine", family: "audio", fields: {} });

@@ -11,7 +11,7 @@ import { AudEmitter } from "./trinity/audio/AudEmitter.js";
 import { AudManager } from "./trinity/audio/AudManager.js";
 import { AudStaticDataRepository } from "./trinity/audio/AudStaticDataRepository.js";
 import { AudioCurveSetDriver } from "./trinity/audio/AudioCurveSetDriver.js";
-import { CjsAudioBackend } from "./CjsAudioBackend.js";
+import { CjsWebAudioSoundEngine } from "./CjsWebAudioSoundEngine.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
 import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 import { CjsAudioBackendGlobalReaders } from "./internal/CjsAudioBackendGlobalReaders.js";
@@ -286,7 +286,7 @@ export class CjsAudioSystem
                 this._busDuckingController = new CjsBusDuckingController(
                     this._busDucking,
                 );
-                this.backend = new CjsAudioBackend({
+                this.backend = new CjsWebAudioSoundEngine({
                     context,
                     loadBuffer: this._loadBuffer,
                     isLoop: eventName => this.repository.EventIsLoop(eventName),

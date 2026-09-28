@@ -1,5 +1,5 @@
 // CarbonEngineJS original (no Carbon counterpart). Internal admission-token
-// owner for CjsAudioBackend's qualified authored-SFX Sound caps.
+// owner for CjsWebAudioSoundEngine's qualified authored-SFX Sound caps.
 
 /** Owns backend SFX voice-limit reservations and their owner/key invariants. */
 export class CjsAudioBackendSfxVoiceLimitLedger

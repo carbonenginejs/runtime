@@ -1,5 +1,5 @@
 import test from "node:test";
-import { AudioBackendStubWith, AudioManagerWith } from "../../support/audioStub.js";
+import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
 import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import {
@@ -140,7 +140,7 @@ test("missing attenuation metadata cannot silence a one-shot at the listener", (
     GetSoundBankStatus: () => "loaded",
     LogPostEvent() {},
   });
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     RegisterGameObj() {},
     SetPosition() {},
     SetScalingFactor() {},
@@ -234,7 +234,7 @@ test("AudManager refreshes monitored RTPC values after each enabled render", asy
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RenderAudio: () => order.push("render"),
@@ -281,7 +281,7 @@ test("AudioCurveSetDriver deterministically releases its monitored watcher", asy
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
   });
@@ -334,7 +334,7 @@ test("AudManager lifecycle: enable, async bank load, deferred-event flush with b
   const manager = new AudManager();
   AudGameObjResource.manager = manager;
   const posted = [];
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     PostEvent: eventID => (posted.push(eventID), 100 + posted.length),
     // Loads stay pending: the test completes them through UpdateSoundBankStatus.
     LoadBank: () => {}
@@ -389,7 +389,7 @@ test("permanent unregister purges deferred bank posts while culling preserves th
   });
   AudGameObjResource.staticDataRepository = repository;
   const posted = [];
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank() {},
     PostEvent: eventID =>
@@ -459,7 +459,7 @@ test("AudManager ignores stale asynchronous bank callbacks", async () =>
 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     LoadBank(name, callback)
     {
       loads.push({ name, callback });
@@ -524,7 +524,7 @@ test("StretchAudio projects the listener onto the beam segment", async () =>
   AudGameObjResource.manager = manager;
   // Minimal backend so Enable succeeds: a true-null (backendless) manager
   // stays un-enabled by contract, and this test wants the enabled premise.
-  AudGameObjResource.backend = AudioBackendStubWith();
+  AudGameObjResource.backend = WwiseSoundEngineStubWith();
   try
   {
     manager.Enable([]);
@@ -592,7 +592,7 @@ test("AudManager exposes portable culling/debug methods and marks native device 
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith();
+  AudGameObjResource.backend = WwiseSoundEngineStubWith();
   try
   {
     manager.Enable();
@@ -630,7 +630,7 @@ test("a non-finite position cannot wake, and the awake set is enumerable without
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith();
+  AudGameObjResource.backend = WwiseSoundEngineStubWith();
   try
   {
     manager.Enable();

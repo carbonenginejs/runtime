@@ -38,7 +38,7 @@ test("the audio/trinity entry exposes graph classes without device side effects"
   {
     assert.ok(names.includes(expected), `graph class ${expected} is exported`);
   }
-  assert.ok(!names.includes("CjsAudioBackend"));
+  assert.ok(!names.includes("CjsWebAudioSoundEngine"));
   assert.ok(!names.includes("CjsAudioSystem"));
   assert.ok(!names.includes("audioMetadataFromSoundbanksInfo"));
   assert.equal(typeof globalThis.AudioContext, "undefined");
@@ -47,7 +47,7 @@ test("the audio/trinity entry exposes graph classes without device side effects"
   for (const file of await walkJsFiles(path.join(root, "npm", "dist", "audio", "trinity")))
   {
     const text = await fs.readFile(file, "utf8");
-    assert.ok(!text.includes("CjsAudioBackend") && !text.includes("CjsAudioSystem"),
+    assert.ok(!text.includes("CjsWebAudioSoundEngine") && !text.includes("CjsAudioSystem"),
       `${path.relative(root, file)} must not reference realization modules`);
   }
 });

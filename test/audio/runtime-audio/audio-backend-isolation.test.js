@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { CjsAudioBackend, CjsSfxEngine } from "../../../npm/dist/audio/index.js";
+import { CjsWebAudioSoundEngine, CjsSfxEngine } from "../../../npm/dist/audio/index.js";
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
@@ -267,7 +267,7 @@ function Harness({
   const resolvedBusMixer = busMixerFactory?.(context) ?? busMixer;
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
-  const backend = new CjsAudioBackend({
+  const backend = new CjsWebAudioSoundEngine({
     context,
     loadBuffer: loadBuffer ?? (async () => ({ fake: "buffer" })),
     isLoop: isLoop ?? (eventName => String(eventName).includes("loop")),
@@ -2614,7 +2614,7 @@ test("Crossfade fails closed when no transactional preparation provider exists",
     },
   ];
   const context = FakeContext();
-  const backend = new CjsAudioBackend({
+  const backend = new CjsWebAudioSoundEngine({
     context,
     resolveSfxProgram: () => play(0),
     continueSfxProgram: () =>
@@ -2860,7 +2860,7 @@ test("a Crossfade successor start failure discards its batch and settles", async
     EventFinishedCallback: playingID =>
       finished.push(playingID),
   };
-  const backend = new CjsAudioBackend({
+  const backend = new CjsWebAudioSoundEngine({
     context,
     resolveSfxProgram: () => play(0),
     prepareSfxProgram: () => ({

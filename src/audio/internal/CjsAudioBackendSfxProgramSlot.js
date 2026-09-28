@@ -1,5 +1,5 @@
 // CarbonEngineJS original (no Carbon counterpart). Internal state owners for
-// CjsAudioBackend's realized authored-SFX continuation slots and batches.
+// CjsWebAudioSoundEngine's realized authored-SFX continuation slots and batches.
 
 /** Owns one backend SFX program slot and its cancellation state. */
 export class CjsAudioBackendSfxProgramSlot

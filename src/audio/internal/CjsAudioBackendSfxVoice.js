@@ -1,5 +1,5 @@
 // CarbonEngineJS original (no Carbon counterpart). Internal realized-voice
-// state owner for CjsAudioBackend's authored SFX playback.
+// state owner for CjsWebAudioSoundEngine's authored SFX playback.
 
 /** Owns one realized SFX voice's authored, runtime, and Web Audio state. */
 export class CjsAudioBackendSfxVoice

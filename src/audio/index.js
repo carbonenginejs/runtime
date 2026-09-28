@@ -4,7 +4,7 @@
  * Composition: `CjsAudioMan` is the public root. It installs one complete
  * schema-v2 library document, takes one structural media provider, and
  * composes `CjsAudioSystem`, which owns `AudManager`,
- * `AudStaticDataRepository`, `CjsAudioBackend` (Web Audio) and an optional
+ * `AudStaticDataRepository`, `CjsWebAudioSoundEngine` (Web Audio) and an optional
  * music engine. Specialized hosts may use `CjsAudioSystem` directly.
  * Format parsing (WEM, BNK, Ogg) belongs to the resource package.
  *
@@ -19,9 +19,9 @@ export * from "./trinity/index.js";
 
 // CarbonEngineJS-original realization layer (WebAudio). Importing these does
 // NOT create an AudioContext - construction stays headless until Enable().
-export { CjsAudioBackend } from "./CjsAudioBackend.js";
-export { ICjsAudioBackend } from "./ICjsAudioBackend.js";
-export { CjsAudioBackendStub } from "./CjsAudioBackendStub.js";
+export { CjsWebAudioSoundEngine } from "./CjsWebAudioSoundEngine.js";
+export { ICjsWwiseSoundEngine } from "./ICjsWwiseSoundEngine.js";
+export { CjsWwiseSoundEngineStub } from "./CjsWwiseSoundEngineStub.js";
 export { ICjsMusicEngine } from "./ICjsMusicEngine.js";
 export { ICjsAudioGlobalReaders } from "./ICjsAudioGlobalReaders.js";
 export { ICjsSfxControls } from "./ICjsSfxControls.js";

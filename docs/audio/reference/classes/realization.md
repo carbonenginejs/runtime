@@ -5,26 +5,6 @@ Scope: `@carbonenginejs/runtime/audio` classes under `src/audio/`
 Audience: Users, maintainers, and automated readers  
 Summary: Provides one-sentence purpose descriptors for realization and music classes.
 
-<!-- class:CjsAudioBackend -->
-## `CjsAudioBackend`
-
-WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose.
-
-- Export: `@carbonenginejs/runtime/audio`
-- Source: `src/audio/CjsAudioBackend.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsAudioBackendStub -->
-## `CjsAudioBackendStub`
-
-A headless `ICjsAudioBackend`: coherent state, no sound.
-
-- Export: `@carbonenginejs/runtime/audio`
-- Source: `src/audio/CjsAudioBackendStub.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
-
 <!-- class:CjsAudioMan -->
 ## `CjsAudioMan`
 
@@ -111,13 +91,23 @@ Owns speculative SFX selection leases, snapshots, and settlement.
 - Visibility: Internal
 - Kind: CarbonEngineJS
 
-<!-- class:ICjsAudioBackend -->
-## `ICjsAudioBackend`
+<!-- class:CjsWebAudioSoundEngine -->
+## `CjsWebAudioSoundEngine`
 
-What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...) calls on `AudGameObjResource.backend`.
+WebAudio backend for the audio graph: emitter nodes, playing sources, listener pose.
 
 - Export: `@carbonenginejs/runtime/audio`
-- Source: `src/audio/ICjsAudioBackend.js`
+- Source: `src/audio/CjsWebAudioSoundEngine.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:CjsWwiseSoundEngineStub -->
+## `CjsWwiseSoundEngineStub`
+
+A headless `ICjsWwiseSoundEngine`: coherent state, no sound.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/CjsWwiseSoundEngineStub.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -134,7 +124,7 @@ The global RTPC and State values the shared bus mixer and the music engine read.
 <!-- class:ICjsMusicEngine -->
 ## `ICjsMusicEngine`
 
-What `CjsAudioBackend` and `CjsAudioSystem` call on a music engine.
+What `CjsWebAudioSoundEngine` and `CjsAudioSystem` call on a music engine.
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/ICjsMusicEngine.js`
@@ -148,6 +138,16 @@ One SFX post's live evaluation context: what `CjsSfxEngine` and `CjsAudioMan` re
 
 - Export: `@carbonenginejs/runtime/audio`
 - Source: `src/audio/ICjsSfxControls.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
+<!-- class:ICjsWwiseSoundEngine -->
+## `ICjsWwiseSoundEngine`
+
+What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...) calls on `AudGameObjResource.backend`.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/ICjsWwiseSoundEngine.js`
 - Visibility: Public
 - Kind: CarbonEngineJS
 
@@ -181,7 +181,7 @@ Owns stable, generation-scoped handles into one installed Audio Bus graph.
 <!-- class:CjsAudioBackendGlobalReaders -->
 ## `CjsAudioBackendGlobalReaders`
 
-Reads global RTPC and State values from one `CjsAudioBackend`.
+Reads global RTPC and State values from one `CjsWebAudioSoundEngine`.
 
 - Source: `src/audio/internal/CjsAudioBackendGlobalReaders.js`
 - Visibility: Internal

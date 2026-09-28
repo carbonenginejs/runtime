@@ -1,5 +1,5 @@
 import test from "node:test";
-import { AudioBackendStubWith, AudioManagerWith } from "../../support/audioStub.js";
+import { WwiseSoundEngineStubWith, AudioManagerWith } from "../../support/audioStub.js";
 import assert from "node:assert/strict";
 import {
   AudActionLogCB,
@@ -46,7 +46,7 @@ test("game-object controls propagate Wwise-compatible value failures", () =>
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -102,7 +102,7 @@ test("AudActionLogCB receives Carbon-shaped records from live manager and emitte
   manager.log = log;
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -184,7 +184,7 @@ test("portable stop relationships dispatch the backend action Wwise normally own
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -240,7 +240,7 @@ test("authored Stop programs suppress the duplicate metadata stop dispatch", () 
 
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     RegisterGameObj: () => {},
@@ -351,7 +351,7 @@ test("AudObstructionOcclusion preserves Carbon fade, cull, retry, and clear sema
       return true;
     },
   });
-  const backend = AudioBackendStubWith({
+  const backend = WwiseSoundEngineStubWith({
     SetObjectObstructionAndOcclusion(...args)
     {
       sends.push(args);
@@ -445,7 +445,7 @@ test("AudManager owns obstruction lifecycle and delivers it before render", () =
   repository.Initialize({ Events: {}, SoundBanks: {}, WemFileIDs: {} });
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     Init: () => true,
     LoadBank: (_name, callback) => callback(true),
     SetObjectObstructionAndOcclusion(...args)
@@ -509,7 +509,7 @@ test("pre-enabled spatial geometry participates in Carbon manager initialization
   manager.SetSpatialAudioGeometryEnabled(true);
   AudGameObjResource.manager = manager;
   AudGameObjResource.staticDataRepository = repository;
-  const createBackend = () => AudioBackendStubWith({
+  const createBackend = () => WwiseSoundEngineStubWith({
     Init: () => true,
     InitSpatialAudioGeometry(settings)
     {
@@ -570,7 +570,7 @@ test("AudGeometry preserves Carbon set reference counts and RH-to-LH backend pro
   const manager = new AudManager();
   manager.SetSpatialAudioGeometryEnabled(true);
   AudGameObjResource.manager = manager;
-  AudGameObjResource.backend = AudioBackendStubWith({
+  AudGameObjResource.backend = WwiseSoundEngineStubWith({
     SetGeometry: (id, params) => calls.push([ "set", id, params ]),
     SetGeometryInstance: (id, params) => calls.push([ "instance", id, params ]),
     RemoveGeometryInstance: id => calls.push([ "remove-instance", id ]),
