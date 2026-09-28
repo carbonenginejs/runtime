@@ -3023,6 +3023,12 @@ export async function RunDemo(canvas)
     // (spotlights, planes, boosters, sprite sets) never reach a shader.
     // ?dynamicLights=0 renders without them.
     Tr2Renderer.getSettings().SetValue("eveSpaceSceneDynamicLighting", new URLSearchParams(globalThis.location?.search ?? "").get("dynamicLights") !== "0");
+    // THE CLIENT'S SETTINGS PROFILE, applied before any renderer exists: the
+    // client turns Carbon's g_newBloom (default true, Tr2PostProcessRenderer.cpp:23-24)
+    // off at startup, because the new bloom does not suit its textures. Each
+    // renderer copies it into m_useNewBloom at construction (cpp:525).
+    // ?newBloom=1 restores Carbon's default for comparison.
+    Tr2Renderer.getSettings().SetValue("newBloom", new URLSearchParams(globalThis.location?.search ?? "").get("newBloom") === "1");
     ship = await BuildSofShip(DNA);
     ship.displayKillCounterValue = KILLS;
     const banners = ApplyDemoBanners(ship);
@@ -3508,6 +3514,9 @@ export async function RunDemo(canvas)
   }
 
   const driver = new EveSpaceSceneRenderDriver().SetBatchManager(batchManager);
+  // demo.driver: the render driver, for console checks (its postProcess is
+  // the Tr2PostProcessRenderer, e.g. demo.driver.postProcess.useNewBloom).
+  globalThis.demo.driver = driver;
 
   // The driver's m_ssao is set from outside in Carbon too; aoQuality (the
   // settings panel's "ambient occlusion") enables it.
