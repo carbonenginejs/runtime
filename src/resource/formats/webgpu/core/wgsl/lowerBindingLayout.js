@@ -731,9 +731,13 @@ export function lowerBindingLayout(
     const planned = normalizeBindingPlan(bindingPlan, program.stage);
     // A plan carries the view formats it was built with, so emitting from it
     // reads each typed buffer the way the plan declared it.
+    // Signed atomic words (a table R32_SINT buffer such as ParticleCounters)
+    // carry their signedness in the planned type, which the backend block
+    // already stores; the typed-view enum there has no R32_SINT.
     for (const [ identity, entry ] of planned?.bindings || [])
     {
         if (entry.typedView) policy.typedViews.set(identity, entry.typedView);
+        if (entry.type === "array<atomic<i32>>") policy.signedAtomicI32Identities.add(identity);
     }
     const explicitTransforms = normalizeResourceTransformPlan(resourceTransformPlan);
     if (planned?.resourceTransformPlan && explicitTransforms

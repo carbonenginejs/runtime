@@ -1137,8 +1137,12 @@ export function lowerComputeProgram(program, options = {})
     // No profile claims it. The exact scalar-word path keeps the programs it
     // was written for; anything using more lowers through the general
     // instruction set shared with the fragment stage.
+    // The declarations must be the path's exact sequence, as its validator
+    // requires: a subset (particle update's ClearCounters has no SRV and no
+    // temps) belongs to the general path.
     const scalarWordShape = program.instructions.every((instruction) => SUPPORTED_OPCODES.has(instruction.opcodeName))
-        && program.declarations.every((declaration) => DECLARATION_OPCODES.includes(declaration.opcodeName))
+        && program.declarations.length === DECLARATION_OPCODES.length
+        && program.declarations.every((declaration, index) => declaration.opcodeName === DECLARATION_OPCODES[index])
         && program.bindings.every((binding) => binding.resourceKind !== "storage-resource"
             || binding.resourceDimension === "buffer");
     if (scalarWordShape)

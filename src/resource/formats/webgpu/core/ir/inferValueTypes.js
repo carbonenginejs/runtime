@@ -106,6 +106,17 @@ function ruleFor(opcodeName, program, instruction)
             sourceByOperand: { 1: "uint32", 2: "uint32" }
         };
     }
+    if (opcodeName === "imm_atomic_iadd")
+    {
+        // The returned old value and the addend are the UAV's element type
+        // (sint for a signed counter such as ParticleCounters).
+        const element = bindingResultType(program, instruction, "uav", "storage-resource");
+        return {
+            name: "atomic-add-returning",
+            destination: element,
+            sourceByOperand: { 2: "uint32", 3: element }
+        };
+    }
     if (opcodeName === "store_uav_typed")
     {
         return {

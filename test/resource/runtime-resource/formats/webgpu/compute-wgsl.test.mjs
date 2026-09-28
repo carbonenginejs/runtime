@@ -6,6 +6,8 @@ import { readFileSync } from "node:fs";
 import CjsWebgpuFormat from "../../../../../src/resource/formats/webgpu/index.js";
 import { readEffectAnalysis } from "../../../../../src/resource/formats/webgpu/core/effectAnalysis.js";
 import { lowerComputeProgram } from "../../../../../src/resource/formats/webgpu/core/wgsl/lowerComputeProgram.js";
+import { isSortComputeProfile } from "../../../../../src/resource/formats/webgpu/core/wgsl/lowerSortComputeProgram.js";
+import { isSortInnerComputeProfile } from "../../../../../src/resource/formats/webgpu/core/wgsl/lowerSortInnerComputeProgram.js";
 import {
     isParticleEmitComputeCandidate,
     lowerParticleEmitComputeProgram
@@ -3243,10 +3245,10 @@ test("chunk-sort compute profile fails closed on declarations, body, barriers, r
         index: siblingBody.instructions.length,
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
-    assert.throws(() => lowerComputeProgram(siblingBody),
-        // No profile claims the damaged program, so the general compute lowering
-        // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
+    // The exact profile does not claim the damaged program. The general path
+    // lowers it or refuses it on its own terms: since it gained structured-UAV
+    // loads and stores (particle update), a trailing duplicate ret lowers.
+    assert.equal(isSortComputeProfile(siblingBody), false);
 });
 
 test("chunk-sort compute validates exact binding plans and finite raw ranges", () =>
@@ -3468,10 +3470,10 @@ test("sort-inner compute profile fails closed on declarations, body, barriers, r
         index: siblingBody.instructions.length,
         dxbcOffset: siblingBody.instructions.at(-1).dxbcOffset + 1
     });
-    assert.throws(() => lowerComputeProgram(siblingBody),
-        // No profile claims the damaged program, so the general compute lowering
-        // is the one that refuses it.
-        /WGSL compute declaration shape is not supported|WGSL fragment (opcode \S+ at instruction \d+ is not supported|has no live input field|instruction \d+ requires a fixed, unmodified, default-precision (uav|resource) handle)/u);
+    // The exact profile does not claim the damaged program. The general path
+    // lowers it or refuses it on its own terms: since it gained structured-UAV
+    // loads and stores (particle update), a trailing duplicate ret lowers.
+    assert.equal(isSortInnerComputeProfile(siblingBody), false);
 });
 
 test("sort-inner compute validates exact binding plans and finite raw ranges", () =>

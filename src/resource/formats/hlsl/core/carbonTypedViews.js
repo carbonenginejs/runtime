@@ -40,6 +40,12 @@
  *   `PIXEL_FORMAT_R32_SINT` buffer, GPU-writable (Tr2LightManager.cpp:665),
  *   bound to computelightlists at :670; the tiling kernel allocates index
  *   ranges from it with an atomic add.
+ * - `ParticleCounters` is `Tr2GpuParticleSystem`'s two-element
+ *   `PIXEL_FORMAT_R32_SINT` buffer, GPU-writable
+ *   (Particle/Tr2GpuParticleSystem.cpp:236), registered as a variable under
+ *   that name (:148) and cleared with ClearUav (:400). The particle clear,
+ *   emit and update kernels count into it with atomic adds, and update's
+ *   ClearCounters pass stores to it.
  *
  * A name missing here leaves the format unknown, and each backend decides what
  * that means. A backend must also reject a declaration whose component class
@@ -55,7 +61,8 @@ export const CARBON_TYPED_VIEWS = {
     ...Object.fromEntries(Array.from({ length: 8 }, (_unused, mip) => [ `PackedOutputBuffer${mip}`, "R32_FLOAT" ])),
     OutputBuffer: "R8G8B8A8_SNORM",
     SSAOOutputBuffer: "R8G8B8A8_SNORM",
-    LightIndexCount: "R32_SINT"
+    LightIndexCount: "R32_SINT",
+    ParticleCounters: "R32_SINT"
 };
 
 /**

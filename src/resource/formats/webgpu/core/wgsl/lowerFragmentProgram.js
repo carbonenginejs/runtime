@@ -27,9 +27,9 @@ const SUPPORTED_OPCODES = new Set([
     "add", "and", "atomic_iadd", "bfi", "deriv_rtx", "deriv_rty", "deriv_rtx_coarse",
     "deriv_rty_coarse", "deriv_rtx_fine", "deriv_rty_fine", "discard", "div",
     "dp2", "dp3", "dp4", "eq", "exp", "f16tof32", "f32tof16", "frc", "ftoi", "gather4",
-    "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imul",
+    "ftou", "ge", "iadd", "ieq", "ige", "ilt", "imad", "imax", "imin", "imm_atomic_iadd", "imul",
     "ine", "ineg", "ishl", "ishr", "if", "itof", "ld", "ld_structured", "ld_uav_typed", "log", "lt",
-    "mad", "max", "min", "mov", "movc", "mul", "ne", "or", "rcp", "resinfo",
+    "mad", "max", "min", "mov", "movc", "mul", "ne", "not", "or", "rcp", "resinfo",
     "round_ne", "round_ni", "round_pi", "round_z", "rsq", "sample", "sample_b", "sample_d",
     "sample_l", "sincos", "sqrt", "store_structured", "sync", "udiv", "uge", "ubfe", "ibfe", "countbits", "ult", "umax", "umin", "ushr",
     "utof", "xor", "endif", "ret", "store_uav_typed"
@@ -884,8 +884,12 @@ function structuredLoadExpression(program, instruction, write, type, inputs, bin
     }
     else
     {
-        resource = validateFixedHandleOperand(instruction, 3, "resource", "fragment");
-        const binding = bindingForOperand(bindings, "sampled-resource", resource);
+        // A structured SRV, or a structured UAV read back in place (the
+        // particle update reads and rewrites its particle buffer); both bind
+        // as u32 words with the stride recorded.
+        const uav = instruction.operands[3]?.typeName === "uav";
+        resource = validateFixedHandleOperand(instruction, 3, uav ? "uav" : "resource", "fragment");
+        const binding = bindingForOperand(bindings, uav ? "storage-resource" : "sampled-resource", resource);
         if (!binding?.buffer || !Number.isInteger(binding.structureStride))
         {
             throw new Error(`WGSL fragment structured load ${instruction.index} has no structured buffer binding`);
@@ -1053,6 +1057,7 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
     if (op === "and") return `(${source(1)} & ${source(2)})`;
     if (op === "or") return `(${source(1)} | ${source(2)})`;
     if (op === "xor") return `(${source(1)} ^ ${source(2)})`;
+    if (op === "not") return `(~${source(1)})`;
     if (op === "ushr") return `(${source(1)} >> ${source(2)})`;
     if ([ "lt", "ge", "eq", "ne", "ilt", "ige", "ieq", "ine", "ult", "uge" ].includes(op))
     {
@@ -1198,6 +1203,28 @@ function expressionFor(program, instruction, write, inputs, bindings, context = 
         return count === 4 && components.join("") === "xyzw" ? loaded : `${loaded}.${components.join("")}`;
     }
     if (op === "ld_structured") return structuredLoadExpression(program, instruction, write, valueType(program, write), inputs, bindings);
+    if (op === "imm_atomic_iadd")
+    {
+        // D3D11 `imm_atomic_iadd dst, u#, address, value`: adds and returns
+        // the element's prior value. Out of bounds the UAV is left unchanged
+        // and dst is 0, as an out-of-bounds UAV read is 0 (the same rule the
+        // typed-UAV load above keeps). WGSL has no lazy conditional in an
+        // expression, so an out-of-bounds address adds 0 to a clamped element,
+        // which changes nothing, and the result is selected to 0.
+        const uav = validateFixedHandleOperand(instruction, 1, "uav", "fragment");
+        const binding = bindingForOperand(bindings, "storage-resource", uav);
+        const element = { "array<atomic<i32>>": "i32", "array<atomic<u32>>": "u32" }[binding?.type];
+        if (!element || count !== 1 || instruction.saturate)
+        {
+            throw new Error(`WGSL fragment atomic instruction ${instruction.index} requires a scalar result on an atomic typed-buffer UAV`);
+        }
+        const address = source(2, 1);
+        const value = source(3, 1);
+        const symbol = binding.generatedSymbol;
+        const length = `arrayLength(&${symbol})`;
+        const inRange = `(${address} < ${length})`;
+        return `select(${element}(0), atomicAdd(&${symbol}[min(${address}, ${length} - 1u)], select(${element}(0), ${value}, ${inRange})), ${inRange})`;
+    }
     if (op === "ld")
     {
         const resource = validateFixedHandleOperand(instruction, 2, "resource", "fragment");
@@ -1400,6 +1427,25 @@ function groupSharedMemory(program, registerIndex, instruction)
     return { name: `g${registerIndex}`, strideBytes: stride, elementCount: (stride / 4) * count };
 }
 
+/**
+ * A structured UAV as a store target: its binding's u32 words, stride and
+ * run-time length. Compute only, as the binding layout admits it.
+ */
+function structuredUavTarget(instruction, bindings)
+{
+    const uav = validateFixedHandleOperand(instruction, 0, "uav", "fragment");
+    const binding = bindingForOperand(bindings, "storage-resource", uav);
+    if (binding?.type !== "array<u32>" || !Number.isInteger(binding.structureStride))
+    {
+        throw new Error(`WGSL store_structured instruction ${instruction.index} has no structured UAV binding`);
+    }
+    return {
+        name: binding.generatedSymbol,
+        strideBytes: binding.structureStride,
+        wordCount: `arrayLength(&${binding.generatedSymbol})`
+    };
+}
+
 /** The workgroup arrays a compute program's group-shared declarations need. */
 function computeWorkgroupVariables(program)
 {
@@ -1418,19 +1464,23 @@ function computeWorkgroupVariables(program)
 }
 
 /**
- * `store_structured` into group-shared memory: one u32 word per written lane,
- * the value's bits unchanged. The whole store is skipped when the structure
- * index is out of range, where D3D leaves the result undefined; an offset plus
+ * `store_structured` into group-shared memory or a structured UAV: one u32
+ * word per written lane, the value's bits unchanged. The whole store is skipped
+ * when the structure index is out of range: D3D drops an out-of-bounds UAV
+ * write, and leaves an out-of-range group-shared one undefined. An offset plus
  * lane beyond the stride fails closed.
  */
-function lowerGroupSharedStore(program, instruction, inputs, bindings)
+function lowerStructuredStore(program, instruction, inputs, bindings)
 {
     const target = instruction.operands[0];
-    if (target?.typeName !== "thread_group_shared_memory" || instruction.operands.length !== 4)
+    if (instruction.operands.length !== 4
+        || (target?.typeName !== "thread_group_shared_memory" && target?.typeName !== "uav"))
     {
-        throw new Error(`WGSL store_structured instruction ${instruction.index} supports only group-shared memory`);
+        throw new Error(`WGSL store_structured instruction ${instruction.index} supports only group-shared memory and structured UAVs`);
     }
-    const shared = groupSharedMemory(program, target.registerIndex, instruction);
+    const shared = target.typeName === "uav"
+        ? structuredUavTarget(instruction, bindings)
+        : groupSharedMemory(program, target.registerIndex, instruction);
     const byteOffset = instruction.operands[2]?.immediateValues?.[0]?.uint32;
     if (instruction.operands[2]?.typeName !== "immediate32" || !Number.isInteger(byteOffset) || byteOffset % 4 !== 0)
     {
@@ -1470,7 +1520,12 @@ function lowerGroupSharedStore(program, instruction, inputs, bindings)
             kind: "if",
             instructionIndex: instruction.index,
             dxbcOffset: instruction.dxbcOffset,
-            condition: { code: `${name} < ${shared.elementCount / strideWords}u`, type: "bool" },
+            condition: {
+                code: shared.wordCount === undefined
+                    ? `${name} < ${shared.elementCount / strideWords}u`
+                    : `${name} < (${shared.wordCount} / ${strideWords}u)`,
+                type: "bool"
+            },
             statements: writes
         }
     ];
@@ -1530,8 +1585,10 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
             }
         ];
     }
-    if (binding?.type === "array<atomic<u32>>")
+    if (binding?.type === "array<atomic<u32>>" || binding?.type === "array<atomic<i32>>")
     {
+        // A signed one (an R32_SINT table buffer: particle update's
+        // ClearCounters zeroes ParticleCounters) stores the same way as i32.
         // A raw-word typed buffer UAV: the first component's 32 bits stored
         // with atomicStore (the only write WGSL allows on an atomic element),
         // dropped out of bounds as D3D drops it. The bits are stored as they
@@ -1558,7 +1615,7 @@ function lowerStorageTextureStore(program, instruction, inputs, bindings)
                     instructionIndex: instruction.index,
                     dxbcOffset: instruction.dxbcOffset,
                     expression: {
-                        code: `atomicStore(&${symbol}[${name}], ${operandLaneExpression(program, instruction, 2, "xyzw", 0, "uint32", inputs, bindings, true)})`,
+                        code: `atomicStore(&${symbol}[${name}], ${operandLaneExpression(program, instruction, 2, "xyzw", 0, binding.type === "array<atomic<i32>>" ? "int32" : "uint32", inputs, bindings, true)})`,
                         type: "void"
                     }
                 } ]
@@ -1752,7 +1809,7 @@ function lowerInstruction(program, instruction, inputs, outputs, bindings, writt
     }
     if (instruction.opcodeName === "store_structured")
     {
-        return lowerGroupSharedStore(program, instruction, inputs, bindings);
+        return lowerStructuredStore(program, instruction, inputs, bindings);
     }
     const writes = instruction.dataflow.writes;
     if (!writes.length) throw new Error(`WGSL fragment instruction ${instruction.index} has no result write`);
