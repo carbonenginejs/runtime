@@ -169,7 +169,7 @@ function ScheduleFade(
     if ("value" in param) param.value = startValue;
     if (!(duration > 0))
     {
-        param.setValueAtTime?.(to, when);
+        param.setValueAtTime(to, when);
         if ("value" in param) param.value = to;
         return to;
     }
@@ -177,8 +177,8 @@ function ScheduleFade(
         || curveId === LINEAR_FADE_CURVE
         || typeof param.setValueCurveAtTime !== "function")
     {
-        param.setValueAtTime?.(startValue, when);
-        param.linearRampToValueAtTime?.(to, when + duration);
+        param.setValueAtTime(startValue, when);
+        param.linearRampToValueAtTime(to, when + duration);
         return startValue;
     }
 
@@ -219,9 +219,9 @@ function HoldAudioParam(param, at, value)
     }
     else
     {
-        param?.cancelScheduledValues?.(0);
+        param?.cancelScheduledValues(0);
     }
-    param?.setValueAtTime?.(value, at);
+    param?.setValueAtTime(value, at);
     if (param && "value" in param) param.value = value;
 }
 
@@ -362,9 +362,9 @@ function ScheduleMusicBusGain(
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param) param.value = startValue;
 
     let segmentStart = now;
@@ -391,7 +391,7 @@ function ScheduleMusicBusGain(
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -471,9 +471,9 @@ function ScheduleMusicBusFilter(
     }
     else
     {
-        param?.cancelScheduledValues?.(0);
+        param?.cancelScheduledValues(0);
     }
-    param?.setValueAtTime?.(startValue, now);
+    param?.setValueAtTime(startValue, now);
     if (param && "value" in param) param.value = startValue;
     let segmentStart = now;
 
@@ -499,7 +499,7 @@ function ScheduleMusicBusFilter(
         }
         else
         {
-            param?.linearRampToValueAtTime?.(
+            param?.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -1031,7 +1031,7 @@ class CjsMusicEngineScheduledClip
             this.duckActivity = null;
             this.ended = true;
             source.onended = null;
-            source.disconnect?.();
+            source.disconnect();
         };
         try
         {
@@ -1040,7 +1040,7 @@ class CjsMusicEngineScheduledClip
         catch
         {
             source.onended = null;
-            source.disconnect?.();
+            source.disconnect();
             this.cancelled = true;
             this.failed = true;
             return;
@@ -1143,7 +1143,7 @@ class CjsMusicEngineScheduledClip
             if (this.source)
             {
                 this.source.onended = null;
-                this.source.disconnect?.();
+                this.source.disconnect();
                 this.source = null;
             }
             this.duckActivity?.End?.(effectiveEnd);
@@ -1171,7 +1171,7 @@ class CjsMusicEngineScheduledClip
             {
                 // already stopped
             }
-            source.disconnect?.();
+            source.disconnect();
             this.source = null;
         }
         if (pauseAt <= this.startCtx)
@@ -1228,7 +1228,7 @@ class CjsMusicEngineScheduledClip
         if (this.source)
         {
             this.source.onended = null;
-            this.source.disconnect?.();
+            this.source.disconnect();
             this.source = null;
         }
     }
@@ -1493,8 +1493,8 @@ class CjsMusicEngineScheduledSegment
                 }
                 else
                 {
-                    param.cancelScheduledValues?.(0);
-                    param.setValueAtTime?.(param.value ?? 1, when);
+                    param.cancelScheduledValues(0);
+                    param.setValueAtTime(param.value ?? 1, when);
                 }
             }
         }
@@ -1552,17 +1552,17 @@ class CjsMusicEngineScheduledSegment
         }
         for (const route of this.routeGains.values())
         {
-            route.lowPassFilter?.disconnect?.();
-            route.highPassFilter?.disconnect?.();
-            route.gain?.disconnect?.();
-            route.transitionGain?.disconnect?.();
+            route.lowPassFilter?.disconnect();
+            route.highPassFilter?.disconnect();
+            route.gain?.disconnect();
+            route.transitionGain?.disconnect();
             for (const node of route.busEffectNodes ?? [])
             {
-                node.disconnect?.();
+                node.disconnect();
             }
         }
         this.routeGains.clear();
-        this.gain?.disconnect?.();
+        this.gain?.disconnect();
     }
 }
 
@@ -1813,7 +1813,7 @@ export class CjsMusicEngine
         this._busDuckingController = null;
         this._busGraphRuntime = null;
         this._busMixer = null;
-        this._musicGain?.disconnect?.();
+        this._musicGain?.disconnect();
         this._musicGain = null;
         this._graph = null;
         this._loadMedia = null;
@@ -4776,10 +4776,10 @@ export class CjsMusicEngine
         const now = this._context?.currentTime ?? 0;
         if (fadeSeconds > 0)
         {
-            instance.gain?.gain?.linearRampToValueAtTime?.(0, now + fadeSeconds);
+            instance.gain?.gain?.linearRampToValueAtTime(0, now + fadeSeconds);
             for (const gain of instance.routeMixerGains.values())
             {
-                gain.gain?.linearRampToValueAtTime?.(0, now + fadeSeconds);
+                gain.gain?.linearRampToValueAtTime(0, now + fadeSeconds);
             }
         }
         else if (instance.gain?.gain && "value" in instance.gain.gain)
@@ -4827,10 +4827,10 @@ export class CjsMusicEngine
             scheduled.Dispose();
         }
         instance.active = [];
-        instance.gain?.disconnect?.();
+        instance.gain?.disconnect();
         for (const gain of instance.routeMixerGains.values())
         {
-            gain.disconnect?.();
+            gain.disconnect();
         }
         instance.routeMixerGains.clear();
         const group = instance.group;

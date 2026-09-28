@@ -10,7 +10,7 @@ import {
 
 function FakeParam(value = 0)
 {
-  return { value, linearRampToValueAtTime() {} };
+  return { value, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime() {} };
 }
 
 function FakeContext()
@@ -34,7 +34,7 @@ function FakeContext()
     },
     createBufferSource()
     {
-      return { buffer: null, loop: false, onended: null, connect() {}, start() {}, stop() {} };
+      return { disconnect() {}, buffer: null, loop: false, onended: null, connect() {}, start() {}, stop() {} };
     }
   };
 }

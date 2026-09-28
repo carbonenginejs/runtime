@@ -82,8 +82,8 @@ export class CjsAudioManSharedAcquisition
                     return;
                 }
                 settled = true;
-                signal?.removeEventListener?.("abort", onCallerAbort);
-                sharedSignal.removeEventListener?.("abort", onSharedAbort);
+                signal?.removeEventListener("abort", onCallerAbort);
+                sharedSignal.removeEventListener("abort", onSharedAbort);
                 this._Release(value);
                 callback(value);
             };
@@ -92,12 +92,12 @@ export class CjsAudioManSharedAcquisition
             const onSharedAbort = () =>
                 finish(reject, AbortReason(sharedSignal));
 
-            signal?.addEventListener?.(
+            signal?.addEventListener(
                 "abort",
                 onCallerAbort,
                 { once: true },
             );
-            sharedSignal.addEventListener?.(
+            sharedSignal.addEventListener(
                 "abort",
                 onSharedAbort,
                 { once: true },

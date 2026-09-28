@@ -49,9 +49,9 @@ export function scheduleSharedBusFader({
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param) param.value = startValue;
     let segmentStart = now;
 
@@ -77,7 +77,7 @@ export function scheduleSharedBusFader({
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );

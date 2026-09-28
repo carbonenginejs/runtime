@@ -242,7 +242,7 @@ function ScheduleBinding(binding, evaluate, now, boundaries, smooth)
     }
     else
     {
-        param?.cancelScheduledValues?.(0);
+        param?.cancelScheduledValues(0);
     }
     if (smooth
         && binding.smooth
@@ -253,7 +253,7 @@ function ScheduleBinding(binding, evaluate, now, boundaries, smooth)
     }
     else
     {
-        param?.setValueAtTime?.(startValue, now);
+        param?.setValueAtTime(startValue, now);
         if (param && "value" in param) param.value = startValue;
     }
     let segmentStart = now;
@@ -280,7 +280,7 @@ function ScheduleBinding(binding, evaluate, now, boundaries, smooth)
         }
         else
         {
-            param?.linearRampToValueAtTime?.(
+            param?.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );

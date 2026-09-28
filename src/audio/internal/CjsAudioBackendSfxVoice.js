@@ -170,7 +170,7 @@ export class CjsAudioBackendSfxVoice
         this.sourceEffectRtpcLane = null;
         for (const node of this.sourceEffectNodes ?? [])
         {
-            node.disconnect?.();
+            node.disconnect();
         }
         this.sourceEffectNodes = [];
     }
@@ -179,19 +179,19 @@ export class CjsAudioBackendSfxVoice
     DisconnectNodes()
     {
         this.DisconnectSourceEffects();
-        this.source?.disconnect?.();
-        this.lowPassFilter?.disconnect?.();
-        this.highPassFilter?.disconnect?.();
-        this.gain?.disconnect?.();
-        this.busVoiceActionGain?.disconnect?.();
-        this.busVoiceGain?.disconnect?.();
-        this.fadeGain?.disconnect?.();
-        this.transitionGain?.disconnect?.();
-        this.busGain?.disconnect?.();
+        this.source?.disconnect();
+        this.lowPassFilter?.disconnect();
+        this.highPassFilter?.disconnect();
+        this.gain?.disconnect();
+        this.busVoiceActionGain?.disconnect();
+        this.busVoiceGain?.disconnect();
+        this.fadeGain?.disconnect();
+        this.transitionGain?.disconnect();
+        this.busGain?.disconnect();
         for (const node of this.busEffectNodes ?? [])
         {
-            node.disconnect?.();
+            node.disconnect();
         }
-        this.stopGain?.disconnect?.();
+        this.stopGain?.disconnect();
     }
 }

@@ -44,6 +44,8 @@ function FakeParam(value = 0)
 {
     return {
         value,
+        cancelScheduledValues() {},
+        setValueAtTime() {},
         linearRampToValueAtTime() {},
     };
 }

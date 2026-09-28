@@ -227,7 +227,7 @@ export class CjsJukebox
         const abort = () => controller.abort(signal?.reason);
 
         this._availabilityAbortController = controller;
-        signal?.addEventListener?.("abort", abort, { once: true });
+        signal?.addEventListener("abort", abort, { once: true });
 
         try
         {
@@ -268,7 +268,7 @@ export class CjsJukebox
         }
         finally
         {
-            signal?.removeEventListener?.("abort", abort);
+            signal?.removeEventListener("abort", abort);
             if (requestID === this._availabilityRequestID)
             {
                 this._availabilityAbortController = null;
@@ -369,7 +369,7 @@ export class CjsJukebox
         }
 
         this.Stop();
-        this._outputGain?.disconnect?.();
+        this._outputGain?.disconnect();
         this._context = context;
         this._destination = destination;
         this._outputGain = context.createGain();
@@ -382,7 +382,7 @@ export class CjsJukebox
     Detach()
     {
         this.Stop();
-        this._outputGain?.disconnect?.();
+        this._outputGain?.disconnect();
         this._outputGain = null;
         this._destination = null;
         this._context = null;
@@ -717,7 +717,7 @@ export class CjsJukebox
                 return;
             }
             this._source = null;
-            source.disconnect?.();
+            source.disconnect();
             this._offset = 0;
             void this._Move(1, false).catch(error =>
             {
@@ -864,7 +864,7 @@ export class CjsJukebox
         {
             // A source that has already ended is still safe to disconnect.
         }
-        source.disconnect?.();
+        source.disconnect();
     }
 
     /** Sends the current stable snapshot to the optional state observer. */

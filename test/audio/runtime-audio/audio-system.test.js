@@ -17,7 +17,7 @@ import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.
 
 function FakeParam()
 {
-  return { value: 0 };
+  return { value: 0, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime() {} };
 }
 
 function FakeContext(log)
@@ -33,7 +33,7 @@ function FakeContext(log)
     createGain()
     {
       const node = {
-        gain: { value: 1, linearRampToValueAtTime: () => log.push("fade") },
+        gain: { value: 1, cancelScheduledValues() {}, setValueAtTime() {}, linearRampToValueAtTime: () => log.push("fade") },
         disconnected: false,
         connect: () => {},
         disconnect: () => { node.disconnected = true; },
@@ -55,6 +55,7 @@ function FakeContext(log)
     createBufferSource()
     {
       const source = {
+        disconnect() {},
         buffer: null, loop: false, onended: null,
         connect: () => {},
         start: time =>
@@ -425,6 +426,7 @@ function MixerContext()
     createGain()
     {
       const gain = {
+        cancelScheduledValues() {},
         value: 1,
         holds: [],
         sets: [],
@@ -487,6 +489,7 @@ function MixerContext()
     createBiquadFilter()
     {
       const frequency = {
+        cancelScheduledValues() {},
         value: 0,
         holds: [],
         sets: [],

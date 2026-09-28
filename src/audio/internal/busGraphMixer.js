@@ -312,24 +312,24 @@ export class CjsSharedBusMixer
     {
         if (this._disposed) return;
         this._disposed = true;
-        for (const entry of this._entries.values()) entry.disconnect?.();
+        for (const entry of this._entries.values()) entry.disconnect();
         for (const gains of this._auxSendGains.values())
         {
-            for (const gain of gains) gain.disconnect?.();
+            for (const gain of gains) gain.disconnect();
         }
         for (const records of this._routeFilters.values())
         {
-            for (const record of records) record.node.disconnect?.();
+            for (const record of records) record.node.disconnect();
         }
         for (const records of this._routeDuckGains.values())
         {
-            for (const record of records) record.node.disconnect?.();
+            for (const record of records) record.node.disconnect();
         }
         for (const bus of this._buses.values())
         {
-            bus.input.disconnect?.();
-            bus.busGain?.disconnect?.();
-            for (const node of bus.effectNodes) node.disconnect?.();
+            bus.input.disconnect();
+            bus.busGain?.disconnect();
+            for (const node of bus.effectNodes) node.disconnect();
         }
         this._entries.clear();
         this._buses.clear();
@@ -1034,12 +1034,12 @@ export class CjsSharedBusMixer
             this._busStates,
             path,
             "lowPass",
-        ) ? this._context.createBiquadFilter() : null;
+        ) ? this._context.createBiquadFilter?.() : null;
         const highPassFilter = busStatePathUses(
             this._busStates,
             path,
             "highPass",
-        ) ? this._context.createBiquadFilter() : null;
+        ) ? this._context.createBiquadFilter?.() : null;
 
         if (!lowPassFilter && !highPassFilter) return null;
         if (lowPassFilter)

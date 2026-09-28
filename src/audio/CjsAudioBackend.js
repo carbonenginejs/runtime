@@ -567,7 +567,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                 if (voice.source)
                 {
                     voice.source.onended = null;
-                    voice.source.stop?.(this._context.currentTime);
+                    voice.source.stop(this._context.currentTime);
                 }
             }
             this._FinishPlaying(playingID);
@@ -1168,10 +1168,10 @@ export class CjsAudioBackend extends ICjsAudioBackend
                     }
                     else
                     {
-                        param?.cancelScheduledValues?.(now);
-                        param?.setValueAtTime?.(param.value, now);
+                        param?.cancelScheduledValues(now);
+                        param?.setValueAtTime(param.value, now);
                     }
-                    param?.linearRampToValueAtTime?.(0, now + seconds);
+                    param?.linearRampToValueAtTime(0, now + seconds);
                 }
                 else
                 {
@@ -1911,7 +1911,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                         voice.source.onended = null;
                         try
                         {
-                            voice.source.stop?.(this._context.currentTime);
+                            voice.source.stop(this._context.currentTime);
                         }
                         catch
                         {
@@ -1993,7 +1993,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                         {
                             // already stopped
                         }
-                        voice.source.disconnect?.();
+                        voice.source.disconnect();
                     }
                     continue;
                 }
@@ -2071,8 +2071,8 @@ export class CjsAudioBackend extends ICjsAudioBackend
         this._busDuckingController = null;
         this._busGraphRuntime = null;
         this._busMixer = null;
-        this._sfxGain?.disconnect?.();
-        this._masterGain?.disconnect?.();
+        this._sfxGain?.disconnect();
+        this._masterGain?.disconnect();
         this._sfxGain = null;
         this._masterGain = null;
     }
@@ -3458,7 +3458,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
         const remaining = Math.max(0, pauseTime - currentTime);
         const param = voice.stopGain.gain;
 
-        param?.cancelScheduledValues?.(currentTime);
+        param?.cancelScheduledValues(currentTime);
         ScheduleWwiseFade(
             param,
             1,
@@ -3520,7 +3520,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             {
                 // already stopped
             }
-            source.disconnect?.();
+            source.disconnect();
         }
         voice.source = null;
         voice.sourceStarted = false;
@@ -3558,7 +3558,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             {
                 // already stopped
             }
-            source.disconnect?.();
+            source.disconnect();
             voice.source = null;
         }
 
@@ -3940,7 +3940,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                             voice.source.onended = null;
                             try
                             {
-                                voice.source.stop?.(
+                                voice.source.stop(
                                     failureTime,
                                 );
                             }
@@ -4459,7 +4459,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             }
             else
             {
-                param?.cancelScheduledValues?.(currentTime);
+                param?.cancelScheduledValues(currentTime);
             }
 
             ScheduleWwiseFade(
@@ -5322,7 +5322,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             {
                 // already stopped
             }
-            previous.disconnect?.();
+            previous.disconnect();
         }
 
         const source = this._context.createBufferSource();
@@ -7314,8 +7314,8 @@ export class CjsAudioBackend extends ICjsAudioBackend
             progress,
         );
 
-        param.cancelScheduledValues?.(actionTime);
-        param.setValueAtTime?.(value, actionTime);
+        param.cancelScheduledValues(actionTime);
+        param.setValueAtTime(value, actionTime);
         if ("value" in param)
         {
             param.value = value;
@@ -7354,8 +7354,8 @@ export class CjsAudioBackend extends ICjsAudioBackend
             voice.transitionFadeMode,
         );
 
-        param.cancelScheduledValues?.(actionTime);
-        param.setValueAtTime?.(value, actionTime);
+        param.cancelScheduledValues(actionTime);
+        param.setValueAtTime(value, actionTime);
         if ("value" in param)
         {
             param.value = value;
@@ -7463,7 +7463,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
                 {
                     try
                     {
-                        voice.source.stop?.(now);
+                        voice.source.stop(now);
                     }
                     catch
                     {
@@ -7477,8 +7477,8 @@ export class CjsAudioBackend extends ICjsAudioBackend
             {
                 record.source.onended = null;
             }
-            record.source?.disconnect?.();
-            record.sourceGain?.disconnect?.();
+            record.source?.disconnect();
+            record.sourceGain?.disconnect();
             record.emitter?.EventFinishedCallback?.(playingID);
             record.onFinished?.(playingID);
             this._ReleaseRetiredEmitterNodes(
@@ -7508,10 +7508,10 @@ export class CjsAudioBackend extends ICjsAudioBackend
         {
             for (const branch of modes.values())
             {
-                branch.gain?.disconnect?.();
-                branch.flatGain?.disconnect?.();
-                branch.panner?.disconnect?.();
-                branch.analyser?.disconnect?.();
+                branch.gain?.disconnect();
+                branch.flatGain?.disconnect();
+                branch.panner?.disconnect();
+                branch.analyser?.disconnect();
                 disconnectWwiseObstructionOcclusionStage(
                     branch.obstructionOcclusionStage,
                 );
@@ -7519,10 +7519,10 @@ export class CjsAudioBackend extends ICjsAudioBackend
             modes.clear();
         }
         nodes.routeBranches?.clear();
-        nodes.gain.disconnect?.();
-        nodes.flatGain?.disconnect?.();
-        nodes.panner.disconnect?.();
-        nodes.analyser?.disconnect?.();
+        nodes.gain.disconnect();
+        nodes.flatGain?.disconnect();
+        nodes.panner.disconnect();
+        nodes.analyser?.disconnect();
         disconnectWwiseObstructionOcclusionStage(
             nodes.obstructionOcclusionStage,
         );
@@ -7568,6 +7568,9 @@ function SetPannerPose(
     }
     else
     {
+        // Browser boundary, not a hedge: the orientation AudioParams are the
+        // current API and setOrientation the deprecated one, and a target
+        // browser may ship only one of them.
         panner.setOrientation?.(front[0], front[1], front[2]);
     }
 }
@@ -7714,8 +7717,8 @@ function SetSpatialAudioParam(param, value, context, smooth)
     }
     else
     {
-        param.cancelScheduledValues?.(now);
-        param.setValueAtTime?.(param.value, now);
+        param.cancelScheduledValues(now);
+        param.setValueAtTime(param.value, now);
     }
     param.linearRampToValueAtTime(
         value,
@@ -8089,9 +8092,9 @@ function ApplyVoiceFilter(
     {
         // A value curve is one event at its start time. Cancelling from `now`
         // cannot remove a curve which began earlier and is still in progress.
-        param?.cancelScheduledValues?.(0);
+        param?.cancelScheduledValues(0);
     }
-    param?.setValueAtTime?.(cutoff, now);
+    param?.setValueAtTime(cutoff, now);
     SetAudioParam(param, cutoff, context);
     let segmentStart = now;
 
@@ -8117,7 +8120,7 @@ function ApplyVoiceFilter(
         }
         else
         {
-            param?.linearRampToValueAtTime?.(
+            param?.linearRampToValueAtTime(
                 cutoffAt(segmentEnd) ?? cutoff,
                 segmentEnd,
             );
@@ -8227,9 +8230,9 @@ function SilenceAudioParamAt(param, time, context)
     }
     else
     {
-        param?.cancelScheduledValues?.(time);
+        param?.cancelScheduledValues(time);
     }
-    param?.setValueAtTime?.(0, time);
+    param?.setValueAtTime(0, time);
     SetAudioParam(param, 0, context);
 }
 
@@ -8248,9 +8251,9 @@ function ClearPauseFadeForResume(param, time)
     {
         // A value curve is one event at its start time, so cancelling from
         // `time` cannot remove a curve that is already in progress.
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(0, time);
+    param.setValueAtTime(0, time);
     if ("value" in param)
     {
         param.value = 0;
@@ -9132,7 +9135,7 @@ function ScheduleVoiceVolumeGain(
         }
         else
         {
-            param.cancelScheduledValues?.(now);
+            param.cancelScheduledValues(now);
         }
         SetSpatialAudioParam(param, startValue, context, true);
         return;
@@ -9148,9 +9151,9 @@ function ScheduleVoiceVolumeGain(
         // from `now` cannot remove a curve that is already in progress.
         // This gain stage owns no unrelated automation; clear its timeline
         // and immediately restore the evaluated current value instead.
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param)
     {
         param.value = startValue;
@@ -9180,7 +9183,7 @@ function ScheduleVoiceVolumeGain(
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -9226,9 +9229,9 @@ function ScheduleBusVoiceRtpcGain(
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param)
     {
         param.value = startValue;
@@ -9258,7 +9261,7 @@ function ScheduleBusVoiceRtpcGain(
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -9294,9 +9297,9 @@ function ScheduleBusVoiceActionGain(param, voice, context)
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param)
     {
         param.value = startValue;
@@ -9326,7 +9329,7 @@ function ScheduleBusVoiceActionGain(param, voice, context)
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -9406,9 +9409,9 @@ function ScheduleBusVolumeGain(
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param)
     {
         param.value = startValue;
@@ -9438,7 +9441,7 @@ function ScheduleBusVolumeGain(
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 evaluate(segmentEnd),
                 segmentEnd,
             );
@@ -9742,9 +9745,9 @@ function ScheduleVoicePitchPlaybackRate(param, voice, context)
     }
     else
     {
-        param.cancelScheduledValues?.(0);
+        param.cancelScheduledValues(0);
     }
-    param.setValueAtTime?.(startValue, now);
+    param.setValueAtTime(startValue, now);
     if ("value" in param)
     {
         param.value = startValue;
@@ -9775,7 +9778,7 @@ function ScheduleVoicePitchPlaybackRate(param, voice, context)
         }
         else
         {
-            param.linearRampToValueAtTime?.(
+            param.linearRampToValueAtTime(
                 EvaluateVoicePitchPlaybackRate(voice, segmentEnd),
                 segmentEnd,
             );
@@ -9860,8 +9863,8 @@ function ScheduleWwiseFade(
     if (curveID === LINEAR_FADE_CURVE
         || typeof param.setValueCurveAtTime !== "function")
     {
-        param.setValueAtTime?.(startValue, when);
-        param.linearRampToValueAtTime?.(to, when + duration);
+        param.setValueAtTime(startValue, when);
+        param.linearRampToValueAtTime(to, when + duration);
         return;
     }
 
@@ -9938,7 +9941,7 @@ function ScheduleCrossfadeGain(
     }
     if (!(duration > 0))
     {
-        param.setValueAtTime?.(to, when);
+        param.setValueAtTime(to, when);
         if ("value" in param)
         {
             param.value = to;
@@ -9948,8 +9951,8 @@ function ScheduleCrossfadeGain(
     if (mode !== "crossfade-power"
         || typeof param.setValueCurveAtTime !== "function")
     {
-        param.setValueAtTime?.(from, when);
-        param.linearRampToValueAtTime?.(to, when + duration);
+        param.setValueAtTime(from, when);
+        param.linearRampToValueAtTime(to, when + duration);
         return;
     }
 

@@ -126,6 +126,7 @@ function FakeContext({ withAnalyser = false } = {})
     createBufferSource()
     {
       const source = {
+        disconnect() {},
         buffer: null, loop: false, onended: null, started: false, stoppedAt: null,
         connectedTo: null, playbackRate: FakeParam(1),
         connect(target)

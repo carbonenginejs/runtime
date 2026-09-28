@@ -48,7 +48,7 @@ export function createWwiseObstructionOcclusionStage(
     {
         return null;
     }
-    const filter = context.createBiquadFilter();
+    const filter = context.createBiquadFilter?.();
     const gain = context.createGain();
 
     filter.type = "lowpass";
@@ -90,7 +90,7 @@ export function disconnectWwiseObstructionOcclusionStage(stage)
 {
     for (const node of stage?.nodes ?? [])
     {
-        node.disconnect?.();
+        node.disconnect();
     }
 }
 

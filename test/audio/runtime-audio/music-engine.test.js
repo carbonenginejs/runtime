@@ -106,6 +106,16 @@ function fixtureGraph()
   };
 }
 
+function FakeParam(value)
+{
+  const param = {
+    value,
+    cancelScheduledValues() {},
+    setValueAtTime(next) { param.value = next; },
+  };
+  return param;
+}
+
 function FakeContext()
 {
   const context = {
@@ -120,6 +130,7 @@ function FakeContext()
       const node = {
         gain: {
           value: 1,
+          cancelScheduledValues() {},
           ramps: [],
           sets: [],
           curves: [],
@@ -153,9 +164,9 @@ function FakeContext()
     {
       const node = {
         type: "",
-        frequency: { value: 0 },
-        Q: { value: 1 },
-        gain: { value: 0 },
+        frequency: FakeParam(0),
+        Q: FakeParam(1),
+        gain: FakeParam(0),
         connectedTo: null,
         disconnected: false,
         connect(target) { node.connectedTo = target; },

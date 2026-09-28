@@ -75,7 +75,7 @@ function Context()
         createDelay(maxDelayTime)
         {
             const node = Node({
-                delayTime: { value: 0 },
+                delayTime: Param(0),
                 maxDelayTime,
             });
             context.delays.push(node);
@@ -85,9 +85,9 @@ function Context()
         {
             const node = Node({
                 type: "",
-                frequency: { value: 0 },
-                Q: { value: 0 },
-                gain: { value: 0 },
+                frequency: Param(0),
+                Q: Param(0),
+                gain: Param(0),
             });
             context.filters.push(node);
             return node;
@@ -95,18 +95,18 @@ function Context()
         createDynamicsCompressor()
         {
             const node = Node({
-                threshold: { value: 0 },
-                knee: { value: 30 },
-                ratio: { value: 12 },
-                attack: { value: 0.003 },
-                release: { value: 0.25 },
+                threshold: Param(0),
+                knee: Param(30),
+                ratio: Param(12),
+                attack: Param(0.003),
+                release: Param(0.25),
             });
             context.compressors.push(node);
             return node;
         },
         createGain()
         {
-            const node = Node({ gain: { value: 1 } });
+            const node = Node({ gain: Param(1) });
             context.gains.push(node);
             return node;
         },
@@ -114,7 +114,7 @@ function Context()
         {
             const node = Node({
                 type: "",
-                frequency: { value: 0 },
+                frequency: Param(0),
                 starts: [],
                 stops: [],
                 periodicWave: null,
@@ -180,8 +180,19 @@ function Node(fields)
             node.connections.push(target);
             node.connectedTo ??= target;
         },
+        disconnect() {},
     };
     return node;
+}
+
+function Param(value)
+{
+    const param = {
+        value,
+        cancelScheduledValues() {},
+        setValueAtTime(next) { param.value = next; },
+    };
+    return param;
 }
 
 function ParametricEqBytes({
