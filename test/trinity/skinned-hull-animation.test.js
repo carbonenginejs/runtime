@@ -19,7 +19,8 @@ import path from "node:path";
 import test from "node:test";
 
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
-import { EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation } from "../../npm/dist/trinity/index.js";
+import { EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 const CORPUS_DIR = process.env.SKINNED_GR2_CORPUS_DIR || "";
 
@@ -139,4 +140,53 @@ test("the ship steps its animation in UpdateSyncronous", { skip: corpusSkipReaso
   let moved = 0;
   for (let i = 0; i < count * 12; i++) moved = Math.max(moved, Math.abs(now[i] - start[i]));
   assert.ok(moved > 1e-2, `2 s of Normal2Warp moved the palette (${moved})`);
+});
+
+/** The record's uint32 boneOffsets, read as the integers they are (RawData views floats). */
+function BoneOffsets(record)
+{
+  const view = record.vs.Get("boneOffsets");
+  return Array.from(new Uint32Array(view.buffer, view.byteOffset, view.length));
+}
+
+/** The BoneTransforms ring over a stub device, as EveSpaceScene.Initialize creates it (EveSpaceScene.cpp:257). */
+function BoneRing()
+{
+  Tr2RingBuffer.ResetInstances();
+  const context = new Tr2RenderContext();
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  context.SetRenderContextAL(al);
+  return Tr2RingBuffer.GetInstance("Float4x3", 48, context);
+}
+
+test("GetPerObjectData uploads the palette to the bone ring once per frame and stamps its offsets", { skip: corpusSkipReason() }, async (t) =>
+{
+  const ring = BoneRing();
+  t.after(() => Tr2RingBuffer.ResetInstances());
+
+  const geometry = await ReadHull("gb1_t1.gr2");
+  const ship = new EveSpaceObject2();
+  ship.SetMesh({ GetGeometryResource: () => geometry });
+  const count = ship.animationUpdater.GetMeshBoneCount();
+
+  // Carbon cpp:1419-1440: [current offset, previous offset, bone count].
+  assert.deepEqual(BoneOffsets(ship.GetPerObjectData()).slice(0, 3), [ 0, 0, count ], "first frame: both offsets at the first upload");
+  assert.equal(ring.head, count, "one palette in the ring");
+
+  // A second call in the same frame (the shadow pass) does not upload again.
+  ship.GetShadowPerObjectData();
+  assert.equal(ring.head, count);
+
+  // Next frame: UpdateAsyncronous re-arms the upload (cpp:633), before its
+  // m_update gate - so with updates off it does only that.
+  ship.update = false;
+  ship.UpdateAsyncronous(new EveUpdateContext());
+  assert.deepEqual(BoneOffsets(ship.GetPerObjectData()).slice(0, 3), [ count, 0, count ], "this frame's rows follow last frame's");
+  assert.equal(ring.head, count * 2);
+});
+
+test("an unanimated ship stamps Carbon's invalid offsets", () =>
+{
+  assert.deepEqual(BoneOffsets(new EveSpaceObject2().GetPerObjectData()).slice(0, 2), [ 0xffffffff, 0xffffffff ]);
 });

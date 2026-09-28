@@ -29,6 +29,8 @@ import { EmitDamageOverlayBatches, EmitOverlayBatches } from "../overlays/overla
 import { ReflectionMode, TriBatchType } from "#consts/graphics";
 import { MatrixCopyFrom3x4 } from "../lights/lightConversion.js";
 import { Tr2GrannyAnimation, getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { Tr2PerObjectData } from "../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch, TriRenderBatchAreaBlock } from "../../core/batch/TriRenderBatch/index.js";
 import { RawData } from "../../core/rawData/RawData.js";
@@ -436,6 +438,9 @@ export class EveSpaceObject2 extends EveEntity
 
   /** Carbon m_geometryResFromMesh: the mesh geometry the updater last borrowed. */
   _geometryResFromMesh = null;
+
+  /** Carbon m_boneOffsets: where this ship's palette landed in the bone ring, this frame and last. */
+  _boneOffsets = new Tr2RingBufferOffsets();
 
   // Carbon m_dynamicBoundingSphere: disabled while w is -1; a future animation
   // updater port publishes skinned bounds here.
@@ -1288,6 +1293,9 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   UpdateAsyncronous(updateContext = null)
   {
+    // Carbon cpp:633: re-arm the once-per-frame palette upload.
+    this._boneOffsets.AdvanceFrame();
+
     if (!this.update)
     {
       return 0;
@@ -1935,27 +1943,32 @@ export class EveSpaceObject2 extends EveEntity
     return Math.hypot(x, y, z);
   }
 
-  /** Carbon allocates Tr2PerObjectDataWithPersistentBuffers<EveSpaceObject2>.
-   * This port retains persistent VS/PS RawData and returns those records
-   * directly. GPU-derived bone-ring offsets remain at their CPU defaults until
-   * an engine supplies them; other CPU-known values are already encoded. */
+  /**
+   * Uploads this frame's bone palette to the BoneTransforms ring, stamps where
+   * it landed into the per-object record, and returns the record.
+   *
+   * Carbon `GetPerObjectData` (cpp:1419-1440). The offsets are ring ELEMENT
+   * offsets the upload returns - the skinned vertex shader indexes the ring at
+   * blend index + boneOffsets[0] - and before any upload they are
+   * INVALID_OFFSET, Carbon's no-draw state. Adapted: Carbon allocates a pooled
+   * Tr2PerObjectDataWithPersistentBuffers from the accumulator; this port
+   * returns its two persistent RawData records directly.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity retains and fills persistent VS/PS RawData; the engine owns device buffers, GPU-derived offsets, upload, and binding.")
   GetPerObjectData(_accumulator = null)
   {
-    // Carbon cpp:1437-1445: the bone ring is uploaded and its OFFSETS stamped
-    // into the record, then a pooled handle referencing the two persistent
-    // buffers is returned. The offsets are GPU addresses with no CPU
-    // derivation, so they stay at their zero default here; the bone count is
-    // CPU-known and is written.
-    const boneCount = this.animationUpdater?.IsInitialized?.()
-      ? (this.animationUpdater.GetMeshBoneCount?.() ?? 0)
-      : null;
-    if (boneCount !== null)
+    if (this.animationUpdater.IsInitialized())
     {
+      const boneCount = this.animationUpdater.GetMeshBoneCount();
       this._vsData.SetIndex("boneOffsets", 2, [ boneCount ]);
+      // Carbon Tr2RingBuffer::GetInstance<Float4x3>(); EveSpaceScene registers
+      // the same arena as BoneTransforms.
+      const ring = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
+      this._boneOffsets.UploadTransforms(ring, this.animationUpdater.GetMeshBoneMatrixList(), boneCount);
     }
+    this._vsData.SetIndex("boneOffsets", 0, [ this._boneOffsets.GetCurrentFrameOffset() ]);
+    this._vsData.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
     this._vsData.Set("customData", this._psData.Get("customData"));
 
     return { vs: this._vsData, ps: this._psData };
