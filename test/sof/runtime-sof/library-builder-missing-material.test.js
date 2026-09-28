@@ -1,0 +1,53 @@
+// CjsSofLibraryBuilder: a material the file index does not list is absent,
+// as Carbon's EveSOFDataMgr::GetMaterialData answers nullptr for an unknown
+// name (EveSOFDataMgr.cpp:273-281). Shipped factions name materials that do
+// not exist: factions/lavatiger.black names `rock_lightgray_sand`, and the
+// client has `rock_lightgrey_sand`.
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { CjsSofLibraryBuilder, EveSOFDataMgr } from "../../../npm/dist/sof/index.js";
+
+const MISSING = "rock_lightgray_sand";
+const LISTED = "rock_lightgrey_sand";
+
+/** A builder whose manager already holds generic data, so no boot read runs. */
+function builder({ exists = null, reads = [] } = {})
+{
+  const dataMgr = new EveSOFDataMgr();
+  dataMgr.HasGenericData = () => true;
+  dataMgr.GetGenericData = () => ({});
+  const source = path =>
+  {
+    reads.push(path);
+    return Promise.reject(new Error(`${path}: 502 Bad Gateway`));
+  };
+  return new CjsSofLibraryBuilder({ dataMgr, source, exists });
+}
+
+test("a material the index does not list resolves to absent, reported once", async () =>
+{
+  const reads = [];
+  const lib = builder({ exists: path => !path.includes(MISSING), reads });
+
+  assert.equal(await lib.FetchMaterial(MISSING), null);
+  assert.equal(await lib.FetchMaterial(MISSING), null);
+  assert.deepEqual(reads, [], "nothing is fetched for a name the index lacks");
+  assert.equal(lib._absentReported.size, 1, "logged once per name");
+});
+
+test("a listed material whose fetch fails still rejects", async () =>
+{
+  // Negative control: the index lists it, so a failed read is a real failure,
+  // not an absent material.
+  const lib = builder({ exists: path => !path.includes(MISSING) });
+
+  await assert.rejects(lib.FetchMaterial(LISTED), /502 Bad Gateway/u);
+});
+
+test("without an index probe a failed fetch rejects, as before", async () =>
+{
+  const lib = builder();
+
+  await assert.rejects(lib.FetchMaterial(MISSING), /502 Bad Gateway/u);
+  assert.throws(() => builder({ exists: "yes" }), /exists must be a function/u);
+});

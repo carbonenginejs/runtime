@@ -2,6 +2,7 @@ import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
+import * as CcpLog from "../global/logging/ccpLog.js";
 
 
 const DEFAULT_BASE_PATH = "res:/dx9/model/spaceobjectfactory";
@@ -60,6 +61,17 @@ const CATALOGS = {
  * operation; `{ force: true }` fetches and replaces a record already
  * installed. A failed or rejected record rejects the request; no guessed or
  * empty value is installed in its place.
+ *
+ * A MATERIAL THE FILE INDEX DOES NOT LIST is absent, not an error. Carbon reads
+ * every material from the monolithic data.black and asks for one by name,
+ * and an unknown name is simply nullptr (EveSOFDataMgr::GetMaterialData,
+ * EveSOFDataMgr.cpp:273-281); shipped factions name materials that do not
+ * exist (`lavatiger` names `rock_lightgray_sand`, the file is
+ * `rock_lightgrey_sand`). Reading per file, that name would be a failed fetch.
+ * So with an `exists` probe (the host's file index: BePaths FileExists) a
+ * material the index lacks resolves to null, logged once per name. A listed
+ * material whose fetch fails still rejects, and without a probe nothing
+ * changes.
  */
 export class CjsSofLibraryBuilder
 {
@@ -72,12 +84,19 @@ export class CjsSofLibraryBuilder
 
   _bootOperation = null;
 
+  /** The host's file-existence probe, or null (no absence rule). */
+  _exists = null;
+
+  /** Material names already reported absent, so each is logged once. */
+  _absentReported = new Set();
+
   /** Creates a lazy catalog around one exact manager and object/byte source. */
   constructor({
     dataMgr,
     data = null,
     source = null,
-    basePath = DEFAULT_BASE_PATH
+    basePath = DEFAULT_BASE_PATH,
+    exists = null
   } = {})
   {
     if (!(dataMgr instanceof EveSOFDataMgr))
@@ -95,6 +114,11 @@ export class CjsSofLibraryBuilder
     {
       throw new TypeError("CjsSofLibraryBuilder basePath must be a non-empty resource path.");
     }
+    if (exists !== null && typeof exists !== "function")
+    {
+      throw new TypeError("CjsSofLibraryBuilder exists must be a function (path) => boolean, or null.");
+    }
+    this._exists = exists;
     this.data = new EveSOFData();
     this._readObject = source;
     if (data !== null) this.SetData(data);
@@ -312,6 +336,17 @@ export class CjsSofLibraryBuilder
     const key = `${kind}:${request.name}`;
     const existing = this._pending.get(key);
     if (existing) return existing;
+
+    // Carbon's GetMaterialData nullptr: a material the index does not list.
+    if (kind === "material" && this._exists !== null && !this._exists(request.path))
+    {
+      if (!this._absentReported.has(request.name))
+      {
+        this._absentReported.add(request.name);
+        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "SOF material %s is not in the file index; it is absent", request.name);
+      }
+      return null;
+    }
 
     const operation = this._Read(request.path, {
       kind,

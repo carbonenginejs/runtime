@@ -93,6 +93,13 @@ const server = createServer(async (request, response) =>
     {
       const upstream = await fetch(source);
 
+      // A file tools-core does not have is a 404 to the page, not a gateway
+      // failure: the page tells "no such file" from "the proxy broke".
+      if (upstream.status === 404)
+      {
+        response.writeHead(404).end(`resource proxy: ${requested.pathname.slice("/resource/".length)} not found`);
+        return;
+      }
       if (!upstream.ok) throw new Error(`upstream ${upstream.status}`);
 
       response.writeHead(200, { "content-type": "application/octet-stream" });
