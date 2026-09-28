@@ -149,8 +149,14 @@ test("neither test allocates per call", () =>
     "console.log(Math.min(...samples));"
   ].join("\n");
 
+  // --no-concurrent-recompilation: TurboFan normally compiles on a background
+  // thread, and under load (a full suite run) that compile can still be pending
+  // when sampling starts. The unoptimized tiers box floats, so every sample then
+  // grows by the same ~320 KB and the minimum cannot filter it out. Compiling
+  // synchronously measures the steady-state optimized code, which is the claim.
+  // A vec3-per-call stand-in still reads ~206 KB with the flag.
   const child = spawnSync(process.execPath,
-    [ "--expose-gc", "--input-type=module", "-e", source ],
+    [ "--expose-gc", "--no-concurrent-recompilation", "--input-type=module", "-e", source ],
     { encoding: "utf8" });
 
   assert.equal(child.status, 0, `probe child failed: ${child.stderr}`);
