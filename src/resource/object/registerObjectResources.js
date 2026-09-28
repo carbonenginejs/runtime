@@ -14,15 +14,17 @@ import { CjsBlackFormat } from "../formats/black/index.js";
 /** The object file extensions Carbon's LoadObject reads. */
 export const ObjectResourceExtensions = Object.freeze([ "black", "red" ]);
 
-/** Reads one compiled object file into its runtime root object. */
-function ReadBlackObject(bytes, context)
+/**
+ * The builder for one compiled object file: Carbon keeps a BlackReader per file
+ * and builds a new object from it on every LoadObject (BlueResMan.cpp:722-773).
+ */
+function CreateBlackObjectBuilder(bytes, context)
 {
   if (!CjsBlackFormat.probeSupport(bytes))
   {
     throw new Error(`${context?.path ?? "object"}: not a compiled (black) object file; YAML red is not read by this route.`);
   }
-  const result = CjsBlackFormat.read(bytes, { emit: "runtime" });
-  return result?.root ?? result;
+  return CjsBlackFormat.createObjectBuilder(bytes, { emit: "runtime" });
 }
 
 /**
@@ -36,7 +38,7 @@ export function RegisterObjectResources(resourceManager)
 {
   for (const extension of ObjectResourceExtensions)
   {
-    resourceManager.RegisterObjectLoader(extension, ReadBlackObject);
+    resourceManager.RegisterObjectBuilder(extension, CreateBlackObjectBuilder);
   }
 
   return resourceManager;

@@ -156,3 +156,78 @@ test("values that cannot be copied fail the load by name", async () =>
       && error.cause?.name === "DataCloneError"
   );
 });
+
+// A registered object builder (RegisterObjectBuilder): the parsed file is the
+// builder, kept as the payload, and every GetObject asks it for a new object -
+// Carbon's BlackReader kept per file (BlueResMan.cpp:722-773,
+// BlackReader.cpp:198-208).
+function builderManager()
+{
+  const counter = { reads: 0, builders: 0, objects: 0 };
+  const resMan = new CjsResMan({
+    source: { Read() { counter.reads += 1; return new Uint8Array([ counter.reads ]); } }
+  });
+  resMan.RegisterObjectBuilder("obj", bytes =>
+  {
+    counter.builders += 1;
+    const read = bytes[0];
+    return {
+      CreateObject(objectMarker)
+      {
+        assert.equal(objectMarker, 0);
+        counter.objects += 1;
+        const shared = { read };
+        return { read, list: [ 1, 2 ], a: shared, b: shared };
+      }
+    };
+  });
+  return { resMan, counter };
+}
+
+test("an object builder is parsed once and builds a new object for every caller", async () =>
+{
+  const { resMan, counter } = builderManager();
+  const path = "res:/data/one.obj";
+  const first = await resMan.LoadObject(path);
+  const second = await resMan.LoadObject(path);
+  const third = await resMan.GetObject(path);
+  assert.notEqual(first, second);
+  assert.notEqual(second, third);
+  assert.deepEqual(first, second);
+  // Sharing inside one graph is the builder's, and survives.
+  assert.equal(first.a, first.b);
+  assert.notEqual(first.a, second.a);
+  assert.equal(counter.reads, 1);
+  assert.equal(counter.builders, 1);
+  assert.equal(counter.objects, 3);
+  // The payload is the builder, never an object a caller holds.
+  const payload = resMan.GetResource(path).GetPayload();
+  assert.equal(typeof payload.CreateObject, "function");
+  assert.notEqual(payload, first);
+});
+
+test("callers joining one builder load each receive their own object", async () =>
+{
+  const { resMan, counter } = builderManager();
+  const [ a, b, c ] = await Promise.all([
+    resMan.LoadObject("res:/data/join.obj"),
+    resMan.LoadObject("res:/data/join.obj"),
+    resMan.LoadObject("res:/data/join.obj")
+  ]);
+  assert.notEqual(a, b);
+  assert.notEqual(b, c);
+  assert.equal(counter.reads, 1);
+  assert.equal(counter.builders, 1);
+});
+
+test("a released builder payload is read and parsed again on the next load", async () =>
+{
+  const { resMan, counter } = builderManager();
+  const path = "res:/data/lease.obj";
+  await resMan.LoadObject(path);
+  resMan.GetResource(path).ReleasePayload();
+  const rebuilt = await resMan.LoadObject(path);
+  assert.equal(rebuilt.read, 2);
+  assert.equal(counter.reads, 2);
+  assert.equal(counter.builders, 2);
+});

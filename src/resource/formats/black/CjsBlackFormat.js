@@ -254,7 +254,21 @@ export class CjsBlackFormat extends CjsFormat
      */
     static readRuntime(input, options = {})
     {
-        return new CjsBlackReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME)).ReadRuntime();
+        return CjsBlackFormat.createObjectBuilder(input, options).ReadRuntime();
+    }
+
+    /**
+     * The object builder for one file: a reader over its bytes whose
+     * `CreateObject()` builds a new graph each call, as Carbon's resource
+     * manager keeps a BlackReader per file (BlueResMan.cpp:722-773).
+     *
+     * @param {unknown} input Black format input.
+     * @param {object} [options] Format values.
+     * @returns {CjsBlackReader} The builder.
+     */
+    static createObjectBuilder(input, options = {})
+    {
+        return new CjsBlackReader(input, normalizeValues(DEFAULT_VALUES, options, CLASS_KEYS, FORMAT_NAME));
     }
 
     /**

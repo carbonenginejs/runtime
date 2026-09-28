@@ -155,6 +155,27 @@ export class CjsBlackReader extends CjsBlueReader
         };
     }
 
+    /**
+     * Carbon's `IBlueObjectBuilder::CreateObject`, which BlackReader implements
+     * (blue/src/BlackReader.cpp:198-208): a new object graph from the cached
+     * bytes. The header and string tables are parsed once (`Inspect` keeps
+     * them, as BlackReader keeps `m_objectMarkers`); the reference table lives
+     * for one build only (`ResetReadState`, as `m_referenceMap.clear()`), so
+     * sharing inside a graph is kept and nothing is shared between graphs.
+     *
+     * @param {number} [objectMarker] Which object to build; only the root (0) is read.
+     * @returns {object} A new root object.
+     * @throws {RangeError} For any marker but the root.
+     */
+    CreateObject(objectMarker = 0)
+    {
+        if (objectMarker !== 0)
+        {
+            throw new RangeError(`CjsBlackReader.CreateObject builds the root only; marker ${objectMarker} is not read.`);
+        }
+        return this.ReadRuntime().root;
+    }
+
     /** Reads payload from the current Black object-graph reader. */
     ReadPayload()
     {

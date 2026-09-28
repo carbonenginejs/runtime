@@ -290,6 +290,9 @@ export class CjsResMan
     this.pathResolver = null;
     this.resourceTypes = new Map();
     this.objectLoaders = new Map();
+    // Loaders registered through RegisterObjectBuilder: their result is a
+    // builder, kept as the payload, never handed to a caller.
+    this._objectBuilderLoaders = new WeakSet();
     this.formats = new Map();
     this.objectOperations = new WeakMap();
     this.sourceOperations = new WeakMap();
@@ -1034,6 +1037,25 @@ export class CjsResMan
   }
 
   /**
+   * Registers how an extension's files become objects the way Carbon's
+   * LoadObject does (BlueResMan.cpp:653, cache :722-773): `CreateBuilder(bytes,
+   * context)` returns an IBlueObjectBuilder - anything with
+   * `CreateObject(objectMarker)` - which the manager keeps as the payload.
+   * Every GetObject then builds a new object from it, so the parse is shared
+   * and no two callers share an object.
+   *
+   * @param {string} ext Input extension with or without a leading dot.
+   * @param {Function} CreateBuilder Reader receiving source bytes and the preparation context.
+   * @returns {CjsResMan} This resource manager.
+   * @throws {TypeError} If the extension or factory is invalid.
+   */
+  RegisterObjectBuilder(ext, CreateBuilder) {
+    this.RegisterObjectLoader(ext, CreateBuilder);
+    this._objectBuilderLoaders.add(CreateBuilder);
+    return this;
+  }
+
+  /**
    * Register a reusable format facade for each accepted input extension.
    * Multiple candidates may share an extension and are resolved by requested
    * output/media type or by their support probes. Defaults are deep-copied into
@@ -1400,8 +1422,11 @@ export class CjsResMan
   }
 
   /**
-   * Resolve one object outcome for a canonical resource identity. Concurrent
-   * callers share only the active operation. Once settled, a resident payload
+   * Resolve one object outcome for a canonical resource identity. For a
+   * registered object builder this is Carbon's `BlueResMan::LoadObject`
+   * (blue/src/BlueResMan.cpp:653): the parsed file is cached (`m_loadObjectCache`,
+   * one IBlueObjectBuilder per file, :722-773) and every call builds a new
+   * object from it (:785). Concurrent callers share only the active operation. Once settled, a resident payload
    * is returned without rereading source data and its explicit payload lease is
    * renewed. If the payload was released, calling this method explicitly starts
    * reconstruction; liveness queries and purge operations never do so.
@@ -1414,6 +1439,22 @@ export class CjsResMan
    * @throws {TypeError|Error} If path, identity, source, format, or conversion configuration is invalid.
    */
   GetObject(path, options = {})
+  {
+    return this._GetObject(path, options, true);
+  }
+
+  /**
+   * GetObject's body. `build` false is the manager's own loaders (a
+   * resource's object loader, a reload candidate, a queued request): they
+   * drive the load and receive the published outcome, and build no object
+   * from a registered builder, since nobody receives it.
+   *
+   * @param {string} path Carbon-style source resource path.
+   * @param {object} options Identity, source, format, loader, and queue options.
+   * @param {boolean} build Whether this call is a caller that receives an object.
+   * @returns {Promise<*>} The object outcome, or the published outcome when not building.
+   */
+  _GetObject(path, options, build)
   {
     const resource = this.GetResource(path, options);
     const operationOptions = mergeResourceLoaderOptions(
@@ -1428,9 +1469,13 @@ export class CjsResMan
     const existing = this.objectOperations.get(resource);
     if (existing?.ownership === ownership)
     {
-      // Joining an in-flight load shares its promise - unless the route builds
-      // per caller, when the load's own caller receives the instance built at
-      // publication and a joiner gets its own.
+      // A joiner shares the load. Where the load keeps a builder - a Target or
+      // Identify route, or a registered object builder - it gets its own
+      // object built from it; the load's own caller has the first.
+      if (this._IsObjectBuilderResource(resource))
+      {
+        return build ? existing.promise.then(() => this._BuildObject(resource)) : existing.promise;
+      }
       const route = this._resourceExtensionRoutes.get(resource);
       if (!route?.Target && !route?.Identify) return existing.promise;
       return existing.promise.then(result => this._objectBuilders.has(resource)
@@ -1441,6 +1486,10 @@ export class CjsResMan
     if (resource.HasPayload())
     {
       resource.KeepPayloadAlive();
+      if (!build && this._IsObjectBuilderResource(resource))
+      {
+        return Promise.resolve(resource.GetPayload());
+      }
       if (this._objectBuilders.has(resource))
       {
         return Promise.resolve().then(() => this._BuildObject(resource));
@@ -1459,7 +1508,7 @@ export class CjsResMan
       if (resource.IsLoading())
       {
         return new Promise((resolve, reject) => resource.OnCompleted(() => (resource.HasPayload()
-          ? resolve(this.GetObject(path, options))
+          ? resolve(this._GetObject(path, options, build))
           : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
             "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload")))));
       }
@@ -1490,7 +1539,21 @@ export class CjsResMan
         this.objectOperations.delete(resource);
       }
     });
-    return promise;
+    // A registered builder published itself: a caller builds its object.
+    return build && this._IsObjectBuilderResource(resource) ? promise.then(() => this._BuildObject(resource)) : promise;
+  }
+
+  /**
+   * Whether a resource loads through a registered object builder
+   * (RegisterObjectBuilder) rather than a route or a plain loader.
+   *
+   * @param {CjsResource} resource Canonical resource.
+   * @returns {boolean} True for a builder-loaded resource.
+   */
+  _IsObjectBuilderResource(resource)
+  {
+    return !this._resourceExtensionRoutes.has(resource)
+      && this._objectBuilderLoaders.has(this.GetObjectLoader(resource.GetExt()));
   }
 
   /**
@@ -1742,9 +1805,10 @@ export class CjsResMan
     try
     {
       candidate.resource.SetObjectLoader(
-        loadOptions => this.GetObject(
+        loadOptions => this._GetObject(
           candidate.resource.GetPath(),
-          mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions)
+          mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions),
+          false
         ),
         candidate.loaderOptions
       );
@@ -2247,6 +2311,15 @@ export class CjsResMan
   _HydrateExtensionObject(resource, values, options, resolved)
   {
     this._objectBuilders.delete(resource);
+    if (resolved.loader && this._objectBuilderLoaders.has(resolved.loader))
+    {
+      // An IBlueObjectBuilder: the builder is what is published and kept as
+      // the payload. Objects are built in GetObject, one per caller, the
+      // loading caller included - the load may have been started by the
+      // resource's own object loader, whose result nobody receives.
+      this._objectBuilders.set(resource, { Create: builder => builder.CreateObject(0), values, hydrated: values });
+      return values;
+    }
     const route = resolved.route;
     if (!route || (!route.Target && !route.Identify)) return values;
 
@@ -2342,6 +2415,7 @@ export class CjsResMan
   _BuildObject(resource)
   {
     const builder = this._objectBuilders.get(resource);
+    if (builder.Create) return builder.Create(resource.GetPayload());
     return this._HydrateTarget(resource, builder.Target, resource.GetPayload(), builder.context);
   }
 
@@ -2375,7 +2449,7 @@ export class CjsResMan
         `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
     }
     this._dynamicResources.add(resource);
-    resource.SetObjectLoader(() => this.GetObject(key));
+    resource.SetObjectLoader(() => this._GetObject(key, {}, false));
     const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
     const canonical = insertion?.resource || resource;
     this._BindResourceLifecycle(cacheKey, canonical);
@@ -3078,9 +3152,10 @@ export class CjsResMan
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
     const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
     resource.SetObjectLoader(
-      loadOptions => this.GetObject(
+      loadOptions => this._GetObject(
         path,
-        mergeResourceLoaderOptions(loaderOptions, loadOptions)
+        mergeResourceLoaderOptions(loaderOptions, loadOptions),
+        false
       ),
       loaderOptions
     );
@@ -3459,7 +3534,7 @@ export class CjsResMan
       this._BindResourceLifecycle(key, resource);
 
       // Failure is recorded on the resource and observed through `completed`.
-      this.GetObject(path, request).catch(() => {});
+      this._GetObject(path, request, false).catch(() => {});
       return true;
     }
     catch
