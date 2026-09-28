@@ -72,11 +72,14 @@ test("owned Granny paths refresh while borrowed and explicit resources retain ow
     animation.SetGrannyResource(first);
     animation.Initialize();
     assert.equal(animation.grannyRes, first);
+    // Borrowed geometry answers its granny file through GetGrannyInfo, as a
+    // TriGeometryRes read from a .gr2 does.
+    const borrowed = { GetGrannyInfo: () => first };
     animation.resPath = pathB;
-    animation.SetSharedGeometryRes(first);
+    animation.SetSharedGeometryRes(borrowed);
     assert.equal(animation.resPath, "");
     animation.resPath = pathB;
-    assert.equal(animation.grannyRes, first);
+    assert.equal(animation.grannyRes, borrowed);
     animation.SetSharedGeometryRes(null);
     assert.equal(animation.grannyRes, null);
     assert.equal(animation.resPath, "");

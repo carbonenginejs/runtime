@@ -10,6 +10,16 @@ const identity3 = [1, 0, 0, 0, 1, 0, 0, 0, 1];
 const identity4 = [0, 0, 0, 1];
 
 
+/**
+ * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile).
+ */
+function geometryOf(grannyFile)
+{
+  return { GetGrannyInfo: () => grannyFile };
+}
+
+
 /** One root bone and a 2-second "Move" animation. */
 function createResource()
 {
@@ -161,7 +171,7 @@ test("SetSharedGeometryRes is a no-op for the bound resource (Tr2GrannyAnimation
 {
   const animation = new Tr2GrannyAnimation();
   animation.model_ = "Ship";
-  const resource = createResource();
+  const resource = geometryOf(createResource());
   animation.SetSharedGeometryRes(resource);
   assert.equal(animation.HasSharedGeometryRes(), true);
   animation.resPath_ = "res:/kept.gr2";

@@ -1,0 +1,95 @@
+// Skinned hulls animate from the granny file their geometry was read from.
+//
+// A hull's updater borrows the mesh geometry (EveSpaceObject2.cpp:3180-3199:
+// SetUseMeshBinding(true), SetSharedGeometryRes) and animates the granny file
+// that geometry keeps - Carbon GetFileInfo answers m_geometryRes->GetGrannyInfo()
+// (Tr2GrannyAnimation.cpp:367-389). Our geometry payload is the CMF projection
+// of that file, which carries no models[], so an updater reading the payload
+// never initialized and skinned hulls drew nothing.
+//
+// Optional real-file proof. Game bytes are never committed. Fetch these exact
+// paths through tools-core at build 3552227 and point SKINNED_GR2_CORPUS_DIR at
+// the directory:
+//
+//   SKINNED_GR2_CORPUS_DIR=path/to/gr2 node --test test/trinity/skinned-hull-animation.test.js
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { readFile } from "node:fs/promises";
+import path from "node:path";
+import test from "node:test";
+
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { Tr2GrannyAnimation } from "../../npm/dist/trinity/index.js";
+
+const CORPUS_DIR = process.env.SKINNED_GR2_CORPUS_DIR || "";
+
+const EXPECTED = new Map(Object.entries({
+  "gb1_t1.gr2": [ "77d21351ccad7943c717f7010a174113f0d5b9d5a2e36cf189d854bf8b95c025", "res:/dx9/model/ship/gallente/battleship/gb1/gb1_t1.gr2" ]
+}));
+
+/** False when the corpus is present; a present `skip` key reports SKIP whatever its value. */
+function corpusSkipReason()
+{
+  return CORPUS_DIR ? false : "set SKINNED_GR2_CORPUS_DIR to run the skinned-hull corpus proof";
+}
+
+async function ReadHull(name)
+{
+  const bytes = new Uint8Array(await readFile(path.join(CORPUS_DIR, name)));
+  const [ sha256, resPath ] = EXPECTED.get(name);
+  assert.equal(createHash("sha256").update(bytes).digest("hex"), sha256, `${name} is ${resPath} at build 3552227`);
+
+  const geometry = new TriGeometryRes();
+  geometry.SetPayload(geometry.ReadGrannyFile(bytes));
+  return geometry;
+}
+
+/** What EveSpaceObject2 does with its mesh geometry (cpp:3196-3197). */
+function BindToGeometry(geometry)
+{
+  const animation = new Tr2GrannyAnimation();
+  animation.SetUseMeshBinding(true);
+  animation.SetSharedGeometryRes(geometry);
+  return animation;
+}
+
+/** Largest absolute difference between a Float4x3 palette and identity rows. */
+function DistanceFromIdentity(palette, count)
+{
+  const identity = [ 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0 ];
+  let largest = 0;
+  for (let bone = 0; bone < count; bone++)
+  {
+    for (let i = 0; i < 12; i++)
+    {
+      largest = Math.max(largest, Math.abs(palette[bone * 12 + i] - identity[i]));
+    }
+  }
+  return largest;
+}
+
+test("a hull read from a .gr2 animates its granny file, not the CMF payload", { skip: corpusSkipReason() }, async () =>
+{
+  const geometry = await ReadHull("gb1_t1.gr2");
+  assert.equal(geometry.IsUsingCMF(), false);
+
+  const animation = BindToGeometry(geometry);
+
+  assert.equal(animation.IsInitialized(), true, "the granny skeleton was found");
+  assert.equal(animation.GetMeshBoneCount(), 9, "the mesh binds 9 of the skeleton's 10 bones");
+  assert.deepEqual(animation.GetAnimationNames(), [ "NormalLoop", "Normal2Warp", "Warp", "Warp2Normal" ]);
+});
+
+test("at rest the palette is identity, and an animation moves it", { skip: corpusSkipReason() }, async () =>
+{
+  const animation = BindToGeometry(await ReadHull("gb1_t1.gr2"));
+  const count = animation.GetMeshBoneCount();
+
+  // World times inverse bind: identity for every bone at the rest pose.
+  assert.ok(DistanceFromIdentity(animation.GetMeshBoneMatrixList(), count) < 1e-4, "rest pose");
+
+  animation.PlayAnimation("Normal2Warp", true, 1, 0, 1);
+  animation.Update(2);
+
+  assert.ok(DistanceFromIdentity(animation.GetMeshBoneMatrixList(), count) > 1e-2, "2 s into Normal2Warp the bones have moved");
+});

@@ -33,6 +33,16 @@ function assertClose(actual, expected, message)
  * is detectable. An identity or translation-only bone cannot catch one - the
  * translation column survives a double transpose while the basis does not.
  */
+
+/**
+ * Geometry a mesh lends its updater: what a TriGeometryRes read from a .gr2
+ * answers (GetGrannyInfo; Carbon m_pGrannyFile).
+ */
+function geometryOf(grannyFile)
+{
+  return { GetGrannyInfo: () => grannyFile };
+}
+
 function createResource()
 {
   const identity3 = [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ];
@@ -185,7 +195,7 @@ test("EveChildMesh yields bones only once the mesh binding is established", () =
   assert.deepEqual(child.GetBoneTransforms(), { bones: null, boneCount: 0 }, "no binding, no bones");
 
   // A mesh whose geometry the updater can borrow.
-  child.mesh = { GetGeometryResource: () => createResource() };
+  child.mesh = { GetGeometryResource: () => geometryOf(createResource()) };
   child.InitializeAnimation();
 
   assert.equal(child.animationUpdater.HasMeshBinding(), true, "InitializeAnimation set the binding");
@@ -203,7 +213,7 @@ test("an updater with its own resPath keeps its resource", () =>
   const child = new EveChildMesh();
   child.animationUpdater = createAnimation();
   child.animationUpdater.resPath_ = "res:/some/authored.gr2";
-  child.mesh = { GetGeometryResource: () => createResource() };
+  child.mesh = { GetGeometryResource: () => geometryOf(createResource()) };
 
   child.InitializeAnimation();
 
@@ -216,7 +226,7 @@ test("a mesh with no geometry clears the shared binding rather than leaving it s
   // cpp:230 - the fallback branch.
   const child = new EveChildMesh();
   child.animationUpdater = createAnimation();
-  child.mesh = { GetGeometryResource: () => createResource() };
+  child.mesh = { GetGeometryResource: () => geometryOf(createResource()) };
   child.InitializeAnimation();
   assert.equal(child.animationUpdater.HasSharedGeometryRes(), true);
 

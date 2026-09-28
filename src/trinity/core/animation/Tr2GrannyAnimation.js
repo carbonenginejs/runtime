@@ -285,11 +285,32 @@ export class Tr2GrannyAnimation extends CjsModel
     return this._sharedGeometry;
   }
 
+  /**
+   * The granny file the gr2 branch animates, or null.
+   *
+   * Carbon `GetFileInfo` (cpp:367-389): a standalone resource answers its own
+   * file; geometry borrowed from the mesh answers its `GetGrannyInfo()`, which
+   * is null when that geometry was read from a CMF file. Adapted because this
+   * port holds both of Carbon's members (m_grannyRes, m_geometryRes) in
+   * `grannyRes`, told apart by `_sharedGeometry`, and a standalone resource is
+   * a decoded payload rather than a granny_file.
+   *
+   * @returns {object|null} The gr2 read.
+   */
+  @carbon.method
+  @impl.adapted
+  GetFileInfo()
+  {
+    if (!this.grannyRes) return null;
+    if (this._sharedGeometry) return this._getSource(this.grannyRes.GetGrannyInfo());
+    return this._getSource(this.grannyRes);
+  }
+
   /** Rebuilds browser bone state directly from format-gr2's stable payload. */
   @impl.adapted
   RebuildCachedData()
   {
-    const source = this._getSource(this.grannyRes);
+    const source = this.GetFileInfo();
     const models = this._getArray(source, "models", "Models");
     const model = models.find(item => getName(item) === this.model_) ?? models[0] ?? null;
     const skeleton = model?.skeleton ?? model?.Skeleton ?? null;
@@ -758,7 +779,7 @@ export class Tr2GrannyAnimation extends CjsModel
         names.push(getName(animation));
       }
     };
-    append(this.grannyRes);
+    append(this.GetFileInfo());
     for (const resource of this._secondaryResources.values())
     {
       append(resource);
@@ -1120,7 +1141,7 @@ export class Tr2GrannyAnimation extends CjsModel
   {
     const target = String(name ?? "");
     const find = resource => CjsGrannyCurves.getAnimations(this._getSource(resource)).find(animation => getName(animation) === target);
-    let animation = find(this.grannyRes);
+    let animation = find(this.GetFileInfo());
     if (animation)
     {
       return animation;
@@ -1190,7 +1211,7 @@ export class Tr2GrannyAnimation extends CjsModel
       return false;
     }
     const animation = this._findAnimation(name);
-    if (!animation && this._getSource(this.grannyRes))
+    if (!animation && this.GetFileInfo())
     {
       return false;
     }
