@@ -275,3 +275,56 @@ test("GetObject refuses a load that yields plain data, and names GetResource", a
   const semantic = await routed.LoadObject("res:/data/s.graph", { requirement: "semantic" });
   assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
 });
+
+// Builds from a registered object builder are MAIN-queue tasks: FIFO, each
+// whole, drained within the pump's time budget (Carbon's one-build-at-a-time
+// BlackReader wait, BlackReader.cpp:233-262; ccpwgl findings 0277-0279).
+test("object builds drain FIFO within the prepare budget, never split, re-entrant last", async () =>
+{
+  let clock = 0;
+  let built = 0;
+  const resMan = new CjsResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  resMan.RegisterObjectBuilder("obj", () => ({
+    CreateObject()
+    {
+      clock += 6;
+      return { sequence: built++ };
+    }
+  }));
+  const path = "res:/data/budget.obj";
+  await resMan.LoadObject(path);
+  resMan.autoPumpMainThreadQueue = false;
+
+  const order = [];
+  const requests = [];
+  for (let i = 0; i < 20; i++)
+  {
+    requests.push(resMan.LoadObject(path).then(object =>
+    {
+      order.push(i);
+      // Re-entrant: asked while draining, so it queues behind every earlier one.
+      if (i === 0) requests.push(resMan.LoadObject(path).then(() => order.push("reentrant")));
+      return object;
+    }));
+  }
+  await Promise.resolve();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  // Negative control: nothing builds until the queue is pumped.
+  assert.equal(built, 1);
+
+  const perPump = [];
+  for (let pumps = 0; pumps < 50 && order.length < 21; pumps++)
+  {
+    const before = built;
+    resMan.PumpMainThreadQueue({ maxTime: 0.010, maxItems: 0, now: () => clock });
+    perPump.push(built - before);
+    await new Promise(resolve => setTimeout(resolve, 0));
+  }
+  await Promise.all(requests);
+
+  assert.deepEqual(order.slice(0, 20), [ ...Array(20).keys() ]);
+  assert.equal(order[20], "reentrant");
+  // 6 ms builds under a 10 ms budget: at most two per pump, at least one.
+  assert.ok(perPump.every(count => count >= 0 && count <= 2), JSON.stringify(perPump));
+  assert.ok(perPump.filter(count => count > 0).length >= 10, JSON.stringify(perPump));
+});

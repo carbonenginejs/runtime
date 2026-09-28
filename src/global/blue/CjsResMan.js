@@ -1502,7 +1502,7 @@ export class CjsResMan
       // object built from it; the load's own caller has the first.
       if (this._IsObjectBuilderResource(resource))
       {
-        return build ? existing.promise.then(() => this._BuildObject(resource)) : existing.promise;
+        return build ? existing.promise.then(() => this._QueueObjectBuild(resource)) : existing.promise;
       }
       const route = this._resourceExtensionRoutes.get(resource);
       if (!route?.Target && !route?.Identify) return existing.promise;
@@ -1515,6 +1515,10 @@ export class CjsResMan
       if (!build && this._IsObjectBuilderResource(resource))
       {
         return Promise.resolve(resource.GetPayload());
+      }
+      if (this._IsObjectBuilderResource(resource))
+      {
+        return this._QueueObjectBuild(resource);
       }
       if (this._objectBuilders.has(resource))
       {
@@ -1568,7 +1572,7 @@ export class CjsResMan
     // A registered builder published itself: a caller builds its object. An
     // Identify route that answered plain values has no builder: refused.
     if (!build) return promise;
-    if (this._IsObjectBuilderResource(resource)) return promise.then(() => this._BuildObject(resource));
+    if (this._IsObjectBuilderResource(resource)) return promise.then(() => this._QueueObjectBuild(resource));
     return this._resourceExtensionRoutes.get(resource)?.Identify
       ? promise.then(result => this._ObjectOutcome(resource, path, result))
       : promise;
@@ -2489,6 +2493,31 @@ export class CjsResMan
    * @param {CjsResource} resource Resource holding the decoded values as payload.
    * @returns {*} A new hydrated object.
    */
+  /**
+   * One LoadObject build from a registered object builder, as a MAIN-queue
+   * task. Carbon builds with CreateObjectWithYield (BlueResMan.cpp:785), and a
+   * BlackReader serves one build at a time, a second caller waiting until the
+   * first is done (the m_allowYield wait, BlackReader.cpp:233-262). Here the
+   * queue is that wait: builds run FIFO (a re-entrant request queues behind
+   * the rest), each whole - one construction is never split - and PumpMainThreadQueue
+   * stops once its time budget is spent, at least one build per pump. The
+   * budget is the measured reason (ccpwgl findings 0277-0279): 80 copies
+   * built at once were one 2.7 s task; drained within the budget, no slice
+   * exceeded 50 ms. The caller's promise settles when its build runs.
+   *
+   * @param {CjsResource} resource Resource whose payload is the builder.
+   * @returns {Promise<object>} This caller's new object.
+   */
+  _QueueObjectBuild(resource)
+  {
+    const task = this.QueueTask(CjsResManQueue.MAIN, () => this._BuildObject(resource), resource, {
+      kind: "build",
+      path: resource.GetPath()
+    });
+    this.ScheduleMainThreadQueue();
+    return task.promise;
+  }
+
   _BuildObject(resource)
   {
     const builder = this._objectBuilders.get(resource);
