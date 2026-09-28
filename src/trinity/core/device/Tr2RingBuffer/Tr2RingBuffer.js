@@ -166,6 +166,36 @@ export class Tr2RingBuffer extends CjsModel
   }
 
   /**
+   * Prepares every arena that exists.
+   *
+   * Carbon prepares each of its three typed instances at the top of
+   * `RenderBatchesInOrder` (Tr2RenderContext.cpp:360-362). Those exist from
+   * process start; here an arena is created on first ask, once a context can
+   * make its buffer, so "each instance" is each one asked for so far - and a
+   * context with no device never creates one by preparing it.
+   *
+   * @param {object} renderContext The context to update through.
+   * @returns {void}
+   */
+  static prepareInstances(renderContext)
+  {
+    for (const ring of Tr2RingBuffer.#instances.values()) ring.PrepareBuffer(renderContext);
+  }
+
+  /**
+   * Fences every arena that exists by frame, as `EveSpaceScene::Update` does
+   * for each typed instance (EveSpaceScene.cpp:441-444).
+   *
+   * @param {number} recordingFrame The frame being recorded.
+   * @param {number} completedFrame The frame the device reports finished.
+   * @returns {void}
+   */
+  static setInstanceFrameNumbers(recordingFrame, completedFrame)
+  {
+    for (const ring of Tr2RingBuffer.#instances.values()) ring.SetFrameNumbers(recordingFrame, completedFrame);
+  }
+
+  /**
    * Names the ring, and its buffer if one exists.
    *
    * @param {string} name The debug label.

@@ -209,3 +209,43 @@ test("the device's frame clock is not Trinity's", () =>
   assert.equal(context.GetRenderedFrameNumber(), 1);
   assert.equal(Tr2Renderer.GetCurrentFrameCounter(), 2, "and Trinity's clock did not move");
 });
+
+test("the frame upkeep reaches every ring that exists, and creates none", () =>
+{
+  // Carbon fences and prepares each typed instance every frame
+  // (EveSpaceScene.cpp:441-444, Tr2RenderContext.cpp:360-362). Ours exist only
+  // once asked for, so the statics walk those - and asking a context with no
+  // device to prepare must not try to create one.
+  const { context, buffer: bones } = ring("Bones");
+  const boosters = Tr2RingBuffer.GetInstance("Boosters", STRIDE, context);
+
+  Tr2RingBuffer.setInstanceFrameNumbers(10, 9);
+  bones.UploadTransforms(rows(4, 1), 4);
+  boosters.UploadTransforms(rows(2, 1), 2);
+  Tr2RingBuffer.prepareInstances(context);
+
+  Tr2RingBuffer.setInstanceFrameNumbers(13, 13);
+  assert.equal(bones.tail, 4, "the bone ring's frame-10 rows were prepared, locked and released");
+  assert.equal(boosters.tail, 2, "and the booster ring's");
+
+  Tr2RingBuffer.ResetInstances();
+  Tr2RingBuffer.prepareInstances(new Tr2RenderContext());
+  Tr2RingBuffer.setInstanceFrameNumbers(1, 0);
+});
+
+test("RenderBatchesInOrder prepares the rings before it draws", () =>
+{
+  const { context, buffer } = ring("Bones");
+  buffer.UploadTransforms(rows(3, 7), 3);
+
+  context.RenderBatchesInOrder(null);
+
+  // Prepared: the dirty run is gone, so a second prepare uploads nothing new.
+  const updates = [];
+  const gpu = buffer.GetGpuBuffer();
+  const update = gpu.UpdateBuffer;
+  gpu.UpdateBuffer = (...args) => { updates.push(args); return update.apply(gpu, args); };
+  buffer.PrepareBuffer(context);
+  gpu.UpdateBuffer = update;
+  assert.equal(updates.length, 0);
+});

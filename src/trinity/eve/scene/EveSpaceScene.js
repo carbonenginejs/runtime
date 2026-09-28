@@ -716,6 +716,11 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   Update(realTime, simTime)
   {
+    // Carbon cpp:441-444, first thing: fence the rings by the main-thread
+    // context's frames, so uploads the GPU has finished with are reclaimed.
+    const mainContext = Tr2RenderContext_GetMainThreadRenderContext();
+    Tr2RingBuffer.setInstanceFrameNumbers(mainContext.GetRecordingFrameNumber(), mainContext.GetRenderedFrameNumber());
+
     if (!this.update)
     {
       return;

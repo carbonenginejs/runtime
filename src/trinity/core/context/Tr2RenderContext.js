@@ -37,6 +37,7 @@ import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub/index.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
 import { RealizeBatchGeometry } from "../mesh/TriGeometryResAllocations.js";
+import { Tr2RingBuffer } from "../device/Tr2RingBuffer/Tr2RingBuffer.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 
@@ -1224,9 +1225,12 @@ export class Tr2RenderContext extends CjsModel
    * resource set, constants, draw - and never a batch, a material or an
    * accumulator.
    *
-   * Carbon's three `Tr2RingBuffer::PrepareBuffer` calls at the top are not
-   * ported: the ring buffer's device half is the AL's, and preparing it from
-   * here would reach past the boundary this method exists to restore.
+   * Carbon's three `Tr2RingBuffer::PrepareBuffer` calls at the top
+   * (cpp:360-362) are trinity's too: the ring is a trinity-core class and
+   * prepares through its buffer's own `UpdateBuffer`, as any trinity upload
+   * does. They are ported as `Tr2RingBuffer.prepareInstances`, which prepares
+   * each ring that exists - without it a skinned draw read a ring nothing ever
+   * reached the GPU from.
    *
    * @param {object} batches A finalized accumulator.
    * @param {string} [techniqueName] The technique to draw.
@@ -1234,6 +1238,8 @@ export class Tr2RenderContext extends CjsModel
    */
   RenderBatchesInOrder(batches, techniqueName = DEFAULT_TECHNIQUE, overrideMaterial = null)
   {
+    Tr2RingBuffer.prepareInstances(this);
+
     if (!batches) return 0;
 
     // Carbon's override walk substitutes the override material - and its
