@@ -1,6 +1,6 @@
 {
-  "src/audio/CjsAudioBackend.js": 17,
-  "src/audio/CjsAudioSystem.js": 8,
+  "src/audio/CjsAudioBackend.js": 4,
+  "src/audio/CjsAudioSystem.js": 5,
   "src/audio/CjsMusicEngine.js": 9,
   "src/audio/internal/CjsAudioBackendSfxVoice.js": 1,
   "src/audio/trinity/audio/AudEventCurve.js": 1,
