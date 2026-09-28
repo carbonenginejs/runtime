@@ -10,6 +10,7 @@ import { vec4 } from "#math/vec4";
 import { TriBatchType } from "#consts/graphics";
 import { packQuadInstanceData, QUAD_INSTANCE_SIZE } from "./packQuadInstanceData.js";
 import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { Tr2VertexDefinition } from "../../core/vertex/Tr2VertexDefinition/index.js";
 
 /** A billboard quad child that renders through the shared quad renderer's additive instance batch rather than the normal render-batch path. */
 @type.define({ className: "EveChildQuad", family: "eve/child" })
@@ -380,17 +381,18 @@ export class EveChildQuad extends EveChildTransform
   /** sizeof(EveChildQuad::Quad): 6 * 16 + 4 * 2 + 2 * 2 bytes. */
   static QUAD_INSTANCE_SIZE = QUAD_INSTANCE_SIZE;
 
-  static #quadDefinition = Object.freeze([
-    Object.freeze({ type: "FLOAT32_1", usage: "TEXCOORD", usageIndex: 5, stream: 0, stepRate: 0 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 0, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 1, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 2, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 3, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 4, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT32_4", usage: "POSITION", usageIndex: 5, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT16_4", usage: "TEXCOORD", usageIndex: 0, stream: 1, stepRate: 1 }),
-    Object.freeze({ type: "FLOAT16_2", usage: "TEXCOORD", usageIndex: 1, stream: 1, stepRate: 1 })
-  ]);
+  // Carbon GetQuadDefinition (EveChildQuad.cpp:33-51): the corner index in
+  // stream 0, then the instance record in stream 1 at step rate 1. Built with
+  // Add so each item carries its per-stream offset and instanceStepRate.
+  static #quadDefinition = (() =>
+  {
+    const def = new Tr2VertexDefinition();
+    def.Add("FLOAT32_1", "TEXCOORD", 5);
+    for (let index = 0; index < 6; index++) def.Add("FLOAT32_4", "POSITION", index, 1, 1);
+    def.Add("FLOAT16_4", "TEXCOORD", 0, 1, 1);
+    def.Add("FLOAT16_2", "TEXCOORD", 1, 1, 1);
+    return def;
+  })();
 
   static #identity = mat4.create();
 
