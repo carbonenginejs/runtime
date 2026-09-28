@@ -2577,6 +2577,8 @@ function CreateFpsMeter()
   const canvas = document.createElement("canvas");
   canvas.width = SAMPLES;
   canvas.height = 24;
+  // The page sizes every canvas to the viewport (index.html); this one is fixed.
+  canvas.style.cssText = `width: ${SAMPLES}px; height: 24px;`;
   host.append(label, canvas);
   document.body.append(host);
   const context = canvas.getContext("2d");
