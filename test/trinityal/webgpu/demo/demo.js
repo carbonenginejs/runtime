@@ -373,7 +373,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin, shipStates = [], setShipState })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, maxSpeed, kills, damage, effect, cloak, skin, shipStates = [], setShipState })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -584,16 +584,32 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   target = columns[1];
 
-  // Ship speed, normalized: 0 stopped, 1 at the booster set's maxVel, up to 2
-  // (the booster intensity is capped at 2). The boosters' glow and the hull's
-  // engine heat follow it.
-  const shipSpeed = Object.assign(document.createElement("input"), { type: "range", min: "0", max: "2", step: "0.01", value: "0" });
+  // Ship speed and max speed, both editable (operator, 2026-09-29), like
+  // Graphite's panel that drives the ball and the object together. The
+  // defaults keep the authoring convention: max speed 1, so the slider (0 to
+  // 2 x max) reads 1 at full speed and 2 with a propulsion module. A real
+  // max speed (m/s) gives trails their real distance.
+  const shipMaxSpeed = Object.assign(document.createElement("input"), { type: "number", min: "0.01", step: "any", value: String(maxSpeed()) });
+  row("max speed", shipMaxSpeed);
+  const shipSpeed = Object.assign(document.createElement("input"), { type: "range", min: "0", max: String(2 * maxSpeed()), step: String(maxSpeed() / 100), value: "0" });
   const shipSpeedReadout = document.createElement("output");
   const shipSpeedField = Object.assign(document.createElement("span"), { className: "slider" });
   shipSpeedField.append(shipSpeed, shipSpeedReadout);
   row("speed", shipSpeedField);
   const showSpeed = () => { shipSpeedReadout.value = Number(shipSpeed.value).toFixed(2); };
   shipSpeed.addEventListener("input", () => { speed(Number(shipSpeed.value)); showSpeed(); });
+  shipMaxSpeed.addEventListener("change", () =>
+  {
+    const previous = Number(shipSpeed.max) / 2;
+    const next = Math.max(0.01, Number(shipMaxSpeed.value) || 1);
+    const ratio = previous > 0 ? Number(shipSpeed.value) / previous : 0;
+    maxSpeed(next);
+    shipSpeed.max = String(2 * next);
+    shipSpeed.step = String(next / 100);
+    shipSpeed.value = String(ratio * next);
+    speed(Number(shipSpeed.value));
+    showSpeed();
+  });
   showSpeed();
 
   // Kill marks: the ship's kill count, which its kill-counter decals display.
@@ -3283,6 +3299,8 @@ export async function RunDemo(canvas)
   // "ship" is the SOF document, one Tr2Effect per area, the mesh and the ship's
   // per-object data. `demo.param("area_hull", "Mat1DiffuseColor")` finds a
   // material parameter; edit its `value` in place.
+  // The max speed demo.speed() measures against; 1 keeps the authoring convention.
+  const demoSpeed = { maxSpeed: 1 };
   globalThis.demo = {
     scene: realScene,
     sof,
@@ -3331,12 +3349,19 @@ export async function RunDemo(canvas)
     // runs to 2 with an active propulsion modifier (afterburner/MWD). The
     // booster set divides the same speed by its maxVel (EveBoosterSet2.cpp:
     // 109; default 250, a writable attribute), overridden to the same 1.
+    // demo.maxSpeed(value): sets the max speed the speed is measured against
+    // (the ship's maxSpeed and its booster set's maxVel); no argument reads it.
+    maxSpeed: value =>
+    {
+      if (value !== undefined) demoSpeed.maxSpeed = Math.max(0.01, Number(value) || 1);
+      return demoSpeed.maxSpeed;
+    },
     speed: value =>
     {
       if (!ship) return;
       const worldSpeed = Number(value) || 0;
-      ship.maxSpeed = 1;
-      if (ship.boosters) ship.boosters.maxVel = 1;
+      ship.maxSpeed = demoSpeed.maxSpeed;
+      if (ship.boosters) ship.boosters.maxVel = demoSpeed.maxSpeed;
       if (!ship.translationCurve)
       {
         const velocity = vec3.create();
@@ -4320,6 +4345,7 @@ export async function RunDemo(canvas)
     flare,
     age: weeks => globalThis.demo.age(weeks),
     speed: value => globalThis.demo.speed(value),
+    maxSpeed: value => globalThis.demo.maxSpeed(value),
     kills: value => globalThis.demo.kills(value),
     damage: (shield, armor, hull) => globalThis.demo.damage(shield, armor, hull),
     effect: (name, on) => globalThis.demo.effect(name, on),
