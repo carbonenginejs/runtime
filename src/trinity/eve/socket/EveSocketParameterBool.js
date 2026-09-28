@@ -15,7 +15,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   value = false;
 
   /** m_defaults - one default captured per bound external parameter. */
-  #defaults = [];
+  _defaults = [];
 
   /**
    * Discards the captured defaults along with the bindings, so nothing can be
@@ -25,7 +25,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   @impl.implemented
   ClearBindings()
   {
-    this.#defaults.length = 0;
+    this._defaults.length = 0;
     super.ClearBindings();
   }
 
@@ -36,7 +36,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   {
     for (let index = 0; index < this.bindings.length; index++)
     {
-      this.value = this.#defaults[index];
+      this.value = this._defaults[index];
       this.bindings[index].CopyValue();
     }
     this.ClearBindings();
@@ -58,7 +58,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
     {
       value = false;
     }
-    this.#defaults.push(value);
+    this._defaults.push(value);
     return true;
   }
 
@@ -70,7 +70,7 @@ export class EveSocketParameterBool extends EveSocketParameterBindingBase
   @impl.implemented
   SetValueToDefault()
   {
-    this.value = this.#defaults.length ? this.#defaults[0] : false;
+    this.value = this._defaults.length ? this._defaults[0] : false;
   }
 
 }

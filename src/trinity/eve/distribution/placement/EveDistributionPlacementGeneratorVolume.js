@@ -12,11 +12,11 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPlacementGenerators
 {
 
-  #isRequestingRegeneration = true;
+  _isRequestingRegeneration = true;
 
-  #volumeCallbackID = 0;
+  _volumeCallbackID = 0;
 
-  #subscribedVolume = null;
+  _subscribedVolume = null;
 
   /** m_numGenerated (uint32_t) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -55,7 +55,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.adapted
   GetInitialPlacements(placements, trackingID)
   {
-    this.#syncVolumeCallbacks();
+    this._syncVolumeCallbacks();
     if (!this.volume)
     {
       return;
@@ -81,7 +81,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
       placements.push(placement);
     }
 
-    this.#isRequestingRegeneration = false;
+    this._isRequestingRegeneration = false;
   }
 
   /** Carbon GetVolume (EveDistributionPlacementGeneratorVolume.cpp:21). */
@@ -101,7 +101,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   SetVolume(volume)
   {
     this.RemoveVolumeCallbacks();
-    this.#volumeCallbackID = 0;
+    this._volumeCallbackID = 0;
     this.volume = volume ?? null;
     this.AddVolumeCallbacks();
   }
@@ -114,10 +114,10 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.implemented
   AddVolumeCallbacks()
   {
-    this.#subscribedVolume = this.volume;
+    this._subscribedVolume = this.volume;
     if (this.volume)
     {
-      this.#volumeCallbackID = this.volume.RegisterForChanges(() => this.RequestRegeneration());
+      this._volumeCallbackID = this.volume.RegisterForChanges(() => this.RequestRegeneration());
     }
   }
 
@@ -130,9 +130,9 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.implemented
   RemoveVolumeCallbacks()
   {
-    if (this.#subscribedVolume && this.#volumeCallbackID !== 0)
+    if (this._subscribedVolume && this._volumeCallbackID !== 0)
     {
-      this.#subscribedVolume.UnregisterForChanges(this.#volumeCallbackID);
+      this._subscribedVolume.UnregisterForChanges(this._volumeCallbackID);
     }
   }
 
@@ -141,7 +141,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.implemented
   RequestRegeneration()
   {
-    this.#isRequestingRegeneration = true;
+    this._isRequestingRegeneration = true;
   }
 
   /**
@@ -152,7 +152,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.implemented
   IsRequestingRegeneration()
   {
-    return this.#isRequestingRegeneration;
+    return this._isRequestingRegeneration;
   }
 
   /** Subscribes to change notifications on the assigned volume. */
@@ -160,7 +160,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.adapted
   Initialize()
   {
-    this.#syncVolumeCallbacks();
+    this._syncVolumeCallbacks();
     return true;
   }
 
@@ -173,7 +173,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   OnModified(_options = {})
   {
     this.RequestRegeneration();
-    this.#syncVolumeCallbacks();
+    this._syncVolumeCallbacks();
     return true;
   }
 
@@ -185,7 +185,7 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
   @impl.adapted
   UpdateSyncronous(_updateContext, _params, _owner)
   {
-    this.#syncVolumeCallbacks();
+    this._syncVolumeCallbacks();
   }
 
   /**
@@ -194,15 +194,15 @@ export class EveDistributionPlacementGeneratorVolume extends IEveDistributionPla
    * this eagerly in SetVolume; hydration assigns `volume` directly, so this
    * detects the swap on use and runs the same Remove/Add pair.
    */
-  #syncVolumeCallbacks()
+  _syncVolumeCallbacks()
   {
-    if (this.volume === this.#subscribedVolume)
+    if (this.volume === this._subscribedVolume)
     {
       return;
     }
 
     this.RemoveVolumeCallbacks();
-    this.#volumeCallbackID = 0;
+    this._volumeCallbackID = 0;
     this.AddVolumeCallbacks();
     this.RequestRegeneration();
   }

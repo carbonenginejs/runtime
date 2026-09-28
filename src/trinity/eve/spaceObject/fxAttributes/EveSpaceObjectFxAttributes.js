@@ -74,7 +74,7 @@ function RotationQuaternion(out, matrix)
 export class EveSpaceObjectFxAttributes extends IEveFxAttribute
 {
 
-  #initialized = false;
+  _initialized = false;
 
   /** m_name (BlueSharedString) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -147,7 +147,7 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
       return;
     }
 
-    if (!this.#initialized)
+    if (!this._initialized)
     {
       if (parent instanceof EveSpaceObject2)
       {
@@ -156,7 +156,7 @@ export class EveSpaceObjectFxAttributes extends IEveFxAttribute
           this.generatedShapeEllipsoidRadius
         );
       }
-      this.#initialized = true;
+      this._initialized = true;
     }
 
     vec4.set(BOUNDING_SPHERE, 0, 0, 0, 0);

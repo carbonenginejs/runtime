@@ -58,7 +58,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
   @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "value" || propertyName === "invertReceivedValue") this.#ApplyValue();
+    if (propertyName === "value" || propertyName === "invertReceivedValue") this._ApplyValue();
     super.OnModified(propertyName);
     return true;
   }
@@ -75,7 +75,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
     if (this.variableName === name)
     {
       this.value = Number(value);
-      this.#ApplyValue();
+      this._ApplyValue();
     }
 
     for (const modifier of this.attributeModifiers)
@@ -85,7 +85,7 @@ export class EveSmartLightAttributeModifierControllerVariableListener extends Ev
   }
 
   /** Shared value-to-activation mapping (cpp:27-35 and cpp:46-53 are identical). */
-  #ApplyValue()
+  _ApplyValue()
   {
     if (this.invertReceivedValue)
     {

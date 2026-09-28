@@ -89,19 +89,19 @@ export class EveChildQuad extends EveChildTransform
   editMode = false;
 
   /** m_effectKey (unsigned) - cached Tr2Effect hash used as the quad-renderer bucket key. */
-  #effectKey = 0;
+  _effectKey = 0;
 
   /** m_isVisible (bool) - result of the last UpdateVisibility pass. */
-  #isVisible = false;
+  _isVisible = false;
 
   /** m_hasUpdated (bool) - until an update ran, the quad cannot be rendered. */
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   // m_quad (EveChildQuad::Quad, EveChildQuad.h:55-67) - the per-instance
   // record handed to the quad renderer. Carbon stores the color/brightness
   // fields as Float_16. The logical record keeps ordinary numeric values and
   // is packed into terminal bytes immediately before AddQuads.
-  #quad = {
+  _quad = {
     parentTransform0: vec4.create(),
     parentTransform1: vec4.create(),
     parentTransform2: vec4.create(),
@@ -113,7 +113,7 @@ export class EveChildQuad extends EveChildTransform
   };
 
   /** Reusable terminal byte record; Tr2QuadRenderer copies it on AddQuads. */
-  #quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
+  _quadBytes = new Uint8Array(QUAD_INSTANCE_SIZE);
 
   /**
    * Caches the effect key and rebuilds static local transforms
@@ -126,7 +126,7 @@ export class EveChildQuad extends EveChildTransform
   {
     if (this.effect)
     {
-      this.#effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
+      this._effectKey = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
     }
     if (this.staticTransform)
     {
@@ -172,7 +172,7 @@ export class EveChildQuad extends EveChildTransform
     if (this.effect)
     {
       quadRenderer.RegisterEffect(
-        this.#effectKey,
+        this._effectKey,
         TriBatchType.TRIBATCHTYPE_ADDITIVE,
         EveChildQuad.QUAD_INSTANCE_SIZE,
         1,
@@ -188,9 +188,9 @@ export class EveChildQuad extends EveChildTransform
   @impl.reason("Trinity packs Carbon's mixed float32/float16 record into terminal bytes before direct submission to the injected renderer.")
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
-    if (this.display && this.effect && this.#isVisible)
+    if (this.display && this.effect && this._isVisible)
     {
-      quadRenderer.AddQuads(this.#effectKey, packQuadInstanceData(this.#quad, this.#quadBytes), 1);
+      quadRenderer.AddQuads(this._effectKey, packQuadInstanceData(this._quad, this._quadBytes), 1);
     }
   }
 
@@ -262,9 +262,9 @@ export class EveChildQuad extends EveChildTransform
     if (this.effect)
     {
       const key = Number(this.effect.GetHashValue?.() ?? 0) >>> 0;
-      if (key !== this.#effectKey)
+      if (key !== this._effectKey)
       {
-        this.#effectKey = key;
+        this._effectKey = key;
         const quadRenderer = updateContext?.GetQuadRenderer?.() ?? updateContext?.quadRenderer;
         if (quadRenderer)
         {
@@ -274,7 +274,7 @@ export class EveChildQuad extends EveChildTransform
     }
     else
     {
-      this.#effectKey = 0;
+      this._effectKey = 0;
     }
   }
 
@@ -289,9 +289,9 @@ export class EveChildQuad extends EveChildTransform
   @impl.implemented
   UpdateAsyncronous(_updateContext, params)
   {
-    const parentTransform = params?.localToWorldTransform ?? EveChildQuad.#identity;
+    const parentTransform = params?.localToWorldTransform ?? EveChildQuad._identity;
     this.UpdateTransform(parentTransform);
-    const quad = this.#quad;
+    const quad = this._quad;
     vec4.set(quad.parentTransform0, parentTransform[0], parentTransform[4], parentTransform[8], parentTransform[12]);
     vec4.set(quad.parentTransform1, parentTransform[1], parentTransform[5], parentTransform[9], parentTransform[13]);
     vec4.set(quad.parentTransform2, parentTransform[2], parentTransform[6], parentTransform[10], parentTransform[14]);
@@ -301,7 +301,7 @@ export class EveChildQuad extends EveChildTransform
     vec4.copy(quad.color, this.color);
     quad.brightness[0] = this.brightness;
     quad.brightness[1] = 0;
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
   }
 
   /**
@@ -313,13 +313,13 @@ export class EveChildQuad extends EveChildTransform
   @impl.reason("Frustum and LOD factor are read from the explicit update context; a missing frustum is treated as visible.")
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
-    if (!this.#hasUpdated || !this.display)
+    if (!this._hasUpdated || !this.display)
     {
-      this.#isVisible = false;
+      this._isVisible = false;
       this.currentScreenSize = -1;
       return;
     }
-    const sphere = EveChildQuad.#sphere;
+    const sphere = EveChildQuad._sphere;
     vec4.set(sphere, 0, 0, 0, Math.SQRT2);
     sph3.transformMat4(sphere, sphere, this.worldTransform);
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
@@ -327,12 +327,12 @@ export class EveChildQuad extends EveChildTransform
     {
       this.currentScreenSize = Number(frustum?.GetPixelSizeAccross?.(sphere) ?? Infinity);
       const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-      this.#isVisible = this.currentScreenSize >= this.minScreenSize * lodFactor;
+      this._isVisible = this.currentScreenSize >= this.minScreenSize * lodFactor;
     }
     else
     {
       this.currentScreenSize = -1;
-      this.#isVisible = false;
+      this._isVisible = false;
     }
   }
 
@@ -375,7 +375,7 @@ export class EveChildQuad extends EveChildTransform
   @impl.reason("Tr2VertexDefinition is a native layout builder; the same elements are published as a frozen descriptor list though the draw itself is not ported yet.")
   static GetQuadDefinition()
   {
-    return EveChildQuad.#quadDefinition;
+    return EveChildQuad._quadDefinition;
   }
 
   /** sizeof(EveChildQuad::Quad): 6 * 16 + 4 * 2 + 2 * 2 bytes. */
@@ -384,7 +384,7 @@ export class EveChildQuad extends EveChildTransform
   // Carbon GetQuadDefinition (EveChildQuad.cpp:33-51): the corner index in
   // stream 0, then the instance record in stream 1 at step rate 1. Built with
   // Add so each item carries its per-stream offset and instanceStepRate.
-  static #quadDefinition = (() =>
+  static _quadDefinition = (() =>
   {
     const def = new Tr2VertexDefinition();
     def.Add("FLOAT32_1", "TEXCOORD", 5);
@@ -394,8 +394,8 @@ export class EveChildQuad extends EveChildTransform
     return def;
   })();
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
-  static #sphere = vec4.create();
+  static _sphere = vec4.create();
 
 }

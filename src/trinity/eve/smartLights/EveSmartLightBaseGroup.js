@@ -57,10 +57,10 @@ export class EveSmartLightBaseGroup extends CjsModel
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** IEveSmartLightGroup default: no asynchronous work. */
   @carbon.method
@@ -114,8 +114,8 @@ export class EveSmartLightBaseGroup extends CjsModel
       this.customColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet,
-      this.#resolvedGroupColor
+      this._parentColorSet,
+      this._resolvedGroupColor
     );
   }
 
@@ -129,7 +129,7 @@ export class EveSmartLightBaseGroup extends CjsModel
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
     }
 
     for (const attributeModifier of this.attributeModifiers)
@@ -168,11 +168,11 @@ export class EveSmartLightBaseGroup extends CjsModel
     if (
       list === this.attributeModifiers &&
       Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#parentColorSet &&
+      this._parentColorSet &&
       value
     )
     {
-      value.SetInheritProperties(this.#parentColorSet);
+      value.SetInheritProperties(this._parentColorSet);
     }
   }
 

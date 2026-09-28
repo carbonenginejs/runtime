@@ -8,7 +8,7 @@ import { IEveProceduralSelectionMethod } from "./IEveProceduralSelectionMethod.j
 export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMethod
 {
 
-  #selectedChildModified = false;
+  _selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodAttributeMapParameterVector) [READ, PERSIST] */
   @edit.read
@@ -76,7 +76,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
 
     if (currentChild !== this.selectedChild)
     {
-      this.#selectedChildModified = true;
+      this._selectedChildModified = true;
     }
   }
 
@@ -86,7 +86,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
   @impl.implemented
   IsSelectedChildModified()
   {
-    return this.#selectedChildModified;
+    return this._selectedChildModified;
   }
 
   /** Carbon EveProceduralMethodAttributeMap::GetSelectedChild (cpp:54-74):
@@ -102,7 +102,7 @@ export class EveProceduralMethodAttributeMap extends IEveProceduralSelectionMeth
       return null;
     }
 
-    this.#selectedChildModified = false;
+    this._selectedChildModified = false;
     const param = this.parameters[this.selectedChild];
 
     if (param)

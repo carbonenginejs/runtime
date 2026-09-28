@@ -60,10 +60,10 @@ export class EveSmartLightColorShareGroup extends EveEntity
   customColor = color.createLinear();
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** Last `display` value the settle hook applied (JS-only change detection). */
 
@@ -77,8 +77,8 @@ export class EveSmartLightColorShareGroup extends EveEntity
       this.customColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet,
-      this.#resolvedGroupColor
+      this._parentColorSet,
+      this._resolvedGroupColor
     );
   }
 
@@ -113,12 +113,12 @@ export class EveSmartLightColorShareGroup extends EveEntity
     const maskedEvent = Number(event) & BLUELISTEVENT.BELIST_EVENTMASK;
     if (
       Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#parentColorSet &&
+      this._parentColorSet &&
       value &&
       (list === this.attributeModifiers || list === this.lightGroups)
     )
     {
-      value.SetInheritProperties(this.#parentColorSet);
+      value.SetInheritProperties(this._parentColorSet);
     }
 
     if (
@@ -249,20 +249,20 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     const statics = EveSmartLightColorShareGroup;
     const groupColor = this.GetGroupColor();
-    const colorValues = statics.#colorValues;
+    const colorValues = statics._colorValues;
     vec3.set(colorValues, groupColor[0], groupColor[1], groupColor[2]);
 
     for (const attributeModifier of this.attributeModifiers)
     {
       attributeModifier.ProcessAttributeModifier(
         colorValues,
-        statics.#defaultPlacement,
-        statics.#defaultPlacement.initialTranslation,
-        statics.#up,
+        statics._defaultPlacement,
+        statics._defaultPlacement.initialTranslation,
+        statics._up,
         params.activationStrength
       );
     }
-    const sharedColor = statics.#sharedColor;
+    const sharedColor = statics._sharedColor;
     vec4.set(sharedColor, colorValues[0], colorValues[1], colorValues[2], this.customColor[3]);
 
     for (const group of this.lightGroups)
@@ -302,7 +302,7 @@ export class EveSmartLightColorShareGroup extends EveEntity
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
       for (const attributeModifier of this.attributeModifiers)
       {
         attributeModifier.SetInheritProperties(colorSet);
@@ -352,12 +352,12 @@ export class EveSmartLightColorShareGroup extends EveEntity
   }
 
   // s_PlacementDataWithIdentifierDefaultKey (EveSmartLightColorShareGroup.cpp:7).
-  static #defaultPlacement = new PlacementDataWithIdentifier();
+  static _defaultPlacement = new PlacementDataWithIdentifier();
 
-  static #up = vec3.fromValues(0, 1, 0);
+  static _up = vec3.fromValues(0, 1, 0);
 
-  static #colorValues = vec3.create();
+  static _colorValues = vec3.create();
 
-  static #sharedColor = vec4.create();
+  static _sharedColor = vec4.create();
 
 }

@@ -12,7 +12,7 @@ import { vec4 } from "#math/vec4";
 export class EvePlanet extends EveEffectRoot2
 {
 
-  #renderScale = 1000000;
+  _renderScale = 1000000;
 
   /** m_zOnlyModel (EveChildMeshPtr) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -55,7 +55,7 @@ export class EvePlanet extends EveEffectRoot2
   @impl.implemented
   SetRenderScale(value)
   {
-    this.#renderScale = Number(value);
+    this._renderScale = Number(value);
   }
 
   /** Writes the render-scaled world-space bounds of the planet sphere. */
@@ -64,8 +64,8 @@ export class EvePlanet extends EveEffectRoot2
   GetWorldBoundingBox(min, max)
   {
     if (this.radius <= 0) return false;
-    const renderScale = this.#renderScale > 0 ? this.#renderScale : 1;
-    const transform = this.GetWorldTransform(EvePlanet.#worldTransformScratch);
+    const renderScale = this._renderScale > 0 ? this._renderScale : 1;
+    const transform = this.GetWorldTransform(EvePlanet._worldTransformScratch);
     const radius = this.radius / renderScale;
     const x = transform[12] / renderScale;
     const y = transform[13] / renderScale;
@@ -96,11 +96,11 @@ export class EvePlanet extends EveEffectRoot2
   {
     this.zOnlyModel?.UpdateVisibility(
       updateContext,
-      this.GetWorldTransform(EvePlanet.#worldTransformScratch),
+      this.GetWorldTransform(EvePlanet._worldTransformScratch),
       this.lodLevel
     );
   }
 
-  static #worldTransformScratch = mat4.create();
+  static _worldTransformScratch = mat4.create();
 
 }

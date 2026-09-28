@@ -8,9 +8,9 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
 {
 
-  #localTimer = 0;
+  _localTimer = 0;
 
-  #numTriggered = 0;
+  _numTriggered = 0;
 
   /** m_delayBetweenRepeats (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -59,9 +59,9 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   @impl.adapted
   Restart()
   {
-    this.#localTimer = this.useRandomStartOffset ? Math.random() * this.delayBetweenRepeats : 0;
-    this.#localTimer -= this.delayBeforeInitialSpawn;
-    this.#numTriggered = 0;
+    this._localTimer = this.useRandomStartOffset ? Math.random() * this.delayBetweenRepeats : 0;
+    this._localTimer -= this.delayBeforeInitialSpawn;
+    this._numTriggered = 0;
   }
 
   /**
@@ -73,17 +73,17 @@ export class EveDistributionSpawnerInterval extends IEveDistributionSpawner
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
-    if (this.numberOfRepeats !== 0 && this.#numTriggered >= this.numberOfRepeats)
+    if (this.numberOfRepeats !== 0 && this._numTriggered >= this.numberOfRepeats)
     {
       return;
     }
 
-    this.#localTimer += updateContext.GetDeltaT();
-    if (this.#localTimer > this.delayBetweenRepeats)
+    this._localTimer += updateContext.GetDeltaT();
+    if (this._localTimer > this.delayBetweenRepeats)
     {
       owner.AddEntities(1);
-      this.#numTriggered++;
-      this.#localTimer = this.maxRandomizedIntervalDelta
+      this._numTriggered++;
+      this._localTimer = this.maxRandomizedIntervalDelta
         - 2 * Math.random() * this.maxRandomizedIntervalDelta;
     }
   }

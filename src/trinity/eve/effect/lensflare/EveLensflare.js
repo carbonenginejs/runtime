@@ -22,7 +22,7 @@ const bitsAsFloat = value => new Float32Array(new Uint32Array([ value >>> 0 ]).b
 export class EveLensflare extends CjsModel
 {
 
-  #controllerVariables = new Map();
+  _controllerVariables = new Map();
 
   /** m_translationCurve (ITriVectorFunctionPtr) [READWRITE] */
   @edit.readwrite
@@ -154,14 +154,14 @@ export class EveLensflare extends CjsModel
   backgroundOcclusionOffset = null;
 
   /** m_directionVar: the global "LensflareFxDirectionScale" (cpp:72). */
-  #directionVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxDirectionScale", [ 0, 0, 0, 1 ]);
+  _directionVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxDirectionScale", [ 0, 0, 0, 1 ]);
 
   /**
    * m_occScaleVar: the global "LensflareFxOccScale" (cpp:73), (1, 0, 0, 0)
    * until the first Update. x and y carry the foreground and background slot
    * bases as float BITS; the god rays read FlareOcclusionBuffer at y.
    */
-  #occScaleVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxOccScale", [ 1, 0, 0, 0 ]);
+  _occScaleVar = Tr2VariableStore.GlobalStore().RegisterVariable("LensflareFxOccScale", [ 1, 0, 0, 0 ]);
 
   /** m_transform (EveLensflare.h:102; ctor identity, cpp:74) - stamped by
    * PrepareRender, forwarded to the flare children as their parent. */
@@ -194,7 +194,7 @@ export class EveLensflare extends CjsModel
       this.sunSize = 1;
     }
 
-    this.#occScaleVar.SetValue([
+    this._occScaleVar.SetValue([
       bitsAsFloat(this.occlusionOffset ?? 0),
       bitsAsFloat(this.backgroundOcclusionOffset ?? 0),
       0,
@@ -296,7 +296,7 @@ export class EveLensflare extends CjsModel
   {
     const key = String(name);
     const next = Number(value);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const controller of this.controllers) controller?.SetVariable(key, next);
   }
 
@@ -359,7 +359,7 @@ export class EveLensflare extends CjsModel
     this.transform[14] = cameraSpacePos[2];
     this.transform[15] = 1;
 
-    this.#directionVar.SetValue([ this.direction[0], this.direction[1], this.direction[2], this.sunSize ]);
+    this._directionVar.SetValue([ this.direction[0], this.direction[1], this.direction[2], this.sunSize ]);
 
     const direction = vec4.fromValues(this.direction[0], this.direction[1], this.direction[2], 0);
     vec4.transformMat4(direction, direction, renderContext.GetViewTransform());

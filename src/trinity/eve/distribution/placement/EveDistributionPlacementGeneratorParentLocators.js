@@ -11,15 +11,15 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
 {
 
   // Carbon's structure-list notification drives this regeneration state.
-  #regenerated = false;
+  _regenerated = false;
 
-  #requestRegeneration = false;
+  _requestRegeneration = false;
 
-  #locators = null;
+  _locators = null;
 
-  #parent = null;
+  _parent = null;
 
-  #locatorSetName = null;
+  _locatorSetName = null;
 
   /** m_locatorSetName (BlueSharedString) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -38,13 +38,13 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   @impl.adapted
   GetInitialPlacements(placements, trackingID)
   {
-    this.#requestRegeneration = false;
-    if (!this.#locators)
+    this._requestRegeneration = false;
+    if (!this._locators)
     {
       return;
     }
 
-    for (const locator of this.#locators)
+    for (const locator of this._locators)
     {
       const data = new PlacementDataWithIdentifier();
       data.initialTranslation.set(locator.position);
@@ -68,7 +68,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   @impl.implemented
   IsRequestingRegeneration()
   {
-    return this.#requestRegeneration;
+    return this._requestRegeneration;
   }
 
   /**
@@ -82,22 +82,22 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   {
     const parent = params.spaceObjectParent;
     const locatorSetName = String(this.locatorSetName ?? "");
-    if (parent !== this.#parent || locatorSetName !== this.#locatorSetName)
+    if (parent !== this._parent || locatorSetName !== this._locatorSetName)
     {
-      this.#parent = parent;
-      this.#locatorSetName = locatorSetName;
-      this.#locators = null;
-      this.#regenerated = false;
+      this._parent = parent;
+      this._locatorSetName = locatorSetName;
+      this._locators = null;
+      this._regenerated = false;
     }
 
-    if (!this.#regenerated && parent)
+    if (!this._regenerated && parent)
     {
       const locators = parent.GetLocatorsForSet(locatorSetName);
-      this.#locators = locators;
+      this._locators = locators;
       if (locators)
       {
-        this.#regenerated = true;
-        this.#requestRegeneration = true;
+        this._regenerated = true;
+        this._requestRegeneration = true;
       }
     }
   }
@@ -111,7 +111,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "locatorSetName") this.#regenerated = false;
+    if (propertyName === "locatorSetName") this._regenerated = false;
     return true;
   }
 
@@ -124,7 +124,7 @@ export class EveDistributionPlacementGeneratorParentLocators extends IEveDistrib
   @impl.reason("JavaScript retains explicit invalidation state in place of native structure-list notifier ownership.")
   OnStructureListModified(_event, _item, _index, _list)
   {
-    this.#regenerated = false;
+    this._regenerated = false;
   }
 
 }

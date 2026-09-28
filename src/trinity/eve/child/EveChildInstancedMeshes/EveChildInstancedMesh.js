@@ -99,7 +99,7 @@ export class EveChildInstancedMesh extends CjsModel
    * RENDER_IN_REFLECTION refreshed each async pass (cpp:251). */
   flags = 0;
 
-  #geometry = null;
+  _geometry = null;
 
   /**
    * Returns the geometry resource backing this mesh, or null while none has been
@@ -108,7 +108,7 @@ export class EveChildInstancedMesh extends CjsModel
    */
   GetGeometryResource()
   {
-    return this.#geometry;
+    return this._geometry;
   }
 
   /**
@@ -117,6 +117,6 @@ export class EveChildInstancedMesh extends CjsModel
    */
   SetGeometryResource(resource)
   {
-    this.#geometry = resource ?? null;
+    this._geometry = resource ?? null;
   }
 }

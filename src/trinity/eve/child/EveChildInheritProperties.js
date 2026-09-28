@@ -369,7 +369,7 @@ export class EveChildInheritProperties extends CjsModel
   @type.color
   PrimaryDockedFx = vec4.create();
 
-  #properties = COLOR_PROPERTIES.map(name => this[name]);
+  _properties = COLOR_PROPERTIES.map(name => this[name]);
 
   /**
    * Copies an indexed colour set into the named colour fields in the fixed SOF
@@ -381,9 +381,9 @@ export class EveChildInheritProperties extends CjsModel
   SetProperties(colorSet)
   {
     if (!colorSet) return;
-    for (let index = 0; index < this.#properties.length; index++)
+    for (let index = 0; index < this._properties.length; index++)
     {
-      vec4.copy(this.#properties[index], colorSet[index]);
+      vec4.copy(this._properties[index], colorSet[index]);
     }
   }
 
@@ -396,6 +396,6 @@ export class EveChildInheritProperties extends CjsModel
   @impl.implemented
   GetProperties()
   {
-    return this.#properties;
+    return this._properties;
   }
 }

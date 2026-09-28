@@ -150,7 +150,7 @@ export class EveConnector extends CjsModel
   length = 0;
 
   /** Carbon's animation normalization length. */
-  #lineLength = 1;
+  _lineLength = 1;
 
   /** Samples any authored endpoint functions at the active update time. */
   @carbon.method
@@ -179,8 +179,8 @@ export class EveConnector extends CjsModel
       case ConnectorType.StraightAnchor:
       {
         projectOnPlane(V0, this.destPosition, this.sourcePosition, Y_AXIS);
-        this.#lineLength = vec3.distance(V0, this.destPosition);
-        this.#addStraightLine(lineSet, this.destPosition, V0);
+        this._lineLength = vec3.distance(V0, this.destPosition);
+        this._addStraightLine(lineSet, this.destPosition, V0);
         break;
       }
 
@@ -192,16 +192,16 @@ export class EveConnector extends CjsModel
         const length = vec3.length(V1);
         vec3.normalize(V1, V1);
         vec3.normalize(V2, V2);
-        this.#lineLength = length * Math.acos(vec3.dot(V1, V2));
-        this.#addSpheredSegment(lineSet, this.destPosition, V0, this.sourcePosition);
+        this._lineLength = length * Math.acos(vec3.dot(V1, V2));
+        this._addSpheredSegment(lineSet, this.destPosition, V0, this.sourcePosition);
         break;
       }
 
       case ConnectorType.XZ_Circle:
       {
         const length = vec3.distance(this.destPosition, this.sourcePosition);
-        this.#lineLength = Math.PI * length * 0.5;
-        this.#addXZCircle(lineSet, this.sourcePosition, length);
+        this._lineLength = Math.PI * length * 0.5;
+        this._addXZCircle(lineSet, this.sourcePosition, length);
         break;
       }
 
@@ -209,26 +209,26 @@ export class EveConnector extends CjsModel
       {
         projectOnPlane(V0, this.destPosition, this.sourcePosition, Y_AXIS);
         const length = vec3.distance(V0, this.sourcePosition);
-        this.#lineLength = Math.PI * length * 0.5;
-        this.#addXZCircle(lineSet, this.sourcePosition, length);
+        this._lineLength = Math.PI * length * 0.5;
+        this._addXZCircle(lineSet, this.sourcePosition, length);
         break;
       }
 
       case ConnectorType.Circle:
-        this.#addCircle(lineSet, this.sourcePosition, this.length, this.planeNormal);
+        this._addCircle(lineSet, this.sourcePosition, this.length, this.planeNormal);
         break;
 
       case ConnectorType.Ellipse:
-        this.#addEllipse(lineSet, this.sourcePosition, this.destPosition[0], this.destPosition[1],
+        this._addEllipse(lineSet, this.sourcePosition, this.destPosition[0], this.destPosition[1],
           this.destPosition[2], this.planeNormal);
         break;
 
       case ConnectorType.PointToPoint:
       {
         vec3.subtract(V0, this.destPosition, this.sourcePosition);
-        this.#lineLength = vec3.length(V0);
+        this._lineLength = vec3.length(V0);
         let fade = false;
-        if (this.length && this.#lineLength > this.length)
+        if (this.length && this._lineLength > this.length)
         {
           vec3.normalize(V0, V0);
           vec3.scaleAndAdd(V0, this.sourcePosition, V0, this.length);
@@ -238,18 +238,18 @@ export class EveConnector extends CjsModel
         {
           vec3.copy(V0, this.destPosition);
         }
-        this.#addStraightLine(lineSet, this.sourcePosition, V0, fade);
+        this._addStraightLine(lineSet, this.sourcePosition, V0, fade);
         break;
       }
 
       case ConnectorType.Orbit:
-        this.#addOrbit(lineSet, this.destPosition, this.length, this.planeNormal);
+        this._addOrbit(lineSet, this.destPosition, this.length, this.planeNormal);
         break;
     }
   }
 
   /** Applies authored animation settings to one emitted line segment. */
-  #animateSegment(lineSet, lineId)
+  _animateSegment(lineSet, lineId)
   {
     if (!this.isAnimated)
     {
@@ -258,11 +258,11 @@ export class EveConnector extends CjsModel
 
     if (this.autoScaleAnimation)
     {
-      const speed = this.#lineLength === 0
+      const speed = this._lineLength === 0
         ? this.animationSpeed
-        : this.animationSpeed / this.#lineLength;
+        : this.animationSpeed / this._lineLength;
       lineSet.ChangeLineAnimation(lineId, this.animationColor, speed,
-        this.#lineLength * this.animationScale);
+        this._lineLength * this.animationScale);
       return;
     }
 
@@ -270,56 +270,56 @@ export class EveConnector extends CjsModel
   }
 
   /** Emits an XZ-aligned circle as four spherical arcs. */
-  #addXZCircle(lineSet, center, radius)
+  _addXZCircle(lineSet, center, radius)
   {
     vec3.set(POINT_1, center[0], center[1], center[2] + radius);
     vec3.set(POINT_2, center[0] + radius, center[1], center[2]);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.set(POINT_1, center[0] + radius, center[1], center[2]);
     vec3.set(POINT_2, center[0], center[1], center[2] - radius);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.set(POINT_1, center[0], center[1], center[2] - radius);
     vec3.set(POINT_2, center[0] - radius, center[1], center[2]);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.set(POINT_1, center[0] - radius, center[1], center[2]);
     vec3.set(POINT_2, center[0], center[1], center[2] + radius);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
   }
 
   /** Emits a circle around an arbitrary plane normal. */
-  #addCircle(lineSet, center, radius, planeNormal)
+  _addCircle(lineSet, center, radius, planeNormal)
   {
-    this.#calculateSideAndFront(planeNormal, SIDE, FRONT);
+    this._calculateSideAndFront(planeNormal, SIDE, FRONT);
     vec3.scale(SIDE, SIDE, radius);
     vec3.scale(FRONT, FRONT, radius);
-    this.#addFourArcCircle(lineSet, center, SIDE, FRONT);
+    this._addFourArcCircle(lineSet, center, SIDE, FRONT);
   }
 
   /** Emits a circle from four supplied side/front arcs. */
-  #addFourArcCircle(lineSet, center, side, front)
+  _addFourArcCircle(lineSet, center, side, front)
   {
     vec3.add(POINT_1, center, front);
     vec3.add(POINT_2, center, side);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.add(POINT_1, center, side);
     vec3.subtract(POINT_2, center, front);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.subtract(POINT_1, center, front);
     vec3.subtract(POINT_2, center, side);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
     vec3.subtract(POINT_1, center, side);
     vec3.add(POINT_2, center, front);
-    this.#addSpheredSegment(lineSet, POINT_1, POINT_2, center);
+    this._addSpheredSegment(lineSet, POINT_1, POINT_2, center);
   }
 
   /** Emits an orbit and the connector from its source to that orbit. */
-  #addOrbit(lineSet, center, radius, planeNormal)
+  _addOrbit(lineSet, center, radius, planeNormal)
   {
     vec3.normalize(NORMAL, planeNormal);
-    this.#calculateSideAndFront(NORMAL, SIDE, FRONT);
+    this._calculateSideAndFront(NORMAL, SIDE, FRONT);
     vec3.scale(SIDE, SIDE, radius);
     vec3.scale(FRONT, FRONT, radius);
-    this.#addFourArcCircle(lineSet, center, SIDE, FRONT);
+    this._addFourArcCircle(lineSet, center, SIDE, FRONT);
 
     vec3.subtract(V0, center, this.sourcePosition);
     const distance = vec3.dot(NORMAL, V0);
@@ -327,11 +327,11 @@ export class EveConnector extends CjsModel
     vec3.subtract(V0, V0, center);
     vec3.normalize(V0, V0);
     vec3.scaleAndAdd(V0, center, V0, radius);
-    this.#addStraightLine(lineSet, this.sourcePosition, V0);
+    this._addStraightLine(lineSet, this.sourcePosition, V0);
   }
 
   /** Emits one straight connector segment. */
-  #addStraightLine(lineSet, source, destination, fadeEnd = false)
+  _addStraightLine(lineSet, source, destination, fadeEnd = false)
   {
     vec4.copy(END_COLOR, this.color);
     if (fadeEnd)
@@ -339,20 +339,20 @@ export class EveConnector extends CjsModel
       vec4.set(END_COLOR, 0, 0, 0, 0);
     }
     const id = lineSet.AddStraightLine(source, this.color, destination, END_COLOR, this.lineWidth);
-    this.#animateSegment(lineSet, id);
+    this._animateSegment(lineSet, id);
   }
 
   /** Emits one spherical-curve connector segment. */
-  #addSpheredSegment(lineSet, point0, point1, center)
+  _addSpheredSegment(lineSet, point0, point1, center)
   {
     const id = lineSet.AddSpheredLineCrt(point0, this.color, point1, this.color, center, this.lineWidth);
-    this.#animateSegment(lineSet, id);
+    this._animateSegment(lineSet, id);
   }
 
   /** Emits a rotated ellipse as curved line segments. */
-  #addEllipse(lineSet, center, radiusX, radiusY, rotation, normal)
+  _addEllipse(lineSet, center, radiusX, radiusY, rotation, normal)
   {
-    this.#calculateSideAndFront(normal, SIDE, FRONT);
+    this._calculateSideAndFront(normal, SIDE, FRONT);
     const radians = rotation * Math.PI / 180;
     const cosine = Math.cos(radians);
     const sine = Math.sin(radians);
@@ -370,15 +370,15 @@ export class EveConnector extends CjsModel
       const angle1 = index * angleStep;
       const angle2 = (index + 1) * angleStep;
       const middleAngle = (angle1 + angle2) * 0.5;
-      this.#setEllipsePoint(POINT_1, center, radiusX, radiusY, angle1, 1);
-      this.#setEllipsePoint(POINT_2, center, radiusX, radiusY, angle2, 1);
-      this.#setEllipsePoint(MIDDLE, center, radiusX, radiusY, middleAngle, 1.01);
-      this.#addCurvedLine(lineSet, POINT_1, POINT_2, MIDDLE, 5);
+      this._setEllipsePoint(POINT_1, center, radiusX, radiusY, angle1, 1);
+      this._setEllipsePoint(POINT_2, center, radiusX, radiusY, angle2, 1);
+      this._setEllipsePoint(MIDDLE, center, radiusX, radiusY, middleAngle, 1.01);
+      this._addCurvedLine(lineSet, POINT_1, POINT_2, MIDDLE, 5);
     }
   }
 
   /** Writes one point on the current rotated ellipse. */
-  #setEllipsePoint(out, center, radiusX, radiusY, angle, scale)
+  _setEllipsePoint(out, center, radiusX, radiusY, angle, scale)
   {
     const side = Math.cos(angle) * radiusX;
     const front = Math.sin(angle) * radiusY;
@@ -389,15 +389,15 @@ export class EveConnector extends CjsModel
   }
 
   /** Emits one curved line segment and applies connector animation. */
-  #addCurvedLine(lineSet, point1, point2, middle, segments)
+  _addCurvedLine(lineSet, point1, point2, middle, segments)
   {
     const id = lineSet.AddCurvedLineCrt(point1, this.color, point2, this.color, middle,
       this.lineWidth, segments);
-    this.#animateSegment(lineSet, id);
+    this._animateSegment(lineSet, id);
   }
 
   /** Derives orthonormal side and front axes for a plane normal. */
-  #calculateSideAndFront(upDirection, outSide, outFront)
+  _calculateSideAndFront(upDirection, outSide, outFront)
   {
     vec3.normalize(NORMAL, upDirection);
     if (Math.abs(vec3.dot(NORMAL, Y_AXIS)) < 0.999)

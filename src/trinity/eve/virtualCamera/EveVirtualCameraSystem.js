@@ -36,7 +36,7 @@ export class EveVirtualCameraSystem extends CjsModel
   @type.objectRef("EveVirtualCameraTransitionBase")
   transition = null;
 
-  #lastUpdate = 0;
+  _lastUpdate = 0;
 
   /**
    * Creates the external camera, names it "externalCamera", gives it a
@@ -165,12 +165,12 @@ export class EveVirtualCameraSystem extends CjsModel
   Update(simTime)
   {
     const time = Number(simTime) || 0;
-    if (this.#lastUpdate === 0)
+    if (this._lastUpdate === 0)
     {
-      this.#lastUpdate = time;
+      this._lastUpdate = time;
     }
-    const deltaTime = time - this.#lastUpdate;
-    this.#lastUpdate = time;
+    const deltaTime = time - this._lastUpdate;
+    this._lastUpdate = time;
     for (const camera of this.cameras)
     {
       camera?.Update(deltaTime);

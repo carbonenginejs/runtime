@@ -193,16 +193,16 @@ export class EveVirtualCamera extends CjsModel
   {
     const dt = this.running ? deltaTime : 0;
     this.localElapsedTime += dt;
-    EveVirtualCamera.#updateAnchorState(this, "position");
-    EveVirtualCamera.#updateAnchorState(this, "pointOfInterest");
+    EveVirtualCamera._updateAnchorState(this, "position");
+    EveVirtualCamera._updateAnchorState(this, "pointOfInterest");
     const position = vec3.clone(this.positionAnchorCenter);
     const pointOfInterest = vec3.clone(this.pointOfInterestAnchorCenter);
     let fov = 1;
     let roll = 0;
-    EveVirtualCamera.#applyVectorBehaviours(this.positionBehaviours, this, position, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
-    EveVirtualCamera.#applyVectorBehaviours(this.pointOfInterestBehaviours, this, pointOfInterest, dt, this.localElapsedTime, this.pointOfInterestAnchorCenter, this.pointOfInterestAnchorRadius, this.pointOfInterestAnchorForwardDirection);
-    fov = EveVirtualCamera.#applyFloatBehaviours(this.fovBehaviours, this, fov, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
-    roll = EveVirtualCamera.#applyFloatBehaviours(this.rollBehaviours, this, roll, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
+    EveVirtualCamera._applyVectorBehaviours(this.positionBehaviours, this, position, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
+    EveVirtualCamera._applyVectorBehaviours(this.pointOfInterestBehaviours, this, pointOfInterest, dt, this.localElapsedTime, this.pointOfInterestAnchorCenter, this.pointOfInterestAnchorRadius, this.pointOfInterestAnchorForwardDirection);
+    fov = EveVirtualCamera._applyFloatBehaviours(this.fovBehaviours, this, fov, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
+    roll = EveVirtualCamera._applyFloatBehaviours(this.rollBehaviours, this, roll, dt, this.localElapsedTime, this.positionAnchorCenter, this.positionAnchorRadius, this.positionAnchorForwardDirection);
     if (this.positionBehaviours.length)
     {
       vec3.copy(this.position, position);
@@ -478,7 +478,7 @@ export class EveVirtualCamera extends CjsModel
    * later behaviours see the running result of the earlier ones together with
    * the anchor centre, radius and forward direction.
    */
-  static #applyVectorBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
+  static _applyVectorBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
   {
     for (const behaviour of behaviours)
     {
@@ -497,7 +497,7 @@ export class EveVirtualCamera extends CjsModel
    * Returns value with each active behaviour's returned delta added in list
    * order; a non-numeric result counts as zero.
    */
-  static #applyFloatBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
+  static _applyFloatBehaviours(behaviours, camera, value, deltaTime, localTime, anchorCenter, anchorRadius, anchorForward)
   {
     for (const behaviour of behaviours)
     {
@@ -515,7 +515,7 @@ export class EveVirtualCamera extends CjsModel
    * @param {String} prefix Field prefix, either "position" or "pointOfInterest"
    * @returns {void} Writes the AnchorCenter, AnchorForwardDirection and AnchorRadius fields; with no anchors the forward direction becomes +Z and the radius 1000
    */
-  static #updateAnchorState(camera, prefix)
+  static _updateAnchorState(camera, prefix)
   {
     const anchors = camera[`${prefix}Anchors`];
     const center = camera[`${prefix}AnchorCenter`];

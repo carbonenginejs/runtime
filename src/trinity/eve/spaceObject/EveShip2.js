@@ -39,7 +39,7 @@ export class EveShip2 extends EveMobile
   audioSpeedParameter = null;
 
   /** m_acceleration - second derivative of the position curve, fed to boosters. */
-  #acceleration = vec3.create();
+  _acceleration = vec3.create();
 
 
   /**
@@ -70,11 +70,11 @@ export class EveShip2 extends EveMobile
     {
       if (this.translationCurve?.GetValueDoubleDotAt)
       {
-        this.translationCurve.GetValueDoubleDotAt(time, this.#acceleration);
+        this.translationCurve.GetValueDoubleDotAt(time, this._acceleration);
       }
       else
       {
-        vec3.set(this.#acceleration, 0, 0, 0);
+        vec3.set(this._acceleration, 0, 0, 0);
       }
     }
   }
@@ -108,7 +108,7 @@ export class EveShip2 extends EveMobile
       time,
       this.worldTransform,
       this.speed?.value ?? 0,
-      this.#acceleration,
+      this._acceleration,
       this.worldRotation
     );
     this.boosters.UpdateTrails(deltaT, time);

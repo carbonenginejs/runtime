@@ -37,7 +37,7 @@ export class EveEllipseSet extends EveChildTransform
   @edit.persist
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
-  #geometryDirty = true;
+  _geometryDirty = true;
 
   @edit.notify
   @edit.readwrite
@@ -93,9 +93,9 @@ export class EveEllipseSet extends EveChildTransform
     ellipse.semiMinor = semiMinor;
     vec3.copy(ellipse.planeNormal, planeNormal);
     ellipse.rotationDegrees = rotationDegrees;
-    this.#BindEllipse(ellipse);
+    this._BindEllipse(ellipse);
     this.ellipses.push(ellipse);
-    this.#MarkGeometryDirty();
+    this._MarkGeometryDirty();
     return true;
   }
 
@@ -112,7 +112,7 @@ export class EveEllipseSet extends EveChildTransform
     // retained and the CPU definitions are rebound after hydration.
     for (const ellipse of this.ellipses)
     {
-      this.#BindEllipse(ellipse);
+      this._BindEllipse(ellipse);
     }
   }
 
@@ -129,7 +129,7 @@ export class EveEllipseSet extends EveChildTransform
       ellipse?.SetDirtyFlag?.(null);
     }
     this.ellipses.length = 0;
-    this.#MarkGeometryDirty();
+    this._MarkGeometryDirty();
   }
 
   /**
@@ -138,7 +138,7 @@ export class EveEllipseSet extends EveChildTransform
    */
   OnModified(_value = null)
   {
-    this.#MarkGeometryDirty();
+    this._MarkGeometryDirty();
     return true;
   }
 
@@ -158,7 +158,7 @@ export class EveEllipseSet extends EveChildTransform
         case BLUELISTEVENT.BELIST_INSERTED:
         {
           const ellipse = CjsSchema.cast(value, EveEllipseDefinition);
-          if (ellipse) this.#BindEllipse(ellipse);
+          if (ellipse) this._BindEllipse(ellipse);
           break;
         }
         case BLUELISTEVENT.BELIST_REMOVED:
@@ -168,31 +168,31 @@ export class EveEllipseSet extends EveChildTransform
           break;
         }
         case BLUELISTEVENT.BELIST_LOADFINISHED:
-          for (const ellipse of this.ellipses) this.#BindEllipse(ellipse);
+          for (const ellipse of this.ellipses) this._BindEllipse(ellipse);
           break;
         case BLUELISTEVENT.BELIST_UNLOADSTART:
           for (const ellipse of this.ellipses) ellipse.SetDirtyFlag(null);
           break;
       }
     }
-    this.#MarkGeometryDirty();
+    this._MarkGeometryDirty();
   }
 
   /**
    * Flags the ribbon geometry as stale so it is regenerated before the next
    * draw.
    */
-  #MarkGeometryDirty()
+  _MarkGeometryDirty()
   {
-    this.#geometryDirty = true;
+    this._geometryDirty = true;
   }
 
   /**
    * Points an ellipse definition's dirty callback back at this set, so editing
    * the definition invalidates the set's geometry.
    */
-  #BindEllipse(ellipse)
+  _BindEllipse(ellipse)
   {
-    ellipse.SetDirtyFlag(() => this.#MarkGeometryDirty());
+    ellipse.SetDirtyFlag(() => this._MarkGeometryDirty());
   }
 }

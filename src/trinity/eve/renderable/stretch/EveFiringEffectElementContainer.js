@@ -41,7 +41,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @edit.persist
  @type.float32 destinationScale = 1;
 
-  #active = false;
+  _active = false;
 
   /**
    * Pushes the container's endpoint state - source transform or position,
@@ -57,7 +57,7 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.element.SetFiringTransform(source, this.destination);
     this.element.SetDestObjectScale(this.destinationScale);
     this.element.DisplayEndPoints(this.displaySource, this.displayDestination);
-    if (this.#active)
+    if (this._active)
     {
       this.element.Update(context);
     }
@@ -122,7 +122,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   StartFiring(delay = 0)
   {
     if (this.element) this.element.StartFiring(delay);
-    this.#active = true;
+    this._active = true;
   }
 
   /**
@@ -133,7 +133,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   StopFiring()
   {
     if (this.element) this.element.StopFiring();
-    this.#active = false;
+    this._active = false;
   }
 
   /**
@@ -143,7 +143,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   SetActive(active)
   {
-    if (!!active === this.#active) return;
+    if (!!active === this._active) return;
     if (active) this.StartFiring(0);
     else this.StopFiring();
   }
@@ -152,7 +152,7 @@ export class EveFiringEffectElementContainer extends EveEntity
   @carbon.method @impl.implemented
   GetActive()
   {
-    return this.#active;
+    return this._active;
   }
 
   /**
@@ -189,7 +189,7 @@ export class EveFiringEffectElementContainer extends EveEntity
     }
     else
     {
-      vec3.copy(this.source, source ?? EveFiringEffectElementContainer.#zero);
+      vec3.copy(this.source, source ?? EveFiringEffectElementContainer._zero);
       this.useSourceTransform = false;
     }
     vec3.copy(this.destination, destination);
@@ -253,5 +253,5 @@ export class EveFiringEffectElementContainer extends EveEntity
     this.element?.UnRegister(this.GetComponentRegistry());
   }
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 }

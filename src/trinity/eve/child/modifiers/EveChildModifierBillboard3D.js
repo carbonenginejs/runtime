@@ -44,7 +44,7 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
       return mat4.copy(out, transform);
     }
 
-    const { scaleVec, scaleMat, invScaleMat, sansScale, basis, alignMat, d } = EveChildModifierBillboard3D.#scratch;
+    const { scaleVec, scaleMat, invScaleMat, sansScale, basis, alignMat, d } = EveChildModifierBillboard3D._scratch;
     if (this.fixed)
     {
       vec3.set(
@@ -57,7 +57,7 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
       mat4.invert(invScaleMat, scaleMat);
       // Carbon (row-vector): invScale * transform - invScale first.
       mat4.multiply(sansScale, transform, invScaleMat);
-      EveChildModifierBillboard3D.#Billboard3D(basis, renderContext, transform);
+      EveChildModifierBillboard3D._Billboard3D(basis, renderContext, transform);
       // Carbon (row-vector): scale * billboard * transformSansScale - scale first.
       mat4.multiply(out, sansScale, basis);
       mat4.multiply(out, out, scaleMat);
@@ -75,13 +75,13 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
    * Carbon's Billboard3D free function: camera-facing basis at the given
    * transform's position (right = up x toObject fallback (1,0,0)).
    */
-  static #Billboard3D(out, renderContext, transform)
+  static _Billboard3D(out, renderContext, transform)
   {
-    const { toObject, right, up } = EveChildModifierBillboard3D.#scratch;
+    const { toObject, right, up } = EveChildModifierBillboard3D._scratch;
     const camPos = renderContext.GetViewPosition();
     vec3.set(toObject, camPos[0] - transform[12], camPos[1] - transform[13], camPos[2] - transform[14]);
     vec3.normalize(toObject, toObject);
-    vec3.cross(right, EveChildModifierBillboard3D.#worldUp, toObject);
+    vec3.cross(right, EveChildModifierBillboard3D._worldUp, toObject);
     vec3.normalize(right, right);
     if (vec3.squaredLength(right) === 0)
     {
@@ -101,9 +101,9 @@ export class EveChildModifierBillboard3D extends IEveChildTransformModifier
     return out;
   }
 
-  static #worldUp = [0, 1, 0];
+  static _worldUp = [0, 1, 0];
 
-  static #scratch = {
+  static _scratch = {
     scaleVec: vec3.create(),
     scaleMat: mat4.create(),
     invScaleMat: mat4.create(),

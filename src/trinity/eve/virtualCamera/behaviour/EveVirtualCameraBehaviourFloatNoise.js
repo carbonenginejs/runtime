@@ -17,7 +17,7 @@ import { EveVirtualCameraBehaviourFloatBase } from "./EveVirtualCameraBehaviourF
 })
 export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehaviourFloatBase
 {
-  static #nextPhase = 0;
+  static _nextPhase = 0;
 
   @edit.readwrite
   @edit.persist
@@ -39,7 +39,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   @type.float32
   perlineScale = 1;
 
-  #phase = EveVirtualCameraBehaviourFloatNoise.#allocatePhase();
+  _phase = EveVirtualCameraBehaviourFloatNoise._allocatePhase();
 
   /**
    * Creates the default magnitude envelope curve and names the behaviour
@@ -48,7 +48,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   constructor()
   {
     super();
-    this.magnitudeCurve = EveVirtualCameraBehaviourFloatNoise.#createMagnitudeCurve();
+    this.magnitudeCurve = EveVirtualCameraBehaviourFloatNoise._createMagnitudeCurve();
     this.SetName("Shake");
   }
 
@@ -71,7 +71,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
   Update(camera, _current, _deltaTime, localElapsedTime)
   {
     let offset = this.magnitude * TriPerlinCurve.PerlinNoise1D(
-      (localElapsedTime + this.#phase) * this.perlineScale,
+      (localElapsedTime + this._phase) * this.perlineScale,
       2,
       2,
       this.octaves
@@ -90,7 +90,7 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * full magnitude by 0.1, then a linear fade to zero at the end of the
    * timeline.
    */
-  static #createMagnitudeCurve()
+  static _createMagnitudeCurve()
   {
     const curve = new Tr2CurveScalar();
     curve.SetExtrapolation(Tr2CurveExtrapolation.LINEAR);
@@ -105,10 +105,10 @@ export class EveVirtualCameraBehaviourFloatNoise extends EveVirtualCameraBehavio
    * Hands each new instance a distinct noise phase from a rolling 12-bit
    * counter, keeping simultaneous noise behaviours from moving in lockstep.
    */
-  static #allocatePhase()
+  static _allocatePhase()
   {
-    const phase = EveVirtualCameraBehaviourFloatNoise.#nextPhase & 0xfff;
-    EveVirtualCameraBehaviourFloatNoise.#nextPhase++;
+    const phase = EveVirtualCameraBehaviourFloatNoise._nextPhase & 0xfff;
+    EveVirtualCameraBehaviourFloatNoise._nextPhase++;
     return phase;
   }
 }

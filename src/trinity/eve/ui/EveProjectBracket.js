@@ -69,20 +69,20 @@ export class EveProjectBracket extends CjsModel
   @impl.reason("Tr2Renderer camera state and BeOS current-frame time are supplied by the active Tr2RenderContext; BlueScriptCallback accepts a host function or a Carbon callback object; Carbon's optional global debug-text side effect is not ported yet and is omitted.")
   UpdateValue(_time, renderContext)
   {
-    const scratchIndex = this.#scratchDepth++;
-    const scratch = this.#scratch[scratchIndex] ??= createProjectionScratch();
+    const scratchIndex = this._scratchDepth++;
+    const scratch = this._scratch[scratchIndex] ??= createProjectionScratch();
     try
     {
-      return this.#UpdateValue(renderContext, scratch);
+      return this._UpdateValue(renderContext, scratch);
     }
     finally
     {
-      this.#scratchDepth--;
+      this._scratchDepth--;
     }
   }
 
   /** Evaluates one bracket projection using depth-indexed reentrant scratch. */
-  #UpdateValue(renderContext, scratch)
+  _UpdateValue(renderContext, scratch)
   {
     const { position, projected } = scratch;
     if (!renderContext)
@@ -227,9 +227,9 @@ export class EveProjectBracket extends CjsModel
   SetBracketDisplayState(state)
   {
     const next = Boolean(state);
-    if (next === this.isVisible && this.#isVisibleStateSet) return;
+    if (next === this.isVisible && this._isVisibleStateSet) return;
     this.isVisible = next;
-    this.#isVisibleStateSet = true;
+    this._isVisibleStateSet = true;
     if (this.bracket) this.bracket.SetDisplay(next);
     if (this.bracketIcon) this.bracketIcon.SetDisplay(next);
     if (this.displayChangeCallback)
@@ -363,7 +363,7 @@ export class EveProjectBracket extends CjsModel
   @type.boolean
   isVisible = true;
 
-  #isVisibleStateSet = false;
-  #scratch = [];
-  #scratchDepth = 0;
+  _isVisibleStateSet = false;
+  _scratch = [];
+  _scratchDepth = 0;
 }

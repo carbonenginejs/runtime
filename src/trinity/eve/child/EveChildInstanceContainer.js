@@ -33,16 +33,16 @@ export class EveChildInstanceContainer extends EveChildTransform
   @type.quat
   rotation = quat.create();
 
-  #controllerVariables = new Map();
+  _controllerVariables = new Map();
 
   // Carbon m_hasUpdated: set by UpdateAsyncronous, gates GetRenderables.
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   // Carbon m_ownerMaxSpeed, captured from the sync params each frame.
-  #ownerMaxSpeed = 0;
+  _ownerMaxSpeed = 0;
 
   // Carbon m_worldVelocity, sampled from a space-object-rooted parent.
-  #worldVelocity = vec3.create();
+  _worldVelocity = vec3.create();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST, NOTIFY] */
   @edit.notify
@@ -116,7 +116,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   GetOwnerMaxSpeed()
   {
-    return this.#ownerMaxSpeed;
+    return this._ownerMaxSpeed;
   }
 
   /** Propagates the owning space object to the source and live instances. */
@@ -158,7 +158,7 @@ export class EveChildInstanceContainer extends EveChildTransform
     const key = String(name);
     const next = Number(value);
     this.source?.SetControllerVariable(key, next);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const instance of this.instances) instance?.SetControllerVariable(key, next);
   }
 
@@ -174,7 +174,7 @@ export class EveChildInstanceContainer extends EveChildTransform
    * instances, the source template stands in - but only while edit mode is
    * enabled (m_disableEditMode has no JS field yet; an absent field reads as
    * edit mode on, matching RegisterComponents below). */
-  #RunOnInstances(func)
+  _RunOnInstances(func)
   {
     if (!this.instances.length && this.source && !this.disableEditMode)
     {
@@ -190,7 +190,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   /** Carbon copies the incoming params before overriding (cpp:404-407,
    * 429-432); the duck-tolerant reads mirror EveChildContainer, because the
    * turret ambient path passes a plain object literal, not a full params. */
-  static #DeriveChildParams(params)
+  static _DeriveChildParams(params)
   {
     const next = new EveChildUpdateParams();
     if (params)
@@ -228,14 +228,14 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     if (!this.display) return;
 
-    this.#ownerMaxSpeed = Number(params?.ownerMaxSpeed) || 0;
+    this._ownerMaxSpeed = Number(params?.ownerMaxSpeed) || 0;
 
-    const newParams = EveChildInstanceContainer.#DeriveChildParams(params);
+    const newParams = EveChildInstanceContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
 
-    this.#RunOnInstances(child => child.UpdateSyncronous(updateContext, newParams));
+    this._RunOnInstances(child => child.UpdateSyncronous(updateContext, newParams));
   }
 
   /** Carbon EveChildInstanceContainer::UpdateAsyncronous (cpp:418-443):
@@ -256,19 +256,19 @@ export class EveChildInstanceContainer extends EveChildTransform
       this.UpdateTransform(parentTransform);
     }
 
-    const newParams = EveChildInstanceContainer.#DeriveChildParams(params);
+    const newParams = EveChildInstanceContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
 
-    this.#RunOnInstances(child => child.UpdateAsyncronous(updateContext, newParams));
+    this._RunOnInstances(child => child.UpdateAsyncronous(updateContext, newParams));
 
     if (params?.spaceObjectParent && !params.childParent)
     {
-      params.spaceObjectParent.GetWorldVelocity(this.#worldVelocity);
+      params.spaceObjectParent.GetWorldVelocity(this._worldVelocity);
     }
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
   }
 
   /** Carbon EveChildInstanceContainer::UpdateVisibility (cpp:378-386): the
@@ -280,7 +280,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   {
     if (!this.display) return;
 
-    this.#RunOnInstances(child => child.UpdateVisibility(updateContext, parentTransform, parentLod));
+    this._RunOnInstances(child => child.UpdateVisibility(updateContext, parentTransform, parentLod));
   }
 
   /** Carbon EveChildInstanceContainer::GetRenderables (cpp:367-375): gated on
@@ -290,9 +290,9 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   GetRenderables(out = [])
   {
-    if (!this.display || !this.#hasUpdated) return out;
+    if (!this.display || !this._hasUpdated) return out;
 
-    this.#RunOnInstances(child => child.GetRenderables(out));
+    this._RunOnInstances(child => child.GetRenderables(out));
     return out;
   }
 
@@ -310,7 +310,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
-    this.#RunOnInstances(child => child.AddQuadsToQuadRenderer(frustum, quadRenderer));
+    this._RunOnInstances(child => child.AddQuadsToQuadRenderer(frustum, quadRenderer));
   }
 
   /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):

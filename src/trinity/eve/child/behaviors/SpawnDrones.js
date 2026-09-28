@@ -180,7 +180,7 @@ export class SpawnDrones extends CjsModel
     // If m_addByCount is toggled on the behavior adds agents by count
     if (this.addByCount === true)
     {
-      group.AddAgents(this.#MakeSpawnPoints(group.spawnPosition));
+      group.AddAgents(this._MakeSpawnPoints(group.spawnPosition));
       this.addByCount = false;
     }
 
@@ -206,7 +206,7 @@ export class SpawnDrones extends CjsModel
 
       vec3.copy(group.spawnPosition, this.spawnPosition);
 
-      group.AddAgents(this.#MakeSpawnPoints(group.spawnPosition));
+      group.AddAgents(this._MakeSpawnPoints(group.spawnPosition));
 
       this.time = 0;
     }
@@ -227,7 +227,7 @@ export class SpawnDrones extends CjsModel
   /**
    * Builds an array of cloned copies of one spawn position, ready to be added as new agents.
    */
-  #MakeSpawnPoints(position)
+  _MakeSpawnPoints(position)
   {
     const spawnPoints = [];
     for (let i = 0; i < this.count; i++)

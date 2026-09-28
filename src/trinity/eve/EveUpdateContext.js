@@ -163,7 +163,7 @@ export class EveUpdateContext extends CjsModel
       return;
     }
 
-    const originNow = EveUpdateContext.#originScratch;
+    const originNow = EveUpdateContext._originScratch;
     ballpark.GetReferencePoint(this.currentTime, originNow);
 
     if (this.origin[0] !== Infinity)
@@ -190,7 +190,7 @@ export class EveUpdateContext extends CjsModel
   @impl.adapted
   GetOrigin()
   {
-    return this.origin[0] !== Infinity ? this.origin : EveUpdateContext.#zeroOrigin;
+    return this.origin[0] !== Infinity ? this.origin : EveUpdateContext._zeroOrigin;
   }
 
   /**
@@ -429,7 +429,7 @@ export class EveUpdateContext extends CjsModel
     return this.frustum;
   }
 
-  static #originScratch = new Float64Array(3);
+  static _originScratch = new Float64Array(3);
 
-  static #zeroOrigin = new Float64Array(3);
+  static _zeroOrigin = new Float64Array(3);
 }

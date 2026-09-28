@@ -46,9 +46,9 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   @type.uint32
   partTag = 0;
 
-  #owner = null;
+  _owner = null;
 
-  #parent = null;
+  _parent = null;
 
   /** Returns the authored child name. */
   GetName()
@@ -176,13 +176,13 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   /** Returns the owning space object. */
   GetOwner()
   {
-    return this.#owner;
+    return this._owner;
   }
 
   /** Sets the owning space object. */
   SetOwner(owner)
   {
-    this.#owner = owner ?? null;
+    this._owner = owner ?? null;
   }
 
   @carbon.method
@@ -190,13 +190,13 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
   /** Returns the parent child node. */
   GetParent()
   {
-    return this.#parent;
+    return this._parent;
   }
 
   /** Sets the parent child node. */
   SetParent(parent)
   {
-    this.#parent = parent ?? null;
+    this._parent = parent ?? null;
   }
 
   /** Provides the Carbon default no-op locator-set collection. */
@@ -263,7 +263,7 @@ export class EveSpaceObjectChild extends IEveSpaceObjectChild
     }
 
     child.SetParent(this);
-    child.SetOwner(this.#owner);
+    child.SetOwner(this._owner);
 
     if (this.partTag !== EveSpaceObjectChild.NO_PART_TAG)
     {

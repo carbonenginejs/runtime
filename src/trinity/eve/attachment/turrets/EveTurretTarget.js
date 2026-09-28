@@ -30,24 +30,24 @@ export class EveTurretTarget extends CjsModel
   @edit.read @type.vec3 positionOld = vec3.create();
   @edit.read @type.int32 locator = -1;
 
-  #targetable = null;
-  #worldPositionObject = null;
-  #impactLength = -1;
-  #impactDelay = -1;
-  #impactID = -1;
-  #positionMiss = vec3.create();
-  #missQueue = [];
-  #lastShotMissed = false;
-  #lastShotTime = 0;
-  #laserMissBehaviour = false;
-  #projectileMissBehaviour = false;
-  #impactSize = 0;
-  #randomMissDistanceOffset = 0.5;
-  #randomMissPositionOffset = vec3.create();
+  _targetable = null;
+  _worldPositionObject = null;
+  _impactLength = -1;
+  _impactDelay = -1;
+  _impactID = -1;
+  _positionMiss = vec3.create();
+  _missQueue = [];
+  _lastShotMissed = false;
+  _lastShotTime = 0;
+  _laserMissBehaviour = false;
+  _projectileMissBehaviour = false;
+  _impactSize = 0;
+  _randomMissDistanceOffset = 0.5;
+  _randomMissPositionOffset = vec3.create();
 
   // Carbon m_fadeOnLocatorChange (EveTurretTarget.h:92) - default off; only
   // EveChildTurret enables it, so ship turrets keep the snap behaviour.
-  #fadeOnLocatorChange = false;
+  _fadeOnLocatorChange = false;
 
   /**
    * The targetable record this tracker is following, or null when it has no
@@ -56,7 +56,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetTargetable()
   {
-    return this.#targetable;
+    return this._targetable;
   }
 
   /**
@@ -72,17 +72,17 @@ export class EveTurretTarget extends CjsModel
   {
     if (!object)
     {
-      this.#targetable = null;
-      this.#worldPositionObject = null;
+      this._targetable = null;
+      this._worldPositionObject = null;
       return true;
     }
     const hasTargetSurface = typeof object.GetDamageLocatorPosition === "function" || typeof object.GetImpactPosition === "function";
     const hasPositionSurface = typeof object.GetWorldPosition === "function" || object.worldPosition?.length >= 3 || object.position?.length >= 3;
     if (!(hasTargetSurface && hasPositionSurface)) return false;
-    if (object !== this.#targetable)
+    if (object !== this._targetable)
     {
-      this.#targetable = object;
-      this.#worldPositionObject = object;
+      this._targetable = object;
+      this._worldPositionObject = object;
       vec3.copy(this.positionOld, this.position);
       this.positionOldInfluence = 1;
     }
@@ -104,7 +104,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   SetFadeOnLocatorChange(fade)
   {
-    this.#fadeOnLocatorChange = !!fade;
+    this._fadeOnLocatorChange = !!fade;
   }
 
   /**
@@ -115,37 +115,37 @@ export class EveTurretTarget extends CjsModel
    */
   @carbon.method @impl.adapted
   @impl.reason("Carbon's random helpers map to Math.random; targetable calls use the org-standard out-last convention.")
-  StartFireAtLocator(locator, delay, length, source = EveTurretTarget.#zero)
+  StartFireAtLocator(locator, delay, length, source = EveTurretTarget._zero)
   {
     this.locator = Number(locator) | 0;
     // Carbon EveTurretTarget.cpp:122-126: fading turrets blend out of the
     // CURRENT tracking position when the locator changes.
-    if (this.#fadeOnLocatorChange)
+    if (this._fadeOnLocatorChange)
     {
       vec3.copy(this.positionOld, this.position);
       this.positionOldInfluence = 1;
     }
-    this.#randomMissDistanceOffset = Math.random();
+    this._randomMissDistanceOffset = Math.random();
     const u = Math.random();
     const v = Math.random();
     const phi = u * Math.PI * 2;
     const theta = Math.acos(1 - Math.sqrt(v)) * 2;
     const sinPhi = Math.sin(phi) * 3;
-    vec3.set(this.#randomMissPositionOffset, sinPhi * Math.cos(theta), Math.cos(phi) * 3, sinPhi * Math.sin(theta));
-    this.#impactID = -1;
+    vec3.set(this._randomMissPositionOffset, sinPhi * Math.cos(theta), Math.cos(phi) * 3, sinPhi * Math.sin(theta));
+    this._impactID = -1;
 
-    if (!this.PopShotMissed() && this.#impactSize > 0 && this.#targetable)
+    if (!this.PopShotMissed() && this._impactSize > 0 && this._targetable)
     {
-      this.#impactLength = Math.max(Number(length), 0);
-      this.#impactDelay = Number(delay);
-      if (this.#impactDelay === 0)
+      this._impactLength = Math.max(Number(length), 0);
+      this._impactDelay = Number(delay);
+      if (this._impactDelay === 0)
       {
         this.GetImpactPosition(source, this.targetPosition);
         if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
         {
-          vec3.subtract(EveTurretTarget.#direction, source, this.targetPosition);
-          this.#impactID = Number(this.#targetable.CreateImpact?.(this.locator, EveTurretTarget.#direction, this.#impactLength, this.#impactSize) ?? -1) | 0;
-          this.#impactDelay = -1;
+          vec3.subtract(EveTurretTarget._direction, source, this.targetPosition);
+          this._impactID = Number(this._targetable.CreateImpact?.(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize) ?? -1) | 0;
+          this._impactDelay = -1;
         }
       }
     }
@@ -161,7 +161,7 @@ export class EveTurretTarget extends CjsModel
     this.locator = -1;
     // Carbon EveTurretTarget.cpp:172-180: fading turrets ease out of the
     // last tracking position; others snap by disabling the blend.
-    if (this.#fadeOnLocatorChange)
+    if (this._fadeOnLocatorChange)
     {
       vec3.copy(this.positionOld, this.position);
       this.positionOldInfluence = 1;
@@ -170,8 +170,8 @@ export class EveTurretTarget extends CjsModel
     {
       this.positionOldInfluence = -1;
     }
-    this.#lastShotMissed = false;
-    this.#missQueue.length = 0;
+    this._lastShotMissed = false;
+    this._missQueue.length = 0;
   }
 
   /**
@@ -182,23 +182,23 @@ export class EveTurretTarget extends CjsModel
    */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
-  GetImpactPosition(source = EveTurretTarget.#zero, out = vec3.create())
+  GetImpactPosition(source = EveTurretTarget._zero, out = vec3.create())
   {
-    if (!this.#targetable) return out;
+    if (!this._targetable) return out;
     if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
     {
-      const valid = this.#targetable.GetDamageLocatorPosition?.(this.locator, true, out);
-      if (valid === false || vec3.squaredLength(out) > 2.2379561604e22) getWorldPosition(this.#worldPositionObject, out);
+      const valid = this._targetable.GetDamageLocatorPosition?.(this.locator, true, out);
+      if (valid === false || vec3.squaredLength(out) > 2.2379561604e22) getWorldPosition(this._worldPositionObject, out);
     }
     else if (this.behaviour === EveTurretTarget.ImpactBehaviour.CENTER)
     {
-      getWorldPosition(this.#worldPositionObject, out);
+      getWorldPosition(this._worldPositionObject, out);
     }
     else
     {
-      getWorldPosition(this.#worldPositionObject, EveTurretTarget.#worldPosition);
-      const valid = this.#targetable.GetImpactPosition?.(this.locator, source, EveTurretTarget.#worldPosition, 0, out);
-      if (valid === false) this.#targetable.GetDamageLocatorPosition?.(this.locator, true, out);
+      getWorldPosition(this._worldPositionObject, EveTurretTarget._worldPosition);
+      const valid = this._targetable.GetImpactPosition?.(this.locator, source, EveTurretTarget._worldPosition, 0, out);
+      if (valid === false) this._targetable.GetDamageLocatorPosition?.(this.locator, true, out);
     }
     return out;
   }
@@ -213,39 +213,39 @@ export class EveTurretTarget extends CjsModel
    */
   @carbon.method @impl.adapted
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
-  Update(deltaTime, source = EveTurretTarget.#zero)
+  Update(deltaTime, source = EveTurretTarget._zero)
   {
     const dt = Number(deltaTime) || 0;
-    if (this.#targetable)
+    if (this._targetable)
     {
       this.GetImpactPosition(source, this.targetPosition);
-      vec3.subtract(EveTurretTarget.#direction, source, this.targetPosition);
-      const missResult = this.#targetable.GetMissPosition?.(this.targetPosition, source, this.#positionMiss);
-      if (missResult?.length >= 3) vec3.copy(this.#positionMiss, missResult);
-      else if (missResult === undefined && !this.#targetable.GetMissPosition) vec3.copy(this.#positionMiss, this.targetPosition);
-      vec3.add(this.#positionMiss, this.#positionMiss, this.#randomMissPositionOffset);
-      vec3.subtract(EveTurretTarget.#missDirection, this.#positionMiss, source);
-      const distance = vec3.length(EveTurretTarget.#missDirection);
-      if (distance) vec3.scale(EveTurretTarget.#missDirection, EveTurretTarget.#missDirection, 1 / distance);
-      if (this.#laserMissBehaviour)
+      vec3.subtract(EveTurretTarget._direction, source, this.targetPosition);
+      const missResult = this._targetable.GetMissPosition?.(this.targetPosition, source, this._positionMiss);
+      if (missResult?.length >= 3) vec3.copy(this._positionMiss, missResult);
+      else if (missResult === undefined && !this._targetable.GetMissPosition) vec3.copy(this._positionMiss, this.targetPosition);
+      vec3.add(this._positionMiss, this._positionMiss, this._randomMissPositionOffset);
+      vec3.subtract(EveTurretTarget._missDirection, this._positionMiss, source);
+      const distance = vec3.length(EveTurretTarget._missDirection);
+      if (distance) vec3.scale(EveTurretTarget._missDirection, EveTurretTarget._missDirection, 1 / distance);
+      if (this._laserMissBehaviour)
       {
-        vec3.scaleAndAdd(this.#positionMiss, this.#positionMiss, EveTurretTarget.#missDirection, 250000);
+        vec3.scaleAndAdd(this._positionMiss, this._positionMiss, EveTurretTarget._missDirection, 250000);
       }
       else
       {
-        vec3.scaleAndAdd(this.#positionMiss, this.#positionMiss, EveTurretTarget.#missDirection, (distance + 5000) * (1 + 0.5 * this.#randomMissDistanceOffset));
+        vec3.scaleAndAdd(this._positionMiss, this._positionMiss, EveTurretTarget._missDirection, (distance + 5000) * (1 + 0.5 * this._randomMissDistanceOffset));
       }
 
       if (this.behaviour === EveTurretTarget.ImpactBehaviour.DAMAGE_LOCATOR)
       {
-        if (this.#impactID !== -1) this.#targetable.UpdateImpact?.(this.targetPosition, EveTurretTarget.#direction, this.#impactID);
-        if (this.#impactDelay > 0 && this.#impactSize > 0)
+        if (this._impactID !== -1) this._targetable.UpdateImpact?.(this.targetPosition, EveTurretTarget._direction, this._impactID);
+        if (this._impactDelay > 0 && this._impactSize > 0)
         {
-          this.#impactDelay -= dt;
-          if (this.#impactDelay < 0)
+          this._impactDelay -= dt;
+          if (this._impactDelay < 0)
           {
-            this.#impactID = Number(this.#targetable.CreateImpact?.(this.locator, EveTurretTarget.#direction, this.#impactLength, this.#impactSize) ?? -1) | 0;
-            this.#impactDelay = -1;
+            this._impactID = Number(this._targetable.CreateImpact?.(this.locator, EveTurretTarget._direction, this._impactLength, this._impactSize) ?? -1) | 0;
+            this._impactDelay = -1;
           }
         }
       }
@@ -268,7 +268,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetTrackingPosition(out)
   {
-    return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.position, out);
+    return copyOrReturn(this.GetShotMissed() ? this._positionMiss : this.position, out);
   }
 
   /**
@@ -279,7 +279,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetTargetPosition(out)
   {
-    return copyOrReturn(this.GetShotMissed() ? this.#positionMiss : this.targetPosition, out);
+    return copyOrReturn(this.GetShotMissed() ? this._positionMiss : this.targetPosition, out);
   }
 
   /**
@@ -291,9 +291,9 @@ export class EveTurretTarget extends CjsModel
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   FindClosestLocator(source, out = vec3.create())
   {
-    if (!this.#targetable) return -1;
-    const locator = Number(this.#targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
-    return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
+    if (!this._targetable) return -1;
+    const locator = Number(this._targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
+    return this._targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
   }
 
   /**
@@ -304,11 +304,11 @@ export class EveTurretTarget extends CjsModel
   @impl.reason("Targetable output parameters use CarbonEngineJS's out-last calling convention.")
   FindRandomValidLocator(source, out = vec3.create())
   {
-    if (!this.#targetable) return -1;
-    let locator = Number(this.#targetable.GetGoodDamageLocatorIndex?.(source) ?? -1) | 0;
-    if (this.#targetable.GetDamageLocatorPosition?.(locator, true, out) !== false) return locator;
-    locator = Number(this.#targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
-    return this.#targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
+    if (!this._targetable) return -1;
+    let locator = Number(this._targetable.GetGoodDamageLocatorIndex?.(source) ?? -1) | 0;
+    if (this._targetable.GetDamageLocatorPosition?.(locator, true, out) !== false) return locator;
+    locator = Number(this._targetable.GetClosestDamageLocatorIndex?.(source) ?? -1) | 0;
+    return this._targetable.GetDamageLocatorPosition?.(locator, true, out) === false ? -1 : locator;
   }
 
   /**
@@ -319,8 +319,8 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   SetBehaviour(laserMiss, projectileMiss, impactSize, impactBehaviour)
   {
-    this.#laserMissBehaviour = !!laserMiss;
-    this.#projectileMissBehaviour = !!projectileMiss;
+    this._laserMissBehaviour = !!laserMiss;
+    this._projectileMissBehaviour = !!projectileMiss;
     this.SetImpactBehaviour(impactSize, impactBehaviour);
   }
 
@@ -331,7 +331,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   SetImpactBehaviour(impactSize, impactBehaviour)
   {
-    this.#impactSize = Number(impactSize);
+    this._impactSize = Number(impactSize);
     this.behaviour = Number(impactBehaviour) | 0;
   }
 
@@ -342,8 +342,8 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   PopShotMissed()
   {
-    this.#lastShotMissed = this.#missQueue.length ? this.#missQueue.shift() : false;
-    return this.#lastShotMissed;
+    this._lastShotMissed = this._missQueue.length ? this._missQueue.shift() : false;
+    return this._lastShotMissed;
   }
 
   /**
@@ -353,7 +353,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetShotMissed()
   {
-    return this.#lastShotMissed;
+    return this._lastShotMissed;
   }
 
   /**
@@ -365,23 +365,23 @@ export class EveTurretTarget extends CjsModel
   @impl.reason("An optional timestamp supports deterministic tests; otherwise browser wall-clock seconds replace BeOS actual time.")
   SetShotMissed(missed, timestamp = Date.now() / 1000)
   {
-    this.#missQueue.push(!!missed);
-    this.#lastShotTime = Number(timestamp);
-    while (this.#missQueue.length > 4) this.#missQueue.shift();
+    this._missQueue.push(!!missed);
+    this._lastShotTime = Number(timestamp);
+    while (this._missQueue.length > 4) this._missQueue.shift();
   }
 
   /** The timestamp stamped by the most recent SetShotMissed, in seconds. */
   @carbon.method @impl.implemented
   GetLastShotTime()
   {
-    return this.#lastShotTime;
+    return this._lastShotTime;
   }
 
   /** The number of queued shot results not yet popped. */
   @carbon.method @impl.implemented
   MissQueueSize()
   {
-    return this.#missQueue.length;
+    return this._missQueue.length;
   }
 
   /** The maximum firing-time variance between turrets (Carbon EveTurretTarget.h:62-65). */
@@ -398,7 +398,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetRadius()
   {
-    return Number(this.#targetable?.GetRadius?.() ?? -1);
+    return Number(this._targetable?.GetRadius?.() ?? -1);
   }
 
   /**
@@ -408,7 +408,7 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   GetImpactConfiguration()
   {
-    return this.#targetable?.GetImpactConfiguration?.() ?? EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
+    return this._targetable?.GetImpactConfiguration?.() ?? EveTurretTarget.ImpactConfiguration.IMPACT_INVALID;
   }
 
   /**
@@ -418,15 +418,15 @@ export class EveTurretTarget extends CjsModel
   @carbon.method @impl.implemented
   ShowDestObject()
   {
-    return !(this.#projectileMissBehaviour && this.GetShotMissed());
+    return !(this._projectileMissBehaviour && this.GetShotMissed());
   }
 
   static ImpactBehaviour = Object.freeze({ DAMAGE_LOCATOR: 0, SHIELD_ELLIPSOID: 1, CENTER: 2 });
   static ImpactConfiguration = ImpactConfiguration;
-  static #zero = vec3.create();
-  static #direction = vec3.create();
-  static #missDirection = vec3.create();
-  static #worldPosition = vec3.create();
+  static _zero = vec3.create();
+  static _direction = vec3.create();
+  static _missDirection = vec3.create();
+  static _worldPosition = vec3.create();
 }
 
 function getWorldPosition(object, out)

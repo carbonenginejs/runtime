@@ -98,7 +98,7 @@ export class EveTacticalOverlay extends CjsModel
   constructor()
   {
     super();
-    this.#RegisterVariables();
+    this._RegisterVariables();
   }
 
   /** Attaches the owned variable store to every authored effect. */
@@ -106,9 +106,9 @@ export class EveTacticalOverlay extends CjsModel
   @impl.implemented
   Initialize()
   {
-    this.#SetVariableStore(this.anchorEffect);
-    this.#SetVariableStore(this.connectorEffect);
-    this.#SetVariableStore(this.velocityEffect);
+    this._SetVariableStore(this.anchorEffect);
+    this._SetVariableStore(this.connectorEffect);
+    this._SetVariableStore(this.velocityEffect);
     return true;
   }
 
@@ -118,9 +118,9 @@ export class EveTacticalOverlay extends CjsModel
   @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "anchorEffect") this.#SetVariableStore(this.anchorEffect);
-    else if (propertyName === "connectorEffect") this.#SetVariableStore(this.connectorEffect);
-    else if (propertyName === "velocityEffect") this.#SetVariableStore(this.velocityEffect);
+    if (propertyName === "anchorEffect") this._SetVariableStore(this.anchorEffect);
+    else if (propertyName === "connectorEffect") this._SetVariableStore(this.connectorEffect);
+    else if (propertyName === "velocityEffect") this._SetVariableStore(this.velocityEffect);
     return true;
   }
 
@@ -134,13 +134,13 @@ export class EveTacticalOverlay extends CjsModel
     {
       const time = updateContext.GetTime();
       this.translationCurve.GetValueAt(time, this.worldPosition);
-      this.translationCurve.GetValueDotAt(time, this.#rootVelocity);
+      this.translationCurve.GetValueDotAt(time, this._rootVelocity);
     }
     for (const trackObject of this.trackObjects)
     {
       trackObject.UpdatePosition(updateContext);
     }
-    this.#RegisterVariables();
+    this._RegisterVariables();
   }
 
   /** Carbon's asynchronous overlay update is intentionally empty. */
@@ -156,9 +156,9 @@ export class EveTacticalOverlay extends CjsModel
   @impl.reason("Carbon's typed vertex vectors are represented by flat Float32Array-compatible number buffers consumed by Tr2QuadRenderer.")
   UpdateVisibility(updateContext, _parentTransform)
   {
-    this.#anchorBuffer.length = 0;
-    this.#connectorBuffer.length = 0;
-    this.#velocityBuffer.length = 0;
+    this._anchorBuffer.length = 0;
+    this._connectorBuffer.length = 0;
+    this._velocityBuffer.length = 0;
 
     const rootX = this.worldPosition[0];
     const rootY = this.worldPosition[1];
@@ -170,10 +170,10 @@ export class EveTacticalOverlay extends CjsModel
 
     for (const trackObject of this.trackObjects)
     {
-      trackObject.GetPosition(this.#positionScratch);
-      const positionX = this.#positionScratch[0];
-      const positionY = this.#positionScratch[1];
-      const positionZ = this.#positionScratch[2];
+      trackObject.GetPosition(this._positionScratch);
+      const positionX = this._positionScratch[0];
+      const positionY = this._positionScratch[1];
+      const positionZ = this._positionScratch[2];
       const radius = trackObject.GetRadius();
       const deltaX = positionX - rootX;
       const deltaY = positionY - rootY;
@@ -193,15 +193,15 @@ export class EveTacticalOverlay extends CjsModel
       const halfY = (planeY - positionY) * 0.5;
       const halfZ = (planeZ - positionZ) * 0.5;
       vec4.set(
-        this.#sphereScratch,
+        this._sphereScratch,
         positionX + halfX,
         positionY + halfY,
         positionZ + halfZ,
         Math.hypot(halfX, halfY, halfZ) + 1e-4
       );
-      if (!frustum.IsSphereVisible(this.#sphereScratch)) continue;
+      if (!frustum.IsSphereVisible(this._sphereScratch)) continue;
 
-      const pixelDiameter = frustum.GetPixelSizeAccross(this.#sphereScratch);
+      const pixelDiameter = frustum.GetPixelSizeAccross(this._sphereScratch);
       let segments = getSubdivisionCount(
         pixelDiameter,
         this.segmentsLow,
@@ -228,10 +228,10 @@ export class EveTacticalOverlay extends CjsModel
         distance - radius - sourceRadius > this.interestRange
         ? 1 - this.outsideInterestIntensity
         : 0;
-      this.#anchorBuffer.push(positionX, positionY, positionZ, interestReducedIntensity);
+      this._anchorBuffer.push(positionX, positionY, positionZ, interestReducedIntensity);
       for (let segmentIndex = 0; segmentIndex < counter; segmentIndex++)
       {
-        this.#connectorBuffer.push(
+        this._connectorBuffer.push(
           positionX,
           positionY,
           positionZ,
@@ -240,15 +240,15 @@ export class EveTacticalOverlay extends CjsModel
         );
       }
 
-      trackObject.GetVelocity(this.#velocityScratch);
-      const velocityX = this.#velocityScratch[0];
-      const velocityY = this.#velocityScratch[1];
-      const velocityZ = this.#velocityScratch[2];
+      trackObject.GetVelocity(this._velocityScratch);
+      const velocityX = this._velocityScratch[0];
+      const velocityY = this._velocityScratch[1];
+      const velocityZ = this._velocityScratch[2];
       for (let kind = 0; kind < 3; kind++)
       {
         if (kind === 1 && !trackObject.IsAggressive()) continue;
         if (kind === 0 && !trackObject.ShowVelocity()) continue;
-        this.#velocityBuffer.push(
+        this._velocityBuffer.push(
           positionX,
           positionY,
           positionZ,
@@ -261,47 +261,47 @@ export class EveTacticalOverlay extends CjsModel
       }
     }
 
-    this.#velocityBuffer.push(
+    this._velocityBuffer.push(
       rootX,
       rootY,
       rootZ,
       0,
-      this.#rootVelocity[0],
-      this.#rootVelocity[1],
-      this.#rootVelocity[2],
+      this._rootVelocity[0],
+      this._rootVelocity[1],
+      this._rootVelocity[2],
       Math.floor(sourceRadius)
     );
     if (this.interestObject && this.interestObject.ShowVelocity())
     {
-      this.interestObject.GetPosition(this.#positionScratch);
-      const interestX = this.#positionScratch[0];
-      const interestY = this.#positionScratch[1];
-      const interestZ = this.#positionScratch[2];
+      this.interestObject.GetPosition(this._positionScratch);
+      const interestX = this._positionScratch[0];
+      const interestY = this._positionScratch[1];
+      const interestZ = this._positionScratch[2];
       const interestRadius = this.interestObject.GetRadius();
-      this.#velocityBuffer.push(
+      this._velocityBuffer.push(
         interestX,
         interestY,
         interestZ,
         0,
-        this.#rootVelocity[0],
-        this.#rootVelocity[1],
-        this.#rootVelocity[2],
+        this._rootVelocity[0],
+        this._rootVelocity[1],
+        this._rootVelocity[2],
         Math.floor(interestRadius) + 0.9
       );
-      this.interestObject.GetVelocity(this.#velocityScratch);
-      this.#velocityBuffer.push(
+      this.interestObject.GetVelocity(this._velocityScratch);
+      this._velocityBuffer.push(
         rootX,
         rootY,
         rootZ,
         0,
-        this.#velocityScratch[0],
-        this.#velocityScratch[1],
-        this.#velocityScratch[2],
+        this._velocityScratch[0],
+        this._velocityScratch[1],
+        this._velocityScratch[2],
         Math.floor(sourceRadius) + 0.9
       );
     }
 
-    this.totalSegmentsLast = this.#connectorBuffer.length / 5;
+    this.totalSegmentsLast = this._connectorBuffer.length / 5;
     this.requestedSegmentsLast = requestedSegments;
   }
 
@@ -360,9 +360,9 @@ export class EveTacticalOverlay extends CjsModel
   {
     if (this.connectorEffect)
     {
-      this.#connectorEffectKey = getEffectKey(this.connectorEffect);
+      this._connectorEffectKey = getEffectKey(this.connectorEffect);
       quadRenderer.RegisterEffect(
-        this.#connectorEffectKey,
+        this._connectorEffectKey,
         TriBatchType.TRIBATCHTYPE_ADDITIVE,
         20,
         1,
@@ -372,9 +372,9 @@ export class EveTacticalOverlay extends CjsModel
     }
     if (this.anchorEffect)
     {
-      this.#anchorEffectKey = getEffectKey(this.anchorEffect);
+      this._anchorEffectKey = getEffectKey(this.anchorEffect);
       quadRenderer.RegisterEffect(
-        this.#anchorEffectKey,
+        this._anchorEffectKey,
         TriBatchType.TRIBATCHTYPE_ADDITIVE,
         16,
         1,
@@ -384,9 +384,9 @@ export class EveTacticalOverlay extends CjsModel
     }
     if (this.velocityEffect)
     {
-      this.#velocityEffectKey = getEffectKey(this.velocityEffect);
+      this._velocityEffectKey = getEffectKey(this.velocityEffect);
       quadRenderer.RegisterEffect(
-        this.#velocityEffectKey,
+        this._velocityEffectKey,
         TriBatchType.TRIBATCHTYPE_ADDITIVE,
         32,
         1,
@@ -401,33 +401,33 @@ export class EveTacticalOverlay extends CjsModel
   @impl.implemented
   AddQuadsToQuadRenderer(_frustum, quadRenderer)
   {
-    if (!this.#connectorEffectKey || !this.#anchorEffectKey || !this.#velocityEffectKey) return;
-    quadRenderer.AddQuads(this.#connectorEffectKey, this.#connectorBuffer, this.#connectorBuffer.length / 5);
-    quadRenderer.AddQuads(this.#anchorEffectKey, this.#anchorBuffer, this.#anchorBuffer.length / 4);
-    quadRenderer.AddQuads(this.#velocityEffectKey, this.#velocityBuffer, this.#velocityBuffer.length / 8);
+    if (!this._connectorEffectKey || !this._anchorEffectKey || !this._velocityEffectKey) return;
+    quadRenderer.AddQuads(this._connectorEffectKey, this._connectorBuffer, this._connectorBuffer.length / 5);
+    quadRenderer.AddQuads(this._anchorEffectKey, this._anchorBuffer, this._anchorBuffer.length / 4);
+    quadRenderer.AddQuads(this._velocityEffectKey, this._velocityBuffer, this._velocityBuffer.length / 8);
   }
 
   /** Refreshes the variable-store values exposed to tactical effects. */
-  #RegisterVariables()
+  _RegisterVariables()
   {
     vec4.set(
-      this.#ranges,
+      this._ranges,
       this.activeRange,
       this.rangeFadeLength,
       this.rangeMultiplier,
       this.sourceRadius
     );
-    this.#variableStore.RegisterVariable("PlanePosition", this.worldPosition);
-    this.#variableStore.RegisterVariable("Fadeout", this.#ranges);
-    this.#variableStore.RegisterVariable("RootVelocity", this.#rootVelocity);
+    this._variableStore.RegisterVariable("PlanePosition", this.worldPosition);
+    this._variableStore.RegisterVariable("Fadeout", this._ranges);
+    this._variableStore.RegisterVariable("RootVelocity", this._rootVelocity);
   }
 
   /** Attaches the local variable store to one nullable effect. */
-  #SetVariableStore(effect)
+  _SetVariableStore(effect)
   {
     if (!effect) return;
     effect.StartUpdate();
-    effect.SetVariableStore(this.#variableStore);
+    effect.SetVariableStore(this._variableStore);
     effect.EndUpdate();
   }
 
@@ -567,16 +567,16 @@ export class EveTacticalOverlay extends CjsModel
   // overlay and its authored effects therefore share one graph lifetime. A
   // future nominal graph-lifecycle contract must own explicit detachment rather
   // than relying on a finalizer or a backend-specific teardown probe.
-  #rootVelocity = vec3.create();
-  #variableStore = new Tr2VariableStore();
-  #ranges = vec4.fromValues(200000, 50000, 1, 50);
-  #anchorBuffer = [];
-  #connectorBuffer = [];
-  #velocityBuffer = [];
-  #positionScratch = vec3.create();
-  #velocityScratch = vec3.create();
-  #sphereScratch = vec4.create();
-  #anchorEffectKey = null;
-  #connectorEffectKey = null;
-  #velocityEffectKey = null;
+  _rootVelocity = vec3.create();
+  _variableStore = new Tr2VariableStore();
+  _ranges = vec4.fromValues(200000, 50000, 1, 50);
+  _anchorBuffer = [];
+  _connectorBuffer = [];
+  _velocityBuffer = [];
+  _positionScratch = vec3.create();
+  _velocityScratch = vec3.create();
+  _sphereScratch = vec4.create();
+  _anchorEffectKey = null;
+  _connectorEffectKey = null;
+  _velocityEffectKey = null;
 }

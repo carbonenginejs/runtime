@@ -112,7 +112,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   minimumActivation = 0;
 
   /** Camera state source captured per update; Carbon reads Tr2Renderer statics. */
-  #renderContext = null;
+  _renderContext = null;
 
   /**
    * Advances only this modifier's crossfade - Carbon deliberately does NOT
@@ -126,7 +126,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   @impl.reason("Carbon reads Tr2Renderer view statics; the relocated camera state is captured from the update context's render context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this.#renderContext = updateContext?.renderContext ?? null;
+    this._renderContext = updateContext?.renderContext ?? null;
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
@@ -138,7 +138,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   @impl.implemented
   ProcessAttributeModifier(attribute, placement, entityPosition, entityDirection, modifierStrength)
   {
-    const activationValue = this.#GetActivationValue(entityPosition, entityDirection);
+    const activationValue = this._GetActivationValue(entityPosition, entityDirection);
 
     if (activationValue !== 0)
     {
@@ -155,10 +155,10 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * [minimumActivation, maximumActivation] range
    * (EveSmartLightAttributeModifierCameraDependency.cpp:95-104).
    */
-  #GetActivationValue(objectPosition, entityDirection)
+  _GetActivationValue(objectPosition, entityDirection)
   {
-    const camPos = this.#renderContext?.GetViewPosition() ?? EveSmartLightAttributeModifierCameraDependency.#zero;
-    const vec2obj = EveSmartLightAttributeModifierCameraDependency.#vec2obj;
+    const camPos = this._renderContext?.GetViewPosition() ?? EveSmartLightAttributeModifierCameraDependency._zero;
+    const vec2obj = EveSmartLightAttributeModifierCameraDependency._vec2obj;
     if (this.overwritePosition)
     {
       vec3.subtract(vec2obj, this.positionOverwrite, camPos);
@@ -169,14 +169,14 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     }
 
     let activationValue = 1;
-    activationValue *= this.#GetDistanceAmplitude(vec2obj);
-    activationValue *= this.#GetLookAtAmplitude(vec2obj);
-    activationValue *= this.#GetPlacementAmplitude(vec2obj, entityDirection);
+    activationValue *= this._GetDistanceAmplitude(vec2obj);
+    activationValue *= this._GetLookAtAmplitude(vec2obj);
+    activationValue *= this._GetPlacementAmplitude(vec2obj, entityDirection);
     return this.minimumActivation + (this.maximumActivation - this.minimumActivation) * activationValue;
   }
 
   /** Normalized camera-distance ramp (EveSmartLightAttributeModifierCameraDependency.cpp:36-50). */
-  #GetDistanceAmplitude(vec2obj)
+  _GetDistanceAmplitude(vec2obj)
   {
     if (!this.useCameraDistance)
     {
@@ -197,18 +197,18 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
    * Tr2Renderer::GetViewLookAt() is the view matrix column (_13,_23,_33),
    * which on the shared byte layout is view[2], view[6], view[10].
    */
-  #GetLookAtAmplitude(vec2obj)
+  _GetLookAtAmplitude(vec2obj)
   {
     if (!this.useCameraLookAt)
     {
       return 1;
     }
-    const view = this.#renderContext?.GetViewTransform?.();
+    const view = this._renderContext?.GetViewTransform?.();
     if (!view)
     {
       return 1;
     }
-    const scratch = EveSmartLightAttributeModifierCameraDependency.#normalized;
+    const scratch = EveSmartLightAttributeModifierCameraDependency._normalized;
     vec3.normalize(scratch, vec2obj);
     let lookAtAmplitude = -(view[2] * scratch[0] + view[6] * scratch[1] + view[10] * scratch[2]);
     if (this.lookAtVisionCone < 90 && this.lookAtVisionCone > 0)
@@ -227,7 +227,7 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
   }
 
   /** Entity-facing amplitude (EveSmartLightAttributeModifierCameraDependency.cpp:74-93). */
-  #GetPlacementAmplitude(vec2obj, entityDirection)
+  _GetPlacementAmplitude(vec2obj, entityDirection)
   {
     if (!this.useCameraPlacement)
     {
@@ -237,9 +237,9 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     let eDir = entityDirection;
     if (this.overwriteObjectDirection)
     {
-      eDir = vec3.normalize(statics.#direction, this.angleOverwrite);
+      eDir = vec3.normalize(statics._direction, this.angleOverwrite);
     }
-    const scratch = statics.#normalized;
+    const scratch = statics._normalized;
     vec3.normalize(scratch, vec2obj);
     let placementAmplitude = Math.max(0, -vec3.dot(scratch, eDir));
 
@@ -255,12 +255,12 @@ export class EveSmartLightAttributeModifierCameraDependency extends EveSmartLigh
     return placementAmplitude;
   }
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 
-  static #vec2obj = vec3.create();
+  static _vec2obj = vec3.create();
 
-  static #normalized = vec3.create();
+  static _normalized = vec3.create();
 
-  static #direction = vec3.create();
+  static _direction = vec3.create();
 
 }

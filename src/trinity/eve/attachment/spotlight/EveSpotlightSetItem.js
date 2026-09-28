@@ -65,7 +65,7 @@ export class EveSpotlightSetItem extends CjsModel
   @impl.reason("Carbon returns AxisAlignedBox by value; JavaScript fills a caller-supplied box3.")
   GetBounds(out)
   {
-    return box3.transformMat4(out, EveSpotlightSetItem.#bounds, this.transform);
+    return box3.transformMat4(out, EveSpotlightSetItem._bounds, this.transform);
   }
 
   /** The parent bone this spotlight rides. */
@@ -76,5 +76,5 @@ export class EveSpotlightSetItem extends CjsModel
     return this.boneIndex;
   }
 
-  static #bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
+  static _bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
 }

@@ -9,10 +9,10 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 export class EveProceduralMethodCyclingParameter extends CjsModel
 {
 
-  #modified = false;
+  _modified = false;
 
   // Carbon m_hasLoaded: runtime-only load latch (never persisted).
-  #hasLoaded = false;
+  _hasLoaded = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -82,7 +82,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
   @impl.implemented
   SetModified(isModified)
   {
-    this.#modified = !!isModified;
+    this._modified = !!isModified;
   }
 
   /** Carbon method IsModified (cpp:46-49). */
@@ -90,7 +90,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
   @impl.implemented
   IsModified()
   {
-    return this.#modified;
+    return this._modified;
   }
 
   /** Carbon method GetName (cpp:51-54). */
@@ -125,7 +125,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
   @impl.implemented
   Load()
   {
-    if (this.#hasLoaded && !this.reloadRequired)
+    if (this._hasLoaded && !this.reloadRequired)
     {
       if (this.restartRequired)
       {
@@ -138,7 +138,7 @@ export class EveProceduralMethodCyclingParameter extends CjsModel
     if (this.child)
     {
       this.child.Reload?.(true);
-      this.#hasLoaded = true;
+      this._hasLoaded = true;
     }
   }
 

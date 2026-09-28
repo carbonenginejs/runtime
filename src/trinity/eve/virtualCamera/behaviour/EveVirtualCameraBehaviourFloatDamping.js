@@ -19,7 +19,7 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
   @type.float32
   dampingFactor = 1;
 
-  #lastValue = 0;
+  _lastValue = 0;
 
   /**
    * Names the behaviour "Damping"; the default damping factor of 1 follows the
@@ -43,10 +43,10 @@ export class EveVirtualCameraBehaviourFloatDamping extends EveVirtualCameraBehav
   {
     if (localElapsedTime <= 0)
     {
-      this.#lastValue = current;
+      this._lastValue = current;
       return 0;
     }
-    this.#lastValue += (current - this.#lastValue) * this.dampingFactor;
-    return this.#lastValue - current;
+    this._lastValue += (current - this._lastValue) * this.dampingFactor;
+    return this._lastValue - current;
   }
 }

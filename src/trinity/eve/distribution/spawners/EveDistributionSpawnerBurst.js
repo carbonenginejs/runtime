@@ -8,7 +8,7 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
 {
 
-  #localTimer = 0;
+  _localTimer = 0;
 
   /** m_completeness (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -47,7 +47,7 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   @impl.implemented
   Restart()
   {
-    this.#localTimer = 0;
+    this._localTimer = 0;
   }
 
   /**
@@ -59,14 +59,14 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
-    if (this.#localTimer === -1)
+    if (this._localTimer === -1)
     {
       return;
     }
 
-    if (this.#localTimer < this.delayBeforeInitialBurst)
+    if (this._localTimer < this.delayBeforeInitialBurst)
     {
-      this.#localTimer += updateContext.GetDeltaT();
+      this._localTimer += updateContext.GetDeltaT();
       return;
     }
 
@@ -74,7 +74,7 @@ export class EveDistributionSpawnerBurst extends IEveDistributionSpawner
     let numTriggers = Math.trunc(this.completeness * availableTriggers);
     numTriggers += this.additionalTriggersPerBurst;
     owner.AddEntities(Math.min(numTriggers, availableTriggers));
-    this.#localTimer = -1;
+    this._localTimer = -1;
   }
 
   /** Ignores controller variables; the burst is purely time-driven. */

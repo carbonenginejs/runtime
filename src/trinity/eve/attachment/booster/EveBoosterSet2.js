@@ -296,10 +296,10 @@ export class EveBoosterSet2 extends EveEntity
   /** m_instanceBuffer (h:307): invalid until RebuildInstanceData. */
   _instanceBuffer = new Tr2SuballocatedBufferAllocation();
 
-  #revision = 0;
+  _revision = 0;
 
   /** m_glowsVisible (cpp:682) - starts visible, recomputed by UpdateVisibility. */
-  #glowsVisible = true;
+  _glowsVisible = true;
 
   /**
    * Registers with the device, as Carbon's Tr2DeviceResource base does
@@ -342,12 +342,12 @@ export class EveBoosterSet2 extends EveEntity
   @impl.adapted
   Initialize()
   {
-    EveBoosterSet2.#RebuildItems(this);
+    EveBoosterSet2._RebuildItems(this);
     for (const renderable of this.instances)
     {
       renderable?.SetBoosterSet?.(this);
     }
-    this.#revision++;
+    this._revision++;
     this.PrepareResources();
     return true;
   }
@@ -383,7 +383,7 @@ export class EveBoosterSet2 extends EveEntity
   @impl.implemented
   OnPrepareResources()
   {
-    this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2.#BoosterInstancedVertex());
+    this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(EveBoosterSet2._BoosterInstancedVertex());
     if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;
 
     this._vertexBuffer = Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI
@@ -431,9 +431,9 @@ export class EveBoosterSet2 extends EveEntity
   }
 
   /** Carbon's function-local static s_boosterInstancedVertex (cpp:906-919). */
-  static #BoosterInstancedVertex()
+  static _BoosterInstancedVertex()
   {
-    if (!EveBoosterSet2.#boosterInstancedVertex)
+    if (!EveBoosterSet2._boosterInstancedVertex)
     {
       const vd = new Tr2VertexDefinition();
       vd.Add("FLOAT32_3", "POSITION");
@@ -446,12 +446,12 @@ export class EveBoosterSet2 extends EveEntity
       vd.Add("FLOAT32_4", "TEXCOORD", 5, 1, 1);
       vd.Add("FLOAT32_1", "TEXCOORD", 6, 1, 1);
       vd.Add("FLOAT32_2", "TEXCOORD", 7, 1, 1);
-      EveBoosterSet2.#boosterInstancedVertex = vd;
+      EveBoosterSet2._boosterInstancedVertex = vd;
     }
-    return EveBoosterSet2.#boosterInstancedVertex;
+    return EveBoosterSet2._boosterInstancedVertex;
   }
 
-  static #boosterInstancedVertex = null;
+  static _boosterInstancedVertex = null;
 
   /**
    * Applies the changed member's native flare/trail consequence, plus the
@@ -467,7 +467,7 @@ export class EveBoosterSet2 extends EveEntity
     // sequence (EveShip2.cpp:234-259), so the prepare lands here.
     if (propertyName === "items")
     {
-      EveBoosterSet2.#RebuildItems(this);
+      EveBoosterSet2._RebuildItems(this);
       this.PrepareResources();
     }
     if (this.glows)
@@ -480,16 +480,16 @@ export class EveBoosterSet2 extends EveEntity
         this.glows.Clear();
         for (const booster of this._singleBoosters)
         {
-          CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2.#GetFlareParams(this));
+          CreateBoosterFlares(this.glows, booster.transform, EveBoosterSet2._GetFlareParams(this));
         }
         this.glows.Rebuild();
       }
       else if (propertyName === "staticTrailLength")
       {
-        EveBoosterSet2.#UpdateStaticTrailOffsets(this);
+        EveBoosterSet2._UpdateStaticTrailOffsets(this);
       }
     }
-    this.#revision++;
+    this._revision++;
     return true;
   }
 
@@ -518,7 +518,7 @@ export class EveBoosterSet2 extends EveEntity
     {
       renderable?.SetBoosterSet?.(this);
     }
-    this.#revision++;
+    this._revision++;
     return this.instances.length;
   }
 
@@ -534,8 +534,8 @@ export class EveBoosterSet2 extends EveEntity
     time,
     parentMatrix = mat4.create(),
     parentSpeed = 0,
-    parentAcceleration = EveBoosterSet2.#zero,
-    parentRotation = EveBoosterSet2.#identityRotation,
+    parentAcceleration = EveBoosterSet2._zero,
+    parentRotation = EveBoosterSet2._identityRotation,
     boosterInstance = 0
   )
   {
@@ -590,10 +590,10 @@ export class EveBoosterSet2 extends EveEntity
   Clear()
   {
     this.items.length = 0;
-    EveBoosterSet2.#ClearRuntimeItems(this);
+    EveBoosterSet2._ClearRuntimeItems(this);
     // cpp:765 - also release the resources.
     this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
-    this.#revision++;
+    this._revision++;
   }
 
   /**
@@ -618,14 +618,14 @@ export class EveBoosterSet2 extends EveEntity
     }
     const item = new EveBoosterSet2Item();
     mat4.copy(item.transform, localMatrix);
-    vec4.copy(item.functionality, functionality ?? EveBoosterSet2.#defaultFunctionality);
+    vec4.copy(item.functionality, functionality ?? EveBoosterSet2._defaultFunctionality);
     item.hasTrail = !!hasTrail;
     item.atlasIndex0 = Number(atlasIndex0) >>> 0;
     item.atlasIndex1 = Number(atlasIndex1) >>> 0;
     item.lightScale = Number(lightScale) || 0;
     this.items.push(item);
-    EveBoosterSet2.#AddRuntimeItem(this, item);
-    this.#revision++;
+    EveBoosterSet2._AddRuntimeItem(this, item);
+    this._revision++;
     return this.items.length - 1;
   }
 
@@ -633,7 +633,7 @@ export class EveBoosterSet2 extends EveEntity
    * Empties the derived booster records, glows and trails and resets the set
    * bounding sphere and max size, leaving the authored items alone.
    */
-  static #ClearRuntimeItems(owner)
+  static _ClearRuntimeItems(owner)
   {
     owner._singleBoosters.length = 0;
     owner.glows?.Clear();
@@ -647,12 +647,12 @@ export class EveBoosterSet2 extends EveEntity
    * Discards the derived state and re-derives it from every authored item, then
    * replaces the derived booster placements and flares.
    */
-  static #RebuildItems(owner)
+  static _RebuildItems(owner)
   {
-    EveBoosterSet2.#ClearRuntimeItems(owner);
+    EveBoosterSet2._ClearRuntimeItems(owner);
     for (const item of owner.items)
     {
-      EveBoosterSet2.#AddRuntimeItem(owner, item);
+      EveBoosterSet2._AddRuntimeItem(owner, item);
     }
   }
 
@@ -663,7 +663,7 @@ export class EveBoosterSet2 extends EveEntity
    * and its trail (offset back half a unit along the booster axis), and grows
    * the set bounding sphere and max size.
    */
-  static #AddRuntimeItem(owner, item)
+  static _AddRuntimeItem(owner, item)
   {
     const transform = mat4.clone(item.transform);
     const scale = Math.max(
@@ -689,7 +689,7 @@ export class EveBoosterSet2 extends EveEntity
 
     if (owner.glows)
     {
-      CreateBoosterFlares(owner.glows, booster.transform, EveBoosterSet2.#GetFlareParams(owner));
+      CreateBoosterFlares(owner.glows, booster.transform, EveBoosterSet2._GetFlareParams(owner));
     }
     if (owner.trails && item.hasTrail)
     {
@@ -700,7 +700,7 @@ export class EveBoosterSet2 extends EveEntity
       owner.trails.Add?.(trailTransform, scale);
     }
 
-    EveBoosterSet2.#UpdateBoundingSphere(owner, transform.subarray(12, 15));
+    EveBoosterSet2._UpdateBoundingSphere(owner, transform.subarray(12, 15));
     owner.maxSize = Math.max(owner.maxSize, scale);
   }
 
@@ -823,8 +823,8 @@ export class EveBoosterSet2 extends EveEntity
     {
       if (renderable?.GetBoundingSphere)
       {
-        renderable.GetBoundingSphere(EveBoosterSet2.#sphereScratch);
-        sph3.union(out, out, EveBoosterSet2.#sphereScratch);
+        renderable.GetBoundingSphere(EveBoosterSet2._sphereScratch);
+        sph3.union(out, out, EveBoosterSet2._sphereScratch);
       }
     }
     return out;
@@ -859,7 +859,7 @@ export class EveBoosterSet2 extends EveEntity
   @impl.implemented
   GetRevision()
   {
-    return this.#revision;
+    return this._revision;
   }
 
   /** Carbon EveBoosterSet2::UpdateVisibility (cpp:1096-1116): a display gate,
@@ -876,7 +876,7 @@ export class EveBoosterSet2 extends EveEntity
   @impl.reason("A glow duck lacking UpdateVisibility is treated as visible rather than culled.")
   UpdateVisibility(updateContext)
   {
-    this.#glowsVisible = false;
+    this._glowsVisible = false;
     if (!this.display)
     {
       return false;
@@ -905,13 +905,13 @@ export class EveBoosterSet2 extends EveEntity
           : true;
         if (visible)
         {
-          this.#glowsVisible = true;
+          this._glowsVisible = true;
           break;
         }
       }
     }
 
-    return this.#glowsVisible;
+    return this._glowsVisible;
   }
 
   /** Whether any booster glow sprite passed the last UpdateVisibility. Carbon
@@ -922,7 +922,7 @@ export class EveBoosterSet2 extends EveEntity
   @impl.reason("Carbon's mutable member read becomes an accessor; the quad renderer that consumes it is not ported yet.")
   GetGlowsVisible()
   {
-    return this.#glowsVisible;
+    return this._glowsVisible;
   }
 
   /** Carbon EveBoosterSet2::GetRenderables (cpp:1130-1145): gated on display
@@ -1016,7 +1016,7 @@ export class EveBoosterSet2 extends EveEntity
    * The flare parameters CreateBoosterFlares consumes, in Carbon's
    * EveBoosterFlareParams shape (EveBoosterSet2.cpp:739-742).
    */
-  static #GetFlareParams(owner)
+  static _GetFlareParams(owner)
   {
     return {
       warpGlowColor: owner.warpGlowColor,
@@ -1034,7 +1034,7 @@ export class EveBoosterSet2 extends EveEntity
    * Grows the set bounding sphere just far enough to include one booster
    * position, leaving it unchanged when the position already falls inside.
    */
-  static #UpdateBoundingSphere(owner, position)
+  static _UpdateBoundingSphere(owner, position)
   {
     const delta = vec3.subtract(vec3.create(), position, owner.boosterBoundingSphereCenter);
     const distance = vec3.length(delta);
@@ -1056,7 +1056,7 @@ export class EveBoosterSet2 extends EveEntity
    * Redistributes the five static trail control offsets evenly backwards along
    * -Z across staticTrailLength and clears the staticTrailOffsets flag.
    */
-  static #UpdateStaticTrailOffsets(owner)
+  static _UpdateStaticTrailOffsets(owner)
   {
     const step = owner.staticTrailLength / 4;
     const offsets = [
@@ -1072,13 +1072,13 @@ export class EveBoosterSet2 extends EveEntity
     }
   }
 
-  static #sphereScratch = sph3.create();
+  static _sphereScratch = sph3.create();
 
-  static #zero = [0, 0, 0];
+  static _zero = [0, 0, 0];
 
-  static #identityRotation = [0, 0, 0, 1];
+  static _identityRotation = [0, 0, 0, 1];
 
-  static #defaultFunctionality = [0, 1, 1, 1];
+  static _defaultFunctionality = [0, 1, 1, 1];
 
   static Shape = Object.freeze({
     STAR: 0,

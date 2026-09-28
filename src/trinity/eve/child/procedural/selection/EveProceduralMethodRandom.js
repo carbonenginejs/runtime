@@ -13,11 +13,11 @@ const BELIST_LOADING = 0x10;
 export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 {
 
-  #selectedChildModified = false;
+  _selectedChildModified = false;
 
   // Carbon m_parameterMapping: cumulative-weight thresholds, one per
   // parameter (runtime-only, rebuilt by GenerateParameterMapping).
-  #parameterMapping = [];
+  _parameterMapping = [];
 
   /** m_parameters (PEveProceduralMethodRandomParameterVector) [READ, PERSIST] */
   @edit.read
@@ -102,12 +102,12 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   @impl.implemented
   GenerateParameterMapping()
   {
-    this.#parameterMapping.length = 0;
+    this._parameterMapping.length = 0;
     this.totalWeight = 0;
     for (const param of this.parameters)
     {
       this.totalWeight += Number(param?.GetWeighting?.() ?? param?.weighting ?? 0) | 0;
-      this.#parameterMapping.push(this.totalWeight);
+      this._parameterMapping.push(this.totalWeight);
     }
   }
 
@@ -121,7 +121,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   @impl.reason("createMinStdRandom replaces the C runtime srand/rand pair - deterministic per seed like Carbon, though the exact integer sequence differs.")
   SelectARandomParameter()
   {
-    if (this.#parameterMapping.length === 0 || this.totalWeight <= 0)
+    if (this._parameterMapping.length === 0 || this.totalWeight <= 0)
     {
       return;
     }
@@ -131,9 +131,9 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
     const rnd = Math.min(Math.floor(random() * this.totalWeight), this.totalWeight - 1);
 
     this.selectedChild = -1;
-    for (let index = 0; index < this.#parameterMapping.length; index++)
+    for (let index = 0; index < this._parameterMapping.length; index++)
     {
-      if (rnd < this.#parameterMapping[index])
+      if (rnd < this._parameterMapping[index])
       {
         this.selectedChild = index;
         break;
@@ -142,7 +142,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
 
     if (currentChild !== this.selectedChild)
     {
-      this.#selectedChildModified = true;
+      this._selectedChildModified = true;
     }
   }
 
@@ -151,7 +151,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
   @impl.implemented
   IsSelectedChildModified()
   {
-    return this.#selectedChildModified;
+    return this._selectedChildModified;
   }
 
   /** Carbon EveProceduralMethodRandom::GetSelectedChild (cpp:89-109):
@@ -167,7 +167,7 @@ export class EveProceduralMethodRandom extends IEveProceduralSelectionMethod
       return null;
     }
 
-    this.#selectedChildModified = false;
+    this._selectedChildModified = false;
     const param = this.parameters[this.selectedChild];
 
     if (param)

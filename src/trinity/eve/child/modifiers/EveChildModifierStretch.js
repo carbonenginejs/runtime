@@ -21,7 +21,7 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
   dest = null;
 
   /** m_destPosition - runtime fallback endpoint fed via SetDestPosition. */
-  #destPosition = vec3.create();
+  _destPosition = vec3.create();
 
   /**
    * Stretches the child from its position to the destination (Carbon
@@ -43,10 +43,10 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
   ApplyTransform(context, transform, _boneCount = 0, _bones = null, out)
   {
     const { sourceRotation, sourceTranslation, sourceScale, end, diff, arcMat, arcQuat, scale, mid, srcRotMat } =
-      EveChildModifierStretch.#scratch;
+      EveChildModifierStretch._scratch;
 
     mat4.decomposeCarbon(transform, sourceRotation, sourceTranslation, sourceScale);
-    vec3.copy(end, this.#destPosition);
+    vec3.copy(end, this._destPosition);
     const now = context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0;
     this.dest?.GetValueAt?.(now, end);
 
@@ -83,10 +83,10 @@ export class EveChildModifierStretch extends IEveChildTransformModifier
   @impl.implemented
   SetDestPosition(destPosition)
   {
-    vec3.copy(this.#destPosition, destPosition);
+    vec3.copy(this._destPosition, destPosition);
   }
 
-  static #scratch = {
+  static _scratch = {
     sourceRotation: quat.create(),
     sourceTranslation: vec3.create(),
     sourceScale: vec3.create(),

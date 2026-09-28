@@ -57,7 +57,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @type.list("EveSpriteLight")
   lights = [];
 
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_buffer - one EveSpriteSet PoolVertex per sprite, packed bytes. */
   _buffer = new Uint8Array(0);
@@ -69,23 +69,23 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   _spriteData = [];
 
   /** m_aabb - the union of every unskinned sprite line (cpp:77). */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** Carbon m_activationStrength (ctor default 0, EveSpriteLineSet.cpp:26 -
    * NOT 1: packed-set lights are BLACK until UpdateLights runs). */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
   /** Carbon Rebuild (cpp:74-78): the packed sprites, then the bounds. */
   @carbon.method
   @impl.implemented
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
     this.ReallocateResources();
-    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.spriteLines);
+    CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, this.skinned, this.spriteLines);
   }
 
   /**
@@ -211,8 +211,8 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   {
     return GetItemSetAabb(
       out,
-      this.#staticBounds,
-      this.#boneBounds,
+      this._staticBounds,
+      this._boneBounds,
       bones,
       this.skinned ? boneCount : 0
     );
@@ -225,7 +225,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
-    const aabb = this.GetAabb(EveSpriteLineSet.#aabbScratch, bones, boneCount);
+    const aabb = this.GetAabb(EveSpriteLineSet._aabbScratch, bones, boneCount);
     if (box3.isEmpty(aabb))
     {
       return false;
@@ -321,7 +321,7 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
   }
 
   /** Carbon EveSpriteLineSet::GetLights (cpp:358-373): byte-identical to
@@ -333,12 +333,12 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   @impl.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
-    const features = EveSpriteLineSet.#features;
-    features.parentBrightness = this.#activationStrength;
+    const features = EveSpriteLineSet._features;
+    features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
     const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EveSpriteLineSet.#lightRecord;
+    const record = EveSpriteLineSet._lightRecord;
 
     for (const light of this.lights)
     {
@@ -355,9 +355,9 @@ export class EveSpriteLineSet extends IEveSpaceObjectAttachment
   }
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 }

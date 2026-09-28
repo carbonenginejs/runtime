@@ -92,13 +92,13 @@ export class EveStretch3 extends IEveFiringEffectElement
   @edit.persistOnly
  @type.model("IEveSpaceObjectChild") moveObject = null;
 
-  #sourceSpaceObject = null;
-  #destinationSpaceObject = null;
-  #sourceMatrix = mat4.create();
-  #destinationScale = 1;
-  #delay = 0;
-  #isMuzzleEffect = false;
-  #stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
+  _sourceSpaceObject = null;
+  _destinationSpaceObject = null;
+  _sourceMatrix = mat4.create();
+  _destinationScale = 1;
+  _delay = 0;
+  _isMuzzleEffect = false;
+  _stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
 
   /**
    * Post-hydration hook; links any controller that is not already linked and
@@ -112,7 +112,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     {
       if (!controller?.IsLinked()) controller?.Link(this);
     }
-    this.#InitializeBindings();
+    this._InitializeBindings();
     return true;
   }
 
@@ -123,7 +123,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   GetSourceSpaceObject()
   {
-    return this.#sourceSpaceObject;
+    return this._sourceSpaceObject;
   }
 
   /**
@@ -133,15 +133,15 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetSourceSpaceObject(value)
   {
-    this.#sourceSpaceObject = value ?? null;
-    this.#InitializeBindings();
+    this._sourceSpaceObject = value ?? null;
+    this._InitializeBindings();
   }
 
   /** The space object standing in as parent for the destination child, or null. */
   @carbon.method @impl.implemented
   GetDestSpaceObject()
   {
-    return this.#destinationSpaceObject;
+    return this._destinationSpaceObject;
   }
 
   /**
@@ -151,8 +151,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestSpaceObject(value)
   {
-    this.#destinationSpaceObject = value ?? null;
-    this.#InitializeBindings();
+    this._destinationSpaceObject = value ?? null;
+    this._InitializeBindings();
   }
 
   /**
@@ -191,8 +191,8 @@ export class EveStretch3 extends IEveFiringEffectElement
       out[name] = curveSet?.GetRawRoot?.() ?? curveSet;
     }
     out.Owner = this;
-    if (this.#sourceSpaceObject) out.SourceSpaceObject = this.#sourceSpaceObject;
-    if (this.#destinationSpaceObject) out.DestSpaceObject = this.#destinationSpaceObject;
+    if (this._sourceSpaceObject) out.SourceSpaceObject = this._sourceSpaceObject;
+    if (this._destinationSpaceObject) out.DestSpaceObject = this._destinationSpaceObject;
     if (this.sourceObject) out.SourceObject = this.sourceObject?.GetRootObject?.() ?? this.sourceObject;
     if (this.destObject) out.DestObject = this.destObject?.GetRootObject?.() ?? this.destObject;
     if (this.moveObject) out.MoveObject = this.moveObject?.GetRootObject?.() ?? this.moveObject;
@@ -214,8 +214,8 @@ export class EveStretch3 extends IEveFiringEffectElement
     out.Dest = this.destObject;
     out.Stretch = this.stretchObject;
     out.Move = this.moveObject;
-    out.SourceSpaceObject = this.#sourceSpaceObject;
-    out.DestSpaceObject = this.#destinationSpaceObject;
+    out.SourceSpaceObject = this._sourceSpaceObject;
+    out.DestSpaceObject = this._destinationSpaceObject;
     return out;
   }
 
@@ -269,17 +269,17 @@ export class EveStretch3 extends IEveFiringEffectElement
   UpdateSynchronous(context)
   {
     if (!this.update) return true;
-    if (this.#stretchState === EveStretch3.StretchState.STRETCH_STATE_STARTING)
+    if (this._stretchState === EveStretch3.StretchState.STRETCH_STATE_STARTING)
     {
       this.StartControllers();
-      this.SetControllerVariable("FiringDelay", this.#delay);
+      this.SetControllerVariable("FiringDelay", this._delay);
       this.SetControllerVariable("IsFiring", 1);
-      this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_STARTED;
+      this._stretchState = EveStretch3.StretchState.STRETCH_STATE_STARTED;
     }
-    else if (this.#stretchState === EveStretch3.StretchState.STRETCH_STATE_STOPPING)
+    else if (this._stretchState === EveStretch3.StretchState.STRETCH_STATE_STOPPING)
     {
       this.SetControllerVariable("IsFiring", 0);
-      this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
+      this._stretchState = EveStretch3.StretchState.STRETCH_STATE_UNDEFINED;
     }
 
     const time = getTime(context);
@@ -289,21 +289,21 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (this.dest) sampleVector(this.dest, time, this.destinationPosition);
     this.length.value = vec3.distance(this.sourcePosition, this.destinationPosition);
 
-    const params = this.#makeParams();
-    params.spaceObjectParent = this.#sourceSpaceObject ?? this;
+    const params = this._makeParams();
+    params.spaceObjectParent = this._sourceSpaceObject ?? this;
     updateChildSync(this.sourceObject, context, params);
     updateChildSync(this.stretchObject, context, params);
     if (this.moveObject)
     {
-      vec3.subtract(EveStretch3.#movePosition, this.sourcePosition, this.destinationPosition);
-      vec3.scale(EveStretch3.#movePosition, EveStretch3.#movePosition, this.moveProgression.value);
-      translationMatrix(EveStretch3.#movePosition, params.localToWorldTransform);
+      vec3.subtract(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition);
+      vec3.scale(EveStretch3._movePosition, EveStretch3._movePosition, this.moveProgression.value);
+      translationMatrix(EveStretch3._movePosition, params.localToWorldTransform);
       updateChildSync(this.moveObject, context, params);
     }
     if (this.destObject)
     {
-      params.spaceObjectParent = this.#destinationSpaceObject ?? this;
-      translationMatrix(this.destinationPosition, params.localToWorldTransform, this.#destinationScale);
+      params.spaceObjectParent = this._destinationSpaceObject ?? this;
+      translationMatrix(this.destinationPosition, params.localToWorldTransform, this._destinationScale);
       updateChildSync(this.destObject, context, params);
     }
     return true;
@@ -334,28 +334,28 @@ export class EveStretch3 extends IEveFiringEffectElement
     const relative = time - this.startTime;
     for (const curveSet of this.curveSets) updateCurveSet(curveSet, relative, context.renderContext);
 
-    const params = this.#makeParams();
-    const sourceMatrix = EveStretch3.#sourceTransform;
-    const destinationMatrix = EveStretch3.#destinationTransform;
+    const params = this._makeParams();
+    const sourceMatrix = EveStretch3._sourceTransform;
+    const destinationMatrix = EveStretch3._destinationTransform;
     makeEndpointTransforms(this.sourcePosition, this.destinationPosition, sourceMatrix, destinationMatrix);
-    mat4.copy(EveStretch3.#directionTransform, sourceMatrix);
-    if (this.#isMuzzleEffect) mat4.copy(sourceMatrix, this.#sourceMatrix);
+    mat4.copy(EveStretch3._directionTransform, sourceMatrix);
+    if (this._isMuzzleEffect) mat4.copy(sourceMatrix, this._sourceMatrix);
 
     mat4.copy(params.localToWorldTransform, sourceMatrix);
     updateChildAsync(this.sourceObject, context, params);
     makeStretchTransform(this.destinationPosition, this.sourcePosition, params.localToWorldTransform);
-    vec3.lerp(EveStretch3.#midpoint, this.sourcePosition, this.destinationPosition, 0.5);
-    params.localToWorldTransform[12] = EveStretch3.#midpoint[0];
-    params.localToWorldTransform[13] = EveStretch3.#midpoint[1];
-    params.localToWorldTransform[14] = EveStretch3.#midpoint[2];
+    vec3.lerp(EveStretch3._midpoint, this.sourcePosition, this.destinationPosition, 0.5);
+    params.localToWorldTransform[12] = EveStretch3._midpoint[0];
+    params.localToWorldTransform[13] = EveStretch3._midpoint[1];
+    params.localToWorldTransform[14] = EveStretch3._midpoint[2];
     updateChildAsync(this.stretchObject, context, params);
-    vec3.lerp(EveStretch3.#movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
-    mat4.copy(params.localToWorldTransform, EveStretch3.#directionTransform);
-    params.localToWorldTransform[12] = EveStretch3.#movePosition[0];
-    params.localToWorldTransform[13] = EveStretch3.#movePosition[1];
-    params.localToWorldTransform[14] = EveStretch3.#movePosition[2];
+    vec3.lerp(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
+    mat4.copy(params.localToWorldTransform, EveStretch3._directionTransform);
+    params.localToWorldTransform[12] = EveStretch3._movePosition[0];
+    params.localToWorldTransform[13] = EveStretch3._movePosition[1];
+    params.localToWorldTransform[14] = EveStretch3._movePosition[2];
     updateChildAsync(this.moveObject, context, params);
-    for (const index of [0, 1, 2, 4, 5, 6, 8, 9, 10]) destinationMatrix[index] *= this.#destinationScale;
+    for (const index of [0, 1, 2, 4, 5, 6, 8, 9, 10]) destinationMatrix[index] *= this._destinationScale;
     mat4.copy(params.localToWorldTransform, destinationMatrix);
     updateChildAsync(this.destObject, context, params);
     this.audio?.Update?.(this.sourcePosition, this.destinationPosition);
@@ -409,22 +409,22 @@ export class EveStretch3 extends IEveFiringEffectElement
    * placed at the interpolated position.
    */
   @carbon.method @impl.implemented
-  UpdateVisibility(context, parentTransform = EveStretch3.#identity)
+  UpdateVisibility(context, parentTransform = EveStretch3._identity)
   {
     if (!this.display) return;
     const high = Tr2Lod.TR2_LOD_HIGH;
-    updateChildVisibility(this.sourceObject, context, translationMatrix(this.sourcePosition, EveStretch3.#sourceVisibility), high);
-    updateChildVisibility(this.destObject, context, translationMatrix(this.destinationPosition, EveStretch3.#destinationVisibility), high);
+    updateChildVisibility(this.sourceObject, context, translationMatrix(this.sourcePosition, EveStretch3._sourceVisibility), high);
+    updateChildVisibility(this.destObject, context, translationMatrix(this.destinationPosition, EveStretch3._destinationVisibility), high);
     updateChildVisibility(this.stretchObject, context, parentTransform, high);
-    vec3.lerp(EveStretch3.#movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
-    vec3.subtract(EveStretch3.#moveDirection, this.sourcePosition, this.destinationPosition);
-    quat.arcFromForward(EveStretch3.#moveRotation, EveStretch3.#moveDirection);
-    mat4.fromRotationTranslation(EveStretch3.#moveVisibility, EveStretch3.#moveRotation, EveStretch3.#movePosition);
-    updateChildVisibility(this.moveObject, context, EveStretch3.#moveVisibility, high);
+    vec3.lerp(EveStretch3._movePosition, this.sourcePosition, this.destinationPosition, this.moveProgression.value);
+    vec3.subtract(EveStretch3._moveDirection, this.sourcePosition, this.destinationPosition);
+    quat.arcFromForward(EveStretch3._moveRotation, EveStretch3._moveDirection);
+    mat4.fromRotationTranslation(EveStretch3._moveVisibility, EveStretch3._moveRotation, EveStretch3._movePosition);
+    updateChildVisibility(this.moveObject, context, EveStretch3._moveVisibility, high);
   }
 
-  static #moveDirection = vec3.create();
-  static #moveRotation = quat.create();
+  static _moveDirection = vec3.create();
+  static _moveRotation = quat.create();
 
   /**
    * Carbon GetRenderables (cpp:601-609): every child's renderables while
@@ -434,7 +434,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   GetRenderables(out = [])
   {
-    if (this.display) for (const component of this.#components()) collectRenderables(component, out);
+    if (this.display) for (const component of this._components()) collectRenderables(component, out);
     return out;
   }
 
@@ -460,11 +460,11 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     vec4.set(out, 0, 0, 0, 0);
     let valid = false;
-    for (const component of this.#components())
+    for (const component of this._components())
     {
-      if (typeof component?.GetBoundingSphere === "function" && component.GetBoundingSphere(EveStretch3.#sphere) !== false)
+      if (typeof component?.GetBoundingSphere === "function" && component.GetBoundingSphere(EveStretch3._sphere) !== false)
       {
-        mergeSphere(out, EveStretch3.#sphere);
+        mergeSphere(out, EveStretch3._sphere);
         valid = true;
       }
     }
@@ -494,8 +494,8 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   StartFiring(delay = 0)
   {
-    this.#delay = Number(delay);
-    this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_STARTING;
+    this._delay = Number(delay);
+    this._stretchState = EveStretch3.StretchState.STRETCH_STATE_STARTING;
     if (this.stretchAudio)
     {
       this.stretchAudio.Start();
@@ -509,7 +509,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   StopFiring()
   {
-    this.#stretchState = EveStretch3.StretchState.STRETCH_STATE_STOPPING;
+    this._stretchState = EveStretch3.StretchState.STRETCH_STATE_STOPPING;
     if (this.stretchAudio)
     {
       this.stretchAudio.Stop();
@@ -529,15 +529,15 @@ export class EveStretch3 extends IEveFiringEffectElement
     this.dest = null;
     if (source?.length === 16)
     {
-      this.#isMuzzleEffect = true;
-      mat4.copy(this.#sourceMatrix, source);
+      this._isMuzzleEffect = true;
+      mat4.copy(this._sourceMatrix, source);
       mat4.getTranslation(this.sourcePosition, source);
     }
     else
     {
-      this.#isMuzzleEffect = false;
+      this._isMuzzleEffect = false;
       vec3.copy(this.sourcePosition, source);
-      translationMatrix(source, this.#sourceMatrix);
+      translationMatrix(source, this._sourceMatrix);
     }
     vec3.copy(this.destinationPosition, destination);
   }
@@ -555,7 +555,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @carbon.method @impl.implemented
   SetDestObjectScale(scale)
   {
-    this.#destinationScale = Number(scale);
+    this._destinationScale = Number(scale);
   }
 
   /**
@@ -575,7 +575,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   SetControllerVariable(name, value)
   {
-    for (const component of this.#components()) component?.SetControllerVariable(name, value);
+    for (const component of this._components()) component?.SetControllerVariable(name, value);
     for (const controller of this.controllers) controller?.SetVariable(name, value);
   }
 
@@ -587,7 +587,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   HandleControllerEvent(name)
   {
-    for (const component of this.#components()) component?.HandleControllerEvent(name);
+    for (const component of this._components()) component?.HandleControllerEvent(name);
     for (const controller of this.controllers) controller?.HandleEvent(name);
   }
 
@@ -596,7 +596,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   @impl.reason("Controller ownership is represented by direct child/controller method forwarding.")
   StartControllers()
   {
-    for (const component of this.#components()) component?.StartControllers();
+    for (const component of this._components()) component?.StartControllers();
     for (const controller of this.controllers) controller?.Start();
   }
 
@@ -614,7 +614,7 @@ export class EveStretch3 extends IEveFiringEffectElement
       if (rangeName) curveSet.PlayTimeRange?.(rangeName);
       else { curveSet.ResetTimeRange(); curveSet.Play(); }
     }
-    for (const component of this.#components()) component?.PlayCurveSet?.(name, rangeName);
+    for (const component of this._components()) component?.PlayCurveSet?.(name, rangeName);
   }
 
   /**
@@ -625,7 +625,7 @@ export class EveStretch3 extends IEveFiringEffectElement
   {
     if (!this.display) return;
     for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) curveSet.Stop();
-    for (const component of this.#components()) component?.StopCurveSet?.(name);
+    for (const component of this._components()) component?.StopCurveSet?.(name);
   }
 
   /**
@@ -642,7 +642,7 @@ export class EveStretch3 extends IEveFiringEffectElement
         updateCurveSet(curveSet, time, renderContext);
       }
     }
-    for (const component of this.#components()) component?.UpdateCurveSet?.(name, time, renderContext);
+    for (const component of this._components()) component?.UpdateCurveSet?.(name, time, renderContext);
   }
 
   /**
@@ -654,7 +654,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (!this.display) return 0;
     let duration = 0;
     for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, getCurveDuration(curveSet));
-    for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetCurveSetDuration?.(name) ?? 0));
+    for (const component of this._components()) duration = Math.max(duration, Number(component?.GetCurveSetDuration?.(name) ?? 0));
     return duration;
   }
 
@@ -667,7 +667,7 @@ export class EveStretch3 extends IEveFiringEffectElement
     if (!this.display) return 0;
     let duration = 0;
     for (const curveSet of this.curveSets) if ((curveSet?.GetName() ?? curveSet?.name) === name) duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
-    for (const component of this.#components()) duration = Math.max(duration, Number(component?.GetRangeDuration?.(name, rangeName) ?? 0));
+    for (const component of this._components()) duration = Math.max(duration, Number(component?.GetRangeDuration?.(name, rangeName) ?? 0));
     return duration;
   }
 
@@ -721,7 +721,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * The non-null children in Carbon's RunOnComponents order: source,
    * destination, stretch, then the travelling child.
    */
-  #components()
+  _components()
   {
     return [this.sourceObject, this.destObject, this.stretchObject, this.moveObject].filter(Boolean);
   }
@@ -730,7 +730,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * Takes ownership of every dynamic binding and links it, so the bindings
    * resolve against this stretch's roots.
    */
-  #InitializeBindings()
+  _InitializeBindings()
   {
     for (const binding of this.dynamicBindings)
     {
@@ -743,7 +743,7 @@ export class EveStretch3 extends IEveFiringEffectElement
    * A fresh child-update parameter block carrying this stretch's visibility;
    * each call site fills in the parent object and the world placement.
    */
-  #makeParams()
+  _makeParams()
   {
     const params = new EveChildUpdateParams();
     params.isVisible = this.display;
@@ -751,15 +751,15 @@ export class EveStretch3 extends IEveFiringEffectElement
   }
 
   static StretchState = StretchState;
-  static #identity = mat4.create();
-  static #sourceTransform = mat4.create();
-  static #destinationTransform = mat4.create();
-  static #sourceVisibility = mat4.create();
-  static #destinationVisibility = mat4.create();
-  static #moveVisibility = mat4.create();
-  static #directionTransform = mat4.create();
-  static #unusedTransform = mat4.create();
-  static #movePosition = vec3.create();
-  static #midpoint = vec3.create();
-  static #sphere = vec4.create();
+  static _identity = mat4.create();
+  static _sourceTransform = mat4.create();
+  static _destinationTransform = mat4.create();
+  static _sourceVisibility = mat4.create();
+  static _destinationVisibility = mat4.create();
+  static _moveVisibility = mat4.create();
+  static _directionTransform = mat4.create();
+  static _unusedTransform = mat4.create();
+  static _movePosition = vec3.create();
+  static _midpoint = vec3.create();
+  static _sphere = vec4.create();
 }

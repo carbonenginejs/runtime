@@ -47,7 +47,7 @@ export class CollisionAvoidance extends CjsModel
 
   // Per-frame cache of the exclusion volume centres, prefetched so the
   // per-agent loop stays allocation-free.
-  #volumeCenters = [];
+  _volumeCenters = [];
 
   /** Carbon CollisionAvoidance::GetProcessPriority (cpp:18-21). */
   @carbon.method
@@ -78,7 +78,7 @@ export class CollisionAvoidance extends CjsModel
       return NO_FORCES;
     }
 
-    const centers = this.#volumeCenters;
+    const centers = this._volumeCenters;
     centers.length = 0;
     for (const volume of this.exclusionVolumes)
     {

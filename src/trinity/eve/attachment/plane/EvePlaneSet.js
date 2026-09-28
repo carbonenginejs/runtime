@@ -119,7 +119,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @edit.persist
   @type.objectRef("TriTextureParameter")
   maskMapParameter = null;
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_effectHash: the quad renderer's key. */
   _effectHash = 0;
@@ -131,14 +131,14 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   _volatileData = [];
 
   /** m_aabb - the union of every unskinned, non-transparent plane (cpp:323-355). */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_boundingBoxes - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** Carbon m_activationStrength (ctor 0, EvePlaneSet.cpp:76). Lights are
    * BLACK until UpdateLights runs. */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
   /**
    * Recomputes the static and per-bone bounds from the authored planes -
@@ -149,13 +149,13 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @impl.adapted
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
 
     // Carbon Rebuild (cpp:292-318): each plane that is not fully transparent
     // keeps its local transform and colour for the frame, and packs its layer
     // vectors and blink data as halves with its bone and mask-atlas bytes. The
     // pick buffer id and index stay zero, as Carbon leaves them.
-    const packed = this.planes.filter(item => !EvePlaneSet.#IsFullyTransparent(item));
+    const packed = this.planes.filter(item => !EvePlaneSet._IsFullyTransparent(item));
     this._items = new Uint8Array(packed.length * PLANE_VERTEX_SIZE);
     const view = new DataView(this._items.buffer);
     this._volatileData = packed.map((plane, i) =>
@@ -176,10 +176,10 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     // Carbon CreateBoundingBoxes (cpp:323-355) is the shared builder plus one
     // filter: a fully transparent plane contributes NO bounds at all.
     CreateItemSetBoundingBoxes(
-      this.#staticBounds,
-      this.#boneBounds,
+      this._staticBounds,
+      this._boneBounds,
       this.skinned,
-      this.planes.filter(item => !EvePlaneSet.#IsFullyTransparent(item))
+      this.planes.filter(item => !EvePlaneSet._IsFullyTransparent(item))
     );
   }
 
@@ -287,8 +287,8 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   {
     return GetItemSetAabb(
       out,
-      this.#staticBounds,
-      this.#boneBounds,
+      this._staticBounds,
+      this._boneBounds,
       bones,
       this.skinned ? boneCount : 0
     );
@@ -301,7 +301,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
-    const aabb = this.GetAabb(EvePlaneSet.#aabbScratch, bones, boneCount);
+    const aabb = this.GetAabb(EvePlaneSet._aabbScratch, bones, boneCount);
     if (box3.isEmpty(aabb))
     {
       return false;
@@ -450,7 +450,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
   }
 
   /** Carbon EvePlaneSet::GetAverageColor (cpp:499-528): the componentwise
@@ -459,10 +459,10 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @carbon.method
   GetAverageColor(out = new Float32Array(4))
   {
-    const layer1 = EvePlaneSet.#MapAverageColor(this.layerMap1Parameter);
-    const layer2 = EvePlaneSet.#MapAverageColor(this.layerMap2Parameter);
-    const image = EvePlaneSet.#MapAverageColor(this.imageMapParameter);
-    const mask = EvePlaneSet.#MapAverageColor(this.maskMapParameter);
+    const layer1 = EvePlaneSet._MapAverageColor(this.layerMap1Parameter);
+    const layer2 = EvePlaneSet._MapAverageColor(this.layerMap2Parameter);
+    const image = EvePlaneSet._MapAverageColor(this.imageMapParameter);
+    const mask = EvePlaneSet._MapAverageColor(this.maskMapParameter);
     for (let channel = 0; channel < 4; channel++)
     {
       out[channel] = layer1[channel] * layer2[channel] * image[channel] * mask[channel];
@@ -482,18 +482,18 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
   @impl.reason("Light-profile packing follows the adapted light-manager surface.")
   GetLights(lightManager)
   {
-    const features = EvePlaneSet.#features;
-    features.parentBrightness = this.#activationStrength;
+    const features = EvePlaneSet._features;
+    features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
-    const averageColor = EvePlaneSet.#averageColorScratch;
+    const averageColor = EvePlaneSet._averageColorScratch;
     if (this.lights.length > 0)
     {
       this.GetAverageColor(averageColor);
     }
     const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EvePlaneSet.#lightRecord;
-    const dataCopy = EvePlaneSet.#lightDataScratch;
+    const record = EvePlaneSet._lightRecord;
+    const dataCopy = EvePlaneSet._lightDataScratch;
 
     for (const light of this.lights)
     {
@@ -518,7 +518,7 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
    * parameter, its resource or its average colour is missing, so an absent map
    * is a no-op in the four-way product.
    */
-  static #MapAverageColor(parameter)
+  static _MapAverageColor(parameter)
   {
     // Carbon: white when the map or its TriTextureRes is missing (cpp:516-527).
     if (!parameter || !parameter.GetResource()) return WHITE;
@@ -527,23 +527,23 @@ export class EvePlaneSet extends IEveSpaceObjectAttachment
     return resource.GetAverageColor();
   }
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
   /** Carbon CreateBoundingBoxes skips an item whose color is exactly
    * Color(0, 0, 0, 0) (cpp:332-335) - an authored "off" plane contributes no
    * bounds. Any non-zero channel, alpha included, counts. */
-  static #IsFullyTransparent(item)
+  static _IsFullyTransparent(item)
   {
     const color = item?.color;
     return !!color && !color[0] && !color[1] && !color[2] && !color[3];
   }
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 
-  static #lightDataScratch = CreateLightDataScratch();
+  static _lightDataScratch = CreateLightDataScratch();
 
-  static #averageColorScratch = new Float32Array(4);
+  static _averageColorScratch = new Float32Array(4);
 }

@@ -10,7 +10,7 @@ import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRa
 export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpawnModifier
 {
 
-  #timeSeed = Date.now() >>> 0;
+  _timeSeed = Date.now() >>> 0;
 
   /** m_minScale (Vector3) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -50,7 +50,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @impl.adapted
   Initialize()
   {
-    this.#timeSeed = Date.now() >>> 0;
+    this._timeSeed = Date.now() >>> 0;
     return true;
   }
 
@@ -63,7 +63,7 @@ export class EveDistributionSpawnModifierRandomScale extends IEveDistributionSpa
   @impl.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
-    const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
+    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);
     const scale = vec3.create();
 

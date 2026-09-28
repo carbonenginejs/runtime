@@ -96,7 +96,7 @@ export class EveChildTransform extends EveSpaceObjectChild
     {
       return mat4.copy(out, this.localTransform);
     }
-    return EveChildTransform.#compose(out, this.scaling, this.rotation, this.translation);
+    return EveChildTransform._compose(out, this.scaling, this.rotation, this.translation);
   }
 
   /**
@@ -109,7 +109,7 @@ export class EveChildTransform extends EveSpaceObjectChild
   {
     if (this.useSRT)
     {
-      EveChildTransform.#compose(this.localTransform, this.scaling, this.rotation, this.translation);
+      EveChildTransform._compose(this.localTransform, this.scaling, this.rotation, this.translation);
     }
     return this.localTransform;
   }
@@ -183,7 +183,7 @@ export class EveChildTransform extends EveSpaceObjectChild
       return mat4.multiply(this.worldTransform, parentTransform, this.localTransform);
     }
     const scale = mat4.getScaling(vec3.create(), parentTransform);
-    const rotation = EveChildTransform.#getRotation(quat.create(), parentTransform, scale);
+    const rotation = EveChildTransform._getRotation(quat.create(), parentTransform, scale);
     const translation = mat4.getTranslation(vec3.create(), parentTransform);
     if (this.useStaticScale)
     {
@@ -193,12 +193,12 @@ export class EveChildTransform extends EveSpaceObjectChild
     {
       quat.identity(rotation);
     }
-    const modifiedParentTransform = EveChildTransform.#compose(mat4.create(), scale, rotation, translation);
+    const modifiedParentTransform = EveChildTransform._compose(mat4.create(), scale, rotation, translation);
     return mat4.multiply(this.worldTransform, modifiedParentTransform, this.localTransform);
   }
 
   /** Builds a transform matrix from a scale, rotation and translation triple. */
-  static #compose(out, scale, rotation, translation)
+  static _compose(out, scale, rotation, translation)
   {
     return mat4.fromRotationTranslationScale(out, rotation, translation, scale);
   }
@@ -208,7 +208,7 @@ export class EveChildTransform extends EveSpaceObjectChild
    * each basis column by the matching component of the supplied scale first, so
    * non-uniform scaling does not skew the result.
    */
-  static #getRotation(out, transform, scale)
+  static _getRotation(out, transform, scale)
   {
     const normalized = mat4.create();
     for (let column = 0; column < 3; column++)

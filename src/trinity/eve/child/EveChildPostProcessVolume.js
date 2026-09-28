@@ -51,7 +51,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   // Carbon constructor initializes it to center (0,0,0), radius 0
   // (EveChildPostProcessVolume.cpp:11-18). The read-only mirror fields above
   // are refreshed after every rebuild.
-  #boundingSphere = vec4.create();
+  _boundingSphere = vec4.create();
 
   /**
    * Unions the volumes' bounding spheres into the object-space bound
@@ -65,7 +65,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   @impl.reason("Volume bounding spheres arrive as duck-typed { center, radius } records rather than CcpMath::Sphere values.")
   RebuildBoundingSphere()
   {
-    const sphere = this.#boundingSphere;
+    const sphere = this._boundingSphere;
     vec4.set(sphere, 0, 0, 0, 0);
     for (const volume of this.volumes)
     {
@@ -101,7 +101,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
       sphere[2] += centerScale * dz;
       sphere[3] = 0.5 * (sphere[3] + radius + deltaLen);
     }
-    this.#MirrorBoundingSphere();
+    this._MirrorBoundingSphere();
   }
 
   @carbon.method
@@ -144,7 +144,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   @impl.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
-    vec4.copy(out, this.#boundingSphere);
+    vec4.copy(out, this._boundingSphere);
     return true;
   }
 
@@ -166,9 +166,9 @@ export class EveChildPostProcessVolume extends EveChildTransform
   @impl.reason("Carbon reads the Tr2Renderer view-position global; the relocated camera state arrives via the threaded render context.")
   UpdateAsyncronous(updateContext, params)
   {
-    this.#UpdateTransformFromParent(params);
+    this._UpdateTransformFromParent(params);
     this.RebuildBoundingSphere();
-    const attributes = this.#EnsureAttributes();
+    const attributes = this._EnsureAttributes();
 
     // Global postprocess volumes have no volumes, so they are always on
     // (cpp:108-112).
@@ -184,16 +184,16 @@ export class EveChildPostProcessVolume extends EveChildTransform
     {
       return;
     }
-    if (!mat4.invert(EveChildPostProcessVolume.#inverseWorld, this.worldTransform))
+    if (!mat4.invert(EveChildPostProcessVolume._inverseWorld, this.worldTransform))
     {
       // JS-only guard: Carbon inverts unconditionally; a singular world
       // transform keeps the volume off for the frame.
       return;
     }
-    const cameraInObjectSpace = vec3.transformMat4(EveChildPostProcessVolume.#cameraInObjectSpace, viewPosition, EveChildPostProcessVolume.#inverseWorld);
+    const cameraInObjectSpace = vec3.transformMat4(EveChildPostProcessVolume._cameraInObjectSpace, viewPosition, EveChildPostProcessVolume._inverseWorld);
 
     // Sphere::IsPointInside with radiusEpsilon 1e-4 (Sphere_inline.h:107-117).
-    const sphere = this.#boundingSphere;
+    const sphere = this._boundingSphere;
     const dx = cameraInObjectSpace[0] - sphere[0];
     const dy = cameraInObjectSpace[1] - sphere[1];
     const dz = cameraInObjectSpace[2] - sphere[2];
@@ -259,7 +259,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
   @impl.reason("The Carbon constructor's attribute-instance creation (cpp:11-18) is deferred to first use because the generated field default stays null.")
   Initialize()
   {
-    this.#EnsureAttributes();
+    this._EnsureAttributes();
     this.RebuildBoundingSphere();
     return true;
   }
@@ -285,11 +285,11 @@ export class EveChildPostProcessVolume extends EveChildTransform
   @impl.implemented
   GetPostProcessAttributes()
   {
-    return this.#EnsureAttributes();
+    return this._EnsureAttributes();
   }
 
   /** Rebuilds the world transform from the parent (EveChildPostProcessVolume.cpp:153-158). */
-  #UpdateTransformFromParent(params)
+  _UpdateTransformFromParent(params)
   {
     const parentTransform = params?.localToWorldTransform;
     if (parentTransform && parentTransform.length === 16)
@@ -302,7 +302,7 @@ export class EveChildPostProcessVolume extends EveChildTransform
    * Lazily creates the attribute record the Carbon constructor allocates with
    * zero intensity (EveChildPostProcessVolume.cpp:11-18).
    */
-  #EnsureAttributes()
+  _EnsureAttributes()
   {
     if (!this.postProcessAttributes)
     {
@@ -313,18 +313,18 @@ export class EveChildPostProcessVolume extends EveChildTransform
   }
 
   /** Refreshes the schema's read-only center/radius mirrors from the packed bound. */
-  #MirrorBoundingSphere()
+  _MirrorBoundingSphere()
   {
     if (!this.boundingSphereCenter)
     {
       this.boundingSphereCenter = vec3.create();
     }
-    vec3.set(this.boundingSphereCenter, this.#boundingSphere[0], this.#boundingSphere[1], this.#boundingSphere[2]);
-    this.boundingSphereRadius = this.#boundingSphere[3];
+    vec3.set(this.boundingSphereCenter, this._boundingSphere[0], this._boundingSphere[1], this._boundingSphere[2]);
+    this.boundingSphereRadius = this._boundingSphere[3];
   }
 
-  static #inverseWorld = mat4.create();
+  static _inverseWorld = mat4.create();
 
-  static #cameraInObjectSpace = vec3.create();
+  static _cameraInObjectSpace = vec3.create();
 
 }

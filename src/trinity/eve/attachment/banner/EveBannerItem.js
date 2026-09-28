@@ -61,12 +61,12 @@ export class EveBannerItem extends CjsModel
   GetBounds(out)
   {
     const transform = mat4.fromRotationTranslationScale(
-      EveBannerItem.#transform,
+      EveBannerItem._transform,
       this.rotation,
       this.position,
       this.scaling
     );
-    return box3.transformMat4(out, EveBannerItem.#bounds, transform);
+    return box3.transformMat4(out, EveBannerItem._bounds, transform);
   }
 
   /** Carbon reads the item member directly (cpp:424); the item-set builder
@@ -79,7 +79,7 @@ export class EveBannerItem extends CjsModel
     return this.bone;
   }
 
-  static #bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0);
+  static _bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0);
 
-  static #transform = mat4.create();
+  static _transform = mat4.create();
 }

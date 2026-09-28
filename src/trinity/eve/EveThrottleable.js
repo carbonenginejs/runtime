@@ -34,7 +34,7 @@ export class EveThrottleable extends CjsModel
   @type.uint32
   minUpdateFrequency = 2;
 
-  #throttle = new CjsEveThrottleableState();
+  _throttle = new CjsEveThrottleableState();
 
   /**
    * Whether this object should skip the current update; an update that is
@@ -45,6 +45,6 @@ export class EveThrottleable extends CjsModel
   @impl.adapted
   ShouldSkipUpdate(normalizedUpdateFrequency = 0.5, currentTime = 0)
   {
-    return this.#throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, currentTime);
+    return this._throttle.ShouldSkipUpdate(this, normalizedUpdateFrequency, currentTime);
   }
 }

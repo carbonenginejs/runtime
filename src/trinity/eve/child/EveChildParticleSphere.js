@@ -21,15 +21,15 @@ const BIND_INVALID = 2;
 export class EveChildParticleSphere extends EveSpaceObjectChild
 {
 
-  #bindStatus = BIND_PENDING;
+  _bindStatus = BIND_PENDING;
 
-  #lifetimeElement = null;
+  _lifetimeElement = null;
 
-  #positionElement = null;
+  _positionElement = null;
 
-  #previousOrigin = vec3.create();
+  _previousOrigin = vec3.create();
 
-  #velocityElement = null;
+  _velocityElement = null;
 
   /** m_name (std::string) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -136,22 +136,22 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
     {
       if (generator.Bind(this.particleSystem, boundElements) === false)
       {
-        this.#bindStatus = BIND_INVALID;
+        this._bindStatus = BIND_INVALID;
         return false;
       }
     }
 
-    this.#positionElement = bindParticleElement(
+    this._positionElement = bindParticleElement(
       this.particleSystem,
       Tr2ParticleElementDeclaration.Type.POSITION,
       boundElements
     );
-    this.#velocityElement = bindParticleElement(
+    this._velocityElement = bindParticleElement(
       this.particleSystem,
       Tr2ParticleElementDeclaration.Type.VELOCITY,
       boundElements
     );
-    this.#lifetimeElement = bindParticleElement(
+    this._lifetimeElement = bindParticleElement(
       this.particleSystem,
       Tr2ParticleElementDeclaration.Type.LIFETIME,
       boundElements
@@ -159,12 +159,12 @@ export class EveChildParticleSphere extends EveSpaceObjectChild
 
     if (hasUnboundParticleElements(this.particleSystem, boundElements))
     {
-      this.#bindStatus = BIND_INVALID;
+      this._bindStatus = BIND_INVALID;
       return false;
     }
 
-    this.#bindStatus = BIND_VALID;
-    vec3.set(this.#previousOrigin, this.radius, 0, 0);
+    this._bindStatus = BIND_VALID;
+    vec3.set(this._previousOrigin, this.radius, 0, 0);
     return true;
   }
 

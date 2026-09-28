@@ -14,16 +14,16 @@ import { Tr2SphereShapeAttributeGenerator } from "../../particle/attribute/Tr2Sp
 export class EveChildExplosion extends EveChildContainer
 {
 
-  #countdownToGlobalExplosionStart = 0;
+  _countdownToGlobalExplosionStart = 0;
 
   /** m_sharedObjects - the aliased-through-copies subgraph (cpp:319). */
-  #sharedObjects = new Set();
+  _sharedObjects = new Set();
 
-  #localExplosionTimes = [];
+  _localExplosionTimes = [];
 
-  #nextLocalExplosion = 0;
+  _nextLocalExplosion = 0;
 
-  #nextLocalExplosionTime = 0;
+  _nextLocalExplosionTime = 0;
 
   @type.array("mat4")
   localExplosionTransforms = [];
@@ -196,15 +196,15 @@ export class EveChildExplosion extends EveChildContainer
   {
     this.Stop();
     if (!this.localExplosion && !this.globalExplosion && !this.localExplosions.length && !this.globalExplosions.length) return false;
-    this.#nextLocalExplosionTime = this.localExplosionDelay;
-    this.#nextLocalExplosion = 0;
+    this._nextLocalExplosionTime = this.localExplosionDelay;
+    this._nextLocalExplosion = 0;
     if (this.localExplosionShared) this.objects.push(this.localExplosionShared);
     // Carbon collects the shared subgraph right here (cpp:82), so every
     // later spawn's copy can alias rather than duplicate it.
     this.FindSharedObjects();
-    this.#CalculateExplosionTimes(this.localExplosionTransforms.length);
+    this._CalculateExplosionTimes(this.localExplosionTransforms.length);
     this.playTime = 0;
-    this.#countdownToGlobalExplosionStart = this.globalExplosionTime;
+    this._countdownToGlobalExplosionStart = this.globalExplosionTime;
     this.RebuildLocalTransform?.();
     this.isPlaying = true;
     return true;
@@ -234,24 +234,24 @@ export class EveChildExplosion extends EveChildContainer
     {
       if (this.wreckSwitchTime > 0 && this.playTime > this.wreckSwitchTime && this.globalDuration > 0)
       {
-        this.#nextLocalExplosion = this.localExplosionTransforms.length;
+        this._nextLocalExplosion = this.localExplosionTransforms.length;
         this.objects = this.objects.filter(object => object === this.generatedGlobalExplosions || object === this.localExplosionShared);
       }
-      while (this.#nextLocalExplosionTime < deltaTime && this.#nextLocalExplosion < this.localExplosionTransforms.length)
+      while (this._nextLocalExplosionTime < deltaTime && this._nextLocalExplosion < this.localExplosionTransforms.length)
       {
-        this.#SpawnLocalExplosion(this.localExplosionTransforms[this.#nextLocalExplosion]);
-        this.#nextLocalExplosion++;
-        if (this.#nextLocalExplosion < this.localExplosionTransforms.length)
+        this._SpawnLocalExplosion(this.localExplosionTransforms[this._nextLocalExplosion]);
+        this._nextLocalExplosion++;
+        if (this._nextLocalExplosion < this.localExplosionTransforms.length)
         {
-          this.#nextLocalExplosionTime = this.#localExplosionTimes[this.#nextLocalExplosion];
+          this._nextLocalExplosionTime = this._localExplosionTimes[this._nextLocalExplosion];
         }
       }
-      this.#nextLocalExplosionTime -= deltaTime;
+      this._nextLocalExplosionTime -= deltaTime;
     }
     if (this.globalExplosion || this.globalExplosions.length)
     {
-      this.#countdownToGlobalExplosionStart -= deltaTime;
-      if (this.#countdownToGlobalExplosionStart < 0 && !this.globalExplosionInstances.length) this.#SpawnGlobalExplosions();
+      this._countdownToGlobalExplosionStart -= deltaTime;
+      if (this._countdownToGlobalExplosionStart < 0 && !this.globalExplosionInstances.length) this._SpawnGlobalExplosions();
     }
     for (const object of this.objects) object?.UpdateSyncronous(updateContext, params);
     if (this.playTime > this.totalDuration) this.Stop();
@@ -260,15 +260,15 @@ export class EveChildExplosion extends EveChildContainer
   /**
    * Randomises a delay per local explosion, scaled by an interval factor raised to its index, and derives the global start, total duration and wreck-switch times from the accumulated delays.
    */
-  #CalculateExplosionTimes(localExplosionCount)
+  _CalculateExplosionTimes(localExplosionCount)
   {
-    this.#localExplosionTimes.length = 0;
+    this._localExplosionTimes.length = 0;
     let timeUntilLastLocalExplosion = localExplosionCount ? this.localExplosionDelay : 0;
     this.globalExplosionTime = localExplosionCount ? this.globalExplosionDelay : 0;
     for (let i = 0; i < localExplosionCount; i++)
     {
       const explosionTime = this.localExplosionIntervalFactor ** i * this.localExplosionInterval * Math.random();
-      this.#localExplosionTimes.push(explosionTime);
+      this._localExplosionTimes.push(explosionTime);
       timeUntilLastLocalExplosion += explosionTime;
     }
     this.globalExplosionTime += timeUntilLastLocalExplosion;
@@ -282,7 +282,7 @@ export class EveChildExplosion extends EveChildContainer
    * copier (BeClasses->CopyTo with the CopyElement override and the
    * UpdateEmitter post-copy), set the copy up and track it.
    */
-  #SpawnLocalExplosion(transform)
+  _SpawnLocalExplosion(transform)
   {
     const source = this.localExplosions.length
       ? this.localExplosions[Math.floor(Math.random() * this.localExplosions.length)]
@@ -315,15 +315,15 @@ export class EveChildExplosion extends EveChildContainer
   @impl.implemented
   FindSharedObjects()
   {
-    this.#sharedObjects.clear();
+    this._sharedObjects.clear();
     if (!this.localExplosionShared) return;
 
     const stack = [ this.localExplosionShared ];
     while (stack.length)
     {
       const node = stack.pop();
-      if (!node || typeof node !== "object" || this.#sharedObjects.has(node)) continue;
-      this.#sharedObjects.add(node);
+      if (!node || typeof node !== "object" || this._sharedObjects.has(node)) continue;
+      this._sharedObjects.add(node);
 
       const fields = CjsSchema.getSchema(node.constructor)?.fields ?? [];
       for (const field of fields)
@@ -361,7 +361,7 @@ export class EveChildExplosion extends EveChildContainer
   @impl.adapted
   CopyElement(source)
   {
-    return this.#sharedObjects.has(source)
+    return this._sharedObjects.has(source)
       ? { result: ICopier.OverrideResult.SUCCESS, dest: source }
       : { result: ICopier.OverrideResult.FALLBACK };
   }
@@ -406,7 +406,7 @@ export class EveChildExplosion extends EveChildContainer
   /**
    * Copies the global explosion sources into a newly positioned and scaled container child, tracks the instances, and adds the container to the objects.
    */
-  #SpawnGlobalExplosions()
+  _SpawnGlobalExplosions()
   {
     const sources = this.globalExplosion ? [this.globalExplosion] : this.globalExplosions;
     const container = new EveChildContainer();

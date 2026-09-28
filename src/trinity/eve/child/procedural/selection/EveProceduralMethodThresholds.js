@@ -19,7 +19,7 @@ function SelectiveParameterCompare(param1, param2)
 export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 {
 
-  #selectedChildModified = false;
+  _selectedChildModified = false;
 
   /** m_parameters (PEveProceduralMethodThresholdParameterVector) [READ, PERSIST] */
   @edit.read
@@ -116,7 +116,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
 
     if (currentChild !== this.selectedChild)
     {
-      this.#selectedChildModified = true;
+      this._selectedChildModified = true;
     }
   }
 
@@ -141,7 +141,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
   @impl.implemented
   IsSelectedChildModified()
   {
-    return this.#selectedChildModified;
+    return this._selectedChildModified;
   }
 
   /** Carbon EveProceduralMethodThresholds::GetSelectedChild (cpp:89-109):
@@ -157,7 +157,7 @@ export class EveProceduralMethodThresholds extends IEveProceduralSelectionMethod
       return null;
     }
 
-    this.#selectedChildModified = false;
+    this._selectedChildModified = false;
     const param = this.parameters[this.selectedChild];
 
     if (param)

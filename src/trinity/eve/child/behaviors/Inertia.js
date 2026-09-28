@@ -60,7 +60,7 @@ export class Inertia extends CjsModel
   @type.boolean
   enabled = true;
 
-  #returnForces = [];
+  _returnForces = [];
 
   /** Carbon Inertia::GetProcessPriority (cpp:20-23). */
   @carbon.method
@@ -113,7 +113,7 @@ export class Inertia extends CjsModel
       return NO_FORCES;
     }
 
-    const returnForces = this.#returnForces;
+    const returnForces = this._returnForces;
     returnForces.length = 0;
 
     for (let c = 0; c < agents.length; c++)

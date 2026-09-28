@@ -48,10 +48,10 @@ export class EveSwarmRenderable extends EveEntity
   perObjectDataPs = null;
 
   /** m_vsData / m_psData - this renderable PERSISTENT per-object pair. */
-  #perObjectData = createChildPerObjectRecords();
+  _perObjectData = createChildPerObjectRecords();
 
   /** The previous LOGICAL world transform, for worldTransformLast. */
-  #lastWorldTransform = mat4.create();
+  _lastWorldTransform = mat4.create();
 
   /**
    * Binds this fighter to the swarm that owns it and the mesh it draws with.
@@ -75,9 +75,9 @@ export class EveSwarmRenderable extends EveEntity
   {
     // The previous LOGICAL transform is what stampChildTransforms needs, so it
     // is kept alongside rather than read back out of the record.
-    mat4.copy(this.#lastWorldTransform, this.worldTransform);
+    mat4.copy(this._lastWorldTransform, this.worldTransform);
     mat4.copy(this.worldTransform, transform);
-    stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
+    stampChildTransforms(this._perObjectData, this.worldTransform, this._lastWorldTransform);
   }
 
   /**
@@ -94,7 +94,7 @@ export class EveSwarmRenderable extends EveEntity
   @impl.implemented
   SetBoosterIntensity(intensity)
   {
-    const shipData = this.#perObjectData.ps.Get("shipData");
+    const shipData = this._perObjectData.ps.Get("shipData");
     shipData[0] = intensity;
   }
 
@@ -108,8 +108,8 @@ export class EveSwarmRenderable extends EveEntity
   @impl.implemented
   SetShaderData(vsData, psData)
   {
-    const vs = this.#perObjectData.vs;
-    const ps = this.#perObjectData.ps;
+    const vs = this._perObjectData.vs;
+    const ps = this._perObjectData.ps;
 
     for (const name of [ "clipData", "ellpsoidCenter", "ellpsoidRadii", "shipData" ])
     {
@@ -341,7 +341,7 @@ export class EveSwarmRenderable extends EveEntity
   @impl.implemented
   GetPerObjectData(_accumulator = null)
   {
-    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
+    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
 
   /** Carbon EveSwarmRenderable::GetShadowPerObjectData (EveSwarm.cpp:300-303):

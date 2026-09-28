@@ -97,59 +97,59 @@ export class EveSpaceObjectDecal extends CjsModel
   @type.array("unknown")
   staticIndexBuffers = [];
 
-  #decalMatrix = mat4.create();
+  _decalMatrix = mat4.create();
 
-  #inverseDecalMatrix = mat4.create();
+  _inverseDecalMatrix = mat4.create();
 
-  #priority = 0;
+  _priority = 0;
 
   /** m_baseGeometryResource (TriGeometryResPtr) - the hull's, not the decal's. */
-  #baseGeometryResource = null;
+  _baseGeometryResource = null;
 
   /** m_geometryLodIndex (int) */
-  #geometryLodIndex = 0;
+  _geometryLodIndex = 0;
 
   /** m_decalGeometry (std::shared_ptr<MeshDecalData>) */
-  #decalGeometry = null;
+  _decalGeometry = null;
 
   /** m_isGeometryFrozen (bool) - pins the decal to LOD 0. */
-  #isGeometryFrozen = false;
+  _isGeometryFrozen = false;
 
   /** m_parentData (EveSpaceObjectDecal.h:178) - copied by value from the
    * owning space object each frame; zeroed with an identity transform by
    * Carbon's constructor (cpp:56-57). Runtime state, never persisted. */
-  #parentData = new IEveSpaceObject2ParentData();
+  _parentData = new IEveSpaceObject2ParentData();
 
   /** m_parentBoneMatrix (h:190) - the animated parent bone this decal rides,
    * identity until SetBoneMatrix supplies one. */
-  #parentBoneMatrix = mat4.create();
+  _parentBoneMatrix = mat4.create();
 
   /** m_isVisible (h:204) - a float, not a bool: the non-LOD paths set exactly
    * 0 or 1 while the LOD path writes a 0..1 fade ramp (cpp:119-176). */
-  #isVisible = 0;
+  _isVisible = 0;
 
   /** m_minBounds / m_maxBounds (h:215) - the geometry mesh bounds an instanced
    * decal measures instead of the unit cube. Stamped by the loader. */
-  #minBounds = vec3.create();
+  _minBounds = vec3.create();
 
-  #maxBounds = vec3.create();
+  _maxBounds = vec3.create();
 
   /** m_instanceData (h:212) - non-null selects the instanced visibility path.
    * The instance buffer itself is not ported yet; the graph only needs to know
    * whether one is attached. */
-  #instanceData = null;
+  _instanceData = null;
 
   /** m_vertexDeclarationOverride (h:211) - UNINITIALIZED_DECLARATION until
    * GetInstancedRenderables (cpp:227-234, not ported) stamps the instanced
    * mesh's declaration. */
-  #vertexDeclarationOverride = Tr2EffectStateManager.Unknown;
+  _vertexDeclarationOverride = Tr2EffectStateManager.Unknown;
 
   /** Carbon m_invParentBoneMatrix (h:191) is declared but never assigned; the
    * value the shader sees is recomputed per fill (cpp:366), so this port keeps
    * no member for it. */
-  #inverseParentBoneMatrix = mat4.create();
+  _inverseParentBoneMatrix = mat4.create();
 
-  #shLightingScratch = new Float32Array(IEveSpaceObject2ParentData.SH_COEFFICIENT_COUNT * 4);
+  _shLightingScratch = new Float32Array(IEveSpaceObject2ParentData.SH_COEFFICIENT_COUNT * 4);
 
   /**
    * Property form of HasStaticIndexBuffers: whether any LOD carries decal
@@ -168,7 +168,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   Initialize()
   {
-    return this.#updateDecalMatrix();
+    return this._updateDecalMatrix();
   }
 
   /**
@@ -183,8 +183,8 @@ export class EveSpaceObjectDecal extends CjsModel
   {
     if (propertyName === "position" || propertyName === "rotation" || propertyName === "scaling")
     {
-      this.#updateDecalMatrix();
-      if (!this.HasStaticIndexBuffers()) this.#decalGeometry = null;
+      this._updateDecalMatrix();
+      if (!this.HasStaticIndexBuffers()) this._decalGeometry = null;
     }
     return true;
   }
@@ -202,14 +202,14 @@ export class EveSpaceObjectDecal extends CjsModel
     if (!source) return false;
     this.name = String(source.name ?? "");
     this.display = !!source.display;
-    vec3.copy(this.position, source.position || EveSpaceObjectDecal.#zero);
-    quat.copy(this.rotation, source.rotation || EveSpaceObjectDecal.#identityRotation);
-    vec3.copy(this.scaling, source.scaling || EveSpaceObjectDecal.#one);
+    vec3.copy(this.position, source.position || EveSpaceObjectDecal._zero);
+    quat.copy(this.rotation, source.rotation || EveSpaceObjectDecal._identityRotation);
+    vec3.copy(this.scaling, source.scaling || EveSpaceObjectDecal._one);
     this.parentBoneIndex = Number(source.parentBoneIndex) | 0;
     this.minScreenSize = Number(source.minScreenSize) || 0;
     this.decalEffect = source.decalEffect ?? null;
     this.batchType = Number(source.batchType) | 0;
-    return this.#updateDecalMatrix();
+    return this._updateDecalMatrix();
   }
 
   /**
@@ -231,8 +231,8 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   SetPosition(value)
   {
-    vec3.copy(this.position, value || EveSpaceObjectDecal.#zero);
-    return this.#updateDecalMatrix();
+    vec3.copy(this.position, value || EveSpaceObjectDecal._zero);
+    return this._updateDecalMatrix();
   }
 
   /**
@@ -254,8 +254,8 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   SetRotation(value)
   {
-    quat.copy(this.rotation, value || EveSpaceObjectDecal.#identityRotation);
-    return this.#updateDecalMatrix();
+    quat.copy(this.rotation, value || EveSpaceObjectDecal._identityRotation);
+    return this._updateDecalMatrix();
   }
 
   /**
@@ -277,7 +277,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   GetDecalMatrix(out = mat4.create())
   {
-    return mat4.copy(out, this.#decalMatrix);
+    return mat4.copy(out, this._decalMatrix);
   }
 
   /**
@@ -288,7 +288,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   GetInverseDecalMatrix(out = mat4.create())
   {
-    return mat4.copy(out, this.#inverseDecalMatrix);
+    return mat4.copy(out, this._inverseDecalMatrix);
   }
 
   /**
@@ -299,8 +299,8 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   SetScaling(value)
   {
-    vec3.copy(this.scaling, value || EveSpaceObjectDecal.#one);
-    return this.#updateDecalMatrix();
+    vec3.copy(this.scaling, value || EveSpaceObjectDecal._one);
+    return this._updateDecalMatrix();
   }
 
   /**
@@ -422,7 +422,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   SetPriority(value)
   {
-    this.#priority = Number(value) >>> 0;
+    this._priority = Number(value) >>> 0;
     return true;
   }
 
@@ -445,7 +445,7 @@ export class EveSpaceObjectDecal extends CjsModel
     // (v0, v4, v8, v12) of the logical matrix (math skill gotcha 7), so the
     // expansion writes the transpose of the three packed rows back into the
     // 4x4 basis and leaves the last column as identity.
-    const out = this.#parentBoneMatrix;
+    const out = this._parentBoneMatrix;
     for (let row = 0; row < 3; row++)
     {
       out[row] = bone[row * 4 + 0];
@@ -466,9 +466,9 @@ export class EveSpaceObjectDecal extends CjsModel
    * by member is that struct copy - no export, no allocation, on a per-decal
    * per-frame path. shLighting is a borrowed pointer into the parent's own PS
    * data, so it is carried by reference exactly as Carbon carries the pointer. */
-  #CopyParentData(parentData)
+  _CopyParentData(parentData)
   {
-    const own = this.#parentData;
+    const own = this._parentData;
     mat4.copy(own.transform, parentData.transform);
     own.killCount = parentData.killCount;
     vec4.copy(own.shipData, parentData.shipData);
@@ -496,14 +496,14 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.implemented
   UpdateVisibility(updateContext, parentData)
   {
-    this.#isVisible = 0;
+    this._isVisible = 0;
 
     if (!this.display || !this.decalEffect || !parentData) return false;
 
     if (!(this.minScreenSize > 0))
     {
-      this.#isVisible = 1;
-      this.#CopyParentData(parentData);
+      this._isVisible = 1;
+      this._CopyParentData(parentData);
       return true;
     }
 
@@ -513,13 +513,13 @@ export class EveSpaceObjectDecal extends CjsModel
     // Carbon (row-vector): m_parentBoneMatrix * parentData->transform - the
     // bone applies first, so the gl operands swap.
     const worldDecalMatrix = mat4.multiply(
-      EveSpaceObjectDecal.#worldDecalScratch,
+      EveSpaceObjectDecal._worldDecalScratch,
       parentData.transform,
-      this.#parentBoneMatrix
+      this._parentBoneMatrix
     );
-    const bounds = box3.set(EveSpaceObjectDecal.#boundsScratch, -1, -1, -1, 1, 1, 1);
+    const bounds = box3.set(EveSpaceObjectDecal._boundsScratch, -1, -1, -1, 1, 1, 1);
 
-    if (this.#instanceData)
+    if (this._instanceData)
     {
       // Instanced decals measure the geometry mesh bounds instead of the unit
       // cube (cpp:135-155). Carbon transforms only the two CORNERS here (not
@@ -530,17 +530,17 @@ export class EveSpaceObjectDecal extends CjsModel
       // ordering it. The eight-corner transform below is indifferent to order,
       // so this only affects the mirrored-decal early-outs (parity note
       // divergence 7).
-      const corner = EveSpaceObjectDecal.#pointScratch;
+      const corner = EveSpaceObjectDecal._pointScratch;
       box3.empty(bounds);
-      vec3.transformMat4(corner, this.#minBounds, worldDecalMatrix);
+      vec3.transformMat4(corner, this._minBounds, worldDecalMatrix);
       box3.addPoint(bounds, bounds, corner);
-      vec3.transformMat4(corner, this.#maxBounds, worldDecalMatrix);
+      vec3.transformMat4(corner, this._maxBounds, worldDecalMatrix);
       box3.addPoint(bounds, bounds, corner);
 
       if (box3.containsPoint(bounds, frustum.viewPos))
       {
-        this.#isVisible = 1;
-        this.#CopyParentData(parentData);
+        this._isVisible = 1;
+        this._CopyParentData(parentData);
         return true;
       }
 
@@ -552,33 +552,33 @@ export class EveSpaceObjectDecal extends CjsModel
       // Measure from the closest point of the box rather than its centre, so a
       // long box does not lod out while one end is near the camera.
       const offset = box3.getClampedPoint(
-        EveSpaceObjectDecal.#pointScratch,
+        EveSpaceObjectDecal._pointScratch,
         bounds,
         frustum.viewPos
       );
       vec3.subtract(offset, offset, frustum.viewPos);
       mat4.multiply(
         worldDecalMatrix,
-        mat4.fromTranslation(EveSpaceObjectDecal.#offsetScratch, offset),
+        mat4.fromTranslation(EveSpaceObjectDecal._offsetScratch, offset),
         worldDecalMatrix
       );
     }
 
     // Carbon: m_decalMatrix * worldDecalMatrix - the decal applies first.
-    mat4.multiply(worldDecalMatrix, worldDecalMatrix, this.#decalMatrix);
+    mat4.multiply(worldDecalMatrix, worldDecalMatrix, this._decalMatrix);
     box3.transformMat4(bounds, bounds, worldDecalMatrix);
 
     // Carbon's sphere is the box's circumscribing sphere: the centre of the
     // transformed box and HALF ITS FULL DIAGONAL (cpp:159-160).
-    const center = EveSpaceObjectDecal.#pointScratch;
+    const center = EveSpaceObjectDecal._pointScratch;
     const radius = box3.toPositionRadius(bounds, center);
     const pixelSize = frustum.GetPixelSizeAccrossEst(center, radius);
     const modifiedMinScreen = this.minScreenSize * (updateContext?.GetLodFactor() ?? 1);
 
     if (pixelSize < modifiedMinScreen) return false;
 
-    this.#isVisible = Math.min((pixelSize - modifiedMinScreen) / (modifiedMinScreen * 0.5), 1);
-    this.#CopyParentData(parentData);
+    this._isVisible = Math.min((pixelSize - modifiedMinScreen) / (modifiedMinScreen * 0.5), 1);
+    this._CopyParentData(parentData);
     return true;
   }
 
@@ -588,7 +588,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes the private runtime value through an accessor.")
   GetVisibility()
   {
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /** Carbon EveSpaceObjectDecal::HasTransparentBatches (cpp:241-244). */
@@ -634,27 +634,27 @@ export class EveSpaceObjectDecal extends CjsModel
   {
     const vs = accumulator.Alloc("DecalVSPerObjectData");
     const ps = accumulator.Alloc("DecalPSPerObjectData");
-    const parentData = this.#parentData;
+    const parentData = this._parentData;
 
     vs.SetAndTranspose("worldMatrix", parentData.transform);
     // cpp:358 inverts the transposed world matrix in place; by F2 that is the
     // transpose of the logical inverse, so this is the same bytes.
-    mat4.invert(this.#inverseParentBoneMatrix, parentData.transform);
-    vs.SetAndTranspose("invWorldMatrix", this.#inverseParentBoneMatrix);
+    mat4.invert(this._inverseParentBoneMatrix, parentData.transform);
+    vs.SetAndTranspose("invWorldMatrix", this._inverseParentBoneMatrix);
 
-    vs.SetAndTranspose("decalMatrix", this.#decalMatrix);
-    vs.SetAndTranspose("inverseDecalMatrix", this.#inverseDecalMatrix);
-    vs.SetAndTranspose("parentBoneMatrix", this.#parentBoneMatrix);
+    vs.SetAndTranspose("decalMatrix", this._decalMatrix);
+    vs.SetAndTranspose("inverseDecalMatrix", this._inverseDecalMatrix);
+    vs.SetAndTranspose("parentBoneMatrix", this._parentBoneMatrix);
 
     // cpp:366 - Inverse(Transpose(m_parentBoneMatrix)), recomputed per fill;
     // Carbon never reads its own m_invParentBoneMatrix member. Same F2
     // identity as above.
-    mat4.invert(this.#inverseParentBoneMatrix, this.#parentBoneMatrix);
-    vs.SetAndTranspose("invParentBoneMatrix", this.#inverseParentBoneMatrix);
+    mat4.invert(this._inverseParentBoneMatrix, this._parentBoneMatrix);
+    vs.SetAndTranspose("invParentBoneMatrix", this._inverseParentBoneMatrix);
 
     // cpp:374 - killCount is a uint widened to float; isVisible is the 0..1
     // visibility ramp; z and w are reserved literals.
-    ps.Set("displayData", [parentData.killCount, this.#isVisible, 0, 0]);
+    ps.Set("displayData", [parentData.killCount, this._isVisible, 0, 0]);
     ps.Set("shipData", parentData.shipData);
     ps.Set("clipData", [
       parentData.clipSphereCenter[0],
@@ -666,7 +666,7 @@ export class EveSpaceObjectDecal extends CjsModel
 
     // cpp:376-383 - copy the parent's seven packed coefficients, or zero the
     // whole block when the parent supplied none. m_unused stays unwritten.
-    const coefficients = this.#shLightingScratch;
+    const coefficients = this._shLightingScratch;
     coefficients.fill(0);
     const shLighting = parentData.shLighting;
     if (shLighting)
@@ -704,15 +704,15 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.adapted
   GetRenderables(out = [], _meshCache = null, geometryResource = null, screenSize = Infinity)
   {
-    if (this.#isVisible <= 0 || !geometryResource) return false;
+    if (this._isVisible <= 0 || !geometryResource) return false;
 
     // A NEW MESH INVALIDATES THE BUILD. Carbon's comment calls this out as slow
     // and to be avoided, which is why it is keyed on identity rather than
     // rebuilt every frame.
-    if (geometryResource !== this.#baseGeometryResource)
+    if (geometryResource !== this._baseGeometryResource)
     {
-      this.#decalGeometry = null;
-      this.#baseGeometryResource = geometryResource;
+      this._decalGeometry = null;
+      this._baseGeometryResource = geometryResource;
     }
 
     const mesh = geometryResource.GetMeshData(0);
@@ -720,22 +720,22 @@ export class EveSpaceObjectDecal extends CjsModel
     // The decoded payload carries no lodMask; the build stores `?? 0`, so the
     // comparison defaults the same way. Comparing the raw undefined rebuilt the
     // geometry on every call, which leaks now that a build allocates.
-    if (!this.#decalGeometry || (mesh && (mesh.lodMask ?? 0) !== this.#decalGeometry.lodMask))
+    if (!this._decalGeometry || (mesh && (mesh.lodMask ?? 0) !== this._decalGeometry.lodMask))
     {
-      this.#decalGeometry = this.#BuildGeometry(mesh);
+      this._decalGeometry = this._BuildGeometry(mesh);
     }
 
-    if (!this.#decalGeometry) return false;
+    if (!this._decalGeometry) return false;
 
-    this.#geometryLodIndex = this.#isGeometryFrozen
+    this._geometryLodIndex = this._isGeometryFrozen
       ? 0
       : geometryResource.GetLodIndexForScreenSize(0, screenSize);
 
-    const lod = this.#decalGeometry.lods[this.#geometryLodIndex];
+    const lod = this._decalGeometry.lods[this._geometryLodIndex];
 
     // cpp:216-220: an out-of-range LOD, an invalid index buffer, or a LOD the
     // decal does not reach (zero primitives).
-    if (!lod || !this.#decalGeometry.indexBuffer.IsValid() || !lod.primitiveCount) return false;
+    if (!lod || !this._decalGeometry.indexBuffer.IsValid() || !lod.primitiveCount) return false;
 
     out.push(this);
 
@@ -762,22 +762,22 @@ export class EveSpaceObjectDecal extends CjsModel
    * @param {object} mesh Decoded mesh data (Carbon's TriGeometryResMeshData).
    * @returns {MeshDecalData|null} Built geometry, or null when there is nothing to draw.
    */
-  #BuildGeometry(mesh)
+  _BuildGeometry(mesh)
   {
     if (!mesh) return null;
 
     mesh.decals ??= [];
-    const cached = FindCachedDecalGeometry(mesh.decals, this.#inverseDecalMatrix);
+    const cached = FindCachedDecalGeometry(mesh.decals, this._inverseDecalMatrix);
     if (cached) return cached;
 
     const built = this.HasStaticIndexBuffers()
       ? BuildStaticDecalGeometry(mesh, this.staticIndexBuffers)
-      : BuildDecalGeometry(mesh, this.#decalMatrix, this.#inverseDecalMatrix);
+      : BuildDecalGeometry(mesh, this._decalMatrix, this._inverseDecalMatrix);
 
     if (!built.indices.length) return null;
 
     const decalGeometry = new MeshDecalData();
-    mat4.copy(decalGeometry.inverseDecalMatrix, this.#inverseDecalMatrix);
+    mat4.copy(decalGeometry.inverseDecalMatrix, this._inverseDecalMatrix);
     decalGeometry.lodMask = mesh.lodMask ?? 0;
     decalGeometry.lods = built.lods;
 
@@ -797,7 +797,7 @@ export class EveSpaceObjectDecal extends CjsModel
   @impl.implemented
   SetHighDetailDecalState(isFrozen)
   {
-    this.#isGeometryFrozen = !!isFrozen;
+    this._isGeometryFrozen = !!isFrozen;
     return true;
   }
 
@@ -823,30 +823,30 @@ export class EveSpaceObjectDecal extends CjsModel
   GetBatches(batches, batchType, perObjectData, _reason)
   {
     if (batchType !== this.batchType) return;
-    if (!this.#baseGeometryResource || !this.decalEffect) return;
+    if (!this._baseGeometryResource || !this.decalEffect) return;
     if (!this.display) return;
-    if (!this.#baseGeometryResource.IsGood()) return;
-    if (this.#baseGeometryResource.GetMeshCount() < 1) return;
+    if (!this._baseGeometryResource.IsGood()) return;
+    if (this._baseGeometryResource.GetMeshCount() < 1) return;
 
-    const decalGeometry = this.#decalGeometry;
+    const decalGeometry = this._decalGeometry;
     if (!decalGeometry || !decalGeometry.indexBuffer.IsValid()) return;
 
     // cpp:283-287: Carbon's out-of-range index compares against size(); the
     // undefined lookup is the same refusal.
-    const decalLod = decalGeometry.lods[this.#geometryLodIndex];
+    const decalLod = decalGeometry.lods[this._geometryLodIndex];
     if (!decalLod || !decalLod.primitiveCount) return;
 
     // Carbon GetMeshLod( 0, int ) is the index overload.
-    const lod = this.#baseGeometryResource.GetMeshLodByIndex(0, this.#geometryLodIndex);
+    const lod = this._baseGeometryResource.GetMeshLodByIndex(0, this._geometryLodIndex);
     if (!lod.allocationsValid) return;
 
     const batch = new Tr2RenderBatch();
-    batch.SetPriority(this.#priority);
+    batch.SetPriority(this._priority);
     batch.SetMaterial(this.decalEffect);
 
-    const declaration = this.#vertexDeclarationOverride !== Tr2EffectStateManager.Unknown
-      ? this.#vertexDeclarationOverride
-      : Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(this.#baseGeometryResource.GetMeshVertexElements(0)));
+    const declaration = this._vertexDeclarationOverride !== Tr2EffectStateManager.Unknown
+      ? this._vertexDeclarationOverride
+      : Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(this._baseGeometryResource.GetMeshVertexElements(0)));
 
     batch.SetGeometryFromAllocations(declaration, lod.vertexAllocation, decalGeometry.indexBuffer);
     batch.SetPerObjectData(perObjectData);
@@ -855,9 +855,9 @@ export class EveSpaceObjectDecal extends CjsModel
     const startIndex = decalGeometry.indexBuffer.GetStartIndex() + decalLod.startIndex;
     const baseVertex = lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride();
 
-    if (this.#instanceData)
+    if (this._instanceData)
     {
-      const data = this.#instanceData.GetInstanceData(0, EveSpaceObjectDecal.#floatMax);
+      const data = this._instanceData.GetInstanceData(0, EveSpaceObjectDecal._floatMax);
       batch.SetDrawIndexedInstanced(indexCount, data.count, startIndex, baseVertex, data.offset / data.stride);
       // Carbon writes m_vertexStreams[1] / m_stride[1] directly (cpp:312-313).
       batch.SetStreamSource(1, data.buffer, data.stride);
@@ -886,29 +886,29 @@ export class EveSpaceObjectDecal extends CjsModel
    * Recomposes the decal matrix from the authored rotation, position and scaling
    * and inverts it; returns whether the inverse existed.
    */
-  #updateDecalMatrix()
+  _updateDecalMatrix()
   {
-    mat4.fromRotationTranslationScale(this.#decalMatrix, this.rotation, this.position, this.scaling);
-    return !!mat4.invert(this.#inverseDecalMatrix, this.#decalMatrix);
+    mat4.fromRotationTranslationScale(this._decalMatrix, this.rotation, this.position, this.scaling);
+    return !!mat4.invert(this._inverseDecalMatrix, this._decalMatrix);
   }
 
   /** std::numeric_limits<float>::max(), the instanced draw's distance (cpp:305). */
-  static #floatMax = 3.4028234663852886e38;
+  static _floatMax = 3.4028234663852886e38;
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #boundsScratch = box3.create();
+  static _boundsScratch = box3.create();
 
-  static #worldDecalScratch = mat4.create();
+  static _worldDecalScratch = mat4.create();
 
-  static #offsetScratch = mat4.create();
+  static _offsetScratch = mat4.create();
 
-  static #pointScratch = vec3.create();
+  static _pointScratch = vec3.create();
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 
-  static #one = vec3.fromValues(1, 1, 1);
+  static _one = vec3.fromValues(1, 1, 1);
 
-  static #identityRotation = quat.create();
+  static _identityRotation = quat.create();
 
   static TriBatchType = TriBatchType;
 

@@ -268,7 +268,7 @@ export class EveChildRef extends EveChildTransform
   UpdateSyncronous(updateContext, params)
   {
     if (!this.child) return;
-    this.child.UpdateSyncronous(updateContext, this.#ChildParams(params));
+    this.child.UpdateSyncronous(updateContext, this._ChildParams(params));
   }
 
   /** Carbon EveChildRef::UpdateAsyncronous (cpp:194-209): the transform first, then the child. */
@@ -277,11 +277,11 @@ export class EveChildRef extends EveChildTransform
   UpdateAsyncronous(updateContext, params)
   {
     this.UpdateTransform(params?.localToWorldTransform);
-    if (this.child) this.child.UpdateAsyncronous(updateContext, this.#ChildParams(params));
+    if (this.child) this.child.UpdateAsyncronous(updateContext, this._ChildParams(params));
   }
 
   /** The params the child gets: visible only if this is displayed, parented and placed here. */
-  #ChildParams(params)
+  _ChildParams(params)
   {
     return {
       ...params,

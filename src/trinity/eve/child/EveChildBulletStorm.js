@@ -14,9 +14,9 @@ import { ITr2Renderable } from "../../core/ITr2Renderable.js";
 export class EveChildBulletStorm extends EveSpaceObjectChild
 {
 
-  #changingClipSphere = false;
+  _changingClipSphere = false;
 
-  #clipSphereMultiplier = 0;
+  _clipSphereMultiplier = 0;
 
   @type.list("EveChildBulletStormInstance")
   instances = [];
@@ -103,7 +103,7 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @impl.implemented
   CanChangeState()
   {
-    return !this.#changingClipSphere;
+    return !this._changingClipSphere;
   }
 
   /** Carbon method Rebuild (MAP_METHOD_AND_WRAP). */
@@ -141,9 +141,9 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @impl.implemented
   StartEffect()
   {
-    this.#clipSphereMultiplier = 1;
+    this._clipSphereMultiplier = 1;
     this.clipSphere = 0;
-    this.#changingClipSphere = true;
+    this._changingClipSphere = true;
   }
 
   /** Carbon method StopEffect (MAP_METHOD_AND_WRAP). */
@@ -151,9 +151,9 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
   @impl.implemented
   StopEffect()
   {
-    this.#clipSphereMultiplier = -1;
+    this._clipSphereMultiplier = -1;
     this.clipSphere = 0;
-    this.#changingClipSphere = true;
+    this._changingClipSphere = true;
   }
 
   /** Carbon EveChildBulletStorm::HasTransparentBatches is always false. */
@@ -233,13 +233,13 @@ export class EveChildBulletStorm extends EveSpaceObjectChild
       const sphere = vec4.create();
       if (this.sourceObject.GetBoundingSphere(sphere)) this.sourceRadius = sphere[3];
     }
-    if (this.#changingClipSphere)
+    if (this._changingClipSphere)
     {
       const deltaTime = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaTime ?? 0);
       const denominator = this.sourceRadius + this.range;
-      if (denominator) this.clipSphere += this.#clipSphereMultiplier * this.speed * deltaTime / denominator;
+      if (denominator) this.clipSphere += this._clipSphereMultiplier * this.speed * deltaTime / denominator;
       this.clipSphere = Math.max(-1, Math.min(1, this.clipSphere));
-      this.#changingClipSphere = Math.abs(this.clipSphere) !== 1;
+      this._changingClipSphere = Math.abs(this.clipSphere) !== 1;
     }
   }
 

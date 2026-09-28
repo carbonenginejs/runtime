@@ -75,7 +75,7 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
   {
     if (name === "value")
     {
-      this.#applyValue();
+      this._applyValue();
     }
     return true;
   }
@@ -110,14 +110,14 @@ export class EveDistributionSpawnerControllerTrigger extends IEveDistributionSpa
     }
 
     this.value = value;
-    this.#applyValue();
+    this._applyValue();
   }
 
   /**
    * Recomputes the active flag from the current value, inverted when
    * invertTrigger is set, after optionally restarting the wrapped spawners.
    */
-  #applyValue()
+  _applyValue()
   {
     if (this.restartOnReceivingValue)
     {

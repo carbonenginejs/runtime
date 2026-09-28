@@ -176,12 +176,12 @@ export class EveEffectRoot2 extends EveEntity
   @type.model("ITriVectorFunction")
   translationCurve = null;
 
-  #changeLOD = true;
-  #controllerVariables = new Map();
-  #lastUpdateMatrix = mat4.create();
-  #localTransform = mat4.create();
-  #secondaryLightingSphereRadiusWorld = 0.5;
-  #worldTransform = mat4.create();
+  _changeLOD = true;
+  _controllerVariables = new Map();
+  _lastUpdateMatrix = mat4.create();
+  _localTransform = mat4.create();
+  _secondaryLightingSphereRadiusWorld = 0.5;
+  _worldTransform = mat4.create();
 
   /** Links authored controllers after graph hydration. */
   @carbon.method
@@ -192,7 +192,7 @@ export class EveEffectRoot2 extends EveEntity
     for (const controller of this.controllers)
     {
       if (!controller?.IsLinked()) controller?.Link(this);
-      EveEffectRoot2.#ApplyControllerVariables(controller, this.#controllerVariables, "SetVariable");
+      EveEffectRoot2._ApplyControllerVariables(controller, this._controllerVariables, "SetVariable");
     }
     return true;
   }
@@ -230,18 +230,18 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("Carbon task and lock ownership is omitted; child update parameters retain the source graph contract.")
   UpdateSyncronous(updateContext = null)
   {
-    const time = EveEffectRoot2.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = EveEffectRoot2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
     this.UpdateWorldTransform(time);
-    mat4.fromRotationTranslationScale(this.#localTransform, this.rotation, this.translation, this.scaling);
+    mat4.fromRotationTranslationScale(this._localTransform, this.rotation, this.translation, this.scaling);
     // Carbon (row-vector): m_localTransform * m_worldTransform - local first.
-    mat4.multiply(this.#lastUpdateMatrix, this.#worldTransform, this.#localTransform);
-    this.#secondaryLightingSphereRadiusWorld = this.secondaryLightingSphereRadius *
+    mat4.multiply(this._lastUpdateMatrix, this._worldTransform, this._localTransform);
+    this._secondaryLightingSphereRadiusWorld = this.secondaryLightingSphereRadius *
       (this.scaling[0] + this.scaling[1] + this.scaling[2]) / 3;
 
-    for (const observer of this.observers) observer?.Update(this.#lastUpdateMatrix);
+    for (const observer of this.observers) observer?.Update(this._lastUpdateMatrix);
     if (this.effectChildren.length)
     {
-      const params = this.#CreateChildUpdateParams();
+      const params = this._CreateChildUpdateParams();
       for (const child of this.effectChildren) child?.UpdateSyncronous(updateContext, params);
     }
     return true;
@@ -258,7 +258,7 @@ export class EveEffectRoot2 extends EveEntity
     {
       if (this.dynamicLOD)
       {
-        const threshold = EveEffectRoot2.#GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
+        const threshold = EveEffectRoot2._GetContextValue(updateContext, "GetHighDetailThreshold", "highDetailThreshold");
         if (threshold > 0) frequency = Math.min(1, this.estimatedSize / threshold);
       }
       else
@@ -268,11 +268,11 @@ export class EveEffectRoot2 extends EveEntity
     }
 
     this.UpdateControllers(frequency);
-    const time = EveEffectRoot2.#GetContextValue(updateContext, "GetTime", "currentTime", "time");
+    const time = EveEffectRoot2._GetContextValue(updateContext, "GetTime", "currentTime", "time");
     for (const curveSet of this.curveSets) curveSet.Update(time, time, updateContext.renderContext);
     if (this.effectChildren.length)
     {
-      const params = this.#CreateChildUpdateParams();
+      const params = this._CreateChildUpdateParams();
       params.controllerUpdateFrequency = frequency;
       for (const child of this.effectChildren) child?.UpdateAsyncronous(updateContext, params);
     }
@@ -283,26 +283,26 @@ export class EveEffectRoot2 extends EveEntity
   @carbon.method
   @impl.adapted
   @impl.reason("Frustum and threshold state is supplied by the explicit update context rather than renderer globals.")
-  UpdateVisibility(updateContext = null, parentTransform = EveEffectRoot2.#identity)
+  UpdateVisibility(updateContext = null, parentTransform = EveEffectRoot2._identity)
   {
     if (!this.display) return false;
     if (this.dynamicLOD)
     {
-      this.GetBoundingSphere(EveEffectRoot2.#localSphere);
-      sph3.transformMat4(EveEffectRoot2.#worldSphere, EveEffectRoot2.#localSphere, this.#worldTransform);
+      this.GetBoundingSphere(EveEffectRoot2._localSphere);
+      sph3.transformMat4(EveEffectRoot2._worldSphere, EveEffectRoot2._localSphere, this._worldTransform);
       const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-      if (frustum?.IsSphereVisible(EveEffectRoot2.#worldSphere) !== false)
+      if (frustum?.IsSphereVisible(EveEffectRoot2._worldSphere) !== false)
       {
-        this.estimatedSize = Number(frustum?.GetPixelSizeAccross?.(EveEffectRoot2.#worldSphere) ?? this.estimatedSize) || 0;
+        this.estimatedSize = Number(frustum?.GetPixelSizeAccross?.(EveEffectRoot2._worldSphere) ?? this.estimatedSize) || 0;
       }
 
       const oldLod = this.lodLevel;
       this.lodLevel = Tr2Lod.TR2_LOD_LOW;
-      const medium = EveEffectRoot2.#GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
-      const low = EveEffectRoot2.#GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
+      const medium = EveEffectRoot2._GetContextValue(updateContext, "GetMediumDetailThreshold", "mediumDetailThreshold");
+      const low = EveEffectRoot2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
       if (this.estimatedSize >= medium) this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
       else if (this.estimatedSize >= low) this.lodLevel = Tr2Lod.TR2_LOD_MEDIUM;
-      this.#changeLOD ||= oldLod !== this.lodLevel;
+      this._changeLOD ||= oldLod !== this.lodLevel;
     }
 
     for (const child of this.effectChildren)
@@ -318,9 +318,9 @@ export class EveEffectRoot2 extends EveEntity
   GetRenderables(out = [])
   {
     if (!this.display) return out;
-    if (this.#changeLOD)
+    if (this._changeLOD)
     {
-      this.#changeLOD = false;
+      this._changeLOD = false;
       for (const child of this.effectChildren) child?.ChangeLOD?.(this.lodLevel);
     }
     for (const child of this.effectChildren) child?.GetRenderables(out);
@@ -364,25 +364,25 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("Curve outputs use CarbonEngineJS's time-first, output-second convention.")
   UpdateWorldTransform(time)
   {
-    EveEffectRoot2.#UpdateCurve(this.translationCurve, time, EveEffectRoot2.#translation, EveEffectRoot2.#zero);
-    EveEffectRoot2.#UpdateCurve(this.rotationCurve, time, EveEffectRoot2.#rotation, EveEffectRoot2.#identityRotation);
+    EveEffectRoot2._UpdateCurve(this.translationCurve, time, EveEffectRoot2._translation, EveEffectRoot2._zero);
+    EveEffectRoot2._UpdateCurve(this.rotationCurve, time, EveEffectRoot2._rotation, EveEffectRoot2._identityRotation);
     if (this.modelRotationCurve)
     {
-      EveEffectRoot2.#UpdateCurve(this.modelRotationCurve, time, EveEffectRoot2.#modelRotation, EveEffectRoot2.#identityRotation);
+      EveEffectRoot2._UpdateCurve(this.modelRotationCurve, time, EveEffectRoot2._modelRotation, EveEffectRoot2._identityRotation);
       // Carbon (row-vector): rotation = modelRotation * rotation - model first.
-      quat.multiply(EveEffectRoot2.#rotation, EveEffectRoot2.#rotation, EveEffectRoot2.#modelRotation);
+      quat.multiply(EveEffectRoot2._rotation, EveEffectRoot2._rotation, EveEffectRoot2._modelRotation);
     }
 
-    mat4.fromRotationTranslation(this.#worldTransform, EveEffectRoot2.#rotation, EveEffectRoot2.#translation);
+    mat4.fromRotationTranslation(this._worldTransform, EveEffectRoot2._rotation, EveEffectRoot2._translation);
     if (this.modelTranslationCurve)
     {
-      EveEffectRoot2.#UpdateCurve(this.modelTranslationCurve, time, EveEffectRoot2.#modelTranslation, EveEffectRoot2.#zero);
-      vec3.transformMat4(EveEffectRoot2.#modelTranslation, EveEffectRoot2.#modelTranslation, this.#worldTransform);
-      this.#worldTransform[12] = EveEffectRoot2.#modelTranslation[0];
-      this.#worldTransform[13] = EveEffectRoot2.#modelTranslation[1];
-      this.#worldTransform[14] = EveEffectRoot2.#modelTranslation[2];
+      EveEffectRoot2._UpdateCurve(this.modelTranslationCurve, time, EveEffectRoot2._modelTranslation, EveEffectRoot2._zero);
+      vec3.transformMat4(EveEffectRoot2._modelTranslation, EveEffectRoot2._modelTranslation, this._worldTransform);
+      this._worldTransform[12] = EveEffectRoot2._modelTranslation[0];
+      this._worldTransform[13] = EveEffectRoot2._modelTranslation[1];
+      this._worldTransform[14] = EveEffectRoot2._modelTranslation[2];
     }
-    return this.#worldTransform;
+    return this._worldTransform;
   }
 
   /** Updates and returns the model-center world position. */
@@ -392,10 +392,10 @@ export class EveEffectRoot2 extends EveEntity
   UpdateModelCenterWorldPosition(time, out = vec3.create())
   {
     this.UpdateWorldTransform(time);
-    mat4.fromRotationTranslationScale(this.#localTransform, this.rotation, this.translation, this.scaling);
+    mat4.fromRotationTranslationScale(this._localTransform, this.rotation, this.translation, this.scaling);
     // Carbon (row-vector): currentTransform * m_worldTransform - local first.
-    mat4.multiply(EveEffectRoot2.#centerTransform, this.#worldTransform, this.#localTransform);
-    return vec3.transformMat4(out, this.boundingSphereCenter, EveEffectRoot2.#centerTransform);
+    mat4.multiply(EveEffectRoot2._centerTransform, this._worldTransform, this._localTransform);
+    return vec3.transformMat4(out, this.boundingSphereCenter, EveEffectRoot2._centerTransform);
   }
 
   /** Returns the last model-center world position without advancing curves. */
@@ -404,7 +404,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("CarbonEngineJS uses an out-last signature for output parameters.")
   GetModelCenterWorldPosition(out = vec3.create())
   {
-    return vec3.transformMat4(out, this.boundingSphereCenter, this.#lastUpdateMatrix);
+    return vec3.transformMat4(out, this.boundingSphereCenter, this._lastUpdateMatrix);
   }
 
   /** Writes the authored sphere's local axis-aligned bounds when its radius is valid. */
@@ -435,7 +435,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("CarbonEngineJS returns the caller-owned output matrix.")
   GetLocalToWorldTransform(out = mat4.create())
   {
-    return mat4.copy(out, this.#lastUpdateMatrix);
+    return mat4.copy(out, this._lastUpdateMatrix);
   }
 
   /** Writes the authored sphere's bounds transformed by the last composed root matrix. */
@@ -444,9 +444,9 @@ export class EveEffectRoot2 extends EveEntity
   GetWorldBoundingBox(min, max)
   {
     if (!this.GetLocalBoundingBox(min, max)) return false;
-    const bounds = EveEffectRoot2.#bounds;
+    const bounds = EveEffectRoot2._bounds;
     box3.fromBounds(bounds, min, max);
-    box3.transformMat4(bounds, bounds, this.#lastUpdateMatrix);
+    box3.transformMat4(bounds, bounds, this._lastUpdateMatrix);
     vec3.set(min, bounds[0], bounds[1], bounds[2]);
     vec3.set(max, bounds[3], bounds[4], bounds[5]);
     return true;
@@ -470,7 +470,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("Carbon's protected member access becomes a copying accessor; JS has no protected fields and the live buffer stays private.")
   GetWorldTransform(out = mat4.create())
   {
-    return mat4.copy(out, this.#worldTransform);
+    return mat4.copy(out, this._worldTransform);
   }
 
   /** Registers every child with an injected quad renderer. */
@@ -557,7 +557,7 @@ export class EveEffectRoot2 extends EveEntity
           if (value)
           {
             value.Link(this);
-            EveEffectRoot2.#ApplyControllerVariables(value, this.#controllerVariables, "SetVariable");
+            EveEffectRoot2._ApplyControllerVariables(value, this._controllerVariables, "SetVariable");
           }
           break;
         case BLUELISTEVENT.BELIST_REMOVED:
@@ -581,7 +581,7 @@ export class EveEffectRoot2 extends EveEntity
           if (value)
           {
             value.SetOwner(this);
-            EveEffectRoot2.#ApplyControllerVariables(value, this.#controllerVariables, "SetControllerVariable");
+            EveEffectRoot2._ApplyControllerVariables(value, this._controllerVariables, "SetControllerVariable");
             value.StartControllers();
             if (registry) value.Register(registry);
           }
@@ -628,7 +628,7 @@ export class EveEffectRoot2 extends EveEntity
   GetLights(lightManager)
   {
     if (!this.display) return;
-    const transform = this.#lastUpdateMatrix;
+    const transform = this._lastUpdateMatrix;
     const scale = (
       Math.hypot(transform[0], transform[1], transform[2]) +
       Math.hypot(transform[4], transform[5], transform[6]) +
@@ -667,8 +667,8 @@ export class EveEffectRoot2 extends EveEntity
   {
     vsData.Zero();
     psData.Zero();
-    vsData.Set("shipData", EveEffectRoot2.#neutralShipData);
-    psData.Set("shipData", EveEffectRoot2.#neutralShipData);
+    vsData.Set("shipData", EveEffectRoot2._neutralShipData);
+    psData.Set("shipData", EveEffectRoot2._neutralShipData);
 
     return { vs: vsData, ps: psData };
   }
@@ -680,9 +680,9 @@ export class EveEffectRoot2 extends EveEntity
   RegisterSecondaryLightSource(manager)
   {
     return manager?.RegisterSecondaryLightSource?.(
-      this.#worldTransform.subarray(12, 15),
-      this.#secondaryLightingSphereRadiusWorld,
-      EveEffectRoot2.#noAlbedo,
+      this._worldTransform.subarray(12, 15),
+      this._secondaryLightingSphereRadiusWorld,
+      EveEffectRoot2._noAlbedo,
       this.secondaryLightingEmissiveColor
     );
   }
@@ -693,7 +693,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("The SH lighting manager is injected; Trinity owns only the authored source values.")
   UnregisterSecondaryLightSource(manager)
   {
-    return manager?.UnregisterSecondaryLightSource?.(this.#worldTransform.subarray(12, 15));
+    return manager?.UnregisterSecondaryLightSource?.(this._worldTransform.subarray(12, 15));
   }
 
   /** Plays root and child-owned curve sets. */
@@ -736,7 +736,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("CarbonEngineJS uses output parameters last and returns the targetable validity flag.")
   GetDamageLocatorPosition(_index, _inWorldSpace, out = vec3.create())
   {
-    vec3.set(out, this.#worldTransform[12], this.#worldTransform[13], this.#worldTransform[14]);
+    vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
     return true;
   }
 
@@ -814,7 +814,7 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("CarbonEngineJS returns the caller-owned output vector.")
   GetWorldPosition(out = vec3.create())
   {
-    return vec3.set(out, this.#worldTransform[12], this.#worldTransform[13], this.#worldTransform[14]);
+    return vec3.set(out, this._worldTransform[12], this._worldTransform[13], this._worldTransform[14]);
   }
 
   /** Returns the authored local rotation composed with the detached root rotation. */
@@ -823,9 +823,9 @@ export class EveEffectRoot2 extends EveEntity
   @impl.reason("CarbonEngineJS returns the caller-owned output quaternion.")
   GetWorldRotation(out = quat.create())
   {
-    mat4.getRotation(EveEffectRoot2.#worldRotation, this.#worldTransform);
+    mat4.getRotation(EveEffectRoot2._worldRotation, this._worldTransform);
     // Carbon (row-vector): m_rotation * RotationQuaternion(world) - local first.
-    quat.multiply(out, EveEffectRoot2.#worldRotation, this.rotation);
+    quat.multiply(out, EveEffectRoot2._worldRotation, this.rotation);
     return quat.normalize(out, out);
   }
 
@@ -836,19 +836,19 @@ export class EveEffectRoot2 extends EveEntity
   {
     this.GetDamageLocatorPosition(-1, true, out);
     if (!hit || !source) return out;
-    vec3.subtract(EveEffectRoot2.#missOffset, hit, out);
-    vec3.subtract(EveEffectRoot2.#missDirection, hit, source);
-    const directionLength = vec3.length(EveEffectRoot2.#missDirection);
-    if (directionLength) vec3.scale(EveEffectRoot2.#missDirection, EveEffectRoot2.#missDirection, 1 / directionLength);
+    vec3.subtract(EveEffectRoot2._missOffset, hit, out);
+    vec3.subtract(EveEffectRoot2._missDirection, hit, source);
+    const directionLength = vec3.length(EveEffectRoot2._missDirection);
+    if (directionLength) vec3.scale(EveEffectRoot2._missDirection, EveEffectRoot2._missDirection, 1 / directionLength);
     vec3.scaleAndAdd(
-      EveEffectRoot2.#missOffset,
-      EveEffectRoot2.#missOffset,
-      EveEffectRoot2.#missDirection,
-      -vec3.dot(EveEffectRoot2.#missDirection, EveEffectRoot2.#missOffset)
+      EveEffectRoot2._missOffset,
+      EveEffectRoot2._missOffset,
+      EveEffectRoot2._missDirection,
+      -vec3.dot(EveEffectRoot2._missDirection, EveEffectRoot2._missOffset)
     );
-    const offsetLength = vec3.length(EveEffectRoot2.#missOffset);
-    if (offsetLength) vec3.scale(EveEffectRoot2.#missOffset, EveEffectRoot2.#missOffset, 1 / offsetLength);
-    return vec3.scaleAndAdd(out, out, EveEffectRoot2.#missOffset, this.boundingSphereRadius * 1.125);
+    const offsetLength = vec3.length(EveEffectRoot2._missOffset);
+    if (offsetLength) vec3.scale(EveEffectRoot2._missOffset, EveEffectRoot2._missOffset, 1 / offsetLength);
+    return vec3.scaleAndAdd(out, out, EveEffectRoot2._missOffset, this.boundingSphereRadius * 1.125);
   }
 
   /** Returns the owned effect-child list. */
@@ -982,7 +982,7 @@ export class EveEffectRoot2 extends EveEntity
     for (const child of this.effectChildren) child?.RenderDebugInfo?.(renderer);
     if (renderer?.HasOption?.(this, "Lights"))
     {
-      for (const light of this.lights) light?.RenderDebugInfo?.(renderer, this.#worldTransform);
+      for (const light of this.lights) light?.RenderDebugInfo?.(renderer, this._worldTransform);
     }
     for (const observer of this.observers) observer?.RenderDebugInfo?.(renderer);
   }
@@ -994,7 +994,7 @@ export class EveEffectRoot2 extends EveEntity
   {
     const key = String(name ?? "");
     const next = Number(value);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const controller of this.controllers) controller?.SetVariable(key, next);
     for (const child of this.effectChildren) child?.SetControllerVariable(key, next);
   }
@@ -1038,7 +1038,7 @@ export class EveEffectRoot2 extends EveEntity
   AddToEffectChildrenList(child)
   {
     this.effectChildren.push(child);
-    EveEffectRoot2.#ApplyControllerVariables(child, this.#controllerVariables, "SetControllerVariable");
+    EveEffectRoot2._ApplyControllerVariables(child, this._controllerVariables, "SetControllerVariable");
     child?.StartControllers();
     return child;
   }
@@ -1110,7 +1110,7 @@ export class EveEffectRoot2 extends EveEntity
   FreezeHighDetailMesh()
   {
     this.lodLevel = Tr2Lod.TR2_LOD_HIGH;
-    this.#changeLOD = false;
+    this._changeLOD = false;
     for (const child of this.effectChildren) child?.ChangeLOD?.(this.lodLevel);
   }
 
@@ -1127,12 +1127,12 @@ export class EveEffectRoot2 extends EveEntity
    * space-object parent, carrying its display state and a copy of the current
    * root matrix.
    */
-  #CreateChildUpdateParams()
+  _CreateChildUpdateParams()
   {
     const params = new EveChildUpdateParams();
     params.spaceObjectParent = this;
     params.isVisible = this.display;
-    mat4.copy(params.localToWorldTransform, this.#lastUpdateMatrix);
+    mat4.copy(params.localToWorldTransform, this._lastUpdateMatrix);
     return params;
   }
 
@@ -1141,7 +1141,7 @@ export class EveEffectRoot2 extends EveEntity
    * effect child through the named setter, so late additions start with the same
    * state.
    */
-  static #ApplyControllerVariables(target, variables, methodName)
+  static _ApplyControllerVariables(target, variables, methodName)
   {
     const setter = target?.[methodName];
     if (typeof setter !== "function") return;
@@ -1153,7 +1153,7 @@ export class EveEffectRoot2 extends EveEntity
    * and falling back to the named properties, and yields 0 when nothing supplies
    * it.
    */
-  static #GetContextValue(context, methodName, ...propertyNames)
+  static _GetContextValue(context, methodName, ...propertyNames)
   {
     const method = context?.[methodName];
     if (typeof method === "function") return Number(method.call(context)) || 0;
@@ -1172,7 +1172,7 @@ export class EveEffectRoot2 extends EveEntity
    * exposes, writing the fallback when there is no curve and copying back curves
    * that return a new array instead of filling out.
    */
-  static #UpdateCurve(curve, time, out, fallback)
+  static _UpdateCurve(curve, time, out, fallback)
   {
     if (!curve)
     {
@@ -1190,23 +1190,23 @@ export class EveEffectRoot2 extends EveEntity
   }
 
   /** Carbon's neutral hull data: full activation, unit bounding radius. */
-  static #neutralShipData = [ 0, 1, 0, 1 ];
+  static _neutralShipData = [ 0, 1, 0, 1 ];
 
-  static #identity = mat4.create();
-  static #centerTransform = mat4.create();
-  static #bounds = box3.create();
-  static #localSphere = vec4.create();
-  static #worldSphere = vec4.create();
-  static #zero = vec3.create();
-  static #translation = vec3.create();
-  static #modelTranslation = vec3.create();
-  static #missOffset = vec3.create();
-  static #missDirection = vec3.create();
-  static #identityRotation = quat.create();
-  static #rotation = quat.create();
-  static #modelRotation = quat.create();
-  static #worldRotation = quat.create();
-  static #noAlbedo = vec4.create();
+  static _identity = mat4.create();
+  static _centerTransform = mat4.create();
+  static _bounds = box3.create();
+  static _localSphere = vec4.create();
+  static _worldSphere = vec4.create();
+  static _zero = vec3.create();
+  static _translation = vec3.create();
+  static _modelTranslation = vec3.create();
+  static _missOffset = vec3.create();
+  static _missDirection = vec3.create();
+  static _identityRotation = quat.create();
+  static _rotation = quat.create();
+  static _modelRotation = quat.create();
+  static _worldRotation = quat.create();
+  static _noAlbedo = vec4.create();
 
   static Tr2Lod = Tr2Lod;
 

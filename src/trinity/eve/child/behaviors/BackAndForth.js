@@ -105,7 +105,7 @@ export class BackAndForth extends CjsModel
   locatorSetName = "damage";
 
   // Debug arrival point (Carbon m_arrivalPoint).
-  #arrivalPoint = vec3.create();
+  _arrivalPoint = vec3.create();
 
   /** Carbon BackAndForth::GetProcessPriority (cpp:31-34). */
   @carbon.method
@@ -193,7 +193,7 @@ export class BackAndForth extends CjsModel
         {
           if (data.seek)
           {
-            const seekLocators = this.#GetLocatorsForSet("seek");
+            const seekLocators = this._GetLocatorsForSet("seek");
             if (seekLocators !== null && seekLocators.length > 0)
             {
               const index = Math.floor(Math.random() * seekLocators.length);
@@ -203,7 +203,7 @@ export class BackAndForth extends CjsModel
           }
           else if (data.deliver)
           {
-            const deliverLocators = this.#GetLocatorsForSet("deliver");
+            const deliverLocators = this._GetLocatorsForSet("deliver");
             if (deliverLocators !== null && deliverLocators.length > 0)
             {
               const index = Math.floor(Math.random() * deliverLocators.length);
@@ -228,7 +228,7 @@ export class BackAndForth extends CjsModel
           data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
         }
 
-        this.#GetOwnerLocatorPosition(this.parent, data);
+        this._GetOwnerLocatorPosition(this.parent, data);
         data.arrived = false;
       }
       else if (this.locatorType === BackAndForth.LocatorType.TARGET_LOCATORS)
@@ -240,7 +240,7 @@ export class BackAndForth extends CjsModel
           data.locatorIndex = Math.floor(Math.random() * Math.max(count, 1));
         }
 
-        this.#GetOwnerLocatorPosition(this.target, data);
+        this._GetOwnerLocatorPosition(this.target, data);
         data.arrived = false;
       }
 
@@ -258,7 +258,7 @@ export class BackAndForth extends CjsModel
       vec3.add(TARGET_POINT, TARGET_POINT, data.locatorTarget);
 
       // For debugging
-      vec3.copy(this.#arrivalPoint, TARGET_POINT);
+      vec3.copy(this._arrivalPoint, TARGET_POINT);
 
       vec3.transformMat4(AGENT_POSITION_WS, agent.position, worldTransform);
 
@@ -334,7 +334,7 @@ export class BackAndForth extends CjsModel
   /**
    * The locators of the first locator set matching a name, or null when none matches.
    */
-  #GetLocatorsForSet(setName)
+  _GetLocatorsForSet(setName)
   {
     for (const set of this.locatorSet)
     {
@@ -355,7 +355,7 @@ export class BackAndForth extends CjsModel
   @impl.implemented
   GetParentLocatorPosition(locatorIndex, outPosition, outDirection)
   {
-    this.#ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
+    this._ReadOwnerLocator(this.parent, locatorIndex, outPosition, outDirection);
   }
 
   /** Carbon GetTargetLocatorPosition (cpp:365-372): the target twin. */
@@ -363,12 +363,12 @@ export class BackAndForth extends CjsModel
   @impl.implemented
   GetTargetLocatorPosition(locatorIndex, outPosition, outDirection)
   {
-    this.#ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);
+    this._ReadOwnerLocator(this.target, locatorIndex, outPosition, outDirection);
   }
 
   /** The shared body of the pair above; the owner duck is the runtime's
    *  locator-set surface (GetLocatorPositionFromSet/GetLocatorRotationFromSet). */
-  #ReadOwnerLocator(owner, locatorIndex, outPosition, outDirection)
+  _ReadOwnerLocator(owner, locatorIndex, outPosition, outDirection)
   {
     if (owner)
     {
@@ -380,9 +380,9 @@ export class BackAndForth extends CjsModel
   /**
    * Reads the world position and forward direction of an owner's currently indexed locator into the agent's scratch record.
    */
-  #GetOwnerLocatorPosition(owner, data)
+  _GetOwnerLocatorPosition(owner, data)
   {
-    this.#ReadOwnerLocator(owner, data.locatorIndex, data.locatorTarget, data.locatorDirection);
+    this._ReadOwnerLocator(owner, data.locatorIndex, data.locatorTarget, data.locatorDirection);
   }
 
   static LocatorType = LocatorType;

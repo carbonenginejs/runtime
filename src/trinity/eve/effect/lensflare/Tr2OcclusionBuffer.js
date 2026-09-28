@@ -187,8 +187,8 @@ export class Tr2OcclusionBuffer extends CjsModel
   @impl.implemented
   static getInstance()
   {
-    Tr2OcclusionBuffer.#instance ??= new Tr2OcclusionBuffer();
-    return Tr2OcclusionBuffer.#instance;
+    Tr2OcclusionBuffer._instance ??= new Tr2OcclusionBuffer();
+    return Tr2OcclusionBuffer._instance;
   }
 
   /**
@@ -208,6 +208,6 @@ export class Tr2OcclusionBuffer extends CjsModel
 
   static ELEMENT_SIZE = ELEMENT_SIZE;
 
-  static #instance = null;
+  static _instance = null;
 
 }

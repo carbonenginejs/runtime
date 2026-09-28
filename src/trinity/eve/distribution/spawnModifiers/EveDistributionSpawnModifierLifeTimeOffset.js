@@ -9,9 +9,9 @@ import { createMinStdRandom, getDistributionSeed } from "../../CjsDistributionRa
 export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistributionSpawnModifier
 {
 
-  #timeSeed = Date.now() >>> 0;
+  _timeSeed = Date.now() >>> 0;
 
-  #currentCascadingOffset = 0;
+  _currentCascadingOffset = 0;
 
   /** m_minOffset (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -51,7 +51,7 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
   @impl.adapted
   Initialize()
   {
-    this.#timeSeed = Date.now() >>> 0;
+    this._timeSeed = Date.now() >>> 0;
     return true;
   }
 
@@ -69,16 +69,16 @@ export class EveDistributionSpawnModifierLifeTimeOffset extends IEveDistribution
     {
       const range = this.maxOffset - this.minOffset;
       const perInstanceOffset = range / numPlacements;
-      this.#currentCascadingOffset += perInstanceOffset;
-      placement.lifeTime = this.minOffset + this.#currentCascadingOffset % range;
+      this._currentCascadingOffset += perInstanceOffset;
+      placement.lifeTime = this.minOffset + this._currentCascadingOffset % range;
       return;
     }
 
-    const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
+    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);
     const randomOffset = this.minOffset + (this.maxOffset - this.minOffset) * random()
       + this.cascadingLifetimeOffset * placement.initialPlacementID;
-    this.#currentCascadingOffset += this.cascadingLifetimeOffset;
+    this._currentCascadingOffset += this.cascadingLifetimeOffset;
     placement.lifeTime += randomOffset;
   }
 

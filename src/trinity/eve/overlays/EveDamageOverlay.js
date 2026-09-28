@@ -96,24 +96,24 @@ export class EveDamageOverlay extends CjsModel
   @type.model("TriPerlinCurve")
   hullDamageFlickerCurve = null;
 
-  #dataTextureOffset = -1;
+  _dataTextureOffset = -1;
 
   // Disabled indices are the compact complement of Carbon's enabled-index
   // vector. This preserves uint32 count semantics without allocating several
   // gigabytes when a caller passes a wrapped unsigned value.
-  #disabledDamageLocators = [];
+  _disabledDamageLocators = [];
 
-  #lastDamageState = vec3.fromValues(1, 1, 1);
+  _lastDamageState = vec3.fromValues(1, 1, 1);
 
-  #impactIndexSource = null;
+  _impactIndexSource = null;
 
-  #armorImpacts = new Map();
+  _armorImpacts = new Map();
 
-  #header = Array.from({ length: 4 }, () => vec4.create());
+  _header = Array.from({ length: 4 }, () => vec4.create());
 
-  #texelRows = [];
+  _texelRows = [];
 
-  #wasVisible = false;
+  _wasVisible = false;
 
   /** Global equivalent of Carbon's impact-effect setting. */
   static impactEffectEnabled = true;
@@ -140,7 +140,7 @@ export class EveDamageOverlay extends CjsModel
   SetDamageLocatorCount(count)
   {
     this.damageLocatorCount = Number(count) >>> 0;
-    this.#disabledDamageLocators.length = 0;
+    this._disabledDamageLocators.length = 0;
   }
 
   /** Replaces the per-locator enabled mask. */
@@ -149,11 +149,11 @@ export class EveDamageOverlay extends CjsModel
   SetEnabledDamageLocators(enabled)
   {
     const filter = Array.from(enabled ?? []);
-    this.#disabledDamageLocators.length = 0;
+    this._disabledDamageLocators.length = 0;
     const count = Math.min(this.damageLocatorCount, filter.length);
     for (let index = 0; index < count; index++)
     {
-      if (!filter[index]) this.#disabledDamageLocators.push(index);
+      if (!filter[index]) this._disabledDamageLocators.push(index);
     }
   }
 
@@ -202,7 +202,7 @@ export class EveDamageOverlay extends CjsModel
   /** Shares impact indices with another damage overlay. */
   SetImpactIndexSource(value)
   {
-    this.#impactIndexSource = value ?? null;
+    this._impactIndexSource = value ?? null;
   }
 
   /** Returns the deterministic damage seed. */
@@ -280,7 +280,7 @@ export class EveDamageOverlay extends CjsModel
   /** Returns this overlay's first row in the shared data texture. */
   GetDataTextureOffset()
   {
-    return this.#dataTextureOffset;
+    return this._dataTextureOffset;
   }
 
   /** Returns this overlay's shared data-texture block identifier. */
@@ -306,25 +306,25 @@ export class EveDamageOverlay extends CjsModel
   @impl.adapted
   GetLastDamageState(out = vec3.create())
   {
-    return vec3.copy(out, this.#lastDamageState);
+    return vec3.copy(out, this._lastDamageState);
   }
 
   /** Returns the mutable header row used by EveImpactOverlay's shield half. */
   HeaderRow()
   {
-    return this.#header;
+    return this._header;
   }
 
   /** Returns one mutable impact texel row. */
   TexelRow(index)
   {
-    return this.#texelRows[index];
+    return this._texelRows[index];
   }
 
   /** Returns the live armour-impact table. */
   ArmorImpacts()
   {
-    return this.#armorImpacts;
+    return this._armorImpacts;
   }
 
   /** Allocates the next impact identifier from the shared or local source. */
@@ -332,8 +332,8 @@ export class EveDamageOverlay extends CjsModel
   @impl.implemented
   AllocateImpactIndex()
   {
-    return this.#impactIndexSource
-      ? this.#impactIndexSource.AllocateImpactIndex()
+    return this._impactIndexSource
+      ? this._impactIndexSource.AllocateImpactIndex()
       : this.impactDataNextIdx++;
   }
 
@@ -342,14 +342,14 @@ export class EveDamageOverlay extends CjsModel
   @impl.adapted
   UpdateAsyncronous(updateContext, ownerInfo = {}, minTexelRows = 0, hasExternalActivity = false)
   {
-    if (this.armorImpactGoalCount < this.#armorImpacts.size)
+    if (this.armorImpactGoalCount < this._armorImpacts.size)
     {
       let ordinal = 0;
-      for (const [ index, impact ] of this.#armorImpacts)
+      for (const [ index, impact ] of this._armorImpacts)
       {
         if (ordinal++ < this.armorImpactGoalCount) continue;
         impact.size -= updateContext.GetDeltaT() / this.armorImpactLifeTime;
-        if (impact.size <= 0) this.#armorImpacts.delete(index);
+        if (impact.size <= 0) this._armorImpacts.delete(index);
       }
     }
 
@@ -357,19 +357,19 @@ export class EveDamageOverlay extends CjsModel
     this.armorRepairing.Update(updateContext);
     this.hullRepairing.Update(updateContext);
 
-    const rowCount = Math.max(Number(minTexelRows) >>> 0, this.#armorImpacts.size);
-    while (this.#texelRows.length < rowCount)
+    const rowCount = Math.max(Number(minTexelRows) >>> 0, this._armorImpacts.size);
+    while (this._texelRows.length < rowCount)
     {
-      this.#texelRows.push(Array.from({ length: 4 }, () => vec4.create()));
+      this._texelRows.push(Array.from({ length: 4 }, () => vec4.create()));
     }
-    this.#texelRows.length = rowCount;
+    this._texelRows.length = rowCount;
 
-    vec4.set(this.#header[2],
-      this.#armorImpacts.size,
+    vec4.set(this._header[2],
+      this._armorImpacts.size,
       this.armorImpactParentSize,
       this.hullRepairing.GetFaderValue(),
       this.hullRepairing.GetKickInValue());
-    vec4.set(this.#header[3],
+    vec4.set(this._header[3],
       this.armorRepairing.GetFaderValue(),
       this.armorHardening.GetFaderValue(),
       this.armorRepairing.GetKickInValue(),
@@ -379,8 +379,8 @@ export class EveDamageOverlay extends CjsModel
 
     const pixelDiameter = Math.max(0, Number(ownerInfo.estimatedPixelDiameter) || 0);
     const isInFrustum = !!ownerInfo.isInFrustum;
-    this.renderPriority = this.#wasVisible || isInFrustum ? pixelDiameter : 0;
-    this.#wasVisible = isInFrustum;
+    this.renderPriority = this._wasVisible || isInFrustum ? pixelDiameter : 0;
+    this._wasVisible = isInFrustum;
 
     const sphere = ownerInfo.boundingSphere;
     const radius = Number(sphere?.radius ?? sphere?.[3] ?? -1);
@@ -390,9 +390,9 @@ export class EveDamageOverlay extends CjsModel
     // locators (an instanced part whose mesh is not loaded) supplies none.
     if (!ownerInfo.getDamageLocatorPositionOS) return;
     let row = 0;
-    for (const impact of this.#armorImpacts.values())
+    for (const impact of this._armorImpacts.values())
     {
-      const texel = this.#texelRows[row++];
+      const texel = this._texelRows[row++];
       const position = vec3.create();
       ownerInfo.getDamageLocatorPositionOS(impact.damageLocatorIndex, position);
       vec4.set(texel[2], position[0], position[1], position[2], 0);
@@ -419,16 +419,16 @@ export class EveDamageOverlay extends CjsModel
       return;
     }
 
-    this.#dataTextureOffset = dataTextureManager.GetTextureOffset(this.dataTextureBlockID);
+    this._dataTextureOffset = dataTextureManager.GetTextureOffset(this.dataTextureBlockID);
     this.dataTextureBlockID = dataTextureManager.RequestBlockData(
-      this.#header, this.#texelRows.length, this.#texelRows, this.renderPriority);
+      this._header, this._texelRows.length, this._texelRows, this.renderPriority);
   }
 
   /** Reports whether armour impacts or armour faders are active. */
   HasArmorActivity()
   {
     return EveDamageOverlay.impactEffectEnabled &&
-      (this.#armorImpacts.size !== 0 || !this.armorHardening.IsZero() || !this.armorRepairing.IsZero());
+      (this._armorImpacts.size !== 0 || !this.armorHardening.IsZero() || !this.armorRepairing.IsZero());
   }
 
   /** Reports whether hull damage presentation is active. */
@@ -491,15 +491,15 @@ export class EveDamageOverlay extends CjsModel
       this.hullDamageFlickerCurve.offset = 1 - modifier;
     }
 
-    const enabledLocatorCount = this.damageLocatorCount - this.#disabledDamageLocators.length;
+    const enabledLocatorCount = this.damageLocatorCount - this._disabledDamageLocators.length;
     if (createArmorImpacts && enabledLocatorCount)
     {
-      const random = seededRandom((this.seed + this.#armorImpacts.size) >>> 0);
-      const firstImpact = this.#armorImpacts.size;
+      const random = seededRandom((this.seed + this._armorImpacts.size) >>> 0);
+      const firstImpact = this._armorImpacts.size;
       for (let impactIndex = firstImpact; impactIndex < this.armorImpactGoalCount; impactIndex++)
       {
         let locator = Math.floor(random() * enabledLocatorCount);
-        for (const disabled of this.#disabledDamageLocators)
+        for (const disabled of this._disabledDamageLocators)
         {
           if (disabled > locator) break;
           locator++;
@@ -508,7 +508,7 @@ export class EveDamageOverlay extends CjsModel
       }
     }
 
-    vec3.set(this.#lastDamageState, shield, armor, hull);
+    vec3.set(this._lastDamageState, shield, armor, hull);
   }
 
   /** Removes every live armour impact. */
@@ -516,7 +516,7 @@ export class EveDamageOverlay extends CjsModel
   @impl.implemented
   Clear()
   {
-    this.#armorImpacts.clear();
+    this._armorImpacts.clear();
   }
 
   /** Creates or enlarges an armour impact at a damage locator. */
@@ -524,7 +524,7 @@ export class EveDamageOverlay extends CjsModel
   @impl.implemented
   CreateImpact(damageLocatorIndex, size, spawnEffects = false)
   {
-    for (const [ index, impact ] of this.#armorImpacts)
+    for (const [ index, impact ] of this._armorImpacts)
     {
       if (impact.damageLocatorIndex !== damageLocatorIndex) continue;
       impact.size = Math.max(Number(size), impact.size);
@@ -533,7 +533,7 @@ export class EveDamageOverlay extends CjsModel
     }
 
     const impactIndex = this.AllocateImpactIndex();
-    this.#armorImpacts.set(impactIndex, {
+    this._armorImpacts.set(impactIndex, {
       damageLocatorIndex: Number(damageLocatorIndex) | 0,
       size: Number(size),
       requestSpawnDebris: !!spawnEffects
@@ -546,7 +546,7 @@ export class EveDamageOverlay extends CjsModel
   @impl.implemented
   HasImpact(impactIndex)
   {
-    return this.#armorImpacts.has(Number(impactIndex) | 0);
+    return this._armorImpacts.has(Number(impactIndex) | 0);
   }
 
   /** Returns the active armour-damage material for the decal pass. */
@@ -555,7 +555,7 @@ export class EveDamageOverlay extends CjsModel
   GetArmorDamageShader(batchType)
   {
     if (!this.display || batchType !== TriBatchType.TRIBATCHTYPE_DECAL ||
-      this.dataTextureBlockID === -1 || this.#dataTextureOffset === -1 ||
+      this.dataTextureBlockID === -1 || this._dataTextureOffset === -1 ||
       !this.HasArmorActivity())
     {
       return null;

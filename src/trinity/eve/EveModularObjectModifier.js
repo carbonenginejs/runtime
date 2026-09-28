@@ -17,31 +17,31 @@ import { Tr2Lod } from "./EveLODHelper.js";
 @type.define({ className: "EveModularObjectModifier", family: "eve" })
 export class EveModularObjectModifier extends CjsModel
 {
-  #object = null;
+  _object = null;
 
-  #data = null;
+  _data = null;
 
-  #instancedMeshes = null;
+  _instancedMeshes = null;
 
-  #sof = null;
+  _sof = null;
 
-  #objectLoader = null;
+  _objectLoader = null;
 
   /** Opens an edit session and creates persistent part data when absent. */
   @carbon.method
   @impl.adapted
   Create(object, sof, objectLoader = null)
   {
-    this.#object = object;
-    this.#sof = sof;
-    this.#objectLoader = objectLoader;
-    this.#data = object.effectChildren.find(child => child instanceof EveChildPartData) ?? null;
-    if (!this.#data)
+    this._object = object;
+    this._sof = sof;
+    this._objectLoader = objectLoader;
+    this._data = object.effectChildren.find(child => child instanceof EveChildPartData) ?? null;
+    if (!this._data)
     {
-      this.#data = new EveChildPartData();
-      object.AddToEffectChildrenList(this.#data);
+      this._data = new EveChildPartData();
+      object.AddToEffectChildrenList(this._data);
     }
-    this.#instancedMeshes = object.effectChildren.find(
+    this._instancedMeshes = object.effectChildren.find(
       child => child instanceof EveChildInstancedMeshes) ?? null;
     return this;
   }
@@ -51,20 +51,20 @@ export class EveModularObjectModifier extends CjsModel
   @impl.implemented
   AddHull(hullName, factionName, raceName, position, rotation, scale)
   {
-    this.#AssertReady();
-    const id = this.#AllocatePartId();
-    const dna = `${hullName}:${factionName || this.#data.faction}:${raceName || this.#data.race}`;
+    this._AssertReady();
+    const id = this._AllocatePartId();
+    const dna = `${hullName}:${factionName || this._data.faction}:${raceName || this._data.race}`;
     const transform = mat4.fromRotationTranslationScale(mat4.create(), rotation, position, scale);
-    if (!this.#sof.BuildChild(this.#object, dna, id, transform))
+    if (!this._sof.BuildChild(this._object, dna, id, transform))
     {
       return EveModularObjectModifier.INVALID_PART_TAG;
     }
 
     // Runtime SOF composes through GetValues/SetValues and may replace the
     // whole child list. Reacquire graph-owned records before mutating them.
-    this.#data = this.#object.effectChildren.find(
+    this._data = this._object.effectChildren.find(
       child => child instanceof EveChildPartData) ?? null;
-    this.#instancedMeshes = this.#object.effectChildren.find(
+    this._instancedMeshes = this._object.effectChildren.find(
       child => child instanceof EveChildInstancedMeshes) ?? null;
 
     const part = new EveChildPartDataPartData();
@@ -73,13 +73,13 @@ export class EveModularObjectModifier extends CjsModel
     quat.copy(part.rotation, rotation);
     vec3.copy(part.scale, scale);
     vec4.set(part.boundingSphere,
-      this.#object.boundingSphereCenter[0],
-      this.#object.boundingSphereCenter[1],
-      this.#object.boundingSphereCenter[2],
-      this.#object.boundingSphereRadius);
-    this.#data.parts.push(part);
-    this.#object.InvalidateMergedLocators("structure");
-    this.#UpdateImpactOverlayLocatorCount();
+      this._object.boundingSphereCenter[0],
+      this._object.boundingSphereCenter[1],
+      this._object.boundingSphereCenter[2],
+      this._object.boundingSphereRadius);
+    this._data.parts.push(part);
+    this._object.InvalidateMergedLocators("structure");
+    this._UpdateImpactOverlayLocatorCount();
     this.ApplyBounds();
     return id;
   }
@@ -89,18 +89,18 @@ export class EveModularObjectModifier extends CjsModel
   @impl.adapted
   AddChild(resourcePath, position, rotation, scale)
   {
-    this.#AssertReady();
-    if (!this.#objectLoader)
+    this._AssertReady();
+    if (!this._objectLoader)
     {
       throw new Error("EveModularObjectModifier.AddChild requires a CjsEveChildResourceLoader.");
     }
 
-    const child = this.#objectLoader.LoadChild(String(resourcePath), this.#object);
+    const child = this._objectLoader.LoadChild(String(resourcePath), this._object);
     if (!child) return EveModularObjectModifier.INVALID_PART_TAG;
 
     child.Setup(scale, rotation, position, Tr2Lod.TR2_LOD_LOW);
-    this.#object.AddToEffectChildrenList(child);
-    const id = this.#AllocatePartId();
+    this._object.AddToEffectChildrenList(child);
+    const id = this._AllocatePartId();
     child.SetPartTag(id);
 
     const part = new EveChildPartDataPartData();
@@ -108,8 +108,8 @@ export class EveModularObjectModifier extends CjsModel
     vec3.copy(part.position, position);
     quat.copy(part.rotation, rotation);
     vec3.copy(part.scale, scale);
-    this.#data.parts.push(part);
-    this.#object.InvalidateMergedLocators("structure");
+    this._data.parts.push(part);
+    this._object.InvalidateMergedLocators("structure");
     this.ApplyBounds();
     return id;
   }
@@ -119,21 +119,21 @@ export class EveModularObjectModifier extends CjsModel
   @impl.implemented
   Remove(partId)
   {
-    const part = this.#GetPart(partId);
-    for (let index = this.#object.effectChildren.length - 1; index >= 0; index--)
+    const part = this._GetPart(partId);
+    for (let index = this._object.effectChildren.length - 1; index >= 0; index--)
     {
-      const child = this.#object.effectChildren[index];
-      if (child.GetPartTag() === part.partId) this.#object.RemoveFromEffectChildrenList(child);
+      const child = this._object.effectChildren[index];
+      if (child.GetPartTag() === part.partId) this._object.RemoveFromEffectChildrenList(child);
     }
 
     // A part's locators are owned by its child and merged by the object, so
     // removing the child removes them; Carbon stopped filtering the object's
     // sets by part tag in trinity 108ab454.
-    if (this.#instancedMeshes) this.#instancedMeshes.RemoveInstancesByPartTag(part.partId);
-    this.#data.parts.splice(this.#data.parts.indexOf(part), 1);
-    this.#object.InvalidateMergedLocators("structure");
-    this.#object.ClearImpactDamage();
-    this.#UpdateImpactOverlayLocatorCount();
+    if (this._instancedMeshes) this._instancedMeshes.RemoveInstancesByPartTag(part.partId);
+    this._data.parts.splice(this._data.parts.indexOf(part), 1);
+    this._object.InvalidateMergedLocators("structure");
+    this._object.ClearImpactDamage();
+    this._UpdateImpactOverlayLocatorCount();
     this.ApplyBounds();
     return true;
   }
@@ -143,7 +143,7 @@ export class EveModularObjectModifier extends CjsModel
   @impl.adapted
   SetTransform(partId, position, rotation, scale)
   {
-    const part = this.#GetPart(partId);
+    const part = this._GetPart(partId);
     const oldTransform = mat4.fromRotationTranslationScale(
       mat4.create(), part.rotation, part.position, part.scale);
     const newTransform = mat4.fromRotationTranslationScale(
@@ -168,7 +168,7 @@ export class EveModularObjectModifier extends CjsModel
     vec3.copy(part.position, position);
     quat.copy(part.rotation, rotation);
     vec3.copy(part.scale, scale);
-    for (const child of this.#object.effectChildren)
+    for (const child of this._object.effectChildren)
     {
       if (child.GetPartTag() === part.partId)
       {
@@ -182,7 +182,7 @@ export class EveModularObjectModifier extends CjsModel
         child.SetInstanceTransformByPartTag(part.partId, position, rotation, scale);
       }
     }
-    this.#object.InvalidateMergedLocators("partMoved");
+    this._object.InvalidateMergedLocators("partMoved");
     this.ApplyBounds();
     return true;
   }
@@ -192,8 +192,8 @@ export class EveModularObjectModifier extends CjsModel
   @impl.adapted
   ApplyBounds()
   {
-    this.#AssertReady();
-    const ordered = this.#data.parts.slice().sort(
+    this._AssertReady();
+    const ordered = this._data.parts.slice().sort(
       (left, right) => right.boundingSphere[3] - left.boundingSphere[3]);
     const bounds = vec4.create();
     const min = vec3.fromValues(Infinity, Infinity, Infinity);
@@ -214,19 +214,19 @@ export class EveModularObjectModifier extends CjsModel
     if (!hasBounds)
     {
       vec4.set(bounds, 0, 0, 0, 0);
-      vec3.set(this.#object.shapeEllipsoidCenter, 0, 0, 0);
-      vec3.set(this.#object.shapeEllipsoidRadius, 0, 0, 0);
+      vec3.set(this._object.shapeEllipsoidCenter, 0, 0, 0);
+      vec3.set(this._object.shapeEllipsoidRadius, 0, 0, 0);
     }
     else
     {
-      vec3.lerp(this.#object.shapeEllipsoidCenter, min, max, 0.5);
-      vec3.subtract(this.#object.shapeEllipsoidRadius, max, min);
+      vec3.lerp(this._object.shapeEllipsoidCenter, min, max, 0.5);
+      vec3.subtract(this._object.shapeEllipsoidRadius, max, min);
       vec3.scale(
-        this.#object.shapeEllipsoidRadius,
-        this.#object.shapeEllipsoidRadius,
+        this._object.shapeEllipsoidRadius,
+        this._object.shapeEllipsoidRadius,
         Math.sqrt(3) * 0.5);
     }
-    this.#object.SetBoundingSphereInformation(bounds);
+    this._object.SetBoundingSphereInformation(bounds);
     return bounds;
   }
 
@@ -235,7 +235,7 @@ export class EveModularObjectModifier extends CjsModel
   @impl.implemented
   GetPosition(partId, out = vec3.create())
   {
-    return vec3.copy(out, this.#GetPart(partId).position);
+    return vec3.copy(out, this._GetPart(partId).position);
   }
 
   /** Copies a modular part's authored rotation. */
@@ -243,7 +243,7 @@ export class EveModularObjectModifier extends CjsModel
   @impl.implemented
   GetRotation(partId, out = quat.create())
   {
-    return quat.copy(out, this.#GetPart(partId).rotation);
+    return quat.copy(out, this._GetPart(partId).rotation);
   }
 
   /** Copies a modular part's authored scale. */
@@ -251,33 +251,33 @@ export class EveModularObjectModifier extends CjsModel
   @impl.implemented
   GetScale(partId, out = vec3.create())
   {
-    return vec3.copy(out, this.#GetPart(partId).scale);
+    return vec3.copy(out, this._GetPart(partId).scale);
   }
 
   /** Throws until the modifier has an object, part data and SOF service. */
-  #AssertReady()
+  _AssertReady()
   {
-    if (!this.#object || !this.#data || !this.#sof)
+    if (!this._object || !this._data || !this._sof)
     {
       throw new Error("EveModularObjectModifier.Create must be called before editing.");
     }
   }
 
   /** Resolves a modular part by its unsigned part tag. */
-  #GetPart(partId)
+  _GetPart(partId)
   {
-    this.#AssertReady();
+    this._AssertReady();
     const id = Number(partId) >>> 0;
-    const part = this.#data.parts.find(candidate => candidate.partId === id);
+    const part = this._data.parts.find(candidate => candidate.partId === id);
     if (!part) throw new RangeError(`Unknown modular part tag ${id}.`);
     return part;
   }
 
   /** Finds an unused nonzero tag across recorded parts and attached children. */
-  #AllocatePartId()
+  _AllocatePartId()
   {
-    let id = this.#data.GetUnusedPartID();
-    for (const child of this.#object.effectChildren)
+    let id = this._data.GetUnusedPartID();
+    for (const child of this._object.effectChildren)
     {
       const tag = child.GetPartTag();
       if (tag !== 0) id = Math.max(id, (tag + 1) >>> 0);
@@ -286,11 +286,11 @@ export class EveModularObjectModifier extends CjsModel
   }
 
   /** Refreshes the owning impact overlay after the locator graph changes. */
-  #UpdateImpactOverlayLocatorCount()
+  _UpdateImpactOverlayLocatorCount()
   {
-    if (!this.#object.impactOverlay) return;
-    this.#object.EnsureChildLocatorMerged();
-    this.#object.impactOverlay.SetDamageLocatorCount(this.#object.GetDamageLocatorCount());
+    if (!this._object.impactOverlay) return;
+    this._object.EnsureChildLocatorMerged();
+    this._object.impactOverlay.SetDamageLocatorCount(this._object.GetDamageLocatorCount());
   }
 
   static INVALID_PART_TAG = 0xffffffff;

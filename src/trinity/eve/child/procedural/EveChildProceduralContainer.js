@@ -34,7 +34,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  #proceduralContainerVariables = new Map();
+  _proceduralContainerVariables = new Map();
 
   /** m_transformModifiers (PIEveChildTransformModifierVector) [READ, PERSIST] */
   @edit.read
@@ -121,7 +121,7 @@ export class EveChildProceduralContainer extends EveChildTransform
     const child = this.selectionMethod ? this.selectionMethod.GetSelectedChild() : null;
     if (child)
     {
-      for (const [name, value] of this.#proceduralContainerVariables)
+      for (const [name, value] of this._proceduralContainerVariables)
       {
         child.SetProceduralContainerVariable?.(name, value);
       }
@@ -160,7 +160,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   {
     const key = String(name);
     const next = Number(value);
-    this.#proceduralContainerVariables.set(key, next);
+    this._proceduralContainerVariables.set(key, next);
     if (this.selectionMethod) this.selectionMethod.SetProceduralMethodVariable(key, next);
   }
 
@@ -184,7 +184,7 @@ export class EveChildProceduralContainer extends EveChildTransform
   @impl.implemented
   UpdateSyncronous(updateContext, params)
   {
-    const newParams = EveChildProceduralContainer.#DeriveChildParams(params);
+    const newParams = EveChildProceduralContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
@@ -222,7 +222,7 @@ export class EveChildProceduralContainer extends EveChildTransform
 
     applyTransformModifiers(this, updateContext, params?.boneCount ?? 0, params?.bones ?? null);
 
-    const newParams = EveChildProceduralContainer.#DeriveChildParams(params);
+    const newParams = EveChildProceduralContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
@@ -440,7 +440,7 @@ export class EveChildProceduralContainer extends EveChildTransform
    * because a selected child can itself nest further containers, making a shared
    * module scratch record unsafe.
    */
-  static #DeriveChildParams(params)
+  static _DeriveChildParams(params)
   {
     const next = new EveChildUpdateParams();
     if (params)

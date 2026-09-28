@@ -96,10 +96,10 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   /** Last `active` value applied by an edit path (JS-only change detection for the settle hook). */
 
   /** m_activationValuePreMapped (float) - linear crossfade position before intensity mapping (h:57). */
-  #activationValuePreMapped = 1;
+  _activationValuePreMapped = 1;
 
   /** m_lastActivationTimeStamp (float) - playTime captured on the last (de)activation (h:60). */
-  #lastActivationTimeStamp = 0;
+  _lastActivationTimeStamp = 0;
 
   /**
    * Seeds the crossfade state machine: a modifier authored active but not
@@ -111,7 +111,7 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   Initialize()
   {
     this.isChangingActivation = this.active && !this.startsActive;
-    this.#activationValuePreMapped = this.isChangingActivation ? 0 : (this.active ? 1 : 0);
+    this._activationValuePreMapped = this.isChangingActivation ? 0 : (this.active ? 1 : 0);
     this.MapActivationValue();
     return true;
   }
@@ -130,7 +130,7 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
       this.isChangingActivation = true;
       if (this.crossFadeIntensity > 0)
       {
-        this.#activationValuePreMapped = Math.pow(this.#activationValuePreMapped, 1 / this.crossFadeIntensity);
+        this._activationValuePreMapped = Math.pow(this._activationValuePreMapped, 1 / this.crossFadeIntensity);
       }
       this.ResetPlayTime(this.active);
     }
@@ -155,7 +155,7 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
     {
       this.playTime = 0;
     }
-    this.#lastActivationTimeStamp = this.playTime;
+    this._lastActivationTimeStamp = this.playTime;
   }
 
   /**
@@ -167,7 +167,7 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   @impl.implemented
   MapActivationValue()
   {
-    const scaleValue = this.active ? this.#activationValuePreMapped : 1 - this.#activationValuePreMapped;
+    const scaleValue = this.active ? this._activationValuePreMapped : 1 - this._activationValuePreMapped;
     const mapped = Math.pow(scaleValue, this.crossFadeIntensity);
     this.activationValue = this.active ? mapped : 1 - mapped;
   }
@@ -183,7 +183,7 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
   {
     if (this.isChangingActivation)
     {
-      const activationTime = this.#lastActivationTimeStamp + this.delayedActivation;
+      const activationTime = this._lastActivationTimeStamp + this.delayedActivation;
       if (this.playTime < activationTime && this.active)
       {
         if (parentActivationMultiplier > 0)
@@ -195,19 +195,19 @@ export class EveSmartLightBaseAttributeModifier extends CjsModel
 
       if (this.crossFadeDuration === 0)
       {
-        this.#activationValuePreMapped = this.active ? 1 : 0;
+        this._activationValuePreMapped = this.active ? 1 : 0;
       }
       else
       {
         let valueAdjustment = deltaTime / this.crossFadeDuration;
         valueAdjustment = this.active ? valueAdjustment : -valueAdjustment;
-        this.#activationValuePreMapped = Math.min(1, Math.max(0, this.#activationValuePreMapped + valueAdjustment));
+        this._activationValuePreMapped = Math.min(1, Math.max(0, this._activationValuePreMapped + valueAdjustment));
       }
 
       this.MapActivationValue();
 
-      const finishedActivating = this.active && this.#activationValuePreMapped >= 1;
-      const finishedDeActivating = !this.active && this.#activationValuePreMapped <= 0;
+      const finishedActivating = this.active && this._activationValuePreMapped >= 1;
+      const finishedDeActivating = !this.active && this._activationValuePreMapped <= 0;
 
       if (finishedActivating || finishedDeActivating)
       {

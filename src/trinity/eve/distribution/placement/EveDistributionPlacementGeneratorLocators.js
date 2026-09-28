@@ -10,7 +10,7 @@ import { PlacementDataWithIdentifier } from "../../PlacementDataWithIdentifier.j
 export class EveDistributionPlacementGeneratorLocators extends IEveDistributionPlacementGenerators
 {
 
-  #requestRegeneration = false;
+  _requestRegeneration = false;
 
   /** m_locators (PLocatorStructureList) [READ, PERSIST] */
   @edit.read
@@ -23,7 +23,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   @impl.adapted
   OnStructureListModified(_event, _item, _index, _list)
   {
-    this.#requestRegeneration = true;
+    this._requestRegeneration = true;
   }
 
   /**
@@ -50,7 +50,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
       placement.timeOutDuration = 0;
       placements.push(placement);
     }
-    this.#requestRegeneration = false;
+    this._requestRegeneration = false;
   }
 
   /** Reports whether the locator list changed since the pool was last generated. */
@@ -58,7 +58,7 @@ export class EveDistributionPlacementGeneratorLocators extends IEveDistributionP
   @impl.implemented
   IsRequestingRegeneration()
   {
-    return this.#requestRegeneration;
+    return this._requestRegeneration;
   }
 
   /** No per-frame work; this generator only reacts to locator list changes. */

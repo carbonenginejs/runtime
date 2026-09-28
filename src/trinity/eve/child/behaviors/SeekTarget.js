@@ -10,17 +10,17 @@ import { EveLocatorSets } from "../../locator/EveLocatorSets.js";
 export class SeekTarget extends CjsModel
 {
 
-  #counter = 0;
+  _counter = 0;
 
-  #doneRepairing = true;
+  _doneRepairing = true;
 
-  #droneArrived = false;
+  _droneArrived = false;
 
-  #boundingBoxes = [];
+  _boundingBoxes = [];
 
-  #locatorBucketIndices = [];
+  _locatorBucketIndices = [];
 
-  #sortedLocators = false;
+  _sortedLocators = false;
 
   /** m_priority (int32_t) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
@@ -131,11 +131,11 @@ export class SeekTarget extends CjsModel
   @impl.implemented
   ResetBehavior()
   {
-    this.#counter = 0;
+    this._counter = 0;
     this.exit = false;
     this.repair = false;
-    this.#droneArrived = false;
-    this.#doneRepairing = true;
+    this._droneArrived = false;
+    this._doneRepairing = true;
   }
 
   /** Carbon method SetBehaviorWeight (MAP_METHOD_AND_WRAP). */
@@ -168,7 +168,7 @@ export class SeekTarget extends CjsModel
   SetupShipRepair()
   {
     this.exit = false;
-    this.#droneArrived = false;
+    this._droneArrived = false;
     this.repair = true;
   }
 
@@ -178,9 +178,9 @@ export class SeekTarget extends CjsModel
   @impl.reason("Uses EveSpaceObject2's portable bounds and locator query methods, and safely handles equal or degenerate box dimensions.")
   SplitBoundingBox()
   {
-    this.#boundingBoxes.length = 0;
-    this.#locatorBucketIndices.length = 0;
-    this.#sortedLocators = false;
+    this._boundingBoxes.length = 0;
+    this._locatorBucketIndices.length = 0;
+    this._sortedLocators = false;
     if (!this.target?.GetLocalBoundingBox)
     {
       return false;
@@ -230,8 +230,8 @@ export class SeekTarget extends CjsModel
       boxMax[maxIndex] = index === boxCount - 1
         ? max[maxIndex]
         : min[maxIndex] + (index + 1) * desiredLength;
-      this.#boundingBoxes.push({ min: boxMin, max: boxMax });
-      this.#locatorBucketIndices.push([]);
+      this._boundingBoxes.push({ min: boxMin, max: boxMax });
+      this._locatorBucketIndices.push([]);
     }
 
     const locatorCount = Math.max(0, Number(this.target.GetLocatorCount?.(this.locatorSetName)) || 0);
@@ -248,28 +248,28 @@ export class SeekTarget extends CjsModel
       {
         continue;
       }
-      for (let bucketIndex = 0; bucketIndex < this.#boundingBoxes.length; bucketIndex++)
+      for (let bucketIndex = 0; bucketIndex < this._boundingBoxes.length; bucketIndex++)
       {
-        const box = this.#boundingBoxes[bucketIndex];
+        const box = this._boundingBoxes[bucketIndex];
         if (locatorPosition[0] >= box.min[0] && locatorPosition[0] <= box.max[0]
           && locatorPosition[1] >= box.min[1] && locatorPosition[1] <= box.max[1]
           && locatorPosition[2] >= box.min[2] && locatorPosition[2] <= box.max[2])
         {
-          this.#locatorBucketIndices[bucketIndex].push(locatorIndex);
+          this._locatorBucketIndices[bucketIndex].push(locatorIndex);
           break;
         }
       }
     }
 
-    for (let index = this.#locatorBucketIndices.length - 1; index >= 0; index--)
+    for (let index = this._locatorBucketIndices.length - 1; index >= 0; index--)
     {
-      if (this.#locatorBucketIndices[index].length === 0)
+      if (this._locatorBucketIndices[index].length === 0)
       {
-        this.#locatorBucketIndices.splice(index, 1);
-        this.#boundingBoxes.splice(index, 1);
+        this._locatorBucketIndices.splice(index, 1);
+        this._boundingBoxes.splice(index, 1);
       }
     }
-    this.#sortedLocators = true;
+    this._sortedLocators = true;
     return true;
   }
 
@@ -279,7 +279,7 @@ export class SeekTarget extends CjsModel
    */
   GetLocatorBucketIndices()
   {
-    return this.#locatorBucketIndices.map(bucket => [...bucket]);
+    return this._locatorBucketIndices.map(bucket => [...bucket]);
   }
 
 }

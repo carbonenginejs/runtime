@@ -9,15 +9,15 @@ import { IEveDistributionSpawner } from "./IEveDistributionSpawner.js";
 export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 {
 
-  #activeTargetUniqueID = 0;
+  _activeTargetUniqueID = 0;
 
-  #targetPoint = vec3.create();
+  _targetPoint = vec3.create();
 
-  #lastTarget = vec3.create();
+  _lastTarget = vec3.create();
 
-  #currentTravelTime = 0;
+  _currentTravelTime = 0;
 
-  #travelDurationToNextPoint = 1;
+  _travelDurationToNextPoint = 1;
 
   /** m_minTimeBetweenTriggers (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -68,9 +68,9 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
 
     const index = Math.floor(Math.random() * placements.length);
     const placement = placements[index].placement;
-    vec3.copy(this.#targetPoint, placement.initialTranslation);
-    vec3.copy(this.#lastTarget, this.#targetPoint);
-    this.#activeTargetUniqueID = placement.uniqueID;
+    vec3.copy(this._targetPoint, placement.initialTranslation);
+    vec3.copy(this._lastTarget, this._targetPoint);
+    this._activeTargetUniqueID = placement.uniqueID;
     this.Restart();
   }
 
@@ -83,8 +83,8 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
   Restart()
   {
     this.destinationsReached = -1;
-    this.#currentTravelTime = 0;
-    this.#travelDurationToNextPoint = 0;
+    this._currentTravelTime = 0;
+    this._travelDurationToNextPoint = 0;
   }
 
   /**
@@ -102,9 +102,9 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
       return;
     }
 
-    this.#currentTravelTime += updateContext.GetDeltaT();
-    this.travelProgress = this.#travelDurationToNextPoint > 0
-      ? this.#currentTravelTime / this.#travelDurationToNextPoint
+    this._currentTravelTime += updateContext.GetDeltaT();
+    this.travelProgress = this._travelDurationToNextPoint > 0
+      ? this._currentTravelTime / this._travelDurationToNextPoint
       : 1;
 
     if (this.travelProgress < 1)
@@ -112,14 +112,14 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
       return;
     }
 
-    owner.TriggerEntityByID(this.#activeTargetUniqueID);
-    this.#currentTravelTime = 0;
+    owner.TriggerEntityByID(this._activeTargetUniqueID);
+    this._currentTravelTime = 0;
     this.travelProgress = 0;
     this.destinationsReached++;
-    this.#travelDurationToNextPoint = this.minBaseTimeBetweenTriggers
+    this._travelDurationToNextPoint = this.minBaseTimeBetweenTriggers
       + (this.maxBaseTimeBetweenTriggers - this.minBaseTimeBetweenTriggers) * Math.random();
 
-    const searchPoint = vec3.lerp(vec3.create(), this.#lastTarget, this.#targetPoint, 1.3);
+    const searchPoint = vec3.lerp(vec3.create(), this._lastTarget, this._targetPoint, 1.3);
     const closestPlacement = owner.GetClosestFreePlacement(searchPoint);
     if (closestPlacement === -1)
     {
@@ -129,10 +129,10 @@ export class EveDistributionSpawnerTriggerSnake extends IEveDistributionSpawner
     const placement = owner.GetInitialPlacementData(closestPlacement);
     if (placement)
     {
-      vec3.copy(this.#lastTarget, this.#targetPoint);
-      this.#activeTargetUniqueID = placement.uniqueID;
-      vec3.copy(this.#targetPoint, placement.initialTranslation);
-      this.#travelDurationToNextPoint += vec3.distance(this.#targetPoint, this.#lastTarget)
+      vec3.copy(this._lastTarget, this._targetPoint);
+      this._activeTargetUniqueID = placement.uniqueID;
+      vec3.copy(this._targetPoint, placement.initialTranslation);
+      this._travelDurationToNextPoint += vec3.distance(this._targetPoint, this._lastTarget)
         * this.distanceToTravelTimeMultiplier / 100;
     }
   }

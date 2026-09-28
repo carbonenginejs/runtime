@@ -246,14 +246,14 @@ export class EveSwarm extends EveShip2
   @impl.implemented
   GetBoundingSphere(sphere, query = 0)
   {
-    super.GetBoundingSphere(EveSwarm.#shipSphereScratch, query);
+    super.GetBoundingSphere(EveSwarm._shipSphereScratch, query);
     const min = this.squadBoundsMin;
     const max = this.squadBoundsMax;
     sphere[0] = (min[0] + max[0]) * 0.5;
     sphere[1] = (min[1] + max[1]) * 0.5;
     sphere[2] = (min[2] + max[2]) * 0.5;
     sphere[3] = Math.hypot(min[0] - max[0], min[1] - max[1], min[2] - max[2]) * 0.5;
-    sphere[3] += EveSwarm.#shipSphereScratch[3];
+    sphere[3] += EveSwarm._shipSphereScratch[3];
     return true;
   }
 
@@ -271,7 +271,7 @@ export class EveSwarm extends EveShip2
     super.GetLocatorInObjectSpace(outPosition, outDirection, locator, mergedDamageIndex);
     if (this.count)
     {
-      const local = EveSwarm.#localTransformScratch;
+      const local = EveSwarm._localTransformScratch;
       mat4.multiply(local, this.inverseWorldTransform, this.renderables[this.targetIndex].worldTransform);
       vec3.transformMat4(outPosition, outPosition, local);
       const [ x, y, z ] = outDirection;
@@ -324,7 +324,7 @@ export class EveSwarm extends EveShip2
     removedRenderable?.InitializeRenderable?.(null, null);
     this.count = this.vehicles.length;
     this.boosters?.SetCount?.(this.count);
-    this.targetIndex = this.#pickIndex(this.count);
+    this.targetIndex = this._pickIndex(this.count);
     return removedPosition;
   }
 
@@ -333,7 +333,7 @@ export class EveSwarm extends EveShip2
   @impl.adapted
   PickFiringOrigin()
   {
-    this.firingIndex = this.#pickIndex(this.count);
+    this.firingIndex = this._pickIndex(this.count);
     return this.firingIndex;
   }
 
@@ -374,20 +374,20 @@ export class EveSwarm extends EveShip2
       {
         this.AddSwarmer();
       }
-      this.targetIndex = this.#pickIndex(this.count);
+      this.targetIndex = this._pickIndex(this.count);
     }
   }
 
   /**
    * A random valid vehicle index for the given count, or zero when there are none.
    */
-  #pickIndex(count)
+  _pickIndex(count)
   {
     return count > 0 ? Math.floor(Math.random() * count) : 0;
   }
 
-  static #shipSphereScratch = new Float32Array(4);
+  static _shipSphereScratch = new Float32Array(4);
 
-  static #localTransformScratch = mat4.create();
+  static _localTransformScratch = mat4.create();
 
 }

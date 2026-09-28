@@ -75,7 +75,7 @@ export class Tr2Light extends CjsModel
   // decision): the flat decorated fields on the concrete light classes are
   // the real storage; this keeps Carbon's GetLightData() reference surface
   // and the SOF layer's separate-node hydration shape working.
-  #lightDataView = null;
+  _lightDataView = null;
 
   /**
    * Compat LightData view over the concrete light's flattened fields, built on
@@ -83,8 +83,8 @@ export class Tr2Light extends CjsModel
    */
   get lightData()
   {
-    this.#lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
-    return this.#lightDataView;
+    this._lightDataView ??= createCjsLightDataView(this, this.constructor.LightDataFields);
+    return this._lightDataView;
   }
 
   /**
@@ -232,21 +232,21 @@ export class Tr2Light extends CjsModel
 
     this.SetBoneMatrix(bones, boneCount);
     // Carbon (row-vector): m_boneTransform * transform - bone first.
-    mat4.multiply(Tr2Light.#lightTransformScratch, transform, this.boneTransform);
+    mat4.multiply(Tr2Light._lightTransformScratch, transform, this.boneTransform);
 
-    const features = Tr2Light.#featuresScratch;
+    const features = Tr2Light._featuresScratch;
     features.parentBrightness = this.brightnessMultiplier;
     features.parentScale = scale;
 
-    const record = Tr2Light.#lightRecord;
+    const record = Tr2Light._lightRecord;
     if (this.type === Tr2Light.POINT_LIGHT)
     {
-      AsPerPointLightData(record, this.lightData, Tr2Light.#lightTransformScratch, features,
+      AsPerPointLightData(record, this.lightData, Tr2Light._lightTransformScratch, features,
         lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
     }
     else if (this.type === Tr2Light.SPOT_LIGHT)
     {
-      AsPerSpotLightData(record, this.lightData, Tr2Light.#lightTransformScratch, features,
+      AsPerSpotLightData(record, this.lightData, Tr2Light._lightTransformScratch, features,
         lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0);
     }
     else
@@ -291,7 +291,7 @@ export class Tr2Light extends CjsModel
   @impl.implemented
   Initialize()
   {
-    this.#ResolveLightProfile();
+    this._ResolveLightProfile();
     return true;
   }
 
@@ -304,7 +304,7 @@ export class Tr2Light extends CjsModel
   @impl.reason("JS identifies Carbon's changed member address by its exposed property name.")
   OnModified(propertyName)
   {
-    if (propertyName === "lightProfilePath") this.#ResolveLightProfile();
+    if (propertyName === "lightProfilePath") this._ResolveLightProfile();
     return true;
   }
 
@@ -314,7 +314,7 @@ export class Tr2Light extends CjsModel
    * m_lightProfilePath, L"lp", profile )`, where the extension is its own
    * argument and the requested TYPE is deduced from the destination.
    */
-  #ResolveLightProfile()
+  _ResolveLightProfile()
   {
     if (!this.lightProfilePath)
     {
@@ -343,11 +343,11 @@ export class Tr2Light extends CjsModel
 
   static PerLightShadowSetting = PerLightShadowSetting;
 
-  static #lightTransformScratch = mat4.create();
+  static _lightTransformScratch = mat4.create();
 
-  static #featuresScratch = { parentBrightness: 1, parentScale: 1 };
+  static _featuresScratch = { parentBrightness: 1, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 
 }
 

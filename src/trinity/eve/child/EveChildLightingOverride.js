@@ -20,8 +20,8 @@ import "../../postProcess/Tr2PostProcessAttributes.js";
 @carbon.inherit(IEveLightingOverride)
 export class EveChildLightingOverride extends EveChildTransform
 {
-  #overrideIntensity = 0;
-  #boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
+  _overrideIntensity = 0;
+  _boundingSphere = { center: vec3.create(), radius: 0, initialized: false };
 
   @edit.readwrite
   @edit.persist
@@ -89,7 +89,7 @@ export class EveChildLightingOverride extends EveChildTransform
   {
     return {
       priority: this.priority,
-      intensity: this.#overrideIntensity,
+      intensity: this._overrideIntensity,
       value: {
         sunColor: vec4.clone(this.sunColor),
         sunIntensity: this.sunIntensity,
@@ -122,7 +122,7 @@ export class EveChildLightingOverride extends EveChildTransform
   @impl.adapted
   GetBoundingSphere(out = vec4.create())
   {
-    vec4.set(out, this.#boundingSphere.center[0], this.#boundingSphere.center[1], this.#boundingSphere.center[2], this.#boundingSphere.radius);
+    vec4.set(out, this._boundingSphere.center[0], this._boundingSphere.center[1], this._boundingSphere.center[2], this._boundingSphere.radius);
     return true;
   }
 
@@ -143,27 +143,27 @@ export class EveChildLightingOverride extends EveChildTransform
   UpdateAsyncronous(updateContext, params = {})
   {
     this.UpdateTransform(params.localToWorldTransform ?? mat4.create());
-    this.#RebuildBoundingSphere();
+    this._RebuildBoundingSphere();
 
     if (this.volumes.length === 0)
     {
-      this.#overrideIntensity = this.intensity;
+      this._overrideIntensity = this.intensity;
       return;
     }
 
-    this.#overrideIntensity = 0;
+    this._overrideIntensity = 0;
     const viewPosition = updateContext?.renderContext?.GetViewPosition();
     const inverse = mat4.invert(mat4.create(), this.worldTransform);
-    if (!viewPosition || !inverse || !this.#boundingSphere.initialized) return;
+    if (!viewPosition || !inverse || !this._boundingSphere.initialized) return;
     const localView = vec3.transformMat4(vec3.create(), viewPosition, inverse);
-    if (vec3.distance(localView, this.#boundingSphere.center) > this.#boundingSphere.radius) return;
+    if (vec3.distance(localView, this._boundingSphere.center) > this._boundingSphere.radius) return;
 
     for (const volume of this.volumes)
     {
-      this.#overrideIntensity = Math.max(this.#overrideIntensity, Number(volume.GetIntensity(localView)) || 0);
-      if (this.#overrideIntensity >= 1) break;
+      this._overrideIntensity = Math.max(this._overrideIntensity, Number(volume.GetIntensity(localView)) || 0);
+      if (this._overrideIntensity >= 1) break;
     }
-    this.#overrideIntensity *= this.intensity;
+    this._overrideIntensity *= this.intensity;
   }
 
   /**
@@ -200,7 +200,7 @@ export class EveChildLightingOverride extends EveChildTransform
    */
   Initialize()
   {
-    this.#RebuildBoundingSphere();
+    this._RebuildBoundingSphere();
     return true;
   }
 
@@ -226,9 +226,9 @@ export class EveChildLightingOverride extends EveChildTransform
    * spheres, skipping volumes with a missing centre or a non-finite/negative
    * radius, and records whether any volume contributed.
    */
-  #RebuildBoundingSphere()
+  _RebuildBoundingSphere()
   {
-    const target = this.#boundingSphere;
+    const target = this._boundingSphere;
     vec3.set(target.center, 0, 0, 0);
     target.radius = 0;
     target.initialized = false;
@@ -244,7 +244,7 @@ export class EveChildLightingOverride extends EveChildTransform
         target.initialized = true;
         continue;
       }
-      EveChildLightingOverride.#UnionSphere(target, sphere);
+      EveChildLightingOverride._UnionSphere(target, sphere);
     }
   }
 
@@ -253,7 +253,7 @@ export class EveChildLightingOverride extends EveChildTransform
    * short-circuiting when either already contains the other and handling
    * coincident centres.
    */
-  static #UnionSphere(target, sphere)
+  static _UnionSphere(target, sphere)
   {
     const delta = vec3.subtract(vec3.create(), sphere.center, target.center);
     const distance = vec3.length(delta);

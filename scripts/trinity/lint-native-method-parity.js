@@ -249,12 +249,26 @@ async function ReadJavaScriptClasses(directory)
           // against Carbon's PascalCase static declaration.
           methods.add(name);
           methods.add(name.charAt(0).toUpperCase() + name.slice(1));
+          // A private static spelled `_Method` (the `#` to `_` pass) credits
+          // Carbon's `Method` as `static #Method` did, including Carbon's
+          // occasional private camelCase.
+          if (name.startsWith("_"))
+          {
+            const privateName = name.slice(1);
+            methods.add(privateName);
+            methods.add(privateName.charAt(0).toLowerCase() + privateName.slice(1));
+          }
           continue;
         }
         methods.add(name);
         // `_Method` is the library's private spelling (underscore, not `#`),
         // so it credits Carbon's private `Method` the same way `#Method` does.
-        if (name.startsWith("_")) methods.add(name.slice(1));
+        if (name.startsWith("_"))
+        {
+          const privateName = name.slice(1);
+          methods.add(privateName);
+          methods.add(privateName.charAt(0).toLowerCase() + privateName.slice(1));
+        }
         const renamed = RenamedOriginal(member);
         if (renamed) methods.add(renamed);
       }

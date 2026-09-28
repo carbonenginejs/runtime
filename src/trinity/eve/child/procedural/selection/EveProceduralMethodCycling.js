@@ -12,12 +12,12 @@ const BELIST_LOADING = 0x10;
 export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
 {
 
-  #selectedChildModified = false;
+  _selectedChildModified = false;
 
   // Carbon m_startTime (Be::Time): stamped by restart from the caller-supplied
   // clock (frame time when the update loop reselects, wall clock for the
   // Date.now default); UpdateAsyncronous must feed the same clock.
-  #startTime = 0;
+  _startTime = 0;
 
   /** m_parameters (PEveProceduralMethodCyclingParameterVector) [READ, PERSIST] */
   @edit.read
@@ -76,8 +76,8 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
       this.selectedChild = (this.selectedChild + 1) % count;
     }
 
-    this.#startTime = timestamp - this.startTimeOffset;
-    this.#selectedChildModified = true;
+    this._startTime = timestamp - this.startTimeOffset;
+    this._selectedChildModified = true;
     return true;
   }
 
@@ -109,7 +109,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
   @impl.implemented
   IsSelectedChildModified()
   {
-    return this.#selectedChildModified;
+    return this._selectedChildModified;
   }
 
   /** Carbon EveProceduralMethodCycling::GetSelectedChild (cpp:67-87):
@@ -125,7 +125,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
       return null;
     }
 
-    this.#selectedChildModified = false;
+    this._selectedChildModified = false;
     const param = this.parameters[this.selectedChild];
 
     if (param)
@@ -160,7 +160,7 @@ export class EveProceduralMethodCycling extends IEveProceduralSelectionMethod
     const param = this.parameters[this.selectedChild];
     if (param)
     {
-      const elapsed = now - this.#startTime;
+      const elapsed = now - this._startTime;
       if (elapsed >= Number(param.GetDuration?.() ?? param.playDuration ?? 0))
       {
         this.restart(now);

@@ -50,11 +50,11 @@ export class EveEllipsoidVolume extends IEveVolume
   @type.boolean
   debugShowIntersection = false;
 
-  #callbacks = new Map();
+  _callbacks = new Map();
 
-  #nextCallbackId = 1;
+  _nextCallbackId = 1;
 
-  #inverseRotation = quat.create();
+  _inverseRotation = quat.create();
 
   /**
    * Clamps the authored shapes, caches the inverse rotation and fires the change
@@ -93,14 +93,14 @@ export class EveEllipsoidVolume extends IEveVolume
   GetIntensity(position)
   {
     const local = vec3.subtract(vec3.create(), position, this.position);
-    vec3.transformQuat(local, local, this.#inverseRotation);
-    const outer = EveEllipsoidVolume.#radialDistance(local, this.shape);
+    vec3.transformQuat(local, local, this._inverseRotation);
+    const outer = EveEllipsoidVolume._radialDistance(local, this.shape);
     const distance = vec3.length(local);
     if (!(outer > 0) || distance > outer)
     {
       return 0;
     }
-    const inner = EveEllipsoidVolume.#radialDistance(local, this.innerShape);
+    const inner = EveEllipsoidVolume._radialDistance(local, this.innerShape);
     if (inner > 0 && distance <= inner)
     {
       return 1;
@@ -173,8 +173,8 @@ export class EveEllipsoidVolume extends IEveVolume
   @impl.adapted
   RegisterForChanges(callback)
   {
-    const id = this.#nextCallbackId++;
-    this.#callbacks.set(id, callback);
+    const id = this._nextCallbackId++;
+    this._callbacks.set(id, callback);
     return id;
   }
 
@@ -183,7 +183,7 @@ export class EveEllipsoidVolume extends IEveVolume
   @impl.implemented
   UnregisterForChanges(callbackId)
   {
-    this.#callbacks.delete(callbackId);
+    this._callbacks.delete(callbackId);
   }
 
   /**
@@ -223,8 +223,8 @@ export class EveEllipsoidVolume extends IEveVolume
       this.shape[i] = Math.max(0, this.shape[i]);
       this.innerShape[i] = Math.min(Math.max(0, this.innerShape[i]), this.shape[i]);
     }
-    quat.invert(this.#inverseRotation, this.rotation);
-    for (const callback of this.#callbacks.values())
+    quat.invert(this._inverseRotation, this.rotation);
+    for (const callback of this._callbacks.values())
     {
       callback?.();
     }
@@ -235,7 +235,7 @@ export class EveEllipsoidVolume extends IEveVolume
    * direction of the given local point, the smallest radius when the point sits
    * at the centre, and 0 when the direction has an extent-less axis.
    */
-  static #radialDistance(position, radii)
+  static _radialDistance(position, radii)
   {
     const length = vec3.length(position);
     if (length === 0)

@@ -67,14 +67,14 @@ export class EveCustomMask extends CjsModel
   @impl.adapted
   Setup(position, scaling, rotation, isMirrored, clampU, clampV, sourceMaterialID, targets)
   {
-    vec3.copy(this.position, position || EveCustomMask.#zero);
-    vec3.copy(this.scaling, scaling || EveCustomMask.#one);
-    quat.copy(this.rotation, rotation || EveCustomMask.#identityRotation);
+    vec3.copy(this.position, position || EveCustomMask._zero);
+    vec3.copy(this.scaling, scaling || EveCustomMask._one);
+    quat.copy(this.rotation, rotation || EveCustomMask._identityRotation);
     this.isMirrored = !!isMirrored;
     this.clampU = !!clampU;
     this.clampV = !!clampV;
     this.materialIndex = Number(sourceMaterialID) & 0xff;
-    vec4.copy(this.targetMaterials, targets || EveCustomMask.#one4);
+    vec4.copy(this.targetMaterials, targets || EveCustomMask._one4);
     return true;
   }
 
@@ -101,7 +101,7 @@ export class EveCustomMask extends CjsModel
   @impl.adapted
   FillPerObjectData(index, vsData, psData)
   {
-    if (!EveCustomMask.#isValidSlot(index) || !vsData || !psData)
+    if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)
     {
       return false;
     }
@@ -137,37 +137,37 @@ export class EveCustomMask extends CjsModel
   @impl.adapted
   static ZeroPerObjectData(index, vsData, psData)
   {
-    if (!EveCustomMask.#isValidSlot(index) || !vsData || !psData)
+    if (!EveCustomMask._isValidSlot(index) || !vsData || !psData)
     {
       return false;
     }
     // Carbon quirk (EveCustomMask.cpp:88-93): the zeroing path clears the
     // matrix, data, material IDs and targets but NOT customMaskClamps, so a
     // slot that stops being filled keeps its last clamp lanes. Reproduced.
-    vsData.SetAndTransposeIndex("customMaskMatrix", index, EveCustomMask.#identity);
-    vsData.SetIndex("customMaskData", index, EveCustomMask.#zero4);
-    psData.SetIndex("customMaskMaterialIDs", index, EveCustomMask.#zero4);
-    psData.SetIndex("customMaskTargets", index, EveCustomMask.#zero4);
+    vsData.SetAndTransposeIndex("customMaskMatrix", index, EveCustomMask._identity);
+    vsData.SetIndex("customMaskData", index, EveCustomMask._zero4);
+    psData.SetIndex("customMaskMaterialIDs", index, EveCustomMask._zero4);
+    psData.SetIndex("customMaskTargets", index, EveCustomMask._zero4);
     return true;
   }
 
   /** Whether an index addresses one of the two custom-mask slots. */
-  static #isValidSlot(index)
+  static _isValidSlot(index)
   {
     return Number.isInteger(index) && index >= 0 && index < EveCustomMask.CUSTOM_MASK_COUNT;
   }
 
   /** A zeroed vec4, for the slot-clearing writes. */
-  static #zero4 = vec4.create();
+  static _zero4 = vec4.create();
 
   /** Identity, for the cleared custom-mask matrix slot. */
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 
-  static #one = vec3.fromValues(1, 1, 1);
+  static _one = vec3.fromValues(1, 1, 1);
 
-  static #identityRotation = quat.create();
+  static _identityRotation = quat.create();
 
-  static #one4 = vec4.fromValues(1, 1, 1, 1);
+  static _one4 = vec4.fromValues(1, 1, 1, 1);
 }

@@ -50,11 +50,11 @@ export class EveBoxVolume extends IEveVolume
   @type.boolean
   debugShowIntersection = false;
 
-  #callbacks = new Map();
+  _callbacks = new Map();
 
-  #nextCallbackId = 1;
+  _nextCallbackId = 1;
 
-  #inverseRotation = quat.create();
+  _inverseRotation = quat.create();
 
   /**
    * Clamps the authored scalings and caches the inverse rotation the intensity
@@ -92,14 +92,14 @@ export class EveBoxVolume extends IEveVolume
   @impl.adapted
   GetIntensity(position)
   {
-    const local = EveBoxVolume.#toLocal(position, this.position, this.#inverseRotation);
-    const outer = EveBoxVolume.#radialBoxDistance(local, this.scaling);
+    const local = EveBoxVolume._toLocal(position, this.position, this._inverseRotation);
+    const outer = EveBoxVolume._radialBoxDistance(local, this.scaling);
     const distance = vec3.length(local);
     if (!(outer > 0) || distance > outer)
     {
       return 0;
     }
-    const inner = EveBoxVolume.#radialBoxDistance(local, this.innerScaling);
+    const inner = EveBoxVolume._radialBoxDistance(local, this.innerScaling);
     if (inner > 0 && distance <= inner)
     {
       return 1;
@@ -205,8 +205,8 @@ export class EveBoxVolume extends IEveVolume
   @impl.adapted
   RegisterForChanges(callback)
   {
-    const id = this.#nextCallbackId++;
-    this.#callbacks.set(id, callback);
+    const id = this._nextCallbackId++;
+    this._callbacks.set(id, callback);
     return id;
   }
 
@@ -215,7 +215,7 @@ export class EveBoxVolume extends IEveVolume
   @impl.implemented
   UnregisterForChanges(callbackId)
   {
-    this.#callbacks.delete(callbackId);
+    this._callbacks.delete(callbackId);
   }
 
   /**
@@ -228,7 +228,7 @@ export class EveBoxVolume extends IEveVolume
   OnModified(propertyName)
   {
     if (["position", "scaling", "rotation", "innerScaling"].includes(propertyName)) this.Setup();
-    for (const callback of this.#callbacks.values())
+    for (const callback of this._callbacks.values())
     {
       callback?.();
     }
@@ -261,14 +261,14 @@ export class EveBoxVolume extends IEveVolume
       this.scaling[i] = Math.max(0, this.scaling[i]);
       this.innerScaling[i] = Math.min(Math.max(0, this.innerScaling[i]), this.scaling[i]);
     }
-    quat.invert(this.#inverseRotation, this.rotation);
+    quat.invert(this._inverseRotation, this.rotation);
   }
 
   /**
    * Moves a point into box-local space by subtracting the box centre and
    * applying the inverse rotation.
    */
-  static #toLocal(position, center, inverseRotation)
+  static _toLocal(position, center, inverseRotation)
   {
     const local = vec3.subtract(vec3.create(), position, center);
     return vec3.transformQuat(local, local, inverseRotation);
@@ -279,7 +279,7 @@ export class EveBoxVolume extends IEveVolume
    * the given local point, falling back to half the smallest extent when the
    * point sits at the centre.
    */
-  static #radialBoxDistance(position, scaling)
+  static _radialBoxDistance(position, scaling)
   {
     const length = vec3.length(position);
     if (length === 0)

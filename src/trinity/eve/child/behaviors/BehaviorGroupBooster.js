@@ -197,15 +197,15 @@ export class BehaviorGroupBooster extends CjsModel
   {
     if (this.boosterEffect === null)
     {
-      this.boosterEffect = BehaviorGroupBooster.#CreateBoosterEffect("BOOSTER_LOD_HIGH");
+      this.boosterEffect = BehaviorGroupBooster._CreateBoosterEffect("BOOSTER_LOD_HIGH");
     }
     if (this.ambientFlareEffect === null)
     {
-      this.ambientFlareEffect = BehaviorGroupBooster.#CreateFlareEffect();
+      this.ambientFlareEffect = BehaviorGroupBooster._CreateFlareEffect();
     }
     if (this.haloFlareEffect === null)
     {
-      this.haloFlareEffect = BehaviorGroupBooster.#CreateFlareEffect();
+      this.haloFlareEffect = BehaviorGroupBooster._CreateFlareEffect();
     }
   }
 
@@ -353,7 +353,7 @@ export class BehaviorGroupBooster extends CjsModel
   /**
    * Builds and configures the drone booster effect, including its noise, colour and texture parameters.
    */
-  static #CreateBoosterEffect(lodOption)
+  static _CreateBoosterEffect(lodOption)
   {
     const effect = new Tr2Effect();
     effect.StartUpdate();
@@ -390,7 +390,7 @@ export class BehaviorGroupBooster extends CjsModel
   /**
    * Builds the shared flare-quad effect used by both the ambient and halo flares.
    */
-  static #CreateFlareEffect()
+  static _CreateFlareEffect()
   {
     const effect = new Tr2Effect();
     effect.StartUpdate();

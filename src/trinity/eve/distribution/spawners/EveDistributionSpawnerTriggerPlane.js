@@ -10,11 +10,11 @@ import { quat } from "#math/quat";
 export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
 {
 
-  #distSortedIndexes = [];
+  _distSortedIndexes = [];
 
-  #currentPlayTime = 0;
+  _currentPlayTime = 0;
 
-  #currentTrigger = 0;
+  _currentTrigger = 0;
 
   /** m_triggerChance (float) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -67,17 +67,17 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
     }
 
     const normal = vec3.transformQuat(vec3.create(), vec3.fromValues(0, 1, 0), this.planeRotation);
-    this.#distSortedIndexes.length = 0;
+    this._distSortedIndexes.length = 0;
     for (const placement of placements)
     {
       const distance = vec3.dot(normal, placement.placement.initialTranslation);
-      this.#distSortedIndexes.push([distance, placement.placement.uniqueID]);
+      this._distSortedIndexes.push([distance, placement.placement.uniqueID]);
     }
-    this.#distSortedIndexes.sort((a, b) => a[0] - b[0]);
+    this._distSortedIndexes.sort((a, b) => a[0] - b[0]);
 
-    const minimumDistance = this.startSequenceAtFirstTrigger ? this.#distSortedIndexes[0][0] : 0;
-    const maximumDistance = Math.max(1, this.#distSortedIndexes.at(-1)[0] - minimumDistance);
-    for (const trigger of this.#distSortedIndexes)
+    const minimumDistance = this.startSequenceAtFirstTrigger ? this._distSortedIndexes[0][0] : 0;
+    const maximumDistance = Math.max(1, this._distSortedIndexes.at(-1)[0] - minimumDistance);
+    for (const trigger of this._distSortedIndexes)
     {
       trigger[0] = (trigger[0] - minimumDistance) / maximumDistance;
     }
@@ -92,8 +92,8 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   @impl.implemented
   Restart()
   {
-    this.#currentTrigger = this.reversePlaneAnimation ? this.#distSortedIndexes.length - 1 : 0;
-    this.#currentPlayTime = 0;
+    this._currentTrigger = this.reversePlaneAnimation ? this._distSortedIndexes.length - 1 : 0;
+    this._currentPlayTime = 0;
   }
 
   /**
@@ -105,50 +105,50 @@ export class EveDistributionSpawnerTriggerPlane extends IEveDistributionSpawner
   @impl.adapted
   UpdateSyncronous(updateContext, _params, owner)
   {
-    if (this.#distSortedIndexes.length === 0
-      || this.#currentPlayTime >= this.playDuration + this.delayBeforeActivation)
+    if (this._distSortedIndexes.length === 0
+      || this._currentPlayTime >= this.playDuration + this.delayBeforeActivation)
     {
       return;
     }
 
-    this.#currentPlayTime += updateContext.GetDeltaT();
-    if (this.#currentPlayTime < this.delayBeforeActivation)
+    this._currentPlayTime += updateContext.GetDeltaT();
+    if (this._currentPlayTime < this.delayBeforeActivation)
     {
       return;
     }
 
-    const normalizedPlayTime = (this.#currentPlayTime - this.delayBeforeActivation)
+    const normalizedPlayTime = (this._currentPlayTime - this.delayBeforeActivation)
       / Math.max(0.01, this.playDuration);
     if (!this.reversePlaneAnimation)
     {
-      while (normalizedPlayTime > this.#distSortedIndexes[this.#currentTrigger][0])
+      while (normalizedPlayTime > this._distSortedIndexes[this._currentTrigger][0])
       {
         if (Math.random() < this.triggerChance)
         {
-          owner.TriggerEntityByID(this.#distSortedIndexes[this.#currentTrigger][1]);
+          owner.TriggerEntityByID(this._distSortedIndexes[this._currentTrigger][1]);
         }
-        this.#currentTrigger++;
-        if (this.#currentTrigger >= this.#distSortedIndexes.length)
+        this._currentTrigger++;
+        if (this._currentTrigger >= this._distSortedIndexes.length)
         {
-          this.#currentPlayTime = this.playDuration + this.delayBeforeActivation;
+          this._currentPlayTime = this.playDuration + this.delayBeforeActivation;
           break;
         }
       }
     }
     else
     {
-      while (1 - normalizedPlayTime < this.#distSortedIndexes[this.#currentTrigger][0])
+      while (1 - normalizedPlayTime < this._distSortedIndexes[this._currentTrigger][0])
       {
         if (Math.random() < this.triggerChance)
         {
-          owner.TriggerEntityByID(this.#distSortedIndexes[this.#currentTrigger][1]);
+          owner.TriggerEntityByID(this._distSortedIndexes[this._currentTrigger][1]);
         }
-        if (this.#currentTrigger === 0)
+        if (this._currentTrigger === 0)
         {
-          this.#currentPlayTime = this.playDuration + this.delayBeforeActivation;
+          this._currentPlayTime = this.playDuration + this.delayBeforeActivation;
           break;
         }
-        this.#currentTrigger--;
+        this._currentTrigger--;
       }
     }
   }

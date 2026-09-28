@@ -12,7 +12,7 @@ import { CjsModel } from "#model";
 export class EveEntity extends CjsModel
 {
 
-  #componentIndexLookup = new Map();
+  _componentIndexLookup = new Map();
 
   // Carbon keeps m_registry/m_indexInRegistry PRIVATE (EveEntity.h:57-61) -
   // they are runtime registration state, never Blue-exposed. Schema typing
@@ -107,7 +107,7 @@ export class EveEntity extends CjsModel
   @impl.implemented
   GetComponentIndex(componentBit)
   {
-    return this.#componentIndexLookup.get(componentBit);
+    return this._componentIndexLookup.get(componentBit);
   }
 
   /**
@@ -118,7 +118,7 @@ export class EveEntity extends CjsModel
   @impl.implemented
   SetComponentState(componentBit, index)
   {
-    this.#componentIndexLookup.set(componentBit, index);
+    this._componentIndexLookup.set(componentBit, index);
   }
 
   /**
@@ -129,14 +129,14 @@ export class EveEntity extends CjsModel
   @impl.implemented
   RemoveComponentState(componentBit)
   {
-    this.#componentIndexLookup.delete(componentBit);
+    this._componentIndexLookup.delete(componentBit);
   }
 
   /** Drops every recorded component slot index without touching the registry. */
   @impl.implemented
   ClearComponentState()
   {
-    this.#componentIndexLookup.clear();
+    this._componentIndexLookup.clear();
   }
 
   /**

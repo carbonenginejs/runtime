@@ -67,18 +67,18 @@ export class EveBoosterSet2Renderable extends CjsModel
   @edit.read
   @type.vec3
   trailsBoundsMax = vec3.fromValues(
-    -EveBoosterSet2Renderable.#floatMax,
-    -EveBoosterSet2Renderable.#floatMax,
-    -EveBoosterSet2Renderable.#floatMax
+    -EveBoosterSet2Renderable._floatMax,
+    -EveBoosterSet2Renderable._floatMax,
+    -EveBoosterSet2Renderable._floatMax
   );
 
   /** m_trailsBoundsMin (Vector3) [READ] */
   @edit.read
   @type.vec3
   trailsBoundsMin = vec3.fromValues(
-    EveBoosterSet2Renderable.#floatMax,
-    EveBoosterSet2Renderable.#floatMax,
-    EveBoosterSet2Renderable.#floatMax
+    EveBoosterSet2Renderable._floatMax,
+    EveBoosterSet2Renderable._floatMax,
+    EveBoosterSet2Renderable._floatMax
   );
 
   /** m_overallIntensity (float) [READ] */
@@ -96,42 +96,42 @@ export class EveBoosterSet2Renderable extends CjsModel
   @type.float32
   parentSpeed = 0;
 
-  #boosterSet = null;
+  _boosterSet = null;
 
-  #lastAccFactor = 0;
+  _lastAccFactor = 0;
 
-  #lastValue = 0;
+  _lastValue = 0;
 
-  #parentTransform = mat4.create();
+  _parentTransform = mat4.create();
 
-  #trailsControlPositions = Array.from(
-    { length: EveBoosterSet2Renderable.#controlPointCount },
+  _trailsControlPositions = Array.from(
+    { length: EveBoosterSet2Renderable._controlPointCount },
     () => vec3.create()
   );
 
-  #trailsControlNormals = Array.from(
-    { length: EveBoosterSet2Renderable.#controlPointCount },
+  _trailsControlNormals = Array.from(
+    { length: EveBoosterSet2Renderable._controlPointCount },
     () => vec3.fromValues(0, 0, -1)
   );
 
-  #trailsControlNormalsFactor = new Float32Array(
-    EveBoosterSet2Renderable.#controlPointCount
+  _trailsControlNormalsFactor = new Float32Array(
+    EveBoosterSet2Renderable._controlPointCount
   ).fill(1);
 
-  #trailsSequenceLength = new Float32Array(
-    EveBoosterSet2Renderable.#controlPointCount
+  _trailsSequenceLength = new Float32Array(
+    EveBoosterSet2Renderable._controlPointCount
   );
 
-  #trailsOffsets = Array.from(
-    { length: EveBoosterSet2Renderable.#positionOffsetCount },
+  _trailsOffsets = Array.from(
+    { length: EveBoosterSet2Renderable._positionOffsetCount },
     () => vec3.create()
   );
 
-  #trailsOffsetLatest = 0;
+  _trailsOffsetLatest = 0;
 
-  #trailsOffsetAccu = vec3.create();
+  _trailsOffsetAccu = vec3.create();
 
-  #trailsTimeToNext = 0;
+  _trailsTimeToNext = 0;
 
   /**
    * Reserves the quad-list index buffer for the shader model's shape, as
@@ -142,7 +142,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   constructor()
   {
     super();
-    Tr2Renderer.ReserveQuadListIndexBuffer(EveBoosterSet2Renderable.#planesCount[EveBoosterSet2Renderable.#Shape()]);
+    Tr2Renderer.ReserveQuadListIndexBuffer(EveBoosterSet2Renderable._planesCount[EveBoosterSet2Renderable._Shape()]);
   }
 
   /**
@@ -153,7 +153,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.adapted
   SetBoosterSet(boosterSet)
   {
-    this.#boosterSet = boosterSet ?? null;
+    this._boosterSet = boosterSet ?? null;
   }
 
   /**
@@ -166,7 +166,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.implemented
   CalculateIntensity(acceleration)
   {
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     if (!boosterSet)
     {
       return 0;
@@ -176,17 +176,17 @@ export class EveBoosterSet2Renderable extends CjsModel
       return boosterSet.alwaysOnIntensity;
     }
 
-    const backward = vec3.transformQuat(vec3.create(), EveBoosterSet2Renderable.#zAxis, this.parentRotation);
+    const backward = vec3.transformQuat(vec3.create(), EveBoosterSet2Renderable._zAxis, this.parentRotation);
     const speedRatio = boosterSet.maxVel ? this.parentSpeed / boosterSet.maxVel : 0;
-    let accFactor = vec3.dot(acceleration ?? EveBoosterSet2Renderable.#zero, backward);
+    let accFactor = vec3.dot(acceleration ?? EveBoosterSet2Renderable._zero, backward);
     accFactor *= Math.max(0.3, speedRatio);
     accFactor = Math.min(1, Math.max(0, accFactor));
-    accFactor = accFactor * 0.2 + this.#lastAccFactor * 0.8;
-    this.#lastAccFactor = accFactor;
+    accFactor = accFactor * 0.2 + this._lastAccFactor * 0.8;
+    this._lastAccFactor = accFactor;
 
-    let value = this.#lastValue * 0.8 + (0.8 * speedRatio + 0.2 * accFactor) * 0.2;
+    let value = this._lastValue * 0.8 + (0.8 * speedRatio + 0.2 * accFactor) * 0.2;
     value = Math.min(value, 2);
-    this.#lastValue = value;
+    this._lastValue = value;
     return value;
   }
 
@@ -199,22 +199,22 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.implemented
   Update(deltaTime, _time, parentMatrix, parentSpeed, parentAcceleration, parentRotation)
   {
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     if (boosterSet?.destinyUpdate)
     {
       this.parentSpeed = Number(parentSpeed) || 0;
     }
     else if (deltaTime && parentMatrix?.length === 16)
     {
-      const dx = parentMatrix[12] - this.#parentTransform[12];
-      const dy = parentMatrix[13] - this.#parentTransform[13];
-      const dz = parentMatrix[14] - this.#parentTransform[14];
+      const dx = parentMatrix[12] - this._parentTransform[12];
+      const dy = parentMatrix[13] - this._parentTransform[13];
+      const dz = parentMatrix[14] - this._parentTransform[14];
       this.parentSpeed = Math.hypot(dx, dy, dz) / Number(deltaTime);
     }
 
     if (parentMatrix?.length === 16)
     {
-      mat4.copy(this.#parentTransform, parentMatrix);
+      mat4.copy(this._parentTransform, parentMatrix);
     }
     if (parentRotation?.length === 4)
     {
@@ -234,19 +234,19 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.adapted
   UpdateTrails(deltaTime, _time = 0)
   {
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     if (!boosterSet)
     {
       return false;
     }
-    this.#CalculateSplineData(deltaTime);
+    this._CalculateSplineData(deltaTime);
 
     const length = this.trailsTotalLength;
     if (length > EveBoosterSet2.eveSpaceObjectTrailsMinLength &&
       length < EveBoosterSet2.eveSpaceObjectTrailsMinLength +
         EveBoosterSet2.eveSpaceObjectTrailsMinLengthFade)
     {
-      this.trailIntensity = EveBoosterSet2Renderable.#SinSmooth(
+      this.trailIntensity = EveBoosterSet2Renderable._SinSmooth(
         (length - EveBoosterSet2.eveSpaceObjectTrailsMinLength) /
           EveBoosterSet2.eveSpaceObjectTrailsMinLengthFade
       );
@@ -255,7 +255,7 @@ export class EveBoosterSet2Renderable extends CjsModel
       EveBoosterSet2.eveSpaceObjectTrailsMaxLengthFade &&
       length < EveBoosterSet2.eveSpaceObjectTrailsMaxLength)
     {
-      this.trailIntensity = EveBoosterSet2Renderable.#SinSmooth(
+      this.trailIntensity = EveBoosterSet2Renderable._SinSmooth(
         (EveBoosterSet2.eveSpaceObjectTrailsMaxLength - length) /
           EveBoosterSet2.eveSpaceObjectTrailsMaxLengthFade
       );
@@ -287,17 +287,17 @@ export class EveBoosterSet2Renderable extends CjsModel
   GetTrailSplineData()
   {
     return {
-      positions: this.#trailsControlPositions.map((position, index) => vec4.fromValues(
+      positions: this._trailsControlPositions.map((position, index) => vec4.fromValues(
         position[0],
         position[1],
         position[2],
-        this.#trailsSequenceLength[index]
+        this._trailsSequenceLength[index]
       )),
-      normals: this.#trailsControlNormals.map((normal, index) => vec4.fromValues(
+      normals: this._trailsControlNormals.map((normal, index) => vec4.fromValues(
         normal[0],
         normal[1],
         normal[2],
-        this.#trailsControlNormalsFactor[index]
+        this._trailsControlNormalsFactor[index]
       )),
       totalLength: this.trailsTotalLength,
       intensity: this.trailIntensity,
@@ -343,14 +343,14 @@ export class EveBoosterSet2Renderable extends CjsModel
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE) return;
 
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     if (!boosterSet.display) return;
     if (!boosterSet._instanceBuffer.IsValid()) return;
     if (boosterSet._vertexDeclHandle === Tr2EffectStateManager.Unknown) return;
 
     if (this.boostersVisible)
     {
-      const shape = EveBoosterSet2Renderable.#Shape();
+      const shape = EveBoosterSet2Renderable._Shape();
       const indexBuffer = Tr2Renderer.GetQuadListIndexBuffer();
       if (!indexBuffer.IsValid()) return;
 
@@ -371,7 +371,7 @@ export class EveBoosterSet2Renderable extends CjsModel
       batch.SetIndices(indexBuffer.GetBuffer(), indexBuffer.GetStride());
 
       batch.SetDrawIndexedInstanced(
-        3 * 2 * EveBoosterSet2Renderable.#planesCount[shape],
+        3 * 2 * EveBoosterSet2Renderable._planesCount[shape],
         boosterSet._singleBoosters.length,
         indexBuffer.GetStartIndex(),
         vb.GetOffset() / vb.GetStride(),
@@ -389,7 +389,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   }
 
   /** The shape every booster site picks from the shader model (cpp:77, :196, :929). */
-  static #Shape()
+  static _Shape()
   {
     return Tr2Renderer.GetShaderModel() >= TR2SHADERMODEL.TR2SM_3_0_HI
       ? EveBoosterSet2.Shape.BOX
@@ -397,7 +397,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   }
 
   /** EVE_BOOSTER_PLANES_COUNT (EveBoosterSet2.cpp:27), indexed by EveBoosterSet2.Shape. */
-  static #planesCount = [ 4, 6 ];
+  static _planesCount = [ 4, 6 ];
 
   /** Carbon EveBoosterSet2Renderable::GetPerObjectData (cpp:260-289): the
    * EveBoosterSetPerObjectData composite - a VertexShaderData + PixelShaderData
@@ -413,25 +413,25 @@ export class EveBoosterSet2Renderable extends CjsModel
     const vs = accumulator.Alloc("EveBoosterSetVSData");
     const ps = accumulator.Alloc("EveBoosterSetPSData");
 
-    vs.SetAndTranspose("shipMatrix", this.#parentTransform);
+    vs.SetAndTranspose("shipMatrix", this._parentTransform);
     vs.Set("boosterIntensity", [this.overallIntensity]);
     vs.Set("shipSpeed", [this.parentSpeed]);
-    vs.Set("maxBoosterSize", [this.#boosterSet?.maxSize ?? 0]);
+    vs.Set("maxBoosterSize", [this._boosterSet?.maxSize ?? 0]);
 
     ps.Set("boosterIntensity", [this.overallIntensity]);
     ps.Set("trailIntensity", [this.trailIntensity]);
-    ps.Set("warpIntensity", [this.#boosterSet?.warpIntensity ?? 0]);
+    ps.Set("warpIntensity", [this._boosterSet?.warpIntensity ?? 0]);
 
-    for (let index = 0; index < this.#trailsControlPositions.length; index++)
+    for (let index = 0; index < this._trailsControlPositions.length; index++)
     {
-      const position = this.#trailsControlPositions[index];
-      const normal = this.#trailsControlNormals[index];
+      const position = this._trailsControlPositions[index];
+      const normal = this._trailsControlNormals[index];
 
       vs.SetIndex("trailsControlPositions", index, [
-        position[0], position[1], position[2], this.#trailsSequenceLength[index]
+        position[0], position[1], position[2], this._trailsSequenceLength[index]
       ]);
       vs.SetIndex("trailsControlNormals", index, [
-        normal[0], normal[1], normal[2], this.#trailsControlNormalsFactor[index]
+        normal[0], normal[1], normal[2], this._trailsControlNormalsFactor[index]
       ]);
     }
 
@@ -457,13 +457,13 @@ export class EveBoosterSet2Renderable extends CjsModel
   UpdateVisibility(updateContext)
   {
     const frustum = updateContext?.GetFrustum();
-    if (!frustum || !this.#boosterSet)
+    if (!frustum || !this._boosterSet)
     {
       return false;
     }
 
     const boundingSphere = this.GetBoundingSphere(
-      EveBoosterSet2Renderable.#visibilitySphere
+      EveBoosterSet2Renderable._visibilitySphere
     );
     const lowDetailThreshold = updateContext.GetLowDetailThreshold();
 
@@ -474,9 +474,9 @@ export class EveBoosterSet2Renderable extends CjsModel
     const viewPos = frustum.viewPos;
     let closestIndex = 0;
     let closestSqDistance = Infinity;
-    for (let index = 0; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+    for (let index = 0; index < EveBoosterSet2Renderable._controlPointCount; index++)
     {
-      const position = this.#trailsControlPositions[index];
+      const position = this._trailsControlPositions[index];
       const sqDistance = vec3.squaredDistance(position, viewPos);
       if (sqDistance < closestSqDistance)
       {
@@ -486,8 +486,8 @@ export class EveBoosterSet2Renderable extends CjsModel
     }
 
     const trailsSphere = sph3.fromPositionRadius(
-      EveBoosterSet2Renderable.#trailsSphere,
-      this.#trailsControlPositions[closestIndex],
+      EveBoosterSet2Renderable._trailsSphere,
+      this._trailsControlPositions[closestIndex],
       sph3.radius(boundingSphere)
     );
     const trailsLod = 7.5 * frustum.GetPixelSizeAccross(trailsSphere);
@@ -521,7 +521,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.reason("Carbon's direct member access becomes an accessor; JS has no protected fields.")
   GetParentTransform()
   {
-    return this.#parentTransform;
+    return this._parentTransform;
   }
 
   /** Carbon EveBoosterSet2Renderable::GetBoundingSphere (cpp:295-303): the
@@ -536,7 +536,7 @@ export class EveBoosterSet2Renderable extends CjsModel
   @impl.implemented
   GetBoundingSphere(out)
   {
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     if (!boosterSet)
     {
       return sph3.empty(out);
@@ -544,7 +544,7 @@ export class EveBoosterSet2Renderable extends CjsModel
     const position = sph3.$position(out);
     vec3.copy(position, boosterSet.boosterBoundingSphereCenter);
     position[2] -= 0.5 * boosterSet.boosterBoundingSphereRadius;
-    vec3.transformMat4(position, position, this.#parentTransform);
+    vec3.transformMat4(position, position, this._parentTransform);
     out[3] = 2 * boosterSet.boosterBoundingSphereRadius;
     return out;
   }
@@ -555,7 +555,7 @@ export class EveBoosterSet2Renderable extends CjsModel
    * offsets rotated into parent space - then recomputes the spline metrics;
    * returns false for a non-positive delta.
    */
-  #CalculateSplineData(deltaTime)
+  _CalculateSplineData(deltaTime)
   {
     const elapsed = Number(deltaTime);
     if (!(elapsed > 0))
@@ -563,49 +563,49 @@ export class EveBoosterSet2Renderable extends CjsModel
       return false;
     }
 
-    const boosterSet = this.#boosterSet;
+    const boosterSet = this._boosterSet;
     const parentPosition = vec3.fromValues(
-      this.#parentTransform[12],
-      this.#parentTransform[13],
-      this.#parentTransform[14]
+      this._parentTransform[12],
+      this._parentTransform[13],
+      this._parentTransform[14]
     );
 
     if (boosterSet.physicsUpdate)
     {
-      this.#UpdatePhysicsTrailOffsets(elapsed);
+      this._UpdatePhysicsTrailOffsets(elapsed);
       const stride = Math.trunc(
-        this.trailsTimeDelta / EveBoosterSet2Renderable.#positionOffsetDelta
+        this.trailsTimeDelta / EveBoosterSet2Renderable._positionOffsetDelta
       );
-      let ringIndex = this.#trailsOffsetLatest;
-      for (let index = 0; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+      let ringIndex = this._trailsOffsetLatest;
+      for (let index = 0; index < EveBoosterSet2Renderable._controlPointCount; index++)
       {
         vec3.add(
-          this.#trailsControlPositions[index],
+          this._trailsControlPositions[index],
           parentPosition,
-          this.#trailsOffsets[ringIndex]
+          this._trailsOffsets[ringIndex]
         );
-        ringIndex = EveBoosterSet2Renderable.#WrapOffsetIndex(ringIndex - stride);
+        ringIndex = EveBoosterSet2Renderable._WrapOffsetIndex(ringIndex - stride);
       }
     }
     else
     {
-      const offsets = EveBoosterSet2Renderable.#GetStaticOffsets(boosterSet);
-      for (let index = 0; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+      const offsets = EveBoosterSet2Renderable._GetStaticOffsets(boosterSet);
+      for (let index = 0; index < EveBoosterSet2Renderable._controlPointCount; index++)
       {
-        EveBoosterSet2Renderable.#TransformNormal(
-          this.#trailsControlPositions[index],
+        EveBoosterSet2Renderable._TransformNormal(
+          this._trailsControlPositions[index],
           offsets[index],
-          this.#parentTransform
+          this._parentTransform
         );
         vec3.add(
-          this.#trailsControlPositions[index],
-          this.#trailsControlPositions[index],
+          this._trailsControlPositions[index],
+          this._trailsControlPositions[index],
           parentPosition
         );
       }
     }
 
-    this.#UpdateSplineMetrics();
+    this._UpdateSplineMetrics();
     return true;
   }
 
@@ -615,90 +615,90 @@ export class EveBoosterSet2Renderable extends CjsModel
    * owed in a single frame so a stalled or teleported ship does not walk the
    * ring one entry at a time.
    */
-  #UpdatePhysicsTrailOffsets(deltaTime)
+  _UpdatePhysicsTrailOffsets(deltaTime)
   {
     const movement = vec3.transformQuat(
       vec3.create(),
-      EveBoosterSet2Renderable.#zAxis,
+      EveBoosterSet2Renderable._zAxis,
       this.parentRotation
     );
     vec3.scale(movement, movement, deltaTime * this.parentSpeed);
-    this.#trailsTimeToNext += deltaTime;
-    vec3.subtract(this.#trailsOffsetAccu, this.#trailsOffsetAccu, movement);
+    this._trailsTimeToNext += deltaTime;
+    vec3.subtract(this._trailsOffsetAccu, this._trailsOffsetAccu, movement);
 
     const iterationCount = Math.trunc(
-      this.#trailsTimeToNext / EveBoosterSet2Renderable.#positionOffsetDelta
+      this._trailsTimeToNext / EveBoosterSet2Renderable._positionOffsetDelta
     );
     if (!iterationCount)
     {
       return;
     }
 
-    const fraction = EveBoosterSet2Renderable.#positionOffsetDelta /
-      this.#trailsTimeToNext;
+    const fraction = EveBoosterSet2Renderable._positionOffsetDelta /
+      this._trailsTimeToNext;
     const cumulativeOffset = vec3.scale(
       vec3.create(),
-      this.#trailsOffsetAccu,
+      this._trailsOffsetAccu,
       fraction * iterationCount
     );
 
     if (iterationCount < 20)
     {
-      if (vec3.squaredLength(this.#trailsOffsetAccu) > 0.00001)
+      if (vec3.squaredLength(this._trailsOffsetAccu) > 0.00001)
       {
-        for (const offset of this.#trailsOffsets)
+        for (const offset of this._trailsOffsets)
         {
           vec3.add(offset, offset, cumulativeOffset);
         }
       }
       for (let index = 0; index < iterationCount; index++)
       {
-        this.#trailsOffsetLatest = EveBoosterSet2Renderable.#WrapOffsetIndex(
-          this.#trailsOffsetLatest + 1
+        this._trailsOffsetLatest = EveBoosterSet2Renderable._WrapOffsetIndex(
+          this._trailsOffsetLatest + 1
         );
         vec3.scale(
-          this.#trailsOffsets[this.#trailsOffsetLatest],
-          this.#trailsOffsetAccu,
+          this._trailsOffsets[this._trailsOffsetLatest],
+          this._trailsOffsetAccu,
           (iterationCount - 1 - index) * fraction
         );
       }
     }
     else
     {
-      this.#trailsOffsetLatest = EveBoosterSet2Renderable.#WrapOffsetIndex(
-        this.#trailsOffsetLatest + 1
+      this._trailsOffsetLatest = EveBoosterSet2Renderable._WrapOffsetIndex(
+        this._trailsOffsetLatest + 1
       );
       const partialOffset = vec3.scale(
         vec3.create(),
-        this.#trailsOffsetAccu,
+        this._trailsOffsetAccu,
         fraction
       );
-      for (let index = 0; index < EveBoosterSet2Renderable.#positionOffsetCount; index++)
+      for (let index = 0; index < EveBoosterSet2Renderable._positionOffsetCount; index++)
       {
-        const relativeIndex = EveBoosterSet2Renderable.#WrapOffsetIndex(
-          index - this.#trailsOffsetLatest
+        const relativeIndex = EveBoosterSet2Renderable._WrapOffsetIndex(
+          index - this._trailsOffsetLatest
         );
         if (relativeIndex < iterationCount)
         {
           vec3.scale(
-            this.#trailsOffsets[index],
+            this._trailsOffsets[index],
             partialOffset,
             iterationCount - 1 - relativeIndex
           );
         }
         else
         {
-          vec3.add(this.#trailsOffsets[index], this.#trailsOffsets[index], cumulativeOffset);
+          vec3.add(this._trailsOffsets[index], this._trailsOffsets[index], cumulativeOffset);
         }
       }
-      this.#trailsOffsetLatest = EveBoosterSet2Renderable.#WrapOffsetIndex(
-        this.#trailsOffsetLatest + iterationCount - 1
+      this._trailsOffsetLatest = EveBoosterSet2Renderable._WrapOffsetIndex(
+        this._trailsOffsetLatest + iterationCount - 1
       );
     }
 
-    vec3.subtract(this.#trailsOffsetAccu, this.#trailsOffsetAccu, cumulativeOffset);
-    this.#trailsTimeToNext -=
-      EveBoosterSet2Renderable.#positionOffsetDelta * iterationCount;
+    vec3.subtract(this._trailsOffsetAccu, this._trailsOffsetAccu, cumulativeOffset);
+    this._trailsTimeToNext -=
+      EveBoosterSet2Renderable._positionOffsetDelta * iterationCount;
   }
 
   /**
@@ -707,23 +707,23 @@ export class EveBoosterSet2Renderable extends CjsModel
    * tangent normals with their length factors, and the normalized per-segment
    * lengths.
    */
-  #UpdateSplineMetrics()
+  _UpdateSplineMetrics()
   {
     this.trailsTotalLength = 0;
-    for (let index = 1; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+    for (let index = 1; index < EveBoosterSet2Renderable._controlPointCount; index++)
     {
       this.trailsTotalLength += vec3.distance(
-        this.#trailsControlPositions[index],
-        this.#trailsControlPositions[index - 1]
+        this._trailsControlPositions[index],
+        this._trailsControlPositions[index - 1]
       );
     }
 
     vec3.set(this.trailsBoundsMin, Infinity, Infinity, Infinity);
     vec3.set(this.trailsBoundsMax, -Infinity, -Infinity, -Infinity);
     const radius = sph3.radius(
-      this.GetBoundingSphere(EveBoosterSet2Renderable.#boundsSphere)
+      this.GetBoundingSphere(EveBoosterSet2Renderable._boundsSphere)
     );
-    for (const position of this.#trailsControlPositions)
+    for (const position of this._trailsControlPositions)
     {
       for (let axis = 0; axis < 3; axis++)
       {
@@ -739,60 +739,60 @@ export class EveBoosterSet2Renderable extends CjsModel
     }
 
     const firstLength = Math.min(
-      this.#boosterSet.trailsSmoothing,
-      vec3.distance(this.#trailsControlPositions[1], this.#trailsControlPositions[0])
+      this._boosterSet.trailsSmoothing,
+      vec3.distance(this._trailsControlPositions[1], this._trailsControlPositions[0])
     );
-    EveBoosterSet2Renderable.#TransformNormal(
-      this.#trailsControlNormals[0],
+    EveBoosterSet2Renderable._TransformNormal(
+      this._trailsControlNormals[0],
       [0, 0, -firstLength],
-      this.#parentTransform
+      this._parentTransform
     );
 
-    const lastIndex = EveBoosterSet2Renderable.#controlPointCount - 1;
+    const lastIndex = EveBoosterSet2Renderable._controlPointCount - 1;
     vec3.subtract(
-      this.#trailsControlNormals[lastIndex],
-      this.#trailsControlPositions[lastIndex],
-      this.#trailsControlPositions[lastIndex - 1]
+      this._trailsControlNormals[lastIndex],
+      this._trailsControlPositions[lastIndex],
+      this._trailsControlPositions[lastIndex - 1]
     );
     vec3.scale(
-      this.#trailsControlNormals[lastIndex],
-      this.#trailsControlNormals[lastIndex],
+      this._trailsControlNormals[lastIndex],
+      this._trailsControlNormals[lastIndex],
       0.5
     );
 
     for (let index = 1; index < lastIndex; index++)
     {
       const normal = vec3.subtract(
-        this.#trailsControlNormals[index],
-        this.#trailsControlPositions[index + 1],
-        this.#trailsControlPositions[index - 1]
+        this._trailsControlNormals[index],
+        this._trailsControlPositions[index + 1],
+        this._trailsControlPositions[index - 1]
       );
       const nextLength = vec3.distance(
-        this.#trailsControlPositions[index + 1],
-        this.#trailsControlPositions[index]
+        this._trailsControlPositions[index + 1],
+        this._trailsControlPositions[index]
       );
       const previousLength = vec3.distance(
-        this.#trailsControlPositions[index],
-        this.#trailsControlPositions[index - 1]
+        this._trailsControlPositions[index],
+        this._trailsControlPositions[index - 1]
       );
       if (vec3.squaredLength(normal))
       {
         vec3.normalize(normal, normal);
       }
       vec3.scale(normal, normal, nextLength);
-      this.#trailsControlNormalsFactor[index] = nextLength
+      this._trailsControlNormalsFactor[index] = nextLength
         ? previousLength / nextLength
         : 0;
     }
 
-    this.#trailsSequenceLength[0] = 0;
-    for (let index = 1; index < EveBoosterSet2Renderable.#controlPointCount; index++)
+    this._trailsSequenceLength[0] = 0;
+    for (let index = 1; index < EveBoosterSet2Renderable._controlPointCount; index++)
     {
       const length = vec3.distance(
-        this.#trailsControlPositions[index],
-        this.#trailsControlPositions[index - 1]
+        this._trailsControlPositions[index],
+        this._trailsControlPositions[index - 1]
       );
-      this.#trailsSequenceLength[index] = this.trailsTotalLength
+      this._trailsSequenceLength[index] = this.trailsTotalLength
         ? length / this.trailsTotalLength
         : 0;
     }
@@ -802,7 +802,7 @@ export class EveBoosterSet2Renderable extends CjsModel
    * The booster set's five authored static trail offsets gathered into an array
    * in control-point order.
    */
-  static #GetStaticOffsets(boosterSet)
+  static _GetStaticOffsets(boosterSet)
   {
     return [
       boosterSet.trailsStaticOffsets0,
@@ -817,7 +817,7 @@ export class EveBoosterSet2Renderable extends CjsModel
    * Maps 0..1 through a sine ease so a trail length fade starts and ends flat
    * instead of stepping.
    */
-  static #SinSmooth(value)
+  static _SinSmooth(value)
   {
     return Math.sin(value * Math.PI - Math.PI / 2) / 2 + 0.5;
   }
@@ -826,7 +826,7 @@ export class EveBoosterSet2Renderable extends CjsModel
    * Applies only a transform's upper 3x3 rotation and scale to a vector, leaving
    * its translation out, so a direction stays a direction.
    */
-  static #TransformNormal(out, value, transform)
+  static _TransformNormal(out, value, transform)
   {
     const x = value[0];
     const y = value[1];
@@ -841,29 +841,29 @@ export class EveBoosterSet2Renderable extends CjsModel
    * Wraps an index into the 300-entry trail offset ring, handling negative
    * values so the ring can be walked backwards.
    */
-  static #WrapOffsetIndex(index)
+  static _WrapOffsetIndex(index)
   {
-    const count = EveBoosterSet2Renderable.#positionOffsetCount;
+    const count = EveBoosterSet2Renderable._positionOffsetCount;
     return ((index % count) + count) % count;
   }
 
-  static #zero = [0, 0, 0];
+  static _zero = [0, 0, 0];
 
-  static #zAxis = [0, 0, 1];
+  static _zAxis = [0, 0, 1];
 
-  static #controlPointCount = 5;
+  static _controlPointCount = 5;
 
-  static #positionOffsetCount = 300;
+  static _positionOffsetCount = 300;
 
-  static #positionOffsetDelta = 0.0167;
+  static _positionOffsetDelta = 0.0167;
 
-  static #floatMax = 3.4028234663852886e38;
+  static _floatMax = 3.4028234663852886e38;
 
   /** Per-frame visibility scratch - UpdateVisibility must not allocate. */
-  static #visibilitySphere = sph3.create();
+  static _visibilitySphere = sph3.create();
 
-  static #trailsSphere = sph3.create();
+  static _trailsSphere = sph3.create();
 
-  static #boundsSphere = sph3.create();
+  static _boundsSphere = sph3.create();
 
 }

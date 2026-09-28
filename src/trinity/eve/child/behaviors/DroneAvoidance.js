@@ -48,11 +48,11 @@ export class DroneAvoidance extends CjsModel
   framesBetweenUpdates = 3;
 
   // Carbon m_frameCounter/m_lastPullForces runtime state.
-  #frameCounter = 0;
+  _frameCounter = 0;
 
-  #lastPullForces = [];
+  _lastPullForces = [];
 
-  #returnForces = [];
+  _returnForces = [];
 
   /** Carbon DroneAvoidance::GetProcessPriority (cpp:22-25). */
   @carbon.method
@@ -84,15 +84,15 @@ export class DroneAvoidance extends CjsModel
       return NO_FORCES;
     }
 
-    const returnForces = this.#returnForces;
+    const returnForces = this._returnForces;
     returnForces.length = 0;
 
-    if (this.#frameCounter === 0)
+    if (this._frameCounter === 0)
     {
       let c = 0;
       for (const agent of agents)
       {
-        const pullForce = this.#PullForceAt(c);
+        const pullForce = this._PullForceAt(c);
 
         if (dronesInSearchRadius.length <= c)
         {
@@ -104,7 +104,7 @@ export class DroneAvoidance extends CjsModel
         if (dronesInSearchRadius.length === 0)
         {
           vec3.set(pullForce, 0, 0, 0);
-          this.#lastPullForces.length = c + 1;
+          this._lastPullForces.length = c + 1;
           return returnForces;
         }
 
@@ -159,11 +159,11 @@ export class DroneAvoidance extends CjsModel
           returnForces.push(vec3.clone(pullForce));
         }
       }
-      this.#lastPullForces.length = c;
+      this._lastPullForces.length = c;
     }
     else
     {
-      if (this.#lastPullForces.length === 0)
+      if (this._lastPullForces.length === 0)
       {
         return returnForces;
       }
@@ -171,12 +171,12 @@ export class DroneAvoidance extends CjsModel
       let c = 0;
       for (const agent of agents)
       {
-        if (c >= this.#lastPullForces.length)
+        if (c >= this._lastPullForces.length)
         {
           break;
         }
 
-        const pullForce = this.#lastPullForces[c];
+        const pullForce = this._lastPullForces[c];
         vec3.add(agent.acceleration, agent.acceleration, pullForce);
 
         if (group.collectForces && vec3.squaredLength(pullForce) > 0)
@@ -198,12 +198,12 @@ export class DroneAvoidance extends CjsModel
   @impl.implemented
   GetBehaviorSearchRadius()
   {
-    if (this.#frameCounter >= this.framesBetweenUpdates)
+    if (this._frameCounter >= this.framesBetweenUpdates)
     {
-      this.#frameCounter = 0;
+      this._frameCounter = 0;
       return this.visionRange;
     }
-    this.#frameCounter++;
+    this._frameCounter++;
     return -1;
   }
 
@@ -211,13 +211,13 @@ export class DroneAvoidance extends CjsModel
   /**
    * The cached pull-force vector for an agent index, created on first use.
    */
-  #PullForceAt(index)
+  _PullForceAt(index)
   {
-    let force = this.#lastPullForces[index];
+    let force = this._lastPullForces[index];
     if (!force)
     {
       force = vec3.create();
-      this.#lastPullForces[index] = force;
+      this._lastPullForces[index] = force;
     }
     return force;
   }

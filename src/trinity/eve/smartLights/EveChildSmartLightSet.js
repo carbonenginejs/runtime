@@ -39,7 +39,7 @@ export class EveChildSmartLightSet extends EveChildTransform
   lightGroups = [];
 
   /** m_inheritProperties (EveChildInheritPropertiesPtr) - lazily created, never persisted (EveChildSmartLightSet.h:72). */
-  #inheritProperties = null;
+  _inheritProperties = null;
 
   @carbon.method
   @impl.implemented
@@ -162,11 +162,11 @@ export class EveChildSmartLightSet extends EveChildTransform
     if (
       list === this.lightGroups &&
       maskedEvent === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#inheritProperties &&
+      this._inheritProperties &&
       value
     )
     {
-      value.SetInheritProperties(this.#inheritProperties.GetProperties());
+      value.SetInheritProperties(this._inheritProperties.GetProperties());
     }
 
     if (
@@ -342,11 +342,11 @@ export class EveChildSmartLightSet extends EveChildTransform
   @impl.implemented
   SetInheritProperties(colorSet)
   {
-    if (!this.#inheritProperties)
+    if (!this._inheritProperties)
     {
-      this.#inheritProperties = new EveChildInheritProperties();
+      this._inheritProperties = new EveChildInheritProperties();
     }
-    this.#inheritProperties.SetProperties(colorSet);
+    this._inheritProperties.SetProperties(colorSet);
 
     for (const group of this.lightGroups)
     {
@@ -354,6 +354,6 @@ export class EveChildSmartLightSet extends EveChildTransform
     }
   }
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
 }

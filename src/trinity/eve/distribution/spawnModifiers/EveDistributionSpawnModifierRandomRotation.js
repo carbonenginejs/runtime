@@ -11,7 +11,7 @@ import { createMinStdRandom, getDistributionSeed, setYawPitchRoll } from "../../
 export class EveDistributionSpawnModifierRandomRotation extends IEveDistributionSpawnModifier
 {
 
-  #timeSeed = Date.now() >>> 0;
+  _timeSeed = Date.now() >>> 0;
 
   /** m_minRotation (Vector3) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -45,7 +45,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   @impl.adapted
   Initialize()
   {
-    this.#timeSeed = Date.now() >>> 0;
+    this._timeSeed = Date.now() >>> 0;
     return true;
   }
 
@@ -58,7 +58,7 @@ export class EveDistributionSpawnModifierRandomRotation extends IEveDistribution
   @impl.adapted
   ProcessSpawnModifier(placement, _numPlacements)
   {
-    const seed = getDistributionSeed(placement.uniqueID, this.#timeSeed, this.consistentRandom);
+    const seed = getDistributionSeed(placement.uniqueID, this._timeSeed, this.consistentRandom);
     const random = createMinStdRandom(seed);
     const euler = vec3.create();
     for (let axis = 0; axis < 3; axis++)

@@ -18,7 +18,7 @@ import { EveVirtualCameraBehaviourVector3Base } from "./EveVirtualCameraBehaviou
 })
 export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehaviourVector3Base
 {
-  static #nextPhase = 0;
+  static _nextPhase = 0;
 
   @edit.readwrite
   @edit.persist
@@ -45,7 +45,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   @type.boolean
   scaleByView = true;
 
-  #phase = EveVirtualCameraBehaviourVector3Shake.#allocatePhase();
+  _phase = EveVirtualCameraBehaviourVector3Shake._allocatePhase();
 
   /**
    * Creates the default magnitude envelope curve and names the behaviour
@@ -54,7 +54,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   constructor()
   {
     super();
-    this.magnitudeCurve = EveVirtualCameraBehaviourVector3Shake.#createMagnitudeCurve();
+    this.magnitudeCurve = EveVirtualCameraBehaviourVector3Shake._createMagnitudeCurve();
     this.SetName("Shake");
   }
 
@@ -79,9 +79,9 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
   Update(camera, _current, _deltaTime, localElapsedTime, _anchorPosition, _anchorRadius, _anchorForwardDirection, out = vec3.create())
   {
     const offset = vec3.clone(this.magnitude);
-    offset[0] *= EveVirtualCameraBehaviourVector3Shake.#clampedNoise(localElapsedTime + this.#phase + 1.1, this.perlineScale, this.octaves);
-    offset[1] *= EveVirtualCameraBehaviourVector3Shake.#clampedNoise(localElapsedTime + this.#phase + 10.1, this.perlineScale, this.octaves);
-    offset[2] *= EveVirtualCameraBehaviourVector3Shake.#clampedNoise(localElapsedTime + this.#phase + 18.3, this.perlineScale, this.octaves);
+    offset[0] *= EveVirtualCameraBehaviourVector3Shake._clampedNoise(localElapsedTime + this._phase + 1.1, this.perlineScale, this.octaves);
+    offset[1] *= EveVirtualCameraBehaviourVector3Shake._clampedNoise(localElapsedTime + this._phase + 10.1, this.perlineScale, this.octaves);
+    offset[2] *= EveVirtualCameraBehaviourVector3Shake._clampedNoise(localElapsedTime + this._phase + 18.3, this.perlineScale, this.octaves);
 
     if (this.magnitudeCurve)
     {
@@ -106,7 +106,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Samples one axis of 1D Perlin noise at the given time offset scaled by
    * frequency, summing the configured number of octaves.
    */
-  static #clampedNoise(offset, frequency, octaves)
+  static _clampedNoise(offset, frequency, octaves)
   {
     return TriPerlinCurve.PerlinNoise1D(offset * frequency, 2, 2, octaves);
   }
@@ -116,7 +116,7 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * rise to full magnitude by 0.1, then a linear fade to zero at the end of the
    * timeline.
    */
-  static #createMagnitudeCurve()
+  static _createMagnitudeCurve()
   {
     const curve = new Tr2CurveScalar();
     curve.SetExtrapolation(Tr2CurveExtrapolation.LINEAR);
@@ -131,10 +131,10 @@ export class EveVirtualCameraBehaviourVector3Shake extends EveVirtualCameraBehav
    * Hands each new instance a distinct noise phase from a rolling 12-bit
    * counter, so shakes created together do not sample identical noise.
    */
-  static #allocatePhase()
+  static _allocatePhase()
   {
-    const phase = EveVirtualCameraBehaviourVector3Shake.#nextPhase & 0xfff;
-    EveVirtualCameraBehaviourVector3Shake.#nextPhase++;
+    const phase = EveVirtualCameraBehaviourVector3Shake._nextPhase & 0xfff;
+    EveVirtualCameraBehaviourVector3Shake._nextPhase++;
     return phase;
   }
 }

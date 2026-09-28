@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 export class EveProceduralMethodAttributeMapParameter extends CjsModel
 {
 
-  #modified = false;
+  _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -61,7 +61,7 @@ export class EveProceduralMethodAttributeMapParameter extends CjsModel
   @impl.implemented
   SetModified(isModified)
   {
-    this.#modified = !!isModified;
+    this._modified = !!isModified;
   }
 
   /** Carbon method IsModified (cpp:42-45). */
@@ -69,7 +69,7 @@ export class EveProceduralMethodAttributeMapParameter extends CjsModel
   @impl.implemented
   IsModified()
   {
-    return this.#modified;
+    return this._modified;
   }
 
   /** Carbon method GetName (cpp:47-50). */

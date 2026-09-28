@@ -54,10 +54,10 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   saturationMultiplier = 1;
 
   /** m_parentColorSet (const Color*) - inherited faction color set, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** Stores the inherited faction color set (EveSmartLightAttributeModifierColor.cpp:18-24). */
   @carbon.method
@@ -66,7 +66,7 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
     }
   }
 
@@ -83,11 +83,11 @@ export class EveSmartLightAttributeModifierColor extends IEveSmartLightGroupAttr
   GetGroupColor()
   {
     return resolveFactionColor(
-      this.#resolvedGroupColor,
+      this._resolvedGroupColor,
       this.blendColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet
+      this._parentColorSet
     );
   }
 

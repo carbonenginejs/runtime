@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 export class EveProceduralMethodThresholdParameter extends CjsModel
 {
 
-  #modified = false;
+  _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -56,7 +56,7 @@ export class EveProceduralMethodThresholdParameter extends CjsModel
     if (value === "threshold")
     {
       this.threshold = Math.max(this.threshold, 0);
-      this.#modified = true;
+      this._modified = true;
     }
 
     if (value === "child")
@@ -75,7 +75,7 @@ export class EveProceduralMethodThresholdParameter extends CjsModel
   @impl.implemented
   SetModified(isModified)
   {
-    this.#modified = !!isModified;
+    this._modified = !!isModified;
   }
 
   /** Carbon method IsModified (cpp:49-52). */
@@ -83,7 +83,7 @@ export class EveProceduralMethodThresholdParameter extends CjsModel
   @impl.implemented
   IsModified()
   {
-    return this.#modified;
+    return this._modified;
   }
 
   /** Carbon method GetThreshold (cpp:54-57). */

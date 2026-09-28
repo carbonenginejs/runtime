@@ -126,19 +126,19 @@ export class EveChildParticleSystem extends EveChildTransform
   currentScreenSize = -1;
 
   /** m_boundingSphere (Vector4) - world-space mesh bound, radius -1 until built. */
-  #boundingSphere = vec4.fromValues(0, 0, 0, -1);
+  _boundingSphere = vec4.fromValues(0, 0, 0, -1);
 
   /** m_lodSphere (Vector4) - world-space LOD probe, radius -1 while lodSphereRadius is unset. */
-  #lodSphere = vec4.fromValues(0, 0, 0, -1);
+  _lodSphere = vec4.fromValues(0, 0, 0, -1);
 
   /** m_worldTransformLast (Matrix) - previous frame's world transform. */
-  #worldTransformLast = mat4.create();
+  _worldTransformLast = mat4.create();
 
   /** m_isVisible (bool) - result of the last UpdateVisibility pass. */
-  #isVisible = true;
+  _isVisible = true;
 
   /** m_hasUpdated (bool) - until an update ran, the object cannot be rendered. */
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   /** Rebuilds static local transforms (EveChildParticleSystem.cpp:43-50). */
   @carbon.method
@@ -204,18 +204,18 @@ export class EveChildParticleSystem extends EveChildTransform
   UpdateVisibility(updateContext, _parentTransform, _parentLod)
   {
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-    this.#isVisible = this.display && this.#hasUpdated && frustum?.IsSphereVisible(this.#boundingSphere) !== false;
-    if (this.#isVisible)
+    this._isVisible = this.display && this._hasUpdated && frustum?.IsSphereVisible(this._boundingSphere) !== false;
+    if (this._isVisible)
     {
-      this.currentScreenSize = Number(frustum?.GetPixelSizeAccrossEst?.(this.#lodSphere) ?? Infinity);
+      this.currentScreenSize = Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity);
       const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-      this.#isVisible = this.#isVisible && this.currentScreenSize >= this.minScreenSize * lodFactor;
+      this._isVisible = this._isVisible && this.currentScreenSize >= this.minScreenSize * lodFactor;
     }
     else
     {
       this.currentScreenSize = -1;
     }
-    if (this.#isVisible)
+    if (this._isVisible)
     {
       for (const system of this.particleSystems)
       {
@@ -235,8 +235,8 @@ export class EveChildParticleSystem extends EveChildTransform
   {
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
     const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
-    return frustum?.IsSphereVisible(this.#boundingSphere) !== false &&
-      Number(frustum?.GetPixelSizeAccrossEst?.(this.#lodSphere) ?? Infinity) >= this.minScreenSize * lodFactor;
+    return frustum?.IsSphereVisible(this._boundingSphere) !== false &&
+      Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity) >= this.minScreenSize * lodFactor;
   }
 
   /**
@@ -247,7 +247,7 @@ export class EveChildParticleSystem extends EveChildTransform
   @impl.implemented
   GetRenderables(renderables = [])
   {
-    if (!this.#isVisible)
+    if (!this._isVisible)
     {
       return renderables;
     }
@@ -264,11 +264,11 @@ export class EveChildParticleSystem extends EveChildTransform
   @impl.implemented
   GetBoundingSphere(out = vec4.create(), _query = 0)
   {
-    if (this.#boundingSphere[3] === -1)
+    if (this._boundingSphere[3] === -1)
     {
       return false;
     }
-    vec4.copy(out, this.#boundingSphere);
+    vec4.copy(out, this._boundingSphere);
     return true;
   }
 
@@ -337,7 +337,7 @@ export class EveChildParticleSystem extends EveChildTransform
     const data = accumulator.Alloc("EveBasicPerObjectData");
 
     data.SetAndTranspose("world", this.worldTransform);
-    data.SetAndTranspose("worldLast", this.#worldTransformLast);
+    data.SetAndTranspose("worldLast", this._worldTransformLast);
 
     const inverse = mat4.create();
     if (!mat4.invert(inverse, this.worldTransform)) mat4.identity(inverse);
@@ -364,7 +364,7 @@ export class EveChildParticleSystem extends EveChildTransform
   @impl.reason("Renderer-global frustum state is read from the update context, and emitter/system updates use the backend-neutral argument record.")
   UpdateAsyncronous(updateContext, params)
   {
-    mat4.copy(this.#worldTransformLast, this.worldTransform);
+    mat4.copy(this._worldTransformLast, this.worldTransform);
     const parentTransform = params?.localToWorldTransform;
     if (parentTransform && parentTransform.length === 16)
     {
@@ -372,20 +372,20 @@ export class EveChildParticleSystem extends EveChildTransform
     }
     applyTransformModifiers(this, updateContext, params?.boneCount ?? 0, params?.bones ?? null);
 
-    if (this.mesh?.GetBoundingBox?.(EveChildParticleSystem.#boundsMin, EveChildParticleSystem.#boundsMax))
+    if (this.mesh?.GetBoundingBox?.(EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax))
     {
-      sph3.fromBounds(EveChildParticleSystem.#localSphere, EveChildParticleSystem.#boundsMin, EveChildParticleSystem.#boundsMax);
-      sph3.transformMat4(this.#boundingSphere, EveChildParticleSystem.#localSphere, this.worldTransform);
+      sph3.fromBounds(EveChildParticleSystem._localSphere, EveChildParticleSystem._boundsMin, EveChildParticleSystem._boundsMax);
+      sph3.transformMat4(this._boundingSphere, EveChildParticleSystem._localSphere, this.worldTransform);
     }
 
     if (this.lodSphereRadius > 0)
     {
-      vec4.set(this.#lodSphere, 0, 0, 0, this.lodSphereRadius);
-      sph3.transformMat4(this.#lodSphere, this.#lodSphere, this.worldTransform);
+      vec4.set(this._lodSphere, 0, 0, 0, this.lodSphereRadius);
+      sph3.transformMat4(this._lodSphere, this._lodSphere, this.worldTransform);
     }
     else
     {
-      this.#lodSphere[3] = -1;
+      this._lodSphere[3] = -1;
     }
 
     for (const system of this.particleSystems)
@@ -395,7 +395,7 @@ export class EveChildParticleSystem extends EveChildTransform
 
     const time = Number(updateContext?.GetTime?.() ?? updateContext?.currentTime ?? 0);
     const gpuParticleSystem = updateContext?.GetGpuParticleSystem?.() ?? updateContext?.gpuParticleSystem ?? null;
-    const originShift = updateContext?.GetOriginShift?.() ?? updateContext?.originShift ?? EveChildParticleSystem.#zero;
+    const originShift = updateContext?.GetOriginShift?.() ?? updateContext?.originShift ?? EveChildParticleSystem._zero;
 
     if (this.particleEmitters.length)
     {
@@ -410,14 +410,14 @@ export class EveChildParticleSystem extends EveChildTransform
         // here (EveChildParticleSystem.cpp:246-254); the relocated camera
         // state is the context frustum.
         const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
-        const size = Number(frustum?.GetPixelSizeAccrossEst?.(this.#lodSphere) ?? Infinity);
+        const size = Number(frustum?.GetPixelSizeAccrossEst?.(this._lodSphere) ?? Infinity);
         const lodFactor = Number(updateContext?.GetLodFactor?.() ?? updateContext?.lodFactor) || 1;
         if (size < this.minScreenSize * lodFactor)
         {
           emitCountFactor = 0;
         }
       }
-      const args = EveChildParticleSystem.#emitterArgs;
+      const args = EveChildParticleSystem._emitterArgs;
       args.time = time;
       args.system = gpuParticleSystem;
       mat4.copy(args.parentTransform, this.worldTransform);
@@ -433,10 +433,10 @@ export class EveChildParticleSystem extends EveChildTransform
     {
       // Carbon passes IdentityMatrix() for the systems' own update
       // (EveChildParticleSystem.cpp:267-278).
-      const args = EveChildParticleSystem.#systemArgs;
+      const args = EveChildParticleSystem._systemArgs;
       args.time = time;
       args.system = gpuParticleSystem;
-      mat4.copy(args.parentTransform, EveChildParticleSystem.#identity);
+      mat4.copy(args.parentTransform, EveChildParticleSystem._identity);
       vec3.copy(args.originShift, originShift);
       args.emitCountFactor = 1;
       for (const system of this.particleSystems)
@@ -445,7 +445,7 @@ export class EveChildParticleSystem extends EveChildTransform
       }
     }
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
   }
 
   /** Returns the local-to-world matrix (EveChildParticleSystem.cpp:286-289). */
@@ -518,21 +518,21 @@ export class EveChildParticleSystem extends EveChildTransform
 
   static Tr2Lod = Tr2Lod;
 
-  static #boundsMin = vec3.create();
+  static _boundsMin = vec3.create();
 
-  static #boundsMax = vec3.create();
+  static _boundsMax = vec3.create();
 
-  static #localSphere = vec4.create();
+  static _localSphere = vec4.create();
 
-  static #zero = vec3.create();
+  static _zero = vec3.create();
 
-  static #identity = mat4.create();
+  static _identity = mat4.create();
 
   // Reusable emitter/system argument records (backend-neutral mirror of
   // ITr2GenericEmitter::UpdateArguments); child updates run sequentially, so
   // the shared records are non-reentrant by design.
-  static #emitterArgs = new ITr2GenericEmitterUpdateArguments();
+  static _emitterArgs = new ITr2GenericEmitterUpdateArguments();
 
-  static #systemArgs = new ITr2GenericEmitterUpdateArguments();
+  static _systemArgs = new ITr2GenericEmitterUpdateArguments();
 
 }

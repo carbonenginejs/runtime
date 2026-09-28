@@ -65,11 +65,11 @@ export class EveMultiEffect extends CjsModel
     const out = Object.create(null);
     for (const parameter of this.parameters)
     {
-      out[EveMultiEffect.#GetName(parameter)] = parameter?.GetParameterObject?.() ?? parameter?.object ?? null;
+      out[EveMultiEffect._GetName(parameter)] = parameter?.GetParameterObject?.() ?? parameter?.object ?? null;
     }
     for (const curveSet of this.curveSets)
     {
-      out[EveMultiEffect.#GetName(curveSet)] = curveSet?.GetRawRoot?.() ?? curveSet;
+      out[EveMultiEffect._GetName(curveSet)] = curveSet?.GetRawRoot?.() ?? curveSet;
     }
     out.Owner = this;
     return out;
@@ -185,7 +185,7 @@ export class EveMultiEffect extends CjsModel
   GetParameterByName(parameterName)
   {
     const name = String(parameterName);
-    return this.parameters.find(parameter => EveMultiEffect.#GetName(parameter) === name) ?? null;
+    return this.parameters.find(parameter => EveMultiEffect._GetName(parameter) === name) ?? null;
   }
 
   /**
@@ -198,12 +198,12 @@ export class EveMultiEffect extends CjsModel
   @impl.reason("Mutates a JavaScript object or Map while preserving Carbon's base-Owner-then-parameter precedence.")
   GetBindingRoots(out = {})
   {
-    EveMultiEffect.#SetMapValue(out, "Owner", this);
+    EveMultiEffect._SetMapValue(out, "Owner", this);
     for (const parameter of this.parameters)
     {
-      EveMultiEffect.#SetMapValue(
+      EveMultiEffect._SetMapValue(
         out,
-        EveMultiEffect.#GetName(parameter),
+        EveMultiEffect._GetName(parameter),
         parameter?.GetParameterObject?.() ?? parameter?.object ?? null
       );
     }
@@ -220,7 +220,7 @@ export class EveMultiEffect extends CjsModel
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) !== name) continue;
+      if (EveMultiEffect._GetName(curveSet) !== name) continue;
       if (rangeName) curveSet?.PlayTimeRange?.(rangeName);
       else
       {
@@ -237,7 +237,7 @@ export class EveMultiEffect extends CjsModel
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name) curveSet?.Stop();
+      if (EveMultiEffect._GetName(curveSet) === name) curveSet?.Stop();
     }
   }
 
@@ -251,7 +251,7 @@ export class EveMultiEffect extends CjsModel
   {
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name) curveSet.Update(time, time, renderContext);
+      if (EveMultiEffect._GetName(curveSet) === name) curveSet.Update(time, time, renderContext);
     }
   }
 
@@ -266,7 +266,7 @@ export class EveMultiEffect extends CjsModel
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name)
+      if (EveMultiEffect._GetName(curveSet) === name)
       {
         duration = Math.max(duration, Number(curveSet?.GetMaxCurveDuration?.() ?? 0));
       }
@@ -285,7 +285,7 @@ export class EveMultiEffect extends CjsModel
     let duration = 0;
     for (const curveSet of this.curveSets)
     {
-      if (EveMultiEffect.#GetName(curveSet) === name)
+      if (EveMultiEffect._GetName(curveSet) === name)
       {
         duration = Math.max(duration, Number(curveSet?.GetRangeDuration(rangeName) ?? 0));
       }
@@ -414,7 +414,7 @@ export class EveMultiEffect extends CjsModel
    * Name of a parameter slot or curve set as a string, from GetName() or a name
    * field, empty when it has neither.
    */
-  static #GetName(value)
+  static _GetName(value)
   {
     return String(value?.GetName?.() ?? value?.name ?? "");
   }
@@ -423,7 +423,7 @@ export class EveMultiEffect extends CjsModel
    * Writes a name and value into a binding-root container that may be either a
    * Map or a plain object.
    */
-  static #SetMapValue(out, name, value)
+  static _SetMapValue(out, name, value)
   {
     if (out instanceof Map) out.set(name, value);
     else out[name] = value;

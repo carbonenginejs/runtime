@@ -38,7 +38,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
   @type.boolean
   showVelocity = true;
 
-  #velocity = vec3.create();
+  _velocity = vec3.create();
 
   /**
    * Samples the translation curve at the update context's time, storing the
@@ -52,7 +52,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
   {
     if (!this.translationCurve) return;
     const time = updateContext.GetTime();
-    this.translationCurve.GetValueDotAt(time, this.#velocity);
+    this.translationCurve.GetValueDotAt(time, this._velocity);
     this.translationCurve.GetValueAt(time, this.position);
   }
 
@@ -62,7 +62,7 @@ export class EveTacticalOverlayTrackObject extends CjsModel
   @impl.reason("Carbon returns Vector3 by value; JavaScript follows the runtime vector out-parameter convention.")
   GetVelocity(out = vec3.create())
   {
-    return vec3.copy(out, this.#velocity);
+    return vec3.copy(out, this._velocity);
   }
 
   /** Copies the tracked position into out. */

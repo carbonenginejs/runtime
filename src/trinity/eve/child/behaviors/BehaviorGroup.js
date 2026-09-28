@@ -36,48 +36,48 @@ function ClampLength(value, maxLength)
 export class BehaviorGroup extends EveEntity
 {
 
-  #agents = [];
+  _agents = [];
 
   // Per-behavior scratch: #scratchData[behaviorIndex] is an array of plain
   // per-agent records (behavior.InitializeScratch()) or null when the
   // behavior reports no scratch (Carbon m_scratchData raw buffers).
-  #scratchData = [];
+  _scratchData = [];
 
   // Behavior indexes ordered by ProcessPriority (Carbon m_sortedBehaviorIndexes).
-  #sortedBehaviorIndexes = [];
+  _sortedBehaviorIndexes = [];
 
   // Spatial partitioning tree (Carbon m_tree).
-  #tree = null;
+  _tree = null;
 
   // Carbon m_updatedOnce/m_createAgentTree runtime frame state.
-  #updatedOnce = false;
+  _updatedOnce = false;
 
-  #createAgentTree = false;
+  _createAgentTree = false;
 
   // Cached PlayFX behavior (Carbon m_playFXBehavior).
-  #playFXBehavior = null;
+  _playFXBehavior = null;
 
   // Owner-provided buffer resize callback (Carbon m_changeBufferVertexCount).
-  #changeBufferVertexCount = null;
+  _changeBufferVertexCount = null;
 
   // Debug force collection (Carbon m_forces; pairs of position/force vec3s).
-  #forces = [];
+  _forces = [];
 
   // Reused per-frame search radii (Carbon local `ranges`).
-  #ranges = [];
+  _ranges = [];
 
   // agentIndex -> vec4(position.xyz, lightScale) (Carbon m_lightInfo);
   // filled by the GPU booster-buffer path, consumed by GetLights.
-  #lightInfo = new Map();
+  _lightInfo = new Map();
 
   // World transform captured by UpdateVisibility (Carbon m_parentTransform).
-  #parentTransform = mat4.create();
+  _parentTransform = mat4.create();
 
   // Owning space object (Carbon m_parent), captured in UpdateSyncronous.
-  #parent = null;
+  _parent = null;
 
   // Base-instance indicator assigned by the behavior system (Carbon m_groupIndex).
-  #groupIndex = 0;
+  _groupIndex = 0;
 
   /** m_display (bool) [READWRITE, PERSIST] */
   @edit.readwrite
@@ -200,7 +200,7 @@ export class BehaviorGroup extends EveEntity
   @impl.reason("Vertex-declaration creation is a GPU seam; scratch sizing, booster flare-count sync, and the PlayFX cache are ported.")
   Initialize()
   {
-    this.#EnsureScratchArrays();
+    this._EnsureScratchArrays();
     this.CreateVertexDeclaration();
 
     if (this.boosters)
@@ -239,12 +239,12 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   InitializeGeometryResource()
   {
-    this.#agents.length = 0;
-    for (let i = 0; i < this.#scratchData.length; i++)
+    this._agents.length = 0;
+    for (let i = 0; i < this._scratchData.length; i++)
     {
-      if (this.#scratchData[i])
+      if (this._scratchData[i])
       {
-        this.#scratchData[i].length = 0;
+        this._scratchData[i].length = 0;
       }
     }
 
@@ -260,7 +260,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   SetVertexFunctionReferance(callback)
   {
-    this.#changeBufferVertexCount = typeof callback === "function" ? callback : null;
+    this._changeBufferVertexCount = typeof callback === "function" ? callback : null;
   }
 
   /** Carbon BehaviorGroup::GetSize (cpp:151-154). */
@@ -268,7 +268,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   GetSize()
   {
-    return this.#agents.length;
+    return this._agents.length;
   }
 
   /** Carbon BehaviorGroup::GetCount (cpp:160-163). */
@@ -284,9 +284,9 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   CreateAgentTree()
   {
-    this.#tree = new EveKDdroneManagementTree();
-    this.#tree.CreateTree(this.#agents, this.behaviors.length);
-    return this.#tree;
+    this._tree = new EveKDdroneManagementTree();
+    this._tree.CreateTree(this._agents, this.behaviors.length);
+    return this._tree;
   }
 
   /** Carbon BehaviorGroup::GetBehaviorByName (cpp:187-197). */
@@ -310,14 +310,14 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   SortBehaviorIndexes()
   {
-    this.#sortedBehaviorIndexes.length = 0;
+    this._sortedBehaviorIndexes.length = 0;
     for (let priority = 0; priority < ProcessPriority.COUNT; priority++)
     {
       for (let index = 0; index < this.behaviors.length; index++)
       {
         if ((this.behaviors[index]?.GetProcessPriority?.() ?? ProcessPriority.LEAST_PRIORITY) === priority)
         {
-          this.#sortedBehaviorIndexes.push(index);
+          this._sortedBehaviorIndexes.push(index);
         }
       }
     }
@@ -344,7 +344,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   SetGroupIndexIndicator(index)
   {
-    this.#groupIndex = Number(index) | 0;
+    this._groupIndex = Number(index) | 0;
   }
 
   /** Carbon BehaviorGroup::GetGroupIndexIndicator (cpp:263-266). */
@@ -352,7 +352,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   GetGroupIndexIndicator()
   {
-    return this.#groupIndex;
+    return this._groupIndex;
   }
 
   /** Carbon method AddAgent (cpp:272-278). */
@@ -360,8 +360,8 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   AddAgent()
   {
-    this.#AddAgentPrivate();
-    this.#OnAgentCountChanged();
+    this._AddAgentPrivate();
+    this._OnAgentCountChanged();
   }
 
   /**
@@ -378,22 +378,22 @@ export class BehaviorGroup extends EveEntity
       return;
     }
 
-    const firstNewIndex = this.#agents.length;
+    const firstNewIndex = this._agents.length;
     for (const position of positions)
     {
-      const agent = this.#createAgent();
+      const agent = this._createAgent();
       vec3.copy(agent.position, position);
-      this.#agents.push(agent);
+      this._agents.push(agent);
     }
 
-    this.#EnsureScratchArrays();
-    for (let agentIndex = firstNewIndex; agentIndex < this.#agents.length; agentIndex++)
+    this._EnsureScratchArrays();
+    for (let agentIndex = firstNewIndex; agentIndex < this._agents.length; agentIndex++)
     {
-      this.#InitializeScratchForAgent(agentIndex);
+      this._InitializeScratchForAgent(agentIndex);
     }
 
     this.actualCount += positions.length;
-    this.#OnAgentCountChanged();
+    this._OnAgentCountChanged();
   }
 
   /** Carbon method RemoveAgent (cpp:415-426). */
@@ -402,13 +402,13 @@ export class BehaviorGroup extends EveEntity
   @impl.reason("Math.random replaces Carbon's TriRandInt when selecting the removed agent.")
   RemoveAgent()
   {
-    if (this.#agents.length === 0)
+    if (this._agents.length === 0)
     {
       return;
     }
-    const index = Math.floor(Math.random() * this.#agents.length);
+    const index = Math.floor(Math.random() * this._agents.length);
     this.RemoveSpecificAgent(index);
-    this.#OnAgentCountChanged();
+    this._OnAgentCountChanged();
   }
 
   /**
@@ -420,28 +420,28 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   RemoveSpecificAgent(index)
   {
-    const lastIndex = this.#agents.length - 1;
+    const lastIndex = this._agents.length - 1;
     if (index < 0 || index > lastIndex)
     {
       return;
     }
 
-    this.#agents[index] = this.#agents[lastIndex];
-    this.#agents.pop();
+    this._agents[index] = this._agents[lastIndex];
+    this._agents.pop();
 
     for (let i = 0; i < this.behaviors.length; i++)
     {
-      const records = this.#scratchData[i];
+      const records = this._scratchData[i];
       if (!records)
       {
         continue;
       }
       records[index] = records[lastIndex];
-      records.length = this.#agents.length;
+      records.length = this._agents.length;
     }
 
     this.actualCount--;
-    this.#OnAgentCountChanged();
+    this._OnAgentCountChanged();
   }
 
   /** Carbon method SetCount (cpp:350-368). */
@@ -458,17 +458,17 @@ export class BehaviorGroup extends EveEntity
 
     if (this.actualCount < desired)
     {
-      this.#AddAgentsByCount(desired);
+      this._AddAgentsByCount(desired);
     }
     else
     {
-      this.#RemoveAgentsByCount(desired);
+      this._RemoveAgentsByCount(desired);
     }
 
     // Carbon updates only m_actualCount here; m_count stays the authored
     // spawn count that InitializeGeometryResource restores.
     this.actualCount = desired;
-    this.#OnAgentCountChanged();
+    this._OnAgentCountChanged();
   }
 
   /**
@@ -488,36 +488,36 @@ export class BehaviorGroup extends EveEntity
     // JS has no Blue list notify: keep the priority order and scratch shells
     // in sync with the behavior list before the frame body runs (Carbon's
     // OnListModified seam).
-    if (this.#sortedBehaviorIndexes.length !== this.behaviors.length)
+    if (this._sortedBehaviorIndexes.length !== this.behaviors.length)
     {
       this.SortBehaviorIndexes();
     }
-    this.#EnsureScratchArrays();
-    this.#SyncScratchRecords();
+    this._EnsureScratchArrays();
+    this._SyncScratchRecords();
 
-    if (this.#updatedOnce)
+    if (this._updatedOnce)
     {
       if (!this.display || !this.update)
       {
-        this.#tree = null;
+        this._tree = null;
         return;
       }
-      if (this.#agents.length === 0)
+      if (this._agents.length === 0)
       {
         for (let i = 0; i < this.behaviors.length; i++)
         {
-          const index = this.#sortedBehaviorIndexes[i];
-          this.behaviors[index]?.CalculateBehavior?.(this.#agents, this.#scratchData[index], deltaTime, this, system, EMPTY_SEARCH_TREE);
+          const index = this._sortedBehaviorIndexes[i];
+          this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, EMPTY_SEARCH_TREE);
         }
         return;
       }
     }
-    if (this.#tree === null)
+    if (this._tree === null)
     {
       this.CreateAgentTree();
     }
 
-    const ranges = this.#ranges;
+    const ranges = this._ranges;
     ranges.length = 0;
     const boundingRadius = this.boundingSphereRadius * this.scale;
     for (const behavior of this.behaviors)
@@ -526,21 +526,21 @@ export class BehaviorGroup extends EveEntity
       ranges.push(searchRadius === -1 ? -1 : searchRadius + boundingRadius);
     }
 
-    const dronesInRange = this.#tree.FindDronesInRange(this.#agents, ranges, boundingRadius);
+    const dronesInRange = this._tree.FindDronesInRange(this._agents, ranges, boundingRadius);
 
     // Calculate the behaviors
     if (this.collectForces)
     {
-      this.#forces.length = 0;
+      this._forces.length = 0;
       for (let i = 0; i < this.behaviors.length; i++)
       {
-        const index = this.#sortedBehaviorIndexes[i];
-        const forces = this.behaviors[index]?.CalculateBehavior?.(this.#agents, this.#scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
+        const index = this._sortedBehaviorIndexes[i];
+        const forces = this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
         if (Array.isArray(forces))
         {
           for (const force of forces)
           {
-            this.#forces.push(force);
+            this._forces.push(force);
           }
         }
       }
@@ -549,14 +549,14 @@ export class BehaviorGroup extends EveEntity
     {
       for (let i = 0; i < this.behaviors.length; i++)
       {
-        const index = this.#sortedBehaviorIndexes[i];
-        this.behaviors[index]?.CalculateBehavior?.(this.#agents, this.#scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
+        const index = this._sortedBehaviorIndexes[i];
+        this.behaviors[index]?.CalculateBehavior?.(this._agents, this._scratchData[index], deltaTime, this, system, dronesInRange[index] ?? EMPTY_SEARCH_TREE);
       }
     }
 
     // Move the agents based on the behaviors
     const maxVelocitySq = Math.max(1, this.maxVelocity * this.maxVelocity);
-    for (const agent of this.#agents)
+    for (const agent of this._agents)
     {
       agent.lifetime += deltaTime;
 
@@ -576,11 +576,11 @@ export class BehaviorGroup extends EveEntity
       vec3.set(agent.acceleration, 0, 0, 0);
     }
 
-    this.#tree.UpdateTree(deltaTime);
+    this._tree.UpdateTree(deltaTime);
 
     // we always want to update the behaviors at least once, otherwise
     // behaviors like SpawnDrones won't get to spawn the drones
-    this.#updatedOnce = true;
+    this._updatedOnce = true;
   }
 
   /**
@@ -599,9 +599,9 @@ export class BehaviorGroup extends EveEntity
 
     const frustum = updateContext?.GetFrustum?.() ?? updateContext?.frustum;
     const boundingRadius = this.boundingSphereRadius * this.scale;
-    const blendModifier = this.#GetBlendModifier();
+    const blendModifier = this._GetBlendModifier();
 
-    for (const agent of this.#agents)
+    for (const agent of this._agents)
     {
       vec3.transformMat4(AGENT_SPHERE, agent.position, worldTransform);
       AGENT_SPHERE[3] = boundingRadius;
@@ -632,7 +632,7 @@ export class BehaviorGroup extends EveEntity
     }
     this.mesh?.UseWithScreenSize?.(this.currentScreenSize, worldRadius);
 
-    mat4.copy(this.#parentTransform, worldTransform);
+    mat4.copy(this._parentTransform, worldTransform);
   }
 
   /** Carbon BehaviorGroup::IsGroupVisible (cpp:683-686). */
@@ -652,7 +652,7 @@ export class BehaviorGroup extends EveEntity
   AllTheSame()
   {
     let same = -1;
-    for (const agent of this.#agents)
+    for (const agent of this._agents)
     {
       if (same === -1)
       {
@@ -695,9 +695,9 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   GetRenderables(renderables = [])
   {
-    if (this.#playFXBehavior !== null)
+    if (this._playFXBehavior !== null)
     {
-      this.#playFXBehavior.GetRenderables(renderables);
+      this._playFXBehavior.GetRenderables(renderables);
     }
     return renderables;
   }
@@ -712,9 +712,9 @@ export class BehaviorGroup extends EveEntity
       return;
     }
 
-    if (this.#playFXBehavior !== null)
+    if (this._playFXBehavior !== null)
     {
-      this.#playFXBehavior.UpdateAsyncronous(updateContext, this.#parentTransform);
+      this._playFXBehavior.UpdateAsyncronous(updateContext, this._parentTransform);
     }
   }
 
@@ -728,20 +728,20 @@ export class BehaviorGroup extends EveEntity
     {
       return;
     }
-    if (this.#createAgentTree === true)
+    if (this._createAgentTree === true)
     {
       this.CreateAgentTree();
-      this.#createAgentTree = false;
+      this._createAgentTree = false;
     }
 
-    if (this.#playFXBehavior !== null)
+    if (this._playFXBehavior !== null)
     {
-      this.#playFXBehavior.UpdateSyncronous(updateContext);
+      this._playFXBehavior.UpdateSyncronous(updateContext);
     }
 
-    if (this.#parent === null && params?.spaceObjectParent)
+    if (this._parent === null && params?.spaceObjectParent)
     {
-      this.#parent = params.spaceObjectParent;
+      this._parent = params.spaceObjectParent;
     }
   }
 
@@ -750,7 +750,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   GetParent()
   {
-    return this.#parent;
+    return this._parent;
   }
 
   /** Carbon BehaviorGroup::GetBoundingSphereRadius (cpp:953-956). */
@@ -766,7 +766,7 @@ export class BehaviorGroup extends EveEntity
   @impl.implemented
   GetKDTree()
   {
-    return this.#tree;
+    return this._tree;
   }
 
   /** Carbon BehaviorGroup::GetBooster (cpp:963-966). */
@@ -790,11 +790,11 @@ export class BehaviorGroup extends EveEntity
     if (behavior instanceof PlayFX)
     {
       const registry = this.GetComponentRegistry();
-      if (registry && this.#playFXBehavior)
+      if (registry && this._playFXBehavior)
       {
-        this.#playFXBehavior.UnRegister?.(registry);
+        this._playFXBehavior.UnRegister?.(registry);
       }
-      this.#playFXBehavior = behavior;
+      this._playFXBehavior = behavior;
       if (registry)
       {
         behavior.Register?.(registry);
@@ -815,9 +815,9 @@ export class BehaviorGroup extends EveEntity
   {
     if (this.boosters && this.boosters.GetDisplay?.())
     {
-      for (const [agentIndex, info] of this.#lightInfo)
+      for (const [agentIndex, info] of this._lightInfo)
       {
-        this.boosters.AddLight(lightManager, info, info[3], agentIndex, this.#parentTransform);
+        this.boosters.AddLight(lightManager, info, info[3], agentIndex, this._parentTransform);
       }
     }
   }
@@ -847,7 +847,7 @@ export class BehaviorGroup extends EveEntity
     if (registry)
     {
       registry.RegisterComponent(EveComponentType.LightOwner, this);
-      this.#playFXBehavior?.Register?.(registry);
+      this._playFXBehavior?.Register?.(registry);
     }
   }
 
@@ -859,7 +859,7 @@ export class BehaviorGroup extends EveEntity
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      this.#playFXBehavior?.UnRegister?.(registry);
+      this._playFXBehavior?.UnRegister?.(registry);
     }
   }
 
@@ -874,9 +874,9 @@ export class BehaviorGroup extends EveEntity
       this.boosters.RegisterWithQuadRenderer?.(quadRenderer);
     }
 
-    if (this.#playFXBehavior !== null)
+    if (this._playFXBehavior !== null)
     {
-      this.#playFXBehavior.RegisterWithQuadRenderer?.(quadRenderer);
+      this._playFXBehavior.RegisterWithQuadRenderer?.(quadRenderer);
     }
   }
 
@@ -893,9 +893,9 @@ export class BehaviorGroup extends EveEntity
         this.boosters.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
       }
 
-      if (this.#playFXBehavior !== null)
+      if (this._playFXBehavior !== null)
       {
-        this.#playFXBehavior.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
+        this._playFXBehavior.AddQuadsToQuadRenderer?.(frustum, quadRenderer);
       }
     }
   }
@@ -904,21 +904,21 @@ export class BehaviorGroup extends EveEntity
   @impl.adapted
   GetAgents()
   {
-    return this.#agents;
+    return this._agents;
   }
 
   /** Returns the collected debug force pairs (Carbon m_forces). */
   @impl.adapted
   GetForces()
   {
-    return this.#forces;
+    return this._forces;
   }
 
   // Carbon GetBlendModifier (cpp:628-631).
   /**
    * The reciprocal of the mesh-to-sprite blend screen-size range, used to interpolate an agent's crossfade.
    */
-  #GetBlendModifier()
+  _GetBlendModifier()
   {
     return 1 / Math.max(0.0001, this.blendScreenSizeMax - this.blendScreenSizeMin);
   }
@@ -928,11 +928,11 @@ export class BehaviorGroup extends EveEntity
   /**
    * Grows the per-behaviour scratch array so it has one slot per behaviour in the group.
    */
-  #EnsureScratchArrays()
+  _EnsureScratchArrays()
   {
-    while (this.#scratchData.length < this.behaviors.length)
+    while (this._scratchData.length < this.behaviors.length)
     {
-      this.#scratchData.push(null);
+      this._scratchData.push(null);
     }
   }
 
@@ -942,24 +942,24 @@ export class BehaviorGroup extends EveEntity
   /**
    * Adds missing per-agent scratch records and trims stale ones for every behaviour that needs scratch storage.
    */
-  #SyncScratchRecords()
+  _SyncScratchRecords()
   {
     for (let i = 0; i < this.behaviors.length; i++)
     {
       const behavior = this.behaviors[i];
       if ((behavior?.GetScratchMemorySize?.() ?? 0) > 0)
       {
-        let records = this.#scratchData[i];
+        let records = this._scratchData[i];
         if (!records)
         {
           records = [];
-          this.#scratchData[i] = records;
+          this._scratchData[i] = records;
         }
-        for (let j = records.length; j < this.#agents.length; j++)
+        for (let j = records.length; j < this._agents.length; j++)
         {
           records[j] = behavior.InitializeScratch();
         }
-        records.length = this.#agents.length;
+        records.length = this._agents.length;
       }
     }
   }
@@ -969,18 +969,18 @@ export class BehaviorGroup extends EveEntity
   /**
    * Initialises the scratch record for one agent index in every behaviour that uses scratch storage.
    */
-  #InitializeScratchForAgent(agentIndex)
+  _InitializeScratchForAgent(agentIndex)
   {
     for (let i = 0; i < this.behaviors.length; i++)
     {
       const behavior = this.behaviors[i];
       if ((behavior?.GetScratchMemorySize?.() ?? 0) > 0)
       {
-        let records = this.#scratchData[i];
+        let records = this._scratchData[i];
         if (!records)
         {
           records = [];
-          this.#scratchData[i] = records;
+          this._scratchData[i] = records;
         }
         records[agentIndex] = behavior.InitializeScratch();
       }
@@ -991,12 +991,12 @@ export class BehaviorGroup extends EveEntity
   /**
    * Creates and appends one agent, initialises its scratch records, and increments the live agent count.
    */
-  #AddAgentPrivate()
+  _AddAgentPrivate()
   {
-    const agent = this.#createAgent();
-    this.#agents.push(agent);
-    this.#EnsureScratchArrays();
-    this.#InitializeScratchForAgent(this.#agents.length - 1);
+    const agent = this._createAgent();
+    this._agents.push(agent);
+    this._EnsureScratchArrays();
+    this._InitializeScratchForAgent(this._agents.length - 1);
     this.actualCount++;
   }
 
@@ -1004,18 +1004,18 @@ export class BehaviorGroup extends EveEntity
   /**
    * Appends agents until the group reaches the requested count, initialising scratch records for each.
    */
-  #AddAgentsByCount(count)
+  _AddAgentsByCount(count)
   {
-    const sizeBeforeResize = this.#agents.length;
-    while (this.#agents.length < count)
+    const sizeBeforeResize = this._agents.length;
+    while (this._agents.length < count)
     {
-      this.#agents.push(this.#createAgent());
+      this._agents.push(this._createAgent());
     }
 
-    this.#EnsureScratchArrays();
-    for (let agentIndex = sizeBeforeResize; agentIndex < this.#agents.length; agentIndex++)
+    this._EnsureScratchArrays();
+    for (let agentIndex = sizeBeforeResize; agentIndex < this._agents.length; agentIndex++)
     {
-      this.#InitializeScratchForAgent(agentIndex);
+      this._InitializeScratchForAgent(agentIndex);
     }
   }
 
@@ -1023,12 +1023,12 @@ export class BehaviorGroup extends EveEntity
   /**
    * Truncates the agent list and every behaviour's scratch array down to the requested count.
    */
-  #RemoveAgentsByCount(count)
+  _RemoveAgentsByCount(count)
   {
-    this.#agents.length = count;
+    this._agents.length = count;
     for (let i = 0; i < this.behaviors.length; i++)
     {
-      const records = this.#scratchData[i];
+      const records = this._scratchData[i];
       if (records)
       {
         records.length = count;
@@ -1039,7 +1039,7 @@ export class BehaviorGroup extends EveEntity
   /**
    * Creates an agent with default motion, rendering and lifetime state at the group's current spawn position.
    */
-  #createAgent()
+  _createAgent()
   {
     return {
       closestAgentInGroup: null,
@@ -1067,12 +1067,12 @@ export class BehaviorGroup extends EveEntity
   /**
    * Flags the agent tree for rebuild, notifies the owner's buffer-resize callback, and resyncs the booster flare count.
    */
-  #OnAgentCountChanged()
+  _OnAgentCountChanged()
   {
-    this.#createAgentTree = true;
-    if (this.#changeBufferVertexCount)
+    this._createAgentTree = true;
+    if (this._changeBufferVertexCount)
     {
-      this.#changeBufferVertexCount();
+      this._changeBufferVertexCount();
     }
 
     if (this.boosters)

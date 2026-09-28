@@ -6,7 +6,7 @@
  */
 export class CjsEveThrottleableState
 {
-  #nextUpdateTime = 0;
+  _nextUpdateTime = 0;
 
   /**
    * Reports whether the host should skip this update; when it should not, the host's update frequency is recomputed from the detail level and the next allowed time is scheduled.
@@ -20,13 +20,13 @@ export class CjsEveThrottleableState
     {
       return false;
     }
-    if (currentTime < this.#nextUpdateTime)
+    if (currentTime < this._nextUpdateTime)
     {
       return true;
     }
     const updateFrequency = normalizedUpdateFrequency * (host.maxUpdateFrequency - host.minUpdateFrequency) + host.minUpdateFrequency;
     host.currentUpdateFrequency = Math.max(updateFrequency, 0.1);
-    this.#nextUpdateTime = currentTime + 1 / host.currentUpdateFrequency;
+    this._nextUpdateTime = currentTime + 1 / host.currentUpdateFrequency;
     return false;
   }
 }

@@ -32,7 +32,7 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
   @type.vec3
   translation = vec3.create();
 
-  static #scratch = mat4.create();
+  static _scratch = mat4.create();
 
   /**
    * Applies this modifier's scale/rotation/translation before the incoming
@@ -53,7 +53,7 @@ export class EveChildModifierSRT extends IEveChildTransformModifier
   ApplyTransform(_context, transform, _boneCount = 0, _bones = null, out)
   {
     const local = mat4.fromRotationTranslationScale(
-      EveChildModifierSRT.#scratch,
+      EveChildModifierSRT._scratch,
       this.rotation,
       this.translation,
       this.scaling

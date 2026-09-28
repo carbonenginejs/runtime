@@ -75,16 +75,16 @@ function WriteLineVerticesToBuffer(pos1, time1, pos2, time2, pos3, floats, base)
 export class EveTacticalTrails extends CjsModel
 {
   /** m_vertexDeclHandle - interned once, -1 (UNINITIALIZED) until it is. */
-  #vertexDeclHandle = -1;
+  _vertexDeclHandle = -1;
 
   /** m_vertexBuffer - the AL vertex buffer UpdateGraphicsState fills. */
-  #vertexBuffer = null;
+  _vertexBuffer = null;
 
   /** m_egoBallPosition - the double-precision origin every trail position is
    *  rebased against (JS numbers are doubles, so Carbon's Vector3d needs no
    *  separate type). UpdateSyncronous samples it from egoBall; unported yet,
    *  so it stays at the origin until set. */
-  #egoBallPosition = [ 0, 0, 0 ];
+  _egoBallPosition = [ 0, 0, 0 ];
 
 
   @type.list("EveTacticalTrailTrackedObject")
@@ -121,7 +121,7 @@ export class EveTacticalTrails extends CjsModel
   @impl.implemented
   ReleaseResources(_storage)
   {
-    this.#vertexDeclHandle = -1;
+    this._vertexDeclHandle = -1;
   }
 
   /**
@@ -154,14 +154,14 @@ export class EveTacticalTrails extends CjsModel
       return;
     }
 
-    if (this.#vertexDeclHandle === -1)
+    if (this._vertexDeclHandle === -1)
     {
-      this.#vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(TRAIL_VERTEX_DEFINITION);
+      this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(TRAIL_VERTEX_DEFINITION);
     }
 
     const floats = new Float32Array(this.segments * SEGMENT_VERTEX_COUNT * LINE_VERTEX_FLOATS);
     let base = 0;
-    const ego = this.#egoBallPosition;
+    const ego = this._egoBallPosition;
     const toWorld = sample => [
       sample.position[0] - ego[0],
       sample.position[1] - ego[1],
@@ -192,10 +192,10 @@ export class EveTacticalTrails extends CjsModel
     }
 
     const needed = this.segments * SEGMENT_VERTEX_COUNT;
-    if (!this.#vertexBuffer?.IsValid() || this.#vertexBuffer.GetDesc().count < needed)
+    if (!this._vertexBuffer?.IsValid() || this._vertexBuffer.GetDesc().count < needed)
     {
       const capacity = Math.max(1024, needed * 2);
-      this.#vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
+      this._vertexBuffer = renderContext.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
         LINE_VERTEX_BYTES,
         capacity,
         Tr2GpuUsage.VERTEX_BUFFER,
@@ -203,11 +203,11 @@ export class EveTacticalTrails extends CjsModel
       ));
     }
 
-    const mapping = this.#vertexBuffer?.MapForWriting(renderContext);
+    const mapping = this._vertexBuffer?.MapForWriting(renderContext);
     if (mapping && !Failed(mapping.result) && mapping.data)
     {
       mapping.data.set(new Uint8Array(floats.buffer, 0, needed * LINE_VERTEX_BYTES));
-      this.#vertexBuffer.UnmapForWriting(renderContext);
+      this._vertexBuffer.UnmapForWriting(renderContext);
     }
     else
     {
@@ -218,7 +218,7 @@ export class EveTacticalTrails extends CjsModel
   /** The trail vertex buffer UpdateGraphicsState filled, for the draw seam. */
   GetVertexBuffer()
   {
-    return this.#vertexBuffer;
+    return this._vertexBuffer;
   }
 
   /** Carbon method RegisterObject (MAP_METHOD_AND_WRAP). */

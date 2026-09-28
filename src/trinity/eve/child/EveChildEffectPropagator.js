@@ -219,17 +219,17 @@ export class EveChildEffectPropagator extends EveChildContainer
   @type.boolean
   skipCleanup = false;
 
-  #currentTriggerIndex = 0;
+  _currentTriggerIndex = 0;
 
-  #numDeleted = 0;
+  _numDeleted = 0;
 
   // Carbon m_processedTransforms/m_lastTriggered/m_delayTimer: runtime-only
   // trigger state (never persisted; Carbon keeps them off the Blue surface).
-  #processedTransforms = [];
+  _processedTransforms = [];
 
-  #lastTriggered = [];
+  _lastTriggered = [];
 
-  #delayTimer = 0;
+  _delayTimer = 0;
 
   /** Carbon EveChildEffectPropagator::Play (cpp:101-113): reset via Stop, then
    * arm playback; without an effect the propagator never starts. */
@@ -246,7 +246,7 @@ export class EveChildEffectPropagator extends EveChildContainer
 
     this.trigger = false;
     this.isPlaying = true;
-    this.#delayTimer = this.stopToClearDelay;
+    this._delayTimer = this.stopToClearDelay;
   }
 
   /** Carbon EveChildEffectPropagator::Stop (cpp:119-129). */
@@ -257,8 +257,8 @@ export class EveChildEffectPropagator extends EveChildContainer
   {
     this.isPlaying = false;
     this.playTime = 0;
-    this.#currentTriggerIndex = 0;
-    this.#numDeleted = 0;
+    this._currentTriggerIndex = 0;
+    this._numDeleted = 0;
 
     if (this.effect)
     {
@@ -316,7 +316,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     {
       if (this.frequency !== 0)
       {
-        this.playTime = this.#currentTriggerIndex / this.frequency;
+        this.playTime = this._currentTriggerIndex / this.frequency;
       }
     }
 
@@ -345,14 +345,14 @@ export class EveChildEffectPropagator extends EveChildContainer
     let currentRadSqr = Number(this.triggerSphereRadiusCurve.GetValueAt(this.playTime) ?? 0) * this.triggerSphereScalarMulti;
     currentRadSqr = currentRadSqr * currentRadSqr;
 
-    const records = this.#processedTransforms;
-    for (let index = this.#currentTriggerIndex; index < records.length; index++)
+    const records = this._processedTransforms;
+    for (let index = this._currentTriggerIndex; index < records.length; index++)
     {
       const record = records[index];
       if (record.sqrDistToSphereCenter < currentRadSqr)
       {
         this.effect.CreateInstance?.(record.scale, record.rotation, record.position);
-        this.#currentTriggerIndex++;
+        this._currentTriggerIndex++;
       }
       else
       {
@@ -386,10 +386,10 @@ export class EveChildEffectPropagator extends EveChildContainer
         // Carbon (cpp:180-189): the last-triggered ring holds
         // floor(effectDuration * frequency) slots primed with -1.
         const size = Math.max(Math.floor(this.durationPerEffect * this.frequency), 0);
-        this.#lastTriggered.length = 0;
+        this._lastTriggered.length = 0;
         for (let index = 0; index < size; index++)
         {
-          this.#lastTriggered.push(-1);
+          this._lastTriggered.push(-1);
         }
       }
     }
@@ -418,13 +418,13 @@ export class EveChildEffectPropagator extends EveChildContainer
         break;
       case EveChildEffectPropagator.TriggerType.INSTANT_PERMANENT:
         this.playTime += Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0);
-        if (this.#currentTriggerIndex === 0)
+        if (this._currentTriggerIndex === 0)
         {
-          for (const record of this.#processedTransforms)
+          for (const record of this._processedTransforms)
           {
             this.effect?.CreateInstance?.(record.scale, record.rotation, record.position);
           }
-          this.#currentTriggerIndex++;
+          this._currentTriggerIndex++;
         }
         break;
       default:
@@ -463,9 +463,9 @@ export class EveChildEffectPropagator extends EveChildContainer
 
       if (this.replayAfterDelay)
       {
-        if (this.#delayTimer > 0)
+        if (this._delayTimer > 0)
         {
-          this.#delayTimer -= dt;
+          this._delayTimer -= dt;
         }
         else
         {
@@ -492,7 +492,7 @@ export class EveChildEffectPropagator extends EveChildContainer
     const dt = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0);
     this.playTime += dt;
 
-    if (this.#processedTransforms.length === 0)
+    if (this._processedTransforms.length === 0)
     {
       return;
     }
@@ -506,33 +506,33 @@ export class EveChildEffectPropagator extends EveChildContainer
 
     // Triggers based on the frequency interval unless the maximum amount of
     // spawns has been reached (cpp:291-304).
-    if (this.playTime > this.#currentTriggerIndex / this.frequency &&
-      (this.#currentTriggerIndex < this.stopAfterNumTriggers || this.stopAfterNumTriggers < 0))
+    if (this.playTime > this._currentTriggerIndex / this.frequency &&
+      (this._currentTriggerIndex < this.stopAfterNumTriggers || this.stopAfterNumTriggers < 0))
     {
       const locatorIndex = this.GetSmartRandomLocatorIndex();
-      if (this.#lastTriggered.length)
+      if (this._lastTriggered.length)
       {
-        this.#lastTriggered.shift();
+        this._lastTriggered.shift();
       }
-      this.#lastTriggered.push(locatorIndex);
+      this._lastTriggered.push(locatorIndex);
 
-      const record = this.#processedTransforms[locatorIndex];
+      const record = this._processedTransforms[locatorIndex];
       this.effect?.CreateInstance?.(record.scale, record.rotation, record.position);
-      this.#currentTriggerIndex++;
+      this._currentTriggerIndex++;
     }
 
     if (this.durationPerEffect !== -1 &&
-      this.playTime > (this.#numDeleted / this.frequency) + this.durationPerEffect)
+      this.playTime > (this._numDeleted / this.frequency) + this.durationPerEffect)
     {
       this.effect?.PopFront?.();
-      this.#numDeleted++;
+      this._numDeleted++;
 
-      if (this.#numDeleted === this.#currentTriggerIndex)
+      if (this._numDeleted === this._currentTriggerIndex)
       {
         // Prevent debug rendering on a running loop after it finishes (see
         // InstanceContainers) - cpp:313.
-        this.#currentTriggerIndex = 0;
-        this.#lastTriggered.length = 0;
+        this._currentTriggerIndex = 0;
+        this._lastTriggered.length = 0;
       }
     }
   }
@@ -547,8 +547,8 @@ export class EveChildEffectPropagator extends EveChildContainer
   GetSmartRandomLocatorIndex()
   {
     let locatorIndex = -1;
-    const ptSize = this.#processedTransforms.length;
-    const ltSize = this.#lastTriggered.length;
+    const ptSize = this._processedTransforms.length;
+    const ltSize = this._lastTriggered.length;
 
     if (ltSize >= ptSize || this.frequency * this.durationPerEffect > 0.75 * ptSize)
     {
@@ -564,7 +564,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         locatorIndex = Math.floor(Math.random() * ptSize);
         for (let index = 0; index < ltSize; index++)
         {
-          if (locatorIndex === this.#lastTriggered[index])
+          if (locatorIndex === this._lastTriggered[index])
           {
             locatorIndex = -1;
             break;
@@ -616,7 +616,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.implemented
   GetRenderables(out = [])
   {
-    if (this.#currentTriggerIndex === 0)
+    if (this._currentTriggerIndex === 0)
     {
       return out;
     }
@@ -679,7 +679,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
       // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
       vec3.scale(record.scale, this.effectScaling, rand);
-      this.#processedTransforms.push(record);
+      this._processedTransforms.push(record);
     }
 
     this.triggerSphereScalarMulti = Math.sqrt(this.triggerSphereScalarMulti) * 2;
@@ -727,7 +727,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
         // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
         vec3.scale(record.scale, this.effectScaling, rand);
-        this.#processedTransforms.push(record);
+        this._processedTransforms.push(record);
       }
     }
   }
@@ -771,7 +771,7 @@ export class EveChildEffectPropagator extends EveChildContainer
       const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
       // Carbon t.scale = m_effectScaling * rand - scalar-vector scale.
       vec3.scale(record.scale, this.effectScaling, rand);
-      this.#processedTransforms.push(record);
+      this._processedTransforms.push(record);
     }
     this.triggerSphereScalarMulti = this.range;
   }
@@ -783,7 +783,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.implemented
   ProcessLocators(parent = null)
   {
-    this.#processedTransforms.length = 0;
+    this._processedTransforms.length = 0;
 
     switch (this.propagationType)
     {
@@ -800,7 +800,7 @@ export class EveChildEffectPropagator extends EveChildContainer
         break;
     }
 
-    if (this.#processedTransforms.length === 0)
+    if (this._processedTransforms.length === 0)
     {
       this.Stop();
       return;
@@ -816,7 +816,7 @@ export class EveChildEffectPropagator extends EveChildContainer
   @impl.reason("Math.random replaces Carbon's unseeded TriRand, matching the EveSpaceObject2 precedent.")
   RecalculateLocatorSizes()
   {
-    for (const record of this.#processedTransforms)
+    for (const record of this._processedTransforms)
     {
       const rand = this.randScaleMin + Math.random() * (this.randScaleMax - this.randScaleMin);
       // Carbon it->scale = m_effectScaling * rand - scalar-vector scale.
@@ -834,12 +834,12 @@ export class EveChildEffectPropagator extends EveChildContainer
     // Carbon: it->position - m_triggerSphereOffset * m_triggerSphereScalarMulti
     // - scalar-vector scale plus a vector difference, no matrix composition.
     vec3.scale(SPHERE_CENTER_SCRATCH, this.triggerSphereOffset, this.triggerSphereScalarMulti);
-    for (const record of this.#processedTransforms)
+    for (const record of this._processedTransforms)
     {
       record.sqrDistToSphereCenter = vec3.squaredDistance(record.position, SPHERE_CENTER_SCRATCH);
     }
 
-    this.#processedTransforms.sort(SortByCircleDist);
+    this._processedTransforms.sort(SortByCircleDist);
   }
 
   /** Carbon EveChildEffectPropagator::GetEffect (cpp:640-643). */

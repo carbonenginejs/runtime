@@ -73,13 +73,13 @@ export class EveDistanceField extends CjsModel
   @type.float32
   maxDistance = 75000;
 
-  #distanceCurve = null;
+  _distanceCurve = null;
 
-  #dirty = true;
+  _dirty = true;
 
-  #updateDistanceCurve = false;
+  _updateDistanceCurve = false;
 
-  #isDynamic = false;
+  _isDynamic = false;
 
   /**
    * Configures the field as static, so its extent and midpoint are the authored
@@ -90,14 +90,14 @@ export class EveDistanceField extends CjsModel
   @impl.adapted
   SetupStaticDistanceField(dimensions, position, distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
-    this.#isDynamic = false;
+    this._isDynamic = false;
     vec3.copy(this.dimensions, dimensions);
     vec3.copy(this.midpoint, position);
     this.distanceThreshold = distanceThreshold;
     this.timeAdjustmentSecondsIn = timeAdjustmentSecondsIn;
     this.timeAdjustmentSecondsOut = timeAdjustmentSecondsOut;
-    this.#createCurveSet();
-    this.#updateDistanceCurveSize();
+    this._createCurveSet();
+    this._updateDistanceCurveSize();
   }
 
   /**
@@ -110,12 +110,12 @@ export class EveDistanceField extends CjsModel
   @impl.invalidates("#dirty")
   SetupDynamicDistanceField(distanceThreshold, timeAdjustmentSecondsOut, timeAdjustmentSecondsIn)
   {
-    this.#isDynamic = true;
-    this.#dirty = true;
+    this._isDynamic = true;
+    this._dirty = true;
     this.distanceThreshold = distanceThreshold;
     this.timeAdjustmentSecondsIn = timeAdjustmentSecondsIn;
     this.timeAdjustmentSecondsOut = timeAdjustmentSecondsOut;
-    this.#createCurveSet();
+    this._createCurveSet();
   }
 
   /**
@@ -129,27 +129,27 @@ export class EveDistanceField extends CjsModel
   @impl.adapted
   Update(updateContext)
   {
-    const cameraPosition = EveDistanceField.#getCameraPosition(this.cameraView);
-    const time = EveDistanceField.#getTime(updateContext);
-    if (this.#updateDistanceCurve)
+    const cameraPosition = EveDistanceField._getCameraPosition(this.cameraView);
+    const time = EveDistanceField._getTime(updateContext);
+    if (this._updateDistanceCurve)
     {
-      this.#updateDistanceCurveSize();
+      this._updateDistanceCurveSize();
     }
     if (this.distance < 0)
     {
       this.distance = this.maxDistance;
     }
-    const originShift = EveDistanceField.#getOriginShift(updateContext);
+    const originShift = EveDistanceField._getOriginShift(updateContext);
     let distanceNow = this.maxDistance;
-    if (this.#isDynamic)
+    if (this._isDynamic)
     {
-      distanceNow = this.#calculateFieldCoverageAndDistance(time, cameraPosition, originShift);
+      distanceNow = this._calculateFieldCoverageAndDistance(time, cameraPosition, originShift);
     }
     else
     {
       if (this.objects.length === 1)
       {
-        EveDistanceField.#sampleObject(this.objects[0], time, this.midpoint);
+        EveDistanceField._sampleObject(this.objects[0], time, this.midpoint);
       }
       else
       {
@@ -158,7 +158,7 @@ export class EveDistanceField extends CjsModel
       distanceNow = Math.min(distanceNow, vec3.distance(this.midpoint, cameraPosition));
     }
     const fraction = distanceNow > this.distance ? this.timeAdjustmentSecondsOut : this.timeAdjustmentSecondsIn;
-    const delta = Math.min(1, EveDistanceField.#getDeltaT(updateContext) / (fraction || 1));
+    const delta = Math.min(1, EveDistanceField._getDeltaT(updateContext) / (fraction || 1));
     this.distance = Math.min(this.distance * (1 - delta) + distanceNow * delta, this.maxDistance);
     if (this.curveSet)
     {
@@ -185,7 +185,7 @@ export class EveDistanceField extends CjsModel
   {
     if (propertyName === "minDistance" || propertyName === "maxDistance")
     {
-      this.#updateDistanceCurve = true;
+      this._updateDistanceCurve = true;
     }
     return true;
   }
@@ -207,12 +207,12 @@ export class EveDistanceField extends CjsModel
     switch (event & 0x0f)
     {
       case 0x08:
-        this.#dirty = true;
+        this._dirty = true;
         break;
       case 0x09:
         if (this.objects.length === 0)
         {
-          this.#setNeutralValues();
+          this._setNeutralValues();
         }
         break;
     }
@@ -229,38 +229,38 @@ export class EveDistanceField extends CjsModel
    * Builds the curve set the field drives: a single named scalar curve falling
    * linearly from 1 to 0 across the distance range.
    */
-  #createCurveSet()
+  _createCurveSet()
   {
     this.curveSet = new TriCurveSet();
-    this.#distanceCurve = new Tr2CurveScalar();
-    this.#distanceCurve.SetName("DistanceCurve");
-    this.#distanceCurve.AddKey(0, 1, Tr2CurveInterpolation.LINEAR, 0, 0, Tr2CurveTangentType.AUTO);
-    this.#distanceCurve.AddKey(50000, 0, Tr2CurveInterpolation.LINEAR, 0, 0, Tr2CurveTangentType.AUTO);
-    this.#distanceCurve.SetTimeOffset(0);
-    this.curveSet.AddCurve(this.#distanceCurve);
+    this._distanceCurve = new Tr2CurveScalar();
+    this._distanceCurve.SetName("DistanceCurve");
+    this._distanceCurve.AddKey(0, 1, Tr2CurveInterpolation.LINEAR, 0, 0, Tr2CurveTangentType.AUTO);
+    this._distanceCurve.AddKey(50000, 0, Tr2CurveInterpolation.LINEAR, 0, 0, Tr2CurveTangentType.AUTO);
+    this._distanceCurve.SetTimeOffset(0);
+    this.curveSet.AddCurve(this._distanceCurve);
   }
 
   /**
    * Moves the distance curve's two keys onto the current minimum and maximum
    * distance and clears the pending-rebuild flag.
    */
-  #updateDistanceCurveSize()
+  _updateDistanceCurveSize()
   {
     // Carbon retains the resize request until the curve exists.
-    if (!this.#distanceCurve) return;
-    const keys = this.#distanceCurve?.GetKeys?.() ?? [];
+    if (!this._distanceCurve) return;
+    const keys = this._distanceCurve?.GetKeys?.() ?? [];
     if (keys.length === 2)
     {
       keys[0].time = this.minDistance;
       keys[1].time = this.maxDistance;
-      this.#distanceCurve.OnKeysChanged();
+      this._distanceCurve.OnKeysChanged();
     }
-    this.#distanceCurve?.SetTimeOffset?.(0);
-    this.#updateDistanceCurve = false;
+    this._distanceCurve?.SetTimeOffset?.(0);
+    this._updateDistanceCurve = false;
   }
 
   /** Zeroes the midpoint and extent once nothing is being tracked. */
-  #setNeutralValues()
+  _setNeutralValues()
   {
     vec3.zero(this.midpoint);
     vec3.zero(this.dimensions);
@@ -273,14 +273,14 @@ export class EveDistanceField extends CjsModel
    * distanceThreshold of the mean spread, enforcing the maximum X/Z ratio and
    * the minimum Y ratio.
    */
-  #calculateFieldCoverageAndDistance(time, cameraPosition, originShift)
+  _calculateFieldCoverageAndDistance(time, cameraPosition, originShift)
   {
     if (this.objects.length === 0)
     {
       vec3.add(this.midpoint, this.midpoint, originShift);
       return vec3.length(cameraPosition);
     }
-    const positions = this.objects.map(object => EveDistanceField.#sampleObject(object, time, vec3.create()));
+    const positions = this.objects.map(object => EveDistanceField._sampleObject(object, time, vec3.create()));
     const average = vec3.create();
     let distanceNowSq = this.maxDistance * this.maxDistance;
     for (const position of positions)
@@ -288,7 +288,7 @@ export class EveDistanceField extends CjsModel
       vec3.scaleAndAdd(average, average, position, 1 / positions.length);
       distanceNowSq = Math.min(distanceNowSq, vec3.squaredDistance(position, cameraPosition));
     }
-    if (this.#dirty)
+    if (this._dirty)
     {
       let averageDistance = 0;
       for (const position of positions)
@@ -318,7 +318,7 @@ export class EveDistanceField extends CjsModel
       {
         this.dimensions[1] = horizontal * this.minYRatio;
       }
-      this.#dirty = false;
+      this._dirty = false;
     }
     else
     {
@@ -331,7 +331,7 @@ export class EveDistanceField extends CjsModel
    * Evaluates a tracked vector curve at time into out, leaving out unchanged
    * when the curve yields nothing usable.
    */
-  static #sampleObject(object, time, out)
+  static _sampleObject(object, time, out)
   {
     const result = object?.GetValueAt?.(time, out);
     return result?.length >= 3 ? vec3.copy(out, result) : out;
@@ -341,7 +341,7 @@ export class EveDistanceField extends CjsModel
    * Camera position from the view, falling back to the translation of its
    * transform and then to the origin.
    */
-  static #getCameraPosition(cameraView)
+  static _getCameraPosition(cameraView)
   {
     const direct = cameraView?.GetPosition?.();
     if (direct?.length >= 3)
@@ -356,7 +356,7 @@ export class EveDistanceField extends CjsModel
    * Reads the current time from an update context, accepting the
    * GetTime()/currentTime/time spellings.
    */
-  static #getTime(context)
+  static _getTime(context)
   {
     return Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
   }
@@ -366,7 +366,7 @@ export class EveDistanceField extends CjsModel
    * and last times when the context exposes no delta directly; the first frame
    * yields zero.
    */
-  static #getDeltaT(context)
+  static _getDeltaT(context)
   {
     const direct = context?.GetDeltaT?.() ?? context?.deltaT;
     if (direct !== null && direct !== undefined)
@@ -381,7 +381,7 @@ export class EveDistanceField extends CjsModel
    * Reads the scene's floating-origin shift from an update context, or a zero
    * vector when it has none.
    */
-  static #getOriginShift(context)
+  static _getOriginShift(context)
   {
     const value = context?.GetOriginShift?.() ?? context?.originShift;
     return value?.length >= 3 ? value : vec3.create();

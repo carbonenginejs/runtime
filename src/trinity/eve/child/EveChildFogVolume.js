@@ -52,9 +52,9 @@ function createFroxelFogSettings()
 @type.define({ className: "EveChildFogVolume", family: "eve/child" })
 export class EveChildFogVolume extends ITr2FroxelFogSettings
 {
-  #fogIntensity = 0;
+  _fogIntensity = 0;
 
-  #froxelFogSettings = createFroxelFogSettings();
+  _froxelFogSettings = createFroxelFogSettings();
 
   @edit.readwrite
   @edit.persist
@@ -195,7 +195,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
         initialized = true;
         continue;
       }
-      this.#UnionSphere(sphere);
+      this._UnionSphere(sphere);
     }
     return initialized;
   }
@@ -257,11 +257,11 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     const initialized = this.RebuildBoundingSphere();
     if (this.volumes.length === 0)
     {
-      this.#fogIntensity = this.intensity;
+      this._fogIntensity = this.intensity;
       return;
     }
 
-    this.#fogIntensity = 0;
+    this._fogIntensity = 0;
     const viewPosition = updateContext.renderContext.GetViewPosition();
     const inverse = mat4.invert(INVERSE_WORLD, this.worldTransform);
     if (!inverse || !initialized) return;
@@ -269,10 +269,10 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
     if (vec3.distance(LOCAL_VIEW, this.boundingSphereCenter) > this.boundingSphereRadius) return;
     for (const volume of this.volumes)
     {
-      this.#fogIntensity = Math.max(this.#fogIntensity, volume.GetIntensity(LOCAL_VIEW));
-      if (this.#fogIntensity === 1) break;
+      this._fogIntensity = Math.max(this._fogIntensity, volume.GetIntensity(LOCAL_VIEW));
+      if (this._fogIntensity === 1) break;
     }
-    this.#fogIntensity *= this.intensity;
+    this._fogIntensity *= this.intensity;
   }
 
   /**
@@ -338,9 +338,9 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
   @impl.adapted
   GetFroxelFogSettings()
   {
-    const out = this.#froxelFogSettings;
+    const out = this._froxelFogSettings;
     out.priority = this.priority;
-    out.intensity = this.#fogIntensity;
+    out.intensity = this._fogIntensity;
     out.thickness.value = this.thickness;
     out.thickness.enabled = this.thicknessEnabled;
     out.lightDirectionality.value = this.lightDirectionality;
@@ -388,7 +388,7 @@ export class EveChildFogVolume extends ITr2FroxelFogSettings
    * short-circuiting when either sphere already contains the other and handling
    * coincident centres.
    */
-  #UnionSphere(sphere)
+  _UnionSphere(sphere)
   {
     vec3.subtract(UNION_DELTA, sphere.center, this.boundingSphereCenter);
     const distance = vec3.length(UNION_DELTA);

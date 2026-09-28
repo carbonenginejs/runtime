@@ -86,33 +86,33 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @type.list("EveSpriteLight")
   lights = [];
 
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_aabb (h:140) - the union of every unskinned sprite's bounds. */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_boundingBoxes (h:142) - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** Carbon m_activationStrength (ctor default 0, EveSpriteSet.cpp:67 - NOT
    * 1: packed-set lights are BLACK until the owner's update calls
    * UpdateLights). */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
   // Carbon m_effectHash / m_buffer / m_spriteData (h:126-134): the quad
   // renderer key and the persistent instance buffer Rebuild packs and the
   // submission paths mutate in place.
-  #effectKey = 0;
+  _effectKey = 0;
 
-  #poolBuffer = new Uint8Array(0);
+  _poolBuffer = new Uint8Array(0);
 
-  #poolView = null;
+  _poolView = null;
 
-  #spriteData = [];
+  _spriteData = [];
 
-  static #positionScratch = vec3.create();
+  static _positionScratch = vec3.create();
 
-  static #boneScratch = mat4.create();
+  static _boneScratch = mat4.create();
 
   /**
    * Drops every sprite and every light; the bounds only follow on the next
@@ -155,7 +155,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
   }
 
   /**
@@ -261,7 +261,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @impl.implemented
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
 
 
     // Carbon Rebuild (cpp:300-343): refresh the effect key, pack every
@@ -273,21 +273,21 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
     // frame (cpp:214-218 / cpp:109-121).
     if (this.effect)
     {
-      this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
+      this._effectKey = Number(this.effect.GetHashValue()) >>> 0;
     }
 
     const n = this.sprites.length;
-    if (this.#poolBuffer.length !== n * POOL_VERTEX_SIZE)
+    if (this._poolBuffer.length !== n * POOL_VERTEX_SIZE)
     {
-      this.#poolBuffer = new Uint8Array(n * POOL_VERTEX_SIZE);
-      this.#poolView = new DataView(this.#poolBuffer.buffer);
+      this._poolBuffer = new Uint8Array(n * POOL_VERTEX_SIZE);
+      this._poolView = new DataView(this._poolBuffer.buffer);
     }
-    this.#spriteData.length = n;
+    this._spriteData.length = n;
     for (let i = 0; i < n; i++)
     {
       const sprite = this.sprites[i];
       const base = i * POOL_VERTEX_SIZE;
-      const view = this.#poolView;
+      const view = this._poolView;
       view.setFloat32(base, sprite.position[0], true);
       view.setFloat32(base + 4, sprite.position[1], true);
       view.setFloat32(base + 8, sprite.position[2], true);
@@ -299,10 +299,10 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       view.setUint16(base + 22, num.toHalfFloat(sprite.falloff), true);
       for (let c = 0; c < 4; c++)
       {
-        this.#poolBuffer[base + 24 + c] = colorByte(sprite.color[c]);
-        this.#poolBuffer[base + 28 + c] = colorByte(sprite.warpColor[c]);
+        this._poolBuffer[base + 24 + c] = colorByte(sprite.color[c]);
+        this._poolBuffer[base + 28 + c] = colorByte(sprite.warpColor[c]);
       }
-      this.#spriteData[i] = {
+      this._spriteData[i] = {
         position: sprite.position,
         // uint32_t (EveSpriteSet.h:73): a negative index wraps and misses every bone.
         boneIndex: sprite.boneIndex >>> 0
@@ -311,7 +311,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
 
     // Carbon rebuilds the item-set bounds at the tail of the same pack
     // (cpp:342).
-    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, this.skinned, this.sprites);
+    CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, this.skinned, this.sprites);
   }
 
   /**
@@ -326,9 +326,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   RegisterWithQuadRenderer(quadRenderer)
   {
     if (!this.effect) return;
-    this.#effectKey = Number(this.effect.GetHashValue()) >>> 0;
+    this._effectKey = Number(this.effect.GetHashValue()) >>> 0;
     quadRenderer.RegisterEffect(
-      this.#effectKey,
+      this._effectKey,
       TriBatchType.TRIBATCHTYPE_ADDITIVE,
       POOL_VERTEX_SIZE,
       1,
@@ -355,20 +355,20 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @impl.implemented
   AddToQuadRenderer(quadRenderer, parentTransform, activation, _boosterGain = 0, bones = null, boneCount = 0)
   {
-    if (!this.display || this.#spriteData.length === 0) return;
+    if (!this.display || this._spriteData.length === 0) return;
 
-    const n = this.#spriteData.length;
+    const n = this._spriteData.length;
     if (!this.skinned || !bones)
     {
-      this.#TransformPositions(parentTransform);
+      this._TransformPositions(parentTransform);
     }
     else
     {
-      const position = EveSpriteSet.#positionScratch;
-      const bone = EveSpriteSet.#boneScratch;
+      const position = EveSpriteSet._positionScratch;
+      const bone = EveSpriteSet._boneScratch;
       for (let i = 0; i < n; i++)
       {
-        const data = this.#spriteData[i];
+        const data = this._spriteData[i];
         if (data.boneIndex < boneCount)
         {
           MatrixCopyFrom3x4(bone, bones, data.boneIndex);
@@ -379,16 +379,16 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
         {
           vec3.transformMat4(position, data.position, parentTransform);
         }
-        this.#WritePosition(i, position);
+        this._WritePosition(i, position);
       }
     }
 
     const activation16 = num.toHalfFloat(Math.fround(activation * this.intensity));
     for (let i = 0; i < n; i++)
     {
-      this.#poolView.setUint16(i * POOL_VERTEX_SIZE + 12, activation16, true);
+      this._poolView.setUint16(i * POOL_VERTEX_SIZE + 12, activation16, true);
     }
-    quadRenderer.AddQuads(this.#effectKey, this.#poolBuffer, this.sprites.length);
+    quadRenderer.AddQuads(this._effectKey, this._poolBuffer, this.sprites.length);
   }
 
   /**
@@ -403,9 +403,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @impl.implemented
   AddBoosterGlowToQuadRenderer(quadRenderer, world, boosterGain, warpIntensity)
   {
-    if (!this.display || this.#spriteData.length === 0) return;
+    if (!this.display || this._spriteData.length === 0) return;
 
-    this.#TransformPositions(world);
+    this._TransformPositions(world);
 
     const
       zDirX = num.toHalfFloat(world[8]),
@@ -414,16 +414,16 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
       gain = Math.min(Math.trunc(boosterGain * 255), 255),
       warp = Math.min(Math.trunc(warpIntensity * 255), 255);
 
-    for (let i = 0; i < this.#spriteData.length; i++)
+    for (let i = 0; i < this._spriteData.length; i++)
     {
       const base = i * POOL_VERTEX_SIZE;
-      this.#poolView.setUint16(base + 12, zDirX, true); // activation slot
-      this.#poolView.setUint16(base + 16, zDirY, true); // blinkRate slot
-      this.#poolView.setUint16(base + 22, zDirZ, true); // falloff slot
-      this.#poolBuffer[base + 27] = gain;
-      this.#poolBuffer[base + 31] = warp;
+      this._poolView.setUint16(base + 12, zDirX, true); // activation slot
+      this._poolView.setUint16(base + 16, zDirY, true); // blinkRate slot
+      this._poolView.setUint16(base + 22, zDirZ, true); // falloff slot
+      this._poolBuffer[base + 27] = gain;
+      this._poolBuffer[base + 31] = warp;
     }
-    quadRenderer.AddQuads(this.#effectKey, this.#poolBuffer, this.sprites.length);
+    quadRenderer.AddQuads(this._effectKey, this._poolBuffer, this.sprites.length);
   }
 
   /** Carbon PoolVertex::GetDefinition (cpp:18-33), the instance layout. */
@@ -436,23 +436,23 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   static poolVertexSize = POOL_VERTEX_SIZE;
 
   /** The unskinned XMVector3TransformCoordStream (cpp:184-191 / cpp:101-107). */
-  #TransformPositions(transform)
+  _TransformPositions(transform)
   {
-    const position = EveSpriteSet.#positionScratch;
-    for (let i = 0; i < this.#spriteData.length; i++)
+    const position = EveSpriteSet._positionScratch;
+    for (let i = 0; i < this._spriteData.length; i++)
     {
-      vec3.transformMat4(position, this.#spriteData[i].position, transform);
-      this.#WritePosition(i, position);
+      vec3.transformMat4(position, this._spriteData[i].position, transform);
+      this._WritePosition(i, position);
     }
   }
 
   /** Writes one sprite position as three little-endian floats in the vertex pool. */
-  #WritePosition(index, position)
+  _WritePosition(index, position)
   {
     const base = index * POOL_VERTEX_SIZE;
-    this.#poolView.setFloat32(base, position[0], true);
-    this.#poolView.setFloat32(base + 4, position[1], true);
-    this.#poolView.setFloat32(base + 8, position[2], true);
+    this._poolView.setFloat32(base, position[0], true);
+    this._poolView.setFloat32(base + 4, position[1], true);
+    this._poolView.setFloat32(base + 8, position[2], true);
   }
 
   /** Carbon EveSpriteSet::GetAabb (cpp:163-166): the item-set bounds, with the
@@ -463,8 +463,8 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   {
     return GetItemSetAabb(
       out,
-      this.#staticBounds,
-      this.#boneBounds,
+      this._staticBounds,
+      this._boneBounds,
       bones,
       this.skinned ? boneCount : 0
     );
@@ -478,7 +478,7 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
-    const aabb = this.GetAabb(EveSpriteSet.#aabbScratch, bones, boneCount);
+    const aabb = this.GetAabb(EveSpriteSet._aabbScratch, bones, boneCount);
     if (box3.isEmpty(aabb))
     {
       return false;
@@ -536,12 +536,12 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   @impl.reason("profile-index packing is by-reference per lightConversion.js.")
   GetLights(lightManager)
   {
-    const features = EveSpriteSet.#features;
-    features.parentBrightness = this.#activationStrength;
+    const features = EveSpriteSet._features;
+    features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
     const time = Tr2Renderer.GetAnimationTime();
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EveSpriteSet.#lightRecord;
+    const record = EveSpriteSet._lightRecord;
 
     for (const light of this.lights)
     {
@@ -558,9 +558,9 @@ export class EveSpriteSet extends IEveSpaceObjectAttachment
   }
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 }

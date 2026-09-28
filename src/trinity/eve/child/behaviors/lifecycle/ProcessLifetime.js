@@ -87,28 +87,28 @@ export class ProcessLifetime extends CjsModel
 
   // Flattened tunnel pointers: system tunnels first, then local group
   // tunnels (Carbon m_privateTunnels).
-  #privateTunnels = [];
+  _privateTunnels = [];
 
   // Carbon m_shouldReassignTunnelIDs/m_intialSpawn/m_desiredVector state.
-  #shouldReassignTunnelIDs = true;
+  _shouldReassignTunnelIDs = true;
 
-  #intialSpawn = false;
+  _intialSpawn = false;
 
-  #desiredVector = vec3.create();
+  _desiredVector = vec3.create();
 
-  #returnForces = [];
+  _returnForces = [];
 
-  #dronesThatDie = [];
+  _dronesThatDie = [];
 
-  #tunnelGroupSnapshot = [];
+  _tunnelGroupSnapshot = [];
 
   /** Carbon ProcessLifetime::Initialize (cpp:33-38). */
   @carbon.method
   @impl.implemented
   Initialize()
   {
-    this.#intialSpawn = this.firstSpawnAtRandomPlaces;
-    this.#WireTunnelGroups();
+    this._intialSpawn = this.firstSpawnAtRandomPlaces;
+    this._WireTunnelGroups();
     this.UpdateTunnelRegistry();
     return true;
   }
@@ -130,7 +130,7 @@ export class ProcessLifetime extends CjsModel
       this.UpdateTunnelRegistry();
       return;
     }
-    this.#WireTunnelGroups();
+    this._WireTunnelGroups();
     this.UpdateTunnelRegistry();
   }
 
@@ -204,23 +204,23 @@ export class ProcessLifetime extends CjsModel
   @impl.reason("rand() maps to Math.random; debug force pairs are only collected when group.collectForces is set to keep the per-agent loop allocation-free.")
   CalculateBehavior(agents, scratchData, deltaTime, group, system, _dronesInSearchRadius)
   {
-    if (!this.#TunnelGroupsMatchSnapshot())
+    if (!this._TunnelGroupsMatchSnapshot())
     {
-      this.#WireTunnelGroups();
+      this._WireTunnelGroups();
       this.UpdateTunnelRegistry();
     }
-    if (this.#shouldReassignTunnelIDs)
+    if (this._shouldReassignTunnelIDs)
     {
       // JS has no Blue list notify, so the local tunnel list refreshes here
       // before the system tunnels are prepended (Carbon relies on
       // OnListModified having filled m_privateTunnels already).
       this.UpdateTunnelRegistry();
-      this.#ReassignTunnelIDsAndAddSystemTunnels(system);
+      this._ReassignTunnelIDsAndAddSystemTunnels(system);
     }
 
-    const forceVectors = this.#returnForces;
+    const forceVectors = this._returnForces;
     forceVectors.length = 0;
-    const dronesThatDie = this.#dronesThatDie;
+    const dronesThatDie = this._dronesThatDie;
     dronesThatDie.length = 0;
 
     for (let index = 0; index < agents.length; index++)
@@ -232,24 +232,24 @@ export class ProcessLifetime extends CjsModel
         continue;
       }
 
-      if (drone.lifetime <= deltaTime && !this.#intialSpawn)
+      if (drone.lifetime <= deltaTime && !this._intialSpawn)
       {
-        this.#FindASpawnPoint(drone, data, group);
+        this._FindASpawnPoint(drone, data, group);
       }
 
       // find an initial spawn position
-      if (!data.hasSpawned && this.#intialSpawn)
+      if (!data.hasSpawned && this._intialSpawn)
       {
         vec3.copy(SPAWN_POSITION, group.spawnPosition);
         const systemTunnels = system.GetSplineTunnels?.() ?? [];
-        if (this.#FindInitialSpawnPoint(drone, data, SPAWN_POSITION, systemTunnels))
+        if (this._FindInitialSpawnPoint(drone, data, SPAWN_POSITION, systemTunnels))
         {
           vec3.copy(group.spawnPosition, SPAWN_POSITION);
         }
         data.hasSpawned = true;
       }
 
-      vec3.set(this.#desiredVector, 0, 0, 0);
+      vec3.set(this._desiredVector, 0, 0, 0);
 
       if (!data.hasUsedEntryTunnel)
       {
@@ -257,14 +257,14 @@ export class ProcessLifetime extends CjsModel
         {
           data.hasUsedEntryTunnel = true;
         }
-        else if (data.assignedLifeTimeTunnel >= this.#privateTunnels.length)
+        else if (data.assignedLifeTimeTunnel >= this._privateTunnels.length)
         {
           data.hasUsedEntryTunnel = true;
         }
-        else if (this.#privateTunnels.length > 0)
+        else if (this._privateTunnels.length > 0)
         {
-          if (data.assignedLifeTimeTunnel < this.#privateTunnels.length &&
-            this.#ProcessTunnel(drone, this.#privateTunnels[data.assignedLifeTimeTunnel], data, group.GetBoundingSphereRadius()))
+          if (data.assignedLifeTimeTunnel < this._privateTunnels.length &&
+            this._ProcessTunnel(drone, this._privateTunnels[data.assignedLifeTimeTunnel], data, group.GetBoundingSphereRadius()))
           {
             data.tunnelPoint = 0;
             data.hasUsedEntryTunnel = true;
@@ -282,23 +282,23 @@ export class ProcessLifetime extends CjsModel
         }
         else if (data.assignedLifeTimeTunnel === -1)
         {
-          this.#FindAndAssignAnExitTunnel(drone, data);
+          this._FindAndAssignAnExitTunnel(drone, data);
         }
-        else if (this.#privateTunnels.length > 0 &&
-          data.assignedLifeTimeTunnel < this.#privateTunnels.length &&
-          this.#ProcessTunnel(drone, this.#privateTunnels[data.assignedLifeTimeTunnel], data, group.GetBoundingSphereRadius()))
+        else if (this._privateTunnels.length > 0 &&
+          data.assignedLifeTimeTunnel < this._privateTunnels.length &&
+          this._ProcessTunnel(drone, this._privateTunnels[data.assignedLifeTimeTunnel], data, group.GetBoundingSphereRadius()))
         {
           data.hasUsedExitTunnel = true;
           dronesThatDie.push(index);
         }
       }
 
-      if (vec3.squaredLength(this.#desiredVector) === 0)
+      if (vec3.squaredLength(this._desiredVector) === 0)
       {
         continue;
       }
 
-      vec3.normalize(PULL_FORCE, this.#desiredVector);
+      vec3.normalize(PULL_FORCE, this._desiredVector);
 
       if (group.collectForces)
       {
@@ -316,7 +316,7 @@ export class ProcessLifetime extends CjsModel
       vec3.add(drone.acceleration, drone.acceleration, PULL_FORCE);
     }
 
-    this.#intialSpawn = false;
+    this._intialSpawn = false;
 
     for (let i = dronesThatDie.length - 1; i >= 0; i--)
     {
@@ -345,7 +345,7 @@ export class ProcessLifetime extends CjsModel
   @impl.implemented
   UpdateTunnelRegistry()
   {
-    this.#privateTunnels.length = 0;
+    this._privateTunnels.length = 0;
     for (const tunnelGroup of this.splineTunnels)
     {
       const tunnels = tunnelGroup?.GetTunnels?.() ?? tunnelGroup?.tunnels;
@@ -355,10 +355,10 @@ export class ProcessLifetime extends CjsModel
       }
       for (const tunnel of tunnels)
       {
-        this.#privateTunnels.push(tunnel);
+        this._privateTunnels.push(tunnel);
       }
     }
-    this.#shouldReassignTunnelIDs = true;
+    this._shouldReassignTunnelIDs = true;
   }
 
   /** Adds Carbon's spline-tunnel debug option. */
@@ -394,7 +394,7 @@ export class ProcessLifetime extends CjsModel
   GetEntrancePoints()
   {
     const entrancePoints = [];
-    for (const tunnel of this.#privateTunnels)
+    for (const tunnel of this._privateTunnels)
     {
       if (tunnel.tunnelGroupType === TunnelGroupType.ENTRANCE_TUNNELS)
       {
@@ -417,17 +417,17 @@ export class ProcessLifetime extends CjsModel
    * reassignment flag - the IDs agent scratch records store are indices into
    * exactly this list.
    */
-  #ReassignTunnelIDsAndAddSystemTunnels(system)
+  _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
-    const localTunnels = this.#privateTunnels.slice();
+    const localTunnels = this._privateTunnels.slice();
     const systemTunnels = Array.from(system.GetTunnels?.() ?? []);
-    this.#privateTunnels.length = 0;
-    this.#privateTunnels.push(...systemTunnels, ...localTunnels);
-    for (let id = 0; id < this.#privateTunnels.length; id++)
+    this._privateTunnels.length = 0;
+    this._privateTunnels.push(...systemTunnels, ...localTunnels);
+    for (let id = 0; id < this._privateTunnels.length; id++)
     {
-      this.#privateTunnels[id].tunnelID = id;
+      this._privateTunnels[id].tunnelID = id;
     }
-    this.#shouldReassignTunnelIDs = false;
+    this._shouldReassignTunnelIDs = false;
   }
 
   // Steers the agent through one tunnel; returns true when it passed the last
@@ -441,7 +441,7 @@ export class ProcessLifetime extends CjsModel
    * tunnel's last point. Mutates the agent's scratch tunnelPoint and the
    * behavior's shared desired vector.
    */
-  #ProcessTunnel(agent, tunnel, data, boundingSphere)
+  _ProcessTunnel(agent, tunnel, data, boundingSphere)
   {
     const points = tunnel.splinePoints;
     if (points.length === 0)
@@ -497,7 +497,7 @@ export class ProcessLifetime extends CjsModel
 
     if (pointID === points.length - 1)
     {
-      vec3.copy(this.#desiredVector, point.rot);
+      vec3.copy(this._desiredVector, point.rot);
 
       // the Dot product is positive if the agent is facing the target point
       if (vec3.dot(TARGET_VECTOR, agent.rotation) < 0 || vec3.length(TARGET_VECTOR) > 2 * lengthBetweenPoints)
@@ -520,13 +520,13 @@ export class ProcessLifetime extends CjsModel
       vec3.normalize(TARGET_NORMALIZED, TARGET_VECTOR);
       vec3.add(BLEND_VECTOR, point.rot, TARGET_VECTOR);
       vec3.normalize(BLEND_VECTOR, BLEND_VECTOR);
-      vec3.scale(this.#desiredVector, TARGET_NORMALIZED, 0.8 * (1 - blendingMod));
-      vec3.scaleAndAdd(this.#desiredVector, this.#desiredVector, BLEND_VECTOR, (1 - 0.8) * blendingMod);
+      vec3.scale(this._desiredVector, TARGET_NORMALIZED, 0.8 * (1 - blendingMod));
+      vec3.scaleAndAdd(this._desiredVector, this._desiredVector, BLEND_VECTOR, (1 - 0.8) * blendingMod);
 
-      vec3.normalize(DESIRED_NORMALIZED, this.#desiredVector);
+      vec3.normalize(DESIRED_NORMALIZED, this._desiredVector);
       if (vec3.dot(TARGET_NORMALIZED, DESIRED_NORMALIZED) < 0.8)
       {
-        vec3.copy(this.#desiredVector, TARGET_VECTOR);
+        vec3.copy(this._desiredVector, TARGET_VECTOR);
       }
 
       if ((lengthFromShip - boundingSphere) < tunnel.cylWidth / 1.5)
@@ -546,12 +546,12 @@ export class ProcessLifetime extends CjsModel
    * or marks the exit as already used when no exit tunnel exists so the agent is
    * removed instead (Carbon FindAndAssignAnExitTunnel, cpp:301-327).
    */
-  #FindAndAssignAnExitTunnel(agent, data)
+  _FindAndAssignAnExitTunnel(agent, data)
   {
     let closestPointIndex = -1;
     let lengthSqToClosestPoint = -1;
     let index = 0;
-    for (const tunnel of this.#privateTunnels)
+    for (const tunnel of this._privateTunnels)
     {
       if (tunnel.tunnelGroupType === TunnelGroupType.EXIT_TUNNELS && tunnel.splinePoints.length !== 0)
       {
@@ -583,7 +583,7 @@ export class ProcessLifetime extends CjsModel
    * @param {Float32Array} pos - caller-owned; receives the chosen spawn position
    * @returns {Boolean} false when no entrance tunnel with loaded curves is available
    */
-  #FindInitialSpawnPoint(drone, data, pos, systemTunnels)
+  _FindInitialSpawnPoint(drone, data, pos, systemTunnels)
   {
     // if we have local tunnels use them, otherwise use system-wide ones
     let tunnels;
@@ -659,13 +659,13 @@ export class ProcessLifetime extends CjsModel
    * cpp:390-426); the candidate lists are allocated here because this is a
    * respawn event, not the steady per-frame path.
    */
-  #FindASpawnPoint(agent, data, group)
+  _FindASpawnPoint(agent, data, group)
   {
     const potentialPoints = [];
     const potentialRotations = [];
     const tunnelIndex = [];
 
-    for (const tunnel of this.#privateTunnels)
+    for (const tunnel of this._privateTunnels)
     {
       if (tunnel.tunnelGroupType === TunnelGroupType.ENTRANCE_TUNNELS && tunnel.splinePoints.length !== 0)
       {
@@ -700,9 +700,9 @@ export class ProcessLifetime extends CjsModel
    * callback that rebuilds this behavior's tunnel registry when the group's own
    * contents change.
    */
-  #WireTunnelGroups()
+  _WireTunnelGroups()
   {
-    this.#tunnelGroupSnapshot = this.splineTunnels.slice();
+    this._tunnelGroupSnapshot = this.splineTunnels.slice();
     for (const group of this.splineTunnels)
     {
       group?.SetSystemTunnelFunctionReferenceAndColor?.(
@@ -717,11 +717,11 @@ export class ProcessLifetime extends CjsModel
    * the groups were last wired; the per-frame mismatch check stands in for
    * Carbon's Blue list change notifications, which JavaScript does not receive.
    */
-  #TunnelGroupsMatchSnapshot()
+  _TunnelGroupsMatchSnapshot()
   {
     return (
-      this.#tunnelGroupSnapshot.length === this.splineTunnels.length &&
-      this.#tunnelGroupSnapshot.every((group, index) => group === this.splineTunnels[index])
+      this._tunnelGroupSnapshot.length === this.splineTunnels.length &&
+      this._tunnelGroupSnapshot.every((group, index) => group === this.splineTunnels[index])
     );
   }
 

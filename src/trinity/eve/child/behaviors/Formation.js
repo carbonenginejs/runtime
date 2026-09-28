@@ -77,23 +77,23 @@ export class Formation extends CjsModel
 
   // Carbon runtime state: the slot grid (vec3 offsets from the formation
   // centre), its reservation flags, and the frame/consistency counters.
-  #formationGrid = [];
+  _formationGrid = [];
 
-  #formationGridReserver = [];
+  _formationGridReserver = [];
 
-  #formationPosition = vec3.create();
+  _formationPosition = vec3.create();
 
-  #formationSpeed = vec3.create();
+  _formationSpeed = vec3.create();
 
-  #formationAcceleration = vec3.create();
+  _formationAcceleration = vec3.create();
 
-  #lastFormationAcceleration = vec3.create();
+  _lastFormationAcceleration = vec3.create();
 
-  #isFormalizing = false;
+  _isFormalizing = false;
 
-  #frameCounter = 0;
+  _frameCounter = 0;
 
-  #stubbornnessCounter = 0;
+  _stubbornnessCounter = 0;
 
   /** Carbon Formation::GetProcessPriority (cpp:43-46). */
   @carbon.method
@@ -144,7 +144,7 @@ export class Formation extends CjsModel
   @impl.implemented
   Reset()
   {
-    this.#BreakFormation();
+    this._BreakFormation();
   }
 
   /**
@@ -169,60 +169,60 @@ export class Formation extends CjsModel
       return NO_FORCES;
     }
 
-    if (this.#frameCounter >= this.framesBetweenUpdates)
+    if (this._frameCounter >= this.framesBetweenUpdates)
     {
       // we'll do a check
-      if (this.#CheckIfFormalizing(agents, scratchData))
+      if (this._CheckIfFormalizing(agents, scratchData))
       {
         // we only enable formation if the check passes a few times in a row
-        if (!this.inFormation && this.#stubbornnessCounter >= this.stubbornness)
+        if (!this.inFormation && this._stubbornnessCounter >= this.stubbornness)
         {
-          this.#InitializeFormation(agents, scratchData, group.GetBoundingSphereRadius());
+          this._InitializeFormation(agents, scratchData, group.GetBoundingSphereRadius());
         }
         else
         {
-          if (this.#isFormalizing === true)
+          if (this._isFormalizing === true)
           {
-            this.#stubbornnessCounter++;
+            this._stubbornnessCounter++;
           }
           else
           {
-            this.#stubbornnessCounter = 0;
+            this._stubbornnessCounter = 0;
           }
 
-          this.#isFormalizing = true;
+          this._isFormalizing = true;
         }
       }
       else
       {
-        if (this.inFormation && this.#stubbornnessCounter >= this.stubbornness)
+        if (this.inFormation && this._stubbornnessCounter >= this.stubbornness)
         {
-          this.#BreakFormation();
+          this._BreakFormation();
         }
         else
         {
-          if (this.#isFormalizing === true)
+          if (this._isFormalizing === true)
           {
-            this.#stubbornnessCounter++;
+            this._stubbornnessCounter++;
           }
           else
           {
-            this.#stubbornnessCounter = 0;
+            this._stubbornnessCounter = 0;
           }
 
-          this.#isFormalizing = false;
+          this._isFormalizing = false;
         }
       }
     }
     else
     {
-      this.#frameCounter++;
+      this._frameCounter++;
     }
 
     if (this.inFormation)
     {
-      this.#UpdateFormation(deltaTime, group);
-      this.#UpdateAgents(agents, scratchData, group.GetBoundingSphereRadius());
+      this._UpdateFormation(deltaTime, group);
+      this._UpdateAgents(agents, scratchData, group.GetBoundingSphereRadius());
     }
 
     return NO_FORCES;
@@ -234,7 +234,7 @@ export class Formation extends CjsModel
   /**
    * Whether the agents' accelerations, or once formed their pull toward their assigned slots, agree on a common direction.
    */
-  #CheckIfFormalizing(agents, scratchData)
+  _CheckIfFormalizing(agents, scratchData)
   {
     if (agents.length === 0)
     {
@@ -243,7 +243,7 @@ export class Formation extends CjsModel
 
     let disagreeingDrones = 0;
     vec3.normalize(GROUP_ALIGNMENT, agents[0].acceleration);
-    vec3.set(this.#formationAcceleration, 0, 0, 0);
+    vec3.set(this._formationAcceleration, 0, 0, 0);
 
     for (let c = 0; c < agents.length; c++)
     {
@@ -255,10 +255,10 @@ export class Formation extends CjsModel
       {
         if (this.inFormation)
         {
-          const slot = this.#formationGrid[data?.assignedSlot ?? -1];
+          const slot = this._formationGrid[data?.assignedSlot ?? -1];
           if (slot)
           {
-            vec3.add(SLOT_VECTOR, this.#formationPosition, slot);
+            vec3.add(SLOT_VECTOR, this._formationPosition, slot);
             vec3.subtract(SLOT_VECTOR, SLOT_VECTOR, agent.position);
             vec3.normalize(SLOT_VECTOR, SLOT_VECTOR);
             if (vec3.dot(ACCEL_NORMALIZED, SLOT_VECTOR) < 0)
@@ -274,7 +274,7 @@ export class Formation extends CjsModel
         }
       }
 
-      vec3.add(this.#formationAcceleration, this.#formationAcceleration, ACCEL_NORMALIZED);
+      vec3.add(this._formationAcceleration, this._formationAcceleration, ACCEL_NORMALIZED);
     }
 
     if (disagreeingDrones >= 0.1 * agents.length)
@@ -290,26 +290,26 @@ export class Formation extends CjsModel
   /**
    * Computes the group's centre from the agent positions, builds the slot grid, assigns each agent a slot, and marks the group in formation.
    */
-  #InitializeFormation(agents, scratchData, radius)
+  _InitializeFormation(agents, scratchData, radius)
   {
     if (agents.length === 0)
     {
       return;
     }
 
-    vec3.set(this.#formationPosition, 0, 0, 0);
+    vec3.set(this._formationPosition, 0, 0, 0);
     vec3.set(TARGET_DIR, 0, 0, 0);
 
     for (const agent of agents)
     {
-      vec3.add(this.#formationPosition, this.#formationPosition, agent.position);
+      vec3.add(this._formationPosition, this._formationPosition, agent.position);
       vec3.add(TARGET_DIR, TARGET_DIR, agent.acceleration);
     }
 
-    vec3.scale(this.#formationPosition, this.#formationPosition, 1 / agents.length);
+    vec3.scale(this._formationPosition, this._formationPosition, 1 / agents.length);
 
-    this.#CreateFormationGrid(agents, TARGET_DIR, radius);
-    this.#AssignSlots(agents, scratchData);
+    this._CreateFormationGrid(agents, TARGET_DIR, radius);
+    this._AssignSlots(agents, scratchData);
 
     this.inFormation = true;
   }
@@ -320,16 +320,16 @@ export class Formation extends CjsModel
   /**
    * Builds a square grid of slot offsets around the formation centre, oriented to face the group's average pull direction.
    */
-  #CreateFormationGrid(agents, targetDir, radius)
+  _CreateFormationGrid(agents, targetDir, radius)
   {
-    targetDir[1] = this.#formationPosition[1];
+    targetDir[1] = this._formationPosition[1];
     vec3.normalize(targetDir, targetDir);
 
     const angle = vec3.angle(UP_AXIS, targetDir);
     quat.setAxisAngle(ROTATION_QUAT, UP_AXIS, angle);
 
-    this.#formationGrid.length = 0;
-    this.#formationGridReserver.length = 0;
+    this._formationGrid.length = 0;
+    this._formationGridReserver.length = 0;
 
     let num = agents.length;
     num = Math.floor(Math.sqrt(num - 1)) + 1;
@@ -341,8 +341,8 @@ export class Formation extends CjsModel
         const r = 2.5 * radius;
         const slot = vec3.fromValues((-(num / 2) + i) * r, 0, (-(num / 2) + j) * r);
         vec3.transformQuat(slot, slot, ROTATION_QUAT);
-        this.#formationGrid.push(slot);
-        this.#formationGridReserver.push(false);
+        this._formationGrid.push(slot);
+        this._formationGridReserver.push(false);
       }
     }
   }
@@ -351,7 +351,7 @@ export class Formation extends CjsModel
   /**
    * Assigns each agent to its nearest unreserved formation slot.
    */
-  #AssignSlots(agents, scratchData)
+  _AssignSlots(agents, scratchData)
   {
     for (let c = 0; c < agents.length; c++)
     {
@@ -359,11 +359,11 @@ export class Formation extends CjsModel
       const data = scratchData?.[c];
       let nearestSlot = -1;
       let closestLength = 0;
-      for (let index = 0; index < this.#formationGrid.length; index++)
+      for (let index = 0; index < this._formationGrid.length; index++)
       {
-        if (!this.#formationGridReserver[index])
+        if (!this._formationGridReserver[index])
         {
-          vec3.add(SLOT_VECTOR, this.#formationPosition, this.#formationGrid[index]);
+          vec3.add(SLOT_VECTOR, this._formationPosition, this._formationGrid[index]);
           vec3.subtract(SLOT_VECTOR, agent.position, SLOT_VECTOR);
           const lengthToSlot = vec3.squaredLength(SLOT_VECTOR);
           if (nearestSlot === -1 || lengthToSlot < closestLength)
@@ -375,7 +375,7 @@ export class Formation extends CjsModel
       }
       if (nearestSlot !== -1)
       {
-        this.#formationGridReserver[nearestSlot] = true;
+        this._formationGridReserver[nearestSlot] = true;
         if (data)
         {
           data.assignedSlot = nearestSlot;
@@ -388,16 +388,16 @@ export class Formation extends CjsModel
   /**
    * Resets the formation's position, speed and acceleration state and clears the slot grid, taking the group out of formation.
    */
-  #BreakFormation()
+  _BreakFormation()
   {
-    vec3.set(this.#formationPosition, 0, 0, 0);
-    vec3.set(this.#formationSpeed, 0, 0, 0);
-    vec3.set(this.#lastFormationAcceleration, 0, 0, 0);
-    vec3.set(this.#formationAcceleration, 0, 0, 0);
-    this.#isFormalizing = false;
+    vec3.set(this._formationPosition, 0, 0, 0);
+    vec3.set(this._formationSpeed, 0, 0, 0);
+    vec3.set(this._lastFormationAcceleration, 0, 0, 0);
+    vec3.set(this._formationAcceleration, 0, 0, 0);
+    this._isFormalizing = false;
     this.inFormation = false;
-    this.#formationGrid.length = 0;
-    this.#formationGridReserver.length = 0;
+    this._formationGrid.length = 0;
+    this._formationGridReserver.length = 0;
   }
 
   // Moves the formation centre like a single ship (Carbon UpdateFormation,
@@ -405,16 +405,16 @@ export class Formation extends CjsModel
   /**
    * Advances the formation centre each frame as if it were a single ship, applying inertia to its acceleration and clamping its speed.
    */
-  #UpdateFormation(deltaTime, group)
+  _UpdateFormation(deltaTime, group)
   {
-    vec3.copy(FORMATION_ACCELERATION, this.#formationAcceleration);
+    vec3.copy(FORMATION_ACCELERATION, this._formationAcceleration);
 
-    this.#CalculateFormationInertia(FORMATION_ACCELERATION, deltaTime);
+    this._CalculateFormationInertia(FORMATION_ACCELERATION, deltaTime);
 
-    vec3.add(this.#formationSpeed, this.#formationSpeed, FORMATION_ACCELERATION);
-    ClampLength(this.#formationSpeed, group.GetMaxVelocity() * this.maxFormationVelocityScaler);
+    vec3.add(this._formationSpeed, this._formationSpeed, FORMATION_ACCELERATION);
+    ClampLength(this._formationSpeed, group.GetMaxVelocity() * this.maxFormationVelocityScaler);
 
-    vec3.scaleAndAdd(this.#formationPosition, this.#formationPosition, this.#formationSpeed, deltaTime);
+    vec3.scaleAndAdd(this._formationPosition, this._formationPosition, this._formationSpeed, deltaTime);
   }
 
   // Limits the formation's angular speed and rotates the whole grid with it
@@ -422,20 +422,20 @@ export class Formation extends CjsModel
   /**
    * Limits the formation's turn rate by rotating its acceleration toward the previous frame's direction, rotating the slot grid with it.
    */
-  #CalculateFormationInertia(acceleration, deltaTime)
+  _CalculateFormationInertia(acceleration, deltaTime)
   {
     vec3.normalize(ACCEL_NORMALIZED, acceleration);
 
-    if (vec3.squaredLength(this.#lastFormationAcceleration) !== 0)
+    if (vec3.squaredLength(this._lastFormationAcceleration) !== 0)
     {
-      vec3.cross(ROTATION_AXIS, this.#lastFormationAcceleration, ACCEL_NORMALIZED);
+      vec3.cross(ROTATION_AXIS, this._lastFormationAcceleration, ACCEL_NORMALIZED);
       vec3.normalize(ROTATION_AXIS, ROTATION_AXIS);
       if (vec3.length(ROTATION_AXIS) === 0)
       {
         vec3.set(ROTATION_AXIS, 0, 1, 0);
       }
-      let angle = vec3.angle(this.#lastFormationAcceleration, ACCEL_NORMALIZED);
-      const step = (0.1 + 2 / Math.max(1, this.#formationGrid.length)) * deltaTime;
+      let angle = vec3.angle(this._lastFormationAcceleration, ACCEL_NORMALIZED);
+      const step = (0.1 + 2 / Math.max(1, this._formationGrid.length)) * deltaTime;
       angle = Math.min(angle, step);
 
       if (angle > 0)
@@ -443,15 +443,15 @@ export class Formation extends CjsModel
         quat.setAxisAngle(ROTATION_QUAT, ROTATION_AXIS, angle);
         // Carbon rotates last frame's (unit) formation acceleration into the
         // working acceleration (TriVectorRotateQuaternion, cpp:314-315).
-        vec3.transformQuat(acceleration, this.#lastFormationAcceleration, ROTATION_QUAT);
+        vec3.transformQuat(acceleration, this._lastFormationAcceleration, ROTATION_QUAT);
 
-        for (const slot of this.#formationGrid)
+        for (const slot of this._formationGrid)
         {
           vec3.transformQuat(slot, slot, ROTATION_QUAT);
         }
       }
     }
-    vec3.normalize(this.#lastFormationAcceleration, acceleration);
+    vec3.normalize(this._lastFormationAcceleration, acceleration);
   }
 
   // Damps the other behaviors and pulls each agent toward its slot (Carbon
@@ -459,14 +459,14 @@ export class Formation extends CjsModel
   /**
    * Damps each agent's incoming acceleration, pulls it toward its assigned slot, and slows it as it nears that slot.
    */
-  #UpdateAgents(agents, scratchData, radius)
+  _UpdateAgents(agents, scratchData, radius)
   {
     const radiusSq = radius * radius;
     for (let c = 0; c < agents.length; c++)
     {
       const agent = agents[c];
       const data = scratchData?.[c];
-      const slot = this.#formationGrid[data?.assignedSlot ?? -1];
+      const slot = this._formationGrid[data?.assignedSlot ?? -1];
       if (!slot)
       {
         continue;
@@ -474,7 +474,7 @@ export class Formation extends CjsModel
 
       vec3.scale(agent.acceleration, agent.acceleration, 0.5); // reduce the effect of former behaviors
 
-      vec3.add(SLOT_VECTOR, this.#formationPosition, slot);
+      vec3.add(SLOT_VECTOR, this._formationPosition, slot);
       vec3.subtract(SLOT_VECTOR, SLOT_VECTOR, agent.position);
 
       const distToSlot = vec3.squaredLength(SLOT_VECTOR);

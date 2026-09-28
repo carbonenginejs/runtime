@@ -140,39 +140,39 @@ const CAMERA_YAW_PITCH_ROLL = new Float64Array(3);
 export class EveCamera extends CjsModel
 {
 
-  #failedLastFrame = false;
+  _failedLastFrame = false;
 
-  #idleTheta = 0;
+  _idleTheta = 0;
 
 
 
-  #maxNoise = 80;
+  _maxNoise = 80;
 
-  #noiseX = 0;
+  _noiseX = 0;
 
-  #noiseY = 0;
+  _noiseY = 0;
 
-  #pitchInt = 0;
+  _pitchInt = 0;
 
-  #pitchIntSpeed = 0;
+  _pitchIntSpeed = 0;
 
-  #pitchSpeed = 0;
+  _pitchSpeed = 0;
 
-  #startTime = 0;
+  _startTime = 0;
 
-  #time = 0;
+  _time = 0;
 
-  #trackInterest = false;
+  _trackInterest = false;
 
-  #yawInt = 0;
+  _yawInt = 0;
 
-  #yawIntSpeed = 0;
+  _yawIntSpeed = 0;
 
-  #yawSpeed = 0;
+  _yawSpeed = 0;
 
-  #zoomKey = 0;
+  _zoomKey = 0;
 
-  #zoomTime = 0;
+  _zoomTime = 0;
 
   /** m_errorListener (IBlueEventListenerPtr) [READWRITE] */
   @edit.readwrite
@@ -544,29 +544,29 @@ export class EveCamera extends CjsModel
   @impl.implemented
   OrbitParent(horizontal, vertical)
   {
-    const oldYaw = this.#yawSpeed;
-    const oldPitch = this.#pitchSpeed;
-    this.#yawSpeed += this.maxSpeed * horizontal;
-    this.#pitchSpeed -= this.maxSpeed * vertical;
+    const oldYaw = this._yawSpeed;
+    const oldPitch = this._pitchSpeed;
+    this._yawSpeed += this.maxSpeed * horizontal;
+    this._pitchSpeed -= this.maxSpeed * vertical;
 
-    if (this.#pitchSpeed > this.maxPitch && this.#pitchSpeed - oldPitch < 0)
+    if (this._pitchSpeed > this.maxPitch && this._pitchSpeed - oldPitch < 0)
     {
-      this.#pitchSpeed = this.maxPitch;
+      this._pitchSpeed = this.maxPitch;
     }
-    else if (this.#pitchSpeed < this.minPitch && oldPitch - this.#pitchSpeed < 0)
+    else if (this._pitchSpeed < this.minPitch && oldPitch - this._pitchSpeed < 0)
     {
-      this.#pitchSpeed = this.minPitch;
+      this._pitchSpeed = this.minPitch;
     }
 
     if (this.minYaw !== this.maxYaw)
     {
-      if (this.#yawSpeed > this.maxYaw && this.#yawSpeed - oldYaw < 0)
+      if (this._yawSpeed > this.maxYaw && this._yawSpeed - oldYaw < 0)
       {
-        this.#yawSpeed = this.maxYaw;
+        this._yawSpeed = this.maxYaw;
       }
-      else if (this.#yawSpeed < this.minYaw && oldYaw - this.#yawSpeed < 0)
+      else if (this._yawSpeed < this.minYaw && oldYaw - this._yawSpeed < 0)
       {
-        this.#yawSpeed = this.minYaw;
+        this._yawSpeed = this.minYaw;
       }
     }
   }
@@ -576,33 +576,33 @@ export class EveCamera extends CjsModel
   @impl.implemented
   RotateOnOrbit(horizontal, vertical)
   {
-    const oldYaw = this.#yawIntSpeed;
-    const oldPitch = this.#pitchIntSpeed;
-    this.#yawIntSpeed += this.maxSpeed * horizontal;
-    this.#pitchIntSpeed -= this.maxSpeed * vertical;
+    const oldYaw = this._yawIntSpeed;
+    const oldPitch = this._pitchIntSpeed;
+    this._yawIntSpeed += this.maxSpeed * horizontal;
+    this._pitchIntSpeed -= this.maxSpeed * vertical;
 
-    if (this.#pitchIntSpeed > this.maxPitch && this.#pitchIntSpeed - oldPitch < 0)
+    if (this._pitchIntSpeed > this.maxPitch && this._pitchIntSpeed - oldPitch < 0)
     {
-      this.#pitchIntSpeed = this.maxPitch;
+      this._pitchIntSpeed = this.maxPitch;
     }
-    else if (this.#pitchIntSpeed < this.minPitch && oldPitch - this.#pitchIntSpeed < 0)
+    else if (this._pitchIntSpeed < this.minPitch && oldPitch - this._pitchIntSpeed < 0)
     {
-      this.#pitchIntSpeed = this.minPitch;
+      this._pitchIntSpeed = this.minPitch;
     }
 
     if (this.minYaw !== this.maxYaw)
     {
-      if (this.#yawIntSpeed > this.maxYaw && this.#yawIntSpeed - oldYaw < 0)
+      if (this._yawIntSpeed > this.maxYaw && this._yawIntSpeed - oldYaw < 0)
       {
-        this.#yawIntSpeed = this.maxYaw;
+        this._yawIntSpeed = this.maxYaw;
       }
-      else if (this.#yawIntSpeed < this.minYaw && oldYaw - this.#yawIntSpeed < 0)
+      else if (this._yawIntSpeed < this.minYaw && oldYaw - this._yawIntSpeed < 0)
       {
-        this.#yawIntSpeed = this.minYaw;
+        this._yawIntSpeed = this.minYaw;
       }
     }
 
-    fromYawPitchRoll(this.rotationOfInterest, this.#yawInt, this.#pitchInt, 0);
+    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
   }
 
   /** Carbon method Zoom (MAP_METHOD_AND_WRAP_OPTIONAL_ARGS). */
@@ -619,24 +619,24 @@ export class EveCamera extends CjsModel
 
     if (key !== -1)
     {
-      this.#zoomKey = Math.trunc(key);
+      this._zoomKey = Math.trunc(key);
     }
     else
     {
-      this.#zoomKey++;
+      this._zoomKey++;
     }
 
-    if (this.#zoomKey >= keys.length - 1)
+    if (this._zoomKey >= keys.length - 1)
     {
-      this.#zoomKey = 0;
+      this._zoomKey = 0;
     }
 
-    const selected = keys[this.#zoomKey];
+    const selected = keys[this._zoomKey];
     if (!selected)
     {
       return false;
     }
-    this.#zoomTime = selected.time;
+    this._zoomTime = selected.time;
     return true;
   }
 
@@ -660,13 +660,13 @@ export class EveCamera extends CjsModel
     const simTime = Number(time) || 0;
     const now = Number(realTime) || 0;
     let failed = false;
-    if (this.#startTime === 0)
+    if (this._startTime === 0)
     {
-      this.#startTime = simTime;
+      this._startTime = simTime;
     }
 
-    const deltaTime = now - this.#time;
-    this.#time = now;
+    const deltaTime = now - this._time;
+    this._time = now;
 
     const parentPosition = CAMERA_PARENT_POSITION;
     if (this.parent) sampleVector(this.parent, simTime, parentPosition);
@@ -690,43 +690,43 @@ export class EveCamera extends CjsModel
     const zoomLength = Number(this.zoomCurve?.Length?.() ?? 0);
     if (zoomLength > 0 && Array.isArray(zoomKeys))
     {
-      const nextKey = zoomKeys[this.#zoomKey + 1];
-      if (nextKey && this.#zoomTime < nextKey.time)
+      const nextKey = zoomKeys[this._zoomKey + 1];
+      if (nextKey && this._zoomTime < nextKey.time)
       {
-        this.#zoomTime = Math.min(this.#zoomTime + deltaTime, nextKey.time);
-        this.fieldOfView = sampleScalar(this.zoomCurve, this.#zoomTime);
+        this._zoomTime = Math.min(this._zoomTime + deltaTime, nextKey.time);
+        this.fieldOfView = sampleScalar(this.zoomCurve, this._zoomTime);
       }
     }
 
     const frictionDelta = this.friction * deltaTime;
-    this.yaw = (this.yaw + frictionDelta * this.#yawSpeed) / (1 + frictionDelta);
-    this.yaw = cutoffYawPitch(this.yaw, this.#yawSpeed);
-    this.pitch = (this.pitch + frictionDelta * this.#pitchSpeed) / (1 + frictionDelta);
-    this.pitch = cutoffYawPitch(this.pitch, this.#pitchSpeed);
-    this.#CapPitchAndYaw();
+    this.yaw = (this.yaw + frictionDelta * this._yawSpeed) / (1 + frictionDelta);
+    this.yaw = cutoffYawPitch(this.yaw, this._yawSpeed);
+    this.pitch = (this.pitch + frictionDelta * this._pitchSpeed) / (1 + frictionDelta);
+    this.pitch = cutoffYawPitch(this.pitch, this._pitchSpeed);
+    this._CapPitchAndYaw();
 
     fromYawPitchRoll(this.rotationAroundParent, this.yaw, this.pitch, 0);
     vec3.set(CAMERA_TRANSLATION, 0, 0, this.translationFromParent);
     vec3.transformQuat(CAMERA_POSITION, CAMERA_TRANSLATION, this.rotationAroundParent);
     vec3.add(CAMERA_POSITION, CAMERA_POSITION, parentPosition);
 
-    this.#idleTheta += deltaTime * this.idleSpeed;
-    if (this.#idleTheta > Math.PI * 2)
+    this._idleTheta += deltaTime * this.idleSpeed;
+    if (this._idleTheta > Math.PI * 2)
     {
-      this.#idleTheta %= Math.PI * 2;
+      this._idleTheta %= Math.PI * 2;
     }
 
     let idleYaw = 0;
     let idlePitch = 0;
     if (this.idleMove)
     {
-      idleYaw = this.idleScale * Math.cos(this.#idleTheta);
-      idlePitch = 1.2 * idleYaw * Math.sin(this.#idleTheta);
+      idleYaw = this.idleScale * Math.cos(this._idleTheta);
+      idlePitch = 1.2 * idleYaw * Math.sin(this._idleTheta);
     }
 
     if (this.noiseCurve)
     {
-      this.noise = sampleScalar(this.noiseCurve, simTime - this.#startTime) > 0;
+      this.noise = sampleScalar(this.noiseCurve, simTime - this._startTime) > 0;
     }
     else
     {
@@ -737,41 +737,41 @@ export class EveCamera extends CjsModel
     {
       if (this.noiseScaleCurve)
       {
-        const nextNoiseScale = sampleScalar(this.noiseScaleCurve, simTime - this.#startTime);
+        const nextNoiseScale = sampleScalar(this.noiseScaleCurve, simTime - this._startTime);
         if (Number.isFinite(nextNoiseScale)) this.noiseScale = nextNoiseScale;
       }
       if (this.noiseDampCurve)
       {
-        const nextNoiseDamp = sampleScalar(this.noiseDampCurve, simTime - this.#startTime);
+        const nextNoiseDamp = sampleScalar(this.noiseDampCurve, simTime - this._startTime);
         if (Number.isFinite(nextNoiseDamp)) this.noiseDamp = nextNoiseDamp;
       }
 
-      this.#noiseX = (this.#noiseX + this.noiseDamp * (Math.random() - 0.5)) /
+      this._noiseX = (this._noiseX + this.noiseDamp * (Math.random() - 0.5)) /
         (1 + this.noiseDamp * deltaTime);
-      this.#noiseX = Math.max(-this.#maxNoise, Math.min(this.#maxNoise, this.#noiseX));
-      this.#noiseY = (this.#noiseY + this.noiseDamp * (Math.random() - 0.5)) /
+      this._noiseX = Math.max(-this._maxNoise, Math.min(this._maxNoise, this._noiseX));
+      this._noiseY = (this._noiseY + this.noiseDamp * (Math.random() - 0.5)) /
         (1 + this.noiseDamp * deltaTime);
-      this.#noiseY = Math.max(-this.#maxNoise, Math.min(this.#maxNoise, this.#noiseY));
-      idleYaw += this.noiseScale * this.#noiseX;
-      idlePitch += this.noiseScale * this.#noiseY;
+      this._noiseY = Math.max(-this._maxNoise, Math.min(this._maxNoise, this._noiseY));
+      idleYaw += this.noiseScale * this._noiseX;
+      idlePitch += this.noiseScale * this._noiseY;
     }
 
     vec3.copy(CAMERA_INTEREST, parentPosition);
     vec3.subtract(CAMERA_TO_INTEREST, CAMERA_INTEREST, CAMERA_POSITION);
     vec3.normalize(CAMERA_TO_INTEREST, CAMERA_TO_INTEREST);
     vec3.scale(CAMERA_EXTENDED_INTEREST, CAMERA_TO_INTEREST, 100);
-    vec3.cross(CAMERA_SIDE, CAMERA_TO_INTEREST, EveCamera.#WORLD_UP);
+    vec3.cross(CAMERA_SIDE, CAMERA_TO_INTEREST, EveCamera._WORLD_UP);
     vec3.cross(CAMERA_UP, CAMERA_SIDE, CAMERA_TO_INTEREST);
     vec3.scaleAndAdd(CAMERA_EXTENDED_INTEREST, CAMERA_EXTENDED_INTEREST, CAMERA_SIDE, idleYaw);
     vec3.scaleAndAdd(CAMERA_EXTENDED_INTEREST, CAMERA_EXTENDED_INTEREST, CAMERA_UP, idlePitch);
     vec3.add(CAMERA_INTEREST, CAMERA_POSITION, CAMERA_EXTENDED_INTEREST);
 
-    this.#yawInt = (this.#yawInt + frictionDelta * this.#yawIntSpeed) / (1 + frictionDelta);
-    this.#yawInt = cutoffYawPitch(this.#yawInt, this.#yawIntSpeed);
-    this.#pitchInt = (this.#pitchInt + frictionDelta * this.#pitchIntSpeed) / (1 + frictionDelta);
-    this.#pitchInt = cutoffYawPitch(this.#pitchInt, this.#pitchIntSpeed);
+    this._yawInt = (this._yawInt + frictionDelta * this._yawIntSpeed) / (1 + frictionDelta);
+    this._yawInt = cutoffYawPitch(this._yawInt, this._yawIntSpeed);
+    this._pitchInt = (this._pitchInt + frictionDelta * this._pitchIntSpeed) / (1 + frictionDelta);
+    this._pitchInt = cutoffYawPitch(this._pitchInt, this._pitchIntSpeed);
 
-    if (this.#trackInterest && this.interest)
+    if (this._trackInterest && this.interest)
     {
       sampleVector(this.interest, simTime, CAMERA_TRACK_POSITION);
       vec3.subtract(CAMERA_TRACK_POSITION, CAMERA_TRACK_POSITION, CAMERA_POSITION);
@@ -784,8 +784,8 @@ export class EveCamera extends CjsModel
       const radius = vec3.length(CAMERA_TRACK_LOCAL);
       const interestPitch = radius > 0 ? Math.asin(CAMERA_TRACK_LOCAL[1] / radius) : 0;
       const interestYaw = Math.atan2(CAMERA_TRACK_LOCAL[0], CAMERA_TRACK_LOCAL[2]);
-      this.#yawIntSpeed = -interestYaw;
-      this.#pitchIntSpeed = interestPitch;
+      this._yawIntSpeed = -interestYaw;
+      this._pitchIntSpeed = interestPitch;
     }
     else if (
       this.rotationOfInterest[0] === 0 &&
@@ -794,18 +794,18 @@ export class EveCamera extends CjsModel
       this.rotationOfInterest[3] === 1
     )
     {
-      this.#yawIntSpeed = 0;
-      this.#pitchIntSpeed = 0;
+      this._yawIntSpeed = 0;
+      this._pitchIntSpeed = 0;
     }
 
-    this.#pitchInt = Math.max(this.minPitch, Math.min(this.maxPitch, this.#pitchInt));
+    this._pitchInt = Math.max(this.minPitch, Math.min(this.maxPitch, this._pitchInt));
     if (this.minYaw !== this.maxYaw)
     {
-      if (this.#yawInt > this.maxYaw) this.#yawInt = this.maxYaw;
+      if (this._yawInt > this.maxYaw) this._yawInt = this.maxYaw;
       // Preserve Carbon's m_yaw test here (EveCamera.cpp:438).
-      else if (this.yaw < this.minYaw) this.#yawInt = this.minYaw;
+      else if (this.yaw < this.minYaw) this._yawInt = this.minYaw;
     }
-    fromYawPitchRoll(this.rotationOfInterest, this.#yawInt, this.#pitchInt, 0);
+    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
 
     vec3.transformQuat(CAMERA_REAL_UP, this.alignment, this.rotationAroundParent);
     vec3.normalize(CAMERA_REAL_UP, CAMERA_REAL_UP);
@@ -846,7 +846,7 @@ export class EveCamera extends CjsModel
 
     vec3.copy(this.pos, CAMERA_POSITION);
     vec3.copy(this.intr, CAMERA_INTEREST);
-    EveCamera.#CopyViewBasis(CAMERA_INTEREST_VIEW, this.viewVec, this.upVec, this.rightVec);
+    EveCamera._CopyViewBasis(CAMERA_INTEREST_VIEW, this.viewVec, this.upVec, this.rightVec);
     if (vec3.length(this.viewVec) && vec3.length(this.upVec) && vec3.length(this.rightVec))
     {
       this.viewMatrix.SetTransform(CAMERA_INTEREST_VIEW);
@@ -854,16 +854,16 @@ export class EveCamera extends CjsModel
     else
     {
       failed = true;
-      EveCamera.#CopyViewBasis(CAMERA_VIEW, this.viewVec, this.upVec, this.rightVec);
+      EveCamera._CopyViewBasis(CAMERA_VIEW, this.viewVec, this.upVec, this.rightVec);
       this.viewMatrix.SetTransform(CAMERA_VIEW);
     }
 
     this.audio2Listener?.UpdatePlacement?.(this.viewVec, this.upVec, this.pos);
-    if (failed && !this.#failedLastFrame)
+    if (failed && !this._failedLastFrame)
     {
       this.errorHandler?.HandleEvent(null);
     }
-    this.#failedLastFrame = failed;
+    this._failedLastFrame = failed;
     return !failed;
   }
 
@@ -886,11 +886,11 @@ export class EveCamera extends CjsModel
 
     else if (propertyName === "interest")
     {
-      this.#trackInterest = !!this.interest && this.interest !== this.parent;
-      if (!this.#trackInterest)
+      this._trackInterest = !!this.interest && this.interest !== this.parent;
+      if (!this._trackInterest)
       {
-        this.#yawIntSpeed = 0;
-        this.#pitchIntSpeed = 0;
+        this._yawIntSpeed = 0;
+        this._pitchIntSpeed = 0;
       }
     }
     return true;
@@ -901,7 +901,7 @@ export class EveCamera extends CjsModel
   @impl.implemented
   ResetStartTime()
   {
-    this.#startTime = 0;
+    this._startTime = 0;
   }
 
   /** Carbon method SetOrbit (MAP_METHOD_AND_WRAP). */
@@ -911,9 +911,9 @@ export class EveCamera extends CjsModel
   {
     this.yaw = yaw;
     this.pitch = pitch;
-    this.#yawSpeed = this.yaw;
-    this.#pitchSpeed = this.pitch;
-    this.#yawSpeed %= Math.PI * 2;
+    this._yawSpeed = this.yaw;
+    this._pitchSpeed = this.pitch;
+    this._yawSpeed %= Math.PI * 2;
     this.yaw %= Math.PI * 2;
   }
 
@@ -922,18 +922,18 @@ export class EveCamera extends CjsModel
   @impl.implemented
   SetRotationOnOrbit(yaw, pitch)
   {
-    this.#yawInt = yaw;
-    this.#pitchInt = pitch;
-    this.#yawIntSpeed = yaw;
-    this.#pitchIntSpeed = pitch;
-    fromYawPitchRoll(this.rotationOfInterest, this.#yawInt, this.#pitchInt, 0);
+    this._yawInt = yaw;
+    this._pitchInt = pitch;
+    this._yawIntSpeed = yaw;
+    this._pitchIntSpeed = pitch;
+    fromYawPitchRoll(this.rotationOfInterest, this._yawInt, this._pitchInt, 0);
   }
 
   /**
    * Clamps pitch into the authored min/max range, and yaw as well but only when
    * a yaw range is configured, that is when minYaw and maxYaw differ.
    */
-  #CapPitchAndYaw()
+  _CapPitchAndYaw()
   {
     this.pitch = Math.max(this.minPitch, Math.min(this.maxPitch, this.pitch));
     if (this.minYaw !== this.maxYaw)
@@ -946,13 +946,13 @@ export class EveCamera extends CjsModel
    * Extracts the view, up and right basis vectors out of a view transform into
    * the supplied vectors.
    */
-  static #CopyViewBasis(transform, view, up, right)
+  static _CopyViewBasis(transform, view, up, right)
   {
     vec3.set(view, transform[2], transform[6], transform[10]);
     vec3.set(up, transform[1], transform[5], transform[9]);
     vec3.set(right, transform[0], transform[4], transform[8]);
   }
 
-  static #WORLD_UP = [0, 1, 0];
+  static _WORLD_UP = [0, 1, 0];
 
 }

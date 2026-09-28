@@ -21,9 +21,9 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   @type.float32
   tansitionTime = 1;
 
-  #localTime = 0;
+  _localTime = 0;
 
-  #transitionCurve = new Tr2CurveScalar();
+  _transitionCurve = new Tr2CurveScalar();
 
   /**
    * Builds the private linear 0-to-1 curve that maps normalized transition time
@@ -32,8 +32,8 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   constructor()
   {
     super();
-    this.#transitionCurve.AddKey(0, 0);
-    this.#transitionCurve.AddKey(1, 1);
+    this._transitionCurve.AddKey(0, 0);
+    this._transitionCurve.AddKey(1, 1);
   }
 
   /**
@@ -44,7 +44,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   @impl.implemented
   IsComplete()
   {
-    return this.#localTime > this.tansitionTime;
+    return this._localTime > this.tansitionTime;
   }
 
   /**
@@ -56,7 +56,7 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   @impl.implemented
   Play()
   {
-    this.#localTime = 0;
+    this._localTime = 0;
     super.Play();
     if (this.targetCamera)
     {
@@ -74,13 +74,13 @@ export class EveVirtualCameraTransitionLerp extends EveVirtualCameraTransitionBa
   @impl.adapted
   Update(deltaTime)
   {
-    this.#localTime += deltaTime;
+    this._localTime += deltaTime;
     if (this.transitionCamera && this.sourceCamera && this.targetCamera)
     {
       let amount = 1;
       if (this.tansitionTime > 0)
       {
-        amount = Math.max(0, Math.min(1, this.#transitionCurve.GetValue(this.#localTime / this.tansitionTime)));
+        amount = Math.max(0, Math.min(1, this._transitionCurve.GetValue(this._localTime / this.tansitionTime)));
       }
       this.transitionCamera.UpdateExternal(
         vec3.lerp(vec3.create(), this.sourceCamera.GetPosition(), this.targetCamera.GetPosition(), amount),

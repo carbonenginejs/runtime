@@ -53,9 +53,9 @@ export class PlayFX extends EveEntity
   enabled = true;
 
   // Carbon m_count/m_stop runtime state.
-  #count = 0;
+  _count = 0;
 
-  #stop = false;
+  _stop = false;
 
   /** Carbon PlayFX::GetProcessPriority (cpp:25-28). */
   @carbon.method
@@ -100,7 +100,7 @@ export class PlayFX extends EveEntity
   @impl.implemented
   UpdateState(state)
   {
-    this.#stop = !!state;
+    this._stop = !!state;
   }
 
   /**
@@ -138,12 +138,12 @@ export class PlayFX extends EveEntity
     // If the drone count is 0 the count is not updated so this is needed
     if (this.generatedFiringEffects.length === 0)
     {
-      this.#count = 0;
+      this._count = 0;
     }
 
-    if (this.#count !== agents.length)
+    if (this._count !== agents.length)
     {
-      this.#CheckCount(agents.length);
+      this._CheckCount(agents.length);
     }
 
     const worldTransform = system.GetWorldTransform();
@@ -160,7 +160,7 @@ export class PlayFX extends EveEntity
         continue;
       }
 
-      if (this.#stop)
+      if (this._stop)
       {
         data.droneArrived = false;
       }
@@ -307,25 +307,25 @@ export class PlayFX extends EveEntity
   /**
    * Grows or shrinks the cloned firing-effect list to match the agent count, cloning the configured effect for new agents and dropping the excess.
    */
-  #CheckCount(agentSize)
+  _CheckCount(agentSize)
   {
-    if (this.#count > agentSize)
+    if (this._count > agentSize)
     {
-      const diff = this.#count - agentSize;
+      const diff = this._count - agentSize;
       for (let i = 0; i < diff; i++)
       {
         this.generatedFiringEffects.pop();
       }
-      this.#count = agentSize;
+      this._count = agentSize;
     }
-    else if (agentSize > this.#count)
+    else if (agentSize > this._count)
     {
       if (this.firingEffect === null)
       {
         return;
       }
 
-      const diff = agentSize - this.#count;
+      const diff = agentSize - this._count;
       for (let i = 0; i < diff; i++)
       {
         const newFx = this.firingEffect.Clone?.();
@@ -335,7 +335,7 @@ export class PlayFX extends EveEntity
         }
         this.generatedFiringEffects.push(newFx);
       }
-      this.#count = agentSize;
+      this._count = agentSize;
     }
   }
 

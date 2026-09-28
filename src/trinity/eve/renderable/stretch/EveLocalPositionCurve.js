@@ -46,7 +46,7 @@ export class EveLocalPositionCurve extends CjsModel
   @edit.readwrite @type.int32 locatorIndex = -1;
   @edit.readwrite @type.string locatorSetName = "";
 
-  #impactEffectIndex = -1;
+  _impactEffectIndex = -1;
 
   /** Post-construction hook that selects the behaviour, defaulting to POS_NONE. */
   @carbon.method @impl.implemented
@@ -171,13 +171,13 @@ export class EveLocalPositionCurve extends CjsModel
     vec3.copy(out, this.positionOffset);
     if (this.parentRotationCurve)
     {
-      sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve.#rotation);
-      vec3.transformQuat(out, out, EveLocalPositionCurve.#rotation);
+      sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve._rotation);
+      vec3.transformQuat(out, out, EveLocalPositionCurve._rotation);
     }
     if (this.parentPositionCurve)
     {
-      sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve.#parentPosition);
-      vec3.add(out, out, EveLocalPositionCurve.#parentPosition);
+      sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve._parentPosition);
+      vec3.add(out, out, EveLocalPositionCurve._parentPosition);
     }
     return out;
   }
@@ -190,17 +190,17 @@ export class EveLocalPositionCurve extends CjsModel
    */
   CalculateOffsetPlaneRotation(time, out)
   {
-    sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve.#parentPosition);
+    sampleVector(this.parentPositionCurve, time, EveLocalPositionCurve._parentPosition);
     if (this.alignPositionCurve) sampleVector(this.alignPositionCurve, time, out);
     else vec3.copy(out, this.positionOffset);
 
-    const length = vec3.distance(out, EveLocalPositionCurve.#parentPosition);
-    out[1] = EveLocalPositionCurve.#parentPosition[1];
-    vec3.subtract(EveLocalPositionCurve.#direction, out, EveLocalPositionCurve.#parentPosition);
-    if (vec3.squaredLength(EveLocalPositionCurve.#direction))
+    const length = vec3.distance(out, EveLocalPositionCurve._parentPosition);
+    out[1] = EveLocalPositionCurve._parentPosition[1];
+    vec3.subtract(EveLocalPositionCurve._direction, out, EveLocalPositionCurve._parentPosition);
+    if (vec3.squaredLength(EveLocalPositionCurve._direction))
     {
-      vec3.normalize(EveLocalPositionCurve.#direction, EveLocalPositionCurve.#direction);
-      vec3.scaleAndAdd(out, EveLocalPositionCurve.#parentPosition, EveLocalPositionCurve.#direction, length);
+      vec3.normalize(EveLocalPositionCurve._direction, EveLocalPositionCurve._direction);
+      vec3.scaleAndAdd(out, EveLocalPositionCurve._parentPosition, EveLocalPositionCurve._direction, length);
     }
     return out;
   }
@@ -221,22 +221,22 @@ export class EveLocalPositionCurve extends CjsModel
       return out;
     }
 
-    const parentPosition = EveLocalPositionCurve.#parentPosition;
-    const alignedPosition = EveLocalPositionCurve.#alignedPosition;
-    const direction = EveLocalPositionCurve.#direction;
+    const parentPosition = EveLocalPositionCurve._parentPosition;
+    const alignedPosition = EveLocalPositionCurve._alignedPosition;
+    const direction = EveLocalPositionCurve._direction;
     sampleVector(this.parentPositionCurve, time, parentPosition);
     sampleVector(this.alignPositionCurve, time, alignedPosition);
-    sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve.#rotation);
+    sampleQuaternion(this.parentRotationCurve, time, EveLocalPositionCurve._rotation);
     vec3.normalize(direction, vec3.subtract(direction, alignedPosition, parentPosition));
 
-    quat.normalize(EveLocalPositionCurve.#rotation, EveLocalPositionCurve.#rotation);
-    quat.invert(EveLocalPositionCurve.#rotation, EveLocalPositionCurve.#rotation);
-    vec3.transformQuat(EveLocalPositionCurve.#localDirection, direction, EveLocalPositionCurve.#rotation);
+    quat.normalize(EveLocalPositionCurve._rotation, EveLocalPositionCurve._rotation);
+    quat.invert(EveLocalPositionCurve._rotation, EveLocalPositionCurve._rotation);
+    vec3.transformQuat(EveLocalPositionCurve._localDirection, direction, EveLocalPositionCurve._rotation);
     let scale = this.offset;
     const [a, b, c] = this.boundingSize;
     if (a > 10 && b > 10 && c > 10)
     {
-      const [x, y, z] = EveLocalPositionCurve.#localDirection;
+      const [x, y, z] = EveLocalPositionCurve._localDirection;
       const denominator = Math.sqrt(x * x * b * b * c * c + y * y * a * a * c * c + z * z * a * a * b * b);
       if (denominator) scale += Math.abs(a * b * c / denominator);
     }
@@ -263,8 +263,8 @@ export class EveLocalPositionCurve extends CjsModel
     if (!(this.alignPositionCurve && this.parent)) return out;
     if (this.damageLocatorIndex === -1)
     {
-      sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve.#parentPosition);
-      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve.#parentPosition) ?? -1) | 0;
+      sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve._parentPosition);
+      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
     }
     this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
     return out;
@@ -278,18 +278,18 @@ export class EveLocalPositionCurve extends CjsModel
   GetDamageLocatorImpact(time, out)
   {
     if (!(this.alignPositionCurve && this.parent)) return out;
-    sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve.#parentPosition);
+    sampleVector(this.alignPositionCurve, time, EveLocalPositionCurve._parentPosition);
     if (this.damageLocatorIndex === -1)
     {
-      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve.#parentPosition) ?? -1) | 0;
+      this.damageLocatorIndex = Number(this.parent.GetGoodDamageLocatorIndex?.(EveLocalPositionCurve._parentPosition) ?? -1) | 0;
     }
     this.parent.GetDamageLocatorPosition?.(this.damageLocatorIndex, true, out);
-    vec3.subtract(EveLocalPositionCurve.#direction, EveLocalPositionCurve.#parentPosition, out);
-    if (this.#impactEffectIndex === -1)
+    vec3.subtract(EveLocalPositionCurve._direction, EveLocalPositionCurve._parentPosition, out);
+    if (this._impactEffectIndex === -1)
     {
-      this.#impactEffectIndex = Number(this.parent.CreateImpact?.(this.damageLocatorIndex, EveLocalPositionCurve.#direction, 2, this.impactSize) ?? -1) | 0;
+      this._impactEffectIndex = Number(this.parent.CreateImpact?.(this.damageLocatorIndex, EveLocalPositionCurve._direction, 2, this.impactSize) ?? -1) | 0;
     }
-    this.parent.UpdateImpact?.(out, EveLocalPositionCurve.#direction, this.#impactEffectIndex);
+    this.parent.UpdateImpact?.(out, EveLocalPositionCurve._direction, this._impactEffectIndex);
     return out;
   }
 
@@ -320,11 +320,11 @@ export class EveLocalPositionCurve extends CjsModel
 
   static LocalPositionBehavior = LocalPositionBehavior;
 
-  static #parentPosition = vec3.create();
-  static #alignedPosition = vec3.create();
-  static #direction = vec3.create();
-  static #localDirection = vec3.create();
-  static #rotation = quat.create();
+  static _parentPosition = vec3.create();
+  static _alignedPosition = vec3.create();
+  static _direction = vec3.create();
+  static _localDirection = vec3.create();
+  static _rotation = quat.create();
 }
 
 function sampleVector(curve, time, out)

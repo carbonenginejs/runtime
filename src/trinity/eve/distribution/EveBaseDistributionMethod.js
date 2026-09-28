@@ -13,17 +13,17 @@ import { DistributionEntityLifeTimeEvent } from "./attributeModifiers/enums.js";
 export class EveBaseDistributionMethod extends IEveDistributionMethod
 {
 
-  #initialPlacements = [];
+  _initialPlacements = [];
 
-  #uniqueIDIndices = new Map();
+  _uniqueIDIndices = new Map();
 
-  #placementDataCenter = vec3.create();
+  _placementDataCenter = vec3.create();
 
-  #playTime = 0;
+  _playTime = 0;
 
-  #isPlaying = true;
+  _isPlaying = true;
 
-  #resetTransformOnUpdate = false;
+  _resetTransformOnUpdate = false;
 
   /** m_distributionModifiers (PIEveDistributionModifierVector) [READ, PERSIST] */
   @edit.read
@@ -103,22 +103,22 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.adapted
   RegeneratePlacementData()
   {
-    this.#initialPlacements.length = 0;
-    this.#uniqueIDIndices.clear();
+    this._initialPlacements.length = 0;
+    this._uniqueIDIndices.clear();
 
     // Carbon passes a uint32_t by reference. The mutable value object is the
     // direct JavaScript equivalent used by placement generators in this runtime.
     const trackingID = { value: 0 };
     for (const generator of this.placementGenerators)
     {
-      generator.GetInitialPlacements(this.#initialPlacements, trackingID);
+      generator.GetInitialPlacements(this._initialPlacements, trackingID);
     }
 
-    for (let i = 0; i < this.#initialPlacements.length; i++)
+    for (let i = 0; i < this._initialPlacements.length; i++)
     {
-      this.#uniqueIDIndices.set(this.#initialPlacements[i].placement.uniqueID, i);
+      this._uniqueIDIndices.set(this._initialPlacements[i].placement.uniqueID, i);
     }
-    this.freePlacements = this.#initialPlacements.length;
+    this.freePlacements = this._initialPlacements.length;
   }
 
   /**
@@ -151,7 +151,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.adapted
   GetPlacementDataCenter()
   {
-    return vec3.clone(this.#placementDataCenter);
+    return vec3.clone(this._placementDataCenter);
   }
 
   /**
@@ -163,7 +163,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.implemented
   GetHasDynamicMovement()
   {
-    return this.#resetTransformOnUpdate;
+    return this._resetTransformOnUpdate;
   }
 
   /** Brings the distribution into its start state by running a full restart. */
@@ -190,7 +190,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     }
     else if (list === this.lifetimeModifiers)
     {
-      this.#refreshDynamicMovement();
+      this._refreshDynamicMovement();
     }
   }
 
@@ -208,13 +208,13 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
 
     for (const spawner of this.spawnTriggers)
     {
-      spawner.Reset(this.#initialPlacements);
+      spawner.Reset(this._initialPlacements);
     }
 
-    this.#playTime = 0;
-    this.#isPlaying = true;
+    this._playTime = 0;
+    this._isPlaying = true;
     this.entitiesSpawned = 0;
-    this.#refreshDynamicMovement();
+    this._refreshDynamicMovement();
   }
 
   /**
@@ -237,9 +237,9 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     }
 
     const deltaTime = updateContext.GetDeltaT() * this.playtimeMultiplier;
-    this.#playTime += deltaTime;
-    this.#updatePlacementTimeouts(deltaTime);
-    vec3.set(this.#placementDataCenter, 0, 0, 0);
+    this._playTime += deltaTime;
+    this._updatePlacementTimeouts(deltaTime);
+    vec3.set(this._placementDataCenter, 0, 0, 0);
 
     let index = 0;
     while (index < this.placementData.length)
@@ -247,7 +247,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       const placement = this.placementData[index];
       placement.lifeTime += deltaTime;
 
-      if (this.#resetTransformOnUpdate)
+      if (this._resetTransformOnUpdate)
       {
         placement.translationFrameDelta.set(placement.additionalTranslation);
         vec3.set(placement.additionalTranslation, 0, 0, 0);
@@ -255,7 +255,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
         vec3.set(placement.additionalScale, 1, 1, 1);
       }
 
-      this.#applyBoneTransform(placement, params);
+      this._applyBoneTransform(placement, params);
 
       let entityKilled = false;
       for (const modifier of this.lifetimeModifiers)
@@ -263,7 +263,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
         const event = modifier.ProcessDistributionModifier(placement, deltaTime, params);
         if (event !== DistributionEntityLifeTimeEvent.DO_NOTHING)
         {
-          this.#handleDistributionEntityLifetimeEvent(index, event);
+          this._handleDistributionEntityLifetimeEvent(index, event);
           entityKilled = true;
           break;
         }
@@ -274,7 +274,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
         continue;
       }
 
-      if (this.#resetTransformOnUpdate)
+      if (this._resetTransformOnUpdate)
       {
         for (let axis = 0; axis < 3; axis++)
         {
@@ -284,14 +284,14 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
 
       for (let axis = 0; axis < 3; axis++)
       {
-        this.#placementDataCenter[axis] += placement.initialTranslation[axis] + placement.additionalTranslation[axis];
+        this._placementDataCenter[axis] += placement.initialTranslation[axis] + placement.additionalTranslation[axis];
       }
       index++;
     }
 
     if (this.placementData.length)
     {
-      vec3.scale(this.#placementDataCenter, this.#placementDataCenter, 1 / this.placementData.length);
+      vec3.scale(this._placementDataCenter, this._placementDataCenter, 1 / this.placementData.length);
     }
 
     for (const spawner of this.spawnTriggers)
@@ -318,7 +318,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.implemented
   AddEntities(howMany = 1)
   {
-    if (this.freePlacements < 1 || this.#initialPlacements.length === 0)
+    if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
       return;
     }
@@ -326,7 +326,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     const count = Math.min(Math.max(0, Math.trunc(howMany)), this.freePlacements);
     for (let i = 0; i < count; i++)
     {
-      const placement = this.#getRandomPlacement();
+      const placement = this._getRandomPlacement();
       placement.uniqueID = this.entitiesSpawned++;
       this.placementData.push(placement);
     }
@@ -341,30 +341,30 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.adapted
   TriggerEntityByID(entityID)
   {
-    if (this.freePlacements < 1 || this.#initialPlacements.length === 0)
+    if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
       return -1;
     }
 
-    let entityIndex = this.#getInitialPlacementIndexByID(entityID);
-    if (entityIndex < 0 || this.#initialPlacements[entityIndex].timeOutDuration > 0)
+    let entityIndex = this._getInitialPlacementIndexByID(entityID);
+    if (entityIndex < 0 || this._initialPlacements[entityIndex].timeOutDuration > 0)
     {
       return -1;
     }
 
-    this.#initialPlacements[entityIndex].timeOutDuration = this.timeOutOnTriggering;
+    this._initialPlacements[entityIndex].timeOutDuration = this.timeOutOnTriggering;
     if (entityIndex < this.freePlacements)
     {
       this.freePlacements--;
-      this.#swapInitialPlacements(entityIndex, this.freePlacements);
+      this._swapInitialPlacements(entityIndex, this.freePlacements);
       entityIndex = this.freePlacements;
     }
 
-    const placement = EveBaseDistributionMethod.#clonePlacement(this.#initialPlacements[entityIndex].placement);
-    placement.initialPlacementID = this.#initialPlacements[entityIndex].placement.uniqueID;
+    const placement = EveBaseDistributionMethod._clonePlacement(this._initialPlacements[entityIndex].placement);
+    placement.initialPlacementID = this._initialPlacements[entityIndex].placement.uniqueID;
     for (const modifier of this.spawnModifiers)
     {
-      modifier.ProcessSpawnModifier(placement, this.#initialPlacements.length);
+      modifier.ProcessSpawnModifier(placement, this._initialPlacements.length);
     }
     this.placementData.push(placement);
     return entityIndex;
@@ -386,23 +386,23 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.adapted
   GetClosestFreePlacement(position)
   {
-    if (this.#initialPlacements.length === 0 || this.freePlacements < 1)
+    if (this._initialPlacements.length === 0 || this.freePlacements < 1)
     {
       return -1;
     }
 
     let bestIndex = 0;
-    let bestDistance = vec3.squaredDistance(position, this.#initialPlacements[0].placement.initialTranslation);
+    let bestDistance = vec3.squaredDistance(position, this._initialPlacements[0].placement.initialTranslation);
     for (let i = 1; i < this.freePlacements; i++)
     {
-      const distance = vec3.squaredDistance(position, this.#initialPlacements[i].placement.initialTranslation);
+      const distance = vec3.squaredDistance(position, this._initialPlacements[i].placement.initialTranslation);
       if (distance < bestDistance)
       {
         bestDistance = distance;
         bestIndex = i;
       }
     }
-    return this.#initialPlacements[bestIndex].placement.uniqueID;
+    return this._initialPlacements[bestIndex].placement.uniqueID;
   }
 
   /**
@@ -413,9 +413,9 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   @impl.adapted
   GetInitialPlacementData(uniqueID)
   {
-    const index = this.#getInitialPlacementIndexByID(uniqueID);
-    return index >= 0 && index < this.#initialPlacements.length
-      ? this.#initialPlacements[index].placement
+    const index = this._getInitialPlacementIndexByID(uniqueID);
+    return index >= 0 && index < this._initialPlacements.length
+      ? this._initialPlacements[index].placement
       : null;
   }
 
@@ -438,12 +438,12 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * what enables the per-frame reset of the additional translation, rotation and
    * scale.
    */
-  #refreshDynamicMovement()
+  _refreshDynamicMovement()
   {
-    this.#resetTransformOnUpdate = false;
+    this._resetTransformOnUpdate = false;
     for (const modifier of this.lifetimeModifiers)
     {
-      this.#resetTransformOnUpdate ||= modifier.AffectsTransform();
+      this._resetTransformOnUpdate ||= modifier.AffectsTransform();
     }
   }
 
@@ -451,28 +451,28 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Maps a placement unique id to its current index in the pool, or -1 when the
    * id is unknown.
    */
-  #getInitialPlacementIndexByID(entityID)
+  _getInitialPlacementIndexByID(entityID)
   {
-    return this.#uniqueIDIndices.get(entityID) ?? -1;
+    return this._uniqueIDIndices.get(entityID) ?? -1;
   }
 
   /**
    * Swaps two pool entries and updates the id-to-index map; this is how
    * placements move between the free and in-use partitions of the pool.
    */
-  #swapInitialPlacements(indexA, indexB)
+  _swapInitialPlacements(indexA, indexB)
   {
     if (indexA === indexB)
     {
       return;
     }
 
-    const a = this.#initialPlacements[indexA];
-    const b = this.#initialPlacements[indexB];
-    this.#initialPlacements[indexA] = b;
-    this.#initialPlacements[indexB] = a;
-    this.#uniqueIDIndices.set(a.placement.uniqueID, indexB);
-    this.#uniqueIDIndices.set(b.placement.uniqueID, indexA);
+    const a = this._initialPlacements[indexA];
+    const b = this._initialPlacements[indexB];
+    this._initialPlacements[indexA] = b;
+    this._initialPlacements[indexB] = a;
+    this._uniqueIDIndices.set(a.placement.uniqueID, indexB);
+    this._uniqueIDIndices.set(b.placement.uniqueID, indexA);
   }
 
   /**
@@ -481,29 +481,29 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * lifetime modifier pass over the clone; returns null when that placement is
    * not free.
    */
-  #getPlacement(entityID)
+  _getPlacement(entityID)
   {
-    if (this.freePlacements < 1 || this.#initialPlacements.length === 0)
+    if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
       return null;
     }
 
-    const selectedIndex = this.#getInitialPlacementIndexByID(entityID);
+    const selectedIndex = this._getInitialPlacementIndexByID(entityID);
     if (selectedIndex < 0 || selectedIndex >= this.freePlacements)
     {
       return null;
     }
 
-    const initial = this.#initialPlacements[selectedIndex];
+    const initial = this._initialPlacements[selectedIndex];
     initial.timeOutDuration = this.timeOutOnTriggering;
-    const placement = EveBaseDistributionMethod.#clonePlacement(initial.placement);
+    const placement = EveBaseDistributionMethod._clonePlacement(initial.placement);
     placement.initialPlacementID = initial.placement.uniqueID;
     this.freePlacements--;
-    this.#swapInitialPlacements(selectedIndex, this.freePlacements);
+    this._swapInitialPlacements(selectedIndex, this.freePlacements);
 
     for (const modifier of this.spawnModifiers)
     {
-      modifier.ProcessSpawnModifier(placement, this.#initialPlacements.length);
+      modifier.ProcessSpawnModifier(placement, this._initialPlacements.length);
     }
 
     const params = new EveChildUpdateParams();
@@ -515,16 +515,16 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
   }
 
   /** Takes a uniformly chosen free placement out of the pool. */
-  #getRandomPlacement()
+  _getRandomPlacement()
   {
-    if (this.freePlacements < 1 || this.#initialPlacements.length === 0)
+    if (this.freePlacements < 1 || this._initialPlacements.length === 0)
     {
       // Carbon's zero-free-placement path leaves the caller with a default
       // constructed PlacementDataWithIdentifier rather than a null pointer.
       return new PlacementDataWithIdentifier();
     }
     const selectedIndex = Math.floor(Math.random() * this.freePlacements);
-    return this.#getPlacement(this.#initialPlacements[selectedIndex].placement.uniqueID);
+    return this._getPlacement(this._initialPlacements[selectedIndex].placement.uniqueID);
   }
 
   /**
@@ -532,17 +532,17 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * and returns expired ones to the free partition; does nothing when the
    * placements are not allowed to re-trigger.
    */
-  #updatePlacementTimeouts(deltaTime)
+  _updatePlacementTimeouts(deltaTime)
   {
-    if (!this.locationsCanReTrigger || this.#initialPlacements.length === 0 || this.freePlacements >= this.#initialPlacements.length)
+    if (!this.locationsCanReTrigger || this._initialPlacements.length === 0 || this.freePlacements >= this._initialPlacements.length)
     {
       return;
     }
 
-    let index = this.#initialPlacements.length - 1;
+    let index = this._initialPlacements.length - 1;
     while (index >= this.freePlacements)
     {
-      const initial = this.#initialPlacements[index];
+      const initial = this._initialPlacements[index];
       if (initial.timeOutDuration > 0)
       {
         initial.timeOutDuration -= deltaTime;
@@ -550,7 +550,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
       }
       else
       {
-        this.#swapInitialPlacements(index, this.freePlacements);
+        this._swapInitialPlacements(index, this.freePlacements);
         this.freePlacements++;
       }
     }
@@ -561,7 +561,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * result back into the placement's initial translation, rotation and scale;
    * skipped when the bone index falls outside the supplied bone array.
    */
-  #applyBoneTransform(placement, params)
+  _applyBoneTransform(placement, params)
   {
     if (placement.boneIndex < 0 || placement.boneIndex >= params.boneCount)
     {
@@ -569,7 +569,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     }
 
     const boneMatrix = mat4.fromJointMatIndex(mat4.create(), params.bones, placement.boneIndex);
-    const placementMatrix = this.#getInitialPlacementMatrix(placement);
+    const placementMatrix = this._getInitialPlacementMatrix(placement);
     // Carbon (row-vector): m = m * boneMatrix - placement first, bone last.
     mat4.multiply(placementMatrix, boneMatrix, placementMatrix);
     mat4.decomposeCarbon(placementMatrix, placement.initialRotation, placement.initialTranslation, placement.initialScale);
@@ -580,18 +580,18 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * the spawn modifiers reapplied, returning identity when that origin placement
    * no longer exists.
    */
-  #getInitialPlacementMatrix(placement)
+  _getInitialPlacementMatrix(placement)
   {
-    const originIndex = this.#getInitialPlacementIndexByID(placement.initialPlacementID);
+    const originIndex = this._getInitialPlacementIndexByID(placement.initialPlacementID);
     if (originIndex < 0)
     {
       return mat4.create();
     }
 
-    const initial = EveBaseDistributionMethod.#clonePlacement(this.#initialPlacements[originIndex].placement);
+    const initial = EveBaseDistributionMethod._clonePlacement(this._initialPlacements[originIndex].placement);
     for (const modifier of this.spawnModifiers)
     {
-      modifier.ProcessSpawnModifier(initial, this.#initialPlacements.length);
+      modifier.ProcessSpawnModifier(initial, this._initialPlacements.length);
     }
     return mat4.fromRotationTranslationScale(mat4.create(), initial.initialRotation, initial.initialTranslation, initial.initialScale);
   }
@@ -602,7 +602,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * placement drawn from the distribution, from its initial position, or from
    * its current position.
    */
-  #handleDistributionEntityLifetimeEvent(index, event)
+  _handleDistributionEntityLifetimeEvent(index, event)
   {
     if (event === DistributionEntityLifeTimeEvent.KILL_ENTITY)
     {
@@ -620,16 +620,16 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
     switch (event)
     {
       case DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_DISTRIBUTION:
-        replacement = this.#getRandomPlacement();
+        replacement = this._getRandomPlacement();
         break;
 
       case DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_INITIAL_POSITION:
-        replacement = EveBaseDistributionMethod.#clonePlacement(current);
+        replacement = EveBaseDistributionMethod._clonePlacement(current);
         replacement.lifeTime = 0;
         break;
 
       case DistributionEntityLifeTimeEvent.KILL_AND_SPAWN_NEW_FROM_CURRENT_POSITION:
-        replacement = EveBaseDistributionMethod.#clonePlacement(current);
+        replacement = EveBaseDistributionMethod._clonePlacement(current);
         for (let axis = 0; axis < 3; axis++)
         {
           replacement.initialTranslation[axis] += replacement.additionalTranslation[axis];
@@ -654,7 +654,7 @@ export class EveBaseDistributionMethod extends IEveDistributionMethod
    * Deep-copies a placement record so that a spawned entity never mutates the
    * pooled entry it came from.
    */
-  static #clonePlacement(source)
+  static _clonePlacement(source)
   {
     const placement = new PlacementDataWithIdentifier();
     placement.initialTranslation.set(source.initialTranslation);

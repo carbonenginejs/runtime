@@ -18,7 +18,7 @@ import { carbon, CjsSchema, impl, edit, type } from "#schema";
 @carbon.inherit(IEveSpaceObject2)
 export class AudioGameObject extends CjsModel
 {
-  #worldTransform = mat4.create();
+  _worldTransform = mat4.create();
 
   @edit.readwrite
   @edit.persist
@@ -78,7 +78,7 @@ export class AudioGameObject extends CjsModel
     this.UpdateWorldTransform(0);
     const position = this.GetWorldPosition(vec3.create());
     const initialized = this.audioEmitter.Initialize(this.name || "audio_object", "", position);
-    this.#SetEmitterPosition(position);
+    this._SetEmitterPosition(position);
     return initialized !== false;
   }
 
@@ -145,7 +145,7 @@ export class AudioGameObject extends CjsModel
     this.UpdateWorldTransform(time);
     if (this.audioEmitter && !this.mute)
     {
-      this.#SetEmitterPosition(this.GetWorldPosition(vec3.create()));
+      this._SetEmitterPosition(this.GetWorldPosition(vec3.create()));
     }
   }
 
@@ -185,7 +185,7 @@ export class AudioGameObject extends CjsModel
    */
   GetLocalToWorldTransform(out = mat4.create())
   {
-    return mat4.copy(out, this.#worldTransform);
+    return mat4.copy(out, this._worldTransform);
   }
 
   /**
@@ -195,7 +195,7 @@ export class AudioGameObject extends CjsModel
    */
   GetWorldPosition(out = vec3.create())
   {
-    return mat4.getTranslation(out, this.#worldTransform);
+    return mat4.getTranslation(out, this._worldTransform);
   }
 
   /**
@@ -205,7 +205,7 @@ export class AudioGameObject extends CjsModel
    */
   GetWorldRotation(out = quat.create())
   {
-    return quat.normalize(out, mat4.getRotation(out, this.#worldTransform));
+    return quat.normalize(out, mat4.getRotation(out, this._worldTransform));
   }
 
   /**
@@ -229,8 +229,8 @@ export class AudioGameObject extends CjsModel
     const rotation = quat.clone(this.rotation);
     this.translationCurve?.Update(time, translation);
     this.rotationCurve?.Update(time, rotation);
-    mat4.fromRotationTranslation(this.#worldTransform, rotation, translation);
-    return this.#worldTransform;
+    mat4.fromRotationTranslation(this._worldTransform, rotation, translation);
+    return this._worldTransform;
   }
 
   /**
@@ -249,7 +249,7 @@ export class AudioGameObject extends CjsModel
    * axes rotated into world space, which is what gives the sound its
    * orientation.
    */
-  #SetEmitterPosition(position)
+  _SetEmitterPosition(position)
   {
     const rotation = this.GetWorldRotation(quat.create());
     const front = vec3.transformQuat(vec3.create(), AudioGameObject.FRONT, rotation);

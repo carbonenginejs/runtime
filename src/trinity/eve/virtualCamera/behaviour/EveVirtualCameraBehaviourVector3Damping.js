@@ -20,7 +20,7 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
   @type.float32
   m_dampingRatio = 1;
 
-  #lastPosition = vec3.create();
+  _lastPosition = vec3.create();
 
   /**
    * Names the behaviour "Damping"; the default ratio of 1 follows the input
@@ -44,10 +44,10 @@ export class EveVirtualCameraBehaviourVector3Damping extends EveVirtualCameraBeh
   {
     if (localElapsedTime <= 0)
     {
-      vec3.copy(this.#lastPosition, current);
+      vec3.copy(this._lastPosition, current);
       return vec3.zero(out);
     }
-    vec3.lerp(this.#lastPosition, this.#lastPosition, current, this.m_dampingRatio);
-    return vec3.subtract(out, this.#lastPosition, current);
+    vec3.lerp(this._lastPosition, this._lastPosition, current, this.m_dampingRatio);
+    return vec3.subtract(out, this._lastPosition, current);
   }
 }

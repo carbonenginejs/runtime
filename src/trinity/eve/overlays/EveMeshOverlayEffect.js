@@ -113,7 +113,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   SetShaderOption(name, value)
   {
-    for (const effects of this.#effectLists())
+    for (const effects of this._effectLists())
     {
       for (const effect of effects) effect?.SetOption?.(name, value);
     }
@@ -194,7 +194,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   PlayCurveSet(name, rangeName = "")
   {
-    const curveSet = this.#matchingCurveSet(name);
+    const curveSet = this._matchingCurveSet(name);
     if (!curveSet) return;
     if (rangeName) curveSet.PlayTimeRange?.(rangeName);
     else
@@ -212,7 +212,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   StopCurveSet(name)
   {
-    this.#matchingCurveSet(name)?.Stop();
+    this._matchingCurveSet(name)?.Stop();
   }
 
   /**
@@ -223,7 +223,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   GetCurveSetDuration(name)
   {
-    return Math.max(0, Number(this.#matchingCurveSet(name)?.GetMaxCurveDuration?.() ?? 0));
+    return Math.max(0, Number(this._matchingCurveSet(name)?.GetMaxCurveDuration?.() ?? 0));
   }
 
   /**
@@ -234,7 +234,7 @@ export class EveMeshOverlayEffect extends CjsModel
   @impl.implemented
   GetRangeDuration(name, rangeName)
   {
-    return Math.max(0, Number(this.#matchingCurveSet(name)?.GetRangeDuration?.(rangeName) ?? 0));
+    return Math.max(0, Number(this._matchingCurveSet(name)?.GetRangeDuration?.(rangeName) ?? 0));
   }
 
   /**
@@ -255,7 +255,7 @@ export class EveMeshOverlayEffect extends CjsModel
    * Returns the five per-batch effect lists so callers can apply an operation to
    * every effect the overlay owns.
    */
-  #effectLists()
+  _effectLists()
   {
     return [
       this.opaqueEffects,
@@ -270,7 +270,7 @@ export class EveMeshOverlayEffect extends CjsModel
    * Returns the owned curve set when its name matches the requested one,
    * otherwise null.
    */
-  #matchingCurveSet(name)
+  _matchingCurveSet(name)
   {
     const curveSet = this.curveSet;
     return curveSet?.GetName() === name ? curveSet : null;

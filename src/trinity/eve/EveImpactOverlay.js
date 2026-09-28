@@ -149,22 +149,22 @@ export class EveImpactOverlay extends CjsModel
 
   // Derived at lifecycle time from the owner's "damage" locator set; not an
   // authored value, so it never enters the values interchange.
-  #damageLocatorCount = 0;
+  _damageLocatorCount = 0;
 
-  #armorImpactLifeTime = 10;
+  _armorImpactLifeTime = 10;
 
-  #dataTextureOffset = -1;
+  _dataTextureOffset = -1;
 
-  #lastDamageState = vec3.fromValues(1, 1, 1);
+  _lastDamageState = vec3.fromValues(1, 1, 1);
 
-  #shieldImpacts = new Map();
+  _shieldImpacts = new Map();
 
   /** Post-hydration hook; the overlay needs no additional setup. */
   @carbon.method
   @impl.implemented
   Initialize()
   {
-    this.#SyncLegacyDamageFieldsToOverlay();
+    this._SyncLegacyDamageFieldsToOverlay();
     return true;
   }
 
@@ -183,7 +183,7 @@ export class EveImpactOverlay extends CjsModel
     this.hullImpactEmitter = hullImpactEmitter ?? null;
     this.armorDamageShader = armorDamageShader ?? null;
     this.mesh = shieldImpactMesh ?? null;
-    this.#SyncLegacyDamageFieldsToOverlay();
+    this._SyncLegacyDamageFieldsToOverlay();
     return true;
   }
 
@@ -209,8 +209,8 @@ export class EveImpactOverlay extends CjsModel
   @impl.adapted
   SetDamageLocatorCount(count)
   {
-    this.#damageLocatorCount = Number(count) >>> 0;
-    this.damageOverlay.SetDamageLocatorCount(this.#damageLocatorCount);
+    this._damageLocatorCount = Number(count) >>> 0;
+    this.damageOverlay.SetDamageLocatorCount(this._damageLocatorCount);
     return true;
   }
 
@@ -222,7 +222,7 @@ export class EveImpactOverlay extends CjsModel
   @impl.adapted
   GetDamageLocatorCount()
   {
-    return this.#damageLocatorCount;
+    return this._damageLocatorCount;
   }
 
   /** Seconds an armour impact stays alive before it is retired. */
@@ -286,7 +286,7 @@ export class EveImpactOverlay extends CjsModel
   {
     if (name === "shieldboost" || name === "shieldhardening")
     {
-      const fader = EveImpactOverlay.#effectFader(this, name);
+      const fader = EveImpactOverlay._effectFader(this, name);
       fader.StartFade(!!on, Number(duration) / 4);
       return true;
     }
@@ -436,7 +436,7 @@ export class EveImpactOverlay extends CjsModel
     this.shieldImpactColorFade = Math.max(0, Math.min(1, (1 - shield) ** 2));
     this.damageOverlay.SetDamageState(shield, armor, hull, createArmorImpacts);
     this.configuration = this.damageOverlay.GetImpactConfiguration();
-    vec3.set(this.#lastDamageState, shield, armor, hull);
+    vec3.set(this._lastDamageState, shield, armor, hull);
   }
 
   /** Removes every live shield and armour impact. */
@@ -444,7 +444,7 @@ export class EveImpactOverlay extends CjsModel
   @impl.implemented
   Clear()
   {
-    this.#shieldImpacts.clear();
+    this._shieldImpacts.clear();
     this.damageOverlay.Clear();
   }
 
@@ -458,7 +458,7 @@ export class EveImpactOverlay extends CjsModel
     const configuration = this.GetImpactConfiguration();
     if (configuration === ImpactConfiguration.IMPACT_SHIELD && lod !== Tr2Lod.TR2_LOD_LOW)
     {
-      return this.#CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent);
+      return this._CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent);
     }
 
     if (configuration === ImpactConfiguration.IMPACT_ARMOR ||
@@ -478,7 +478,7 @@ export class EveImpactOverlay extends CjsModel
    * the shield ellipsoid and allocate a new record. Extracted from
    * CreateImpact so the surface matches Carbon's; behaviour unchanged.
    */
-  #CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent)
+  _CreateShieldImpact(damageLocatorIndex, direction, lifeTime, size, intensity, parent)
   {
     {
       const normalizedDirection = vec3.normalize(vec3.create(), direction);
@@ -487,7 +487,7 @@ export class EveImpactOverlay extends CjsModel
       let closestAtLocatorAngle = -Infinity;
       let closestAtAnyAngle = -Infinity;
 
-      for (const [ index, impact ] of this.#shieldImpacts)
+      for (const [ index, impact ] of this._shieldImpacts)
       {
         const angle = vec3.dot(normalizedDirection, impact.direction);
         if (angle > closestAtAnyAngle)
@@ -504,18 +504,18 @@ export class EveImpactOverlay extends CjsModel
 
       if (closestAtLocatorAngle > 0.95)
       {
-        const impact = this.#shieldImpacts.get(closestAtLocatorIndex);
+        const impact = this._shieldImpacts.get(closestAtLocatorIndex);
         vec3.copy(impact.direction, normalizedDirection);
         impact.timeLeft = IMPACT_SHIELD_FADEOUT * Number(lifeTime);
         impact.size = Math.max(Number(size), impact.size);
         return closestAtLocatorIndex;
       }
 
-      if (this.#shieldImpacts.size >= this.maxShieldImpacts)
+      if (this._shieldImpacts.size >= this.maxShieldImpacts)
       {
         if (closestAtAnyIndex !== -1)
         {
-          const impact = this.#shieldImpacts.get(closestAtAnyIndex);
+          const impact = this._shieldImpacts.get(closestAtAnyIndex);
           vec3.copy(impact.direction, normalizedDirection);
           impact.timeLeft = IMPACT_SHIELD_FADEOUT * Number(lifeTime);
           impact.size = Math.max(Number(size), impact.size);
@@ -534,14 +534,14 @@ export class EveImpactOverlay extends CjsModel
       parent.GetShapeEllipsoid(ellipsoidCenter, ellipsoidRadii);
       const locatorPositionWorld = vec3.create();
       parent.GetDamageLocatorPosition(damageLocatorIndex, true, locatorPositionWorld);
-      const interceptPosition = this.#GetShieldImpactPosition(
+      const interceptPosition = this._GetShieldImpactPosition(
         parentInverseWorldTransform, locatorPositionWorld,
         normalizedDirection, ellipsoidCenter, ellipsoidRadii);
       vec3.transformMat4(interceptPosition, interceptPosition, parentWorldTransform);
 
       const index = this.damageOverlay.AllocateImpactIndex();
       const impactLifeTime = IMPACT_SHIELD_FADEOUT * Number(lifeTime);
-      this.#shieldImpacts.set(index, {
+      this._shieldImpacts.set(index, {
         damageLocatorIndex: Number(damageLocatorIndex) | 0,
         interceptPosition,
         direction: normalizedDirection,
@@ -561,7 +561,7 @@ export class EveImpactOverlay extends CjsModel
    * object space. Reads shieldIsEllipsoid off the instance exactly as
    * Carbon does; the module-level helper carries the math.
    */
-  #GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out = vec3.create())
+  _GetShieldImpactPosition(parentInverseWorldTransform, damageLocatorPositionWorld, impactDirection, ellipsoidCenter, ellipsoidRadii, out = vec3.create())
   {
     return getShieldImpactPosition(
       out, this.shieldIsEllipsoid, parentInverseWorldTransform,
@@ -574,7 +574,7 @@ export class EveImpactOverlay extends CjsModel
   UpdateImpact(out, direction, impactIndex)
   {
     if (impactIndex === -1) return false;
-    const impact = this.#shieldImpacts.get(Number(impactIndex) | 0);
+    const impact = this._shieldImpacts.get(Number(impactIndex) | 0);
     if (!impact) return this.damageOverlay.HasImpact(impactIndex);
     vec3.copy(out, impact.interceptPosition);
     vec3.copy(impact.direction, direction);
@@ -585,7 +585,7 @@ export class EveImpactOverlay extends CjsModel
   HasShieldActivity()
   {
     return EveDamageOverlay.impactEffectEnabled &&
-      (this.#shieldImpacts.size !== 0 || this.overallShieldImpact > 0 ||
+      (this._shieldImpacts.size !== 0 || this.overallShieldImpact > 0 ||
         !this.shieldHardening.IsKickInZero() || !this.shieldBoosting.IsKickInZero());
   }
 
@@ -694,10 +694,10 @@ export class EveImpactOverlay extends CjsModel
   UpdateAsyncronous(updateContext, parent)
   {
     const delta = updateContext.GetDeltaT();
-    for (const [ index, impact ] of this.#shieldImpacts)
+    for (const [ index, impact ] of this._shieldImpacts)
     {
       impact.timeLeft -= delta;
-      if (impact.timeLeft <= 0) this.#shieldImpacts.delete(index);
+      if (impact.timeLeft <= 0) this._shieldImpacts.delete(index);
     }
 
     this.shieldBoosting.Update(updateContext);
@@ -713,11 +713,11 @@ export class EveImpactOverlay extends CjsModel
       // Bind position, not the animated pose (Carbon EveImpactOverlay.cpp:189,
       // commit 3d988b1d): decals seeded here must not swim with animation.
       getDamageLocatorPositionOS: (index, out) => parent.GetDamageLocatorBindPosition(index, out)
-    }, this.#shieldImpacts.size, this.HasShieldActivity());
+    }, this._shieldImpacts.size, this.HasShieldActivity());
 
     const header = this.damageOverlay.HeaderRow();
     vec4.set(header[0],
-      this.#shieldImpacts.size,
+      this._shieldImpacts.size,
       this.overallShieldImpact,
       this.shieldImpactColorFade,
       this.shieldImpactParentSize);
@@ -740,7 +740,7 @@ export class EveImpactOverlay extends CjsModel
       IMPACT_SHIELD_SIZE_MIN,
       Math.min(IMPACT_SHIELD_SIZE_MAX, boundingSphere[3]));
 
-    if (!this.#shieldImpacts.size) return;
+    if (!this._shieldImpacts.size) return;
 
     const ellipsoidCenter = vec3.create();
     const ellipsoidRadii = vec3.fromValues(1, 1, 1);
@@ -748,7 +748,7 @@ export class EveImpactOverlay extends CjsModel
     const locatorPositionWorld = vec3.create();
     const position = vec3.create();
     let row = 0;
-    for (const impact of this.#shieldImpacts.values())
+    for (const impact of this._shieldImpacts.values())
     {
       parent.GetDamageLocatorPosition(
         impact.damageLocatorIndex, true, locatorPositionWorld);
@@ -784,11 +784,11 @@ export class EveImpactOverlay extends CjsModel
   }
 
   /** Copies legacy authored damage fields into the owned damage overlay. */
-  #SyncLegacyDamageFieldsToOverlay()
+  _SyncLegacyDamageFieldsToOverlay()
   {
     this.damageOverlay ??= new EveDamageOverlay();
     this.damageOverlay.SetSeed(this.seed);
-    this.damageOverlay.SetDamageLocatorCount(this.#damageLocatorCount);
+    this.damageOverlay.SetDamageLocatorCount(this._damageLocatorCount);
     this.damageOverlay.SetDebugForceSpawnDebris(this.debugForceSpawnDebris);
     this.damageOverlay.SetHullDamageFactor(this.hullDamageFactor);
     this.damageOverlay.SetArmorDamageShaderEffect(this.armorDamageShader);
@@ -802,7 +802,7 @@ export class EveImpactOverlay extends CjsModel
    * Maps an effect name to the fader that drives it, or null when the name is
    * unknown.
    */
-  static #effectFader(overlay, name)
+  static _effectFader(overlay, name)
   {
     switch (name)
     {

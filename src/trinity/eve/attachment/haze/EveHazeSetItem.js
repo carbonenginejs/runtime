@@ -63,12 +63,12 @@ export class EveHazeSetItem extends CjsModel
   {
     // Carbon (row-vector): TransformationMatrix(scaling, rotation, position).
     const transform = mat4.fromRotationTranslationScale(
-      EveHazeSetItem.#transform,
+      EveHazeSetItem._transform,
       this.rotation,
       this.position,
       this.scaling
     );
-    return box3.transformMat4(out, EveHazeSetItem.#bounds, transform);
+    return box3.transformMat4(out, EveHazeSetItem._bounds, transform);
   }
 
   /** The parent bone this haze volume rides. */
@@ -79,7 +79,7 @@ export class EveHazeSetItem extends CjsModel
     return this.boneIndex;
   }
 
-  static #bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 5);
+  static _bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 5);
 
-  static #transform = mat4.create();
+  static _transform = mat4.create();
 }

@@ -30,14 +30,14 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   expressionInputs = [];
 
   /** Compiled expression program (Carbon m_program, a CcpParser::Program). */
-  #program = null;
+  _program = null;
 
   /** m_randomConstant (float) - per-instance random constant (h:48). */
-  #randomConstant = Math.random();
+  _randomConstant = Math.random();
 
   // m_arguments (h:50-55) - the expression variable bindings, refreshed each
   // synchronous update.
-  #arguments = { time: 0, shipSpeed: 0, shipMaxSpeed: 0 };
+  _arguments = { time: 0, shipSpeed: 0, shipMaxSpeed: 0 };
 
   /**
    * Compiles the authored expression after load
@@ -59,7 +59,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   /** Gets the n-th input curve value at the given (default: current) time (cpp:105-121). */
   @carbon.method
   @impl.implemented
-  GetInputValue(index, time = this.#arguments.time)
+  GetInputValue(index, time = this._arguments.time)
   {
     const i = index | 0;
     if (i < 0 || i >= this.expressionInputs.length)
@@ -75,7 +75,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @impl.implemented
   GetRandomConstant()
   {
-    return this.#randomConstant;
+    return this._randomConstant;
   }
 
   /** Gets the authored expression (cpp:128-131). */
@@ -100,12 +100,12 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   SetExpression(expression)
   {
     this.expression = String(expression ?? "");
-    this.#program = this.expression
+    this._program = this.expression
       ? CjsControllerExpressionProgram.Compile(this.expression, { emptyValue: 0 })
       : null;
-    if (this.#program && !this.#program.IsValid())
+    if (this._program && !this._program.IsValid())
     {
-      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this.expression, this.#program.error);
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "EveSmartLightAttributeModifierExpressionBucket::SetExpression invalid expression \"%s\": %s", this.expression, this._program.error);
     }
   }
 
@@ -114,7 +114,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
   @impl.implemented
   ResetRandomConstant()
   {
-    this.#randomConstant = Math.random();
+    this._randomConstant = Math.random();
   }
 
   /**
@@ -158,7 +158,7 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
     {
       return 0;
     }
-    return Number(program.Evaluate(this.#MakeEvaluationContext())) || 0;
+    return Number(program.Evaluate(this._MakeEvaluationContext())) || 0;
   }
 
   /**
@@ -200,27 +200,27 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
       return;
     }
 
-    this.#arguments.time = this.playTime;
-    this.#arguments.shipSpeed = EveSmartLightAttributeModifierExpressionBucket.#ShipSpeed(params?.spaceObjectParent);
-    this.#arguments.shipMaxSpeed = Number(params?.ownerMaxSpeed ?? 0);
+    this._arguments.time = this.playTime;
+    this._arguments.shipSpeed = EveSmartLightAttributeModifierExpressionBucket._ShipSpeed(params?.spaceObjectParent);
+    this._arguments.shipMaxSpeed = Number(params?.ownerMaxSpeed ?? 0);
 
-    if (this.#program?.IsValid())
+    if (this._program?.IsValid())
     {
-      this.attributeMultiplier = Number(this.#program.Evaluate(this.#MakeEvaluationContext())) || 0;
+      this.attributeMultiplier = Number(this._program.Evaluate(this._MakeEvaluationContext())) || 0;
     }
   }
 
   /** Shared VM context (curve/self carry GetRandomConstant/GetInputValue, per the Tr2CurveScalarExpression pattern). */
-  #MakeEvaluationContext()
+  _MakeEvaluationContext()
   {
     return {
       curve: this,
       self: this,
-      time: this.#arguments.time,
+      time: this._arguments.time,
       variables: {
-        time: this.#arguments.time,
-        shipSpeed: this.#arguments.shipSpeed,
-        shipMaxSpeed: this.#arguments.shipMaxSpeed
+        time: this._arguments.time,
+        shipSpeed: this._arguments.shipSpeed,
+        shipMaxSpeed: this._arguments.shipMaxSpeed
       }
     };
   }
@@ -230,16 +230,16 @@ export class EveSmartLightAttributeModifierExpressionBucket extends EveSmartLigh
    * (EveSmartLightAttributeModifierExpressionBucket.cpp:55-65); the space
    * object is duck-typed.
    */
-  static #ShipSpeed(spaceObjectParent)
+  static _ShipSpeed(spaceObjectParent)
   {
     if (!spaceObjectParent?.GetWorldVelocity)
     {
       return 0;
     }
-    const velocity = spaceObjectParent.GetWorldVelocity(EveSmartLightAttributeModifierExpressionBucket.#velocity);
+    const velocity = spaceObjectParent.GetWorldVelocity(EveSmartLightAttributeModifierExpressionBucket._velocity);
     return velocity ? vec3.length(velocity) : 0;
   }
 
-  static #velocity = vec3.create();
+  static _velocity = vec3.create();
 
 }

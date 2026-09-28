@@ -50,11 +50,11 @@ export class EveRemotePositionCurve extends CjsModel
   @type.float32
   sweepTime = 1;
 
-  #startTime = 0;
+  _startTime = 0;
 
-  #startPosition = vec3.create();
+  _startPosition = vec3.create();
 
-  #currentOffsetDir = vec3.create();
+  _currentOffsetDir = vec3.create();
 
   /**
    * Time-only entry point; evaluates the curve for its effect on value and
@@ -65,7 +65,7 @@ export class EveRemotePositionCurve extends CjsModel
   @impl.reason("Carbon's output-first Be::Time overload is represented by the org-standard time-first JavaScript curve convention.")
   UpdateValue(time)
   {
-    this.Update(time, this.#startPosition);
+    this.Update(time, this._startPosition);
   }
 
   /**
@@ -82,11 +82,11 @@ export class EveRemotePositionCurve extends CjsModel
     {
       return vec3.zero(out);
     }
-    if (this.#startTime === 0)
+    if (this._startTime === 0)
     {
-      this.#startTime = time;
+      this._startTime = time;
     }
-    const timeSinceStart = time - this.#startTime;
+    const timeSinceStart = time - this._startTime;
     let s = 0;
     if (timeSinceStart > this.delayTime)
     {
@@ -99,9 +99,9 @@ export class EveRemotePositionCurve extends CjsModel
         s = num.clamp((timeSinceStart - this.delayTime) / this.sweepTime, 0, 1);
       }
     }
-    vec3.lerp(this.#currentOffsetDir, this.offsetDir1, this.offsetDir2, s);
-    this.startPositionCurve.GetValueAt(time, this.#startPosition);
-    vec3.add(this.value, this.#startPosition, this.#currentOffsetDir);
+    vec3.lerp(this._currentOffsetDir, this.offsetDir1, this.offsetDir2, s);
+    this.startPositionCurve.GetValueAt(time, this._startPosition);
+    vec3.add(this.value, this._startPosition, this._currentOffsetDir);
     return vec3.copy(out, this.value);
   }
 

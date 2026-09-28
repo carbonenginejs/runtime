@@ -28,7 +28,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
   noiseOctaves = 1;
 
   /** Frame time captured per update; Carbon reads BeOS->GetCurrentFrameTime(). */
-  #frameTime = 0;
+  _frameTime = 0;
 
   /**
    * Advances the crossfade state machine and captures the frame time for the
@@ -40,7 +40,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
   @impl.reason("Carbon samples BeOS->GetCurrentFrameTime() inside ProcessAttributeModifier; the frame time is captured from the update context here because ProcessAttributeModifier carries no context.")
   UpdateSyncronous(updateContext, _params, activationMultiplier)
   {
-    this.#frameTime = Number(updateContext.GetTime());
+    this._frameTime = Number(updateContext.GetTime());
     this.UpdateActivationStrength(activationMultiplier, updateContext.GetDeltaT());
   }
 
@@ -58,7 +58,7 @@ export class EveSmartLightAttributeModifierNoise extends IEveSmartLightGroupAttr
 
     if (activationAdjustedAmplitude > 0)
     {
-      const noise = carbonPerlin1D(this.#frameTime * this.noiseFrequency, 2, 2, this.noiseOctaves);
+      const noise = carbonPerlin1D(this._frameTime * this.noiseFrequency, 2, 2, this.noiseOctaves);
       const noisifiedBrightness = ((noise + 1) / 2) * activationAdjustedAmplitude;
       const scale = 1 + activationStrength * (noisifiedBrightness - 1);
       attribute[0] *= scale;

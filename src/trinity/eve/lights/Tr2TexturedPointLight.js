@@ -42,14 +42,14 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   @type.enum("trinity.Tr2Light.LIGHT_TYPE")
   type = Tr2Light.POINT_LIGHT;
 
-  #saturation = 1;
+  _saturation = 1;
 
   /** Carbon SetSaturation (cpp:37-40); consumed by Update below. */
   @carbon.method
   @impl.implemented
   SetSaturation(saturation)
   {
-    this.#saturation = Number(saturation);
+    this._saturation = Number(saturation);
   }
 
   /**
@@ -106,6 +106,6 @@ export class Tr2TexturedPointLight extends Tr2PointLight
   Update()
   {
     if (!this.texture) return;
-    color.saturate(this.color, this.texture.GetAverageColor(), this.#saturation);
+    color.saturate(this.color, this.texture.GetAverageColor(), this._saturation);
   }
 }

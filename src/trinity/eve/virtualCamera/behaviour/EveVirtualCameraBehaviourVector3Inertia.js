@@ -20,9 +20,9 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
   @type.float32
   inertiaFactor = 1;
 
-  #lastPosition = vec3.create();
+  _lastPosition = vec3.create();
 
-  #lastVelocity = vec3.create();
+  _lastVelocity = vec3.create();
 
   /**
    * Names the behaviour "Inertia"; the default factor of 1 applies the full
@@ -47,15 +47,15 @@ export class EveVirtualCameraBehaviourVector3Inertia extends EveVirtualCameraBeh
   {
     if (localElapsedTime <= 0)
     {
-      vec3.zero(this.#lastVelocity);
-      vec3.copy(this.#lastPosition, current);
+      vec3.zero(this._lastVelocity);
+      vec3.copy(this._lastPosition, current);
       return vec3.zero(out);
     }
-    const delta = vec3.subtract(vec3.create(), current, this.#lastPosition);
-    vec3.subtract(delta, delta, this.#lastVelocity);
-    vec3.scaleAndAdd(this.#lastVelocity, this.#lastVelocity, delta, 1 / this.inertiaFactor);
-    vec3.add(this.#lastPosition, this.#lastPosition, this.#lastVelocity);
-    vec3.scale(this.#lastVelocity, this.#lastVelocity, deltaTime);
-    return vec3.subtract(out, this.#lastPosition, current);
+    const delta = vec3.subtract(vec3.create(), current, this._lastPosition);
+    vec3.subtract(delta, delta, this._lastVelocity);
+    vec3.scaleAndAdd(this._lastVelocity, this._lastVelocity, delta, 1 / this.inertiaFactor);
+    vec3.add(this._lastPosition, this._lastPosition, this._lastVelocity);
+    vec3.scale(this._lastVelocity, this._lastVelocity, deltaTime);
+    return vec3.subtract(out, this._lastPosition, current);
   }
 }

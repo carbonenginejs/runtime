@@ -111,7 +111,7 @@ export class EveSpriteLineSetItem extends CjsModel
     }
 
     const count = EveSpriteLineSetItem.GetSpriteCount(this.scaling[0]);
-    const direction = vec3.transformQuat(vec3.create(), EveSpriteLineSetItem.#unitX, this.rotation);
+    const direction = vec3.transformQuat(vec3.create(), EveSpriteLineSetItem._unitX, this.rotation);
     const distance = count * this.spacing;
     const center = vec3.scaleAndAdd(vec3.create(), this.position, direction, distance * 0.5);
     return box3.fromPositionRadius(out, center, distance * 0.5);
@@ -151,7 +151,7 @@ export class EveSpriteLineSetItem extends CjsModel
     }
 
     const count = EveSpriteLineSetItem.GetSpriteCount(this.scaling[0]);
-    const direction = vec3.transformQuat(vec3.create(), EveSpriteLineSetItem.#unitX, this.rotation);
+    const direction = vec3.transformQuat(vec3.create(), EveSpriteLineSetItem._unitX, this.rotation);
     for (let index = 0; index < count; index++)
     {
       positions.push(vec3.scaleAndAdd(vec3.create(), this.position, direction, this.spacing * index));
@@ -159,5 +159,5 @@ export class EveSpriteLineSetItem extends CjsModel
     return positions;
   }
 
-  static #unitX = vec3.fromValues(1, 0, 0);
+  static _unitX = vec3.fromValues(1, 0, 0);
 }

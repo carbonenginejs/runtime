@@ -55,9 +55,9 @@ export class InclusionVolume extends CjsModel
 
   // Per-frame cache of the inclusion volume centres, prefetched so the
   // per-agent loop stays allocation-free.
-  #volumeCenters = [];
+  _volumeCenters = [];
 
-  #returnForces = [];
+  _returnForces = [];
 
   /** Carbon InclusionVolume::GetProcessPriority (cpp:21-24). */
   @carbon.method
@@ -89,10 +89,10 @@ export class InclusionVolume extends CjsModel
       return NO_FORCES;
     }
 
-    const returnForces = this.#returnForces;
+    const returnForces = this._returnForces;
     returnForces.length = 0;
 
-    const centers = this.#volumeCenters;
+    const centers = this._volumeCenters;
     centers.length = 0;
     for (const volume of this.inclusionVolumes)
     {

@@ -68,13 +68,13 @@ export class SplineTunnelGroup extends CjsModel
 
   // Owner callback into the system/behavior tunnel registry (Carbon
   // m_changeSystemTunnelRegistry) and its debug color.
-  #changeSystemTunnelRegistry = null;
+  _changeSystemTunnelRegistry = null;
 
-  #debugColor = 0xffffff00;
+  _debugColor = 0xffffff00;
 
   // Re-entrancy guard: the registry callback may ask for the tunnels while
   // they are being rebuilt.
-  #creatingTunnels = false;
+  _creatingTunnels = false;
 
   /** Carbon SplineTunnelGroup::GetTunnelGroupType (cpp:24-27). */
   @carbon.method
@@ -95,8 +95,8 @@ export class SplineTunnelGroup extends CjsModel
   @impl.implemented
   SetSystemTunnelFunctionReferenceAndColor(callback, color = 0xffffff00)
   {
-    this.#changeSystemTunnelRegistry = typeof callback === "function" ? callback : null;
-    this.#debugColor = color >>> 0;
+    this._changeSystemTunnelRegistry = typeof callback === "function" ? callback : null;
+    this._debugColor = color >>> 0;
     this.createSplineTunnels();
   }
 
@@ -107,11 +107,11 @@ export class SplineTunnelGroup extends CjsModel
   @impl.reason("Samples portable vector curves into CPU tunnel records and reports registry changes through an injected callback.")
   createSplineTunnels()
   {
-    if (this.#creatingTunnels)
+    if (this._creatingTunnels)
     {
       return this.tunnels;
     }
-    this.#creatingTunnels = true;
+    this._creatingTunnels = true;
     try
     {
       this.tunnels.length = 0;
@@ -150,9 +150,9 @@ export class SplineTunnelGroup extends CjsModel
     }
     finally
     {
-      this.#creatingTunnels = false;
+      this._creatingTunnels = false;
     }
-    this.#changeSystemTunnelRegistry?.();
+    this._changeSystemTunnelRegistry?.();
     return this.tunnels;
   }
 
@@ -179,7 +179,7 @@ export class SplineTunnelGroup extends CjsModel
   @impl.reason("Lazily builds the tunnels on first access because the Blue curve-set list notify does not exist in JS.")
   GetTunnels()
   {
-    if (this.tunnels.length === 0 && this.curveSets.length !== 0 && !this.#creatingTunnels)
+    if (this.tunnels.length === 0 && this.curveSets.length !== 0 && !this._creatingTunnels)
     {
       this.createSplineTunnels();
     }
@@ -271,7 +271,7 @@ export class SplineTunnelGroup extends CjsModel
         vec3.add(DEBUG_END, point.pos, point.rot);
         vec3.transformMat4(DEBUG_START, point.pos, parentWorldLocation);
         vec3.transformMat4(DEBUG_END, DEBUG_END, parentWorldLocation);
-        renderer?.DrawCylinder?.(this, DEBUG_START, DEBUG_END, tunnel.cylWidth, 8, 0, this.#debugColor);
+        renderer?.DrawCylinder?.(this, DEBUG_START, DEBUG_END, tunnel.cylWidth, 8, 0, this._debugColor);
       }
     }
   }

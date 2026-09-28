@@ -65,25 +65,25 @@ export class EveChildBehaviorSystem extends EveChildTransform
   display = true;
 
   // System-wide flattened tunnel registry with reassigned IDs (Carbon m_tunnels).
-  #tunnels = [];
+  _tunnels = [];
 
   // Base-instance offsets per group (Carbon m_startInstanceValues); the JS
   // port keeps only the CPU bookkeeping the batch path reads.
-  #startInstanceValues = [];
+  _startInstanceValues = [];
 
   // Carbon m_hasUpdated: until an update ran, the object cannot be rendered.
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   /** m_vsData / m_psData - this system PERSISTENT per-object record pair. */
-  #perObjectData = createChildPerObjectRecords();
+  _perObjectData = createChildPerObjectRecords();
 
-  static #inverseScratch = mat4.create();
+  static _inverseScratch = mat4.create();
 
   // Carbon m_behaviorGroupLoaded/m_behaviorGroupLoadedForTunnel: one-shot
   // wiring flags for the callback pass-ins.
-  #behaviorGroupLoaded = false;
+  _behaviorGroupLoaded = false;
 
-  #behaviorGroupLoadedForTunnel = false;
+  _behaviorGroupLoadedForTunnel = false;
 
   /** Carbon EveChildBehaviorSystem::Initialize (cpp:67-77). */
   @carbon.method
@@ -129,7 +129,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
       group?.SetVertexFunctionReferance?.(() => this.ChangeBufferInstanceCount());
       group?.InitializeGeometryResource?.();
     }
-    this.#behaviorGroupLoaded = true;
+    this._behaviorGroupLoaded = true;
   }
 
   /**
@@ -144,7 +144,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     {
       group?.SetSystemTunnelFunctionReferenceAndColor?.(() => this.UpdateTunnelRegistry(), 0xffffff00);
     }
-    this.#behaviorGroupLoadedForTunnel = true;
+    this._behaviorGroupLoadedForTunnel = true;
   }
 
   /**
@@ -160,11 +160,11 @@ export class EveChildBehaviorSystem extends EveChildTransform
   {
     // might be a better way to get these initialized but IInitialize doesn't
     // work since these need to be called after children are initialized
-    if (!this.#behaviorGroupLoaded)
+    if (!this._behaviorGroupLoaded)
     {
       this.PassInVertexesToBehaviorGroups();
     }
-    if (!this.#behaviorGroupLoadedForTunnel)
+    if (!this._behaviorGroupLoadedForTunnel)
     {
       this.PassInTunnelFunctionsToBehaviorGroups();
     }
@@ -180,7 +180,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
     }
 
     const deltaTime = Number(updateContext?.GetDeltaT?.() ?? updateContext?.deltaT ?? 0) || 0;
-    this.#UpdateAgents(deltaTime);
+    this._UpdateAgents(deltaTime);
   }
 
   /**
@@ -201,18 +201,18 @@ export class EveChildBehaviorSystem extends EveChildTransform
     const parent = params?.spaceObjectParent;
     const parentTransform = parent?.GetLocalToWorldTransform?.() ?? params?.localToWorldTransform;
 
-    inheritParentPerObjectData(this.#perObjectData, parent, this.translation);
+    inheritParentPerObjectData(this._perObjectData, parent, this.translation);
 
     // cpp:599: the OUTGOING transform becomes worldTransformLast, before the
     // new one is built.
-    this.#perObjectData.vs.SetAndTranspose("worldTransformLast", this.worldTransform);
+    this._perObjectData.vs.SetAndTranspose("worldTransformLast", this.worldTransform);
 
     if (parentTransform && parentTransform.length === 16)
     {
       this.UpdateTransform(parentTransform);
     }
 
-    this.#perObjectData.vs.SetAndTranspose("worldTransform", this.worldTransform);
+    this._perObjectData.vs.SetAndTranspose("worldTransform", this.worldTransform);
 
     // CARBON QUIRK (cpp:604), reproduced deliberately. Every other filler of
     // this field inverts the ALREADY-TRANSPOSED matrix - EveChildMesh.cpp:949,
@@ -224,20 +224,20 @@ export class EveChildBehaviorSystem extends EveChildTransform
     // transpose, so the stored bytes match Carbon's exactly. Reported upstream;
     // do not "fix" it without a Carbon-side decision, because art and DNA were
     // authored against the shipped behaviour.
-    const inverse = EveChildBehaviorSystem.#inverseScratch;
+    const inverse = EveChildBehaviorSystem._inverseScratch;
     if (!mat4.invert(inverse, this.worldTransform))
     {
       mat4.identity(inverse);
     }
     mat4.transpose(inverse, inverse);
-    this.#perObjectData.vs.SetAndTranspose("invWorldTransform", inverse);
+    this._perObjectData.vs.SetAndTranspose("invWorldTransform", inverse);
 
     // cpp:606-608: the PS record takes those three matrices as they stand. Only
     // the three - the two records are different structs that happen to be the
     // same size, so a whole-record copy would clobber the PS-only fields.
     for (const name of [ "worldTransform", "worldTransformLast", "invWorldTransform" ])
     {
-      this.#perObjectData.ps.SetAndTranspose(name, this.#perObjectData.vs.GetTransposed(name));
+      this._perObjectData.ps.SetAndTranspose(name, this._perObjectData.vs.GetTransposed(name));
     }
 
     for (const group of this.behaviorGroups)
@@ -245,7 +245,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
       group?.UpdateAsyncronous(updateContext);
     }
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
     return this.worldTransform;
   }
 
@@ -277,19 +277,19 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @impl.reason("UpdateBuffer's instance-buffer writes are a GPU seam; the group-index/base-instance bookkeeping it also performs is ported.")
   GetRenderables(renderables = [])
   {
-    if (!this.display || !this.#hasUpdated)
+    if (!this.display || !this._hasUpdated)
     {
       return renderables;
     }
 
-    if (!this.#behaviorGroupLoaded)
+    if (!this._behaviorGroupLoaded)
     {
       return renderables;
     }
 
     renderables.push(this);
 
-    this.#UpdateInstanceBookkeeping();
+    this._UpdateInstanceBookkeeping();
 
     for (const group of this.behaviorGroups)
     {
@@ -427,7 +427,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @impl.implemented
   GetTunnels()
   {
-    return this.#tunnels;
+    return this._tunnels;
   }
 
   /** Carbon EveChildBehaviorSystem::GetSplineTunnels (cpp:503-506). */
@@ -448,7 +448,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @impl.reason("Carbon copies each SplineTunnel by value into m_tunnels; the JS port shares the tunnel records so the reassigned IDs stay visible to their groups.")
   UpdateTunnelRegistry()
   {
-    this.#tunnels.length = 0;
+    this._tunnels.length = 0;
     let id = 0;
     for (const group of this.splineTunnels)
     {
@@ -461,7 +461,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
       {
         tunnel.tunnelID = id;
         id++;
-        this.#tunnels.push(tunnel);
+        this._tunnels.push(tunnel);
       }
     }
 
@@ -543,7 +543,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
   @impl.implemented
   GetPerObjectData(_accumulator = null)
   {
-    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
+    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
 
   /** Carbon method GetVertexElementAddedThroughCode (MAP_METHOD_AND_WRAP). */
@@ -559,7 +559,7 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * Advances every behaviour group's agents by one step (Carbon cpp:287-293).
    * @param {Number} dt - elapsed seconds
    */
-  #UpdateAgents(dt)
+  _UpdateAgents(dt)
   {
     for (const group of this.behaviorGroups)
     {
@@ -572,16 +572,16 @@ export class EveChildBehaviorSystem extends EveChildTransform
    * index indicator and records the running base-instance offsets that the
    * instanced draw needs.
    */
-  #UpdateInstanceBookkeeping()
+  _UpdateInstanceBookkeeping()
   {
-    this.#startInstanceValues.length = 0;
+    this._startInstanceValues.length = 0;
 
     let totalShipsSoFar = 0;
     for (const group of this.behaviorGroups)
     {
       const count = Number(group?.GetCount?.() ?? 0);
-      group?.SetGroupIndexIndicator?.(this.#startInstanceValues.length);
-      this.#startInstanceValues.push(totalShipsSoFar);
+      group?.SetGroupIndexIndicator?.(this._startInstanceValues.length);
+      this._startInstanceValues.push(totalShipsSoFar);
       totalShipsSoFar += count;
     }
   }

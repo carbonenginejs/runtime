@@ -101,20 +101,20 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @type.objectRef("TriTextureParameter")
   primaryTextureParameter = null;
 
-  #rebuildRevision = 0;
+  _rebuildRevision = 0;
 
   /** m_aabb (h) - the union of every banner that rides the parent transform. */
-  #staticBounds = box3.create();
+  _staticBounds = box3.create();
 
   /** m_skinnedBoxes (cpp:403) - [{ boneIndex, bounds }], ascending. */
-  #boneBounds = [];
+  _boneBounds = [];
 
   /** m_maxBannerRadius (cpp:421) - the largest single banner half-diagonal,
    * which is the radius the LOD test measures rather than the whole set. */
-  #maxBannerRadius = 0;
+  _maxBannerRadius = 0;
 
   /** m_isVisible - the result of the last UpdateVisibility. */
-  #isVisible = false;
+  _isVisible = false;
 
   /** m_vertexDeclaration */
   _vertexDeclaration = Tr2EffectStateManager.Unknown;
@@ -145,7 +145,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
   /** Carbon m_activationStrength (ctor 0, EveBannerSet.cpp:94). Lights are
    * BLACK until UpdateLights runs. */
-  #activationStrength = 0;
+  _activationStrength = 0;
 
   /**
    * Carbon Rebuild (cpp:397-431): the bounds - the static box, the per-bone
@@ -160,11 +160,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.adapted
   Rebuild()
   {
-    this.#rebuildRevision++;
+    this._rebuildRevision++;
 
-    box3.empty(this.#staticBounds);
-    this.#boneBounds.length = 0;
-    this.#maxBannerRadius = 0;
+    box3.empty(this._staticBounds);
+    this._boneBounds.length = 0;
+    this._maxBannerRadius = 0;
     this._vertexBuffer = null;
     this._indexBuffer = null;
 
@@ -177,14 +177,14 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
     // Carbon inlines the shared grouping here, and never gates it on a skinned
     // flag: any banner with a bone of its own gets its own box (cpp:424).
-    CreateItemSetBoundingBoxes(this.#staticBounds, this.#boneBounds, true, this.banners);
+    CreateItemSetBoundingBoxes(this._staticBounds, this._boneBounds, true, this.banners);
 
     for (const banner of this.banners)
     {
-      banner.GetBounds(EveBannerSet.#bannerScratch);
-      this.#maxBannerRadius = Math.max(
-        this.#maxBannerRadius,
-        box3.radius(EveBannerSet.#bannerScratch)
+      banner.GetBounds(EveBannerSet._bannerScratch);
+      this._maxBannerRadius = Math.max(
+        this._maxBannerRadius,
+        box3.radius(EveBannerSet._bannerScratch)
       );
     }
 
@@ -262,7 +262,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   {
     if (batchType !== TriBatchType.TRIBATCHTYPE_ADDITIVE && batchType !== TriBatchType.TRIBATCHTYPE_PICKING) return;
     if (batchType === TriBatchType.TRIBATCHTYPE_PICKING && !this.isPickable) return;
-    if (!this.display || !this.#isVisible || !this.effect || !this._vertexBuffer) return;
+    if (!this.display || !this._isVisible || !this.effect || !this._vertexBuffer) return;
     if (this.primaryTextureParameter && !this.primaryTextureParameter.GetResource()) return;
 
     const vertices = this._vertexBuffer;
@@ -455,7 +455,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.implemented
   GetAabb(out, bones = null, boneCount = 0)
   {
-    return GetItemSetAabb(out, this.#staticBounds, this.#boneBounds, bones, boneCount);
+    return GetItemSetAabb(out, this._staticBounds, this._boneBounds, bones, boneCount);
   }
 
   /** The largest single banner half-diagonal, as measured by the last Rebuild. */
@@ -464,7 +464,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.reason("Carbon reads the m_maxBannerRadius member directly; JavaScript exposes it through an accessor.")
   GetMaxBannerRadius()
   {
-    return this.#maxBannerRadius;
+    return this._maxBannerRadius;
   }
 
   /** The result of the last UpdateVisibility (Carbon m_isVisible). */
@@ -473,7 +473,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.reason("Carbon reads the m_isVisible member directly; JavaScript exposes it through an accessor.")
   GetVisibility()
   {
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /**
@@ -494,17 +494,17 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.implemented
   UpdateVisibility(updateContext, parentTransform, bones = null, boneCount = 0)
   {
-    const aabb = this.GetAabb(EveBannerSet.#aabbScratch, bones, boneCount);
+    const aabb = this.GetAabb(EveBannerSet._aabbScratch, bones, boneCount);
     if (box3.isEmpty(aabb))
     {
-      this.#isVisible = false;
+      this._isVisible = false;
       return false;
     }
 
     box3.transformMat4(aabb, aabb, parentTransform);
 
     const frustum = updateContext?.GetFrustum() ?? null;
-    this.#isVisible = !!frustum?.IsBoxVisible(aabb);
+    this._isVisible = !!frustum?.IsBoxVisible(aabb);
 
     let isLoddedOut = true;
     let screenSize = FLOAT_MAX;
@@ -514,7 +514,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       // Carbon BoundingSphereFromBox: the box centre with half its full
       // diagonal. The centre is written into the sphere in place, so the radius
       // is assigned after - never inside a sph3.set that would clear it.
-      const sphere = EveBannerSet.#sphereScratch;
+      const sphere = EveBannerSet._sphereScratch;
       sphere[3] = box3.toPositionRadius(aabb, sph3.$position(sphere));
 
       if (sph3.containsPoint(sphere, frustum.viewPos))
@@ -525,11 +525,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       {
         // The point on the set sphere nearest the camera, given the largest
         // single banner as the thing being measured.
-        const closest = vec3.subtract(EveBannerSet.#closestScratch, frustum.viewPos, sph3.$position(sphere));
+        const closest = vec3.subtract(EveBannerSet._closestScratch, frustum.viewPos, sph3.$position(sphere));
         vec3.normalize(closest, closest);
         vec3.scaleAndAdd(closest, sph3.$position(sphere), closest, sph3.radius(sphere));
 
-        const element = sph3.fromPositionRadius(EveBannerSet.#elementScratch, closest, this.#maxBannerRadius);
+        const element = sph3.fromPositionRadius(EveBannerSet._elementScratch, closest, this._maxBannerRadius);
         screenSize = frustum.GetPixelSizeAccrossEst(element);
         if (screenSize > (updateContext.GetVisibilityThreshold() ?? 0) * 0.5)
         {
@@ -538,13 +538,13 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
       }
     }
 
-    this.effect?.UsedWithScreenSize?.(screenSize, this.#maxBannerRadius, EveBannerSet.#uvDensities);
+    this.effect?.UsedWithScreenSize?.(screenSize, this._maxBannerRadius, EveBannerSet._uvDensities);
 
     if (isLoddedOut)
     {
-      this.#isVisible = false;
+      this._isVisible = false;
     }
-    return this.#isVisible;
+    return this._isVisible;
   }
 
   /** Carbon EveBannerSet::GetDebugOptions (cpp:219-224). */
@@ -584,45 +584,45 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
 
     if (renderer.HasOption?.(this, "Banner Sets"))
     {
-      const transform = EveBannerSet.#debugTransform;
+      const transform = EveBannerSet._debugTransform;
       for (let index = 0; index < this.banners.length; index++)
       {
         const banner = this.banners[index];
         mat4.fromRotationTranslationScale(transform, banner.rotation, banner.position, banner.scaling);
 
-        let color = EveBannerSet.#debugBannerColor;
+        let color = EveBannerSet._debugBannerColor;
         if (banner.bone >= 0)
         {
           if (bones && banner.bone < boneCount)
           {
-            MatrixCopyFrom3x4(EveBannerSet.#debugBone, bones, banner.bone);
+            MatrixCopyFrom3x4(EveBannerSet._debugBone, bones, banner.bone);
             // Carbon (row-vector): t * boneTF - the banner applies first.
-            mat4.multiply(transform, EveBannerSet.#debugBone, transform);
+            mat4.multiply(transform, EveBannerSet._debugBone, transform);
           }
           else
           {
-            color = EveBannerSet.#debugMissingBoneColor;
+            color = EveBannerSet._debugMissingBoneColor;
           }
         }
         mat4.multiply(transform, parentTransform, transform);
 
-        renderer.DrawBox?.(this, index, transform, EveBannerSet.#debugBoxMin, EveBannerSet.#debugBoxMax, EveBannerSet.DebugEffect.Wireframe, color);
-        renderer.DrawBox?.(this, index, transform, EveBannerSet.#debugBoxMin, EveBannerSet.#debugBoxMax, EveBannerSet.DebugEffect.Solid, 0);
+        renderer.DrawBox?.(this, index, transform, EveBannerSet._debugBoxMin, EveBannerSet._debugBoxMax, EveBannerSet.DebugEffect.Wireframe, color);
+        renderer.DrawBox?.(this, index, transform, EveBannerSet._debugBoxMin, EveBannerSet._debugBoxMax, EveBannerSet.DebugEffect.Solid, 0);
       }
     }
 
     if (renderer.HasOption?.(this, "Banner Sets Bounds"))
     {
-      const aabb = this.GetAabb(EveBannerSet.#debugBounds, bones, boneCount);
+      const aabb = this.GetAabb(EveBannerSet._debugBounds, bones, boneCount);
       renderer.DrawBox?.(this, -1, parentTransform, box3.$min(aabb), box3.$max(aabb), EveBannerSet.DebugEffect.Wireframe, 0xff00ff00);
     }
 
     if (renderer.HasOption?.(this, "Banner Sets Lights"))
     {
-      const color = EveBannerSet.#debugLightColor;
+      const color = EveBannerSet._debugLightColor;
       for (const light of this.lights)
       {
-        const transform = mat4.fromTranslation(EveBannerSet.#debugTransform, light.lightData.position);
+        const transform = mat4.fromTranslation(EveBannerSet._debugTransform, light.lightData.position);
         // Carbon (row-vector): TranslationMatrix(position) * boneMatrix.
         mat4.multiply(transform, light.boneMatrix, transform);
 
@@ -672,37 +672,37 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     }
 
     const transform = mat4.fromRotationTranslationScale(
-      EveBannerSet.#aspectTransform,
+      EveBannerSet._aspectTransform,
       banner.rotation,
       banner.position,
       banner.scaling
     );
     if (flatX)
     {
-      const angleY = EveBannerSet.#clampBannerAngle(banner.angleY);
+      const angleY = EveBannerSet._clampBannerAngle(banner.angleY);
       const halfAngleY = angleY / 180 * Math.PI / 2;
       const scaleY = 0.5 / Math.sin(halfAngleY);
-      const vLength = EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleY);
+      const vLength = EveBannerSet._measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleY);
       return banner.scaling[0] / vLength;
     }
     if (flatY)
     {
-      const angleX = EveBannerSet.#clampBannerAngle(banner.angleX);
+      const angleX = EveBannerSet._clampBannerAngle(banner.angleX);
       const halfAngleX = angleX / 180 * Math.PI / 2;
       const scaleX = 0.5 / Math.sin(halfAngleX);
-      const uLength = EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleX);
+      const uLength = EveBannerSet._measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleX);
       return uLength / banner.scaling[1];
     }
 
-    const angleX = EveBannerSet.#clampBannerAngle(banner.angleX);
-    const angleY = EveBannerSet.#clampBannerAngle(banner.angleY);
+    const angleX = EveBannerSet._clampBannerAngle(banner.angleX);
+    const angleY = EveBannerSet._clampBannerAngle(banner.angleY);
     const halfAngleX = angleX / 180 * Math.PI / 2;
     const halfAngleY = angleY / 180 * Math.PI / 2;
     const scaleX = 0.5 / Math.sin(halfAngleX);
     const scaleY = 0.5 / Math.sin(halfAngleY);
     const scaleZ = Math.min(scaleX, scaleY);
-    const uLength = EveBannerSet.#measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleZ);
-    const vLength = EveBannerSet.#measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleZ);
+    const uLength = EveBannerSet._measureHorizontalArc(transform, angleX, halfAngleX, scaleX, scaleZ);
+    const vLength = EveBannerSet._measureVerticalArc(transform, angleY, halfAngleY, scaleY, scaleZ);
     return uLength / vLength;
   }
 
@@ -730,7 +730,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   @impl.implemented
   AddBanner(banner)
   {
-    const copy = EveBannerSet.#copyBanner(banner);
+    const copy = EveBannerSet._copyBanner(banner);
     this.banners.push(copy);
     this.OnStructureListModified();
     return copy;
@@ -752,10 +752,10 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     if (list !== this.banners) return;
     if ((event & BLUELISTEVENT.BELIST_EVENTMASK) === BLUELISTEVENT.BELIST_UNLOADSTART)
     {
-      box3.empty(this.#staticBounds);
-      this.#boneBounds.length = 0;
-      this.#maxBannerRadius = 0;
-      this.#rebuildRevision++;
+      box3.empty(this._staticBounds);
+      this._boneBounds.length = 0;
+      this._maxBannerRadius = 0;
+      this._rebuildRevision++;
     }
     else this.OnStructureListModified();
   }
@@ -864,7 +864,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
         mat4.copy(light.boneMatrix, parentTransform);
       }
     }
-    this.#activationStrength = Number(activationStrength) || 0;
+    this._activationStrength = Number(activationStrength) || 0;
   }
 
   /** Carbon EveBannerSet::GetAverageColor (cpp:441-455): the PRIMARY texture
@@ -910,19 +910,19 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
     {
       return;
     }
-    const averageColor = EveBannerSet.#averageColorScratch;
+    const averageColor = EveBannerSet._averageColorScratch;
     this.GetAverageColor(averageColor);
     if (averageColor[3] === 0)
     {
       return;
     }
 
-    const features = EveBannerSet.#features;
-    features.parentBrightness = this.#activationStrength;
+    const features = EveBannerSet._features;
+    features.parentBrightness = this._activationStrength;
     features.parentScale = 1;
     const quality = lightManager?.GetCurrentSpaceSceneShadowQuality() ?? 0;
-    const record = EveBannerSet.#lightRecord;
-    const dataCopy = EveBannerSet.#lightDataScratch;
+    const record = EveBannerSet._lightRecord;
+    const dataCopy = EveBannerSet._lightDataScratch;
 
     for (const light of this.lights)
     {
@@ -943,55 +943,55 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
   /** The option names this set publishes (cpp:221-223). */
   static DebugOptions = Object.freeze(["Banner Sets", "Banner Sets Bounds", "Banner Sets Lights"]);
 
-  static #debugTransform = mat4.create();
+  static _debugTransform = mat4.create();
 
-  static #debugBone = mat4.create();
+  static _debugBone = mat4.create();
 
-  static #debugBounds = box3.create();
+  static _debugBounds = box3.create();
 
-  static #debugLightColor = new Float32Array(4);
+  static _debugLightColor = new Float32Array(4);
 
-  static #debugBoxMin = [-0.5, -0.5, -0.005];
+  static _debugBoxMin = [-0.5, -0.5, -0.005];
 
-  static #debugBoxMax = [0.5, 0.5, 0.005];
+  static _debugBoxMax = [0.5, 0.5, 0.005];
 
-  static #debugBannerColor = [0.1, 0.1, 0.7, 0.5];
+  static _debugBannerColor = [0.1, 0.1, 0.7, 0.5];
 
-  static #debugMissingBoneColor = [0.7, 0.1, 0.1, 0.5];
+  static _debugMissingBoneColor = [0.7, 0.1, 0.1, 0.5];
 
   /** Per-frame scratch - UpdateVisibility must not allocate. */
-  static #aabbScratch = box3.create();
+  static _aabbScratch = box3.create();
 
-  static #sphereScratch = sph3.create();
+  static _sphereScratch = sph3.create();
 
-  static #elementScratch = sph3.create();
+  static _elementScratch = sph3.create();
 
-  static #closestScratch = vec3.create();
+  static _closestScratch = vec3.create();
 
-  static #bannerScratch = box3.create();
+  static _bannerScratch = box3.create();
 
   /** Carbon passes a single 1.0 density (cpp:154) - a banner is one flat quad. */
-  static #uvDensities = [1];
+  static _uvDensities = [1];
 
-  static #features = { parentBrightness: 0, parentScale: 1 };
+  static _features = { parentBrightness: 0, parentScale: 1 };
 
-  static #lightRecord = CreateLightRecord();
+  static _lightRecord = CreateLightRecord();
 
-  static #lightDataScratch = CreateLightDataScratch();
+  static _lightDataScratch = CreateLightDataScratch();
 
-  static #averageColorScratch = new Float32Array(4);
+  static _averageColorScratch = new Float32Array(4);
 
-  static #aspectTransform = mat4.create();
+  static _aspectTransform = mat4.create();
 
-  static #aspectPosition = vec3.create();
+  static _aspectPosition = vec3.create();
 
-  static #aspectPreviousPosition = vec3.create();
+  static _aspectPreviousPosition = vec3.create();
 
   /**
    * Clamps an authored curvature angle to the 0..180 degree range the arc
    * measurement assumes.
    */
-  static #clampBannerAngle(angle)
+  static _clampBannerAngle(angle)
   {
     return Math.max(0, Math.min(Number(angle), 180));
   }
@@ -1001,11 +1001,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * at roughly one segment per five degrees, giving the banner's real U length
    * as the generated geometry would have it.
    */
-  static #measureHorizontalArc(transform, angle, halfAngle, scaleX, scaleZ)
+  static _measureHorizontalArc(transform, angle, halfAngle, scaleX, scaleZ)
   {
     const segments = 1 + Math.floor(angle / 5);
-    const position = EveBannerSet.#aspectPosition;
-    const previous = EveBannerSet.#aspectPreviousPosition;
+    const position = EveBannerSet._aspectPosition;
+    const previous = EveBannerSet._aspectPreviousPosition;
     let length = 0;
 
     for (let index = 0; index <= segments; index++)
@@ -1030,11 +1030,11 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * roughly one segment per five degrees, giving the banner's real V length as
    * the generated geometry would have it.
    */
-  static #measureVerticalArc(transform, angle, halfAngle, scaleY, scaleZ)
+  static _measureVerticalArc(transform, angle, halfAngle, scaleY, scaleZ)
   {
     const segments = 1 + Math.floor(angle / 5);
-    const position = EveBannerSet.#aspectPosition;
-    const previous = EveBannerSet.#aspectPreviousPosition;
+    const position = EveBannerSet._aspectPosition;
+    const previous = EveBannerSet._aspectPreviousPosition;
     let length = 0;
 
     for (let index = 0; index <= segments; index++)
@@ -1058,7 +1058,7 @@ export class EveBannerSet extends IEveSpaceObjectAttachment
    * Builds an EveBannerItem from a loose banner description, leaving the item's
    * own default in place for every field the source omits.
    */
-  static #copyBanner(source)
+  static _copyBanner(source)
   {
     const banner = new EveBannerItem();
     if (!source) return banner;

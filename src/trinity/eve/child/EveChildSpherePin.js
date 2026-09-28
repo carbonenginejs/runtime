@@ -14,7 +14,7 @@ import { vec4 } from "#math/vec4";
 export class EveChildSpherePin extends EveChildMesh
 {
 
-  #pinColor = vec4.fromValues(1, 1, 1, 1);
+  _pinColor = vec4.fromValues(1, 1, 1, 1);
 
   /** Carbon maps both Blue names to the same m_pinColor storage. */
   @edit.notify
@@ -22,7 +22,7 @@ export class EveChildSpherePin extends EveChildMesh
   @type.color
   get pinColor()
   {
-    return this.#pinColor;
+    return this._pinColor;
   }
 
   /**
@@ -33,7 +33,7 @@ export class EveChildSpherePin extends EveChildMesh
   {
     if (value?.length >= 4)
     {
-      vec4.copy(this.#pinColor, value);
+      vec4.copy(this._pinColor, value);
     }
   }
 
@@ -43,7 +43,7 @@ export class EveChildSpherePin extends EveChildMesh
   @type.color
   get color()
   {
-    return this.#pinColor;
+    return this._pinColor;
   }
 
   /** Blue alias that writes through to pinColor. */
@@ -126,7 +126,7 @@ export class EveChildSpherePin extends EveChildMesh
       this.pinRadius
     ]);
     data.Set("pinRotation", [this.pinRotation, 0, 0, 0]);
-    data.Set("pinColor", this.#pinColor);
+    data.Set("pinColor", this._pinColor);
     data.Set("pinThreshold", [this.pinAlphaThreshold, 0, 0, 0]);
     data.Set("pinRadiusPrecalc", [
       Math.sin(this.pinRadius),

@@ -39,9 +39,9 @@ export class EveSphereVolume extends IEveVolume
   @type.string
   name = "";
 
-  #callbacks = new Map();
+  _callbacks = new Map();
 
-  #nextCallbackId = 1;
+  _nextCallbackId = 1;
 
   /** Returns a fresh sphere centred on the volume position with its outer radius. */
   @carbon.method
@@ -132,8 +132,8 @@ export class EveSphereVolume extends IEveVolume
   @impl.adapted
   RegisterForChanges(callback)
   {
-    const id = this.#nextCallbackId++;
-    this.#callbacks.set(id, callback);
+    const id = this._nextCallbackId++;
+    this._callbacks.set(id, callback);
     return id;
   }
 
@@ -142,7 +142,7 @@ export class EveSphereVolume extends IEveVolume
   @impl.implemented
   UnregisterForChanges(callbackId)
   {
-    this.#callbacks.delete(callbackId);
+    this._callbacks.delete(callbackId);
   }
 
   /**
@@ -166,7 +166,7 @@ export class EveSphereVolume extends IEveVolume
         this.innerRadius = this.radius;
       }
     }
-    for (const callback of this.#callbacks.values())
+    for (const callback of this._callbacks.values())
     {
       callback?.();
     }

@@ -12,7 +12,7 @@ import { edit, type } from "#schema";
 @type.define({ className: "EveEllipseDefinition", family: "eve/ui" })
 export class EveEllipseDefinition extends CjsModel
 {
-  #dirtyFlag = null;
+  _dirtyFlag = null;
 
   @edit.notify
   @edit.readwrite
@@ -50,7 +50,7 @@ export class EveEllipseDefinition extends CjsModel
    */
   OnModified(_value = null)
   {
-    this.#dirtyFlag?.();
+    this._dirtyFlag?.();
     return true;
   }
 
@@ -64,6 +64,6 @@ export class EveEllipseDefinition extends CjsModel
     {
       throw new TypeError("EveEllipseDefinition dirty flag must be a function or null");
     }
-    this.#dirtyFlag = dirtyFlag;
+    this._dirtyFlag = dirtyFlag;
   }
 }

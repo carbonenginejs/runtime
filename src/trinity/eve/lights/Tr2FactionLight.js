@@ -17,10 +17,10 @@ import { hasFactionColor, resolveFactionColor } from "../resolveFactionColor.js"
 export class Tr2FactionLight extends Tr2Light
 {
 
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #selectedFactionColor = color.createLinear();
+  _selectedFactionColor = color.createLinear();
 
   /** m_lightData.castsShadows (PerLightShadowSetting) [READWRITE, PERSIST, NOTIFY, ENUM] */
   @edit.notify
@@ -165,7 +165,7 @@ export class Tr2FactionLight extends Tr2Light
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
       this.SetLightColorFromFactionColor();
     }
   }
@@ -176,16 +176,16 @@ export class Tr2FactionLight extends Tr2Light
   @impl.implemented
   SetLightColorFromFactionColor()
   {
-    if (!hasFactionColor(this.#parentColorSet, this.factionColor))
+    if (!hasFactionColor(this._parentColorSet, this.factionColor))
     {
       return false;
     }
     const color = resolveFactionColor(
-      this.#selectedFactionColor,
+      this._selectedFactionColor,
       this.color,
       true,
       this.factionColor,
-      this.#parentColorSet
+      this._parentColorSet
     );
     const intensity = color[0] * 0.299 + color[1] * 0.587 + color[2] * 0.114;
     const saturation = Math.max(0, Number(this.saturation) || 0);

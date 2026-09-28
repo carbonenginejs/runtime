@@ -39,7 +39,7 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
     {
       return mat4.copy(out, transform);
     }
-    const bone = EveChildModifierAttachToBone.#boneMatrix;
+    const bone = EveChildModifierAttachToBone._boneMatrix;
     const offset = this.boneIndex * 12;
     // TriMatrixCopyFrom3x4: Float4x3 row i holds column-stride components.
     bone[0] = bones[offset];
@@ -70,6 +70,6 @@ export class EveChildModifierAttachToBone extends IEveChildTransformModifier
     this.boneIndex = Number(index) | 0;
   }
 
-  static #boneMatrix = mat4.create();
+  static _boneMatrix = mat4.create();
 
 }

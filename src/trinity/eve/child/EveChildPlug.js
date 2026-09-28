@@ -11,7 +11,7 @@ import { EveChildTransform } from "./EveChildTransform.js";
 export class EveChildPlug extends EveChildTransform
 {
 
-  #controllerVariables = new Map();
+  _controllerVariables = new Map();
 
   /** m_objects (PIEveSpaceObjectChildVector) [READ, PERSIST] */
   @edit.read
@@ -78,7 +78,7 @@ export class EveChildPlug extends EveChildTransform
       if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
-        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
+        for (const [ name, variable ] of this._controllerVariables) value.SetVariable(name, variable);
       }
       else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
       else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -100,7 +100,7 @@ export class EveChildPlug extends EveChildTransform
 
     if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
     {
-      for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
+      for (const [ name, variable ] of this._controllerVariables) value.SetControllerVariable(name, variable);
     }
 
     if (!this.IsInRegistry()) return;
@@ -185,7 +185,7 @@ export class EveChildPlug extends EveChildTransform
   {
     const key = String(name);
     const next = Number(value);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const controller of this.controllers) controller?.SetVariable(key, next);
     for (const object of this.objects) object?.SetControllerVariable(key, next);
   }

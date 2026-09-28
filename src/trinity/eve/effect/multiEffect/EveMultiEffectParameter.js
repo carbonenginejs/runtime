@@ -30,7 +30,7 @@ export class EveMultiEffectParameter extends CjsModel
   @type.objectRef("IRoot")
   object = null;
 
-  #owner = null;
+  _owner = null;
 
   /** Binds an object to this slot, or clears it when given nothing. */
   @carbon.method
@@ -71,7 +71,7 @@ export class EveMultiEffectParameter extends CjsModel
   @impl.implemented
   SetOwner(owner)
   {
-    this.#owner = owner ?? null;
+    this._owner = owner ?? null;
   }
 
   /** The object bound to this slot, or null. */
@@ -99,7 +99,7 @@ export class EveMultiEffectParameter extends CjsModel
   @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
-    if (propertyName === "object" && this.#owner) this.#owner.Rebind();
+    if (propertyName === "object" && this._owner) this._owner.Rebind();
     return true;
   }
 

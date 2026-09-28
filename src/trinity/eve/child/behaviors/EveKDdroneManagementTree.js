@@ -82,11 +82,11 @@ export class EveKDdroneManagementTree extends CjsModel
 
   // Reused SearchRange records ({behaviorNbr, radius}) - rebuilt each
   // FindDronesInRange call without reallocating the array shell.
-  #searchRanges = [];
+  _searchRanges = [];
 
   // Carbon threads activeRange as an int& through the recursive search; the
   // JS port carries it as instance state reset per agent.
-  #activeRange = 0;
+  _activeRange = 0;
 
   /**
    * Builds the k-d tree over the agents and sizes the per-behavior search
@@ -104,8 +104,8 @@ export class EveKDdroneManagementTree extends CjsModel
       return;
     }
 
-    this.#ChangeAgentsIntoAgentRefs(agents);
-    this.tree = this.#SplitSort(0, agents.length - 1, EveKDdroneManagementTree.PlaneType.Z);
+    this._ChangeAgentsIntoAgentRefs(agents);
+    this.tree = this._SplitSort(0, agents.length - 1, EveKDdroneManagementTree.PlaneType.Z);
 
     const infoBlock = this.groupSearchReturnInfoBlock;
     infoBlock.length = 0;
@@ -133,7 +133,7 @@ export class EveKDdroneManagementTree extends CjsModel
     if (this.timeBetweenUpdate !== -1 && this.updateTimeCounter >= this.timeBetweenUpdate)
     {
       this.updateTimeCounter = 0;
-      this.tree = this.#CompareNodeToChildren(this.tree);
+      this.tree = this._CompareNodeToChildren(this.tree);
     }
     else
     {
@@ -160,7 +160,7 @@ export class EveKDdroneManagementTree extends CjsModel
       agent: this.tree.agent,
       rangeBetween: vec3.distance(this.tree.agent.position, pos)
     };
-    this.#FindClosestAgentRecursive(pos, this.tree, closest);
+    this._FindClosestAgentRecursive(pos, this.tree, closest);
     return closest.agent;
   }
 
@@ -178,7 +178,7 @@ export class EveKDdroneManagementTree extends CjsModel
   @impl.implemented
   FindDronesInRange(agents, ranges, behaviorGroupBoundingSphereRadius)
   {
-    const searchRanges = this.#searchRanges;
+    const searchRanges = this._searchRanges;
     searchRanges.length = 0;
     for (let behaviorNumber = 0; behaviorNumber < ranges.length; behaviorNumber++)
     {
@@ -188,7 +188,7 @@ export class EveKDdroneManagementTree extends CjsModel
         radius: radius === -1 ? -1 : radius + behaviorGroupBoundingSphereRadius
       });
     }
-    searchRanges.sort(EveKDdroneManagementTree.#CompareSearchRanges);
+    searchRanges.sort(EveKDdroneManagementTree._CompareSearchRanges);
 
     const infoBlock = this.groupSearchReturnInfoBlock;
     if (infoBlock.length)
@@ -211,7 +211,7 @@ export class EveKDdroneManagementTree extends CjsModel
       return infoBlock;
     }
 
-    this.#SearchThroughTree(infoBlock, this.tree, agents, searchRanges);
+    this._SearchThroughTree(infoBlock, this.tree, agents, searchRanges);
 
     return infoBlock;
   }
@@ -221,12 +221,12 @@ export class EveKDdroneManagementTree extends CjsModel
    * active range for each agent and run the recursive helper with the
    * agent's running index into the neighbour buckets.
    */
-  #SearchThroughTree(infoBlock, node, agents, searchRanges)
+  _SearchThroughTree(infoBlock, node, agents, searchRanges)
   {
     for (let c = 0; c < agents.length; c++)
     {
-      this.#activeRange = 0;
-      this.#SearchThroughTreeHelperFunction(infoBlock, node, agents[c], searchRanges, c);
+      this._activeRange = 0;
+      this._SearchThroughTreeHelperFunction(infoBlock, node, agents[c], searchRanges, c);
     }
   }
 
@@ -235,7 +235,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Rebuilds the node shells, with default plane, bounds and null children, over the current live agents.
    */
-  #ChangeAgentsIntoAgentRefs(agents)
+  _ChangeAgentsIntoAgentRefs(agents)
   {
     const refs = this.agentRefs;
     refs.length = 0;
@@ -257,7 +257,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Recursively median-splits a range of agent references along an axis, building the tree node by node and cycling the split axis at each level.
    */
-  #SplitSort(b, e, planeType)
+  _SplitSort(b, e, planeType)
   {
     const refs = this.agentRefs;
     if (b === e)
@@ -274,15 +274,15 @@ export class EveKDdroneManagementTree extends CjsModel
       return null;
     }
 
-    this.#SortByAxis(refs, b, e + 1, planeType);
+    this._SortByAxis(refs, b, e + 1, planeType);
 
     const m = b + ((e - b) >> 1);
     refs[m].b = b;
     refs[m].e = e;
 
-    const nextPlane = EveKDdroneManagementTree.#FindNextSplitAxis(planeType);
-    refs[m].left = this.#SplitSort(b, m - 1, nextPlane);
-    refs[m].right = this.#SplitSort(m + 1, e, nextPlane);
+    const nextPlane = EveKDdroneManagementTree._FindNextSplitAxis(planeType);
+    refs[m].left = this._SplitSort(b, m - 1, nextPlane);
+    refs[m].right = this._SplitSort(m + 1, e, nextPlane);
 
     return refs[m];
   }
@@ -294,7 +294,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Stamps the given split plane on a subrange of agent references and sorts that subrange along that axis.
    */
-  #SortByAxis(refs, b, endExclusive, planeType)
+  _SortByAxis(refs, b, endExclusive, planeType)
   {
     for (let i = b; i < endExclusive; i++)
     {
@@ -315,7 +315,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Recursively checks a node's split invariant against its children and re-splits that subtree from scratch when it no longer holds.
    */
-  #CompareNodeToChildren(node)
+  _CompareNodeToChildren(node)
   {
     if (node === null)
     {
@@ -328,14 +328,14 @@ export class EveKDdroneManagementTree extends CjsModel
     }
 
     const axis = node.planeType;
-    if (this.#IsBiggestOnAxis(node.left, node.agent.position[axis], axis) &&
-      this.#IsSmallestOnAxis(node.right, node.agent.position[axis], axis))
+    if (this._IsBiggestOnAxis(node.left, node.agent.position[axis], axis) &&
+      this._IsSmallestOnAxis(node.right, node.agent.position[axis], axis))
     {
-      node.left = this.#CompareNodeToChildren(node.left);
-      node.right = this.#CompareNodeToChildren(node.right);
+      node.left = this._CompareNodeToChildren(node.left);
+      node.right = this._CompareNodeToChildren(node.right);
       return node;
     }
-    return this.#SplitSort(node.b, node.e, axis);
+    return this._SplitSort(node.b, node.e, axis);
   }
 
   // Carbon IsBiggestOnAxis (cpp:112-154): on the node's own split axis only
@@ -343,7 +343,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Whether a node and its relevant subtree all sit at or below a coordinate on an axis.
    */
-  #IsBiggestOnAxis(node, n, planeType)
+  _IsBiggestOnAxis(node, n, planeType)
   {
     if (node === null)
     {
@@ -353,18 +353,18 @@ export class EveKDdroneManagementTree extends CjsModel
     const axis = node.planeType;
     if (planeType === axis)
     {
-      return n >= node.agent.position[axis] && this.#IsBiggestOnAxis(node.right, n, axis);
+      return n >= node.agent.position[axis] && this._IsBiggestOnAxis(node.right, n, axis);
     }
     return n >= node.agent.position[axis] &&
-      this.#IsBiggestOnAxis(node.left, n, axis) &&
-      this.#IsBiggestOnAxis(node.right, n, axis);
+      this._IsBiggestOnAxis(node.left, n, axis) &&
+      this._IsBiggestOnAxis(node.right, n, axis);
   }
 
   // Carbon IsSmallestOnAxis (cpp:157-199): mirror of IsBiggestOnAxis.
   /**
    * Whether a node and its relevant subtree all sit at or above a coordinate on an axis.
    */
-  #IsSmallestOnAxis(node, n, planeType)
+  _IsSmallestOnAxis(node, n, planeType)
   {
     if (node === null)
     {
@@ -374,11 +374,11 @@ export class EveKDdroneManagementTree extends CjsModel
     const axis = node.planeType;
     if (planeType === axis)
     {
-      return n <= node.agent.position[axis] && this.#IsSmallestOnAxis(node.left, n, axis);
+      return n <= node.agent.position[axis] && this._IsSmallestOnAxis(node.left, n, axis);
     }
     return n <= node.agent.position[axis] &&
-      this.#IsSmallestOnAxis(node.left, n, axis) &&
-      this.#IsSmallestOnAxis(node.right, n, axis);
+      this._IsSmallestOnAxis(node.left, n, axis) &&
+      this._IsSmallestOnAxis(node.right, n, axis);
   }
 
   // Carbon FindClosestAgentRecursive (cpp:291-371): digs through the tree,
@@ -386,7 +386,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Recursively searches for the agent closest to a position, pruning subtrees that cannot beat the current best distance.
    */
-  #FindClosestAgentRecursive(pos, node, closest)
+  _FindClosestAgentRecursive(pos, node, closest)
   {
     if (node === null)
     {
@@ -403,18 +403,18 @@ export class EveKDdroneManagementTree extends CjsModel
     const axis = node.planeType;
     if (node.agent.position[axis] < pos[axis])
     {
-      this.#FindClosestAgentRecursive(pos, node.right, closest);
+      this._FindClosestAgentRecursive(pos, node.right, closest);
       if (node.agent.position[axis] + closest.rangeBetween > pos[axis])
       {
-        this.#FindClosestAgentRecursive(pos, node.left, closest);
+        this._FindClosestAgentRecursive(pos, node.left, closest);
       }
     }
     else
     {
-      this.#FindClosestAgentRecursive(pos, node.left, closest);
+      this._FindClosestAgentRecursive(pos, node.left, closest);
       if (node.agent.position[axis] - closest.rangeBetween < pos[axis])
       {
-        this.#FindClosestAgentRecursive(pos, node.right, closest);
+        this._FindClosestAgentRecursive(pos, node.right, closest);
       }
     }
   }
@@ -426,39 +426,39 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Recursively collects one agent's neighbours into the per-behaviour result lists for each configured radius, narrowing the active range as the widest one fills.
    */
-  #SearchThroughTreeHelperFunction(closeAgents, node, agent, ranges, c)
+  _SearchThroughTreeHelperFunction(closeAgents, node, agent, ranges, c)
   {
     if (node === null)
     {
       return;
     }
 
-    if (this.#activeRange > ranges.length - 1)
+    if (this._activeRange > ranges.length - 1)
     {
       return;
     }
 
-    if (ranges[this.#activeRange].radius === -1)
+    if (ranges[this._activeRange].radius === -1)
     {
       return;
     }
 
     const dist = vec3.squaredDistance(node.agent.position, agent.position);
-    const range = ranges[this.#activeRange].radius;
+    const range = ranges[this._activeRange].radius;
 
     if (dist < range * range)
     {
-      EveKDdroneManagementTree.#AddAgentToSearchLists(closeAgents, node, dist, ranges, this.#activeRange, c);
+      EveKDdroneManagementTree._AddAgentToSearchLists(closeAgents, node, dist, ranges, this._activeRange, c);
 
-      const found = closeAgents[ranges[this.#activeRange].behaviorNbr][c].length;
+      const found = closeAgents[ranges[this._activeRange].behaviorNbr][c].length;
       if (found < this.maxFoundPerAgent)
       {
-        EveKDdroneManagementTree.#AddAgentToSearchLists(closeAgents, node, dist, ranges, this.#activeRange, c);
+        EveKDdroneManagementTree._AddAgentToSearchLists(closeAgents, node, dist, ranges, this._activeRange, c);
       }
       else if (found === this.maxFoundPerAgent)
       {
-        EveKDdroneManagementTree.#AddAgentToSearchLists(closeAgents, node, dist, ranges, this.#activeRange, c);
-        this.#activeRange++;
+        EveKDdroneManagementTree._AddAgentToSearchLists(closeAgents, node, dist, ranges, this._activeRange, c);
+        this._activeRange++;
       }
     }
 
@@ -466,11 +466,11 @@ export class EveKDdroneManagementTree extends CjsModel
     const delta = node.agent.position[axis] - agent.position[axis];
     if (delta <= range)
     {
-      this.#SearchThroughTreeHelperFunction(closeAgents, node.right, agent, ranges, c);
+      this._SearchThroughTreeHelperFunction(closeAgents, node.right, agent, ranges, c);
     }
     if (delta >= range)
     {
-      this.#SearchThroughTreeHelperFunction(closeAgents, node.left, agent, ranges, c);
+      this._SearchThroughTreeHelperFunction(closeAgents, node.left, agent, ranges, c);
     }
   }
 
@@ -478,7 +478,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Orders search ranges by descending radius.
    */
-  static #CompareSearchRanges(lhs, rhs)
+  static _CompareSearchRanges(lhs, rhs)
   {
     return rhs.radius - lhs.radius;
   }
@@ -488,7 +488,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Appends a found neighbour to every behaviour's result list whose radius it still falls within, stopping at the first it falls outside.
    */
-  static #AddAgentToSearchLists(closeAgents, node, dist, ranges, activeRange, agentNbr)
+  static _AddAgentToSearchLists(closeAgents, node, dist, ranges, activeRange, agentNbr)
   {
     for (let i = activeRange; i < ranges.length; i++)
     {
@@ -507,7 +507,7 @@ export class EveKDdroneManagementTree extends CjsModel
   /**
    * Cycles the split axis in the order X, Y, Z and back to X.
    */
-  static #FindNextSplitAxis(planeType)
+  static _FindNextSplitAxis(planeType)
   {
     switch (planeType)
     {

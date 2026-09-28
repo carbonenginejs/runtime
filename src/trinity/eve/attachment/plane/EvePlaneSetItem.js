@@ -90,12 +90,12 @@ export class EvePlaneSetItem extends CjsModel
   {
     // Carbon TransformationMatrix(scaling, rotation, position).
     const transform = mat4.fromRotationTranslationScale(
-      EvePlaneSetItem.#transform,
+      EvePlaneSetItem._transform,
       this.rotation,
       this.position,
       this.scaling
     );
-    return box3.transformMat4(out, EvePlaneSetItem.#bounds, transform);
+    return box3.transformMat4(out, EvePlaneSetItem._bounds, transform);
   }
 
   /** The parent bone this plane rides. */
@@ -106,9 +106,9 @@ export class EvePlaneSetItem extends CjsModel
     return this.boneIndex;
   }
 
-  static #bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
+  static _bounds = box3.fromValues(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5);
 
-  static #transform = mat4.create();
+  static _transform = mat4.create();
 
-  static #transformedBounds = box3.create();
+  static _transformedBounds = box3.create();
 }

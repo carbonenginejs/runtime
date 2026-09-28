@@ -9,7 +9,7 @@ import { EveChildRef } from "../../../../eve/child/EveChildRef.js";
 export class EveProceduralMethodRandomParameter extends CjsModel
 {
 
-  #modified = false;
+  _modified = false;
 
   /** m_child (EveChildRefPtr) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -56,7 +56,7 @@ export class EveProceduralMethodRandomParameter extends CjsModel
     if (value === "weighting")
     {
       this.weighting = Math.max(this.weighting, 1);
-      this.#modified = true;
+      this._modified = true;
     }
 
     if (value === "child")
@@ -91,7 +91,7 @@ export class EveProceduralMethodRandomParameter extends CjsModel
   @impl.implemented
   SetModified(isModified)
   {
-    this.#modified = !!isModified;
+    this._modified = !!isModified;
   }
 
   /** Carbon method IsModified (cpp:59-62). */
@@ -99,7 +99,7 @@ export class EveProceduralMethodRandomParameter extends CjsModel
   @impl.implemented
   IsModified()
   {
-    return this.#modified;
+    return this._modified;
   }
 
   /** Carbon method GetWeighting (cpp:64-67). */

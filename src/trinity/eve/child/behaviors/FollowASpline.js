@@ -78,17 +78,17 @@ export class FollowASpline extends CjsModel
 
   // Carbon m_frameCounter/m_framesBetweenUpdates/m_lastPullForces/
   // m_targetPointVector/m_desiredVector runtime state.
-  #frameCounter = 0;
+  _frameCounter = 0;
 
-  #framesBetweenUpdates = 11;
+  _framesBetweenUpdates = 11;
 
-  #lastPullForces = [];
+  _lastPullForces = [];
 
-  #targetPointVector = [];
+  _targetPointVector = [];
 
-  #desiredVector = vec3.create();
+  _desiredVector = vec3.create();
 
-  #returnForces = [];
+  _returnForces = [];
 
   /** Carbon FollowASpline::GetProcessPriority (cpp:32-35). */
   @carbon.method
@@ -172,19 +172,19 @@ export class FollowASpline extends CjsModel
       return NO_FORCES;
     }
 
-    if (this.#frameCounter >= this.#framesBetweenUpdates)
+    if (this._frameCounter >= this._framesBetweenUpdates)
     {
-      this.#frameCounter = 0;
+      this._frameCounter = 0;
     }
     else
     {
-      this.#frameCounter++;
+      this._frameCounter++;
     }
 
-    const forceVectors = this.#returnForces;
+    const forceVectors = this._returnForces;
     forceVectors.length = 0;
 
-    if (this.#frameCounter === 0)
+    if (this._frameCounter === 0)
     {
       if (this.shouldReassignTunnelIDs)
       {
@@ -192,12 +192,12 @@ export class FollowASpline extends CjsModel
         // before the system tunnels are prepended (Carbon relies on
         // OnListModified having filled m_privateTunnels already).
         this.remapTunnels();
-        this.#ReassignTunnelIDsAndAddSystemTunnels(system);
+        this._ReassignTunnelIDsAndAddSystemTunnels(system);
         group.InitializeGeometryResource(); // reset all agents
         return forceVectors;
       }
 
-      this.#targetPointVector.length = 0;
+      this._targetPointVector.length = 0;
 
       let pullCount = 0;
       for (let c = 0; c < agents.length; c++)
@@ -209,23 +209,23 @@ export class FollowASpline extends CjsModel
           continue;
         }
 
-        vec3.set(this.#desiredVector, 0, 0, 0);
+        vec3.set(this._desiredVector, 0, 0, 0);
         let rampingForce = 1;
 
         if (data.tunnelLock === -1)
         {
-          rampingForce = this.#ProcessTunnelEntrances(drone, this.privateTunnels, data);
+          rampingForce = this._ProcessTunnelEntrances(drone, this.privateTunnels, data);
         }
 
         // tunnelLock can change in ProcessTunnelEntrances so if->else is not
         // equivalent
         if (data.tunnelLock !== -1)
         {
-          if (this.#ProcessAssignedTunnel(drone, this.privateTunnels, group, data))
+          if (this._ProcessAssignedTunnel(drone, this.privateTunnels, group, data))
           {
             // If process returns true we update all the drones as a unit and
             // skip if they are in a Formation
-            if (this.#CheckForAndUpdateFormation(agents, group, scratchData, data.tunnelLock, data.tunnelPoint))
+            if (this._CheckForAndUpdateFormation(agents, group, scratchData, data.tunnelLock, data.tunnelPoint))
             {
               // all drones have been updated so we break
               break;
@@ -233,16 +233,16 @@ export class FollowASpline extends CjsModel
           }
         }
 
-        const pullForce = this.#PullForceAt(pullCount);
+        const pullForce = this._PullForceAt(pullCount);
         pullCount++;
 
-        if (vec3.squaredLength(this.#desiredVector) === 0)
+        if (vec3.squaredLength(this._desiredVector) === 0)
         {
           vec3.set(pullForce, 0, 0, 0);
           continue;
         }
 
-        vec3.normalize(PULL_FORCE, this.#desiredVector);
+        vec3.normalize(PULL_FORCE, this._desiredVector);
         if (group.collectForces)
         {
           vec3.scale(FORCE_OFFSET, PULL_FORCE, group.GetBoundingSphereRadius());
@@ -256,22 +256,22 @@ export class FollowASpline extends CjsModel
         vec3.add(drone.acceleration, drone.acceleration, PULL_FORCE);
         vec3.copy(pullForce, PULL_FORCE);
       }
-      this.#lastPullForces.length = pullCount;
+      this._lastPullForces.length = pullCount;
     }
     else
     {
-      if (this.#lastPullForces.length === 0)
+      if (this._lastPullForces.length === 0)
       {
         return forceVectors;
       }
       let c = 0;
       for (const agent of agents)
       {
-        if (c >= this.#lastPullForces.length)
+        if (c >= this._lastPullForces.length)
         {
           break;
         }
-        const pullForce = this.#lastPullForces[c];
+        const pullForce = this._lastPullForces[c];
         vec3.add(agent.acceleration, agent.acceleration, pullForce);
 
         if (group.collectForces && vec3.squaredLength(pullForce) > 0)
@@ -322,7 +322,7 @@ export class FollowASpline extends CjsModel
   /**
    * Prepends the system-wide tunnels to the private tunnel list and reassigns every tunnel a sequential identifier.
    */
-  #ReassignTunnelIDsAndAddSystemTunnels(system)
+  _ReassignTunnelIDsAndAddSystemTunnels(system)
   {
     const tunnels = system.GetTunnels?.() ?? [];
 
@@ -359,7 +359,7 @@ export class FollowASpline extends CjsModel
   /**
    * Tests an unassigned agent against each tunnel's entrance sphere, locking it to a tunnel once inside the point-of-no-return radius and otherwise building a pull force as it nears.
    */
-  #ProcessTunnelEntrances(agent, tunnels, data)
+  _ProcessTunnelEntrances(agent, tunnels, data)
   {
     // not associated with a tunnel
     for (const tunnel of tunnels)
@@ -392,7 +392,7 @@ export class FollowASpline extends CjsModel
         // pull-strength
         let mod = (length - tunnel.pointOfNoReturnSize) / (tunnel.pullSize - tunnel.pointOfNoReturnSize);
         mod = 1 - Math.max(0, Math.min(mod, 1));
-        vec3.copy(this.#desiredVector, DIST);
+        vec3.copy(this._desiredVector, DIST);
         return Math.min(1, Math.max(0, 1 - this.smoothPullFactor + this.smoothPullFactor * mod));
       }
     }
@@ -405,7 +405,7 @@ export class FollowASpline extends CjsModel
   /**
    * Steers a locked agent toward its current spline point, blending toward the next for smooth cornering, and advances or releases the lock as it arrives or drifts away.
    */
-  #ProcessAssignedTunnel(agent, tunnels, group, data)
+  _ProcessAssignedTunnel(agent, tunnels, group, data)
   {
     if (data.tunnelLock > tunnels.length)
     {
@@ -457,12 +457,12 @@ export class FollowASpline extends CjsModel
     // allocation-free.
     if (group.collectForces)
     {
-      this.#targetPointVector.push(vec3.add(vec3.create(), TARGET_VECTOR, agent.position));
+      this._targetPointVector.push(vec3.add(vec3.create(), TARGET_VECTOR, agent.position));
     }
 
     if (pointID === points.length - 1)
     {
-      vec3.copy(this.#desiredVector, point.rot);
+      vec3.copy(this._desiredVector, point.rot);
 
       // the Dot product is positive if the agent is facing the target point
       if (vec3.dot(TARGET_VECTOR, agent.rotation) < 0)
@@ -487,12 +487,12 @@ export class FollowASpline extends CjsModel
       vec3.normalize(TARGET_NORMALIZED, TARGET_VECTOR);
       vec3.add(BLEND_VECTOR, point.rot, TARGET_VECTOR);
       vec3.normalize(BLEND_VECTOR, BLEND_VECTOR);
-      vec3.scale(this.#desiredVector, TARGET_NORMALIZED, this.cornerSmoothener * (1 - blendingMod));
-      vec3.scaleAndAdd(this.#desiredVector, this.#desiredVector, BLEND_VECTOR, (1 - this.cornerSmoothener) * blendingMod);
-      vec3.normalize(DESIRED_NORMALIZED, this.#desiredVector);
+      vec3.scale(this._desiredVector, TARGET_NORMALIZED, this.cornerSmoothener * (1 - blendingMod));
+      vec3.scaleAndAdd(this._desiredVector, this._desiredVector, BLEND_VECTOR, (1 - this.cornerSmoothener) * blendingMod);
+      vec3.normalize(DESIRED_NORMALIZED, this._desiredVector);
       if (vec3.dot(TARGET_NORMALIZED, DESIRED_NORMALIZED) < this.cornerSmoothener)
       {
-        vec3.copy(this.#desiredVector, TARGET_VECTOR);
+        vec3.copy(this._desiredVector, TARGET_VECTOR);
       }
 
       if ((lengthFromShip - group.GetBoundingSphereRadius()) < tunnel.cylWidth / 1.5)
@@ -519,7 +519,7 @@ export class FollowASpline extends CjsModel
   /**
    * Locks every agent to the same tunnel and tunnel point while the group's formation behaviour is active, so the group advances as a unit.
    */
-  #CheckForAndUpdateFormation(agents, group, scratchData, tunnel, tunnelPoint)
+  _CheckForAndUpdateFormation(agents, group, scratchData, tunnel, tunnelPoint)
   {
     const formation = group.GetBehaviorByName("Formation");
 
@@ -543,13 +543,13 @@ export class FollowASpline extends CjsModel
   /**
    * The cached pull-force vector for an agent index, created on first use.
    */
-  #PullForceAt(index)
+  _PullForceAt(index)
   {
-    let force = this.#lastPullForces[index];
+    let force = this._lastPullForces[index];
     if (!force)
     {
       force = vec3.create();
-      this.#lastPullForces[index] = force;
+      this._lastPullForces[index] = force;
     }
     return force;
   }

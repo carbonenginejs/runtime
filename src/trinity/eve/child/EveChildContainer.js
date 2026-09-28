@@ -186,24 +186,24 @@ export class EveChildContainer extends EveChildTransform
   @type.boolean
   isPlacementRoot = false;
 
-  #controllerVariables = new Map();
+  _controllerVariables = new Map();
 
   // Carbon m_worldVelocity/m_ownerMaxSpeed/m_activationStrength/m_hasUpdated:
   // runtime-only frame state (never persisted; Carbon keeps them out of the
   // Blue surface too).
-  #worldVelocity = vec3.create();
+  _worldVelocity = vec3.create();
 
-  #ownerMaxSpeed = 0;
+  _ownerMaxSpeed = 0;
 
-  #activationStrength = 1;
+  _activationStrength = 1;
 
   /** m_vsData / m_psData - this container's PERSISTENT per-object pair. */
-  #perObjectData = createChildPerObjectRecords();
+  _perObjectData = createChildPerObjectRecords();
 
   /** Carbon's local `lastWorldTransform`, kept across frames here. */
-  #lastWorldTransform = mat4.create();
+  _lastWorldTransform = mat4.create();
 
-  #hasUpdated = false;
+  _hasUpdated = false;
 
   /** Blue read-only property alias for IsRendering. */
   get isRendering()
@@ -404,7 +404,7 @@ export class EveChildContainer extends EveChildTransform
   {
     const key = String(name ?? "");
     const next = Number(value);
-    this.#controllerVariables.set(key, next);
+    this._controllerVariables.set(key, next);
     for (const controller of this.controllers)
     {
       controller?.SetVariable(key, next);
@@ -504,7 +504,7 @@ export class EveChildContainer extends EveChildTransform
       if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
         value.Link(this);
-        for (const [ name, variable ] of this.#controllerVariables) value.SetVariable(name, variable);
+        for (const [ name, variable ] of this._controllerVariables) value.SetVariable(name, variable);
       }
       else if (masked === BLUELISTEVENT.BELIST_REMOVED && value) value.Unlink();
       else if (masked === BLUELISTEVENT.BELIST_UNLOADSTART)
@@ -524,15 +524,15 @@ export class EveChildContainer extends EveChildTransform
 
       if (masked === BLUELISTEVENT.BELIST_INSERTED && value)
       {
-        for (const [ name, variable ] of this.#controllerVariables) value.SetControllerVariable(name, variable);
+        for (const [ name, variable ] of this._controllerVariables) value.SetControllerVariable(name, variable);
       }
 
-      this.#NotifyEntityRegistration(masked, value, this.objects);
+      this._NotifyEntityRegistration(masked, value, this.objects);
     }
 
     if (list === this.attachments && !loading)
     {
-      this.#NotifyEntityRegistration(masked, value, this.attachments);
+      this._NotifyEntityRegistration(masked, value, this.attachments);
     }
 
     if (list === this.objects && masked === BLUELISTEVENT.BELIST_INSERTED && this.inheritProperties
@@ -566,7 +566,7 @@ export class EveChildContainer extends EveChildTransform
    * Carbon cpp:148-177 and cpp:180-210, identical for objects and attachments:
    * entity registration only matters while this container is itself registered.
    */
-  #NotifyEntityRegistration(masked, value, members)
+  _NotifyEntityRegistration(masked, value, members)
   {
     if (!this.IsInRegistry()) return;
     const registry = this.GetComponentRegistry();
@@ -714,9 +714,9 @@ export class EveChildContainer extends EveChildTransform
       return;
     }
 
-    this.#ownerMaxSpeed = Number(params?.ownerMaxSpeed) || 0;
+    this._ownerMaxSpeed = Number(params?.ownerMaxSpeed) || 0;
 
-    const newParams = EveChildContainer.#DeriveChildParams(params);
+    const newParams = EveChildContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     mat4.copy(newParams.localToWorldTransform, this.worldTransform);
@@ -758,7 +758,7 @@ export class EveChildContainer extends EveChildTransform
     const parentTransform = params?.localToWorldTransform;
 
     // Carbon captures the OUTGOING transform before rebuilding.
-    mat4.copy(this.#lastWorldTransform, this.worldTransform);
+    mat4.copy(this._lastWorldTransform, this.worldTransform);
 
     if (parentTransform && parentTransform.length === 16)
     {
@@ -767,8 +767,8 @@ export class EveChildContainer extends EveChildTransform
 
     // Carbon cpp:576-589: inherit the hull's per-object values, rebase the clip
     // data by this child's translation, then stamp our own transforms.
-    inheritParentPerObjectData(this.#perObjectData, params?.spaceObjectParent, this.translation);
-    stampChildTransforms(this.#perObjectData, this.worldTransform, this.#lastWorldTransform);
+    inheritParentPerObjectData(this._perObjectData, params?.spaceObjectParent, this.translation);
+    stampChildTransforms(this._perObjectData, this.worldTransform, this._lastWorldTransform);
 
     const frequency = params?.controllerUpdateFrequency ?? 0.5;
     for (const controller of this.controllers)
@@ -787,14 +787,14 @@ export class EveChildContainer extends EveChildTransform
 
     applyTransformModifiers(this, updateContext, boneCount, bones);
 
-    this.#activationStrength = Number(params?.activationStrength ?? 1);
+    this._activationStrength = Number(params?.activationStrength ?? 1);
 
     // Carbon (cpp:568-590): when attachments exist the per-object VS/PS
     // structs are refreshed from the parent. This port retains persistent
     // RawData and returns it from GetPerObjectData; no live-object serializer
     // indirection is involved.
 
-    const newParams = EveChildContainer.#DeriveChildParams(params);
+    const newParams = EveChildContainer._DeriveChildParams(params);
     newParams.isVisible = (params?.isVisible !== false) && this.display;
     newParams.childParent = this;
     newParams.boneCount = boneCount;
@@ -807,17 +807,17 @@ export class EveChildContainer extends EveChildTransform
     {
       if (!params.childParent)
       {
-        const velocity = params.spaceObjectParent.GetWorldVelocity?.(this.#worldVelocity) ??
+        const velocity = params.spaceObjectParent.GetWorldVelocity?.(this._worldVelocity) ??
           params.spaceObjectParent.worldVelocity;
-        if (velocity && velocity !== this.#worldVelocity)
+        if (velocity && velocity !== this._worldVelocity)
         {
-          vec3.copy(this.#worldVelocity, velocity);
+          vec3.copy(this._worldVelocity, velocity);
         }
-        vec3.copy(newParams.worldVelocity, this.#worldVelocity);
+        vec3.copy(newParams.worldVelocity, this._worldVelocity);
       }
       else
       {
-        vec3.copy(this.#worldVelocity, params.worldVelocity ?? ZERO_VEC3);
+        vec3.copy(this._worldVelocity, params.worldVelocity ?? ZERO_VEC3);
       }
     }
 
@@ -850,10 +850,10 @@ export class EveChildContainer extends EveChildTransform
     for (const attachment of this.attachments)
     {
       if (!attachment) continue;
-      attachment.UpdateLights(this.worldTransform, bones, boneCount, this.#activationStrength, 0);
+      attachment.UpdateLights(this.worldTransform, bones, boneCount, this._activationStrength, 0);
     }
 
-    this.#hasUpdated = true;
+    this._hasUpdated = true;
     return this.worldTransform;
   }
 
@@ -906,7 +906,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   GetRenderables(out = [])
   {
-    if (!this.display || !this.#hasUpdated)
+    if (!this.display || !this._hasUpdated)
     {
       return out;
     }
@@ -984,7 +984,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   AddQuadsToQuadRenderer(frustum, quadRenderer)
   {
-    if (!this.display || !this.#hasUpdated)
+    if (!this.display || !this._hasUpdated)
     {
       return;
     }
@@ -1038,7 +1038,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   GetLights(lightManager)
   {
-    if (!this.display || !this.#hasUpdated)
+    if (!this.display || !this._hasUpdated)
     {
       return;
     }
@@ -1068,7 +1068,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   GetBatches(batches, batchType, perObjectData, reason = Tr2RenderReason.TR2RENDERREASON_NORMAL)
   {
-    if (!this.display || reason !== Tr2RenderReason.TR2RENDERREASON_NORMAL || this.#activationStrength === 0)
+    if (!this.display || reason !== Tr2RenderReason.TR2RENDERREASON_NORMAL || this._activationStrength === 0)
     {
       return false;
     }
@@ -1113,10 +1113,10 @@ export class EveChildContainer extends EveChildTransform
 
     if (updater?.IsInitialized?.())
     {
-      this.#perObjectData.vs.SetIndex("boneOffsets", 2, [ updater.GetMeshBoneCount?.() ?? 0 ]);
+      this._perObjectData.vs.SetIndex("boneOffsets", 2, [ updater.GetMeshBoneCount?.() ?? 0 ]);
     }
 
-    return { vs: this.#perObjectData.vs, ps: this.#perObjectData.ps };
+    return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
 
   /** Carbon EveChildContainer::HasRenderables (cpp:1129-1132): the container
@@ -1415,7 +1415,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   GetWorldVelocity(out = vec3.create())
   {
-    return vec3.copy(out, this.#worldVelocity);
+    return vec3.copy(out, this._worldVelocity);
   }
 
   /** Carbon EveChildContainer::GetOwnerMaxSpeed (cpp:1073-1076). */
@@ -1423,7 +1423,7 @@ export class EveChildContainer extends EveChildTransform
   @impl.implemented
   GetOwnerMaxSpeed()
   {
-    return this.#ownerMaxSpeed;
+    return this._ownerMaxSpeed;
   }
 
   /** Propagates the owning space object through the complete child subtree. */
@@ -1528,7 +1528,7 @@ export class EveChildContainer extends EveChildTransform
    * passes EveChildUpdateParams by value, cpp:505/592); allocated per call
    * because container recursion makes a shared module scratch record unsafe.
    */
-  static #DeriveChildParams(params)
+  static _DeriveChildParams(params)
   {
     const next = new EveChildUpdateParams();
     if (params)

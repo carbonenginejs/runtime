@@ -20,7 +20,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   value = vec4.create();
 
   /** m_defaults - one default captured per bound external parameter. */
-  #defaults = [];
+  _defaults = [];
 
   /**
    * Discards the captured defaults along with the bindings, so nothing can be
@@ -30,7 +30,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   @impl.implemented
   ClearBindings()
   {
-    this.#defaults.length = 0;
+    this._defaults.length = 0;
     super.ClearBindings();
   }
 
@@ -41,7 +41,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   {
     for (let index = 0; index < this.bindings.length; index++)
     {
-      vec4.copy(this.value, this.#defaults[index]);
+      vec4.copy(this.value, this._defaults[index]);
       this.bindings[index].CopyValue();
     }
     this.ClearBindings();
@@ -67,7 +67,7 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
     {
       vec4.set(value, 0, 0, 0, 0);
     }
-    this.#defaults.push(value);
+    this._defaults.push(value);
     return true;
   }
 
@@ -79,9 +79,9 @@ export class EveSocketParameterColor extends EveSocketParameterBindingBase
   @impl.implemented
   SetValueToDefault()
   {
-    if (this.#defaults.length)
+    if (this._defaults.length)
     {
-      vec4.copy(this.value, this.#defaults[0]);
+      vec4.copy(this.value, this._defaults[0]);
     }
     else
     {

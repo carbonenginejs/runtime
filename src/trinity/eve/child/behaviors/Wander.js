@@ -65,7 +65,7 @@ export class Wander extends CjsModel
   @type.boolean
   enabled = true;
 
-  #returnForces = [];
+  _returnForces = [];
 
   /** Carbon Wander::GetProcessPriority (cpp:23-26). */
   @carbon.method
@@ -96,7 +96,7 @@ export class Wander extends CjsModel
       return NO_FORCES;
     }
 
-    const returnForces = this.#returnForces;
+    const returnForces = this._returnForces;
     returnForces.length = 0;
 
     for (const agent of agents)

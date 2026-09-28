@@ -76,7 +76,7 @@ export class EveLocatorSets extends CjsModel
   @impl.implemented
   Translate(offset)
   {
-    if (EveLocatorSets.#lengthSq(offset) === 0)
+    if (EveLocatorSets._lengthSq(offset) === 0)
     {
       return;
     }
@@ -182,7 +182,7 @@ export class EveLocatorSets extends CjsModel
    * Squared length of a three-component value, used to test an offset for being
    * zero without a square root.
    */
-  static #lengthSq(value)
+  static _lengthSq(value)
   {
     return value[0] * value[0] + value[1] * value[1] + value[2] * value[2];
   }
