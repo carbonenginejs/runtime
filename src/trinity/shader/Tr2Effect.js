@@ -1122,11 +1122,19 @@ export class Tr2Effect extends Tr2Material
       // for anything still holding a reference to it.
       parameter = new Parameter();
       parameter.name = parameterName;
+      parameter.SetValue(value);
       this.parameters.push(parameter);
+      // Carbon rebuilds when the parameter list changes - the append raises
+      // BELIST_INSERTED into Tr2Effect::OnListModified (Tr2Effect.cpp), which
+      // calls RebuildCachedDataInternal - and never for a value. An existing
+      // parameter's SetValue writes through to its bound destination, so a
+      // per-frame SetParameter (the tonemapping constants) rebuilt the
+      // effect's cached data every frame for nothing.
+      this.RebuildCachedDataInternal();
+      return;
     }
 
     parameter.SetValue(value);
-    this.RebuildCachedDataInternal();
   }
 
   /**

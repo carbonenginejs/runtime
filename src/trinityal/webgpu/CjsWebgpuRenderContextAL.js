@@ -76,6 +76,7 @@ import { Tr2ResourceSetAL } from "../Tr2ResourceSetAL/Tr2ResourceSetAL.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2LoadAction, Tr2StoreAction, UpscalingResult, UpscalingSetting, UpscalingTechnique } from "#consts/render-context";
 import { Tr2ColorAttachment, Tr2ConstantUsageAL, Tr2DepthAttachment, Tr2VertexLayoutALStub, resolveBindingPlan, ALResult, Failed, Tr2DrawUPHelper } from "#trinityal";
 import { CjsWebgpuWorkQueue, EncoderType } from "./core/CjsWebgpuWorkQueue.js";
+import { RegisterBindingUse } from "./core/bindingIndex.js";
 import { CjsWebgpuMipGenerator } from "./core/CjsWebgpuMipGenerator.js";
 import { CjsWebgpuBufferAL } from "./CjsWebgpuBufferAL.js";
 import { CjsWebgpuConstantBufferAL } from "./CjsWebgpuConstantBufferAL.js";
@@ -100,6 +101,12 @@ const INDEX_FORMAT = Object.freeze({ 2: "uint16", 4: "uint32" });
 
 /** Bind groups kept before the cache is dropped and rebuilt. */
 const MAX_CACHED_BIND_GROUPS = 1024;
+
+/** Frames a cached bind group may go unused before the sweep drops it (_SweepBindGroups). */
+const BIND_GROUP_MAX_IDLE_FRAMES = 120;
+
+/** How often, in frames, _SweepBindGroups looks. */
+const BIND_GROUP_SWEEP_FRAMES = 60;
 
 /**
  * The `GPUBuffer` behind a bound stream, or null.
@@ -787,6 +794,7 @@ export class CjsWebgpuRenderContextAL
     this._pipelineDirty = true;
 
     this._frameNumber += 1;
+    this._SweepBindGroups();
 
     if (this._commandEncoder)
     {
@@ -1728,13 +1736,13 @@ export class CjsWebgpuRenderContextAL
 
     const set = this._resourceSet?.m_resourceSet.implementation;
     const entries = set && set.IsValid() && set.GetProgram() === program ? set.GetEntries() : null;
-    const setId = entries ? set.m_id : 0;
     const bindings = program.GetBindings();
     const device = this._webgpu.GetDevice();
 
     for (let group = 0; group < layouts.length; group += 1)
     {
-      const keyParts = [ program.GetIdentity(), group, setId ];
+      const keyParts = [ program.GetIdentity(), group ];
+      const boundObjects = [];
       const resolved = [];
       const dynamicOffsets = [];
       // Each storage dummy in the group its own (GetDummyStorageTexture).
@@ -1781,15 +1789,19 @@ export class CjsWebgpuRenderContextAL
         {
           resource = entries ? entries.get(`${group}:${binding.binding}`) ?? null : null;
           resource ??= this._DummyFor(binding, binding.storageTexture ? storageDummies++ : 0);
+          keyParts.push(this._BindingResourceKey(resource));
+          boundObjects.push(resource && typeof resource === "object" && "buffer" in resource ? resource.buffer : resource);
         }
 
         resolved.push({ binding: binding.binding, resource });
       }
 
       const key = keyParts.join("|");
-      let bindGroup = this._bindGroups.get(key) ?? null;
+      const cached = this._bindGroups.get(key) ?? null;
+      let bindGroup = cached?.bindGroup ?? null;
 
-      if (!bindGroup)
+      if (cached) cached.frame = this._frameNumber;
+      else
       {
         // Identities are monotonic, so a key never comes back once its set or
         // buffer is gone; without a bound the map grows with every rebuild.
@@ -1803,7 +1815,10 @@ export class CjsWebgpuRenderContextAL
           layout: layouts[group],
           entries: resolved
         });
-        this._bindGroups.set(key, bindGroup);
+        this._bindGroups.set(key, { bindGroup, frame: this._frameNumber });
+        // A destroyed texture or buffer drops the groups binding it
+        // (bindingIndex.js); the age sweep in EndScene catches the rest.
+        for (const object of boundObjects) RegisterBindingUse(object, this._bindGroups, key);
       }
 
       this._workQueue.SetBindGroup(group, bindGroup, dynamicOffsets);
@@ -1811,6 +1826,76 @@ export class CjsWebgpuRenderContextAL
 
     return true;
   }
+
+  /**
+   * One bound resource's part of a bind group's cache key: the view, sampler
+   * or buffer object's identity (and a buffer binding's range).
+   *
+   * Adapted: keyed on WHAT is bound, not on the resource set that bound it. A
+   * post-process pass re-points one effect's texture parameters at a different
+   * target for every draw (BlitCurrent, LastMip...), so its description
+   * changes and Tr2Material makes a new set each time, as Carbon does
+   * (Tr2Material.cpp:232-234) - a set id in the key therefore never repeated,
+   * and every draw built a bind group (26 a frame, measured). Carbon's DX12
+   * rewrites descriptors into frame-local heaps at each commit
+   * (DescriptorStateCacheDx12), which costs nothing like an immutable WebGPU
+   * GPUBindGroup; keying on the resources makes the same few targets hit the
+   * cache from the second frame on.
+   *
+   * @param {object} resource A GPUTextureView, GPUSampler, or `{ buffer, offset, size }`.
+   * @returns {string} The key part.
+   */
+  _BindingResourceKey(resource)
+  {
+    const identify = object =>
+    {
+      let id = this._resourceKeyIds.get(object);
+      if (id === undefined)
+      {
+        id = this._nextResourceKeyId++;
+        this._resourceKeyIds.set(object, id);
+      }
+      return id;
+    };
+    if (resource && typeof resource === "object" && "buffer" in resource)
+    {
+      return `b${identify(resource.buffer)}@${resource.offset ?? 0}+${resource.size ?? "all"}`;
+    }
+    return `r${identify(resource)}`;
+  }
+
+  /**
+   * Drops cached bind groups no draw has used for BIND_GROUP_MAX_IDLE_FRAMES.
+   * A resized render target makes new views and simply stops binding the old
+   * ones - nothing destroys them explicitly - so an explicit forget alone would
+   * keep those groups, and the objects they bind, until the size cap cleared
+   * everything. DX12's frame-local descriptor heaps are reset each frame
+   * (DescriptorStateCacheDx12::Reset); ageing keeps the working set and lets
+   * the rest go. Swept every BIND_GROUP_SWEEP_FRAMES frames.
+   *
+   * @returns {number} How many groups were dropped.
+   */
+  _SweepBindGroups()
+  {
+    if (this._frameNumber % BIND_GROUP_SWEEP_FRAMES !== 0) return 0;
+    const oldest = this._frameNumber - BIND_GROUP_MAX_IDLE_FRAMES;
+    let dropped = 0;
+    for (const [ key, entry ] of this._bindGroups)
+    {
+      if (entry.frame < oldest)
+      {
+        this._bindGroups.delete(key);
+        dropped += 1;
+      }
+    }
+    return dropped;
+  }
+
+  /** Stable ids for bound resource objects (_BindingResourceKey); weak, so a dropped view leaves. */
+  _resourceKeyIds = new WeakMap();
+
+  /** The next id _BindingResourceKey hands out. */
+  _nextResourceKeyId = 1;
 
   /** Carbon's `ConstantBufferAllocator`, owned by the context (`MetalContext.h:104`). */
   _constantArena = null;

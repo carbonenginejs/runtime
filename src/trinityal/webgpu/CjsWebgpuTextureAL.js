@@ -22,6 +22,7 @@ import { CjsSchema } from "#schema";
 import { ALResult, CopyRegion, Crop, Tr2ALMemoryType, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
+import { ForgetBindingResource } from "./core/bindingIndex.js";
 
 const NO_HEAP_INDEX = 0xffffffff;
 
@@ -763,6 +764,8 @@ export class CjsWebgpuTextureAL
   /** Releases the `GPUTexture` and its views, leaving the AL invalid. */
   Destroy()
   {
+    // Cached bind groups that bind any of this texture's views go with it.
+    for (const view of this.m_views.values()) ForgetBindingResource(view);
     this.m_texture?.destroy?.();
     this.m_texture = null;
     this._depthShadow?.texture.destroy?.();

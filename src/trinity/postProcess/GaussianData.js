@@ -91,14 +91,20 @@ export class GaussianData extends CjsModel
    * @param {number} normalizingFactor Pixels to texture coordinates.
    * @param {vec3} overallWeight The pass tint.
    * @param {vec2} _direction Unused, as in Carbon.
-   * @returns {GaussianData} The filled struct.
+   * @param {GaussianData} [out] The struct to fill. Adapted: Carbon returns the
+   *   struct by value on the stack; a caller running every frame passes one it
+   *   keeps, so a pass allocates nothing. Its previous taps are overwritten.
+   * @returns {GaussianData} `out`, filled.
    */
-  static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction)
+  static calculateGaussianPassParameters(radius, centerWeight, normalizingFactor, overallWeight, _direction, out = new GaussianData())
   {
     const clampedRadius = Math.min(Math.max(radius, 0.0001), MAX_FILTER_STEPS - 1);
     const integerRadius = Math.ceil(clampedRadius);
 
-    const taps = [];
+    // Tap weights and offsets as [weight, offset] pairs, in a module scratch of
+    // JS numbers (f64, as the arithmetic below), read back before this returns.
+    const taps = GaussianData._taps;
+    let tapCount = 0;
     let weightSum = 0;
 
     for (let i = -integerRadius; i <= integerRadius; i += 2)
@@ -118,23 +124,35 @@ export class GaussianData extends CjsModel
 
       if (offset < -1 || offset > 1) continue;
 
-      taps.push([ sampleWeight, offset ]);
+      taps[tapCount * 2] = sampleWeight;
+      taps[tapCount * 2 + 1] = offset;
+      tapCount += 1;
     }
 
     // Two taps pack into one Vector4, so the count must be even (cpp:271-275).
-    if (taps.length % 2 > 0) taps.push([ 0, 0 ]);
-
-    const data = new GaussianData();
-    vec3.copy(data.overallWeight, overallWeight);
-    data.count = taps.length / 2;
-
-    let index = 0;
-    for (let i = 0; i < taps.length; i += 2)
+    if (tapCount % 2 > 0)
     {
-      vec4.set(data.weightOffset[index++], taps[i][0] / weightSum, taps[i][1], taps[i + 1][0] / weightSum, taps[i + 1][1]);
+      taps[tapCount * 2] = 0;
+      taps[tapCount * 2 + 1] = 0;
+      tapCount += 1;
     }
 
-    return data;
+    vec3.copy(out.overallWeight, overallWeight);
+    out.count = tapCount / 2;
+
+    let index = 0;
+    for (let i = 0; i < tapCount; i += 2)
+    {
+      vec4.set(out.weightOffset[index++], taps[i * 2] / weightSum, taps[i * 2 + 1], taps[i * 2 + 2] / weightSum, taps[i * 2 + 3]);
+    }
+    // A reused struct still holds the previous pass's taps; pack uploads every
+    // entry, so the tail is zeroed as a fresh struct's is.
+    for (; index < out.weightOffset.length; index++) vec4.set(out.weightOffset[index], 0, 0, 0, 0);
+
+    return out;
   }
+
+  /** calculateGaussianPassParameters' tap scratch: [weight, offset] pairs, f64 like its arithmetic. */
+  static _taps = new Float64Array(MAX_FILTER_STEPS * 2 + 2);
 
 }

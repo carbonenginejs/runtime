@@ -454,3 +454,15 @@ test("TAA's Exposure slot stays a buffer slot when dynamic exposure arrives afte
     assert.ok(slots[0] instanceof Tr2GeometryBufferParameter, "the buffer overload's");
   }
 });
+
+test("a reused GaussianData packs the same bytes as a fresh one, the old taps zeroed", () =>
+{
+  // Bloom reuses one struct every pass (no per-frame allocation): a wide pass
+  // then a narrow one must leave no trace of the wide pass's extra taps.
+  const reused = GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ]);
+  GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 0.5, 0.25, 1 ], [ 0, 1 ], reused);
+  const fresh = GaussianData.calculateGaussianPassParameters(3, 0, 1 / 64, [ 0.5, 0.25, 1 ], [ 0, 1 ]);
+  assert.deepEqual(GaussianData.pack(reused), GaussianData.pack(fresh));
+  // Negative control: the wide pass alone does differ from the narrow one.
+  assert.notDeepEqual(GaussianData.pack(GaussianData.calculateGaussianPassParameters(40, 0, 1 / 512, [ 1, 1, 1 ], [ 1, 0 ])), GaussianData.pack(fresh));
+});

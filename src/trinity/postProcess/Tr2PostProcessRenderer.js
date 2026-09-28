@@ -903,7 +903,7 @@ export class Tr2PostProcessRenderer extends CjsModel
         const invTexelSizeX = 1 / currentMip.GetWidth();
 
         this._upsamplerHorizontal.SetParameter("BlitCurrent", currentMip);
-        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, vec3.fromValues(1, 1, 1), vec2.fromValues(1, 0));
+        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[0], invTexelSizeX, Tr2PostProcessRenderer._gaussianWhite, Tr2PostProcessRenderer._gaussianHorizontal, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
         FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
         Tr2PostProcessRenderer.drawInto(currentUpsampled, Tr2LoadAction.DONT_CARE, this._upsamplerHorizontal, renderContext, renderer);
@@ -923,8 +923,9 @@ export class Tr2PostProcessRenderer extends CjsModel
         this._upsamplerVertical.SetParameter("BlitCurrent", currentUpsampled);
         this._upsamplerVertical.SetParameter("LastMip", lastRt);
 
-        const tint = vec4.scale(vec4.create(), stepTint(i), tintScale);
-        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[1], invTexelSizeY, vec3.fromValues(tint[0], tint[1], tint[2]), vec2.fromValues(0, 1));
+        const tint = vec4.scale(Tr2PostProcessRenderer._gaussianTint4, stepTint(i), tintScale);
+        const gaussianTint = vec3.set(Tr2PostProcessRenderer._gaussianTint3, tint[0], tint[1], tint[2]);
+        const gaussianOutput = GaussianData.calculateGaussianPassParameters(radiusInPixels, directionalWeight[1], invTexelSizeY, gaussianTint, Tr2PostProcessRenderer._gaussianVertical, Tr2PostProcessRenderer._gaussianScratch);
         GaussianData.pack(gaussianOutput, gaussianBytes);
         FillAndSetConstants(this._BloomConstantBuffer(renderContext), gaussianBytes, gaussianBytes.byteLength, pixelShaderMask, perObjectRegister, renderContext);
 
@@ -1852,6 +1853,24 @@ export class Tr2PostProcessRenderer extends CjsModel
   static BloomDebugMode = BloomDebugMode;
 
   static Quality = Quality;
+
+  /** Bloom's Gaussian output, reused by every pass (Carbon returns it by value on the stack). */
+  static _gaussianScratch = new GaussianData();
+
+  /** The horizontal pass's white weight. */
+  static _gaussianWhite = vec3.fromValues(1, 1, 1);
+
+  /** The vertical pass's tint, as the Vector3 CalculateGaussianPassParameters takes. */
+  static _gaussianTint3 = vec3.create();
+
+  /** The vertical pass's scaled step tint. */
+  static _gaussianTint4 = vec4.create();
+
+  /** The horizontal pass direction. */
+  static _gaussianHorizontal = vec2.fromValues(1, 0);
+
+  /** The vertical pass direction. */
+  static _gaussianVertical = vec2.fromValues(0, 1);
 
 }
 

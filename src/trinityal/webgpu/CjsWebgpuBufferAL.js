@@ -63,6 +63,7 @@ import { CjsSchema } from "#schema";
 import { ALResult, Tr2ALMemoryType } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
+import { ForgetBindingResource } from "./core/bindingIndex.js";
 
 
 /** Carbon's "no descriptor heap index", as the stub buffer spells it. */
@@ -348,6 +349,11 @@ export class CjsWebgpuBufferAL
   /** Releases the GPU buffer and the shadow. */
   Destroy()
   {
+    // Cached bind groups that bind any of this buffer's GPUBuffers go with it.
+    if (this._webgpu)
+    {
+      for (const handle of this._handles) ForgetBindingResource(this._webgpu.GetDeviceBuffer(handle));
+    }
     for (const handle of this._handles) handle.Destroy();
 
     this._handle = null;
