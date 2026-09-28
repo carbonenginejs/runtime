@@ -262,6 +262,34 @@ test("a dispatch opens a compute pass, binds its pipeline and groups, and closes
   assert.deepEqual(calls.at(-1), [ "end" ], "moving to another encoder ends the compute pass");
 });
 
+test("an indirect dispatch binds like a dispatch and reads its group counts from the buffer", () =>
+{
+  // Metal's Dispatch( indirectBuffer, offset ) (MetalWorkQueue.mm:3077):
+  // the same encoder state as a direct dispatch.
+  const calls = [];
+  const computePass = {
+    setPipeline: pipeline => calls.push([ "setPipeline", pipeline ]),
+    setBindGroup: (index, group, offsets) => calls.push([ "setBindGroup", index, group, offsets ]),
+    dispatchWorkgroups: (...args) => calls.push([ "dispatch", ...args ]),
+    dispatchWorkgroupsIndirect: (buffer, offset) => calls.push([ "dispatchIndirect", buffer, offset ]),
+    end: () => calls.push([ "end" ])
+  };
+  const queue = started();
+
+  queue.SetCommandEncoder({ beginComputePass: () => computePass, beginRenderPass: () => ({ end() {} }) }, () => ({}));
+  queue.SetComputePipeline("pipeline");
+  queue.SetBindGroup(0, "group0");
+  const events = queue.DispatchThreadgroupsIndirect("args", 12);
+
+  assert.deepEqual(events.map(event => event.type), [ "open", "dispatch" ]);
+  assert.equal(events[1].indirect, true);
+  assert.deepEqual(calls, [
+    [ "setPipeline", "pipeline" ],
+    [ "setBindGroup", 0, "group0", [] ],
+    [ "dispatchIndirect", "args", 12 ]
+  ]);
+});
+
 test("generating mips ends the open pass first, then encodes the chain", () =>
 {
   // Metal generates mips on a blit encoder, so whatever pass was open ends

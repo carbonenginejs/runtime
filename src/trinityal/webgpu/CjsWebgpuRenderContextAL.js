@@ -1097,8 +1097,21 @@ export class CjsWebgpuRenderContextAL
    */
   RunComputeShader(x, y, z)
   {
-    if (!this._webgpu) return ALResult.E_FAIL;
+    if (!this._webgpu || !this._EmitComputeState()) return ALResult.E_FAIL;
 
+    this._Record(this._workQueue.DispatchThreadgroups(x, y, z));
+
+    return ALResult.S_OK;
+  }
+
+  /**
+   * Resolves the bound compute program's pipeline and binds its resources for
+   * the next dispatch, direct or indirect.
+   *
+   * @returns {boolean} Whether a dispatch can be encoded.
+   */
+  _EmitComputeState()
+  {
     const program = this._shaderProgram;
     const module = program && typeof program.GetModuleFor === "function"
       ? program.GetModuleFor(ShaderType.COMPUTE_SHADER)
@@ -1107,7 +1120,7 @@ export class CjsWebgpuRenderContextAL
     if (!module)
     {
       this._RefusePipeline("a compute program");
-      return ALResult.E_FAIL;
+      return false;
     }
 
     let pipeline = this._computePipelines.get(program) ?? null;
@@ -1122,12 +1135,11 @@ export class CjsWebgpuRenderContextAL
       this._computePipelines.set(program, pipeline);
     }
 
-    if (!this._EmitBindGroups()) return ALResult.E_FAIL;
+    if (!this._EmitBindGroups()) return false;
 
     this._workQueue.SetComputePipeline(pipeline);
-    this._Record(this._workQueue.DispatchThreadgroups(x, y, z));
 
-    return ALResult.S_OK;
+    return true;
   }
 
   /** Compute pipelines by program; a program's compute pipeline has no other state. */
@@ -1149,22 +1161,31 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Runs a compute dispatch whose group counts are read from a buffer.
+   * Dispatches the bound compute program with group counts the GPU reads from
+   * a buffer: three u32 words at `offset`, D3D's DispatchIndirect layout.
    *
-   * REFUSES; see `RunComputeShader`. This validated the buffer and then set the
-   * compute encoder type, which is not a dispatch - the same false success, with
-   * an argument check in front of it that made it look like more.
+   * Carbon's AL verb in every backend with the same shape: dx11 refuses an
+   * invalid buffer and calls `DispatchIndirect` (`Tr2RenderContextDx11.cpp:1160-1169`),
+   * dx12 `ExecuteIndirect` with its dispatch signature (`Tr2RenderContextDx12.cpp:699-719`),
+   * Metal its work queue's `Dispatch( buffer, offset )` (`Tr2RenderContextMetal.mm:625-635`).
+   * This is Metal's route: the work queue's `DispatchThreadgroupsIndirect`.
+   * The buffer needs `Tr2GpuUsage.DRAW_INDIRECT_ARGS`, which WebGPU spells
+   * `INDIRECT` (CjsWebgpuBufferAL); Carbon's particle system creates its sort
+   * arguments that way (`Tr2GpuParticleSystem.cpp:212`).
    *
-   * Carbon's stub refuses too (`stub/Tr2RenderContextStub.h:175-178`).
-   *
-   * @param {object} _effect The compute effect to run.
-   * @param {object} _indirectionBuffer A buffer holding the group counts.
-   * @param {number} [_offsetForArgs] Byte offset to them.
-   * @returns {number} `E_FAIL`; nothing is dispatched.
+   * @param {object} indirectParams A `Tr2BufferAL` holding the group counts.
+   * @param {number} [offset] Byte offset of them, a multiple of 4.
+   * @returns {number} An `ALResult`: `E_FAIL` for an invalid buffer or no compute program.
    */
-  RunComputeShaderIndirect(_effect, _indirectionBuffer, _offsetForArgs = 0)
+  RunComputeShaderIndirect(indirectParams, offset = 0)
   {
-    return ALResult.E_FAIL;
+    const buffer = indirectParams && indirectParams.IsValid() ? DeviceBufferOf(indirectParams) : null;
+
+    if (!this._webgpu || !buffer || !this._EmitComputeState()) return ALResult.E_FAIL;
+
+    this._Record(this._workQueue.DispatchThreadgroupsIndirect(buffer, offset));
+
+    return ALResult.S_OK;
   }
 
   /**
@@ -2760,28 +2781,68 @@ export class CjsWebgpuRenderContextAL
   }
 
   /**
-   * Draws indirectly, reading the draw arguments from a buffer.
+   * Draws the bound geometry, non-indexed, with arguments the GPU reads from a
+   * buffer: four u32 words at `offset` (vertex count, instance count, first
+   * vertex, first instance), D3D's DrawInstancedIndirect layout.
    *
-   * REFUSES, as the stub does. WebGPU has `drawIndirect`, but the work queue
-   * owns every draw and has no indirect verb; adding one here would put a
-   * second draw path beside the queue's, which is the split this backend is
-   * built around.
+   * Metal's verb (`Tr2RenderContextMetal.mm:508-521`): refuses an invalid
+   * buffer with `E_INVALIDARG`, checks draw resources, and hands the buffer to
+   * the work queue's indirect `DrawPrimitives`; here `DrawPrimitivesIndirect`,
+   * so every draw still goes through the queue. dx11 (`Tr2RenderContextDx11.cpp:1078-1091`)
+   * and dx12 (`Tr2RenderContextDx12.cpp:667-697`) take the same arguments.
+   * Carbon's particle system draws its quads this way
+   * (`Tr2GpuParticleSystem.cpp:692-702`).
    *
-   * @returns {number} `E_FAIL`.
+   * @param {object} params A `Tr2BufferAL` with `DRAW_INDIRECT_ARGS` usage.
+   * @param {number} [offset] Byte offset of the arguments, a multiple of 4.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
-  DrawInstancedIndirect()
+  DrawInstancedIndirect(params, offset = 0)
   {
-    return ALResult.E_FAIL;
+    const buffer = params && params.IsValid() ? DeviceBufferOf(params) : null;
+
+    if (!buffer) return ALResult.E_INVALIDARG;
+    if (!this._shaderProgram) return ALResult.E_FAIL;
+
+    this._Record(this._workQueue.GetRenderEncoder());
+
+    if (!this.EmitRenderEncoderState(false)) return ALResult.E_FAIL;
+
+    this._Record(this._workQueue.DrawPrimitivesIndirect(buffer, offset));
+    this._drawnBatchCount += 1;
+
+    return ALResult.S_OK;
   }
 
   /**
-   * Draws indexed indirectly.
+   * Draws the bound geometry, indexed, with arguments the GPU reads from a
+   * buffer: five u32 words at `offset` (index count, instance count, first
+   * index, base vertex, first instance), D3D's DrawIndexedInstancedIndirect
+   * layout.
    *
-   * @returns {number} `E_FAIL`; see `DrawInstancedIndirect`.
+   * Metal's verb (`Tr2RenderContextMetal.mm:487-506`), through the work queue's
+   * `DrawIndexedPrimitivesIndirect`; dx11 (`Tr2RenderContextDx11.cpp:1061-1076`)
+   * and dx12 (`Tr2RenderContextDx12.cpp:641-665`) take the same arguments.
+   *
+   * @param {object} params A `Tr2BufferAL` with `DRAW_INDIRECT_ARGS` usage.
+   * @param {number} [offset] Byte offset of the arguments, a multiple of 4.
+   * @returns {number} An `ALResult`: whether the draw was recorded.
    */
-  DrawIndexedInstancedIndirect()
+  DrawIndexedInstancedIndirect(params, offset = 0)
   {
-    return ALResult.E_FAIL;
+    const buffer = params && params.IsValid() ? DeviceBufferOf(params) : null;
+
+    if (!buffer) return ALResult.E_INVALIDARG;
+    if (!this._shaderProgram) return ALResult.E_FAIL;
+
+    this._Record(this._workQueue.GetRenderEncoder());
+
+    if (!this.EmitRenderEncoderState(true)) return ALResult.E_FAIL;
+
+    this._Record(this._workQueue.DrawIndexedPrimitivesIndirect(buffer, offset));
+    this._drawnBatchCount += 1;
+
+    return ALResult.S_OK;
   }
 
   /**

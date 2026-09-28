@@ -436,27 +436,59 @@ export class CjsWebgpuWorkQueue
    */
   DispatchThreadgroups(x, y, z)
   {
+    const pass = this._EmitComputeEncoderState({ type: "dispatch", x, y, z });
+
+    if (pass) pass.dispatchWorkgroups(x, y, z);
+
+    return this._Drain();
+  }
+
+  /**
+   * Dispatches thread groups whose counts the GPU reads from a buffer: Metal's
+   * `Dispatch( indirectBuffer, indirectBufferOffset )` (`MetalWorkQueue.mm:3077`),
+   * WebGPU's `dispatchWorkgroupsIndirect`. The buffer holds three u32 group
+   * counts at `offset`, D3D's `D3D11_DISPATCH_INDIRECT_ARGS` layout.
+   *
+   * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
+   * @param {number} offset Byte offset of the arguments, a multiple of 4.
+   * @returns {object[]} The transitions this required.
+   */
+  DispatchThreadgroupsIndirect(indirectBuffer, offset)
+  {
+    const pass = this._EmitComputeEncoderState({ type: "dispatch", indirect: true, offset });
+
+    if (pass) pass.dispatchWorkgroupsIndirect(indirectBuffer, offset);
+
+    return this._Drain();
+  }
+
+  /**
+   * Metal's `EmitComputeEncoderState`: opens the compute encoder if another is
+   * current, records the event, and binds the pending pipeline and bind groups.
+   *
+   * @param {object} event The dispatch event to record.
+   * @returns {object|null} The live compute pass, or null when recording only.
+   */
+  _EmitComputeEncoderState(event)
+  {
     if (!this._inFrame) fail("a dispatch outside a frame");
 
     const events = this._currentEncoderType === EncoderType.COMPUTE ? [] : this.SetCurrentEncoder(EncoderType.COMPUTE);
 
-    this._events.push(...events, { type: "dispatch", x, y, z });
+    this._events.push(...events, event);
 
-    if (this._computePass)
+    const pass = this._computePass;
+
+    if (!pass) return null;
+
+    pass.setPipeline(this._pending.computePipeline);
+
+    for (const [ index, entry ] of this._pending.bindGroups.entries())
     {
-      const pass = this._computePass;
-
-      pass.setPipeline(this._pending.computePipeline);
-
-      for (const [ index, entry ] of this._pending.bindGroups.entries())
-      {
-        if (entry) pass.setBindGroup(index, entry.bindGroup, entry.dynamicOffsets ?? []);
-      }
-
-      pass.dispatchWorkgroups(x, y, z);
+      if (entry) pass.setBindGroup(index, entry.bindGroup, entry.dynamicOffsets ?? []);
     }
 
-    return this._Drain();
+    return pass;
   }
 
   /**
@@ -561,6 +593,30 @@ export class CjsWebgpuWorkQueue
     {
       this._EmitRenderEncoderState(true);
       this._renderPass.drawIndexed(indexCount, instanceCount, startIndex, baseVertex, startInstance);
+    }
+
+    return this._Drain();
+  }
+
+  /**
+   * Records an indexed draw whose arguments the GPU reads from a buffer:
+   * Metal's indirect `DrawIndexedPrimitives` (`MetalWorkQueue.mm:2946`),
+   * WebGPU's `drawIndexedIndirect`. The buffer holds five u32 words at
+   * `offset`, D3D's `D3D11_DRAW_INDEXED_INSTANCED_INDIRECT_ARGS` layout.
+   *
+   * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
+   * @param {number} offset Byte offset of the arguments, a multiple of 4.
+   * @returns {object[]} The transitions this required, in order.
+   */
+  DrawIndexedPrimitivesIndirect(indirectBuffer, offset)
+  {
+    this._RequireRenderEncoder();
+    this._events.push({ type: "draw", indexed: true, indirect: true, offset });
+
+    if (this._renderPass)
+    {
+      this._EmitRenderEncoderState(true);
+      this._renderPass.drawIndexedIndirect(indirectBuffer, offset);
     }
 
     return this._Drain();
@@ -761,6 +817,31 @@ export class CjsWebgpuWorkQueue
     {
       this._EmitRenderEncoderState(false);
       this._renderPass.draw(vertexCount, instanceCount, startVertex, startInstance);
+    }
+
+    return this._Drain();
+  }
+
+  /**
+   * Records a non-indexed draw whose arguments the GPU reads from a buffer:
+   * Metal's indirect `DrawPrimitives` (`MetalWorkQueue.mm:2908`), WebGPU's
+   * `drawIndirect`. The buffer holds four u32 words at `offset` (vertex count,
+   * instance count, first vertex, first instance), D3D's
+   * `D3D11_DRAW_INSTANCED_INDIRECT_ARGS` layout.
+   *
+   * @param {object} indirectBuffer A `GPUBuffer` with INDIRECT usage.
+   * @param {number} offset Byte offset of the arguments, a multiple of 4.
+   * @returns {object[]} The transitions this required, in order.
+   */
+  DrawPrimitivesIndirect(indirectBuffer, offset)
+  {
+    this._RequireRenderEncoder();
+    this._events.push({ type: "draw", indexed: false, indirect: true, offset });
+
+    if (this._renderPass)
+    {
+      this._EmitRenderEncoderState(false);
+      this._renderPass.drawIndirect(indirectBuffer, offset);
     }
 
     return this._Drain();

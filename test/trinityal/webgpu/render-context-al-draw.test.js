@@ -34,6 +34,8 @@ function composed()
     setIndexBuffer: (buffer, format, offset) => log.push(`setIndexBuffer:${buffer}:${format}:${offset}`),
     drawIndexed: (...args) => log.push(`drawIndexed:${args.join(",")}`),
     draw: (...args) => log.push(`draw:${args.join(",")}`),
+    drawIndirect: (buffer, offset) => log.push(`drawIndirect:${buffer}:${offset}`),
+    drawIndexedIndirect: (buffer, offset) => log.push(`drawIndexedIndirect:${buffer}:${offset}`),
     end: () => log.push("pass.end")
   };
   const bindGroups = [];
@@ -363,6 +365,30 @@ test("a hit binds the streams of the pipeline it found, not of the last miss", (
   assert.equal(drawWith(interleaved), 1, "hit: the interleaved pipeline's one stream");
   assert.equal(drawWith(split), 2, "hit: the split pipeline's two streams, slot 1 included");
   assert.equal(pipelines.length, 2);
+});
+
+test("the indirect draws resolve state like a draw and read their arguments from the buffer", () =>
+{
+  // Metal's DrawInstancedIndirect / DrawIndexedInstancedIndirect
+  // (Tr2RenderContextMetal.mm:487-521): the same resource check as a draw,
+  // then the work queue's indirect DrawPrimitives / DrawIndexedPrimitives.
+  const { al, log, pipelines } = composed();
+  const args = { IsValid: () => true, GetDeviceBuffer: () => "args" };
+
+  bindGeometry(al, programFor(al));
+
+  assert.equal(al.DrawInstancedIndirect(args, 16), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+  assert.equal(al.DrawIndexedInstancedIndirect(args, 32), ALResult.S_OK, al.m_pipelineFailure ?? "drew");
+
+  assert.equal(pipelines.length, 1, "one pipeline, resolved as for a direct draw");
+  assert.ok(log.includes("drawIndirect:args:16"), log.join(" | "));
+  assert.ok(log.includes("setIndexBuffer:ib:uint16:0"), "the indexed form binds the index buffer");
+  assert.ok(log.includes("drawIndexedIndirect:args:32"), log.join(" | "));
+
+  // Negative control: an invalid argument buffer draws nothing.
+  const before = log.length;
+  assert.equal(al.DrawInstancedIndirect({ IsValid: () => false }, 0), ALResult.E_INVALIDARG);
+  assert.equal(log.length, before);
 });
 
 test("a non-indexed draw binds no index buffer and draws vertices", () =>

@@ -479,9 +479,11 @@ test("the verbs this backend cannot encode refuse rather than report success", (
   assert.ok(Failed(al.DrawPrimitiveUP(2, new Float32Array(12), 16)));
   assert.ok(Failed(al.DrawIndexedPrimitiveUP(4, 2, new Uint16Array(6), new Float32Array(12), 16)));
 
-  // Indirect compute refuses for the same reason as direct: the group counts
-  // coming from a buffer changes nothing about there being no dispatch.
-  assert.ok(Failed(al.RunComputeShaderIndirect({}, { IsValid: () => true }, 0)));
+  // Indirect compute refuses an invalid argument buffer, as every Carbon
+  // backend does (Tr2RenderContextDx11.cpp:1162-1165), and a valid one with no
+  // compute program bound.
+  assert.equal(al.RunComputeShaderIndirect({ IsValid: () => false }, 0), ALResult.E_FAIL);
+  assert.equal(al.RunComputeShaderIndirect({ IsValid: () => true, GetDeviceBuffer: () => ({}) }, 0), ALResult.E_FAIL);
 });
 
 // The rest of Carbon's render-context surface, added 2026-09-09. Trinity does
@@ -645,10 +647,10 @@ test("read-only depth is stored, and the rest report what WebGPU can honestly sa
   assert.equal(al.UseResources(null, 0, []), ALResult.S_OK);
   assert.equal(al.UseAccelerationStructure(null), ALResult.S_OK);
 
-  // The indirect draws refuse: the work queue owns every draw and has no
-  // indirect verb, and a second draw path here would break that split.
-  assert.ok(Failed(al.DrawInstancedIndirect()));
-  assert.ok(Failed(al.DrawIndexedInstancedIndirect()));
+  // The indirect draws refuse an invalid argument buffer with Metal's
+  // E_INVALIDARG (Tr2RenderContextMetal.mm:489-492, :510-513).
+  assert.equal(al.DrawInstancedIndirect(), ALResult.E_INVALIDARG);
+  assert.equal(al.DrawIndexedInstancedIndirect({ IsValid: () => false }, 0), ALResult.E_INVALIDARG);
 });
 
 test("the upscaling family answers exactly as Carbon's stub does", () =>
