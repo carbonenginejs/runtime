@@ -1,6 +1,12 @@
+import { blue } from "#blue";
+
 const TEXT_DECODER = new TextDecoder();
 
-/** Creates the byte-read capability shared by fetch and injected sources. */
+/**
+ * Creates the byte reader for a library build: an injected `source` when one
+ * is given (tools-core reads from disk that way), otherwise blue's ResMan and
+ * whatever source it is configured with.
+ */
 export function createAudioResourceReader(options = {})
 {
     const source = options.source ?? options.read ?? null;
@@ -24,33 +30,10 @@ export function createAudioResourceReader(options = {})
         );
     }
 
-    const fetchImplementation = options.fetch ?? globalThis.fetch;
-    const fetchReceiver = options.fetchThis ?? globalThis;
-
-    if (typeof fetchImplementation !== "function")
-    {
-        throw new TypeError(
-            "Audio resource construction requires a source or fetch implementation",
-        );
-    }
-
-    return async (path, context = {}) =>
-    {
-        const url = resolveResourceUrl(path, options);
-        const response = await fetchImplementation.call(fetchReceiver, url, {
-            ...(options.fetchOptions ?? {}),
-            ...(context.signal ? { signal: context.signal } : {}),
-        });
-
-        if (!response || response.ok === false)
-        {
-            throw new Error(
-                `Audio resource fetch failed for ${path}: ${response?.status ?? "unknown"}`,
-            );
-        }
-
-        return normalizeAudioResourceBytes(response, path);
-    };
+    return async (path, context = {}) => normalizeAudioResourceBytes(
+        await blue.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
+        path,
+    );
 }
 
 /** Decodes one caller-supplied index payload without assuming Node Buffer. */
@@ -72,25 +55,6 @@ export function decodeAudioResourceJson(bytes, path)
             cause: error,
         });
     }
-}
-
-function resolveResourceUrl(path, options)
-{
-    if (typeof options.resolveUrl === "function")
-    {
-        return options.resolveUrl(path);
-    }
-
-    if (options.baseUrl === undefined || options.baseUrl === null)
-    {
-        return path;
-    }
-
-    const base = String(options.baseUrl).replace(/\/+$/u, "");
-    const relative = String(path)
-        .replace(/^[a-z]+:\/*/iu, "")
-        .replace(/^\/+/, "");
-    return `${base}/${relative}`;
 }
 
 /**

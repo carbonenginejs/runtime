@@ -35,7 +35,6 @@ export {
   CjsFormatStore,
   CjsMotherLode,
   getMotherLodeKey,
-  CjsResManFetchProvider,
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsResManQueue,

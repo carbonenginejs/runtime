@@ -22,9 +22,25 @@ import {
 } from "../../../npm/dist/character/index.js";
 import { CjsCharacterLibraryBuilder } from "../../../npm/dist/character/library-builder/index.js";
 import * as CcpLog from "../../../npm/dist/global/logging/ccpLog.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
     CjsFsd64ReaderSetCharacterStaticData,
 } from "../../../npm/dist/resource/formats/fsd/64/readers/index.js";
+
+/** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
+async function WithResManSource(Read, run)
+{
+    const previous = blue.resMan.source;
+    blue.resMan.SetSource({ Read });
+    try
+    {
+        return await run();
+    }
+    finally
+    {
+        blue.resMan.SetSource(previous);
+    }
+}
 
 test("resource builder fetches every required cFSD document into a hydrated library", async () =>
 {
@@ -34,25 +50,17 @@ test("resource builder fetches every required cFSD document into a hydrated libr
         reader.constructor,
     ]));
     const requested = [];
-    const library = await CjsCharacterLibraryBuilder.buildFromResources({
-        sourceTarget: "example-target",
-        sourceBuild: "synthetic-build",
-        async fetch(path)
-        {
-            assert.equal(this, globalThis);
-            requested.push(path);
-            const Reader = byPath.get(path);
+    const library = await WithResManSource(path =>
+    {
+        requested.push(path);
+        const Reader = byPath.get(path);
 
-            assert.ok(Reader, `unexpected character resource ${path}`);
-            return {
-                ok: true,
-                async arrayBuffer()
-                {
-                    return CreateEmptyMapContainer(Reader.schemaID).buffer;
-                }
-            };
-        }
-    });
+        assert.ok(Reader, `unexpected character resource ${path}`);
+        return CreateEmptyMapContainer(Reader.schemaID).buffer;
+    }, () => CjsCharacterLibraryBuilder.buildFromResources({
+        sourceTarget: "example-target",
+        sourceBuild: "synthetic-build"
+    }));
 
     assert.ok(library instanceof CjsCharacterLibrary);
     assert.equal(requested.length, 12);

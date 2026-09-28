@@ -21,7 +21,7 @@ documentation check against the actual source tree.
 
 ## Catalog pages
 
-- [core.md](core.md): the resource manager, MotherLode cache, fetch provider,
+- [core.md](core.md): the resource manager, MotherLode cache,
   core resource class, and the format/probe bases.
 - [audio.md](audio.md): raw audio-byte owners and individually addressable
   audio resource views.

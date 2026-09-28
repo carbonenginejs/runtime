@@ -554,8 +554,7 @@ export class CjsAudioMan
         );
         const provider = this._mediaProvider;
         const hasSource = options.source !== undefined
-            || options.read !== undefined
-            || options.fetch !== undefined;
+            || options.read !== undefined;
         const generation = ++this._installGeneration;
         const library = await CjsAudioLibraryBuilder.buildFromResources(
             !hasSource && provider && typeof provider.Read === "function"

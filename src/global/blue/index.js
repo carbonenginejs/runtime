@@ -61,7 +61,6 @@ export * from "./CjsFormatStore.js";
 export * from "./CjsResource.js";
 export * from "./CjsLoadingObject.js";
 export * from "./CjsMotherLode.js";
-export * from "./CjsResManFetchProvider.js";
 export * from "./worker/CjsResManMainThreadLoader.js";
 export * from "./worker/CjsResManWorkerLoader.js";
 export { CjsResManQueue } from "./CjsResManWorkQueue.js";

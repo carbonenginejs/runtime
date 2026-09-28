@@ -6,9 +6,25 @@ import {
     CjsAudioLibraryBuilder,
 } from "../../../npm/dist/audio/library-builder/index.js";
 import { CjsAudioLibrary } from "../../../npm/dist/audio/library/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
     CjsFsd64SchemaAudioMetadata,
 } from "#resource/formats/fsd/64/readers";
+
+/** Runs `run` with blue's ResMan reading through `Read`, then restores its source. */
+async function WithResManSource(Read, run)
+{
+    const previous = blue.resMan.source;
+    blue.resMan.SetSource({ Read });
+    try
+    {
+        return await run();
+    }
+    finally
+    {
+        blue.resMan.SetSource(previous);
+    }
+}
 
 const SOUNDBANKS_INFO = {
     SoundBanksInfo: {
@@ -44,22 +60,14 @@ test("resource builder fetches FSD metadata and returns a hydrated library", asy
 {
     const metadataPath = CjsFsd64SchemaAudioMetadata.path;
     const requested = [];
-    const library = await CjsAudioLibraryBuilder.buildFromResources({
+    const library = await WithResManSource(path =>
+    {
+        requested.push(path);
+        assert.equal(path, metadataPath);
+        return CreateEmptyAudioMetadata().buffer;
+    }, () => CjsAudioLibraryBuilder.buildFromResources({
         indexEntries: [],
-        async fetch(path)
-        {
-            assert.equal(this, globalThis);
-            requested.push(path);
-            assert.equal(path, metadataPath);
-            return {
-                ok: true,
-                async arrayBuffer()
-                {
-                    return CreateEmptyAudioMetadata().buffer;
-                },
-            };
-        },
-    });
+    }));
 
     assert.ok(library instanceof CjsAudioLibrary);
     assert.deepEqual(requested, [ metadataPath ]);
@@ -314,34 +322,21 @@ test("audio libraries load from plain or gzip JSON and detach exported values", 
     const plain = new TextEncoder().encode(JSON.stringify(values));
     const fromPlain = await CjsAudioLibrary.load(plain);
     const fromGzip = await CjsAudioLibrary.load(gzipSync(plain));
-    const fromFetch = await CjsAudioLibrary.load("res:/libraries/audio.json.gz", {
-        baseUrl: "https://assets.example.test/root/",
-        async fetch(url)
-        {
-            assert.equal(this, globalThis);
-            assert.equal(
-                url,
-                "https://assets.example.test/root/libraries/audio.json.gz",
-            );
-            return {
-                ok: true,
-                async arrayBuffer()
-                {
-                    const compressed = gzipSync(plain);
-                    return compressed.buffer.slice(
-                        compressed.byteOffset,
-                        compressed.byteOffset + compressed.byteLength,
-                    );
-                },
-            };
-        },
-    });
+    const fromResMan = await WithResManSource(path =>
+    {
+        assert.equal(path, "res:/libraries/audio.json.gz");
+        const compressed = gzipSync(plain);
+        return compressed.buffer.slice(
+            compressed.byteOffset,
+            compressed.byteOffset + compressed.byteLength,
+        );
+    }, () => CjsAudioLibrary.load("res:/libraries/audio.json.gz"));
     const detached = fromGzip.GetValues();
 
     detached.metadata.Events.changed = {};
     assert.deepEqual(fromPlain.GetValues(), values);
     assert.deepEqual(fromGzip.GetValues(), values);
-    assert.deepEqual(fromFetch.GetValues(), values);
+    assert.deepEqual(fromResMan.GetValues(), values);
 });
 
 function CreateEmptyAudioMetadata()

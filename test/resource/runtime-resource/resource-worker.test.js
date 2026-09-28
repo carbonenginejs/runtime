@@ -5,7 +5,6 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import * as RuntimeResource from "../../../src/resource/index.js";
 import {
-  CjsResManFetchProvider,
   CjsResManMainThreadLoader,
   CjsResManWorkerLoader,
   CjsResMan,
@@ -151,42 +150,6 @@ test("worker loader aborts requests and rejects every request on fatal worker fa
   assert.equal(loader.IsAvailable(), false);
 });
 
-test("fetch providers consume resolved URLs without serializing ResMan-only options", () => {
-  const source = new CjsResManFetchProvider({
-    fetchOptions: { credentials: "include" }
-  });
-  const signal = new AbortController().signal;
-  const request = source.CreateWorkerRequest("https://example.invalid/base/audio/test.wem", {
-    resourcePath: "res:/audio/test.wem",
-    emit: "pcm",
-    cacheSource: true,
-    headers: { Range: "bytes=4-12" },
-    signal
-  });
-
-  assert.equal(request.operation, CjsResManWorker.Operation.FETCH);
-  assert.equal(request.payload.url, "https://example.invalid/base/audio/test.wem");
-  assert.equal(request.payload.path, "res:/audio/test.wem");
-  assert.deepEqual(request.payload.options, {
-    credentials: "include",
-    headers: { Range: "bytes=4-12" }
-  });
-  assert.equal(request.signal, signal);
-  assert.equal("emit" in request.payload.options, false);
-  assert.equal("cacheSource" in request.payload.options, false);
-
-  const customFetch = new CjsResManFetchProvider({ fetch() {} });
-  assert.equal(customFetch.CreateWorkerRequest("https://example.invalid/custom.bin"), null);
-
-  const headerSource = new CjsResManFetchProvider({
-    fetchOptions: { headers: new Map([[ "Accept", "application/octet-stream" ]]) }
-  });
-  assert.deepEqual(
-    headerSource.CreateWorkerRequest("https://example.invalid/headers.bin").payload.options.headers,
-    [[ "Accept", "application/octet-stream" ]]
-  );
-});
-
 test("CjsResMan is the only built-in resource-path-to-URL resolver", () =>
 {
   const resMan = new CjsResMan({
@@ -220,14 +183,21 @@ test("CjsResMan is the only built-in resource-path-to-URL resolver", () =>
   );
 });
 
-test("CjsResMan loads fetch-provider files through its default worker strategy", async () => {
+test("CjsResMan loads through the worker when its source offers a worker request", async () => {
   const worker = new FakeWorker();
-  const source = new CjsResManFetchProvider({
-    fetch() {
-      throw new Error("main-thread fetch should not run");
+  const source = {
+    requiresUrl: true,
+    Read() {
+      throw new Error("main-thread read should not run");
     },
-    worker: true
-  });
+    CreateWorkerRequest(url, options = {}) {
+      return {
+        operation: CjsResManWorker.Operation.FETCH,
+        payload: { url, path: options.resourcePath || url, responseType: "arraybuffer", options: {} },
+        signal: options.signal || null
+      };
+    }
+  };
   const resMan = new CjsResMan({
     autoPumpMainThreadQueue: false,
     source,

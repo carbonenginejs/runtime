@@ -1,7 +1,8 @@
 import { throwIfAborted } from "#utils/errors";
 
-// Browser-safe audio-library construction. The high-level resource seam uses
-// fetch by default and accepts an injected byte source for local/tool callers.
+// Browser-safe audio-library construction. The high-level resource seam reads
+// through blue.resMan by default and accepts an injected byte source for
+// local/tool callers.
 import { audioMetadataFromSoundbanksInfo } from "../audioMetadata.js";
 import { validateAudioLibraryDocument } from "../library/audioLibraryDocument.js";
 import { CjsAudioLibrary } from "../library/CjsAudioLibrary.js";
@@ -153,11 +154,10 @@ export class CjsAudioLibraryBuilder
     }
 
     /**
-     * Builds a hydrated library from raw resources through fetch by default or
-     * one caller-supplied byte source.
+     * Builds a hydrated library from raw resources through blue.resMan by
+     * default or one caller-supplied byte source.
      *
-     * Fetch callers supply `baseUrl` or `resolveUrl` for `res:/` paths;
-     * `source.read(path, context)` replaces fetch. Each input has a path
+     * `source.read(path, context)` replaces blue.resMan. Each input has a path
      * override and a value option that skips its read:
      * - audio metadata FSD: `audioMetadataPath` (default: the reader's own
      *   `res:/staticdata/audiometadata.fsdbinary`) or `metadata`; the FSD is
@@ -1209,15 +1209,10 @@ function OmitResourceOptions(options)
 
     for (const key of [
         "audioMetadataPath",
-        "baseUrl",
-        "fetch",
-        "fetchThis",
-        "fetchOptions",
         "fsdOptions",
         "indexPath",
         "inspectBanks",
         "read",
-        "resolveUrl",
         "source",
         "soundbanksInfoPath",
     ])

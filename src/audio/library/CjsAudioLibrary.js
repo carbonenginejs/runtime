@@ -25,7 +25,7 @@ export class CjsAudioLibrary
             : values);
     }
 
-    /** Loads plain or gzip-compressed JSON bytes, using fetch for a path by default. */
+    /** Loads plain or gzip-compressed JSON bytes, reading a path through blue.resMan unless a source is given. */
     static async load(source, options = {})
     {
         const bytes = typeof source === "string"

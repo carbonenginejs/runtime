@@ -53,17 +53,7 @@ GPU-free resource manager that resolves paths through registered sources and for
 - Export: `@carbonenginejs/runtime/global`
 - Source: `src/global/blue/CjsResMan.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
-
-<!-- class:CjsResManFetchProvider -->
-## `CjsResManFetchProvider`
-
-`CjsResMan` provider that fetches an already-resolved URL on the caller thread or through the resource worker.
-
-- Export: `@carbonenginejs/runtime/global`
-- Source: `src/global/blue/CjsResManFetchProvider.js`
-- Visibility: Public
-- Kind: CarbonEngineJS
+- Kind: Carbon
 
 <!-- class:CjsResManWorkQueue -->
 ## `CjsResManWorkQueue`

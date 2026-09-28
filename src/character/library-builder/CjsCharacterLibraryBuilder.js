@@ -29,7 +29,7 @@ export class CjsCharacterLibraryBuilder
 
     /**
      * Builds a hydrated library from the twelve required cFSD documents using
-     * fetch by default or one caller-supplied byte source.
+     * blue.resMan by default or one caller-supplied byte source.
      */
     static async buildFromResources(options = {})
     {
@@ -138,14 +138,9 @@ function OmitResourceOptions(options)
     const result = { ...options };
 
     for (const key of [
-        "baseUrl",
         "documents",
-        "fetch",
-        "fetchThis",
-        "fetchOptions",
         "fsdOptions",
         "read",
-        "resolveUrl",
         "resourcePaths",
         "signal",
         "source"

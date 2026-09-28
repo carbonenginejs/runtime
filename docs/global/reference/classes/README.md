@@ -333,7 +333,7 @@ Dependency-free contract for objects that publish a ready world-space axis-align
 - Export: `@carbonenginejs/runtime/interfaces`
 - Source: `src/global/interfaces/ITr2BoundingBox.js`
 - Visibility: Public
-- Kind: CarbonEngineJS
+- Kind: Carbon
 
 <!-- class:ITr2RenderNode -->
 ## `ITr2RenderNode`

@@ -1,4 +1,10 @@
-/** Creates the byte-read capability shared by fetch and injected sources. */
+import { blue } from "#blue";
+
+/**
+ * Creates the byte reader for a library build: an injected `source` when one
+ * is given (tools-core reads from disk that way), otherwise blue's ResMan and
+ * whatever source it is configured with.
+ */
 export function createCharacterResourceReader(options = {})
 {
     const source = options.source ?? options.read ?? null;
@@ -22,52 +28,10 @@ export function createCharacterResourceReader(options = {})
         );
     }
 
-    const fetchImplementation = options.fetch ?? globalThis.fetch;
-    const fetchReceiver = options.fetchThis ?? globalThis;
-
-    if (typeof fetchImplementation !== "function")
-    {
-        throw new TypeError(
-            "Character resource construction requires a source or fetch implementation"
-        );
-    }
-
-    return async (path, context = {}) =>
-    {
-        const url = resolveResourceUrl(path, options);
-        const response = await fetchImplementation.call(fetchReceiver, url, {
-            ...(options.fetchOptions ?? {}),
-            ...(context.signal ? { signal: context.signal } : {})
-        });
-
-        if (!response || response.ok === false)
-        {
-            throw new Error(
-                `Character resource fetch failed for ${path}: ${response?.status ?? "unknown"}`
-            );
-        }
-
-        return normalizeResourceBytes(response, path);
-    };
-}
-
-function resolveResourceUrl(path, options)
-{
-    if (typeof options.resolveUrl === "function")
-    {
-        return options.resolveUrl(path);
-    }
-
-    if (options.baseUrl === undefined || options.baseUrl === null)
-    {
-        return path;
-    }
-
-    const base = String(options.baseUrl).replace(/\/+$/u, "");
-    const relative = String(path)
-        .replace(/^[a-z]+:\/*/iu, "")
-        .replace(/^\/+/, "");
-    return `${base}/${relative}`;
+    return async (path, context = {}) => normalizeResourceBytes(
+        await blue.resMan.ReadResource(path, context.signal ? { signal: context.signal } : {}),
+        path
+    );
 }
 
 async function normalizeResourceBytes(value, path)
