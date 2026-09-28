@@ -42,7 +42,7 @@ const TYPES = new Map([
 // Client resources are proxied rather than copied in. They are not ours to
 // commit, and a demo needing a checked-in shader would drift from the real one
 // the moment a build moved.
-const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3498825/resources/";
+const TOOLS_CORE = process.env.CJS_TOOLS_CORE ?? "http://127.0.0.1:5510/eve/3552227/resources/";
 
 /** The target root behind the resource route, for the other tools-core paths. */
 const TOOLS_CORE_ROOT = TOOLS_CORE.replace(/resources\/?$/u, "");
