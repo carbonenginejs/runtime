@@ -106,9 +106,7 @@ export class CjsSharedBusMixer
         wwiseVoiceLimits = "strict",
     } = {})
     {
-        if (!runtime
-            || typeof runtime.GetCatalog !== "function"
-            || typeof runtime.OwnsRouteHandle !== "function")
+        if (!runtime)
         {
             throw new TypeError("Shared Audio Bus mixer requires one Bus graph runtime");
         }
