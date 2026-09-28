@@ -17,12 +17,28 @@ function emptySetup()
   return Tr2RenderStateSetup.fromKeyValues([]);
 }
 
+/** One program and one layout, as Carbon keys them by pointer. */
+const PROGRAM = { IsValid: () => true, id: "program" };
+const LAYOUT = { GetDefinition: () => [ { stream: 0 } ] };
+
+/** Stream strides with stream 0 at the given stride. */
+function strides(first)
+{
+  const values = new Uint32Array(16);
+
+  values[0] = first;
+
+  return values;
+}
+
 /** A description complete enough to resolve. */
 function description(overrides = {})
 {
   const pso = new CjsWebgpuPsoDescription();
 
-  pso.shaderProgram = { IsValid: () => true, id: "program" };
+  pso.shaderProgram = PROGRAM;
+  pso.vertexLayout = LAYOUT;
+  pso.streamStrides = strides(24);
   pso.renderStateSetup = emptySetup();
   pso.topology = Topology.TOP_TRIANGLE_STRIP;
   pso.colorFormats = [ "bgra8unorm" ];
@@ -78,20 +94,64 @@ test("the recipe carries topology, layouts, targets and sample count", () =>
 
 test("two equal descriptions key the same, and any difference splits them", () =>
 {
+  // Carbon's operator== (PsoDescription.cpp:68-71): the program and layout by
+  // pointer, the rest by the block's content.
   assert.equal(description().Equals(description()), true);
+  assert.equal(description().GetKey(), description().GetKey());
 
+  // One negative control per slot of the hashable block.
   const cases = [
+    [ "shader program", { shaderProgram: { IsValid: () => true, id: "other" } } ],
+    [ "vertex layout", { vertexLayout: { GetDefinition: () => [ { stream: 0 } ] } } ],
     [ "topology", { topology: Topology.TOP_TRIANGLES } ],
+    [ "render-state content", { renderStateSetup: Object.assign(emptySetup(), { cull: "cw" }) } ],
+    [ "inverted depth test", { renderStateOverrides: { invertedDepthTest: true } } ],
+    [ "inverted cull mode", { renderStateOverrides: { invertedCullMode: true } } ],
     [ "colour format", { colorFormats: [ "rgba8unorm" ] } ],
+    [ "second colour target", { colorFormats: [ "bgra8unorm", "rg16float" ] } ],
     [ "depth format", { depthFormat: "depth32float" } ],
     [ "sample count", { sampleCount: 4 } ],
-    [ "vertex layout", { vertexBufferLayouts: [ { arrayStride: 32, attributes: [] } ] } ]
+    [ "UNORM stand-in", { unormTargets: [ true ] } ],
+    [ "unclipped depth", { unclippedDepth: true } ],
+    [ "coverage discard", { coverageDiscard: 1 } ],
+    [ "strip index format", { stripIndexFormat: "uint16" } ],
+    [ "stride of a stream the layout reads", { streamStrides: strides(32) } ]
   ];
 
   for (const [ name, changed ] of cases)
   {
     assert.equal(description().Equals(description(changed)), false, `${name} must split the key`);
   }
+});
+
+test("what does not change the pipeline does not split the key", () =>
+{
+  // The setup keys by CONTENT, as DX12's block holds resolved descriptors: two
+  // setups interpreted from the same states are one pipeline.
+  assert.equal(description().Equals(description({ renderStateSetup: emptySetup() })), true, "a second setup, same states");
+
+  // Only streams the layout reads are keyed (Metal's stream mask, :1512-1531).
+  const unread = strides(24);
+  unread[3] = 64;
+  assert.equal(description().Equals(description({ streamStrides: unread })), true, "a stride on an unread stream");
+
+  // The buffer layouts are derived from what is keyed, and built on a miss.
+  assert.equal(description().Equals(description({ vertexBufferLayouts: [ { arrayStride: 99, attributes: [] } ] })), true);
+
+  // The wireframe override is not a pipeline input here.
+  assert.equal(description().Equals(description({ renderStateOverrides: { wireframe: true } })), true);
+});
+
+test("equal hashes alone never match: the block is compared", () =>
+{
+  const first = description();
+  const second = description({ topology: Topology.TOP_TRIANGLES });
+
+  first.UpdateHash();
+  second.UpdateHash();
+
+  assert.equal(first.BlockEquals(first.CopyBlock()), true);
+  assert.equal(second.BlockEquals(first.CopyBlock()), false, "different blocks, whatever their hashes");
 });
 
 test("an override changes the key, so the two variants are distinct entries", () =>

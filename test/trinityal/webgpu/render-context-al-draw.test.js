@@ -217,6 +217,106 @@ test("a state change dirties the pipeline and the next draw resolves a second on
   assert.equal(al.DrainTransitions().filter(event => event.type === "pipeline").map(event => event.created).join(","), "true,true,false");
 });
 
+test("a forced hash collision still resolves each state to its own pipeline", () =>
+{
+  // Carbon's lookup compares the description on a hash hit (operator==,
+  // PsoDescription.cpp:68-71). Every state is forced to one hash here, so only
+  // the block compare can tell them apart.
+  const { al, pipelines } = composed();
+  const description = al.GetPsoDescription();
+  const updateHash = description.UpdateHash;
+
+  description.UpdateHash = function () { updateHash.call(this); this.hash = 7; return 7; };
+
+  bindGeometry(al, programFor(al));
+  al.DrawIndexedInstanced(36, 1);
+  al.SetTopology(Topology.TOP_LINES);
+  al.DrawIndexedInstanced(36, 1);
+
+  assert.equal(pipelines.length, 2, "one bucket, two entries");
+  assert.equal(pipelines[1].descriptor.primitive.topology, "line-list");
+
+  al.SetTopology(Topology.TOP_TRIANGLES);
+  al.DrawIndexedInstanced(36, 1);
+  al.SetTopology(Topology.TOP_LINES);
+  al.DrawIndexedInstanced(36, 1);
+
+  assert.equal(pipelines.length, 2, "both found again in the shared bucket");
+  assert.deepEqual(al.DrainTransitions().filter(event => event.type === "pipeline").map(event => event.created), [ true, true, false, false ]);
+  assert.equal(al._pipelines.get(7).length, 2);
+});
+
+test("a redundant setter leaves the pipeline clean", () =>
+{
+  // Carbon's setters compare before dirtying (Tr2RenderContextDx12.cpp:315-345).
+  const { al } = composed();
+  const setup = Tr2RenderStateSetup.fromKeyValues([]);
+
+  bindGeometry(al, programFor(al));
+  al.SetRenderStates(setup, { invertedDepthTest: false, invertedCullMode: false, wireframe: false });
+  al.DrawIndexedInstanced(36, 1);
+
+  al.SetTopology(Topology.TOP_TRIANGLES);
+  al.SetRenderStates(setup, { invertedDepthTest: false, invertedCullMode: false, wireframe: false });
+  assert.equal(al.IsPipelineDirty(), false, "same topology, same setup, equal overrides in a fresh record");
+
+  // Negative control: a changed override does dirty it.
+  al.SetRenderStates(setup, { invertedDepthTest: true, invertedCullMode: false, wireframe: false });
+  assert.equal(al.IsPipelineDirty(), true);
+});
+
+test("a cache hit builds no vertex layouts, and a second setup with the same states hits", () =>
+{
+  const { al, pipelines } = composed();
+  let builds = 0;
+  const build = al.BuildVertexBufferLayouts;
+
+  al.BuildVertexBufferLayouts = function () { builds += 1; return build.call(this); };
+
+  bindGeometry(al, programFor(al));
+  al.DrawIndexedInstanced(36, 1);
+
+  // A different setup object with the same content is the same pipeline.
+  al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
+  assert.equal(al.IsPipelineDirty(), true, "a new setup object dirties");
+  al.DrawIndexedInstanced(36, 1);
+
+  assert.equal(pipelines.length, 1);
+  assert.equal(builds, 1, "built on the miss only");
+});
+
+test("a hit restores the dummy vertex stream slot its pipeline was built with", () =>
+{
+  const { al } = composed();
+  const signature = {
+    registers: [],
+    pipelineInputs: [
+      { usage: 0, usageIndex: 0, registerIndex: 0, type: 0 },
+      { usage: 5, usageIndex: 0, registerIndex: 1, type: 0 }
+    ],
+    backendBlock: null
+  };
+  const withDummy = al.CreateShaderProgram([
+    al.CreateShader(ShaderType.VERTEX_SHADER, VERTEX_WGSL, signature, "v.wgsl"),
+    al.CreateShader(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signature, "f.wgsl")
+  ]);
+  const plain = programFor(al);
+
+  bindGeometry(al, withDummy);
+  al.DrawIndexedInstanced(36, 1);
+  al.SetShaderProgram(plain);
+  al.DrawIndexedInstanced(36, 1);
+  assert.equal(al._dummyVertexStream, null, "the plain program's pipeline has no dummy stream");
+
+  al.SetShaderProgram(withDummy);
+  al.DrawIndexedInstanced(36, 1);
+
+  // The encoder binds the dummy at this slot (EmitRenderEncoderState); the
+  // work queue drops the rebind here because the pass still holds it.
+  assert.equal(al._dummyVertexStream, 1);
+  assert.equal(al.m_pipelineFailure, null);
+});
+
 test("a non-indexed draw binds no index buffer and draws vertices", () =>
 {
   const { al, log } = composed();

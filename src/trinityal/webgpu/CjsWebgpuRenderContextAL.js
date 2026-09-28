@@ -87,11 +87,10 @@ import { CjsWebgpuResourceSetAL } from "./CjsWebgpuResourceSetAL.js";
 import { CjsWebgpuTextureAL } from "./CjsWebgpuTextureAL.js";
 import { CjsWebgpuConstantArena } from "./core/CjsWebgpuConstantArena.js";
 import { CjsWebgpuUtils } from "./core/CjsWebgpuUtils.js";
-import { CanonicalKey } from "./core/CjsWebgpuPipelineCache.js";
 import { TOPOLOGIES } from "./core/topology.js";
 import { SamplerDescriptionKey } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { CjsWebgpuCapsAL } from "./CjsWebgpuCapsAL.js";
-import { CjsWebgpuPsoDescription } from "./core/CjsWebgpuPsoDescription.js";
+import { CjsWebgpuPsoDescription, MAX_VERTEX_STREAMS } from "./core/CjsWebgpuPsoDescription.js";
 import { CjsWebgpuShaderAL, WEBGPU_ENTRY_POINT } from "./CjsWebgpuShaderAL.js";
 import { CjsWebgpuShaderProgramAL } from "./CjsWebgpuShaderProgramAL.js";
 import { WebgpuVertexBufferLayout } from "./core/vertexFormat.js";
@@ -150,6 +149,18 @@ function fail(message)
   const error = new Error(`CjsWebgpuRenderContextAL: ${message}`);
   error.code = "CJS_WEBGPU_AL_INVALID";
   throw error;
+}
+
+
+/**
+ * Whether two render-state override records (Tr2EffectStateManager's
+ * `GetRenderStateOverrides`) are equal by value. Null is all-off.
+ */
+function SameOverrides(a, b)
+{
+  return !!a?.invertedDepthTest === !!b?.invertedDepthTest
+    && !!a?.invertedCullMode === !!b?.invertedCullMode
+    && !!a?.wireframe === !!b?.wireframe;
 }
 
 
@@ -788,6 +799,7 @@ export class CjsWebgpuRenderContextAL
     // context does not consider bound. `_pipelineDirty` is this backend's
     // `m_needsDrawResourceCheck` - nothing is assumed resolved across frames.
     this._vertexLayout = null;
+    this._psoDescription.vertexLayout = null;
     this._resourceSet = null;
     this._shaderProgram = null;
     this._psoDescription.shaderProgram = null;
@@ -1220,6 +1232,9 @@ export class CjsWebgpuRenderContextAL
   {
     if (topology >= Topology.TOP_MAX_TOPOLOGY || !VERTICES_PER_PRIMITIVE[topology]) return ALResult.E_FAIL;
 
+    // Compared before dirtying, as Carbon's is (`Tr2RenderContextDx12.cpp:341`).
+    if (this._topology === topology) return ALResult.S_OK;
+
     this._topology = topology;
     this._psoDescription.topology = topology;
     this._pipelineDirty = true;
@@ -1244,6 +1259,7 @@ export class CjsWebgpuRenderContextAL
     // draw time (`:524-541`), because the same declaration yields a different
     // descriptor under a shader that reads a different subset of it.
     this._vertexLayout = layout;
+    this._psoDescription.vertexLayout = layout;
     this._pipelineDirty = true;
 
     return ALResult.S_OK;
@@ -1265,6 +1281,7 @@ export class CjsWebgpuRenderContextAL
     // stream's stride feeds the vertex-descriptor hash
     // (`MetalWorkQueue.mm:1512-1531`). The buffer itself is not.
     if (this._streams[stream]?.stride !== stride) this._pipelineDirty = true;
+    if (stream < MAX_VERTEX_STREAMS) this._psoDescription.streamStrides[stream] = stride;
 
     this._streams[stream] = { buffer, offset, stride };
 
@@ -1330,7 +1347,7 @@ export class CjsWebgpuRenderContextAL
     // nothing (Tr2RenderContextDx12.cpp:315-338). The overrides are compared BY
     // VALUE: the state manager hands a fresh copy each apply, and comparing
     // references made every apply dirty the pipeline.
-    if (this._renderStateSetup === setup && CanonicalKey(this._renderStateOverrides) === CanonicalKey(overrides)) return ALResult.S_OK;
+    if (this._renderStateSetup === setup && SameOverrides(this._renderStateOverrides, overrides)) return ALResult.S_OK;
 
     this._renderStateSetup = setup;
     this._renderStateOverrides = overrides;
@@ -1425,7 +1442,9 @@ export class CjsWebgpuRenderContextAL
   _pipeline = null;
 
   /**
-   * Resolved pipelines by description key.
+   * Resolved pipelines by description hash: each bucket holds the entries whose
+   * blocks hashed alike, `{ block, pipeline, dummyVertexStream }`, and a hit
+   * compares the block (`CjsWebgpuPsoDescription.BlockEquals`).
    *
    * Carbon keeps this on the DEVICE (`m_ownerDevice->m_pipelineStates`,
    * `Tr2PrimaryRenderContextDx12.h:319`; Metal's `GetCachedRenderPipelineState`)
@@ -1483,12 +1502,6 @@ export class CjsWebgpuRenderContextAL
       return this._RefusePipeline("a program this backend linked");
     }
 
-    const vertexBufferLayouts = this.BuildVertexBufferLayouts();
-
-    if (typeof vertexBufferLayouts === "string") return this._RefusePipeline(vertexBufferLayouts);
-
-    description.vertexBufferLayouts = vertexBufferLayouts;
-
     const missing = description.GetMissing();
 
     if (missing) return this._RefusePipeline(missing);
@@ -1499,33 +1512,71 @@ export class CjsWebgpuRenderContextAL
     // (`primitive.stripIndexFormat`), so the bound index stride is part of the
     // identity for strips and nothing else.
     const topology = TOPOLOGIES[this._topology];
-    const stripIndexFormat = topology && topology.endsWith("-strip") ? INDEX_FORMAT[this._indexStride] ?? null : null;
-    let key;
-    let recipe;
 
-    // `GetWebgpuRecipe` refuses a state it cannot project - a non-solid fill,
-    // depth state against no depth attachment - by THROWING. A draw verb is not
-    // where a frame may die, so the refusal becomes this verb's reason.
-    try
+    description.stripIndexFormat = topology && topology.endsWith("-strip") ? INDEX_FORMAT[this._indexStride] ?? null : null;
+
+    // DX12's lookup (`Tr2RenderContextDx12.cpp:793-800`): hash, then compare
+    // the block against each entry that hashed alike.
+    const key = description.UpdateHash();
+    let bucket = this._pipelines.get(key);
+    let entry = null;
+
+    if (bucket)
     {
-      key = `${description.GetKey()}|strip:${stripIndexFormat ?? "-"}`;
-      recipe = description.BuildRecipe();
-    }
-    catch (error)
-    {
-      return this._RefusePipeline(`a projectable state: ${error.message}`);
+      for (const candidate of bucket)
+      {
+        if (description.BlockEquals(candidate.block))
+        {
+          entry = candidate;
+          break;
+        }
+      }
     }
 
-    if (stripIndexFormat) recipe.primitive = { ...recipe.primitive, stripIndexFormat };
-
-    let pipeline = this._pipelines.get(key) ?? null;
-    const created = pipeline === null;
+    const created = entry === null;
 
     if (created)
     {
-      pipeline = this._CreateRenderPipeline(program, recipe);
-      this._pipelines.set(key, pipeline);
+      // Only a pipeline being created needs the WebGPU descriptor; every input
+      // to it is in the block, so a hit skips building it.
+      const vertexBufferLayouts = this.BuildVertexBufferLayouts();
+
+      if (typeof vertexBufferLayouts === "string") return this._RefusePipeline(vertexBufferLayouts);
+
+      description.vertexBufferLayouts = vertexBufferLayouts;
+
+      let recipe;
+
+      // `GetWebgpuRecipe` refuses a state it cannot project - a non-solid fill,
+      // depth state against no depth attachment - by THROWING. A draw verb is not
+      // where a frame may die, so the refusal becomes this verb's reason.
+      try
+      {
+        recipe = description.BuildRecipe();
+      }
+      catch (error)
+      {
+        return this._RefusePipeline(`a projectable state: ${error.message}`);
+      }
+
+      // The dummy vertex stream slot comes out of the layout build; a hit
+      // restores it from the entry instead.
+      entry = { block: description.CopyBlock(), pipeline: this._CreateRenderPipeline(program, recipe), dummyVertexStream: this._dummyVertexStream };
+
+      if (!bucket)
+      {
+        bucket = [];
+        this._pipelines.set(key, bucket);
+      }
+
+      bucket.push(entry);
     }
+    else
+    {
+      this._dummyVertexStream = entry.dummyVertexStream;
+    }
+
+    const pipeline = entry.pipeline;
 
     this._pipeline = pipeline;
     this._pipelineDirty = false;
@@ -2240,32 +2291,41 @@ export class CjsWebgpuRenderContextAL
     // bound depth stencil, each in the format it was CREATED in. A texture's
     // `GetFormat` is Carbon's PixelFormat number, not a GPUTextureFormat, and a
     // UAV texture may have been created in a substitute (`GetDeviceFormat`).
+    //
+    // Filled in place: this runs on every dirty draw, and the arrays are only
+    // read to hash and, on a miss, to build the recipe.
+    const description = this._psoDescription;
+    const formats = description.colorFormats;
+    const unorm = description.unormTargets;
+
+    formats.length = 0;
+    unorm.length = 0;
+
     if (this._IsCanvasPass())
     {
       if (!this._renderTarget)
       {
-        this._psoDescription.colorFormats = [];
-        this._psoDescription.unormTargets = [];
-        this._psoDescription.depthFormat = null;
-        this._psoDescription.sampleCount = 1;
+        description.depthFormat = null;
+        description.sampleCount = 1;
         return;
       }
 
-      this._psoDescription.colorFormats = [ this._renderTarget.GetFormat() ];
-      this._psoDescription.unormTargets = [];
-      this._psoDescription.depthFormat = this._renderTarget.GetDepthFormat();
-      this._psoDescription.sampleCount = this._renderTarget.GetSampleCount();
+      formats.push(this._renderTarget.GetFormat());
+      description.depthFormat = this._renderTarget.GetDepthFormat();
+      description.sampleCount = this._renderTarget.GetSampleCount();
       return;
     }
 
-    const formats = this._boundRenderTargets.map(target => (target ? target.GetDeviceFormat() : null));
+    for (const target of this._boundRenderTargets)
+    {
+      formats.push(target ? target.GetDeviceFormat() : null);
+      unorm.push(Boolean(target && target.IsUnormSubstitute()));
+    }
 
     while (formats.length && !formats[formats.length - 1]) formats.pop();
 
-    this._psoDescription.colorFormats = formats;
-    this._psoDescription.unormTargets = this._boundRenderTargets.map(target => Boolean(target && target.IsUnormSubstitute()));
-    this._psoDescription.depthFormat = this._depthStencil ? this._depthStencil.GetDeviceFormat() : null;
-    this._psoDescription.sampleCount = 1;
+    description.depthFormat = this._depthStencil ? this._depthStencil.GetDeviceFormat() : null;
+    description.sampleCount = 1;
   }
 
   /**
@@ -2441,6 +2501,8 @@ export class CjsWebgpuRenderContextAL
     // Bound state goes too; the description describes nothing bound.
     this._streams = [];
     this._vertexLayout = null;
+    this._psoDescription.vertexLayout = null;
+    this._psoDescription.streamStrides.fill(0);
     this._shaderProgram = null;
     this._psoDescription.shaderProgram = null;
     this._resourceSet = null;

@@ -40,25 +40,141 @@
 // already turns an interpreted setup into WebGPU state, applies the render-state
 // overrides while doing it, and refuses a fill mode WebGPU cannot rasterize. A
 // second translator is the mistake this whole lane exists to undo.
+//
+// THE KEY IS DX12'S (`PsoDescription.cpp:68-71`, `:136-150`): `UpdateHash`
+// writes the description into a block of integers - Carbon's hashable block,
+// `m_topologyType` through `m_sampleDesc`, plus the program and vertex-layout
+// pointers - and hashes it with `CcpHashFNV1`; the cache compares the block
+// itself on a hash hit, Carbon's `operator==`, so a collision cannot alias two
+// pipelines. Nothing is allocated to key a draw.
 import { CjsSchema } from "#schema";
 import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE } from "#resource/format";
-import { RenderPipelineKey } from "./CjsWebgpuPipelineCache.js";
+import { ccpHashFnv1, identityOf } from "#utils/hash";
 import { TOPOLOGIES } from "./topology.js";
+
+/** Carbon's `m_renderTargetFormats[MAX_RENDER_TARGET]`. */
+const MAX_COLOR_TARGETS = 8;
+
+/** Vertex stream slots the block keeps a stride for (WebGPU allows 8 buffers). */
+export const MAX_VERTEX_STREAMS = 16;
+
+// The hashable block's slots.
+const SLOT_PROGRAM = 0;
+const SLOT_VERTEX_LAYOUT = 1;
+const SLOT_TOPOLOGY = 2;
+const SLOT_RENDER_STATE = 3;
+const SLOT_OVERRIDES = 4;
+const SLOT_COLOR_FORMATS = 5;
+const SLOT_DEPTH_FORMAT = SLOT_COLOR_FORMATS + MAX_COLOR_TARGETS;
+const SLOT_SAMPLE_COUNT = SLOT_DEPTH_FORMAT + 1;
+const SLOT_UNORM_TARGETS = SLOT_SAMPLE_COUNT + 1;
+const SLOT_UNCLIPPED_DEPTH = SLOT_UNORM_TARGETS + 1;
+const SLOT_COVERAGE_DISCARD = SLOT_UNCLIPPED_DEPTH + 1;
+const SLOT_STRIP_INDEX_FORMAT = SLOT_COVERAGE_DISCARD + 1;
+const SLOT_STREAM_MASK = SLOT_STRIP_INDEX_FORMAT + 1;
+const SLOT_STREAM_STRIDES = SLOT_STREAM_MASK + 1;
+const BLOCK_SIZE = SLOT_STREAM_STRIDES + MAX_VERTEX_STREAMS;
+
+/** WebGPU format strings as small integers; 0 is "none". */
+const formatIds = new Map();
+
+/** Interned render-state content: `Tr2RenderStateSetup.Key()` to an integer. */
+const setupContentIds = new Map();
+
+/** Each setup's content id, computed once per setup object. */
+const setupIds = new WeakMap();
+
+/** Each vertex layout's stream mask, computed once per layout object. */
+const streamMasks = new WeakMap();
+
+/** A format's integer id; null is 0. */
+function FormatId(format)
+{
+  if (!format) return 0;
+
+  let id = formatIds.get(format);
+
+  if (id === undefined)
+  {
+    id = formatIds.size + 1;
+    formatIds.set(format, id);
+  }
+
+  return id;
+}
+
+/**
+ * A setup's CONTENT id, as DX12's block holds the resolved blend, rasterizer
+ * and depth descriptors rather than a pointer to where they came from. Setups
+ * are interpreted once and not changed after (registerRenderStateSetup,
+ * Tr2RenderStateSetup.Overlay), so the id is taken once per setup object.
+ */
+function SetupId(setup)
+{
+  let id = setupIds.get(setup);
+
+  if (id === undefined)
+  {
+    const key = setup.Key();
+
+    id = setupContentIds.get(key);
+
+    if (id === undefined)
+    {
+      id = setupContentIds.size + 1;
+      setupContentIds.set(key, id);
+    }
+
+    setupIds.set(setup, id);
+  }
+
+  return id;
+}
+
+/** Carbon's `m_vertexStreamMask`: the streams a layout's elements read. */
+function StreamMask(layout)
+{
+  if (!layout) return 0;
+
+  let mask = streamMasks.get(layout);
+
+  if (mask === undefined)
+  {
+    mask = 0;
+    for (const element of layout.GetDefinition() ?? []) mask |= 1 << (element.stream ?? 0);
+    streamMasks.set(layout, mask);
+  }
+
+  return mask;
+}
 
 
 /**
  * A pipeline description, filled by the abstraction layer's setters.
  *
  * Carbon's `PSODescription` is a plain struct with an `operator==` and a hash;
- * this is the same, with `GetKey` standing in for both because a canonical key
- * compares and hashes at once.
+ * this is the same: `UpdateHash` and `BlockEquals`.
  */
 export class CjsWebgpuPsoDescription
 {
   /** m_shaderProgram */
   shaderProgram = null;
 
-  /** m_vertexLayout, as WebGPU buffer layouts. */
+  /** m_vertexLayout: the bound declaration, keyed by identity as Carbon keys the pointer. */
+  vertexLayout = null;
+
+  /**
+   * The bound stride per vertex stream. On WebGPU the stride is part of the
+   * pipeline, as it is part of Metal's vertex-descriptor hash
+   * (`MetalWorkQueue.mm:1512-1531`); only the streams the layout reads are keyed.
+   */
+  streamStrides = new Uint32Array(MAX_VERTEX_STREAMS);
+
+  /**
+   * The layout's WebGPU buffer layouts, built from the layout, the program's
+   * inputs and the strides. Needed only to create a pipeline, so the context
+   * builds it on a cache miss.
+   */
   vertexBufferLayouts = [];
 
   /** m_topologyType, in the abstraction layer's vocabulary. */
@@ -98,6 +214,21 @@ export class CjsWebgpuPsoDescription
    * Carbon.
    */
   coverageDiscard = 0;
+
+  /**
+   * `primitive.stripIndexFormat` for an indexed strip, or null. WebGPU bakes
+   * the index format into a strip pipeline; nothing else carries it.
+   */
+  stripIndexFormat = null;
+
+  /** Carbon's `m_hash`, as the last `UpdateHash` left it. */
+  hash = 0;
+
+  /** The hashable block `UpdateHash` fills. */
+  _block = new Uint32Array(BLOCK_SIZE);
+
+  /** The same block as bytes, for `CcpHashFNV1`. */
+  _blockBytes = new Uint8Array(this._block.buffer);
 
   /**
    * Whether the description names everything a pipeline needs.
@@ -181,6 +312,7 @@ export class CjsWebgpuPsoDescription
       primitive: {
         ...projected.primitive,
         topology: TOPOLOGIES[this.topology],
+        ...(this.stripIndexFormat ? { stripIndexFormat: this.stripIndexFormat } : {}),
         ...(this.unclippedDepth ? { unclippedDepth: true } : {})
       },
       vertex: { buffers: this.vertexBufferLayouts },
@@ -195,41 +327,114 @@ export class CjsWebgpuPsoDescription
   }
 
   /**
-   * The cache key, which is Carbon's `UpdateHash` plus `operator==` at once.
+   * Carbon's `UpdateHash` (`PsoDescription.cpp:136-141`): writes the hashable
+   * block and hashes it.
    *
-   * Two descriptions with the same key resolve to the same pipeline, which is
-   * the whole point of describing rather than assembling: a frame that draws
-   * two hundred objects through one material creates one pipeline.
+   * Every input `BuildRecipe` reads is in the block, directly or through what
+   * determines it: the program and vertex layout by identity, as Carbon keys
+   * their pointers; the render-state setup by content, as Carbon's block holds
+   * the resolved descriptors; `vertexBufferLayouts` through the layout, the
+   * program and the strides of the streams the layout reads.
    *
-   * @returns {string|null} The key, or null when the description is incomplete.
+   * Adapted: JavaScript has no addresses, so program and layout identities are
+   * the interned integers of `identityOf`, and formats are interned integers
+   * rather than Carbon's PixelFormat values. The strip index format, UNORM
+   * bits, unclipped depth and coverage discard are WebGPU pipeline inputs
+   * Carbon's block has no slot for.
+   *
+   * @returns {number} The hash, also kept as `hash`.
+   */
+  UpdateHash()
+  {
+    const block = this._block;
+    const overrides = this.renderStateOverrides;
+
+    block.fill(0);
+    block[SLOT_PROGRAM] = identityOf(this.shaderProgram);
+    block[SLOT_VERTEX_LAYOUT] = identityOf(this.vertexLayout);
+    block[SLOT_TOPOLOGY] = this.topology ?? 0xffffffff;
+    block[SLOT_RENDER_STATE] = this.renderStateSetup ? SetupId(this.renderStateSetup) : 0;
+    block[SLOT_OVERRIDES] = overrides ? (overrides.invertedDepthTest ? 1 : 0) | (overrides.invertedCullMode ? 2 : 0) : 0;
+
+    for (let slot = 0; slot < MAX_COLOR_TARGETS && slot < this.colorFormats.length; slot++)
+    {
+      block[SLOT_COLOR_FORMATS + slot] = FormatId(this.colorFormats[slot]);
+      if (this.unormTargets[slot]) block[SLOT_UNORM_TARGETS] |= 1 << slot;
+    }
+
+    block[SLOT_DEPTH_FORMAT] = FormatId(this.depthFormat);
+    block[SLOT_SAMPLE_COUNT] = this.sampleCount;
+    block[SLOT_UNCLIPPED_DEPTH] = this.unclippedDepth ? 1 : 0;
+    block[SLOT_COVERAGE_DISCARD] = this.coverageDiscard;
+    block[SLOT_STRIP_INDEX_FORMAT] = FormatId(this.stripIndexFormat);
+
+    const mask = StreamMask(this.vertexLayout);
+
+    block[SLOT_STREAM_MASK] = mask;
+
+    for (let stream = 0; stream < MAX_VERTEX_STREAMS; stream++)
+    {
+      if (mask & (1 << stream)) block[SLOT_STREAM_STRIDES + stream] = this.streamStrides[stream];
+    }
+
+    this.hash = ccpHashFnv1(this._blockBytes);
+
+    return this.hash;
+  }
+
+  /**
+   * Carbon's `operator==` (`PsoDescription.cpp:68-71`) against a block a cache
+   * entry kept: element by element, so equal hashes alone never match.
+   *
+   * @param {Uint32Array} block A block from `CopyBlock`.
+   * @returns {boolean} Whether this description's last `UpdateHash` wrote the same block.
+   */
+  BlockEquals(block)
+  {
+    const own = this._block;
+
+    for (let index = 0; index < own.length; index++)
+    {
+      if (own[index] !== block[index]) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * A copy of the block, for a cache entry to compare against later.
+   *
+   * @returns {Uint32Array} The copy.
+   */
+  CopyBlock()
+  {
+    return this._block.slice(); // alloc: kept by the cache entry
+  }
+
+  /**
+   * The cache key: the hash, or null when the description is incomplete.
+   *
+   * @returns {number|null} The key.
    */
   GetKey()
   {
     if (this.GetMissing()) return null;
 
-    // A real program names itself; a stand-in keys on its own fields. Metal
-    // hashes the function pointers for this (`MetalWorkQueue.mm:1610-1611`),
-    // and canonicalising a program's modules would serialise device objects.
-    const identity = typeof this.shaderProgram.GetIdentity === "function"
-      ? this.shaderProgram.GetIdentity()
-      : this.shaderProgram;
-
-    return RenderPipelineKey(identity, this.BuildRecipe());
+    return this.UpdateHash();
   }
 
   /**
-   * Whether two descriptions resolve to the same pipeline.
+   * Whether two descriptions resolve to the same pipeline: both complete, and
+   * their blocks equal.
    *
    * @param {CjsWebgpuPsoDescription} other The description to compare.
    * @returns {boolean} True when both are complete and equal.
    */
   Equals(other)
   {
-    if (!other) return false;
+    if (!other || this.GetKey() === null || other.GetKey() === null) return false;
 
-    const key = this.GetKey();
-
-    return key !== null && key === other.GetKey();
+    return other.BlockEquals(this._block);
   }
 }
 

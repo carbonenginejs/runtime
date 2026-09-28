@@ -115,6 +115,29 @@ export function hashFnv1Floats(values, hash = FNV1_INITIAL)
 }
 
 /**
+ * The stable per-object identity `hashFnv1Identity` folds in: a small integer,
+ * assigned on first sight and held weakly. Null and undefined are 0. For a
+ * caller that stores identities in a hashable block rather than folding them.
+ *
+ * @param {object|null} object The object.
+ * @returns {number} Its identity, 1 or more; 0 for null or undefined.
+ */
+export function identityOf(object)
+{
+  if (object === null || object === undefined) return 0;
+
+  let id = identities.get(object);
+
+  if (id === undefined)
+  {
+    id = nextIdentity++;
+    identities.set(object, id);
+  }
+
+  return id;
+}
+
+/**
  * FNV-1 over a stable per-object identity - the stand-in for Carbon hashing a
  * smart-pointer address. Null and undefined hash as identity 0.
  *
@@ -124,20 +147,7 @@ export function hashFnv1Floats(values, hash = FNV1_INITIAL)
  */
 export function hashFnv1Identity(object, hash = FNV1_INITIAL)
 {
-  let id = 0;
-
-  if (object !== null && object !== undefined)
-  {
-    id = identities.get(object);
-
-    if (id === undefined)
-    {
-      id = nextIdentity++;
-      identities.set(object, id);
-    }
-  }
-
-  scratch.setUint32(0, id >>> 0, true);
+  scratch.setUint32(0, identityOf(object), true);
 
   for (let byte = 0; byte < 4; byte++) hash = fold(hash, scratch.getUint8(byte));
 
