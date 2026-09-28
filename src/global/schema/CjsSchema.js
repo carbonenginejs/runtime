@@ -221,7 +221,12 @@ export class CjsSchema
         return SETTINGS;
     }
 
-    /** Returns resolved schema metadata for a named field. */
+    /**
+     * Returns resolved schema metadata for a named field.
+     *
+     * The record is the class's own table entry, built once at registration
+     * and shared by every lookup; it must not be written to.
+     */
     static getField(Constructor, fieldName)
     {
         const schema = CLASS_SCHEMA.get(Constructor);
