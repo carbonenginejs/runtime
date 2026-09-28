@@ -10,7 +10,7 @@
 //
 // `GetStreamFromPath` returns a promise here: reading bytes is asynchronous in
 // every host this runs in.
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, carbon, compose, impl } from "#schema";
 
 /** `IBlueResFileSystem` - one source of res files, per blue/include/IBlueResFileSystem.h. */
 export class IBlueResFileSystem
@@ -51,6 +51,12 @@ export class IBlueResFileSystem
 for (const method of [ "FileExists", "IsDirectory", "GetDirectoryContents", "GetStreamFromPath", "ResolvePath" ])
 {
   CjsSchema.decorateMethod(IBlueResFileSystem, method, compose.abstract, impl.abstract);
+}
+
+// Carbon declares only the wide-character forms; a JS string covers both.
+for (const method of [ "GetStreamFromPath", "ResolvePath" ])
+{
+  CjsSchema.decorateMethod(IBlueResFileSystem, method, carbon.renamed(`${method}W`));
 }
 
 CjsSchema.define(IBlueResFileSystem, {

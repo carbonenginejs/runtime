@@ -254,6 +254,6 @@ CjsSchema.define(CjsBluePaths, {
     FileExists: [ carbon.method, impl.implemented ],
     FileExistsLocally: [ carbon.method, impl.implemented ],
     FileNeedsDownload: [ carbon.method, impl.implemented ],
-    GetStreamFromPath: [ carbon.method, impl.adapted ]
+    GetStreamFromPath: [ carbon.renamed("GetStreamFromPathW"), impl.adapted ]
   }
 });

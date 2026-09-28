@@ -8,7 +8,7 @@
 //
 // The `W` variants collapse, as they do on the manager: they are Carbon's
 // wide-character twins.
-import { CjsSchema, compose, impl } from "#schema";
+import { CjsSchema, carbon, compose, impl } from "#schema";
 
 /** `IBluePaths` - search paths, resolution, existence and streams, per blue/include/IBluePaths.h. */
 export class IBluePaths
@@ -66,6 +66,14 @@ for (const method of [
 ])
 {
   CjsSchema.decorateMethod(IBluePaths, method, compose.abstract, impl.abstract);
+}
+
+// Carbon declares only the wide-character forms; a JS string covers both.
+for (const method of [
+  "SetSearchPath", "GetSearchPath", "ResolvePath", "ResolvePathForWriting", "ResolvePathToRoot", "GetStreamFromPath"
+])
+{
+  CjsSchema.decorateMethod(IBluePaths, method, carbon.renamed(`${method}W`));
 }
 
 CjsSchema.define(IBluePaths, { className: "IBluePaths", carbon: "IBluePaths", family: "blue", fields: {} });

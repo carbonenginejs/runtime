@@ -527,7 +527,7 @@ CjsSchema.define(RemoteFileCache, {
     SetCacheFolder: [ carbon.method, impl.implemented ],
     SetServer: [ carbon.method, impl.implemented ],
     SetPrefix: [ carbon.method, impl.implemented ],
-    GetStreamFromPath: [ carbon.method, impl.adapted ],
+    GetStreamFromPath: [ carbon.renamed("GetStreamFromPathW"), impl.adapted ],
     FileExists: [ carbon.method, impl.implemented ],
     IsCachedLocally: [ carbon.method, impl.adapted ],
     GetLocallyCachedName: [ carbon.method, impl.implemented ],

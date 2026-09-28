@@ -4,6 +4,8 @@
   "blue/include/BitPacker.h#BitPacker": "No exact live class declaration for class BitPacker (blue/include/BitPacker.h:109); review missing port or explicit JS equivalent.",
   "blue/include/BitPacker.h#BitPackerCore": "No exact live class declaration for class BitPackerCore (blue/include/BitPacker.h:37); review missing port or explicit JS equivalent.",
   "blue/include/BitPacker.h#BitPackerManaged": "No exact live class declaration for class BitPackerManaged (blue/include/BitPacker.h:118); review missing port or explicit JS equivalent.",
+  "blue/src/BlueResMan.h#BluePythonDynamicResourceConstructor": "No exact live class declaration for class BluePythonDynamicResourceConstructor (blue/src/BlueResMan.h:161); review missing port or explicit JS equivalent.",
+  "blue/src/BlueResMan.h#BlueResMan": "No exact live class declaration for class BlueResMan (blue/src/BlueResMan.h:21); review missing port or explicit JS equivalent.",
   "blueexposure/include/BlueRegistration.h#BlueRegistration": "No exact live class declaration for class BlueRegistration (blueexposure/include/BlueRegistration.h:84); review missing port or explicit JS equivalent.",
   "blueexposure/include/BlueRegistration.h#ClassRegistrar": "No exact live class declaration for class ClassRegistrar (blueexposure/include/BlueRegistration.h:151); review missing port or explicit JS equivalent.",
   "blueexposure/include/BlueRegistration.h#ExceptionRegistrar": "No exact live class declaration for class ExceptionRegistrar (blueexposure/include/BlueRegistration.h:327); review missing port or explicit JS equivalent.",

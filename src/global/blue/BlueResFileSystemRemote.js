@@ -118,7 +118,7 @@ CjsSchema.define(BlueResFileSystemRemote, {
     FileExists: [ carbon.method, impl.implemented ],
     IsDirectory: [ carbon.method, impl.implemented ],
     GetDirectoryContents: [ carbon.method, impl.implemented ],
-    GetStreamFromPath: [ carbon.method, impl.implemented ],
-    ResolvePath: [ carbon.method, impl.adapted ]
+    GetStreamFromPath: [ carbon.renamed("GetStreamFromPathW"), impl.implemented ],
+    ResolvePath: [ carbon.renamed("ResolvePathW"), impl.adapted ]
   }
 });
