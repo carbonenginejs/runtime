@@ -22,6 +22,9 @@ const FORMAT_NAME = "CjsWebmFormat";
  */
 export class CjsWebmFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWebmFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

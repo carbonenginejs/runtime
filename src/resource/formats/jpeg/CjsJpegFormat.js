@@ -26,6 +26,9 @@ const FORMAT_NAME = "CjsJpegFormat";
  */
 export class CjsJpegFormat extends CjsImageFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsJpegFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

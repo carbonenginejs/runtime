@@ -15,6 +15,8 @@ import { CjsFormat } from "./CjsFormat.js";
  */
 export class CjsGeometryFormat extends CjsFormat
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsGeometryFormat";
 
   static mediaTypes = [ "geometry" ];
 

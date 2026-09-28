@@ -23,6 +23,9 @@ const FORMAT_NAME = "CjsGifFormat";
  */
 export class CjsGifFormat extends CjsImageFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsGifFormat";
+
     _values = DEFAULT_VALUES;
 
     /** Creates a CjsGifFormat with caller-provided reader configuration. */

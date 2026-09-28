@@ -20,6 +20,9 @@ const FORMAT_NAME = "CjsWebpFormat";
  */
 export class CjsWebpFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWebpFormat";
+
     _values = DEFAULT_VALUES;
 
     /** Creates a CjsWebpFormat with caller-provided reader configuration. */

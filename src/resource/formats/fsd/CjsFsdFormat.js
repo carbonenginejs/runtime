@@ -14,6 +14,9 @@ const OUTPUT_PAYLOAD = "payload";
  */
 export class CjsFsdFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsFsdFormat";
+
     /**
      * Inspect the explicitly selected legacy layout or recognized modern layout.
      * @param {*} input Candidate input.

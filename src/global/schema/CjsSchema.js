@@ -9,6 +9,7 @@ import {
     normalizeCarbonValue
 } from "./types/carbonTypes.js";
 import { composeAbstractDecorator } from "../compose/abstract.js";
+import { CJS_CLASS_NAME, getRegisteredClassName } from "../compose/className.js";
 import { composeNotifyDecorator } from "../compose/notify.js";
 import { carbonInheritDecorator, carbonMapInterfaceDecorator, cast } from "../compose/interface.js";
 import { composeValuesDecorator, createValuesTransport, isExportableField, isWritableField } from "../compose/values.js";
@@ -70,7 +71,7 @@ export const CJS_ENUM_NAME = Symbol.for("carbonenginejs.enum.name");
  * global-registry symbol makes the identity survive the boundary, exactly as
  * `carbonenginejs.model` does for instances.
  */
-export const CJS_CLASS_NAME = Symbol.for("carbonenginejs.className");
+export { CJS_CLASS_NAME };
 
 /**
  * Cross-copy brand for "this object is already a live CjsModel".
@@ -269,25 +270,9 @@ export class CjsSchema
     /** Returns the explicit stable serialized name registered for a constructor. */
     static getClassName(Constructor)
     {
-        let current = Constructor;
-        while (typeof current === "function")
-        {
-            // The local metadata is authoritative wherever it exists, including
-            // when it deliberately declares no name. The cross-copy brand is
-            // consulted ONLY for a class this copy has never seen at all --
-            // otherwise it would answer for local classes whose absence of a
-            // name is itself the declared answer.
-            const local = CLASS_SCHEMA.get(current);
-            const className = local
-                ? (local.className || null)
-                : (Object.hasOwn(current, CJS_CLASS_NAME) ? current[CJS_CLASS_NAME] : null);
-            if (className)
-            {
-                return current !== Constructor && className === "CjsModel" ? null : className;
-            }
-            current = Object.getPrototypeOf(current);
-        }
-        return null;
+        // `define` stamps the name it registers, so the constructor alone
+        // answers; compose/className.js is the one reader.
+        return getRegisteredClassName(Constructor);
     }
 
     /** Returns the registered schema family for a constructor. */
@@ -2717,7 +2702,9 @@ function describeValuesInput(value)
     if (value === undefined) return "undefined";
     if (Array.isArray(value)) return "an array";
     if (typeof value !== "object") return `a ${typeof value}`;
-    const name = value.constructor?.name;
+    // Arbitrary input: ours answers by registered name; anything unstamped is
+    // a platform or caller type, whose constructor name is all there is.
+    const name = value.constructor ? getRegisteredClassName(value.constructor) ?? value.constructor.name : null;
     return name ? `an instance of ${name}` : "an object without Object.prototype";
 }
 

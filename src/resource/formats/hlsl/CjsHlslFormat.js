@@ -60,6 +60,8 @@ const FORMAT_NAME = "CjsHlslFormat";
  */
 export class CjsHlslFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsHlslFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

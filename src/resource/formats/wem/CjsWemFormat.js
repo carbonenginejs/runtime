@@ -29,6 +29,9 @@ const FORMAT_NAME = "CjsWemFormat";
  */
 export class CjsWemFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWemFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

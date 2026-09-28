@@ -9,6 +9,9 @@ import { Tr2BaseDeviceResourceAL } from "./Tr2BaseDeviceResourceAL.js";
  */
 export class Tr2DeviceResourceAL extends Tr2BaseDeviceResourceAL
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "Tr2DeviceResourceAL";
+
   /** @returns {boolean} Whether the concrete resource is valid. */
   IsResourceValid()
   {

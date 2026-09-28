@@ -1,7 +1,7 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.h
 // Source: trinity/trinityal/Tr2DeviceResourceAL.cpp
 //
-import { impl } from "#schema";
+import { compose, impl } from "#schema";
 
 // The base every abstraction-layer resource extends, and the registry that
 // makes them enumerable.
@@ -60,6 +60,9 @@ let resourcesMutated = false;
  */
 export class Tr2BaseDeviceResourceAL
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "Tr2BaseDeviceResourceAL";
+
   _registered = false;
 
   /** Registers the resource, as Carbon's constructor does. */
@@ -75,24 +78,18 @@ export class Tr2BaseDeviceResourceAL
    *
    * @returns {boolean} True when live.
    */
-  @impl.adapted
-  @impl.reason("JavaScript has no pure virtual declarations; calling the missing obligation throws.")
-  IsResourceValid()
-  {
-    fail(`${this.constructor.name} must implement IsResourceValid`);
-  }
+  @compose.abstract
+  @impl.abstract
+  IsResourceValid() {}
 
   /**
    * Which memory class this resource occupies.
    *
    * @returns {number} A `Tr2ALMemoryType` value.
    */
-  @impl.adapted
-  @impl.reason("JavaScript has no pure virtual declarations; calling the missing obligation throws.")
-  GetResourceMemoryClass()
-  {
-    fail(`${this.constructor.name} must implement GetResourceMemoryClass`);
-  }
+  @compose.abstract
+  @impl.abstract
+  GetResourceMemoryClass() {}
 
   /**
    * Describes this resource for a device inventory.

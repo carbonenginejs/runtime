@@ -65,6 +65,9 @@ const FORMAT_NAME = "CjsBnkFormat";
  */
 export class CjsBnkFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsBnkFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

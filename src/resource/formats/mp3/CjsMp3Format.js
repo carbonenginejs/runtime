@@ -22,6 +22,9 @@ const FORMAT_NAME = "CjsMp3Format";
  */
 export class CjsMp3Format extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsMp3Format";
+
     _values = DEFAULT_VALUES;
 
     /**

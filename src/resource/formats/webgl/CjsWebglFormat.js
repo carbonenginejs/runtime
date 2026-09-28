@@ -36,6 +36,8 @@ const FORMAT_NAME = "CjsWebglFormat";
  */
 export class CjsWebglFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWebglFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

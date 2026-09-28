@@ -58,6 +58,8 @@ import {
  */
 export class CjsGr2Format extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsGr2Format";
 
     _emit = DEFAULT_VALUES.emit;
     _decompressCurves = DEFAULT_VALUES.decompressCurves;

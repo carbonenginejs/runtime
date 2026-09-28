@@ -40,6 +40,8 @@ const SRGB_BLOCK_FORMATS = new Set([
  */
 export class CjsImageFormat extends CjsFormat
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsImageFormat";
 
   /**
    * Carbon's handler table for this format class, built once per subclass.

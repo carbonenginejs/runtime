@@ -70,6 +70,8 @@ const FORMAT_NAME = "CjsStlFormat";
  */
 export class CjsStlFormat extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsStlFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

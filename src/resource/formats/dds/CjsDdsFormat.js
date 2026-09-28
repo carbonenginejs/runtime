@@ -56,6 +56,9 @@ const LEGACY_PIXEL_FORMATS = {
  */
 export class CjsDdsFormat extends CjsImageFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsDdsFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

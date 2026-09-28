@@ -8,6 +8,9 @@ const OUTPUT_PAYLOAD = "payload";
 /** Identifies and dispatches modern 64-bit cFSD containers. */
 export class CjsFsd64Format extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsFsd64Format";
+
     /**
      * Describe a validated modern cFSD envelope.
      * @param {ArrayBuffer|ArrayBufferView} input Container bytes.

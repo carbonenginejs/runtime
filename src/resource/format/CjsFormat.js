@@ -1,4 +1,5 @@
 import { MediaType, PayloadType } from "#consts/media";
+import { getRegisteredClassName } from "../../global/compose/className.js";
 
 const OUTPUT_ROLE_RUNTIME = "runtime";
 const OUTPUT_ROLE_DEBUG = "debug";
@@ -59,7 +60,7 @@ export class CjsFormat
   /** Read through the concrete instance implementation. */
   Read(_input, _options = null)
   {
-    const error = new Error(`${this.constructor.name}.Read is not implemented.`);
+    const error = new Error(`${getRegisteredClassName(this.constructor)}.Read is not implemented.`);
     error.code = "CJS_FORMAT_READ_NOT_IMPLEMENTED";
     throw error;
   }
@@ -401,61 +402,61 @@ export class CjsFormat
     }
     if (typeof Constructor.id !== "string" || !Constructor.id)
     {
-      throw new TypeError(`${Constructor.name} must declare a non-empty id.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare a non-empty id.`);
     }
     if (!Array.isArray(Constructor.mediaTypes) || Constructor.mediaTypes.length === 0)
     {
-      throw new TypeError(`${Constructor.name} must declare non-empty mediaTypes.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare non-empty mediaTypes.`);
     }
     for (const mediaType of Constructor.mediaTypes)
     {
       if (!Object.values(MediaType).includes(mediaType))
       {
-        throw new TypeError(`${Constructor.name} media type ${JSON.stringify(mediaType)} is not canonical.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)} media type ${JSON.stringify(mediaType)} is not canonical.`);
       }
     }
     if (!Array.isArray(Constructor.extensions))
     {
-      throw new TypeError(`${Constructor.name} must declare extensions.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare extensions.`);
     }
     if (!Constructor.outputs || typeof Constructor.outputs !== "object"
       || Array.isArray(Constructor.outputs))
     {
-      throw new TypeError(`${Constructor.name} must declare outputs.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare outputs.`);
     }
     if (typeof Constructor.requestResponseType !== "string" || !Constructor.requestResponseType)
     {
-      throw new TypeError(`${Constructor.name} must declare a requestResponseType.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare a requestResponseType.`);
     }
     if (Constructor.worker !== null)
     {
       if (!Constructor.worker || typeof Constructor.worker !== "object")
       {
-        throw new TypeError(`${Constructor.name}.worker must be null or a descriptor object.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)}.worker must be null or a descriptor object.`);
       }
       if (typeof Constructor.worker.module !== "string" || !Constructor.worker.module
         || typeof Constructor.worker.exportName !== "string" || !Constructor.worker.exportName
         || !Array.isArray(Constructor.worker.outputTypes))
       {
-        throw new TypeError(`${Constructor.name}.worker has an invalid execution descriptor.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)}.worker has an invalid execution descriptor.`);
       }
       for (const output of Constructor.worker.outputTypes)
       {
         if (!Constructor.getOutputCapability(output))
         {
-          throw new TypeError(`${Constructor.name}.worker names undeclared output ${JSON.stringify(output)}.`);
+          throw new TypeError(`${getRegisteredClassName(Constructor)}.worker names undeclared output ${JSON.stringify(output)}.`);
         }
       }
       if (Constructor.worker.defaultOutput && !Constructor.getOutputCapability(Constructor.worker.defaultOutput))
       {
-        throw new TypeError(`${Constructor.name}.worker names an undeclared default output.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)}.worker names an undeclared default output.`);
       }
     }
     for (const retired of [ "type", "inputTypes", "outputTypes", "debugOutputTypes", "implementationStatus" ])
     {
       if (Object.hasOwn(Constructor, retired))
       {
-        throw new TypeError(`${Constructor.name} must not declare retired static ${retired}.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)} must not declare retired static ${retired}.`);
       }
     }
     let defaults = 0;
@@ -463,13 +464,13 @@ export class CjsFormat
     {
       if (capability.output !== output)
       {
-        throw new TypeError(`${Constructor.name} output ${output} has a mismatched descriptor.`);
+        throw new TypeError(`${getRegisteredClassName(Constructor)} output ${output} has a mismatched descriptor.`);
       }
       if (capability.default) defaults++;
     }
     if (Object.keys(Constructor.outputs).length > 0 && defaults !== 1)
     {
-      throw new TypeError(`${Constructor.name} must declare exactly one default output.`);
+      throw new TypeError(`${getRegisteredClassName(Constructor)} must declare exactly one default output.`);
     }
   }
 

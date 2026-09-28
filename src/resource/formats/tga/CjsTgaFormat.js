@@ -24,6 +24,9 @@ const FORMAT_NAME = "CjsTgaFormat";
  */
 export class CjsTgaFormat extends CjsImageFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsTgaFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

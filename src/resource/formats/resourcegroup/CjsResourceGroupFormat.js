@@ -49,6 +49,9 @@ import { document, fields, text, pack, unpack } from "./core/document.js";
 /** ResourceGroup JSON persistence and native YAML interchange, with lossless integer fields. */
 export class CjsResourceGroupFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsResourceGroupFormat";
+
     /**
      * Reads canonical internal JSON.
      *

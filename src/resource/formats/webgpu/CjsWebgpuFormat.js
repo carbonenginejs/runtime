@@ -34,6 +34,9 @@ const FORMAT_NAME = "CjsWebgpuFormat";
  */
 export class CjsWebgpuFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWebgpuFormat";
+
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;
     _decodeInstructions = DEFAULT_VALUES.decodeInstructions;

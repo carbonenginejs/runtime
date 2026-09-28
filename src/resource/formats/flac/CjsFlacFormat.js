@@ -22,6 +22,9 @@ const FORMAT_NAME = "CjsFlacFormat";
  */
 export class CjsFlacFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsFlacFormat";
+
     _values = DEFAULT_VALUES;
 
     /** Creates a CjsFlacFormat with caller-provided reader configuration. */

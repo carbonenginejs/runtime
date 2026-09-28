@@ -40,6 +40,7 @@
 // at load. Everything schema-shaped arrives through `services`. compose/
 // siblings are fine - they import nothing themselves.
 
+import { getRegisteredClassName } from "./className.js";
 import { ensureRuntimeState, getRuntimeState } from "./runtimeState.js";
 
 
@@ -70,7 +71,7 @@ export function settleModifiedMembers(target)
         {
             if (pass >= MAX_UPDATE_PASSES)
             {
-                throw new Error(`${target.constructor.name} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
+                throw new Error(`${getRegisteredClassName(target.constructor)} exceeded ${MAX_UPDATE_PASSES} settle passes.`);
             }
             const pending = state.pendingModified ?? new Set();
             state.pendingModified = new Set();

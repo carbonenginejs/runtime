@@ -24,6 +24,9 @@ const FORMAT_NAME = "CjsYamlFormat";
  */
 export class CjsYamlFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsYamlFormat";
+
     _values = DEFAULT_VALUES;
 
     /** Creates a CjsYamlFormat with caller-provided reader configuration. */

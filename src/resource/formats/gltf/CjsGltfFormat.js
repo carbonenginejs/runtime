@@ -38,6 +38,8 @@ const FORMAT_NAME = "CjsGltfFormat";
  */
 export class CjsGltfFormat extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsGltfFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

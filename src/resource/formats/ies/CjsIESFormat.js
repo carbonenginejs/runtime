@@ -8,6 +8,9 @@ import { bakeLightProfile } from "./core/bakeLightProfile.js";
  */
 export class CjsIESFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsIESFormat";
+
     /**
      * Reads bytes using this instance's defaults and per-call overrides.
      * @param {ArrayBuffer|ArrayBufferView} input IES file bytes.

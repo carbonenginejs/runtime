@@ -22,6 +22,9 @@ const FORMAT_NAME = "CjsMp4Format";
  */
 export class CjsMp4Format extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsMp4Format";
+
     _values = DEFAULT_VALUES;
 
     /**

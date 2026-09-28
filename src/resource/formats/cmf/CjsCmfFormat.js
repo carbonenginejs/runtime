@@ -42,6 +42,9 @@ import {
  */
 export class CjsCmfFormat extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsCmfFormat";
+
     _emit = DEFAULT_VALUES.emit;
     _validateCrc = DEFAULT_VALUES.validateCrc;
     _decodeBuffers = DEFAULT_VALUES.decodeBuffers;

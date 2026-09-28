@@ -33,6 +33,8 @@ const FORMAT_NAME = "CjsRedFormat";
  */
 export class CjsRedFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsRedFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _schema = DEFAULT_VALUES.schema;

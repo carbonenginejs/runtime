@@ -23,6 +23,9 @@ const FORMAT_NAME = "CjsWavFormat";
  */
 export class CjsWavFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsWavFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

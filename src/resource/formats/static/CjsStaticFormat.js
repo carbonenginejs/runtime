@@ -43,6 +43,8 @@ export const CJS_STATIC_FAMILIES = Object.freeze({
  */
 export class CjsStaticFormat extends CjsFormat
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsStaticFormat";
 
   /**
    * Report which family a container holds, on the declaration seam.

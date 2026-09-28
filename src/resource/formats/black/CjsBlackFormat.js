@@ -29,6 +29,8 @@ const FORMAT_NAME = "CjsBlackFormat";
  */
 export class CjsBlackFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsBlackFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _schema = DEFAULT_VALUES.schema;

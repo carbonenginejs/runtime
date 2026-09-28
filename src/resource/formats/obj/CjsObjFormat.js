@@ -33,6 +33,8 @@ const FORMAT_NAME = "CjsObjFormat";
  */
 export class CjsObjFormat extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsObjFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

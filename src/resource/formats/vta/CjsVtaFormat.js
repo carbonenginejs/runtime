@@ -45,6 +45,9 @@ const FORMAT_NAME = "CjsVtaFormat";
  */
 export class CjsVtaFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsVtaFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

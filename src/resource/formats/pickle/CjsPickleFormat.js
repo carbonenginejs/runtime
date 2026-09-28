@@ -41,6 +41,9 @@ function readerFor(input)
  */
 export class CjsPickleFormat extends CjsFormat
 {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsPickleFormat";
+
   _values = DEFAULT_VALUES;
 
   /**

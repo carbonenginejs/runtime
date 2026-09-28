@@ -23,6 +23,9 @@ const FORMAT_NAME = "CjsOggFormat";
  */
 export class CjsOggFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsOggFormat";
+
     _values = DEFAULT_VALUES;
 
     /** Creates a CjsOggFormat with caller-provided reader configuration. */

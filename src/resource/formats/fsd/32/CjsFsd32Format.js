@@ -11,6 +11,9 @@ const VARIANT = "fsd32";
  */
 export class CjsFsd32Format extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsFsd32Format";
+
     /**
      * Test whether the caller explicitly selected the legacy FSD layout.
      * @param {*} _input Unused candidate input.

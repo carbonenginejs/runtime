@@ -31,6 +31,9 @@ const FORMAT_NAME = "CjsFbxFormat";
  */
 export class CjsFbxFormat extends CjsGeometryFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsFbxFormat";
+
     _values = DEFAULT_VALUES;
 
     /**

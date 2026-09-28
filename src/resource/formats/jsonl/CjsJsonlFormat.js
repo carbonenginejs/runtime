@@ -11,6 +11,8 @@ const TEXT_DECODER = new TextDecoder("utf-8", { fatal: true });
  */
 export class CjsJsonlFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsJsonlFormat";
 
     /** Creates a CjsJsonlFormat; the reader takes no retained configuration. */
     constructor(options = {})

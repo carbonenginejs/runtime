@@ -18,7 +18,7 @@
 //    (2026-09-06) and the RenderBatches family is next; GetBackBuffer is not.
 //    Fork/Join parallel encoding is deliberately omitted - it exists to spread
 //    batch encoding across threads, and there is one.
-import { carbon, impl, type } from "#schema";
+import { CjsSchema, carbon, impl, type } from "#schema";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -1059,7 +1059,7 @@ export class Tr2RenderContext extends CjsModel
   {
     if (typeof this.#al[verb] !== "function")
     {
-      throw new Error(`${this.#al.constructor.name} does not implement ${verb}.`);
+      throw new Error(`${CjsSchema.getClassName(this.#al.constructor)} does not implement ${verb}.`);
     }
 
     return this.#al;

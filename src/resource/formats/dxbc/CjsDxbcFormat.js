@@ -65,6 +65,8 @@ function resolveDecoderRecord(input, options)
  */
 export class CjsDxbcFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsDxbcFormat";
 
     _emit = DEFAULT_VALUES.emit;
     _source = DEFAULT_VALUES.source;

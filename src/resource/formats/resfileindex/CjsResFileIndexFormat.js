@@ -34,6 +34,9 @@ import { document, text } from "../resourcegroup/core/document.js";
 /** Carbon resfileindex wire records to plain JSON-safe resource-group documents. */
 export class CjsResFileIndexFormat extends CjsFormat
 {
+    /** Registered name; `constructor.name` does not survive minification. */
+    static className = "CjsResFileIndexFormat";
+
     /**
      * Reads CSV text or UTF-8 bytes.
      *

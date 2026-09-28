@@ -32,6 +32,8 @@ const ROOT_TYPES = new Set([ "dict", "list", "object" ]);
  * correctly and everything after it wrongly.
  */
 export class CjsSchemaBoundFormat extends CjsFormat {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsSchemaBoundFormat";
 
   /**
    * Reports whether a schema can drive this reader.

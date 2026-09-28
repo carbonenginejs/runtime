@@ -33,6 +33,8 @@ const MASTER_ROOT_PAGE = 1;
  * rounded.
  */
 export class CjsSqliteFormat extends CjsFormat {
+  /** Registered name; `constructor.name` does not survive minification. */
+  static className = "CjsSqliteFormat";
 
   /**
    * Reports whether bytes are a SQLite container, by signature.
