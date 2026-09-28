@@ -236,13 +236,6 @@ const POST_LOCATION = POST_TEMPLATE && !IsSunTemplate(POST_TEMPLATE) ? POST_TEMP
 const LOCATION_RADII = { inner: 100000, outer: 200000 };
 
 /**
- * `?shadows=1` offers the shadow qualities; without it the panel offers only
- * "disabled". The cascaded pass hung the GPU on 2026-09-27 (the denoiser's
- * Radius written as a float, since fixed), so it runs only when asked for.
- */
-const SHADOWS_OPT_IN = new URLSearchParams(globalThis.location?.search ?? "").get("shadows") === "1";
-
-/**
  * The Tr2PostProcess2 slots whose render pass Tr2PostProcessRenderer does not
  * port yet: each throws by name when reached. The demo empties them on the
  * loaded template and names them, so the ported passes can be seen working on
@@ -288,7 +281,7 @@ async function LoadPostTemplate(name)
  * - ambient occlusion: the driver's aoQuality, which enables the driver's
  *   Tr2SSAO at a quality and gives the depth pass a normal map.
  * - shadows: the driver's shadowQuality; low and high give the scene its
- *   cascaded shadow map (PropagateSettings). Offered only with `?shadows=1`.
+ *   cascaded shadow map (PropagateSettings).
  * - sun: the scene's sun direction (the way the light travels), live.
  * - flare: the sun's lens flare, any of res:/fisfx/lensflare/*.black, or off.
  *
@@ -526,9 +519,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   ambientOcclusion.addEventListener("change", () => { driver.aoQuality = Number(ambientOcclusion.value); });
 
   const { ShadowQuality } = EveSpaceSceneRenderDriver;
-  const shadowChoices = SHADOWS_OPT_IN
-    ? [ [ "disabled", ShadowQuality.SHADOW_DISABLED ], [ "low", ShadowQuality.SHADOW_LOW ], [ "high", ShadowQuality.SHADOW_HIGH ] ]
-    : [ [ "disabled (?shadows=1 to offer)", ShadowQuality.SHADOW_DISABLED ] ];
+  const shadowChoices = [ [ "disabled", ShadowQuality.SHADOW_DISABLED ], [ "low", ShadowQuality.SHADOW_LOW ], [ "high", ShadowQuality.SHADOW_HIGH ] ];
   const shadows = row("shadows", choose(shadowChoices, driver.shadowQuality));
   shadows.addEventListener("change", () => { driver.shadowQuality = Number(shadows.value); });
 
@@ -3950,7 +3941,7 @@ export async function RunDemo(canvas)
       dna: DNA,
       stage: STAGE || "all",
       flare: flare.current,
-      shadowsOffered: SHADOWS_OPT_IN,
+      shadowsOffered: true,
       postOff: postState.off,
       postTemplate: postTemplate?.path ?? null,
       clientDefaults: clientState.enabled,
