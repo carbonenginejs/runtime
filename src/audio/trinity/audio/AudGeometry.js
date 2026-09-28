@@ -104,11 +104,11 @@ export class AudGeometry extends CjsModel
     const backend = AudGameObjResource.backend;
     for (const instanceId of geometryInstances.keys())
     {
-      backend?.RemoveGeometryInstance?.(instanceId);
+      backend?.RemoveGeometryInstance(instanceId);
     }
     for (const geometrySetId of geometrySets.keys())
     {
-      backend?.RemoveGeometry?.(geometrySetId);
+      backend?.RemoveGeometry(geometrySetId);
     }
     geometryInstances.clear();
     geometrySets.clear();
@@ -187,12 +187,12 @@ export class AudGeometry extends CjsModel
       return;
     }
     const backend = AudGameObjResource.backend;
-    backend?.RemoveGeometryInstance?.(instanceId);
+    backend?.RemoveGeometryInstance(instanceId);
     geometryInstances.delete(instanceId);
     set.refs--;
     if (set.refs <= 0)
     {
-      backend?.RemoveGeometry?.(geometrySetId);
+      backend?.RemoveGeometry(geometrySetId);
       geometrySets.delete(geometrySetId);
     }
   }

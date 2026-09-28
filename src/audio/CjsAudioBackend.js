@@ -15,6 +15,8 @@
 //   -> Promise<AudioBuffer|voice set>
 //   - the app wires the resource layer's wem->ogg->decode chain behind this.
 // - isLoop(eventName) - loop flag source (usually the static data repository).
+import * as CcpLog from "../global/logging/ccpLog.js";
+import { CjsSchema, impl } from "#schema";
 import { evaluateWwiseInterpolation } from "./internal/wwiseCurve.js";
 import {
     evaluateWwiseRtpcCurve,
@@ -453,6 +455,94 @@ export class CjsAudioBackend
         this._CancelObjectRtpcTransitions(gameObjID);
         this._objectRtpcValues.delete(gameObjID);
         this._objectSwitchValues.delete(gameObjID);
+    }
+
+    /** Whether the spatial-geometry warning has been logged for this backend. */
+    _spatialGeometryWarned = false;
+
+    /**
+     * Initializes Wwise Spatial Audio for geometry (`AK::SpatialAudio::Init`,
+     * reached from AudManager::InitSpatialAudioGeometry, AudManager.cpp:448-466).
+     *
+     * Not implemented: Carbon added spatial-audio geometry after this backend
+     * was ported; not ported yet. Reports failure, as a failed
+     * `AK::SpatialAudio::Init` does, so the manager treats geometry as
+     * unavailable.
+     *
+     * @param {object} _settings - AkSpatialAudioInitSettings values.
+     * @returns {boolean} Always false.
+     */
+    InitSpatialAudioGeometry(_settings)
+    {
+        this._WarnSpatialGeometryNotPorted();
+        return false;
+    }
+
+    /**
+     * Registers a geometry set (`AK::SpatialAudio::SetGeometry`,
+     * AudGeometry.cpp:76-118). Not implemented: Carbon added spatial-audio
+     * geometry after this backend was ported; not ported yet.
+     *
+     * @param {number} _geometrySetId - AkGeometrySetID.
+     * @param {object} _params - AkGeometryParams values.
+     * @returns {boolean} Always false: the set is not registered.
+     */
+    SetGeometry(_geometrySetId, _params)
+    {
+        this._WarnSpatialGeometryNotPorted();
+        return false;
+    }
+
+    /**
+     * Places an instance of a geometry set (`AK::SpatialAudio::SetGeometryInstance`,
+     * AudGeometry.cpp:127, :151). Not implemented: Carbon added spatial-audio
+     * geometry after this backend was ported; not ported yet.
+     *
+     * @param {number} _geometryInstanceId - AkGeometryInstanceID.
+     * @param {object} _params - AkGeometryInstanceParams values.
+     * @returns {boolean} Always false: the instance is not placed.
+     */
+    SetGeometryInstance(_geometryInstanceId, _params)
+    {
+        this._WarnSpatialGeometryNotPorted();
+        return false;
+    }
+
+    /**
+     * Removes a geometry set (`AK::SpatialAudio::RemoveGeometry`,
+     * AudGeometry.cpp:160-175). Not implemented: Carbon added spatial-audio
+     * geometry after this backend was ported; not ported yet. Nothing was
+     * registered, so there is nothing to remove.
+     *
+     * @param {number} _geometrySetId - AkGeometrySetID.
+     */
+    RemoveGeometry(_geometrySetId)
+    {
+        this._WarnSpatialGeometryNotPorted();
+    }
+
+    /**
+     * Removes a geometry instance (`AK::SpatialAudio::RemoveGeometryInstance`,
+     * AudGeometry.cpp:170). Not implemented: Carbon added spatial-audio
+     * geometry after this backend was ported; not ported yet.
+     *
+     * @param {number} _geometryInstanceId - AkGeometryInstanceID.
+     */
+    RemoveGeometryInstance(_geometryInstanceId)
+    {
+        this._WarnSpatialGeometryNotPorted();
+    }
+
+    /** Logs, once per backend, that spatial-audio geometry is not ported. */
+    _WarnSpatialGeometryNotPorted()
+    {
+        if (this._spatialGeometryWarned) return;
+        this._spatialGeometryWarned = true;
+        CcpLog.CCP_LOGWARN_CH(
+            CcpLog.GetModuleChannel("audio"),
+            "%s",
+            "CjsAudioBackend: spatial-audio geometry is not ported yet; geometry is ignored"
+        );
     }
 
     /** Permanently releases an emitter and every loaded or pending sound it owns. */
@@ -9890,4 +9980,10 @@ function EvaluateCrossfadeGain(from, to, progress, mode)
             : Math.cos(ratio * Math.PI / 2);
     }
     return from + (to - from) * ratio;
+}
+
+CjsSchema.define(CjsAudioBackend, { className: "CjsAudioBackend", family: "audio", fields: {} });
+for (const method of [ "InitSpatialAudioGeometry", "SetGeometry", "SetGeometryInstance", "RemoveGeometry", "RemoveGeometryInstance" ])
+{
+    CjsSchema.decorateMethod(CjsAudioBackend, method, impl.notImplemented);
 }

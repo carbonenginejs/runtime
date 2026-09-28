@@ -514,7 +514,7 @@ export class AudManager extends CjsModel
 
     const settings = this._spatialAudioSettings.PopulateInitSettings({});
 
-    if (backend.InitSpatialAudioGeometry?.(settings) === false)
+    if (backend.InitSpatialAudioGeometry(settings) === false)
     {
       return false;
     }

@@ -12363,3 +12363,28 @@ test("custom future-scheduled Sound limits fail closed before acquisition", asyn
   assert.deepEqual(finished, [ playingID ]);
   assert.equal(backend.GetPlayingCount(), 0);
 });
+
+test("spatial-audio geometry is declared not implemented and reports failure", async (t) =>
+{
+  // Carbon added Wwise Spatial Audio geometry after this backend was ported
+  // (AudManager.cpp:448-466, AudGeometry.cpp:76-175): the methods exist, report
+  // failure as AK::SpatialAudio does, and warn once per backend.
+  const CcpLog = await import("../../../npm/dist/global/logging/ccpLog.js");
+  const warnings = [];
+  const sink = (_channel, _type, _userData, message) => warnings.push(message);
+  CcpLog.UnregisterLogEcho(CcpLog.LogToDebugger);
+  CcpLog.RegisterLogEcho(sink, CcpLog.LogType.LOGTYPE_WARN);
+  t.after(() =>
+  {
+    CcpLog.UnregisterLogEcho(sink);
+    CcpLog.RegisterLogEcho(CcpLog.LogToDebugger);
+  });
+
+  const { backend } = Harness();
+  assert.equal(backend.InitSpatialAudioGeometry({}), false);
+  assert.equal(backend.SetGeometry(1, {}), false);
+  assert.equal(backend.SetGeometryInstance(2, {}), false);
+  assert.equal(backend.RemoveGeometryInstance(2), undefined);
+  assert.equal(backend.RemoveGeometry(1), undefined);
+  assert.equal(warnings.filter(message => message.includes("spatial-audio geometry is not ported")).length, 1);
+});
