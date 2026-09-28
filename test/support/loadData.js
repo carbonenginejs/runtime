@@ -1,6 +1,6 @@
 // TEST HELPER, not a runtime API.
 //
-// Plain decoded data is a resource's payload, not an object: GetObject answers
+// Plain decoded data is a resource's payload, not an object: LoadObject answers
 // objects only (a Target or Identify class, or a registered object builder;
 // operator ruling 2026-09-28), so tests that load data read it the way a
 // caller must - GetResource, Ready, then GetPayload.
@@ -10,7 +10,7 @@
  *
  * @param {object} resMan A CjsResMan.
  * @param {string} path Resource path.
- * @param {object} [options] Identity and loader options, as GetObject took them.
+ * @param {object} [options] Identity and loader options, as LoadObject took them.
  * @returns {Promise<*>} The resource's payload once ready.
  */
 export async function LoadData(resMan, path, options = {})

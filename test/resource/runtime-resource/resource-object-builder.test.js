@@ -5,7 +5,7 @@ import {
   CjsLoadingObject,
   CjsResMan,
   CjsResource
-} from "../../../src/resource/index.js";
+} from "../../../src/resource/index.js";
 import { LoadData } from "../../support/loadData.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call
@@ -82,9 +82,9 @@ test("concurrent callers joining one load each receive their own object", async 
   const { resMan, counter } = graphManager();
   const path = "res:/data/concurrent.graph";
   const [ a, b, c ] = await Promise.all([
-    resMan.GetObject(path),
-    resMan.GetObject(path),
-    resMan.GetObject(path)
+    resMan.LoadObject(path),
+    resMan.LoadObject(path),
+    resMan.LoadObject(path)
   ]);
   assert.notEqual(a, b);
   assert.notEqual(b, c);
@@ -125,7 +125,7 @@ test("RESOURCE-mode routes and routes without a Target keep their shared outcome
   assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
   assert.equal(CjsSchema.cast(semantic.GetPayload(), TestGraph), semantic.GetPayload());
   assert.equal(
-    await resMan.GetObject("res:/data/semantic.graph", { requirement: "semantic" }),
+    await resMan.LoadObject("res:/data/semantic.graph", { requirement: "semantic" }),
     semantic
   );
 
@@ -192,7 +192,7 @@ test("an object builder is parsed once and builds a new object for every caller"
   const path = "res:/data/one.obj";
   const first = await resMan.LoadObject(path);
   const second = await resMan.LoadObject(path);
-  const third = await resMan.GetObject(path);
+  const third = await resMan.LoadObject(path);
   assert.notEqual(first, second);
   assert.notEqual(second, third);
   assert.deepEqual(first, second);
@@ -257,9 +257,9 @@ test("GetObject refuses a load that yields plain data, and names GetResource", a
   // A bare loader returning data.
   resMan.RegisterObjectLoader("json", () => ({ plain: true }));
 
-  assert.throws(() => resMan.GetObject("res:/data/a.fmt"), refused);
-  assert.throws(() => resMan.GetObject("res:/data/a.json"), refused);
-  await assert.rejects(resMan.GetObject("res:/data/a.idtrue"), refused);
+  assert.throws(() => resMan.LoadObject("res:/data/a.fmt"), refused);
+  assert.throws(() => resMan.LoadObject("res:/data/a.json"), refused);
+  await assert.rejects(resMan.LoadObject("res:/data/a.idtrue"), refused);
   // The data is the resource's payload.
   assert.deepEqual((await LoadData(resMan, "res:/data/a.fmt")).list, [ 1, 2 ]);
   assert.deepEqual(await LoadData(resMan, "res:/data/a.json"), { plain: true });
@@ -269,9 +269,9 @@ test("GetObject refuses a load that yields plain data, and names GetResource", a
 
   // Negative controls: a Target route and a RESOURCE-mode type are answered.
   const { resMan: routed } = graphManager();
-  assert.equal(CjsSchema.cast(await routed.GetObject("res:/data/a.graph"), TestGraph) !== null, true);
+  assert.equal(CjsSchema.cast(await routed.LoadObject("res:/data/a.graph"), TestGraph) !== null, true);
   class TestSemanticResource extends CjsResource {}
   routed.RegisterResourceType("semantic", TestSemanticResource);
-  const semantic = await routed.GetObject("res:/data/s.graph", { requirement: "semantic" });
+  const semantic = await routed.LoadObject("res:/data/s.graph", { requirement: "semantic" });
   assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
 });

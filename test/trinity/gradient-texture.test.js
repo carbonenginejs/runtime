@@ -143,7 +143,7 @@ test("an invalid gradient fails its texture instead of reading a source", async 
   assert.equal(broken.IsFailed(), true);
   assert.equal(broken.error.code, "CJS_TEXTURE_PROCEDURAL_PATH_INVALID");
   await assert.rejects(
-    resMan.GetObject(`${GradientPrefix}!!!!`),
+    resMan.LoadObject(`${GradientPrefix}!!!!`),
     error => error.code === "CJS_TEXTURE_PROCEDURAL_PATH_INVALID"
   );
   assert.equal(reads, 0);

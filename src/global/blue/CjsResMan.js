@@ -1041,7 +1041,7 @@ export class CjsResMan
    * LoadObject does (BlueResMan.cpp:653, cache :722-773): `CreateBuilder(bytes,
    * context)` returns an IBlueObjectBuilder - anything with
    * `CreateObject(objectMarker)` - which the manager keeps as the payload.
-   * Every GetObject then builds a new object from it, so the parse is shared
+   * Every LoadObject then builds a new object from it, so the parse is shared
    * and no two callers share an object.
    *
    * @param {string} ext Input extension with or without a leading dot.
@@ -1413,7 +1413,7 @@ export class CjsResMan
     this._BindResourceLifecycle(cacheKey, canonical);
     this.motherLode.KeepAlive(cacheKey);
 
-    // A reload request drives its own load (ReloadResource / GetObject).
+    // A reload request drives its own load (ReloadResource / LoadObject).
     if (!existing && options.reload !== true) this._RequestResource(canonical, options);
 
     return canonical;
@@ -1465,13 +1465,13 @@ export class CjsResMan
    * @returns {Promise<*>} In-flight, resident, or reconstructed object outcome.
    * @throws {TypeError|Error} If path, identity, source, format, or conversion configuration is invalid.
    */
-  GetObject(path, options = {})
+  LoadObject(path, options = {})
   {
-    return this._GetObject(path, options, true);
+    return this._LoadObject(path, options, true);
   }
 
   /**
-   * GetObject's body. `build` false is the manager's own loaders (a
+   * LoadObject's body. `build` false is the manager's own loaders (a
    * resource's object loader, a reload candidate, a queued request): they
    * drive the load and receive the published outcome, and build no object
    * from a registered builder, since nobody receives it.
@@ -1481,7 +1481,7 @@ export class CjsResMan
    * @param {boolean} build Whether this call is a caller that receives an object.
    * @returns {Promise<*>} The object outcome, or the published outcome when not building.
    */
-  _GetObject(path, options, build)
+  _LoadObject(path, options, build)
   {
     const resource = this._GetResource(path, options);
     if (build) this._RequireObjectRoute(resource, path);
@@ -1534,7 +1534,7 @@ export class CjsResMan
       if (resource.IsLoading())
       {
         return new Promise((resolve, reject) => resource.OnCompleted(() => (resource.HasPayload()
-          ? resolve(this._GetObject(path, options, build))
+          ? resolve(this._LoadObject(path, options, build))
           : reject(resource.error || dynamicResourceError(resource.GetPath(), "",
             "CJS_RESMAN_DYNAMIC_RESOURCE_UNAVAILABLE", "dynamic resource finished without a payload")))));
       }
@@ -1575,7 +1575,7 @@ export class CjsResMan
   }
 
   /**
-   * What a settled load hands one GetObject caller: a new object when the load
+   * What a settled load hands one LoadObject caller: a new object when the load
    * kept a builder, the handle when it published a RESOURCE-mode resource, and
    * otherwise - plain values, e.g. an Identify that answered `true` - a refusal.
    *
@@ -1596,7 +1596,7 @@ export class CjsResMan
 
   /**
    * AN OBJECT KNOWS ITS CLASS (operator ruling, 2026-09-28): a load without one
-   * is a resource. GetObject answers a RESOURCE-mode handle (Carbon's
+   * is a resource. LoadObject answers a RESOURCE-mode handle (Carbon's
    * GetResource), a registered object builder (LoadObject), or a route that
    * hydrates a Target or an Identify class; anything that yields plain decoded
    * values - a format-only route, a bare loader - is refused, pointing at
@@ -1624,7 +1624,7 @@ export class CjsResMan
    */
   _RefusePlainObject(resource, path)
   {
-    throw new TypeError(`CjsResMan.GetObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
+    throw new TypeError(`CjsResMan.LoadObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
   }
 
   /**
@@ -1641,27 +1641,18 @@ export class CjsResMan
   }
 
   /**
-   * Loads and hydrates an object graph through the configured resource pipeline
-   * for the resource manager.
-   */
-  LoadObject(path, options = {})
-  {
-    return this.GetObject(path, options);
-  }
-
-  /**
    * Fetches and hydrates an object graph without retaining a resource handle for
    * the resource manager.
    */
   FetchObject(path, options = {})
   {
-    return this.GetObject(path, options);
+    return this.LoadObject(path, options);
   }
 
   /**
    * Read and atomically publish a distinct replacement object while the
    * former canonical resource remains available. This is the explicit form of
-   * `GetObject(path, { reload: true })`.
+   * `LoadObject(path, { reload: true })`.
    *
    * @param {string} path Carbon-style source resource path.
    * @param {object} [options={}] Identity, source, format, and queue settings.
@@ -1674,7 +1665,7 @@ export class CjsResMan
     {
       throw new TypeError("CjsResMan.ReloadObject options must be an object.");
     }
-    return this.GetObject(path, { ...options, reload: true });
+    return this.LoadObject(path, { ...options, reload: true });
   }
 
   /**
@@ -1889,7 +1880,7 @@ export class CjsResMan
     try
     {
       candidate.resource.SetObjectLoader(
-        loadOptions => this._GetObject(
+        loadOptions => this._LoadObject(
           candidate.resource.GetPath(),
           mergeResourceLoaderOptions(candidate.loaderOptions, loadOptions),
           false
@@ -2400,7 +2391,7 @@ export class CjsResMan
     if (resolved.loader && this._objectBuilderLoaders.has(resolved.loader))
     {
       // An IBlueObjectBuilder: the builder is what is published and kept as
-      // the payload. Objects are built in GetObject, one per caller, the
+      // the payload. Objects are built in LoadObject, one per caller, the
       // loading caller included - the load may have been started by the
       // resource's own object loader, whose result nobody receives.
       this._objectBuilders.set(resource, { Create: builder => builder.CreateObject(0), values, hydrated: values });
@@ -2535,7 +2526,7 @@ export class CjsResMan
         `dynamic constructor "${name}" returned no CjsResource-compatible resource`);
     }
     this._dynamicResources.add(resource);
-    resource.SetObjectLoader(() => this._GetObject(key, {}, false));
+    resource.SetObjectLoader(() => this._LoadObject(key, {}, false));
     const insertion = this.motherLode.Insert(cacheKey, resource, { replace: true, cacheable: constructor.IsCacheable() });
     const canonical = insertion?.resource || resource;
     this._BindResourceLifecycle(cacheKey, canonical);
@@ -3238,7 +3229,7 @@ export class CjsResMan
     resource.Initialize(path, ext, normalizeRequirement(options.requirement || options.payload || ""));
     const loaderOptions = getResourceLoaderOptions(options, options.source || this.source);
     resource.SetObjectLoader(
-      loadOptions => this._GetObject(
+      loadOptions => this._LoadObject(
         path,
         mergeResourceLoaderOptions(loaderOptions, loadOptions),
         false
@@ -3620,7 +3611,7 @@ export class CjsResMan
       this._BindResourceLifecycle(key, resource);
 
       // Failure is recorded on the resource and observed through `completed`.
-      this._GetObject(path, request, false).catch(() => {});
+      this._LoadObject(path, request, false).catch(() => {});
       return true;
     }
     catch

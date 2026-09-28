@@ -351,7 +351,7 @@ test("CjsResMan registers immutable extension handlers through every short form"
   const resource = await resMan.Fetch("res:/data/one.route");
   assert.equal(resource instanceof TestRouteResource, true);
   assert.deepEqual(resource.GetPayload(), { byte: 7 });
-  assert.equal(await resMan.GetObject("res:/data/one.route"), resource);
+  assert.equal(await resMan.LoadObject("res:/data/one.route"), resource);
 
   assert.throws(
     () => resMan.RegisterExtension("bad", class {}, TestRouteFormat),
@@ -429,7 +429,7 @@ test("CjsResMan object extension routes hydrate targets and retain captured rout
   assert.equal(semantic instanceof TestSemanticResource, true);
   assert.equal(semantic.GetPayload() instanceof TestTarget, true);
   assert.equal(
-    await resMan.GetObject("res:/data/semantic.typed", { requirement: "semantic" }),
+    await resMan.LoadObject("res:/data/semantic.typed", { requirement: "semantic" }),
     semantic
   );
 
@@ -2785,7 +2785,7 @@ test("semantic resource readiness resolves the resource and retains its plain pa
     resourceTypes: [ TestResource ]
   });
   const resource = resMan.GetResource("res:/data/value.semantic", options);
-  const first = resMan.GetObject("res:/data/value.semantic", options);
+  const first = resMan.LoadObject("res:/data/value.semantic", options);
   const second = resource.Ready();
 
   assert.equal(first, second);

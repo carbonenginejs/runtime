@@ -511,7 +511,7 @@ export class CjsCharacterLibrary extends CjsModel
      *
      * The extension-neutral name, `.dds` and `.png` address the same record.
      * An existing record is returned directly; otherwise the `.png` is
-     * requested raw through `resMan.GetObject`, and concurrent requests for one
+     * requested raw through `resMan.GetResource(...).Ready()`, and concurrent requests for one
      * identity share that operation. A discovered record is added through
      * `Create`, so it raises the ordinary `recordadded` event.
      */
@@ -535,7 +535,7 @@ export class CjsCharacterLibrary extends CjsModel
             {
                 // PNG inspection data is the resource's decoded output, not an
                 // object: read through the resource (Ready answers what the
-                // load published, as GetObject did before it served objects only).
+                // load published, as LoadObject did before it served objects only).
                 const request = { emit: "raw", cacheSource: true };
                 const payload = await resMan.GetResource(pngPath, request).Ready(request);
                 const metadata = payload?.metadata ?? payload;
