@@ -1484,6 +1484,7 @@ export class CjsResMan
   _GetObject(path, options, build)
   {
     const resource = this._GetResource(path, options);
+    if (build) this._RequireObjectRoute(resource, path);
     const operationOptions = mergeResourceLoaderOptions(
       resource.GetObjectRequest() || {},
       options
@@ -1505,9 +1506,7 @@ export class CjsResMan
       }
       const route = this._resourceExtensionRoutes.get(resource);
       if (!route?.Target && !route?.Identify) return existing.promise;
-      return existing.promise.then(result => this._objectBuilders.has(resource)
-        ? this._BuildObject(resource)
-        : result);
+      return existing.promise.then(result => (build ? this._ObjectOutcome(resource, path, result) : result));
     }
 
     if (resource.HasPayload())
@@ -1566,8 +1565,66 @@ export class CjsResMan
         this.objectOperations.delete(resource);
       }
     });
-    // A registered builder published itself: a caller builds its object.
-    return build && this._IsObjectBuilderResource(resource) ? promise.then(() => this._BuildObject(resource)) : promise;
+    // A registered builder published itself: a caller builds its object. An
+    // Identify route that answered plain values has no builder: refused.
+    if (!build) return promise;
+    if (this._IsObjectBuilderResource(resource)) return promise.then(() => this._BuildObject(resource));
+    return this._resourceExtensionRoutes.get(resource)?.Identify
+      ? promise.then(result => this._ObjectOutcome(resource, path, result))
+      : promise;
+  }
+
+  /**
+   * What a settled load hands one GetObject caller: a new object when the load
+   * kept a builder, the handle when it published a RESOURCE-mode resource, and
+   * otherwise - plain values, e.g. an Identify that answered `true` - a refusal.
+   *
+   * @param {CjsResource} resource Canonical resource.
+   * @param {string} path The requested path, for the message.
+   * @param {*} result The load's published outcome.
+   * @returns {*} The caller's object or resource handle.
+   * @throws {TypeError} When the load yielded plain values.
+   */
+  _ObjectOutcome(resource, path, result)
+  {
+    if (this._objectBuilders.has(resource)) return this._BuildObject(resource);
+    const route = this._resourceExtensionRoutes.get(resource) || null;
+    const mode = resolveResourceHandlerMode(resource, route ? this._resourceHandlerModes.get(resource) || null : null);
+    if (mode === ResourceHandlerMode.RESOURCE) return result;
+    return this._RefusePlainObject(resource, path);
+  }
+
+  /**
+   * AN OBJECT KNOWS ITS CLASS (operator ruling, 2026-09-28): a load without one
+   * is a resource. GetObject answers a RESOURCE-mode handle (Carbon's
+   * GetResource), a registered object builder (LoadObject), or a route that
+   * hydrates a Target or an Identify class; anything that yields plain decoded
+   * values - a format-only route, a bare loader - is refused, pointing at
+   * GetResource, whose payload holds those values.
+   *
+   * @param {CjsResource} resource Canonical resource.
+   * @param {string} path The requested path, for the message.
+   * @returns {void}
+   * @throws {TypeError} When the route yields plain values.
+   */
+  _RequireObjectRoute(resource, path)
+  {
+    const route = this._resourceExtensionRoutes.get(resource) || null;
+    const mode = resolveResourceHandlerMode(resource, route ? this._resourceHandlerModes.get(resource) || null : null);
+    if (mode === ResourceHandlerMode.RESOURCE) return;
+    if (route ? (route.Target || route.Identify) : this._IsObjectBuilderResource(resource)) return;
+    this._RefusePlainObject(resource, path);
+  }
+
+  /**
+   * @param {CjsResource} resource Canonical resource.
+   * @param {string} path The requested path.
+   * @returns {never}
+   * @throws {TypeError} Always.
+   */
+  _RefusePlainObject(resource, path)
+  {
+    throw new TypeError(`CjsResMan.GetObject: ${path} yields plain data, not an object; read it with GetResource(path), Ready() and GetPayload().`);
   }
 
   /**
@@ -1951,8 +2008,9 @@ export class CjsResMan
   }
 
   /**
-   * Fetches raw source bytes through the configured resource source for the
-   * resource manager.
+   * Fetches what a path is: an object (a route or builder that yields one,
+   * through FetchObject) or otherwise its resource (FetchResource), whose
+   * payload holds decoded values.
    */
   Fetch(path, options = {})
   {
@@ -1973,9 +2031,10 @@ export class CjsResMan
     const route = existing
       ? this._resourceExtensionRoutes.get(existing) || null
       : this.GetExtensionRoute(ext);
-    return route?.handlerMode === ResourceHandlerMode.RESOURCE
-      ? this.FetchResource(path, options)
-      : this.FetchObject(path, options);
+    const buildsObjects = route
+      ? route.handlerMode !== ResourceHandlerMode.RESOURCE && Boolean(route.Target || route.Identify)
+      : this._objectBuilderLoaders.has(this.GetObjectLoader(ext));
+    return buildsObjects ? this.FetchObject(path, options) : this.FetchResource(path, options);
   }
 
   /**

@@ -8,6 +8,7 @@ import {
   CjsResManQueue,
   CjsResManWorkQueue
 } from "../../../src/global/blue/CjsResManWorkQueue.js";
+import { LoadData } from "../../support/loadData.js";
 
 test("CjsResManWorkQueue preserves ids, pause state, and queued cancellation", async () => {
   assert.equal(RootCjsResManQueue, CjsResManQueue);
@@ -101,7 +102,7 @@ test("CjsResMan queues source load, CPU read, and publication separately", async
     return { bytes: value };
   });
 
-  const operation = resMan.LoadObject("res:/queue/example.bin");
+  const operation = LoadData(resMan, "res:/queue/example.bin");
   const resource = resMan.Lookup("res:/queue/example.bin");
   assert.equal(resource.state, "requested");
   assert.equal(resMan.GetPendingLoads(), 1);
@@ -152,8 +153,8 @@ test("resource variants share one queued source-load slot", async () => {
     }
   }).RegisterFormat(TestQueueVariantFormat);
 
-  const raw = resMan.LoadObject("res:/queue/shared.bin", { emit: "raw" });
-  const json = resMan.LoadObject("res:/queue/shared.bin", { emit: "json" });
+  const raw = LoadData(resMan, "res:/queue/shared.bin", { emit: "raw" });
+  const json = LoadData(resMan, "res:/queue/shared.bin", { emit: "json" });
   assert.equal(resMan.GetPendingLoads(), 1);
 
   resMan.PumpBackgroundQueue();
@@ -183,7 +184,7 @@ test("Wait captures dynamic resource descendants and excludes later queue tasks"
     releaseRead = () => resolve({ bytes });
   }));
 
-  const operation = resMan.LoadObject("res:/queue/wait-lineage.bin");
+  const operation = LoadData(resMan, "res:/queue/wait-lineage.bin");
   let waitSettled = false;
   const fence = resMan.Wait().then(value => {
     waitSettled = true;
@@ -261,7 +262,7 @@ test("Wait resolves after a captured resource lineage fails", async () => {
     throw new Error("expected resource-stage failure");
   });
 
-  const operation = resMan.LoadObject("res:/queue/wait-failure.bin");
+  const operation = LoadData(resMan, "res:/queue/wait-failure.bin");
   const operationFailure = assert.rejects(operation, /expected resource-stage failure/u);
   const fence = resMan.Wait();
   await operationFailure;
@@ -275,7 +276,7 @@ test("Clear cancellation settles an already captured resource lineage", async ()
     source: { Read() { return new Uint8Array([ 1 ]); } }
   });
   resMan.PauseQueue(CjsResManQueue.BACKGROUND);
-  const operation = resMan.LoadObject("res:/queue/wait-clear.bin");
+  const operation = LoadData(resMan, "res:/queue/wait-clear.bin");
   const resource = resMan.Lookup("res:/queue/wait-clear.bin");
   const operationFailure = assert.rejects(
     operation,
@@ -400,7 +401,7 @@ test("Clear during an active source read prevents late loading, preparation, and
     return bytes;
   });
 
-  const operation = resMan.LoadObject("res:/queue/stale-clear.bin");
+  const operation = LoadData(resMan, "res:/queue/stale-clear.bin");
   const resource = resMan.Lookup("res:/queue/stale-clear.bin");
   const operationFailure = assert.rejects(
     operation,
@@ -436,7 +437,7 @@ test("Delete during an active asynchronous CPU read drops the candidate before p
   }));
 
   const path = "res:/queue/stale-prepare.bin";
-  const operation = resMan.LoadObject(path);
+  const operation = LoadData(resMan, path);
   const resource = resMan.Lookup(path);
   resource.OnEvent?.("loaded", () => { publishEvents += 1; });
   const operationFailure = assert.rejects(
@@ -505,7 +506,7 @@ test("an atomic reload commits before an older canonical operation settles last"
   resMan.PauseQueue(CjsResManQueue.BACKGROUND);
 
   const path = "res:/queue/reload-generation.json";
-  const oldOperation = resMan.LoadObject(path);
+  const oldOperation = LoadData(resMan, path);
   const oldResource = resMan.Lookup(path);
   const oldFailure = assert.rejects(
     oldOperation,
@@ -704,13 +705,13 @@ test("reinserting the same JavaScript resource handle does not reuse its obsolet
 
   const path = "res:/queue/reinsert-generation.json";
   const options = { requirement: "singleton", cacheSource: false };
-  const oldOperation = resMan.LoadObject(path, options);
+  const oldOperation = LoadData(resMan, path, options);
   const oldFailure = assert.rejects(
     oldOperation,
     error => error.code === "CJS_RESMAN_STALE_RESOURCE_OPERATION"
   );
   assert.equal(resMan.Delete(path, options), true);
-  const replacementOperation = resMan.LoadObject(path, options);
+  const replacementOperation = LoadData(resMan, path, options);
 
   assert.notEqual(replacementOperation, oldOperation);
   assert.equal(resMan.Lookup(path, options), sharedResource);
@@ -741,7 +742,7 @@ test("MotherLode replacement rejects active queued and direct resource mutations
   });
   queuedManager.RegisterObjectLoader("bin", bytes => bytes);
   queuedManager.PauseQueue(CjsResManQueue.BACKGROUND);
-  const queuedOperation = queuedManager.LoadObject("res:/queue/replace-owner.bin");
+  const queuedOperation = LoadData(queuedManager, "res:/queue/replace-owner.bin");
   const queuedFailure = assert.rejects(
     queuedOperation,
     error => error.code === "CJS_RESMAN_QUEUE_CANCELLED"

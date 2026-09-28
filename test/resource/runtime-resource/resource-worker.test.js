@@ -11,6 +11,7 @@ import {
   CjsResManQueue
 } from "../../../src/resource/index.js";
 import { CjsResManWorker } from "../../../src/global/blue/worker/CjsResManWorker.js";
+import { LoadData } from "../../support/loadData.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../..");
 const workerFormatUrl = pathToFileURL(
@@ -208,7 +209,7 @@ test("CjsResMan loads through the worker when its source offers a worker request
   });
   resMan.RegisterObjectLoader("bin", input => new Uint8Array(input));
 
-  const operation = resMan.LoadObject("res:/worker/default.bin");
+  const operation = LoadData(resMan, "res:/worker/default.bin");
   assert.equal(resMan.PumpBackgroundQueue(), true);
   await WaitUntil(() => worker.messages.length === 1);
   const request = worker.messages[0].message;
@@ -397,7 +398,7 @@ test("CjsResMan sends worker-safe reads off the main queue and publishes on it",
     useWorkerLoading: true
   }).RegisterFormat(TestWorkerQueueFormat);
 
-  const operation = resMan.LoadObject("res:/worker/queue.workerqueue", {
+  const operation = LoadData(resMan, "res:/worker/queue.workerqueue", {
     emit: "raw"
   });
   assert.equal(resMan.IsWorkerLoading(), true);

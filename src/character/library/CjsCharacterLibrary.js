@@ -497,9 +497,9 @@ export class CjsCharacterLibrary extends CjsModel
     /** Supplies the resource manager used by extension-neutral data inspection. */
     SetResourceManager(resMan = null)
     {
-        if (resMan !== null && typeof resMan.GetObject !== "function")
+        if (resMan !== null && typeof resMan.GetResource !== "function")
         {
-            throw new TypeError("Character library resource manager must expose GetObject");
+            throw new TypeError("Character library resource manager must expose GetResource");
         }
 
         this._resourceManager = resMan;
@@ -524,19 +524,20 @@ export class CjsCharacterLibrary extends CjsModel
         const existing = this.Get("characterTextureMetadata", identity);
         if (existing) return existing;
 
-        if (!resMan || typeof resMan.GetObject !== "function")
+        if (!resMan || typeof resMan.GetResource !== "function")
         {
-            throw new TypeError("Character resource inspection requires resMan.GetObject");
+            throw new TypeError("Character resource inspection requires resMan.GetResource");
         }
 
         if (!this._textureMetadataRequests.has(identity))
         {
             const request = (async () =>
             {
-                const payload = await resMan.GetObject(pngPath, {
-                    emit: "raw",
-                    cacheSource: true
-                });
+                // PNG inspection data is the resource's decoded output, not an
+                // object: read through the resource (Ready answers what the
+                // load published, as GetObject did before it served objects only).
+                const request = { emit: "raw", cacheSource: true };
+                const payload = await resMan.GetResource(pngPath, request).Ready(request);
                 const metadata = payload?.metadata ?? payload;
                 const values = CjsCharacterTextureMetadata.fromPngInspection(
                     identity,

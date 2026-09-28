@@ -702,10 +702,10 @@ test("inspects extension-neutral resource data through one resident resource-man
     const events = [];
     const requests = [];
     const resMan = {
-        async GetObject(path, options)
+        GetResource(path, options)
         {
             requests.push([ path, options ]);
-            return {
+            return { Ready: async () => ({
                 metadata: {
                     sourceFormat: "png",
                     width: 1024,
@@ -713,7 +713,7 @@ test("inspects extension-neutral resource data through one resident resource-man
                     offset: { x: 250000, y: -125000, unit: 0 },
                     physicalPixelDimensions: { x: 500000, y: 1000000, unit: 0 }
                 }
-            };
+            }) };
         }
     };
 
@@ -845,10 +845,10 @@ test("asynchronous library loading preserves the configured resource manager", a
     const manager = new CjsCharacterLibraryManager(null, {
         resourceLoader: async () => value,
         resourceManager: {
-            async GetObject(path, options)
+            GetResource(path, options)
             {
                 requests.push([ path, options ]);
-                return {
+                return { Ready: async () => ({
                     metadata: {
                         sourceFormat: "png",
                         width: 128,
@@ -856,7 +856,7 @@ test("asynchronous library loading preserves the configured resource manager", a
                         offset: null,
                         physicalPixelDimensions: null
                     }
-                };
+                }) };
             }
         }
     });

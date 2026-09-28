@@ -3,6 +3,7 @@ import { deflateSync } from "node:zlib";
 import test from "node:test";
 import { CjsResMan } from "../../../../../src/global/blue/CjsResMan.js";
 import CjsPngFormat, { CjsPngFormat as NamedCjsPngFormat } from "../../../../../src/resource/formats/png/index.js";
+import { LoadData } from "../../../../support/loadData.js";
 
 test("exports default and named CjsPngFormat", () =>
 {
@@ -148,11 +149,13 @@ test("resource-manager raw PNG inspection reuses its resident resource", async (
         }
     }).RegisterFormat(CjsPngFormat);
 
-    const first = await resMan.GetObject("res:/character/example.png", {
+    // Raw inspection is data, read through the resource: resource semantics,
+    // one shared payload.
+    const first = await LoadData(resMan, "res:/character/example.png", {
         emit: "raw",
         cacheSource: true
     });
-    const second = await resMan.GetObject("res:/character/example.png", {
+    const second = await LoadData(resMan, "res:/character/example.png", {
         emit: "raw",
         cacheSource: true
     });

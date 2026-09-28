@@ -5,7 +5,8 @@ import {
   CjsLoadingObject,
   CjsResMan,
   CjsResource
-} from "../../../src/resource/index.js";
+} from "../../../src/resource/index.js";
+import { LoadData } from "../../support/loadData.js";
 
 // Carbon's LoadObject caches a builder and creates a new object per call
 // (BlueResMan.cpp:653-795). These pin that for routes that hydrate a Target.
@@ -128,14 +129,15 @@ test("RESOURCE-mode routes and routes without a Target keep their shared outcome
     semantic
   );
 
-  // Identify returning true publishes the decoded values themselves: data under
-  // the shared read-only payload rule, with no Carbon LoadObject counterpart.
+  // Identify returning true publishes the decoded values themselves: data, not
+  // an object, so it is read through the resource - one shared payload
+  // (resource semantics) - and GetObject refuses it (tested below).
   resMan.RegisterExtension("plain", CjsLoadingObject, {
     Format: TestGraphFormat,
     Identify() { return true; }
   });
-  const plainA = await resMan.Fetch("res:/data/value.plain");
-  const plainB = await resMan.Fetch("res:/data/value.plain");
+  const plainA = await LoadData(resMan, "res:/data/value.plain");
+  const plainB = await LoadData(resMan, "res:/data/value.plain");
   assert.equal(plainA, plainB);
 });
 
@@ -242,4 +244,34 @@ test("GetResource refuses an object file; a routed or plain extension still answ
   const { resMan: routed } = graphManager();
   assert.equal(typeof routed.GetResource("res:/data/a.graph").GetPath, "function");
   assert.equal(typeof resMan.GetResource("res:/data/plain.bin").GetPath, "function");
+});
+
+test("GetObject refuses a load that yields plain data, and names GetResource", async () =>
+{
+  const refused = /yields plain data, not an object; read it with GetResource/u;
+  const resMan = new CjsResMan({ source: { Read() { return new Uint8Array([ 1 ]); } } });
+  // A format-only route (no Target or Identify).
+  resMan.RegisterExtension("fmt", CjsLoadingObject, { Format: TestGraphFormat });
+  // Identify answering true (plain values) - refused once the load says so.
+  resMan.RegisterExtension("idtrue", CjsLoadingObject, { Format: TestGraphFormat, Identify() { return true; } });
+  // A bare loader returning data.
+  resMan.RegisterObjectLoader("json", () => ({ plain: true }));
+
+  assert.throws(() => resMan.GetObject("res:/data/a.fmt"), refused);
+  assert.throws(() => resMan.GetObject("res:/data/a.json"), refused);
+  await assert.rejects(resMan.GetObject("res:/data/a.idtrue"), refused);
+  // The data is the resource's payload.
+  assert.deepEqual((await LoadData(resMan, "res:/data/a.fmt")).list, [ 1, 2 ]);
+  assert.deepEqual(await LoadData(resMan, "res:/data/a.json"), { plain: true });
+  // Fetch answers what a path is: plain data comes back as its resource.
+  const fetched = await resMan.Fetch("res:/data/b.json");
+  assert.deepEqual(fetched.GetPayload(), { plain: true });
+
+  // Negative controls: a Target route and a RESOURCE-mode type are answered.
+  const { resMan: routed } = graphManager();
+  assert.equal(CjsSchema.cast(await routed.GetObject("res:/data/a.graph"), TestGraph) !== null, true);
+  class TestSemanticResource extends CjsResource {}
+  routed.RegisterResourceType("semantic", TestSemanticResource);
+  const semantic = await routed.GetObject("res:/data/s.graph", { requirement: "semantic" });
+  assert.equal(CjsSchema.cast(semantic, TestSemanticResource), semantic);
 });

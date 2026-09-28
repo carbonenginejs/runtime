@@ -9,6 +9,7 @@ import {
 import CjsPickleFormat, {
   CjsPickleFormat as NamedCjsPickleFormat
 } from "../../../../../src/resource/formats/pickle/index.js";
+import { LoadData } from "../../../../support/loadData.js";
 
 test("package subpath exports one public pickle format class", async () =>
 {
@@ -212,8 +213,9 @@ test("ResMan routes lowercase pickle resource context without domain coupling", 
     }
   });
 
+  // Identify answering true is data, read through the resource.
   assert.deepEqual(
-    await resMan.Fetch(" RES:\\Data\\Profile.PICKLE "),
+    await LoadData(resMan, " RES:\\Data\\Profile.PICKLE "),
     { value: 7 }
   );
   assert.equal(identifyContext.resFilePath, "res:/data/profile.pickle");

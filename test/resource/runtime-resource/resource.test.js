@@ -33,6 +33,7 @@ import {
   TriGrannyRes,
   getMotherLodeKey
 } from "../../../src/resource/index.js";
+import { LoadData } from "../../support/loadData.js";
 
 test("runtime-resource does not export an event scope layer", () => {
   assert.equal(runtimeResource.CjsEventEmitter, CjsEventEmitter);
@@ -469,7 +470,7 @@ test("CjsResMan ordered extension formats probe once and use only a final fallba
     TestAcceptedFormat,
     TestFallbackFormat
   ]);
-  assert.deepEqual(await resMan.Fetch("res:/data/value.ordered"), { accepted: true });
+  assert.deepEqual(await LoadData(resMan, "res:/data/value.ordered"), { accepted: true });
   assert.deepEqual(calls, [ "probe:reject", "probe:accept", "read:accept" ]);
 
   calls.length = 0;
@@ -499,8 +500,8 @@ test("CjsResMan uses Black-first content routing for both red and black suffixes
   resMan.RegisterExtension("red", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
   resMan.RegisterExtension("black", CjsLoadingObject, [ CjsBlackFormat, CjsRedFormat ]);
 
-  const fromRed = await resMan.Fetch("res:/data/value.red");
-  const fromBlack = await resMan.Fetch("res:/data/value.black");
+  const fromRed = await LoadData(resMan, "res:/data/value.red");
+  const fromBlack = await LoadData(resMan, "res:/data/value.black");
   assert.equal(fromRed.object._type, "TestRoot");
   assert.equal(fromRed.object.name, "yaml-content");
   assert.deepEqual(fromBlack, fromRed);
@@ -591,7 +592,7 @@ test("CjsResMan Register accepts composed extension route objects", async () =>
     Identify() { return true; }
   });
   assert.deepEqual(
-    await resMan.Fetch("res:/data/value.rawshape"),
+    await LoadData(resMan, "res:/data/value.rawshape"),
     { type: "known", value: 4 }
   );
 
@@ -649,7 +650,7 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
   });
 
   assert.deepEqual(
-    await resMan.Fetch(" RES:\\Character\\Folder\\Metadata.YAML "),
+    await LoadData(resMan, " RES:\\Character\\Folder\\Metadata.YAML "),
     { type: "context" }
   );
 
@@ -669,7 +670,7 @@ test("CjsResMan exposes normalized resource paths and exact translated URLs to f
   assert.equal(identifyContext.fileName, expected.fileName);
   assert.equal(identifyContext.url, expected.url);
 
-  await resMan.Fetch("res:/character/folder/metadata", { ext: ".YAML" });
+  await LoadData(resMan, "res:/character/folder/metadata", { ext: ".YAML" });
   assert.equal(formatContext.resFilePath, "res:/character/folder/metadata");
   assert.equal(formatContext.fileName, "metadata");
   assert.equal(formatContext.ext, "yaml");
@@ -797,7 +798,7 @@ test("bound resource handles keep their promised output during reconstruction", 
   assert.deepEqual(await resource.Ready({ emit: "gr2" }), { emit: "cmf", reads: 1 });
   resource.ReleasePayload();
   assert.deepEqual(
-    await resMan.GetObject(path, { variant: "cmf", emit: "gr2" }),
+    await LoadData(resMan, path, { variant: "cmf", emit: "gr2" }),
     { emit: "cmf", reads: 2 }
   );
   assert.equal(resMan.motherLode.GetSize(), 1);
@@ -1526,7 +1527,7 @@ test("CjsResMan automatic purge protects queued resource work with a balanced lo
   });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
-  const operation = resMan.GetObject("res:/data/active-load.json");
+  const operation = LoadData(resMan, "res:/data/active-load.json");
   const resource = resMan.Lookup("res:/data/active-load.json");
   assert.equal(motherLode.GetStats().locked, 1);
 
@@ -2015,7 +2016,7 @@ test("Tr2EffectRes and Tr2ImageRes are semantic resources", () => {
   assert.equal(image.GetBitmap(), imageBitmap);
 });
 
-test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource prepared", async () => {
+test("CjsResMan reads source through a registered loader and marks the resource prepared", async () => {
   let loaderContext = null;
   const records = new Map([
     [ "res:/data/example.json", "{\"name\":\"example\"}" ]
@@ -2033,7 +2034,7 @@ test("CjsResMan.LoadObject reads source, dispatches loaders, and marks resource 
     return JSON.parse(value);
   });
 
-  const object = await resMan.LoadObject("RES:/data/example.JSON");
+  const object = await LoadData(resMan, "RES:/data/example.JSON");
   const resource = resMan.Lookup("res:/data/example.json");
 
   assert.deepEqual(object, { name: "example" });
@@ -2081,15 +2082,20 @@ test("registered formats and resource readiness share one object operation", asy
 
   const resMan = new CjsResMan({ source }).RegisterFormat(TestFormat);
   const resource = resMan.GetResource("res:/data/shared.one", { emit: "raw" });
-  const first = resMan.GetObject("res:/data/shared.one", { emit: "raw" });
+  const first = resource.Ready({ emit: "raw" });
   const second = resource.GetObject({ emit: "raw" });
   const third = resource.Ready({ emit: "raw" });
+  // Plain data is read through its resource (GetObject answers objects only):
+  // a manager-level read joins the same operation - one source and one format
+  // read below - rather than being the same promise.
+  const viaManager = LoadData(resMan, "res:/data/shared.one", { emit: "raw" });
 
   assert.equal(resMan.ResolveFormat("two", { emit: "raw" }), TestFormat);
   assert.deepEqual(resMan.GetFormats("one"), [ TestFormat ]);
   assert.equal(first, second);
   assert.equal(first, third);
   assert.equal(await first, bytes);
+  assert.equal(await viaManager, bytes);
   assert.equal(formatInput, bytes);
   assert.equal(sourceReads, 1);
   assert.equal(formatReads, 1);
@@ -2116,16 +2122,20 @@ test("generic payloads release and reconstruct only on explicit object use", asy
   const path = "res:/data/reconstruct.json";
   const resource = resMan.GetResource(path);
   const first = resource.Ready();
-  const concurrent = resMan.GetObject(path);
+  const concurrent = resource.GetObject();
+  // The manager-level read of plain data goes through the resource and joins
+  // this operation: one source read, the same payload.
+  const viaManager = LoadData(resMan, path);
 
   assert.equal(first, concurrent);
   const firstObject = await first;
+  assert.equal(await viaManager, firstObject);
   assert.deepEqual(firstObject, { revision: 1 });
   assert.equal(resource.GetPayload(), firstObject);
   assert.equal(resource.object, firstObject);
   assert.equal(motherLode.GetStats().payloads, 1);
 
-  const resident = resMan.GetObject(path);
+  const resident = LoadData(resMan, path);
   assert.notEqual(resident, first);
   assert.equal(await resident, firstObject);
   assert.equal(sourceReads, 1);
@@ -2186,7 +2196,7 @@ test("failed object operations are removed so explicit retry can succeed", async
   });
   resMan.RegisterObjectLoader("json", value => JSON.parse(value));
 
-  await assert.rejects(resMan.GetObject(path), /expected source failure/u);
+  await assert.rejects(LoadData(resMan, path), /expected source failure/u);
   const resource = resMan.Lookup(path);
   assert.equal(resource.IsFailed(), true);
 
@@ -2226,7 +2236,7 @@ test("reload replaces retained source and format results for later reconstructio
 
   const path = "res:/data/value.reloadcache";
   const resMan = new CjsResMan({ source }).RegisterFormat(TestReloadCacheFormat);
-  const firstObject = await resMan.GetObject(path, {
+  const firstObject = await LoadData(resMan, path, {
     emit: "raw",
     sourceRevision: "r1",
     cacheSource: true,
@@ -2236,7 +2246,7 @@ test("reload replaces retained source and format results for later reconstructio
   assert.deepEqual(firstObject, { revision: 1 });
 
   revision = 2;
-  const replacementObject = await resMan.ReloadObject(path, {
+  const replacementObject = await LoadData(resMan, path, { reload: true,
     emit: "raw",
     sourceRevision: "r2",
     cacheSource: true,
@@ -2353,7 +2363,7 @@ test("source revision scopes shared source and parsed format operations", async 
 
   const path = "res:/data/value.revisioncache";
   const resMan = new CjsResMan({ source }).RegisterFormat(TestRevisionCacheFormat);
-  const revisionOneA = await resMan.GetObject(path, {
+  const revisionOneA = await LoadData(resMan, path, {
     variant: "revision-one-a",
     requirement: "one-a",
     emit: "raw",
@@ -2361,13 +2371,13 @@ test("source revision scopes shared source and parsed format operations", async 
     cacheSource: true,
     cacheFormat: true
   });
-  const revisionOneB = await resMan.GetObject(path, {
+  const revisionOneB = await LoadData(resMan, path, {
     variant: "revision-one-b",
     requirement: "one-b",
     emit: "raw",
     sourceRevision: 1
   });
-  const revisionTwo = await resMan.GetObject(path, {
+  const revisionTwo = await LoadData(resMan, path, {
     variant: "revision-two",
     requirement: "two",
     emit: "raw",
@@ -2405,7 +2415,7 @@ test("format caches isolate source objects and registration descriptors", async 
   const path = "res:/data/value.descriptorcache";
   const resMan = new CjsResMan({ source: sourceA })
     .RegisterFormat(TestDescriptorCacheFormat, { multiplier: 1 });
-  const fromA = await resMan.GetObject(path, {
+  const fromA = await LoadData(resMan, path, {
     variant: "source-a",
     source: sourceA,
     requirement: "source-a",
@@ -2414,7 +2424,7 @@ test("format caches isolate source objects and registration descriptors", async 
     cacheSource: true,
     cacheFormat: true
   });
-  const fromB = await resMan.GetObject(path, {
+  const fromB = await LoadData(resMan, path, {
     variant: "source-b",
     source: sourceB,
     requirement: "source-b",
@@ -2427,7 +2437,7 @@ test("format caches isolate source objects and registration descriptors", async 
   assert.deepEqual(fromB, { value: 7, formatRead: 2 });
 
   resMan.RegisterFormat(TestDescriptorCacheFormat, { multiplier: 3 });
-  const reregistered = await resMan.GetObject(path, {
+  const reregistered = await LoadData(resMan, path, {
     variant: "descriptor-v2",
     source: sourceA,
     requirement: "descriptor-v2",
@@ -2435,7 +2445,7 @@ test("format caches isolate source objects and registration descriptors", async 
     sourceRevision: 1,
     cacheFormat: true
   });
-  const bypassed = await resMan.GetObject(path, {
+  const bypassed = await LoadData(resMan, path, {
     variant: "descriptor-bypass",
     source: sourceA,
     requirement: "descriptor-bypass",
@@ -2443,7 +2453,7 @@ test("format caches isolate source objects and registration descriptors", async 
     sourceRevision: 1,
     cacheFormat: false
   });
-  const retained = await resMan.GetObject(path, {
+  const retained = await LoadData(resMan, path, {
     variant: "descriptor-v2",
     source: sourceA,
     requirement: "descriptor-retained",
@@ -2487,7 +2497,7 @@ test("format cache identity distinguishes same-named class constructors", async 
 
   const path = "res:/data/classes.classidentity";
   const resMan = new CjsResMan({ source }).RegisterFormat(TestClassIdentityFormat);
-  const first = await resMan.GetObject(path, {
+  const first = await LoadData(resMan, path, {
     variant: "class-a",
     requirement: "class-a",
     emit: "raw",
@@ -2496,7 +2506,7 @@ test("format cache identity distinguishes same-named class constructors", async 
     cacheSource: true,
     cacheFormat: true
   });
-  const second = await resMan.GetObject(path, {
+  const second = await LoadData(resMan, path, {
     variant: "class-b",
     requirement: "class-b",
     emit: "raw",
@@ -2533,7 +2543,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
   const path = "res:/data/options.noncanonical";
   const formatOptions = { timestamp: new Date(0) };
   const resMan = new CjsResMan({ source }).RegisterFormat(TestNonCanonicalCacheFormat);
-  const first = await resMan.GetObject(path, {
+  const first = await LoadData(resMan, path, {
     variant: "noncanonical-a",
     requirement: "noncanonical-a",
     emit: "raw",
@@ -2542,7 +2552,7 @@ test("non-canonical format options bypass retained format sharing", async () =>
     cacheSource: true,
     cacheFormat: true
   });
-  const second = await resMan.GetObject(path, {
+  const second = await LoadData(resMan, path, {
     variant: "noncanonical-b",
     requirement: "noncanonical-b",
     emit: "raw",
@@ -2586,7 +2596,7 @@ test("registered format defaults are deeply snapshotted", async () =>
   defaults.offsets[1].value = 30;
 
   const descriptor = resMan.GetFormatDescriptors("defaultsnapshot")[0];
-  assert.equal(await resMan.GetObject(path, { emit: "raw" }), 12);
+  assert.equal(await LoadData(resMan, path, { emit: "raw" }), 12);
 });
 
 test("joined cache retention upgrades and cache false bypasses source sharing", async () =>
@@ -2740,7 +2750,7 @@ test("released resources retain source provenance but not cache policy", async (
 
   resource.ReleasePayload();
   assert.deepEqual(
-    await resMan.GetObject(path, {
+    await LoadData(resMan, path, {
       source: laterDefaultSource,
       sourceRevision: "different-v2"
     }),
@@ -2814,8 +2824,8 @@ test("different outcomes use distinct resources while sharing source bytes", asy
     }
   }).RegisterFormat(TestFormat);
 
-  const raw = resMan.GetObject("res:/data/value.test", { emit: "raw" });
-  const json = resMan.GetObject("res:/data/value.test", { emit: "json" });
+  const raw = LoadData(resMan, "res:/data/value.test", { emit: "raw" });
+  const json = LoadData(resMan, "res:/data/value.test", { emit: "json" });
   const rawResource = resMan.Lookup("res:/data/value.test", { emit: "raw" });
   const jsonResource = resMan.Lookup("res:/data/value.test", { emit: "json" });
 
