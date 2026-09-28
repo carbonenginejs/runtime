@@ -371,6 +371,35 @@ export class Tr2Effect extends Tr2Material
     return this.shader === null ? false : !!requireShader(this.shader).GetConstant(parameterName);
   }
 
+  /**
+   * Carbon `Tr2Effect::Render` (`Tr2Effect.cpp:1491-1512`): for each pass of
+   * technique 0, applies the pass's state and this effect's material data,
+   * then asks the callback to submit its geometry. Without a shader it draws
+   * nothing. The callback is Carbon's `IRenderCallback`: anything with
+   * `SubmitGeometry(renderContext)`, such as Tr2GpuParticleSystem.
+   *
+   * @param {object} callback The geometry source, with `SubmitGeometry`.
+   * @param {object} renderContext The context to draw on.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  Render(callback, renderContext)
+  {
+    const shader = this.GetShaderStateInterface();
+
+    if (!shader) return;
+
+    const passCount = shader.GetPassCount(0);
+
+    for (let passIndex = 0; passIndex < passCount; passIndex++)
+    {
+      shader.ApplyAllStateForPass(0, passIndex, renderContext);
+      this.ApplyMaterialDataForPass(0, passIndex, renderContext);
+      callback.SubmitGeometry(renderContext);
+    }
+  }
+
   /** Carbon method StartUpdate (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented

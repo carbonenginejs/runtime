@@ -373,6 +373,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     {
       this.#SetCameraToRenderer(renderContext);
       this.scene.Update(realTime, simTime);
+      this.UpdateGpuParticleSystem(renderContext);
       return false;
     }
 
@@ -428,6 +429,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
       this.#SetCameraToRenderer(renderContext);
 
       this.scene.Update(realTime, simTime);
+      this.UpdateGpuParticleSystem(renderContext);
 
       // THE SCENE DEPTH IS A GLOBAL, "DepthMap" (cpp:494): TAA, the circle of
       // confusion and the fog composite sample it by name. A texture variable
@@ -801,6 +803,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
         renderContext.SetReadOnlyDepth(false);
       }
     }
+
+    // THE GPU PARTICLES (EveSpaceScene.cpp:2766-2771), after the transparent
+    // and distortion batches.
+    this.scene.GetGpuParticleSystem()?.Render(renderContext);
 
     // cpp:557 - the shadow globals are emptied after the main pass.
     if (offscreen?.shadows) EveSpaceScene.registerWithVariableStore(EveSpaceSceneRenderDriver.#noShadowResources, this.#gpuResourcePool);
@@ -1204,6 +1210,26 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     [ TriBatchType.TRIBATCHTYPE_TRANSPARENT, RenderingMode.RM_ALPHA ],
     [ TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE ]
   ]);
+
+  /**
+   * Carbon UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642):
+   * after the scene update, the per-frame data the particle kernels read, then
+   * the particle system's update. Carbon's GPU region is not ported.
+   *
+   * @param {object} renderContext The Tr2RenderContext.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  UpdateGpuParticleSystem(renderContext)
+  {
+    const ps = this.scene.GetGpuParticleSystem();
+
+    if (!ps) return;
+
+    this.scene.PopulateAndApplyPerFrameData(renderContext);
+    ps.Update(this.scene.updateTime, this.scene.updateContext.GetOriginShift(), renderContext);
+  }
 
   /**
    * Puts this frame's projection and view onto the render context, and derives

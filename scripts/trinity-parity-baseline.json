@@ -519,6 +519,7 @@
     "omitted Tr2GpuBuffer.OnModified",
     "omitted Tr2GpuBuffer.OnPrepareResources",
     "omitted Tr2GpuBuffer.ReleaseResources",
+    "omitted Tr2GpuParticleSystem.EmitterParamsGpu",
     "omitted Tr2GpuSharedEmitter.GenerateID",
     "omitted Tr2GpuSharedEmitter.GetHash",
     "omitted Tr2GpuSharedEmitter.GetID",

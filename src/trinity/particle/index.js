@@ -1,3 +1,4 @@
+export * from "./Tr2GpuParticleSystem.js";
 export * from "./Tr2ParticleSystem.js";
 export * from "./ITr2GenericEmitter/index.js";
 export * from "./attribute/index.js";

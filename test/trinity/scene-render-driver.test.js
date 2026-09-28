@@ -69,6 +69,8 @@ function sceneRecording(calls)
     RenderDepthPass(depthMap, normalMap, customStencil, renderContext, techniqueName) { calls.push([ "RenderDepthPass", normalMap, techniqueName ]); },
     RenderShadows() { calls.push([ "RenderShadows" ]); return null; },
     UpdateVariableStore() { calls.push([ "UpdateVariableStore" ]); },
+    // EveSpaceScene.h:522-525; no GPU particle system in these frames.
+    GetGpuParticleSystem() { return null; },
     viewLast: new Float32Array(16),
     projectionLast: new Float32Array(16),
     jitteredProjection: Float32Array.of(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1),
@@ -170,6 +172,33 @@ test("the frame runs Carbon's order", () =>
     // Then the last-frame store (cpp:2866-2868, driver :597-598).
     "EndRender"
   ]);
+});
+
+test("a GPU particle system updates after the scene and renders in the main pass", () =>
+{
+  // UpdateGpuParticleSystem (EveSpaceSceneRenderDriver.cpp:634-642), called
+  // after the scene update (:479-481); the render after the transparent and
+  // distortion batches (EveSpaceScene.cpp:2766-2771). The order test above,
+  // with no system, is the negative control: neither call appears there.
+  const calls = [];
+  const driver = driverOver(calls);
+  const ps = {
+    Update(time, originShift) { calls.push([ "ParticlesUpdate", time, originShift ]); },
+    Render() { calls.push([ "ParticlesRender" ]); }
+  };
+  driver.scene.GetGpuParticleSystem = () => ps;
+  driver.scene.PopulateAndApplyPerFrameData = () => calls.push([ "PopulateAndApplyPerFrameData" ]);
+  driver.scene.updateTime = 2;
+  driver.scene.updateContext.GetOriginShift = () => "shift";
+
+  assert.equal(driver.Execute([ StubTarget() ], null, 1, 2, null, StubContext()), true);
+
+  const names = calls.map(([ name ]) => name);
+  const update = names.indexOf("Update");
+  assert.deepEqual(names.slice(update, update + 3), [ "Update", "PopulateAndApplyPerFrameData", "ParticlesUpdate" ]);
+  assert.deepEqual(calls[update + 2], [ "ParticlesUpdate", 2, "shift" ], "the scene's update time and origin shift");
+  assert.equal(names.filter(name => name === "ParticlesRender").length, 1);
+  assert.ok(names.indexOf("ParticlesRender") < names.indexOf("EndRender"), "within the frame, before EndRender");
 });
 
 test("the camera reaches the renderer before the scene updates", () =>

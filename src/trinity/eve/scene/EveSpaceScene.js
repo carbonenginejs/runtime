@@ -564,6 +564,46 @@ export class EveSpaceScene extends CjsModel
   // Tr2Renderer view statics.
   updateContext = new EveUpdateContext();
 
+  /**
+   * MAP_PROPERTY "gpuParticleSystem" (EveSpaceScene_Blue.cpp:472): the GPU
+   * particle system, held by the update context, which hands it to emitters.
+   */
+  @type.objectRef("Tr2GpuParticleSystem")
+  get gpuParticleSystem()
+  {
+    return this.GetGpuParticleSystem();
+  }
+
+  /** MAP_PROPERTY "gpuParticleSystem"; see the getter. */
+  set gpuParticleSystem(ps)
+  {
+    this.SetGpuParticleSystem(ps);
+  }
+
+  /**
+   * Carbon GetGpuParticleSystem (EveSpaceScene.h:522-525).
+   *
+   * @returns {object|null} The Tr2GpuParticleSystem, or null.
+   */
+  @carbon.method
+  @impl.implemented
+  GetGpuParticleSystem()
+  {
+    return this.updateContext.GetGpuParticleSystem();
+  }
+
+  /**
+   * Carbon SetGpuParticleSystem (EveSpaceScene.h:526-529).
+   *
+   * @param {object|null} ps The Tr2GpuParticleSystem, or null.
+   */
+  @carbon.method
+  @impl.implemented
+  SetGpuParticleSystem(ps)
+  {
+    this.updateContext.SetGpuParticleSystem(ps);
+  }
+
   // Carbon m_sceneDefaultPostProcessAttributes (EveSpaceScene.h:640, ctor
   // CreateInstance cpp:296): the scene default's attribute snapshot, refreshed
   // by UpdatePostProcessAttributes each frame.
@@ -2099,6 +2139,23 @@ export class EveSpaceScene extends CjsModel
       pointLightShadowMap: new GpuResourceHandle(),
       pointLightShadowDepth: new GpuResourceHandle()
     };
+  }
+
+  /**
+   * Carbon EveSpaceScene::PopulateAndApplyPerFrameData: fills both per-frame
+   * blocks and binds them. The render driver runs it before the GPU particle
+   * update, whose kernels read the per-frame data.
+   *
+   * @param {Tr2RenderContext} renderContext The context to bind on.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  PopulateAndApplyPerFrameData(renderContext)
+  {
+    this.PopulatePerFramePSData(renderContext);
+    this.PopulatePerFrameVSData(renderContext);
+    this.ApplyPerFrameData(renderContext);
   }
 
   /**

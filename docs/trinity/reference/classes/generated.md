@@ -100,16 +100,6 @@ Models Carbon's cached font-glyph wrapper, including placement coordinates and b
 - Visibility: Public
 - Kind: Carbon generated
 
-<!-- class:Tr2GpuParticleSystem -->
-## `Tr2GpuParticleSystem`
-
-Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages.
-
-- Export: `@carbonenginejs/runtime/trinity/generated`
-- Source: `src/trinity/generated/particle/Tr2GpuParticleSystem.js`
-- Visibility: Public
-- Kind: Carbon generated
-
 <!-- class:Tr2RaytracingGeometry -->
 ## `Tr2RaytracingGeometry`
 
@@ -399,3 +389,22 @@ Models Carbon's caller-owned texture pointer wrapper without claiming responsibi
 - Source: `src/trinity/generated/trinityCore/Tr2TransientTextureReference.js`
 - Visibility: Public
 - Kind: Carbon generated
+
+<!-- class:Tr2GpuParticleSystem -->
+## `Tr2GpuParticleSystem`
+
+Describes the GPU particle pipeline's capacity, visible-count controls, and compute and render effect stages.
+
+- Export: `@carbonenginejs/runtime/trinity/particle`
+- Source: `src/trinity/particle/Tr2GpuParticleSystem.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2GpuParticleSystemEmitterParamsGpu -->
+## `Tr2GpuParticleSystemEmitterParamsGpu`
+
+Carbon's Tr2GpuParticleSystem::EmitterParamsGpu (Tr2GpuParticleSystem.h:179-201).
+
+- Source: `src/trinity/particle/Tr2GpuParticleSystemEmitterParamsGpu.js`
+- Visibility: Internal
+- Kind: Carbon

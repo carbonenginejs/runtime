@@ -1888,6 +1888,11 @@
       "family": "eve/smartLights",
       "className": "EveSmartLightSpotLight",
       "reason": "hand-maintained source exists"
+    },
+    {
+      "family": "particle",
+      "className": "Tr2GpuParticleSystem",
+      "reason": "hand-maintained source exists"
     }
   ],
   "enumSkipped": [

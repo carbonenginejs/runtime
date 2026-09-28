@@ -43,6 +43,9 @@ const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
 /** Carbon DEFAULT_TECHNIQUE (Tr2RenderContext.h:37). */
 const DEFAULT_TECHNIQUE = "Main";
 
+/** The six frustum-plane variable names, by Carbon's plane index (Tr2Renderer.cpp:338-343). */
+const FRUSTUM_PLANES = [ "FrustumPlane0", "FrustumPlane1", "FrustumPlane2", "FrustumPlane3", "FrustumPlane4", "FrustumPlane5" ];
+
 /** Tr2RenderContext (trinityCore) - generated from schema shapeHash 73e2a4e7.... */
 @type.define({ className: "Tr2RenderContext", family: "trinityCore" })
 export class Tr2RenderContext extends CjsModel
@@ -1041,6 +1044,50 @@ export class Tr2RenderContext extends CjsModel
       startVertexLocation,
       startInstanceLocation
     );
+  }
+
+  /**
+   * Draws non-indexed with the arguments read from a buffer at a byte offset
+   * (`Tr2RenderContextDx11.h:130`). Carbon passes a `Tr2GpuBuffer` through its
+   * `operator Tr2BufferAL&` (`Tr2GpuBuffer.h:61`); callers here pass its
+   * `GetGpuBuffer()`.
+   *
+   * @param {object} params A `Tr2BufferAL` holding the draw arguments.
+   * @param {number} [offset] Byte offset of them.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
+   */
+  DrawInstancedIndirect(params, offset = 0)
+  {
+    return this.#requireAL("DrawInstancedIndirect").DrawInstancedIndirect(params, offset);
+  }
+
+  /**
+   * Draws indexed with the arguments read from a buffer at a byte offset
+   * (`Tr2RenderContextDx11.h:129`).
+   *
+   * @param {object} params A `Tr2BufferAL` holding the draw arguments.
+   * @param {number} [offset] Byte offset of them.
+   * @returns {number} An `ALResult`: whether the AL accepted it.
+   */
+  DrawIndexedInstancedIndirect(params, offset = 0)
+  {
+    return this.#requireAL("DrawIndexedInstancedIndirect").DrawIndexedInstancedIndirect(params, offset);
+  }
+
+  /**
+   * Carbon `Tr2Renderer::GetFrustumPlane` (`Tr2Renderer.cpp:525-528`): one of
+   * the six frustum planes UpdateViewProjectionTransform derives. Carbon keeps
+   * them as Tr2Renderer statics; here the render context holds Tr2Renderer's
+   * camera state (see #UpdateViewProjectionTransform), so the plane is read
+   * from the same registered variable.
+   *
+   * @param {number} index The plane, 0 to 5.
+   * @param {Float32Array|number[]} out Receives the plane's four components.
+   * @returns {Float32Array|number[]} `out`.
+   */
+  GetFrustumPlane(index, out)
+  {
+    return Tr2RenderContext.#CameraVariables()[FRUSTUM_PLANES[index]].GetValue(out);
   }
 
   /**
