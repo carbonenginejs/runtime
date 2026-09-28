@@ -116,6 +116,7 @@ import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
+import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
 import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
@@ -3285,21 +3286,14 @@ export async function RunDemo(canvas)
         return overlay;
       });
 
-      // STOPGAP FOR THE LIST NOTIFICATION. Carbon registers an inserted object
-      // and unregisters a removed one in EveSpaceScene::OnListModified
-      // (cpp:3414-3491, BELIST_INSERTED / BELIST_REMOVED), which is not ported:
-      // our object lists are plain arrays. Late objects join through
-      // ReregisterEntities, and the replaced ship leaves through UnRegister,
-      // or its lights and post-process owners would stay in the registry.
-      realScene.objects.push(next);
-      realScene.ReregisterEntities();
+      // The notified list: adding raises EveSpaceScene.OnListModified, which
+      // registers the new ship as Carbon's BlueList insert does (cpp:3414-3491).
+      CjsModel.addChild(realScene, "objects", next);
       const duration = overlays[0].curveSet.GetMaxCurveDuration();
       await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
 
-      const oldIndex = realScene.objects.indexOf(old);
-      if (oldIndex === -1) throw new Error("skin change: the old ship is no longer in the scene");
-      realScene.objects.splice(oldIndex, 1);
-      old.UnRegister(realScene.componentRegistry);
+      // Removing through the notified list unregisters the replaced ship.
+      if (!CjsModel.removeChild(realScene, "objects", old)) throw new Error("skin change: the old ship is no longer in the scene");
       next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
       next.clipSphereFactor = 0;
       next.clipSphereFactor2 = 0;
@@ -3945,24 +3939,15 @@ export async function RunDemo(canvas)
   );
 
   // THE VOLUME IS IN THE SCENE ONLY WHILE A LOCATION IS CHOSEN, as a site's
-  // volume exists only at the site. Added after Initialize it joins the
-  // component registry - as a PostProcessOwner the merge reads - through
-  // ReregisterEntities, and leaves through UnRegister: the stopgap for
-  // EveSpaceScene::OnListModified (cpp:3414-3491), which is not ported.
+  // volume exists only at the site. Added and removed through the notified
+  // list, it joins and leaves the component registry - as a PostProcessOwner
+  // the merge reads - through EveSpaceScene.OnListModified (cpp:3414-3491).
   const AttachLocation = attach =>
   {
     if (!realScene) return;
-    const index = realScene.objects.indexOf(locationPost.root);
-    if (attach && index === -1)
-    {
-      realScene.objects.push(locationPost.root);
-      realScene.ReregisterEntities();
-    }
-    else if (!attach && index !== -1)
-    {
-      realScene.objects.splice(index, 1);
-      locationPost.root.UnRegister(realScene.componentRegistry);
-    }
+    const present = realScene.objects.includes(locationPost.root);
+    if (attach && !present) CjsModel.addChild(realScene, "objects", locationPost.root);
+    else if (!attach && present) CjsModel.removeChild(realScene, "objects", locationPost.root);
   };
 
   /**
