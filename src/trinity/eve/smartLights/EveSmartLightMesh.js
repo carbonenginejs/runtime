@@ -76,16 +76,13 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Carbon m_parentColorSet, never persisted. */
-  #parentColorSet = null;
+  _parentColorSet = null;
 
   /** Caller-owned faction-colour result; never aliases the SOF model. */
-  #resolvedGroupColor = color.createLinear();
+  _resolvedGroupColor = color.createLinear();
 
   /** Carbon m_lastAreaColor = (0,0,0,1). */
-  #lastAreaColor = color.createLinear();
-
-  /** A count/refresh skipped by the upload gate remains armed. */
-  #geometryDirty = false;
+  _lastAreaColor = color.createLinear();
 
   /** Faction-aware group color from the flattened secondary base. */
   @carbon.method
@@ -97,8 +94,8 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       this.customColor,
       this.useFactionColor,
       this.factionColor,
-      this.#parentColorSet,
-      this.#resolvedGroupColor
+      this._parentColorSet,
+      this._resolvedGroupColor
     );
   }
 
@@ -119,7 +116,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   {
     if (colorSet)
     {
-      this.#parentColorSet = colorSet;
+      this._parentColorSet = colorSet;
     }
     for (const attributeModifier of this.attributeModifiers)
     {
@@ -148,11 +145,11 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     if (
       list === this.attributeModifiers &&
       Number(event) === BLUELISTEVENT.BELIST_INSERTED &&
-      this.#parentColorSet &&
+      this._parentColorSet &&
       value
     )
     {
-      value.SetInheritProperties(this.#parentColorSet);
+      value.SetInheritProperties(this._parentColorSet);
     }
   }
 
@@ -179,7 +176,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     const entityCount = Number(distribution.GetNumberOfPlacements()) >>> 0;
     const updateCount = this._lastEntityCount !== entityCount;
     this._lastEntityCount = entityCount;
-    if (updateCount) this.#geometryDirty = true;
+    if (updateCount) this._geometryDirty = true;
 
     if (entityCount === 0)
     {
@@ -187,14 +184,14 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     }
 
     const placements = distribution.GetPlacementData();
-    const color = EveSmartLightMesh.#color;
+    const color = EveSmartLightMesh._color;
     vec4.scale(color, this.GetGroupColor(), this._GetActivationStrength());
 
     if (this.attributeModifiers.length)
     {
-      const firstPlacement = EveSmartLightMesh.#ClonePlacement(placements[0]);
-      const firstRotation = EveSmartLightMesh.#firstRotation;
-      const firstRotationQuaternion = EveSmartLightMesh.#firstRotationQuaternion;
+      const firstPlacement = EveSmartLightMesh._ClonePlacement(placements[0]);
+      const firstRotation = EveSmartLightMesh._firstRotation;
+      const firstRotationQuaternion = EveSmartLightMesh._firstRotationQuaternion;
       vec3.set(firstRotation, 0, 1, 0);
       // Carbon row-vector: initialRotation * additionalRotation.
       quat.multiply(
@@ -203,12 +200,12 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
         firstPlacement.initialRotation
       );
       vec3.transformQuat(firstRotation, firstRotation, firstRotationQuaternion);
-      EveSmartLightMesh.#TransformNormal(firstRotation, firstRotation, this.worldTransform);
+      EveSmartLightMesh._TransformNormal(firstRotation, firstRotation, this.worldTransform);
       const center = distribution.GetPlacementDataCenter();
       for (const attributeModifier of this.attributeModifiers)
       {
         attributeModifier.ProcessAttributeModifier(
-          EveSmartLightMesh.#colorRgb,
+          EveSmartLightMesh._colorRgb,
           firstPlacement,
           center,
           firstRotation,
@@ -228,12 +225,12 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     if (!this.mesh.GetInstanceGeometryResource())
     {
       this.ConfigureInstanceData();
-      this.#geometryDirty = true;
+      this._geometryDirty = true;
     }
 
     const alwaysUpdate = distribution.GetHasDynamicMovement() ||
       this.rotationConstraint !== RotationalConstraints.NONE;
-    if (this.#geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
+    if (this._geometryDirty || alwaysUpdate || this._refreshStaticGeometry)
     {
       const published = this.UpdateGeometryResource(
         placements,
@@ -243,7 +240,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       this.UpdateBoundingSphere(placements, distribution);
       if (published)
       {
-        this.#geometryDirty = false;
+        this._geometryDirty = false;
         this._refreshStaticGeometry = false;
       }
     }
@@ -293,7 +290,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   RefreshStaticGeometry()
   {
     super.RefreshStaticGeometry();
-    this.#geometryDirty = true;
+    this._geometryDirty = true;
   }
 
   /**
@@ -305,7 +302,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   @impl.reason("TriGeometryRes exposes mesh validity through its maintained count contract instead of Carbon's native GetMeshData pointer.")
   SetMeshColorParameter(meshColor)
   {
-    if (!this.shaderParamColorName || !this.display || vec4.exactEquals(this.#lastAreaColor, meshColor))
+    if (!this.shaderParamColorName || !this.display || vec4.exactEquals(this._lastAreaColor, meshColor))
     {
       return false;
     }
@@ -338,12 +335,12 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
       }
     }
 
-    vec4.copy(this.#lastAreaColor, meshColor);
+    vec4.copy(this._lastAreaColor, meshColor);
     return true;
   }
 
   /** Clone Carbon's by-value first placement before modifiers see it. */
-  static #ClonePlacement(value)
+  static _ClonePlacement(value)
   {
     const out = new PlacementDataWithIdentifier();
     vec3.copy(out.initialTranslation, value.initialTranslation);
@@ -361,7 +358,7 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
   }
 
   /** Carbon TriVectorRotateMatrix: basis-only transform, no translation. */
-  static #TransformNormal(out, direction, matrix)
+  static _TransformNormal(out, direction, matrix)
   {
     const x = direction[0];
     const y = direction[1];
@@ -372,12 +369,12 @@ export class EveSmartLightMesh extends EveChildInstanceMeshRenderer
     return out;
   }
 
-  static #color = vec4.create();
+  static _color = vec4.create();
 
   /** Carbon passes currentColor.GetXYZ(), so modifiers cannot mutate alpha. */
-  static #colorRgb = EveSmartLightMesh.#color.subarray(0, 3);
+  static _colorRgb = EveSmartLightMesh._color.subarray(0, 3);
 
-  static #firstRotation = vec3.create();
+  static _firstRotation = vec3.create();
 
-  static #firstRotationQuaternion = quat.create();
+  static _firstRotationQuaternion = quat.create();
 }
