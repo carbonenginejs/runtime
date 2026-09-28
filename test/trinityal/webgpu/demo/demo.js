@@ -164,8 +164,8 @@ const POST_OFF = POST_PARAMETER === "off";
  */
 const POST_TEMPLATE = POST_OFF ? "" : POST_PARAMETER;
 
-/** `?flare=<name>`: the sun lens flare, from res:/fisfx/lensflare/; `off` for none. */
-const FLARE = new URLSearchParams(globalThis.location?.search ?? "").get("flare") || "yellow";
+/** `?flare=<name>`: the sun lens flare, from res:/fisfx/lensflare/; `off` for none. Without it the sun template names the flare. */
+const FLARE_PARAMETER = new URLSearchParams(globalThis.location?.search ?? "").get("flare") ?? "";
 
 /**
  * SUN AND LOCATION. Carbon takes fog, god rays, tonemapping, dynamic exposure,
@@ -201,8 +201,28 @@ function SunTemplateForFlare(flareName)
   return "env_sun_yellow_01a";
 }
 
-/** The sun template to start with: a `?post=` sun, else the flare's. */
-const POST_SUN = POST_OFF ? "" : (POST_TEMPLATE && IsSunTemplate(POST_TEMPLATE) ? POST_TEMPLATE : SunTemplateForFlare(FLARE));
+/**
+ * The lens flare for a sun template. A template is `env_` and a sun model's
+ * file name, and a flare is that model name without `sun_` and its variant
+ * (`env_sun_blue_sun_01a` → `sun_blue_sun_01a` → `blue_sun`). skindr
+ * measured the rule against every sun and flare (web/src/api/StarFlares.mjs):
+ * only the Triglavian suns spell it backwards, and their template is not an
+ * `env_sun_*` one. Null when nothing is left to name a flare.
+ *
+ * @param {string} template A sun template name.
+ * @returns {string|null} A res:/fisfx/lensflare/ name, or null.
+ */
+function FlareForSunTemplate(template)
+{
+  const name = String(template).replace(/^env_sun_/u, "").replace(/_\d+[a-z]$/u, "");
+  return name && name !== template && !/^\d+[a-z]?$/u.test(name) ? name : null;
+}
+
+/** The sun template to start with: a `?post=` sun, else the `?flare=`'s, else yellow. */
+const POST_SUN = POST_OFF ? "" : (POST_TEMPLATE && IsSunTemplate(POST_TEMPLATE) ? POST_TEMPLATE : SunTemplateForFlare(FLARE_PARAMETER || "yellow"));
+
+/** `?flare=<name>` overrides the sun template's own flare; `off` for none. */
+const FLARE = FLARE_PARAMETER || (POST_SUN ? FlareForSunTemplate(POST_SUN) : null) || "yellow";
 
 /** The location template to start with: a `?post=` that is not a sun. */
 const POST_LOCATION = POST_TEMPLATE && !IsSunTemplate(POST_TEMPLATE) ? POST_TEMPLATE : "";
@@ -277,7 +297,7 @@ async function LoadPostTemplate(name)
  * @param {string} options.initialTemplate The starting sun template, if any.
  * @param {(name: string) => Promise<object|null>} options.select Loads a sun template.
  * @param {() => object|null} options.current The loaded sun template record.
- * @param {{initial: string, select: (name: string) => Promise<object|null>, radii: {inner: number, outer: number}, setRadii: () => void, intensity: () => number|null}} options.locationPost
+ * @param {{initial: string, select: (name: string) => Promise<object|null>, radii: {inner: number, outer: number}, setRadii: () => void, intensity: () => number|null, priority: () => number, setPriority: (value: number) => void, mergeOrder: () => object[]}} options.locationPost
  *   The location volume: its template picker, radii and resolved intensity.
  * @param {{direction: Float32Array}} options.sun The demo's one sun.
  * @param {{current: string, select: (name: string) => Promise<void>}} options.flare The lens flare.
@@ -363,6 +383,15 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const templateNames = Object.keys(POST_TEMPLATES);
   const templates = choose([ [ "(none)", "" ], ...templateNames.filter(IsSunTemplate).map(name => [ name, name ]) ], initialTemplate);
   row("sun template", templates);
+  // THE SUN TEMPLATE IS THE ONE SUN CHOICE: it sets the scene's default post
+  // process and names the flare. The flare picker below stays as an override,
+  // and this says when the two disagree.
+  const pairing = row("sun / flare", Object.assign(document.createElement("output"), { value: "" }));
+  const UpdatePairing = () =>
+  {
+    const expected = templates.value ? FlareForSunTemplate(templates.value) : null;
+    pairing.value = !expected ? "-" : flare.current === expected ? "match" : `flare ${flare.current}, template names ${expected}`;
+  };
 
   // THE LOCATION IS A VOLUME: its template blends in by the camera's place in
   // the ellipsoid, which the volume resolves every frame; the read-out shows it.
@@ -393,11 +422,25 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       locationPost.setRadii();
     });
   }
+  // Carbon's PostProcessEnums::Priority names (Tr2PostProcessEnums.h:58-66);
+  // the attribute's priority is that enum, so only its values are offered.
+  const priorityNames = [ "SCENE_DEFAULT_PRIORITY", "LOW_PRIORITY", "MEDIUM_PRIORITY", "HIGH_PRIORITY", "UI_PRIORITY" ];
+  const PriorityName = value => priorityNames.find(name => Tr2PostProcessAttributes[name] === value) ?? String(value);
+  const priority = row("location priority", choose(priorityNames.map(name => [ name, Tr2PostProcessAttributes[name] ]), locationPost.priority()));
+  priority.addEventListener("change", () => locationPost.setPriority(Number(priority.value)));
+  row("scene default priority", Object.assign(document.createElement("output"), {
+    value: `SCENE_DEFAULT_PRIORITY (${Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY})`
+  }));
   const intensity = row("location intensity", Object.assign(document.createElement("output"), { value: "-" }));
+  const mergeOrder = row("merge order", Object.assign(document.createElement("output"), { value: "-" }));
+  mergeOrder.style.whiteSpace = "pre";
   setInterval(() =>
   {
     const value = locationPost.intensity();
-    intensity.value = value === null ? "-" : value.toFixed(3);
+    intensity.value = value === null ? "- (no location)" : value.toFixed(3);
+    mergeOrder.value = locationPost.mergeOrder()
+      .map(source => `${source.name}: ${PriorityName(source.priority)}, ${source.intensity.toFixed(3)}`)
+      .join("\n") || "-";
   }, 250);
 
   // What the EVE client adds to the scene's default post process: tonemapping
@@ -532,7 +575,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
 
   // The flare list is the client's own folder, read through the resource proxy.
   const flares = row("flare", choose([ [ "off", "off" ], [ flare.current, flare.current ] ], flare.current));
-  flares.addEventListener("change", () => flare.select(flares.value));
+  flares.addEventListener("change", async () => { await flare.select(flares.value); UpdatePairing(); });
   fetch("/resource/fisfx/lensflare/")
     .then(response => response.json())
     .then(listing =>
@@ -540,6 +583,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
       const names = listing.children.map(child => child.name).filter(name => name.endsWith(".black")).map(name => name.slice(0, -".black".length));
       flares.replaceChildren(...[ "off", ...names ].map(name => new Option(name, name)));
       flares.value = flare.current;
+      UpdatePairing();
     })
     .catch(error => console.error(`lens flare list: ${error.message}`));
 
@@ -679,6 +723,13 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     try
     {
       await select(templates.value);
+      const paired = templates.value ? FlareForSunTemplate(templates.value) : null;
+      if (paired && [ ...flares.options ].some(option => option.value === paired))
+      {
+        flares.value = paired;
+        await flare.select(paired);
+      }
+      UpdatePairing();
     }
     catch (error)
     {
@@ -3182,13 +3233,21 @@ export async function RunDemo(canvas)
         return overlay;
       });
 
+      // STOPGAP FOR THE LIST NOTIFICATION. Carbon registers an inserted object
+      // and unregisters a removed one in EveSpaceScene::OnListModified
+      // (cpp:3414-3491, BELIST_INSERTED / BELIST_REMOVED), which is not ported:
+      // our object lists are plain arrays. Late objects join through
+      // ReregisterEntities, and the replaced ship leaves through UnRegister,
+      // or its lights and post-process owners would stay in the registry.
       realScene.objects.push(next);
+      realScene.ReregisterEntities();
       const duration = overlays[0].curveSet.GetMaxCurveDuration();
       await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
 
       const oldIndex = realScene.objects.indexOf(old);
       if (oldIndex === -1) throw new Error("skin change: the old ship is no longer in the scene");
       realScene.objects.splice(oldIndex, 1);
+      old.UnRegister(realScene.componentRegistry);
       next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
       next.clipSphereFactor = 0;
       next.clipSphereFactor2 = 0;
@@ -3811,8 +3870,12 @@ export async function RunDemo(canvas)
     attributes: new Tr2PostProcessAttributes(),
     ellipsoid: new EveEllipsoidVolume(),
     volume: new EveChildPostProcessVolume(),
-    radii: { ...LOCATION_RADII }
+    root: new EveEffectRoot2(),
+    radii: { ...LOCATION_RADII },
+    priority: Tr2PostProcessAttributes.MEDIUM_PRIORITY
   };
+  locationPost.root.name = "demo location";
+  locationPost.root.effectChildren.push(locationPost.volume);
   locationPost.volume.name = "demo location";
   locationPost.volume.volumes.push(locationPost.ellipsoid);
   locationPost.volume.postProcessAttributes = locationPost.attributes;
@@ -3824,19 +3887,49 @@ export async function RunDemo(canvas)
   SetLocationRadii();
   const FillLocationAttributes = () => locationPost.attributes.FromPostProcess(
     !postState.off && locationPost.record ? locationPost.record.postProcess : null,
-    Tr2PostProcessAttributes.MEDIUM_PRIORITY,
+    locationPost.priority,
     1
   );
-  if (realScene)
+
+  // THE VOLUME IS IN THE SCENE ONLY WHILE A LOCATION IS CHOSEN, as a site's
+  // volume exists only at the site. Added after Initialize it joins the
+  // component registry - as a PostProcessOwner the merge reads - through
+  // ReregisterEntities, and leaves through UnRegister: the stopgap for
+  // EveSpaceScene::OnListModified (cpp:3414-3491), which is not ported.
+  const AttachLocation = attach =>
   {
-    const root = new EveEffectRoot2();
-    root.name = "demo location";
-    root.effectChildren.push(locationPost.volume);
-    realScene.objects.push(root);
-    // Pushed after Initialize, so it joins the component registry - as a
-    // PostProcessOwner the merge reads - through ReregisterEntities.
-    realScene.ReregisterEntities();
-  }
+    if (!realScene) return;
+    const index = realScene.objects.indexOf(locationPost.root);
+    if (attach && index === -1)
+    {
+      realScene.objects.push(locationPost.root);
+      realScene.ReregisterEntities();
+    }
+    else if (!attach && index !== -1)
+    {
+      realScene.objects.splice(index, 1);
+      locationPost.root.UnRegister(realScene.componentRegistry);
+    }
+  };
+
+  /**
+   * The sources Carbon merges, highest priority first (EveSpaceScene.cpp:355-381):
+   * every registered PostProcessOwner, then the scene default at
+   * SCENE_DEFAULT_PRIORITY with weight 1.
+   *
+   * @returns {{name: string, priority: number, intensity: number}[]} The merge order.
+   */
+  const MergeOrder = () =>
+  {
+    if (!realScene) return [];
+    const sources = realScene.componentRegistry.GetComponents("PostProcessOwner").map(owner => ({
+      name: owner.name || "owner",
+      priority: owner.GetPostProcessAttributes().priority,
+      intensity: owner.GetPostProcessAttributes().intensity
+    }));
+    if (realScene.postprocess) sources.push({ name: "scene default", priority: Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY, intensity: 1 });
+    return sources.sort((a, b) => b.priority - a.priority);
+  };
 
   // POST OFF IS AN EMPTY POST PROCESS, as in Carbon: the driver always renders
   // into its own colour and depth and always post-processes into the
@@ -3918,6 +4011,7 @@ export async function RunDemo(canvas)
   {
     locationPost.record = name ? await LoadPostTemplate(name) : null;
     FillLocationAttributes();
+    AttachLocation(locationPost.record !== null);
     if (name && !realScene) console.warn(`location ${name}: only a real scene merges post-process volumes`);
     if (locationPost.record) console.log(`location template ${locationPost.record.path}: populates ${locationPost.record.populated.join(", ") || "(nothing)"}`);
     return locationPost.record;
@@ -3994,7 +4088,10 @@ export async function RunDemo(canvas)
       select: SelectLocationTemplate,
       radii: locationPost.radii,
       setRadii: SetLocationRadii,
-      intensity: () => (realScene ? locationPost.attributes.intensity : null)
+      intensity: () => (realScene && locationPost.record ? locationPost.attributes.intensity : null),
+      priority: () => locationPost.priority,
+      setPriority: value => { locationPost.priority = value; FillLocationAttributes(); },
+      mergeOrder: MergeOrder
     },
     sun: SUN,
     flare,
