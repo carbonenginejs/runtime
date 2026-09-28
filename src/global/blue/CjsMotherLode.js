@@ -60,7 +60,7 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  */
 
 /**
- * Immutable result from one explicit inactivity sweep.
+ * Result from one explicit inactivity sweep.
  *
  * @typedef {object} CjsMotherLodePurgeResult
  * @property {number} frame Sweep activity frame.
@@ -73,7 +73,7 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  */
 
 /**
- * Immutable result from deterministic recorded-byte cache housekeeping.
+ * Result from deterministic recorded-byte cache housekeeping.
  *
  * Only explicitly cached, cacheable, unlocked records contribute to the
  * budget. Zero-byte records do not create pressure and are retained because
@@ -100,7 +100,7 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  */
 
 /**
- * Immutable result returned by {@link CjsMotherLode#Insert}.
+ * Result returned by {@link CjsMotherLode#Insert}.
  *
  * @typedef {object} CjsMotherLodeInsertResult
  * @property {string} key Canonical resolved identity key.
@@ -111,7 +111,7 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  */
 
 /**
- * Immutable result from an exact-owner conditional replacement.
+ * Result from an exact-owner conditional replacement.
  *
  * @typedef {object} CjsMotherLodeConditionalReplaceResult
  * @property {string} key Canonical resolved identity key.
@@ -121,7 +121,7 @@ const MAX_SAFE_INTEGER_BIGINT = BigInt(Number.MAX_SAFE_INTEGER);
  */
 
 /**
- * Immutable diagnostic snapshot returned by {@link CjsMotherLode#GetStats}.
+ * Diagnostic snapshot returned by {@link CjsMotherLode#GetStats}.
  *
  * @typedef {object} CjsMotherLodeStats
  * @property {number} count Compatibility identity count.
@@ -239,7 +239,7 @@ export class CjsMotherLode
    * @param {string|object|Function} keyOrResource Canonical key, or the legacy resource object.
    * @param {object|Function|string} resourceOrPath Resource object, or the legacy source path.
    * @param {CjsMotherLodeInsertOptions|string} [optionsOrVariant={}] Insertion options, or legacy variant.
-   * @returns {CjsMotherLodeInsertResult} Immutable canonical ownership result.
+   * @returns {CjsMotherLodeInsertResult} Canonical ownership result.
    * @throws {TypeError} If the key, resource, metadata, or activity values are invalid.
    * @throws {Error} If the registry is inactive or displaced-resource cleanup fails.
    */
@@ -265,11 +265,11 @@ export class CjsMotherLode
       this._AssertRecordedBytesTotal(updated, existing);
       this._TouchRecord(updated, options);
       Object.assign(existing, updated);
-      return freezeInsertResult(key, resource, false, false, null);
+      return createInsertResult(key, resource, false, false, null);
     }
     if (existing && options.replace === false)
     {
-      return freezeInsertResult(key, existing.resource, false, false, null);
+      return createInsertResult(key, existing.resource, false, false, null);
     }
 
     const record = this._CreateRecord(key, resource, options, existing);
@@ -280,7 +280,7 @@ export class CjsMotherLode
     }
     this._entries.set(key, record);
 
-    return freezeInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
+    return createInsertResult(key, resource, true, Boolean(existing), existing?.resource || null);
   }
 
   /**
@@ -302,7 +302,7 @@ export class CjsMotherLode
    * @param {object|Function} expected Exact resource that must still own `key`.
    * @param {object|Function} resource Fully prepared replacement resource.
    * @param {CjsMotherLodeConditionalReplaceOptions} [options={}] Replacement metadata, authority guard, and displaced-owner cleanup policy.
-   * @returns {CjsMotherLodeConditionalReplaceResult} Immutable compare-and-swap outcome.
+   * @returns {CjsMotherLodeConditionalReplaceResult} Compare-and-swap outcome.
    * @throws {TypeError} If the key, resources, metadata, or activity values are invalid.
    * @throws {Error} If the registry is inactive or the prepared resource aliases the expected owner.
    * @throws {AggregateError} After a committed swap when displaced-owner cleanup fails.
@@ -332,7 +332,7 @@ export class CjsMotherLode
     const existing = this._entries.get(resolvedKey) || null;
     if (!existing || existing.resource !== expected)
     {
-      return freezeConditionalReplaceResult(
+      return createConditionalReplaceResult(
         resolvedKey,
         false,
         existing?.resource || null,
@@ -353,7 +353,7 @@ export class CjsMotherLode
     if ((policy.commitGuard && !policy.commitGuard())
       || this._entries.get(resolvedKey) !== existing)
     {
-      return freezeConditionalReplaceResult(
+      return createConditionalReplaceResult(
         resolvedKey,
         false,
         this._entries.get(resolvedKey)?.resource || null,
@@ -362,7 +362,7 @@ export class CjsMotherLode
     }
     this._entries.set(resolvedKey, record);
 
-    const result = freezeConditionalReplaceResult(resolvedKey, true, resource, expected);
+    const result = createConditionalReplaceResult(resolvedKey, true, resource, expected);
     try
     {
       this._CleanupRecord(existing, policy, "conditional replace");
@@ -598,7 +598,7 @@ export class CjsMotherLode
    * Successful candidates are still purged when another candidate fails.
    *
    * @param {CjsMotherLodePurgeOptions} [options={}] Explicit sweep point, inactivity limits, and cleanup policy.
-   * @returns {CjsMotherLodePurgeResult} Immutable counts and affected canonical keys.
+   * @returns {CjsMotherLodePurgeResult} Counts and affected canonical keys.
    * @throws {TypeError} If the sweep point, limits, or cleanup policy are invalid.
    * @throws {AggregateError} If one or more cleanup, payload-release, or purge-state operations fail.
    */
@@ -675,7 +675,7 @@ export class CjsMotherLode
       }
     }
 
-    const result = freezePurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, locked);
+    const result = createPurgeResult(policy.frame, policy.time, purgedKeys, payloadKeys, locked);
     if (errors.length)
     {
       const error = new AggregateError(errors, "CjsMotherLode inactivity purge failed.");
@@ -703,7 +703,7 @@ export class CjsMotherLode
    * data. Explicit cleanup overrides retain their documented ownership.
    *
    * @param {CjsMotherLodeMutationOptions} [options={}] Cleanup policy for pressure-evicted identities.
-   * @returns {CjsMotherLodeCacheTrimResult} Immutable byte totals and affected canonical keys.
+   * @returns {CjsMotherLodeCacheTrimResult} Byte totals and affected canonical keys.
    * @throws {TypeError} If cleanup options are invalid.
    * @throws {AggregateError} If cleanup or purge-state publication fails for one or more candidates.
    */
@@ -768,7 +768,7 @@ export class CjsMotherLode
     }
 
     const afterBytes = this._GetCacheBytes();
-    const result = freezeCacheTrimResult(
+    const result = createCacheTrimResult(
       this._cacheSize,
       beforeBytes,
       afterBytes,
@@ -1376,42 +1376,47 @@ function assertResource(resource)
     throw new TypeError("CjsMotherLode requires a resource object.");
   }
 }
+
 /**
- * Validate a non-negative finite number with a contextual error label.
+ * Create one Insert result.
  *
- * @param {*} value Candidate numeric value.
- * @param {string} label Error-message field name.
- * @returns {void}
- */function freezeInsertResult(key, resource, inserted, replaced, displaced)
+ * @param {string} key Canonical resolved identity key.
+ * @param {object|Function} resource Canonical owner after the insert.
+ * @param {boolean} inserted Whether the supplied resource was published.
+ * @param {boolean} replaced Whether a previous owner was displaced.
+ * @param {object|Function|null} displaced Former owner when replaced.
+ * @returns {CjsMotherLodeInsertResult} Canonical ownership result.
+ */
+function createInsertResult(key, resource, inserted, replaced, displaced)
 {
   return { key, resource, inserted, replaced, displaced };
 }
 
 /**
- * Freeze one exact-owner compare-and-swap result.
+ * Create one exact-owner compare-and-swap result.
  *
  * @param {string} key Canonical resolved identity key.
  * @param {boolean} committed Whether publication replaced the expected owner.
  * @param {object|Function|null} resource Canonical owner after the attempt.
  * @param {object|Function|null} displaced Former owner when committed.
- * @returns {CjsMotherLodeConditionalReplaceResult} Immutable replacement result.
+ * @returns {CjsMotherLodeConditionalReplaceResult} Replacement result.
  */
-function freezeConditionalReplaceResult(key, committed, resource, displaced)
+function createConditionalReplaceResult(key, committed, resource, displaced)
 {
   return { key, committed, resource, displaced };
 }
 
 /**
- * Freeze one inactivity-sweep result and its affected-key snapshots.
+ * Create one inactivity-sweep result and its affected-key snapshots.
  *
  * @param {number} frame Sweep frame.
  * @param {number} time Sweep timestamp.
  * @param {string[]} purgedKeys Removed canonical keys.
  * @param {string[]} payloadKeys Keys whose payloads were released.
  * @param {number} locked Number of locked entries skipped.
- * @returns {CjsMotherLodePurgeResult} Immutable sweep result.
+ * @returns {CjsMotherLodePurgeResult} Sweep result.
  */
-function freezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
+function createPurgeResult(frame, time, purgedKeys, payloadKeys, locked)
 {
   return {
     frame,
@@ -1425,7 +1430,7 @@ function freezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
 }
 
 /**
- * Freeze one byte-budget housekeeping result and its affected-key snapshots.
+ * Create one byte-budget housekeeping result and its affected-key snapshots.
  *
  * @param {number} cacheSize Configured cache budget.
  * @param {number} beforeBytes Cached bytes before housekeeping.
@@ -1433,9 +1438,9 @@ function freezePurgeResult(frame, time, purgedKeys, payloadKeys, locked)
  * @param {number} evictedBytes Successfully removed cached bytes.
  * @param {string[]} evictedKeys Successfully removed canonical identities.
  * @param {string[]} failedKeys Candidate identities that reported failure.
- * @returns {CjsMotherLodeCacheTrimResult} Immutable cache-housekeeping result.
+ * @returns {CjsMotherLodeCacheTrimResult} Cache-housekeeping result.
  */
-function freezeCacheTrimResult(
+function createCacheTrimResult(
   cacheSize,
   beforeBytes,
   afterBytes,
