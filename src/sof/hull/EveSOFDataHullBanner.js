@@ -234,20 +234,20 @@ export class EveSOFDataHullBanner extends CjsModel
     }
     else if (flatX)
     {
-      return EveSOFDataHullBanner.#GetVerticalCurvedBannerAspectRatio(banner);
+      return EveSOFDataHullBanner._GetVerticalCurvedBannerAspectRatio(banner);
     }
     else if (flatY)
     {
-      return EveSOFDataHullBanner.#GetHorizontalCurvedBannerAspectRatio(banner);
+      return EveSOFDataHullBanner._GetHorizontalCurvedBannerAspectRatio(banner);
     }
-    return EveSOFDataHullBanner.#GetCurvedBannerAspectRatio(banner);
+    return EveSOFDataHullBanner._GetCurvedBannerAspectRatio(banner);
   }
 
   /**
    * Composes the banner rotation, position, and scaling into the matrix used for
    * curved-length sampling.
    */
-  static #GetBannerTransform(banner)
+  static _GetBannerTransform(banner)
   {
     return mat4.fromRotationTranslationScale(mat4.create(), banner.rotation, banner.position, banner.scaling);
   }
@@ -256,9 +256,9 @@ export class EveSOFDataHullBanner extends CjsModel
    * Samples the vertically curved centerline after world scaling to derive width
    * divided by arc length.
    */
-  static #GetVerticalCurvedBannerAspectRatio(banner)
+  static _GetVerticalCurvedBannerAspectRatio(banner)
   {
-    const transform = EveSOFDataHullBanner.#GetBannerTransform(banner);
+    const transform = EveSOFDataHullBanner._GetBannerTransform(banner);
 
     const clampedAngleY = Math.max(0, Math.min(banner.angleY, 180));
     const segmentsY = 1 + Math.floor(clampedAngleY / 5);
@@ -293,9 +293,9 @@ export class EveSOFDataHullBanner extends CjsModel
    * Samples the horizontally curved centerline after world scaling to derive arc
    * length divided by height.
    */
-  static #GetHorizontalCurvedBannerAspectRatio(banner)
+  static _GetHorizontalCurvedBannerAspectRatio(banner)
   {
-    const transform = EveSOFDataHullBanner.#GetBannerTransform(banner);
+    const transform = EveSOFDataHullBanner._GetBannerTransform(banner);
 
     const clampedAngleX = Math.max(0, Math.min(banner.angleX, 180));
     const segmentsX = 1 + Math.floor(clampedAngleX / 5);
@@ -330,9 +330,9 @@ export class EveSOFDataHullBanner extends CjsModel
    * Samples both curved centerlines with a shared depth radius and returns their
    * arc-length ratio.
    */
-  static #GetCurvedBannerAspectRatio(banner)
+  static _GetCurvedBannerAspectRatio(banner)
   {
-    const transform = EveSOFDataHullBanner.#GetBannerTransform(banner);
+    const transform = EveSOFDataHullBanner._GetBannerTransform(banner);
 
     const clampedAngleX = Math.max(0, Math.min(banner.angleX, 180));
     const clampedAngleY = Math.max(0, Math.min(banner.angleY, 180));

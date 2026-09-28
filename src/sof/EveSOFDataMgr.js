@@ -39,25 +39,25 @@ export class EveSOFDataMgr extends CjsModel
     GRAPHIC_SETTING_MAP: 3
   });
 
-  #hullData = new Map();
+  _hullData = new Map();
 
-  #factionData = new Map();
+  _factionData = new Map();
 
-  #raceData = new Map();
+  _raceData = new Map();
 
-  #materialData = new Map();
+  _materialData = new Map();
 
-  #patternData = new Map();
+  _patternData = new Map();
 
-  #layoutData = new Map();
+  _layoutData = new Map();
 
-  #genericData = createGenericData(null);
+  _genericData = createGenericData(null);
 
-  #hasGenericData = false;
+  _hasGenericData = false;
 
-  #resourceLoader = null;
+  _resourceLoader = null;
 
-  #loadOperations = new Map();
+  _loadOperations = new Map();
 
   /** Supplies the GPU-free object loader used by LoadData. */
   SetResourceLoader(loader)
@@ -66,7 +66,7 @@ export class EveSOFDataMgr extends CjsModel
     {
       throw new TypeError("EveSOFDataMgr resource loader must be a function or null");
     }
-    this.#resourceLoader = loader;
+    this._resourceLoader = loader;
     return this;
   }
 
@@ -75,8 +75,8 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   LoadData(filePath)
   {
-    if (!this.#resourceLoader) return false;
-    const data = this.#resourceLoader(filePath);
+    if (!this._resourceLoader) return false;
+    const data = this._resourceLoader(filePath);
     if (data && typeof data.then === "function")
     {
       throw new TypeError("EveSOFDataMgr.LoadData requires a synchronous loader");
@@ -87,19 +87,19 @@ export class EveSOFDataMgr extends CjsModel
   /** Loads and consumes SOF data through a promise-capable object loader. */
   async LoadDataAsync(filePath)
   {
-    const loader = this.#resourceLoader;
+    const loader = this._resourceLoader;
     if (!loader) return false;
     const key = normalizeResourcePath(filePath);
-    const existing = this.#loadOperations.get(key);
+    const existing = this._loadOperations.get(key);
     if (existing) return existing;
 
     const operation = Promise.resolve()
       .then(() => loader(key))
       .then(data => this.SetData(data));
-    this.#loadOperations.set(key, operation);
+    this._loadOperations.set(key, operation);
     const clear = () =>
     {
-      if (this.#loadOperations.get(key) === operation) this.#loadOperations.delete(key);
+      if (this._loadOperations.get(key) === operation) this._loadOperations.delete(key);
     };
     operation.then(clear, clear);
     return operation;
@@ -112,16 +112,16 @@ export class EveSOFDataMgr extends CjsModel
   {
     if (!data) return false;
 
-    this.#clear();
-    if (!indexNamed(data.hull, this.#hullData, projectHull)) return false;
-    if (!indexNamed(data.faction, this.#factionData, projectFaction)) return false;
-    if (!indexNamed(data.race, this.#raceData, projectRace)) return false;
-    if (!indexNamed(data.material, this.#materialData, projectMaterial)) return false;
-    if (!indexNamed(data.pattern, this.#patternData, projectPattern)) return false;
-    if (!indexNamed(data.layout, this.#layoutData, projectLayout)) return false;
+    this._clear();
+    if (!indexNamed(data.hull, this._hullData, projectHull)) return false;
+    if (!indexNamed(data.faction, this._factionData, projectFaction)) return false;
+    if (!indexNamed(data.race, this._raceData, projectRace)) return false;
+    if (!indexNamed(data.material, this._materialData, projectMaterial)) return false;
+    if (!indexNamed(data.pattern, this._patternData, projectPattern)) return false;
+    if (!indexNamed(data.layout, this._layoutData, projectLayout)) return false;
     if (!data.generic) return false;
-    this.#genericData = createGenericData(data.generic);
-    this.#hasGenericData = true;
+    this._genericData = createGenericData(data.generic);
+    this._hasGenericData = true;
     return true;
   }
 
@@ -130,7 +130,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasHullData(name)
   {
-    return this.#hullData.has(String(name));
+    return this._hullData.has(String(name));
   }
 
   /**
@@ -141,7 +141,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetHullData(name)
   {
-    return this.#hullData.get(String(name)) ?? null;
+    return this._hullData.get(String(name)) ?? null;
   }
 
   /** Tests the exact faction key in the manager's normalized projection table. */
@@ -149,7 +149,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasFactionData(name)
   {
-    return this.#factionData.has(String(name));
+    return this._factionData.has(String(name));
   }
 
   /**
@@ -160,7 +160,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetFactionData(name)
   {
-    return this.#factionData.get(String(name)) ?? null;
+    return this._factionData.get(String(name)) ?? null;
   }
 
   /** Tests the exact race key in the manager's normalized projection table. */
@@ -168,7 +168,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasRaceData(name)
   {
-    return this.#raceData.has(String(name));
+    return this._raceData.has(String(name));
   }
 
   /**
@@ -179,7 +179,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetRaceData(name)
   {
-    return this.#raceData.get(String(name)) ?? null;
+    return this._raceData.get(String(name)) ?? null;
   }
 
   /** Tests the exact material key in the manager's normalized projection table. */
@@ -187,7 +187,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasMaterialData(name)
   {
-    return this.#materialData.has(String(name));
+    return this._materialData.has(String(name));
   }
 
   /**
@@ -198,7 +198,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetMaterialData(name)
   {
-    return this.#materialData.get(String(name)) ?? null;
+    return this._materialData.get(String(name)) ?? null;
   }
 
   /** Tests the exact pattern key in the manager's normalized projection table. */
@@ -206,7 +206,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasPatternData(name)
   {
-    return this.#patternData.has(String(name));
+    return this._patternData.has(String(name));
   }
 
   /**
@@ -217,7 +217,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetPatternData(name)
   {
-    return this.#patternData.get(String(name)) ?? null;
+    return this._patternData.get(String(name)) ?? null;
   }
 
   /** Tests the exact layout key in the manager's normalized projection table. */
@@ -225,7 +225,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   HasLayoutData(name)
   {
-    return this.#layoutData.has(String(name));
+    return this._layoutData.has(String(name));
   }
 
   /** Returns one layout, or filters an ordered list of layout names. */
@@ -243,7 +243,7 @@ export class EveSOFDataMgr extends CjsModel
       }
       return result;
     }
-    return this.#layoutData.get(String(nameOrNames)) ?? null;
+    return this._layoutData.get(String(nameOrNames)) ?? null;
   }
 
   /**
@@ -254,51 +254,51 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   GetGenericData()
   {
-    return this.#genericData;
+    return this._genericData;
   }
 
   /** Reports whether generic catalog data has been installed. */
   HasGenericData()
   {
-    return this.#hasGenericData;
+    return this._hasGenericData;
   }
 
   /** Lists canonical hull names for read-only catalog consumers. */
   ListHullDataNames()
   {
-    return listCatalogNames(this.#hullData);
+    return listCatalogNames(this._hullData);
   }
 
   /** Lists canonical faction names for read-only catalog consumers. */
   ListFactionDataNames()
   {
-    return listCatalogNames(this.#factionData);
+    return listCatalogNames(this._factionData);
   }
 
   /** Lists canonical race names for read-only catalog consumers. */
   ListRaceDataNames()
   {
-    return listCatalogNames(this.#raceData);
+    return listCatalogNames(this._raceData);
   }
 
   /** Lists canonical material names for read-only catalog consumers. */
   ListMaterialDataNames()
   {
-    return listCatalogNames(this.#materialData);
+    return listCatalogNames(this._materialData);
   }
 
   /** Lists canonical pattern names for read-only catalog consumers. */
   ListPatternDataNames()
   {
-    return listCatalogNames(this.#patternData);
+    return listCatalogNames(this._patternData);
   }
 
   /** Lists canonical pattern names with an application for one known hull. */
   ListPatternDataNamesForHull(hullName)
   {
-    if (!getCatalogValue(this.#hullData, hullName)) return null;
+    if (!getCatalogValue(this._hullData, hullName)) return null;
     const result = [];
-    for (const [name, pattern] of this.#patternData)
+    for (const [name, pattern] of this._patternData)
     {
       if (getMapValue(getPatternApplications(pattern), hullName))
       {
@@ -312,43 +312,43 @@ export class EveSOFDataMgr extends CjsModel
   /** Lists canonical layout names for read-only catalog consumers. */
   ListLayoutDataNames()
   {
-    return listCatalogNames(this.#layoutData);
+    return listCatalogNames(this._layoutData);
   }
 
   /** Returns one detached JSON-compatible hull projection, case-insensitively. */
   GetHullDataJson(name)
   {
-    return getCatalogJson(this.#hullData, name);
+    return getCatalogJson(this._hullData, name);
   }
 
   /** Returns one detached JSON-compatible faction projection, case-insensitively. */
   GetFactionDataJson(name)
   {
-    return getCatalogJson(this.#factionData, name);
+    return getCatalogJson(this._factionData, name);
   }
 
   /** Returns one detached JSON-compatible race projection, case-insensitively. */
   GetRaceDataJson(name)
   {
-    return getCatalogJson(this.#raceData, name);
+    return getCatalogJson(this._raceData, name);
   }
 
   /** Returns one detached JSON-compatible material projection, case-insensitively. */
   GetMaterialDataJson(name)
   {
-    return getCatalogJson(this.#materialData, name);
+    return getCatalogJson(this._materialData, name);
   }
 
   /** Returns one detached JSON-compatible layout projection, case-insensitively. */
   GetLayoutDataJson(name)
   {
-    return getCatalogJson(this.#layoutData, name);
+    return getCatalogJson(this._layoutData, name);
   }
 
   /** Returns only one pattern's detached application for one hull. */
   GetPatternHullDataJson(patternName, hullName)
   {
-    const pattern = getCatalogValue(this.#patternData, patternName);
+    const pattern = getCatalogValue(this._patternData, patternName);
     if (!pattern) return null;
     const application = getMapValue(getPatternApplications(pattern), hullName);
     return application ? projectJsonValue(application) : null;
@@ -362,7 +362,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   UpdateHull(name, value)
   {
-    return updateNamed(this.#hullData, name, value, projectHull);
+    return updateNamed(this._hullData, name, value, projectHull);
   }
 
   /**
@@ -373,7 +373,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   UpdateFaction(name, value)
   {
-    return updateNamed(this.#factionData, name, value, projectFaction);
+    return updateNamed(this._factionData, name, value, projectFaction);
   }
 
   /**
@@ -384,7 +384,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   UpdateRace(name, value)
   {
-    return updateNamed(this.#raceData, name, value, projectRace);
+    return updateNamed(this._raceData, name, value, projectRace);
   }
 
   /**
@@ -395,7 +395,7 @@ export class EveSOFDataMgr extends CjsModel
   @impl.implemented
   UpdateMaterial(name, value)
   {
-    return updateNamed(this.#materialData, name, value, projectMaterial);
+    return updateNamed(this._materialData, name, value, projectMaterial);
   }
 
   /**
@@ -407,7 +407,7 @@ export class EveSOFDataMgr extends CjsModel
   UpdatePattern(name, value)
   {
     if (!value) return false;
-    return updateNamed(this.#patternData, name, value, projectPattern);
+    return updateNamed(this._patternData, name, value, projectPattern);
   }
 
   /**
@@ -419,7 +419,7 @@ export class EveSOFDataMgr extends CjsModel
   UpdateLayout(name, value)
   {
     if (!value) return false;
-    return updateNamed(this.#layoutData, name, value, projectLayout);
+    return updateNamed(this._layoutData, name, value, projectLayout);
   }
 
   /**
@@ -431,8 +431,8 @@ export class EveSOFDataMgr extends CjsModel
   UpdateGeneric(value)
   {
     if (!value) return false;
-    this.#genericData = createGenericData(value);
-    this.#hasGenericData = true;
+    this._genericData = createGenericData(value);
+    this._hasGenericData = true;
     return true;
   }
 
@@ -440,16 +440,16 @@ export class EveSOFDataMgr extends CjsModel
    * Empties every named projection table and restores an empty normalized
    * generic record.
    */
-  #clear()
+  _clear()
   {
-    this.#hullData.clear();
-    this.#factionData.clear();
-    this.#raceData.clear();
-    this.#materialData.clear();
-    this.#patternData.clear();
-    this.#layoutData.clear();
-    this.#genericData = createGenericData(null);
-    this.#hasGenericData = false;
+    this._hullData.clear();
+    this._factionData.clear();
+    this._raceData.clear();
+    this._materialData.clear();
+    this._patternData.clear();
+    this._layoutData.clear();
+    this._genericData = createGenericData(null);
+    this._hasGenericData = false;
   }
 
 }

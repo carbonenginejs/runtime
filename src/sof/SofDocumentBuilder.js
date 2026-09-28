@@ -12,9 +12,9 @@ import { IsModelValuesReference, IsModelValuesRoot, VALUES_LITERAL_DOLLAR_REF, r
 export class SofDocumentBuilder
 {
 
-  #nodes = [];
+  _nodes = [];
 
-  #roots = [];
+  _roots = [];
 
   /**
    * Allocates the next numeric node identifier, stores its fields and optional
@@ -22,9 +22,9 @@ export class SofDocumentBuilder
    */
   AddNode(kind, fields, raw = null)
   {
-    const node = { id: this.#nodes.length + 1, kind, fields };
+    const node = { id: this._nodes.length + 1, kind, fields };
     if (raw && Object.keys(raw).length) node.raw = raw;
-    this.#nodes.push(node);
+    this._nodes.push(node);
     return { $ref: node.id };
   }
 
@@ -174,7 +174,7 @@ export class SofDocumentBuilder
    */
   GetNode(id)
   {
-    return this.#nodes[id - 1] ?? null;
+    return this._nodes[id - 1] ?? null;
   }
 
   /**
@@ -183,7 +183,7 @@ export class SofDocumentBuilder
    */
   AddRoot(name, ref)
   {
-    this.#roots.push({ name, ref });
+    this._roots.push({ name, ref });
   }
 
   /**
@@ -192,7 +192,7 @@ export class SofDocumentBuilder
    */
   ToJSON()
   {
-    const nodesById = new Map(this.#nodes.map(node => [node.id, node]));
+    const nodesById = new Map(this._nodes.map(node => [node.id, node]));
     const reachable = new Set();
     const visitValue = value =>
     {
@@ -220,13 +220,13 @@ export class SofDocumentBuilder
       }
       Object.values(value).forEach(visitValue);
     };
-    this.#roots.forEach(root => visitValue(root.ref));
+    this._roots.forEach(root => visitValue(root.ref));
     return {
       schema: "carbon.document",
       version: 1,
       format: { id: "runtime-sof", version: 1 },
-      roots: this.#roots,
-      nodes: this.#nodes.filter(node => reachable.has(node.id))
+      roots: this._roots,
+      nodes: this._nodes.filter(node => reachable.has(node.id))
     };
   }
 

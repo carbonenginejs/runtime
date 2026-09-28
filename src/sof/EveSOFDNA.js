@@ -91,9 +91,9 @@ export class EveSOFDNA extends CjsModel
   @type.boolean
   isSkinned = false;
 
-  #commands = new Map();
+  _commands = new Map();
 
-  #parseError = null;
+  _parseError = null;
 
   /**
    * Resolves either a complete DNA string or Carbon's layout descriptor form.
@@ -104,10 +104,10 @@ export class EveSOFDNA extends CjsModel
   {
     if (dataOrDescriptor instanceof EveSOFDataMgr && dataMgr === null)
     {
-      this.#setupFromString(String(dnaOrLayout ?? ""), dataOrDescriptor);
+      this._setupFromString(String(dnaOrLayout ?? ""), dataOrDescriptor);
       return;
     }
-    this.#setupFromDescriptor(String(dnaOrLayout ?? ""), dataOrDescriptor, parent, dataMgr);
+    this._setupFromDescriptor(String(dnaOrLayout ?? ""), dataOrDescriptor, parent, dataMgr);
   }
 
   /** Returns whether the three required catalog selections resolved. */
@@ -121,7 +121,7 @@ export class EveSOFDNA extends CjsModel
   /** Returns the stable parse failure used by non-rendering adapters. */
   GetParseError()
   {
-    return this.#parseError;
+    return this._parseError;
   }
 
   /** Performs Carbon's slow command validation with unsafe C++ cases guarded. */
@@ -129,9 +129,9 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   ValidateContent()
   {
-    if (!this.IsValid() || this.#parseError) return false;
+    if (!this.IsValid() || this._parseError) return false;
 
-    for (const [name, args] of this.#commands)
+    for (const [name, args] of this._commands)
     {
       switch (name)
       {
@@ -1136,7 +1136,7 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   GetParentBoundingSphere()
   {
-    return EveSOFDNA.#CopySphere(this.parentBoundingSphere);
+    return EveSOFDNA._CopySphere(this.parentBoundingSphere);
   }
 
   /** Returns the resolver-owned parent hull-shape ellipsoid descriptor, or null. */
@@ -1155,7 +1155,7 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   SetParentBoundingSphere(boundingSphere)
   {
-    this.parentBoundingSphere = EveSOFDNA.#CopySphere(boundingSphere);
+    this.parentBoundingSphere = EveSOFDNA._CopySphere(boundingSphere);
   }
 
   /**
@@ -1166,14 +1166,14 @@ export class EveSOFDNA extends CjsModel
   @impl.implemented
   SetParentShapeEllipsoidInfo(ellipsoid)
   {
-    this.parentHullShapeEllipsoid = EveSOFDNA.#CopyEllipsoid(ellipsoid);
+    this.parentHullShapeEllipsoid = EveSOFDNA._CopyEllipsoid(ellipsoid);
   }
 
   /**
    * Creates a detached coordinate array from a sphere-like value, preserving
    * null.
    */
-  static #CopySphere(sphere)
+  static _CopySphere(sphere)
   {
     return sphere ? Array.from(sphere) : null;
   }
@@ -1182,7 +1182,7 @@ export class EveSOFDNA extends CjsModel
    * Creates a detached ellipsoid descriptor with copied center and radius
    * arrays, preserving null components.
    */
-  static #CopyEllipsoid(ellipsoid)
+  static _CopyEllipsoid(ellipsoid)
   {
     if (!ellipsoid) return null;
     return {
@@ -1243,7 +1243,7 @@ export class EveSOFDNA extends CjsModel
   HasDnaCommand(command)
   {
     const name = commandName(command);
-    return name !== null && this.#commands.has(name);
+    return name !== null && this._commands.has(name);
   }
 
   /**
@@ -1255,8 +1255,8 @@ export class EveSOFDNA extends CjsModel
   GetDnaCommandArgs(command)
   {
     const name = commandName(command);
-    if (name === null || !this.#commands.has(name)) return null;
-    return this.#commands.get(name).slice();
+    if (name === null || !this._commands.has(name)) return null;
+    return this._commands.get(name).slice();
   }
 
   /** Reports whether the first selected hull uses the SOF6 data model. */
@@ -1287,7 +1287,7 @@ export class EveSOFDNA extends CjsModel
    * Resets and repopulates this resolver from a lower-cased DNA string,
    * recording parse failures instead of throwing.
    */
-  #setupFromString(dnaString, dataMgr)
+  _setupFromString(dnaString, dataMgr)
   {
     // A DNA string is lowercased before anything reads it. Every catalog name
     // it can contain — hull, faction, race, command, material, pattern, layout
@@ -1301,11 +1301,11 @@ export class EveSOFDNA extends CjsModel
     // rejected them with "Invalid SOF DNA content". Deliberate deviation.
     const dna = dnaString.toLowerCase();
 
-    this.#reset(dna, dataMgr);
+    this._reset(dna, dataMgr);
     const parts = splitCarbon(dna, ":");
     if (parts.length < 3)
     {
-      this.#parseError = "not-enough-parts";
+      this._parseError = "not-enough-parts";
       return;
     }
 
@@ -1314,10 +1314,10 @@ export class EveSOFDNA extends CjsModel
       const command = splitCarbon(parts[index], "?");
       if (command.length !== 2)
       {
-        this.#parseError = "malformed-command";
+        this._parseError = "malformed-command";
         return;
       }
-      this.#commands.set(command[0], splitCarbon(command[1], ";"));
+      this._commands.set(command[0], splitCarbon(command[1], ";"));
     }
 
     // `mesh` and `material` are the same command: one material per material
@@ -1332,15 +1332,15 @@ export class EveSOFDNA extends CjsModel
     // authored DNA and a builder that would have dropped the materials even if
     // it had passed. Normalizing here means every downstream reader keeps
     // asking for CMD_MATERIAL and simply works.
-    if (this.#commands.has("mesh") && !this.#commands.has("material"))
+    if (this._commands.has("mesh") && !this._commands.has("material"))
     {
-      this.#commands.set("material", this.#commands.get("mesh"));
+      this._commands.set("material", this._commands.get("mesh"));
     }
 
     this.hullNames = splitCarbon(parts[0], ";");
     if (this.hullNames.length === 0)
     {
-      this.#parseError = "missing-hull";
+      this._parseError = "missing-hull";
       return;
     }
     this.factionName = parts[1];
@@ -1351,7 +1351,7 @@ export class EveSOFDNA extends CjsModel
       const hull = dataMgr.GetHullData(name);
       if (!hull)
       {
-        this.#parseError = "unknown-hull";
+        this._parseError = "unknown-hull";
         return;
       }
       this.hullDatas.push(hull);
@@ -1360,13 +1360,13 @@ export class EveSOFDNA extends CjsModel
     this.factionData = dataMgr.GetFactionData(this.factionName);
     if (!this.factionData)
     {
-      this.#parseError = "unknown-faction";
+      this._parseError = "unknown-faction";
       return;
     }
     this.raceData = dataMgr.GetRaceData(this.raceName);
     if (!this.raceData)
     {
-      this.#parseError = "unknown-race";
+      this._parseError = "unknown-race";
       return;
     }
 
@@ -1376,9 +1376,9 @@ export class EveSOFDNA extends CjsModel
     if (layouts) this.layoutData = dataMgr.GetLayoutData(layouts);
     this.genericData = dataMgr.GetGenericData();
 
-    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this.#setupCustomData();
+    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
     this.parentBoundingSphere = this.GetHullBoundingSphere();
-    this.parentHullShapeEllipsoid = EveSOFDNA.#CopyEllipsoid(this.GetHullShapeEllipsoid());
+    this.parentHullShapeEllipsoid = EveSOFDNA._CopyEllipsoid(this.GetHullShapeEllipsoid());
     this.isSkinned = this.hullDatas[0]?.isSkinned === true;
   }
 
@@ -1386,12 +1386,12 @@ export class EveSOFDNA extends CjsModel
    * Resets and repopulates this nested resolver from a layout descriptor while
    * inheriting the parent's command and bounds context.
    */
-  #setupFromDescriptor(layoutName, descriptor, parent, dataMgr)
+  _setupFromDescriptor(layoutName, descriptor, parent, dataMgr)
   {
-    this.#reset("", dataMgr);
+    this._reset("", dataMgr);
     if (!descriptor || !parent || !dataMgr)
     {
-      this.#parseError = "invalid-descriptor-context";
+      this._parseError = "invalid-descriptor-context";
       return;
     }
 
@@ -1401,14 +1401,14 @@ export class EveSOFDNA extends CjsModel
       const hull = dataMgr.GetHullData(name);
       if (!hull)
       {
-        this.#parseError = "unknown-hull";
+        this._parseError = "unknown-hull";
         return;
       }
       this.hullDatas.push(hull);
     }
     if (this.hullDatas.length === 0)
     {
-      this.#parseError = "missing-hull";
+      this._parseError = "missing-hull";
       return;
     }
 
@@ -1418,7 +1418,7 @@ export class EveSOFDNA extends CjsModel
     this.raceData = dataMgr.GetRaceData(this.raceName);
     if (!this.factionData || !this.raceData)
     {
-      this.#parseError = "unknown-faction-or-race";
+      this._parseError = "unknown-faction-or-race";
       return;
     }
 
@@ -1428,17 +1428,17 @@ export class EveSOFDNA extends CjsModel
       const value = descriptor[`material${index + 1}`];
       if (value) materialArgs[index] = value;
     }
-    if (materialArgs.some(value => value !== "none")) this.#commands.set("material", materialArgs);
+    if (materialArgs.some(value => value !== "none")) this._commands.set("material", materialArgs);
 
-    this.#inheritCommand(parent, EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
-    this.#inheritCommand(parent, EveSOFDNA.DnaCommand.CMD_VARIANT);
-    if (descriptor.layout) this.#commands.set("layout", [descriptor.layout]);
+    this._inheritCommand(parent, EveSOFDNA.DnaCommand.CMD_RESPATHINSERT);
+    this._inheritCommand(parent, EveSOFDNA.DnaCommand.CMD_VARIANT);
+    if (descriptor.layout) this._commands.set("layout", [descriptor.layout]);
     if (descriptor.pattern)
     {
       const inherited = parent.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN) ?? [descriptor.pattern, "none", "none"];
       inherited[0] = descriptor.pattern;
       while (inherited.length < 3) inherited.push("none");
-      this.#commands.set("pattern", inherited.slice(0, 3));
+      this._commands.set("pattern", inherited.slice(0, 3));
     }
 
     const pattern = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_PATTERN);
@@ -1446,15 +1446,15 @@ export class EveSOFDNA extends CjsModel
     const layouts = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_LAYOUT);
     if (layouts) this.layoutData = dataMgr.GetLayoutData(layouts);
     this.genericData = dataMgr.GetGenericData();
-    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this.#setupCustomData();
+    if (this.HasDnaCommand(EveSOFDNA.DnaCommand.CMD_VARIANT)) this._setupCustomData();
 
     this.dna = `${descriptor.hull}:${this.factionName}:${this.raceName}`;
-    for (const name of [...this.#commands.keys()].sort())
+    for (const name of [...this._commands.keys()].sort())
     {
-      this.dna += `:${name}?${this.#commands.get(name).join(";")}`;
+      this.dna += `:${name}?${this._commands.get(name).join(";")}`;
     }
     this.parentBoundingSphere = parent.GetParentBoundingSphere();
-    this.parentHullShapeEllipsoid = EveSOFDNA.#CopyEllipsoid(parent.GetParentHullShapeEllipsoid());
+    this.parentHullShapeEllipsoid = EveSOFDNA._CopyEllipsoid(parent.GetParentHullShapeEllipsoid());
     this.isSkinned = this.hullDatas[0]?.isSkinned === true;
     void layoutName;
   }
@@ -1463,17 +1463,17 @@ export class EveSOFDNA extends CjsModel
    * Copies one parsed command and its argument snapshot from the parent resolver
    * when present.
    */
-  #inheritCommand(parent, command)
+  _inheritCommand(parent, command)
   {
     const args = parent.GetDnaCommandArgs(command);
-    if (args) this.#commands.set(commandName(command), args);
+    if (args) this._commands.set(commandName(command), args);
   }
 
   /**
    * Replaces the resolved hull references with resolver-owned variant hull
    * snapshots when a variant command is active.
    */
-  #setupCustomData()
+  _setupCustomData()
   {
     const args = this.GetDnaCommandArgs(EveSOFDNA.DnaCommand.CMD_VARIANT);
     if (!args?.length) return;
@@ -1487,7 +1487,7 @@ export class EveSOFDNA extends CjsModel
    * Clears all prior resolution state, binds the supplied DNA text and data
    * manager, and removes any parse error.
    */
-  #reset(dna, dataMgr)
+  _reset(dna, dataMgr)
   {
     this.dna = dna;
     this.dataMgr = dataMgr;
@@ -1504,8 +1504,8 @@ export class EveSOFDNA extends CjsModel
     this.parentBoundingSphere = null;
     this.parentHullShapeEllipsoid = null;
     this.isSkinned = false;
-    this.#commands.clear();
-    this.#parseError = null;
+    this._commands.clear();
+    this._parseError = null;
   }
 
 }

@@ -309,30 +309,30 @@ export class EveSOF extends CjsModel
   @type.boolean
   editorMode = false;
 
-  #resourceExists = null;
+  _resourceExists = null;
 
-  #childResourceResolver = null;
+  _childResourceResolver = null;
 
-  #objectResourceResolver = null;
+  _objectResourceResolver = null;
 
-  #existingFilesCache = new Map();
+  _existingFilesCache = new Map();
 
-  #asyncResources = { getObject: null, exists: null };
+  _asyncResources = { getObject: null, exists: null };
 
   /** True during BuildFromDNAAsync's collect-only pass, whose resolvers return null. */
-  #collectingResources = false;
+  _collectingResources = false;
 
-  #dataPath = "";
+  _dataPath = "";
 
-  #dataLoadOperations = new Map();
+  _dataLoadOperations = new Map();
 
-  #sofLibraryBuilder = null;
+  _sofLibraryBuilder = null;
 
   // Build-scope counterpart of Carbon's CCP_LOGERR sites: records in
   // layoutPlanner diagnostic shape ({ code, ...context }), reset by
   // BuildFromDNA and appended to by modular-child builds; readable through
   // GetBuildDiagnostics().
-  #buildDiagnostics = [];
+  _buildDiagnostics = [];
 
   /**
    * Add standalone SOF configuration or accept CjsLibrary topic forwarding.
@@ -364,7 +364,7 @@ export class EveSOF extends CjsModel
 
     if (Object.prototype.hasOwnProperty.call(options, "dataPath"))
     {
-      this.#dataPath = normalizeResourcePath(options.dataPath);
+      this._dataPath = normalizeResourcePath(options.dataPath);
     }
     if (Object.prototype.hasOwnProperty.call(options, "resources"))
     {
@@ -383,12 +383,12 @@ export class EveSOF extends CjsModel
       }
       const getObject = Object.hasOwn(resources, "getObject")
         ? resources.getObject ?? null
-        : this.#asyncResources.getObject;
+        : this._asyncResources.getObject;
       const exists = Object.hasOwn(resources, "exists")
         ? resources.exists ?? null
-        : this.#asyncResources.exists;
-      if (exists !== this.#asyncResources.exists) this.#existingFilesCache.clear();
-      this.#asyncResources = {
+        : this._asyncResources.exists;
+      if (exists !== this._asyncResources.exists) this._existingFilesCache.clear();
+      this._asyncResources = {
         getObject,
         exists
       };
@@ -398,7 +398,7 @@ export class EveSOF extends CjsModel
       const lazyData = options.lazyData;
       if (lazyData === false || lazyData === null)
       {
-        this.#sofLibraryBuilder = null;
+        this._sofLibraryBuilder = null;
       }
       else if (lazyData instanceof CjsSofLibraryBuilder)
       {
@@ -413,7 +413,7 @@ export class EveSOF extends CjsModel
         const builderOptions = lazyData === true ? {} : lazyData;
         const source = builderOptions.source ?? ((path, context) =>
         {
-          const getObject = this.#asyncResources.getObject;
+          const getObject = this._asyncResources.getObject;
           if (!getObject)
           {
             throw new Error("EveSOF lazyData requires resources.getObject or a source function.");
@@ -479,7 +479,7 @@ export class EveSOF extends CjsModel
     {
       throw new TypeError("EveSOF resource existence resolver must be a function or null");
     }
-    this.#resourceExists = resolver === null ? null : path =>
+    this._resourceExists = resolver === null ? null : path =>
     {
       const result = resolver(path);
       if (result && typeof result.then === "function")
@@ -488,7 +488,7 @@ export class EveSOF extends CjsModel
       }
       return result === true;
     };
-    this.#existingFilesCache.clear();
+    this._existingFilesCache.clear();
     return this;
   }
 
@@ -513,7 +513,7 @@ export class EveSOF extends CjsModel
     {
       throw new TypeError("EveSOF child resource resolver must be a function or null");
     }
-    this.#childResourceResolver = resolver;
+    this._childResourceResolver = resolver;
     return this;
   }
 
@@ -524,7 +524,7 @@ export class EveSOF extends CjsModel
     {
       throw new TypeError("EveSOF object resource resolver must be a function or null");
     }
-    this.#objectResourceResolver = resolver;
+    this._objectResourceResolver = resolver;
     return this;
   }
 
@@ -539,26 +539,26 @@ export class EveSOF extends CjsModel
     {
       throw new TypeError("EveSOF library builder must update this factory's data manager.");
     }
-    this.#sofLibraryBuilder = builder;
+    this._sofLibraryBuilder = builder;
     return this;
   }
 
   /** Returns the installed partial-catalog builder, or null. */
   GetSofLibraryBuilder()
   {
-    return this.#sofLibraryBuilder;
+    return this._sofLibraryBuilder;
   }
 
   /** Boots configured lazy generic data or the configured monolithic catalog. */
   async InitializeAsync(options = {})
   {
-    if (this.#dataPath)
+    if (this._dataPath)
     {
-      await this.LoadDataAsync(this.#dataPath);
+      await this.LoadDataAsync(this._dataPath);
     }
-    else if (this.#sofLibraryBuilder)
+    else if (this._sofLibraryBuilder)
     {
-      await this.#sofLibraryBuilder.InitializeAsync(options.catalog ?? {});
+      await this._sofLibraryBuilder.InitializeAsync(options.catalog ?? {});
     }
     return this;
   }
@@ -572,17 +572,17 @@ export class EveSOF extends CjsModel
   }
 
   /** Load SOF data through the configured promise-capable object resolver. */
-  async LoadDataAsync(filePath = this.#dataPath)
+  async LoadDataAsync(filePath = this._dataPath)
   {
     const path = normalizeResourcePath(filePath);
     if (!path) throw new TypeError("EveSOF.LoadDataAsync requires a data path");
-    const getObject = this.#asyncResources.getObject;
+    const getObject = this._asyncResources.getObject;
     if (!getObject)
     {
       return this.dataMgr.LoadDataAsync(path);
     }
 
-    const existing = this.#dataLoadOperations.get(path);
+    const existing = this._dataLoadOperations.get(path);
     if (existing) return existing;
     const operation = ResolveSofDependency(
       () => getObject(path, { role: "sofData", output: "runtime" }),
@@ -590,13 +590,13 @@ export class EveSOF extends CjsModel
       "sofData",
       new Map()
     )
-      .then(data => this.#sofLibraryBuilder
-        ? (this.#sofLibraryBuilder.SetData(data), true)
+      .then(data => this._sofLibraryBuilder
+        ? (this._sofLibraryBuilder.SetData(data), true)
         : this.dataMgr.SetData(data));
-    this.#dataLoadOperations.set(path, operation);
+    this._dataLoadOperations.set(path, operation);
     const clear = () =>
     {
-      if (this.#dataLoadOperations.get(path) === operation) this.#dataLoadOperations.delete(path);
+      if (this._dataLoadOperations.get(path) === operation) this._dataLoadOperations.delete(path);
     };
     operation.then(clear, clear);
     return operation;
@@ -731,7 +731,7 @@ export class EveSOF extends CjsModel
    */
   GetBuildDiagnostics()
   {
-    return this.#buildDiagnostics.map(entry => ({ ...entry }));
+    return this._buildDiagnostics.map(entry => ({ ...entry }));
   }
 
   /** Builds the supported public model-values graph from three selections. */
@@ -865,7 +865,7 @@ export class EveSOF extends CjsModel
     }
     document.AddRoot("default", rootRef);
     ensureSpaceObjectBuildFields(root.fields);
-    this.#BuildChildIntoDocument(
+    this._BuildChildIntoDocument(
       document,
       root.fields,
       dna,
@@ -996,34 +996,34 @@ export class EveSOF extends CjsModel
    */
   async BuildFromDNAAsync(dnaString, options = {})
   {
-    if (this.#sofLibraryBuilder)
+    if (this._sofLibraryBuilder)
     {
-      await this.#sofLibraryBuilder.EnsureFromDNA(dnaString, options.catalog ?? {});
+      await this._sofLibraryBuilder.EnsureFromDNA(dnaString, options.catalog ?? {});
     }
-    const getObject = this.#asyncResources.getObject;
-    const exists = this.#asyncResources.exists;
+    const getObject = this._asyncResources.getObject;
+    const exists = this._asyncResources.exists;
     if (!getObject && !exists) return this.BuildFromDNA(dnaString, options);
 
     const documentRequests = new Map();
     const existenceRequests = new Map();
     const collectionPrevious = {
-      child: this.#childResourceResolver,
-      object: this.#objectResourceResolver,
-      exists: this.#resourceExists,
+      child: this._childResourceResolver,
+      object: this._objectResourceResolver,
+      exists: this._resourceExists,
       allowFileCaching: this.allowFileCaching
     };
 
     try
     {
-      this.#collectingResources = true;
+      this._collectingResources = true;
       if (getObject)
       {
-        this.#childResourceResolver = (path, context) =>
+        this._childResourceResolver = (path, context) =>
         {
           CollectSofRequest(documentRequests, path, "carbon.document", "child", context);
           return null;
         };
-        this.#objectResourceResolver = (path, context) =>
+        this._objectResourceResolver = (path, context) =>
         {
           CollectSofRequest(documentRequests, path, "carbon.document", context?.role || "object", context);
           return null;
@@ -1032,7 +1032,7 @@ export class EveSOF extends CjsModel
       if (exists)
       {
         this.allowFileCaching = false;
-        this.#resourceExists = path =>
+        this._resourceExists = path =>
         {
           CollectSofRequest(existenceRequests, path, "boolean", "exists");
           return false;
@@ -1042,10 +1042,10 @@ export class EveSOF extends CjsModel
     }
     finally
     {
-      this.#collectingResources = false;
-      this.#childResourceResolver = collectionPrevious.child;
-      this.#objectResourceResolver = collectionPrevious.object;
-      this.#resourceExists = collectionPrevious.exists;
+      this._collectingResources = false;
+      this._childResourceResolver = collectionPrevious.child;
+      this._objectResourceResolver = collectionPrevious.object;
+      this._resourceExists = collectionPrevious.exists;
       this.allowFileCaching = collectionPrevious.allowFileCaching;
     }
 
@@ -1069,30 +1069,30 @@ export class EveSOF extends CjsModel
     ]);
 
     const projectionPrevious = {
-      child: this.#childResourceResolver,
-      object: this.#objectResourceResolver,
-      exists: this.#resourceExists,
+      child: this._childResourceResolver,
+      object: this._objectResourceResolver,
+      exists: this._resourceExists,
       allowFileCaching: this.allowFileCaching
     };
     try
     {
       if (getObject)
       {
-        this.#childResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
-        this.#objectResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
+        this._childResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
+        this._objectResourceResolver = path => documentResults.get(SofRequestKey(path, "carbon.document")) ?? null;
       }
       if (exists)
       {
         this.allowFileCaching = false;
-        this.#resourceExists = path => existenceResults.get(SofRequestKey(path, "boolean")) === true;
+        this._resourceExists = path => existenceResults.get(SofRequestKey(path, "boolean")) === true;
       }
       return this.BuildFromDNA(dnaString, options);
     }
     finally
     {
-      this.#childResourceResolver = projectionPrevious.child;
-      this.#objectResourceResolver = projectionPrevious.object;
-      this.#resourceExists = projectionPrevious.exists;
+      this._childResourceResolver = projectionPrevious.child;
+      this._objectResourceResolver = projectionPrevious.object;
+      this._resourceExists = projectionPrevious.exists;
       this.allowFileCaching = projectionPrevious.allowFileCaching;
     }
   }
@@ -1126,7 +1126,7 @@ export class EveSOF extends CjsModel
   @impl.adapted
   BuildFromDNA(dnaString, options = {})
   {
-    this.#buildDiagnostics = [];
+    this._buildDiagnostics = [];
     const dna = this.CreateDna(dnaString);
     if (!dna) return null;
 
@@ -1200,7 +1200,7 @@ export class EveSOF extends CjsModel
   }
 
   /** Ports Carbon's modular child construction into an existing document root. */
-  #BuildChildIntoDocument(document, rootFields, dna, partTag, transform, layoutOptions)
+  _BuildChildIntoDocument(document, rootFields, dna, partTag, transform, layoutOptions)
   {
     const hasChildEffects = dna.UsingSof6()
       ? dna.GetHullChildSets().length !== 0
@@ -1541,7 +1541,7 @@ export class EveSOF extends CjsModel
         // Carbon logs and returns zero for this source, keeping the areas it
         // already appended and continuing with the remaining batches and
         // hulls (EveSOF.cpp:790-795); the build itself never aborts.
-        this.#buildDiagnostics.push({
+        this._buildDiagnostics.push({
           code: "missing-generic-shader",
           batchType,
           hullIndex,
@@ -1560,8 +1560,8 @@ export class EveSOF extends CjsModel
         meshIndexOffset,
         path => dna.ModifyTextureResPath(
           path,
-          this.#resourceExists,
-          this.allowFileCaching ? this.#existingFilesCache : null,
+          this._resourceExists,
+          this.allowFileCaching ? this._existingFilesCache : null,
         ),
         this.alphaCutoutShadowsEnabled,
       );
@@ -1710,8 +1710,8 @@ export class EveSOF extends CjsModel
                   name,
                   item.meshIndex,
                   hullIndex,
-                  this.#resourceExists,
-                  this.allowFileCaching ? this.#existingFilesCache : null
+                  this._resourceExists,
+                  this.allowFileCaching ? this._existingFilesCache : null
                 );
                 if (resourcePath !== null) addResource(name, resourcePath);
               }
@@ -1869,7 +1869,7 @@ export class EveSOF extends CjsModel
       if (((Number(child.buildFilter) >>> 0) & (Number(buildFlags) >>> 0)) === 0) continue;
       const factionChild = dna.GetFactionChildData(child.groupIndex);
       if (factionChild && !factionChild.isVisible) continue;
-      const descriptor = this.#resolveChildResource(child.redFilePath, child, false);
+      const descriptor = this._resolveChildResource(child.redFilePath, child, false);
       // Carbon returns from SetupChildrenAndAnimations on a wrong-type child,
       // skipping the remaining children AND the animation pass (EveSOF.cpp:
       // 2069); an unresolvable resource only skips the one child (2008).
@@ -1881,7 +1881,7 @@ export class EveSOF extends CjsModel
       // full Carbon binding behavior.
       if (descriptor.reference && Number(child.id ?? -1) !== -1)
       {
-        this.#buildDiagnostics.push({
+        this._buildDiagnostics.push({
           code: "deferred-child-animation-binding",
           path: String(child.redFilePath ?? ""),
           id: Number(child.id)
@@ -1890,7 +1890,7 @@ export class EveSOF extends CjsModel
       for (const offset of offsets)
       {
         const animationId = Number(child.id ?? -1);
-        const ref = this.#addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset);
+        const ref = this._addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset);
         if (animationId !== -1)
         {
           if (!emitterTargetsById.has(animationId)) emitterTargetsById.set(animationId, []);
@@ -1968,14 +1968,14 @@ export class EveSOF extends CjsModel
       for (const child of childSet.items)
       {
         if (((Number(child.buildFilter) >>> 0) & (Number(buildFlags) >>> 0)) === 0) continue;
-        const descriptor = this.#resolveChildResource(child.redFilePath, child, true);
+        const descriptor = this._resolveChildResource(child.redFilePath, child, true);
         // Carbon returns from SetupEffectChildren entirely on a wrong-type
         // child, skipping the remaining child sets (EveSOF.cpp:2229).
         if (descriptor === WRONG_TYPE_CHILD) return;
         if (!descriptor) continue;
         for (const offset of offsets)
         {
-          this.#addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset);
+          this._addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset);
         }
       }
     }
@@ -1987,7 +1987,7 @@ export class EveSOF extends CjsModel
    * return null; roots outside the required child interfaces return the
    * WRONG_TYPE_CHILD sentinel. Malformed descriptors and Promises throw.
    */
-  #resolveChildResource(redFilePath, child, sof6)
+  _resolveChildResource(redFilePath, child, sof6)
   {
     // Without a resolver the build stays complete AS DATA through Carbon's
     // own deferred-loading node: EveChildRef persists resPath, placement, and
@@ -1996,7 +1996,7 @@ export class EveSOF extends CjsModel
     // children/effectChildren routing then happens at load time, where the
     // real root type is known. A configured resolver instead embeds the
     // child inline (the resolver supplies the type Carbon's cast would see).
-    if (!this.#childResourceResolver)
+    if (!this._childResourceResolver)
     {
       return {
         kind: "EveChildRef",
@@ -2011,7 +2011,7 @@ export class EveSOF extends CjsModel
         rootRef: null
       };
     }
-    let descriptor = this.#childResourceResolver(String(redFilePath ?? ""), { child, sof6 });
+    let descriptor = this._childResourceResolver(String(redFilePath ?? ""), { child, sof6 });
     if (descriptor && typeof descriptor.then === "function")
     {
       throw new TypeError("EveSOF child resource resolver must be synchronous");
@@ -2021,10 +2021,10 @@ export class EveSOF extends CjsModel
       // The collection pass only gathers paths; its null is not "unresolved".
       // Only the projection pass's null is Carbon's failed LoadObject, which
       // logs (EveSOF.cpp:2008, 2171).
-      if (this.#collectingResources) return null;
+      if (this._collectingResources) return null;
       // Preserve build diagnostics as well as Carbon's log (EveSOF.cpp:2008,2171).
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "resource file %s is invalid!", String(redFilePath ?? ""));
-      this.#buildDiagnostics.push({
+      this._buildDiagnostics.push({
         code: "unresolved-child-resource",
         reason: "not-resolved",
         path: String(redFilePath ?? "")
@@ -2083,7 +2083,7 @@ export class EveSOF extends CjsModel
     // (EveSOF.cpp:2069,2229).
     if (target === "children" ? !isTransform : !isSpaceObjectChild)
     {
-      this.#buildDiagnostics.push({
+      this._buildDiagnostics.push({
         code: "child-resource-wrong-type",
         path: String(redFilePath ?? ""),
         kind,
@@ -2106,7 +2106,7 @@ export class EveSOF extends CjsModel
    * Composes child placement, imports or allocates the resolved node, and
    * appends its reference to the selected owner list.
    */
-  #addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset)
+  _addResolvedChild(document, objectFields, childOwnerFields, descriptor, child, offset)
   {
     const placement = composeChildPlacement(child, offset);
     // "children"-target hosts accept only the SRT placement; effect children
@@ -2217,8 +2217,8 @@ export class EveSOF extends CjsModel
     for (const controller of dna.GetHullControllers())
     {
       if (((Number(controller.buildFilter) >>> 0) & (Number(buildFlags) >>> 0)) === 0) continue;
-      const descriptor = this.#resolveObjectResource(controller.path, "controller");
-      if (descriptor) rootFields.controllers.push(this.#addObjectResource(document, descriptor));
+      const descriptor = this._resolveObjectResource(controller.path, "controller");
+      if (descriptor) rootFields.controllers.push(this._addObjectResource(document, descriptor));
     }
   }
 
@@ -2236,14 +2236,14 @@ export class EveSOF extends CjsModel
     const rotationPath = dna.GetModelRotationCurvePath();
     if (rotationPath)
     {
-      const descriptor = this.#resolveObjectResource(rotationPath, "modelRotationCurve");
-      if (descriptor) rootFields.modelRotationCurve = this.#addObjectResource(document, descriptor);
+      const descriptor = this._resolveObjectResource(rotationPath, "modelRotationCurve");
+      if (descriptor) rootFields.modelRotationCurve = this._addObjectResource(document, descriptor);
     }
     const translationPath = dna.GetModelTranslationCurvePath();
     if (translationPath)
     {
-      const descriptor = this.#resolveObjectResource(translationPath, "modelTranslationCurve");
-      if (descriptor) rootFields.modelTranslationCurve = this.#addObjectResource(document, descriptor);
+      const descriptor = this._resolveObjectResource(translationPath, "modelTranslationCurve");
+      if (descriptor) rootFields.modelTranslationCurve = this._addObjectResource(document, descriptor);
     }
   }
 
@@ -2299,8 +2299,8 @@ export class EveSOF extends CjsModel
           shaderData,
           path => dna.ModifyTextureResPath(
             path,
-            this.#resourceExists,
-            this.allowFileCaching ? this.#existingFilesCache : null,
+            this._resourceExists,
+            this.allowFileCaching ? this._existingFilesCache : null,
           ),
         ));
       }
@@ -2641,8 +2641,8 @@ export class EveSOF extends CjsModel
           0,
           path => dna.ModifyTextureResPath(
             path,
-            this.#resourceExists,
-            this.allowFileCaching ? this.#existingFilesCache : null,
+            this._resourceExists,
+            this.allowFileCaching ? this._existingFilesCache : null,
           ),
           this.alphaCutoutShadowsEnabled,
           false
@@ -2952,9 +2952,9 @@ export class EveSOF extends CjsModel
    * the CarbonEngineJS CjsExternalRef descriptor. Unresolved or incompatible
    * roots return null with diagnostics; malformed descriptors and Promises throw.
    */
-  #resolveObjectResource(path, role)
+  _resolveObjectResource(path, role)
   {
-    if (!this.#objectResourceResolver)
+    if (!this._objectResourceResolver)
     {
       // Controllers have Carbon's own deferred node: Tr2ControllerReference
       // persists the path and loads the controller at runtime
@@ -2988,7 +2988,7 @@ export class EveSOF extends CjsModel
         rootRef: null
       };
     }
-    let descriptor = this.#objectResourceResolver(String(path ?? ""), { role });
+    let descriptor = this._objectResourceResolver(String(path ?? ""), { role });
     if (descriptor && typeof descriptor.then === "function")
     {
       throw new TypeError("EveSOF object resource resolver must be synchronous");
@@ -2997,7 +2997,7 @@ export class EveSOF extends CjsModel
     {
       // Carbon: controllers log "controller resource file %s is invalid!"
       // (EveSOF.cpp:2257); model curves skip silently (1895-1917).
-      this.#buildDiagnostics.push({
+      this._buildDiagnostics.push({
         code: "unresolved-object-resource",
         reason: "not-resolved",
         role,
@@ -3048,7 +3048,7 @@ export class EveSOF extends CjsModel
     const gate = OBJECT_RESOURCE_ROLE_GATES[role];
     if (gate && !gate.kinds.has(kind) && !descriptorClaimsInterface(descriptor, gate.interfaceName))
     {
-      this.#buildDiagnostics.push({
+      this._buildDiagnostics.push({
         code: "object-resource-wrong-type",
         role,
         path: String(path ?? ""),
@@ -3071,7 +3071,7 @@ export class EveSOF extends CjsModel
    * Imports a resolved values or document root into the builder, or allocates a
    * standalone node, then overlays any raw fields.
    */
-  #addObjectResource(document, descriptor)
+  _addObjectResource(document, descriptor)
   {
     if (!descriptor.fragment && !descriptor.values)
     {

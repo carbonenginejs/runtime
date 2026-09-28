@@ -64,13 +64,13 @@ const CATALOGS = {
 export class CjsSofLibraryBuilder
 {
 
-  #dataMgr;
+  _dataMgr;
 
-  #readObject;
+  _readObject;
 
-  #pending = new Map();
+  _pending = new Map();
 
-  #bootOperation = null;
+  _bootOperation = null;
 
   /** Creates a lazy catalog around one exact manager and object/byte source. */
   constructor({
@@ -89,14 +89,14 @@ export class CjsSofLibraryBuilder
       throw new TypeError("CjsSofLibraryBuilder requires a decoded-object or Black-byte source function.");
     }
 
-    this.#dataMgr = dataMgr;
+    this._dataMgr = dataMgr;
     this.basePath = normalizeResourcePath(basePath).replace(/\/+$/u, "");
     if (!this.basePath)
     {
       throw new TypeError("CjsSofLibraryBuilder basePath must be a non-empty resource path.");
     }
     this.data = new EveSOFData();
-    this.#readObject = source;
+    this._readObject = source;
     if (data !== null) this.SetData(data);
   }
 
@@ -109,7 +109,7 @@ export class CjsSofLibraryBuilder
   /** Returns the exact manager receiving normalized catalog updates. */
   GetDataManager()
   {
-    return this.#dataMgr;
+    return this._dataMgr;
   }
 
   /** Replaces the partial source catalog and rebuilds the manager from it. */
@@ -135,12 +135,12 @@ export class CjsSofLibraryBuilder
     {
       throw new TypeError("CjsSofLibraryBuilder data requires generic SOF data.");
     }
-    if (!this.#dataMgr.SetData(catalog))
+    if (!this._dataMgr.SetData(catalog))
     {
       throw new TypeError("CjsSofLibraryBuilder could not install the supplied SOF catalog.");
     }
     this.data = catalog;
-    this.#bootOperation = Promise.resolve(catalog.generic);
+    this._bootOperation = Promise.resolve(catalog.generic);
     return this;
   }
 
@@ -161,15 +161,15 @@ export class CjsSofLibraryBuilder
   EnsureGeneric(options = {})
   {
     const force = requireForceOption(options);
-    if (!force && this.#dataMgr.HasGenericData())
+    if (!force && this._dataMgr.HasGenericData())
     {
-      if (!this.data.generic) this.data.generic = this.#dataMgr.GetGenericData();
+      if (!this.data.generic) this.data.generic = this._dataMgr.GetGenericData();
       return Promise.resolve(this.data.generic);
     }
-    if (!force && this.#bootOperation) return this.#bootOperation;
+    if (!force && this._bootOperation) return this._bootOperation;
 
     const path = `${this.basePath}/${GENERIC_FILE_NAME}`;
-    const operation = this.#Read(path, {
+    const operation = this._Read(path, {
       kind: "generic",
       name: "generic",
       role: "sofCatalog",
@@ -180,18 +180,18 @@ export class CjsSofLibraryBuilder
       {
         throw new TypeError(`SOF generic catalog did not contain an object: ${path}`);
       }
-      if (!this.#dataMgr.UpdateGeneric(value))
+      if (!this._dataMgr.UpdateGeneric(value))
       {
         throw new TypeError(`SOF manager rejected generic catalog data: ${path}`);
       }
       this.data.generic = value;
-      await this.#EnsureGenericDependencies(options);
+      await this._EnsureGenericDependencies(options);
       return value;
     });
-    this.#bootOperation = operation;
+    this._bootOperation = operation;
     operation.catch(() =>
     {
-      if (this.#bootOperation === operation) this.#bootOperation = null;
+      if (this._bootOperation === operation) this._bootOperation = null;
     });
     return operation;
   }
@@ -208,7 +208,7 @@ export class CjsSofLibraryBuilder
       Promise.all(requirements.materials.map(name => this.FetchMaterial(name, options))),
       Promise.all(requirements.patterns.map(name => this.FetchPattern(name, options)))
     ]);
-    await this.#EnsureFactionDependencies(faction, options);
+    await this._EnsureFactionDependencies(faction, options);
 
     const layoutContext = {
       faction: requirements.faction,
@@ -216,44 +216,44 @@ export class CjsSofLibraryBuilder
     };
     const visitedLayouts = new Set();
     await Promise.all(requirements.layouts.map(name =>
-      this.#EnsureLayout(name, layoutContext, visitedLayouts, options)));
+      this._EnsureLayout(name, layoutContext, visitedLayouts, options)));
     return this;
   }
 
   /** Fetches or returns one hull catalog record. */
   FetchHull(nameOrPath, options = {})
   {
-    return this.#FetchNamed("hull", nameOrPath, options);
+    return this._FetchNamed("hull", nameOrPath, options);
   }
 
   /** Fetches or returns one faction catalog record. */
   FetchFaction(nameOrPath, options = {})
   {
-    return this.#FetchNamed("faction", nameOrPath, options);
+    return this._FetchNamed("faction", nameOrPath, options);
   }
 
   /** Fetches or returns one race catalog record. */
   FetchRace(nameOrPath, options = {})
   {
-    return this.#FetchNamed("race", nameOrPath, options);
+    return this._FetchNamed("race", nameOrPath, options);
   }
 
   /** Fetches or returns one material catalog record. */
   FetchMaterial(nameOrPath, options = {})
   {
-    return this.#FetchNamed("material", nameOrPath, options);
+    return this._FetchNamed("material", nameOrPath, options);
   }
 
   /** Fetches or returns one pattern catalog record. */
   FetchPattern(nameOrPath, options = {})
   {
-    return this.#FetchNamed("pattern", nameOrPath, options);
+    return this._FetchNamed("pattern", nameOrPath, options);
   }
 
   /** Fetches or returns one layout catalog record. */
   FetchLayout(nameOrPath, options = {})
   {
-    return this.#FetchNamed("layout", nameOrPath, options);
+    return this._FetchNamed("layout", nameOrPath, options);
   }
 
   /** Parses catalog names from DNA without requiring any catalog to be loaded. */
@@ -297,39 +297,39 @@ export class CjsSofLibraryBuilder
   }
 
   /** Loads, normalizes, and publishes one named catalog record. */
-  async #FetchNamed(kind, nameOrPath, options)
+  async _FetchNamed(kind, nameOrPath, options)
   {
     const force = requireForceOption(options);
     await this.EnsureGeneric({ signal: options.signal ?? null });
     const request = normalizeNamedRequest(kind, nameOrPath, this.basePath);
     const config = CATALOGS[kind];
-    if (!force && this.#dataMgr[config.has](request.name))
+    if (!force && this._dataMgr[config.has](request.name))
     {
       return findNamedRecord(this.data[kind], request.name)
-        ?? this.#dataMgr[config.get](request.name);
+        ?? this._dataMgr[config.get](request.name);
     }
 
     const key = `${kind}:${request.name}`;
-    const existing = this.#pending.get(key);
+    const existing = this._pending.get(key);
     if (existing) return existing;
 
-    const operation = this.#Read(request.path, {
+    const operation = this._Read(request.path, {
       kind,
       name: request.name,
       role: "sofCatalog",
       signal: options.signal ?? null
-    }).then(value => this.#PublishNamed(kind, request, value));
-    this.#pending.set(key, operation);
+    }).then(value => this._PublishNamed(kind, request, value));
+    this._pending.set(key, operation);
     const clear = () =>
     {
-      if (this.#pending.get(key) === operation) this.#pending.delete(key);
+      if (this._pending.get(key) === operation) this._pending.delete(key);
     };
     operation.then(clear, clear);
     return operation;
   }
 
   /** Validates one fetched named record and updates the source and manager. */
-  #PublishNamed(kind, request, value)
+  _PublishNamed(kind, request, value)
   {
     if (!value || typeof value !== "object" || Array.isArray(value))
     {
@@ -342,7 +342,7 @@ export class CjsSofLibraryBuilder
     }
 
     const config = CATALOGS[kind];
-    if (!this.#dataMgr[config.update](name, value))
+    if (!this._dataMgr[config.update](name, value))
     {
       throw new TypeError(`SOF manager rejected ${kind} catalog data: ${request.path}`);
     }
@@ -351,10 +351,10 @@ export class CjsSofLibraryBuilder
   }
 
   /** Loads every material and default pattern referenced by one faction. */
-  async #EnsureFactionDependencies(faction, options)
+  async _EnsureFactionDependencies(faction, options)
   {
     if (!faction) return;
-    const managedFaction = this.#dataMgr.GetFactionData(
+    const managedFaction = this._dataMgr.GetFactionData(
       normalizeCatalogName(faction.name, "faction object name")
     );
     await Promise.all([
@@ -369,16 +369,16 @@ export class CjsSofLibraryBuilder
   }
 
   /** Loads every material referenced by the normalized generic wreck areas. */
-  async #EnsureGenericDependencies(options)
+  async _EnsureGenericDependencies(options)
   {
-    const generic = this.#dataMgr.GetGenericData();
+    const generic = this._dataMgr.GetGenericData();
     await Promise.all(freezeNames([
       ...generic.genericWreckMaterialData.materialNames.values()
     ]).map(name => this.FetchMaterial(name, options)));
   }
 
   /** Recursively loads one layout and every catalog named by its descriptors. */
-  async #EnsureLayout(layoutName, context, visited, options)
+  async _EnsureLayout(layoutName, context, visited, options)
   {
     const name = normalizeCatalogName(layoutName, "layout");
     const key = `${name}:${context.faction}:${context.race}`;
@@ -405,11 +405,11 @@ export class CjsSofLibraryBuilder
         Promise.all(freezeNames([descriptor.pattern])
           .map(pattern => this.FetchPattern(pattern, options)))
       ]);
-      await this.#EnsureFactionDependencies(faction, options);
+      await this._EnsureFactionDependencies(faction, options);
       const nestedLayout = optionalCatalogName(descriptor.layout);
       if (nestedLayout)
       {
-        await this.#EnsureLayout(nestedLayout, {
+        await this._EnsureLayout(nestedLayout, {
           faction: factionName,
           race: raceName
         }, visited, options);
@@ -418,9 +418,9 @@ export class CjsSofLibraryBuilder
   }
 
   /** Reads one source result and normalizes decoded objects or Black bytes. */
-  async #Read(path, context)
+  async _Read(path, context)
   {
-    return normalizeSofObject(await this.#readObject(path, context), path);
+    return normalizeSofObject(await this._readObject(path, context), path);
   }
 
 }
