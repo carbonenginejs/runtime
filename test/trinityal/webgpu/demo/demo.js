@@ -336,24 +336,24 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-regular.otf") format("opentype"); font-weight: 400; }
     @font-face { font-family: "Eve Sans Neue"; src: url("/resource/ui/fonts/evesansneue-bold.otf") format("opentype"); font-weight: 700; }
     #settings { position: fixed; top: 12px; left: 12px; z-index: 2; width: min(400px, calc(100vw - 24px)); box-sizing: border-box; padding: 8px 10px;
-                background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
+                background: transparent; border: none; color: #cfd6e4; text-shadow: 0 0 3px #000, 0 0 1px #000;
                 font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
     #settings summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; }
     #settings summary { cursor: pointer; }
     #settings label { display: flex; justify-content: space-between; gap: 8px; align-items: center; min-width: 0; }
-    #settings select { max-width: 60%; min-width: 0; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings select { max-width: 60%; min-width: 0; font: inherit; color: inherit; background: #000; border: 1px solid #2a3444; }
     #settings .columns { display: grid; grid-template-columns: minmax(0, 1fr); gap: 4px; }
     #settings .column { min-width: 0; }
     #settings .column h4 { margin: 4px 0 2px; font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge { margin: 0 0 4px; font-size: 11px; line-height: 1.5; color: #aab3c2; }
-    #settings .group { margin: 4px 0 6px; padding: 2px 6px 4px; border: 1px solid #2a3444; border-radius: 3px; }
+    #settings .group { margin: 4px 0 6px; padding: 2px 0 4px; }
     #settings .group h5 { margin: 0; font-size: 10px; font-weight: 400; letter-spacing: 0.06em; text-transform: uppercase; color: #8a93a3; }
     #settings .merge div { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    #settings .effects { margin-top: 4px; padding-top: 4px; border-top: 1px solid #2a3444; }
+    #settings .effects { margin-top: 4px; padding-top: 4px; }
     #settings .note { color: #8a93a3; }
     #settings .fields { margin: 0 0 4px 10px; color: #aab3c2; }
     #settings .fields summary { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11px; }
-    #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #settings .fields input[type=number], #settings .fields input[type=text] { width: 96px; font: inherit; color: inherit; background: #000; border: 1px solid #2a3444; }
     #settings { max-height: calc(100vh - 24px); overflow-x: hidden; overflow-y: auto; }
     #settings .sun { display: flex; gap: 4px; }
     #settings .sun input[type=range] { width: 50px; margin: 0; }
@@ -877,13 +877,13 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
   style.textContent = `
     #ship { position: fixed; top: 52px; right: 12px; z-index: 2; width: 300px; padding: 8px 10px;
             max-height: calc(100vh - 64px); overflow: auto;
-            background: #111722dd; border: 1px solid #2a3444; border-radius: 4px; color: #cfd6e4;
+            background: transparent; border: none; color: #cfd6e4; text-shadow: 0 0 3px #000, 0 0 1px #000;
             font: 13px/1.6 "Eve Sans Neue", system-ui, sans-serif; }
     #ship summary { font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; cursor: pointer; }
     #ship h4 { margin: 6px 0 2px; font-size: 11px; color: #8a93a3; text-transform: uppercase; letter-spacing: 0.04em; }
     #ship label { display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-    #ship input, #ship select { width: 170px; font: inherit; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
-    #ship textarea { width: 100%; box-sizing: border-box; font: 11px/1.4 monospace; color: inherit; background: #0b0d12; border: 1px solid #2a3444; }
+    #ship input, #ship select { width: 170px; font: inherit; color: inherit; background: #000; border: 1px solid #2a3444; }
+    #ship textarea { width: 100%; box-sizing: border-box; font: 11px/1.4 monospace; color: inherit; background: #000; border: 1px solid #2a3444; }
     #ship .note { color: #8a93a3; font-size: 11px; min-height: 1.4em; }
     #ship button { font: inherit; }
   `;
