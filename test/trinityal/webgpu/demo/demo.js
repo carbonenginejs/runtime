@@ -111,7 +111,7 @@ import { ResolveEffectPath, SetEffectPathDefaults } from "../../../../npm/dist/g
 import { ExFlag, PixelFormat, TextureType } from "../../../../npm/dist/global/consts/renderContext/index.js";
 import { CjsWebgpuDevice } from "../../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../../npm/dist/trinityal/webgpu/internal.js";
-import { EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessRenderer, Tr2PPDynamicExposureEffect, Tr2PPTonemappingEffect, Tr2SSAO, TriFloat } from "../../../../npm/dist/trinity/index.js";
+import { EveChildPostProcessVolume, EveEffectRoot2, EveEllipsoidVolume, EveShip2, EveSpaceScene, EveSpaceSceneRenderDriver, Tr2OcclusionBuffer, Tr2PostProcess2, Tr2PostProcessAttributes, Tr2PostProcessRenderer, Tr2PPDynamicExposureEffect, Tr2PPTonemappingEffect, Tr2SSAO, TriFloat } from "../../../../npm/dist/trinity/index.js";
 import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
@@ -166,6 +166,53 @@ const POST_TEMPLATE = POST_OFF ? "" : POST_PARAMETER;
 
 /** `?flare=<name>`: the sun lens flare, from res:/fisfx/lensflare/; `off` for none. */
 const FLARE = new URLSearchParams(globalThis.location?.search ?? "").get("flare") || "yellow";
+
+/**
+ * SUN AND LOCATION. Carbon takes fog, god rays, tonemapping, dynamic exposure,
+ * TAA and the generic effect from the scene's default post process only
+ * (EveSpaceScene.cpp:392-399); every other effect blends in by priority from
+ * the ITr2PostProcessOwners, such as EveChildPostProcessVolume (:358-390). The
+ * game's default is the system sun's template, and a site's template arrives
+ * as a volume. `?post=` routes by name: an `env_sun_*` template is the sun,
+ * anything else the locationPost, whose sun then follows the flare.
+ *
+ * @param {string} name A template name or a resource path.
+ * @returns {boolean} Whether it is a sun template.
+ */
+function IsSunTemplate(name)
+{
+  return /(?:^|\/)env_sun_[^/]*$/u.test(String(name).replace(/\.black$/u, ""));
+}
+
+/**
+ * The sun template matching a lens flare: `env_sun_<flare>_01a`, else its
+ * colour's (`blue_small` → `env_sun_blue_01a`), else yellow; none for `off`.
+ *
+ * @param {string} flareName A res:/fisfx/lensflare/ name, or "off".
+ * @returns {string} A sun template name, or "".
+ */
+function SunTemplateForFlare(flareName)
+{
+  if (flareName === "off") return "";
+  for (const candidate of [ `env_sun_${flareName}_01a`, `env_sun_${flareName.split("_")[0]}_01a` ])
+  {
+    if (Object.hasOwn(POST_TEMPLATES, candidate)) return candidate;
+  }
+  return "env_sun_yellow_01a";
+}
+
+/** The sun template to start with: a `?post=` sun, else the flare's. */
+const POST_SUN = POST_OFF ? "" : (POST_TEMPLATE && IsSunTemplate(POST_TEMPLATE) ? POST_TEMPLATE : SunTemplateForFlare(FLARE));
+
+/** The location template to start with: a `?post=` that is not a sun. */
+const POST_LOCATION = POST_TEMPLATE && !IsSunTemplate(POST_TEMPLATE) ? POST_TEMPLATE : "";
+
+/**
+ * The location volume's ellipsoid radii in metres: full strength inside
+ * `inner`, fading to nothing at `outer` (EveEllipsoidVolume.GetIntensity).
+ * Large enough by default that the orbiting camera sits at full strength.
+ */
+const LOCATION_RADII = { inner: 100000, outer: 200000 };
 
 /**
  * `?shadows=1` offers the shadow qualities; without it the panel offers only
@@ -227,9 +274,11 @@ async function LoadPostTemplate(name)
  * @param {object} options
  * @param {EveSpaceSceneRenderDriver} options.driver The demo's driver.
  * @param {{off: boolean}} options.postState The frame loop's post switch.
- * @param {string} options.initialTemplate The `?post=` template, if any.
- * @param {(name: string) => Promise<object|null>} options.select Loads a template.
- * @param {() => object|null} options.current The loaded template record.
+ * @param {string} options.initialTemplate The starting sun template, if any.
+ * @param {(name: string) => Promise<object|null>} options.select Loads a sun template.
+ * @param {() => object|null} options.current The loaded sun template record.
+ * @param {{initial: string, select: (name: string) => Promise<object|null>, radii: {inner: number, outer: number}, setRadii: () => void, intensity: () => number|null}} options.locationPost
+ *   The location volume: its template picker, radii and resolved intensity.
  * @param {{direction: Float32Array}} options.sun The demo's one sun.
  * @param {{current: string, select: (name: string) => Promise<void>}} options.flare The lens flare.
  * @param {() => void} options.aimSun Puts the sun behind the hull, as the camera sees it.
@@ -255,7 +304,7 @@ function DirtLevelFromWeeks(weeks, isDisabled = false)
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin })
+function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, kills, damage, effect, cloak, skin })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -311,8 +360,45 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   const postToggle = row("post", Object.assign(document.createElement("input"), { type: "checkbox", checked: !postState.off }));
   postToggle.addEventListener("change", () => { postState.off = !postToggle.checked; postState.apply(); });
 
-  const templates = choose([ [ "(none)", "" ], ...Object.keys(POST_TEMPLATES).map(name => [ name, name ]) ], initialTemplate);
-  row("template", templates);
+  const templateNames = Object.keys(POST_TEMPLATES);
+  const templates = choose([ [ "(none)", "" ], ...templateNames.filter(IsSunTemplate).map(name => [ name, name ]) ], initialTemplate);
+  row("sun template", templates);
+
+  // THE LOCATION IS A VOLUME: its template blends in by the camera's place in
+  // the ellipsoid, which the volume resolves every frame; the read-out shows it.
+  const locations = choose([ [ "(none)", "" ], ...templateNames.filter(name => !IsSunTemplate(name)).map(name => [ name, name ]) ], locationPost.initial);
+  row("location template", locations);
+  locations.addEventListener("change", async () =>
+  {
+    locations.disabled = true;
+    try
+    {
+      await locationPost.select(locations.value);
+    }
+    catch (error)
+    {
+      console.error(`location ${locations.value}: ${error.message}`);
+    }
+    finally
+    {
+      locations.disabled = false;
+    }
+  });
+  for (const key of [ "inner", "outer" ])
+  {
+    const input = row(`location ${key} (m)`, Object.assign(document.createElement("input"), { type: "number", min: "0", step: "1000", value: String(locationPost.radii[key]) }));
+    input.addEventListener("change", () =>
+    {
+      locationPost.radii[key] = Math.max(0, Number(input.value) || 0);
+      locationPost.setRadii();
+    });
+  }
+  const intensity = row("location intensity", Object.assign(document.createElement("output"), { value: "-" }));
+  setInterval(() =>
+  {
+    const value = locationPost.intensity();
+    intensity.value = value === null ? "-" : value.toFixed(3);
+  }, 250);
 
   // What the EVE client adds to the scene's default post process: tonemapping
   // and dynamic exposure where the template has none (see ApplyClientDefaults).
@@ -3661,6 +3747,7 @@ export async function RunDemo(canvas)
     return {
       postOff: postState.off,
       template: postTemplate ? { path: postTemplate.path, populated: postTemplate.populated, skipped: postTemplate.skipped } : null,
+      location: locationPost.record ? { path: locationPost.record.path, populated: locationPost.record.populated, intensity: locationPost.attributes.intensity } : null,
       stage: STAGE || "all",
       counts,
       tonemapping: EffectState(driver.postProcess.tonemappingEffect),
@@ -3714,6 +3801,43 @@ export async function RunDemo(canvas)
 
   let postTemplate = null;
 
+  // THE LOCATION VOLUME: an EveChildPostProcessVolume holding the location
+  // template's attributes (FromPostProcess at MEDIUM priority, as a site's
+  // volume is authored) and one ellipsoid centred on the ship. It hangs from a
+  // scene-level EveEffectRoot2, which updates it every frame, so it survives
+  // skin changes that replace the ship. Only a real scene merges owners.
+  const locationPost = {
+    record: null,
+    attributes: new Tr2PostProcessAttributes(),
+    ellipsoid: new EveEllipsoidVolume(),
+    volume: new EveChildPostProcessVolume(),
+    radii: { ...LOCATION_RADII }
+  };
+  locationPost.volume.name = "demo location";
+  locationPost.volume.volumes.push(locationPost.ellipsoid);
+  locationPost.volume.postProcessAttributes = locationPost.attributes;
+  const SetLocationRadii = () =>
+  {
+    locationPost.ellipsoid.innerShape.fill(Math.min(locationPost.radii.inner, locationPost.radii.outer));
+    locationPost.ellipsoid.shape.fill(locationPost.radii.outer);
+  };
+  SetLocationRadii();
+  const FillLocationAttributes = () => locationPost.attributes.FromPostProcess(
+    !postState.off && locationPost.record ? locationPost.record.postProcess : null,
+    Tr2PostProcessAttributes.MEDIUM_PRIORITY,
+    1
+  );
+  if (realScene)
+  {
+    const root = new EveEffectRoot2();
+    root.name = "demo location";
+    root.effectChildren.push(locationPost.volume);
+    realScene.objects.push(root);
+    // Pushed after Initialize, so it joins the component registry - as a
+    // PostProcessOwner the merge reads - through ReregisterEntities.
+    realScene.ReregisterEntities();
+  }
+
   // POST OFF IS AN EMPTY POST PROCESS, as in Carbon: the driver always renders
   // into its own colour and depth and always post-processes into the
   // destination (EveSpaceSceneRenderDriver.cpp:600-608); with no effects that
@@ -3724,6 +3848,7 @@ export async function RunDemo(canvas)
   postState.apply = () =>
   {
     if (realScene) realScene.postprocess = !postState.off && postTemplate ? postTemplate.postProcess : new Tr2PostProcess2();
+    FillLocationAttributes();
   };
 
   // Whether the demo plays the client's part (the settings panel's "client
@@ -3783,9 +3908,25 @@ export async function RunDemo(canvas)
     return postTemplate;
   }
 
+  /**
+   * Loads a location template into the volume's attributes, or none for "".
+   *
+   * @param {string} name A template name, a resource path, or "".
+   * @returns {Promise<object|null>} The loaded template record.
+   */
+  async function SelectLocationTemplate(name)
+  {
+    locationPost.record = name ? await LoadPostTemplate(name) : null;
+    FillLocationAttributes();
+    if (name && !realScene) console.warn(`location ${name}: only a real scene merges post-process volumes`);
+    if (locationPost.record) console.log(`location template ${locationPost.record.path}: populates ${locationPost.record.populated.join(", ") || "(nothing)"}`);
+    return locationPost.record;
+  }
+
   // The loaded Tr2PostProcess2, for editing live: demo.postProcess.colorCorrection.
   globalThis.demo.postProcess = null;
-  if (POST_TEMPLATE) await SelectPostTemplate(POST_TEMPLATE);
+  if (POST_SUN) await SelectPostTemplate(POST_SUN);
+  if (POST_LOCATION) await SelectLocationTemplate(POST_LOCATION);
 
   postState.apply();
 
@@ -3845,9 +3986,16 @@ export async function RunDemo(canvas)
   BuildSettingsPanel({
     driver,
     postState,
-    initialTemplate: POST_TEMPLATE,
+    initialTemplate: POST_SUN,
     select: SelectPostTemplate,
     current: () => postTemplate,
+    locationPost: {
+      initial: POST_LOCATION,
+      select: SelectLocationTemplate,
+      radii: locationPost.radii,
+      setRadii: SetLocationRadii,
+      intensity: () => (realScene ? locationPost.attributes.intensity : null)
+    },
     sun: SUN,
     flare,
     age: weeks => globalThis.demo.age(weeks),
