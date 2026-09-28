@@ -4,13 +4,10 @@
 // reason: the manager knows no resource type until composition registers one,
 // and without this a SOF-built ship's mesh stayed a failed resource.
 //
-// The payload is the CMF projection of the granny file: `CjsGr2Format.read`
-// gives shared geometry and `CjsCmfFormat.loadShared` projects it to the
-// meshes/areas/declaration graph TriGeometryRes and the mesh draw path read.
-// Both are the formats' public one-shot readers; nothing format-internal is
-// reached from here.
-import { CjsGr2Format } from "../formats/gr2/index.js";
-import { CjsCmfFormat } from "../formats/cmf/index.js";
+// The resource reads its own file, as Carbon's TriGeometryRes::DoLoad does
+// (cpp:548-582): `ReadGrannyFile` keeps the granny read for the animation path
+// and returns its CMF projection, the meshes/areas/declaration graph the mesh
+// draw path reads.
 import { TriGeometryRes } from "./TriGeometryRes.js";
 
 /** The extensions Carbon loads as geometry resources. */
@@ -24,13 +21,9 @@ export const GeometryResourceExtensions = Object.freeze([ "gr2" ]);
  */
 export function RegisterGeometryResources(resourceManager)
 {
-  // BOUNDS FROM THE VERTICES. A granny file carries no mesh-level box, and
-  // Carbon's TriGeometryRes::SetupModels starts each mesh's box empty and
-  // accumulates it from the vertices (TriGeometryRes.cpp:1016-1017). Without
-  // the rebuild every mesh read as a zero box, a zero-radius sphere and zero
-  // pixels on screen, so EveTransform culled it: the lens-flare occluder
-  // sprites (zsprite.gr2) never drew, and the flare shone through hulls.
-  const loader = bytes => CjsCmfFormat.loadShared(CjsGr2Format.read(bytes, { rebuildMissingBounds: true }));
+  // The context's resource is the TriGeometryRes this route registers, and
+  // the payload returned here is published to that same resource.
+  const loader = (bytes, context) => context.resource.ReadGrannyFile(bytes);
 
   for (const extension of GeometryResourceExtensions)
   {

@@ -12,6 +12,8 @@ import { vec4 } from "#math/vec4";
 import { CjsResource } from "#blue";
 import { TriStorageFlags } from "#consts/graphics";
 import { Tr2RaycastGeometryRes } from "./Tr2RaycastGeometryRes.js";
+import { CjsGr2Format } from "../formats/gr2/index.js";
+import { CjsCmfFormat } from "../formats/cmf/index.js";
 import {
   assertResourcePayloadArray,
   assertResourcePayloadObject,
@@ -52,6 +54,15 @@ export class TriGeometryRes extends CjsResource
 
   _raycastPreparationFailed = false;
 
+  /** m_useCMF - which reader loaded this resource; Carbon starts true (cpp:210). */
+  _useCMF = true;
+
+  /** m_pGrannyFile - the gr2 read ReadGrannyFile kept, or null. */
+  _grannyFile = null;
+
+  /** The payload ReadGrannyFile returned, so SetPayload can tell it from any other. */
+  _grannyPayload = null;
+
   /** Creates a TriGeometryRes with caller-provided initial state. */
   constructor(values = null)
   {
@@ -77,6 +88,9 @@ export class TriGeometryRes extends CjsResource
     }
     this._raycastGeometry = null;
     this._raycastPreparationFailed = false;
+    // A payload ReadGrannyFile did not produce came from no granny file, so the
+    // kept one would describe different geometry.
+    if (payload !== this._grannyPayload) this._ForgetGrannyFile();
     if (payload === null)
     {
       super.SetPayload(null);
@@ -108,7 +122,73 @@ export class TriGeometryRes extends CjsResource
   ReleasePayload()
   {
     this.DestroyRayCaster();
+    this._ForgetGrannyFile();
     return super.ReleasePayload();
+  }
+
+  /**
+   * Reads a granny file, keeping it for the animation path, and returns the
+   * CMF form the mesh consumers draw from.
+   *
+   * Adapted: Carbon `ReadGrannyFile` (cpp:1245-1276) clears m_useCMF and keeps
+   * m_pGrannyFile, which `GetGrannyInfo` answers from and Tr2GrannyAnimation
+   * animates. Carbon then builds its meshes from the granny data directly; this
+   * port draws every mesh from the CMF form instead, so the granny read is
+   * also projected, and the projection borrows its arrays rather than copying
+   * them.
+   *
+   * @param {Uint8Array} bytes The .gr2 file.
+   * @returns {object} The CMF-form payload.
+   */
+  ReadGrannyFile(bytes)
+  {
+    // Bounds from the vertices: a granny file carries no mesh-level box, and
+    // Carbon's SetupModels accumulates it from them (cpp:1016-1017). Without
+    // the rebuild every mesh read as a zero sphere and EveTransform culled it -
+    // the lens-flare occluder sprites (zsprite.gr2) never drew.
+    const grannyFile = CjsGr2Format.read(bytes, { rebuildMissingBounds: true });
+    const payload = CjsCmfFormat.loadShared(grannyFile);
+
+    this._useCMF = false;
+    this._grannyFile = grannyFile;
+    this._grannyPayload = payload;
+    return payload;
+  }
+
+  /**
+   * Reads a CMF file and returns it as the payload.
+   *
+   * Adapted: Carbon `ReadCMFFile` (cpp:1224-1242) sets m_useCMF; there is no granny
+   * file.
+   *
+   * @param {Uint8Array} bytes The .cmf file.
+   * @returns {object} The CMF-form payload.
+   */
+  ReadCMFFile(bytes)
+  {
+    this._ForgetGrannyFile();
+    return CjsCmfFormat.read(bytes);
+  }
+
+  /**
+   * The granny file this resource was read from, or null for a CMF source.
+   *
+   * Adapted: Carbon `GetGrannyInfo` (cpp:242-252) answers the file info of m_pGrannyFile;
+   * here that is the gr2 reader's output, kept whole.
+   *
+   * @returns {object|null} The gr2 read.
+   */
+  GetGrannyInfo()
+  {
+    return this._grannyFile;
+  }
+
+  /** Drops the kept granny file; the resource reads as CMF again, Carbon's default. */
+  _ForgetGrannyFile()
+  {
+    this._useCMF = true;
+    this._grannyFile = null;
+    this._grannyPayload = null;
   }
 
   /**
@@ -183,10 +263,18 @@ export class TriGeometryRes extends CjsResource
     return this.GetPayload();
   }
 
-  /** Whether the resident payload has Carbon's CMF mesh collection shape. */
+  /**
+   * Whether this resource was read from a CMF file.
+   *
+   * Carbon `IsUsingCMF` (cpp:2959-2966) answers m_useCMF, which the reader
+   * sets - by file type, not by payload shape. Every payload here is CMF-shaped,
+   * a granny one included, so the shape cannot answer it.
+   *
+   * @returns {boolean} True unless ReadGrannyFile loaded it.
+   */
   IsUsingCMF()
   {
-    return Array.isArray(this.GetPayload()?.meshes);
+    return this._useCMF;
   }
 
   // Carbon TriGeometryRes.cpp:294-319. Walks LODs from the LOWEST quality up
