@@ -14,6 +14,7 @@ import { readFileSync, readdirSync } from "node:fs";
 import { test } from "node:test";
 import { CjsClassRegistry, CjsDocumentHydrator } from "../../../npm/dist/global/model/document/index.js";
 import { TriBatchType } from "../../../npm/dist/global/consts/graphics/index.js";
+import { blue } from "../../../npm/dist/global/blue/index.js";
 import {
   CjsSofLibraryBuilder,
   EveSOF,
@@ -6219,7 +6220,8 @@ test("EveSOF.Create instantiates from raw catalog inputs only", () => {
     return data;
   };
 
-  // No file list: one warning, inserts report missing, base paths emit.
+  // No file list: existence asks the global BePaths, which, uncomposed, has
+  // no file systems and truthfully answers "not here", so base paths emit.
   const warnings = [];
   const originalWarn = console.warn;
   console.warn = message => warnings.push(String(message));
@@ -6232,8 +6234,7 @@ test("EveSOF.Create instantiates from raw catalog inputs only", () => {
   {
     console.warn = originalWarn;
   }
-  assert.equal(warnings.length, 1);
-  assert.match(warnings[0], /resFileIndex/);
+  assert.equal(warnings.length, 0);
   const bareDocument = bare.BuildFromDNA("rifter:minmatar:minmatar");
   assert.equal(findTextureResourcePath(bareDocument, "DiffuseMap"), "res:/x/ship_d.dds");
 
@@ -6244,6 +6245,71 @@ test("EveSOF.Create instantiates from raw catalog inputs only", () => {
   });
   const indexedDocument = indexed.BuildFromDNA("rifter:minmatar:minmatar");
   assert.equal(findTextureResourcePath(indexedDocument, "DiffuseMap"), "res:/x/insert/ship_insert_d.dds");
+});
+
+test("resPathInsert existence goes through BePaths, as Carbon's FileExists does", () => {
+  // EveSOFDNA.cpp:11-14: FileExists asks BePaths. :944-1011: the faction's
+  // insert applies when the DNA has no respathinsert clause, "none" suppresses
+  // it, and an insert whose file is missing falls back to the base path.
+  const makeData = factionInsert => {
+    const data = createData();
+    data.hull[0].opaqueAreas = [{
+      name: "hull",
+      index: 0,
+      count: 1,
+      areaType: 0,
+      shader: "ship.fx",
+      textures: [{ name: "DiffuseMap", resFilePath: "res:/x/ship_d.dds" }],
+      parameters: [],
+    }];
+    data.faction[0].resPathInsert = factionInsert;
+    data.generic.areaShaderLocation = "res:/effect";
+    data.generic.areaShaders = [{
+      shader: "ship.fx",
+      parameters: [],
+      defaultParameters: [],
+      defaultTextures: [],
+      doGenerateDepthArea: false,
+      transparencyTextureName: "",
+    }];
+    return data;
+  };
+  const files = new Set([ "res:/x/insert/ship_insert_d.dds", "res:/x/named/ship_named_d.dds" ]);
+  const paths = { FileExists: path => files.has(path) };
+  const diffuse = (sof, dna) => findTextureResourcePath(sof.BuildFromDNA(dna), "DiffuseMap");
+
+  // A factory given its own paths service.
+  const own = EveSOF.Create({ black: makeData("insert") }).Register({ paths });
+  assert.equal(diffuse(own, "rifter:minmatar:minmatar"), "res:/x/insert/ship_insert_d.dds", "no clause: the faction's insert");
+  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?none"), "res:/x/ship_d.dds", "none suppresses it");
+  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?named"), "res:/x/named/ship_named_d.dds", "a named insert that exists applies");
+  assert.equal(diffuse(own, "rifter:minmatar:minmatar:respathinsert?missing"), "res:/x/ship_d.dds", "a missing insert falls back");
+
+  // The default is the global BePaths: compose it with a file system.
+  const fileSystem = {
+    FileExists: path => files.has(path),
+    IsDirectory: () => false,
+    GetDirectoryContents: () => false,
+    GetStreamFromPath: () => null,
+    ResolvePath: path => path,
+  };
+  blue.paths.RegisterFileSystem(fileSystem);
+  try
+  {
+    const global = EveSOF.Create({ black: makeData("insert") });
+    assert.equal(diffuse(global, "rifter:minmatar:minmatar"), "res:/x/insert/ship_insert_d.dds", "global BePaths answers");
+    assert.equal(diffuse(global, "rifter:minmatar:minmatar:respathinsert?none"), "res:/x/ship_d.dds");
+  }
+  finally
+  {
+    blue.paths.UnregisterFileSystem(fileSystem);
+  }
+
+  // The temporary resFileIndex adapter still overrides paths.
+  const adapted = EveSOF.Create({ black: makeData("insert"), resFileIndex: [] }).Register({ paths });
+  assert.equal(diffuse(adapted, "rifter:minmatar:minmatar"), "res:/x/ship_d.dds", "resFileIndex overrides paths");
+
+  assert.throws(() => new EveSOF().Register({ paths: {} }), /FileExists/);
 });
 
 test("SOF stamps the injected buildTime as every light's startTime", () => {

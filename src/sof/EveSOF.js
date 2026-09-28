@@ -22,6 +22,7 @@ import { EveSOFDataArea } from "./shared/EveSOFDataArea.js";
 import { EveSOFDataInstancedMesh } from "./shared/EveSOFDataInstancedMesh.js";
 import { EveSOFUtilsParameterName } from "./shared/EveSOFUtilsParameterName.js";
 import { CjsCarbonDocument } from "#model/document";
+import { blue } from "#blue";
 import { EveSOFDNA } from "./EveSOFDNA.js";
 import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import { CjsSofLibraryBuilder } from "./CjsSofLibraryBuilder.js";
@@ -311,6 +312,14 @@ export class EveSOF extends CjsModel
 
   _resourceExists = null;
 
+  /**
+   * The paths service texture resPathInsert existence asks, or null for the
+   * global `blue.paths`. Custom: Carbon asks its one global BePaths
+   * (EveSOFDNA.cpp:11-14); tools-core serves several builds per process, so a
+   * factory may be given the paths service of its own build.
+   */
+  _paths = null;
+
   _childResourceResolver = null;
 
   _objectResourceResolver = null;
@@ -347,9 +356,13 @@ export class EveSOF extends CjsModel
    *   its own `source` returning decoded objects or Black bytes; a
    *   `CjsSofLibraryBuilder` is installed as is (it must update this
    *   factory's data manager); `false`/`null` removes it.
-   * - `resFileIndex`: synchronous existence oracle for texture
-   *   `resPathInsert` selection: an array of file names (case-insensitive),
-   *   a predicate, a Set or Map (exact `has`), or null.
+   * - `paths`: the paths service (an IBluePaths: `FileExists(path)`) that
+   *   texture `resPathInsert` existence asks, or null for the global
+   *   `blue.paths`, which is Carbon's BePaths.
+   * - `resFileIndex`: TEMPORARY host adapter, overriding `paths`: an array
+   *   of file names (case-insensitive), a predicate, a Set or Map (exact
+   *   `has`), or null. It exists for tools-core, whose published runtime
+   *   predates per-build BePaths, and goes when tools-core moves to `paths`.
    * - `allowFileCaching`, `alphaCutoutShadowsEnabled`, `volumetricTrailPath`,
    *   `buildTime`, `editorMode`: copied onto the matching fields.
    *
@@ -443,6 +456,17 @@ export class EveSOF extends CjsModel
     {
       this.buildTime = Number(options.buildTime ?? 0);
     }
+    if (Object.prototype.hasOwnProperty.call(options, "paths"))
+    {
+      const paths = options.paths ?? null;
+      // A host-supplied service, validated once here at the boundary.
+      if (paths !== null && typeof paths.FileExists !== "function")
+      {
+        throw new TypeError("EveSOF paths must provide FileExists(path), or be null");
+      }
+      this._paths = paths;
+      this._existingFilesCache.clear();
+    }
     if (Object.prototype.hasOwnProperty.call(options, "resFileIndex"))
     {
       // The resfileindex is the synchronous existence oracle Carbon gets from
@@ -470,6 +494,19 @@ export class EveSOF extends CjsModel
       this.editorMode = Boolean(options.editorMode);
     }
     return this;
+  }
+
+  /**
+   * The existence check texture resPathInsert selection uses: an explicit
+   * resolver when one is set (`resFileIndex`, or a build's collected async
+   * answers), otherwise the paths service's `FileExists`, as Carbon's
+   * `FileExists` asks `BePaths` (EveSOFDNA.cpp:11-14).
+   */
+  _GetResourceExists()
+  {
+    if (this._resourceExists !== null) return this._resourceExists;
+    const paths = this._paths ?? blue.paths;
+    return path => paths.FileExists(path) === true;
   }
 
   /** Supplies the synchronous resource-existence probe used by texture inserts. */
@@ -885,12 +922,12 @@ export class EveSOF extends CjsModel
 
   /**
    * Canonical pure-data instantiation: the decoded (or raw black) sof catalog
-   * plus a plain list of res file names.
+   * plus, optionally, a plain list of res file names.
    *
-   * The catalog is mandatory - a factory without its data is useless. The
-   * file list is the sole build-time resource dependency (resPathInsert
-   * existence); without it every insert lookup reports missing and texture
-   * paths fall back to their base values, with a console warning on each such Create call.
+   * The catalog is mandatory - a factory without its data is useless.
+   * resPathInsert existence asks the global BePaths, as Carbon does; a file
+   * list overrides that through the temporary `resFileIndex` host adapter
+   * (see Register).
    * The factory never fetches, never parses index formats, and never touches
    * the network: callers hand it bytes or data they acquired however they
    * chose.
@@ -917,11 +954,9 @@ export class EveSOF extends CjsModel
     {
       throw new TypeError("EveSOF.Create could not ingest the sof catalog");
     }
-    if (resFileIndex === undefined || resFileIndex === null)
-    {
-      CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "%s", "EveSOF.Create: no resFileIndex file list provided; resPathInsert existence checks will report missing and texture paths fall back to their base values.");
-    }
-    else
+    // Without a file list, resPathInsert existence asks the global BePaths, as
+    // Carbon does. `resFileIndex` is the temporary host adapter (see Register).
+    if (resFileIndex !== undefined && resFileIndex !== null)
     {
       sof.Register({ resFileIndex });
     }
@@ -1560,7 +1595,7 @@ export class EveSOF extends CjsModel
         meshIndexOffset,
         path => dna.ModifyTextureResPath(
           path,
-          this._resourceExists,
+          this._GetResourceExists(),
           this.allowFileCaching ? this._existingFilesCache : null,
         ),
         this.alphaCutoutShadowsEnabled,
@@ -1710,7 +1745,7 @@ export class EveSOF extends CjsModel
                   name,
                   item.meshIndex,
                   hullIndex,
-                  this._resourceExists,
+                  this._GetResourceExists(),
                   this.allowFileCaching ? this._existingFilesCache : null
                 );
                 if (resourcePath !== null) addResource(name, resourcePath);
@@ -2299,7 +2334,7 @@ export class EveSOF extends CjsModel
           shaderData,
           path => dna.ModifyTextureResPath(
             path,
-            this._resourceExists,
+            this._GetResourceExists(),
             this.allowFileCaching ? this._existingFilesCache : null,
           ),
         ));
@@ -2641,7 +2676,7 @@ export class EveSOF extends CjsModel
           0,
           path => dna.ModifyTextureResPath(
             path,
-            this._resourceExists,
+            this._GetResourceExists(),
             this.allowFileCaching ? this._existingFilesCache : null,
           ),
           this.alphaCutoutShadowsEnabled,
