@@ -19,7 +19,7 @@ import path from "node:path";
 import test from "node:test";
 
 import { TriGeometryRes } from "../../npm/dist/resource/index.js";
-import { EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { EveChildContainer, EveChildMesh, EveSpaceObject2, EveUpdateContext, Tr2GrannyAnimation, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 const CORPUS_DIR = process.env.SKINNED_GR2_CORPUS_DIR || "";
@@ -189,4 +189,80 @@ test("GetPerObjectData uploads the palette to the bone ring once per frame and s
 test("an unanimated ship stamps Carbon's invalid offsets", () =>
 {
   assert.deepEqual(BoneOffsets(new EveSpaceObject2().GetPerObjectData()).slice(0, 2), [ 0xffffffff, 0xffffffff ]);
+});
+
+test("a SOF child mesh animates, steps and uploads its own palette", { skip: corpusSkipReason() }, async (t) =>
+{
+  const ring = BoneRing();
+  t.after(() => Tr2RingBuffer.ResetInstances());
+
+  // What SOF builds for a hull part (EveSOF.cpp:407-411): a child mesh with its
+  // own updater, bound to the mesh geometry by InitializeAnimation.
+  const geometry = await ReadHull("gb1_t1.gr2");
+  const child = new EveChildMesh();
+  child.animationUpdater = new Tr2GrannyAnimation();
+  child.mesh = { GetGeometryResource: () => geometry, GetMeshIndex: () => 0 };
+  child.InitializeAnimation();
+  const updater = child.GetAnimationController();
+  assert.equal(updater, child.animationUpdater);
+  assert.equal(updater.IsInitialized(), true);
+  const count = updater.GetMeshBoneCount();
+
+  // cpp:906-910: the palette goes to the ring, offsets into the record.
+  assert.deepEqual(BoneOffsets(child.GetPerObjectData()).slice(0, 3), [ 0, 0, count ]);
+  assert.equal(ring.head, count);
+
+  // cpp:1172-1185: UpdateSyncronous steps the updater while updateAnimation is on.
+  updater.PlayAnimation("Normal2Warp", true, 1, 0, 1);
+  const context = new EveUpdateContext();
+  context.SetTime(1);
+  child.UpdateSyncronous(context, null);
+  const start = Float32Array.from(updater.GetMeshBoneMatrixList());
+  context.SetTime(3);
+  child.UpdateSyncronous(context, null);
+  const now = updater.GetMeshBoneMatrixList();
+  let moved = 0;
+  for (let i = 0; i < count * 12; i++) moved = Math.max(moved, Math.abs(now[i] - start[i]));
+  assert.ok(moved > 1e-2, "stepped");
+
+  // With updateAnimation off it holds.
+  child.updateAnimation = false;
+  const held = Float32Array.from(now);
+  context.SetTime(4);
+  child.UpdateSyncronous(context, null);
+  assert.deepEqual(Array.from(updater.GetMeshBoneMatrixList()), Array.from(held));
+});
+
+test("a placement container uploads its animation owner's palette", { skip: corpusSkipReason() }, async (t) =>
+{
+  const ring = BoneRing();
+  t.after(() => Tr2RingBuffer.ResetInstances());
+
+  const geometry = await ReadHull("gb1_t1.gr2");
+  const owner = new EveChildMesh();
+  owner.animationUpdater = new Tr2GrannyAnimation();
+  owner.mesh = { GetGeometryResource: () => geometry, GetMeshIndex: () => 0 };
+  owner.InitializeAnimation();
+
+  // EveSOF.cpp:411 - the part becomes the container's animation owner.
+  const container = new EveChildContainer();
+  container.SetAnimationOwner(owner);
+  const count = owner.GetAnimationController().GetMeshBoneCount();
+
+  // EveChildContainer.cpp:1198-1221.
+  assert.deepEqual(BoneOffsets(container.GetPerObjectData()).slice(0, 3), [ 0, 0, count ]);
+  assert.equal(ring.head, count);
+});
+
+test("a child mesh without an updater uploads the identity rest pose", (t) =>
+{
+  const ring = BoneRing();
+  t.after(() => Tr2RingBuffer.ResetInstances());
+
+  // Carbon GetRestPoseBoneTransforms: one identity even with no bindings.
+  const child = new EveChildMesh();
+  child.mesh = { GetGeometryResource: () => ({ GetMeshData: () => ({ boneBindings: [] }) }), GetMeshIndex: () => 0 };
+
+  assert.deepEqual(BoneOffsets(child.GetPerObjectData()).slice(0, 3), [ 0, 0, 1 ]);
+  assert.equal(ring.head, 1);
 });

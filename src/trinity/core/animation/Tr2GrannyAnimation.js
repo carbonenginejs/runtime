@@ -304,6 +304,20 @@ export class Tr2GrannyAnimation extends CjsModel
   }
 
   /**
+   * The geometry borrowed from the mesh, or null (Carbon cpp:299-302,
+   * m_geometryRes). Adapted: this port holds it in `grannyRes`, flagged by
+   * `_sharedGeometry`.
+   *
+   * @returns {object|null} The TriGeometryRes.
+   */
+  @carbon.method
+  @impl.adapted
+  GetSharedGeometryRes()
+  {
+    return this._sharedGeometry ? this.grannyRes : null;
+  }
+
+  /**
    * The granny file the gr2 branch animates, or null.
    *
    * Carbon `GetFileInfo` (cpp:367-389): a standalone resource answers its own

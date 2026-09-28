@@ -38,7 +38,8 @@ export class CjsEveSpaceObjectLayout
             // slot, not zero (EveCustomMask.cpp:88-93).
             customMaskMatrix: { type: Types.MATRIX4, count: 2, default: IDENTITY },
             customMaskData: { type: Types.VECTOR4, count: 2 },
-            // GPU ring offsets - engine-owned, no CPU derivation exists.
+            // [current, previous, count]: element offsets into the BoneTransforms
+            // ring that GetPerObjectData's upload returns (EveSpaceObject2.cpp:1419-1428).
             boneOffsets: { type: Types.UINT32, count: 4 },
             morphTargetVertexDataOffset: { type: Types.UINT32 },
             morphTargetAnimationDataOffset: { type: Types.UINT32 },

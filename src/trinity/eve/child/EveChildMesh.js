@@ -7,6 +7,8 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { vec4 } from "#math/vec4";
 import { carbon, CjsSchema, edit, impl, type } from "#schema";
 import { BLUELISTEVENT } from "#consts/blue";
@@ -104,6 +106,9 @@ export class EveChildMesh extends EveChildTransform
 
   /** Identity rest-pose palette for skinned shaders without live animation. */
   _restPoseBoneTransforms = null;
+
+  /** Carbon m_boneOffsets: where this child's palette landed in the bone ring, this frame and last. */
+  _boneOffsets = new Tr2RingBufferOffsets();
 
   _parentOverlayEffects = null;
 
@@ -844,29 +849,43 @@ export class EveChildMesh extends EveChildTransform
 
   /**
    * Sync-side frame update (Carbon EveChildMesh::UpdateSyncronous,
-   * cpp:1002-1045). Carbon's body is entirely audio-geometry registration
-   * (cpp:1004-1010, 1044 - engine/audio-owned, omitted) plus animationUpdater
-   * re-binding and PrePhysicsAnimation stepping (cpp:1011-1042 - skipped: the
-   * JS animation seam is absent, there is no Tr2GrannyAnimation runtime), so
-   * the port is a documented frame-contract no-op.
+   * cpp:1142-1205): the damage and overlay updates, then the animation -
+   * re-bind the updater when the mesh's geometry changed, and step it when
+   * `updateAnimation` is on.
+   *
+   * Adapted: audio-geometry registration is not ported; the step uses the
+   * frame delta where Carbon's PrePhysicsAnimation reads Tr2Renderer's
+   * animation clock; Tr2AnimationMeshBinding (an updater without a mesh
+   * binding) is unported, so GetBoneTransforms falls back to the rest pose
+   * there.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Audio-geometry registration is not ported yet and the animationUpdater branches await the JS animation seam; nothing else remains in Carbon's body.")
   UpdateSyncronous(updateContext, _params)
   {
     if (this.damageOverlay) this.damageOverlay.UpdateSyncronous(updateContext);
 
     const time = updateContext.GetTime();
     for (const overlay of this.overlayEffects) overlay.Update(time, time);
+
+    const updater = this.animationUpdater;
+    if (updater)
+    {
+      if (this.mesh && !updater.resPath_ && this.mesh.GetGeometryResource() !== updater.GetSharedGeometryRes())
+      {
+        this.InitializeAnimation();
+      }
+      if (this.updateAnimation) updater.Update(updateContext.GetDeltaT());
+    }
   }
 
   /**
    * Per-frame async update (Carbon EveChildMesh::UpdateAsyncronous,
    * cpp:903-1000): rebuild the world transform from the parent, fold the
    * transform modifiers over it, store the activation strength, refresh the
-   * attachment lights, the morph buffer, and the world bounds. The GPU ring
-   * buffer advance/per-object-data invalidation (cpp:905-909), audio geometry
+   * attachment lights, the morph buffer, and the world bounds. The bone ring
+   * cursor advances first (cpp:987); the morph ring advance and per-object-data
+   * invalidation (cpp:988-991), audio geometry
    * (cpp:920-930), parent VS/PS struct refresh (cpp:932-960), and the skinned
    * GetBounds overload are not modelled, hence @impl.adapted.
    * @param {Object} updateContext - frame context (EveUpdateContext), threaded to modifiers
@@ -878,6 +897,8 @@ export class EveChildMesh extends EveChildTransform
   @impl.adapted
   UpdateAsyncronous(updateContext, params)
   {
+    this._boneOffsets.AdvanceFrame();
+
     const parentTransform = params?.localToWorldTransform;
 
     // Carbon captures the OUTGOING transform before rebuilding (cpp:912).
@@ -1012,6 +1033,20 @@ export class EveChildMesh extends EveChildTransform
    * @param {Number} parentLod - parent Tr2Lod level
    * @returns {Boolean} isVisible
    */
+  /**
+   * The updater this mesh animates with (ITr2GrannyAnimationOwner, Carbon
+   * EveChildMesh.cpp:1481-1484). A placement container whose animation owner
+   * is this mesh uploads this updater's palette.
+   *
+   * @returns {Tr2GrannyAnimation|null} The updater.
+   */
+  @carbon.method
+  @impl.implemented
+  GetAnimationController()
+  {
+    return this.animationUpdater;
+  }
+
   /**
    * The mesh's bone palette, as a borrowed Float4x3 buffer and its bone count.
    *
@@ -1422,29 +1457,37 @@ export class EveChildMesh extends EveChildTransform
   }
 
   /**
-   * Carbon EveChildMesh::GetPerObjectData (cpp:799-843): resets the morph
-   * counters, uploads the bone and morph rings, then hands back a handle over
-   * this child's two PERSISTENT buffers.
+   * Carbon EveChildMesh::GetPerObjectData (cpp:877-921): resets the morph
+   * counters, uploads the bone palette to the BoneTransforms ring and stamps
+   * [current offset, previous offset, bone count], then hands back this
+   * child's two PERSISTENT buffers.
    *
-   * The ring OFFSETS (`boneOffsets[0..1]`, `morphTargetAnimationDataOffset`,
-   * `morphTargetVertexDataOffset`, `bakedMorphTargetVertexDataOffset`) are GPU
-   * addresses with no CPU derivation, so they keep their defaults; the counts,
-   * which are CPU-known, are written.
+   * The palette is GetBoneTransforms' - the updater's, or the identity rest
+   * pose - and is uploaded even at rest, as Carbon does, because skinned
+   * shaders read it regardless. Adapted: the morph ring is not ported, so its
+   * offsets keep their defaults; Carbon allocates a pooled handle where this
+   * port returns the records directly.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("GPU ring-buffer offsets have no CPU derivation and keep their defaults; every CPU-known field is filled.")
   GetPerObjectData(_accumulator = null)
   {
     this._perObjectData.vs.Set("activeMorphTargetsCount", [ 0 ]);
     // Carbon seeds the baked-morph offset with UINT32_MAX, not zero.
     this._perObjectData.vs.Set("bakedMorphTargetVertexDataOffset", [ 0xffffffff ]);
 
-    if (this.animationUpdater && this.animationUpdater.IsInitialized())
+    // cpp:906-910.
+    const { bones, boneCount } = this.GetBoneTransforms();
+    this._perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
+    // Carbon uploads zero rows too, which only records the head; with no
+    // bones nothing reads the offset, so it stays INVALID_OFFSET here.
+    if (boneCount)
     {
-      const boneCount = this.animationUpdater.GetMeshBoneCount();
-      this._perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
+      const ring = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
+      this._boneOffsets.UploadTransforms(ring, bones, boneCount);
     }
+    this._perObjectData.vs.SetIndex("boneOffsets", 0, [ this._boneOffsets.GetCurrentFrameOffset() ]);
+    this._perObjectData.vs.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
 
     return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }

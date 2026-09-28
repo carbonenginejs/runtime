@@ -10,6 +10,8 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { getBoneList } from "../../core/animation/Tr2GrannyAnimation.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../core/context/Tr2RenderContext.js";
+import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../core/device/Tr2RingBuffer/index.js";
 import { vec4 } from "#math/vec4";
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveChildTransform, applyTransformModifiers } from "./EveChildTransform.js";
@@ -199,6 +201,9 @@ export class EveChildContainer extends EveChildTransform
 
   /** m_vsData / m_psData - this container's PERSISTENT per-object pair. */
   _perObjectData = createChildPerObjectRecords();
+
+  /** Carbon m_boneOffsets: where the animation owner's palette landed in the bone ring, this frame and last. */
+  _boneOffsets = new Tr2RingBufferOffsets();
 
   /** Carbon's local `lastWorldTransform`, kept across frames here. */
   _lastWorldTransform = mat4.create();
@@ -750,6 +755,9 @@ export class EveChildContainer extends EveChildTransform
   @impl.reason("The GPU bone ring buffer, task-group dispatch, per-object VS/PS struct refresh, and the Granny bone-list override are engine/animation seams; the CPU update fan-out is ported.")
   UpdateAsyncronous(updateContext, params)
   {
+    // Carbon cpp:516: re-arm the once-per-frame palette upload, before the gate.
+    this._boneOffsets.AdvanceFrame();
+
     if (!this.IsUpdating())
     {
       return this.worldTransform;
@@ -1099,22 +1107,30 @@ export class EveChildContainer extends EveChildTransform
   }
 
   /**
-   * Carbon EveChildContainer::GetPerObjectData (cpp:1180-1203): uploads the
-   * animation owner's bone palette, then hands back a handle over this
-   * container's two PERSISTENT buffers. The ring offsets are GPU addresses with
-   * no CPU derivation and keep their defaults; the bone COUNT is CPU-known.
+   * Carbon EveChildContainer::GetPerObjectData (cpp:1198-1221): uploads the
+   * animation owner's bone palette to the BoneTransforms ring and stamps
+   * [current offset, previous offset, bone count], then hands back this
+   * container's two PERSISTENT buffers. Before any upload the offsets are
+   * INVALID_OFFSET, Carbon's no-draw state. Adapted: Carbon allocates a pooled
+   * handle where this port returns the records directly.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("GPU ring-buffer offsets have no CPU derivation and keep their defaults; every CPU-known field is filled.")
   GetPerObjectData(_accumulator = null)
   {
-    const updater = this.animationOwner?.animationUpdater ?? this.animationUpdater;
-
-    if (updater?.IsInitialized?.())
+    if (this.animationOwner)
     {
-      this._perObjectData.vs.SetIndex("boneOffsets", 2, [ updater.GetMeshBoneCount?.() ?? 0 ]);
+      const animation = this.animationOwner.GetAnimationController();
+      if (animation && animation.IsInitialized())
+      {
+        const boneCount = animation.GetMeshBoneCount();
+        this._perObjectData.vs.SetIndex("boneOffsets", 2, [ boneCount ]);
+        const ring = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
+        this._boneOffsets.UploadTransforms(ring, animation.GetMeshBoneMatrixList(), boneCount);
+      }
     }
+    this._perObjectData.vs.SetIndex("boneOffsets", 0, [ this._boneOffsets.GetCurrentFrameOffset() ]);
+    this._perObjectData.vs.SetIndex("boneOffsets", 1, [ this._boneOffsets.GetPreviousFrameOffset() ]);
 
     return { vs: this._perObjectData.vs, ps: this._perObjectData.ps };
   }
