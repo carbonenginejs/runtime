@@ -272,3 +272,13 @@ Carbon's `ImageIO` registry and entry points (imageio/Tr2ImageHandler.cpp).
 - Source: `src/resource/imageio/ImageIO.js`
 - Visibility: Public
 - Kind: Carbon
+
+<!-- class:VideoPlaylistController -->
+## `VideoPlaylistController`
+
+Carbon's `_VideoPlaylistController` (playlistresource.py:24) in its role as the `play` constructor `register_resource_constructor` registers: one playlist's texture.
+
+- Export: `@carbonenginejs/runtime/resource`
+- Source: `src/resource/video/VideoPlaylistController.js`
+- Visibility: Public
+- Kind: Carbon

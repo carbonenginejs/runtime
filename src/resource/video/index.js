@@ -7,3 +7,4 @@ export * from "./PcmFrame.js";
 export * from "./VideoFrame.js";
 export * from "./VideoMetadata.js";
 export * from "./enums.js";
+export * from "./VideoPlaylistController.js";
