@@ -1681,11 +1681,8 @@ export class CjsMusicEngine extends ICjsMusicEngine
         destination,
         random,
         busRtpcs,
-        getGlobalRTPC,
-        getGlobalRTPCTransitionBoundaries,
         busStates,
-        getGlobalStatePropertyWeights,
-        getGlobalStateTransitionBoundaries,
+        globalReaders = null,
         busDuckingController,
         busEffects,
         busGraphRuntime,
@@ -1698,22 +1695,21 @@ export class CjsMusicEngine extends ICjsMusicEngine
         this._loadMedia = loadMedia ?? null;
         this._destination = destination ?? context?.destination ?? null;
         this._busRtpcCatalog = indexBusRtpcCatalog(busRtpcs);
-        this._readGlobalRtpc = typeof getGlobalRTPC === "function"
-            ? getGlobalRTPC
-            : null;
-        this._readGlobalRtpcTransitionBoundaries =
-            typeof getGlobalRTPCTransitionBoundaries === "function"
-                ? getGlobalRTPCTransitionBoundaries
-                : null;
         this._busStateCatalog = indexBusStateCatalog(busStates);
-        this._readGlobalStateWeights =
-            typeof getGlobalStatePropertyWeights === "function"
-                ? getGlobalStatePropertyWeights
-                : null;
-        this._readGlobalStateTransitionBoundaries =
-            typeof getGlobalStateTransitionBoundaries === "function"
-                ? getGlobalStateTransitionBoundaries
-                : null;
+        // Null readers leave all four null: routes that need a global value are
+        // then not realized. The bus helpers take the readers as functions.
+        this._readGlobalRtpc = globalReaders
+            ? (name, at) => globalReaders.getGlobalRTPC(name, at)
+            : null;
+        this._readGlobalRtpcTransitionBoundaries = globalReaders
+            ? from => globalReaders.getGlobalRTPCTransitionBoundaries(from)
+            : null;
+        this._readGlobalStateWeights = globalReaders
+            ? (group, at) => globalReaders.getGlobalStatePropertyWeights(group, at)
+            : null;
+        this._readGlobalStateTransitionBoundaries = globalReaders
+            ? from => globalReaders.getGlobalStateTransitionBoundaries(from)
+            : null;
         this._busDuckingController = busDuckingController ?? null;
         this._busEffectCatalog = indexBusEffectCatalog(busEffects);
         this._busGraphRuntime = busGraphRuntime ?? null;

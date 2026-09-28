@@ -5,7 +5,7 @@ import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
 import { FakeDynamicsCompressor } from "../../support/webAudioNodes.js";
-import { MusicEngineWith } from "../../support/audioStub.js";
+import { MusicEngineWith, GlobalReadersWith } from "../../support/audioStub.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -1142,8 +1142,10 @@ test("qualified SFX Aux splits after spatialization and shares route filters", a
         runtime,
         destination: audioContext.destination,
         busStates,
-        getGlobalStatePropertyWeights: () => [],
-        getGlobalStateTransitionBoundaries: () => [],
+        globalReaders: GlobalReadersWith({
+          getGlobalStatePropertyWeights: () => [],
+          getGlobalStateTransitionBoundaries: () => [],
+        }),
       });
       return mixer;
     },
@@ -1209,8 +1211,10 @@ test("SFX Aux with explicit Voice filters falls back to the complete dry route",
         runtime,
         destination: audioContext.destination,
         busStates,
-        getGlobalStatePropertyWeights: () => [],
-        getGlobalStateTransitionBoundaries: () => [],
+        globalReaders: GlobalReadersWith({
+          getGlobalStatePropertyWeights: () => [],
+          getGlobalStateTransitionBoundaries: () => [],
+        }),
       });
       return mixer;
     },

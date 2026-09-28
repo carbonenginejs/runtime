@@ -121,6 +121,16 @@ What Carbon Audio (`AudManager`, `AudGameObjResource`, `AudGeometry` ...) calls 
 - Visibility: Public
 - Kind: CarbonEngineJS
 
+<!-- class:ICjsAudioGlobalReaders -->
+## `ICjsAudioGlobalReaders`
+
+The global RTPC and State values the shared bus mixer and the music engine read.
+
+- Export: `@carbonenginejs/runtime/audio`
+- Source: `src/audio/ICjsAudioGlobalReaders.js`
+- Visibility: Public
+- Kind: CarbonEngineJS
+
 <!-- class:ICjsMusicEngine -->
 ## `ICjsMusicEngine`
 
@@ -155,6 +165,15 @@ Owns the shared Web Audio node topology for strictly qualified Bus routes.
 Owns stable, generation-scoped handles into one installed Audio Bus graph.
 
 - Source: `src/audio/internal/busGraphRuntime.js`
+- Visibility: Internal
+- Kind: CarbonEngineJS
+
+<!-- class:CjsAudioBackendGlobalReaders -->
+## `CjsAudioBackendGlobalReaders`
+
+Reads global RTPC and State values from one `CjsAudioBackend`.
+
+- Source: `src/audio/internal/CjsAudioBackendGlobalReaders.js`
 - Visibility: Internal
 - Kind: CarbonEngineJS
 

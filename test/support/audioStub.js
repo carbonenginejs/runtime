@@ -2,7 +2,7 @@
 // manager, with a test's overrides on top. A method a test does not override
 // behaves as it does for any caller - the stub keeps coherent state - instead
 // of silently doing nothing.
-import { AudManager, CjsAudioBackendStub, ICjsMusicEngine } from "../../npm/dist/audio/index.js";
+import { AudManager, CjsAudioBackendStub, ICjsAudioGlobalReaders, ICjsMusicEngine } from "../../npm/dist/audio/index.js";
 
 /** Puts each override on the instance as its own property, shadowing a method or an accessor. */
 function Override(instance, overrides)
@@ -67,4 +67,25 @@ class NullMusicEngine extends ICjsMusicEngine
 export function MusicEngineWith(overrides = {})
 {
     return Override(new NullMusicEngine(), overrides);
+}
+
+/**
+ * Global readers for a backend with no global RTPC or State set: every value
+ * is unset and nothing is transitioning.
+ */
+class NullGlobalReaders extends ICjsAudioGlobalReaders
+{
+    getGlobalRTPC() { return null; }
+
+    getGlobalRTPCTransitionBoundaries() { return []; }
+
+    getGlobalStatePropertyWeights() { return []; }
+
+    getGlobalStateTransitionBoundaries() { return []; }
+}
+
+/** Global readers with the test's overrides over NullGlobalReaders. */
+export function GlobalReadersWith(overrides = {})
+{
+    return Override(new NullGlobalReaders(), overrides);
 }

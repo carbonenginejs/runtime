@@ -14,7 +14,7 @@ import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js"
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.js";
 import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
-import { MusicEngineWith } from "../../support/audioStub.js";
+import { MusicEngineWith, GlobalReadersWith } from "../../support/audioStub.js";
 
 
 function FakeParam()
@@ -408,14 +408,12 @@ function AddAudibleAuxReturn(catalog, gainDb = -14)
 
 function SharedControlReaders({ rtpc, state } = {})
 {
-  return {
+  return GlobalReadersWith({
     getGlobalRTPC: () => rtpc,
-    getGlobalRTPCTransitionBoundaries: () => [],
     getGlobalStatePropertyWeights: () => state === undefined
       ? []
       : [ { state, weight: 1 } ],
-    getGlobalStateTransitionBoundaries: () => [],
-  };
+  });
 }
 
 function MixerContext()
@@ -855,7 +853,7 @@ test("strict shared Bus mixer admits complete distributed controls only on trans
     busRtpcs,
     busStates,
     busDuckingController,
-    ...SharedControlReaders(),
+    globalReaders: SharedControlReaders(),
   });
 
   assert.ok(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
@@ -932,12 +930,11 @@ test("shared Bus faders own exact post-effect static, RTPC, and State gain", () 
   };
   let rtpc = 0.5;
   let state = "on";
-  const readers = {
+  const readers = GlobalReadersWith({
     getGlobalRTPC: () => rtpc,
     getGlobalRTPCTransitionBoundaries: () => [ 2 ],
     getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
-    getGlobalStateTransitionBoundaries: () => [],
-  };
+  });
   const runtime = new CjsBusGraphRuntime(catalog);
   const missingContext = MixerContext();
   const missingReaders = new CjsSharedBusMixer({
@@ -957,7 +954,7 @@ test("shared Bus faders own exact post-effect static, RTPC, and State gain", () 
     destination: context.destination,
     busRtpcs,
     busStates,
-    ...readers,
+    globalReaders: readers,
   });
   const sfxEntry = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
   const musicEntry = mixer.GetInput(runtime.ResolveMusicRoute("200"), "music");
@@ -1416,7 +1413,7 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
     runtime,
     destination: context.destination,
     ...controls,
-    ...SharedControlReaders(),
+    globalReaders: SharedControlReaders(),
   });
   const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
 
@@ -1462,7 +1459,7 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
       runtime: blockedRuntime,
       destination: blockedContext.destination,
       ...blockedControls,
-      ...SharedControlReaders(),
+      globalReaders: SharedControlReaders(),
     });
 
     assert.equal(
@@ -1506,7 +1503,7 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
       runtime: realizedRuntime,
       destination: realizedContext.destination,
       ...realizedControls,
-      ...SharedControlReaders(),
+      globalReaders: SharedControlReaders(),
     });
 
     const realizedInput = realizedMixer.GetInput(
@@ -1524,6 +1521,53 @@ test("strict shared Bus mixer omits only provably silenced static Aux returns", 
       "the no-longer-silent return allocates a dry/wet fan-out",
     );
   }
+});
+
+test("a State-driven shared Bus fader is not realized without global readers", () =>
+{
+  // Null readers are null as a whole: the mixer cannot evaluate the State
+  // driving the fader, so the route stays on its legacy path rather than
+  // reading a default.
+  const catalog = MixerCatalog();
+
+  catalog.buses["500"].requiresProcessing = [ "state" ];
+  const busStates = {
+    schemaVersion: 2,
+    buses: {
+      "500": [ {
+        group: "mix_state",
+        groupId: "10",
+        syncType: 0,
+        effectiveSyncType: 0,
+        states: [ { stateId: "20", state: "on", gainDb: -6 } ],
+      } ],
+    },
+  };
+  const runtime = new CjsBusGraphRuntime(catalog);
+  const unwiredContext = MixerContext();
+  const unwired = new CjsSharedBusMixer({
+    context: unwiredContext,
+    runtime,
+    destination: unwiredContext.destination,
+    busStates,
+    globalReaders: null,
+  });
+
+  assert.equal(unwired.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
+  assert.equal(unwiredContext.gains.length, 0);
+
+  const wiredContext = MixerContext();
+  const wired = new CjsSharedBusMixer({
+    context: wiredContext,
+    runtime,
+    destination: wiredContext.destination,
+    busStates,
+    globalReaders: GlobalReadersWith({
+      getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
+    }),
+  });
+
+  assert.ok(wired.GetInput(runtime.ResolveSfxRoute("100"), "sfx"));
 });
 
 test("shared Bus mixer realizes one exact static SFX Aux fan-out", () =>
@@ -1564,8 +1608,10 @@ test("shared Bus mixer realizes one exact static SFX Aux fan-out", () =>
     runtime,
     destination: context.destination,
     busStates,
-    getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
-    getGlobalStateTransitionBoundaries: () => [ 2 ],
+    globalReaders: GlobalReadersWith({
+      getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
+      getGlobalStateTransitionBoundaries: () => [ 2 ],
+    }),
   });
   const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
   const dryFilter = input.connections[0];
@@ -1689,8 +1735,10 @@ test("exact SFX Aux legs place Bus ducks after additive State filters", () =>
     destination: context.destination,
     busStates,
     busDuckingController: controller,
-    getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
-    getGlobalStateTransitionBoundaries: () => [],
+    globalReaders: GlobalReadersWith({
+      getGlobalStatePropertyWeights: () => [ { state: "on", weight: 1 } ],
+      getGlobalStateTransitionBoundaries: () => [],
+    }),
   });
   const input = mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx");
   const dryFilter = input.connections[0];
@@ -1938,7 +1986,7 @@ test("audible route Aux qualification fails atomically at asymmetric controls", 
           } ],
         },
       },
-      ...SharedControlReaders({ state: "on" }),
+      globalReaders: SharedControlReaders({ state: "on" }),
     });
 
     assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
@@ -1972,7 +2020,7 @@ test("audible route Aux qualification fails atomically at asymmetric controls", 
           } ],
         },
       },
-      ...SharedControlReaders({ state: "on" }),
+      globalReaders: SharedControlReaders({ state: "on" }),
     });
 
     assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);

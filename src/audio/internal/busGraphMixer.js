@@ -100,10 +100,7 @@ export class CjsSharedBusMixer
         busRtpcs,
         busStates,
         busDuckingController,
-        getGlobalRTPC,
-        getGlobalRTPCTransitionBoundaries,
-        getGlobalStatePropertyWeights,
-        getGlobalStateTransitionBoundaries,
+        globalReaders = null,
         wwiseDynamics = "strict",
         wwiseMeterFeedback = "strict",
         wwiseVoiceLimits = "strict",
@@ -139,21 +136,20 @@ export class CjsSharedBusMixer
         this._busRtpcs = indexBusRtpcCatalog(busRtpcs);
         this._busStates = indexBusStateCatalog(busStates);
         this._busDuckingController = busDuckingController ?? null;
-        this._readGlobalRtpc = typeof getGlobalRTPC === "function"
-            ? getGlobalRTPC
+        // Null readers leave all four null: routes that need a global value are
+        // then not realized. The bus helpers take the readers as functions.
+        this._readGlobalRtpc = globalReaders
+            ? (name, at) => globalReaders.getGlobalRTPC(name, at)
             : null;
-        this._readGlobalRtpcTransitionBoundaries =
-            typeof getGlobalRTPCTransitionBoundaries === "function"
-                ? getGlobalRTPCTransitionBoundaries
-                : null;
-        this._readGlobalStateWeights =
-            typeof getGlobalStatePropertyWeights === "function"
-                ? getGlobalStatePropertyWeights
-                : null;
-        this._readGlobalStateTransitionBoundaries =
-            typeof getGlobalStateTransitionBoundaries === "function"
-                ? getGlobalStateTransitionBoundaries
-                : null;
+        this._readGlobalRtpcTransitionBoundaries = globalReaders
+            ? from => globalReaders.getGlobalRTPCTransitionBoundaries(from)
+            : null;
+        this._readGlobalStateWeights = globalReaders
+            ? (group, at) => globalReaders.getGlobalStatePropertyWeights(group, at)
+            : null;
+        this._readGlobalStateTransitionBoundaries = globalReaders
+            ? from => globalReaders.getGlobalStateTransitionBoundaries(from)
+            : null;
     }
 
     /**

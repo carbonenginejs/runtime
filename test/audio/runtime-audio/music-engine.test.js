@@ -4,6 +4,7 @@ import { CjsMusicEngine, wwiseIdFromName } from "../../../npm/dist/audio/index.j
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
+import { GlobalReadersWith } from "../../support/audioStub.js";
 
 
 // Synthetic music graph in the extractor's emitted shape: a switch container
@@ -4395,7 +4396,9 @@ test("music routes apply dynamic ancestor Bus Volume RTPC scaling", async () =>
     });
   }, {
     busRtpcs,
-    getGlobalRTPC: () => control,
+    globalReaders: GlobalReadersWith({
+      getGlobalRTPC: () => control,
+    }),
   });
 
   engine.PostEvent("music_test_play", 704, () => {});
@@ -4433,7 +4436,9 @@ test("music tracks apply authored global Voice Volume RTPC curves", async () =>
       ],
     } ];
   }, {
-    getGlobalRTPC: () => control,
+    globalReaders: GlobalReadersWith({
+      getGlobalRTPC: () => control,
+    }),
   });
 
   engine.PostEvent("music_test_play", 705, () => {});
@@ -4520,7 +4525,9 @@ test("music routes apply Immediate ancestor Bus Volume State gain", async () =>
     });
   }, {
     busStates,
-    getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+    globalReaders: GlobalReadersWith({
+      getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+    }),
   });
 
   engine.PostEvent("music_test_play", 704, () => {});
@@ -4567,7 +4574,9 @@ test("music routes apply Bus State filters while Bus Pitch leaves timing unchang
     });
   }, {
     busStates,
-    getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+    globalReaders: GlobalReadersWith({
+      getGlobalStatePropertyWeights: () => [ { state, weight: 1 } ],
+    }),
   });
 
   engine.PostEvent("music_test_play", 704, () => {});

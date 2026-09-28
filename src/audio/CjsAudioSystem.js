@@ -14,6 +14,7 @@ import { AudioCurveSetDriver } from "./trinity/audio/AudioCurveSetDriver.js";
 import { CjsAudioBackend } from "./CjsAudioBackend.js";
 import { CjsMusicEngine } from "./CjsMusicEngine.js";
 import { ICjsMusicEngine } from "./ICjsMusicEngine.js";
+import { CjsAudioBackendGlobalReaders } from "./internal/CjsAudioBackendGlobalReaders.js";
 import { createAudioUpdateContext } from "./CjsAudioUpdateContext.js";
 import { CjsBusDuckingController } from "./internal/busDucking.js";
 import { CjsBusGraphRuntime } from "./internal/busGraphRuntime.js";
@@ -322,7 +323,7 @@ export class CjsAudioSystem
                         busRtpcs: this._busRtpcs,
                         busStates: this._busStates,
                         busDuckingController: this._busDuckingController,
-                        ...globalControlReaders,
+                        globalReaders: globalControlReaders,
                         wwiseDynamics: this._wwiseDynamics,
                         wwiseMeterFeedback: this._wwiseMeterFeedback,
                         wwiseVoiceLimits: this._wwiseVoiceLimits,
@@ -359,19 +360,10 @@ export class CjsAudioSystem
         return this.manager.enabled;
     }
 
-    /** Creates the shared backend control-reader callbacks once per enable. */
+    /** Creates the backend's global RTPC and State readers once per enable. */
     _CreateGlobalControlReaders()
     {
-        return {
-            getGlobalRTPC: (name, at) =>
-                this.backend.GetGlobalRTPCValue(name, at),
-            getGlobalRTPCTransitionBoundaries: from =>
-                this.backend.GetGlobalRTPCTransitionBoundaries(from),
-            getGlobalStatePropertyWeights: (group, at) =>
-                this.backend.GetGlobalStatePropertyWeights(group, at),
-            getGlobalStateTransitionBoundaries: from =>
-                this.backend.GetGlobalStateTransitionBoundaries(from),
-        };
+        return new CjsAudioBackendGlobalReaders(this.backend);
     }
 
     /** Creates or validates the configured music engine for one backend. */
@@ -395,7 +387,7 @@ export class CjsAudioSystem
             busEffects: this._busEffects,
             busGraphRuntime: this._busGraphRuntime,
             busMixer: this._busMixer,
-            ...this._CreateGlobalControlReaders(),
+            globalReaders: this._CreateGlobalControlReaders(),
         };
 
         if (this._createMusicEngine)
