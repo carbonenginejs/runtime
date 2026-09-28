@@ -9,6 +9,7 @@ import {
     installMusicLibrary,
     validateMusicLibrary,
 } from "../../../npm/dist/audio/library/index.js";
+import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
 
 function CreateMusicLibrary()
 {
@@ -67,6 +68,8 @@ function FakeContext()
         sources: [],
         decoded: [],
         listener: {},
+        createDynamicsCompressor: FakeDynamicsCompressor,
+        createAnalyser: FakeAnalyser,
         createGain()
         {
             const gain = {

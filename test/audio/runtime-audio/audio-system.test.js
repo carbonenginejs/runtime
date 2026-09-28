@@ -13,6 +13,7 @@ import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { wwiseFilterPercentToHz } from "../../../src/audio/internal/wwiseFilter.js";
+import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
 
 
 function FakeParam()
@@ -30,6 +31,8 @@ function FakeContext(log)
       forwardX: FakeParam(), forwardY: FakeParam(), forwardZ: FakeParam(),
       upX: FakeParam(), upY: FakeParam(), upZ: FakeParam()
     },
+    createDynamicsCompressor: FakeDynamicsCompressor,
+    createAnalyser: FakeAnalyser,
     createGain()
     {
       const node = {
@@ -688,23 +691,6 @@ test("shared Bus dynamics remain strict unless Web Audio approximation is explic
   assert.equal(context.gains[2].connectedTo, context.compressors[1]);
   assert.equal(context.compressors[1].connectedTo, context.gains[3]);
   assert.equal(context.gains[3].connectedTo, context.delays[0]);
-
-  const unavailableContext = MixerContext();
-
-  delete unavailableContext.createDynamicsCompressor;
-  const unavailable = new CjsSharedBusMixer({
-    context: unavailableContext,
-    runtime,
-    destination: unavailableContext.destination,
-    wwiseDynamics: "approximate-web-audio",
-  });
-
-  assert.equal(
-    unavailable.GetInput(runtime.ResolveSfxRoute("100"), "sfx"),
-    null,
-  );
-  assert.equal(unavailableContext.gains.length, 0);
-  assert.equal(unavailableContext.delays.length, 0);
   assert.throws(() => new CjsSharedBusMixer({
     context,
     runtime,
@@ -1312,26 +1298,6 @@ test("strict shared Bus mixer realizes one static Wwise Delay per Bus", () =>
   mixer.Dispose();
   assert.equal(delay.disconnected, true);
   assert.ok(context.gains.every(gain => gain.disconnected));
-});
-
-test("strict shared Bus Delay qualification allocates nothing without DelayNode", () =>
-{
-  const context = MixerContext();
-  const catalog = MixerCatalog();
-
-  delete context.createDelay;
-  AddGraphDelay(catalog, "500", "920");
-  const runtime = new CjsBusGraphRuntime(catalog);
-  const mixer = new CjsSharedBusMixer({
-    context,
-    runtime,
-    destination: context.destination,
-  });
-
-  assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("100"), "sfx"), null);
-  assert.equal(context.gains.length, 0);
-  assert.equal(context.delays.length, 0);
-  assert.equal(context.filters.length, 0);
 });
 
 test("strict shared Bus Delay rejects action-controlled and malformed paths atomically", () =>

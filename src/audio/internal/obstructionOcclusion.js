@@ -8,8 +8,7 @@
  * `1 - (1 - obstruction) * (1 - occlusion)`; the combined blockage drives a
  * logarithmic low-pass from min(20 kHz, Nyquist) down to 600 Hz and a
  * 0 to -18 dB attenuation, smoothed with a 5 ms time constant. The stage
- * applies to every emitter route; without BiquadFilterNode/GainNode support
- * no stage is created and playback stays dry.
+ * applies to every emitter route.
  */
 
 const OBSTRUCTION_OCCLUSION_MODES = new Set([
@@ -42,13 +41,11 @@ export function createWwiseObstructionOcclusionStage(
     mode,
 )
 {
-    if (mode !== "approximate-web-audio"
-        || typeof context?.createBiquadFilter !== "function"
-        || typeof context?.createGain !== "function")
+    if (mode !== "approximate-web-audio")
     {
         return null;
     }
-    const filter = context.createBiquadFilter?.();
+    const filter = context.createBiquadFilter();
     const gain = context.createGain();
 
     filter.type = "lowpass";

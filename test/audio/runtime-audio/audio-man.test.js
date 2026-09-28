@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { CjsAudioMan } from "../../../npm/dist/audio/index.js";
+import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
 
 function CreateDocument({ direct = null, embedded = null } = {})
 {
@@ -66,6 +67,8 @@ function FakeContext(log)
             upY: FakeParam(),
             upZ: FakeParam(),
         },
+        createDynamicsCompressor: FakeDynamicsCompressor,
+        createAnalyser: FakeAnalyser,
         createGain()
         {
             return {
@@ -1352,7 +1355,8 @@ test("CjsAudioMan resolves authored switch and blend nodes before media delivery
         context.gains[8],
         "the 2D sibling's Stop envelope routes through the flat gain",
     );
-    assert.equal(context.gains[8].connectedTo, context.gains[1]);
+    // The flat gain feeds the SFX bus through the emitter level analyser.
+    assert.equal(context.gains[8].connectedTo.connectedTo, context.gains[1]);
 
     missingLayer = true;
     assert.equal(man.ReleaseMedia(778), 1);

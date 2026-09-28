@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { AudEmitter, AudUIPlayer, CjsAudioSystem, UI_GAME_OBJ_ID } from "../../../npm/dist/audio/index.js";
+import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
 
 const START_QUANTUM = 128 / 48000;
 function Deferred()
@@ -26,6 +27,8 @@ function FakeContext()
       forwardX: FakeParam(), forwardY: FakeParam(), forwardZ: FakeParam(),
       upX: FakeParam(), upY: FakeParam(), upZ: FakeParam()
     },
+    createDynamicsCompressor: FakeDynamicsCompressor,
+    createAnalyser: FakeAnalyser,
     createGain()
     {
       return { gain: FakeParam(1), connect() {}, disconnect() {} };

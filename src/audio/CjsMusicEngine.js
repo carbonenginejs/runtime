@@ -4534,12 +4534,12 @@ export class CjsMusicEngine
             this._busStateCatalog,
             busPathIds,
             "lowPass",
-        ) ? this._context.createBiquadFilter?.() ?? null : null;
+        ) ? this._context.createBiquadFilter() : null;
         const highPassFilter = busStatePathUses(
             this._busStateCatalog,
             busPathIds,
             "highPass",
-        ) ? this._context.createBiquadFilter?.() ?? null : null;
+        ) ? this._context.createBiquadFilter() : null;
         const mixerInput = busGraphRoute
             ? this._busMixer?.GetInput(busGraphRoute, "music") ?? null
             : null;

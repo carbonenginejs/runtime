@@ -109,10 +109,6 @@ export class CjsSharedBusMixer
         wwiseVoiceLimits = "strict",
     } = {})
     {
-        if (!context || typeof context.createGain !== "function")
-        {
-            throw new TypeError("Shared Audio Bus mixer requires an AudioContext with createGain");
-        }
         if (!runtime
             || typeof runtime.GetCatalog !== "function"
             || typeof runtime.OwnsRouteHandle !== "function")
@@ -564,35 +560,6 @@ export class CjsSharedBusMixer
                     },
                 );
             });
-            if (effects.some(effect =>
-                effect.type === "parametric-eq" && effect.bands.length)
-                && typeof this._context.createBiquadFilter !== "function")
-            {
-                throw new TypeError("Static Parametric EQ requires BiquadFilter support");
-            }
-            if (effects.some(effect => effect.type === "delay")
-                && typeof this._context.createDelay !== "function")
-            {
-                throw new TypeError("Static Wwise Delay requires DelayNode support");
-            }
-            if (effects.some(effect =>
-                effect.type === "compressor-approximation"
-                    || effect.type === "peak-limiter-approximation")
-                && typeof this._context.createDynamicsCompressor !== "function")
-            {
-                throw new TypeError(
-                    "Approximate Wwise dynamics requires DynamicsCompressorNode support",
-                );
-            }
-            if (effects.some(effect =>
-                effect.type === "peak-limiter-approximation"
-                    && effect.lookaheadSeconds > 0.006)
-                && typeof this._context.createDelay !== "function")
-            {
-                throw new TypeError(
-                    "Approximate Wwise Peak Limiter lookahead requires DelayNode support",
-                );
-            }
             if ((reasonSet.has("rtpc") && !this._busRtpcs.has(id))
                 || (reasonSet.has("state") && !this._busStates.has(id))
                 || (reasonSet.has("ducking")
@@ -759,8 +726,7 @@ export class CjsSharedBusMixer
 
         return !usesFilters
             || (this._readGlobalStateWeights
-                && this._readGlobalStateTransitionBoundaries
-                && typeof this._context.createBiquadFilter === "function");
+                && this._readGlobalStateTransitionBoundaries);
     }
 
     /** Returns whether every authored user send is provably below Wwise silence. */
@@ -1034,12 +1000,12 @@ export class CjsSharedBusMixer
             this._busStates,
             path,
             "lowPass",
-        ) ? this._context.createBiquadFilter?.() : null;
+        ) ? this._context.createBiquadFilter() : null;
         const highPassFilter = busStatePathUses(
             this._busStates,
             path,
             "highPass",
-        ) ? this._context.createBiquadFilter?.() : null;
+        ) ? this._context.createBiquadFilter() : null;
 
         if (!lowPassFilter && !highPassFilter) return null;
         if (lowPassFilter)

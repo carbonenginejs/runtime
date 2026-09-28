@@ -88,12 +88,7 @@ const SPATIAL_POSE_TIME_CONSTANT_SECONDS = 0.005;
  * distance-driven filters, spread/focus, diffraction and transmission are
  * not realized.
  *
- * Missing optional Web Audio primitives degrade per stage: without
- * `createBiquadFilter` the voice LPF/HPF stages are omitted, without
- * `createAnalyser` level reporting reads 0, and without
- * `createDynamicsCompressor` the master safety compressor is absent and the
- * master gain connects straight to the destination. Shared-bus route
- * qualification stays all-or-nothing.
+ * Shared-bus route qualification is all-or-nothing.
  */
 export class CjsAudioBackend extends ICjsAudioBackend
 {
@@ -281,21 +276,14 @@ export class CjsAudioBackend extends ICjsAudioBackend
             // projects carry a master-bus limiter for the same reason.
             // It is a browser workaround, not an authored Wwise effect, and
             // sits downstream of any admitted authored dynamics stage.
-            const limiter = this._context.createDynamicsCompressor?.() ?? null;
-            if (limiter)
-            {
-                limiter.threshold.value = -6;
-                limiter.knee.value = 6;
-                limiter.ratio.value = 12;
-                limiter.attack.value = 0.003;
-                limiter.release.value = 0.25;
-                this._masterGain.connect(limiter);
-                limiter.connect(this._context.destination);
-            }
-            else
-            {
-                this._masterGain.connect(this._context.destination);
-            }
+            const limiter = this._context.createDynamicsCompressor();
+            limiter.threshold.value = -6;
+            limiter.knee.value = 6;
+            limiter.ratio.value = 12;
+            limiter.attack.value = 0.003;
+            limiter.release.value = 0.25;
+            this._masterGain.connect(limiter);
+            limiter.connect(this._context.destination);
             // SFX bus: every emitter chain routes through it so effect volume
             // is controllable independently of music (which feeds the master
             // gain directly through the music engine's own output gain).
@@ -387,16 +375,12 @@ export class CjsAudioBackend extends ICjsAudioBackend
         panner.rolloffFactor = 0;
         const gain = this._context.createGain();
         gain.connect(panner);
-        // Optional per-emitter level tap (post-panner, so it reflects what is
-        // actually heard incl. distance attenuation). Absent on minimal fake
-        // contexts - metering then reports 0.
-        const analyser = this._context.createAnalyser?.() ?? null;
-        if (analyser)
-        {
-            analyser.fftSize = 256;
-            analyser.connect(this._sfxGain);
-        }
-        const destination = analyser ?? this._sfxGain;
+        // Per-emitter level tap (post-panner, so it reflects what is
+        // actually heard incl. distance attenuation).
+        const analyser = this._context.createAnalyser();
+        analyser.fftSize = 256;
+        analyser.connect(this._sfxGain);
+        const destination = analyser;
         const obstructionOcclusionStage =
             createWwiseObstructionOcclusionStage(
                 this._context,
@@ -4668,7 +4652,7 @@ export class CjsAudioBackend extends ICjsAudioBackend
             && this._busMixer?.OwnsRouteStateFilters(busGraphRoute) === true;
         const sharedBusDucking = sharedBusFilters;
         const analyser = mixerInput
-            ? this._context.createAnalyser?.() ?? null
+            ? this._context.createAnalyser()
             : null;
 
         if (analyser)
@@ -4884,12 +4868,12 @@ export class CjsAudioBackend extends ICjsAudioBackend
         const lowPassFilter = (descriptor.getLowPass
             || descriptor.getLowPassAtAdditionalPercent
             || (usesBusLowPass && !sharedBusFilters))
-            ? this._context.createBiquadFilter?.() ?? null
+            ? this._context.createBiquadFilter()
             : null;
         const highPassFilter = (descriptor.getHighPass
             || descriptor.getHighPassAtAdditionalPercent
             || (usesBusHighPass && !sharedBusFilters))
-            ? this._context.createBiquadFilter?.() ?? null
+            ? this._context.createBiquadFilter()
             : null;
         const busEffectChain = emitterRouteBranch?.mixerInput
             ? null

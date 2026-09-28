@@ -267,14 +267,12 @@ export function prepareWwiseRoomVerbApproximation(
         2,
         "Wwise RoomVerb sourceChannelCount",
     );
-    const sampleRate = Number(context?.sampleRate);
+    const sampleRate = Number(context.sampleRate);
 
-    if (typeof context?.createBuffer !== "function"
-        || !Number.isFinite(sampleRate)
-        || sampleRate <= 0)
+    if (!Number.isFinite(sampleRate) || sampleRate <= 0)
     {
         throw new TypeError(
-            "AudioContext.createBuffer and sampleRate are required for Wwise RoomVerb",
+            "AudioContext sampleRate is required for Wwise RoomVerb",
         );
     }
     let cache = IMPULSE_CACHE.get(context);

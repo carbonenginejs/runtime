@@ -4,6 +4,7 @@ import { CjsAudioBackend, CjsSfxEngine } from "../../../npm/dist/audio/index.js"
 import { CjsBusDuckingController } from "../../../src/audio/internal/busDucking.js";
 import { CjsBusGraphRuntime } from "../../../src/audio/internal/busGraphRuntime.js";
 import { CjsSharedBusMixer } from "../../../src/audio/internal/busGraphMixer.js";
+import { FakeDynamicsCompressor } from "../../support/webAudioNodes.js";
 
 const START_QUANTUM = 128 / 48000;
 
@@ -45,7 +46,7 @@ function FakeParam(initial)
   return param;
 }
 
-function FakeContext({ withAnalyser = false } = {})
+function FakeContext()
 {
   const context = {
     currentTime: 0,
@@ -63,6 +64,7 @@ function FakeContext({ withAnalyser = false } = {})
     sources: [],
     oscillators: [],
     waveShapers: [],
+    createDynamicsCompressor: FakeDynamicsCompressor,
     createGain()
     {
       const node = {
@@ -181,34 +183,40 @@ function FakeContext({ withAnalyser = false } = {})
       return shaper;
     }
   };
-  if (withAnalyser)
+  context.createAnalyser = () =>
   {
-    context.createAnalyser = () =>
-    {
-      const analyser = {
-        fftSize: 0,
-        connectedTo: null,
-        disconnected: false,
-        sampleValue: 0.25,
-        connect(target)
-        {
-          analyser.connectedTo = target;
-        },
-        disconnect()
-        {
-          analyser.disconnected = true;
-        },
-        getFloatTimeDomainData(samples)
-        {
-          samples.fill(analyser.sampleValue);
-        },
-      };
-
-      context.analysers.push(analyser);
-      return analyser;
+    const analyser = {
+      fftSize: 0,
+      connectedTo: null,
+      disconnected: false,
+      sampleValue: 0.25,
+      connect(target)
+      {
+        analyser.connectedTo = target;
+      },
+      disconnect()
+      {
+        analyser.disconnected = true;
+      },
+      getFloatTimeDomainData(samples)
+      {
+        samples.fill(analyser.sampleValue);
+      },
     };
-  }
+
+    context.analysers.push(analyser);
+    return analyser;
+  };
   return context;
+}
+
+/** Follows a node's output, stepping through a level analyser (a tap, not a stage). */
+function Out(node)
+{
+  const next = node.connectedTo;
+  return next && typeof next.getFloatTimeDomainData === "function"
+    ? next.connectedTo
+    : next;
 }
 
 function Deferred()
@@ -251,16 +259,10 @@ function Harness({
   busMixer,
   busMixerFactory,
   distanceScale,
-  withAnalyser,
-  withoutBiquad,
 } = {})
 {
-  const context = FakeContext({ withAnalyser });
+  const context = FakeContext();
 
-  if (withoutBiquad)
-  {
-    context.createBiquadFilter = undefined;
-  }
   const resolvedBusMixer = busMixerFactory?.(context) ?? busMixer;
   const finished = [];
   const emitter = { EventFinishedCallback: playingID => finished.push(playingID) };
@@ -658,21 +660,6 @@ test("strict obstruction and occlusion acknowledges state without adding DSP", (
   assert.equal(context.filters.length, 0);
 });
 
-test("opt-in obstruction stays dry when BiquadFilterNode is unavailable", () =>
-{
-  const { context, backend } = Harness({
-    wwiseObstructionOcclusion: "approximate-web-audio",
-    withoutBiquad: true,
-  });
-
-  assert.equal(
-    backend.SetObjectObstructionAndOcclusion(1, 4, 1, 1),
-    true,
-  );
-  assert.equal(context.filters.length, 0);
-  assert.equal(context.panners[0].connectedTo, context.gains[1]);
-});
-
 test("graph-backed SFX routes separate exact route and spatial branches", async () =>
 {
   const { context, emitter, backend } = Harness({
@@ -707,7 +694,7 @@ test("graph-backed SFX routes separate exact route and spatial branches", async 
   );
   assert.ok(context.panners.includes(routeA.connectedTo));
   assert.ok(context.panners.includes(routeB.connectedTo));
-  assert.equal(routeAFlat.connectedTo, context.gains[1]);
+  assert.equal(Out(routeAFlat), context.gains[1]);
 
   backend.SetPosition(1, [ 1, 0, 0 ], [ 0, 1, 0 ], [ 2, 3, 4 ]);
   assert.equal(backend.SetScalingFactor(1, 3), true);
@@ -965,7 +952,6 @@ test("graph route branches retain aggregate emitter analyser output", async () =
 {
   const { context, emitter, backend } = Harness({
     busGraphRuntime: RouteRuntime(),
-    withAnalyser: true,
     loadBuffer: async eventID => ({
       voices: [ RoutedVoice("100", eventID !== 2) ],
     }),
@@ -1014,10 +1000,10 @@ test("strict shared mixer consumes only qualified SFX route branches", async () 
   const spatialA = RouteBranchForSource(context.sources[0]);
   const flatA = RouteBranchForSource(context.sources[1]);
   const otherEmitterA = RouteBranchForSource(context.sources[2]);
-  const mixerInput = spatialA.connectedTo.connectedTo;
+  const mixerInput = Out(spatialA.connectedTo);
 
-  assert.equal(flatA.connectedTo, mixerInput);
-  assert.equal(otherEmitterA.connectedTo.connectedTo, mixerInput);
+  assert.equal(Out(flatA), mixerInput);
+  assert.equal(Out(otherEmitterA.connectedTo), mixerInput);
   assert.notEqual(mixerInput, context.gains[1]);
   backend.SetSfxVolume(0.4);
   assert.equal(mixerInput.gain.value, 0.4);
@@ -1055,7 +1041,7 @@ test("qualified SFX routes realize static EQ once after spatialization", async (
   const firstBranch = RouteBranchForSource(context.sources[0]);
   const secondBranch = RouteBranchForSource(context.sources[1]);
   const panner = firstBranch.connectedTo;
-  const mixerInput = panner.connectedTo;
+  const mixerInput = Out(panner);
   const busInput = mixerInput.connectedTo;
   const eq = busInput.connectedTo;
 
@@ -1113,7 +1099,7 @@ test("qualified SFX keeps local gain while the shared Bus owns post-effect volum
   const source = context.sources[0];
   const localBusGain = source.connectedTo.connectedTo;
   const branch = RouteBranchForSource(source);
-  const mixerInput = branch.connectedTo.connectedTo;
+  const mixerInput = Out(branch.connectedTo);
   const busInput = mixerInput.connectedTo;
   const effect = busInput.connectedTo;
   const sharedFader = effect.connectedTo;
@@ -1170,7 +1156,7 @@ test("qualified SFX Aux splits after spatialization and shares route filters", a
   const firstBranch = RouteBranchForSource(context.sources[0]);
   const secondBranch = RouteBranchForSource(context.sources[1]);
   const panner = firstBranch.connectedTo;
-  const mixerInput = panner.connectedTo;
+  const mixerInput = Out(panner);
   const routeFilter = mixerInput.connections[0];
   const sendGain = mixerInput.connections[1];
   const dryInput = routeFilter.connectedTo;
@@ -1274,7 +1260,7 @@ test("blocked SFX routes retain the legacy destination without partial mixer use
 
   const branch = RouteBranchForSource(context.sources[0]);
 
-  assert.equal(branch.connectedTo.connectedTo, context.gains[1]);
+  assert.equal(Out(branch.connectedTo), context.gains[1]);
   assert.equal(mixer.GetInput(runtime.ResolveSfxRoute("101"), "sfx"), null);
 });
 
@@ -1283,7 +1269,6 @@ test("qualified SFX mixer branches preserve aggregate emitter metering", async (
   const runtime = RouteRuntime();
   const { context, emitter, backend } = Harness({
     busGraphRuntime: runtime,
-    withAnalyser: true,
     busMixerFactory: audioContext => new CjsSharedBusMixer({
       context: audioContext,
       runtime,
@@ -12005,9 +11990,9 @@ test("a non-spatial voice bypasses the emitter panner but keeps voice and SFX ga
   await tick();
 
   assert.equal(
-    context.gains[5].connectedTo,
+    Out(context.gains[5]),
     context.gains[1],
-    "the lazy 2D emitter gain feeds the SFX bus directly"
+    "the lazy 2D emitter gain feeds the SFX bus through the level tap"
   );
   assert.equal(
     context.gains[3].connectedTo,

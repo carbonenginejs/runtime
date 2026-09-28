@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { CjsAudioSystem } from "../../../npm/dist/audio/index.js";
+import { FakeDynamicsCompressor, FakeAnalyser } from "../../support/webAudioNodes.js";
 
 function FakeParam(value = 0)
 {
@@ -17,6 +18,8 @@ function FakeContext()
       forwardX: FakeParam(), forwardY: FakeParam(), forwardZ: FakeParam(),
       upX: FakeParam(), upY: FakeParam(), upZ: FakeParam()
     },
+    createDynamicsCompressor: FakeDynamicsCompressor,
+    createAnalyser: FakeAnalyser,
     createGain()
     {
       return { gain: FakeParam(1), connect() {}, disconnect() {} };

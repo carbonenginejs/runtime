@@ -1450,84 +1450,12 @@ export function createWwiseEffectChain(
     {
         return null;
     }
-    const needsGain = dynamicsEffects.length > 0
-        || sourceDelays.length > 0
-        || hasModulation
-        || reverbEffects.length > 0
-        || roomVerbEffects.length > 0
-        || sourceDistortions.some(effect => effect.driveRtpcCurve)
-        || distortionEffects.some(effect => effect.outputGainDb !== 0)
-        || sourceEqualizers.some(effect => effect.outputGainDb !== 0);
-    const needsDelay = sourceDelays.length > 0
-        || reverbEffects.length > 0
-        || roomVerbEffects.some(effect => effect.reverbDelaySeconds > 0)
-        || flangerEffects.length > 0
-        || dynamicsEffects.some(effect =>
-            (effect.type === "peak-limiter"
-                || effect.type === "peak-limiter-approximation")
-            && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD);
-    const needsBiquad = sourceEqualizers.some(effect => effect.bands.length);
-    const needsReverbBiquad = reverbEffects.length > 0;
-    const needsRoomVerbBiquad = roomVerbEffects.length > 0;
-    const needsDistortionBiquad = distortionEffects.some(effect =>
-        effect.preEqBands.length || effect.postEqBands.length);
-    const needsOscillator = tremoloEffects.some(effect =>
-        effect.modulationDepthPercent > 0 || effect.rtpcCurves?.length)
-        || flangerEffects.some(effect =>
-            effect.lfoEnabled && effect.modulationDepthPercent > 0);
-    const needsPeriodicWave = tremoloEffects.some(effect =>
-        (effect.modulationDepthPercent > 0 || effect.rtpcCurves?.length)
-        && ((effect.waveform === "sine"
-                && effect.phaseOffsetDegrees !== 0)
-            || (effect.waveform === "square"
-                && effect.pwmPercent !== undefined)));
-
-    if (needsGain && typeof context?.createGain !== "function")
-    {
-        return null;
-    }
-    if (needsDelay && typeof context?.createDelay !== "function")
-    {
-        return null;
-    }
-    if ((needsBiquad
-        || needsDistortionBiquad
-        || needsReverbBiquad
-        || needsRoomVerbBiquad)
-        && typeof context?.createBiquadFilter !== "function")
-    {
-        return null;
-    }
-    if (dynamicsEffects.length
-        && typeof context?.createDynamicsCompressor !== "function")
-    {
-        return null;
-    }
     if (tremoloEffects.some(effect =>
         !effect.processCenter || !effect.processLfe))
     {
         return null;
     }
-    if (needsOscillator && typeof context?.createOscillator !== "function")
-    {
-        return null;
-    }
-    if (needsPeriodicWave
-        && typeof context?.createPeriodicWave !== "function")
-    {
-        return null;
-    }
-    if (distortionEffects.length
-        && typeof context?.createWaveShaper !== "function")
-    {
-        return null;
-    }
-    if (roomVerbEffects.length
-        && (typeof context?.createConvolver !== "function"
-            || typeof context?.createBuffer !== "function"))
-    {
-        return null;
-    }
+
     const preparedRoomVerbs = new Map();
 
     try
@@ -1771,12 +1699,6 @@ export function createWwiseEffectChain(
         }
         if (effect.outputGainDb !== 0)
         {
-            if (typeof context?.createGain !== "function")
-            {
-                throw new TypeError(
-                    "AudioContext.createGain is required for Wwise Parametric EQ output gain",
-                );
-            }
             const gain = context.createGain();
 
             SetParam(gain.gain, 10 ** (effect.outputGainDb / 20));
@@ -2073,13 +1995,6 @@ function CreateWwiseTremoloApproximation(context, effect)
  */
 function CreateWwiseDynamicsApproximation(context, effect)
 {
-    if (typeof context?.createDynamicsCompressor !== "function"
-        || typeof context?.createGain !== "function")
-    {
-        throw new TypeError(
-            "DynamicsCompressorNode and GainNode support is required for approximate Wwise dynamics",
-        );
-    }
     const dynamics = context.createDynamicsCompressor();
     const ratio = Math.min(effect.ratio, WEB_AUDIO_DYNAMICS_RATIO_MAX);
     const makeupDb = -0.6 * effect.thresholdDb * (1 - 1 / ratio);
@@ -2104,12 +2019,6 @@ function CreateWwiseDynamicsApproximation(context, effect)
     if (effect.type === "peak-limiter-approximation"
         && effect.lookaheadSeconds > WEB_AUDIO_DYNAMICS_LOOKAHEAD)
     {
-        if (typeof context?.createDelay !== "function")
-        {
-            throw new TypeError(
-                "DelayNode support is required to approximate Wwise Peak Limiter lookahead",
-            );
-        }
         const delaySeconds = effect.lookaheadSeconds
             - WEB_AUDIO_DYNAMICS_LOOKAHEAD;
         const delay = context.createDelay(delaySeconds);
@@ -2132,13 +2041,6 @@ function CreateWwiseDynamicsApproximation(context, effect)
  */
 function CreateWwiseDelayStage(context, effect)
 {
-    if (typeof context?.createDelay !== "function"
-        || typeof context?.createGain !== "function")
-    {
-        throw new TypeError(
-            "AudioContext DelayNode and GainNode support is required for Wwise Delay",
-        );
-    }
     const input = context.createGain();
     const delay = context.createDelay(effect.delayTimeSeconds);
     const dry = context.createGain();

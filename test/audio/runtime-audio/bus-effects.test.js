@@ -957,13 +957,6 @@ test("normalizes source Compressors and realizes them only through opt-in", () =
     assert.equal(context.compressors[0].threshold.value, -18);
     assert.equal(context.compressors[0].ratio.value, 20);
     assert.equal(chain.output, context.gains[0]);
-    assert.equal(
-        createWwiseEffectChain({}, normalized, {
-            wwiseDynamics: "approximate-web-audio",
-        }),
-        null,
-        "missing browser primitives retain audible dry playback",
-    );
 });
 
 test("normalizes source Peak Limiters and reuses the opt-in dynamics stage", () =>
@@ -1012,18 +1005,6 @@ test("normalizes source Peak Limiters and reuses the opt-in dynamics stage", () 
     assert.equal(createWwiseEffectChain(strict, mixed), null);
     assert.equal(strict.compressors.length, 0);
     assert.equal(strict.filters.length, 0);
-    const unavailable = Context();
-
-    delete unavailable.createDelay;
-    assert.equal(
-        createWwiseEffectChain(unavailable, mixed, {
-            wwiseDynamics: "approximate-web-audio",
-        }),
-        null,
-        "missing lookahead padding omits the whole chain and stays dry",
-    );
-    assert.equal(unavailable.compressors.length, 0);
-    assert.equal(unavailable.filters.length, 0);
 });
 
 test("decodes and realizes only the opted-in static Wwise Flanger subset", () =>
@@ -1082,15 +1063,6 @@ test("decodes and realizes only the opted-in static Wwise Flanger subset", () =>
     assert.deepEqual(input.connections, [ dry, blend, delay ]);
     assert.deepEqual(delay.connections, [ feedforward, feedback ]);
     assert.equal(depth.connectedTo, delay.delayTime);
-
-    const unavailable = Context();
-
-    delete unavailable.createOscillator;
-    assert.equal(createWwiseEffectChain(unavailable, normalized, {
-        wwiseModulation: "approximate-web-audio",
-    }), null);
-    assert.equal(unavailable.gains.length, 0);
-    assert.equal(unavailable.delays.length, 0);
 });
 
 test("validates Flanger policy, exact shape, and fixed-delay LFO omission", () =>
@@ -1252,37 +1224,12 @@ test("decodes and realizes only the empirical static Wwise Tremolo subset", () =
     assert.equal(oscillator.frequency.value, 1);
     assert.equal(depth.gain.value, 0.5);
     assert.equal(depth.connectedTo, input.gain);
-
-    const unavailable = Context();
-
-    delete unavailable.createOscillator;
-    assert.equal(createWwiseEffectChain(unavailable, normalized, {
-        wwiseModulation: "approximate-web-audio",
-    }), null);
-    assert.equal(unavailable.gains.length, 0);
     assert.equal(createWwiseEffectChain(Context(), [ {
         ...decoded,
         processLfe: false,
     } ], {
         wwiseModulation: "approximate-web-audio",
     }), null);
-
-    const unavailableEq = Context();
-    const equalizer = parseGraphStaticParametricEq(
-        GraphEffect(),
-        "900",
-        2,
-    );
-
-    delete unavailableEq.createBiquadFilter;
-    assert.equal(createWwiseEffectChain(
-        unavailableEq,
-        [ decoded, equalizer ],
-        { wwiseModulation: "approximate-web-audio" },
-    ), null);
-    assert.equal(unavailableEq.gains.length, 0);
-    assert.equal(unavailableEq.oscillators.length, 0);
-    assert.equal(unavailableEq.filters.length, 0);
 });
 
 test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
@@ -1412,14 +1359,6 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
         Math.abs(lowPulseGain) < 2e-4,
         `expected low pulse gain near 0, got ${lowPulseGain}`,
     );
-    const missingOssePeriodicWave = Context();
-
-    delete missingOssePeriodicWave.createPeriodicWave;
-    assert.equal(createWwiseEffectChain(
-        missingOssePeriodicWave,
-        [ osseSquare ],
-        { wwiseModulation: "approximate-web-audio" },
-    ), null);
     const triangle = parseGraphStaticWwiseTremolo(
         GraphTremolo(TremoloBytes({
             waveform: 2,
@@ -1482,17 +1421,6 @@ test("validates the bounded Tremolo shape and omits a zero-depth LFO", () =>
     );
     assert.equal(phasedOscillator.periodicWave, periodicWave);
     assert.equal(phasedInput.gain.value, 0.6);
-
-    const missingPeriodicWave = Context();
-
-    delete missingPeriodicWave.createPeriodicWave;
-    assert.equal(createWwiseEffectChain(
-        missingPeriodicWave,
-        [ phased ],
-        { wwiseModulation: "approximate-web-audio" },
-    ), null);
-    assert.equal(missingPeriodicWave.gains.length, 0);
-    assert.equal(missingPeriodicWave.oscillators.length, 0);
 });
 
 test("filters the exact EVE-v150 dynamic Tremolo control before DSP mapping", () =>
@@ -1720,23 +1648,6 @@ test("decodes and explicitly approximates static Wwise Matrix Reverb", () =>
     assert.ok(context.filters.every(filter =>
         filter.frequency.value > 1000
         && filter.frequency.value < 20000));
-
-    for (const missing of [
-        "createGain",
-        "createDelay",
-        "createBiquadFilter",
-    ])
-    {
-        const unavailable = Context();
-
-        delete unavailable[missing];
-        assert.equal(createWwiseEffectChain(unavailable, normalized, {
-            wwiseReverb: "approximate-web-audio",
-        }), null);
-        assert.equal(unavailable.gains.length, 0);
-        assert.equal(unavailable.delays.length, 0);
-        assert.equal(unavailable.filters.length, 0);
-    }
 });
 
 test("rejects dynamic or unsupported Wwise Matrix Reverb records", () =>
@@ -2025,18 +1936,6 @@ test("decodes and explicitly approximates static EVE Guitar Distortion", () =>
     assert.equal(highPeak.gain.value, -4.5);
     assert.equal(highPeak.frequency.value, 1359);
     assert.equal(highPeak.Q.value, 1.5);
-
-    for (const missing of [ "createWaveShaper", "createBiquadFilter" ])
-    {
-        const unavailable = Context();
-
-        delete unavailable[missing];
-        assert.equal(createWwiseEffectChain(unavailable, normalized, {
-            wwiseDistortion: "approximate-web-audio",
-        }), null);
-        assert.equal(unavailable.waveShapers.length, 0);
-        assert.equal(unavailable.filters.length, 0);
-    }
 });
 
 test("schedules the exact EVE-v150 Guitar Distortion Drive RTPC shape", () =>
@@ -2188,15 +2087,6 @@ test("approximates Overdrive rectification and output gain atomically", () =>
         "900",
         0,
     );
-    const unavailable = Context();
-
-    delete unavailable.createGain;
-    assert.equal(createWwiseEffectChain(unavailable, [ effect ], {
-        wwiseDistortion: "approximate-web-audio",
-    }), null);
-    assert.equal(unavailable.waveShapers.length, 0);
-    assert.equal(unavailable.filters.length, 0);
-
     const context = Context();
     const chain = createWwiseEffectChain(context, [ effect ], {
         wwiseDistortion: "approximate-web-audio",

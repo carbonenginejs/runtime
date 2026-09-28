@@ -346,14 +346,9 @@ export class CjsJukebox
      */
     Attach(context, destination = context?.destination)
     {
-        if (!context
-            || typeof context.createGain !== "function"
-            || typeof context.createBufferSource !== "function"
-            || typeof context.decodeAudioData !== "function")
+        if (!context)
         {
-            throw new TypeError(
-                "CjsJukebox requires a Web Audio compatible context",
-            );
+            throw new TypeError("CjsJukebox requires an AudioContext");
         }
         if (!destination)
         {

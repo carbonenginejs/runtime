@@ -129,8 +129,7 @@ export class CjsAudioMan
      * enables another. `CjsAudioSystem` forwards them to the backend; only
      * `wwiseDynamics`, `wwiseMeterFeedback` and `wwiseVoiceLimits` reach the
      * shared bus mixer. Opt-in admission is a bounded browser approximation,
-     * not Wwise DSP equivalence, and a missing Web Audio primitive keeps the
-     * strict fallback.
+     * not Wwise DSP equivalence.
      *
      * | Option | Opt-in value | Admits | Strict outcome |
      * | --- | --- | --- | --- |
@@ -2097,11 +2096,9 @@ function StateTransitionSignature(group)
 
 function CreatePcmAudioBuffer(context, payload)
 {
-    if (!context || typeof context.createBuffer !== "function")
+    if (!context)
     {
-        throw new TypeError(
-            "AudioContext.createBuffer is required for decoded WEM PCM",
-        );
+        throw new TypeError("An enabled AudioContext is required for decoded WEM PCM");
     }
 
     const channelData = payload.channelData;
@@ -2134,11 +2131,9 @@ function CreatePcmAudioBuffer(context, payload)
  */
 function CreateTimedSilenceAudioBuffer(context)
 {
-    if (!context || typeof context.createBuffer !== "function")
+    if (!context)
     {
-        throw new TypeError(
-            "AudioContext.createBuffer is required for timed silence",
-        );
+        throw new TypeError("An enabled AudioContext is required for timed silence");
     }
     const sampleRate = Number(context.sampleRate) > 0
         ? Number(context.sampleRate)
@@ -2156,10 +2151,10 @@ function CreateTimedSilenceAudioBuffer(context)
 
 function DecodeAudioData(context, bytes)
 {
-    if (!context || typeof context.decodeAudioData !== "function")
+    if (!context)
     {
         return Promise.reject(new TypeError(
-            "AudioContext.decodeAudioData is required for encoded media",
+            "An enabled AudioContext is required for encoded media",
         ));
     }
 
