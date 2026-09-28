@@ -176,7 +176,10 @@ test("portable printf formats arguments once and preserves native integer widths
         assert.equal(messages.at(-1), "x   |+0003||0");
         assert.throws(() => Log.CCP_LOG("%p", 12), /Unsupported/);
         assert.throws(() => Log.CCP_LOG("%s"), /Missing/);
-        assert.throws(() => Log.CCP_LOG("%"), /Unsupported/);
+        Log.CCP_LOG("%");
+        assert.equal(messages.at(-1), "%", "a lone % prints as itself");
+        Log.CCP_LOG("100%. done %s", "now");
+        assert.equal(messages.at(-1), "100%. done now");
     }
     finally
     {

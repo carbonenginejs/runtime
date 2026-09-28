@@ -21,6 +21,7 @@
  * and -, +, space, 0, # flags are supported; integer h/hh/l/ll/z/t/I64 modifiers
  * use hh=8, h=16, l/default=32 and ll/z/t/I64=64 bits (Windows long width). Native pointers, %n and other conversions
  * have no implementation here and throw TypeError instead of reading memory.
+ * A lone % that starts no conversion ("100% done") prints as itself.
  * Strings use UTF-8 with complete-code-point truncation at Carbon's 65534-byte
  * message and 255-byte last-error limits. Float formatting follows JavaScript's
  * toFixed rounding, not a claim of C-library bit-for-bit printf parity.
@@ -301,7 +302,8 @@ function formatMessage(format, args)
     return source.replace(/%(%|([-+ #0]*)(\d*)(?:\.(\d+))?(hh|ll|I64|[hlzt])?([a-zA-Z]))|%/g, (token, literal, flags = "", widthText = "", precisionText, length, conversion) =>
     {
         if (literal === "%") return "%";
-        if (!conversion || !"sSdiuxXofFc".includes(conversion)) throw new TypeError(`Unsupported CcpLog format: ${token}`);
+        if (!conversion) return token;
+        if (!"sSdiuxXofFc".includes(conversion)) throw new TypeError(`Unsupported CcpLog format: ${token}`);
         if (cursor >= args.length) throw new TypeError(`Missing CcpLog argument for ${token}`);
         const value = args[cursor++];
         const width = Number(widthText || 0);
