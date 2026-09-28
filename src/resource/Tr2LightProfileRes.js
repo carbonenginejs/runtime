@@ -18,10 +18,10 @@ export class Tr2LightProfileRes extends CjsResource
   // registration. Carbon's DoPrepare acquires it (Tr2LightProfileRes.cpp:
   // 95-99: GetLightProfileArray().AddElement(m_bitmap)), but here the
   // resource layer cannot import trinity, so TRINITY registers the element
-  // at first pack (Tr2LightManager.#ProfileSlot) and hands the handle in
+  // at first pack (Tr2LightManager._ProfileSlot) and hands the handle in
   // through RegisterProfileElement. Duck-typed on purpose: this class knows
   // only GetElementIndex/Release, never the array class.
-  #element = null;
+  _element = null;
 
   /**
    * m_bitmap: the baked profile, a 1024x1 `PIXEL_FORMAT_R16_FLOAT` strip with a
@@ -37,10 +37,10 @@ export class Tr2LightProfileRes extends CjsResource
       // Losing the payload releases the slice - Carbon's element handle
       // frees its slot when the resource lets go (Tr2TextureArray.cpp:
       // 233-236); with no destructors the unload path is the release site.
-      if (this.#element)
+      if (this._element)
       {
-        this.#element.Release();
-        this.#element = null;
+        this._element.Release();
+        this._element = null;
       }
       this.bitmap = new HostBitmap();
       super.SetPayload(null);
@@ -91,11 +91,11 @@ export class Tr2LightProfileRes extends CjsResource
    */
   RegisterProfileElement(element)
   {
-    if (this.#element && this.#element !== element)
+    if (this._element && this._element !== element)
     {
-      this.#element.Release();
+      this._element.Release();
     }
-    this.#element = element ?? null;
+    this._element = element ?? null;
     return this;
   }
 
@@ -112,7 +112,7 @@ export class Tr2LightProfileRes extends CjsResource
    */
   GetTextureIndex()
   {
-    return this.#element ? this.#element.GetElementIndex() : -1;
+    return this._element ? this._element.GetElementIndex() : -1;
   }
 
   static payload = ResourceRequirement.LIGHT_PROFILE;

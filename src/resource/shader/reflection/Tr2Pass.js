@@ -219,7 +219,7 @@ export class Tr2Pass extends CjsModel
    *
    * @returns {Array<object>} Stages in file order.
    */
-  #orderedStages()
+  _orderedStages()
   {
     const present = this.stageInputs.filter(stage => stage?.exists);
     const ordered = [];
@@ -249,7 +249,7 @@ export class Tr2Pass extends CjsModel
   toCarbonBinary()
   {
     const record = {
-      stages: this.#orderedStages().map(stage => stage.toCarbonBinary()),
+      stages: this._orderedStages().map(stage => stage.toCarbonBinary()),
       renderStates: this.renderStateValues
         .map(entry => ({ state: entry.state, value: entry.value }))
         .sort((left, right) => left.state - right.state)

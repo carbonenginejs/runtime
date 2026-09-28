@@ -20,21 +20,21 @@ const globalEffectOptions = [];
 export class Tr2EffectRes extends CjsResource
 {
 
-  #shaders = new Map();
+  _shaders = new Map();
 
-  #reader = null;
+  _reader = null;
 
   /** Whether this container carries per-pass backend blocks; null when unknown. */
-  #carriesBackendBlock = null;
+  _carriesBackendBlock = null;
 
   /** Translates one requested permutation on first use; null when every body is present. */
-  #translatePermutation = null;
+  _translatePermutation = null;
 
   /** Permutation indices whose body the held container can read; null means all. */
-  #translatedIndices = null;
+  _translatedIndices = null;
 
   /** Readers for permutations translated after the load, by permutation index. */
-  #permutationReaders = new Map();
+  _permutationReaders = new Map();
 
   /**
    * Read a Carbon effect container and take ownership of its reader.
@@ -62,9 +62,9 @@ export class Tr2EffectRes extends CjsResource
   DoLoad(data, options = null)
   {
     const reader = new CjsCarbonEffectReader(data);
-    this.#shaders.clear();
-    this.#permutationReaders.clear();
-    this.#reader = reader;
+    this._shaders.clear();
+    this._permutationReaders.clear();
+    this._reader = reader;
 
     // WHAT KIND OF SHADER WAS THIS. The path names the tree the bytes came
     // from, because backend selection is by resource path, and the tree decides
@@ -74,7 +74,7 @@ export class Tr2EffectRes extends CjsResource
     // Null for a container that arrived without a path - tooling and tests do -
     // and the reader then detects for itself, which is what that fallback is
     // for.
-    this.#carriesBackendBlock = EffectCarriesBackendBlock(this.GetPath());
+    this._carriesBackendBlock = EffectCarriesBackendBlock(this.GetPath());
     super.SetPayload({
       permutations: reader.permutations.map(axis => ({
         name: axis.name.value,
@@ -122,10 +122,10 @@ export class Tr2EffectRes extends CjsResource
 
     if (payload === null)
     {
-      this.#shaders.clear();
-      this.#reader = null;
-      this.#ClearPermutationTranslator();
-      this.#carriesBackendBlock = null;
+      this._shaders.clear();
+      this._reader = null;
+      this._ClearPermutationTranslator();
+      this._carriesBackendBlock = null;
       super.SetPayload(null);
       return this;
     }
@@ -134,8 +134,8 @@ export class Tr2EffectRes extends CjsResource
       payload,
       validateEffectPayload
     );
-    this.#shaders.clear();
-    this.#reader = null;
+    this._shaders.clear();
+    this._reader = null;
     super.SetPayload(payload);
     this.SetValues(options || {});
     return this;
@@ -217,7 +217,7 @@ export class Tr2EffectRes extends CjsResource
    */
   GetContainerBytes()
   {
-    return this.#reader?.bytes ?? null;
+    return this._reader?.bytes ?? null;
   }
 
   /**
@@ -228,7 +228,7 @@ export class Tr2EffectRes extends CjsResource
    */
   CarriesBackendBlock()
   {
-    return this.#carriesBackendBlock;
+    return this._carriesBackendBlock;
   }
 
   /**
@@ -249,9 +249,9 @@ export class Tr2EffectRes extends CjsResource
         "Tr2EffectRes shader index must be a non-negative safe integer"
       );
     }
-    if (this.#shaders.has(index))
+    if (this._shaders.has(index))
     {
-      return this.#shaders.get(index);
+      return this._shaders.get(index);
     }
 
     const payload = this.GetPayload();
@@ -261,13 +261,13 @@ export class Tr2EffectRes extends CjsResource
       return null;
     }
 
-    if (!this.#reader)
+    if (!this._reader)
     {
       return null;
     }
 
-    const shader = Tr2Shader.fromCarbonBinary(this.#ReaderFor(index), index, this.#carriesBackendBlock);
-    this.#shaders.set(index, shader);
+    const shader = Tr2Shader.fromCarbonBinary(this._ReaderFor(index), index, this._carriesBackendBlock);
+    this._shaders.set(index, shader);
     return shader;
   }
 
@@ -290,17 +290,17 @@ export class Tr2EffectRes extends CjsResource
    */
   SetPermutationTranslator(translate, translatedIndices)
   {
-    this.#translatePermutation = translate;
-    this.#translatedIndices = new Set(translatedIndices);
-    this.#permutationReaders.clear();
+    this._translatePermutation = translate;
+    this._translatedIndices = new Set(translatedIndices);
+    this._permutationReaders.clear();
   }
 
   /** Forgets the permutation translator, for a payload that carries every body. */
-  #ClearPermutationTranslator()
+  _ClearPermutationTranslator()
   {
-    this.#translatePermutation = null;
-    this.#translatedIndices = null;
-    this.#permutationReaders.clear();
+    this._translatePermutation = null;
+    this._translatedIndices = null;
+    this._permutationReaders.clear();
   }
 
   /**
@@ -310,27 +310,27 @@ export class Tr2EffectRes extends CjsResource
    * @param {number} index Permutation index below the variant count.
    * @returns {CjsCarbonEffectReader}
    */
-  #ReaderFor(index)
+  _ReaderFor(index)
   {
-    if (!this.#translatedIndices || this.#translatedIndices.has(index))
+    if (!this._translatedIndices || this._translatedIndices.has(index))
     {
-      return this.#permutationReaders.get(index) ?? this.#reader;
+      return this._permutationReaders.get(index) ?? this._reader;
     }
 
-    const result = this.#translatePermutation(this.#PermutationOf(index));
+    const result = this._translatePermutation(this._PermutationOf(index));
     const reader = new CjsCarbonEffectReader(result.bytes);
 
     for (const translated of result.indices)
     {
-      if (this.#translatedIndices.has(translated)) continue;
-      this.#translatedIndices.add(translated);
-      this.#permutationReaders.set(translated, reader);
+      if (this._translatedIndices.has(translated)) continue;
+      this._translatedIndices.add(translated);
+      this._permutationReaders.set(translated, reader);
     }
-    if (!this.#translatedIndices.has(index))
+    if (!this._translatedIndices.has(index))
     {
       throw new Error(`Tr2EffectRes ${this.GetPath()}: translating permutation ${index} produced no body for it`);
     }
-    return this.#permutationReaders.get(index);
+    return this._permutationReaders.get(index);
   }
 
   /**
@@ -340,7 +340,7 @@ export class Tr2EffectRes extends CjsResource
    * @param {number} index Permutation index.
    * @returns {Array<{name: string, value: string}>}
    */
-  #PermutationOf(index)
+  _PermutationOf(index)
   {
     const permutation = [];
     let remainder = index;
@@ -380,15 +380,15 @@ export class Tr2EffectRes extends CjsResource
    */
   ReleaseResources()
   {
-    this.#shaders.clear();
+    this._shaders.clear();
   }
 
   /** Release the payload and every shader graph hydrated from it. */
   ReleasePayload()
   {
-    this.#shaders.clear();
-    this.#reader = null;
-    this.#ClearPermutationTranslator();
+    this._shaders.clear();
+    this._reader = null;
+    this._ClearPermutationTranslator();
     return super.ReleasePayload();
   }
 

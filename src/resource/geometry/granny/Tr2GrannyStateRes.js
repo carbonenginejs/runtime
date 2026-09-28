@@ -32,7 +32,7 @@ import { ResourceRequirement } from "#blue";
 export class Tr2GrannyStateRes extends CjsResource
 {
   /** Resolved animation path to its loaded resource, as Carbon's m_gStateAnimFiles. */
-  #animations = new Map();
+  _animations = new Map();
 
   /** Updates payload in the current resource payload lifecycle. */
   SetPayload(payload = null)
@@ -95,7 +95,7 @@ export class Tr2GrannyStateRes extends CjsResource
       document = route.Read(data);
     }
 
-    this.#animations.clear();
+    this._animations.clear();
     this.SetPayload(document);
     this.SetValues(values);
     return this;
@@ -201,14 +201,14 @@ export class Tr2GrannyStateRes extends CjsResource
    */
   SetAnimationResource(path, resource)
   {
-    this.#animations.set(String(path), resource);
+    this._animations.set(String(path), resource);
     return this;
   }
 
   /** The animation resource attached for a resolved reference, if any. */
   GetAnimationResource(path)
   {
-    return this.#animations.get(String(path)) ?? null;
+    return this._animations.get(String(path)) ?? null;
   }
 
   /**
@@ -223,7 +223,7 @@ export class Tr2GrannyStateRes extends CjsResource
   IsFullyLoaded()
   {
     if (!this.GetPayload()) return false;
-    return this.GetGStateAnimFileRefPaths().every(path => this.#animations.has(path));
+    return this.GetGStateAnimFileRefPaths().every(path => this._animations.has(path));
   }
 
   static payload = ResourceRequirement.GRANNY_STATE;

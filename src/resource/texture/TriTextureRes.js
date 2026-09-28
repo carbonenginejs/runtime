@@ -73,7 +73,7 @@ export class TriTextureRes extends CjsResource
    */
   Initialize(path, ext = null, requirement = "") {
     super.Initialize(path, ext, requirement);
-    if (IsSolidColorTexturePath(this.path)) this.#RasterizeProceduralTexture(RasterizeSolidColor);
+    if (IsSolidColorTexturePath(this.path)) this._RasterizeProceduralTexture(RasterizeSolidColor);
     return this;
   }
 
@@ -86,7 +86,7 @@ export class TriTextureRes extends CjsResource
    * @param {Function} rasterize `(path) => HostBitmap | null`.
    * @returns {void}
    */
-  #RasterizeProceduralTexture(rasterize) {
+  _RasterizeProceduralTexture(rasterize) {
     this.MarkLoading();
     const bitmap = rasterize(this.path);
     if (!bitmap) {

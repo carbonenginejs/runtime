@@ -11,7 +11,7 @@ export class Tr2RaycastGeometryRes extends CjsResource
 
   bvh = null;
 
-  #source = null;
+  _source = null;
 
   /**
    * Carbon SetLodIndices (TriGeometryRes.cpp:78-81): one assignment, but
@@ -37,7 +37,7 @@ export class Tr2RaycastGeometryRes extends CjsResource
   /** Attaches the resident geometry that answers this raycast session. */
   SetSource(source)
   {
-    this.#source = source;
+    this._source = source;
     this.state = CjsResource.State.PREPARED;
     return this;
   }
@@ -45,11 +45,11 @@ export class Tr2RaycastGeometryRes extends CjsResource
   /** Appends ray intersections from the attached resident geometry. */
   GetIntersectionPoints(position, direction, result, areaIndex = -1, rayLength = Infinity)
   {
-    if (!this.#source)
+    if (!this._source)
     {
       throw new Error("Tr2RaycastGeometryRes has no resident geometry source.");
     }
-    return this.#source._IntersectRaycastGeometry(
+    return this._source._IntersectRaycastGeometry(
       position, direction, result, areaIndex, rayLength);
   }
 }

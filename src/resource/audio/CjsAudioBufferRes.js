@@ -11,7 +11,7 @@ import { CjsResource } from "#blue";
 export class CjsAudioBufferRes extends CjsResource
 {
 
-    #audioInfo = {};
+    _audioInfo = {};
 
     /** Creates an unregistered physical audio resource with optional metadata. */
     constructor(values = null)
@@ -25,7 +25,7 @@ export class CjsAudioBufferRes extends CjsResource
     {
         if (values === null || values === undefined)
         {
-            this.#audioInfo = {};
+            this._audioInfo = {};
             return this;
         }
         if (!values || typeof values !== "object" || Array.isArray(values))
@@ -33,14 +33,14 @@ export class CjsAudioBufferRes extends CjsResource
             throw new TypeError("CjsAudioBufferRes info must be an object");
         }
 
-        this.#audioInfo = { ...values };
+        this._audioInfo = { ...values };
         return this;
     }
 
     /** Returns immutable physical-source metadata supplied by an audio library. */
     GetAudioInfo()
     {
-        return this.#audioInfo;
+        return this._audioInfo;
     }
 
     /**

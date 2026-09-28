@@ -41,7 +41,7 @@ export class Tr2TextureLodManager extends CjsModel
   /** m_lowDetailVtaFiles (bool) */
   lowDetailVtaFiles = false;
 
-  #textures = [];
+  _textures = [];
 
   /** Creates a Tr2TextureLodManager with caller-provided initial state. */
   constructor(values = null)
@@ -65,7 +65,7 @@ export class Tr2TextureLodManager extends CjsModel
     {
       throw new TypeError("Tr2TextureLodManager.RegisterTexture requires a texture object.");
     }
-    this.#textures.push(texture);
+    this._textures.push(texture);
     return this;
   }
 
@@ -77,7 +77,7 @@ export class Tr2TextureLodManager extends CjsModel
    */
   UnregisterTexture(texture)
   {
-    this.#textures = this.#textures.filter(entry => entry !== texture);
+    this._textures = this._textures.filter(entry => entry !== texture);
     return this;
   }
 
@@ -88,7 +88,7 @@ export class Tr2TextureLodManager extends CjsModel
    */
   GetManagedTextures()
   {
-    return this.#textures.slice();
+    return this._textures.slice();
   }
 
 }

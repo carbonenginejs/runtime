@@ -14,15 +14,15 @@ import { CjsAudioBufferRes } from "./CjsAudioBufferRes.js";
 export class CjsAudioRes extends CjsResource
 {
 
-    #audioInfo = {};
+    _audioInfo = {};
 
-    #backing = null;
+    _backing = null;
 
-    #backingLocks = 0;
+    _backingLocks = 0;
 
-    #byteLength = null;
+    _byteLength = null;
 
-    #offset = 0;
+    _offset = 0;
 
     /** Creates an unregistered semantic audio resource with optional metadata. */
     constructor(values = null)
@@ -48,14 +48,14 @@ export class CjsAudioRes extends CjsResource
             throw new TypeError("CjsAudioRes info must be an object");
         }
 
-        this.#audioInfo = { ...values };
+        this._audioInfo = { ...values };
         return this;
     }
 
     /** Returns immutable media, language, source, and path metadata. */
     GetAudioInfo()
     {
-        return this.#audioInfo;
+        return this._audioInfo;
     }
 
     /** Binds the shared physical resource and this file's byte window. */
@@ -83,7 +83,7 @@ export class CjsAudioRes extends CjsResource
                 "CjsAudioRes byteLength",
             );
 
-        if (this.#backing && this.#backing !== backing)
+        if (this._backing && this._backing !== backing)
         {
             throw new CjsError(
                 "CJS_AUDIO_RESOURCE_CONFLICT",
@@ -95,9 +95,9 @@ export class CjsAudioRes extends CjsResource
                 },
             );
         }
-        if (this.#backing
-            && (this.#offset !== normalizedOffset
-                || this.#byteLength !== normalizedByteLength))
+        if (this._backing
+            && (this._offset !== normalizedOffset
+                || this._byteLength !== normalizedByteLength))
         {
             throw new CjsError(
                 "CJS_AUDIO_RESOURCE_CONFLICT",
@@ -110,9 +110,9 @@ export class CjsAudioRes extends CjsResource
             );
         }
 
-        this.#backing = backing;
-        this.#offset = normalizedOffset;
-        this.#byteLength = normalizedByteLength;
+        this._backing = backing;
+        this._offset = normalizedOffset;
+        this._byteLength = normalizedByteLength;
 
         if (!this.IsPrepared())
         {
@@ -125,19 +125,19 @@ export class CjsAudioRes extends CjsResource
     /** Returns the shared physical source resource. */
     GetBackingResource()
     {
-        return this.#backing;
+        return this._backing;
     }
 
     /** Returns this file's offset within the shared physical source. */
     GetSourceOffset()
     {
-        return this.#offset;
+        return this._offset;
     }
 
     /** Returns the declared file length, or null when it is source-sized. */
     GetByteLength()
     {
-        return this.#byteLength;
+        return this._byteLength;
     }
 
     /**
@@ -152,7 +152,7 @@ export class CjsAudioRes extends CjsResource
         ...loadOptions
     } = {})
     {
-        if (!this.#backing)
+        if (!this._backing)
         {
             throw new CjsError(
                 "CJS_AUDIO_BACKING_UNAVAILABLE",
@@ -169,9 +169,9 @@ export class CjsAudioRes extends CjsResource
 
         try
         {
-            const source = await this.#backing.GetByteView(loadOptions);
-            const available = source.byteLength - this.#offset;
-            const totalByteLength = this.#byteLength ?? available;
+            const source = await this._backing.GetByteView(loadOptions);
+            const available = source.byteLength - this._offset;
+            const totalByteLength = this._byteLength ?? available;
 
             if (available < 0 || totalByteLength > available)
             {
@@ -181,7 +181,7 @@ export class CjsAudioRes extends CjsResource
                     {
                         details: {
                             path: this.GetPath(),
-                            sourceOffset: this.#offset,
+                            sourceOffset: this._offset,
                             sourceByteLength: source.byteLength,
                             byteLength: totalByteLength,
                         },
@@ -194,11 +194,11 @@ export class CjsAudioRes extends CjsResource
                 byteLength,
                 totalByteLength,
             );
-            const start = this.#offset + range.offset;
+            const start = this._offset + range.offset;
             const bytes = source.slice(start, start + range.byteLength).buffer;
 
             return {
-                ...this.#audioInfo,
+                ...this._audioInfo,
                 bytes,
                 offset: range.offset,
                 byteLength: bytes.byteLength,
@@ -224,7 +224,7 @@ export class CjsAudioRes extends CjsResource
     KeepAlive(options = {})
     {
         super.KeepAlive(options);
-        this.#backing?.KeepAlive(options);
+        this._backing?.KeepAlive(options);
         return this;
     }
 
@@ -232,7 +232,7 @@ export class CjsAudioRes extends CjsResource
     KeepPayloadAlive(options = {})
     {
         super.KeepAlive(options);
-        this.#backing?.KeepPayloadAlive(options);
+        this._backing?.KeepPayloadAlive(options);
         return this;
     }
 
@@ -241,15 +241,15 @@ export class CjsAudioRes extends CjsResource
     {
         const count = super.Lock();
 
-        if (!this.#backing)
+        if (!this._backing)
         {
             return count;
         }
 
         try
         {
-            this.#backing.Lock();
-            this.#backingLocks += 1;
+            this._backing.Lock();
+            this._backingLocks += 1;
             return count;
         }
         catch (cause)
@@ -264,10 +264,10 @@ export class CjsAudioRes extends CjsResource
     {
         const count = super.Unlock();
 
-        if (this.#backingLocks > 0)
+        if (this._backingLocks > 0)
         {
-            this.#backingLocks -= 1;
-            this.#backing?.Unlock();
+            this._backingLocks -= 1;
+            this._backing?.Unlock();
         }
 
         return count;

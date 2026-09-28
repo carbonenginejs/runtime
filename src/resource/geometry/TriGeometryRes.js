@@ -46,11 +46,11 @@ export class TriGeometryRes extends CjsResource
   forcedLodIndex = -1;
   name = "";
 
-  #raycastGeometry = null;
+  _raycastGeometry = null;
 
-  #raycastUsers = 0;
+  _raycastUsers = 0;
 
-  #raycastPreparationFailed = false;
+  _raycastPreparationFailed = false;
 
   /** Creates a TriGeometryRes with caller-provided initial state. */
   constructor(values = null)
@@ -71,12 +71,12 @@ export class TriGeometryRes extends CjsResource
    */
   SetPayload(payload = null, options = null)
   {
-    if (this.#raycastUsers !== 0)
+    if (this._raycastUsers !== 0)
     {
       throw new Error("TriGeometryRes payload cannot change during an active raycast session.");
     }
-    this.#raycastGeometry = null;
-    this.#raycastPreparationFailed = false;
+    this._raycastGeometry = null;
+    this._raycastPreparationFailed = false;
     if (payload === null)
     {
       super.SetPayload(null);
@@ -473,39 +473,39 @@ export class TriGeometryRes extends CjsResource
   /** Opens one borrowed CPU-raycast session over the resident geometry. */
   PrepareRayCaster()
   {
-    this.#raycastUsers++;
-    if (this.#raycastGeometry || this.#raycastPreparationFailed) return;
+    this._raycastUsers++;
+    if (this._raycastGeometry || this._raycastPreparationFailed) return;
 
     try
     {
       this.RequireIntersectionMeshes();
-      this.#raycastGeometry = new Tr2RaycastGeometryRes().SetSource(this);
+      this._raycastGeometry = new Tr2RaycastGeometryRes().SetSource(this);
     }
     catch (_error)
     {
-      this.#raycastPreparationFailed = true;
+      this._raycastPreparationFailed = true;
     }
   }
 
   /** Closes exactly one raycast session and drops the derived acceleration resource at zero. */
   ResetRayCaster()
   {
-    if (this.#raycastUsers === 0)
+    if (this._raycastUsers === 0)
     {
       throw new Error("TriGeometryRes.ResetRayCaster called without a matching PrepareRayCaster.");
     }
-    this.#raycastUsers--;
-    if (this.#raycastUsers === 0)
+    this._raycastUsers--;
+    if (this._raycastUsers === 0)
     {
-      this.#raycastGeometry = null;
-      this.#raycastPreparationFailed = false;
+      this._raycastGeometry = null;
+      this._raycastPreparationFailed = false;
     }
   }
 
   /** Reports whether the reference-counted CPU raycast resource is ready. */
   IsRayCasterReady()
   {
-    return this.#raycastGeometry !== null;
+    return this._raycastGeometry !== null;
   }
 
   /** Reports whether the current raycast preparation session failed. */
@@ -515,8 +515,8 @@ export class TriGeometryRes extends CjsResource
     // the session count, so an open session with nothing under it IS the
     // failure - Carbon's own comment there reads "ReleaseResources destroyed
     // our bvh :(".
-    if (this.#raycastUsers > 0 && !this.#raycastGeometry) return true;
-    return this.#raycastPreparationFailed;
+    if (this._raycastUsers > 0 && !this._raycastGeometry) return true;
+    return this._raycastPreparationFailed;
   }
 
   /**
@@ -529,8 +529,8 @@ export class TriGeometryRes extends CjsResource
    */
   DestroyRayCaster()
   {
-    this.#raycastGeometry = null;
-    this.#raycastPreparationFailed = false;
+    this._raycastGeometry = null;
+    this._raycastPreparationFailed = false;
     return this;
   }
 
@@ -556,11 +556,11 @@ export class TriGeometryRes extends CjsResource
   /** Public Carbon query; requires a matching active raycast session. */
   GetIntersectionPoints(position, direction, result = {}, areaIndex = -1, rayLength = Infinity)
   {
-    if (!this.#raycastGeometry)
+    if (!this._raycastGeometry)
     {
       throw new Error("TriGeometryRes.GetIntersectionPoints requires a prepared raycast session.");
     }
-    return this.#raycastGeometry.GetIntersectionPoints(
+    return this._raycastGeometry.GetIntersectionPoints(
       position, direction, result, areaIndex, rayLength);
   }
 
