@@ -167,7 +167,7 @@ test("builds model-shaped character JSON with separate domain and graph identiti
     assert.equal(value.documents.races[1]._id, undefined);
     assert.equal(value.documents.characterResources[0].clothingRemovesCategory, null);
     // A dangling identity is a data fault: the typed member holds null, and
-    // the build reports the missing record (6d, 2026-09-29).
+    // the build reports the missing record (6d, 2026-09-28).
     assert.equal(value.documents.paperdolls[0].modifiers[1].paperdollResourceID, null);
     assert.ok(
         warnings.some(message => message.includes("paperdolls 30 field modifiers[1].paperdollResourceID names characterResources 404")),
