@@ -1,6 +1,12 @@
 // Source: trinity/trinity/Particle/Tr2ParticleSystem.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
+import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
+import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
+import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
+import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -43,7 +49,13 @@ export class Tr2ParticleSystem extends CjsModel
 
   #instanceBounds = { min: vec3.create(), max: vec3.create() };
 
-  #gpuDeclaration = Object.freeze([]);
+  #declaration = Tr2EffectStateManager.Unknown;
+
+  #vertexBuffer = null;
+
+  #bufferDirty = true;
+
+  #previousDataOutdated = true;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
   @edit.read
@@ -158,13 +170,15 @@ export class Tr2ParticleSystem extends CjsModel
   originalMaxParticles = 0;
 
   /**
-   * Rebuilds the CPU element buffers at Carbon's capped particle count,
-   * clearing all live particles while retaining the authored original count.
+   * Rebuilds particle storage at Carbon's capped particle count, clearing live
+   * particles. Typed arrays replace aligned CPU allocations; this retained
+   * JS setter returns the new capacity and clears its cached empty bounds.
    */
   @impl.adapted
-  @impl.reason("Carbon rebuilds AL buffers; the runtime rebuilds the existing CPU element streams at the same capped count.")
   SetMaxParticleCount(value)
   {
+    this.#vertexBuffer?.Destroy();
+    this.#vertexBuffer = null;
     this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
     this.aliveCount = 0;
     for (let index = 0; index < this.#buffers.length; index++)
@@ -180,6 +194,7 @@ export class Tr2ParticleSystem extends CjsModel
     }
     vec3.set(this.aabbMin, 0, 0, 0);
     vec3.set(this.aabbMax, 0, 0, 0);
+    this.CreateVertexBuffer();
     return this.maxParticleCount;
   }
 
@@ -244,20 +259,24 @@ export class Tr2ParticleSystem extends CjsModel
     throw new Error("Tr2ParticleSystem.SaveToGranny is not implemented in CarbonEngineJS.");
   }
 
-  /** Carbon method UpdateElementDeclaration (MAP_METHOD_AND_WRAP). */
+  /**
+   * Rebuilds Carbon's aligned current/previous particle layout and AL resources.
+   * JS retains typed-array element views, a boolean validation result and the
+   * existing duplicate-name check; global dynamic-particle budgeting is not
+   * ported. The AL owns the physical allocation, including in headless runs.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Builds Carbon's particle declaration and CPU mirrors without allocating a backend GPU vertex buffer.")
   UpdateElementDeclaration()
   {
     this.isValid = false;
+    this.ReleaseResources();
     this.aliveCount = 0;
     this.#elementMap.clear();
     this.#runtimeElements.length = 0;
     this.#semanticElements.fill(null);
     this.#strides.fill(0);
     this.#buffers.fill(null);
-    this.#gpuDeclaration = [];
     if (this.elements.length === 0)
     {
       return false;
@@ -311,6 +330,7 @@ export class Tr2ParticleSystem extends CjsModel
       }
     }
 
+    this.EnsureAligned();
     for (let index = 0; index < this.#strides.length; index++)
     {
       const remainder = this.#strides[index] % 4;
@@ -318,6 +338,7 @@ export class Tr2ParticleSystem extends CjsModel
       {
         this.#strides[index] += 4 - remainder;
       }
+      if (index === 0) this.#strides[index] *= 2;
       if (this.#strides[index] && this.maxParticleCount)
       {
         this.#buffers[index] = new Float32Array(this.#strides[index] * this.maxParticleCount);
@@ -328,27 +349,22 @@ export class Tr2ParticleSystem extends CjsModel
       element.instanceStride = this.#strides[element.bufferIndex];
       element.buffer = this.#buffers[element.bufferIndex];
     }
-    this.#gpuDeclaration = this.#runtimeElements
-      .filter(element => element.usedByGPU)
-      .map(element => ({
-        elementType: element.elementType,
-        customName: element.customName,
-        dimension: element.dimension,
-        usageIndex: element.usageIndex,
-        offset: element.startOffset * 4,
-        stride: element.instanceStride * 4
-      }));
     this.originalMaxParticles = this.maxParticleCount;
     this.#declarationHash++;
     this.isValid = true;
+    this.OnPrepareResources();
     this.RebindConstraints();
     return true;
   }
 
-  /** Carbon method UpdateSimulation -> UpdateSimulationScript (MAP_METHOD_AND_WRAP). */
+/**
+   * Advances aging, forces, movement, emitters, constraints and bounds.
+   * JS uses typed-array views in place of native particle pointers and takes
+   * dt first for the existing script caller; dirty and previous-data flags
+   * follow Tr2ParticleSystem.cpp:615,713-726.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Runs Carbon's aging, force, movement, emitter, constraint, and bounds stages against CPU particle mirrors.")
   UpdateSimulation(dt, updateArguments = Tr2ParticleSystem.#defaultUpdateArguments)
   {
     if (!this.isValid)
@@ -373,6 +389,7 @@ export class Tr2ParticleSystem extends CjsModel
           this.#removeParticle(index--);
         }
       }
+      this.#bufferDirty = true;
     }
 
     if (this.updateSimulation && position && velocity)
@@ -414,6 +431,8 @@ export class Tr2ParticleSystem extends CjsModel
         positionValue[2] += velocityValue[2] * deltaTime;
         this.#spawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
       }
+      this.#bufferDirty = true;
+      this.#previousDataOutdated = true;
     }
     else if (this.emitParticleDuringLifeEmitter)
     {
@@ -431,6 +450,11 @@ export class Tr2ParticleSystem extends CjsModel
         constraint.ApplyConstraint(this.#buffers, this.#strides, this.aliveCount, deltaTime);
       }
     }
+    if (this.updateSimulation && this.constraints.length)
+    {
+      this.#bufferDirty = true;
+      this.#previousDataOutdated = true;
+    }
     this.#updateBounds(position);
     return this.aliveCount;
   }
@@ -438,10 +462,10 @@ export class Tr2ParticleSystem extends CjsModel
   /**
    * Carbon's per-frame system update: stamps the system world transform into a
    * nominal emitter argument record, applies the visibility-driven update
-   * cadence, clamps the elapsed simulation time, and advances CPU particles.
+   * cadence, preserves previous-frame data, and advances CPU particles.
+   * JS timestamps are seconds; sorting hysteresis is ported with SortParticles.
    */
   @impl.adapted
-  @impl.reason("Motion-vector buffer mirroring and sorting hysteresis are not ported yet; CPU cadence, timing, transform, and emitter propagation are retained.")
   Update(globalArguments)
   {
     const argumentsValue = this.#updateArguments;
@@ -450,6 +474,22 @@ export class Tr2ParticleSystem extends CjsModel
     mat4.copy(argumentsValue.parentTransform, this.#worldTransform);
     vec3.copy(argumentsValue.originShift, globalArguments.originShift);
     argumentsValue.emitCountFactor = globalArguments.emitCountFactor;
+
+    if (this.#previousDataOutdated)
+    {
+      const buffer = this.#buffers[0];
+      const stride = this.#strides[0];
+      const half = stride >> 1;
+      if (buffer)
+      {
+        for (let index = 0; index < this.aliveCount; index++)
+        {
+          const offset = index * stride;
+          buffer.copyWithin(offset + half, offset, offset + half);
+        }
+      }
+      this.#previousDataOutdated = false;
+    }
 
     if (this.#updatePeriod > 1)
     {
@@ -470,32 +510,154 @@ export class Tr2ParticleSystem extends CjsModel
     return this.UpdateSimulation(dt, argumentsValue);
   }
 
-  /** Whether the CPU GPU-stream mirror and its declaration are ready. */
-  @impl.adapted
-  @impl.reason("Trinity reports its published CPU stream; the selected engine owns physical vertex-buffer readiness.")
+  /** Whether the vertex declaration is initialized (independent of buffer validity). */
+  @impl.implemented
   IsInstanceDataReady()
   {
-    return this.isValid && this.#gpuDeclaration.length > 0 && this.#buffers[0] !== null;
+    return this.#declaration !== Tr2EffectStateManager.Unknown;
   }
 
-  /** Returns the borrowed CPU GPU-stream mirror and live instance count. */
-  @impl.adapted
-  @impl.reason("The Float32Array stream replaces Carbon's borrowed Tr2BufferAL reference and the upload is not ported yet.")
+  /** Returns the borrowed AL buffer and native byte-stride/live-count record. */
+  @impl.implemented
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
-    this.#instanceData.buffer = this.#buffers[0];
+    this.#instanceData.buffer = this.#vertexBuffer;
     this.#instanceData.offset = 0;
     this.#instanceData.stride = this.#strides[0] * 4;
     this.#instanceData.count = this.aliveCount;
     return this.#instanceData;
   }
 
-  /** Returns the normalized GPU element declaration and the upload is not ported yet. */
-  @impl.adapted
-  @impl.reason("The normalized CPU declaration replaces Carbon's engine-owned numeric declaration handle.")
+  /** Returns Carbon's interned vertex declaration handle. */
+  @impl.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
-    return this.#gpuDeclaration;
+    return this.#declaration;
+  }
+
+  /** Returns the borrowed physical particle buffer (the index is unused). */
+  @impl.implemented
+  GetGpuBuffer(_bufferIndex = 0)
+  {
+    return this.#vertexBuffer;
+  }
+
+  /**
+   * Releases the AL allocation and declaration while retaining CPU particles.
+   * JS explicitly destroys the handle instead of replacing a C++ RAII value.
+   */
+  @impl.adapted
+  ReleaseResources()
+  {
+    this.#declaration = Tr2EffectStateManager.Unknown;
+    this.#vertexBuffer?.Destroy();
+    this.#vertexBuffer = null;
+    this.#bufferDirty = true;
+  }
+
+  /** Recreates the declaration and buffer; Carbon reports true even if allocation fails. */
+  @impl.implemented
+  OnPrepareResources()
+  {
+    this.RebuildDeclaration();
+    this.CreateVertexBuffer();
+    return true;
+  }
+
+  /**
+   * Allocates Carbon's WRITE_OFTEN vertex buffer through the ambient AL.
+   * JS uses the context factory and explicitly releases the prior handle;
+   * null represents the AL's failed/default buffer value.
+   */
+  @impl.adapted
+  CreateVertexBuffer()
+  {
+    if (this.maxParticleCount > 0 && this.#strides[0] > 0)
+    {
+      const context = Tr2RenderContext_GetMainThreadRenderContext();
+      this.#vertexBuffer?.Destroy();
+      this.#vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
+        this.#strides[0] * 4, this.maxParticleCount,
+        Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
+      ));
+      if (!this.#vertexBuffer) return false;
+      this.#bufferDirty = true;
+    }
+    return true;
+  }
+
+  /**
+   * Interns current and previous semantic attributes, with one copy of CUSTOM.
+   * JS sorts the element values because Map preserves insertion order rather
+   * than Carbon's type/name key order, and uses the AL's named data types.
+   */
+  @impl.adapted
+  RebuildDeclaration()
+  {
+    const definition = new Tr2VertexDefinition();
+    const elements = Array.from(this.#elementMap.values());
+    elements.sort((a, b) => a.elementType - b.elementType ||
+      (a.customName < b.customName ? -1 : a.customName > b.customName ? 1 : 0));
+    const name = new Tr2ParticleElementDeclarationName();
+    for (const element of elements)
+    {
+      if (!element.usedByGPU) continue;
+      name.type = element.elementType;
+      const custom = name.type === Tr2ParticleElementDeclaration.Type.CUSTOM;
+      const item = new Tr2VertexDefinition.Item();
+      item.stream = 0;
+      item.offset = element.startOffset * 4;
+      item.type = "FLOAT32_" + element.dimension;
+      item.usage = name.GetD3DUsage();
+      item.usageIndex = custom ? element.usageIndex : 0;
+      definition.items.push(item);
+      definition.nextOffset[0] = Math.max(definition.nextOffset[0], item.offset + element.dimension * 4);
+      if (!custom)
+      {
+        const previous = Object.assign(new Tr2VertexDefinition.Item(), item);
+        previous.usageIndex = 1;
+        previous.offset += this.#strides[0] * 4 / 2;
+        definition.items.push(previous);
+        definition.nextOffset[0] = Math.max(definition.nextOffset[0], previous.offset + element.dimension * 4);
+      }
+    }
+    this.#declaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+  }
+
+  /** Moves POSITION and VELOCITY to four-float slots at the front of their streams. */
+  @impl.implemented
+  EnsureAligned()
+  {
+    const position = this.#semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
+    const velocity = this.#semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];
+    if (position)
+    {
+      this.ShiftOffsets(position.bufferIndex, position.startOffset, -position.dimension);
+      this.ShiftOffsets(position.bufferIndex, 0, 4);
+      position.startOffset = 0;
+      this.#strides[position.bufferIndex]++;
+    }
+    if (velocity)
+    {
+      this.ShiftOffsets(velocity.bufferIndex, velocity.startOffset, -velocity.dimension);
+      const offset = position && position.bufferIndex === velocity.bufferIndex ? 4 : 0;
+      this.ShiftOffsets(velocity.bufferIndex, offset, 4);
+      velocity.startOffset = offset;
+      this.#strides[velocity.bufferIndex]++;
+    }
+  }
+
+  /** Shifts offsets at or after start; semantic and map entries share the same JS record. */
+  @impl.adapted
+  ShiftOffsets(bufferType, start, shift)
+  {
+    for (const element of this.#runtimeElements)
+    {
+      if (element.bufferIndex === bufferType && element.startOffset >= start)
+      {
+        element.startOffset += shift;
+      }
+    }
   }
 
   /** Returns the current particle bounds, or Carbon's zero box when empty. */
@@ -516,12 +678,17 @@ export class Tr2ParticleSystem extends CjsModel
   }
 
   /**
-   * Builds the particle-element declaration and CPU buffers, reporting whether the resulting layout is valid.
+   * Builds particle storage and prepares AL resources. Carbon always returns
+   * true; validity is queried separately. JS omits native rebase registration
+   * and emitter insertion mutexes, which are not part of this render path.
    */
-  @impl.implemented
+  @impl.adapted
   Initialize()
   {
-    return this.UpdateElementDeclaration();
+    this.UpdateElementDeclaration();
+    this.OnPrepareResources();
+    this.originalMaxParticles = this.maxParticleCount;
+    return true;
   }
 
   /**
@@ -570,6 +737,7 @@ export class Tr2ParticleSystem extends CjsModel
     {
       return null;
     }
+    this.#bufferDirty = true;
     return this.aliveCount++;
   }
 
@@ -609,7 +777,8 @@ export class Tr2ParticleSystem extends CjsModel
   }
 
   /**
-   * Writes a scalar or vector value into one particle's slot for the resolved element.
+   * Writes a scalar or vector into a resolved element. This existing JS
+   * script setter marks data dirty like Carbon's constraint-write path.
    */
   @impl.adapted
   SetParticleElement(index, type, value)
@@ -631,6 +800,8 @@ export class Tr2ParticleSystem extends CjsModel
         element.buffer[offset + component] = Number(value?.[component]) || 0;
       }
     }
+    this.#bufferDirty = true;
+    this.#previousDataOutdated = true;
     return true;
   }
 
