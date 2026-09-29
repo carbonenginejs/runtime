@@ -125,6 +125,7 @@ import CjsWebgpuFormat from "../../../../npm/dist/resource/formats/webgpu/index.
 import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js";
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
 import { POST_TEMPLATES } from "./postTemplates.js";
+import { createDemoActions } from "./demoActions.js";
 import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
@@ -3397,7 +3398,7 @@ export async function RunDemo(canvas)
     effect: (name, on, duration = 4) => { if (realScene) ship.SetImpactAnimation(name, !!on, Number(duration)); },
     // The hull's state presets (ShipStates) and a setter; the setter writes 1
     // or 0 into every variable behind the state, through the ship.
-    shipStates: realScene ? ShipStates(ship) : [],
+    get shipStates() { return realScene ? ShipStates(ship) : []; },
     setShipState: (kind, on) =>
     {
       const state = realScene ? ShipStates(ship).find(entry => entry.kind === kind) : null;
@@ -3413,24 +3414,26 @@ export async function RunDemo(canvas)
     cloak: async (on = true, name = null) =>
     {
       if (!realScene) return null;
-      for (const overlay of ship.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
+      const owner = ship;
+      for (const overlay of owner.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
       {
-        ship.overlayEffects.splice(ship.overlayEffects.indexOf(overlay), 1);
+        owner.overlayEffects.splice(owner.overlayEffects.indexOf(overlay), 1);
       }
-      ship.clipSphereFactor = 0;
-      ship.activationStrength = 1;
-      ship.OnModified("clipSphereFactor");
+      owner.clipSphereFactor = 0;
+      owner.activationStrength = 1;
+      owner.OnModified("clipSphereFactor");
       if (!on) return null;
-      const skinned = (ship.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
+      const skinned = (owner.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
       const file = name ?? (skinned ? "cloaking_skinned" : "cloaking");
       const overlay = CjsBlackFormat.read(await ResourceBytes(`fisfx/cloaking/${file}.black`), { emit: "runtime" }).root;
+      if (owner !== ship) return null;
       for (const binding of overlay.curveSet?.bindings ?? [])
       {
         if (!binding.name.startsWith("self_")) continue;
-        binding.destinationObject = ship;
+        binding.destinationObject = owner;
         binding.Initialize();
       }
-      ship.overlayEffects.push(overlay);
+      owner.overlayEffects.push(overlay);
       overlay.PlayCurveSet(overlay.curveSet.name);
       return file;
     },
@@ -4185,6 +4188,49 @@ export async function RunDemo(canvas)
     FillLocationAttributes();
     AttachLocation(locationPost.mode === "volume" && locationPost.record !== null);
   };
+
+  // One command boundary for console, settings and viewport input. The
+  // operations retain their existing loaders and skin serialization.
+  const commandNames = [ "maxSpeed", "speed", "kills", "dirt", "age", "activation", "damage", "effect", "setShipState", "cloak", "skin" ];
+  const operations = Object.fromEntries(commandNames.map(name => [name, globalThis.demo[name]]));
+  operations.post = enabled => { postState.off = !enabled; postState.apply(); ApplyClientDefaults(); };
+  const actions = createDemoActions({
+    getShip: () => ship,
+    getShipStates: current => realScene && current ? ShipStates(current) : [],
+    operations,
+    readState: () => ({
+      post: !postState.off,
+      speed: ship?.translationCurve?.velocity?.[2] ?? 0,
+      maxSpeed: demoSpeed.maxSpeed,
+      kills: ship?.displayKillCounterValue ?? 0,
+      cloaked: !!ship?.overlayEffects.some(overlay => overlay.name?.startsWith("fisfx_cloaking_"))
+    }),
+    onShipChanged: (next, previous) =>
+    {
+      if (!next) return;
+      const hullChanged = next.mesh.geometryResPath !== previous?.mesh.geometryResPath;
+      next.UpdateWorldBounds();
+      const sphere = new Float32Array(4);
+      next.GetBoundingSphere(sphere, 0);
+      bounds.centre.set(sphere.subarray(0, 3));
+      bounds.radius = sphere[3] || 1;
+      if (hullChanged)
+      {
+        camera.extraTranslation.set(bounds.centre);
+        camera.translationFromParent = bounds.radius * 2.2;
+        camera.SetOrbit(camera.yaw, camera.pitch);
+      }
+      areas.length = 0;
+      for (const area of next.mesh.opaqueAreas)
+        areas.push({ material: area.effect, path: area.effect?.effectFilePath ?? "", name: area.name, index: area.index, count: area.count });
+      globalThis.demo.ship = next;
+      globalThis.demo.renderable = next;
+      globalThis.demo.materials = Object.fromEntries(areas.map(area => [area.name, area.material]));
+    }
+  });
+  for (const name of commandNames) globalThis.demo[name] = (...args) => actions.invoke(name, ...args);
+  globalThis.demo.actions = actions;
+  globalThis.demo.post = enabled => actions.invoke("post", enabled);
 
   // Whether the demo plays the client's part (the settings panel's "client
   // defaults", ?clientDefaults=0 to start without).
