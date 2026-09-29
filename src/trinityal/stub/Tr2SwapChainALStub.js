@@ -14,7 +14,8 @@
 // size would make a headless test agree with a number nothing chose.
 
 import { CjsSchema } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { Tr2TextureALStub } from "./Tr2TextureALStub.js";

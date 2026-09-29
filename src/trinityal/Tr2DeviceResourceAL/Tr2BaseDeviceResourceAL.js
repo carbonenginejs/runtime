@@ -2,6 +2,7 @@
 // Source: trinity/trinityal/Tr2DeviceResourceAL.cpp
 //
 import { compose, impl } from "#schema";
+import { Tr2ALMemoryType } from "#consts/graphics";
 
 // The base every abstraction-layer resource extends, and the registry that
 // makes them enumerable.
@@ -29,14 +30,6 @@ function fail(message)
 }
 
 
-/** `Tr2ALMemoryType` (`Tr2DeviceResourceAL.h:5-9`). A bit set, not an enum. */
-export const Tr2ALMemoryType = Object.freeze({
-  /** Created in video memory. */
-  AL_MEMORY_VIDEO: 1 << 0,
-
-  /** Created in device-managed memory. */
-  AL_MEMORY_MANAGED: 1 << 1
-});
 
 
 /** Every live resource. Strong by design - see the head comment. */

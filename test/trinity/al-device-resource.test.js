@@ -1,13 +1,8 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import {
-  DescribeDeviceResources,
-  DestroyDeviceResources,
-  Tr2ALMemoryType,
-  Tr2BaseDeviceResourceAL,
-  Tr2DeviceResourceAL
-} from "../../npm/dist/trinityal/index.js";
+import { Tr2ALMemoryType } from "../../npm/dist/global/consts/graphics/index.js";
+import { DescribeDeviceResources, DestroyDeviceResources, Tr2BaseDeviceResourceAL, Tr2DeviceResourceAL } from "../../npm/dist/trinityal/index.js";
 
 /** A minimal resource: valid until destroyed, in the class it was given. */
 class TestResource extends Tr2DeviceResourceAL

@@ -5,7 +5,8 @@
 // than DXBC, and why fields are public and Carbon-named - is recorded in the
 // head comment of CjsWebgpuShaderAL.js, which several other files already cite.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType, Tr2RegisterMapAL } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult, Tr2RegisterMapAL } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 import { WEBGPU_STAGE_NAME } from "./CjsWebgpuShaderAL.js";
 

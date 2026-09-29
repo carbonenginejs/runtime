@@ -28,7 +28,8 @@
 //   that is harmless only while nothing reads it, and the register map will.
 
 import { CjsSchema } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { ShaderType } from "#consts/render-context";
 

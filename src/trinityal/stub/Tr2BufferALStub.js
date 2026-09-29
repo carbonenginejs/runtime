@@ -20,7 +20,8 @@
 //   that needs the write to land must map for writing.
 
 import { CjsSchema } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js";
 

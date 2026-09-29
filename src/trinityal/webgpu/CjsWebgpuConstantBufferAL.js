@@ -19,7 +19,8 @@
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on
 // `CjsWebgpuShaderAL`: Carbon's impl class carries public state.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType, Tr2ConstantUsageAL } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult, Tr2ConstantUsageAL } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
 
 

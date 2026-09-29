@@ -11,7 +11,8 @@
 //
 // Carbon quirk: Create leaves the stub map empty (stub cpp:23-49; CE-26).
 import { CjsSchema } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Tr2RegisterMapAL } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 

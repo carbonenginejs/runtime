@@ -19,7 +19,8 @@
 // the `array` profile, which has no blocks.
 
 import { CjsSchema, impl } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { Tr2ConstantUsageAL } from "../stub/Tr2ConstantBufferALStub.js";

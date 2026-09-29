@@ -1,3 +1,5 @@
+import { CjsSchema, impl } from "#schema";
+import { ResourceRequirement } from "./ResourceRequirement.js";
 import { assertNonNegativeInteger, assertNonNegativeNumber } from "#utils/validation";
 
 // Source: blue/include/IMotherLode.h
@@ -590,7 +592,9 @@ export class CjsMotherLode
    * Identity limits remove unlocked canonical entries, destroy their adapter
    * allocations, release payloads, detach resource-facing lifecycle callbacks,
    * and mark CjsResource-compatible handles purged. Payload limits release only
-   * the CPU payload while retaining identity and adapters. The sweep never
+   * the CPU payload while retaining identity and adapters. Textures retain their
+   * bitmap until full purge because rebinding needs it. Custom: the two-tier
+   * inactivity policy replaces Carbon's reference-counted ownership. The sweep never
    * fetches, reloads, prepares, or infers external JavaScript ownership.
    *
    * Cleanup is transactional per identity: a failed cleanup leaves that record
@@ -653,6 +657,7 @@ export class CjsMotherLode
       }
 
       if (policy.releasePayload !== false
+        && record.resource.constructor?.payload !== ResourceRequirement.TEXTURE
         && hasOwnedPayload(record.resource)
         && isInactive(
           record.payloadLastUsedFrame,
@@ -1489,3 +1494,5 @@ function defaultNow()
 {
   return Date.now();
 }
+
+CjsSchema.decorateMethod(CjsMotherLode, "PurgeInactive", impl.custom);

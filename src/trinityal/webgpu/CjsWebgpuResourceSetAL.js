@@ -23,7 +23,8 @@
 // is a validation error, so the same substitution happens here.
 //
 import { CjsSchema, impl } from "#schema";
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 
 /** GPUShaderStage bits to the Carbon stage whose description slot answers. */

@@ -111,3 +111,13 @@ export const TR2SHADERMODEL = Object.freeze({
     TR2SM_AUTHORING: 6,
     TR2SM_COUNT: 7
 });
+
+
+/** `Tr2ALMemoryType` (`Tr2DeviceResourceAL.h:5-9`). A bit set, not an enum. */
+export const Tr2ALMemoryType = Object.freeze({
+  /** Created in video memory. */
+  AL_MEMORY_VIDEO: 1 << 0,
+
+  /** Created in device-managed memory. */
+  AL_MEMORY_MANAGED: 1 << 1
+});

@@ -27,7 +27,8 @@
 // and dx11 asserts on them; WebGL2 can read them, so they map here.
 
 import { CjsSchema, impl } from "#schema";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { resolveBindingPlan } from "../vertexLayoutMatch.js";

@@ -30,7 +30,8 @@
 
 import { CjsSchema, impl } from "#schema";
 import { ShaderType } from "#consts/render-context";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { MAX_RESOURCES_IN_STAGE } from "../Tr2ResourceSetAL/Tr2RegisterMapAL.js";
 

@@ -19,7 +19,8 @@
 //
 // FIELDS ARE PUBLIC AND CARBON-NAMED, for the reason recorded on `CjsWebgpuShaderAL`.
 import { CjsSchema } from "#schema";
-import { ALResult, CopyRegion, Crop, Tr2ALMemoryType, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult, CopyRegion, Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "#trinityal";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage, HasFlag, IsWritable } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";

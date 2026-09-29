@@ -19,7 +19,8 @@
 // state keeps is the AUTHORED one, border included, so the material can read
 // the real modes back.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult } from "#trinityal";
 import { NormalizeSamplerDescription } from "../Tr2HalHelperStructures/Tr2SamplerDescription.js";
 import { CarbonSamplerDescriptor } from "./core/samplerDescriptor.js";
 

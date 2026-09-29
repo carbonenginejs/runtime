@@ -50,7 +50,8 @@
 import { CjsSchema, impl } from "#schema";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
 import { CjsDdsFormat } from "../../resource/formats/dds/CjsDdsFormat.js";
-import { Tr2ALMemoryType, Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { Crop, Tr2MsaaDesc, Tr2TextureSubresource } from "../Tr2HalHelperStructures/index.js";
 import { RenderContextALOf } from "../renderContextAL.js";

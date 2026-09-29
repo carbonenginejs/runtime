@@ -30,7 +30,8 @@
 // enumerable keys, canonicalised to an empty object, and would have collided
 // with every other program in the pipeline cache.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult } from "#trinityal";
 import { ShaderType } from "#consts/render-context";
 import { CARBON_BACKEND_COVERAGE_DISCARD_OVERRIDE, CARBON_BACKEND_UNORM_TARGET_OVERRIDE, readBackendBlock } from "#resource/format";
 

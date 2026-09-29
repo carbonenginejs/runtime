@@ -60,7 +60,8 @@
 // implementation detail of that backend's upload path, not part of the
 // contract, and neither dx12, metal nor the stub has it.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult } from "#trinityal";
 import { Tr2CpuUsage, Tr2GpuUsage, HasFlag } from "#consts/render-context";
 import { RenderContextALOf } from "../renderContextAL.js";
 import { ForgetBindingResource } from "./core/bindingIndex.js";

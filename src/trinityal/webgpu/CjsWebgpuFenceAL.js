@@ -10,7 +10,8 @@
 // a region whose frame has been submitted can be rewritten safely. That is
 // what `Tr2DynamicRingBuffer` asks a fence.
 import { CjsSchema } from "#schema";
-import { ALResult, Tr2ALMemoryType } from "#trinityal";
+import { Tr2ALMemoryType } from "#consts/graphics";
+import { ALResult } from "#trinityal";
 import { RenderContextALOf } from "../renderContextAL.js";
 
 /** A frame fence: reached once the frame it was put in has been submitted. */

@@ -3,6 +3,7 @@
 // Source: trinity/trinity/Resources/TriTextureRes_Blue.cpp
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { HostBitmap } from "#imageio";
+import { TriStorageFlags, Tr2ALMemoryType } from "#consts/graphics";
 import { CjsResource } from "#blue";
 import { IsSolidColorTexturePath, RasterizeSolidColor } from "./solidColorTexture.js";
 import { ResourceRequirement } from "#blue";
@@ -605,6 +606,54 @@ export class TriTextureRes extends CjsResource
     return this.IsPrepared();
   }
 
+  /**
+   * Release the texture for Carbon's requested storage classes, keeping its bitmap.
+   *
+   * Source: trinity/trinity/Resources/TriTextureRes.cpp:356-392.
+   * Adapted: explicit Destroy replaces the owned AL value's C++ destructor;
+   * load cancellation remains manager-owned and UNLOADED combines good/prepared.
+   * Wrapped render targets and asynchronous saves are not implemented here.
+   *
+   * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
+   * @returns {TriTextureRes} This resource.
+   */
+  ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
+  {
+    const texture = this.texture;
+    if (!texture) return this;
+
+    const memoryClass = texture.GetMemoryClass();
+    const release = Boolean(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)
+      || Boolean((storage & TriStorageFlags.TRISTORAGE_VIDEOMEMORY) && memoryClass === Tr2ALMemoryType.AL_MEMORY_VIDEO);
+    // Carbon resets m_ownTexture again in the pointer-clearing branch (:381).
+    if (texture.IsValid() && ((memoryClass & storage) !== 0 || release)) texture.Destroy();
+
+    if (release)
+    {
+      this.texture = null;
+      this.wrappedRenderTarget = null;
+      this.originalMemoryUsage = 0;
+      this.SetState(CjsResource.State.UNLOADED);
+    }
+    return this;
+  }
+
+  /**
+   * Release the texture and bitmap when the cache relinquishes this resource.
+   *
+   * Adapted: JavaScript full purge explicitly drops the bitmap that Carbon's
+   * resource destructor owns; ReleaseResources alone deliberately retains it.
+   * The payload-only inactivity tier skips textures so they can be rebound.
+   *
+   * @returns {TriTextureRes} This resource without its owned payload.
+   */
+  ReleasePayload()
+  {
+    this.ReleaseResources();
+    this.loadedBitmap = null;
+    return super.ReleasePayload();
+  }
+
   static payload = ResourceRequirement.TEXTURE;
 }
 
@@ -681,6 +730,8 @@ CjsSchema.define(TriTextureRes, {
     GetAverageColor: [ carbon.method, impl.implemented ],
     SetAverageColor: [ carbon.method, impl.adapted ],
     UpdateSubresource: [ carbon.method, impl.notSupported ],
-    PrepareResources: [ carbon.method, impl.adapted ]
+    PrepareResources: [ carbon.method, impl.adapted ],
+    ReleaseResources: [ carbon.method, impl.adapted ],
+    ReleasePayload: [ impl.adapted ]
   }
 });

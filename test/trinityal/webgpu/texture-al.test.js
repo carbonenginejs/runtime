@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
-import { CjsResMan, RegisterTextureResources } from "../../../npm/dist/resource/index.js";
+import { CjsResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
 import { DescribeBitmap } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
 import { ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
@@ -448,4 +448,28 @@ test("depth clip off becomes unclippedDepth only on a device with depth-clip-con
 
   al.SetRenderState(61, 1);
   assert.equal(al.GetPsoDescription().unclippedDepth, false, "back on");
+});
+
+test("cache eviction reaches WebGPU AL Destroy on every texture reload without a GPU", () =>
+{
+  const { al, calls } = composed();
+  const motherLode = new CjsMotherLode({ now: () => 0 });
+  const resource = new TriTextureRes();
+  resource.Initialize("res:/synthetic/evict.dds");
+
+  for (let cycle = 0; cycle < 8; cycle += 1)
+  {
+    const texture = new CjsWebgpuTextureAL();
+    const desc = Tr2BitmapDimensions.texture2D(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
+    assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
+    resource.SetTexture(texture);
+    resource.MarkPrepared();
+    calls.destroyed = false;
+    motherLode.Insert(resource.GetPath(), resource, { time: 0 });
+    const purged = motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
+    assert.equal(purged.purged, 1);
+    assert.equal(calls.destroyed, true, "TriTextureRes.cpp:358-382 must reach the AL's destruction");
+    assert.equal(texture.IsValid(), false);
+    assert.equal(resource.texture, null);
+  }
 });
