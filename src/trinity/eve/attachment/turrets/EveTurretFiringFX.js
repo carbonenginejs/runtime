@@ -641,6 +641,23 @@ export class EveTurretFiringFX extends EveEntity
     return out;
   }
 
+  /** Registers every stretch with the quad renderer (cpp:771-777). */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    for (const stretch of this.stretch) stretch.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /** Collects stretch quads only while displayed and firing (cpp:780-792). */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display || !this.isFiring) return;
+    for (const stretch of this.stretch) stretch.AddQuadsToQuadRenderer(frustum, quadRenderer);
+  }
+
   /** m_maxScale (float) [READWRITE, PERSIST] */
   @edit.readwrite
   @edit.persist

@@ -2,6 +2,8 @@
 // Source: trinity/trinity/Eve/Turret/EveTurretSet.cpp
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { EveChildInstanceContainer } from "../../child/EveChildInstanceContainer.js";
+import { Tr2Lod } from "../../EveLODHelper.js";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
@@ -19,6 +21,7 @@ import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../../core/device/Tr2RingBuffer/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2QuadRenderer } from "../../../core/Tr2QuadRenderer/index.js";
 import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
 import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
 import { SharedGeometryBuffer, CreateLodAllocations } from "../../../core/mesh/TriGeometryResAllocations.js";
@@ -459,7 +462,8 @@ export class EveTurretSet extends EveEntity
 
   _activeTurret = EveTurretSet.INVALID_INDEX;
 
-  _highDetailFrozen = false;
+  /** Native editing-mode offset; identity for distributed instances. */
+  _ambientOffsetMatrix = mat4.create();
 
   _trackingInfluenceDelta = 0;
 
@@ -593,15 +597,13 @@ export class EveTurretSet extends EveEntity
     this._setAmbientState();
   }
 
-  /** Carbon method FreezeHighDetailLOD (MAP_METHOD_AND_WRAP). */
+  /** Disables LOD selection and reloads high-detail geometry (cpp:3212). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("The graph freezes its LOD state; geometry creation is not ported yet.")
+  @impl.implemented
   FreezeHighDetailLOD()
   {
     this.lodLevel = EveTurretSet.LOD.LOD_DISABLED;
-    this._highDetailFrozen = true;
-    this.geometryResource?.Prepare?.();
+    this.InitializeGeometryResource();
   }
 
   /** Returns the turret effect Carbon exposes to SOF material setup. */
@@ -867,7 +869,7 @@ export class EveTurretSet extends EveEntity
   HandleControllerEvent(name)
   {
     this.firingEffect?.HandleControllerEvent(name);
-    this._ambientEffect()?.HandleControllerEvent(name);
+    this.GetAmbientEffectOrGeneratedEffect()?.HandleControllerEvent(name);
   }
 
   /**
@@ -935,7 +937,7 @@ export class EveTurretSet extends EveEntity
   SetControllerVariable(name, value)
   {
     this.firingEffect?.SetControllerVariable(name, value);
-    this._ambientEffect()?.SetControllerVariable(name, value);
+    this.GetAmbientEffectOrGeneratedEffect()?.SetControllerVariable(name, value);
   }
 
   /** Carbon method SetShotMissed (MAP_METHOD_AND_WRAP). */
@@ -953,7 +955,7 @@ export class EveTurretSet extends EveEntity
   StartControllers()
   {
     this.firingEffect?.StartControllers();
-    this._ambientEffect()?.StartControllers();
+    this.GetAmbientEffectOrGeneratedEffect()?.StartControllers();
   }
 
   /**
@@ -969,7 +971,7 @@ export class EveTurretSet extends EveEntity
     this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
     this.InitializeGeometryResource();
     this.firingEffect?.Initialize();
-    this._ambientEffect()?.Initialize();
+    this.GetAmbientEffectOrGeneratedEffect()?.Initialize();
     return true;
   }
 
@@ -979,8 +981,7 @@ export class EveTurretSet extends EveEntity
    * arm runs per notification.
    *
    * JS notifications identify the exposed property name in place of Carbon's
-   * Be::Var address. Ambient redistribution and per-bone dynamic bounds still
-   * await their separate realization steps; geometry reload is handled here.
+   * Be::Var address; each arm retains the donor's single-member semantics.
    */
   @carbon.method
   @impl.adapted
@@ -997,9 +998,7 @@ export class EveTurretSet extends EveEntity
     }
     else if (propertyName === "ambientEffectEditingMode")
     {
-      // Carbon re-sets the ambient effect to itself, which re-runs
-      // InitializeAmbientEffect (cpp:181, cpp:3554-3565). Unported: the
-      // generated distributed container it builds does not exist here.
+      this.SetAmbientEffect(this.ambientEffect);
     }
     else if (propertyName === "laserMissBehaviour" || propertyName === "projectileMissBehaviour"
       || propertyName === "impactSize" || propertyName === "impactBehaviour")
@@ -1008,11 +1007,9 @@ export class EveTurretSet extends EveEntity
     }
     else if (propertyName === "useDynamicBounds")
     {
-      // Carbon rebuilds the per-bone bounds (cpp:187-200), taking the CMF
-      // branch whenever the geometry is absent, unloaded or CMF.
-      // InitializeDynamicBounds is unported, and porting it
-      // alone buys nothing until GetDynamicBounds and GetLocalBoundingBox
-      // land with it.
+      if (!this.geometryResource || !this.geometryResource.IsGood() || this.geometryResource.IsUsingCMF())
+        this.InitializeDynamicBounds();
+      else this.InitializeGrannyDynamicBounds();
     }
     return true;
   }
@@ -1045,6 +1042,209 @@ export class EveTurretSet extends EveEntity
     resource.OnEvent("purged", this.#geometryReleased, this);
     resource.OnEvent("unloaded", this.#geometryReleased, this);
     if (resource.HasCompleted()) this.#geometryCompleted("completed", resource);
+  }
+
+  /** Replaces and redistributes the authored ambient effect (cpp:3554). */
+  @carbon.method
+  @impl.implemented
+  SetAmbientEffect(ambientEffect)
+  {
+    CjsSchema.cast(this.ambientEffect, EveEntity)?.UnRegister(this.GetComponentRegistry());
+    this.ambientEffect = ambientEffect;
+    this.InitializeAmbientEffect();
+  }
+
+  /** Creates one Blue-copied ambient instance per current mount (cpp:364-425). */
+  @carbon.method
+  @impl.implemented
+  InitializeAmbientEffect()
+  {
+    const registry = this.GetComponentRegistry();
+    CjsSchema.cast(this.generatedDistributedAmbientEffect, EveEntity)?.UnRegister(registry);
+    this.generatedDistributedAmbientEffect = null;
+    if (!this.ambientEffect) return;
+    mat4.identity(this._ambientOffsetMatrix);
+    if (this.ambientEffectEditingMode && this._turrets.length)
+      mat4.copy(this._ambientOffsetMatrix, this._turrets[0].localMatrix);
+    const generated = this.generatedDistributedAmbientEffect = new EveChildInstanceContainer();
+    generated.SetSourceEffect(this.ambientEffect);
+    for (const turret of this._turrets)
+      generated.AddInstanceTransform(EveTurretSet._unitScale, turret.localQuaternion, turret.localPosition);
+    const ambient = this.GetAmbientEffectOrGeneratedEffect();
+    CjsSchema.cast(ambient, EveEntity)?.Register(registry);
+    if (this.state === EveTurretSet.State.STATE_FIRING)
+    {
+      ambient.SetControllerVariable("TurretState", EveTurretSet.State.STATE_TARGETING);
+      this.SetAmbientEffectControllerVariableOnInstance(this._activeTurret, "TurretState", this.state);
+    }
+    else ambient.SetControllerVariable("TurretState", this.state);
+    ambient.StartControllers();
+  }
+
+  /** Routes per-mount variables to the source in editing mode or the generated instance (cpp:443). */
+  @carbon.method
+  @impl.implemented
+  SetAmbientEffectControllerVariableOnInstance(index, name, value)
+  {
+    if (this.ambientEffectEditingMode) this.ambientEffect.SetControllerVariable(name, value);
+    else this.generatedDistributedAmbientEffect.SetControllerVariableForInstance(index, name, value);
+  }
+
+  /** Caches every mesh on skeleton zero in skeleton-bone order (cpp:524-592).
+   * The decoder's plain CMF data replaces native cmf records; corners retain native order.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeDynamicBounds(cmfData = null, skeleton = null)
+  {
+    this._boneBounds.length = 0;
+    if (!this.useDynamicBounds) return;
+    cmfData ??= this.geometryResource?.GetCMFData();
+    if (!cmfData) return;
+    if (!skeleton)
+    {
+      if (!this._turrets.length || !this._turrets[0].sequencer) return;
+      skeleton = this._skeleton;
+    }
+    if (!cmfData.skeletons.length) return;
+    for (const mesh of cmfData.meshes)
+    {
+      if (mesh.skeleton !== 0) continue;
+      for (let boneIndex = 0; boneIndex < skeleton.bones.length; boneIndex++)
+      {
+        const binding = mesh.boneBindings.find(item => item.name === skeleton.bones[boneIndex]);
+        if (binding)
+        {
+          const min = binding.bounds.min, max = binding.bounds.max;
+          this._boneBounds.push({ boneIndex, corners: [
+              vec3.clone(min), vec3.clone(max), // alloc: retained binding corners, rebuilt only with geometry/bounds changes.
+              vec3.fromValues(min[0], min[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(min[0], max[1], min[2]), // alloc: retained binding corner.
+              vec3.fromValues(min[0], max[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], min[1], min[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], min[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], max[1], min[2]) // alloc: retained binding corner.
+            ] });
+        }
+      }
+    }
+  }
+
+  /** Caches model zero's bindings in file order (cpp:595-652).
+   * The GR2 decoder exposes mesh indices, minBounds/maxBounds and plain joint names;
+   * the existing CPU sequencer supplies the native model-instance readiness gate.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeGrannyDynamicBounds(fi = null, skeleton = null)
+  {
+    this._boneBounds.length = 0;
+    if (!this.useDynamicBounds) return;
+    fi ??= this.geometryResource?.GetGrannyInfo();
+    if (!fi) return;
+    if (!skeleton)
+    {
+      if (!this._turrets.length || !this._turrets[0].sequencer) return;
+      skeleton = this._skeleton;
+    }
+    if (!fi.models.length) return;
+    for (const meshIndex of fi.models[0].meshBindings)
+    {
+      for (const binding of fi.meshes[meshIndex].boneBindings)
+      {
+        const boneIndex = TriGeometryResSkeletonData.prototype.FindJoint.call(skeleton, binding.name);
+        const min = binding.minBounds, max = binding.maxBounds;
+        this._boneBounds.push({ boneIndex, corners: [
+              vec3.clone(min), vec3.clone(max), // alloc: retained binding corners, rebuilt only with geometry/bounds changes.
+              vec3.fromValues(min[0], min[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(min[0], max[1], min[2]), // alloc: retained binding corner.
+              vec3.fromValues(min[0], max[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], min[1], min[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], min[1], max[2]), // alloc: retained binding corner.
+              vec3.fromValues(max[0], max[1], min[2]) // alloc: retained binding corner.
+            ] });
+      }
+    }
+  }
+
+  /** Expands optional outputs from current world-pose corners (cpp:656-759).
+   * The existing JS sequencer supplies both GR2 and CMF world matrices; GR2 retains
+   * model-zero initial-placement translation. No inverse-bind palette or mount transform is applied.
+   */
+  @carbon.method
+  @impl.adapted
+  GetDynamicBounds(turret, boundingSphere = null, aabbMin = null, aabbMax = null)
+  {
+    if (!this._boneBounds.length || !this.geometryResource || !turret.sequencer) return false;
+    if (boundingSphere) boundingSphere.fill(0);
+    if (aabbMin && aabbMax) { aabbMin.fill(Infinity); aabbMax.fill(-Infinity); }
+    const point = EveTurretSet._boundsPoint;
+    for (const binding of this._boneBounds)
+    {
+      const world = turret.worldTransforms[binding.boneIndex];
+      for (const corner of binding.corners)
+      {
+        vec3.transformMat4(point, corner, world);
+        if (aabbMin && aabbMax) { vec3.min(aabbMin, aabbMin, point); vec3.max(aabbMax, aabbMax, point); }
+        if (boundingSphere)
+        {
+          const dx = point[0] - boundingSphere[0], dy = point[1] - boundingSphere[1], dz = point[2] - boundingSphere[2];
+          const distanceSquared = dx * dx + dy * dy + dz * dz;
+          const radius = boundingSphere[3];
+          if (distanceSquared > radius * radius + 1e-4)
+          {
+            const distance = Math.sqrt(distanceSquared), shift = 0.5 * (1 - radius / distance);
+            boundingSphere[0] += shift * dx; boundingSphere[1] += shift * dy; boundingSphere[2] += shift * dz;
+            boundingSphere[3] = 0.5 * (radius + distance);
+          }
+        }
+      }
+    }
+    if (!this.geometryResource.IsUsingCMF())
+    {
+      const position = this.geometryResource.GetGrannyInfo()?.models[0]?.initialPlacement?.position;
+      if (position)
+      {
+        if (aabbMin && aabbMax) { vec3.add(aabbMin, aabbMin, position); vec3.add(aabbMax, aabbMax, position); }
+        if (boundingSphere) vec3.add(boundingSphere, boundingSphere, position);
+      }
+    }
+    return true;
+  }
+
+  /** Unions valid mounts' pose bounds without applying their mount matrices (cpp:1814-1838). */
+  @carbon.method
+  @impl.implemented
+  GetLocalBoundingBox(aabbMin, aabbMax)
+  {
+    if (!this.useDynamicBounds) return false;
+    aabbMin.fill(Infinity); aabbMax.fill(-Infinity);
+    let valid = false;
+    for (const turret of this._turrets)
+    {
+      if (turret.valid && this.GetDynamicBounds(turret, null, EveTurretSet._boundsMin, EveTurretSet._boundsMax))
+      {
+        vec3.min(aabbMin, aabbMin, EveTurretSet._boundsMin);
+        vec3.max(aabbMax, aabbMax, EveTurretSet._boundsMax);
+        valid = true;
+      }
+    }
+    return valid;
+  }
+
+  /** Selects EMPTY or HIGHEST at twice the visibility threshold (cpp:1130-1167).
+   * The obsolete native macOS Nvidia driver workaround has no JS backend equivalent.
+   */
+  @carbon.method
+  @impl.adapted
+  UpdateLOD(context)
+  {
+    if (this.lodLevel === EveTurretSet.LOD.LOD_DISABLED || this.estimatedPixelDiameter < 0) return false;
+    const old = this.lodLevel;
+    this.lodLevel = this.estimatedPixelDiameter < 2 * context.GetVisibilityThreshold()
+      ? EveTurretSet.LOD.LOD_EMPTY : EveTurretSet.LOD.LOD_HIGHEST;
+    this.estimatedPixelDiameter = -1;
+    return old !== this.lodLevel;
   }
 
   /**
@@ -1117,6 +1317,7 @@ export class EveTurretSet extends EveEntity
       this._animationQueue.length = 0;
     }
     else this.ForceIdleAnimation();
+    this.InitializeAmbientEffect();
   }
 
   /**
@@ -1176,6 +1377,8 @@ export class EveTurretSet extends EveEntity
       } });
       this.#animationControls.set(turret, []);
     }
+    if (this.geometryResource.IsUsingCMF()) this.InitializeDynamicBounds();
+    else this.InitializeGrannyDynamicBounds();
   }
 
   /**
@@ -1283,15 +1486,16 @@ export class EveTurretSet extends EveEntity
   /**
    * Resolves the authored muzzle prefix plus two-digit joint index, capped at
    * the native twelve slots (EveTurretSet.cpp:320-355). Resource lookup uses
-   * the canonical skeleton owner on decoded records. Carbon's singleton quad
-   * renderer registration is not available here; the existing JS effect
-   * renderable/component traversal remains responsible for rendering.
+   * the canonical skeleton owner on decoded records; effect quad registration
+   * precedes the geometry/skeleton gates, as in the donor.
    */
   @carbon.method
   @impl.adapted
   InitializeFiringEffect()
   {
-    if (!this.firingEffect || !this.geometryResource) return;
+    if (!this.firingEffect) return;
+    this.firingEffect.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
+    if (!this.geometryResource) return;
     const skeleton = this.geometryResource.GetSkeletonData(0);
     if (!skeleton) return;
     const count = Math.min(this.firingEffect.GetPerMuzzleEffectCount(), EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX);
@@ -1440,7 +1644,7 @@ export class EveTurretSet extends EveEntity
     quat.copy(turret.localQuaternion, EveTurretSet._localRotation);
     vec4.set(turret.localPosition, EveTurretSet._localTranslation[0], EveTurretSet._localTranslation[1], EveTurretSet._localTranslation[2], 1);
     turret.valid = false;
-    this.generatedDistributedAmbientEffect?.UpdateInstance?.(index, EveTurretSet._unitScale, turret.localQuaternion, EveTurretSet._localTranslation);
+    this.generatedDistributedAmbientEffect?.UpdateInstance(index, EveTurretSet._unitScale, turret.localQuaternion, EveTurretSet._localTranslation);
     this.visibleCount = this._turrets.length;
     return true;
   }
@@ -1510,6 +1714,12 @@ export class EveTurretSet extends EveEntity
   @impl.reason("Animation cleanup and task dispatch are forwarded through portable records; target and firing timing remain source-faithful.")
   UpdateSyncronous(context, parentTransform = this._parentTransform)
   {
+    if (!this._turrets.length) return;
+    if (this.UpdateLOD(context))
+    {
+      this.InitializeGeometryResource();
+      this.firingEffect?.SetDisplaySourceObject(this.lodLevel === EveTurretSet.LOD.LOD_DISABLED || this.lodLevel === EveTurretSet.LOD.LOD_HIGHEST);
+    }
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
     if (this.firingEffect)
     {
@@ -1528,7 +1738,8 @@ export class EveTurretSet extends EveEntity
     vec3.set(EveTurretSet._sourcePosition, this._parentTransform[12], this._parentTransform[13], this._parentTransform[14]);
     this.firingEffect?.GetStartPosition?.(EveTurretSet._sourcePosition);
     this.target?.Update(deltaTime, EveTurretSet._sourcePosition);
-    this._ambientEffect()?.UpdateSyncronous(context, { isVisible: this.display, localToWorldTransform: this._parentTransform });
+    mat4.multiply(EveTurretSet._ambientWorld, this._parentTransform, this._ambientOffsetMatrix);
+    this.GetAmbientEffectOrGeneratedEffect()?.UpdateSyncronous(context, { isVisible: this.IsAmbientVisible(), localToWorldTransform: EveTurretSet._ambientWorld });
     if (this._turrets.length) this.turretMovementObserver?.Update(this._turrets[0].worldMatrix);
     return true;
   }
@@ -1629,8 +1840,28 @@ export class EveTurretSet extends EveEntity
         this.firingEffect.SetDisplayDestObject(this.target.ShowDestObject());
       }
     }
-    this._ambientEffect()?.UpdateAsyncronous(context, { isVisible: this.display, localToWorldTransform: this._parentTransform });
+    mat4.multiply(EveTurretSet._ambientWorld, this._parentTransform, this._ambientOffsetMatrix);
+    this.GetAmbientEffectOrGeneratedEffect()?.UpdateAsyncronous(context, { isVisible: this.IsAmbientVisible(), localToWorldTransform: EveTurretSet._ambientWorld });
     return true;
+  }
+
+  /** Registers firing and ambient quad content (cpp:3662-3673). */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    this.firingEffect?.RegisterWithQuadRenderer(quadRenderer);
+    this.GetAmbientEffectOrGeneratedEffect()?.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /** Forwards visible turret quad content, applying the ambient clip gate (cpp:3677-3694). */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display) return;
+    this.firingEffect?.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    if (this.IsAmbientVisible()) this.GetAmbientEffectOrGeneratedEffect()?.AddQuadsToQuadRenderer(frustum, quadRenderer);
   }
 
   /**
@@ -1649,7 +1880,7 @@ export class EveTurretSet extends EveEntity
       out.push(this);
     }
     if (this.displayEffects) this.firingEffect?.GetRenderables(out);
-    if (this.IsAmbientVisible()) this._ambientEffect()?.GetRenderables(out);
+    if (this.IsAmbientVisible()) this.GetAmbientEffectOrGeneratedEffect()?.GetRenderables(out);
     return out;
   }
 
@@ -1664,8 +1895,7 @@ export class EveTurretSet extends EveEntity
   /**
    * Culls each turret's world sphere and preserves maximum pixel diameter over
    * views (EveTurretSet.cpp:1945-2010). JS forwards effect visibility through
-   * existing scene contracts; dynamic per-bone bounds and raytracing remain
-   * separate realization work.
+   * existing scene contracts. Raytracing mesh/skeleton updates remain unsupported.
    */
   @carbon.method
   @impl.adapted
@@ -1678,6 +1908,7 @@ export class EveTurretSet extends EveEntity
     for (const turret of this._turrets)
     {
       vec4.copy(EveTurretSet._visibilitySphere, this.boundingSphere);
+      this.GetDynamicBounds(turret, EveTurretSet._visibilitySphere, null, null);
       BoundingSphereTransform(turret.worldMatrix, EveTurretSet._visibilitySphere);
       turret.visible = frustum.IsSphereVisible(EveTurretSet._visibilitySphere);
       if (turret.visible)
@@ -1687,7 +1918,9 @@ export class EveTurretSet extends EveEntity
       }
     }
     if (this.displayEffects) this.firingEffect?.UpdateVisibility(context);
-    this._ambientEffect()?.UpdateVisibility(context, this._parentTransform);
+    const lod = this.lodLevel === EveTurretSet.LOD.LOD_EMPTY ? Tr2Lod.TR2_LOD_LOW
+      : this.lodLevel === EveTurretSet.LOD.LOD_INVALID ? Tr2Lod.TR2_LOD_UNSPECIFIED : Tr2Lod.TR2_LOD_HIGH;
+    this.GetAmbientEffectOrGeneratedEffect()?.UpdateVisibility(context, this._parentTransform, lod);
   }
 
   /** Carbon EveTurretSet::RegisterComponents (cpp:238-256): ShadowCaster leaf
@@ -1703,7 +1936,7 @@ export class EveTurretSet extends EveEntity
     {
       registry.RegisterComponent(EveComponentType.ShadowCaster, this);
       this.firingEffect?.Register(registry);
-      this._ambientEffect()?.Register(registry);
+      this.GetAmbientEffectOrGeneratedEffect()?.Register(registry);
     }
   }
 
@@ -1718,7 +1951,7 @@ export class EveTurretSet extends EveEntity
     if (registry)
     {
       this.firingEffect?.UnRegister(registry);
-      this._ambientEffect()?.UnRegister(registry);
+      this.GetAmbientEffectOrGeneratedEffect()?.UnRegister(registry);
     }
   }
 
@@ -1975,12 +2208,12 @@ export class EveTurretSet extends EveEntity
     const fireName = this.currentCyclingFiresPos > 0 ? `Fire0${Math.floor(this.currentCyclingFiresPos / this.cyclingFireGroupCount)}` : "Fire";
     this._turrets.forEach((_turret, index) => this._playTurret(index, index === this._activeTurret ? fireName : "", "Active", this.randomFiringDelay));
     this.target.StartFireAtLocator?.(locator ?? -1, this.randomFiringDelay + effectPeakTime, effectTotalTime - effectPeakTime, source);
-    const ambient = this._ambientEffect();
+    const ambient = this.GetAmbientEffectOrGeneratedEffect();
     if (ambient)
     {
       ambient.SetControllerVariable("TurretState", this.state === EveTurretSet.State.STATE_FIRING ? EveTurretSet.State.STATE_TARGETING : this.state);
-      ambient.SetControllerVariableOnInstance?.(this._activeTurret, "TurretState", EveTurretSet.State.STATE_FIRING);
-      ambient.SetControllerVariableOnInstance?.(this._activeTurret, "FiringDelay", this.randomFiringDelay);
+      this.SetAmbientEffectControllerVariableOnInstance(this._activeTurret, "TurretState", EveTurretSet.State.STATE_FIRING);
+      this.SetAmbientEffectControllerVariableOnInstance(this._activeTurret, "FiringDelay", this.randomFiringDelay);
     }
     return true;
   }
@@ -2069,11 +2302,13 @@ export class EveTurretSet extends EveEntity
   /**
    * The ambient effect in force: the authored one while in ambient-effect
    * editing mode, otherwise the generated distributed instance container when
-   * one exists.
+   * one exists (cpp:434); no authored fallback outside editing mode.
    */
-  _ambientEffect()
+  @carbon.method
+  @impl.implemented
+  GetAmbientEffectOrGeneratedEffect()
   {
-    return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect ?? this.ambientEffect;
+    return this.ambientEffectEditingMode ? this.ambientEffect : this.generatedDistributedAmbientEffect;
   }
 
   /**
@@ -2082,7 +2317,7 @@ export class EveTurretSet extends EveEntity
    */
   _setAmbientState()
   {
-    this._ambientEffect()?.SetControllerVariable("TurretState", this.state);
+    this.GetAmbientEffectOrGeneratedEffect()?.SetControllerVariable("TurretState", this.state);
   }
 
   /**
@@ -2140,6 +2375,10 @@ export class EveTurretSet extends EveEntity
   static MAX_TURRETS_PER_SET = 24;
 
   static _visibilitySphere = vec4.create();
+  static _ambientWorld = mat4.create();
+  static _boundsPoint = vec3.create();
+  static _boundsMin = vec3.create();
+  static _boundsMax = vec3.create();
 
   static _boneTransform = mat4.create();
   static _lowLodTransform = mat4.create();

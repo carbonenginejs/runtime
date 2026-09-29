@@ -381,6 +381,24 @@ export class EveMobile extends EveSpaceObject2
     return this.activationStrength > 0.5;
   }
 
+  /** Registers hull content and every turret's quad content (EveMobile.cpp:681-688). */
+  @carbon.method
+  @impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    super.RegisterWithQuadRenderer(quadRenderer);
+    for (const turretSet of this.turretSets) turretSet.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /** Collects hull and turret quad content (EveMobile.cpp:690-697). */
+  @carbon.method
+  @impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    super.AddQuadsToQuadRenderer(frustum, quadRenderer);
+    for (const turretSet of this.turretSets) turretSet.AddQuadsToQuadRenderer(frustum, quadRenderer);
+  }
+
   /**
    * Returns the parent transform turret sets are placed against - the live hull
    * world transform, regardless of swarm index.

@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildInstanceContainer.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
 import { Origin } from "../../generated/eve/child/enums.js";
@@ -8,7 +8,13 @@ import { EveChildUpdateParams } from "../EveChildUpdateParams.js";
 import { Tr2Lod } from "../EveLODHelper.js";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import "./EveChildContainer.js";
+import { EveChildContainer } from "./EveChildContainer.js";
+import { EveChildInstanceTransform } from "./EveChildInstanceTransform.js";
+import { EveChildModifierAttachToBone } from "./modifiers/EveChildModifierAttachToBone.js";
+import { EveSpaceObject2 } from "../spaceObject/EveSpaceObject2.js";
+import { EveEntity } from "../EveEntity.js";
+import { Tr2QuadRenderer } from "../../core/Tr2QuadRenderer/index.js";
+import { blue } from "#blue";
 
 /** A child that instantiates a source template across a list of authored or locator-driven transforms, forwarding controller and registration calls to the instances. */
 @type.define({ className: "EveChildInstanceContainer", family: "eve/child" })
@@ -34,6 +40,9 @@ export class EveChildInstanceContainer extends EveChildTransform
   rotation = quat.create();
 
   _controllerVariables = new Map();
+
+  /** Native non-persisted edit-mode gate (cpp:43). */
+  disableEditMode = false;
 
   // Carbon m_hasUpdated: set by UpdateAsyncronous, gates GetRenderables.
   _hasUpdated = false;
@@ -142,12 +151,158 @@ export class EveChildInstanceContainer extends EveChildTransform
     if (this.source) this.source.SetPartTag(next);
   }
 
+  /** Replaces the source and requests native instance recreation (cpp:116). */
+  @carbon.method
+  @impl.implemented
+  SetSourceEffect(sourceEffect)
+  {
+    this.SetSource(sourceEffect);
+    this.reset = true;
+  }
+
+  /** Returns the authored source (cpp:122). */
+  @carbon.method
+  @impl.implemented
+  GetSource()
+  {
+    return this.source;
+  }
+
+  /** Transfers child ownership and the source's edit-mode registration (cpp:128). */
+  @carbon.method
+  @impl.implemented
+  SetSource(source)
+  {
+    const registry = this.GetComponentRegistry();
+    CjsSchema.cast(this.source, EveEntity)?.UnRegister(registry);
+    this.UnregisterChild(this.source);
+    this.source = source;
+    this.RegisterChild(source);
+    if (!this.instances.length && !this.disableEditMode)
+      CjsSchema.cast(source, EveEntity)?.Register(registry);
+  }
+
+  /** Retains an authored transform and immediately creates its instance (cpp:146). */
+  @carbon.method
+  @impl.implemented
+  AddInstanceTransform(scale, rotation, translation, boneIndex = -1)
+  {
+    const transform = new EveChildInstanceTransform();
+    vec3.copy(transform.scale, scale);
+    quat.copy(transform.rotation, rotation);
+    vec3.copy(transform.translation, translation);
+    transform.boneIndex = boneIndex;
+    this.transforms.push(transform);
+    this.CreateInstance(scale, rotation, translation, boneIndex);
+    this.reset = false;
+  }
+
+  /** Recreates locator instances first, followed by authored transforms (cpp:194). */
+  @carbon.method
+  @impl.implemented
+  CreateInstances(parent)
+  {
+    this.ClearInstanceList();
+    if (!this.source) return;
+    if (this.locatorSet)
+    {
+      const spaceObject = CjsSchema.cast(parent, EveSpaceObject2);
+      const locators = spaceObject?.GetLocatorsForSet(this.locatorSet);
+      if (locators) for (const locator of locators)
+        this.CreateInstance(EveChildInstanceContainer._unitScale, locator.direction, locator.position, locator.boneIndex);
+    }
+    for (const transform of this.transforms)
+      this.CreateInstance(transform.scale, transform.rotation, transform.translation, transform.boneIndex);
+  }
+
+  /** Copies the source with Blue's copier, retaining native wrapper/registration order (cpp:234). */
+  @carbon.method
+  @impl.implemented
+  CreateInstance(scale, rotation, translation, boneIndex = -1)
+  {
+    if (!this.source) return;
+    const translationParent = new EveChildContainer();
+    const instance = blue.classes.CopyTo(this.source);
+    if (!instance) return;
+    for (const modifier of this.transformModifiers) instance.AddTransformModifier(modifier);
+    translationParent.AddToEffectChildrenList(instance);
+    translationParent.Setup(scale, rotation, translation, Tr2Lod.TR2_LOD_LOW);
+    translationParent.Initialize();
+    for (const [name, value] of this._controllerVariables) translationParent.SetControllerVariable(name, value);
+    translationParent.StartControllers();
+    let root = translationParent;
+    if (boneIndex >= 0)
+    {
+      root = new EveChildContainer();
+      const modifier = new EveChildModifierAttachToBone();
+      modifier.SetBoneIndex(boneIndex);
+      root.AddTransformModifier(modifier);
+      root.AddToEffectChildrenList(translationParent);
+    }
+    root.RegisterWithQuadRenderer(Tr2QuadRenderer.Instance());
+    root.Register(this.GetComponentRegistry());
+    root.SetOwner(this.GetOwner());
+    root.SetParent(this);
+    root.SetPartTag(this.GetPartTag());
+    this.instances.push(root);
+  }
+
+  /** Updates an existing root; an absent list entry is ignored (cpp:301). */
+  @carbon.method
+  @impl.implemented
+  UpdateInstance(index, scale, rotation, translation)
+  {
+    const instance = this.instances[Number(index) >>> 0];
+    if (instance) instance.Setup(scale, rotation, translation, Tr2Lod.TR2_LOD_LOW);
+  }
+
+  /** Unregisters components and detaches children before clearing (cpp:339). */
+  @carbon.method
+  @impl.implemented
+  ClearInstanceList()
+  {
+    this.UnRegisterComponents();
+    this.UnregisterChildren(this.instances);
+    this.instances.length = 0;
+  }
+
+  /** Selects whether an empty container exposes its source (cpp:333). */
+  @carbon.method
+  @impl.implemented
+  DisableEditMode(disable)
+  {
+    this.disableEditMode = disable;
+    this.ReRegister();
+  }
+
+  /** Sets one instance variable, preserving the donor boundary bug (cpp:557-566). */
+  @carbon.method
+  @impl.adapted
+  SetControllerVariableForInstance(index, name, value)
+  {
+    index = Number(index) >>> 0;
+    // Carbon bug: cpp:559 uses >, not >=. JS throws at size instead of native undefined access.
+    if (index > this.instances.length) return;
+    this.instances[index].SetControllerVariable(name, value);
+  }
+
+  /** Sends one instance event; JS throws at the donor's invalid size boundary (cpp:568-577). */
+  @carbon.method
+  @impl.adapted
+  HandleControllerEventForInstance(index, name)
+  {
+    index = Number(index) >>> 0;
+    // Carbon bug: cpp:570 admits index == size, then dereferences past the vector.
+    if (index > this.instances.length) return;
+    this.instances[index].HandleControllerEvent(name);
+  }
+
   /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.implemented
   HandleControllerEvent(name)
   {
-    for (const instance of this.instances) instance?.HandleControllerEvent(name);
+    this._RunOnInstances(instance => instance.HandleControllerEvent(name));
   }
 
   /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
@@ -159,7 +314,7 @@ export class EveChildInstanceContainer extends EveChildTransform
     const next = Number(value);
     this.source?.SetControllerVariable(key, next);
     this._controllerVariables.set(key, next);
-    for (const instance of this.instances) instance?.SetControllerVariable(key, next);
+    this._RunOnInstances(instance => instance.SetControllerVariable(key, next));
   }
 
   /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
@@ -167,13 +322,12 @@ export class EveChildInstanceContainer extends EveChildTransform
   @impl.implemented
   StartControllers()
   {
-    for (const instance of this.instances) instance?.StartControllers();
+    this._RunOnInstances(instance => instance.StartControllers());
   }
 
   /** Carbon EveChildInstanceContainer::RunOnInstances (cpp:318-331): with no
    * instances, the source template stands in - but only while edit mode is
-   * enabled (m_disableEditMode has no JS field yet; an absent field reads as
-   * edit mode on, matching RegisterComponents below). */
+   * enabled. */
   _RunOnInstances(func)
   {
     if (!this.instances.length && this.source && !this.disableEditMode)
@@ -215,19 +369,18 @@ export class EveChildInstanceContainer extends EveChildTransform
     return next;
   }
 
-  /** Carbon EveChildInstanceContainer::UpdateSyncronous (cpp:388-410): the
-   * display gate, the reset re-creation, the owner speed capture, then the
-   * fan-out under this container's own transform. The m_reset branch calls
-   * CreateInstances (cpp:397), which is unported - it deep-clones the source
-   * through BeClasses->CopyTo and touches Tr2QuadRenderer - so `reset` stays
-   * raised until that port lands rather than being consumed with no effect. */
+  /** Recreates pending instances, captures owner speed, and forwards native child params (cpp:388-410). */
   @carbon.method
-  @impl.adapted
-  @impl.reason("CreateInstances (deep-clone + quad-renderer seam) is unported; the reset flag stays pending instead of being silently cleared.")
+  @impl.implemented
   UpdateSyncronous(updateContext, params)
   {
     if (!this.display) return;
 
+    if (this.reset)
+    {
+      this.CreateInstances(params?.spaceObjectParent ?? null);
+      this.reset = false;
+    }
     this._ownerMaxSpeed = Number(params?.ownerMaxSpeed) || 0;
 
     const newParams = EveChildInstanceContainer._DeriveChildParams(params);
@@ -314,8 +467,7 @@ export class EveChildInstanceContainer extends EveChildTransform
   }
 
   /** Carbon EveChildInstanceContainer::RegisterComponents (cpp:83-103):
-   * forwards the instances; with no instances (and edit mode enabled -
-   * m_disableEditMode has no JS field yet, read duck-typed) the source
+   * forwards the instances; with no instances (and edit mode enabled) the source
    * template registers instead. Gate IsInRegistry() && m_display. */
   @carbon.method
   @impl.implemented
@@ -352,6 +504,8 @@ export class EveChildInstanceContainer extends EveChildTransform
       this.source?.UnRegister(registry);
     }
   }
+
+  static _unitScale = vec3.fromValues(1, 1, 1);
 
   static Origin = Origin;
 

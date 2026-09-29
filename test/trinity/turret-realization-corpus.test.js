@@ -1,3 +1,6 @@
+import { CjsCmfFormat } from "../../npm/dist/resource/formats/cmf/index.js";
+import { CjsGr2Format } from "../../npm/dist/resource/formats/gr2/index.js";
+import { EveChildContainer, EveChildInstanceContainer, EveChildUpdateParams, EveChildModifierAttachToBone, EveUpdateContext, Tr2Lod } from "../../npm/dist/trinity/index.js";
 import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
 import { CjsHlslFormat } from "../../npm/dist/resource/formats/hlsl/CjsHlslFormat.js";
 import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
@@ -349,9 +352,9 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   assertScalars(data.vs.Get("turretTranslation").slice(0,4),a.localPosition,"first instance placement");assertScalars(data.vs.Get("turretTranslation").slice(4,8),b.localPosition,"second instance placement");
   set.GetShadowPerObjectData(accumulator);assert.equal(uploads.length,1,"shadow pass cannot upload again in same frame");assert.equal(ring.head,20);
   const second=mat4.clone(first);second[12]+=100;mat4.copy(ship.worldTransform,second);
-  set.UpdateSyncronous({deltaTime:.1},second);ship.UpdateTurretsAsyncronous({deltaTime:.1});
+  set.UpdateSyncronous({deltaTime:.1,GetVisibilityThreshold:()=>1},second);ship.UpdateTurretsAsyncronous({deltaTime:.1});
   let call=0;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>call++===1,GetPixelSizeAccross:()=>12})});
-  assert.equal(set.visibleCount,1);assert.equal(set.estimatedPixelDiameter,25,"max screen size retained over views");
+  assert.equal(set.visibleCount,1);assert.equal(set.estimatedPixelDiameter,12,"cpp:1164 synchronous LOD selection consumes the prior views estimate");
   const compact=set.GetPerObjectData(accumulator);
   assertScalars(compact.vs.GetTransposed("prevShipMatrix"),Array.from({length:16},(_,i)=>first[(i%4)*4+Math.floor(i/4)]),"normal sync+async retains previous hull placement");
   assert.equal(uint(compact.vs,"currentBoneOffset"),20);assert.equal(uint(compact.vs,"prevBoneOffset"),2);
@@ -426,4 +429,170 @@ test("real packed turret shader receives native instance IDs and final opaque/sh
   resource.MarkPurged();assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
   set.Destroy();set.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);
   assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);
+});
+
+// Independent scalar oracle: native bone-local OBB corner order and incremental
+// BoundingSphereUpdate, including Float32 storage at each native output write.
+function poseBoundsOracle(bindings, transforms, placement = [0,0,0])
+{
+  const sphere=new Float32Array(4),min=new Float32Array([Infinity,Infinity,Infinity]),max=new Float32Array([-Infinity,-Infinity,-Infinity]);
+  for(const {joint,lo,hi} of bindings)
+  {
+    const corners=[lo,hi,[lo[0],lo[1],hi[2]],[lo[0],hi[1],lo[2]],[lo[0],hi[1],hi[2]],[hi[0],lo[1],lo[2]],[hi[0],lo[1],hi[2]],[hi[0],hi[1],lo[2]]];
+    const m=transforms[joint];
+    for(const c of corners)
+    {
+      const point=Array.from({length:3},(_,i)=>Math.fround(c[0]*m[i]+c[1]*m[i+4]+c[2]*m[i+8]+m[i+12]));
+      for(let i=0;i<3;i++){min[i]=Math.min(min[i],point[i]);max[i]=Math.max(max[i],point[i]);}
+      const d=point.map((v,i)=>v-sphere[i]),sq=d.reduce((a,v)=>a+v*v,0),r=sphere[3];
+      if(sq>r*r+1e-4){const distance=Math.sqrt(sq),factor=.5*(1-r/distance);for(let i=0;i<3;i++)sphere[i]+=d[i]*factor;sphere[3]=.5*(r+distance);}
+    }
+  }
+  for(let i=0;i<3;i++){sphere[i]+=placement[i];min[i]+=placement[i];max[i]+=placement[i];}
+  return {sphere,min,max};
+}
+
+test("native turret LOD consumes maximum view estimate, releases and reloads poses, and freeze reloads",{skip},async t=>
+{
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.UpdateAsyncronous({deltaTime:0});
+  set.firingEffect=new EveTurretFiringFX();
+  const threshold={GetVisibilityThreshold:()=>3,deltaTime:0};
+  const mounts=set.GetTurrets().map(x=>Array.from(x.localMatrix)),oldPose=set.GetTurrets()[0].pose;
+  assert.equal(set.UpdateLOD(threshold),false,"cpp:1146 unreliable -1 does not select LOD");
+  const view=pixels=>({GetFrustum:()=>({IsSphereVisible:()=>true,GetPixelSizeAccross:()=>pixels})});
+  set.UpdateVisibility(view(20));set.UpdateVisibility(view(1));assert.equal(set.estimatedPixelDiameter,20);
+  set.UpdateSyncronous(threshold);assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_HIGHEST);assert.equal(set.estimatedPixelDiameter,-1);
+  set.UpdateVisibility(view(5.999));set.UpdateSyncronous(threshold);
+  assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_EMPTY);assert.equal(set.geometryResource,null);assert.equal(set.GetTurrets()[0].pose,null);assert.equal(set.firingEffect.GetDisplaySourceObject(),false);
+  assert.deepEqual(set.GetTurrets().map(x=>Array.from(x.localMatrix)),mounts,"native resource LOD leaves placements intact");
+  resource.MarkPrepared();assert.equal(set._skeleton,null,"unsubscribed resource completion cannot resurrect EMPTY LOD");
+  set.UpdateVisibility(view(6));set.UpdateSyncronous(threshold);
+  assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_HIGHEST);assert.ok(set.geometryResource===resource);assert.ok(set.GetTurrets()[0].pose!==oldPose);assert.equal(set.firingEffect.GetDisplaySourceObject(),true);
+  set.estimatedPixelDiameter=0;set.FreezeHighDetailLOD();assert.equal(set.lodLevel,EveTurretSet.LOD.LOD_DISABLED);
+  assert.equal(set.UpdateLOD(threshold),false);assert.equal(set.estimatedPixelDiameter,0,"cpp:1133 disabled returns before estimate reset");
+  const empty=new EveTurretSet();t.after(()=>empty.Destroy());empty.estimatedPixelDiameter=99;empty.UpdateSyncronous(threshold);assert.equal(empty.estimatedPixelDiameter,99,"cpp:1175 no-mount gate");
+});
+
+test("GR2 and CMF turret bounds follow donor traversal, animated world joints and optional output gates",{skip},async t=>
+{
+  const {set,ship,resource,resources}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
+  const bytes=await readFile(join(corpus,"pulse_mega_t1.gr2"));
+  const cmf=new TriGeometryRes();cmf.SetPayload(CjsCmfFormat.loadShared(CjsGr2Format.read(bytes,{rebuildMissingBounds:true})));cmf.MarkPrepared();
+  for(const [label,geometry] of [["GR2",resource],["CMF",cmf]])
+  {
+    resources.set(geometryPath,geometry);set.Initialize();set.useDynamicBounds=true;set.OnModified("useDynamicBounds");
+    set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous({deltaTime:.8});
+    const turret=set.GetTurrets()[0],names=set._skeleton.bones;
+    const bindings=[];
+    if(label==="CMF")for(const mesh of geometry.GetCMFData().meshes){if(mesh.skeleton===0)for(let joint=0;joint<names.length;joint++){const b=mesh.boneBindings.find(x=>x.name===names[joint]);if(b)bindings.push({joint,lo:b.bounds.min,hi:b.bounds.max});}}
+    else {const fi=geometry.GetGrannyInfo();for(const index of fi.models[0].meshBindings)for(const b of fi.meshes[index].boneBindings)bindings.push({joint:names.indexOf(b.name),lo:b.minBounds,hi:b.maxBounds});}
+    assert.deepEqual(set._boneBounds.map(x=>x.boneIndex),bindings.map(x=>x.joint),label+" cpp:524/595 native traversal");
+    assert.ok(bindings.length>=9,"fixture retains its actual model-zero/skeleton-zero bindings");
+    const placement=label==="GR2"?geometry.GetGrannyInfo().models[0].initialPlacement.position:[0,0,0];
+    const oracle=poseBoundsOracle(bindings,turret.worldTransforms,placement);
+    const sphere=new Float32Array(4),min=new Float32Array(3),max=new Float32Array(3);
+    assert.equal(set.GetDynamicBounds(turret,sphere,min,max),true);
+    assertScalars(sphere,oracle.sphere,label+" native incremental sphere");assertScalars(min,oracle.min,label+" world bounds min");assertScalars(max,oracle.max,label+" world bounds max");
+    min.fill(123);assert.equal(set.GetDynamicBounds(turret,null,min,null),true);assert.deepEqual(Array.from(min),[123,123,123],"cpp:675 both AABB pointers required");
+    set.GetTurrets()[1].valid=false;set.GetLocalBoundingBox(min,max);assertScalars(min,oracle.min,"cpp:1814 no mount offset in local bounds");
+    const before=Array.from(sphere);set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous({deltaTime:.1});set.GetDynamicBounds(turret,sphere);assert.notDeepEqual(Array.from(sphere),before,"pose bounds move with actual Deploy");
+    let captured;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:value=>{captured??=Array.from(value);return true;},GetPixelSizeAccross:()=>40})});
+    const expectedCenter=Array.from({length:3},(_,i)=>sphere[0]*turret.worldMatrix[i]+sphere[1]*turret.worldMatrix[i+4]+sphere[2]*turret.worldMatrix[i+8]+turret.worldMatrix[i+12]);
+    assertScalars(captured.slice(0,3),expectedCenter,"dynamic sphere transformed by mount for culling");
+    geometry.MarkPurged();sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
+    geometry.MarkPrepared();assert.ok(set._boneBounds.length);set.UpdateAsyncronous({deltaTime:0});assert.equal(set.GetDynamicBounds(turret,sphere),true);
+    set.useDynamicBounds=false;set.OnModified("useDynamicBounds");assert.equal(set._boneBounds.length,0);min.fill(8);assert.equal(set.GetLocalBoundingBox(min,max),false);assert.deepEqual(Array.from(min),[8,8,8]);
+  }
+});
+
+test("native ambient instances copy controlled source, isolate controller state and survive hull registration",{skip},async t=>
+{
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
+  const source=new EveChildContainer();source.name="controlled ambient fixture";source.AddToEffectChildrenList(new EveChildContainer());
+  const registry=new EveComponentRegistry();set.Register(registry);set.SetAmbientEffect(source);
+  const generated=set.GetAmbientEffectOrGeneratedEffect(),[a,b]=generated.instances;
+  assert.equal(generated.instances.length,2);assert.ok(a.objects[0]!==source && a.objects[0]!==b.objects[0]);assert.ok(a.objects[0].objects[0]!==b.objects[0].objects[0]);
+  assert.ok(a.GetParent()===generated && a.objects[0].GetParent()===a);assert.ok(a.IsInRegistry() && b.IsInRegistry());
+  assertScalars(a.translation,set.GetTurrets()[0].localPosition.slice(0,3),"cpp:393 ambient mount placement");
+  generated.SetControllerVariable("TurretState",3);set.SetAmbientEffectControllerVariableOnInstance(0,"TurretState",4);
+  assert.equal(a._controllerVariables.get("TurretState"),4);assert.equal(b._controllerVariables.get("TurretState"),3);
+  assert.equal(a.objects[0]._controllerVariables.get("TurretState"),4);assert.equal(source._controllerVariables.get("TurretState"),3);
+  const transform=mat4.clone(set.GetTurrets()[0].localMatrix);transform[12]+=42;set.SetLocalTransform(0,transform);assert.equal(a.translation[0],transform[12]);
+  set.SetLocalTransform(2,transform);assert.equal(generated.instances.length,2,"cpp:1790 late locator updates existing instances only");
+  set.InitializeAmbientEffect();assert.equal(set.generatedDistributedAmbientEffect.instances.length,3);assert.equal(generated.IsInRegistry(),false);assert.equal(a.IsInRegistry(),false);
+  set.ambientEffectEditingMode=true;set.OnModified("ambientEffectEditingMode");assert.ok(set.GetAmbientEffectOrGeneratedEffect()===source);
+  const parent=mat4.create();mat4.rotateY(parent,parent,.7);mat4.translate(parent,parent,[2,5,9]);set.SetParentTransform(parent);
+  let observed;source.UpdateSyncronous=(_context,params)=>{observed={visible:params.isVisible,matrix:Array.from(params.localToWorldTransform)};};
+  set._parentData.clipRadiusSq=1;set.UpdateSyncronous({deltaTime:0});assert.equal(observed.visible,false);
+  assertScalars(observed.matrix,carbonProduct(set.GetTurrets()[0].localMatrix,parent),"cpp:1273 ambient editing offset order under rotation");
+  set.SetAmbientEffectControllerVariableOnInstance(200,"TurretState",5);assert.equal(source._controllerVariables.get("TurretState"),5,"editing ignores instance index");
+  let ambientLod;source.UpdateVisibility=(_context,_parent,lod)=>{ambientLod=lod;};
+  for(const [turretLod,childLod] of [[EveTurretSet.LOD.LOD_INVALID,Tr2Lod.TR2_LOD_UNSPECIFIED],[EveTurretSet.LOD.LOD_EMPTY,Tr2Lod.TR2_LOD_LOW],[EveTurretSet.LOD.LOD_HIGHEST,Tr2Lod.TR2_LOD_HIGH]]){set.lodLevel=turretLod;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>false})});assert.equal(ambientLod,childLod);}
+  set.ambientEffectEditingMode=false;set.OnModified("ambientEffectEditingMode");set.SetAmbientEffect(null);assert.equal(set.GetAmbientEffectOrGeneratedEffect(),null);assert.equal(source.IsInRegistry(),false);
+  set.Destroy();resource.MarkPrepared();assert.equal(set.geometryResource,null);assert.equal(set.IsInRegistry(),false);assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);
+  ship.turretSets.length=0;assert.equal(ship.GetRenderables([]).includes(set),false,"removed/destroyed turret is not collected");
+});
+
+test("instance container native copier, bone wrapper, reset and boundary quirk",()=>
+{
+  const container=new EveChildInstanceContainer(),source=new EveChildContainer(),registry=new EveComponentRegistry(),owner=new EveShip2();
+  container.Register(registry);container.SetOwner(owner);container.SetPartTag(9);container.SetSourceEffect(source);container.SetControllerVariable("Queued",7);
+  container.transformModifiers.push(new EveChildModifierAttachToBone());
+  container.AddInstanceTransform([1,2,3],[0,0,0,1],[4,5,6],2);
+  const old=container.instances[0],translation=old.objects[0],copy=translation.objects[0];
+  assert.ok(copy!==source);assert.ok(copy.transformModifiers[0]===container.transformModifiers[0],"cpp:251 shares added modifier, not a second clone");
+  assert.equal(old.transformModifiers[0].boneIndex,2);assert.equal(translation._controllerVariables.get("Queued"),7);assert.ok(old.GetOwner()===owner);assert.equal(old.GetPartTag(),9);
+  assert.equal(container.reset,false);container.reset=true;
+  container.UpdateSyncronous(new EveUpdateContext(),new EveChildUpdateParams());
+  assert.equal(container.reset,false);assert.equal(old.IsInRegistry(),false);assert.equal(old.GetParent(),null);assert.equal(old.GetOwner(),null);assert.ok(container.instances[0]!==old);
+  assert.throws(()=>container.SetControllerVariableForInstance(1,"Boundary",1),TypeError,"Carbon bug cpp:559 admits index==size");
+  assert.throws(()=>container.HandleControllerEventForInstance(1,"Boundary"),TypeError,"Carbon bug cpp:570 admits index==size");
+  assert.doesNotThrow(()=>container.SetControllerVariableForInstance(2,"Ignored",1));assert.doesNotThrow(()=>container.HandleControllerEventForInstance(-1,"Ignored"));
+  container.ClearInstanceList();assert.equal(container.instances.length,0);container.UnRegister(registry);
+});
+
+
+
+test("controlled bounds projection distinguishes all CMF meshes from GR2 model zero",{skip},async t=>
+{
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.useDynamicBounds=true;set.UpdateAsyncronous({deltaTime:0});
+  const names=set._skeleton.bones,lo=[-2,-3,-4],hi=[5,6,7];
+  const cmfBinding=name=>({name,bounds:{min:lo,max:hi}});
+  const projection={skeletons:[set._skeleton],meshes:[{skeleton:0,boneBindings:[cmfBinding(names[4]),cmfBinding(names[0])]},{skeleton:1,boneBindings:[cmfBinding(names[2])]},{skeleton:0,boneBindings:[cmfBinding(names[3]),cmfBinding(names[1])]}]};
+  set.InitializeDynamicBounds(projection,set._skeleton);
+  assert.deepEqual(set._boneBounds.map(b=>b.boneIndex),[0,4,1,3],"cpp:562 each skeleton-zero mesh, then skeleton bone order");
+  const grannyBinding=name=>({name,minBounds:lo,maxBounds:hi});
+  set.InitializeGrannyDynamicBounds({models:[{meshBindings:[0]},{meshBindings:[1]}],meshes:[{boneBindings:[grannyBinding(names[4]),grannyBinding(names[0])]},{boneBindings:[grannyBinding(names[2])]}]},set._skeleton);
+  assert.deepEqual(set._boneBounds.map(b=>b.boneIndex),[4,0],"cpp:625 only model zero, preserving binding order");
+  const min=new Float32Array(3),max=new Float32Array(3),sphere=new Float32Array(4),turret=set.GetTurrets()[0];
+  const position=resource.GetGrannyInfo().models[0].initialPlacement.position,previous=Array.from(position);
+  try
+  {
+    for(let i=0;i<3;i++)position[i]=[70,-30,11][i];
+    set.GetDynamicBounds(turret,sphere,min,max);
+    const expected=poseBoundsOracle([4,0].map(joint=>({joint,lo,hi})),turret.worldTransforms,position);
+    assertScalars(sphere,expected.sphere,"cpp:745 GR2 placement addition");assertScalars(min,expected.min,"GR2 placement min");assertScalars(max,expected.max,"GR2 placement max");
+  }
+  finally{for(let i=0;i<3;i++)position[i]=previous[i];}
+});
+
+
+test("hull-to-turret quad forwarding observes firing, display and ambient clip gates",()=>
+{
+  const ship=new EveShip2(),set=new EveTurretSet(),effect=new EveTurretFiringFX(),ambient=new EveChildContainer();
+  const calls=[],renderer={},frustum={};
+  // Controlled endpoint implements the native IEveFiringEffectElement quad contract.
+  effect.stretch.push({RegisterWithQuadRenderer:q=>calls.push(["fire-register",q]),AddQuadsToQuadRenderer:(f,q)=>calls.push(["fire-add",f,q])});
+  ambient.RegisterWithQuadRenderer=q=>calls.push(["ambient-register",q]);ambient.AddQuadsToQuadRenderer=(f,q)=>calls.push(["ambient-add",f,q]);
+  set.firingEffect=effect;set.ambientEffect=ambient;set.ambientEffectEditingMode=true;ship.turretSets.push(set);
+  try
+  {
+    set.InitializeFiringEffect();assert.equal(calls[0][0],"fire-register","cpp:327 registers even before geometry exists");calls.length=0;
+    ship.RegisterWithQuadRenderer(renderer);assert.deepEqual(calls,[["fire-register",renderer],["ambient-register",renderer]]);
+    calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[["ambient-add",frustum,renderer]],"cpp:782 inactive fire has no quads");
+    effect.isFiring=true;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[["fire-add",frustum,renderer],["ambient-add",frustum,renderer]]);
+    set._parentData.clipRadiusSq=.05;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[["fire-add",frustum,renderer]]);
+    set.display=false;calls.length=0;ship.AddQuadsToQuadRenderer(frustum,renderer);assert.deepEqual(calls,[]);
+  }
+  finally{set.firingEffect=null;set.Destroy();}
 });
