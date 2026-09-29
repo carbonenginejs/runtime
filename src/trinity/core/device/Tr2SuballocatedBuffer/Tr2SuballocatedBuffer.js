@@ -1,35 +1,26 @@
 // Source: trinity/trinity/Tr2SuballocatedBuffer.h
-//   trinity/trinity/Tr2SuballocatedBuffer.cpp
+// Source: trinity/trinity/Tr2SuballocatedBuffer.cpp
 //
-// Carbon's suballocated device buffer: one big `Tr2BufferAL` that many
-// allocations share, so that a mesh's vertices are `(buffer, offset, stride)`
-// rather than a buffer of their own. `TriGeometryRes` keeps ONE of these for
-// the whole process (`TriGeometryRes.cpp:33-38`, 32 MiB blocks), and a render
-// batch carries the shared buffer plus a stride while the allocation's offset
-// rides `baseVertexLocation` / `startIndexLocation` (`Tr2MeshBase.cpp:372-392`).
-//
-// WHERE THIS DIFFERS. Carbon grows by `Expand()`: a bigger buffer, a GPU copy of
-// the old contents, one buffer still. WebGPU can copy buffer to buffer only
-// inside a command encoder, which a load-time allocation does not have, so this
-// grows by adding a BLOCK: a second `Tr2BufferAL` of the block size, and
-// allocations after it carry that block. A batch binds its allocation's own
-// buffer, so nothing above notices - except that two meshes in different
-// blocks cannot share one stream binding, which they could not anyway.
-//
-// Not ported: `Free` (Carbon's virtual allocator reclaims; ours is append-only
-// until the resource that owns the buffer releases it), `MapForReading`.
+// Carbon's shared geometry buffer, with its existing JavaScript block growth:
+// allocations retain their own AL block because copying the old buffer into a
+// larger one needs a command encoder that load-time allocation does not own.
+// Each physical block therefore has a Tr2VirtualAllocator. Free returns the
+// allocation to that allocator; a resource release does not destroy a block
+// still shared by other resources. MapForReading remains unported.
 import { Tr2SuballocatedBufferAllocation } from "./Tr2SuballocatedBufferAllocation.js";
+import { Tr2VirtualAllocator } from "../Tr2VirtualAllocator.js";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/stub/Tr2BufferALStub.js";
 import { Tr2CpuUsage } from "#consts/render-context";
+import { TriStorageFlags } from "#consts/graphics";
+import { CjsSchema, carbon, impl } from "#schema";
+import * as CcpLog from "../../../../global/logging/ccpLog.js";
 import { Failed } from "../../../../trinityal/ALResult.js";
-
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
 export const SHARED_BUFFER_BLOCK_SIZE = 32 * 1024 * 1024;
 
 /** `SHARED_BUFFER_MAX_SIZE` (`TriGeometryRes.h:16`). */
 export const SHARED_BUFFER_MAX_SIZE = 2048 * 1024 * 1024;
-
 
 /**
  * Carbon's `Tr2SuballocatedBuffer`: one growable pool of device buffer blocks
@@ -48,12 +39,14 @@ export class Tr2SuballocatedBuffer
   /** The blocks, each a `Tr2BufferAL` of `m_blockSize` bytes. */
   m_blocks = [];
 
-  /** The next free byte in the last block. */
-  m_offset = 0;
+  /** Adapted: one virtual allocator per physical block instead of one copied buffer. */
+  m_allocators = [];
 
   m_allocations = [];
 
   /**
+   * Creates the shared pool; physical blocks are made on demand.
+   * Adapted: block growth replaces Carbon's Expand/copy, as described above.
    * @param {string} name A debug name.
    * @param {number} gpuUsage `Tr2GpuUsage` flags for every block.
    * @param {number} [blockSize] Bytes per block.
@@ -68,109 +61,134 @@ export class Tr2SuballocatedBuffer
   }
 
   /**
-   * Reserves `count` elements of `stride` bytes and uploads them.
+   * Reserves `count` elements and uploads them, reusing freed ranges first.
    *
-   * Carbon asserts `offset % stride == 0` (`Tr2SuballocatedBuffer.cpp:24-63`):
-   * the offset is element-aligned so `GetStartIndex` is exact. Alignment here
-   * is to the least common multiple of the stride and four, which keeps the
-   * offset both element-aligned and a legal `writeBuffer` offset.
+   * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:24-64.
+   * Adapted: each physical block has its own allocator; alignment is the LCM
+   * of stride and four for WebGPU writes. Failure frees the explicit JS handle
+   * that a C++ Allocation destructor would release on unwinding.
    *
    * @param {number} stride Bytes per element.
    * @param {number} count Elements.
    * @param {ArrayBufferView|null} data The bytes, or null to reserve only.
    * @param {object} renderContext The context to create and update through.
-   * @returns {Tr2SuballocatedBufferAllocation|null} The allocation, or null when refused.
+   * @returns {Tr2SuballocatedBufferAllocation|null} Allocation, or null when refused.
    */
   Allocate(stride, count, data, renderContext)
   {
     if (!Number.isInteger(stride) || stride <= 0 || !Number.isInteger(count) || count <= 0) return null;
-
     const size = stride * count;
-
     if (size > this.m_blockSize) return null;
-
     const alignment = Lcm(stride, 4);
-    let offset = Math.ceil(this.m_offset / alignment) * alignment;
-
-    if (this.m_blocks.length === 0 || offset + size > this.m_blockSize)
+    const reservation = {};
+    let blockIndex = 0;
+    while (blockIndex < this.m_allocators.length)
     {
+      if (this.m_allocators[blockIndex].Allocate(size, alignment, reservation)) break;
+      blockIndex += 1;
+    }
+    if (blockIndex === this.m_allocators.length)
+    {
+      // Non-power-of-two stride padding is part of Carbon's virtual reservation.
+      const reservedSize = size + (Number.isInteger(Math.log2(alignment)) ? 0 : alignment - 1);
+      if (reservedSize > this.m_blockSize) return null;
       if ((this.m_blocks.length + 1) * this.m_blockSize > this.m_maxSize) return null;
-      if (!this.#AddBlock(renderContext)) return null;
-
-      offset = 0;
+      if (!this._AddBlock(renderContext)) return null;
+      if (!this.m_allocators[blockIndex].Allocate(size, alignment, reservation)) return null;
     }
 
     const allocation = new Tr2SuballocatedBufferAllocation();
-
-    allocation.m_buffer = this.m_blocks[this.m_blocks.length - 1];
-    allocation.m_offset = offset;
+    allocation.m_buffer = this.m_blocks[blockIndex];
+    allocation.m_allocation = reservation;
+    allocation.m_offset = reservation.offset;
     allocation.m_size = size;
     allocation.m_stride = stride;
     allocation.m_parent = this;
-
-    this.m_offset = offset + size;
     this.m_allocations.push(allocation);
-
-    if (data && Failed(allocation.Update(data, renderContext)))
+    try
     {
-      this.m_allocations.pop();
-
-      return null;
+      if (data && Failed(allocation.Update(data, renderContext)))
+      {
+        this.Free(allocation);
+        return null;
+      }
     }
-
+    catch (error)
+    {
+      this.Free(allocation);
+      throw error;
+    }
     return allocation;
   }
 
-  /** Carbon's `OnPrepareResources`: the block is a stride-4 byte pool. */
-  #AddBlock(renderContext)
+  /**
+   * Returns a registered allocation's reserved range and detaches its owner.
+   * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:66-84.
+   * Adapted: select the allocation's physical-block allocator and clear its
+   * direct buffer reference, which Carbon obtains through m_parent instead.
+   */
+  Free(allocation)
   {
+    if (!allocation.m_parent) return;
+    const index = this.m_allocations.indexOf(allocation);
+    if (index === -1)
+    {
+      CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("trinity"), "Memory corruption in Tr2SuballocatedBuffer::Free()! Trying to free an allocation that has already been freed!");
+      return;
+    }
+    const blockIndex = this.m_blocks.indexOf(allocation.m_buffer);
+    this.m_allocators[blockIndex].Free(allocation.m_allocation);
+    allocation.m_parent = null;
+    allocation.m_buffer = null;
+    this.m_allocations.splice(index, 1);
+  }
+
+  /**
+   * Creates the next byte pool through Carbon's buffer-description path.
+   * Custom: independent blocks replace the donor's single-buffer Expand copy.
+   */
+  _AddBlock(renderContext)
+  {
+    const allocator = new Tr2VirtualAllocator(this.m_blockSize, this.m_blockSize, this.m_blockSize);
     const description = Tr2BufferDescriptionAL.FromStride(4, this.m_blockSize / 4, this.m_gpuUsage, Tr2CpuUsage.WRITE);
     const block = renderContext.CreateBuffer(description, null);
-
     if (!block) return false;
-
     block.SetName(`${this.m_name} block ${this.m_blocks.length}`);
     this.m_blocks.push(block);
-    this.m_offset = 0;
-
+    this.m_allocators.push(allocator);
     return true;
   }
 
-  /** The most recent block, Carbon's one buffer. */
+  /** The most recent block; adapted from Carbon's single shared buffer. */
   GetBuffer()
   {
     return this.m_blocks[this.m_blocks.length - 1] ?? null;
   }
 
-  /** Every block this buffer has made. */
+  /** Custom: all physical blocks of the JavaScript growth adaptation. */
   GetBlocks()
   {
     return this.m_blocks;
   }
 
-  /** Releases every block and forgets every allocation. */
-  ReleaseResources()
+  /**
+   * Releases all blocks and allocations only for managed-memory storage.
+   * Source: trinity/trinity/Tr2SuballocatedBuffer.cpp:86-102.
+   * Adapted: Destroy replaces C++ AL destruction across the physical blocks.
+   */
+  ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
+    if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return;
     for (const block of this.m_blocks) block.Destroy();
-
+    while (this.m_allocations.length) this.Free(this.m_allocations[this.m_allocations.length - 1]);
     this.m_blocks = [];
-    this.m_offset = 0;
-
-    for (const allocation of this.m_allocations)
-    {
-      allocation.m_buffer = null;
-      allocation.m_size = 0;
-    }
-
-    this.m_allocations = [];
+    this.m_allocators = [];
   }
 }
-
 
 function Gcd(a, b)
 {
   while (b) [ a, b ] = [ b, a % b ];
-
   return a;
 }
 
@@ -178,3 +196,15 @@ function Lcm(a, b)
 {
   return (a * b) / Gcd(a, b);
 }
+
+CjsSchema.define(Tr2SuballocatedBuffer, {
+  className: "Tr2SuballocatedBuffer",
+  methods: {
+    Allocate: [ carbon.method, impl.adapted ],
+    Free: [ carbon.method, impl.adapted ],
+    GetBuffer: [ carbon.method, impl.adapted ],
+    ReleaseResources: [ carbon.method, impl.adapted ],
+    _AddBlock: [ impl.custom ],
+    GetBlocks: [ impl.custom ]
+  }
+});

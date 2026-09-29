@@ -16,8 +16,9 @@
 // buffer, so nothing above notices - except that two meshes in different
 // blocks cannot share one stream binding, which they could not anyway.
 //
-// Not ported: `Free` (Carbon's virtual allocator reclaims; ours is append-only
-// until the resource that owns the buffer releases it), `MapForReading`.
+// Free is explicit at the owning resource's release because JavaScript has no
+// deterministic Allocation destructor. MapForReading remains unported.
+import { CjsSchema, carbon, impl } from "#schema";
 
 
 /** `SHARED_BUFFER_BLOCK_SIZE` (`TriGeometryRes.h:15`). */
@@ -35,6 +36,9 @@ export class Tr2SuballocatedBufferAllocation
 {
   /** The block's `Tr2BufferAL`. */
   m_buffer = null;
+
+  /** Carbon's virtual reservation, including its native alignment padding. */
+  m_allocation = {};
 
   m_offset = 0;
 
@@ -74,10 +78,10 @@ export class Tr2SuballocatedBufferAllocation
     return this.m_stride ? Math.floor(this.m_offset / this.m_stride) : 0;
   }
 
-  /** Whether the allocation names a block and has any size. */
+  /** Whether the allocation still has its parent (Tr2SuballocatedBuffer.cpp:217-220). */
   IsValid()
   {
-    return this.m_buffer !== null && this.m_size > 0;
+    return this.m_parent !== null;
   }
 
   /**
@@ -94,3 +98,5 @@ export class Tr2SuballocatedBufferAllocation
     return this.m_buffer.UpdateBuffer(this.m_offset + offset, size, data, renderContext);
   }
 }
+
+CjsSchema.decorateMethod(Tr2SuballocatedBufferAllocation, "IsValid", carbon.method, impl.implemented);

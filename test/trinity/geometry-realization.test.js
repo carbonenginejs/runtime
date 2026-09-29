@@ -56,19 +56,20 @@ test("the suballocated buffer hands out element-aligned regions of one block, an
   assert.ok(first.GetBuffer() instanceof Tr2BufferALStub, "the context's kind of buffer");
   assert.deepEqual([ first.GetOffset(), first.GetSize(), first.GetStride(), first.GetStartIndex() ], [ 0, 80, 20, 0 ]);
 
-  // Stride 2 after 80 bytes: offset 80, start index 40. Carbon asserts
+  // Carbon's non-power-of-two alignment reserves 80 + 19 bytes for stride 20.
+  // The stride-2 write starts at byte 100, aligned to four. Carbon asserts
   // offset % stride == 0, so GetStartIndex is exact.
   const second = buffer.Allocate(2, 6, new Uint8Array(12), renderContext);
 
   assert.equal(second.GetBuffer(), first.GetBuffer(), "same block");
-  assert.deepEqual([ second.GetOffset(), second.GetStartIndex() ], [ 80, 40 ]);
+  assert.deepEqual([ second.GetOffset(), second.GetStartIndex() ], [ 100, 50 ]);
 
-  // Stride 12 must land on a multiple of 12 AND of 4: 96.
+  // Stride 12 must land on a multiple of 12 AND of 4: 120.
   const third = buffer.Allocate(12, 2, new Uint8Array(24), renderContext);
 
-  assert.deepEqual([ third.GetOffset(), third.GetStartIndex() ], [ 96, 8 ]);
+  assert.deepEqual([ third.GetOffset(), third.GetStartIndex() ], [ 120, 10 ]);
 
-  // 200 bytes do not fit the 256-byte block's remaining 136: a second block,
+  // 200 bytes do not fit after the padded reservations: a second block,
   // offset zero again - Carbon would Expand and copy; we add a block.
   const fourth = buffer.Allocate(4, 50, new Uint8Array(200), renderContext);
 
@@ -106,8 +107,8 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
   assert.equal(CreateLodAllocations(geometry, 0, lod, renderContext), true);
   assert.equal(lod.allocationsValid, true);
   assert.equal(lod.vertexAllocation.GetStride(), 20, "position + texcoord, already a multiple of four");
-  assert.equal(lod.vertexAllocation.GetOffset(), 200);
-  assert.equal(lod.vertexAllocation.GetStartIndex(), 10);
+  assert.equal(lod.vertexAllocation.GetOffset(), 220);
+  assert.equal(lod.vertexAllocation.GetStartIndex(), 11);
   assert.equal(lod.indexAllocation.GetStride(), 2);
   assert.equal(lod.indexAllocation.GetSize(), 12);
   assert.equal(lod.reversedIndicesValid, true);
@@ -128,7 +129,7 @@ test("a LOD's allocations are made once, with a reversed index copy, and the bat
   assert.equal(batch.indexBuffer, lod.indexAllocation.GetBuffer());
   assert.equal(batch.indexStride, 2);
   assert.equal(batch.indexCountPerInstance, 6);
-  assert.equal(batch.baseVertexLocation, 10, "the vertex allocation's start index");
+  assert.equal(batch.baseVertexLocation, 11, "the vertex allocation's start index");
   assert.equal(batch.startIndexLocation, lod.indexAllocation.GetStartIndex());
 
   // Reversed winding reads the reversed copy, Carbon's arithmetic

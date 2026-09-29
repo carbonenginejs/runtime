@@ -76,6 +76,8 @@ function ReversedIndices(bytes, format)
 
 /**
  * Makes a LOD's allocations in the shared buffer, once.
+ * Adapted: the lazy JS submit path explicitly unwinds partial allocations on
+ * failure or throw; Carbon releases failed index allocations before returning.
  *
  * @param {object} geometry The `TriGeometryRes`.
  * @param {number} meshIndex The mesh.
@@ -110,29 +112,40 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
   if (!vertices) return false;
 
   lod.vertexAllocation = vertices;
-
-  if (packed.index)
+  lod.indexAllocation = null;
+  lod.reversedIndexAllocation = null;
+  lod.reversedIndicesValid = false;
+  try
   {
-    const stride = packed.index.format === "uint32" ? 4 : 2;
+    if (packed.index)
+    {
+      const stride = packed.index.format === "uint32" ? 4 : 2;
+      lod.indexAllocation = shared.Allocate(stride, packed.index.count, packed.index.bytes, renderContext);
+      if (!lod.indexAllocation) return false;
 
-    lod.indexAllocation = shared.Allocate(stride, packed.index.count, packed.index.bytes, renderContext);
-    lod.reversedIndexAllocation = shared.Allocate(stride, packed.index.count, ReversedIndices(packed.index.bytes, packed.index.format), renderContext);
-    lod.reversedIndicesValid = lod.reversedIndexAllocation !== null;
+      lod.reversedIndexAllocation = shared.Allocate(stride, packed.index.count, ReversedIndices(packed.index.bytes, packed.index.format), renderContext);
+      if (!lod.reversedIndexAllocation) return false;
+      lod.reversedIndicesValid = true;
+    }
 
-    if (!lod.indexAllocation) return false;
+    lod.allocationsValid = true;
+    return true;
   }
-  else
+  finally
   {
-    lod.indexAllocation = null;
-    lod.reversedIndexAllocation = null;
-    lod.reversedIndicesValid = false;
+    // Carbon frees earlier allocations when either index allocation fails
+    // (TriGeometryRes.cpp:2048-2053, 2069-2074). A JS upload can also throw.
+    if (!lod.allocationsValid)
+    {
+      for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation" ])
+      {
+        const allocation = lod[field];
+        if (allocation?.m_parent) allocation.m_parent.Free(allocation);
+        lod[field] = null;
+      }
+      lod.reversedIndicesValid = false;
+    }
   }
-
-  // Carbon sets `m_primitiveCount` when it reads the mesh; resolveDrawArguments
-  // reads it through `getLodPrimitiveCount`, which falls back to the indices.
-  lod.allocationsValid = true;
-
-  return true;
 }
 
 

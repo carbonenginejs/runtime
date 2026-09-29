@@ -116,12 +116,31 @@ export class TriGeometryRes extends CjsResource
    * Carbon has no payload-only release: cpp:496-509 drops the meshes and the
    * raycast geometry together. A manager-driven release here must do the same,
    * or the raycaster keeps answering from meshes that are gone.
+   * Custom: JS has no deterministic LOD/Allocation destructor, so this bridge
+   * explicitly frees the vertex, index and reversed-index handles that Carbon
+   * destroys when ReleaseResourcesHelper clears m_meshes (cpp:1832-1838).
    *
    * @returns {TriGeometryRes} This resource.
    */
   ReleasePayload()
   {
     this.DestroyRayCaster();
+    const payload = this.GetPayload();
+    for (const mesh of payload?.meshes ?? [])
+    {
+      const lods = mesh.lods?.length ? mesh.lods : [ mesh ];
+      for (const lod of lods)
+      {
+        for (const field of [ "vertexAllocation", "indexAllocation", "reversedIndexAllocation" ])
+        {
+          const allocation = lod[field];
+          if (allocation?.m_parent) allocation.m_parent.Free(allocation);
+          lod[field] = null;
+        }
+        lod.allocationsValid = false;
+        lod.reversedIndicesValid = false;
+      }
+    }
     this._ForgetGrannyFile();
     return super.ReleasePayload();
   }
@@ -1371,7 +1390,7 @@ CjsSchema.define(TriGeometryRes, {
     HasRayCasterPreparationFailed: [ carbon.method, impl.adapted ],
     DestroyRayCaster: [ carbon.method, impl.adapted ],
     ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Carbon's CancelPendingLoad half is manager-owned here, and its SetGood(false)/SetPrepared(false) pair is one UNLOADED state.") ],
-    ReleasePayload: [ impl.custom, impl.reason("No Carbon counterpart: Carbon releases geometry only through ReleaseResources. The override exists so a manager-driven payload release cannot leave a raycaster built from the freed meshes behind.") ],
+    ReleasePayload: [ impl.custom ],
     GetIntersectionPoints: [ carbon.method, impl.adapted ],
     GetMeshVertexElements: [ carbon.method, impl.adapted ],
     SaveMesh: [ carbon.method, impl.notSupported ]

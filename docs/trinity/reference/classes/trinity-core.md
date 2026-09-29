@@ -423,6 +423,15 @@ One device-reported upscaling technique and the quality settings and frame gener
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2VirtualAllocator -->
+## `Tr2VirtualAllocator`
+
+Allocates aligned virtual byte ranges, reclaiming frees and expanding by reserved blocks.
+
+- Source: `src/trinity/core/device/Tr2VirtualAllocator.js`
+- Visibility: Internal
+- Kind: Carbon
+
 <!-- class:TriDevice -->
 ## `TriDevice`
 
