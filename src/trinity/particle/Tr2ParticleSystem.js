@@ -371,7 +371,8 @@ export class Tr2ParticleSystem extends CjsModel
    * Advances aging, forces, movement, emitters, constraints and bounds.
    * JS uses typed-array views in place of native particle pointers and takes
    * dt first for the existing script caller; dirty and previous-data flags
-   * follow Tr2ParticleSystem.cpp:615,713-726.
+   * follow Tr2ParticleSystem.cpp:615,713-726. Retained scratch replaces native
+   * stack copies of pre-integration position/velocity for segment emission.
    */
   @carbon.method
   @impl.adapted
@@ -415,6 +416,15 @@ export class Tr2ParticleSystem extends CjsModel
       {
         const positionValue = this.#getElementView(position, index);
         const velocityValue = this.#getElementView(velocity, index);
+        // Carbon cpp:663-664 keeps both pre-integration values for the
+        // six-argument during-life SpawnParticles overload (cpp:699-706).
+        const vec3_1 = Tr2ParticleSystem.scratch.vec3_1;
+        const vec3_2 = Tr2ParticleSystem.scratch.vec3_2;
+        if (this.emitParticleDuringLifeEmitter)
+        {
+          vec3.copy(vec3_1, positionValue);
+          vec3.copy(vec3_2, velocityValue);
+        }
         const massValue = mass ? this.#getElementView(mass, index)[0] : 1;
         if (this.applyForce && this.forces.length)
         {
@@ -439,7 +449,11 @@ export class Tr2ParticleSystem extends CjsModel
         positionValue[0] += velocityValue[0] * deltaTime;
         positionValue[1] += velocityValue[1] * deltaTime;
         positionValue[2] += velocityValue[2] * deltaTime;
-        this.#spawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
+        if (this.emitParticleDuringLifeEmitter)
+        {
+          this.emitParticleDuringLifeEmitter.SpawnParticles(updateArguments,
+            vec3_1, positionValue, vec3_2, velocityValue, deltaTime);
+        }
       }
       this.#bufferDirty = true;
       this.#previousDataOutdated = true;
@@ -1065,7 +1079,7 @@ export class Tr2ParticleSystem extends CjsModel
     }
   }
 
-  static scratch = { mat4_0: mat4.create(), vec3_0: vec3.create() };
+  static scratch = { mat4_0: mat4.create(), vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
   static #boundsMin = vec3.create();
 

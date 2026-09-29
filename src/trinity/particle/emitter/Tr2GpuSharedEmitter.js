@@ -317,21 +317,28 @@ export class Tr2GpuSharedEmitter extends CjsModel
   }
 
   /**
-   * Emits at a point (Tr2GpuSharedEmitter.cpp:149-163). JavaScript cannot
-   * overload methods: the six-argument native form is SpawnParticlesSegment.
+   * Dispatches Carbon's point/segment overloads (cpp:149-191). JavaScript
+   * cannot overload methods, so six arguments select SpawnParticlesSegment
+   * while the ordinary four-argument call retains point emission.
    * A reusable value copy preserves the continuous emitter's direction history.
    */
   @carbon.method
   @impl.adapted
-  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
   {
+    // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
+    // JS dispatches by their unambiguous four/six-argument call shapes.
+    if (arguments.length === 6)
+    {
+      return this.SpawnParticlesSegment(arguments_, position, velocity, rateModifier, velocityEnd, deltaTime);
+    }
     this._ReadParameters();
     this._SpawnPoint(arguments_, position, velocity, rateModifier);
   }
 
   /**
    * Emits along a segment (Tr2GpuSharedEmitter.cpp:165-191). The distinct name
-   * represents Carbon's second overload without argument-count inference.
+   * also exposes Carbon's second overload explicitly for existing JS callers.
    */
   @carbon.renamed("SpawnParticles")
   @impl.adapted

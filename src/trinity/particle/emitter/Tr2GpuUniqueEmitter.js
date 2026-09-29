@@ -100,13 +100,20 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
   }
 
   /**
-   * Scales the native point overload (cpp:55-86) using reusable value copies.
+   * Dispatches both native SpawnParticles overloads (cpp:55-120) by arity,
+   * since JavaScript cannot overload; scaling uses reusable value copies.
    * As in Carbon, spawning does not update the attractor's world position.
    */
   @carbon.method
   @impl.adapted
-  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1)
+  SpawnParticles(arguments_, position = null, velocity = null, rateModifier = 1, velocityEnd, deltaTime)
   {
+    // ITr2GenericEmitter.h:75/93 uses one name for the two native overloads.
+    // JS dispatches by their unambiguous four/six-argument call shapes.
+    if (arguments.length === 6)
+    {
+      return this.SpawnParticlesSegment(arguments_, position, velocity, rateModifier, velocityEnd, deltaTime);
+    }
     this._ReadParameters();
     const emitter = this._emitter;
     const params = this._params;
@@ -128,7 +135,7 @@ export class Tr2GpuUniqueEmitter extends Tr2GpuSharedEmitter
 
   /**
    * Scales Carbon's segment overload (cpp:88-120) with separate scratch from
-   * shared spawning. The renamed overload avoids JavaScript arity dispatch.
+   * shared spawning. The renamed entry remains available to existing callers.
    */
   @carbon.renamed("SpawnParticles")
   @impl.adapted
