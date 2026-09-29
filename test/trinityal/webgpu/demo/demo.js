@@ -126,6 +126,7 @@ import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
 import { POST_TEMPLATES } from "./postTemplates.js";
 import { createDemoActions } from "./demoActions.js";
+import { createCameraControls, readShipBounds } from "./cameraControls.js";
 import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
@@ -2743,11 +2744,10 @@ function FitCanvas(canvas, renderTarget, frame)
  * are inverted (operator preference): dragging moves the view the other way.
  *
  * @param {HTMLCanvasElement} canvas The canvas receiving input.
- * @param {EveCamera} camera The camera.
- * @param {object} bounds Centre and radius of the hull.
+ * @param {object} controls Shared semantic camera controls.
  * @returns {void}
  */
-function BindCameraInput(canvas, camera, bounds)
+function BindCameraInput(canvas, controls)
 {
   let last = null;
 
@@ -2765,13 +2765,13 @@ function BindCameraInput(canvas, camera, bounds)
   {
     if (!last) return;
     // Vertical drag is inverted at the operator's preference.
-    camera.OrbitParent((last[0] - event.clientX) * 0.1, (event.clientY - last[1]) * 0.1);
+    controls.orbit(event.clientX - last[0], event.clientY - last[1]);
     last = [ event.clientX, event.clientY ];
   });
   canvas.addEventListener("wheel", event =>
   {
     event.preventDefault();
-    camera.Dolly(Math.sign(event.deltaY) * bounds.radius * 0.1);
+    controls.dolly(event.deltaY);
   }, { passive: false });
 }
 
@@ -3277,7 +3277,12 @@ export async function RunDemo(canvas)
   const frame = PerFrameData(canvas.width, canvas.height);
   const camera = OrbitCamera(bounds);
 
-  BindCameraInput(canvas, camera, bounds);
+  const cameraSphere = new Float32Array(4);
+  const controls = createCameraControls({ camera,
+    getViewport: () => ({ width: canvas.clientWidth, height: canvas.clientHeight }),
+    getBounds: () => readShipBounds(ship, bounds, cameraSphere)
+  });
+  BindCameraInput(canvas, controls);
   WriteCamera(frame, camera, canvas.width, canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
@@ -3310,6 +3315,7 @@ export async function RunDemo(canvas)
     renderable,
     perObject,
     camera,
+    cameraControls: controls,
     frame,
     SetWorld: world => SetWorld(perObject, world),
     param: (areaName, parameterName) => areas
@@ -4208,6 +4214,7 @@ export async function RunDemo(canvas)
     onShipChanged: (next, previous) =>
     {
       if (!next) return;
+      controls.cancel();
       const hullChanged = next.mesh.geometryResPath !== previous?.mesh.geometryResPath;
       next.UpdateWorldBounds();
       const sphere = new Float32Array(4);
