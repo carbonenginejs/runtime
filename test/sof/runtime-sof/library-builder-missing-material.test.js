@@ -51,3 +51,16 @@ test("without an index probe a failed fetch rejects, as before", async () =>
   await assert.rejects(lib.FetchMaterial(MISSING), /502 Bad Gateway/u);
   assert.throws(() => builder({ exists: "yes" }), /exists must be a function/u);
 });
+
+test("an asynchronous index probe shares one in-flight lookup and preserves errors", async () =>
+{
+  let probes = 0;
+  const reads = [];
+  const lib = builder({ exists: async path => { probes++; return !path.includes(MISSING); }, reads });
+  assert.deepEqual(await Promise.all([lib.FetchMaterial(MISSING), lib.FetchMaterial(MISSING)]), [null, null]);
+  assert.equal(probes, 1);
+  assert.deepEqual(reads, []);
+  await assert.rejects(lib.FetchMaterial(LISTED), /502 Bad Gateway/u);
+  const broken = builder({ exists: async () => { throw new Error("index offline"); } });
+  await assert.rejects(broken.FetchMaterial(MISSING), /index offline/u);
+});

@@ -353,7 +353,9 @@ export class EveSOF extends CjsModel
    *   the async builds.
    * - `lazyData`: `true` installs a `CjsSofLibraryBuilder` whose source is
    *   `resources.getObject` (runtime output); an options object may supply
-   *   its own `source` returning decoded objects or Black bytes; a
+   *   its own `source` returning decoded objects or Black bytes. The builder
+   *   uses resources.exists for absent materials unless lazyData supplies its
+   *   own exists probe (or null to disable it). An existing
    *   `CjsSofLibraryBuilder` is installed as is (it must update this
    *   factory's data manager); `false`/`null` removes it.
    * - `paths`: the paths service (an IBluePaths: `FileExists(path)`) that
@@ -366,8 +368,12 @@ export class EveSOF extends CjsModel
    * - `allowFileCaching`, `alphaCutoutShadowsEnabled`, `volumetricTrailPath`,
    *   `buildTime`, `editorMode`: copied onto the matching fields.
    *
+   * Custom: configures the JS values builder and its asynchronous per-file
+   * resource source; Carbon loads the monolithic catalog synchronously.
+   *
    * @throws {TypeError} for a malformed option value.
    */
+  @impl.custom
   Register(options = {})
   {
     if (!options || typeof options !== "object" || Array.isArray(options))
@@ -435,6 +441,7 @@ export class EveSOF extends CjsModel
         });
         this.SetSofLibraryBuilder(new CjsSofLibraryBuilder({
           ...builderOptions,
+          exists: Object.hasOwn(builderOptions, "exists") ? builderOptions.exists : this._asyncResources.exists,
           dataMgr: this.dataMgr,
           source
         }));

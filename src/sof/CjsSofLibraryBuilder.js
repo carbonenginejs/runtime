@@ -1,3 +1,4 @@
+import { impl } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
@@ -71,7 +72,9 @@ const CATALOGS = {
  * So with an `exists` probe (the host's file index: BePaths FileExists) a
  * material the index lacks resolves to null, logged once per name. A listed
  * material whose fetch fails still rejects, and without a probe nothing
- * changes.
+ * changes. The probe may be asynchronous, like EveSOF resources.exists.
+ * The once-per-name warning is a custom lazy-fetch diagnostic; Carbon
+ * GetMaterialData itself is silent.
  */
 export class CjsSofLibraryBuilder
 {
@@ -116,7 +119,7 @@ export class CjsSofLibraryBuilder
     }
     if (exists !== null && typeof exists !== "function")
     {
-      throw new TypeError("CjsSofLibraryBuilder exists must be a function (path) => boolean, or null.");
+      throw new TypeError("CjsSofLibraryBuilder exists must be a function (path) => boolean or Promise<boolean>, or null.");
     }
     this._exists = exists;
     this.data = new EveSOFData();
@@ -320,7 +323,13 @@ export class CjsSofLibraryBuilder
     };
   }
 
-  /** Loads, normalizes, and publishes one named catalog record. */
+  /**
+   * Loads, normalizes, and publishes one named catalog record.
+   * Custom: per-file async loading and its once-per-name absence warning replace
+   * a monolithic catalog; Carbon EveSOFDataMgr.cpp:273-281 returns null silently.
+   * Missing materials stay absent, so native parameter fallback still applies.
+   */
+  @impl.custom
   async _FetchNamed(kind, nameOrPath, options)
   {
     const force = requireForceOption(options);
@@ -337,23 +346,26 @@ export class CjsSofLibraryBuilder
     const existing = this._pending.get(key);
     if (existing) return existing;
 
-    // Carbon's GetMaterialData nullptr: a material the index does not list.
-    if (kind === "material" && this._exists !== null && !this._exists(request.path))
+    const operation = (async () =>
     {
-      if (!this._absentReported.has(request.name))
+      // Carbon's GetMaterialData nullptr: a material the index does not list.
+      if (kind === "material" && this._exists !== null && !await this._exists(request.path))
       {
-        this._absentReported.add(request.name);
-        CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "SOF material %s is not in the file index; it is absent", request.name);
+        if (!this._absentReported.has(request.name))
+        {
+          this._absentReported.add(request.name);
+          CcpLog.CCP_LOGWARN_CH(CcpLog.GetModuleChannel("trinity"), "SOF material %s is not in the file index; it is absent", request.name);
+        }
+        return null;
       }
-      return null;
-    }
 
-    const operation = this._Read(request.path, {
-      kind,
-      name: request.name,
-      role: "sofCatalog",
-      signal: options.signal ?? null
-    }).then(value => this._PublishNamed(kind, request, value));
+      return this._PublishNamed(kind, request, await this._Read(request.path, {
+        kind,
+        name: request.name,
+        role: "sofCatalog",
+        signal: options.signal ?? null
+      }));
+    })();
     this._pending.set(key, operation);
     const clear = () =>
     {
