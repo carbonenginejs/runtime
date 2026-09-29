@@ -903,10 +903,22 @@ export class CjsResource
   }
 
   /**
-   * Remove all adapter resources and optionally call their destroy/dispose methods.
+   * Remove the opaque slots registered through SetAdapterResource.
    *
-   * @param {object} options
-   * @returns {CjsResource}
+   * Custom: this JS adapter registry has no Carbon counterpart. Carbon releases
+   * texture and mesh allocations on their owning resources, so their JS
+   * ReleaseResources/ReleasePayload paths retain that ownership. This method
+   * visits only __adapterResources: it does not release TriTextureRes.texture,
+   * loadedBitmap, or geometry LOD allocations. Full cache cleanup invokes both
+   * this method and the resource's ReleasePayload.
+   *
+   * Teardown delegates to destroyAdapterValue, which selects the first truthy
+   * Destroy, Dispose, destroy, or dispose member and calls it when callable.
+   * Passing destroy: false removes the slots without calling teardown.
+   *
+   * @param {object} [options={}] Adapter teardown options.
+   * @param {boolean} [options.destroy=true] Whether to call registered teardown.
+   * @returns {CjsResource} This resource after removing the slots.
    */
   DestroyAdapterResources(options = {}) {
     for (const key of Object.keys(this.__adapterResources)) {
@@ -977,7 +989,8 @@ CjsSchema.define(CjsResource, {
     HasLoaded: [ carbon.method, impl.adapted ],
     IsPrepared: [ carbon.method, impl.adapted ],
     IsGood: [ carbon.method, impl.adapted ],
-    IsFailed: [ carbon.method, impl.adapted ]
+    IsFailed: [ carbon.method, impl.adapted ],
+    DestroyAdapterResources: [ impl.custom ]
   }
 });
 
