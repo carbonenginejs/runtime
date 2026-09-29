@@ -253,7 +253,7 @@ export class EveChildParticleSystem extends EveChildTransform
     }
     for (const system of this.particleSystems)
     {
-      system?.SortParticles?.();
+      system.SortParticles();
     }
     renderables.push(this);
     return renderables;

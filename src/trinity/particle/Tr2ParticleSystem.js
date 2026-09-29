@@ -2,6 +2,7 @@
 // Hand-maintained from Carbon source, promoted out of generated intake.
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { Failed } from "../../trinityal/ALResult.js";
 import { Tr2BufferDescriptionAL } from "../../trinityal/Tr2BufferAL/Tr2BufferDescriptionAL.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2RenderContext.js";
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
@@ -56,6 +57,14 @@ export class Tr2ParticleSystem extends CjsModel
   #bufferDirty = true;
 
   #previousDataOutdated = true;
+
+  #sortingAllowed = true;
+
+  #sortingReferencePoint = vec3.create();
+
+  #indexes = [];
+
+  #mappedData = null;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
   @edit.read
@@ -179,6 +188,7 @@ export class Tr2ParticleSystem extends CjsModel
   {
     this.#vertexBuffer?.Destroy();
     this.#vertexBuffer = null;
+    this.#mappedData = null;
     this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
     this.aliveCount = 0;
     for (let index = 0; index < this.#buffers.length; index++)
@@ -463,7 +473,7 @@ export class Tr2ParticleSystem extends CjsModel
    * Carbon's per-frame system update: stamps the system world transform into a
    * nominal emitter argument record, applies the visibility-driven update
    * cadence, preserves previous-frame data, and advances CPU particles.
-   * JS timestamps are seconds; sorting hysteresis is ported with SortParticles.
+   * JS timestamps are seconds; native sorting hysteresis uses that delta.
    */
   @impl.adapted
   Update(globalArguments)
@@ -507,6 +517,8 @@ export class Tr2ParticleSystem extends CjsModel
     }
     const dt = Math.min(time - this.#lastUpdate, 1 / 3);
     this.#lastUpdate = time;
+    if (dt > 0.035 && this.#sortingAllowed) this.#sortingAllowed = false;
+    else if (!this.#sortingAllowed && dt < 0.02) this.#sortingAllowed = true;
     return this.UpdateSimulation(dt, argumentsValue);
   }
 
@@ -552,6 +564,7 @@ export class Tr2ParticleSystem extends CjsModel
     this.#declaration = Tr2EffectStateManager.Unknown;
     this.#vertexBuffer?.Destroy();
     this.#vertexBuffer = null;
+    this.#mappedData = null;
     this.#bufferDirty = true;
   }
 
@@ -576,6 +589,7 @@ export class Tr2ParticleSystem extends CjsModel
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
       this.#vertexBuffer?.Destroy();
+      this.#mappedData = null;
       this.#vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
         this.#strides[0] * 4, this.maxParticleCount,
         Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
@@ -832,16 +846,19 @@ export class Tr2ParticleSystem extends CjsModel
 
   /**
    * Copies the owning transform and derives Carbon's conservative particle
-   * sorting visibility state from the current CPU bounds.
+   * sorting visibility state from the current CPU bounds. JS uses gl-matrix
+   * vectors with Carbon-identical single-transform layout.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Backend buffer validity and upload dirtiness stay engine-owned; Trinity preserves the world transform, bounds test, and update-period decision.")
   UpdateViewDependentData(frustum, worldTransform)
   {
+    this.#shouldSortVisible = false;
+    mat4.copy(this.#worldTransform, worldTransform);
+    if (!this.#bufferDirty && !this.requiresSorting) return;
+    if (!this.#vertexBuffer || !this.#vertexBuffer.IsValid()) return;
     this.#shouldSortVisible = true;
     this.#updatePeriod = 1;
-    mat4.copy(this.#worldTransform, worldTransform);
 
     if (!frustum || !this.GetBoundingBox(Tr2ParticleSystem.#boundsMin, Tr2ParticleSystem.#boundsMax))
     {
@@ -872,6 +889,85 @@ export class Tr2ParticleSystem extends CjsModel
       this.#shouldSortVisible = false;
       this.#updatePeriod = 4;
     }
+  }
+
+  /**
+   * Sorts live indices far-to-near and uploads full current/previous records.
+   * Carbon's parallel sort becomes synchronous JS Array.sort over a reused
+   * index array (resized to the live prefix, instead of native capacity).
+   * The ambient context owns the port's cached view position. Mapped bytes
+   * receive a Float32Array view; finally replaces native ON_BLOCK_EXIT.
+   * gl-matrix returns null for a singular inverse, so NaNs explicitly retain
+   * invalid coordinates instead of reusing a stale inverse.
+   */
+  @impl.adapted
+  SortParticles()
+  {
+    if (!this.#bufferDirty && !this.requiresSorting) return;
+    if (!this.#vertexBuffer || !this.#vertexBuffer.IsValid()) return;
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    const { mat4_0, vec3_0 } = Tr2ParticleSystem.scratch;
+    if (!mat4.invert(mat4_0, this.#worldTransform)) mat4_0.fill(NaN);
+    vec3.transformMat4(vec3_0, context.GetViewPosition(), mat4_0);
+    if (!this.#bufferDirty && vec3.squaredDistance(vec3_0, this.#sortingReferencePoint) < 0.001) return;
+    vec3.copy(this.#sortingReferencePoint, vec3_0);
+
+    if (this.aliveCount > 0)
+    {
+      const sorted = this.#shouldSortVisible && this.#sortingAllowed && this.requiresSorting &&
+        this.HasElement(Tr2ParticleElementDeclaration.Type.POSITION);
+      if (sorted)
+      {
+        this.#indexes.length = this.aliveCount;
+        for (let index = 0; index < this.aliveCount; index++) this.#indexes[index] = index;
+        this.#indexes.sort((a, b) => this.CompareParticles(a, b) ? -1 : this.CompareParticles(b, a) ? 1 : 0);
+      }
+      const mapping = this.#vertexBuffer.MapForWriting(context);
+      if (Failed(mapping.result)) return;
+      try
+      {
+        if (!this.#mappedData || this.#mappedData.buffer !== mapping.data.buffer ||
+          this.#mappedData.byteOffset !== mapping.data.byteOffset || this.#mappedData.byteLength !== mapping.data.byteLength)
+        {
+          this.#mappedData = new Float32Array(mapping.data.buffer, mapping.data.byteOffset, mapping.data.byteLength / 4); // alloc: retained variable-length view of the AL mapping, reused until its backing range changes
+        }
+        const data = this.#mappedData;
+        const source = this.#buffers[0];
+        const stride = this.#strides[0];
+        if (sorted)
+        {
+          for (let index = 0; index < this.aliveCount; index++)
+          {
+            const offset = this.#indexes[index] * stride;
+            data.set(source.subarray(offset, offset + stride), index * stride);
+          }
+        }
+        else
+        {
+          data.set(source.subarray(0, this.aliveCount * stride));
+        }
+      }
+      finally
+      {
+        this.#vertexBuffer.UnmapForWriting(context);
+      }
+    }
+    this.#bufferDirty = false;
+    this.#shouldSortVisible = false;
+  }
+
+  /** Compares squared local-space xyz distances, with Carbon's farther-first boolean result. */
+  @impl.implemented
+  CompareParticles(particle1, particle2)
+  {
+    const position = this.#semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
+    const buffer = position.buffer;
+    const offset1 = position.startOffset + position.instanceStride * particle1;
+    const offset2 = position.startOffset + position.instanceStride * particle2;
+    const point = this.#sortingReferencePoint;
+    const x1 = buffer[offset1] - point[0], y1 = buffer[offset1 + 1] - point[1], z1 = buffer[offset1 + 2] - point[2];
+    const x2 = buffer[offset2] - point[0], y2 = buffer[offset2 + 1] - point[1], z2 = buffer[offset2 + 2] - point[2];
+    return x2 * x2 + y2 * y2 + z2 * z2 < x1 * x1 + y1 * y1 + z1 * z1;
   }
 
   /** Copies the owning world transform without evaluating view state. */
@@ -968,6 +1064,8 @@ export class Tr2ParticleSystem extends CjsModel
       vec3.max(this.aabbMax, this.aabbMax, value);
     }
   }
+
+  static scratch = { mat4_0: mat4.create(), vec3_0: vec3.create() };
 
   static #boundsMin = vec3.create();
 

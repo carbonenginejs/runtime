@@ -82,6 +82,10 @@ test("real cf2_t2a survives payload expiry and retained handles reload after rel
 
 async function settle(resource)
 {
-  for (let i = 0; i < 200 && !resource.IsPrepared() && !resource.IsFailed(); i++) await new Promise(resolve => setImmediate(resolve));
+  // Allow the manager's asynchronous load queue to complete under a full
+  // corpus run; 200 empty event-loop turns can finish before its timer fires.
+  const deadline = Date.now() + 5000;
+  while (!resource.IsPrepared() && !resource.IsFailed() && Date.now() < deadline)
+    await new Promise(resolve => setTimeout(resolve, 5));
   assert.equal(resource.IsPrepared(), true, "automatic recovery completes into the same retained resource");
 }

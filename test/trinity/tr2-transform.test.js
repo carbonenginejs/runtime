@@ -7,6 +7,7 @@ import { vec3 } from "../../npm/dist/global/math/vec3.js";
 import * as core from "../../npm/dist/trinity/core/index.js";
 import * as generatedCore from "../../npm/dist/trinity/generated/trinityCore/index.js";
 import * as trinity from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
 
 const EPSILON = 1e-5;
@@ -180,14 +181,22 @@ test("Tr2Transform camera and mesh contracts fail visibly when malformed", () =>
   assert.throws(() => transform.GetBatches({}, 0, null, 0), /GetAreas/u);
 });
 
-test("Eve transforms inherit the maintained base and drive particle view state directly", () =>
+test("Eve transforms inherit the maintained base and drive particle view state directly", t =>
 {
   assert.ok(new trinity.EveTransform() instanceof core.Tr2Transform);
   assert.ok(new trinity.EveRootTransform() instanceof core.Tr2Transform);
   assert.ok(new trinity.EveMissileWarhead() instanceof core.Tr2Transform);
 
   const transform = new trinity.EveTransform();
+  const ambient = core.Tr2RenderContext_GetMainThreadRenderContext();
+  const previousAL = ambient.GetRenderContextAL();
+  const al = new Tr2RenderContextALStub();
+  ambient.SetRenderContextAL(al); al.CreateDevice();
   const particles = new trinity.Tr2ParticleSystem();
+  particles.maxParticleCount = 1;
+  particles.elements.push(Object.assign(new trinity.Tr2ParticleElementDeclaration(), {elementType: 1}));
+  particles.Initialize();
+  t.after(() => {particles.ReleaseResources(); ambient.SetRenderContextAL(previousAL);});
   particles.aliveCount = 1;
   particles.aabbMin.set([ -1, -2, -3 ]);
   particles.aabbMax.set([ 3, 4, 5 ]);

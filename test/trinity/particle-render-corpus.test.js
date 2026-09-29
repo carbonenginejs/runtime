@@ -6,7 +6,8 @@ import { join } from "node:path";
 import test from "node:test";
 import { blue } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
-import { EveChildParticleSystem, Tr2EffectStateManager,
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
+import { EveChildParticleSystem, Tr2EffectStateManager, ITr2GenericEmitterUpdateArguments,
   Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { StubResMan } from "../support/stubResMan.js";
@@ -57,6 +58,35 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
     const lifetime = system.GetParticleElement(i, 0);
     assert.ok(lifetime[1] >= 6.25 && lifetime[1] <= 8);
   }
+  const args = new ITr2GenericEmitterUpdateArguments(); args.time = 1;
+  system.Update(args);
+  const cpu = system.GetElement(1).buffer.slice();
+  const stride = data.stride / 4;
+  const position = system.GetElement(1);
+  const indices = [0, 1].sort((a, b) =>
+  {
+    const p = system.GetParticleElement(a, 1), q = system.GetParticleElement(b, 1);
+    return Math.hypot(...q) - Math.hypot(...p);
+  });
+  let mapped = null, unmaps = 0;
+  const buffer = system.GetGpuBuffer();
+  const map = buffer.MapForWriting.bind(buffer), unmap = buffer.UnmapForWriting.bind(buffer);
+  buffer.MapForWriting = context => {const result = map(context); mapped = result.data; return result;};
+  buffer.UnmapForWriting = context => {unmaps++; unmap(context);};
+  system.UpdateViewDependentData(null, mat4.create());
+  child._isVisible = false; child.GetRenderables([]);
+  assert.equal(mapped, null, "native invisible child does not sort or upload");
+  child._isVisible = true;
+  assert.deepEqual(child.GetRenderables([]), [child]);
+  assert.ok(mapped, "EveChildParticleSystem.cpp:130 requires SortParticles upload before publication");
+  assert.equal(unmaps, 1);
+  const uploaded = new Float32Array(mapped.buffer, mapped.byteOffset, mapped.byteLength / 4);
+  for (let i = 0; i < 2; i++)
+  {
+    assert.deepEqual(uploaded.subarray(i * stride, (i + 1) * stride), cpu.subarray(indices[i] * stride, (indices[i] + 1) * stride),
+      "Tr2ParticleSystem.cpp:1114 copies the entire sorted record, including previous frame");
+  }
+  assert.deepEqual(position.buffer, cpu, "GPU sorting preserves real simulation order");
   const original = system.GetGpuBuffer();
   system.ReleaseResources();
   assert.equal(original.IsValid(), false, "negative control: releasing the AL allocation removes render readiness");
@@ -64,5 +94,5 @@ test("real Crisis Dark_Front smoke emits into Carbon's physical particle layout"
   assert.equal(system.aliveCount, 2);
   system.OnPrepareResources();
   assert.equal(system.GetGpuBuffer().IsValid(), true);
-  t.diagnostic("Crisis Dark_Front: two emitted CPU particles, 128-byte instance records, 2560-byte AL allocation");
+  t.diagnostic("Crisis Dark_Front: two emitted CPU particles, 128-byte instance records, 2560-byte AL allocation; visible child uploads two far-to-near records");
 });
