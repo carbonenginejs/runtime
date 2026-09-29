@@ -127,6 +127,8 @@ import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/inde
 import { POST_TEMPLATES } from "./postTemplates.js";
 import { createDemoActions } from "./demoActions.js";
 import { createCameraControls, readShipBounds } from "./cameraControls.js";
+import { createDemoInput } from "./input.js";
+import { Tr2MainWindow } from "../../../../npm/dist/input/index.js";
 import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../../../npm/dist/global/blue/index.js";
 import {
   ResourceRequirement,
@@ -2737,46 +2739,6 @@ function FitCanvas(canvas, renderTarget, frame)
 
 
 /**
- * Drags orbit the camera and the wheel dollies it, through Carbon's verbs.
- *
- * `OrbitParent` scales by the camera's `maxSpeed` (0.05 rad per unit), so
- * pixels are scaled down to keep a full-width drag near one turn. Both axes
- * are inverted (operator preference): dragging moves the view the other way.
- *
- * @param {HTMLCanvasElement} canvas The canvas receiving input.
- * @param {object} controls Shared semantic camera controls.
- * @returns {void}
- */
-function BindCameraInput(canvas, controls)
-{
-  let last = null;
-
-  canvas.addEventListener("pointerdown", event =>
-  {
-    last = [ event.clientX, event.clientY ];
-    canvas.setPointerCapture(event.pointerId);
-  });
-  canvas.addEventListener("pointerup", event =>
-  {
-    last = null;
-    canvas.releasePointerCapture(event.pointerId);
-  });
-  canvas.addEventListener("pointermove", event =>
-  {
-    if (!last) return;
-    // Vertical drag is inverted at the operator's preference.
-    controls.orbit(event.clientX - last[0], event.clientY - last[1]);
-    last = [ event.clientX, event.clientY ];
-  });
-  canvas.addEventListener("wheel", event =>
-  {
-    event.preventDefault();
-    controls.dolly(event.deltaY);
-  }, { passive: false });
-}
-
-
-/**
  * The scene's per-frame blocks, with everything but the camera filled.
  *
  * @param {number} width Viewport width in pixels.
@@ -3283,7 +3245,6 @@ export async function RunDemo(canvas)
     getBounds: () => readShipBounds(ship, bounds, cameraSphere)
   });
   controls.frame();
-  BindCameraInput(canvas, controls);
   WriteCamera(frame, camera, canvas.width, canvas.height);
 
   // The hull sits at the origin, so the camera does the framing and the world
@@ -4370,6 +4331,30 @@ export async function RunDemo(canvas)
   };
   await flare.select(FLARE);
 
+  const liveInput = new URLSearchParams(globalThis.location?.search ?? "").get("still") !== "1";
+  const mainWindow = new Tr2MainWindow({ window: globalThis.window, document: globalThis.document, target: canvas });
+  canvas.tabIndex = 0;
+  const input = createDemoInput({ mainWindow, canvas, document: globalThis.document, controls, actions,
+    isEnabled: () => liveInput,
+    showHelp: () => document.getElementById("camera-controls")?.scrollIntoView(),
+    onError: error => console.warn(`demo input: ${error.message}`)
+  });
+  globalThis.demo.input = input;
+  let disposed = false;
+  const dispose = () => {
+    if (disposed) return;
+    disposed = true; input.dispose(); controls.dispose(); actions.dispose();
+    globalThis.removeEventListener("pagehide", dispose);
+  };
+  globalThis.addEventListener("pagehide", dispose);
+  globalThis.demo.dispose = dispose;
+  if (!liveInput) {
+    const note = document.createElement("div");
+    note.textContent = "Still frame: live camera and keyboard controls are disabled.";
+    note.style.cssText = "position:fixed;left:12px;bottom:12px;background:#111;padding:8px";
+    document.body.append(note);
+  }
+
   BuildSettingsPanel({
     driver,
     postState,
@@ -4644,13 +4629,18 @@ export async function RunDemo(canvas)
 
     const fpsMeter = CreateFpsMeter();
 
+    let previousTimestamp = performance.now();
     const tick = timestamp =>
     {
+      if (disposed) return;
+      const dt = (timestamp - previousTimestamp) / 1000;
+      previousTimestamp = timestamp;
       fpsMeter.Sample(timestamp);
       try
       {
         FitCanvas(canvas, renderTarget, frame);
         controls.resize();
+        input.update(dt);
         WriteCamera(frame, camera, canvas.width, canvas.height);
         if (spinning)
         {

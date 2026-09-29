@@ -349,7 +349,8 @@ export class Tr2MainWindow
     #listen(target, type, listener)
     {
         if (typeof target?.addEventListener !== "function") return;
-        target.addEventListener(type, listener);
+        // Browser wheel consumers must be able to cancel page scrolling.
+        target.addEventListener(type, listener, type === "wheel" ? { passive: false } : undefined);
         this.#listeners.push([ target, type, listener ]);
     }
 
