@@ -1,4 +1,4 @@
-﻿// EveSpaceObject2's PERSISTENT per-object records.
+// EveSpaceObject2's PERSISTENT per-object records.
 //
 // Carbon fills m_vsData/m_psData during update and reads them back afterwards,
 // so the records are owner-held rather than pool leases. Every matrix in them is
@@ -11,7 +11,8 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveCustomMask, EveSpaceObject2, EveTurretSet } from "../../npm/dist/trinity/index.js";
+import { EveCustomMask, EveSpaceObject2, EveTurretSet, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
 
@@ -196,13 +197,19 @@ test("EveSpaceObject2 copies both records out of GetPerObjectStructs", () =>
 });
 
 
-test("EveTurretSet fills the VS/PS pair from its turrets and parent data", () =>
+test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
 {
   const set = new EveTurretSet();
   const store = makePerObjectStore();
   const parentTransform = makeTransform();
 
-  set.geometryResource = {};
+  Tr2RingBuffer.ResetInstances();
+  t.after(() => Tr2RingBuffer.ResetInstances());
+  const context = new Tr2RenderContext(), al = new Tr2RenderContextALStub();
+  al.CreateDevice({ mode: { width: 64, height: 64 } });
+  context.SetRenderContextAL(al);
+  Tr2RingBuffer.GetInstance("Float4x3", 48, context);
+  set.geometryResource = { IsGood: () => true, GetMeshCount: () => 1 };
   set.bottomClipHeight = 1.5;
   set.SetTurrets([
     { localMatrix: mat4.create(), valid: true, localPosition: [ 1, 2, 3, 1 ], localQuaternion: [ 0, 0, 0, 1 ] },

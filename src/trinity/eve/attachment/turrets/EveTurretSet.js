@@ -4,6 +4,7 @@
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
+import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { EveTurretFiringFX } from "./EveTurretFiringFX.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
 import { EVE_TURRET_RANDOM_DELAY_MAX, EveTurretTarget } from "./EveTurretTarget.js";
@@ -15,6 +16,8 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../../core/device/Tr2RingBuffer/index.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -384,7 +387,7 @@ export class EveTurretSet extends EveEntity
    * m_parentData - the hull values an attachment renders with, refreshed by the
    * parent through IEveSpaceObject2::GetParentData.
    */
-  _parentData = {};
+  _parentData = new IEveSpaceObject2ParentData();
 
   /**
    * m_skeletonBoneIndices - the shader's bone mapping, shared by every turret
@@ -406,6 +409,12 @@ export class EveTurretSet extends EveEntity
   _turretVertexDecl = [];
   _turretVertexDeclElementCount = 0;
   _boneBounds = [];
+
+  /** Native per-consumer cursor into the shared Float4x3 ring. */
+  _boneOffsets = new Tr2RingBufferOffsets();
+
+  /** Retained CPU packing storage, grown only when mount/binding capacity grows. */
+  _boneTransforms = null;
 
   /** Stable resource callbacks preserve native notify ownership across reloads. */
   #geometryCompleted = (_event, resource) => {
@@ -1361,7 +1370,6 @@ export class EveTurretSet extends EveEntity
   @impl.implemented
   UpdateTurretTransforms(parentTransform = this._parentTransform)
   {
-    mat4.copy(this._parentTransform, parentTransform);
     for (const turret of this._turrets)
     {
       mat4.multiply(turret.worldMatrix, parentTransform, turret.localMatrix);
@@ -1407,7 +1415,6 @@ export class EveTurretSet extends EveEntity
   UpdateSyncronous(context, parentTransform = this._parentTransform)
   {
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
-    if (parentTransform?.length === 16) mat4.copy(this._parentTransform, parentTransform);
     if (this.firingEffect)
     {
       if (this._activeTurret !== EveTurretSet.INVALID_INDEX && this.firingEffect.IsLooping?.() && this.state === EveTurretSet.State.STATE_FIRING)
@@ -1442,6 +1449,7 @@ export class EveTurretSet extends EveEntity
   @impl.adapted
   UpdateAsyncronous(context, parentData = this._parentTransform)
   {
+    this._boneOffsets.AdvanceFrame();
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
     this.#animationTime += Math.max(0, deltaTime);
     const parentTransform = parentData?.transform?.length === 16 ? parentData.transform : parentData;
@@ -1450,12 +1458,26 @@ export class EveTurretSet extends EveEntity
       // The OUTGOING parent transform becomes m_shipTransformPrev before the
       // new one is adopted, so the record can carry both.
       mat4.copy(this._shipTransformPrev, this._parentTransform);
+      mat4.copy(this._parentTransform, parentTransform);
+      mat4.copy(this._parentData.transform, parentTransform);
       this.UpdateTurretTransforms(parentTransform);
     }
     if (parentData && parentData !== this._parentTransform && !ArrayBuffer.isView(parentData) && !Array.isArray(parentData))
     {
-      this._parentData = parentData;
+      // Carbon copies ParentData by value (cpp:1407); the hull reuses its
+      // source record next frame, so retain owned vector values here.
+      const parent = this._parentData;
+      vec4.copy(parent.shipData, parentData.shipData ?? EveTurretSet._zero4);
+      vec3.copy(parent.clipSphereCenter, parentData.clipSphereCenter ?? EveTurretSet._zero);
+      vec4.copy(parent.customData, parentData.customData ?? EveTurretSet._zero4);
+      parent.killCount = parentData.killCount ?? 0;
+      parent.clipRadiusSq = parentData.clipRadiusSq ?? 0;
+      parent.clipRadius2Sq = parentData.clipRadius2Sq ?? 0;
+      parent.clipFactor = parentData.clipFactor ?? 0;
+      parent.clipFactor2 = parentData.clipFactor2 ?? 0;
+      parent.shLighting = parentData.shLighting ?? null;
     }
+    if (!this._turrets.length) return true;
     if (this._trackingInfluenceDelta !== 0)
     {
       this.trackingInfluence += this._trackingInfluenceDelta * deltaTime;
@@ -1531,19 +1553,31 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Forwards visibility to the firing and ambient effects; gated on display and,
-   * per effect, on displayEffects. The turret geometry itself is not culled
-   * here.
+   * Culls each turret's world sphere and preserves maximum pixel diameter over
+   * views (EveTurretSet.cpp:1945-2010). JS forwards effect visibility through
+   * existing scene contracts; dynamic per-bone bounds and raytracing remain
+   * separate realization work.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Visibility is forwarded through backend-neutral firing and ambient graph contracts.")
   UpdateVisibility(context)
   {
-    if (!this.display) return false;
+    this.visibleCount = 0;
+    if (!this.display) return;
+    const frustum = context.GetFrustum();
+    for (const turret of this._turrets)
+    {
+      vec4.copy(EveTurretSet._visibilitySphere, this.boundingSphere);
+      BoundingSphereTransform(turret.worldMatrix, EveTurretSet._visibilitySphere);
+      turret.visible = frustum.IsSphereVisible(EveTurretSet._visibilitySphere);
+      if (turret.visible)
+      {
+        this.visibleCount++;
+        this.estimatedPixelDiameter = Math.max(this.estimatedPixelDiameter, frustum.GetPixelSizeAccross(EveTurretSet._visibilitySphere));
+      }
+    }
     if (this.displayEffects) this.firingEffect?.UpdateVisibility(context);
-    if (this.displayEffects) this._ambientEffect()?.UpdateVisibility(context, this._parentTransform);
-    return true;
+    this._ambientEffect()?.UpdateVisibility(context, this._parentTransform);
   }
 
   /** Carbon EveTurretSet::RegisterComponents (cpp:238-256): ShadowCaster leaf
@@ -1710,14 +1744,13 @@ export class EveTurretSet extends EveEntity
    * 717/727), so a null per-object record on a batch is legal. The
    * EveTurretSetPerObjectData fill includes the ship matrices, compacted
    * per-visible turret SRT arrays, and the SH/clip PS block (cpp:2300-2511).
-   * Trinity fills every CPU-known field in canonical RawData. Only the bone
-   * palette's GPU ring-buffer offsets remain engine-supplied. */
+   * JS uses canonical RawData records and concatenates the existing sampler
+   * palettes into the shared Float4x3 ring, with one upload per frame. */
   @carbon.method
   @impl.adapted
-  @impl.reason("Trinity fills the CPU-known EveTurretSet VS/PS RawData fields; bone-palette ring offsets and IsGood/GetMeshCount realization gates are not ported yet, while the CPU gate is geometry presence.")
   GetPerObjectData(accumulator = null)
   {
-    if (!this.geometryResource || typeof accumulator?.Alloc !== "function")
+    if (!this.geometryResource || !this.geometryResource.IsGood() || this.geometryResource.GetMeshCount() < 1 || !accumulator)
     {
       return null;
     }
@@ -1760,8 +1793,33 @@ export class EveTurretSet extends EveEntity
         turretIndex++;
       }
 
-      // currentBoneOffset/prevBoneOffset are GPU ring addresses with no CPU
-      // derivation (cpp:2387-2388); they stay at their zero default.
+      if (this._boneOffsets.GetCurrentFrameOffset() === Tr2RingBufferOffsets.INVALID_OFFSET && turretIndex)
+      {
+        const count = turretIndex * boneCount;
+        if (!this._boneTransforms || this._boneTransforms.length < count * 12)
+          this._boneTransforms = new Float32Array(count * 12); // alloc: retained data-sized palette capacity, reused across frames
+        let offset = 0;
+        for (const turret of this._turrets)
+        {
+          if (!turret.visible) continue;
+          if (turret.valid && turret.sequencer && this._skeletonBoneIndices.length)
+            this._boneTransforms.set(turret.sequencer.GetMeshBoneMatrixList(), offset);
+          else
+          {
+            this._boneTransforms.fill(0, offset, offset + boneCount * 12);
+            for (let bone = 0; bone < boneCount; bone++)
+            {
+              const at = offset + bone * 12;
+              this._boneTransforms[at] = this._boneTransforms[at + 5] = this._boneTransforms[at + 10] = 1;
+            }
+          }
+          offset += boneCount * 12;
+        }
+        const ring = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
+        this._boneOffsets.UploadTransforms(ring, this._boneTransforms.subarray(0, count * 12), count);
+      }
+      vs.Set("currentBoneOffset", [ this._boneOffsets.GetCurrentFrameOffset() ]);
+      vs.Set("prevBoneOffset", [ this._boneOffsets.GetPreviousFrameOffset() ]);
       vs.Set("turretSetData", [ boneCount, 0, 0, 0 ]);
 
       // ps data (cpp:2394-2404)
@@ -1985,6 +2043,8 @@ export class EveTurretSet extends EveEntity
   static INVALID_INDEX = 0xffffffff;
 
   static MAX_TURRETS_PER_SET = 24;
+
+  static _visibilitySphere = vec4.create();
 
   static _boneTransform = mat4.create();
   static _lowLodTransform = mat4.create();

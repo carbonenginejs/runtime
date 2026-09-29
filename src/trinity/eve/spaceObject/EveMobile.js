@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.h
 // Source: trinity/trinity/Eve/SpaceObject/EveMobile.cpp
 import { mat4 } from "#math/mat4";
+import { vec4 } from "#math/vec4";
+import { IEveSpaceObject2ParentData } from "./IEveSpaceObject2ParentData.js";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 import { EveTurretSet } from "../attachment/turrets/EveTurretSet.js";
@@ -24,6 +26,9 @@ export class EveMobile extends EveSpaceObject2
   @edit.read
   @type.uint32
   ActiveTurretCount = 0;
+
+  /** Native stack ParentData retained on the JS owner for reuse. */
+  _turretParentData = new IEveSpaceObject2ParentData();
 
   _turretSetsLocatorInfo = [];
   _turretLocatorCountingInfo = new Map();
@@ -265,15 +270,23 @@ export class EveMobile extends EveSpaceObject2
   }
 
   /**
-   * Advances every turret set's asynchronous work, handing it the hull transform
-   * as its parent placement.
+   * Passes Carbon's hull transform, ship data and clipping fields to every
+   * turret set (EveMobile.cpp:213-231). JS retains the native stack record for
+   * reuse; GetTurretTransform(0) supplies the same placement to all sets.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's native ParentData constant buffers collapse to the portable parent transform required by turret graph updates.")
   UpdateTurretsAsyncronous(context)
   {
-    for (const turretSet of this.turretSets) turretSet?.UpdateAsyncronous(context, { transform: this.GetTurretTransform(turretSet.swarmID) });
+    const parent = this._turretParentData;
+    mat4.copy(parent.transform, this.GetTurretTransform(0));
+    vec4.copy(parent.shipData, this.spaceObjectShipData);
+    vec3.copy(parent.clipSphereCenter, this._psData.Get("clipSphereCenter"));
+    parent.clipRadiusSq = this._psData.Get("clipRadiusSq")[0];
+    parent.clipRadius2Sq = this._psData.Get("clipRadius2Sq")[0];
+    parent.clipFactor = this._psData.Get("clipSphereFactor")[0];
+    parent.clipFactor2 = this._psData.Get("clipSphereFactor2")[0];
+    for (const turretSet of this.turretSets) turretSet?.UpdateAsyncronous(context, parent);
     return true;
   }
 
