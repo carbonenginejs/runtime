@@ -104,3 +104,46 @@ test("real Apocalypse skin-change bindings fade ship constants and authored spri
   }
   t.diagnostic("41 same-start CPU samples: real curves, hull constants and real sprite/cone/glow bytes; no GPU claim");
 });
+
+
+test("real Abaddon sprite and Archon spotlight light records follow root async activation and movement", {skip}, async t =>
+{
+  const sof=await builder(t);
+  for(const [dna,type,count] of [["ab3_t1:amarrbase:amarr","EveSpriteSet",6],["aca1_t1:amarrbase:amarr","EveSpotlightSet",7]])
+  {
+    const ship=EveShip2.from(await sof.BuildValuesFromDNAAsync(dna));
+    const attachment=ship.attachments.find(a=>CjsSchema.getClassName(a.constructor)===type && a.lights.length>0);
+    assert.ok(attachment,`${dna} must have real authored ${type} light records`);
+    assert.equal(attachment.lights.length,count);
+    const context=new EveUpdateContext();
+    let baseline;
+    for(const [step,activation] of [1,0.5,0].entries())
+    {
+      ship.activationStrength=activation;
+      ship.spaceObjectShipData[0]=0.75;
+      ship.worldTransform[12]=10+step*3;
+      context.SetTime(100+step);
+      ship.UpdateAsyncronous(context);
+      near(attachment._activationStrength,activation,"EveSpaceObject2.cpp:741 forwards combined activation");
+      if(type==="EveSpotlightSet")near(attachment._boosterGain,0.75,"root forwards booster gain");
+      for(const light of attachment.lights)
+      {
+        assert.deepEqual(Array.from(light.boneMatrix),Array.from(ship.worldTransform),"no loaded skeleton: authored lights use the current parent transform");
+      }
+      const records=[];
+      attachment.GetLights({GetCurrentSpaceSceneShadowQuality:()=>0,AddLight(record){records.push({color:Array.from(record.color),position:Array.from(record.position)});}});
+      assert.equal(records.length,count);
+      if(!baseline)
+      {
+        baseline=records;
+        assert.ok(baseline.some(record=>record.color.some(value=>value>0)),"real lights must be nonblack after the root update");
+      }
+      else for(let index=0;index<count;index++)
+      {
+        for(let channel=0;channel<3;channel++)near(records[index].color[channel],baseline[index].color[channel]*activation,"real output color scales with root activation");
+        near(records[index].position[0]-baseline[index].position[0],step*3,"real light follows changed parent position");
+      }
+    }
+    t.diagnostic(`${dna}: ${count} authored ${type} light records updated by the root; external geometry/controllers remain unresolved`);
+  }
+});

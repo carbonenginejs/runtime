@@ -1287,6 +1287,9 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Runs the controllers at a frequency derived from the hull's estimated pixel diameter against the context's high-detail threshold, advances the object curve sets only on frames the synchronous LOD gate stamped, then updates the transform children, the effect children and the impact overlay.
+   * Carbon cpp:733-743 updates attachment lights from the prepared ship data
+   * before the impact overlay. Adapted: JS executes this update phase serially
+   * and returns the computed controller frequency; the native method is void.
    * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
    */
   @carbon.method
@@ -1387,6 +1390,17 @@ export class EveSpaceObject2 extends EveEntity
       {
         params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
         child?.UpdateAsyncronous(updateContext, params);
+      }
+    }
+
+    // Carbon EveSpaceObject2.cpp:733-743: update every attachment's lights
+    // before the impact overlay, using the current borrowed bone palette.
+    if (this.attachments.length)
+    {
+      const { bones, boneCount } = getBoneList(this.animationUpdater);
+      for (const attachment of this.attachments)
+      {
+        attachment.UpdateLights(this.worldTransform, bones, boneCount, this.spaceObjectShipData[1], this.spaceObjectShipData[0]);
       }
     }
 
