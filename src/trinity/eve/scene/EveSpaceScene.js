@@ -594,11 +594,13 @@ export class EveSpaceScene extends CjsModel
 
   /**
    * Carbon SetGpuParticleSystem (EveSpaceScene.h:526-529).
+   * Shared assignment never destroys the old system; JS callers explicitly Destroy
+   * only when its final owner releases it, replacing Carbon shared-pointer destruction.
    *
    * @param {object|null} ps The Tr2GpuParticleSystem, or null.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetGpuParticleSystem(ps)
   {
     this.updateContext.SetGpuParticleSystem(ps);

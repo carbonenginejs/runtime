@@ -1,3 +1,4 @@
+import { CjsModel } from "../../npm/dist/global/model/index.js";
 import assert from "node:assert/strict";
 import test from "node:test";
 
@@ -7,7 +8,7 @@ import {
   Tr2RenderContext_GetMainThreadRenderContext,
   Tr2Renderer,
   TriDevice,
-  Tr2GpuParticleSystem
+  Tr2GpuParticleSystem, EveSpaceScene, EveUpdateContext, EveShip2, Tr2Effect
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
@@ -287,4 +288,41 @@ test("particle final-owner Destroy detaches nine effect stores once and unregist
     TriDevice.UnregisterResource(system);
     TriDevice.UnregisterResource(other);
   }
+});
+
+
+test("scene and context setters preserve a shared system until its final caller tears down", () =>
+{
+  const scene = new EveSpaceScene(), context = new EveUpdateContext();
+  const shared = new Tr2GpuParticleSystem(), replacement = new Tr2GpuParticleSystem();
+  const slots = ["emit", "update", "render", "clear", "setDrawParameters", "setSortParameters", "sort", "sortStep", "sortInner"];
+  for (const slot of slots) { shared[slot] = new Tr2Effect(); shared.SetVariableStore(shared[slot]); }
+  const store = shared._variableStore;
+  const effects = slots.map(slot => shared[slot]);
+  try
+  {
+    scene.SetGpuParticleSystem(shared); context.SetGpuParticleSystem(shared);
+    scene.SetGpuParticleSystem(replacement);
+    assert.ok(context.GetGpuParticleSystem() === shared, "EveUpdateContext.h:74 retains shared Tr2GpuParticleSystemPtr meaning");
+    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    for (const slot of slots) assert.ok(shared[slot].variableStore === store, "other owner's effects remain connected");
+    scene.SetGpuParticleSystem(shared);context.SetGpuParticleSystem(replacement);
+    assert.ok(scene.GetGpuParticleSystem() === shared, "EveSpaceScene.h:526 forwards the same shared assignment");
+    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    const oldHull = new EveShip2(), nextHull = new EveShip2();
+    CjsModel.addChild(scene, "objects", oldHull);CjsModel.addChild(scene, "objects", nextHull);CjsModel.removeChild(scene, "objects", oldHull);
+    assert.ok(scene.GetGpuParticleSystem() === shared, "ordinary hull swap leaves scene-owned particles alive");
+    assert.ok(TriDevice.GetResourcesRegistered().includes(shared));assert.ok(shared._variableStore === store);
+    // This caller owns the only remaining scene reference. Mirror the existing
+    // demo.dispose boundary after its rendering loop has been stopped.
+    const finalSystem = scene.GetGpuParticleSystem();scene.SetGpuParticleSystem(null);
+    assert.ok(TriDevice.GetResourcesRegistered().includes(finalSystem), "even final setter is assignment only");
+    finalSystem.Destroy();
+    assert.equal(scene.GetGpuParticleSystem(), null);assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
+    assert.equal(shared._variableStore, null);for (const slot of slots) assert.equal(shared[slot].variableStore, null);
+    assert.ok(context.GetGpuParticleSystem() === replacement && TriDevice.GetResourcesRegistered().includes(replacement), "other system remains owned and registered");
+    assert.ok(slots.every((slot, i) => shared[slot] === effects[i]), "final owner detaches effect stores without destroying shared effect objects");
+    finalSystem.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(shared), false);
+  }
+  finally {scene.SetGpuParticleSystem(null);context.SetGpuParticleSystem(null);shared.Destroy();replacement.Destroy();}
 });

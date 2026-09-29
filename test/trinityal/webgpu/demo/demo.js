@@ -4436,6 +4436,11 @@ export async function RunDemo(canvas)
   const dispose = () => {
     if (disposed) return;
     disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); input.dispose(); controls.dispose(); actions.dispose();
+    // This demo loaded its own system.black instance. Rendering has stopped;
+    // the scene/update context is its final owner. Ordinary hull swaps keep it.
+    const particles = realScene?.GetGpuParticleSystem();
+    realScene?.SetGpuParticleSystem(null);
+    particles?.Destroy();
     globalThis.removeEventListener("pagehide", dispose);
   };
   globalThis.addEventListener("pagehide", dispose);
