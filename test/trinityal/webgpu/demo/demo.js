@@ -128,6 +128,7 @@ import { POST_TEMPLATES } from "./postTemplates.js";
 import { createDemoActions } from "./demoActions.js";
 import { createCameraControls, readShipBounds } from "./cameraControls.js";
 import { createDemoInput } from "./input.js";
+import { createViewportCapture } from "./screenshot.js";
 import { Tr2MainWindow } from "../../../../npm/dist/input/index.js";
 import { blue, BlueResFileSystemRemote, RemoteFileCache } from "../../../../npm/dist/global/blue/index.js";
 import {
@@ -2967,6 +2968,7 @@ function SetWorld(perObject, world, last = world)
 /** Composes and runs one frame. Returns a short report for the page. */
 export async function RunDemo(canvas)
 {
+  const liveInput = new URLSearchParams(globalThis.location?.search ?? "").get("still") !== "1";
   const adapter = await navigator.gpu?.requestAdapter();
 
   if (!adapter) throw new Error("no WebGPU adapter");
@@ -3007,6 +3009,8 @@ export async function RunDemo(canvas)
     ...(requiredFeatures.length ? { requiredFeatures } : {}),
     requiredLimits: { maxStorageTexturesPerShaderStage: storageTextures, maxTextureDimension2D: textureDimension }
   });
+  const capture = createViewportCapture({ device });
+  device.lost.then(info => capture.fail(new Error(`Device lost: ${info.message}`)));
   const context = canvas.getContext("webgpu");
 
   // REMEMBERS WHICH SWAP-CHAIN IMAGE THE FRAME WENT INTO, because asking the
@@ -4247,6 +4251,7 @@ export async function RunDemo(canvas)
   // operations retain their existing loaders and skin serialization.
   const commandNames = [ "maxSpeed", "speed", "kills", "dirt", "age", "activation", "damage", "effect", "setShipState", "cloak", "skin" ];
   const operations = Object.fromEntries(commandNames.map(name => [name, globalThis.demo[name]]));
+  if (liveInput) operations.capture = () => capture.request();
   operations.post = enabled => { postState.off = !enabled; postState.apply(); ApplyClientDefaults(); };
   const actions = createDemoActions({
     getShip: () => ship,
@@ -4281,6 +4286,7 @@ export async function RunDemo(canvas)
   for (const name of commandNames) globalThis.demo[name] = (...args) => actions.invoke(name, ...args);
   globalThis.demo.actions = actions;
   globalThis.demo.post = enabled => actions.invoke("post", enabled);
+  globalThis.demo.capture = () => actions.invoke("capture");
 
   // Whether the demo plays the client's part (the settings panel's "client
   // defaults", ?clientDefaults=0 to start without).
@@ -4417,7 +4423,6 @@ export async function RunDemo(canvas)
   };
   await flare.select(FLARE);
 
-  const liveInput = new URLSearchParams(globalThis.location?.search ?? "").get("still") !== "1";
   const mainWindow = new Tr2MainWindow({ window: globalThis.window, document: globalThis.document, target: canvas });
   canvas.tabIndex = 0;
   const input = createDemoInput({ mainWindow, canvas, document: globalThis.document, controls, actions,
@@ -4425,11 +4430,12 @@ export async function RunDemo(canvas)
     showHelp: () => { const panel=document.getElementById("camera-controls");if(panel){document.getElementById("settings").open=true;panel.open=true;panel.scrollIntoView();} },
     onError: error => console.warn(`demo input: ${error.message}`)
   });
+  if (liveInput) input.enableCapture();
   globalThis.demo.input = input;
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
-    disposed = true; disposeCameraPanel(); disposeSettings(); input.dispose(); controls.dispose(); actions.dispose();
+    disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); input.dispose(); controls.dispose(); actions.dispose();
     globalThis.removeEventListener("pagehide", dispose);
   };
   globalThis.addEventListener("pagehide", dispose);
@@ -4747,6 +4753,7 @@ export async function RunDemo(canvas)
         PlaceSun();
         driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
         al.EndScene();
+        capture.afterFrame(presented, canvas.width, canvas.height, format);
         al.DrainTransitions();
 
         loop.ticks += 1;
@@ -4757,6 +4764,7 @@ export async function RunDemo(canvas)
         // KEEPS TICKING AFTER A THROW. A frame that fails should not silently
         // end the animation - that is what made this look like the browser
         // losing interest rather than the engine failing.
+        capture.fail(error);
         loop.error = `${error.message}\n${error.stack ?? ""}`;
 
         // THE FIRST ERROR IS THE CAUSE. A throw between BeginScene and EndScene
