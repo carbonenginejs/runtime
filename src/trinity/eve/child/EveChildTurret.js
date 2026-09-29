@@ -3,7 +3,8 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildTurret_Blue.cpp
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
-import { carbon, impl, edit, type } from "#schema";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
+import { blue } from "#blue";
 import { TriBatchType } from "#consts/graphics";
 import { EveChildMesh } from "./EveChildMesh.js";
 import { Tr2GrannyAnimation } from "../../core/animation/Tr2GrannyAnimation.js";
@@ -159,15 +160,6 @@ export class EveChildTurret extends EveChildMesh
   @type.string
   firingEffectResPath = "";
 
-  /**
-   * Resolves firingEffectResPath into a live EveTurretFiringFX. Carbon uses
-   * BeResMan.LoadObject; CarbonEngineJS threads the established
-   * CjsEveChildResourceLoader seam (the EveChildRef/EveChildSocket pattern) -
-   * without a loader an authored path stays unresolved.
-   */
-  @type.objectRef("CjsEveChildResourceLoader")
-  resourceLoader = null;
-
   /** Size of impacts; no impact when 0 or less. */
   @edit.notify
   @edit.readwrite
@@ -232,6 +224,11 @@ export class EveChildTurret extends EveChildMesh
 
   _cachedGeometryRes = null;
 
+  // JS LoadObject completion ownership; not persisted Carbon fields.
+  _firingEffectRequest = 0;
+
+  _pendingFiringEffectCalls = null;
+
   // Carbon reads m_parentData.transform in SetupFiringState (cpp:533) - the
   // PARENT transform, deliberately not this child's world transform; captured
   // from the update params each async pass.
@@ -280,10 +277,11 @@ export class EveChildTurret extends EveChildMesh
   /**
    * Passes authored impact data into the target tracker and resolves an
    * authored firing-effect path when no inline effect won at load time
-   * (Carbon EveChildTurret.cpp:48-60).
+   * (Carbon EveChildTurret.cpp:48-60). Adapted: JS LoadObject completes
+   * asynchronously; calls needing the new effect wait for that completion.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Initialize()
   {
     this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
@@ -297,32 +295,55 @@ export class EveChildTurret extends EveChildMesh
   /**
    * Re-syncs the tracker's impact data and reloads the firing effect when
    * the notifying fields change (Carbon cpp:61-72; the path reload has no
-   * inline-effect guard, unlike Initialize).
+   * inline-effect guard, unlike Initialize). Adapted: JS loads asynchronously;
+   * a cleared path cancels only its pending load and keeps the installed effect.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   OnModified(value = null)
   {
     if (value === "impactSize" || value === "impactBehaviour")
     {
       this._target.SetImpactBehaviour(this.impactSize, this.impactBehaviour);
     }
-    if (value === "firingEffectResPath" && this.firingEffectResPath)
+    if (value === "firingEffectResPath")
     {
-      this._LoadFiringEffectFromPath();
+      if (this.firingEffectResPath) this._LoadFiringEffectFromPath();
+      else
+      {
+        ++this._firingEffectRequest;
+        const pending = this._pendingFiringEffectCalls;
+        this._pendingFiringEffectCalls = null;
+        if (pending) for (const call of pending) call();
+      }
     }
     return super.OnModified(value);
   }
 
   /**
-   * Loads the configured firing-effect child and installs it when loading
-   * returns an object.
+   * The typed LoadObject<EveTurretFiringFX> calls in Carbon cpp:56 and :69.
+   * Adapted: JS loads asynchronously, so superseded completions are ignored
+   * and native forwarding/state calls resume after installation. Failure
+   * installs null, as the native typed load does; the prior effect remains
+   * registered until its replacement arrives.
    */
-  _LoadFiringEffectFromPath()
+  @impl.adapted
+  async _LoadFiringEffectFromPath()
   {
-    if (!this.resourceLoader) return;
-    const loaded = this.resourceLoader.LoadChild(this.firingEffectResPath, this);
-    if (loaded) this.SetFiringEffect(loaded);
+    const request = ++this._firingEffectRequest;
+    const path = this.firingEffectResPath;
+    this._pendingFiringEffectCalls ??= [];
+    let object = null;
+    try
+    {
+      object = await blue.resMan.LoadObject(path);
+    }
+    catch
+    {
+      // Carbon's typed resource load returns null on failure.
+    }
+    if (request !== this._firingEffectRequest) return;
+    this.SetFiringEffect(CjsSchema.cast(object, EveTurretFiringFX));
   }
 
   /** Registers the firing effect's entity half when displayed (Carbon cpp:73-84). */
@@ -334,7 +355,7 @@ export class EveChildTurret extends EveChildMesh
     const registry = this.GetComponentRegistry();
     if (registry && this.display)
     {
-      if (this.firingEffect) this.firingEffect.RegisterComponents();
+      if (this.firingEffect) this.firingEffect.Register(registry);
     }
   }
 
@@ -347,7 +368,7 @@ export class EveChildTurret extends EveChildMesh
     const registry = this.GetComponentRegistry();
     if (registry)
     {
-      if (this.firingEffect) this.firingEffect.UnRegisterComponents();
+      if (this.firingEffect) this.firingEffect.UnRegister(registry);
     }
   }
 
@@ -574,11 +595,18 @@ export class EveChildTurret extends EveChildMesh
    * Go into state deactive: play the pack animation and stay inside the
    * ship (Carbon cpp:343-376; the STATE_FIRING case deliberately falls
    * through to STATE_TARGETING).
+
+   * Adapted: defer this state transition while JS loads the firing effect.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   EnterStateDeactive()
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.EnterStateDeactive());
+      return;
+    }
     const State = EveChildTurret.State;
     switch (this.state)
     {
@@ -605,11 +633,18 @@ export class EveChildTurret extends EveChildMesh
     this.state = State.STATE_DEACTIVE;
   }
 
-  /** Go into state idle: face the cannons forward (Carbon cpp:378-418). */
+  /** Go into state idle: face the cannons forward (Carbon cpp:378-418).
+   * Adapted: defer this state transition while JS loads the firing effect.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   EnterStateIdle()
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.EnterStateIdle());
+      return;
+    }
     if (!this.isOnline) return;
     const State = EveChildTurret.State;
     switch (this.state)
@@ -641,11 +676,18 @@ export class EveChildTurret extends EveChildMesh
     this.state = State.STATE_IDLE;
   }
 
-  /** Go into state targeting: face the cannons toward the enemy (Carbon cpp:420-459). */
+  /** Go into state targeting: face the cannons toward the enemy (Carbon cpp:420-459).
+   * Adapted: defer this state transition while JS loads the firing effect.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   EnterStateTargeting()
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.EnterStateTargeting());
+      return;
+    }
     if (!this.isOnline) return;
     const State = EveChildTurret.State;
     switch (this.state)
@@ -679,11 +721,18 @@ export class EveChildTurret extends EveChildMesh
    * firing only refreshes its move objects; otherwise the effect is stopped,
    * prepared (with muzzle cycling when configured) and pointed at the
    * target's impact surface.
+
+   * Adapted: defer this state transition while JS loads the firing effect.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   EnterStateFiring()
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.EnterStateFiring());
+      return;
+    }
     if (!this.SetupFiringState()) return;
     const State = EveChildTurret.State;
 
@@ -928,13 +977,15 @@ export class EveChildTurret extends EveChildMesh
   /**
    * Carbon's destructor obligations: unhook the pose modifier and clean up
    * the firing effect (Carbon cpp:32-47). JS has no destructor; owners call
-   * CleanUp when discarding the turret.
+   * CleanUp when discarding the turret. Pending JS resource completions and
+   * their deferred calls are cancelled so disposal cannot resurrect the effect.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("The C++ destructor becomes an explicit CleanUp obligation.")
   CleanUp(context = { currentTime: 0, deltaTime: 0 })
   {
+    ++this._firingEffectRequest;
+    this._pendingFiringEffectCalls = null;
     if (this._hookedUpdater && this._hookedUpdater.GetPoseModifier() === this)
     {
       this._hookedUpdater.SetPoseModifier(null);
@@ -1055,26 +1106,38 @@ export class EveChildTurret extends EveChildMesh
 
   /**
    * Swaps the firing effect, moving its component registration and rewiring
-   * its muzzle bones (Carbon cpp:822-835).
+   * its muzzle bones (Carbon cpp:822-835). Adapted: an explicit setter also
+   * supersedes pending JS IO and resumes calls deferred by that IO.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetFiringEffect(firingEffect)
   {
-    if (this.firingEffect) this.firingEffect.UnRegisterComponents();
+    ++this._firingEffectRequest;
+    const pending = this._pendingFiringEffectCalls;
+    this._pendingFiringEffectCalls = null;
+    const registry = this.GetComponentRegistry();
+    if (this.firingEffect) this.firingEffect.UnRegister(registry);
     this.firingEffect = firingEffect ?? null;
-    if (this.firingEffect) this.firingEffect.RegisterComponents();
+    if (this.firingEffect) this.firingEffect.Register(registry);
     this.InitializeFiringEffect();
+    if (pending) for (const call of pending) call();
   }
 
   /**
    * Forwards a controller variable to the firing effect; the child owns no
-   * controllers itself (Carbon EveChildTurret.cpp:663-669).
+   * controllers itself (Carbon EveChildTurret.cpp:663-669). Adapted: preserve
+   * call order until the asynchronous JS resource load installs the effect.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetControllerVariable(name, value)
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.SetControllerVariable(name, value));
+      return;
+    }
     if (this.firingEffect) this.firingEffect.SetControllerVariable(name, value);
   }
 
@@ -1106,11 +1169,19 @@ export class EveChildTurret extends EveChildMesh
     return true;
   }
 
-  /** Starts the firing effect's controllers (Carbon EveChildTurret.cpp:671-677). */
+  /**
+   * Starts the firing effect's controllers (Carbon EveChildTurret.cpp:671-677).
+   * Adapted: defer forwarding until an asynchronous JS resource load finishes.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   StartControllers()
   {
+    if (this._pendingFiringEffectCalls)
+    {
+      this._pendingFiringEffectCalls.push(() => this.StartControllers());
+      return;
+    }
     if (this.firingEffect) this.firingEffect.StartControllers();
   }
 
