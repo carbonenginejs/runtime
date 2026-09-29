@@ -702,3 +702,30 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   assert.deepEqual([ ...modes.slice(12, 16) ], [ 4, 4, 3, 0 ], "s3: border U and V, clamp W");
   assert.deepEqual([ ...modes.slice(0, 12) ], new Array(12).fill(0), "s0..s2: nothing to emulate");
 });
+
+test("an invalid instance extent refuses pipeline creation and a repaired next draw succeeds", () =>
+{
+  const { al, pipelines, log } = composed();
+  const signature = { registers: [], pipelineInputs: [
+    { usage: 0, usageIndex: 0, registerIndex: 0 },
+    { usage: 5, usageIndex: 8, registerIndex: 1 }
+  ] };
+  const program = al.CreateShaderProgram([
+    al.CreateShader(ShaderType.VERTEX_SHADER, VERTEX_WGSL, signature, "v.wgsl"),
+    al.CreateShader(ShaderType.PIXEL_SHADER, FRAGMENT_WGSL, signature, "f.wgsl")
+  ]);
+  bindGeometry(al, program);
+  al.SetVertexLayout(al.CreateVertexLayout([
+    { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 },
+    { usage: 5, usageIndex: 8, type: "Float32", elementCount: 2, offset: 32, stream: 1, instanceStepRate: 1 }
+  ]));
+  al.SetStreamSource(1, deviceBuffer("instances"), 0, 32);
+  assert.ok(Failed(al.DrawIndexedInstanced(6, 2)));
+  assert.match(al.m_pipelineFailure, /stream 1.*offset \(32\).*arrayStride \(32\)/);
+  assert.equal(pipelines.length, 0, "invalid descriptor never reaches createRenderPipeline");
+  assert.equal(log.some(entry => entry.startsWith("setPipeline:")), false);
+  al.SetStreamSource(1, deviceBuffer("instances"), 0, 40);
+  assert.equal(al.DrawIndexedInstanced(6, 2), ALResult.S_OK);
+  assert.equal(pipelines.length, 1);
+  assert.equal(pipelines[0].descriptor.vertex.buffers[1].arrayStride, 40);
+});

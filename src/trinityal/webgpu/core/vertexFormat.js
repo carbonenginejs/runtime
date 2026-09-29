@@ -94,23 +94,41 @@ export function WebgpuVertexFormat(element)
  * SHADER's register and no property of the geometry. An element the shader
  * does not read is omitted rather than given an invented location.
  *
+ * Validates the device-independent WebGPU stride/attribute constraints here,
+ * before createRenderPipeline can produce an invalid device object. A zero
+ * stride is WebGPU's constant stream and deliberately has no per-record bound;
+ * device-specific maximum stride/location limits remain the device's check.
+ * See https://gpuweb.github.io/gpuweb/#abstract-opdef-validating-gpuvertexbufferlayout.
+ *
  * @param {number} arrayStride Byte stride the buffer was packed at.
  * @param {Array<object>} bindingPlan Entries from the AL's `resolveBindingPlan` (trinityal/vertexLayoutMatch.js).
  * @returns {{arrayStride: number, stepMode: string, attributes: Array<object>}}
+ * @throws {RangeError} When a stride or attribute is misaligned or exceeds its record.
  */
 export function WebgpuVertexBufferLayout(arrayStride, bindingPlan)
 {
+  if (!Number.isSafeInteger(arrayStride) || arrayStride < 0 || arrayStride % 4 !== 0)
+  {
+    throw new RangeError(`WebGPU vertex arrayStride (${arrayStride}) must be a nonnegative integer multiple of 4.`);
+  }
   const attributes = [];
 
   for (const entry of bindingPlan ?? [])
   {
     if (!entry?.element) continue;
 
-    attributes.push({
-      shaderLocation: entry.registerIndex,
-      offset: entry.element.offset ?? 0,
-      format: WebgpuVertexFormat(entry.element)
-    });
+    const offset = entry.element.offset ?? 0;
+    const format = WebgpuVertexFormat(entry.element);
+    const size = VertexElementType(entry.element).bytes;
+    if (!Number.isSafeInteger(offset) || offset < 0 || offset % Math.min(4, size) !== 0)
+    {
+      throw new RangeError(`WebGPU vertex attribute at location ${entry.registerIndex}: offset (${offset}) must be aligned to ${Math.min(4, size)} bytes.`);
+    }
+    if (arrayStride !== 0 && offset + size > arrayStride)
+    {
+      throw new RangeError(`WebGPU vertex attribute at location ${entry.registerIndex}: offset (${offset}) + format size (${size} for ${format}) must be <= arrayStride (${arrayStride}).`);
+    }
+    attributes.push({ shaderLocation: entry.registerIndex, offset, format });
   }
 
   attributes.sort((a, b) => a.shaderLocation - b.shaderLocation);

@@ -112,3 +112,21 @@ test("Carbon DataType names carry their own count and resolve to the same format
   assert.deepEqual(VertexElementType(carbon("FLOAT16_4")),
     { base: "float", bits: 16, count: 4, normalized: false, bytes: 8 });
 });
+
+test("layout conversion rejects the reported offset32 plus float32x2 in stride32", () =>
+{
+  const plan = [{ registerIndex: 1, element: element("Float32", 2, 32) }];
+  assert.throws(() => WebgpuVertexBufferLayout(32, plan), /offset \(32\).*format size \(8 for float32x2\).*arrayStride \(32\)/);
+  assert.equal(WebgpuVertexBufferLayout(40, plan).arrayStride, 40);
+});
+
+test("WebGPU layout stride and attribute alignment are checked without a device", () =>
+{
+  for (const stride of [-4, 2, 6, 3.5, NaN, Infinity])
+    assert.throws(() => WebgpuVertexBufferLayout(stride, []), /arrayStride/);
+  for (const offset of [-4, 2, 1.5, NaN, Infinity])
+    assert.throws(() => WebgpuVertexBufferLayout(16, [{ registerIndex: 0, element: element("Float32", 2, offset) }]), /offset/);
+  assert.equal(WebgpuVertexBufferLayout(4, [{ registerIndex: 0, element: element("UInt8", 2, 2) }]).attributes[0].offset, 2);
+  assert.throws(() => WebgpuVertexBufferLayout(4, [{ registerIndex: 0, element: element("UInt8", 2, 1) }]), /aligned to 2/);
+  assert.equal(WebgpuVertexBufferLayout(0, [{ registerIndex: 0, element: element("Float32", 4) }]).arrayStride, 0, "zero stride is WebGPU's constant stream");
+});

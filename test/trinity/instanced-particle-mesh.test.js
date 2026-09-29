@@ -16,6 +16,8 @@ import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import {SharedGeometryBuffer} from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import {StubResMan} from "../support/stubResMan.js";
 import "../../npm/dist/audio/index.js";
+import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
+import { WebgpuVertexBufferLayout } from "../../npm/dist/trinityal/webgpu/index.js";
 
 function setup(t)
 {
@@ -23,7 +25,20 @@ function setup(t)
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();blue.resMan=new StubResMan();
   context.SetViewTransform(mat4.create());
   t.after(()=>{SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);blue.resMan=manager;});
-  const draws=[],draw=al.DrawIndexedInstanced.bind(al);al.DrawIndexedInstanced=(...args)=>{draws.push(args);return draw(...args);};
+  // Validate the state actually bound by SubmitGeometry, after ESM filtering,
+  // with WebGPU's real conversion. Read every declared attribute so an unused
+  // current shader input cannot hide an invalid authored layout.
+  const layoutState={_vertexLayout:null,_streams:[],_shaderProgram:{GetInputs(){
+    return layoutState._vertexLayout.GetDefinition().map((item,index)=>({...item,registerIndex:index}));
+  }}};
+  const setLayout=al.SetVertexLayout.bind(al),setStream=al.SetStreamSource.bind(al);
+  al.SetVertexLayout=layout=>{layoutState._vertexLayout=layout;return setLayout(layout);};
+  al.SetStreamSource=(stream,buffer,offset,stride)=>{layoutState._streams[stream]={buffer,offset,stride};return setStream(stream,buffer,offset,stride);};
+  const draws=[],draw=al.DrawIndexedInstanced.bind(al);al.DrawIndexedInstanced=(...args)=>{
+    const layouts=CjsWebgpuRenderContextAL.prototype.BuildVertexBufferLayouts.call(layoutState);
+    assert.notEqual(typeof layouts,"string",layouts);
+    draws.push(args);return draw(...args);
+  };
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const material={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
   return {context,al,draws,material};
@@ -141,5 +156,28 @@ test("real green Crisis smoke on two hulls reaches a nonzero instanced stub draw
     const before=draws.length;context.RenderBatches({GetBatches:()=>batches});assert.equal(draws.length,before+1);
     assert.ok(draws.at(-1)[0]>0&&draws.at(-1)[1]>0,"actual nonzero DrawIndexedInstanced on stub AL");
     t.diagnostic(JSON.stringify({file,child:child.name,colors:Array.from(color.value),draw:draws.at(-1)}));
+  }
+});
+
+test("every CPU particle declaration in the copied Crisis and VDS graphs fits its physical stream", {
+  skip:!corpus&&"set PARTICLE_BLACK_CORPUS_DIR for copied particle effect graphs"
+}, async t => {
+  setup(t);
+  for (const file of ["angbc1_t1_crisis_fx.black","angde1_t1_crisis_fx.black","vds_trail_fire_01a.black"]) {
+    const values=CjsBlackFormat.readPayload(await readFile(join(corpus,file))).object;
+    const root=EveChildContainer.from(values),systems=new Set(),seen=new Set();
+    function visit(child) {
+      if(!child||seen.has(child))return;seen.add(child);
+      for(const p of child.particleSystems??[])systems.add(p);
+      for(const item of child.objects??[])visit(item);
+      if(child.effect)visit(child.effect.source);
+    }
+    visit(root);assert.ok(systems.size>0,file);
+    for(const p of systems) {
+      t.after(()=>p.ReleaseResources());
+      const data=p.GetInstanceData(),definition=Tr2EffectStateManager.getVertexDeclarationElements(p.GetInstanceBufferVertexDeclaration());
+      assert.doesNotThrow(()=>WebgpuVertexBufferLayout(data.stride,definition.items.map((item,index)=>({registerIndex:index,element:item}))),file+":"+p.name);
+    }
+    t.diagnostic(file+": "+systems.size+" physical particle declarations validated");
   }
 });
