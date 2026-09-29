@@ -3282,6 +3282,7 @@ export async function RunDemo(canvas)
     getViewport: () => ({ width: canvas.clientWidth, height: canvas.clientHeight }),
     getBounds: () => readShipBounds(ship, bounds, cameraSphere)
   });
+  controls.frame();
   BindCameraInput(canvas, controls);
   WriteCamera(frame, camera, canvas.width, canvas.height);
 
@@ -4221,12 +4222,7 @@ export async function RunDemo(canvas)
       next.GetBoundingSphere(sphere, 0);
       bounds.centre.set(sphere.subarray(0, 3));
       bounds.radius = sphere[3] || 1;
-      if (hullChanged)
-      {
-        camera.extraTranslation.set(bounds.centre);
-        camera.translationFromParent = bounds.radius * 2.2;
-        camera.SetOrbit(camera.yaw, camera.pitch);
-      }
+      controls.targetChanged(hullChanged);
       areas.length = 0;
       for (const area of next.mesh.opaqueAreas)
         areas.push({ material: area.effect, path: area.effect?.effectFilePath ?? "", name: area.name, index: area.index, count: area.count });
@@ -4654,6 +4650,7 @@ export async function RunDemo(canvas)
       try
       {
         FitCanvas(canvas, renderTarget, frame);
+        controls.resize();
         WriteCamera(frame, camera, canvas.width, canvas.height);
         if (spinning)
         {

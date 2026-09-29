@@ -6,9 +6,12 @@ export function createCameraControls({ camera, getViewport, getBounds, preferenc
   const settings = {
     invertX: true, invertY: true, orbitSensitivity: 0.1,
     panSensitivity: 1, dollySensitivity: 0.0015, fovSensitivity: 0.001,
-    minFieldOfView: 5 * Math.PI / 180, maxFieldOfView: 120 * Math.PI / 180,
+    minFieldOfView: 5 * Math.PI / 180, maxFieldOfView: 120 * Math.PI / 180, frameMargin: 1.1,
     ...preferences
   };
+  // This demo owns manual FOV. Native Update otherwise samples its default
+  // zoom curve and overwrites both explicit FOV and a just-computed fit.
+  camera.zoomCurve = null;
   const projection = new Float32Array(16);
   const listeners = new Set();
 
@@ -60,9 +63,47 @@ export function createCameraControls({ camera, getViewport, getBounds, preferenc
     setFieldOfView(pose.fieldOfView);
   }
 
-  const initial = getPose();
+  let pendingFrame = false;
+  let viewportWidth = 0, viewportHeight = 0;
+
+  function frame()
+  {
+    const view = project();
+    if (!view) { pendingFrame = true; return false; }
+    const bounds = getBounds();
+    if (!(bounds.radius >= 0) || !Number.isFinite(bounds.radius) ||
+      !Array.from(bounds.centre).every(Number.isFinite)) throw new RangeError("Cannot frame invalid bounds.");
+    // Carbon's projection narrows both extents above aspect1.6. Its actual
+    // four half-angles also include the off-center projection; ordinary FOV
+    // fitting silently clips portrait and ultrawide views.
+    const tangent = Math.min((1-projection[8])/projection[0], (1+projection[8])/projection[0],
+      (1-projection[9])/projection[5], (1+projection[9])/projection[5]);
+    if (!(tangent > 0) || !Number.isFinite(tangent)) throw new RangeError("Projection does not contain the camera axis.");
+    const radius = Math.max(0.001, bounds.radius) * Math.max(1, settings.frameMargin);
+    const distance = Math.max(radius / Math.sin(Math.atan(tangent)), camera.frontClip + radius);
+    // Clipping policy is demo-owned. Grow the far clip to contain the fit;
+    // silently clamping distance would defeat the requested sphere framing.
+    camera.backClip = Math.max(camera.backClip, (distance + radius) * 1.05);
+    camera.translationFromParent = distance;
+    camera.useExtraTranslation = true;
+    camera.extraTranslation.set(bounds.centre);
+    cancel();
+    viewportWidth = view.width; viewportHeight = view.height; pendingFrame = false;
+    if (!framedOnce) { initial = getPose(); framedOnce = true; }
+    changed();
+    return true;
+  }
+
+  let initial = getPose(), framedOnce = false;
   return {
-    preferences: settings, getPose, setPose, cancel, setFieldOfView,
+    preferences: settings, getPose, setPose, cancel, setFieldOfView, frame,
+    resize()
+    {
+      const view = getViewport();
+      if (pendingFrame || view.width !== viewportWidth || view.height !== viewportHeight) return frame();
+      return false;
+    },
+    targetChanged(hullChanged) { cancel(); if (hullChanged) frame(); },
     orbit(dx, dy)
     {
       if (!Number.isFinite(dx) || !Number.isFinite(dy)) return;
