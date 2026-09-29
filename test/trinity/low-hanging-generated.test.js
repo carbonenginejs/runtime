@@ -1,4 +1,4 @@
-﻿import test from "node:test";
+import test from "node:test";
 import { RawData } from "../../src/trinity/core/rawData/RawData.js";
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
@@ -21,7 +21,6 @@ import { blue } from "../../npm/dist/global/blue/index.js";
 import { EveChildSocket } from "../../npm/dist/trinity/eve/child/EveChildSocket.js";
 import { EveCloudVolumeBall } from "../../npm/dist/trinity/eve/child/EveCloudVolumeBall.js";
 import { EveSpaceObjectChild } from "../../npm/dist/trinity/eve/child/EveSpaceObjectChild.js";
-import { CjsEveChildResourceLoader } from "../../npm/dist/trinity/eve/child/CjsEveChildResourceLoader.js";
 import { EveChildProceduralContainer } from "../../npm/dist/trinity/eve/child/procedural/EveChildProceduralContainer.js";
 import { EveMultiEffect } from "../../npm/dist/trinity/eve/effect/multiEffect/EveMultiEffect.js";
 import { EveShip2 } from "../../npm/dist/trinity/eve/spaceObject/EveShip2.js";
@@ -63,21 +62,6 @@ import { Tr2FactionLight } from "../../npm/dist/trinity/eve/lights/Tr2FactionLig
 import { EveSmartLightSpotLight } from "../../npm/dist/trinity/eve/smartLights/EveSmartLightSpotLight.js";
 import { Tr2Light } from "../../npm/dist/trinity/eve/lights/Tr2Light.js";
 import { EveBezierCurve, EveCircle, EveLineChildContainer, IEveLineSetPath } from "../../npm/dist/trinity/index.js";
-
-
-class TestEveChildResourceLoader extends CjsEveChildResourceLoader
-{
-  constructor(load)
-  {
-    super();
-    this.load = load;
-  }
-
-  LoadChild(resPath)
-  {
-    return this.load(resPath);
-  }
-}
 
 
 // A minimal accumulator duck carrying a fresh per-object store.
@@ -537,8 +521,13 @@ test("generated child wrappers propagate Carbon controller and socket calls", as
   socketPlug.externalParameters.push(external);
   const socket = new EveChildSocket();
   socket.resPath = "res:/plug.red";
-  socket.resourceLoader = new TestEveChildResourceLoader(() => socketPlug);
-  assert.equal(socket.Reload(), true);
+  blue.resMan.LoadObject = () => Promise.resolve(socketPlug);
+  try
+  {
+    socket.Reload();
+    await new Promise(resolve => setImmediate(resolve));
+  }
+  finally { blue.resMan.LoadObject = loadObject; }
   assert.equal(socket.parameters.length, 1);
   socket.parameters[0].value = "updated";
   socket.parameters[0].Propagate();

@@ -1,6 +1,9 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildSocket.h
 // Hand-maintained from Carbon source, promoted out of generated intake.
-import { carbon, impl, edit, type } from "#schema";
+import { blue } from "#blue";
+import * as CcpLog from "../../../global/logging/ccpLog.js";
+import { EveChildPlug } from "./EveChildPlug.js";
+import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { vec3 } from "#math/vec3";
 import { quat } from "#math/quat";
 import { EveChildTransform } from "./EveChildTransform.js";
@@ -29,9 +32,11 @@ export class EveChildSocket extends EveChildTransform
   @type.vec3
   scaling = vec3.fromValues(1, 1, 1);
 
-  /** Runtime resource-resolution seam supplied by an engine package. */
-  @type.objectRef("CjsEveChildResourceLoader")
-  resourceLoader = null;
+  /** Identifies the current asynchronous native LoadObject translation. */
+  _loadRequest = 0;
+
+  /** Calls made during loading, replayed after binding in their original order. */
+  _pendingPlugCalls = null;
 
   /** m_display (bool) [READWRITE, PERSIST, NOTIFY] */
   @edit.notify
@@ -65,18 +70,26 @@ export class EveChildSocket extends EveChildTransform
   @type.objectRef("EveChildPlug")
   plug = null;
 
-  /** Carbon method HandleControllerEvent (MAP_METHOD_AND_WRAP). */
-  @carbon.method
-  @impl.implemented
-  HandleControllerEvent(name)
-  {
-    this.plug?.HandleControllerEvent(name);
-  }
-
-  /** Carbon method Rebind -> BindParameters (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon EveChildSocket.cpp:431-437 forwards an event. Adapted: retain calls
+   * made while the synchronous native load is pending in JavaScript.
+   */
   @carbon.method
   @impl.adapted
-  Rebind()
+  HandleControllerEvent(name)
+  {
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.HandleControllerEvent(name));
+    else this.plug?.HandleControllerEvent(name);
+  }
+
+  /**
+   * Carbon BindParameters (EveChildSocket.cpp:146-178), exposed as Rebind by
+   * EveChildSocket_Blue.cpp:67-72. Adapted: the existing partial port creates
+   * string bindings only; already-authored parameter classes bind directly.
+   */
+  @carbon.method
+  @impl.adapted
+  BindParameters()
   {
     if (!this.plug) return false;
     for (const parameter of this.parameters) parameter.ClearBindings();
@@ -98,18 +111,130 @@ export class EveChildSocket extends EveChildTransform
     return true;
   }
 
-  /** Carbon method Reload (MAP_METHOD_AND_WRAP). */
+  /** Blue-exposed alias for Carbon BindParameters (EveChildSocket_Blue.cpp:67). */
+  @carbon.method
+  @impl.implemented
+  Rebind()
+  {
+    this.BindParameters();
+  }
+
+  /** Carbon EveChildSocket.cpp:174-183 propagates each bound parameter. */
+  @carbon.method
+  @impl.implemented
+  Propogate()
+  {
+    if (this.plug) for (const parameter of this.parameters) parameter.Propagate();
+  }
+
+  /**
+   * Carbon Initialize (cpp:185-191) always succeeds. Adapted: binding,
+   * propagation, and deferred forwarding follow asynchronous LoadChild.
+   */
   @carbon.method
   @impl.adapted
+  Initialize()
+  {
+    const operation = this.LoadChild();
+    const request = this._loadRequest;
+    operation.then(loaded =>
+    {
+      if (request !== this._loadRequest) return;
+      this.BindParameters();
+      this.Propogate();
+      const pending = this._pendingPlugCalls;
+      this._pendingPlugCalls = null;
+      if (loaded) for (const call of pending) call(this.plug);
+    });
+    return true;
+  }
+
+  /** Carbon EveChildSocket.cpp:28-31 returns the authored plug path. */
+  @carbon.method
+  @impl.implemented
+  GetPlugResPath()
+  {
+    return this.resPath;
+  }
+
+  /**
+   * Carbon cpp:33-40 reloads only a changed path, without binding parameters.
+   * Adapted: forward calls made during the asynchronous load after arrival;
+   * unlike Initialize, this setter does not bind or propagate parameters.
+   */
+  @carbon.method
+  @impl.adapted
+  SetPlugResPath(path)
+  {
+    if (this.resPath === path) return;
+    this.resPath = path;
+    const operation = this.LoadChild();
+    const request = this._loadRequest;
+    operation.then(loaded =>
+    {
+      if (request !== this._loadRequest) return;
+      const pending = this._pendingPlugCalls;
+      this._pendingPlugCalls = null;
+      if (loaded) for (const call of pending) call(this.plug);
+    });
+  }
+
+  /** Carbon EveChildSocket.cpp:42-45 reloads by initializing again. */
+  @carbon.method
+  @impl.implemented
   Reload()
   {
-    if (!this.resourceLoader) return false;
-    const next = this.resourceLoader.LoadChild(this.resPath, this);
-    if (!next) return false;
-    if (this.plug) this.UnregisterChild(this.plug);
-    this.plug = next;
-    this.RegisterChild(this.plug);
-    this.Rebind();
+    this.Initialize();
+  }
+
+  /** Carbon EveChildSocket.cpp:194-206 reacts to path and display changes. */
+  @carbon.method
+  @impl.implemented
+  OnModified(propertyName = null)
+  {
+    if (propertyName === "resPath") this.Initialize();
+    if (propertyName === "display") this.ReRegister();
+    return true;
+  }
+
+  /**
+   * Carbon EveChildSocket.cpp:479-497 replaces its plug through typed LoadObject.
+   * Adapted: LoadObject is asynchronous in JS. Discard superseded completions,
+   * let the caller finish native binding and deferred forwarding. The promise
+   * resolves to the native success boolean; failure logs and leaves no plug.
+   */
+  @carbon.method
+  @impl.adapted
+  async LoadChild()
+  {
+    const request = ++this._loadRequest;
+    const path = this.resPath;
+    this.UnRegisterComponents();
+    this.UnregisterChild(this.plug);
+    this.plug = null;
+    this._pendingPlugCalls = [];
+    const channel = CcpLog.GetModuleChannel("trinity");
+    CcpLog.CCP_LOG_CH(channel, "Loading child red file %s", path);
+    let object = null;
+    try
+    {
+      if (path) object = await blue.resMan.LoadObject(path);
+    }
+    catch
+    {
+      // Native typed loading also returns null on resource failure.
+    }
+    if (request !== this._loadRequest) return false;
+    const plug = CjsSchema.cast(object, EveChildPlug);
+    if (!plug)
+    {
+      this._pendingPlugCalls = null;
+      CcpLog.CCP_LOGERR_CH(channel, "Red file %s is invalid or not an Eve Child type.", path);
+      return false;
+    }
+    this.plug = plug;
+    this.RegisterChild(plug);
+    this.RegisterComponents();
     return true;
   }
 
@@ -134,20 +259,28 @@ export class EveChildSocket extends EveChildTransform
     if (this.plug) this.plug.SetPartTag(next);
   }
 
-  /** Carbon method SetControllerVariable (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon cpp:423-429 forwards a variable. Adapted: replay calls made during
+   * asynchronous loading after the plug has been registered and bound.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetControllerVariable(name, value)
   {
-    this.plug?.SetControllerVariable(name, value);
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.SetControllerVariable(name, value));
+    else this.plug?.SetControllerVariable(name, value);
   }
 
-  /** Carbon method StartControllers (MAP_METHOD_AND_WRAP). */
+  /**
+   * Carbon cpp:447-453 starts the plug controllers. Adapted: defer starts made
+   * during loading until the native registration/binding order is complete.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   StartControllers()
   {
-    this.plug?.StartControllers();
+    if (this._pendingPlugCalls) this._pendingPlugCalls.push(plug => plug.StartControllers());
+    else this.plug?.StartControllers();
   }
 
   /** Carbon EveChildSocket::RegisterComponents (cpp:212-221): forward-only to
