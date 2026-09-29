@@ -1228,6 +1228,8 @@ export class EveSpaceObject2 extends EveEntity
 
   /**
    * Refreshes the world transform, then - when the update flag is on - places the observers, stamps the LOD-gated curve clock while advancing the overlay effects, runs the effect children's synchronous pass with the current placement, and updates the impact overlay; the overlay effects receive the context time as both clocks, as Carbon does.
+   * Effect children borrow the root bone palette (cpp:598). Adapted: the
+   * CPU animation updater advances by context delta instead of native clock.
    * @returns {boolean} False when the update flag is off; the world transform is refreshed either way.
    */
   @carbon.method
@@ -1272,6 +1274,10 @@ export class EveSpaceObject2 extends EveEntity
       params.ownerMaxSpeed = Number(this.maxSpeed) || 0;
       params.activationStrength = this.activationStrength;
       mat4.copy(params.localToWorldTransform, this.GetLocalToWorldTransform());
+      // Carbon cpp:598/724 borrows the root mesh-bone palette in both phases.
+      const { bones, boneCount } = getBoneList(this.animationUpdater);
+      params.bones = bones;
+      params.boneCount = boneCount;
       for (const child of this.effectChildren)
       {
         params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
@@ -1288,7 +1294,8 @@ export class EveSpaceObject2 extends EveEntity
   /**
    * Runs the controllers at a frequency derived from the hull's estimated pixel diameter against the context's high-detail threshold, advances the object curve sets only on frames the synchronous LOD gate stamped, then updates the transform children, the effect children and the impact overlay.
    * Carbon cpp:733-743 updates attachment lights from the prepared ship data
-   * before the impact overlay. Adapted: JS executes this update phase serially
+   * before the impact overlay; effect children borrow the root bone palette
+   * at cpp:724. Adapted: JS executes this update phase serially
    * and returns the computed controller frequency; the native method is void.
    * @returns {number} The controller update frequency in 0..1, which is also handed to the effect children; 0 when the hull is not visible or the update flag is off.
    */
@@ -1386,6 +1393,10 @@ export class EveSpaceObject2 extends EveEntity
       params.activationStrength = this.activationStrength;
       params.controllerUpdateFrequency = frequency;
       mat4.copy(params.localToWorldTransform, this.GetLocalToWorldTransform());
+      // Carbon cpp:598/724 borrows the root mesh-bone palette in both phases.
+      const { bones, boneCount } = getBoneList(this.animationUpdater);
+      params.bones = bones;
+      params.boneCount = boneCount;
       for (const child of this.effectChildren)
       {
         params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
