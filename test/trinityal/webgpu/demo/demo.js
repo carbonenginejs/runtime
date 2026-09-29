@@ -371,13 +371,81 @@ function ShipStates(ship)
     .map(flag => ({ ...byKind.get(flag.kind), names: [ ...byKind.get(flag.kind).names ] }));
 }
 
+/** Demo settings and help reflect the same command table used by keyboard input. */
+function BuildCameraPanel({ controls, input, actions, liveInput })
+{
+  const panel = document.createElement("details");
+  panel.id = "camera-controls";
+  panel.append(Object.assign(document.createElement("summary"), { textContent: "Camera and shortcuts" }));
+  document.getElementById("settings").append(panel);
+  const note = document.createElement("p");
+  note.textContent = liveInput
+    ? "Focus the viewport to use shortcuts. Drag to orbit; Shift+drag or middle drag to pan. Wheel dollies; Shift+wheel changes FOV."
+    : "Still frame: live controls are disabled.";
+  panel.append(note);
+  const status = Object.assign(document.createElement("output"), { role: "status" });
+  const row = (label, control) => { const element=document.createElement("label");element.append(label,control);panel.append(element);return control; };
+  const field = (label,value,min,max,step,change) => {
+    const control=row(label,Object.assign(document.createElement("input"),{type:"number",value:String(value),min:String(min),max:String(max),step:String(step),disabled:!liveInput}));
+    control.addEventListener("change",()=>{
+      const value=Number(control.value);
+      if(!Number.isFinite(value)||value<min||value>max){status.textContent=`${label}: choose ${min} to ${max}`;return;}
+      input.cancel();change(value);status.textContent="";
+    });return control;
+  };
+  const degrees=field("Field of view (degrees)",controls.getPose().fieldOfView*180/Math.PI,5,120,1,value=>controls.setFieldOfView(value*Math.PI/180));
+  for(const [name,label] of [["invertX","Invert horizontal orbit"],["invertY","Invert vertical orbit"]]){
+    const toggle=row(label,Object.assign(document.createElement("input"),{type:"checkbox",checked:controls.preferences[name],disabled:!liveInput}));
+    toggle.addEventListener("change",()=>{input.cancel();controls.preferences[name]=toggle.checked;});
+  }
+  field("Orbit sensitivity",controls.preferences.orbitSensitivity,.001,2,.01,value=>{controls.preferences.orbitSensitivity=value;});
+  field("Pan sensitivity",controls.preferences.panSensitivity,.01,10,.1,value=>{controls.preferences.panSensitivity=value;});
+  field("Dolly sensitivity",controls.preferences.dollySensitivity,.00001,.02,.0001,value=>{controls.preferences.dollySensitivity=value;});
+  field("FOV sensitivity",controls.preferences.fovSensitivity,.00001,.02,.0001,value=>{controls.preferences.fovSensitivity=value;});
+  const buttons = new Map();
+  for(const name of ["frame","reset","capture"]){
+    const command=input.getBindings().find(item=>item.name===name);
+    const button=row(command.label,Object.assign(document.createElement("button"),{type:"button",textContent:command.label}));
+    button.addEventListener("click",()=>input.invoke(name));buttons.set(name,button);
+  }
+  const help=document.createElement("div");panel.append(help);
+  const select=row("Action to rebind",document.createElement("select"));
+  for(const command of input.getBindings())select.append(new Option(command.label,command.name));
+  const key=row("Press a new key",Object.assign(document.createElement("input"),{type:"text",readOnly:true,placeholder:"Focus here, then press a key",disabled:!liveInput}));
+  key.addEventListener("keydown",event=>{
+    if(event.code==="Tab"||event.ctrlKey||event.altKey||event.metaKey||event.isComposing)return;
+    event.preventDefault();
+    try{input.rebind(select.value,[{code:event.code,shift:event.shiftKey}]);key.value=`${event.shiftKey?"Shift+":""}${event.code}`;status.textContent="";}
+    catch(error){status.textContent=error.message;}
+  });
+  const unbind=row("Clear selected binding",Object.assign(document.createElement("button"),{type:"button",textContent:"Unbind",disabled:!liveInput}));
+  unbind.addEventListener("click",()=>input.rebind(select.value,[]));
+  const reset=row("Restore shortcuts",Object.assign(document.createElement("button"),{type:"button",textContent:"Defaults",disabled:!liveInput}));
+  reset.addEventListener("click",()=>input.resetBindings());
+  panel.append(status);
+  const refresh=()=>{
+    help.replaceChildren();
+    for(const command of input.getBindings()){
+      const line=document.createElement("div");
+      line.textContent=`${command.label}: ${command.bindings.map(binding=>`${binding.shift?"Shift+":""}${binding.code}`).join(", ")||"unbound"}${command.enabled?"":" (unavailable)"}`;
+      help.append(line);
+      if(buttons.has(command.name))buttons.get(command.name).disabled=!command.enabled;
+    }
+  };
+  const offInput=input.subscribe(refresh),offActions=actions.subscribe(refresh);
+  const offControls=controls.subscribe(pose=>{if(document.activeElement!==degrees)degrees.value=String(Math.round(pose.fieldOfView*180/Math.PI*100)/100);});
+  refresh();
+  return ()=>{offInput();offActions();offControls();panel.remove();};
+}
+
+
 function DirtLevelFromWeeks(weeks, isDisabled = false)
 {
   if (isDisabled || Number.isNaN(Number(weeks))) return 0;
   return Math.max(0.7 - 1 / (Math.pow(Math.max(Number(weeks), 0), 0.65) + 1 / 2.7), 0);
 }
 
-function BuildSettingsPanel({ driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, maxSpeed, kills, damage, effect, cloak, skin, shipStates = [], setShipState })
+function BuildSettingsPanel({ actions, driver, postState, initialTemplate, select, current, locationPost, sun, flare, aimSun, age, clientDefaults, speed, maxSpeed, kills, damage, effect, cloak, skin, shipStates = [], setShipState })
 {
   const document = globalThis.document;
   if (!document) return;
@@ -462,7 +530,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   };
 
   const postToggle = row("post", Object.assign(document.createElement("input"), { type: "checkbox", checked: !postState.off }));
-  postToggle.addEventListener("change", () => { postState.off = !postToggle.checked; postState.apply(); });
+  postToggle.addEventListener("change", () => actions.invoke("post", postToggle.checked));
 
   const templateNames = Object.keys(POST_TEMPLATES);
   const templates = choose([ [ "(none)", "" ], ...templateNames.filter(IsSunTemplate).map(name => [ name, name ]) ], initialTemplate);
@@ -664,23 +732,40 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   // Cloak: the cloaking overlay's 6 s curve set dissolves the hull; unticking
   // removes it and restores the ship.
   const cloakToggle = row("cloak", Object.assign(document.createElement("input"), { type: "checkbox", checked: false }));
-  cloakToggle.addEventListener("change", () => cloak(cloakToggle.checked));
+  cloakToggle.addEventListener("change", () => { cloak(cloakToggle.checked)?.catch(error => console.warn(error.message)); });
 
   // Ship states (ShipStates): each preset sets every variable its hull's
   // controllers name for that state, and the state machines do the rest.
-  begin("ship state");
-  if (!shipStates.length) row("none", document.createTextNode("this hull's controllers name no state"));
-  for (const state of shipStates)
-  {
-    const toggle = row(state.label, Object.assign(document.createElement("input"), { type: "checkbox", checked: false, title: state.names.join(", ") }));
-    toggle.addEventListener("change", () => setShipState(state.kind, toggle.checked));
-  }
-  end();
+  const statesBox = document.createElement("div");
+  target.append(statesBox);
+  const stateControls = new Map();
+  let stateRevision = -1;
 
   // Skin change: swaps between the start DNA and angelbase through the
   // client skin-change transition (3 s).
   const skinButton = row("skin", Object.assign(document.createElement("button"), { type: "button", textContent: "change" }));
-  skinButton.addEventListener("click", async () => { skinButton.disabled = true; try { await skin(); } finally { skinButton.disabled = false; } });
+  skinButton.addEventListener("click", () => { skin()?.catch(error => console.warn(error.message)); });
+  const actionStatus = Object.assign(document.createElement("output"), { role: "status" });
+  target.append(actionStatus);
+  const unsubscribe = actions.subscribe(state => {
+    postToggle.checked=state.post;cloakToggle.checked=state.cloaked;
+    cloakToggle.disabled=!actions.enabled("cloak");skinButton.disabled=!actions.enabled("skin");
+    shipSpeed.value=String(state.speed);shipMaxSpeed.value=String(state.maxSpeed);
+    shipSpeed.max=String(2*state.maxSpeed);shipSpeed.step=String(state.maxSpeed/100);showSpeed();
+    killCount.value=String(state.kills);showKills();
+    actionStatus.textContent=[...state.pending.map(name=>name+" pending"),...Object.entries(state.errors).map(([name,error])=>name+": "+error)].join("; ");
+    if(stateRevision!==state.revision){
+      stateRevision=state.revision;statesBox.replaceChildren();stateControls.clear();
+      statesBox.append(Object.assign(document.createElement("h5"),{textContent:"Ship state"}));
+      if(!state.shipStates.length)statesBox.append(document.createTextNode("This hull exposes no controller state."));
+      for(const current of state.shipStates){
+        const toggle=Object.assign(document.createElement("input"),{type:"checkbox",title:current.names.join(", ")});
+        const label=document.createElement("label");label.append(current.label,toggle);statesBox.append(label);
+        toggle.addEventListener("change",()=>setShipState(current.kind,toggle.checked));stateControls.set(current.kind,toggle);
+      }
+    }
+    for(const current of state.shipStates)stateControls.get(current.kind).checked=current.on;
+  });
 
   // Ship age in weeks since last cleaned; the dirt level follows the game's
   // curve, which is flat past a few years, so the slider stops at five.
@@ -879,6 +964,7 @@ function BuildSettingsPanel({ driver, postState, initialTemplate, select, curren
   RebuildEffects();
   setTimeout(RebuildEffects, 1500);
   panel.addEventListener("toggle", () => { if (panel.open) RebuildEffects(); });
+  return () => { unsubscribe(); panel.remove(); style.remove(); };
 }
 
 /**
@@ -4336,14 +4422,14 @@ export async function RunDemo(canvas)
   canvas.tabIndex = 0;
   const input = createDemoInput({ mainWindow, canvas, document: globalThis.document, controls, actions,
     isEnabled: () => liveInput,
-    showHelp: () => document.getElementById("camera-controls")?.scrollIntoView(),
+    showHelp: () => { const panel=document.getElementById("camera-controls");if(panel){document.getElementById("settings").open=true;panel.open=true;panel.scrollIntoView();} },
     onError: error => console.warn(`demo input: ${error.message}`)
   });
   globalThis.demo.input = input;
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
-    disposed = true; input.dispose(); controls.dispose(); actions.dispose();
+    disposed = true; disposeCameraPanel(); disposeSettings(); input.dispose(); controls.dispose(); actions.dispose();
     globalThis.removeEventListener("pagehide", dispose);
   };
   globalThis.addEventListener("pagehide", dispose);
@@ -4355,7 +4441,8 @@ export async function RunDemo(canvas)
     document.body.append(note);
   }
 
-  BuildSettingsPanel({
+  const disposeSettings = BuildSettingsPanel({
+    actions,
     driver,
     postState,
     initialTemplate: POST_SUN,
@@ -4401,6 +4488,8 @@ export async function RunDemo(canvas)
       if (vec3.length(direction) > 0) SUN.direction.set(vec3.normalize(direction, direction));
     }
   });
+
+  const disposeCameraPanel = BuildCameraPanel({ controls, input, actions, liveInput });
 
   // The ship panel loads through the skin swap, so the new ship dissolves in.
   if (realScene)

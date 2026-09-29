@@ -24,8 +24,8 @@ export function createDemoInput({ mainWindow, canvas, document, controls, action
   add("warp", "Toggle warp visual", "KeyW", () => invoke("setShipState", "warp", !actions.getState().shipStates.find(state => state.kind === "warp")?.on), () => actions.enabled("setShipState", "warp"));
   add("cloak", "Toggle cloak", "KeyC", () => invoke("cloak", !actions.getState().cloaked), () => actions.enabled("cloak"));
   add("skin", "Change skin", "KeyK", () => invoke("skin"), () => actions.enabled("skin"));
-  add("speed.down", "Decrease speed", "Comma", dt => invoke("speed", Math.max(0, actions.getState().speed-dt)), () => actions.enabled("speed"), true);
-  add("speed.up", "Increase speed", "Period", dt => invoke("speed", Math.min(2, actions.getState().speed+dt)), () => actions.enabled("speed"), true);
+  add("speed.down", "Decrease speed", "Comma", dt => invoke("speed", Math.max(0, actions.getState().speed-dt*actions.getState().maxSpeed)), () => actions.enabled("speed"), true);
+  add("speed.up", "Increase speed", "Period", dt => invoke("speed", Math.min(2*actions.getState().maxSpeed, actions.getState().speed+dt*actions.getState().maxSpeed)), () => actions.enabled("speed"), true);
   add("speed.stop", "Stop speed", "Digit0", () => invoke("speed", 0), () => actions.enabled("speed"));
   add("help", "Show controls", "KeyH", showHelp);
   // Registered now for a stable help/rebinding table, unbound until capture exists.
@@ -116,6 +116,7 @@ export function createDemoInput({ mainWindow, canvas, document, controls, action
   {
     const command=commands.get(name);
     if (!command) throw new RangeError(`Unknown action ${name}`);
+    if(bindings.some(binding=>binding.ctrl||binding.ctrlKey||binding.meta||binding.metaKey||binding.alt||binding.altKey)) throw new RangeError("Browser modifier chords are reserved");
     const next=bindings.map(binding=>({code:binding.code,shift:!!binding.shift})), seen=new Set();
     for(const binding of next)
     {
@@ -128,6 +129,7 @@ export function createDemoInput({ mainWindow, canvas, document, controls, action
   }
   return {
     cancel,rebind,
+    invoke(name) { const command=commands.get(name);if(!command)throw new RangeError(`Unknown action ${name}`);if(!disposed&&isEnabled())execute(command,0); },
     enableCapture() { const command=commands.get("capture");command.defaults=[{code:"KeyV",shift:false}];rebind("capture",command.defaults); },
     resetBindings() { for(const command of commands.values()) command.bindings=command.defaults.map(binding=>({...binding}));cancel();notify(); },
     getBindings() { return Array.from(commands.values(),command=>({name:command.name,label:command.label,enabled:isEnabled()&&command.enabled(),bindings:command.bindings.map(binding=>({...binding}))})); },

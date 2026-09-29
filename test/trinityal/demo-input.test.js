@@ -75,3 +75,14 @@ test("frame clears later queued input; bounded queue and reattachment retain no 
   h.input.dispose();h.mainWindow.Attach({window:h.window,document:h.document,target:h.canvas});
   assert.equal(h.canvas.listeners.get("wheel").length,1);assert.equal(h.window.listeners.get("keydown").length,1);h.mainWindow.Detach();
 });
+
+test("panel invocation shares command state and rejects reserved modifier rebindings",()=>
+{
+  const h=setup();const snapshots=[];const unsubscribe=h.actions.subscribe(state=>snapshots.push(state.post));
+  h.document.activeElement={tagName:"BUTTON"};h.input.invoke("post");assert.equal(h.actions.getState().post,true);
+  h.document.activeElement=h.canvas;h.window.emit("keydown",{code:"KeyP"});h.input.update(.016);
+  assert.equal(h.actions.getState().post,false);assert.deepEqual(snapshots,[false,true,false]);
+  assert.throws(()=>h.input.rebind("post",[{code:"KeyB",ctrl:true}]),/reserved/);
+  assert.equal(h.input.getBindings().find(item=>item.name==="capture").enabled,false);
+  unsubscribe();h.input.dispose();
+});
