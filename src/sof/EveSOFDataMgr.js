@@ -1121,10 +1121,15 @@ function projectHullLightSetItem(value)
   };
 }
 
+/**
+ * Projects Carbon's constructor-set m_data.type (EveSOFData.cpp:988-1020).
+ * Adapted: plain decoded values carry _type instead of running the native
+ * constructor. Preserve existing numeric projections and registered identities.
+ */
 function getHullLightType(value)
 {
   if (Number.isInteger(value?.type)) return Number(value.type);
-  const className = getStableClassName(value);
+  const className = getStableClassName(value) || String(value?._type ?? "");
   if (className.endsWith("TexturedPointLight")) return 1;
   if (className.endsWith("SpotLight")) return 2;
   return 0;
