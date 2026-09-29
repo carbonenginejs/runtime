@@ -6,7 +6,8 @@ import {
   gTriDev,
   Tr2RenderContext_GetMainThreadRenderContext,
   Tr2Renderer,
-  TriDevice
+  TriDevice,
+  Tr2GpuParticleSystem
 } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 
@@ -174,7 +175,7 @@ test("the device resource registry is prepared and released with the device", ()
   };
 
   TriDevice.RegisterResource(resource);
-  assert.ok(TriDevice.GetResourcesRegistered().has(resource));
+  assert.ok(TriDevice.GetResourcesRegistered().includes(resource));
 
   try
   {
@@ -195,7 +196,7 @@ test("the device resource registry is prepared and released with the device", ()
     TriDevice.UnregisterResource(resource);
   }
 
-  assert.equal(TriDevice.GetResourcesRegistered().has(resource), false);
+  assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
 });
 
 
@@ -231,4 +232,59 @@ test("Update advances playing curve sets and drops the finished ones", () =>
   // Both are updated, because Carbon updates before it prunes.
   assert.deepEqual(updated, [ [ "playing", 5, 7 ], [ "finished" ] ]);
   assert.deepEqual(device.curveSets, [ playing ], "and only the playing one survives");
+});
+
+test("device registry snapshots cannot mutate membership and retain their original contents", () =>
+{
+  const resource = { PrepareResources() {}, ReleaseResources() {} };
+  TriDevice.RegisterResource(resource);
+  try
+  {
+    const before = TriDevice.GetResourcesRegistered();
+    assert.ok(Array.isArray(before), "approved snapshot contract for native TriDevice.cpp:1061-1065");
+    assert.ok(before.includes(resource));
+    const independent = TriDevice.GetResourcesRegistered();
+    independent.length = 0;
+    assert.ok(TriDevice.GetResourcesRegistered().includes(resource), "editing a snapshot cannot unregister resources");
+    TriDevice.UnregisterResource(resource);
+    assert.ok(before.includes(resource), "existing snapshot is not live");
+    assert.equal(TriDevice.GetResourcesRegistered().includes(resource), false);
+  }
+  finally { TriDevice.UnregisterResource(resource); }
+});
+
+test("particle final-owner Destroy detaches nine effect stores once and unregisters immediately", () =>
+{
+  const system = new Tr2GpuParticleSystem();
+  const other = new Tr2GpuParticleSystem();
+  const events = [];
+  const slots = [ "emit", "update", "render", "clear", "setDrawParameters", "setSortParameters", "sort", "sortStep", "sortInner" ];
+  for (const slot of slots)
+  {
+    system[slot] = {
+      StartUpdate() { events.push([ slot, "start" ]); },
+      SetVariableStore(store) { events.push([ slot, "store", store ]); },
+      EndUpdate() { events.push([ slot, "end" ]); }
+    };
+  }
+  try
+  {
+    assert.ok(TriDevice.GetResourcesRegistered().includes(system));
+    system.ReleaseResources(3);
+    assert.ok(TriDevice.GetResourcesRegistered().includes(system), "cpp:180-198 device reset is not object destruction");
+    assert.notEqual(system._variableStore, null);
+    assert.equal(system.PrepareResources(), true, "an active resource remains preparable after reset");
+    system.Destroy();
+    assert.equal(TriDevice.GetResourcesRegistered().includes(system), false, "Tr2DeviceResource.cpp:15-18 base destructor unregisters");
+    assert.ok(TriDevice.GetResourcesRegistered().includes(other), "unrelated resources stay registered");
+    assert.equal(system._variableStore, null);
+    assert.deepEqual(events, slots.flatMap(slot => [ [ slot, "start" ], [ slot, "store", null ], [ slot, "end" ] ]), "Tr2GpuParticleSystem.cpp:106-119 preserves every effect update boundary");
+    system.Destroy();
+    assert.equal(events.length, 27, "explicit teardown is idempotent");
+  }
+  finally
+  {
+    TriDevice.UnregisterResource(system);
+    TriDevice.UnregisterResource(other);
+  }
 });

@@ -457,14 +457,17 @@ export class TriDevice extends CjsModel
    * STATIC, AND A PROCESS-WIDE SINGLETON IN CARBON TOO - resources register
    * without knowing which device they belong to, because there is one.
    *
-   * @returns {Set<object>} The live registry, not a copy.
+   * JavaScript returns an array snapshot so enumeration cannot mutate the
+   * registry. Carbon's mutex-protected set needs no lock in this JS realm;
+   * owners explicitly unregister at teardown because JS has no destructor.
+   *
+   * @returns {object[]} Registered resources at the time of this call.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon guards this set with a mutex because EveShip2Builder registers sprite sets from a background thread (TriDevice.cpp:1075-1080). JavaScript has no shared-memory threads, so there is nothing to guard and the mutex has no counterpart.")
   static GetResourcesRegistered()
   {
-    return TriDevice.#resourcesRegistered;
+    return Array.from(TriDevice.#resourcesRegistered);
   }
 
   /**

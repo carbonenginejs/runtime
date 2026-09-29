@@ -304,6 +304,26 @@ export class Tr2GpuParticleSystem extends CjsModel
     this.SetMaxParticles(this.maxParticles);
   }
 
+  /**
+   * Ends this system's owned lifetime: detaches all effect stores as the native
+   * destructor does (Tr2GpuParticleSystem.cpp:106-119), then unregisters as its
+   * base destructor does (Tr2DeviceResource.cpp:15-18).
+   *
+   * JavaScript has no deterministic destructor, so the final owner calls this
+   * explicitly. Device ReleaseResources is a separate reset operation. This
+   * does not destroy buffers or effects that may still be shared by callers.
+   */
+  @impl.custom
+  Destroy()
+  {
+    if (this._variableStore)
+    {
+      this._variableStore = null;
+      for (const slot of EFFECT_SLOTS) this.SetVariableStore(this[slot]);
+    }
+    TriDevice.UnregisterResource(this);
+  }
+
   /** Carbon InitializeBuffers (cpp:125-134): the GPU buffer objects, created empty. */
   @carbon.method
   @impl.implemented
