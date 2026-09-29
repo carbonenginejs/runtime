@@ -16,7 +16,8 @@ import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObje
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
-import { blue, EnumRegistrationType } from "#blue";
+import { blue, EnumRegistrationType, ResourceRequirement } from "#blue";
+import { TriGeometryResSkeletonData } from "#resource/geometry/TriGeometryResSkeletonData";
 
 /** Carbon BoundingSphereTransform (Utilities/BoundingSphere.cpp:70-81):
  * center = TransformCoord(center, tf); radius *= max of the basis row lengths
@@ -389,6 +390,24 @@ export class EveTurretSet extends EveEntity
    * one is supplied and the default count applies.
    */
   _skeletonBoneIndices = [];
+
+  _skeleton = null;
+  _systemBoneID = new Uint32Array(EveTurretAiming.SystemBones.SYSBONE_MAX).fill(0xffffffff);
+  _turretVertexDecl = [];
+  _turretVertexDeclElementCount = 0;
+  _boneBounds = [];
+
+  /** Stable resource callbacks preserve native notify ownership across reloads. */
+  #geometryCompleted = (_event, resource) => {
+    if (resource !== this.geometryResource) return;
+    if (resource.IsPrepared()) this.RebuildCachedData(resource);
+    else this.ReleaseCachedData(resource);
+  };
+
+  /** A released payload invalidates derived state but retains mount placement. */
+  #geometryReleased = (_event, resource) => {
+    if (resource === this.geometryResource) this.ReleaseCachedData(resource);
+  };
 
   /** Default bones per turret when no skeleton mapping is present (cpp:2334). */
   static DEFAULT_BONES_PER_TURRET = 3;
@@ -822,15 +841,16 @@ export class EveTurretSet extends EveEntity
 
   /**
    * Creates the target when absent, pushes the authored miss and impact
-   * behaviour into it, and initializes the firing and ambient effects.
+   * behaviour into it, and requests geometry through the resource manager.
+   * Existing JS child initialization remains necessary for hydrated graphs.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("InitializeGeometryResource and the granny skeleton load are not ported; Carbon calls them from here (cpp:146-165).")
   Initialize()
   {
     this.target ??= new EveTurretTarget();
     this.target.SetBehaviour(this.laserMissBehaviour, this.projectileMissBehaviour, this.impactSize, this.impactBehaviour);
+    this.InitializeGeometryResource();
     this.firingEffect?.Initialize();
     this._ambientEffect()?.Initialize();
     return true;
@@ -841,15 +861,12 @@ export class EveTurretSet extends EveEntity
    * `else if` CHAIN: Carbon is notified once per changed member, so exactly one
    * arm runs per notification.
    *
-   * Our settle reports a whole write instead, so the chain is evaluated against
-   * the values last seen rather than against a Be::Var pointer - one arm per
-   * settle, in the donor's order. Every arm stays present even where its body
-   * is unported, because removing one would let a change fall through to the
-   * next arm and run work the donor would not have run.
+   * JS notifications identify the exposed property name in place of Carbon's
+   * Be::Var address. Ambient redistribution and per-bone dynamic bounds still
+   * await their separate realization steps; geometry reload is handled here.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("JS dispatches the native hook using the exposed member name; existing class-owned rendering/resource adaptations remain unchanged.")
   OnModified(propertyName)
   {
     if (propertyName === "display")
@@ -859,9 +876,7 @@ export class EveTurretSet extends EveEntity
     else if (propertyName === "geometryResPath")
     {
       this.ReRegister();
-      // Carbon reloads here (cpp:177, "new gr2 file specified -> reload!").
-      // InitializeGeometryResource is unported: it asks BeResMan for the
-      // geometry and re-attaches the notify target (cpp:252-290).
+      this.InitializeGeometryResource();
     }
     else if (propertyName === "ambientEffectEditingMode")
     {
@@ -877,12 +892,108 @@ export class EveTurretSet extends EveEntity
     else if (propertyName === "useDynamicBounds")
     {
       // Carbon rebuilds the per-bone bounds (cpp:187-200), taking the CMF
-      // branch whenever the geometry is absent, unloaded or CMF - which is
-      // always, for us. InitializeDynamicBounds is unported, and porting it
+      // branch whenever the geometry is absent, unloaded or CMF.
+      // InitializeDynamicBounds is unported, and porting it
       // alone buys nothing until GetDynamicBounds and GetLocalBoundingBox
       // land with it.
     }
     return true;
+  }
+
+  /**
+   * Reloads the native LOD-selected geometry (EveTurretSet.cpp:252-290).
+   * JS resource completion/purge events replace Blue notify targets; the
+   * subscription stays installed after an immediate prepared callback so a
+   * later same-handle reload rebuilds the cache too.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeGeometryResource()
+  {
+    const previous = this.geometryResource;
+    if (previous)
+    {
+      previous.OffEvent("completed", this.#geometryCompleted, this);
+      previous.OffEvent("purged", this.#geometryReleased, this);
+      previous.OffEvent("unloaded", this.#geometryReleased, this);
+    }
+    this.geometryResource = null;
+    this.Cleanup();
+    if (this.lodLevel !== EveTurretSet.LOD.LOD_DISABLED && this.lodLevel !== EveTurretSet.LOD.LOD_HIGHEST) return;
+    if (!this.geometryResPath) return;
+    const resource = blue.resMan.GetResource(this.geometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    this.geometryResource = resource;
+    if (!resource) return;
+    resource.OnEvent("completed", this.#geometryCompleted, this);
+    resource.OnEvent("purged", this.#geometryReleased, this);
+    resource.OnEvent("unloaded", this.#geometryReleased, this);
+    if (resource.HasCompleted()) this.#geometryCompleted("completed", resource);
+  }
+
+  /**
+   * Drops resource-derived pose/cache state, retaining native mount records
+   * (EveTurretSet.cpp:459-521). The JS sampler owns the decoded pose storage
+   * in place of native CMF/Granny allocations.
+   */
+  @carbon.method
+  @impl.adapted
+  Cleanup()
+  {
+    this._turretVertexDeclElementCount = 0;
+    this._turretVertexDecl = [];
+    this._systemBoneID.fill(EveTurretSet.INVALID_INDEX);
+    this._skeleton = null;
+    this._skeletonBoneIndices.length = 0;
+    this._boneBounds.length = 0;
+    for (const turret of this._turrets)
+    {
+      if (turret.sequencer)
+      {
+        turret.sequencer.StopAnimations(0);
+        turret.sequencer.SetSharedGeometryRes(null);
+      }
+      turret.sequencer = null;
+      turret.pose = null;
+      turret.worldTransforms = [];
+    }
+  }
+
+  /**
+   * Caches mesh0 bounds/declaration and native system-bone IDs after completion
+   * (EveTurretSet.cpp:1005-1073). The original skeleton record's name lookup is
+   * applied to the decoder's plain CMF record rather than duplicating it.
+   * Animation, muzzle and instance-stream realization are separate port steps.
+   */
+  @carbon.method
+  @impl.adapted
+  RebuildCachedData(resource)
+  {
+    if (resource !== this.geometryResource || !resource.IsPrepared()) return;
+    this.Cleanup();
+    if (resource.GetMeshCount())
+    {
+      this._turretVertexDecl = resource.GetMeshVertexElements(0).map(element => ({ ...element }));
+      this._turretVertexDeclElementCount = this._turretVertexDecl.length;
+      if (this.boundingSphere[3] === 0)
+      {
+        resource.RecalculateBoundingSphere();
+        resource.GetBoundingSphere(0, this.boundingSphere);
+      }
+    }
+    this._skeleton = resource.GetSkeletonData(0);
+    if (this._skeleton)
+    {
+      for (let index = 0; index < this._systemBoneID.length; index++)
+        this._systemBoneID[index] = TriGeometryResSkeletonData.prototype.FindJoint.call(this._skeleton, EveTurretAiming.getSystemBoneName(index));
+    }
+  }
+
+  /** Clears derived state when Blue releases geometry (EveTurretSet.cpp:1081). */
+  @carbon.method
+  @impl.implemented
+  ReleaseCachedData(_resource)
+  {
+    this.Cleanup();
   }
 
   /** Attaches the firing effect and initializes it immediately. */
@@ -982,10 +1093,13 @@ export class EveTurretSet extends EveEntity
     return this._turrets;
   }
 
-  /** Carbon method SetLocalTransform. */
+  /**
+   * Stores a scale-free locator matrix without orthogonalizing its axes
+   * (EveTurretSet.cpp:1784; TriMath.cpp:683). JS plain records replace the
+   * native SingleTurretData allocation; no second transform convention is used.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Portable records replace Carbon's CMF/Granny SingleTurretData allocation while retaining its fixed 24-turret limit and scale removal.")
   SetLocalTransform(turretIndex, localMatrix)
   {
     const index = Number(turretIndex) >>> 0;
@@ -998,9 +1112,15 @@ export class EveTurretSet extends EveEntity
       this._turrets.push(turret);
     }
     const turret = this._turrets[index];
-    mat4.getRotation(EveTurretSet._localRotation, localMatrix);
-    mat4.getTranslation(EveTurretSet._localTranslation, localMatrix);
-    mat4.fromRotationTranslation(turret.localMatrix, EveTurretSet._localRotation, EveTurretSet._localTranslation);
+    mat4.copy(turret.localMatrix, localMatrix);
+    for (let column = 0; column < 3; column++)
+    {
+      const at = column * 4;
+      const length = Math.hypot(localMatrix[at], localMatrix[at + 1], localMatrix[at + 2]);
+      if (length > 0) for (let axis = 0; axis < 3; axis++) turret.localMatrix[at + axis] /= length;
+    }
+    mat4.getRotation(EveTurretSet._localRotation, turret.localMatrix);
+    mat4.getTranslation(EveTurretSet._localTranslation, turret.localMatrix);
     quat.copy(turret.localQuaternion, EveTurretSet._localRotation);
     vec4.set(turret.localPosition, EveTurretSet._localTranslation[0], EveTurretSet._localTranslation[1], EveTurretSet._localTranslation[2], 1);
     turret.valid = false;
