@@ -387,8 +387,7 @@ export class EveTurretSet extends EveEntity
 
   /**
    * m_skeletonBoneIndices - the shader's bone mapping, shared by every turret
-   * of the set. Skeleton realization is not ported yet, so this stays empty until
-   * one is supplied and the default count applies.
+   * of the set, resolved from the resource mesh binding during initialization.
    */
   _skeletonBoneIndices = [];
 
@@ -1012,7 +1011,9 @@ export class EveTurretSet extends EveEntity
    * Allocates an independent pose on each native SingleTurretData record
    * (EveTurretSet.cpp:902-983). The existing Tr2GrannyAnimation decodes and
    * samples both resource representations, replacing native SDK allocations.
-   * Mesh-binding indices remain separate from skeleton-joint indices.
+   * Mesh-binding indices remain separate from skeleton-joint indices. The
+   * updater's existing modifier phase runs native aiming after sampling and
+   * before world composition; current-pitch queries reuse its hierarchy solver.
    */
   @carbon.method
   @impl.adapted
@@ -1037,6 +1038,30 @@ export class EveTurretSet extends EveEntity
       turret.sequencer = updater;
       turret.pose = updater._GetPoseModifierView().pose;
       turret.worldTransforms = updater.GetAnimationTransforms();
+      updater.SetPoseModifier({ ModifyPose: (_skeleton, pose) => {
+        if (!turret.valid || this.trackingInfluence === 0) return;
+        if (!mat4.invert(EveTurretSet._inverseTurret, turret.worldMatrix)) return;
+        // Carbon: TransformCoord(target, Inverse(local * parent)); gl composition
+        // is parent * local, and the full inverse retains scale and shear.
+        vec3.transformMat4(EveTurretSet._localTarget, this.target.GetTrackingPosition(), EveTurretSet._inverseTurret);
+        const bones = EveTurretAiming.SystemBones;
+        for (let bone = 0; bone < bones.SYSBONE_MAX; bone++)
+        {
+          const joint = this._systemBoneID[bone];
+          if (joint === EveTurretSet.INVALID_INDEX || joint >= pose.boneTransforms.length) continue;
+          let localTransform = null;
+          if (this.updatePitchPose && bone >= bones.SYSBONE_PITCH && bone <= bones.SYSBONE_PITCH2)
+          {
+            // cpp:1313: compose this frame's already modified ancestors BEFORE
+            // pitch and before the later height bone; never use last frame.
+            updater._composePose();
+            localTransform = turret.worldTransforms[joint];
+          }
+          const transform = pose.boneTransforms[joint];
+          this._aiming.ModifySystemBoneTransform(bone, EveTurretSet._localTarget, localTransform,
+            this.trackingInfluence, transform.position, transform.rotation);
+        }
+      } });
       this.#animationControls.set(turret, []);
     }
   }
@@ -1109,12 +1134,15 @@ export class EveTurretSet extends EveEntity
    * is assigned before Update(0), retaining overshoot across an idle boundary
    * and holding a one-shot's terminal sample when a delayed stop extends it.
    * The clock advances from JS update deltas, including empty-pose intervals.
-   * System-bone aiming is added at the updater's existing modifier phase.
+   * System-bone aiming runs in the existing modifier phase, then the updater
+   * composes full joint transforms. Its sampled-pose snapshot prevents aiming
+   * from accumulating when a stationary frame is repeated.
    */
   @carbon.method
   @impl.adapted
   UpdateSingleTurrets()
   {
+    this.GetAiming();
     for (const turret of this._turrets)
     {
       if (!turret.sequencer) continue;
@@ -1370,11 +1398,11 @@ export class EveTurretSet extends EveEntity
    * tracking influence through its fade-in and fade-out delays, pushes the
    * target position into each valid turret's tracking pose in that turret's
    * local space, then hands the firing effect its end position and per-muzzle
-   * world transforms.
+   * world transforms. JS update deltas replace the renderer animation clock;
+   * the existing sampler modifier phase owns pose aiming and composition.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Skeleton realization is not ported yet; portable turret records may consume the same local-target tracking hook.")
   UpdateAsyncronous(context, parentData = this._parentTransform)
   {
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
@@ -1424,20 +1452,6 @@ export class EveTurretSet extends EveEntity
       }
     }
     this.UpdateSingleTurrets();
-    if (this.trackingInfluence !== 0)
-    {
-      const trackingPosition = this.target?.GetTrackingPosition?.() ?? this.target?.position;
-      if (trackingPosition)
-      {
-        for (const turret of this._turrets)
-        {
-          if (!turret.valid || !mat4.invert(EveTurretSet._inverseTurret, turret.worldMatrix)) continue;
-          vec3.transformMat4(EveTurretSet._localTarget, trackingPosition, EveTurretSet._inverseTurret);
-          const hook = turret.UpdateTrackingPose ?? turret.source?.UpdateTrackingPose;
-          hook?.call(turret.source ?? turret, EveTurretSet._localTarget, this.trackingInfluence, this);
-        }
-      }
-    }
     if (this.firingEffect)
     {
       this.firingEffect.SetEndPosition?.(this.target?.GetTargetPosition?.() ?? this.target?.targetPosition ?? EveTurretSet._zero);
