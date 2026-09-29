@@ -7,7 +7,7 @@ import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/resource/geometry/TriGeometryResSkeletonData.js";
-import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming } from "../../npm/dist/trinity/index.js";
+import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming, EveTurretFiringFX, EveComponentRegistry } from "../../npm/dist/trinity/index.js";
 import { CjsGrannyCurves } from "../../npm/dist/trinity/curves/track/CjsGrannyCurves.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import "../../npm/dist/audio/index.js";
@@ -250,4 +250,67 @@ test("real turret aiming samples before yaw/pitch/height through a rotated scale
   set.trackingInfluence=influence;set._systemBoneID[EveTurretAiming.SystemBones.SYSBONE_ROTATION]=0xffffffff;
   set.UpdateAsyncronous({deltaTime:0},parent);assert.deepEqual(Array.from(set.GetTurrets()[0].pose.boneTransforms[2].rotation),base[0][2].rotation,"missing sentinel skips only yaw");
   assert.notDeepEqual(Array.from(set.GetTurrets()[0].pose.boneTransforms[4].rotation),base[0][4].rotation);
+});
+
+for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geometryFirst?"geometry":"effect"} first and copies the current full joint`,{skip},async t=>
+{
+  const {set,ship}=await assets(t);ship.RebuildTurretPositions();
+  const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));assert.equal(createHash("sha256").update(bytes).digest("hex"),"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
+  const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  if(geometryFirst)set.Initialize();set.SetFiringEffect(effect);if(!geometryFirst)set.Initialize();
+  assert.equal(effect.GetPerMuzzleEffectCount(),1);assert.equal(effect.GetPerMuzzleBoneID(0),10,"cpp:320 prefix + 01 resolves full skeleton joint, not mesh binding");
+  const parent=mat4.create();mat4.translate(parent,parent,[35,-18,22]);mat4.rotateY(parent,parent,.45);mat4.rotateX(parent,parent,-.3);mat4.scale(parent,parent,[1.2,.9,1.5]);
+  set._activeTurret=1;set.trackingInfluence=.8;set.target.position.set([700,500,300]);set.PlayAnimation(1,"Deploy","Active");
+  set.UpdateAsyncronous({deltaTime:.2},parent);const turret=set.GetTurrets()[1];
+  assert.equal(turret.sequencer.GetMeshBoneCount(),9,"muzzle10 cannot index the9-bone skin palette");
+  const expected=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
+  assertScalars(set.GetFiringBoneWorldTransform(0),expected,"native full bone * turret world");
+  assertScalars(effect.GetMuzzleTransform(0),expected,"same-frame FX muzzle upload");
+  const retained=set.GetTurretBoneTransform(1,10),retainedValues=Array.from(retained);set.GetTurretBoneTransform(0,10);assert.deepEqual(Array.from(retained),retainedValues,"native return value is caller-owned" );
+  const before=Array.from(expected);set.UpdateAsyncronous({deltaTime:2},parent);
+  const next=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
+  assert.notDeepEqual(Array.from(next),before);assertScalars(effect.GetMuzzleTransform(0),next,"animated muzzle is not one frame stale");
+  set._activeTurret=EveTurretSet.INVALID_INDEX;set.chooseRandomLocator=false;
+  const closest=set.GetClosestTurret();assert.ok(closest===0 || closest===1);
+  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(set.GetTurrets()[closest].worldTransforms[10],set.GetTurrets()[closest].worldMatrix),"no active turret temporarily uses closest");
+});
+
+test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform order and effect registry",{skip},async t=>
+{
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
+  const bytes=await readFile(join(corpus,"pulse_mega_fx.black")),makeEffect=()=>EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
+  const registry=new EveComponentRegistry();set.Register(registry);
+  const old=makeEffect(),effect=makeEffect();set.SetFiringEffect(old);set.SetFiringEffect(effect);
+  assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
+  const parent=mat4.create();mat4.translate(parent,parent,[60,20,10]);mat4.rotateZ(parent,parent,.3);set.UpdateAsyncronous({deltaTime:0},parent);set._activeTurret=0;
+  const turret=set.GetTurrets()[0];effect.boneName="Absent";set.InitializeFiringEffect();assert.equal(effect.GetPerMuzzleBoneID(0),0xffffffff);
+  assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"missing joint returns turret center before orientation fallback");
+  set.useLowLodFiringTransform=true;set.lowLodFiringEffectTranslation.set([2,3,7]);set.lowLodFiringEffectScale.set([2,1,3]);set.lowLodFiringEffectRotation.set([0,Math.sin(.2),0,Math.cos(.2)]);
+  const low=mat4.fromRotationTranslationScale(mat4.create(),set.lowLodFiringEffectRotation,set.lowLodFiringEffectTranslation,set.lowLodFiringEffectScale);
+  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"native lowLOD * turretWorld");
+  effect.boneName="Pos_Fire";set.InitializeFiringEffect();resource.MarkPurged();assert.equal(turret.pose,null);
+  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(low,turret.worldMatrix),"unloaded pose uses lowLOD even with retained valid joint ID");
+  set.useLowLodFiringTransform=false;set.sysBonePitchMin=0;set.target.position.set([800,900,500]);
+  const direct=set.GetFiringBoneWorldTransform(0),direction=Array.from(set.target.position).map((v,i)=>v-turret.worldMatrix[12+i]);const length=Math.hypot(...direction);
+  assertScalars(direct.slice(8,11),direction.map(v=>v/length),"native RotationArc normalizes the non-unit target direction");
+  assertScalars(direct.slice(12,15),turret.worldMatrix.slice(12,15),"direct fallback preserves position");
+  set.sysBonePitchMin=60;const launcher=mat4.fromXRotation(mat4.create(),-Math.PI/2);
+  assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(launcher,turret.worldMatrix),"narrow launcher rotates local +Y to effect +Z");
+  set.SetFiringEffect(null);assert.equal(effect.GetComponentRegistry(),null);assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"no effect returns turret matrix");
+  set._activeTurret=EveTurretSet.INVALID_INDEX;set.GetTurrets().length=0;assertScalars(set.GetFiringBoneWorldTransform(0),parent,"no mount returns parent matrix");
+  set.UnRegister(registry);
+});
+
+test("first actual firing without an active turret initializes muzzle positions from the parent once",{skip},async t=>
+{
+  const {set,ship}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
+  const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));
+  const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);set.SetFiringEffect(effect);
+  const parent=mat4.fromTranslation(mat4.create(),[80,20,-30]);
+  effect.PrepareFiring(0);set.UpdateAsyncronous({deltaTime:.1,currentTime:1},parent);
+  assert.equal(set._firingEffectMuzzlePosSet,false,"no active turret: do not replace the muzzle with a closest mount during update");
+  set.UpdateAsyncronous({deltaTime:.1,currentTime:1.1},parent);
+  assert.equal(set._firingEffectMuzzlePosSet,true);assertScalars(effect.GetMuzzleTransform(0),parent,"cpp:1481 first-start parent fallback");
+  const next=mat4.fromTranslation(mat4.create(),[180,30,-40]);set.UpdateAsyncronous({deltaTime:.1,currentTime:1.2},next);
+  assertScalars(effect.GetMuzzleTransform(0),parent,"native fallback is initialized once");
 });

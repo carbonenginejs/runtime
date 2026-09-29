@@ -4,6 +4,7 @@
 import { carbon, impl, edit, type, CjsSchema } from "#schema";
 import { EveEntity } from "../../EveEntity.js";
 import { EveComponentType } from "../../EveComponentTypes.js";
+import { EveTurretFiringFX } from "./EveTurretFiringFX.js";
 import { EveTurretAiming } from "./EveTurretAiming.js";
 import { EVE_TURRET_RANDOM_DELAY_MAX, EveTurretTarget } from "./EveTurretTarget.js";
 import { mat4 } from "#math/mat4";
@@ -443,6 +444,9 @@ export class EveTurretSet extends EveEntity
 
   _recheckTimeLeft = 2;
 
+  /** Native first-firing fallback state (EveTurretSet.cpp:90,1481). */
+  _firingEffectMuzzlePosSet = false;
+
   /** Carbon method RebuildBoundingSphere (MAP_METHOD_AND_WRAP). */
   @carbon.method
   @impl.adapted
@@ -764,53 +768,55 @@ export class EveTurretSet extends EveEntity
     this._ambientEffect()?.HandleControllerEvent(name);
   }
 
-  /** Carbon method GetFiringBoneWorldTransform (MAP_METHOD_AND_WRAP). */
+  /**
+   * Resolves the firing mount, temporarily choosing the closest when none is
+   * active, then its current muzzle joint (EveTurretSet.cpp:1535-1561).
+   * The optional JS output array avoids a native matrix return allocation.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Portable turret records and duck-typed geometry bone transforms replace Carbon's CMF/Granny split.")
   GetFiringBoneWorldTransform(muzzle = 0, out = mat4.create())
   {
     let turretIndex = this._activeTurret;
     if (turretIndex === EveTurretSet.INVALID_INDEX) turretIndex = this.GetClosestTurret();
     if (turretIndex === EveTurretSet.INVALID_INDEX) return mat4.copy(out, this._parentTransform);
+    if (!this.firingEffect) return mat4.copy(out, this._turrets[turretIndex].worldMatrix);
+    return this.GetTurretBoneTransform(turretIndex, this.firingEffect.GetPerMuzzleBoneID(muzzle), out);
+  }
+
+  /**
+   * Places the full animated joint in world space, never the inverse-bind skin
+   * palette (EveTurretSet.cpp:1565-1684). The existing JS sampler supplies the
+   * native full world-of-pose matrices for both decoded resource formats.
+   * Invalid joint, unloaded pose and low-LOD launcher fallbacks retain Carbon's
+   * branch order; rotationArc is the native math helper, including its quirks.
+   * Without an output array, the returned matrix belongs to the caller.
+   */
+  @carbon.method
+  @impl.adapted
+  GetTurretBoneTransform(turretIndex, boneID, out = mat4.create()) // alloc: returned native matrix value belongs to the caller; hot-path callers provide out
+  {
     const turret = this._turrets[turretIndex];
-    const world = turret?.worldMatrix ?? turret?.transform ?? turret;
-    if (world?.length === 16) mat4.copy(out, world);
-    else mat4.copy(out, this._parentTransform);
-    if (!this.firingEffect) return out;
-    const boneID = this.firingEffect?.GetPerMuzzleBoneID?.(muzzle) ?? EveTurretSet.INVALID_INDEX;
+    mat4.copy(out, turret.worldMatrix);
+    mat4.identity(EveTurretSet._lowLodTransform);
+    if (this.useLowLodFiringTransform)
+      mat4.fromRotationTranslationScale(EveTurretSet._lowLodTransform, this.lowLodFiringEffectRotation, this.lowLodFiringEffectTranslation, this.lowLodFiringEffectScale);
+    // Carbon row-vector: lowLod * turretWorld; local offset applies first.
     if (boneID === EveTurretSet.INVALID_INDEX)
+      return mat4.multiply(out, out, EveTurretSet._lowLodTransform);
+    if (turret.pose)
     {
-      if (this.useLowLodFiringTransform)
-      {
-        mat4.fromRotationTranslationScale(EveTurretSet._lowLodTransform, this.lowLodFiringEffectRotation, this.lowLodFiringEffectTranslation, this.lowLodFiringEffectScale);
-        mat4.multiply(out, out, EveTurretSet._lowLodTransform);
-      }
-      return out;
-    }
-    const boneTransform = turret?.GetBoneTransform?.(boneID, EveTurretSet._boneTransform)
-      ?? this.geometryResource?.GetBoneTransform?.(turretIndex, boneID, EveTurretSet._boneTransform);
-    if (boneTransform?.length === 16)
-    {
-      if (boneTransform !== EveTurretSet._boneTransform) mat4.copy(EveTurretSet._boneTransform, boneTransform);
-      return mat4.multiply(out, out, EveTurretSet._boneTransform);
+      // Carbon row-vector: boneWorld * turretWorld. No inverse bind here.
+      return mat4.multiply(out, out, turret.worldTransforms[boneID]);
     }
     if (this.useLowLodFiringTransform)
-    {
-      mat4.fromRotationTranslationScale(EveTurretSet._lowLodTransform, this.lowLodFiringEffectRotation, this.lowLodFiringEffectTranslation, this.lowLodFiringEffectScale);
-      mat4.multiply(out, out, EveTurretSet._lowLodTransform);
-      return out;
-    }
+      return mat4.multiply(out, out, EveTurretSet._lowLodTransform);
     if (this.sysBonePitchMin < 45)
     {
       vec3.set(EveTurretSet._turretPosition, out[12], out[13], out[14]);
-      const target = this.target?.GetTrackingPosition?.() ?? this.target?.position ?? EveTurretSet._zero;
-      vec3.subtract(EveTurretSet._targetDirection, target, EveTurretSet._turretPosition);
-      if (vec3.squaredLength(EveTurretSet._targetDirection))
-      {
-        quat.rotationTo(EveTurretSet._directRotation, EveTurretSet._unitZ, EveTurretSet._targetDirection);
-        mat4.fromRotationTranslation(out, EveTurretSet._directRotation, EveTurretSet._turretPosition);
-      }
+      vec3.subtract(EveTurretSet._targetDirection, this.target.GetTrackingPosition(), EveTurretSet._turretPosition);
+      quat.rotationArc(EveTurretSet._directRotation, EveTurretSet._unitZ, EveTurretSet._targetDirection);
+      mat4.fromRotationTranslation(out, EveTurretSet._directRotation, EveTurretSet._turretPosition);
     }
     else
     {
@@ -972,8 +978,8 @@ export class EveTurretSet extends EveEntity
    * Caches mesh0 bounds/declaration and native system-bone IDs after completion
    * (EveTurretSet.cpp:1005-1073). The original skeleton record's name lookup is
    * applied to the decoder's plain CMF record rather than duplicating it.
-   * The shared JS sampler replaces native CMF/Granny allocations. Muzzle
-   * and instance-stream realization remain separate port steps.
+   * The shared JS sampler replaces native CMF/Granny allocations. Instance
+   * stream realization remains a separate port step.
    */
   @carbon.method
   @impl.adapted
@@ -997,6 +1003,7 @@ export class EveTurretSet extends EveEntity
       for (let index = 0; index < this._systemBoneID.length; index++)
         this._systemBoneID[index] = TriGeometryResSkeletonData.prototype.FindJoint.call(this._skeleton, EveTurretAiming.getSystemBoneName(index));
     }
+    this.InitializeFiringEffect();
     this.InitializeAnimation();
     if (this._animationQueue.length)
     {
@@ -1168,13 +1175,43 @@ export class EveTurretSet extends EveEntity
     this.Cleanup();
   }
 
-  /** Attaches the firing effect and initializes it immediately. */
+  /**
+   * Resolves the authored muzzle prefix plus two-digit joint index, capped at
+   * the native twelve slots (EveTurretSet.cpp:320-355). Resource lookup uses
+   * the canonical skeleton owner on decoded records. Carbon's singleton quad
+   * renderer registration is not available here; the existing JS effect
+   * renderable/component traversal remains responsible for rendering.
+   */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
+  InitializeFiringEffect()
+  {
+    if (!this.firingEffect || !this.geometryResource) return;
+    const skeleton = this.geometryResource.GetSkeletonData(0);
+    if (!skeleton) return;
+    const count = Math.min(this.firingEffect.GetPerMuzzleEffectCount(), EveTurretFiringFX.MaxMuzzleCount.MUZZLECOUNT_MAX);
+    for (let index = 0; index < count; index++)
+    {
+      const name = this.firingEffect.GetFiringBoneName() + String(index + 1).padStart(2, "0");
+      this.firingEffect.SetMuzzleBoneID(index, TriGeometryResSkeletonData.prototype.FindJoint.call(skeleton, name));
+    }
+  }
+
+  /**
+   * Replaces the effect through the current component registry, then binds its
+   * muzzle joints (EveTurretSet.cpp:3534-3548). Hydrated JS effects are also
+   * initialized here to resolve their authored duration before first use.
+   */
+  @carbon.method
+  @impl.adapted
   SetFiringEffect(effect)
   {
+    const registry = this.GetComponentRegistry();
+    this.firingEffect?.UnRegister(registry);
     this.firingEffect = effect ?? null;
+    this.firingEffect?.Register(registry);
     this.firingEffect?.Initialize();
+    this.InitializeFiringEffect();
   }
 
   /**
@@ -1454,13 +1491,25 @@ export class EveTurretSet extends EveEntity
     this.UpdateSingleTurrets();
     if (this.firingEffect)
     {
-      this.firingEffect.SetEndPosition?.(this.target?.GetTargetPosition?.() ?? this.target?.targetPosition ?? EveTurretSet._zero);
-      for (let muzzle = 0; muzzle < this.firingEffect.GetPerMuzzleEffectCount?.(); muzzle++)
+      if (this._activeTurret !== EveTurretSet.INVALID_INDEX)
       {
-        this.firingEffect.SetMuzzleTransform?.(muzzle, this.GetFiringBoneWorldTransform(muzzle, EveTurretSet._muzzleTransform));
+        for (let muzzle = 0; muzzle < this.firingEffect.GetPerMuzzleEffectCount(); muzzle++)
+          this.firingEffect.SetMuzzleTransform(muzzle, this.GetFiringBoneWorldTransform(muzzle, EveTurretSet._muzzleTransform));
+        this._firingEffectMuzzlePosSet = true;
       }
-      this.firingEffect.SetDisplayDestObject?.(this.target?.ShowDestObject?.() ?? true);
-      this.firingEffect.UpdateAsynchronous?.(context);
+      this.firingEffect.SetEndPosition(this.target.GetTargetPosition());
+      if (this.firingEffect.UpdateAsynchronous(context))
+      {
+        // cpp:1481-1493: first actual fire without an active mount uses the
+        // parent only once, after the firing module reports it has started.
+        if (!this._firingEffectMuzzlePosSet)
+        {
+          for (let muzzle = 0; muzzle < this.firingEffect.GetPerMuzzleEffectCount(); muzzle++)
+            this.firingEffect.SetMuzzleTransform(muzzle, this._parentTransform);
+          this._firingEffectMuzzlePosSet = true;
+        }
+        this.firingEffect.SetDisplayDestObject(this.target.ShowDestObject());
+      }
     }
     this._ambientEffect()?.UpdateAsyncronous(context, { isVisible: this.display, localToWorldTransform: this._parentTransform });
     return true;
