@@ -18,6 +18,14 @@ import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObje
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
 import { Tr2RingBuffer, Tr2RingBufferOffsets } from "../../../core/device/Tr2RingBuffer/index.js";
 import { Tr2RenderContext_GetMainThreadRenderContext } from "../../../core/context/Tr2RenderContext.js";
+import { TriDevice } from "../../../core/device/TriDevice.js";
+import { Tr2Renderer } from "../../../core/Tr2Renderer.js";
+import { Tr2SuballocatedBufferAllocation } from "../../../core/device/Tr2SuballocatedBuffer/index.js";
+import { SharedGeometryBuffer, CreateLodAllocations } from "../../../core/mesh/TriGeometryResAllocations.js";
+import { Tr2EffectStateManager } from "../../../shader/Tr2EffectStateManager.js";
+import { CarbonVertexElements } from "../../../core/vertex/vertexUsage.js";
+import { Tr2VertexUsageCode } from "../../../core/vertex/usageCode.js";
+import { TriGeometryRes } from "#resource/geometry/TriGeometryRes";
 import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -410,6 +418,14 @@ export class EveTurretSet extends EveEntity
   _turretVertexDeclElementCount = 0;
   _boneBounds = [];
 
+  /** Native device declaration and shared instance-ID allocation. */
+  _vertexDeclHandle = Tr2EffectStateManager.Unknown;
+  _instanceBuffer = new Tr2SuballocatedBufferAllocation();
+  _parentShLighting = null;
+
+  /** Native bounded instance IDs, reused for each allocation. */
+  static _instanceIds = Float32Array.from({ length: 24 }, (_, index) => index);
+
   /** Native per-consumer cursor into the shared Float4x3 ring. */
   _boneOffsets = new Tr2RingBufferOffsets();
 
@@ -455,6 +471,83 @@ export class EveTurretSet extends EveEntity
 
   /** Native first-firing fallback state (EveTurretSet.cpp:90,1481). */
   _firingEffectMuzzlePosSet = false;
+
+  /** Native constructor/base registration and preparation (cpp:122). */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+    this.PrepareResources();
+  }
+
+  /**
+   * Explicit final-owner teardown replaces native deterministic destruction
+   * (cpp:130-145 and Tr2DeviceResource.cpp:15-18). Shared geometry/effects are
+   * not destroyed; native firing cleanup, notifications and owned allocation
+   * are released. Removing one shared parent is not final ownership.
+   */
+  @impl.custom
+  Destroy()
+  {
+    this.UnRegister(this.GetComponentRegistry());
+    this.firingEffect?.CleanUp();
+    const resource = this.geometryResource;
+    if (resource)
+    {
+      resource.OffEvent("completed", this.#geometryCompleted, this);
+      resource.OffEvent("purged", this.#geometryReleased, this);
+      resource.OffEvent("unloaded", this.#geometryReleased, this);
+    }
+    this.geometryResource = null;
+    this.Cleanup();
+    this.ReleaseResources();
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (cpp:21-32). */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    return !Tr2Renderer.IsResourceCreationAllowed() || this.OnPrepareResources();
+  }
+
+  /**
+   * Allocates float IDs0..23 (EveTurretSet.cpp:296-313). JS explicitly frees
+   * the previous allocation before replacing the native value-owned handle.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeInstanceBuffer()
+  {
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer.m_parent.Free(this._instanceBuffer);
+    const context = Tr2RenderContext_GetMainThreadRenderContext();
+    const allocation = SharedGeometryBuffer(context).Allocate(4, EveTurretSet.MAX_TURRETS_PER_SET, EveTurretSet._instanceIds, context);
+    if (allocation) this._instanceBuffer = allocation;
+  }
+
+  /** Native device release (cpp:1092): the declaration and owned instance range. */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources()
+  {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
+    if (this._instanceBuffer.IsValid()) this._instanceBuffer.m_parent.Free(this._instanceBuffer);
+  }
+
+  /** Native declaration and instance preparation (cpp:1103-1120). */
+  @carbon.method
+  @impl.implemented
+  OnPrepareResources()
+  {
+    if (this._turretVertexDeclElementCount && this._vertexDeclHandle === Tr2EffectStateManager.Unknown)
+    {
+      this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(this._turretVertexDecl);
+      if (this._vertexDeclHandle === Tr2EffectStateManager.Unknown) return false;
+    }
+    this.InitializeInstanceBuffer();
+    return true;
+  }
 
   /** Carbon method RebuildBoundingSphere (MAP_METHOD_AND_WRAP). */
   @carbon.method
@@ -963,6 +1056,7 @@ export class EveTurretSet extends EveEntity
   @impl.adapted
   Cleanup()
   {
+    this._vertexDeclHandle = Tr2EffectStateManager.Unknown;
     this._turretVertexDeclElementCount = 0;
     this._turretVertexDecl = [];
     this._systemBoneID.fill(EveTurretSet.INVALID_INDEX);
@@ -987,8 +1081,8 @@ export class EveTurretSet extends EveEntity
    * Caches mesh0 bounds/declaration and native system-bone IDs after completion
    * (EveTurretSet.cpp:1005-1073). The original skeleton record's name lookup is
    * applied to the decoder's plain CMF record rather than duplicating it.
-   * The shared JS sampler replaces native CMF/Granny allocations. Instance
-   * stream realization remains a separate port step.
+   * The shared JS sampler replaces native CMF/Granny allocations. The existing
+   * CarbonVertexElements bridge translates decoded CMF usage names for the AL.
    */
   @carbon.method
   @impl.adapted
@@ -998,7 +1092,9 @@ export class EveTurretSet extends EveEntity
     this.Cleanup();
     if (resource.GetMeshCount())
     {
-      this._turretVertexDecl = resource.GetMeshVertexElements(0).map(element => ({ ...element }));
+      this._turretVertexDecl = CarbonVertexElements(resource.GetMeshVertexElements(0)).map(element => ({ ...element }));
+      this._turretVertexDecl.push({ type: "FLOAT32_1", usage: Tr2VertexUsageCode.TEXCOORD, usageIndex: 2, stream: 1, instanceStepRate: 1, offset: 0 });
+      this._vertexDeclHandle = Tr2EffectStateManager.getVertexDeclarationHandle(this._turretVertexDecl);
       this._turretVertexDeclElementCount = this._turretVertexDecl.length;
       if (this.boundingSphere[3] === 0)
       {
@@ -1538,18 +1634,31 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Appends the firing and ambient effect renderables to out; gated on display,
-   * and each contribution additionally on displayEffects.
+   * Collects this visible turret and its effects (cpp:2022-2049). JS returns
+   * the supplied array; the borrowed hull SH coefficients retain native lifetime.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Renderable collection is backend-neutral; geometry and batch realization are not ported yet.")
-  GetRenderables(out = [])
+  GetRenderables(out = [], shLighting = null)
   {
+    this._parentShLighting = null;
     if (!this.display) return out;
+    if (this.geometryResource && this.visibleCount && this.turretEffect)
+    {
+      this._parentShLighting = shLighting;
+      out.push(this);
+    }
     if (this.displayEffects) this.firingEffect?.GetRenderables(out);
-    if (this._ambientEffect() && this.displayEffects) this._ambientEffect().GetRenderables(out);
+    if (this.IsAmbientVisible()) this._ambientEffect()?.GetRenderables(out);
     return out;
+  }
+
+  /** Native ambient visibility (cpp:428): clipping suppresses the effect. */
+  @carbon.method
+  @impl.implemented
+  IsAmbientVisible()
+  {
+    return this.display && this.displayEffects && Math.abs(this._parentData.clipRadiusSq) < 0.05;
   }
 
   /**
@@ -1562,6 +1671,7 @@ export class EveTurretSet extends EveEntity
   @impl.adapted
   UpdateVisibility(context)
   {
+    this._parentShLighting = null;
     this.visibleCount = 0;
     if (!this.display) return;
     const frustum = context.GetFrustum();
@@ -1621,31 +1731,28 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Emits Carbon's single opaque instanced turret batch. The geometry source
-   * and instance count are portable; the engine resolves allocations and the
-   * instance stream during realization.
-   * @returns {Boolean} whether the batch was committed
+   * Emits the native opaque instanced draw (cpp:2065-2110). JS realizes cold
+   * LOD allocations through the existing Trinity allocator because resource
+   * decoding cannot reach the AL. The explicit two-stream batch prevents
+   * generic realization from overwriting its instance data. Returns commit status.
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Instance stream, vertex declaration and realized LOD allocations are not ported yet; Trinity records their canonical geometry source and instance count.")
   GetBatches(batches, batchType, perObjectData, _reason)
   {
-    if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this.geometryResource)
-    {
-      return false;
-    }
-
+    if (batchType !== TriBatchType.TRIBATCHTYPE_OPAQUE || !this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
+    const geometry = this.geometryResource;
+    if (!geometry || !geometry.IsGood()) return false;
+    const lod = geometry.GetMeshLodByIndex(0, 0);
+    if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    if (!batch.IsValid())
-    {
-      return false;
-    }
-    batch.SetGeometrySource(this.geometryResource, 0, -1, -1, false);
+    batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData ?? null);
-    batch.instanceCount = this.visibleCount >>> 0;
-    return batches.Commit(batch);
+    batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
+      lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),
+      this._instanceBuffer.GetOffset() / this._instanceBuffer.GetStride());
+    return batch.IsValid() ? batches.Commit(batch) : false;
   }
 
   /** Carbon EveTurretSet::GetSortValue: opaque turret instances use key one. */
@@ -1702,39 +1809,27 @@ export class EveTurretSet extends EveEntity
     return sizeInShadow > 5;
   }
 
-  /** Carbon EveTurretSet::GetShadowBatches (cpp:2221-2254): one instanced
-   * batch for the whole turret geometry - material m_turretEffect, instance
-   * count m_visibleCount, mesh 0 at the lowest LOD. QUIRK: shadowPixelSize is
-   * completely IGNORED (always GetMeshLod(0, 0), cpp:2235) - the swarm uses
-   * it for LOD, the turret does not. The shadow path commits without the
-   * normal path's validity check (cpp:2253 vs 2211) - equivalent here because
-   * Commit drops invalid batches. Returns whether the batch was committed
-   * (JS addition; Carbon returns void). NOTE: JS visibleCount is currently
-   * the total turret count (the adapted UpdateVisibility does no per-turret
-   * frustum cull), a pre-existing adaptation. */
+  /**
+   * Native shadow draw (cpp:2113-2147), always mesh0/LOD0 regardless of pixel
+   * size. JS realizes cold geometry through the shared Trinity allocator and
+   * returns commit status; native commits without the opaque validity check.
+   */
   @carbon.method
   @impl.adapted
-  @impl.reason("Instance stream, vertex declaration and LOD allocations (cpp:2227-2250) are not ported; the batch records the geometry source, turret effect, per-object data and the CPU-known instance count meanwhile.")
   GetShadowBatches(batches, perObjectData, _shadowPixelSize)
   {
-    if (!this.display || !this.visibleCount)
-    {
-      return false;
-    }
-    if (!this.geometryResource)
-    {
-      return false;
-    }
-
+    if (!this.display || !this.visibleCount || !this._instanceBuffer.IsValid()) return false;
+    const geometry = this.geometryResource;
+    if (!geometry || !geometry.IsGood()) return false;
+    const lod = geometry.GetMeshLodByIndex(0, 0);
+    if (!lod || !CreateLodAllocations(geometry, 0, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
     const batch = new Tr2RenderBatch();
     batch.SetMaterial(this.turretEffect);
-    if (!batch.IsValid())
-    {
-      return false;
-    }
-    batch.SetGeometrySource(this.geometryResource, 0, -1, -1, false);
+    batch.SetGeometryFromAllocations2(this._vertexDeclHandle, lod.vertexAllocation, this._instanceBuffer, lod.indexAllocation);
     batch.SetPerObjectData(perObjectData ?? null);
-    batch.instanceCount = this.visibleCount >>> 0;
+    batch.SetDrawIndexedInstanced(TriGeometryRes.getLodPrimitiveCount(lod) * 3, this.visibleCount,
+      lod.indexAllocation.GetStartIndex(), lod.vertexAllocation.GetOffset() / lod.vertexAllocation.GetStride(),
+      this._instanceBuffer.GetOffset() / this._instanceBuffer.GetStride());
     return batches.Commit(batch);
   }
 
@@ -1831,8 +1926,8 @@ export class EveTurretSet extends EveEntity
       // The hull's coefficients when it published any, zeroes otherwise.
       for (let index = 0; index < EveTurretSet.SH_COEFFICIENT_COUNT; index++)
       {
-        const source = parent.shLighting
-          ? parent.shLighting.subarray(index * 4, index * 4 + 4)
+        const source = this._parentShLighting
+          ? this._parentShLighting.subarray(index * 4, index * 4 + 4)
           : EveTurretSet._zero4;
         ps.SetIndex("shLightingCoefficients", index, source);
       }

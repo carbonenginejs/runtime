@@ -1,3 +1,7 @@
+import { TriBatchType } from "../../npm/dist/global/consts/graphics/index.js";
+import { CjsHlslFormat } from "../../npm/dist/resource/formats/hlsl/CjsHlslFormat.js";
+import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
+import { CjsWebgpuRenderContextAL } from "../../npm/dist/trinityal/webgpu/internal.js";
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
@@ -7,7 +11,7 @@ import { blue, ResourceRequirement } from "../../npm/dist/global/blue/index.js";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/TriGeometryRes.js";
 import { TriGeometryResSkeletonData } from "../../npm/dist/resource/geometry/TriGeometryResSkeletonData.js";
-import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming, EveTurretFiringFX, EveComponentRegistry, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { EveShip2, EveLocator2, EveTurretSet, EveTurretAiming, EveTurretFiringFX, EveComponentRegistry, Tr2RenderContext, Tr2RingBuffer, TriDevice, Tr2RenderContext_GetMainThreadRenderContext } from "../../npm/dist/trinity/index.js";
 import { CjsGrannyCurves } from "../../npm/dist/trinity/curves/track/CjsGrannyCurves.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
@@ -34,6 +38,7 @@ async function assets(t)
   const makeResource=(prepared=true)=>{const value=new TriGeometryRes();value.SetPayload(value.ReadGrannyFile(bytes));if(prepared)value.MarkPrepared();return value;};
   const resource=makeResource();resources.set(geometryPath,resource);
   const set=EveTurretSet.from(CjsBlackFormat.readPayload(turretBytes).object);set.geometryResPath=geometryPath;set.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;set.slotNumber=1;
+  t.after(()=>{set.ReleaseResources();TriDevice.UnregisterResource(set);});
   const ship=new EveShip2();ship.locators=hull.locatorTurrets.map(value=>EveLocator2.from(value));ship.turretSets.push(set);
   return {set,ship,resource,makeResource,resources,requests,hull};
 }
@@ -43,7 +48,7 @@ test("Apocalypse/type462 geometry ownership caches mesh0 and exact native bone I
   const {set,ship,resource}=await assets(t);
   ship.RebuildTurretPositions();assert.equal(set.GetTurrets().length,2);
   set.boundingSphere.fill(0);set.Initialize();
-  assert.ok(set.geometryResource===resource,"the requested handle is owned by the turret");assert.equal(set._turretVertexDeclElementCount,resource.GetMeshVertexElements(0).length);
+  assert.ok(set.geometryResource===resource,"the requested handle is owned by the turret");assert.equal(set._turretVertexDeclElementCount,resource.GetMeshVertexElements(0).length+1);
   assert.ok(set.boundingSphere[3]>0);assert.equal(resource.GetMeshCount(),6);
   const b=EveTurretAiming.SystemBones;assert.equal(set._systemBoneID[b.SYSBONE_ROTATION],2);assert.equal(set._systemBoneID[b.SYSBONE_PITCH],4);
   assert.equal(resource.GetMeshData(0).boneBindings.length,9,"11 skeleton bones are not the 9 mesh-bound bones");
@@ -358,4 +363,67 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   set.GetTurrets().length=0;ship.UpdateTurretsAsyncronous({deltaTime:0});assert.equal(set._boneOffsets.GetCurrentFrameOffset(),0xffffffff);assert.equal(set._boneOffsets.GetPreviousFrameOffset(),29);
   set.display=false;set.UpdateVisibility(view);assert.equal(set.visibleCount,0);
   resource.MarkPurged();assert.equal(set.GetPerObjectData(accumulator),null,"native bad-resource gate");
+});
+
+test("real packed turret shader receives native instance IDs and final opaque/shadow draw offsets",{skip},async t=>
+{
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
+  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();
+  const shared=SharedGeometryBuffer(context);
+  shared.Allocate(12,10,new Uint8Array(120),context);
+  const allocate=shared.Allocate.bind(shared),instanceUploads=[];
+  shared.Allocate=(stride,count,data,ctx)=>{if(stride===4&&count===24)instanceUploads.push(Array.from(data));return allocate(stride,count,data,ctx);};
+  t.after(()=>{shared.ReleaseResources();context.SetRenderContextAL(prior);});
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
+  assert.deepEqual(instanceUploads[0],Array.from({length:24},(_,i)=>i),"native cpp:296 IDs0..23");
+  assert.ok(TriDevice.GetResourcesRegistered().includes(set),"native Tr2DeviceResource base registration");
+  const bytes=await readFile(join(corpus,"quadv5.sm_depth"));
+  assert.equal(createHash("md5").update(bytes).digest("hex"),"352fc276516262e229648fa98310bb17");
+  const metadata=CjsHlslFormat.read(bytes,{emit:"metadata",source:"quadv5.sm_depth",permutation:[{name:"SPACE_OBJECT_CLIPPING",value:"SOC_DISABLED"},{name:"V5_DEBUG",value:"OFF"}]});
+  const inputs=metadata.effect.techniques.find(item=>item.name==="Main").passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;
+  const idInput=inputs.find(item=>item.usage===5&&item.usageIndex===2);
+  assert.equal(idInput.registerIndex,5);assert.equal(idInput.usedMask,1);
+  let currentInputs=inputs;
+  const state={_vertexLayout:null,_streams:[],_shaderProgram:{GetInputs:()=>currentInputs}};
+  const layout=al.SetVertexLayout.bind(al),stream=al.SetStreamSource.bind(al),draw=al.DrawIndexedInstanced.bind(al),draws=[];
+  al.SetVertexLayout=value=>{state._vertexLayout=value;return layout(value);};
+  al.SetStreamSource=(index,buffer,offset,stride)=>{state._streams[index]={buffer,offset,stride};return stream(index,buffer,offset,stride);};
+  al.DrawIndexedInstanced=(...args)=>{
+    const layouts=CjsWebgpuRenderContextAL.prototype.BuildVertexBufferLayouts.call(state);
+    assert.notEqual(typeof layouts,"string",String(layouts));
+    assert.ok(state._streams[1].buffer===set._instanceBuffer.GetBuffer(),"real instance allocation bound at final draw");
+    assert.equal(layouts[1].arrayStride,4);assert.equal(layouts[1].stepMode,"instance");
+    const location=currentInputs.find(item=>item.usage===5&&item.usageIndex===2).registerIndex;
+    assert.deepEqual(layouts[1].attributes.find(item=>item.shaderLocation===location),{shaderLocation:location,offset:0,format:"float32"},"native TEXCOORD2 cannot be supplied by a dummy stream");
+    draws.push(args);return draw(...args);
+  };
+  // Only pass execution is stubbed: geometry, metadata, declaration conversion,
+  // allocations, batch submission and final AL draw are the real Node path.
+  const shader={GetTechniqueIndex:name=>{currentInputs=metadata.effect.techniques.find(item=>item.name===name).passes[0].stageInputs.find(item=>item?.stageName==="vertex").signature.pipelineInputs;return 0;},GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
+  set.turretEffect={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
+  set.displayEffects=false;
+  const coefficients=ship._psData.Get("shLightingCoefficients");for(let i=0;i<coefficients.length;i++)coefficients[i]=i+.25;
+  const renderables=ship.GetRenderables([]);assert.ok(renderables.includes(set),"EveMobile.cpp:291 forwards the turret renderable and SH span");
+  assert.ok(set._parentShLighting.buffer===coefficients.buffer);assert.equal(set._parentShLighting.byteOffset,coefficients.byteOffset,"RawData.Get creates views of the same borrowed coefficient span");
+  Tr2RingBuffer.ResetInstances();Tr2RingBuffer.GetInstance("Float4x3",48,context);t.after(()=>Tr2RingBuffer.ResetInstances());
+  const store=makePerObjectStore(),pod=set.GetPerObjectData({Alloc:name=>store.Allocate(name)});
+  for(let i=0;i<7;i++)assert.deepEqual(Array.from(pod.ps.GetIndex("shLightingCoefficients",i)),Array.from(coefficients.subarray(i*4,i*4+4)));
+  const committed=[],accumulator={Commit(batch){if(!batch.IsValid())return false;committed.push(batch);return true;}};
+  assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),true);
+  const lod=resource.GetMeshLodByIndex(0,0),batch=committed[0];
+  const expected=[5760,2,lod.indexAllocation.GetStartIndex(),lod.vertexAllocation.GetOffset()/lod.vertexAllocation.GetStride(),set._instanceBuffer.GetOffset()/4];
+  assert.ok(expected[2]>0&&expected[3]>0&&expected[4]>0,"all shared offsets are nonzero");
+  assert.equal(batch.geometrySource,null);context.RenderBatches({GetBatches:()=>[batch]});assert.deepEqual(draws.at(-1),expected);
+  assert.equal(set.GetShadowBatches(accumulator,pod,-12345),true);context.RenderBatches({GetBatches:()=>[committed.at(-1)]},"Shadow");assert.deepEqual(draws.at(-1),expected);
+  assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_ADDITIVE,pod),false);
+  set.display=false;assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.GetRenderables([]);assert.equal(set._parentShLighting,null);set.display=true;
+  set.visibleCount=0;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);set.visibleCount=2;
+  const saved=resource.GetMeshLodByIndex;resource.GetMeshLodByIndex=()=>null;assert.equal(set.GetShadowBatches(accumulator,pod,100),false);resource.GetMeshLodByIndex=saved;
+  set.ReleaseResources();assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
+  const firstCount=instanceUploads.length;const allocating=shared.Allocate;shared.Allocate=()=>null;
+  assert.equal(set.PrepareResources(),true,"native OnPrepareResources returns true after void InitializeInstanceBuffer");assert.equal(set._instanceBuffer.IsValid(),false);assert.equal(set.GetShadowBatches(accumulator,pod,100),false);shared.Allocate=allocating;
+  assert.equal(set.PrepareResources(),true);assert.equal(instanceUploads.length,firstCount+1);assert.equal(set.GetShadowBatches(accumulator,pod,100),true);
+  resource.MarkPurged();assert.equal(set.GetShadowBatches(accumulator,pod,100),false);
+  set.Destroy();set.Destroy();assert.equal(TriDevice.GetResourcesRegistered().includes(set),false);assert.equal(set._instanceBuffer.IsValid(),false);
+  assert.equal(set.GetBatches(accumulator,TriBatchType.TRIBATCHTYPE_OPAQUE,pod),false);
 });

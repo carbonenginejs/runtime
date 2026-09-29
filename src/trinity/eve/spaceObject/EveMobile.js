@@ -314,7 +314,7 @@ export class EveMobile extends EveSpaceObject2
   {
     if (!this.display) return out;
     super.GetRenderables(out);
-    for (const turretSet of this.turretSets) turretSet?.GetRenderables(out);
+    for (const turretSet of this.turretSets) turretSet?.GetRenderables(out, this._psData.Get("shLightingCoefficients"));
     return out;
   }
 

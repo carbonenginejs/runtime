@@ -1,3 +1,6 @@
+import { TriGeometryRes } from "../../npm/dist/resource/index.js";
+import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 // ShadowCaster nominal implementations: EveTurretSet (EveTurretSet.cpp:2022-2051,
 // 2221-2254, 2275-2290, 2520-2523) and EveSwarmRenderable (EveSwarm.cpp:
 // 242-267, 269-298, 61-71, 300-303) plus the EveSwarm.GetBoundingSphere
@@ -14,7 +17,7 @@ import {
   EveSwarm,
   EveSwarmRenderable,
   EveTurretSet,
-  Tr2RenderReason
+  Tr2RenderReason, Tr2RenderContext_GetMainThreadRenderContext
 } from "../../npm/dist/trinity/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { FixtureEffect } from "../support/fixtureEffect.js";
@@ -99,11 +102,22 @@ test("EveTurretSet.IsCastingShadow: per-turret sphere transform, max accumulatio
   assert.equal(zeroOut[0], 0, "sizeInShadow reset past the early-outs");
 });
 
-test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (cpp:2221-2254)", () =>
+/** Native instance/geometry contracts on a real CPU allocation, not a deferred descriptor. */
+function turretDrawFixture(t)
 {
-  const set = new EveTurretSet();
+  const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL();
+  const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();
+  const set=new EveTurretSet(),geometry=new TriGeometryRes();
+  geometry.SetPayload({meshes:[{decl:[{usage:"Position",usageIndex:0,type:"Float32",elementCount:3,offset:0}],vertex:{position:[0,0,0,1,0,0,0,1,0]},indices:[{faces:[0,1,2]}],areas:[{firstElement:0,elementCount:1}]}]});geometry.MarkPrepared();
+  t.after(()=>{set.Destroy();SharedGeometryBuffer(context).ReleaseResources();context.SetRenderContextAL(prior);});
+  return {set,geometry};
+}
+
+test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (cpp:2113-2147)", t =>
+{
+  const {set,geometry} = turretDrawFixture(t);
   const committed = [];
-  const batches = { Commit: batch => (committed.push(batch), true) };
+  const batches = { Commit: batch => batch.IsValid() && (committed.push(batch), true) };
 
   set.SetTurrets([]);
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "visibleCount gate");
@@ -111,7 +125,7 @@ test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (c
   set.SetTurrets([{}, {}, {}]);
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "geometry gate");
 
-  set.geometryResource = { name: "turretGeometry" };
+  set.geometryResource = geometry;set.RebuildCachedData(geometry);
   assert.equal(set.GetShadowBatches(batches, null, 0), false, "null material batch is invalid");
 
   set.turretEffect = FixtureEffect({ name: "turretEffect" });
@@ -119,18 +133,19 @@ test("EveTurretSet.GetShadowBatches: instanced batch, ignored shadowPixelSize (c
   assert.equal(set.GetShadowBatches(batches, perObjectData, -12345), true, "committed (pixel size ignored)");
   const batch = committed[0];
   assert.equal(batch.material, set.turretEffect, "turret effect material");
-  assert.equal(batch.geometrySource.geometry, set.geometryResource, "geometry source");
+  assert.equal(batch.geometrySource, null, "native explicit allocation path");
+  assert.ok(batch.vertexStreams[1]===set._instanceBuffer.GetBuffer());
   assert.equal(batch.instanceCount, 3, "instance count = visibleCount");
   assert.equal(batch.objectData, perObjectData, "caller per-object data threaded");
 });
 
-test("EveTurretSet.GetBatches: opaque instanced batch and fixed sort contracts (cpp:2163-2213, 2260-2263)", () =>
+test("EveTurretSet.GetBatches: opaque instanced batch and fixed sort contracts (cpp:2065-2110)", t =>
 {
-  const set = new EveTurretSet();
+  const {set,geometry} = turretDrawFixture(t);
   const committed = [];
   const batches = { Commit: batch => (committed.push(batch), true) };
   set.SetTurrets([{}, {}]);
-  set.geometryResource = { name: "turretGeometry" };
+  set.geometryResource = geometry;set.RebuildCachedData(geometry);
   set.turretEffect = FixtureEffect({ name: "turretEffect" });
   const perObjectData = { object: set };
 
@@ -139,7 +154,8 @@ test("EveTurretSet.GetBatches: opaque instanced batch and fixed sort contracts (
   assert.equal(set.HasTransparentBatches(), false);
   assert.equal(set.GetSortValue(), 1);
   assert.equal(committed[0].material, set.turretEffect);
-  assert.equal(committed[0].geometrySource.geometry, set.geometryResource);
+  assert.equal(committed[0].geometrySource, null);
+  assert.ok(committed[0].vertexStreams[1]===set._instanceBuffer.GetBuffer());
   assert.equal(committed[0].instanceCount, 2);
   assert.equal(committed[0].objectData, perObjectData);
 });
