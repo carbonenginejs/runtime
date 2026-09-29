@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { EveCamera } from "../../npm/dist/trinity/eve/camera/EveCamera.js";
+import { createCameraControls } from "./webgpu/demo/cameraControls.js";
 import { Tr2MainWindow } from "../../npm/dist/input/index.js";
 import { createDemoInput } from "./webgpu/demo/input.js";
 import { createDemoActions } from "./webgpu/demo/demoActions.js";
@@ -12,12 +14,12 @@ class Host
   emit(type,values={}){const event={target:this,code:"",key:"",pointerId:1,clientX:0,clientY:0,button:0,defaultPrevented:false,preventDefault(){this.defaultPrevented=true;},...values};for(const callback of this.listeners.get(type)??[])callback(event);return event;}
   setPointerCapture(id){this.capture.add(id);}hasPointerCapture(id){return this.capture.has(id);}releasePointerCapture(id){this.capture.delete(id);}
 }
-function setup()
+function setup(controlOverride)
 {
   const window=new Host(),document=new Host(),canvas=new Host(),calls=[];
   document.activeElement=canvas;document.hidden=false;canvas.focus=()=>{document.activeElement=canvas;};
   const mainWindow=new Tr2MainWindow({window,document,target:canvas});
-  const controls=Object.fromEntries(["cancel","frame","reset","orbit","pan","dolly","adjustFieldOfView"].map(name=>[name,(...args)=>calls.push([name,...args])]));
+  const controls=controlOverride??Object.fromEntries(["cancel","frame","reset","orbit","pan","dolly","adjustFieldOfView"].map(name=>[name,(...args)=>calls.push([name,...args])]));
   let ship={GetControllerVariables:()=>({})},post=false,cloakCalls=0,resolveCloak;
   const actions=createDemoActions({getShip:()=>ship,getShipStates:()=>[],readState:()=>({post,cloaked:false,speed:0}),operations:{post:value=>{post=value;},cloak:()=>{cloakCalls++;return new Promise(resolve=>{resolveCloak=resolve;});}}});
   const errors=[],input=createDemoInput({mainWindow,canvas,document,controls,actions,onError:error=>errors.push(error)});
@@ -85,4 +87,21 @@ test("panel invocation shares command state and rejects reserved modifier rebind
   assert.throws(()=>h.input.rebind("post",[{code:"KeyB",ctrl:true}]),/reserved/);
   assert.equal(h.input.getBindings().find(item=>item.name==="capture").enabled,false);
   unsubscribe();h.input.dispose();
+});
+
+test("real window input drives the native camera with exactly one owner update per frame",()=>
+{
+  const camera=new EveCamera();camera.fieldOfView=Math.PI/4;camera.frontClip=1;camera.backClip=10000;camera.SetOrbit(.7,-.3);
+  const controls=createCameraControls({camera,getViewport:()=>({width:800,height:500}),getBounds:()=>({centre:[10,20,30],radius:50})});controls.frame();
+  const h=setup(controls);let count=0;const nativeUpdate=camera.Update.bind(camera);camera.Update=(...args)=>{count++;return nativeUpdate(...args);};
+  camera.Update(0,1.6);const yaw=camera.yaw;
+  h.window.emit("keydown",{code:"ArrowRight"});
+  for(let frame=1;frame<=60;frame++){h.input.update(1/60);camera.Update(frame/60,1.6);}
+  assert.equal(count,61);assert.ok(camera.yaw<yaw);h.window.emit("keyup",{code:"ArrowRight"});
+  const center=Array.from(camera.extraTranslation);h.canvas.emit("pointerdown",{button:1});h.canvas.emit("pointermove",{clientX:20,clientY:10});h.canvas.emit("pointerup");
+  h.input.update(1/60);camera.Update(2,1.6);assert.notDeepEqual(Array.from(camera.extraTranslation),center);
+  h.canvas.emit("wheel",{deltaY:30,deltaMode:0,shiftKey:true});h.input.update(1/60);const fov=camera.fieldOfView;camera.Update(3,1.6);assert.equal(camera.fieldOfView,fov);
+  h.window.emit("keydown",{code:"KeyF"});h.input.update(1/60);camera.Update(4,1.6);assert.deepEqual(Array.from(camera.extraTranslation),[10,20,30]);
+  assert.ok(Array.from(camera.viewMatrix.transform).every(Number.isFinite));assert.ok(Array.from(camera.projectionMatrix.transform).every(Number.isFinite));
+  assert.equal(count,64);h.input.dispose();controls.dispose();
 });
