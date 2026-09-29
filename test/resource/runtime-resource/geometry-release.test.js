@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 
 import { TriStorageFlags } from "../../../src/global/consts/graphics/index.js";
+import { CjsMotherLode } from "../../../src/global/blue/CjsMotherLode.js";
 import { CjsResource } from "../../../src/global/blue/CjsResource.js";
 import { TriGeometryRes } from "../../../src/resource/geometry/index.js";
 
@@ -67,5 +68,33 @@ test("ReleaseResources honours Carbon's storage mask", () =>
   const released = loadedGeometry();
   released.ReleaseResources();
   assert.equal(released.HasPayload(), false);
-  assert.equal(released.state, CjsResource.State.UNLOADED);
+  assert.equal(released.IsGood(), false, "TriGeometryRes.cpp:507-508 clears both prepared and good");
+  assert.equal(released.state, CjsResource.State.PURGED, "released geometry must remain eligible for automatic recovery");
+});
+
+test("payload-only expiry preserves geometry while ordinary payloads still expire", () =>
+{
+  const cache = new CjsMotherLode({now: () => 0});
+  const geometry = loadedGeometry();
+  const payload = geometry.GetPayload();
+  const ordinary = new CjsResource(); ordinary.Initialize("res:/synthetic/ordinary.bin"); ordinary.SetPayload({value: 1});
+  cache.Insert(geometry.GetPath(), geometry, {time: 0});
+  cache.Insert(ordinary.GetPath(), ordinary, {time: 0});
+  const result = cache.PurgeInactive({time: 10, maxIdleMilliseconds: 100, payloadMaxIdleMilliseconds: 5});
+  assert.equal(result.payloadsReleased, 1);
+  assert.equal(ordinary.HasPayload(), false);
+  assert.equal(geometry.GetPayload(), payload, "TriGeometryRes.cpp:496-509 releases meshes and readiness together");
+  assert.equal(geometry.IsGood(), true);
+  assert.equal(geometry.GetMeshCount(), 1);
+});
+
+test("released geometry requests recovery through its inherited reload hook", () =>
+{
+  const geometry = loadedGeometry(); let reloads = 0;
+  geometry.SetReloadHook(() => {reloads++; geometry.MarkRequested(); return true;});
+  geometry.ReleaseResources();
+  assert.equal(geometry.IsGood(), false, "released geometry is not ready during recovery");
+  assert.equal(reloads, 1, "TriGeometryRes.cpp:1863 delegates Reload to BlueAsyncRes");
+  geometry.IsGood();
+  assert.equal(reloads, 1, "an in-flight reload is not restarted");
 });

@@ -239,13 +239,13 @@ export class Tr2Mesh extends Tr2MeshBase
     this.SetGeometryRes(resource);
   }
 
-  /** Uses the low-detail stand-in until the primary resource is good. */
+  /** Checks primary liveness before selecting the low-detail stand-in (Tr2Mesh.cpp:213-219). */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
   GetGeometryResource()
   {
-    if (!this.lowResGeometry || this.geometry?.IsGood()) return this.geometry;
-    return this.lowResGeometry;
+    if (this.geometry && this.geometry.IsGood()) return this.geometry;
+    return this.lowResGeometry ?? this.geometry;
   }
 
   /** Returns the authored geometry resource path. */

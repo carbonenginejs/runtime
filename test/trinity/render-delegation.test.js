@@ -229,6 +229,7 @@ test("EveSpaceObject2 transparent areas are sorted back-to-front by world-space 
   object.mesh.AddArea(TRANSPARENT, areaWithEffect(nearFx, { index: 0 }));
   object.mesh.AddArea(TRANSPARENT, areaWithEffect(farFx, { index: 1 }));
   object.mesh.SetGeometryRes({
+    IsGood: () => true,
     GetPath()
     {
       return "res:/geometry.gr2";

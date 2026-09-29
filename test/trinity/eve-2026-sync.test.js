@@ -862,7 +862,7 @@ test("SetTransform moves shared instanced-part geometry outside the child partTa
 
 test("CollectOwnedGeometry pools areas by batch type and shares them across instances", () =>
 {
-  const geometry = { token: "geo" };
+  const geometry = { token: "geo", IsGood: () => true };
   const mesh = new Tr2Mesh();
   const opaque = new Tr2MeshArea();
   opaque.index = 0;

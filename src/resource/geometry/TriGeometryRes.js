@@ -525,17 +525,18 @@ export class TriGeometryRes extends CjsResource
   }
 
   /**
-   * Reloading belongs to the resource manager because it owns source and
-   * canonical replacement policy.
+   * Reloads a released geometry handle through its existing manager hook.
+   * Carbon clears geometry caches and delegates to BlueAsyncRes::Reload
+   * (TriGeometryRes.cpp:1855-1863). JS release already clears those caches;
+   * the base owns bounded same-handle recovery from PURGED/FAILED. A prepared
+   * handle is not force-refetched here; explicit replacement remains manager-owned.
    *
-   * @throws {Error}
+   * @param {object} [options={}] Resource activity options.
+   * @returns {boolean} Whether recovery started.
    */
-  Reload() {
-    throw resourceBoundaryError(
-      "TriGeometryRes",
-      "Reload",
-      "Request a reload through CjsResMan so source reads and canonical replacement remain manager-owned."
-    );
+  Reload(options = {})
+  {
+    return super.Reload(options);
   }
 
   /**
@@ -646,7 +647,8 @@ export class TriGeometryRes extends CjsResource
    *
    * cpp:496-509. Carbon also calls CancelPendingLoad, which belongs to the
    * manager here, and SetGood(false)/SetPrepared(false), which this port
-   * expresses as the single UNLOADED state.
+   * expresses as PURGED so the next IsGood/KeepAlive starts same-handle
+   * recovery through the manager. UNLOADED alone cannot request that recovery.
    *
    * @param {number} [storage=TriStorageFlags.TRISTORAGE_ALL] Carbon's TriStorage mask.
    * @returns {TriGeometryRes} This resource.
@@ -656,7 +658,7 @@ export class TriGeometryRes extends CjsResource
     if (!(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)) return this;
     this.DestroyRayCaster();
     this.ReleasePayload();
-    this.SetState(CjsResource.State.UNLOADED);
+    this.MarkPurged();
     return this;
   }
 
@@ -1381,7 +1383,7 @@ CjsSchema.define(TriGeometryRes, {
     GetBoundingSphere: [ carbon.method, impl.adapted ],
     CalculateBoundingBoxFromTransform: [ carbon.method, impl.adapted ],
     RecalculateBoundingSphere: [ carbon.method, impl.adapted ],
-    Reload: [ carbon.method, impl.notSupported ],
+    Reload: [ carbon.method, impl.adapted ],
     GetIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
     GetAreaIntersectionPointNormalBone: [ carbon.method, impl.adapted ],
     PrepareRayCaster: [ carbon.method, impl.adapted ],
@@ -1389,7 +1391,7 @@ CjsSchema.define(TriGeometryRes, {
     IsRayCasterReady: [ carbon.method, impl.adapted ],
     HasRayCasterPreparationFailed: [ carbon.method, impl.adapted ],
     DestroyRayCaster: [ carbon.method, impl.adapted ],
-    ReleaseResources: [ carbon.method, impl.adapted, impl.reason("Carbon's CancelPendingLoad half is manager-owned here, and its SetGood(false)/SetPrepared(false) pair is one UNLOADED state.") ],
+    ReleaseResources: [ carbon.method, impl.adapted ],
     ReleasePayload: [ impl.custom ],
     GetIntersectionPoints: [ carbon.method, impl.adapted ],
     GetMeshVertexElements: [ carbon.method, impl.adapted ],

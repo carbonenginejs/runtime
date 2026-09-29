@@ -24,7 +24,7 @@ test("Tr2Mesh.UseWithScreenSize reports the resolved LOD's uv densities to every
   mesh.meshIndex = 3;
   mesh.opaqueAreas.push(MakeArea("opaque"));
   mesh.decalAreas.push(MakeArea("decal"));
-  mesh.geometry = {
+  mesh.geometry = { IsGood: () => true,
     GetMeshLod(meshIndex, screenSize)
     {
       requestedSizes.push({ meshIndex, screenSize });
@@ -44,7 +44,7 @@ test("Tr2Mesh.UseWithScreenSize is inert without a geometry resource or a resolv
   const mesh = new Tr2Mesh();
   assert.equal(mesh.UseWithScreenSize(120, 7), false, "no geometry resource");
 
-  mesh.geometry = { GetMeshLod: () => null };
+  mesh.geometry = { IsGood: () => true, GetMeshLod: () => null };
   assert.equal(mesh.UseWithScreenSize(120, 7), false, "no LOD resolved for the size");
 });
 
@@ -59,7 +59,7 @@ test("Tr2Mesh.UseWithScreenSize survives areas with no material and reports an e
   mesh.opaqueAreas.push(bare, live);
   // A resource whose LOD exposes no densities: Carbon passes the empty vector
   // through and the material requests the full resolution.
-  mesh.geometry = { GetMeshLod: () => ({}) };
+  mesh.geometry = { IsGood: () => true, GetMeshLod: () => ({}) };
 
   assert.equal(mesh.UseWithScreenSize(50, 2), true);
   assert.deepEqual(seen, [[50, 2, []]], "only the area carrying a material is told");

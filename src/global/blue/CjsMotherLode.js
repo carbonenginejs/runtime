@@ -593,7 +593,9 @@ export class CjsMotherLode
    * allocations, release payloads, detach resource-facing lifecycle callbacks,
    * and mark CjsResource-compatible handles purged. Payload limits release only
    * the CPU payload while retaining identity and adapters. Textures retain their
-   * bitmap until full purge because rebinding needs it. Custom: the two-tier
+   * bitmap until full purge because rebinding needs it. Geometry retains its
+   * meshes for the same reason: Carbon has no prepared-but-empty geometry tier
+   * (TriGeometryRes.cpp:496-509). Custom: the two-tier
    * inactivity policy replaces Carbon's reference-counted ownership. The sweep never
    * fetches, reloads, prepares, or infers external JavaScript ownership.
    *
@@ -658,6 +660,7 @@ export class CjsMotherLode
 
       if (policy.releasePayload !== false
         && record.resource.constructor?.payload !== ResourceRequirement.TEXTURE
+        && record.resource.constructor?.payload !== ResourceRequirement.GEOMETRY
         && hasOwnedPayload(record.resource)
         && isInactive(
           record.payloadLastUsedFrame,
