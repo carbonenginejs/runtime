@@ -14,6 +14,7 @@ import { TriBatchType } from "#consts/graphics";
 import { Tr2RenderReason } from "../../../generated/trinityCore/enums.js";
 import { Tr2PerObjectData } from "../../../core/rawData/perObjectData/Tr2PerObjectData.js";
 import { Tr2RenderBatch } from "../../../core/batch/TriRenderBatch/index.js";
+import { Tr2GrannyAnimation } from "../../../core/animation/Tr2GrannyAnimation.js";
 import { Tr2Vector4Parameter } from "../../../shader/parameter/Tr2Vector4Parameter.js";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
 import { blue, EnumRegistrationType, ResourceRequirement } from "#blue";
@@ -390,6 +391,15 @@ export class EveTurretSet extends EveEntity
    * one is supplied and the default count applies.
    */
   _skeletonBoneIndices = [];
+
+  /** Buffered native AnimationRequest records omit delay (cpp:2483-2490). */
+  _animationQueue = [];
+
+  /** JS delta-driven equivalent of the renderer animation clock. */
+  #animationTime = 0;
+
+  /** Native sequencer control timing; the existing updater remains the sampler. */
+  #animationControls = new WeakMap();
 
   _skeleton = null;
   _systemBoneID = new Uint32Array(EveTurretAiming.SystemBones.SYSBONE_MAX).fill(0xffffffff);
@@ -952,6 +962,7 @@ export class EveTurretSet extends EveEntity
         turret.sequencer.StopAnimations(0);
         turret.sequencer.SetSharedGeometryRes(null);
       }
+      this.#animationControls.delete(turret);
       turret.sequencer = null;
       turret.pose = null;
       turret.worldTransforms = [];
@@ -962,7 +973,8 @@ export class EveTurretSet extends EveEntity
    * Caches mesh0 bounds/declaration and native system-bone IDs after completion
    * (EveTurretSet.cpp:1005-1073). The original skeleton record's name lookup is
    * applied to the decoder's plain CMF record rather than duplicating it.
-   * Animation, muzzle and instance-stream realization are separate port steps.
+   * The shared JS sampler replaces native CMF/Granny allocations. Muzzle
+   * and instance-stream realization remain separate port steps.
    */
   @carbon.method
   @impl.adapted
@@ -985,6 +997,138 @@ export class EveTurretSet extends EveEntity
     {
       for (let index = 0; index < this._systemBoneID.length; index++)
         this._systemBoneID[index] = TriGeometryResSkeletonData.prototype.FindJoint.call(this._skeleton, EveTurretAiming.getSystemBoneName(index));
+    }
+    this.InitializeAnimation();
+    if (this._animationQueue.length)
+    {
+      const queue = this._animationQueue.slice();
+      for (const request of queue) this.PlayAnimation(request.turretIndex, request.animName, request.animNameIdle);
+      this._animationQueue.length = 0;
+    }
+    else this.ForceIdleAnimation();
+  }
+
+  /**
+   * Allocates an independent pose on each native SingleTurretData record
+   * (EveTurretSet.cpp:902-983). The existing Tr2GrannyAnimation decodes and
+   * samples both resource representations, replacing native SDK allocations.
+   * Mesh-binding indices remain separate from skeleton-joint indices.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeAnimation()
+  {
+    if (!this._skeleton || !this.geometryResource?.IsPrepared()) return;
+    let mesh = null;
+    for (let index = 0; index < this.geometryResource.GetMeshCount(); index++)
+    {
+      const candidate = this.geometryResource.GetMeshData(index);
+      if (candidate.skeleton === 0) { mesh = candidate; break; }
+    }
+    if (!mesh?.boneBindings.length) return;
+    this._skeletonBoneIndices = mesh.boneBindings.map(binding =>
+      TriGeometryResSkeletonData.prototype.FindJoint.call(this._skeleton, binding.name));
+    for (const turret of this._turrets)
+    {
+      if (turret.sequencer) continue;
+      const updater = new Tr2GrannyAnimation();
+      updater.SetUseMeshBinding(true);
+      updater.SetSharedGeometryRes(this.geometryResource);
+      turret.sequencer = updater;
+      turret.pose = updater._GetPoseModifierView().pose;
+      turret.worldTransforms = updater.GetAnimationTransforms();
+      this.#animationControls.set(turret, []);
+    }
+  }
+
+  /**
+   * Starts a one-shot followed by a looping idle (EveTurretSet.cpp:2470-2656).
+   * Native start/stop controls are retained privately because the shared JS
+   * updater chains queue entries, while CMF samples the first eligible player
+   * on an absolute clock. Both names are resolved before stopping old playback.
+   * This models the inspected CMF scheduler, not Granny SDK blend parity.
+   */
+  @carbon.method
+  @impl.adapted
+  PlayAnimation(turretIndex, animName, animNameIdle = "", delay = 0)
+  {
+    if (!this.geometryResource || !this.turretEffect) return 0;
+    if (!this.geometryResource.IsPrepared())
+    {
+      this._animationQueue.push({ turretIndex, animName, animNameIdle });
+      return 0;
+    }
+    if (!this.geometryResource.IsGood()) return 0;
+    const turret = this._turrets[turretIndex];
+    if (!turret?.sequencer) return 0;
+    const updater = turret.sequencer;
+    const first = animName ? updater._findAnimation(animName) : null;
+    const idle = animNameIdle ? updater._findAnimation(animNameIdle) : null;
+    if ((animName && !first) || (animNameIdle && !idle)) return 0;
+    this.StopAnimation(turretIndex, delay);
+    const controls = this.#animationControls.get(turret);
+    const duration = first ? updater._getAnimationDuration(first) : 0;
+    const startTime = this.#animationTime + delay;
+    if (first) controls.push({ name: animName, animation: first, startTime, stopTime: startTime + duration, loopCount: 1 });
+    if (idle) controls.push({ name: animNameIdle, animation: idle, startTime: startTime + duration, stopTime: Infinity, loopCount: 0 });
+    return duration;
+  }
+
+  /**
+   * Pins every control's stop time, including future players, and clears
+   * buffered requests (EveTurretSet.cpp:2657-2700). JS control metadata replaces
+   * CMF player handles; a positive delay preserves playback until that time.
+   */
+  @carbon.method
+  @impl.adapted
+  StopAnimation(turretIndex, delay = 0)
+  {
+    if (!this.geometryResource || !this.turretEffect) return;
+    this._animationQueue.length = 0;
+    const turret = this._turrets[turretIndex];
+    if (!turret?.sequencer) return;
+    const controls = this.#animationControls.get(turret);
+    for (const control of controls) control.stopTime = this.#animationTime + delay;
+    this.#animationControls.set(turret, controls.filter(control => control.stopTime > this.#animationTime));
+  }
+
+  /** Selects the state's native idle clip (EveTurretSet.cpp:3161-3188). */
+  @carbon.method
+  @impl.implemented
+  ForceIdleAnimation()
+  {
+    let name = "";
+    if (this.state === EveTurretSet.State.STATE_DEACTIVE) name = "Inactive";
+    else if (this.state === EveTurretSet.State.STATE_IDLE || this.state === EveTurretSet.State.STATE_TARGETING || this.state === EveTurretSet.State.STATE_FIRING) name = "Active";
+    if (name) for (let index = 0; index < this._turrets.length; index++) this.PlayAnimation(index, "", name);
+  }
+
+  /**
+   * Samples each turret's independently owned pose (EveTurretSet.cpp:1285).
+   * CMF animation.cpp:810 selects the first eligible player. Its local time
+   * is assigned before Update(0), retaining overshoot across an idle boundary
+   * and holding a one-shot's terminal sample when a delayed stop extends it.
+   * The clock advances from JS update deltas, including empty-pose intervals.
+   * System-bone aiming is added at the updater's existing modifier phase.
+   */
+  @carbon.method
+  @impl.adapted
+  UpdateSingleTurrets()
+  {
+    for (const turret of this._turrets)
+    {
+      if (!turret.sequencer) continue;
+      const controls = this.#animationControls.get(turret).filter(control => control.stopTime > this.#animationTime);
+      this.#animationControls.set(turret, controls);
+      const selected = controls.find(control => control.startTime <= this.#animationTime);
+      const queue = turret.sequencer.GetAnimationLayer(null).queue;
+      queue.length = 0;
+      if (selected) queue.push({
+        name: selected.name, animation: selected.animation, loopCount: selected.loopCount,
+        elapsed: this.#animationTime - selected.startTime, stopAt: selected.stopTime - selected.startTime,
+        speed: 1, clearWhenDone: false, held: false
+      });
+      turret.sequencer.Update(0);
     }
   }
 
@@ -1108,8 +1252,10 @@ export class EveTurretSet extends EveEntity
     {
       const turret = this._normalizeTurret(null);
       turret.valid = false;
-      turret.display = false;
+      turret.visible = false;
       this._turrets.push(turret);
+      this.InitializeAnimation();
+      this.PlayAnimation(this._turrets.length - 1, "", "Active");
     }
     const turret = this._turrets[index];
     mat4.copy(turret.localMatrix, localMatrix);
@@ -1124,7 +1270,6 @@ export class EveTurretSet extends EveEntity
     quat.copy(turret.localQuaternion, EveTurretSet._localRotation);
     vec4.set(turret.localPosition, EveTurretSet._localTranslation[0], EveTurretSet._localTranslation[1], EveTurretSet._localTranslation[2], 1);
     turret.valid = false;
-    turret.display = false;
     this.generatedDistributedAmbientEffect?.UpdateInstance?.(index, EveTurretSet._unitScale, turret.localQuaternion, EveTurretSet._localTranslation);
     this.visibleCount = this._turrets.length;
     return true;
@@ -1233,6 +1378,7 @@ export class EveTurretSet extends EveEntity
   UpdateAsyncronous(context, parentData = this._parentTransform)
   {
     const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
+    this.#animationTime += Math.max(0, deltaTime);
     const parentTransform = parentData?.transform?.length === 16 ? parentData.transform : parentData;
     if (parentTransform?.length === 16)
     {
@@ -1277,6 +1423,7 @@ export class EveTurretSet extends EveEntity
         this._trackingInfluenceDelta = 1;
       }
     }
+    this.UpdateSingleTurrets();
     if (this.trackingInfluence !== 0)
     {
       const trackingPosition = this.target?.GetTrackingPosition?.() ?? this.target?.position;
@@ -1533,8 +1680,7 @@ export class EveTurretSet extends EveEntity
       let turretIndex = 0;
       for (const turret of this._turrets)
       {
-        // Carbon's SingleTurret::visible is this port's `display`.
-        if (turret.display === false)
+        if (turret.visible === false)
         {
           continue;
         }
@@ -1697,15 +1843,11 @@ export class EveTurretSet extends EveEntity
   }
 
   /**
-   * Plays an animation on one turret through the record's own hook or its
-   * controller, returning the reported duration, or 0 when the turret or the
-   * hook is absent.
+   * Routes the existing internal call sites to native PlayAnimation.
    */
   _playTurret(index, animation, loop, delay)
   {
-    const turret = this._turrets[index];
-    if (!turret) return 0;
-    return Number(turret.PlayAnimation?.(animation, loop, delay) ?? turret.controller?.PlayAnimation?.(animation, { loop, delay }) ?? 0);
+    return this.PlayAnimation(index, animation, loop, delay);
   }
 
   /**
@@ -1729,9 +1871,10 @@ export class EveTurretSet extends EveEntity
 
   /**
    * Coerces a caller-supplied turret into the record shape - local and world
-   * matrices, local quaternion and position, valid and display flags - reusing
+   * matrices, local quaternion and position, native valid and visible flags - reusing
    * the object in place when it already carries a local matrix, and otherwise
-   * wrapping it as the record's source.
+   * wrapping it as the record's source. Legacy input display is consumed once
+   * into native visible; live records retain only Carbon's spelling.
    */
   _normalizeTurret(turret)
   {
@@ -1741,12 +1884,17 @@ export class EveTurretSet extends EveEntity
       turret.localQuaternion ??= quat.create();
       turret.localPosition ??= vec4.create();
       turret.valid ??= true;
+      turret.visible ??= turret.display ?? true;
+      delete turret.display;
+      turret.sequencer ??= null;
+      turret.pose ??= null;
+      turret.worldTransforms ??= [];
       return turret;
     }
     const localMatrix = mat4.create();
     if (turret?.length === 16) mat4.copy(localMatrix, turret);
     else if (turret?.transform?.length === 16) mat4.copy(localMatrix, turret.transform);
-    return { source: turret, localMatrix, worldMatrix: mat4.clone(localMatrix), localQuaternion: quat.create(), localPosition: vec4.create(), valid: turret !== null, display: turret?.display ?? true, canFireWhenHidden: !!turret?.canFireWhenHidden };
+    return { source: turret, localMatrix, worldMatrix: mat4.clone(localMatrix), localQuaternion: quat.create(), localPosition: vec4.create(), valid: turret !== null, visible: turret?.visible ?? turret?.display ?? true, sequencer: null, pose: null, worldTransforms: [], canFireWhenHidden: !!turret?.canFireWhenHidden };
   }
 
   static ImpactBehaviour = EveTurretTarget.ImpactBehaviour;
