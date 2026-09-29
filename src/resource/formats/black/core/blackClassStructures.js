@@ -6,9 +6,9 @@
 // blob. The decorated classes already declare each struct's members in
 // Carbon's order with their types (Locator, Tr2CurveScalarKey, ...), so the
 // layout is derived from them: members in declaration order, offsets by
-// packing the types. A donor with padding would need an explicit-offset
-// declaration; none so far (tests compare the derived offsets with the donor
-// definitions).
+// packing the types. An item class can declare byteSize for native trailing
+// storage omitted from BlueStructureDefinition (Tr2SamplerOverride.sampler).
+// Interior padding still requires explicit offsets; it is not inferred here.
 //
 // The class is found BY NAME through the schema registry, never imported:
 // this format sits in the resource layer and must not reach Trinity. A class
@@ -42,6 +42,9 @@ const LAYOUTS = new Map();
  * The layout for `ownerClass.fieldName`'s list items, derived from the
  * registered item class, or null when the owner, the field, the item class or
  * any member type is unknown.
+ * Adapted: class byteSize supplies native sizeof when unexposed trailing
+ * storage makes the stride larger than the persisted members. JavaScript
+ * cannot infer the native ABI size from its object allocation.
  *
  * @param {string} ownerClass The owning Carbon class name.
  * @param {string} fieldName The list field.
@@ -84,7 +87,12 @@ export function classStructureLayout(ownerClass, fieldName)
                 // each must have one (a null would fail later, less clearly).
                 if (defaults?.[member.name] === undefined) throw new TypeError(`Black struct ${itemName}.${member.name} has no class default`);
             }
-            layout = { name: itemName, size: offset, members, boundaries, defaults };
+            const size = Item.byteSize ?? offset;
+            if (!Number.isInteger(size) || size < offset)
+            {
+                throw new RangeError(`Black struct ${itemName}.byteSize must contain all persisted members`);
+            }
+            layout = { name: itemName, size, members, boundaries, defaults };
         }
     }
     if (layout) LAYOUTS.set(key, layout);

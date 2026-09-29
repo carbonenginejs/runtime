@@ -68,6 +68,14 @@ export class Tr2SamplerOverride extends CjsModel
   @type.uint32
   maxAnisotropy = 4;
 
+  /**
+   * Native 64-bit sizeof(Tr2SamplerOverride), including the unexposed sampler
+   * member at byte 40 (Tr2Effect.h:23-37; Tr2SamplerStateAL.h:36 shared_ptr).
+   * BlueStructureList.h:108-110 and BlackWriter.cpp:286-304 write this full
+   * stride. The pointer storage is skipped, never hydrated as a live sampler.
+   */
+  static byteSize = 56;
+
   static TextureAddressMode = TextureAddressMode;
 
   static TextureFilter = TextureFilter;

@@ -44,7 +44,7 @@ test("Tr2Effect's struct lists derive with 8-byte shared strings, as Carbon's de
     [ "name", 0 ], [ "addressU", 8 ], [ "addressV", 12 ], [ "addressW", 16 ], [ "filter", 20 ],
     [ "mipFilter", 24 ], [ "lodBias", 28 ], [ "maxMipLevel", 32 ], [ "maxAnisotropy", 36 ]
   ]);
-  assert.equal(classStructureLayout("Tr2Effect", "samplerOverrides").size, 40);
+  assert.equal(classStructureLayout("Tr2Effect", "samplerOverrides").size, 56, "Tr2Effect.h:37 includes the trailing Tr2SamplerStateAL shared_ptr");
 });
 
 test("where the snapshot also has a layout, the class layout agrees with it", () =>
@@ -76,4 +76,31 @@ test("a record ending on a member boundary reads its members and defaults the re
   assert.equal(old.partTag, 0, "NO_PART_TAG, the class default (EveSpaceObjectChild.h:76)");
 
   assert.throws(() => CjsBlackPropertyReaders.readStructureList(list(1, 42), { structure: layout }), /Incompatible Black structure/);
+});
+
+test("sampler records advance by native sizeof while ignoring trailing runtime storage", () =>
+{
+  const layout = classStructureLayout("Tr2Effect", "samplerOverrides");
+  const bytes = new Uint8Array(6 + 2 * 56 + 4);
+  const view = new DataView(bytes.buffer);
+  view.setInt32(0, 2, true);
+  view.setUint16(4, 56, true);
+  for (let index = 0; index < 2; index += 1)
+  {
+    const start = 6 + index * 56;
+    view.setUint16(start, index, true);
+    view.setUint32(start + 8, index + 1, true);
+    view.setFloat32(start + 28, index + 0.25, true);
+    view.setUint32(start + 36, index + 8, true);
+    bytes.fill(0xab, start + 40, start + 56);
+  }
+  view.setUint32(118, 0x12345678, true);
+  const reader = new CjsBlackBinaryReader(view, { info: { strings: [ "first", "second" ] } });
+  const values = CjsBlackPropertyReaders.readStructureList(reader, { structure: layout });
+  assert.deepEqual(values.map(value => [ value.name, value.addressU, value.lodBias, value.maxAnisotropy ]),
+    [ [ "first", 1, 0.25, 8 ], [ "second", 2, 1.25, 9 ] ]);
+  assert.equal(reader.ReadU32(), 0x12345678, "BlackWriter.cpp:299-304 writes the full stride for every record");
+  assert.ok(values.every(value => !Object.hasOwn(value, "sampler")), "native pointers are never hydrated");
+  view.setUint16(4, 55, true);
+  assert.throws(() => CjsBlackPropertyReaders.readStructureList(new CjsBlackBinaryReader(view), { structure: layout }), /Incompatible Black structure/);
 });
