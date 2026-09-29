@@ -42,6 +42,19 @@ export class EveMobile extends EveSpaceObject2
     return true;
   }
 
+  /**
+   * Carbon EveMobile.cpp:206-211 prepares the base damage activation, then
+   * multiplies shipData.y by the authored activationStrength. Recomputing the
+   * base first prevents repeated frames from compounding the multiplication.
+   */
+  @carbon.method
+  @impl.implemented
+  PrepareShaderData(updateContext)
+  {
+    super.PrepareShaderData(updateContext);
+    this.spaceObjectShipData[1] *= this.activationStrength;
+  }
+
   /** Rebinds the turret sets to their locators after the turret set list changes. */
   @carbon.method
   @impl.adapted
