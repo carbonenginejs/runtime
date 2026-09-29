@@ -4,6 +4,7 @@
 // Hand-maintained (promoted from src/trinity/generated/trinityCore; the generator skips
 // it while this file exists). Promoted to give GetMeshBoneMatrixList Carbon's
 // storage: one contiguous Float4x3 palette rather than an array of mat4.
+import { box3 } from "#math/box3";
 import { mat3 } from "#math/mat3";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
@@ -177,6 +178,12 @@ export class Tr2GrannyAnimation extends CjsModel
   _sampledPose = null;
 
   _runtimeModel = null;
+
+  /** Carbon m_boneBounds: mesh binding corners retained until the rig changes. */
+  _boneBounds = [];
+
+  /** Retained TransformCoord result for dynamic bounds. */
+  _boundsPoint = vec3.create();
 
   _secondaryResources = new Map();
 
@@ -412,11 +419,16 @@ export class Tr2GrannyAnimation extends CjsModel
     return this.IsUsingCMF() ? this.GetCMFData() : this.GetFileInfo();
   }
 
-  /** Rebuilds browser bone state directly from format-gr2's stable payload. */
+  /**
+   * Rebuilds CPU bone state from the decoded format payload. Adapted: JS owns
+   * the pose instead of the Granny SDK; this also performs Cleanup's bounds
+   * cache invalidation (Tr2GrannyAnimation.cpp:1889) when the rig changes.
+   */
   @impl.adapted
   RebuildCachedData()
   {
     this._runtimeModel = null;
+    this._boneBounds.length = 0;
     this._meshBoneIndices.length = 0;
     this._curveCache = new WeakMap();
     this._morphCurveCache = new WeakMap();
@@ -523,6 +535,126 @@ export class Tr2GrannyAnimation extends CjsModel
     this._initialized = true;
     // cpp:668-672: pump once so there is a valid pose before the next update.
     this.Update(0);
+    return true;
+  }
+
+  /**
+   * Caches bone-local binding corners (Tr2GrannyAnimation.cpp:846-951).
+   * Adapted: the GR2 projection stores mesh references as indices and names
+   * OBBMin/OBBMax minBounds/maxBounds; the CPU rig owns the name lookup.
+   * CMF visits the first mesh in skeleton order; GR2 visits every model's
+   * mesh bindings in file order. That order also controls sphere expansion.
+   * @returns {boolean} Whether binding information is available.
+   */
+  @carbon.method
+  @impl.adapted
+  InitializeBoundingInfo()
+  {
+    const cmf = this.IsUsingCMF();
+    const data = cmf ? this.GetCMFData() : this.GetFileInfo();
+    if (!data) return false;
+    if (cmf)
+    {
+      if (!data.skeletons.length || !data.meshes.length || !this._useMeshBinding || !this._runtimeModel) return false;
+    }
+    else if (!data.models.length || !this._useMeshBinding) return false;
+
+    this._boneBounds.length = 0;
+    const append = (boneIndex, min, max) =>
+    {
+      // GrannyBoneBindingBounds (h:24-28); these eight vectors belong to the
+      // retained binding record, allocated only when the rig is rebuilt.
+      this._boneBounds.push({ boneIndex, corners: [
+        vec3.clone(min), vec3.clone(max), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(min[0], min[1], max[2]), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(min[0], max[1], min[2]), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(min[0], max[1], max[2]), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(max[0], min[1], min[2]), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(max[0], min[1], max[2]), // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+        vec3.fromValues(max[0], max[1], min[2]) // alloc: retained bone-binding corner, rebuilt only when the rig changes.
+      ] });
+    };
+    if (cmf)
+    {
+      const names = this._runtimeModel.skeleton.bones;
+      const bindings = data.meshes[0].boneBindings;
+      for (let boneIndex = 0; boneIndex < names.length; boneIndex++)
+      {
+        const binding = bindings.find(item => item.name === names[boneIndex]);
+        if (binding) append(boneIndex, binding.bounds.min, binding.bounds.max);
+      }
+    }
+    else
+    {
+      for (const model of data.models)
+      {
+        for (const meshIndex of model.meshBindings)
+        {
+          for (const binding of data.meshes[meshIndex].boneBindings)
+          {
+            append(this._runtimeModel.boneByName.get(binding.name), binding.minBounds, binding.maxBounds);
+          }
+        }
+      }
+    }
+    return true;
+  }
+
+  /**
+   * Expands the bounds over binding corners transformed by the current WORLD
+   * pose (Tr2GrannyAnimation.cpp:962-1022), not the skinning-offset palette.
+   * Adapted: the CPU rig supplies Granny/CMF world matrices; the GR2 reader's
+   * initialPlacement carries the model translation (absent means identity).
+   * Carbon's BoundingSphereUpdate starts at the origin and uses its 1e-4
+   * squared-distance tolerance, so an AABB-derived sphere is not equivalent.
+   * @param {vec4} boundingSphere Destination center and radius.
+   * @param {vec3} aabbMin Destination minimum.
+   * @param {vec3} aabbMax Destination maximum.
+   * @returns {boolean} False without changing outputs when no binding exists.
+   */
+  @carbon.method
+  @impl.adapted
+  GetDynamicBounds(boundingSphere, aabbMin, aabbMax)
+  {
+    if (!this._boneBounds.length && !this.InitializeBoundingInfo()) return false;
+    boundingSphere.fill(0);
+    box3.bounds.empty(aabbMin, aabbMax);
+    const point = this._boundsPoint;
+    for (const binding of this._boneBounds)
+    {
+      const world = this._runtimeModel.bones[binding.boneIndex].worldTransform;
+      for (const corner of binding.corners)
+      {
+        vec3.transformMat4(point, corner, world);
+        vec3.min(aabbMin, aabbMin, point);
+        vec3.max(aabbMax, aabbMax, point);
+        const dx = point[0] - boundingSphere[0];
+        const dy = point[1] - boundingSphere[1];
+        const dz = point[2] - boundingSphere[2];
+        const distanceSquared = dx * dx + dy * dy + dz * dz;
+        const radius = boundingSphere[3];
+        // Utilities/BoundingSphere.cpp: BoundingSphereIsInside/Update.
+        if (distanceSquared > radius * radius + 1e-4)
+        {
+          const distance = Math.sqrt(distanceSquared);
+          const shift = 0.5 * (1 - radius / distance);
+          boundingSphere[0] += shift * dx;
+          boundingSphere[1] += shift * dy;
+          boundingSphere[2] += shift * dz;
+          boundingSphere[3] = 0.5 * (radius + distance);
+        }
+      }
+    }
+    if (!this.IsUsingCMF() && this.GetFileInfo() && this._runtimeModel)
+    {
+      const position = this._runtimeModel.model.initialPlacement?.position;
+      if (position)
+      {
+        vec3.add(aabbMin, aabbMin, position);
+        vec3.add(aabbMax, aabbMax, position);
+        vec3.add(boundingSphere, boundingSphere, position);
+      }
+    }
     return true;
   }
 

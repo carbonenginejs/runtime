@@ -654,6 +654,19 @@ function emitModel(model, fileInfo, classes = {}, skeletonCache = new WeakMap())
         o.skeleton = emitSkeleton(model.Skeleton, classes);
         if (model.Skeleton) skeletonCache.set(model.Skeleton, o.skeleton);
     }
+    // Required by Tr2GrannyAnimation.GetDynamicBounds: Carbon adds the model's
+    // InitialPlacement.Position after world-pose bounds (cpp:1013-1020).
+    // Preserve the native transform rather than losing its other components.
+    if (model.InitialPlacement)
+    {
+        const placement = model.InitialPlacement;
+        o.initialPlacement = {
+            flags: placement.flags,
+            position: farr(placement.position, [ 0, 0, 0 ]),
+            orientation: farr(placement.orientation, [ 0, 0, 0, 1 ]),
+            scaleShear: farr(placement.scaleShear, [ 1, 0, 0, 0, 1, 0, 0, 0, 1 ])
+        };
+    }
     const meshes = fileInfo.Meshes || [];
     o.meshBindings = (model.MeshBindings || []).map(mb =>
     {
