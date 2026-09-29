@@ -4,6 +4,12 @@
 import { vec3 } from "#math/vec3";
 import { carbon, edit, impl, type } from "#schema";
 import { Tr2Mesh } from "./Tr2Mesh.js";
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { Tr2Renderer } from "../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../context/Tr2RenderContext.js";
+import { Tr2RenderBatch } from "../batch/TriRenderBatch/index.js";
+import { CarbonVertexElements } from "../vertex/vertexUsage.js";
+import { CreateLodAllocations } from "./TriGeometryResAllocations.js";
 import { blue, EnumRegistrationType } from "#blue";
 
 
@@ -14,6 +20,12 @@ import { blue, EnumRegistrationType } from "#blue";
 @type.define({ className: "Tr2InstancedMesh", family: "trinityCore" })
 export class Tr2InstancedMesh extends Tr2Mesh
 {
+  /** Carbon m_vertexDeclaration: combined mesh and instance elements. */
+  _vertexDeclaration = Tr2EffectStateManager.Unknown;
+
+  /** Carbon m_instanceDeclaration: provider handle used by the merge. */
+  _instanceDeclaration = Tr2EffectStateManager.Unknown;
+
   @edit.readwrite
   @edit.persist
   @type.int32
@@ -95,15 +107,153 @@ export class Tr2InstancedMesh extends Tr2Mesh
     return this.instanceGeometryResource;
   }
 
+  /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
+  @carbon.method
+  @impl.implemented
+  SetInstanceGeometryRes(resource)
+  {
+    if (this.instanceGeometryResource === resource) return;
+    this.instanceGeometryResource = resource;
+    this.CreateVertexDeclaration();
+  }
+
+  /** Invalidates both cached declarations (Tr2InstancedMesh.cpp:78-82). */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources()
+  {
+    this._vertexDeclaration = Tr2EffectStateManager.Unknown;
+    this._instanceDeclaration = Tr2EffectStateManager.Unknown;
+  }
+
+  /** Recreates declarations when the device can prepare resources (cpp:89-93). */
+  @carbon.method
+  @impl.implemented
+  OnPrepareResources()
+  {
+    this.CreateVertexDeclaration();
+    return true;
+  }
+
+  /** Rebuilds the declaration before the base geometry caches (cpp:160-164). */
+  @carbon.method
+  @impl.implemented
+  RebuildCachedData(resource)
+  {
+    this.CreateVertexDeclaration();
+    super.RebuildCachedData(resource);
+  }
+
   /**
-   * Binds an already-resolved instance-data provider; schedules the
-   * instanceBuffer rebuild.
+   * Refreshes declarations when either mesh index changes (cpp:128-134).
+   * Adapted: JS notification names identify Carbon's member addresses; the
+   * instance resource-path loader remains the existing caller-owned path.
    */
   @carbon.method
   @impl.adapted
-  SetInstanceGeometryRes(resource)
+  OnModified(propertyName)
   {
-    this.instanceGeometryResource = resource ?? null;
+    if (propertyName === "instanceMeshIndex" || propertyName === "meshIndex") this.CreateVertexDeclaration();
+    return super.OnModified(propertyName);
+  }
+
+  /**
+   * Collects indexed instance batches (Tr2InstancedMesh.cpp:219-311).
+   * Adapted: the resource layer cannot access the AL, so cold LOD allocations
+   * are made here through the ambient context before binding both streams.
+   * Deferring to SubmitGeometry would clear stream1 and reset instance count.
+   * JS accepts a batch type or area list and returns whether it committed any
+   * batch; Carbon returns void. The retired Mac NVIDIA driver flag has no JS
+   * backend equivalent.
+   * @param {object} batches Destination accumulator.
+   * @param {number|Array} areas Batch type or mesh areas.
+   * @param {object|null} data Per-object data.
+   * @param {number} [screenSize] Projected mesh size.
+   * @param {boolean} [reverseAreas] Reverse each area's authored winding.
+   * @returns {boolean} Whether a batch was committed.
+   */
+  @carbon.method
+  @impl.adapted
+  GetBatches(batches, areas, data, screenSize = Infinity, reverseAreas = false)
+  {
+    if (!this.display) return false;
+    const geometry = this.GetGeometryResource();
+    if (!geometry || !geometry.IsGood()) return false;
+    const provider = this.GetInstanceGeometryResource();
+    if (!provider || !provider.IsInstanceDataReady()) return false;
+    if (this._vertexDeclaration === Tr2EffectStateManager.Unknown ||
+      this._instanceDeclaration !== provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex))
+    {
+      this.CreateVertexDeclaration();
+      if (this._vertexDeclaration === Tr2EffectStateManager.Unknown) return false;
+    }
+    const lod = geometry.GetMeshLod(this.meshIndex, screenSize);
+    if (!lod || !CreateLodAllocations(geometry, this.meshIndex, lod, Tr2RenderContext_GetMainThreadRenderContext())) return false;
+    const instanceData = provider.GetInstanceData(this.instanceMeshIndex, screenSize);
+    if (instanceData.count === 0) return false;
+    const list = Array.isArray(areas) ? areas : this.GetAreas(areas);
+    if (!list) return false;
+    let committed = false;
+    for (const area of list)
+    {
+      if (!area.GetDisplay()) continue;
+      const material = area.GetMaterialInterface();
+      if (!material) continue;
+      const reversed = area.GetReversed() !== reverseAreas;
+      if (reversed && !lod.reversedIndicesValid) continue;
+      const draw = Tr2RenderBatch.resolveDrawArguments(lod, area.GetIndex(), area.GetCount(), reversed);
+      if (!draw) continue;
+      const batch = new Tr2RenderBatch();
+      batch.SetMaterial(material);
+      batch.SetPerObjectData(data);
+      batch.SetGeometryFromAllocations(this._vertexDeclaration, lod.vertexAllocation, lod.indexAllocation);
+      batch.SetStreamSource(1, instanceData.buffer, instanceData.stride);
+      batch.SetDrawIndexedInstanced(draw.indexCountPerInstance, instanceData.count,
+        draw.startIndexLocation, draw.baseVertexLocation, instanceData.offset / instanceData.stride);
+      committed = batches.Commit(batch) || committed;
+    }
+    return committed;
+  }
+
+  /**
+   * Merges mesh and instance declarations (cpp:464-528). Only appended elements
+   * change: stream1, step rate1 and semantic index+8. Adapted: the decoded mesh
+   * uses CMF scalar type names, so the existing CarbonVertexElements/ESM array
+   * representation is retained rather than inventing a numeric offset ledger.
+   */
+  @carbon.method
+  @impl.adapted
+  CreateVertexDeclaration()
+  {
+    this._vertexDeclaration = Tr2EffectStateManager.Unknown;
+    this._instanceDeclaration = Tr2EffectStateManager.Unknown;
+    if (!Tr2Renderer.IsResourceCreationAllowed()) return;
+    const provider = this.GetInstanceGeometryResource();
+    if (!provider || !provider.IsInstanceDataReady()) return;
+    const handle = provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex);
+    this._instanceDeclaration = handle;
+    if (handle === Tr2EffectStateManager.Unknown) return;
+    const definition = Tr2EffectStateManager.getVertexDeclarationElements(handle);
+    if (!definition) return;
+    const instances = definition.items ?? definition;
+    const geometry = this.GetGeometryResource();
+    if (!geometry || !geometry.IsGood()) return;
+    const mesh = CarbonVertexElements(geometry.GetMeshVertexElements(this.meshIndex));
+    if (!mesh.length || !instances.length) return;
+    const merged = mesh.map(item => ({ ...item }));
+    for (const item of instances)
+    {
+      merged.push({ ...item, stream: 1, instanceStepRate: 1, usageIndex: item.usageIndex + 8 });
+    }
+    this._vertexDeclaration = Tr2EffectStateManager.getVertexDeclarationHandle(merged);
+  }
+
+  /** Returns the combined declaration handle (Tr2InstancedMesh.cpp:531-534). */
+  @carbon.method
+  @impl.implemented
+  GetVertexDeclaration()
+  {
+    return this._vertexDeclaration;
   }
 
   /**
