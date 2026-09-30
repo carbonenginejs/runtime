@@ -6,6 +6,7 @@ import { test } from "node:test";
 
 import {
   EveSpaceSceneRenderDriver,
+  Tr2ShLightingManager,
   Tr2PostProcess2,
   Tr2RenderContext,
   Tr2SSAO,
@@ -612,4 +613,30 @@ test("RenderDepthPass draws opaque, decal and depth with the depth technique (Ev
   scene.display = false;
   scene.RenderDepthPass(depth, normal, null, context, "Depth", batchMap);
   assert.deepEqual(calls, []);
+});
+
+
+test("SH directional/source refresh precedes textures, and receivers follow batch collection", () => {
+  for(const mode of ["active","hidden","absent"]) {
+    const calls=[],driver=driverOver(calls),scene=driver.scene;
+    const manager=new Tr2ShLightingManager(),refresh=manager.UpdateWithDirectionalLight.bind(manager),sources=manager.UpdateSourceData.bind(manager);
+    manager.UpdateWithDirectionalLight=(direction,color)=>{calls.push(["SHSun",Array.from(direction),Array.from(color)]);return refresh(direction,color);};
+    manager.UpdateSourceData=()=>{calls.push(["SHSources"]);return sources();};
+    scene.display=mode!=="hidden";scene.shLightingManager=mode==="absent"?null:manager;
+    const object={},cameraParent={},flattened={},planet={};
+    scene.objects=[object];scene.cameraAttachmentParent=cameraParent;scene.planets=[planet];scene.sunDirection=[0,-1,0];
+    scene.GetRenderables=out=>{calls.push(["GetRenderables"]);out.push(flattened);return out;};
+    scene.UpdateShLighting=objects=>calls.push(["SHReceivers",objects]);
+    scene.dataTextureMgr={SetVariables(){calls.push(["DataTextures"]);}};
+    driver.Execute(null,null,0,0,null,StubContext());
+    const names=calls.map(([name])=>name);
+    if(mode!=="active") {assert.ok(!names.includes("SHSun"));assert.ok(!names.includes("SHReceivers"));continue;}
+    assert.deepEqual(calls.find(([name])=>name==="SHSun"),["SHSun",[0,-1,0],[1,1,1]]);
+    assert.equal(names.filter(name=>name==="SHSources").length,1);
+    assert.ok(names.indexOf("SHSun")<names.indexOf("SHSources"));
+    assert.ok(names.indexOf("SHSources")<names.indexOf("DataTextures"));
+    assert.ok(names.indexOf("Collect")<names.indexOf("SHReceivers"));
+    assert.ok(names.indexOf("SHReceivers")<names.indexOf("UpdateVariableStore"));
+    assert.deepEqual(calls.find(([name])=>name==="SHReceivers")[1],[object,cameraParent]);
+  }
 });

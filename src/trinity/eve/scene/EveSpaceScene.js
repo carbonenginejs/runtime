@@ -1174,7 +1174,7 @@ export class EveSpaceScene extends CjsModel
    * FinalizeBatches), and over a parallel range; the JS pass is sequential
    * because the receivers write only their own records and share no state.
    *
-   * @param {Array} objects - the frame's visible objects
+   * @param {Array} objects - scene objects and the camera attachment parent
    * @returns {Number} how many receivers were updated
    */
   @carbon.method
@@ -1191,11 +1191,12 @@ export class EveSpaceScene extends CjsModel
 
     for (const object of objects)
     {
-      if (typeof object?.UpdateShLighting !== "function")
+      const receiver = CjsSchema.cast(object, ITr2ShLightingReceiver);
+      if (!receiver)
       {
         continue;
       }
-      object.UpdateShLighting(this.shLightingManager, this.updateContext);
+      receiver.UpdateShLighting(this.shLightingManager, this.updateContext);
       updated++;
     }
 

@@ -1107,7 +1107,7 @@ export class EveSpaceObject2 extends EveEntity
 
     const lowThreshold = EveSpaceObject2._GetContextValue(updateContext, "GetLowDetailThreshold", "lowDetailThreshold");
 
-    if (!(this.estimatedPixelDiameterWithChildren > lowThreshold) || typeof manager?.GetLighting !== "function")
+    if (!(this.estimatedPixelDiameterWithChildren > lowThreshold))
     {
       return false;
     }
@@ -1132,7 +1132,7 @@ export class EveSpaceObject2 extends EveEntity
    * no emissive colour. The translation is one live view, which unregistering
    * matches by identity.
    * Adapted: Carbon passes the radius as a pointer the manager reads live;
-   * ours passes its value at registration.
+   * a getter supplies the current value at every source refresh.
    *
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
@@ -1141,7 +1141,7 @@ export class EveSpaceObject2 extends EveEntity
   @impl.adapted
   RegisterSecondaryLightSource(manager)
   {
-    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), this.secondaryLightingSphereRadius, this.albedoColor, EveSpaceObject2._noEmissiveColor);
+    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), () => this.secondaryLightingSphereRadius, this.albedoColor, EveSpaceObject2._noEmissiveColor);
   }
 
   /**

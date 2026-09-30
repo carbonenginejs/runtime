@@ -141,3 +141,18 @@ same named resources through model traversal, preserving objects reachable from
 other live or pending ships. Transition overlays are detached before this walk
 because their bindings reference both ships. This policy belongs to the demo;
 the runtime provides no generic graph-destruction policy.
+
+## Secondary lighting frame updates
+
+When a displayed scene has an SH lighting manager, the frame driver refreshes
+its directional light and registered source data before publishing data textures.
+It supplies the CPU sun direction and unit white, matching Carbon. After batch
+collection, it dispatches SH updates to registered receiver interfaces among the
+scene objects and camera attachment parent. Planets and flattened renderables
+are not additional receivers in this pass.
+
+Effect roots, hulls and planets register a getter for their source radius. Each
+source refresh observes the current radius after animation or scale changes;
+registration order does not freeze the initial value. A missing manager and a
+hidden scene perform no SH refresh. This wiring does not create a manager for
+scenes that have none.

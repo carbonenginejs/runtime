@@ -685,7 +685,7 @@ export class EveEffectRoot2 extends EveEntity
    * view is what unregistering matches by identity - a fresh subarray per call
    * never matched, so a removed root was never unregistered.
    * Adapted: Carbon passes the radius as a pointer the manager reads live;
-   * ours passes its value at registration.
+   * a getter supplies the current value at every source refresh.
    *
    * @param {import("../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
@@ -696,7 +696,7 @@ export class EveEffectRoot2 extends EveEntity
   {
     return manager.RegisterSecondaryLightSource(
       this._GetWorldTranslation(),
-      this._secondaryLightingSphereRadiusWorld,
+      () => this._secondaryLightingSphereRadiusWorld,
       EveEffectRoot2._noAlbedo,
       this.secondaryLightingEmissiveColor
     );

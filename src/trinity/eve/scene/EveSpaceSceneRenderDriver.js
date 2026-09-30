@@ -615,7 +615,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
   #RenderMainPass(renderContext, offscreen)
   {
     // BeginRender's CPU half, in the order EveSpaceScene's own contract gives.
-    // The impact data texture is republished first (EveSpaceScene.cpp:1324-1327).
+    // Carbon refreshes directional and source SH data before publishing textures
+    // (EveSpaceScene.cpp:1319-1327). This is the CPU sun direction, not the
+    // oppositely signed GPU Sun.DirWorld; Carbon supplies unit white here.
+    if (this.scene.display && this.scene.shLightingManager)
+    {
+      this.scene.shLightingManager.UpdateWithDirectionalLight(this.scene.sunDirection, [1, 1, 1]);
+    }
+    // The impact data texture follows the SH refresh.
     if (this.scene.dataTextureMgr) this.scene.dataTextureMgr.SetVariables();
 
 
@@ -639,6 +646,12 @@ export class EveSpaceSceneRenderDriver extends CjsModel
     this.scene.UpdateVisibility?.(renderContext.GetInverseViewTransform?.() ?? null);
 
     const map = this.#Collect(this.scene.GetRenderables?.([]) ?? [], renderContext);
+    // Carbon's allObjects is the scene list plus camera parent, not flattened
+    // renderables or planets. Dispatch after FinalizeBatches (cpp:1470-1527).
+    if (this.scene.display && this.scene.shLightingManager)
+    {
+      this.scene.UpdateShLighting([...this.scene.objects, this.scene.cameraAttachmentParent]);
+    }
 
     // After the gather, the scene's global textures - the nebula and the
     // reflection - go through the variable store (UpdateVariableStore,

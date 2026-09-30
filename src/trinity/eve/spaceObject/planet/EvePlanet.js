@@ -18,7 +18,7 @@ export class EvePlanet extends EveEffectRoot2
    * colour (EvePlanet.cpp:34-37); unregistering is EveEffectRoot2's, by the
    * same translation view.
    * Adapted: Carbon passes the radius as a pointer the manager reads live;
-   * ours passes its value at registration.
+   * a getter supplies the current value at every source refresh.
    *
    * @param {import("../../../core/lighting/Tr2ShLightingManager.js").Tr2ShLightingManager} manager The scene's manager.
    * @returns {boolean} Whether the manager registered it.
@@ -27,7 +27,7 @@ export class EvePlanet extends EveEffectRoot2
   @impl.adapted
   RegisterSecondaryLightSource(manager)
   {
-    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), this.radius, this.albedoColor, this.emissiveColor);
+    return manager.RegisterSecondaryLightSource(this._GetWorldTranslation(), () => this.radius, this.albedoColor, this.emissiveColor);
   }
 
 

@@ -6,9 +6,13 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
+import {readFile} from "node:fs/promises";
+import {join} from "node:path";
+import {createHash} from "node:crypto";
+import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveSpaceObject2, EveSpaceScene, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
+import { EveEffectRoot2, EvePlanet, EveSpaceObject2, EveSpaceScene, Tr2ShLightingManager } from "../../npm/dist/trinity/index.js";
 
 
 const SQRT_PI = Math.sqrt(Math.PI);
@@ -251,4 +255,47 @@ test("EveSpaceScene drives every receiver, and does nothing without a manager", 
 
   assert.equal(scene.UpdateShLighting([ lit, notAReceiver ]), 1, "only receivers are updated");
   assert.ok(Math.abs(lit.GetParentData().shLighting[3]) > 0, "the hull picked up bounce light");
+});
+
+
+test("secondary light registrations read updated hull and planet radii", () => {
+  for(const [source,field] of [[new EveSpaceObject2(),"secondaryLightingSphereRadius"],[new EvePlanet(),"radius"]]) {
+    const manager=makeManager();source[field]=4;source.RegisterSecondaryLightSource(manager);
+    assert.equal(manager.UpdateSourceData(),1);
+    source[field]=0;assert.equal(manager.UpdateSourceData(),0,"radius changes without registration churn");
+    source[field]=8;assert.equal(manager.UpdateSourceData(),1);
+    assert.equal(source.UnregisterSecondaryLightSource(manager),true);
+    assert.equal(manager.UpdateSourceData(),0);
+  }
+});
+
+test("scene SH dispatch uses the receiver contract and absent manager preserves coefficients", () => {
+  const scene=new EveSpaceScene(),lit=new EveSpaceObject2();let impostorCalls=0;
+  const impostor={UpdateShLighting(){impostorCalls++;}};
+  scene.shLightingManager=makeManager();lit.estimatedPixelDiameterWithChildren=10000;
+  assert.equal(scene.UpdateShLighting([lit,impostor,null]),1);assert.equal(impostorCalls,0);
+  lit.GetParentData().shLighting.fill(3);scene.shLightingManager=null;
+  assert.equal(scene.UpdateShLighting([lit]),0);assert.ok(lit.GetParentData().shLighting.every(value=>value===3));
+});
+
+const shCorpus=process.env.SH_CORPUS_DIR;
+test("real plasmacloud registration order and later scale changes preserve native live radius", {
+  skip:!shCorpus&&"set SH_CORPUS_DIR for copied plasmacloud lighting fields"
+}, async () => {
+  const bytes=await readFile(join(shCorpus,"plasmaclouds.black"));
+  assert.equal(createHash("md5").update(bytes).digest("hex"),"25a3cf0f38c1e8fcbb368a8d42026285");
+  const values=CjsBlackFormat.readPayload(bytes).object;
+  const root=()=>{const result=new EveEffectRoot2();result.scaling.set(values.scaling);result.secondaryLightingSphereRadius=values.secondaryLightingSphereRadius;result.secondaryLightingEmissiveColor.set(values.secondaryLightingEmissiveColor);return result;};
+  const sample=(manager,distance=7200,cutoff=30)=>{const out=new Float32Array(28);manager.GetLighting([distance,0,0],1,cutoff,out);return Array.from(out);};
+  const energy=values=>values.slice(0,27).reduce((sum,value)=>sum+Math.abs(value),0);
+  const early=root(),late=root(),a=makeManager(),b=makeManager();
+  early.RegisterSecondaryLightSource(a);early.UpdateSyncronous();
+  late.UpdateSyncronous();late.RegisterSecondaryLightSource(b);
+  a.UpdateSourceData();b.UpdateSourceData();
+  const expected=sample(b);assert.ok(energy(expected)>0);assert.deepEqual(sample(a),expected);
+  assert.equal(energy(sample(a,20000)),0);assert.equal(energy(sample(a,0.5)),0);assert.equal(energy(sample(a,7200,4000)),0);
+  a.UpdateWithDirectionalLight([0,-1,0],[0,0,0]);assert.deepEqual(sample(a),expected,"authored zero-albedo emission is sun-independent");
+  early.scaling.fill(1200);early.UpdateSyncronous();a.UpdateSourceData();
+  assert.equal(energy(sample(a)),0,"shrinking after registration observes the new radius");
+  assert.equal(sample(a)[27],1);
 });
