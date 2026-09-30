@@ -25,6 +25,16 @@ particular, it does not require normalized skin-weight sums or finite mesh
 bounds and UV densities. Destination writers may impose stricter requirements
 when their target format needs them.
 
+## Instance stream widths
+
+Shared geometry may carry an explicit `vertexCount` when its position channel
+is not XYZ. The CMF builder preserves each channel's authored width using that
+count, including four-component Position and TexCoord instance streams. Counts
+must be non-negative integers and non-empty channels must describe one to four
+components per vertex. Without an explicit count, the existing XYZ convention
+remains in force. No position component is discarded to reinterpret instance
+data as surface geometry.
+
 ## glTF import contract
 
 `CjsGltfFormat` defaults to `emit: "shared"`; `emit: "cmf"` uses the same

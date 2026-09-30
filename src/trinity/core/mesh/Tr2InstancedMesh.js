@@ -2,7 +2,9 @@
 // Source: trinity/trinity/Tr2InstancedMesh.cpp
 // Source: trinity/trinity/Tr2InstancedMesh_Blue.cpp
 import { vec3 } from "#math/vec3";
-import { carbon, edit, impl, type } from "#schema";
+import { CjsSchema, carbon, edit, impl, type } from "#schema";
+import { TriGeometryRes, ResourceRequirement } from "#resource";
+import { TriDevice } from "../device/TriDevice.js";
 import { Tr2Mesh } from "./Tr2Mesh.js";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2Renderer } from "../Tr2Renderer.js";
@@ -25,6 +27,9 @@ export class Tr2InstancedMesh extends Tr2Mesh
 
   /** Carbon m_instanceDeclaration: provider handle used by the merge. */
   _instanceDeclaration = Tr2EffectStateManager.Unknown;
+
+  /** Carbon m_loadedGeometryResource, preferred over an assigned provider. */
+  _loadedGeometryResource = null;
 
   @edit.readwrite
   @edit.persist
@@ -64,11 +69,47 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @type.int32
   instanceMeshIndex = 0;
 
-  /** Defers to Tr2Mesh; the instance stream needs no extra CPU-side setup. */
+  /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Ends the final owner's mesh lifetime; shared providers are only detached.
+   * Adapted: explicit JS teardown replaces the native mesh and device-resource
+   * destructors, including base geometry completion subscriptions.
+   */
+  @impl.custom
+  Destroy()
+  {
+    this.SetGeometryRes(null);
+    this.SetLowResGeometryRes(null);
+    this.instanceGeometryResource = null;
+    this._loadedGeometryResource = null;
+    this.ReleaseResources();
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
   @carbon.method
-  @impl.adapted
+  @impl.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
+    return true;
+  }
+
+  /** Loads the instance path before base geometry (Tr2InstancedMesh.cpp:57-69). */
+  @carbon.method
+  @impl.implemented
   Initialize()
   {
+    if (!this.deferGeometryLoad && this.instanceGeometryResPath)
+    {
+      this._loadedGeometryResource = blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY });
+    }
     return super.Initialize();
   }
 
@@ -86,6 +127,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   SetInstanceMeshResPath(path)
   {
     this.instanceGeometryResPath = String(path ?? "");
+    this.OnModified("instanceGeometryResPath");
   }
 
   /** Index of the instance buffer within the instance geometry resource. */
@@ -104,7 +146,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @impl.implemented
   GetInstanceGeometryResource()
   {
-    return this.instanceGeometryResource;
+    return this._loadedGeometryResource ?? this.instanceGeometryResource;
   }
 
   /** Binds the instance provider and rebuilds declarations (cpp:198-208). */
@@ -114,6 +156,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (this.instanceGeometryResource === resource) return;
     this.instanceGeometryResource = resource;
+    this._loadedGeometryResource = null;
     this.CreateVertexDeclaration();
   }
 
@@ -145,15 +188,28 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /**
-   * Refreshes declarations when either mesh index changes (cpp:128-134).
-   * Adapted: JS notification names identify Carbon's member addresses; the
-   * instance resource-path loader remains the existing caller-owned path.
+   * Loads changed instance paths, releases deferred loading and refreshes
+   * declarations (Tr2InstancedMesh.cpp:105-138).
+   * Adapted: JS notification names identify Carbon's member addresses.
    */
   @carbon.method
   @impl.adapted
   OnModified(propertyName)
   {
-    if (propertyName === "instanceMeshIndex" || propertyName === "meshIndex") this.CreateVertexDeclaration();
+    if (propertyName === "instanceGeometryResPath")
+    {
+      if (!this.deferGeometryLoad)
+      {
+        this.SetInstanceGeometryRes(this.instanceGeometryResPath
+          ? blue.resMan.GetResource(this.instanceGeometryResPath, { requirement: ResourceRequirement.GEOMETRY })
+          : null);
+      }
+    }
+    else if (propertyName === "deferGeometryLoad")
+    {
+      if (!this.deferGeometryLoad && !this._loadedGeometryResource) this.Initialize();
+    }
+    else if (propertyName === "instanceMeshIndex" || propertyName === "meshIndex") this.CreateVertexDeclaration();
     return super.OnModified(propertyName);
   }
 
@@ -161,6 +217,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Collects indexed instance batches (Tr2InstancedMesh.cpp:219-311).
    * Adapted: the resource layer cannot access the AL, so cold LOD allocations
    * are made here through the ambient context before binding both streams.
+   * Carbon prepares at resource load; our resource layer cannot import Trinity,
+   * so preparation happens at first use, including assigned geometry providers.
    * Deferring to SubmitGeometry would clear stream1 and reset instance count.
    * JS accepts a batch type or area list and returns whether it committed any
    * batch; Carbon returns void. The retired Mac NVIDIA driver flag has no JS
@@ -181,6 +239,9 @@ export class Tr2InstancedMesh extends Tr2Mesh
     if (!geometry || !geometry.IsGood()) return false;
     const provider = this.GetInstanceGeometryResource();
     if (!provider || !provider.IsInstanceDataReady()) return false;
+    const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
+    if (instanceGeometry && !CreateLodAllocations(instanceGeometry, this.instanceMeshIndex,
+      instanceGeometry.GetMeshLod(this.instanceMeshIndex, screenSize), Tr2RenderContext_GetMainThreadRenderContext())) return false;
     if (this._vertexDeclaration === Tr2EffectStateManager.Unknown ||
       this._instanceDeclaration !== provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex))
     {
@@ -220,6 +281,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * change: stream1, step rate1 and semantic index+8. Adapted: the decoded mesh
    * uses CMF scalar type names, so the existing CarbonVertexElements/ESM array
    * representation is retained rather than inventing a numeric offset ledger.
+   * Carbon prepares at resource load; our resource layer cannot import Trinity,
+   * so preparation happens at first use, for loaded and assigned providers.
    */
   @carbon.method
   @impl.adapted
@@ -230,6 +293,10 @@ export class Tr2InstancedMesh extends Tr2Mesh
     if (!Tr2Renderer.IsResourceCreationAllowed()) return;
     const provider = this.GetInstanceGeometryResource();
     if (!provider || !provider.IsInstanceDataReady()) return;
+    const instanceGeometry = CjsSchema.cast(provider, TriGeometryRes);
+    if (instanceGeometry && provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex) === Tr2EffectStateManager.Unknown &&
+      !CreateLodAllocations(instanceGeometry, this.instanceMeshIndex,
+        instanceGeometry.GetMeshLod(this.instanceMeshIndex), Tr2RenderContext_GetMainThreadRenderContext())) return;
     const handle = provider.GetInstanceBufferVertexDeclaration(this.instanceMeshIndex);
     this._instanceDeclaration = handle;
     if (handle === Tr2EffectStateManager.Unknown) return;

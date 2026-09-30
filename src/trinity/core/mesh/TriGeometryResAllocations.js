@@ -20,6 +20,8 @@
 // channels by the declaration (Carbon uploads the file's interleaved view
 // verbatim; our payload is deinterleaved, so the packer is the inverse of the
 // reader) and re-strides to a multiple of four.
+import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
+import { CarbonVertexElements } from "../vertex/vertexUsage.js";
 import { PackLodGeometry } from "#resource/geometry/pack";
 import { Tr2GpuUsage } from "#consts/render-context";
 import { Tr2SuballocatedBuffer } from "../device/Tr2SuballocatedBuffer/index.js";
@@ -128,6 +130,11 @@ export function CreateLodAllocations(geometry, meshIndex, lod, renderContext)
       lod.reversedIndicesValid = true;
     }
 
+    // Carbon stores these on the mesh/LOD at resource preparation. Geometry
+    // providers use the same packed layout as ordinary mesh draws.
+    mesh.vertexDeclarationHandle = Tr2EffectStateManager.getVertexDeclarationHandle(CarbonVertexElements(packed.decl));
+    mesh.bytesPerVertex = packed.vertex.stride;
+    lod.vertexCount = packed.vertex.count;
     lod.allocationsValid = true;
     return true;
   }

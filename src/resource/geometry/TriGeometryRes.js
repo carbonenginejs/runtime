@@ -758,6 +758,58 @@ export class TriGeometryRes extends CjsResource
     return mesh?.decl || mesh?.vertexElements || [];
   }
 
+  /** Returns IsGood, as Carbon's ITr2InstanceData readiness does (cpp:2769-2772). */
+  IsInstanceDataReady()
+  {
+    return this.IsGood();
+  }
+
+  /**
+   * Returns the selected LOD's vertex allocation as an instance stream (cpp:2774-2788).
+   * Adapted: a plain record avoids a resource-to-Trinity import. Null is the
+   * uninitialized AL buffer; before lazy preparation the stream is empty.
+   * @param {number} bufferIndex Mesh index.
+   * @param {number} screenSize Projected size for LOD selection.
+   * @returns {object} Buffer, byte offset, byte stride and vertex count.
+   */
+  GetInstanceData(bufferIndex = 0, screenSize = Infinity)
+  {
+    const mesh = this.GetMeshData(bufferIndex);
+    const lod = mesh ? this.GetMeshLod(bufferIndex, screenSize) : null;
+    const allocation = lod?.vertexAllocation;
+    if (!allocation) return { buffer: null, offset: 0, stride: 0, count: 0 };
+    return { buffer: allocation.GetBuffer(), offset: allocation.GetOffset(),
+      stride: mesh.bytesPerVertex, count: lod.vertexCount };
+  }
+
+  /**
+   * Returns the prepared mesh declaration or Carbon's ~0u sentinel (cpp:2799-2806).
+   * Adapted: the Trinity allocation helper installs the handle on first use;
+   * the resource layer cannot import Tr2EffectStateManager to name the sentinel.
+   * @param {number} bufferIndex Mesh index.
+   * @returns {number} Vertex declaration handle.
+   */
+  GetInstanceBufferVertexDeclaration(bufferIndex = 0)
+  {
+    return this.GetMeshData(bufferIndex)?.vertexDeclarationHandle ?? 0xFFFFFFFF;
+  }
+
+  /**
+   * Returns mesh-local bounds or Carbon's empty box (cpp:2808-2817).
+   * Adapted: decoded bounds become the existing JS min/max pair; an absent
+   * mesh never borrows the whole resource's bounds.
+   * @param {number} bufferIndex Mesh index.
+   * @returns {object} Detached min/max vectors.
+   */
+  GetInstanceBufferBoundingBox(bufferIndex = 0)
+  {
+    const source = TriGeometryRes.getBounds(this.GetMeshData(bufferIndex));
+    if (source) return { min: vec3.clone(source.min), max: vec3.clone(source.max) }; // alloc: native value-returned bounds belong to the caller.
+    const bounds = { min: vec3.create(), max: vec3.create() }; // alloc: returned empty bounds belong to the caller.
+    box3.bounds.empty(bounds.min, bounds.max);
+    return bounds;
+  }
+
   /**
    * Saving belongs to the selected geometry format writer and destination.
    *
@@ -1395,6 +1447,10 @@ CjsSchema.define(TriGeometryRes, {
     ReleasePayload: [ impl.custom ],
     GetIntersectionPoints: [ carbon.method, impl.adapted ],
     GetMeshVertexElements: [ carbon.method, impl.adapted ],
+    IsInstanceDataReady: [ carbon.method, impl.implemented ],
+    GetInstanceData: [ carbon.method, impl.adapted ],
+    GetInstanceBufferVertexDeclaration: [ carbon.method, impl.adapted ],
+    GetInstanceBufferBoundingBox: [ carbon.method, impl.adapted ],
     SaveMesh: [ carbon.method, impl.notSupported ]
   }
 });

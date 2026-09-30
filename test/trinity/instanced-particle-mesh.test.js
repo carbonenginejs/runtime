@@ -10,7 +10,7 @@ import {TriBatchType} from "../../npm/dist/global/consts/graphics/index.js";
 import {TriGeometryRes} from "../../npm/dist/resource/index.js";
 import {CjsBlackFormat} from "../../npm/dist/resource/formats/black/index.js";
 import {Tr2InstancedMesh,Tr2MeshArea,Tr2ParticleSystem,Tr2ParticleElementDeclaration,Tr2EffectStateManager,
-  EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
+  TriDevice,EveChildParticleSystem,EveChildContainer,EveShip2,EveUpdateContext,ExecuteMainThreadActions,
   Tr2RenderContext_GetMainThreadRenderContext} from "../../npm/dist/trinity/index.js";
 import {Tr2RenderContextALStub} from "../../npm/dist/trinityal/index.js";
 import {SharedGeometryBuffer} from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
@@ -21,6 +21,8 @@ import { WebgpuVertexBufferLayout } from "../../npm/dist/trinityal/webgpu/index.
 
 function setup(t)
 {
+  const registered=new Set(TriDevice.GetResourcesRegistered());
+  t.after(()=>{for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();});
   const context=Tr2RenderContext_GetMainThreadRenderContext(),prior=context.GetRenderContextAL(),manager=blue.resMan;
   const al=new Tr2RenderContextALStub();context.SetRenderContextAL(al);al.CreateDevice();al.BeginScene();blue.resMan=new StubResMan();
   context.SetViewTransform(mat4.create());
@@ -34,6 +36,9 @@ function setup(t)
   const setLayout=al.SetVertexLayout.bind(al),setStream=al.SetStreamSource.bind(al);
   al.SetVertexLayout=layout=>{layoutState._vertexLayout=layout;return setLayout(layout);};
   al.SetStreamSource=(stream,buffer,offset,stride)=>{layoutState._streams[stream]={buffer,offset,stride};return setStream(stream,buffer,offset,stride);};
+  const uploads=[];
+  const create=al.CreateBuffer.bind(al);
+  al.CreateBuffer=(...args)=>{const buffer=create(...args);const update=buffer.UpdateBuffer.bind(buffer);buffer.UpdateBuffer=(...data)=>{uploads.push({buffer,args:data.map(value=>ArrayBuffer.isView(value)?value.slice():value)});return update(...data);};return buffer;};
   const draws=[],draw=al.DrawIndexedInstanced.bind(al);al.DrawIndexedInstanced=(...args)=>{
     const layouts=CjsWebgpuRenderContextAL.prototype.BuildVertexBufferLayouts.call(layoutState);
     assert.notEqual(typeof layouts,"string",layouts);
@@ -41,7 +46,7 @@ function setup(t)
   };
   const shader={GetTechniqueIndex:()=>0,GetPassCount:()=>1,GetShaderTypeMask:()=>3,ApplyAllStateForPass(){}};
   const material={GetShaderStateInterface:()=>shader,ApplyMaterialDataForPass(){}};
-  return {context,al,draws,material};
+  return {context,al,draws,material,uploads};
 }
 function geometry()
 {
@@ -179,5 +184,96 @@ test("every CPU particle declaration in the copied Crisis and VDS graphs fits it
       assert.doesNotThrow(()=>WebgpuVertexBufferLayout(data.stride,definition.items.map((item,index)=>({registerIndex:index,element:item}))),file+":"+p.name);
     }
     t.diagnostic(file+": "+systems.size+" physical particle declarations validated");
+  }
+});
+
+test("geometry instance providers preserve deferred, loaded and assigned Carbon transitions", t => {
+  setup(t);
+  const loaded=geometry(),assigned=geometry(),next=geometry();
+  blue.resMan=new StubResMan(path=>path==="res:/next.gr2"?next:loaded);
+  const mesh=new Tr2InstancedMesh();
+  mesh.instanceGeometryResource=assigned;mesh.instanceGeometryResPath="res:/loaded.gr2";
+  mesh.deferGeometryLoad=true;mesh.Initialize();
+  assert.equal(blue.resMan.requests.length,0);assert.equal(mesh.GetInstanceGeometryResource(),assigned);
+  mesh.deferGeometryLoad=false;mesh.OnModified("deferGeometryLoad");
+  assert.equal(mesh.GetInstanceGeometryResource(),loaded);
+  mesh.SetInstanceGeometryRes(assigned);
+  assert.equal(mesh.GetInstanceGeometryResource(),loaded,"same assigned pointer retains native loaded override");
+  mesh.SetInstanceMeshResPath("res:/next.gr2");assert.equal(mesh.GetInstanceGeometryResource(),next);
+  mesh.SetInstanceMeshResPath("");assert.equal(mesh.GetInstanceGeometryResource(),null);
+  mesh.instanceGeometryResPath="res:/loaded.gr2";mesh.Initialize();mesh.SetInstanceMeshResPath("");
+  assert.equal(mesh.GetInstanceGeometryResource(),loaded,"Carbon null-assigned early return preserves loaded override");
+  mesh.SetInstanceGeometryRes(assigned);assert.equal(mesh.GetInstanceGeometryResource(),assigned);
+});
+
+test("cold geometry providers bind aligned uploaded data for assigned and loaded meshes", t => {
+  const {context,draws,material,uploads}=setup(t);
+  for(const loaded of [false,true]) {
+    const provider=geometry(),mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();area.SetMaterial(material);
+    const payload=provider.GetMeshData(0);
+    payload.bounds={min:[-2,-3,-4],max:[5,6,7]};
+    assert.equal(provider.IsInstanceDataReady(),true);
+    assert.deepEqual(provider.GetInstanceData(),{buffer:null,offset:0,stride:0,count:0});
+    assert.equal(provider.GetInstanceBufferVertexDeclaration(),Tr2EffectStateManager.Unknown);
+    SharedGeometryBuffer(context).Allocate(12,3,new Uint8Array(36),context);
+    if(loaded) {
+      blue.resMan=new StubResMan(()=>provider);mesh.instanceGeometryResPath="res:/instances.gr2";mesh.Initialize();
+    } else mesh.SetInstanceGeometryRes(provider);
+    mesh.SetGeometryRes(geometry());
+    const batches=collect(mesh,[area]);assert.equal(batches.length,1);
+    const data=provider.GetInstanceData(),batch=batches[0];
+    assert.equal(data.count,4);assert.equal(data.stride,12);assert.ok(data.offset>0);
+    assert.equal(batch.vertexStreams[1],data.buffer);assert.equal(batch.startInstanceLocation,data.offset/data.stride);
+    assert.ok(uploads.some(upload=>upload.buffer===data.buffer && upload.args.some(value=>ArrayBuffer.isView(value) && value.byteLength===48 && new Float32Array(value.buffer,value.byteOffset,12)[3]===1)),"authored positions reach the AL upload");
+    const definition=Tr2EffectStateManager.getVertexDeclarationElements(mesh.GetVertexDeclaration());
+    assert.equal(definition[1].stream,1);assert.equal(definition[1].usageIndex,8);assert.equal(definition[1].instanceStepRate,1);
+    context.RenderBatches({GetBatches:()=>batches});assert.equal(draws.at(-1)[1],4);
+    const bounds=provider.GetInstanceBufferBoundingBox();assert.deepEqual(Array.from(bounds.min),[-2,-3,-4]);
+    bounds.min[0]=100;assert.equal(payload.bounds.min[0],-2,"value-returned bounds do not mutate geometry");
+    assert.deepEqual(provider.GetInstanceData(42),{buffer:null,offset:0,stride:0,count:0});
+    assert.equal(provider.GetInstanceBufferVertexDeclaration(42),Tr2EffectStateManager.Unknown);
+    const empty=provider.GetInstanceBufferBoundingBox(42);assert.ok(empty.min.every((v,i)=>v>empty.max[i]));
+  }
+});
+
+test("requested cold instance LOD draws without preparing a broken full-detail LOD", t => {
+  const {context,draws,material,uploads}=setup(t),provider=geometry(),mesh=new Tr2InstancedMesh(),area=new Tr2MeshArea();
+  area.SetMaterial(material);
+  const payload=provider.GetMeshData(0);
+  payload.lods=[{vertex:{position:[]},areas:[]},{maxScreenSize:20,vertex:{position:[8,9,10,11,12,13]},areas:[]}];
+  delete payload.vertex;delete payload.indices;delete payload.areas;
+  mesh.instanceGeometryResource=provider;mesh.SetGeometryRes(geometry());
+  const batches=[];
+  assert.equal(mesh.GetBatches({Commit(b){batches.push(b);return true;}},[area],null,10),true);
+  const data=provider.GetInstanceData(0,10);assert.equal(data.count,2);
+  assert.equal(payload.lods[0].allocationsValid,undefined,"LOD0 is not needed for an LOD1 draw");
+  context.RenderBatches({GetBatches:()=>batches});assert.equal(draws.at(-1)[1],2);
+  assert.ok(uploads.some(upload=>upload.buffer===data.buffer && upload.args.some(value=>ArrayBuffer.isView(value) && value.byteLength===24 && new Float32Array(value.buffer,value.byteOffset,6)[0]===8)));
+});
+
+const mabebuCorpus=process.env.MABEBU_CORPUS_DIR;
+test("real Mabebu traffic geometry hydrates and submits nonzero instances from warm and cold caches", {
+  skip:!mabebuCorpus&&"set MABEBU_CORPUS_DIR for copied Mabebu assets"
+}, async t => {
+  const {context,draws,material}=setup(t);
+  const bytes=await readFile(join(mabebuCorpus,"gfr1_mabebu_fx.black"));
+  assert.equal(createHash("md5").update(bytes).digest("hex"),"d408c27aac546dd9f1bb14ba9ced4b05");
+  const values=CjsBlackFormat.readPayload(bytes).object;
+  for(const warm of [false,true]) {
+    const base=new TriGeometryRes(),provider=new TriGeometryRes();
+    base.SetPayload(base.ReadGrannyFile(await readFile(join(mabebuCorpus,"unit_plane.gr2")))) ;
+    provider.SetPayload(provider.ReadGrannyFile(await readFile(join(mabebuCorpus,"gfr1_mabebu_traffic.gr2"))));
+    if(warm){base.MarkPrepared();provider.MarkPrepared();}
+    blue.resMan=new StubResMan(path=>path.endsWith("gfr1_mabebu_traffic.gr2")?provider:base);
+    const root=EveChildContainer.from(values),child=root.objects[0],mesh=child.mesh;
+    assert.equal(child.name,"traffic");assert.equal(mesh.GetInstanceGeometryResource(),provider);
+    assert.deepEqual(provider.GetMeshVertexElements(0).map(element=>element.elementCount),[4,4],"authored Position4 and TexCoord4 survive projection");
+    if(!warm){base.MarkPrepared();provider.MarkPrepared();}
+    for(const area of mesh.additiveAreas)area.SetMaterial(material);
+    const batches=collect(mesh,mesh.additiveAreas);
+    assert.ok(batches.length>0);const before=draws.length;
+    context.RenderBatches({GetBatches:()=>batches});assert.ok(draws.length>before);
+    assert.ok(draws.at(-1)[0]>0&&draws.at(-1)[1]>0);
+    t.diagnostic(JSON.stringify({warm,draw:draws.at(-1),stride:provider.GetInstanceData().stride}));
   }
 });

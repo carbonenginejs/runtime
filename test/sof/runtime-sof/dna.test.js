@@ -5240,7 +5240,7 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
   assert.equal(mesh.fields.boundsMethod, 2);
   assert.equal(mesh.fields.maxInstanceSize, 4);
   assert.equal(mesh.fields.opaqueAreas.length, 1);
-  assert.equal(mesh.fields.instanceGeometryResPath, "res:/model/antenna.gr2");
+  assert.equal(mesh.fields.instanceGeometryResPath, undefined);
   const runtimeData = referencedNode(document, mesh.fields.instanceGeometryResource);
   assert.equal(runtimeData.fields.layout.length, 7);
   assert.equal(runtimeData.fields.layout[6].type, "BYTE_4");
@@ -5277,10 +5277,13 @@ test("SOF emits and hydrates Carbon instanced attachments with public CPU instan
   assert.deepEqual(hydrated.reports, []);
   const hydratedQuality = hydrated.root.effectChildren[0].objects[0];
   const hydratedChild = hydratedQuality.objects[0];
-  assert.equal(hydratedChild.mesh.instanceGeometryResPath, "res:/model/antenna.gr2");
+  assert.equal(hydratedChild.mesh.instanceGeometryResPath, "", "CPU instance rows have no geometry-provider path");
   assert.equal(hydratedChild.mesh.geometryResPath, "res:/model/antenna.gr2");
   assert.equal(hydratedChild.mesh.opaqueAreas[0].constructor.name, "Tr2MeshArea");
   const hydratedRuntimeData = hydratedChild.mesh.instanceGeometryResource;
+  assert.equal(hydratedChild.mesh.GetInstanceGeometryResource(), hydratedRuntimeData);
+  hydratedChild.mesh.Initialize();
+  assert.equal(hydratedChild.mesh.GetInstanceGeometryResource(), hydratedRuntimeData);
   assert.equal(hydratedRuntimeData.rows.length, 2);
   assert.equal(hydratedRuntimeData.GetCount(), 2);
   assert.equal(hydratedRuntimeData.GetStride(), 100);

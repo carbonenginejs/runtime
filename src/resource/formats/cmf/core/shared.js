@@ -132,19 +132,20 @@ function buildLod(mesh, index, options)
     const
         vertex = mesh.vertex ?? {},
         position = vertex.position ?? [],
-        decl = buildDecl(vertex, options),
+        decl = buildDecl(vertex, options, mesh.vertexCount),
         stride = estimateStrideFromDecl(decl),
-        vertexCount = stride === 0 ? 0 : Math.floor(position.length / 3),
+        vertexCount = stride === 0 ? 0 : (mesh.vertexCount ?? Math.floor(position.length / 3)),
         indices = mesh.indices ?? [],
         topology = mesh.topology ?? "TriangleList",
         pointList = topology === "PointList",
         morphTargets = buildMorphTargets(mesh),
         indexStride = pointList ? 0 : bytesPerIndex(indices);
 
-    if (position.length % 3)
+    if (mesh.vertexCount === undefined && position.length % 3)
     {
         throw new Error("CMF Position channel length must be divisible by three");
     }
+    if (!Number.isInteger(vertexCount) || vertexCount < 0) throw new Error("CMF vertexCount must be a non-negative integer");
     if (topology !== "TriangleList" && !pointList)
     {
         throw new Error(`CMF shared geometry topology ${JSON.stringify(topology)} is not supported`);
@@ -350,7 +351,7 @@ function assertCompatibleLods(lods)
 
 function normalizeSharedMeshTangents(mesh)
 {
-    const vertex = normalizeSharedVertex(mesh.vertex ?? {});
+    const vertex = normalizeSharedVertex(mesh.vertex ?? {}, mesh.vertexCount);
     const morphTargets = (mesh.morphTargets ?? []).map(target => ({
         ...target,
         vertex: normalizeSharedVertexTangents(target.vertex ?? {}, morphTargetVertexCount(mesh, target))
@@ -369,9 +370,9 @@ function morphTargetVertexCount(mesh, target)
     return Math.floor((mesh.vertex?.position ?? []).length / 3);
 }
 
-function normalizeSharedVertex(vertex)
+function normalizeSharedVertex(vertex, vertexCount)
 {
-    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex));
+    return normalizeSharedVertexSkin(normalizeSharedVertexTangents(vertex, vertexCount), vertexCount);
 }
 
 function normalizeSharedVertexTangents(vertex, vertexCount)
@@ -391,10 +392,10 @@ function normalizeSharedVertexTangents(vertex, vertexCount)
     return { ...vertex, tangent: [], packedTangentLegacy: tangent.slice() };
 }
 
-function normalizeSharedVertexSkin(vertex)
+function normalizeSharedVertexSkin(vertex, vertexCount)
 {
     const
-        positionCount = (vertex.position ?? []).length / 3,
+        positionCount = vertexCount ?? (vertex.position ?? []).length / 3,
         blendIndice = vertex.blendIndice ?? [],
         blendWeight = vertex.blendWeight ?? [];
 
@@ -544,11 +545,11 @@ function buildBoneBinding(binding)
     };
 }
 
-function buildDecl(vertex, options = {})
+function buildDecl(vertex, options = {}, explicitVertexCount)
 {
     const decl = [];
     let offset = 0;
-    const vertexCount = (vertex.position ?? []).length / 3;
+    const vertexCount = explicitVertexCount ?? (vertex.position ?? []).length / 3;
     const dynamicChannels = [];
     for (const name of Object.keys(vertex))
     {
@@ -589,13 +590,24 @@ function buildDecl(vertex, options = {})
         }
 
         const direction4 = /^(?:tangent|binormal)(?:[1-9][0-9]*)?$/u.test(name);
-        const count = (direction4 || usage === "Color") &&
+        let count = (direction4 || usage === "Color") &&
             vertexCount > 0 && vertex[name].length === vertexCount * 4
             ? 4
             : usage === "Color" && vertexCount > 0 && vertex[name].length === vertexCount * 3
                 ? 3
                 : defaultCount;
 
+        // GR2 instance streams may use Position4 and TexCoord4. Carbon retains
+        // the authored ArrayWidth (Tr2VertexDefinitionUtilities.cpp:55-56);
+        // the shared reader supplies an explicit row count for such layouts.
+        if (explicitVertexCount !== undefined)
+        {
+            count = vertex[name].length / explicitVertexCount;
+            if (!Number.isInteger(count) || count < 1 || count > 4)
+            {
+                throw new Error(`CMF channel ${name} does not match vertexCount`);
+            }
+        }
         decl.push({ usage, usageIndex, type, elementCount: count, offset });
         offset += count * elementTypeSize(type);
     }

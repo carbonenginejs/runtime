@@ -116,6 +116,7 @@ import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
+import { hydrateDemoShip, retireDemoShips, replaceDemoShip } from "./demoShipLifetime.js";
 import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
 import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
@@ -1792,9 +1793,7 @@ async function BuildSofShip(dna)
   // The client starts a loaded ship's controllers (EveSpaceObject2::
   // StartControllers, cpp:4318, reaching every effect child); unstarted, no
   // state machine runs, so speed readouts, heat and state effects never show.
-  const ship = EveShip2.from(values);
-  ship.StartControllers();
-  return ship;
+  return hydrateDemoShip(values);
 }
 
 
@@ -3170,6 +3169,8 @@ export async function RunDemo(canvas)
   let bounds = null;
   let geometry = null;
   let ship = null;
+  let disposed = false;
+  const pendingShips = new Set();
   const textures = { loaded: 0, failed: [] };
 
   // EACH AREA GETS ITS OWN SHADER. The report and the console read areas as
@@ -3455,7 +3456,7 @@ export async function RunDemo(canvas)
     // demo.cloak(false) removes it and restores the ship.
     cloak: async (on = true, name = null) =>
     {
-      if (!realScene) return null;
+      if (!realScene || disposed) return null;
       const owner = ship;
       for (const overlay of owner.overlayEffects.filter(overlay => overlay.name?.startsWith("fisfx_cloaking_")))
       {
@@ -3467,8 +3468,9 @@ export async function RunDemo(canvas)
       if (!on) return null;
       const skinned = (owner.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
       const file = name ?? (skinned ? "cloaking_skinned" : "cloaking");
-      const overlay = CjsBlackFormat.read(await ResourceBytes(`fisfx/cloaking/${file}.black`), { emit: "runtime" }).root;
-      if (owner !== ship) return null;
+      const bytes = await ResourceBytes(`fisfx/cloaking/${file}.black`);
+      if (disposed || owner !== ship) return null;
+      const overlay = CjsBlackFormat.read(bytes, { emit: "runtime" }).root;
       for (const binding of overlay.curveSet?.bindings ?? [])
       {
         if (!binding.name.startsWith("self_")) continue;
@@ -3491,57 +3493,12 @@ export async function RunDemo(canvas)
       initialDna: DNA,
       serialize: SerializeSkinChange,
       resolveDefault: ResolveDefaultSkinDna,
-      replace: async nextDna =>
-      {
-        const old = ship;
-        const next = await BuildSofShip(nextDna);
-        next.displayKillCounterValue = old.displayKillCounterValue;
-        ApplyDemoBanners(next);
-        next.speed = old.speed;
-        next.translationCurve = old.translationCurve;
-        next.maxSpeed = old.maxSpeed;
-        mat4.copy(next.worldTransform, old.worldTransform);
-
-        // Wait for the new hull's geometry, so the swap does not start on an
-        // invisible ship.
-        for (let wait = 0; wait < 100 && !next.mesh?.GetGeometryResource()?.IsGood(); wait++)
-        {
-          await new Promise(resolve => setTimeout(resolve, 100));
-        }
-
-        const skinned = (old.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
-        const bytes = await ResourceBytes(`fisfx/skinchange/${skinned ? "skin_change_skinned" : "skin_change"}.black`);
-        const overlays = [ old, next ].map(owner =>
-        {
-          const overlay = CjsBlackFormat.read(bytes, { emit: "runtime" }).root;
-          for (const binding of overlay.curveSet?.bindings ?? [])
-          {
-            binding.destinationObject = binding.name.startsWith("old_") ? old : next;
-            binding.Initialize();
-          }
-          owner.overlayEffects.push(overlay);
-          overlay.curveSet.ApplyTime(0);
-          overlay.PlayCurveSet(overlay.curveSet.name);
-          return overlay;
-        });
-
-        // The notified list: adding raises EveSpaceScene.OnListModified, which
-        // registers the new ship as Carbon's BlueList insert does (cpp:3414-3491).
-        CjsModel.addChild(realScene, "objects", next);
-        const duration = overlays[0].curveSet.GetMaxCurveDuration();
-        await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
-
-        // Removing through the notified list unregisters the replaced ship.
-        if (!CjsModel.removeChild(realScene, "objects", old)) throw new Error("skin change: the old ship is no longer in the scene");
-        next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
-        next.clipSphereFactor = 0;
-        next.clipSphereFactor2 = 0;
-        next.activationStrength = 1;
-        // Direct writes skip the notify, which switches SPACE_OBJECT_CLIPPING off.
-        next.OnModified("clipSphereFactor2");
-        ship = next;
-        globalThis.demo.ship = next;
-      }
+      replace: nextDna => replaceDemoShip({
+        old: ship, nextDna, scene: realScene, pending: pendingShips,
+        isDisposed: () => disposed, buildShip: BuildSofShip,
+        applyBanners: ApplyDemoBanners, resourceBytes: ResourceBytes,
+        commit: next => { ship = next; globalThis.demo.ship = next; }
+      })
     }) : async () => null,
     ship,
     scene: realScene
@@ -4434,10 +4391,15 @@ export async function RunDemo(canvas)
   });
   if (liveInput) input.enableCapture();
   globalThis.demo.input = input;
-  let disposed = false;
   const dispose = () => {
     if (disposed) return;
     disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); postPanel.dispose(); input.dispose(); controls.dispose(); actions.dispose();
+    if (realScene)
+    {
+      const retired = new Set([ship, ...pendingShips]);
+      for (const root of retired) CjsModel.removeChild(realScene, "objects", root);
+      retireDemoShips(retired, []);
+    }
     // This demo loaded its own system.black instance. Rendering has stopped;
     // the scene/update context is its final owner. Ordinary hull swaps keep it.
     const particles = realScene?.GetGpuParticleSystem();

@@ -8,6 +8,8 @@ import { Tr2RenderContext_GetMainThreadRenderContext } from "../core/context/Tr2
 import { Tr2EffectStateManager } from "../shader/Tr2EffectStateManager.js";
 import { Tr2VertexDefinition } from "../core/vertex/Tr2VertexDefinition/Tr2VertexDefinition.js";
 import { Tr2ParticleElementDeclarationName } from "./element/Tr2ParticleElementDeclarationName.js";
+import { TriDevice } from "../core/device/TriDevice.js";
+import { Tr2Renderer } from "../core/Tr2Renderer.js";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
 import { vec3 } from "#math/vec3";
@@ -21,6 +23,45 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 @carbon.inherit(ITr2InstanceData)
 export class Tr2ParticleSystem extends CjsModel
 {
+
+  /** Registers the inherited device-resource lifetime (Tr2DeviceResource.cpp:8-12). */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
+
+  /**
+   * Ends the final owner's CPU-particle lifetime (Tr2ParticleSystem.cpp:89-101,
+   * 350-378). Adapted: explicit JS teardown replaces native destructors and
+   * clears views of the owned CPU buffers; device reset retains that data.
+   */
+  @impl.custom
+  Destroy()
+  {
+    this.ReleaseResources();
+    for (const element of this._runtimeElements) element.buffer = null;
+    this._buffers.fill(null);
+    this._indexes.length = 0;
+    this._elementMap.clear();
+    this._runtimeElements.length = 0;
+    this._semanticElements.fill(null);
+    this._strides.fill(0);
+    this.aliveCount = 0;
+    this.isValid = false;
+    this._instanceData.buffer = null;
+    this._instanceData.count = 0;
+    TriDevice.UnregisterResource(this);
+  }
+
+  /** Carbon Tr2DeviceResource::PrepareResources (Tr2DeviceResource.cpp:21-32). */
+  @carbon.method
+  @impl.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed() && !this.OnPrepareResources()) return false;
+    return true;
+  }
 
   _buffers = [null, null];
 

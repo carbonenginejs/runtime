@@ -2400,7 +2400,7 @@ export class EveSOF extends CjsModel
       geometryResPath: String(resourcePath ?? ""),
       opaqueAreas,
       boundsMethod: 2,
-      instanceGeometryResPath: String(resourcePath ?? ""),
+      // Carbon binds CPU rows and sets only the base mesh path (EveSOF.cpp:2347-2348).
       instanceGeometryResource: instanceData,
       instanceMeshIndex: 0,
       minBounds: [0, 0, 0],
@@ -2734,7 +2734,6 @@ export class EveSOF extends CjsModel
     node.kind = "Tr2InstancedMesh";
     Object.assign(node.fields, {
       boundsMethod: 2,
-      instanceGeometryResPath: String(node.fields.geometryResPath ?? ""),
       instanceGeometryResource: instanceData,
       instanceMeshIndex: 0,
       minBounds: [0, 0, 0],

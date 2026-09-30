@@ -115,3 +115,29 @@ builders, schemas, catalogs, caches, and Node.js/native dependencies.
 Browser-safe deterministic value builders may stay with their runtime format
 or domain, as audio's optional library builder does. Reviewed runtime-generated
 source lives under its owning `src/**/generated`; build inputs are not runtime dependencies.
+
+## Instanced geometry and final ownership
+
+`Tr2InstancedMesh` accepts particle, runtime-row and `TriGeometryRes` instance
+providers. An authored instance resource path takes precedence over the assigned
+provider. SOF CPU attachments set only the base geometry path and bind their
+`Tr2RuntimeInstanceData` directly.
+
+Carbon prepares geometry at resource load; the resource layer here cannot import
+Trinity, so the instanced mesh prepares loaded and assigned geometry providers
+through the existing LOD allocation helper at first use. The selected instance
+LOD supplies its buffer, byte offset, aligned stride and vertex count. An already
+prepared declaration does not require allocating an unrelated full-detail LOD.
+
+`Tr2ParticleSystem` and `Tr2InstancedMesh` register with `TriDevice`. Device
+`ReleaseResources` retains their owned lifetime; the final owner explicitly calls
+`Destroy` to release CPU storage or mesh subscriptions and unregister. Mesh
+destruction detaches its provider without destroying that shared object.
+
+The WebGPU demo snapshots device identities only around synchronous ship
+hydration. A failed hydration destroys newly registered CPU particle systems and
+instanced meshes. Successful replacement, cancellation and disposal retire those
+same named resources through model traversal, preserving objects reachable from
+other live or pending ships. Transition overlays are detached before this walk
+because their bindings reference both ships. This policy belongs to the demo;
+the runtime provides no generic graph-destruction policy.
