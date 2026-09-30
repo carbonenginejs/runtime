@@ -11,23 +11,21 @@
 // because there was no pool to hand them. So an interface was invented per
 // subsystem rather than porting the one class they all needed.
 //
-// TWO LIFETIMES, and the distinction is the whole design. A TEMP resource is
-// recycled as soon as nothing holds it and it has not been touched for a few
-// frames; a PERSISTENT one is initialized once and kept. Asking for a temp
-// texture with the same shape twice in a frame therefore gets the same texture
-// only if the first handle has been released - which is what makes a pass able
-// to say "give me a working surface" without owning one.
-//
-// THE HANDLE IS THE LIFETIME. Carbon's `GpuResourceHandle` counts locks on copy
-// and release, and a record with a live lock is never recycled. JavaScript has
-// no destructor, so `Release()` is explicit here - see the note on the class.
+// Temporary entries can be reused once unlocked; persistent entries share by
+// name and description. All entries age out of pool membership independently
+// of retained handles. Explicit AL values keep their backend alive until the
+// final owner releases it. The context recording clock supplies frame age.
 //
 // NESTING IS CARBON'S: a pool may have an OUTER pool, and a lookup that misses
 // walks outward. That is how a scene-local pool shares the global one's
 // resources without owning them.
 
 import { Tr2BitmapDimensions } from "../../../trinityal/index.js";
+import { TriDevice } from "../device/TriDevice.js";
+import { TriStorageFlags } from "#consts/graphics";
 import { GpuResourceHandle } from "./GpuResourceHandle.js";
+
+const allPools = new Set();
 
 /** Throws a resource-pool error with the supplied diagnostic. */
 export function fail(message)
@@ -56,9 +54,6 @@ export class Tr2GpuResourcePool
   /** m_debugMode */
   #debugMode = false;
 
-  /** The frame a lookup counts as "now". */
-  #frame = 0;
-
   /**
    * The backend resources are created against.
    *
@@ -74,6 +69,8 @@ export class Tr2GpuResourcePool
   constructor(outer = null)
   {
     this.#outer = outer;
+    allPools.add(this);
+    TriDevice.RegisterResource(this);
   }
 
   /**
@@ -87,16 +84,6 @@ export class Tr2GpuResourcePool
     this.#renderContext = renderContext;
 
     return this;
-  }
-
-  /**
-   * Advances the pool's idea of the current frame.
-   *
-   * @param {number} frame The frame number.
-   */
-  SetFrame(frame)
-  {
-    this.#frame = frame;
   }
 
   /**
@@ -194,7 +181,7 @@ export class Tr2GpuResourcePool
   }
 
   /**
-   * Drops temp resources nobody holds and nobody has touched recently.
+   * Retires aged membership from all four lists; outstanding handles keep their shares.
    *
    * @param {number} [frameThreshold] How many frames of disuse to allow.
    * @returns {number} How many resources were dropped.
@@ -202,18 +189,18 @@ export class Tr2GpuResourcePool
   ClearUnusedResources(frameThreshold = 3)
   {
     let dropped = 0;
+    const currentFrame = this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0;
 
-    for (const list of [ this.#tempTextures, this.#tempBuffers ])
+    for (const list of [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ])
     {
       for (let index = list.length - 1; index >= 0; index -= 1)
       {
         const record = list[index];
 
-        if (record.lockCount > 0) continue;
-        if (this.#frame - record.lastAccessFrame < frameThreshold) continue;
+        if (currentFrame < frameThreshold + record.lastAccessFrame) continue;
 
         record.poolOwned = false;
-        record.resource.Destroy();
+        if (record.lockCount === 0) record.resource.Destroy();
         list.splice(index, 1);
         dropped += 1;
       }
@@ -225,10 +212,39 @@ export class Tr2GpuResourcePool
   /**
    * Explicit final-owner teardown replaces the native pool destructor.
    * Outstanding handles retain their record and their own resource value;
-   * this drops only the pool's membership, without enabling frame retirement.
+   * this drops the pool's membership and unregisters it from device sweeps.
    */
   Destroy()
   {
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
+    allPools.delete(this);
+    TriDevice.UnregisterResource(this);
+    this.#renderContext = null;
+    this.#outer = null;
+  }
+
+  /** Clears every pool once per device tick using each bound context clock. */
+  static ClearAllUnusedResources(frameThreshold = 3)
+  {
+    for (const pool of allPools) pool.ClearUnusedResources(frameThreshold);
+  }
+
+  /** The native pool has no resources to prepare eagerly. */
+  PrepareResources()
+  {
+    return this.OnPrepareResources();
+  }
+
+  /** Native preparation succeeds without allocating pooled resources. */
+  OnPrepareResources()
+  {
+    return true;
+  }
+
+  /** Only the exact all-storage request drops native pool membership. */
+  ReleaseResources(storage)
+  {
+    if (storage !== TriStorageFlags.TRISTORAGE_ALL) return;
     for (const list of [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ])
     {
       for (const record of list)
@@ -238,14 +254,13 @@ export class Tr2GpuResourcePool
       }
       list.length = 0;
     }
-    this.#renderContext = null;
-    this.#outer = null;
   }
 
   /** @param {boolean} enable Whether to keep debug detail. */
   SetDebugMode(enable)
   {
     this.#debugMode = !!enable;
+    this.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
   }
 
   /** @returns {boolean} Whether debug mode is on. */
@@ -340,7 +355,7 @@ export class Tr2GpuResourcePool
       && SameDescription(record.description, description)
       && (!freeOnly || record.lockCount === 0));
 
-    if (match) match.lastAccessFrame = this.#frame;
+    if (match) match.lastAccessFrame = (this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0);
 
     return match ?? null;
   }
@@ -349,7 +364,7 @@ export class Tr2GpuResourcePool
   #Add(list, name, description, resource)
   {
     if (!resource) return null;
-    const record = { resource, name, description, lockCount: 0, lastAccessFrame: this.#frame, poolOwned: true };
+    const record = { resource, name, description, lockCount: 0, lastAccessFrame: (this.#renderContext ? this.#renderContext.GetRecordingFrameNumber() : 0), poolOwned: true };
 
     list.push(record);
 

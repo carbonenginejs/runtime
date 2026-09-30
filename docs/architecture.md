@@ -194,5 +194,8 @@ or until it has been abandoned during final teardown.
 Tr2RenderTarget.Destroy and Detach retain their native operational semantics,
 including the attached texture value. Its final owner calls Dispose to release
 both owned and attached values. GPU buffer owners and effects expose explicit
-Destroy methods for final release. Automatic pool retirement remains separate
-from these value and owner lifetimes.
+Destroy methods for final release. Every device tick retires pool membership
+aged three recording frames across temporary and persistent textures and buffers.
+Outstanding handles and explicit value copies survive retirement. Every debug-mode
+setter call clears membership, and device release clears it only for the exact
+all-storage flag. Pool destruction unregisters its device and sweep membership.

@@ -1,5 +1,5 @@
 import { Tr2OcclusionBuffer } from "../../eve/effect/lensflare/Tr2OcclusionBuffer.js";
-import { DestroyGlobalGpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
+import { DestroyGlobalGpuResourcePool, Tr2GpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
 import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // Source: trinity/trinity/TriDevice.h
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
@@ -363,7 +363,7 @@ export class TriDevice extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  @impl.reason("Carbon's OnTick also sets a crash key, schedules the next event, and runs the resource-pool sweep; none of those are ported. The clock, Update, HandleRenderTick and the main-thread action drain are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
+  @impl.reason("Carbon's OnTick also sets a crash key and schedules the next event; those two operations are not ported. The clock, Update, HandleRenderTick, main-thread action drain and resource-pool sweep are. The cookie is accepted so the signature matches IBlueEvents, and ignored because Carbon's body ignores it too - it exists for registrants that register more than once.")
   OnTick(realTime = 0, simTime = 0, _cookie = null)
   {
     this.frameCounter++;
@@ -392,12 +392,12 @@ export class TriDevice extends CjsModel
     this.realTime = Number(realTime) || 0;
 
     // cpp:840-845. ExecuteMainThreadActions closes Carbon's tick after the
-    // render tick. Tr2GpuResourcePool::ClearAllUnusedResources follows it there
-    // and is not ported; it is named here rather than silently absent.
+    // render tick, followed by the pool sweep against the recording-frame clock.
     this.Update(this.realTime, this.simTime);
     this.HandleRenderTick(this.realTime, this.simTime);
 
     ExecuteMainThreadActions();
+    Tr2GpuResourcePool.ClearAllUnusedResources();
 
     return this;
   }

@@ -6,13 +6,16 @@ import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { Tr2BufferDescriptionAL } from "../../npm/dist/trinityal/index.js";
 
+const clocks = new WeakMap();
 const pooled = () =>
 {
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
 
-  return new Tr2GpuResourcePool().SetRenderContext(al);
+  const pool = new Tr2GpuResourcePool().SetRenderContext(al);
+  clocks.set(pool, al);
+  return pool;
 };
 
 test("the core entry point retains the shared global pool accessor", () =>
@@ -94,18 +97,20 @@ test("a handle released twice is a caller error", () =>
   assert.throws(() => pool.Free(handle), /freed twice/);
 });
 
-test("only unheld, untouched temp resources are cleared", () =>
+test("aged membership retires even while a handle retains the resource", () =>
 {
   const pool = pooled();
   const held = pool.GetTempTexture("held", square());
   const freed = pool.GetTempTexture("freed", square(128));
 
   pool.Free(freed);
-  pool.SetFrame(10);
+  clocks.get(pool).GetRecordingFrameNumber = () => 10;
 
-  assert.equal(pool.ClearUnusedResources(3), 1, "the freed one goes");
-  assert.equal(pool.DebugGetAllTempTextures().length, 1);
-  assert.equal(held.IsValid(), true, "the held one is untouched");
+  assert.equal(pool.ClearUnusedResources(3), 2, "both memberships retire");
+  assert.equal(pool.DebugGetAllTempTextures().length, 0);
+  assert.equal(held.Get().IsValid(), true, "the held value survives retirement");
+  pool.Free(held);
+  pool.Destroy();
 });
 
 test("a recently used resource survives a clear", () =>
@@ -114,7 +119,7 @@ test("a recently used resource survives a clear", () =>
   const handle = pool.GetTempTexture("recent", square());
 
   pool.Free(handle);
-  pool.SetFrame(1);
+  clocks.get(pool).GetRecordingFrameNumber = () => 1;
 
   assert.equal(pool.ClearUnusedResources(3), 0, "one frame is not three");
 });
@@ -224,4 +229,62 @@ test("a description can ask for an array, not just a flat 2D surface", () =>
   assert.equal(texture.IsValid(), true);
   assert.equal(texture.GetDepth(), 4);
   assert.equal(texture.GetType(), TextureType.TEX_TYPE_2D);
+});
+
+
+test("all four aged lists retire at the threshold while explicit copies survive", () =>
+{
+  const pool = pooled();
+  const al = clocks.get(pool);
+  let frame = 20;
+  al.GetRecordingFrameNumber = () => frame;
+  const desc = Tr2BufferDescriptionAL.FromStride(16, 2, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN);
+  const handles = [pool.GetTempTexture("t", square()), pool.GetPersistentTexture("p", square()),
+    pool.GetTempBuffer("b", desc), pool.GetPersistentBuffer("q", desc)];
+  const copies = handles.map(h => { const Value = h.Get().constructor; return new Value({ copy: h.Get() }); });
+  frame = 22;
+  assert.equal(pool.ClearUnusedResources(), 0);
+  frame = 23;
+  assert.equal(pool.ClearUnusedResources(), 4);
+  assert.equal(pool.ClearUnusedResources(), 0);
+  for (const handle of handles) pool.Free(handle);
+  for (const copy of copies) { assert.equal(copy.IsValid(), true); copy.Destroy(); }
+  pool.Destroy();
+});
+
+test("repeated debug setters clear membership and exact all-storage release is required", async () =>
+{
+  const { TriStorageFlags } = await import("../../npm/dist/global/consts/graphics/index.js");
+  const pool = pooled();
+  const first = pool.GetPersistentTexture("p", square());
+  pool.SetDebugMode(false);
+  const second = pool.GetPersistentTexture("p", square());
+  assert.equal(first.Get().Equals(second.Get()), false);
+  pool.SetDebugMode(false);
+  const third = pool.GetPersistentTexture("p", square());
+  assert.equal(second.Get().Equals(third.Get()), false);
+  pool.ReleaseResources(0);
+  const fourth = pool.GetPersistentTexture("p", square());
+  assert.equal(third.Get().Equals(fourth.Get()), true);
+  pool.ReleaseResources(TriStorageFlags.TRISTORAGE_ALL);
+  const fifth = pool.GetPersistentTexture("p", square());
+  assert.equal(fourth.Get().Equals(fifth.Get()), false);
+  for (const h of [first, second, third, fourth, fifth]) { assert.equal(h.Get().IsValid(), true); pool.Free(h); }
+  pool.Destroy();
+});
+
+test("device tick sweeps a registered pool once and destruction unregisters it", async () =>
+{
+  const { TriDevice } = await import("../../npm/dist/trinity/core/index.js");
+  const pool = pooled();
+  const device = new TriDevice();
+  let sweeps = 0;
+  pool.ClearUnusedResources = () => { sweeps++; };
+  device.Update = () => {};
+  device.HandleRenderTick = () => {};
+  device.OnTick(0, 0);
+  assert.equal(sweeps, 1);
+  pool.Destroy();
+  device.OnTick(0, 0);
+  assert.equal(sweeps, 1);
 });
