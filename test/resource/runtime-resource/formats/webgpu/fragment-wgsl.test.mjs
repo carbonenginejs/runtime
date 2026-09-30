@@ -2817,3 +2817,66 @@ test("a sampler authored with border addressing samples through the modes buffer
   assert.match(code, /vec4<f32>\(1\.0, 1\.0, 1\.0, 1\.0\)/u, "the authored border colour, baked");
   assert.equal(code.match(/cjsAddressBorder2\(textureSample/gu).length, 2, "both samples");
 });
+
+// The API contracts are independent of either shader emitter:
+// D3D11.3 section 15.2 position and WGSL position-builtin-value.
+// https://microsoft.github.io/DirectX-Specs/d3d/archive/D3D11_3_FunctionalSpec.htm
+// https://www.w3.org/TR/WGSL/#position-builtin-value
+function positionFragmentFixture(sourceOptions = { swizzle: "xyzw" }, semantic = "SV_Position")
+{
+    const decoded = inputlessFragmentFixture();
+    decoded.signatures.input = [ signature(semantic, 0, 15) ];
+    decoded.instructions.find((entry) => entry.opcodeName === "mov").operands[1] =
+        register("input", 0, sourceOptions);
+    return decoded;
+}
+
+test("fragment position W converts after interpolation while XYZ and ordinary varying W stay unchanged", () =>
+{
+    const shader = CjsWebgpuFormat.buildWgsl(positionFragmentFixture());
+    assert.match(shader.code, /vec4<f32>\(input\.position\.x, input\.position\.y, input\.position\.z, \(1\.0 \/ input\.position\.w\)\)/u);
+    const varying = CjsWebgpuFormat.buildWgsl(positionFragmentFixture({ swizzle: "xyzw" }, "TEXCOORD"));
+    assert.match(varying.code, /vec4<f32>\(input\.input0\.x, input\.input0\.y, input\.input0\.z, input\.input0\.w\)/u);
+    assert.doesNotMatch(varying.code, /1\.0 \/ input/u);
+
+    // Pin the emitted arithmetic before evaluating the independent API values.
+    // WGSL supplies q; D3D supplies its reciprocal, including nonconstant W.
+    const reciprocal = shader.code.match(/\((1\.0) \/ input\.position\.w\)/u);
+    assert.ok(reciprocal);
+    const numerator = Number(reciprocal[1]);
+    for (const [clipW, expectedFade] of [[10, 0.1], [100, 1], [1000, 1]])
+    {
+        const q = 1 / clipW;
+        const translatedW = numerator / q;
+        assert.equal(translatedW, clipW);
+        assert.equal(Math.min(1, Math.max(0, translatedW / 100)), expectedFade);
+    }
+    const q = 0.2 / 10 + 0.3 / 100 + 0.5 / 1000;
+    assert.ok(Math.abs(numerator / q - 42.5531914893617) < 1e-12);
+    assert.notEqual(numerator / q, 0.2 * 10 + 0.3 * 100 + 0.5 * 1000,
+        "D3D requires reciprocal after interpolation, not interpolated clip W");
+});
+
+test("fragment position W conversion follows source swizzles and precedes modifiers", () =>
+{
+    const swizzled = CjsWebgpuFormat.buildWgsl(positionFragmentFixture({ swizzle: "wzyx" }));
+    assert.match(swizzled.code, /vec4<f32>\(\(1\.0 \/ input\.position\.w\), input\.position\.z, input\.position\.y, input\.position\.x\)/u);
+    for (const modifierName of ["neg", "abs", "absneg"])
+    {
+        const shader = CjsWebgpuFormat.buildWgsl(positionFragmentFixture({ selected: "w", modifierName }));
+        assert.equal((shader.code.match(/1\.0 \/ input\.position\.w/gu) || []).length, 4);
+        if (modifierName === "neg") assert.match(shader.code, /vec4<f32>\(-\(\(1\.0 \/ input\.position\.w\)\)/u);
+        else assert.match(shader.code, /abs\(\(1\.0 \/ input\.position\.w\)\)/u);
+    }
+});
+
+test("fragment position W is reciprocated as float before integer bit reinterpretation", () =>
+{
+    const decoded = positionFragmentFixture();
+    decoded.instructions.splice(2, 1,
+        instruction(5, "iadd", [register("temp", 0, { mask: "x" }), register("input", 0, { selected: "w" }), immediate([0])]),
+        instruction(8, "itof", [register("output", 0, { mask: "xyzw" }), register("temp", 0, { selected: "x" })]));
+    const shader = CjsWebgpuFormat.buildWgsl(decoded);
+    assert.match(shader.code, /bitcast<i32>\(bitcast<u32>\(\(1\.0 \/ input\.position\.w\)\)\)/u);
+    assert.doesNotMatch(shader.code, /1\.0 \/ bitcast/u);
+});

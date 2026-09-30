@@ -307,7 +307,18 @@ function valueReference(program, ref, inputs)
         const field = inputs.find((entry) => entry.registerIndex === registerIndex);
         if (!field) throw new Error(`WGSL fragment has no live input field for ${value.register}`);
         const packed = packedComponent(field.components.join(""), ref.component);
-        const code = field.components.length === 1 ? `input.${field.name}` : `input.${field.name}.${packed}`;
+        let code = field.components.length === 1 ? `input.${field.name}` : `input.${field.name}.${packed}`;
+        if (field.attribute.kind === "builtin" && field.attribute.name === "position" && ref.component === "w")
+        {
+            // D3D11.3 section 16.3: pixel SV_Position.w is 1 / interpolated(1 / clipW).
+            // WGSL position builtin: fragment w is interpolated(1 / clipW).
+            // WebGL emits the same unguarded reciprocal in
+            // webgl/core/glsl/DxbcGlslEmitter.js::_declarePixelInput; neither
+            // backend adds an epsilon or a special case for zero W.
+            // Convert after rasterization and before any integer reinterpretation;
+            // operand swizzles/modifiers then consume the D3D component value.
+            code = `(1.0 / ${code})`;
+        }
         const target = value.componentTypes?.[ref.component];
         if (field.scalarType === "bool")
         {
