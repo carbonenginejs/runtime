@@ -15,9 +15,9 @@ import { Tr2SerializedMorphAnimation } from "./Tr2SerializedMorphAnimation.js";
 @type.define({ className: "Tr2Mesh", family: "trinityCore" })
 export class Tr2Mesh extends Tr2MeshBase
 {
-  #bakedMorphTargets = [];
+  _bakedMorphTargets = [];
 
-  #morphAnimations = new Map();
+  _morphAnimations = new Map();
 
   @edit.notify
   @edit.readwrite
@@ -94,7 +94,7 @@ export class Tr2Mesh extends Tr2MeshBase
     let lowRes = null;
     if (!blue.paths.FileExistsLocally(this.geometryResPath))
     {
-      const lowResPath = Tr2Mesh.#lowDetailPath(this.geometryResPath);
+      const lowResPath = Tr2Mesh._lowDetailPath(this.geometryResPath);
       if (lowResPath && blue.paths.FileExistsLocally(lowResPath)) lowRes = request(lowResPath);
     }
 
@@ -103,7 +103,7 @@ export class Tr2Mesh extends Tr2MeshBase
   }
 
   /** Carbon cpp:115-118: the sibling path, inserting _lowdetail before the extension. */
-  static #lowDetailPath(path)
+  static _lowDetailPath(path)
   {
     const dot = String(path).lastIndexOf(".");
     if (dot === -1) return null;
@@ -165,7 +165,7 @@ export class Tr2Mesh extends Tr2MeshBase
 
     if (previous && typeof previous.OffEvent === "function")
     {
-      previous.OffEvent("completed", this.#geometryCompleted, this);
+      previous.OffEvent("completed", this._geometryCompleted, this);
     }
 
     this.geometry = next;
@@ -174,12 +174,12 @@ export class Tr2Mesh extends Tr2MeshBase
 
 
     if (!next) return;
-    if (typeof next.OnCompleted === "function") next.OnCompleted(this.#geometryCompleted, this);
+    if (typeof next.OnCompleted === "function") next.OnCompleted(this._geometryCompleted, this);
     else this.RebuildCachedData(next);
   }
 
   /** Bound to this mesh so the resource can be unsubscribed by identity. */
-  #geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometry);
+  _geometryCompleted = (_event, resource) => this.RebuildCachedData(resource ?? this.geometry);
 
   /**
    * Carbon RebuildCachedData (cpp:185-196): the notify target's rebuild half -
@@ -218,12 +218,12 @@ export class Tr2Mesh extends Tr2MeshBase
 
     if (previous && typeof previous.OffEvent === "function")
     {
-      previous.OffEvent("completed", this.#geometryCompleted, this);
+      previous.OffEvent("completed", this._geometryCompleted, this);
     }
 
     this.lowResGeometry = next;
     if (!next) return;
-    if (typeof next.OnCompleted === "function") next.OnCompleted(this.#geometryCompleted, this);
+    if (typeof next.OnCompleted === "function") next.OnCompleted(this._geometryCompleted, this);
     else this.RebuildCachedData(next);
   }
 
@@ -281,8 +281,8 @@ export class Tr2Mesh extends Tr2MeshBase
   {
     if (!this.GetGeometryResource())
     {
-      this.#morphAnimations.clear();
-      this.#bakedMorphTargets = [];
+      this._morphAnimations.clear();
+      this._bakedMorphTargets = [];
       return 0;
     }
 
@@ -312,12 +312,12 @@ export class Tr2Mesh extends Tr2MeshBase
       });
     }
 
-    const previousBaked = new Map([ ...this.#morphAnimations ]
-      .map(([ name, value ]) => [ name, this.#bakedMorphTargets[value.index] ?? false ]));
+    const previousBaked = new Map([ ...this._morphAnimations ]
+      .map(([ name, value ]) => [ name, this._bakedMorphTargets[value.index] ?? false ]));
     const resourceBaked = GetMorphLod(this.GetGeometryResource(), this.meshIndex)?.isBakedMorphTarget;
 
-    this.#morphAnimations.clear();
-    this.#bakedMorphTargets = names.map((name, index) => Array.isArray(resourceBaked)
+    this._morphAnimations.clear();
+    this._bakedMorphTargets = names.map((name, index) => Array.isArray(resourceBaked)
       ? !!resourceBaked[index]
       : previousBaked.get(name) ?? false);
 
@@ -330,7 +330,7 @@ export class Tr2Mesh extends Tr2MeshBase
         throw new TypeError(`Tr2Mesh morph target "${name}" weight must be finite`);
       }
 
-      this.#morphAnimations.set(name, { index, weight });
+      this._morphAnimations.set(name, { index, weight });
     });
 
     return names.length;
@@ -368,8 +368,8 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.implemented
   IsBakedMorph(index)
   {
-    return Number.isInteger(index) && index >= 0 && index < this.#bakedMorphTargets.length
-      ? this.#bakedMorphTargets[index]
+    return Number.isInteger(index) && index >= 0 && index < this._bakedMorphTargets.length
+      ? this._bakedMorphTargets[index]
       : false;
   }
 
@@ -380,7 +380,7 @@ export class Tr2Mesh extends Tr2MeshBase
   {
     const key = String(name ?? "");
     const weight = Number(value);
-    const animation = this.#morphAnimations.get(key);
+    const animation = this._morphAnimations.get(key);
 
     if (!Number.isFinite(weight))
     {
@@ -402,7 +402,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.implemented
   GetMorphTargetWeight(name)
   {
-    return this.#morphAnimations.get(String(name ?? ""))?.weight ?? 0;
+    return this._morphAnimations.get(String(name ?? ""))?.weight ?? 0;
   }
 
   /** Sets the baked flag for one exact named morph target. */
@@ -410,7 +410,7 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.adapted
   SetBakedMorphTarget(name, value)
   {
-    const animation = this.#morphAnimations.get(String(name ?? ""));
+    const animation = this._morphAnimations.get(String(name ?? ""));
 
     if (!animation)
     {
@@ -418,7 +418,7 @@ export class Tr2Mesh extends Tr2MeshBase
     }
 
     const baked = !!value;
-    this.#bakedMorphTargets[animation.index] = baked;
+    this._bakedMorphTargets[animation.index] = baked;
 
     const states = GetMorphLod(this.GetGeometryResource(), this.meshIndex)?.isBakedMorphTarget;
     if (Array.isArray(states) && animation.index < states.length)
@@ -434,22 +434,22 @@ export class Tr2Mesh extends Tr2MeshBase
   @impl.implemented
   GetBakedMorphTarget(name)
   {
-    const animation = this.#morphAnimations.get(String(name ?? ""));
-    return animation ? this.#bakedMorphTargets[animation.index] : false;
+    const animation = this._morphAnimations.get(String(name ?? ""));
+    return animation ? this._bakedMorphTargets[animation.index] : false;
   }
 
   /** Returns detached baked flags in morph-target index order. */
   @impl.adapted
   GetAllBakedMorphTargetStates()
   {
-    return this.#bakedMorphTargets.slice();
+    return this._bakedMorphTargets.slice();
   }
 
   /** Returns detached indexed morph state in exact target-name order. */
   @impl.adapted
   GetMorphAnimations()
   {
-    return new Map([ ...this.#morphAnimations ].map(([ name, value ]) => [ name, { ...value } ]));
+    return new Map([ ...this._morphAnimations ].map(([ name, value ]) => [ name, { ...value } ]));
   }
 }
 

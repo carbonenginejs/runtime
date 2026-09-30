@@ -1280,7 +1280,7 @@ export class EveSpaceObject2 extends EveEntity
       params.boneCount = boneCount;
       for (const child of this.effectChildren)
       {
-        params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
+        params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn());
         child?.UpdateSyncronous(updateContext, params);
       }
     }
@@ -1359,7 +1359,7 @@ export class EveSpaceObject2 extends EveEntity
     {
       if (this.customMasks.length > slot)
       {
-        this.customMasks[slot]?.FillPerObjectData?.(slot, this._vsData, this._psData);
+        this.customMasks[slot]?.FillPerObjectData(slot, this._vsData, this._psData);
       }
       else
       {
@@ -1382,7 +1382,7 @@ export class EveSpaceObject2 extends EveEntity
 
     for (const child of this.children)
     {
-      child?.Update?.(updateContext);
+      child?.Update(updateContext);
     }
 
     if (this.effectChildren.length)
@@ -1399,7 +1399,7 @@ export class EveSpaceObject2 extends EveEntity
       params.boneCount = boneCount;
       for (const child of this.effectChildren)
       {
-        params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn?.());
+        params.isVisible = this.display && (this.DisplayChildren() || !!child?.IsAlwaysOn());
         child?.UpdateAsyncronous(updateContext, params);
       }
     }
@@ -1611,7 +1611,7 @@ export class EveSpaceObject2 extends EveEntity
     }
     for (const child of this.effectChildren)
     {
-      if (this.DisplayChildren() || child?.IsAlwaysOn?.()) child?.GetRenderables(out);
+      if (this.DisplayChildren() || child?.IsAlwaysOn()) child?.GetRenderables(out);
     }
     if (this.mesh && this._isMeshVisible)
     {

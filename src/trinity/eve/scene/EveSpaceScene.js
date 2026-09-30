@@ -609,11 +609,11 @@ export class EveSpaceScene extends CjsModel
   // Carbon m_sceneDefaultPostProcessAttributes (EveSpaceScene.h:640, ctor
   // CreateInstance cpp:296): the scene default's attribute snapshot, refreshed
   // by UpdatePostProcessAttributes each frame.
-  #sceneDefaultPostProcessAttributes = new Tr2PostProcessAttributes();
+  _sceneDefaultPostProcessAttributes = new Tr2PostProcessAttributes();
 
   // Carbon m_combinedPostProcess (EveSpaceScene.h:636): the merged output
   // post-process, lazily constructed on first combine (cpp:367-370).
-  #combinedPostProcess = null;
+  _combinedPostProcess = null;
 
   // Carbon m_currentSunColor / m_currentNebulaIntensity /
   // m_currentReflectionIntensity (EveSpaceScene.h:492-493/650, protected):
@@ -969,7 +969,7 @@ export class EveSpaceScene extends CjsModel
 
     // Scene default refreshed BEFORE the gather (cpp:354); FromPostProcess
     // handles a null postprocess (reset + return).
-    this.#sceneDefaultPostProcessAttributes.FromPostProcess(
+    this._sceneDefaultPostProcessAttributes.FromPostProcess(
       this.postprocess, Tr2PostProcessAttributes.SCENE_DEFAULT_PRIORITY, 1.0);
 
     const sources = [];
@@ -984,25 +984,25 @@ export class EveSpaceScene extends CjsModel
     }
 
     // Scene default appended LAST (cpp:363).
-    sources.push(this.#sceneDefaultPostProcessAttributes);
+    sources.push(this._sceneDefaultPostProcessAttributes);
 
     // The list is never empty (default always pushed) so Carbon's else-branch
     // (cpp:411) is unreachable; the guard is kept for shape fidelity.
     if (sources.length)
     {
-      this.#combinedPostProcess ??= new Tr2PostProcess2();
+      this._combinedPostProcess ??= new Tr2PostProcess2();
 
       sources.sort((a, b) => b.priority - a.priority);
 
       if (EveSpaceScene.enablePostProcessDebugging)
       {
         const observer = Tr2PostProcessAttributes.CreateDebugObserver();
-        Tr2PostProcessAttributes.MergeInto(this.#combinedPostProcess, sources, observer);
+        Tr2PostProcessAttributes.MergeInto(this._combinedPostProcess, sources, observer);
         this.postProcessDebug = observer.GetDict();
       }
       else
       {
-        Tr2PostProcessAttributes.MergeInto(this.#combinedPostProcess, sources);
+        Tr2PostProcessAttributes.MergeInto(this._combinedPostProcess, sources);
         this.postProcessDebug = null;
       }
 
@@ -1010,31 +1010,31 @@ export class EveSpaceScene extends CjsModel
       // (cpp:389-406).
       if (this.postprocess)
       {
-        this.#combinedPostProcess.SetDynamicExposure(this.postprocess.GetDynamicExposureIfAvailable?.() ?? null);
-        this.#combinedPostProcess.SetTaa(this.postprocess.GetTaaIfAvailable?.() ?? null);
-        this.#combinedPostProcess.SetTonemapping(this.postprocess.GetTonemappingIfAvailable?.() ?? null);
-        this.#combinedPostProcess.SetFog(this.postprocess.GetFogIfAvailable?.() ?? null);
-        this.#combinedPostProcess.SetGodRays(this.postprocess.GetGodRaysIfAvailable?.() ?? null);
-        this.#combinedPostProcess.SetGenericEffect(this.postprocess.GetGenericEffectIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetDynamicExposure(this.postprocess.GetDynamicExposureIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetTaa(this.postprocess.GetTaaIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetTonemapping(this.postprocess.GetTonemappingIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetFog(this.postprocess.GetFogIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetGodRays(this.postprocess.GetGodRaysIfAvailable?.() ?? null);
+        this._combinedPostProcess.SetGenericEffect(this.postprocess.GetGenericEffectIfAvailable?.() ?? null);
       }
       else
       {
-        this.#combinedPostProcess.SetDynamicExposure(null);
-        this.#combinedPostProcess.SetTaa(null);
-        this.#combinedPostProcess.SetTonemapping(null);
-        this.#combinedPostProcess.SetFog(null);
-        this.#combinedPostProcess.SetGodRays(null);
-        this.#combinedPostProcess.SetGenericEffect(null);
+        this._combinedPostProcess.SetDynamicExposure(null);
+        this._combinedPostProcess.SetTaa(null);
+        this._combinedPostProcess.SetTonemapping(null);
+        this._combinedPostProcess.SetFog(null);
+        this._combinedPostProcess.SetGodRays(null);
+        this._combinedPostProcess.SetGenericEffect(null);
       }
 
       // Re-export the combined result as an attributes object at
       // MEDIUM_PRIORITY - consumed by nested-scene composition (cpp:407).
       (this.combinedPostProcessAttributes ??= new Tr2PostProcessAttributes())
-        .FromPostProcess(this.#combinedPostProcess, Tr2PostProcessAttributes.MEDIUM_PRIORITY, 1.0);
+        .FromPostProcess(this._combinedPostProcess, Tr2PostProcessAttributes.MEDIUM_PRIORITY, 1.0);
     }
     else
     {
-      this.#combinedPostProcess = null;
+      this._combinedPostProcess = null;
     }
   }
 
@@ -1048,7 +1048,7 @@ export class EveSpaceScene extends CjsModel
     {
       return null;
     }
-    return this.#combinedPostProcess;
+    return this._combinedPostProcess;
   }
 
   /**
@@ -1105,7 +1105,7 @@ export class EveSpaceScene extends CjsModel
       }
     });
 
-    const over = EveSpaceScene.#SimplePriorityBlend(overrides);
+    const over = EveSpaceScene._SimplePriorityBlend(overrides);
     vec4.scale(this.currentSunColor, over.sunColor, over.sunIntensity);
     this.currentNebulaIntensity = over.backgroundIntensity;
     this.currentReflectionIntensity = over.reflectionIntensity;
@@ -1144,7 +1144,7 @@ export class EveSpaceScene extends CjsModel
     // Kept for the PS fill's shadow-atlas settings: Carbon reads them from the
     // Tr2LightManager singleton (cpp:3126-3137), which is not ported; the
     // manager this scene last gathered with is the same one.
-    this.#lightManager = lightManager ?? null;
+    this._lightManager = lightManager ?? null;
 
     if (!lightManager || !this.display)
     {
@@ -1208,21 +1208,21 @@ export class EveSpaceScene extends CjsModel
    * frame and bound once, and the PS fill reads m_upscalingAmount back out of
    * the same pass.
    */
-  #perFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
+  _perFrameVS = RawData.create("EveSpaceScenePerFrameVSData");
 
   /** Carbon m_perFramePS (EveSpaceScene.h:240). */
-  #perFramePS = RawData.create("EveSpaceScenePerFramePSData");
+  _perFramePS = RawData.create("EveSpaceScenePerFramePSData");
 
   /** The record PopulatePerFrameVSData fills. */
   GetPerFrameVSData()
   {
-    return this.#perFrameVS;
+    return this._perFrameVS;
   }
 
   /** The record PopulatePerFramePSData fills. */
   GetPerFramePSData()
   {
-    return this.#perFramePS;
+    return this._perFramePS;
   }
 
   /**
@@ -1259,13 +1259,13 @@ export class EveSpaceScene extends CjsModel
   // construction.
 
   /** m_envMapHandle: "EveSpaceSceneEnvMap", the reflection (probe or nebula). */
-  #envMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
+  _envMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneEnvMap", new Tr2TextureReference());
 
   /** m_staticEnvMapHandle: "EveSpaceSceneStaticEnvMap", the nebula itself. */
-  #staticEnvMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
+  _staticEnvMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("EveSpaceSceneStaticEnvMap", new Tr2TextureReference());
 
   /** "SSAOMap", registered empty (cpp:256); the driver fills it when SSAO runs. */
-  #ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
+  _ssaoMapHandle = Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", new Tr2TextureReference());
 
   /** m_envMap1Var / m_envMap2Var: "EnvMap1" and "EnvMap2" (cpp:188-189). */
   _envMap1Handle = Tr2VariableStore.GlobalStore().RegisterVariable("EnvMap1", new Tr2TextureReference());
@@ -1316,7 +1316,7 @@ export class EveSpaceScene extends CjsModel
   static registerWithVariableStore(shadowResources, gpuResourcePool)
   {
     const store = Tr2VariableStore.GlobalStore();
-    const references = EveSpaceScene.#shadowReferences;
+    const references = EveSpaceScene._shadowReferences;
 
     const publish = (name, texture) =>
     {
@@ -1352,7 +1352,7 @@ export class EveSpaceScene extends CjsModel
   }
 
   /** The providers registerWithVariableStore publishes through, one per name. */
-  static #shadowReferences = {
+  static _shadowReferences = {
     EveSpaceSceneShadowMap: new Tr2TextureReference(),
     EveSpaceSceneCascadedShadowMap: new Tr2TextureReference(),
     EveSpaceSceneDynamicShadowMap: new Tr2TextureReference(),
@@ -1360,9 +1360,9 @@ export class EveSpaceScene extends CjsModel
   };
 
   /** m_envMapTextureRes / m_staticEnvMapTextureRes, set by Initialize. */
-  #envMapTextureRes = null;
+  _envMapTextureRes = null;
 
-  #staticEnvMapTextureRes = null;
+  _staticEnvMapTextureRes = null;
 
   /**
    * Loads the nebula/reflection and registers initial scene objects (cpp:3207-3263).
@@ -1378,19 +1378,19 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    this.#staticEnvMapTextureRes = this.envMapResPath
+    this._staticEnvMapTextureRes = this.envMapResPath
       ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
       : null;
 
     if (this.reflectionProbe && this.reflectionProbe.IsValid(renderContext))
     {
-      this.#envMapTextureRes = this.reflectionProbe.GetReflection();
+      this._envMapTextureRes = this.reflectionProbe.GetReflection();
       this.reflectionProbe.SetBackLightColor(this.reflectionBackLightingColor);
       this.reflectionProbe.SetBackLightContrast(this.reflectionBackLightingContrast);
     }
     else
     {
-      this.#envMapTextureRes = this.#staticEnvMapTextureRes;
+      this._envMapTextureRes = this._staticEnvMapTextureRes;
     }
 
     // cpp:3228-3239: the scene's extra environment maps.
@@ -1444,12 +1444,12 @@ export class EveSpaceScene extends CjsModel
     this._reflectionMapHandle.SetValue(this.envMap1);
     this._reflectionMaskMapHandle.SetValue(this.envMap2);
     this._nebulaIntensityHandle.SetValue(this.currentNebulaIntensity);
-    this.#staticEnvMapHandle.SetValue(this.#staticEnvMapTextureRes);
-    this.#envMapHandle.SetValue(this.#envMapTextureRes);
+    this._staticEnvMapHandle.SetValue(this._staticEnvMapTextureRes);
+    this._envMapHandle.SetValue(this._envMapTextureRes);
   }
 
-  /** The Tr2LightManager GatherLights last ran with; see #EngineFrameState. */
-  #lightManager = null;
+  /** The Tr2LightManager GatherLights last ran with; see _EngineFrameState. */
+  _lightManager = null;
 
   /**
    * The engine state Carbon's per-frame fills read from Tr2Renderer statics
@@ -1469,11 +1469,11 @@ export class EveSpaceScene extends CjsModel
    * @param {Tr2RenderContext} renderContext The frame's context.
    * @returns {object} The frame fields.
    */
-  #EngineFrameState(renderContext)
+  _EngineFrameState(renderContext)
   {
     const esm = renderContext.GetEffectStateManager();
     const projection = renderContext.GetProjection();
-    const atlas = this.#lightManager ? this.#lightManager.GetShadowMapAtlasSettings() : null;
+    const atlas = this._lightManager ? this._lightManager.GetShadowMapAtlasSettings() : null;
 
     return {
       renderTargetWidth: esm.renderTargetWidth,
@@ -1491,9 +1491,9 @@ export class EveSpaceScene extends CjsModel
   }
 
   /** Carbon m_perFrameVSBuffer / m_perFramePSBuffer: created empty on first apply, sized by FillAndSetConstants. */
-  #perFrameVSBuffer = null;
+  _perFrameVSBuffer = null;
 
-  #perFramePSBuffer = null;
+  _perFramePSBuffer = null;
 
   /**
    * Carbon EveSpaceScene::Jitter (cpp:1253-1291), called from BeginRender
@@ -1570,7 +1570,7 @@ export class EveSpaceScene extends CjsModel
       if (visible.length)
       {
         renderContext.SetReadOnlyDepth(true);
-        this.RenderRenderables(visible, this.#secondaryAdditiveBatches, TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
+        this.RenderRenderables(visible, this._secondaryAdditiveBatches, TriBatchType.TRIBATCHTYPE_ADDITIVE, RenderingMode.RM_ALPHA_ADDITIVE, renderContext);
         renderContext.SetReadOnlyDepth(false);
       }
     }
@@ -1611,7 +1611,7 @@ export class EveSpaceScene extends CjsModel
   /** m_secondaryBatches[TRIBATCHTYPE_ADDITIVE]: the accumulator EndRender's
    * lens flares are gathered into (effect-sorted, as every non-transparent
    * batch type is). */
-  #secondaryAdditiveBatches = new TriRenderBatchAccumulator(EffectKeyGenerator);
+  _secondaryAdditiveBatches = new TriRenderBatchAccumulator(EffectKeyGenerator);
 
   /**
    * Carbon EveSpaceScene::RenderRenderables (cpp:1065-1085): each renderable's
@@ -2191,14 +2191,14 @@ export class EveSpaceScene extends CjsModel
       | (1 << ShaderType.DOMAIN_SHADER)
     ));
 
-    this.#perFrameVSBuffer ??= renderContext.CreateConstantBuffer();
-    this.#perFramePSBuffer ??= renderContext.CreateConstantBuffer();
+    this._perFrameVSBuffer ??= renderContext.CreateConstantBuffer();
+    this._perFramePSBuffer ??= renderContext.CreateConstantBuffer();
 
-    const vs = this.#perFrameVS.GetData();
-    const ps = this.#perFramePS.GetData();
+    const vs = this._perFrameVS.GetData();
+    const ps = this._perFramePS.GetData();
 
-    FillAndSetConstants(this.#perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
-    FillAndSetConstants(this.#perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
+    FillAndSetConstants(this._perFrameVSBuffer, vs, vs.byteLength, perFrameVsMask, PER_FRAME_VS, renderContext);
+    FillAndSetConstants(this._perFramePSBuffer, ps, ps.byteLength, 1 << ShaderType.PIXEL_SHADER, PER_FRAME_PS, renderContext);
   }
 
   /**
@@ -2232,9 +2232,9 @@ export class EveSpaceScene extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("Tr2Renderer view statics and the ESM's render-target/viewport sizes are engine state; the driver supplies them in `frame`.")
-  PopulatePerFrameVSData(renderContext, frame = {}, out = this.#perFrameVS)
+  PopulatePerFrameVSData(renderContext, frame = {}, out = this._perFrameVS)
   {
-    frame = { ...this.#EngineFrameState(renderContext), ...frame };
+    frame = { ...this._EngineFrameState(renderContext), ...frame };
     const view = renderContext.GetViewTransform();
     // Carbon's frame is reverse-Z: the shaders get the REVERSED-depth
     // projection (cpp:3022), matching the inverted depth test and the clear to
@@ -2265,14 +2265,14 @@ export class EveSpaceScene extends CjsModel
     mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
     out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);
 
-    this.#FillSunData(out);
+    this._FillSunData(out);
 
     out.Set("TargetResolution", [
       frame.renderTargetWidth ?? 0,
       frame.renderTargetHeight ?? 0
     ]);
 
-    this.#FillFovXY(out, frame);
+    this._FillFovXY(out, frame);
 
     // Guarded so a zero-width fog band cannot divide by zero (cpp:3049-3054).
     let distance = this.fogEnd - this.fogStart;
@@ -2331,9 +2331,9 @@ export class EveSpaceScene extends CjsModel
   @carbon.method
   @impl.adapted
   @impl.reason("Tr2Renderer statics, the ESM viewport, Tr2LightManager's atlas settings and the upscaler's mip bias are engine state; the driver supplies them in `frame`.")
-  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this.#perFramePS)
+  PopulatePerFramePSData(renderContext, frame = {}, shadowMap = this.cascadedShadowMap, out = this._perFramePS)
   {
-    frame = { ...this.#EngineFrameState(renderContext), ...frame };
+    frame = { ...this._EngineFrameState(renderContext), ...frame };
     if (shadowMap !== null && !(shadowMap instanceof Tr2ShadowMap))
     {
       throw new TypeError("EveSpaceScene.PopulatePerFramePSData requires a Tr2ShadowMap or null.");
@@ -2350,7 +2350,7 @@ export class EveSpaceScene extends CjsModel
     mat4.fromQuat(perFrameMatrixScratch, this.envMapRotation);
     out.SetAndTranspose("EnvMapRotationMat", perFrameMatrixScratch);
 
-    this.#FillSunData(out);
+    this._FillSunData(out);
 
     // The pixel fill alone overrides the sun's alpha with the roughness
     // (cpp:3087) - the vertex fill leaves the blended colour's own alpha.
@@ -2372,7 +2372,7 @@ export class EveSpaceScene extends CjsModel
       frame.renderTargetHeight ?? 0
     ]);
 
-    this.#FillFovXY(out, frame);
+    this._FillFovXY(out, frame);
 
     // Shadows are disabled by default (cpp:3107).
     out.Set("ShadowCameraRange", [ 1, 0 ]);
@@ -2410,7 +2410,7 @@ export class EveSpaceScene extends CjsModel
 
     if (shadowMap)
     {
-      this.#FillShadowCascades(out, shadowMap, renderContext);
+      this._FillShadowCascades(out, shadowMap, renderContext);
     }
 
     // Carbon writes Inverse(Transpose(P)). RawData supplies that terminal
@@ -2432,7 +2432,7 @@ export class EveSpaceScene extends CjsModel
    * direction is normalized AND negated: shaders work with the direction TO
    * the light, not the direction it travels.
    */
-  #FillSunData(out)
+  _FillSunData(out)
   {
     vec3.normalize(sunDirectionScratch, this.sunDirection);
     out.Set("Sun.DirWorld", [
@@ -2448,7 +2448,7 @@ export class EveSpaceScene extends CjsModel
    * Carbon recovers it from the NON reversed-depth projection, so a driver
    * that reverses depth must pass the original in `frame.projectionTransform`.
    */
-  #FillFovXY(out, frame)
+  _FillFovXY(out, frame)
   {
     const source = frame.projectionTransform;
     const fovY = source ? EveCamera.CalculateFovFromProjection(source) : 0;
@@ -2461,7 +2461,7 @@ export class EveSpaceScene extends CjsModel
    * rebased into the current view, flipped in y, remapped from (-1,+1) to
    * (0,1), then scaled and offset into its cell of the 8x2 atlas.
    */
-  #FillShadowCascades(out, shadowMap, renderContext)
+  _FillShadowCascades(out, shadowMap, renderContext)
   {
     const split = shadowMap.GetPerSplitData();
 
@@ -2698,7 +2698,7 @@ export class EveSpaceScene extends CjsModel
    * @returns {{ sunColor: Float32Array, sunIntensity: Number,
    *   backgroundIntensity: Number, reflectionIntensity: Number }}
    */
-  static #SimplePriorityBlend(sources)
+  static _SimplePriorityBlend(sources)
   {
     const result = {
       sunColor: vec4.create(),

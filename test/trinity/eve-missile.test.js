@@ -153,12 +153,14 @@ test("EveMobile maps authored turret locators and drives the active count", () =
 
   assert.equal(mobile.GetTurretLocatorCount(), 1);
   assert.equal(mobile.GetTurretLocatorIndex(0, 1), 1);
-  mobile.UpdateAsyncronous({ currentTime: 1, deltaTime: 0, originShift: vec3.create() });
+  const context = new EveUpdateContext();
+  context.SetTime(1);
+  mobile.UpdateAsyncronous(context);
   assert.equal(turretSet.GetTurrets().length, 2);
   assert.deepEqual(Array.from(turretSet.GetTurrets()[1].worldMatrix.subarray(12, 15)), [2, 0, 0]);
 
   turretSet.state = EveTurretSet.State.STATE_FIRING;
-  mobile.UpdateSyncronous({ currentTime: 1, deltaTime: 0 });
+  mobile.UpdateSyncronous(context);
   assert.equal(mobile.GetActiveTurretCount(), 1);
 });
 
@@ -181,9 +183,13 @@ test("turret fixed POD arrays and tracking fade preserve Carbon dimensions and o
   turretSet.maxTrackingTime = 2;
   turretSet.SetTurrets([mat4.create()]);
   turretSet.EnterStateTargeting();
-  turretSet.UpdateAsyncronous({ deltaTime: 0.5 }, mat4.create());
+  const context = new EveUpdateContext();
+  context.SetTime(1);
+  context.SetTime(1.5);
+  turretSet.UpdateAsyncronous(context, mat4.create());
   assert.equal(turretSet.trackingInfluence, 0);
-  turretSet.UpdateAsyncronous({ deltaTime: 0.5 }, mat4.create());
+  context.SetTime(2);
+  turretSet.UpdateAsyncronous(context, mat4.create());
   assert.equal(turretSet.trackingInfluence, 0.5);
 });
 

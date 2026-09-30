@@ -242,9 +242,10 @@ export class EveChildParticleSystem extends EveChildTransform
   /**
    * Sorts particles and publishes this child as a renderable when visible
    * (EveChildParticleSystem.cpp:130-143).
+   * Adapted: returns the caller-owned array for JS chaining; Carbon returns void.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   GetRenderables(renderables = [])
   {
     if (!this._isVisible)

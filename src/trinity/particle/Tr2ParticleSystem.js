@@ -22,49 +22,49 @@ import { ITr2GenericEmitterUpdateArguments } from "./ITr2GenericEmitter/index.js
 export class Tr2ParticleSystem extends CjsModel
 {
 
-  #buffers = [null, null];
+  _buffers = [null, null];
 
-  #declarationHash = 0;
+  _declarationHash = 0;
 
-  #elementMap = new Map();
+  _elementMap = new Map();
 
-  #runtimeElements = [];
+  _runtimeElements = [];
 
-  #semanticElements = [null, null, null, null, null];
+  _semanticElements = [null, null, null, null, null];
 
-  #strides = [0, 0];
+  _strides = [0, 0];
 
-  #worldTransform = mat4.create();
+  _worldTransform = mat4.create();
 
-  #shouldSortVisible = true;
+  _shouldSortVisible = true;
 
-  #updatePeriod = 1;
+  _updatePeriod = 1;
 
-  #updatePeriodClock = 0;
+  _updatePeriodClock = 0;
 
-  #lastUpdate = 0;
+  _lastUpdate = 0;
 
-  #updateArguments = new ITr2GenericEmitterUpdateArguments();
+  _updateArguments = new ITr2GenericEmitterUpdateArguments();
 
-  #instanceData = new ITr2InstanceDataInstanceData();
+  _instanceData = new ITr2InstanceDataInstanceData();
 
-  #instanceBounds = { min: vec3.create(), max: vec3.create() };
+  _instanceBounds = { min: vec3.create(), max: vec3.create() };
 
-  #declaration = Tr2EffectStateManager.Unknown;
+  _declaration = Tr2EffectStateManager.Unknown;
 
-  #vertexBuffer = null;
+  _vertexBuffer = null;
 
-  #bufferDirty = true;
+  _bufferDirty = true;
 
-  #previousDataOutdated = true;
+  _previousDataOutdated = true;
 
-  #sortingAllowed = true;
+  _sortingAllowed = true;
 
-  #sortingReferencePoint = vec3.create();
+  _sortingReferencePoint = vec3.create();
 
-  #indexes = [];
+  _indexes = [];
 
-  #mappedData = null;
+  _mappedData = null;
 
   /** m_elements (PTr2ParticleElementDeclarationVector) [READ, PERSIST] */
   @edit.read
@@ -186,21 +186,21 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   SetMaxParticleCount(value)
   {
-    this.#vertexBuffer?.Destroy();
-    this.#vertexBuffer = null;
-    this.#mappedData = null;
+    this._vertexBuffer?.Destroy();
+    this._vertexBuffer = null;
+    this._mappedData = null;
     this.maxParticleCount = Math.min(Number(value) >>> 0, Tr2ParticleSystem.MAX_PARTICLE_COUNT);
     this.aliveCount = 0;
-    for (let index = 0; index < this.#buffers.length; index++)
+    for (let index = 0; index < this._buffers.length; index++)
     {
-      const stride = this.#strides[index];
-      this.#buffers[index] = stride && this.maxParticleCount
+      const stride = this._strides[index];
+      this._buffers[index] = stride && this.maxParticleCount
         ? new Float32Array(stride * this.maxParticleCount)
         : null;
     }
-    for (const element of this.#runtimeElements)
+    for (const element of this._runtimeElements)
     {
-      element.buffer = this.#buffers[element.bufferIndex];
+      element.buffer = this._buffers[element.bufferIndex];
     }
     vec3.set(this.aabbMin, 0, 0, 0);
     vec3.set(this.aabbMax, 0, 0, 0);
@@ -282,11 +282,11 @@ export class Tr2ParticleSystem extends CjsModel
     this.isValid = false;
     this.ReleaseResources();
     this.aliveCount = 0;
-    this.#elementMap.clear();
-    this.#runtimeElements.length = 0;
-    this.#semanticElements.fill(null);
-    this.#strides.fill(0);
-    this.#buffers.fill(null);
+    this._elementMap.clear();
+    this._runtimeElements.length = 0;
+    this._semanticElements.fill(null);
+    this._strides.fill(0);
+    this._buffers.fill(null);
     if (this.elements.length === 0)
     {
       return false;
@@ -327,40 +327,40 @@ export class Tr2ParticleSystem extends CjsModel
         usageIndex,
         usedByGPU: !!source?.usedByGPU,
         bufferIndex,
-        startOffset: this.#strides[bufferIndex],
+        startOffset: this._strides[bufferIndex],
         instanceStride: 0,
         buffer: null
       };
-      this.#strides[bufferIndex] += dimension;
-      this.#runtimeElements.push(element);
-      this.#elementMap.set(key, element);
+      this._strides[bufferIndex] += dimension;
+      this._runtimeElements.push(element);
+      this._elementMap.set(key, element);
       if (elementType !== Tr2ParticleElementDeclaration.Type.CUSTOM)
       {
-        this.#semanticElements[elementType] = element;
+        this._semanticElements[elementType] = element;
       }
     }
 
     this.EnsureAligned();
-    for (let index = 0; index < this.#strides.length; index++)
+    for (let index = 0; index < this._strides.length; index++)
     {
-      const remainder = this.#strides[index] % 4;
+      const remainder = this._strides[index] % 4;
       if (remainder)
       {
-        this.#strides[index] += 4 - remainder;
+        this._strides[index] += 4 - remainder;
       }
-      if (index === 0) this.#strides[index] *= 2;
-      if (this.#strides[index] && this.maxParticleCount)
+      if (index === 0) this._strides[index] *= 2;
+      if (this._strides[index] && this.maxParticleCount)
       {
-        this.#buffers[index] = new Float32Array(this.#strides[index] * this.maxParticleCount);
+        this._buffers[index] = new Float32Array(this._strides[index] * this.maxParticleCount);
       }
     }
-    for (const element of this.#runtimeElements)
+    for (const element of this._runtimeElements)
     {
-      element.instanceStride = this.#strides[element.bufferIndex];
-      element.buffer = this.#buffers[element.bufferIndex];
+      element.instanceStride = this._strides[element.bufferIndex];
+      element.buffer = this._buffers[element.bufferIndex];
     }
     this.originalMaxParticles = this.maxParticleCount;
-    this.#declarationHash++;
+    this._declarationHash++;
     this.isValid = true;
     this.OnPrepareResources();
     this.RebindConstraints();
@@ -376,17 +376,17 @@ export class Tr2ParticleSystem extends CjsModel
    */
   @carbon.method
   @impl.adapted
-  UpdateSimulation(dt, updateArguments = Tr2ParticleSystem.#defaultUpdateArguments)
+  UpdateSimulation(dt, updateArguments = Tr2ParticleSystem._defaultUpdateArguments)
   {
     if (!this.isValid)
     {
       return 0;
     }
     const deltaTime = Math.max(0, Number(dt) || 0);
-    const lifetime = this.#semanticElements[Tr2ParticleElementDeclaration.Type.LIFETIME];
-    const position = this.#semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
-    const velocity = this.#semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];
-    const mass = this.#semanticElements[Tr2ParticleElementDeclaration.Type.MASS];
+    const lifetime = this._semanticElements[Tr2ParticleElementDeclaration.Type.LIFETIME];
+    const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
+    const velocity = this._semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];
+    const mass = this._semanticElements[Tr2ParticleElementDeclaration.Type.MASS];
 
     if (this.applyAging && lifetime)
     {
@@ -396,11 +396,14 @@ export class Tr2ParticleSystem extends CjsModel
         lifetime.buffer[offset] += deltaTime / lifetime.buffer[offset + 1];
         if (lifetime.buffer[offset] >= 1)
         {
-          this.#spawnEmitter(updateArguments, this.emitParticleOnDeathEmitter, position, velocity, index, 1);
-          this.#removeParticle(index--);
+          this._SpawnEmitter(updateArguments, this.emitParticleOnDeathEmitter, position, velocity, index, 1);
+          this._RemoveParticle(index--);
         }
       }
-      this.#bufferDirty = true;
+      this._bufferDirty = true;
+      // Carbon Tr2ParticleSystem.cpp:623: aging changes the previous-data source
+      // even when there is no position/velocity integration or constraint.
+      this._previousDataOutdated = true;
     }
 
     if (this.updateSimulation && position && velocity)
@@ -414,8 +417,8 @@ export class Tr2ParticleSystem extends CjsModel
       const activeCount = this.aliveCount;
       for (let index = 0; index < activeCount; index++)
       {
-        const positionValue = this.#getElementView(position, index);
-        const velocityValue = this.#getElementView(velocity, index);
+        const positionValue = this._GetElementView(position, index);
+        const velocityValue = this._GetElementView(velocity, index);
         // Carbon cpp:663-664 keeps both pre-integration values for the
         // six-argument during-life SpawnParticles overload (cpp:699-706).
         const vec3_1 = Tr2ParticleSystem.scratch.vec3_1;
@@ -425,7 +428,7 @@ export class Tr2ParticleSystem extends CjsModel
           vec3.copy(vec3_1, positionValue);
           vec3.copy(vec3_2, velocityValue);
         }
-        const massValue = mass ? this.#getElementView(mass, index)[0] : 1;
+        const massValue = mass ? this._GetElementView(mass, index)[0] : 1;
         if (this.applyForce && this.forces.length)
         {
           vec3.set(forceValue, 0, 0, 0);
@@ -455,15 +458,15 @@ export class Tr2ParticleSystem extends CjsModel
             vec3_1, positionValue, vec3_2, velocityValue, deltaTime);
         }
       }
-      this.#bufferDirty = true;
-      this.#previousDataOutdated = true;
+      this._bufferDirty = true;
+      this._previousDataOutdated = true;
     }
     else if (this.emitParticleDuringLifeEmitter)
     {
       const activeCount = this.aliveCount;
       for (let index = 0; index < activeCount; index++)
       {
-        this.#spawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
+        this._SpawnEmitter(updateArguments, this.emitParticleDuringLifeEmitter, position, velocity, index, deltaTime);
       }
     }
 
@@ -471,15 +474,15 @@ export class Tr2ParticleSystem extends CjsModel
     {
       for (const constraint of this.constraints)
       {
-        constraint.ApplyConstraint(this.#buffers, this.#strides, this.aliveCount, deltaTime);
+        constraint.ApplyConstraint(this._buffers, this._strides, this.aliveCount, deltaTime);
       }
     }
     if (this.updateSimulation && this.constraints.length)
     {
-      this.#bufferDirty = true;
-      this.#previousDataOutdated = true;
+      this._bufferDirty = true;
+      this._previousDataOutdated = true;
     }
-    this.#updateBounds(position);
+    this._UpdateBounds(position);
     return this.aliveCount;
   }
 
@@ -492,17 +495,17 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   Update(globalArguments)
   {
-    const argumentsValue = this.#updateArguments;
+    const argumentsValue = this._updateArguments;
     argumentsValue.time = globalArguments.time;
     argumentsValue.system = globalArguments.system;
-    mat4.copy(argumentsValue.parentTransform, this.#worldTransform);
+    mat4.copy(argumentsValue.parentTransform, this._worldTransform);
     vec3.copy(argumentsValue.originShift, globalArguments.originShift);
     argumentsValue.emitCountFactor = globalArguments.emitCountFactor;
 
-    if (this.#previousDataOutdated)
+    if (this._previousDataOutdated)
     {
-      const buffer = this.#buffers[0];
-      const stride = this.#strides[0];
+      const buffer = this._buffers[0];
+      const stride = this._strides[0];
       const half = stride >> 1;
       if (buffer)
       {
@@ -512,27 +515,27 @@ export class Tr2ParticleSystem extends CjsModel
           buffer.copyWithin(offset + half, offset, offset + half);
         }
       }
-      this.#previousDataOutdated = false;
+      this._previousDataOutdated = false;
     }
 
-    if (this.#updatePeriod > 1)
+    if (this._updatePeriod > 1)
     {
-      this.#updatePeriodClock = (this.#updatePeriodClock + 1) % this.#updatePeriod;
-      if (this.#updatePeriodClock !== 0)
+      this._updatePeriodClock = (this._updatePeriodClock + 1) % this._updatePeriod;
+      if (this._updatePeriodClock !== 0)
       {
         return this.aliveCount;
       }
     }
 
     const time = Number(argumentsValue.time) || 0;
-    if (this.#lastUpdate === 0)
+    if (this._lastUpdate === 0)
     {
-      this.#lastUpdate = time;
+      this._lastUpdate = time;
     }
-    const dt = Math.min(time - this.#lastUpdate, 1 / 3);
-    this.#lastUpdate = time;
-    if (dt > 0.035 && this.#sortingAllowed) this.#sortingAllowed = false;
-    else if (!this.#sortingAllowed && dt < 0.02) this.#sortingAllowed = true;
+    const dt = Math.min(time - this._lastUpdate, 1 / 3);
+    this._lastUpdate = time;
+    if (dt > 0.035 && this._sortingAllowed) this._sortingAllowed = false;
+    else if (!this._sortingAllowed && dt < 0.02) this._sortingAllowed = true;
     return this.UpdateSimulation(dt, argumentsValue);
   }
 
@@ -540,32 +543,36 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.implemented
   IsInstanceDataReady()
   {
-    return this.#declaration !== Tr2EffectStateManager.Unknown;
+    return this._declaration !== Tr2EffectStateManager.Unknown;
   }
 
-  /** Returns the borrowed AL buffer and native byte-stride/live-count record. */
-  @impl.implemented
+  /**
+   * Returns the borrowed AL buffer and byte-stride/live-count record.
+   * Adapted: JS reuses a mutable record; Carbon returns InstanceData by value
+   * (Tr2ParticleSystem.cpp:306-309). Copy fields before retaining a snapshot.
+   */
+  @impl.adapted
   GetInstanceData(_bufferIndex = 0, _screenSize = 0)
   {
-    this.#instanceData.buffer = this.#vertexBuffer;
-    this.#instanceData.offset = 0;
-    this.#instanceData.stride = this.#strides[0] * 4;
-    this.#instanceData.count = this.aliveCount;
-    return this.#instanceData;
+    this._instanceData.buffer = this._vertexBuffer;
+    this._instanceData.offset = 0;
+    this._instanceData.stride = this._strides[0] * 4;
+    this._instanceData.count = this.aliveCount;
+    return this._instanceData;
   }
 
   /** Returns Carbon's interned vertex declaration handle. */
   @impl.implemented
   GetInstanceBufferVertexDeclaration(_bufferIndex = 0)
   {
-    return this.#declaration;
+    return this._declaration;
   }
 
   /** Returns the borrowed physical particle buffer (the index is unused). */
   @impl.implemented
   GetGpuBuffer(_bufferIndex = 0)
   {
-    return this.#vertexBuffer;
+    return this._vertexBuffer;
   }
 
   /**
@@ -575,11 +582,11 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   ReleaseResources()
   {
-    this.#declaration = Tr2EffectStateManager.Unknown;
-    this.#vertexBuffer?.Destroy();
-    this.#vertexBuffer = null;
-    this.#mappedData = null;
-    this.#bufferDirty = true;
+    this._declaration = Tr2EffectStateManager.Unknown;
+    this._vertexBuffer?.Destroy();
+    this._vertexBuffer = null;
+    this._mappedData = null;
+    this._bufferDirty = true;
   }
 
   /** Recreates the declaration and buffer; Carbon reports true even if allocation fails. */
@@ -599,17 +606,17 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   CreateVertexBuffer()
   {
-    if (this.maxParticleCount > 0 && this.#strides[0] > 0)
+    if (this.maxParticleCount > 0 && this._strides[0] > 0)
     {
       const context = Tr2RenderContext_GetMainThreadRenderContext();
-      this.#vertexBuffer?.Destroy();
-      this.#mappedData = null;
-      this.#vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
-        this.#strides[0] * 4, this.maxParticleCount,
+      this._vertexBuffer?.Destroy();
+      this._mappedData = null;
+      this._vertexBuffer = context.CreateBuffer(Tr2BufferDescriptionAL.FromStride(
+        this._strides[0] * 4, this.maxParticleCount,
         Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE_OFTEN
       ));
-      if (!this.#vertexBuffer) return false;
-      this.#bufferDirty = true;
+      if (!this._vertexBuffer) return false;
+      this._bufferDirty = true;
     }
     return true;
   }
@@ -623,7 +630,7 @@ export class Tr2ParticleSystem extends CjsModel
   RebuildDeclaration()
   {
     const definition = new Tr2VertexDefinition();
-    const elements = Array.from(this.#elementMap.values());
+    const elements = Array.from(this._elementMap.values());
     elements.sort((a, b) => a.elementType - b.elementType ||
       (a.customName < b.customName ? -1 : a.customName > b.customName ? 1 : 0));
     const name = new Tr2ParticleElementDeclarationName();
@@ -644,26 +651,26 @@ export class Tr2ParticleSystem extends CjsModel
       {
         const previous = Object.assign(new Tr2VertexDefinition.Item(), item);
         previous.usageIndex = 1;
-        previous.offset += this.#strides[0] * 4 / 2;
+        previous.offset += this._strides[0] * 4 / 2;
         definition.items.push(previous);
         definition.nextOffset[0] = Math.max(definition.nextOffset[0], previous.offset + element.dimension * 4);
       }
     }
-    this.#declaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
+    this._declaration = Tr2EffectStateManager.getVertexDeclarationHandle(definition);
   }
 
   /** Moves POSITION and VELOCITY to four-float slots at the front of their streams. */
   @impl.implemented
   EnsureAligned()
   {
-    const position = this.#semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
-    const velocity = this.#semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];
+    const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
+    const velocity = this._semanticElements[Tr2ParticleElementDeclaration.Type.VELOCITY];
     if (position)
     {
       this.ShiftOffsets(position.bufferIndex, position.startOffset, -position.dimension);
       this.ShiftOffsets(position.bufferIndex, 0, 4);
       position.startOffset = 0;
-      this.#strides[position.bufferIndex]++;
+      this._strides[position.bufferIndex]++;
     }
     if (velocity)
     {
@@ -671,7 +678,7 @@ export class Tr2ParticleSystem extends CjsModel
       const offset = position && position.bufferIndex === velocity.bufferIndex ? 4 : 0;
       this.ShiftOffsets(velocity.bufferIndex, offset, 4);
       velocity.startOffset = offset;
-      this.#strides[velocity.bufferIndex]++;
+      this._strides[velocity.bufferIndex]++;
     }
   }
 
@@ -679,7 +686,7 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   ShiftOffsets(bufferType, start, shift)
   {
-    for (const element of this.#runtimeElements)
+    for (const element of this._runtimeElements)
     {
       if (element.bufferIndex === bufferType && element.startOffset >= start)
       {
@@ -694,15 +701,15 @@ export class Tr2ParticleSystem extends CjsModel
   {
     if (this.aliveCount > 0)
     {
-      vec3.copy(this.#instanceBounds.min, this.aabbMin);
-      vec3.copy(this.#instanceBounds.max, this.aabbMax);
+      vec3.copy(this._instanceBounds.min, this.aabbMin);
+      vec3.copy(this._instanceBounds.max, this.aabbMax);
     }
     else
     {
-      vec3.set(this.#instanceBounds.min, 0, 0, 0);
-      vec3.set(this.#instanceBounds.max, 0, 0, 0);
+      vec3.set(this._instanceBounds.min, 0, 0, 0);
+      vec3.set(this._instanceBounds.max, 0, 0, 0);
     }
-    return this.#instanceBounds;
+    return this._instanceBounds;
   }
 
   /**
@@ -725,7 +732,7 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.implemented
   GetElementDeclaration()
   {
-    return this.#elementMap;
+    return this._elementMap;
   }
 
   /**
@@ -734,7 +741,7 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.implemented
   GetElementDeclarationHash()
   {
-    return this.#declarationHash;
+    return this._declarationHash;
   }
 
   /**
@@ -743,7 +750,7 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.implemented
   HasElement(type)
   {
-    return !!this.#resolveElement(type);
+    return !!this._ResolveElement(type);
   }
 
   /**
@@ -752,27 +759,39 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   GetElement(type)
   {
-    return this.#resolveElement(type);
+    return this._ResolveElement(type);
   }
 
   /**
    * Reserves a slot for a new particle, returning null when the system is invalid or already full.
+   * Adapted from InsertParticle (Tr2ParticleSystem.cpp:1293): JS splits slot
+   * reservation and element writes, retaining the existing BeginSpawnParticle
+   * name and index/null return; typed-array element access replaces native
+   * output pointers. The retained name and return convention are API adaptations.
+   * Unlike the donor, this JS entry also rejects an invalid system and defers
+   * the peak-count update until EndSpawnParticle; these existing API behaviors
+   * are preserved rather than claimed as native insertion parity.
    */
-  @impl.implemented
+  @impl.adapted
   BeginSpawnParticle()
   {
     if (!this.isValid || this.aliveCount >= this.maxParticleCount)
     {
       return null;
     }
-    this.#bufferDirty = true;
+    this._bufferDirty = true;
     return this.aliveCount++;
   }
 
   /**
    * Updates the peak alive-particle count once a spawned particle has been fully written.
+   * This existing JS counterpart of DoneInsertingParticle retains its
+   * EndSpawnParticle name and the peak update deferred from InsertParticle.
+   * Carbon updates the peak in InsertParticle (cpp:1293-1316); its
+   * DoneInsertingParticle (cpp:1323) releases the insertion mutex instead.
+   * JS performs these writes synchronously without that native mutex.
    */
-  @impl.implemented
+  @impl.adapted
   EndSpawnParticle()
   {
     this.peakAliveCount = Math.max(this.peakAliveCount, this.aliveCount);
@@ -789,7 +808,7 @@ export class Tr2ParticleSystem extends CjsModel
     {
       return null;
     }
-    for (const element of this.#runtimeElements)
+    for (const element of this._runtimeElements)
     {
       const name = element.elementType === Tr2ParticleElementDeclaration.Type.CUSTOM
         ? element.customName
@@ -811,7 +830,7 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   SetParticleElement(index, type, value)
   {
-    const element = this.#resolveElement(type);
+    const element = this._ResolveElement(type);
     if (!element || index < 0 || index >= this.maxParticleCount)
     {
       return false;
@@ -828,8 +847,8 @@ export class Tr2ParticleSystem extends CjsModel
         element.buffer[offset + component] = Number(value?.[component]) || 0;
       }
     }
-    this.#bufferDirty = true;
-    this.#previousDataOutdated = true;
+    this._bufferDirty = true;
+    this._previousDataOutdated = true;
     return true;
   }
 
@@ -839,8 +858,8 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   GetParticleElement(index, type)
   {
-    const element = this.#resolveElement(type);
-    return element && index >= 0 && index < this.aliveCount ? this.#getElementView(element, index) : null;
+    const element = this._ResolveElement(type);
+    return element && index >= 0 && index < this.aliveCount ? this._GetElementView(element, index) : null;
   }
 
   /**
@@ -867,41 +886,41 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   UpdateViewDependentData(frustum, worldTransform)
   {
-    this.#shouldSortVisible = false;
-    mat4.copy(this.#worldTransform, worldTransform);
-    if (!this.#bufferDirty && !this.requiresSorting) return;
-    if (!this.#vertexBuffer || !this.#vertexBuffer.IsValid()) return;
-    this.#shouldSortVisible = true;
-    this.#updatePeriod = 1;
+    this._shouldSortVisible = false;
+    mat4.copy(this._worldTransform, worldTransform);
+    if (!this._bufferDirty && !this.requiresSorting) return;
+    if (!this._vertexBuffer || !this._vertexBuffer.IsValid()) return;
+    this._shouldSortVisible = true;
+    this._updatePeriod = 1;
 
-    if (!frustum || !this.GetBoundingBox(Tr2ParticleSystem.#boundsMin, Tr2ParticleSystem.#boundsMax))
+    if (!frustum || !this.GetBoundingBox(Tr2ParticleSystem._boundsMin, Tr2ParticleSystem._boundsMax))
     {
       return;
     }
 
-    vec3.add(Tr2ParticleSystem.#center, Tr2ParticleSystem.#boundsMax, Tr2ParticleSystem.#boundsMin);
-    vec3.scale(Tr2ParticleSystem.#center, Tr2ParticleSystem.#center, 0.5);
-    vec3.subtract(Tr2ParticleSystem.#extent, Tr2ParticleSystem.#boundsMax, Tr2ParticleSystem.#boundsMin);
-    vec3.scale(Tr2ParticleSystem.#extent, Tr2ParticleSystem.#extent, 0.5);
+    vec3.add(Tr2ParticleSystem._center, Tr2ParticleSystem._boundsMax, Tr2ParticleSystem._boundsMin);
+    vec3.scale(Tr2ParticleSystem._center, Tr2ParticleSystem._center, 0.5);
+    vec3.subtract(Tr2ParticleSystem._extent, Tr2ParticleSystem._boundsMax, Tr2ParticleSystem._boundsMin);
+    vec3.scale(Tr2ParticleSystem._extent, Tr2ParticleSystem._extent, 0.5);
 
     const radius = Math.max(
-      Math.abs(Tr2ParticleSystem.#extent[0]),
-      Math.abs(Tr2ParticleSystem.#extent[1]),
-      Math.abs(Tr2ParticleSystem.#extent[2])
+      Math.abs(Tr2ParticleSystem._extent[0]),
+      Math.abs(Tr2ParticleSystem._extent[1]),
+      Math.abs(Tr2ParticleSystem._extent[2])
     ) * Math.hypot(worldTransform[0], worldTransform[1], worldTransform[2]);
-    vec3.transformMat4(Tr2ParticleSystem.#center, Tr2ParticleSystem.#center, worldTransform);
+    vec3.transformMat4(Tr2ParticleSystem._center, Tr2ParticleSystem._center, worldTransform);
     vec4.set(
-      Tr2ParticleSystem.#boundingSphere,
-      Tr2ParticleSystem.#center[0],
-      Tr2ParticleSystem.#center[1],
-      Tr2ParticleSystem.#center[2],
+      Tr2ParticleSystem._boundingSphere,
+      Tr2ParticleSystem._center[0],
+      Tr2ParticleSystem._center[1],
+      Tr2ParticleSystem._center[2],
       radius
     );
 
-    if (!frustum.IsSphereVisible(Tr2ParticleSystem.#boundingSphere))
+    if (!frustum.IsSphereVisible(Tr2ParticleSystem._boundingSphere))
     {
-      this.#shouldSortVisible = false;
-      this.#updatePeriod = 4;
+      this._shouldSortVisible = false;
+      this._updatePeriod = 4;
     }
   }
 
@@ -917,42 +936,42 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.adapted
   SortParticles()
   {
-    if (!this.#bufferDirty && !this.requiresSorting) return;
-    if (!this.#vertexBuffer || !this.#vertexBuffer.IsValid()) return;
+    if (!this._bufferDirty && !this.requiresSorting) return;
+    if (!this._vertexBuffer || !this._vertexBuffer.IsValid()) return;
     const context = Tr2RenderContext_GetMainThreadRenderContext();
     const { mat4_0, vec3_0 } = Tr2ParticleSystem.scratch;
-    if (!mat4.invert(mat4_0, this.#worldTransform)) mat4_0.fill(NaN);
+    if (!mat4.invert(mat4_0, this._worldTransform)) mat4_0.fill(NaN);
     vec3.transformMat4(vec3_0, context.GetViewPosition(), mat4_0);
-    if (!this.#bufferDirty && vec3.squaredDistance(vec3_0, this.#sortingReferencePoint) < 0.001) return;
-    vec3.copy(this.#sortingReferencePoint, vec3_0);
+    if (!this._bufferDirty && vec3.squaredDistance(vec3_0, this._sortingReferencePoint) < 0.001) return;
+    vec3.copy(this._sortingReferencePoint, vec3_0);
 
     if (this.aliveCount > 0)
     {
-      const sorted = this.#shouldSortVisible && this.#sortingAllowed && this.requiresSorting &&
+      const sorted = this._shouldSortVisible && this._sortingAllowed && this.requiresSorting &&
         this.HasElement(Tr2ParticleElementDeclaration.Type.POSITION);
       if (sorted)
       {
-        this.#indexes.length = this.aliveCount;
-        for (let index = 0; index < this.aliveCount; index++) this.#indexes[index] = index;
-        this.#indexes.sort((a, b) => this.CompareParticles(a, b) ? -1 : this.CompareParticles(b, a) ? 1 : 0);
+        this._indexes.length = this.aliveCount;
+        for (let index = 0; index < this.aliveCount; index++) this._indexes[index] = index;
+        this._indexes.sort((a, b) => this.CompareParticles(a, b) ? -1 : this.CompareParticles(b, a) ? 1 : 0);
       }
-      const mapping = this.#vertexBuffer.MapForWriting(context);
+      const mapping = this._vertexBuffer.MapForWriting(context);
       if (Failed(mapping.result)) return;
       try
       {
-        if (!this.#mappedData || this.#mappedData.buffer !== mapping.data.buffer ||
-          this.#mappedData.byteOffset !== mapping.data.byteOffset || this.#mappedData.byteLength !== mapping.data.byteLength)
+        if (!this._mappedData || this._mappedData.buffer !== mapping.data.buffer ||
+          this._mappedData.byteOffset !== mapping.data.byteOffset || this._mappedData.byteLength !== mapping.data.byteLength)
         {
-          this.#mappedData = new Float32Array(mapping.data.buffer, mapping.data.byteOffset, mapping.data.byteLength / 4); // alloc: retained variable-length view of the AL mapping, reused until its backing range changes
+          this._mappedData = new Float32Array(mapping.data.buffer, mapping.data.byteOffset, mapping.data.byteLength / 4); // alloc: retained variable-length view of the AL mapping, reused until its backing range changes
         }
-        const data = this.#mappedData;
-        const source = this.#buffers[0];
-        const stride = this.#strides[0];
+        const data = this._mappedData;
+        const source = this._buffers[0];
+        const stride = this._strides[0];
         if (sorted)
         {
           for (let index = 0; index < this.aliveCount; index++)
           {
-            const offset = this.#indexes[index] * stride;
+            const offset = this._indexes[index] * stride;
             data.set(source.subarray(offset, offset + stride), index * stride);
           }
         }
@@ -963,22 +982,22 @@ export class Tr2ParticleSystem extends CjsModel
       }
       finally
       {
-        this.#vertexBuffer.UnmapForWriting(context);
+        this._vertexBuffer.UnmapForWriting(context);
       }
     }
-    this.#bufferDirty = false;
-    this.#shouldSortVisible = false;
+    this._bufferDirty = false;
+    this._shouldSortVisible = false;
   }
 
   /** Compares squared local-space xyz distances, with Carbon's farther-first boolean result. */
   @impl.implemented
   CompareParticles(particle1, particle2)
   {
-    const position = this.#semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
+    const position = this._semanticElements[Tr2ParticleElementDeclaration.Type.POSITION];
     const buffer = position.buffer;
     const offset1 = position.startOffset + position.instanceStride * particle1;
     const offset2 = position.startOffset + position.instanceStride * particle2;
-    const point = this.#sortingReferencePoint;
+    const point = this._sortingReferencePoint;
     const x1 = buffer[offset1] - point[0], y1 = buffer[offset1 + 1] - point[1], z1 = buffer[offset1 + 2] - point[2];
     const x2 = buffer[offset2] - point[0], y2 = buffer[offset2 + 1] - point[1], z2 = buffer[offset2 + 2] - point[2];
     return x2 * x2 + y2 * y2 + z2 * z2 < x1 * x1 + y1 * y1 + z1 * z1;
@@ -989,13 +1008,13 @@ export class Tr2ParticleSystem extends CjsModel
   @impl.implemented
   UpdateTransform(worldTransform)
   {
-    mat4.copy(this.#worldTransform, worldTransform);
+    mat4.copy(this._worldTransform, worldTransform);
   }
 
   /**
    * A typed-array view onto one particle's slot within an element's buffer.
    */
-  #getElementView(element, index)
+  _GetElementView(element, index)
   {
     const offset = element.startOffset + index * element.instanceStride;
     return element.buffer.subarray(offset, offset + element.dimension);
@@ -1004,17 +1023,17 @@ export class Tr2ParticleSystem extends CjsModel
   /**
    * Removes a dead particle by swapping the last alive particle into its slot across every element.
    */
-  #removeParticle(index)
+  _RemoveParticle(index)
   {
     const last = --this.aliveCount;
     if (index === last)
     {
       return;
     }
-    for (let bufferIndex = 0; bufferIndex < this.#buffers.length; bufferIndex++)
+    for (let bufferIndex = 0; bufferIndex < this._buffers.length; bufferIndex++)
     {
-      const buffer = this.#buffers[bufferIndex];
-      const stride = this.#strides[bufferIndex];
+      const buffer = this._buffers[bufferIndex];
+      const stride = this._strides[bufferIndex];
       if (buffer && stride)
       {
         buffer.copyWithin(index * stride, last * stride, (last + 1) * stride);
@@ -1025,25 +1044,25 @@ export class Tr2ParticleSystem extends CjsModel
   /**
    * Resolves an element from a semantic type index or an element name.
    */
-  #resolveElement(type)
+  _ResolveElement(type)
   {
     if (typeof type === "number")
     {
-      return this.#semanticElements[type] ?? null;
+      return this._semanticElements[type] ?? null;
     }
     const name = String(type ?? "");
     const semanticName = Object.keys(Tr2ParticleElementDeclaration.Type)
       .find(key => key.toLowerCase() === name.toLowerCase());
-    return this.#elementMap.get(name)
-      ?? this.#elementMap.get(`custom:${name}`)
-      ?? (semanticName ? this.#semanticElements[Tr2ParticleElementDeclaration.Type[semanticName]] : null)
+    return this._elementMap.get(name)
+      ?? this._elementMap.get(`custom:${name}`)
+      ?? (semanticName ? this._semanticElements[Tr2ParticleElementDeclaration.Type[semanticName]] : null)
       ?? null;
   }
 
   /**
    * Runs one emitter's spawn pass for the frame.
    */
-  #spawnEmitter(updateArguments, emitter, position, velocity, index, rate)
+  _SpawnEmitter(updateArguments, emitter, position, velocity, index, rate)
   {
     if (!emitter)
     {
@@ -1051,8 +1070,8 @@ export class Tr2ParticleSystem extends CjsModel
     }
     emitter.SpawnParticles(
       updateArguments,
-      position ? this.#getElementView(position, index) : null,
-      velocity ? this.#getElementView(velocity, index) : null,
+      position ? this._GetElementView(position, index) : null,
+      velocity ? this._GetElementView(velocity, index) : null,
       rate
     );
   }
@@ -1060,7 +1079,7 @@ export class Tr2ParticleSystem extends CjsModel
   /**
    * Grows the tracked axis-aligned bounds to include one particle's position.
    */
-  #updateBounds(position)
+  _UpdateBounds(position)
   {
     if (!position || this.aliveCount === 0)
     {
@@ -1068,12 +1087,12 @@ export class Tr2ParticleSystem extends CjsModel
       vec3.set(this.aabbMax, 0, 0, 0);
       return;
     }
-    const first = this.#getElementView(position, 0);
+    const first = this._GetElementView(position, 0);
     vec3.copy(this.aabbMin, first);
     vec3.copy(this.aabbMax, first);
     for (let index = 1; index < this.aliveCount; index++)
     {
-      const value = this.#getElementView(position, index);
+      const value = this._GetElementView(position, index);
       vec3.min(this.aabbMin, this.aabbMin, value);
       vec3.max(this.aabbMax, this.aabbMax, value);
     }
@@ -1081,17 +1100,17 @@ export class Tr2ParticleSystem extends CjsModel
 
   static scratch = { mat4_0: mat4.create(), vec3_0: vec3.create(), vec3_1: vec3.create(), vec3_2: vec3.create() };
 
-  static #boundsMin = vec3.create();
+  static _boundsMin = vec3.create();
 
-  static #boundsMax = vec3.create();
+  static _boundsMax = vec3.create();
 
-  static #center = vec3.create();
+  static _center = vec3.create();
 
-  static #extent = vec3.create();
+  static _extent = vec3.create();
 
-  static #boundingSphere = vec4.create();
+  static _boundingSphere = vec4.create();
 
-  static #defaultUpdateArguments = new ITr2GenericEmitterUpdateArguments();
+  static _defaultUpdateArguments = new ITr2GenericEmitterUpdateArguments();
 
   static MAX_PARTICLE_COUNT = 10000;
 

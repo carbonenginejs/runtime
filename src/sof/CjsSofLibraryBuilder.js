@@ -2,7 +2,6 @@ import { impl } from "#schema";
 import { normalizeResourcePath } from "#utils/path";
 import { CjsBlackFormat } from "#resource/formats/black";
 import { EveSOFData } from "./EveSOFData.js";
-import { EveSOFDataMgr } from "./EveSOFDataMgr.js";
 import * as CcpLog from "../global/logging/ccpLog.js";
 
 
@@ -102,10 +101,6 @@ export class CjsSofLibraryBuilder
     exists = null
   } = {})
   {
-    if (!(dataMgr instanceof EveSOFDataMgr))
-    {
-      throw new TypeError("CjsSofLibraryBuilder dataMgr must be an EveSOFDataMgr.");
-    }
     if (typeof source !== "function")
     {
       throw new TypeError("CjsSofLibraryBuilder requires a decoded-object or Black-byte source function.");

@@ -264,8 +264,8 @@ export class Tr2InstancedMesh extends Tr2Mesh
   @impl.adapted
   SetBoundingBox(minBounds, maxBounds)
   {
-    vec3.copy(this.minBounds, minBounds ?? Tr2InstancedMesh.#zero);
-    vec3.copy(this.maxBounds, maxBounds ?? Tr2InstancedMesh.#zero);
+    vec3.copy(this.minBounds, minBounds ?? Tr2InstancedMesh._zero);
+    vec3.copy(this.maxBounds, maxBounds ?? Tr2InstancedMesh._zero);
   }
 
   /**
@@ -304,28 +304,28 @@ export class Tr2InstancedMesh extends Tr2Mesh
   {
     if (this.boundsMethod === Tr2InstancedMesh.BoundsMethod.STATIC)
     {
-      return Tr2InstancedMesh.#cloneBounds(this.minBounds, this.maxBounds);
+      return Tr2InstancedMesh._cloneBounds(this.minBounds, this.maxBounds);
     }
 
     const instanceResource = this.GetInstanceGeometryResource();
     if (!instanceResource)
     {
-      return Tr2InstancedMesh.#cloneBounds(Tr2InstancedMesh.#zero, Tr2InstancedMesh.#zero);
+      return Tr2InstancedMesh._cloneBounds(Tr2InstancedMesh._zero, Tr2InstancedMesh._zero);
     }
     const source = instanceResource.GetInstanceBufferBoundingBox(this.instanceMeshIndex);
     if (!source)
     {
-      return Tr2InstancedMesh.#cloneBounds(Tr2InstancedMesh.#zero, Tr2InstancedMesh.#zero);
+      return Tr2InstancedMesh._cloneBounds(Tr2InstancedMesh._zero, Tr2InstancedMesh._zero);
     }
 
     let size = this.maxInstanceSize;
     if (this.boundsMethod === Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED)
     {
-      size *= Tr2InstancedMesh.#getGeometryRadius(this.GetGeometryResource(), this.meshIndex);
+      size *= Tr2InstancedMesh._getGeometryRadius(this.GetGeometryResource(), this.meshIndex);
     }
 
-    const minBounds = vec3.clone(source.min ?? source.minBounds ?? Tr2InstancedMesh.#zero);
-    const maxBounds = vec3.clone(source.max ?? source.maxBounds ?? Tr2InstancedMesh.#zero);
+    const minBounds = vec3.clone(source.min ?? source.minBounds ?? Tr2InstancedMesh._zero);
+    const maxBounds = vec3.clone(source.max ?? source.maxBounds ?? Tr2InstancedMesh._zero);
     for (let index = 0; index < 3; index++)
     {
       minBounds[index] -= size;
@@ -362,11 +362,11 @@ export class Tr2InstancedMesh extends Tr2Mesh
     const bounds = this.GetGeometryResource()?.GetBoundingBox?.(this.meshIndex);
     if (!bounds)
     {
-      return Tr2InstancedMesh.#cloneBounds(Tr2InstancedMesh.#zero, Tr2InstancedMesh.#zero);
+      return Tr2InstancedMesh._cloneBounds(Tr2InstancedMesh._zero, Tr2InstancedMesh._zero);
     }
     return {
-      min: vec3.clone(bounds.min ?? bounds.minBounds ?? Tr2InstancedMesh.#zero),
-      max: vec3.clone(bounds.max ?? bounds.maxBounds ?? Tr2InstancedMesh.#zero)
+      min: vec3.clone(bounds.min ?? bounds.minBounds ?? Tr2InstancedMesh._zero),
+      max: vec3.clone(bounds.max ?? bounds.maxBounds ?? Tr2InstancedMesh._zero)
     };
   }
 
@@ -386,7 +386,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
       case Tr2InstancedMesh.BoundsMethod.DYNAMIC:
         break;
       case Tr2InstancedMesh.BoundsMethod.DYNAMIC_SCALED:
-        instanceSize *= Tr2InstancedMesh.#getGeometryRadius(this.GetGeometryResource(), this.meshIndex);
+        instanceSize *= Tr2InstancedMesh._getGeometryRadius(this.GetGeometryResource(), this.meshIndex);
         break;
       default:
         return null;
@@ -406,7 +406,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
   }
 
   /** A detached { min, max } pair cloned from the two vectors. */
-  static #cloneBounds(minBounds, maxBounds)
+  static _cloneBounds(minBounds, maxBounds)
   {
     return {
       min: vec3.clone(minBounds),
@@ -418,7 +418,7 @@ export class Tr2InstancedMesh extends Tr2Mesh
    * Radius of the mesh geometry's bounding box measured from the origin,
    * defaulting to 1 when the resource exposes no box.
    */
-  static #getGeometryRadius(resource, meshIndex)
+  static _getGeometryRadius(resource, meshIndex)
   {
     const bounds = resource?.GetBoundingBox?.(meshIndex);
     if (!bounds)
@@ -426,15 +426,15 @@ export class Tr2InstancedMesh extends Tr2Mesh
       return 1;
     }
 
-    const minBounds = bounds.min ?? bounds.minBounds ?? Tr2InstancedMesh.#zero;
-    const maxBounds = bounds.max ?? bounds.maxBounds ?? Tr2InstancedMesh.#zero;
+    const minBounds = bounds.min ?? bounds.minBounds ?? Tr2InstancedMesh._zero;
+    const maxBounds = bounds.max ?? bounds.maxBounds ?? Tr2InstancedMesh._zero;
     const x = Math.max(Math.abs(Number(minBounds[0]) || 0), Math.abs(Number(maxBounds[0]) || 0));
     const y = Math.max(Math.abs(Number(minBounds[1]) || 0), Math.abs(Number(maxBounds[1]) || 0));
     const z = Math.max(Math.abs(Number(minBounds[2]) || 0), Math.abs(Number(maxBounds[2]) || 0));
     return Math.hypot(x, y, z);
   }
 
-  static #zero = Object.freeze([0, 0, 0]);
+  static _zero = [0, 0, 0];
 
   static BoundsMethod = Object.freeze({
     STATIC: 0,

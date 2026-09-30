@@ -11,7 +11,7 @@ import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import { quat } from "../../npm/dist/global/math/quat.js";
 import { vec3 } from "../../npm/dist/global/math/vec3.js";
 
-import { EveCustomMask, EveSpaceObject2, EveTurretSet, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
+import { EveCustomMask, EveSpaceObject2, EveTurretSet, EveUpdateContext, Tr2RenderContext, Tr2RingBuffer } from "../../npm/dist/trinity/index.js";
 import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
 import { makePerObjectStore } from "./helpers/perObjectStore.js";
 
@@ -215,7 +215,7 @@ test("EveTurretSet fills the VS/PS pair from its turrets and parent data", t =>
     { localMatrix: mat4.create(), valid: true, localPosition: [ 1, 2, 3, 1 ], localQuaternion: [ 0, 0, 0, 1 ] },
     { localMatrix: mat4.create(), valid: false, localPosition: [ 9, 9, 9, 9 ], localQuaternion: [ 9, 9, 9, 9 ] }
   ]);
-  set.UpdateAsyncronous({ deltaTime: 0 }, {
+  set.UpdateAsyncronous(new EveUpdateContext(), {
     transform: parentTransform,
     shipData: [ 5, 6, 7, 8 ],
     clipSphereCenter: [ 1, 2, 3 ],

@@ -615,7 +615,7 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_IDLE:
       case State.STATE_RELOADING:
         this.trackingInfluence = 0;
-        this._PlayAnimation("Pack", "Inactive");
+        this.PlayAnimation("Pack", "Inactive");
         this._delayToFadeOutTracking = 0;
         break;
       case State.STATE_FIRING:
@@ -625,7 +625,7 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_TARGETING:
         this._delayToFadeOutTracking = 0.0001;
         this._target.StopFireAtLocator();
-        this._PlayAnimation("Pack", "Inactive", TRACKING_FADE_TIME);
+        this.PlayAnimation("Pack", "Inactive", TRACKING_FADE_TIME);
         break;
       default:
         break;
@@ -651,10 +651,10 @@ export class EveChildTurret extends EveChildMesh
     {
       case State.STATE_INVALID:
       case State.STATE_RELOADING:
-        this._PlayAnimation("", "Active");
+        this.PlayAnimation("", "Active");
         break;
       case State.STATE_DEACTIVE:
-        this._PlayAnimation("Deploy", "Active");
+        this.PlayAnimation("Deploy", "Active");
         this.trackingInfluence = 0;
         break;
       case State.STATE_IDLE:
@@ -664,7 +664,7 @@ export class EveChildTurret extends EveChildMesh
         this._delayToFadeOutTracking = 0.0001;
         this._target.StopFireAtLocator();
         if (this.firingEffect) this.firingEffect.StopFiring();
-        this._PlayAnimation("", "Active", TRACKING_FADE_TIME);
+        this.PlayAnimation("", "Active", TRACKING_FADE_TIME);
         if (this.playMovementSound && this.targetingToIdleMovementAudioEvent)
         {
           this._SendMovementAudioEvent(this.targetingToIdleMovementAudioEvent);
@@ -694,21 +694,21 @@ export class EveChildTurret extends EveChildMesh
     {
       case State.STATE_DEACTIVE:
       {
-        const animLength = this._PlayAnimation("Deploy", "Active", TRACKING_FADE_TIME);
+        const animLength = this.PlayAnimation("Deploy", "Active", TRACKING_FADE_TIME);
         this._delayToFadeInTracking = animLength + 0.0001;
         break;
       }
       case State.STATE_IDLE:
       case State.STATE_RELOADING:
         this._delayToFadeInTracking = 0.0001;
-        this._PlayAnimation("", "Active", TRACKING_FADE_TIME);
+        this.PlayAnimation("", "Active", TRACKING_FADE_TIME);
         break;
       case State.STATE_TARGETING:
         break;
       case State.STATE_FIRING:
         this._target.StopFireAtLocator();
         if (this.firingEffect) this.firingEffect.StopFiring();
-        this._PlayAnimation("", "Active", 0);
+        this.PlayAnimation("", "Active", 0);
         break;
       default:
         break;
@@ -798,14 +798,14 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_IDLE:
       case State.STATE_RELOADING:
         this._delayToFadeInTracking = 0.0001;
-        this._PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
+        this.PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
         this._target.StartFireAtLocator(
           closestLocator, this.maxTrackingTime + effectPeakTime,
           effectTotalTime - effectPeakTime, this._parentTranslation);
         break;
       case State.STATE_FIRING:
       case State.STATE_TARGETING:
-        this._PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
+        this.PlayAnimation(this._GetFireAnimationName(), "Active", this.maxTrackingTime);
         this._target.StartFireAtLocator(
           closestLocator, this.maxTrackingTime + effectPeakTime,
           effectTotalTime - effectPeakTime, this._parentTranslation);
@@ -833,14 +833,14 @@ export class EveChildTurret extends EveChildMesh
       case State.STATE_INVALID:
       case State.STATE_IDLE:
       case State.STATE_RELOADING:
-        this._PlayAnimation("Reload", "Active", 0);
+        this.PlayAnimation("Reload", "Active", 0);
         break;
       case State.STATE_TARGETING:
       case State.STATE_FIRING:
         this._delayToFadeOutTracking = 0.0001;
         this._target.StopFireAtLocator();
         if (this.firingEffect) this.firingEffect.StopFiring();
-        this._PlayAnimation("Reload", "Active", TRACKING_FADE_TIME);
+        this.PlayAnimation("Reload", "Active", TRACKING_FADE_TIME);
         break;
       default:
         break;
@@ -884,7 +884,7 @@ export class EveChildTurret extends EveChildMesh
     }
     if (idleAnimName.length > 0)
     {
-      this._PlayAnimation("", idleAnimName, 0);
+      this.PlayAnimation("", idleAnimName, 0);
     }
   }
 
@@ -896,7 +896,7 @@ export class EveChildTurret extends EveChildMesh
     this.trackingInfluence = this.maxTrackingTime;
     this._trackingInfluenceDelta = 0;
     this.state = EveChildTurret.State.STATE_TARGETING;
-    this._PlayAnimation("", "Active", 0);
+    this.PlayAnimation("", "Active", 0);
   }
 
   /**
@@ -1062,7 +1062,9 @@ export class EveChildTurret extends EveChildMesh
    * once on the base layer and the idle loop forever after it; returns the
    * action animation's duration (Carbon cpp:779-802).
    */
-  _PlayAnimation(animName, animNameIdle, delay = 0)
+  @carbon.method
+  @impl.implemented
+  PlayAnimation(animName, animNameIdle, delay = 0)
   {
     const updater = this.animationUpdater;
     if (!updater) return 0;

@@ -25,6 +25,15 @@ const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
 const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for Apocalypse/type462 turret realization";
 const geometryPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
 
+function updateContext({deltaTime=0,currentTime=10,...fields}={})
+{
+  const context=new EveUpdateContext();
+  Object.assign(context,fields);
+  context.SetTime(currentTime-deltaTime);
+  context.SetTime(currentTime);
+  return context;
+}
+
 async function assets(t)
 {
   const bytes=await readFile(join(corpus,"pulse_mega_t1.gr2"));
@@ -99,23 +108,23 @@ test("real paired mounts own independent sampled poses and native play-idle cloc
   assert.ok(a.sequencer && b.sequencer,"EveTurretSet.cpp:902 owns a sequencer per mount");
   assert.ok(a.sequencer!==b.sequencer && a.pose!==b.pose && a.pose.boneTransforms[0].position!==b.pose.boneTransforms[0].position);
   assert.deepEqual(set._skeletonBoneIndices,[4,8,6,0,2,1,3,7,9]);
-  set.UpdateAsyncronous({deltaTime:0});
+  set.UpdateAsyncronous(updateContext({deltaTime:0}));
   const paletteA=a.sequencer.GetMeshBoneMatrixList(),paletteB=b.sequencer.GetMeshBoneMatrixList();
   assert.equal(paletteA.length,108);assert.ok(paletteA!==paletteB);
   const beforeA=Array.from(paletteA),beforeB=Array.from(paletteB);
   const duration=set.PlayAnimation(0,"Deploy","Active",.25);
   assert.ok(Math.abs(duration-2.5416667461395264)<1e-8,"native fixture Deploy duration");
-  set.UpdateAsyncronous({deltaTime:.2});
+  set.UpdateAsyncronous(updateContext({deltaTime:.2}));
   assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].name,"Active","old control lives until delayed replacement");
-  set.UpdateAsyncronous({deltaTime:.3});
+  set.UpdateAsyncronous(updateContext({deltaTime:.3}));
   assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].name,"Deploy");
   assert.notDeepEqual(Array.from(a.sequencer.GetMeshBoneMatrixList()),beforeA);
   assert.deepEqual(Array.from(b.sequencer.GetMeshBoneMatrixList()),beforeB,"second mount remains unchanged while first deploys");
   const old=a.sequencer.GetAnimationLayer(null).queue[0];
   assert.equal(set.PlayAnimation(0,"missing","Active"),0);assert.equal(set.PlayAnimation(0,"Deploy","missing"),0);
-  set.UpdateAsyncronous({deltaTime:0});
+  set.UpdateAsyncronous(updateContext({deltaTime:0}));
   assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].elapsed,old.elapsed,"missing either name leaves native controls intact");
-  set.UpdateAsyncronous({deltaTime:duration});
+  set.UpdateAsyncronous(updateContext({deltaTime:duration}));
   const idle=a.sequencer.GetAnimationLayer(null).queue[0];
   assert.equal(idle.name,"Active");assert.ok(Math.abs(idle.elapsed-.25)<1e-9,"CMF first eligible scheduler preserves boundary overshoot");
   resource.MarkPurged();assert.equal(a.sequencer,null);assert.equal(a.pose,null);assert.deepEqual(a.worldTransforms,[]);
@@ -126,14 +135,14 @@ test("pending native requests replay without delay and late mounts initialize im
   const {set,ship,resources,makeResource}=await assets(t);const pending=makeResource(false);resources.set(geometryPath,pending);
   ship.RebuildTurretPositions();set.Initialize();
   assert.equal(set.PlayAnimation(0,"Deploy","Active",5),0);assert.equal(set._animationQueue.length,1);
-  set.UpdateAsyncronous({deltaTime:2});pending.MarkPrepared();set.UpdateAsyncronous({deltaTime:0});
+  set.UpdateAsyncronous(updateContext({deltaTime:2}));pending.MarkPrepared();set.UpdateAsyncronous(updateContext({deltaTime:0}));
   const first=set.GetTurrets()[0].sequencer.GetAnimationLayer(null).queue[0];
   assert.equal(first.name,"Deploy");assert.equal(first.elapsed,0,"cpp:2483 AnimationRequest omits delay");
   assert.equal(set._animationQueue.length,0);
-  set.SetLocalTransform(2,set.GetTurrets()[0].localMatrix);set.UpdateAsyncronous({deltaTime:0});
+  set.SetLocalTransform(2,set.GetTurrets()[0].localMatrix);set.UpdateAsyncronous(updateContext({deltaTime:0}));
   const late=set.GetTurrets()[2];assert.ok(late.sequencer);assert.equal(late.sequencer.GetAnimationLayer(null).queue[0].name,"Active");
   assert.equal("display" in late,false,"SingleTurretData retains Carbon visible spelling");
-  set.StopAnimation(0,0);set.UpdateAsyncronous({deltaTime:0});assert.equal(set.GetTurrets()[0].sequencer.GetAnimationLayer(null).queue.length,0);
+  set.StopAnimation(0,0);set.UpdateAsyncronous(updateContext({deltaTime:0}));assert.equal(set.GetTurrets()[0].sequencer.GetAnimationLayer(null).queue.length,0);
 });
 
 test("native delayed stops cover future controls and extended one-shots without chained-queue drift",{skip},async t=>
@@ -141,17 +150,17 @@ test("native delayed stops cover future controls and extended one-shots without 
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const [a,b]=set.GetTurrets();
   set.PlayAnimation(0,"Deploy","Active",1);set.StopAnimation(0,.5);
-  set.UpdateAsyncronous({deltaTime:.75});assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
+  set.UpdateAsyncronous(updateContext({deltaTime:.75}));assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
   const duration=set.PlayAnimation(0,"Deploy","",0);set.StopAnimation(0,duration+1);
-  set.UpdateAsyncronous({deltaTime:duration+.2});
+  set.UpdateAsyncronous(updateContext({deltaTime:duration+.2}));
   assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].held,true,"native one-shot holds final pose until extended stop");
-  set.UpdateAsyncronous({deltaTime:.81});assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
+  set.UpdateAsyncronous(updateContext({deltaTime:.81}));assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
   set.PlayAnimation(0,"Deploy","Active",.25);set.PlayAnimation(1,"Deploy","Active",.25);
-  set.UpdateAsyncronous({deltaTime:duration+.55});
+  set.UpdateAsyncronous(updateContext({deltaTime:duration+.55}));
   assert.ok(Math.abs(a.sequencer.GetAnimationLayer(null).queue[0].elapsed-.3)<1e-8);
   assert.deepEqual(Array.from(a.sequencer.GetMeshBoneMatrixList()),Array.from(b.sequencer.GetMeshBoneMatrixList()));
-  set.PlayAnimation(0,"","",.2);set.UpdateAsyncronous({deltaTime:.1});assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].name,"Active");
-  set.UpdateAsyncronous({deltaTime:.11});assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
+  set.PlayAnimation(0,"","",.2);set.UpdateAsyncronous(updateContext({deltaTime:.1}));assert.equal(a.sequencer.GetAnimationLayer(null).queue[0].name,"Active");
+  set.UpdateAsyncronous(updateContext({deltaTime:.11}));assert.equal(a.sequencer.GetAnimationLayer(null).queue.length,0);
 });
 
 
@@ -167,13 +176,13 @@ test("real Fire is an authored static clip; Deploy moves the full Recoil and muz
   for(const track of fire)for(const curve of Object.values(track.curves))assert.ok(curve.format===2 || curve.format===4);
   assert.ok(deploy.find(track=>track.name==="Recoil").curves.position.knots.length>1);
   const snapshot=()=>[9,10].map(index=>Array.from(updater.GetAnimationTransforms()[index]));
-  set.PlayAnimation(0,"Fire","Active");set.UpdateAsyncronous({deltaTime:.01});const first=snapshot();
-  set.UpdateAsyncronous({deltaTime:.2});assert.deepEqual(snapshot(),first,"full joints remain static, not just mesh palette");
-  set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous({deltaTime:.2});assert.notDeepEqual(snapshot(),first);
+  set.PlayAnimation(0,"Fire","Active");set.UpdateAsyncronous(updateContext({deltaTime:.01}));const first=snapshot();
+  set.UpdateAsyncronous(updateContext({deltaTime:.2}));assert.deepEqual(snapshot(),first,"full joints remain static, not just mesh palette");
+  set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous(updateContext({deltaTime:.2}));assert.notDeepEqual(snapshot(),first);
   const duration=set.PlayAnimation(0,"Deploy","Active",.25);
-  for(const deltaTime of [.1,.15,1,1,duration-2+.3])set.UpdateAsyncronous({deltaTime});
+  for(const deltaTime of [.1,.15,1,1,duration-2+.3])set.UpdateAsyncronous(updateContext({deltaTime}));
   const small=Array.from(updater.GetMeshBoneMatrixList()),elapsed=updater.GetAnimationLayer(null).queue[0].elapsed;
-  set.PlayAnimation(0,"Deploy","Active",.25);set.UpdateAsyncronous({deltaTime:duration+.55});
+  set.PlayAnimation(0,"Deploy","Active",.25);set.UpdateAsyncronous(updateContext({deltaTime:duration+.55}));
   assert.deepEqual(Array.from(updater.GetMeshBoneMatrixList()),small);
   assert.ok(Math.abs(updater.GetAnimationLayer(null).queue[0].elapsed-elapsed)<1e-8,"one large update agrees with smaller updates at same native clock");
 });
@@ -229,12 +238,12 @@ test("real turret aiming samples before yaw/pitch/height through a rotated scale
 {
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const parent=mat4.create();mat4.translate(parent,parent,[50,40,-30]);mat4.rotateZ(parent,parent,.6);mat4.rotateY(parent,parent,-.4);mat4.scale(parent,parent,[1.3,.8,2]);parent[4]+=.2;
-  set.target.position.set([700,1100,-300]);set.trackingInfluence=0;set.UpdateAsyncronous({deltaTime:.1},parent);
+  set.target.position.set([700,1100,-300]);set.trackingInfluence=0;set.UpdateAsyncronous(updateContext({deltaTime:.1}),parent);
   const base=set.GetTurrets().map(copyPose), influence=.65;
   set.sysBonePitchMin=-80;set.sysBonePitchMax=80;set.sysBonePitchFactor=.6;set.sysBonePitchOffset=7;set.sysBoneHeight=4;
   for(const updatePitchPose of [false,true])
   {
-    set.updatePitchPose=updatePitchPose;set.trackingInfluence=influence;set.UpdateAsyncronous({deltaTime:0},parent);
+    set.updatePitchPose=updatePitchPose;set.trackingInfluence=influence;set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);
     const targets=[];
     for(let index=0;index<2;index++)
     {
@@ -254,11 +263,11 @@ test("real turret aiming samples before yaw/pitch/height through a rotated scale
       assertScalars(turret.worldTransforms[10],expectedWorld[10],"full current muzzle joint before world placement");
     }
     assert.notDeepEqual(targets[0],targets[1],"paired mounts see distinct target-local coordinates");
-    const once=set.GetTurrets().map(copyPose);set.UpdateAsyncronous({deltaTime:0},parent);assert.deepEqual(set.GetTurrets().map(copyPose),once,"stationary frame must not accumulate aim");
-    set.trackingInfluence=0;set.UpdateAsyncronous({deltaTime:0},parent);assert.deepEqual(set.GetTurrets().map(copyPose),base,"zero influence restores sampled pose");
+    const once=set.GetTurrets().map(copyPose);set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);assert.deepEqual(set.GetTurrets().map(copyPose),once,"stationary frame must not accumulate aim");
+    set.trackingInfluence=0;set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);assert.deepEqual(set.GetTurrets().map(copyPose),base,"zero influence restores sampled pose");
   }
   set.trackingInfluence=influence;set._systemBoneID[EveTurretAiming.SystemBones.SYSBONE_ROTATION]=0xffffffff;
-  set.UpdateAsyncronous({deltaTime:0},parent);assert.deepEqual(Array.from(set.GetTurrets()[0].pose.boneTransforms[2].rotation),base[0][2].rotation,"missing sentinel skips only yaw");
+  set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);assert.deepEqual(Array.from(set.GetTurrets()[0].pose.boneTransforms[2].rotation),base[0][2].rotation,"missing sentinel skips only yaw");
   assert.notDeepEqual(Array.from(set.GetTurrets()[0].pose.boneTransforms[4].rotation),base[0][4].rotation);
 });
 
@@ -271,13 +280,13 @@ for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geom
   assert.equal(effect.GetPerMuzzleEffectCount(),1);assert.equal(effect.GetPerMuzzleBoneID(0),10,"cpp:320 prefix + 01 resolves full skeleton joint, not mesh binding");
   const parent=mat4.create();mat4.translate(parent,parent,[35,-18,22]);mat4.rotateY(parent,parent,.45);mat4.rotateX(parent,parent,-.3);mat4.scale(parent,parent,[1.2,.9,1.5]);
   set._activeTurret=1;set.trackingInfluence=.8;set.target.position.set([700,500,300]);set.PlayAnimation(1,"Deploy","Active");
-  set.UpdateAsyncronous({deltaTime:.2},parent);const turret=set.GetTurrets()[1];
+  set.UpdateAsyncronous(updateContext({deltaTime:.2}),parent);const turret=set.GetTurrets()[1];
   assert.equal(turret.sequencer.GetMeshBoneCount(),9,"muzzle10 cannot index the9-bone skin palette");
   const expected=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
   assertScalars(set.GetFiringBoneWorldTransform(0),expected,"native full bone * turret world");
   assertScalars(effect.GetMuzzleTransform(0),expected,"same-frame FX muzzle upload");
   const retained=set.GetTurretBoneTransform(1,10),retainedValues=Array.from(retained);set.GetTurretBoneTransform(0,10);assert.deepEqual(Array.from(retained),retainedValues,"native return value is caller-owned" );
-  const before=Array.from(expected);set.UpdateAsyncronous({deltaTime:2},parent);
+  const before=Array.from(expected);set.UpdateAsyncronous(updateContext({deltaTime:2}),parent);
   const next=carbonProduct(turret.worldTransforms[10],turret.worldMatrix);
   assert.notDeepEqual(Array.from(next),before);assertScalars(effect.GetMuzzleTransform(0),next,"animated muzzle is not one frame stale");
   set._activeTurret=EveTurretSet.INVALID_INDEX;set.chooseRandomLocator=false;
@@ -292,7 +301,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   const registry=new EveComponentRegistry();set.Register(registry);
   const old=makeEffect(),effect=makeEffect();set.SetFiringEffect(old);set.SetFiringEffect(effect);
   assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
-  const parent=mat4.create();mat4.translate(parent,parent,[60,20,10]);mat4.rotateZ(parent,parent,.3);set.UpdateAsyncronous({deltaTime:0},parent);set._activeTurret=0;
+  const parent=mat4.create();mat4.translate(parent,parent,[60,20,10]);mat4.rotateZ(parent,parent,.3);set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);set._activeTurret=0;
   const turret=set.GetTurrets()[0];effect.boneName="Absent";set.InitializeFiringEffect();assert.equal(effect.GetPerMuzzleBoneID(0),0xffffffff);
   assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"missing joint returns turret center before orientation fallback");
   set.useLowLodFiringTransform=true;set.lowLodFiringEffectTranslation.set([2,3,7]);set.lowLodFiringEffectScale.set([2,1,3]);set.lowLodFiringEffectRotation.set([0,Math.sin(.2),0,Math.cos(.2)]);
@@ -317,11 +326,11 @@ test("first actual firing without an active turret initializes muzzle positions 
   const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));
   const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);set.SetFiringEffect(effect);
   const parent=mat4.fromTranslation(mat4.create(),[80,20,-30]);
-  effect.PrepareFiring(0);set.UpdateAsyncronous({deltaTime:.1,currentTime:1},parent);
+  effect.PrepareFiring(0);set.UpdateAsyncronous(updateContext({deltaTime:.1,currentTime:1}),parent);
   assert.equal(set._firingEffectMuzzlePosSet,false,"no active turret: do not replace the muzzle with a closest mount during update");
-  set.UpdateAsyncronous({deltaTime:.1,currentTime:1.1},parent);
+  set.UpdateAsyncronous(updateContext({deltaTime:.1,currentTime:1.1}),parent);
   assert.equal(set._firingEffectMuzzlePosSet,true);assertScalars(effect.GetMuzzleTransform(0),parent,"cpp:1481 first-start parent fallback");
-  const next=mat4.fromTranslation(mat4.create(),[180,30,-40]);set.UpdateAsyncronous({deltaTime:.1,currentTime:1.2},next);
+  const next=mat4.fromTranslation(mat4.create(),[180,30,-40]);set.UpdateAsyncronous(updateContext({deltaTime:.1,currentTime:1.2}),next);
   assertScalars(effect.GetMuzzleTransform(0),parent,"native fallback is initialized once");
 });
 
@@ -336,7 +345,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   const uint=(record,name)=>{const view=record.Get(name);return new Uint32Array(view.buffer,view.byteOffset,1)[0];};
   const first=mat4.create();mat4.translate(first,first,[50,20,-30]);mat4.rotateY(first,first,.35);mat4.copy(ship.worldTransform,first);
   ship.spaceObjectShipData.set([2,3,4,5]);ship._psData.Set("clipSphereCenter",[6,7,8]);ship._psData.Set("clipRadiusSq",[100]);ship._psData.Set("clipRadius2Sq",[200]);ship._psData.Set("clipSphereFactor",[.25]);ship._psData.Set("clipSphereFactor2",[.75]);
-  set.PlayAnimation(0,"Deploy","Active");ship.UpdateTurretsAsyncronous({deltaTime:.4});
+  set.PlayAnimation(0,"Deploy","Active");ship.UpdateTurretsAsyncronous(updateContext({deltaTime:.4}));
   assert.ok(set._parentData!==ship._turretParentData,"native ParentData is copied by value");
   ship._turretParentData.shipData[0]=999;
   const view={GetFrustum:()=>({IsSphereVisible:()=>true,GetPixelSizeAccross:()=>25})};set.UpdateVisibility(view);
@@ -352,7 +361,7 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   assertScalars(data.vs.Get("turretTranslation").slice(0,4),a.localPosition,"first instance placement");assertScalars(data.vs.Get("turretTranslation").slice(4,8),b.localPosition,"second instance placement");
   set.GetShadowPerObjectData(accumulator);assert.equal(uploads.length,1,"shadow pass cannot upload again in same frame");assert.equal(ring.head,20);
   const second=mat4.clone(first);second[12]+=100;mat4.copy(ship.worldTransform,second);
-  set.UpdateSyncronous({deltaTime:.1,GetVisibilityThreshold:()=>1},second);ship.UpdateTurretsAsyncronous({deltaTime:.1});
+  set.UpdateSyncronous(updateContext({deltaTime:.1,GetVisibilityThreshold:()=>1}),second);ship.UpdateTurretsAsyncronous(updateContext({deltaTime:.1}));
   let call=0;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:()=>call++===1,GetPixelSizeAccross:()=>12})});
   assert.equal(set.visibleCount,1);assert.equal(set.estimatedPixelDiameter,12,"cpp:1164 synchronous LOD selection consumes the prior views estimate");
   const compact=set.GetPerObjectData(accumulator);
@@ -360,10 +369,10 @@ test("normal hull ParentData and visible palettes share one Float4x3 upload with
   assert.equal(uint(compact.vs,"currentBoneOffset"),20);assert.equal(uint(compact.vs,"prevBoneOffset"),2);
   assert.equal(uploads[1].count,9);assert.deepEqual(uploads[1].data,Array.from(b.sequencer.GetMeshBoneMatrixList()));
   assertScalars(compact.vs.Get("turretTranslation").slice(0,4),b.localPosition,"hidden first mount compacts second into instance0");
-  ship.UpdateTurretsAsyncronous({deltaTime:0});a.visible=false;b.visible=true;b.valid=false;
+  ship.UpdateTurretsAsyncronous(updateContext({deltaTime:0}));a.visible=false;b.visible=true;b.valid=false;
   const invalid=set.GetPerObjectData(accumulator);assert.deepEqual(Array.from(invalid.vs.Get("turretTranslation").slice(0,4)),[0,0,0,1]);
   assert.deepEqual(uploads[2].data,Array.from({length:9},()=>[1,0,0,0,0,1,0,0,0,0,1,0]).flat(),"visible invalid record has native identity skin data");
-  set.GetTurrets().length=0;ship.UpdateTurretsAsyncronous({deltaTime:0});assert.equal(set._boneOffsets.GetCurrentFrameOffset(),0xffffffff);assert.equal(set._boneOffsets.GetPreviousFrameOffset(),29);
+  set.GetTurrets().length=0;ship.UpdateTurretsAsyncronous(updateContext({deltaTime:0}));assert.equal(set._boneOffsets.GetCurrentFrameOffset(),0xffffffff);assert.equal(set._boneOffsets.GetPreviousFrameOffset(),29);
   set.display=false;set.UpdateVisibility(view);assert.equal(set.visibleCount,0);
   resource.MarkPurged();assert.equal(set.GetPerObjectData(accumulator),null,"native bad-resource gate");
 });
@@ -454,9 +463,9 @@ function poseBoundsOracle(bindings, transforms, placement = [0,0,0])
 
 test("native turret LOD consumes maximum view estimate, releases and reloads poses, and freeze reloads",{skip},async t=>
 {
-  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.UpdateAsyncronous({deltaTime:0});
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.UpdateAsyncronous(updateContext({deltaTime:0}));
   set.firingEffect=new EveTurretFiringFX();
-  const threshold={GetVisibilityThreshold:()=>3,deltaTime:0};
+  const threshold=updateContext({GetVisibilityThreshold:()=>3,deltaTime:0});
   const mounts=set.GetTurrets().map(x=>Array.from(x.localMatrix)),oldPose=set.GetTurrets()[0].pose;
   assert.equal(set.UpdateLOD(threshold),false,"cpp:1146 unreliable -1 does not select LOD");
   const view=pixels=>({GetFrustum:()=>({IsSphereVisible:()=>true,GetPixelSizeAccross:()=>pixels})});
@@ -481,7 +490,7 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
   for(const [label,geometry] of [["GR2",resource],["CMF",cmf]])
   {
     resources.set(geometryPath,geometry);set.Initialize();set.useDynamicBounds=true;set.OnModified("useDynamicBounds");
-    set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous({deltaTime:.8});
+    set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous(updateContext({deltaTime:.8}));
     const turret=set.GetTurrets()[0],names=set._skeleton.bones;
     const bindings=[];
     if(label==="CMF")for(const mesh of geometry.GetCMFData().meshes){if(mesh.skeleton===0)for(let joint=0;joint<names.length;joint++){const b=mesh.boneBindings.find(x=>x.name===names[joint]);if(b)bindings.push({joint,lo:b.bounds.min,hi:b.bounds.max});}}
@@ -495,12 +504,12 @@ test("GR2 and CMF turret bounds follow donor traversal, animated world joints an
     assertScalars(sphere,oracle.sphere,label+" native incremental sphere");assertScalars(min,oracle.min,label+" world bounds min");assertScalars(max,oracle.max,label+" world bounds max");
     min.fill(123);assert.equal(set.GetDynamicBounds(turret,null,min,null),true);assert.deepEqual(Array.from(min),[123,123,123],"cpp:675 both AABB pointers required");
     set.GetTurrets()[1].valid=false;set.GetLocalBoundingBox(min,max);assertScalars(min,oracle.min,"cpp:1814 no mount offset in local bounds");
-    const before=Array.from(sphere);set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous({deltaTime:.1});set.GetDynamicBounds(turret,sphere);assert.notDeepEqual(Array.from(sphere),before,"pose bounds move with actual Deploy");
+    const before=Array.from(sphere);set.PlayAnimation(0,"Deploy","Active");set.UpdateAsyncronous(updateContext({deltaTime:.1}));set.GetDynamicBounds(turret,sphere);assert.notDeepEqual(Array.from(sphere),before,"pose bounds move with actual Deploy");
     let captured;set.UpdateVisibility({GetFrustum:()=>({IsSphereVisible:value=>{captured??=Array.from(value);return true;},GetPixelSizeAccross:()=>40})});
     const expectedCenter=Array.from({length:3},(_,i)=>sphere[0]*turret.worldMatrix[i]+sphere[1]*turret.worldMatrix[i+4]+sphere[2]*turret.worldMatrix[i+8]+turret.worldMatrix[i+12]);
     assertScalars(captured.slice(0,3),expectedCenter,"dynamic sphere transformed by mount for culling");
     geometry.MarkPurged();sphere.fill(17);assert.equal(set.GetDynamicBounds(turret,sphere),false);assert.deepEqual(Array.from(sphere),[17,17,17,17]);
-    geometry.MarkPrepared();assert.ok(set._boneBounds.length);set.UpdateAsyncronous({deltaTime:0});assert.equal(set.GetDynamicBounds(turret,sphere),true);
+    geometry.MarkPrepared();assert.ok(set._boneBounds.length);set.UpdateAsyncronous(updateContext({deltaTime:0}));assert.equal(set.GetDynamicBounds(turret,sphere),true);
     set.useDynamicBounds=false;set.OnModified("useDynamicBounds");assert.equal(set._boneBounds.length,0);min.fill(8);assert.equal(set.GetLocalBoundingBox(min,max),false);assert.deepEqual(Array.from(min),[8,8,8]);
   }
 });
@@ -523,7 +532,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   set.ambientEffectEditingMode=true;set.OnModified("ambientEffectEditingMode");assert.ok(set.GetAmbientEffectOrGeneratedEffect()===source);
   const parent=mat4.create();mat4.rotateY(parent,parent,.7);mat4.translate(parent,parent,[2,5,9]);set.SetParentTransform(parent);
   let observed;source.UpdateSyncronous=(_context,params)=>{observed={visible:params.isVisible,matrix:Array.from(params.localToWorldTransform)};};
-  set._parentData.clipRadiusSq=1;set.UpdateSyncronous({deltaTime:0});assert.equal(observed.visible,false);
+  set._parentData.clipRadiusSq=1;set.UpdateSyncronous(updateContext({deltaTime:0}));assert.equal(observed.visible,false);
   assertScalars(observed.matrix,carbonProduct(set.GetTurrets()[0].localMatrix,parent),"cpp:1273 ambient editing offset order under rotation");
   set.SetAmbientEffectControllerVariableOnInstance(200,"TurretState",5);assert.equal(source._controllerVariables.get("TurretState"),5,"editing ignores instance index");
   let ambientLod;source.UpdateVisibility=(_context,_parent,lod)=>{ambientLod=lod;};
@@ -555,7 +564,7 @@ test("instance container native copier, bone wrapper, reset and boundary quirk",
 
 test("controlled bounds projection distinguishes all CMF meshes from GR2 model zero",{skip},async t=>
 {
-  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.useDynamicBounds=true;set.UpdateAsyncronous({deltaTime:0});
+  const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();set.useDynamicBounds=true;set.UpdateAsyncronous(updateContext({deltaTime:0}));
   const names=set._skeleton.bones,lo=[-2,-3,-4],hi=[5,6,7];
   const cmfBinding=name=>({name,bounds:{min:lo,max:hi}});
   const projection={skeletons:[set._skeleton],meshes:[{skeleton:0,boneBindings:[cmfBinding(names[4]),cmfBinding(names[0])]},{skeleton:1,boneBindings:[cmfBinding(names[2])]},{skeleton:0,boneBindings:[cmfBinding(names[3]),cmfBinding(names[1])]}]};

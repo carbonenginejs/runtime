@@ -69,7 +69,7 @@ const INVALID_OFFSET = 0xffffffff;
 export class Tr2RingBuffer extends CjsModel
 {
   /** One arena per data type, as Carbon's typed `GetInstance` gives. */
-  static #instances = new Map();
+  static _instances = new Map();
 
   /** m_name */
   @edit.persist
@@ -97,25 +97,25 @@ export class Tr2RingBuffer extends CjsModel
   tail = 0;
 
   /** m_frame - the frame being recorded. */
-  #frame = 0;
+  _frame = 0;
 
   /** m_mirror - the CPU copy, and the authority until a backend uploads it. */
-  #mirror = new Uint8Array(0);
+  _mirror = new Uint8Array(0);
 
   /** m_buffer */
-  #buffer = null;
+  _buffer = null;
 
   /** m_dirtyRegions[2] - what changed since the last PrepareBuffer. */
-  #dirtyRegions = [ { offset: 0, size: 0 }, { offset: 0, size: 0 } ];
+  _dirtyRegions = [ { offset: 0, size: 0 }, { offset: 0, size: 0 } ];
 
   /** m_lockedRegions - uploads the GPU may still be reading, by frame. */
-  #lockedRegions = [];
+  _lockedRegions = [];
 
   /** Explicit context for isolated callers; null reacquires Carbon's current main-thread context. */
-  #renderContext = null;
+  _renderContext = null;
 
   /** Backend that owns the current storage; JS permits runtime AL replacement. */
-  #bufferBackend = null;
+  _bufferBackend = null;
 
   /** Registers the arena as Carbon's Tr2DeviceResource constructor does. */
   constructor()
@@ -145,7 +145,7 @@ export class Tr2RingBuffer extends CjsModel
     if (typeof key !== "string" || !key) failRing("an instance needs a data-type key");
     if (!Number.isInteger(stride) || stride <= 0) failRing(`${key} needs a positive stride`);
 
-    const existing = Tr2RingBuffer.#instances.get(key);
+    const existing = Tr2RingBuffer._instances.get(key);
 
     if (existing)
     {
@@ -161,7 +161,7 @@ export class Tr2RingBuffer extends CjsModel
 
     created.stride = stride;
     created.SetName(key);
-    created.#renderContext = renderContext === Tr2RenderContext_GetMainThreadRenderContext() ? null : renderContext;
+    created._renderContext = renderContext === Tr2RenderContext_GetMainThreadRenderContext() ? null : renderContext;
 
     // Carbon seeds the fence from the context before the first sizing
     // (`Tr2RingBuffer.cpp:121`), so a ring created mid-session does not think
@@ -169,7 +169,7 @@ export class Tr2RingBuffer extends CjsModel
     created.SetFrameNumbers(renderContext.GetRecordingFrameNumber(), renderContext.GetRenderedFrameNumber());
     created.Resize(INITIAL_SIZE);
 
-    Tr2RingBuffer.#instances.set(key, created);
+    Tr2RingBuffer._instances.set(key, created);
 
     return created;
   }
@@ -178,12 +178,12 @@ export class Tr2RingBuffer extends CjsModel
   @impl.custom
   static ResetInstances()
   {
-    for (const ring of Tr2RingBuffer.#instances.values())
+    for (const ring of Tr2RingBuffer._instances.values())
     {
-      ring.#buffer?.Destroy();
+      ring._buffer?.Destroy();
       TriDevice.UnregisterResource(ring);
     }
-    Tr2RingBuffer.#instances.clear();
+    Tr2RingBuffer._instances.clear();
   }
 
   /**
@@ -199,7 +199,7 @@ export class Tr2RingBuffer extends CjsModel
    */
   static prepareInstances(renderContext)
   {
-    for (const ring of Tr2RingBuffer.#instances.values()) ring.PrepareBuffer(renderContext);
+    for (const ring of Tr2RingBuffer._instances.values()) ring.PrepareBuffer(renderContext);
   }
 
   /**
@@ -212,7 +212,7 @@ export class Tr2RingBuffer extends CjsModel
    */
   static setInstanceFrameNumbers(recordingFrame, completedFrame)
   {
-    for (const ring of Tr2RingBuffer.#instances.values()) ring.SetFrameNumbers(recordingFrame, completedFrame);
+    for (const ring of Tr2RingBuffer._instances.values()) ring.SetFrameNumbers(recordingFrame, completedFrame);
   }
 
   /**
@@ -227,7 +227,7 @@ export class Tr2RingBuffer extends CjsModel
   {
     this.name = name;
 
-    if (this.#buffer && this.#buffer.IsValid()) this.#buffer.SetName(name);
+    if (this._buffer && this._buffer.IsValid()) this._buffer.SetName(name);
   }
 
   /**
@@ -239,7 +239,7 @@ export class Tr2RingBuffer extends CjsModel
   @impl.implemented
   GetGpuBuffer()
   {
-    return this.#buffer;
+    return this._buffer;
   }
 
   /**
@@ -272,13 +272,13 @@ export class Tr2RingBuffer extends CjsModel
 
     if (this.head < this.tail && this.head + count >= this.tail) this.Resize(this.size * 2);
 
-    this.#mirror.set(new Uint8Array(data.buffer, data.byteOffset, bytes), this.head * this.stride);
+    this._mirror.set(new Uint8Array(data.buffer, data.byteOffset, bytes), this.head * this.stride);
 
     // The two regions exist so a wrap can be described without a third: one run
     // ends at the head, or the other does. Neither means the head moved without
     // this ring being told, which is a caller writing behind its back.
-    const first = this.#dirtyRegions[0];
-    const second = this.#dirtyRegions[1];
+    const first = this._dirtyRegions[0];
+    const second = this._dirtyRegions[1];
 
     if (first.offset + first.size === this.head) first.size += count;
     else if (second.offset + second.size === this.head) second.size += count;
@@ -305,22 +305,22 @@ export class Tr2RingBuffer extends CjsModel
   @impl.adapted
   PrepareBuffer(renderContext)
   {
-    for (const region of this.#dirtyRegions)
+    for (const region of this._dirtyRegions)
     {
       if (!region.size) continue;
 
-      if (this.#buffer) this.#buffer.UpdateBuffer(
+      if (this._buffer) this._buffer.UpdateBuffer(
         region.offset * this.stride,
         region.size * this.stride,
-        this.#mirror.subarray(region.offset * this.stride, (region.offset + region.size) * this.stride),
+        this._mirror.subarray(region.offset * this.stride, (region.offset + region.size) * this.stride),
         renderContext
       );
 
-      this.#lockedRegions.push({ frame: this.#frame, tail: region.offset + region.size });
+      this._lockedRegions.push({ frame: this._frame, tail: region.offset + region.size });
     }
 
-    this.#dirtyRegions[0] = { offset: this.head, size: 0 };
-    this.#dirtyRegions[1] = { offset: 0, size: 0 };
+    this._dirtyRegions[0] = { offset: this.head, size: 0 };
+    this._dirtyRegions[1] = { offset: 0, size: 0 };
   }
 
   /**
@@ -339,12 +339,12 @@ export class Tr2RingBuffer extends CjsModel
   @impl.implemented
   SetFrameNumbers(recordingFrame, completedFrame)
   {
-    this.#frame = recordingFrame;
+    this._frame = recordingFrame;
 
     const completed = Math.min(completedFrame, recordingFrame - 2);
     let consumed = 0;
 
-    for (const region of this.#lockedRegions)
+    for (const region of this._lockedRegions)
     {
       if (region.frame > completed) break;
 
@@ -354,7 +354,7 @@ export class Tr2RingBuffer extends CjsModel
 
     // See the head comment: Carbon erases only when it stops early, so a ring
     // whose regions all complete never erases any. Same tail, bounded list.
-    if (consumed) this.#lockedRegions.splice(0, consumed);
+    if (consumed) this._lockedRegions.splice(0, consumed);
   }
 
   /**
@@ -381,17 +381,17 @@ export class Tr2RingBuffer extends CjsModel
     const previousSize = this.size;
     const grown = new Uint8Array(size * this.stride);
 
-    grown.set(this.#mirror.subarray(0, Math.min(this.#mirror.length, grown.length)));
+    grown.set(this._mirror.subarray(0, Math.min(this._mirror.length, grown.length)));
 
-    this.#dirtyRegions[0] = { offset: 0, size: previousSize };
-    this.#dirtyRegions[1] = { offset: 0, size: 0 };
-    this.#lockedRegions.length = 0;
-    this.#mirror = grown;
+    this._dirtyRegions[0] = { offset: 0, size: previousSize };
+    this._dirtyRegions[1] = { offset: 0, size: 0 };
+    this._lockedRegions.length = 0;
+    this._mirror = grown;
     this.head = previousSize;
     this.size = size;
     this.tail = size;
 
-    this.#CreateBuffer(null);
+    this._CreateBuffer(null);
   }
 
   /**
@@ -437,11 +437,11 @@ export class Tr2RingBuffer extends CjsModel
   @impl.adapted
   OnPrepareResources()
   {
-    const renderContext = this.#renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
-    if (this.#mirror.length && (!this.#buffer || !this.#buffer.IsValid()
-      || this.#bufferBackend !== renderContext.GetRenderContextAL()))
+    const renderContext = this._renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
+    if (this._mirror.length && (!this._buffer || !this._buffer.IsValid()
+      || this._bufferBackend !== renderContext.GetRenderContextAL()))
     {
-      this.#CreateBuffer(this.#mirror);
+      this._CreateBuffer(this._mirror);
     }
     return true;
   }
@@ -453,12 +453,12 @@ export class Tr2RingBuffer extends CjsModel
    * ring is: written every frame, and never waited on, because the frame fence
    * already guarantees nobody is reading what is being written.
    */
-  #CreateBuffer(initialData)
+  _CreateBuffer(initialData)
   {
-    const renderContext = this.#renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
+    const renderContext = this._renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
 
-    if (this.#buffer) this.#buffer.Destroy();
-    this.#buffer = null;
+    if (this._buffer) this._buffer.Destroy();
+    this._buffer = null;
     if (!renderContext.IsValid()) return;
 
     const description = Tr2BufferDescriptionAL.FromStride(
@@ -470,9 +470,9 @@ export class Tr2RingBuffer extends CjsModel
 
     // The context creates the running backend's buffer, as Carbon's
     // compile-time Tr2BufferAL is whichever backend was built.
-    this.#bufferBackend = renderContext.GetRenderContextAL();
-    this.#buffer = renderContext.CreateBuffer(description, initialData);
+    this._bufferBackend = renderContext.GetRenderContextAL();
+    this._buffer = renderContext.CreateBuffer(description, initialData);
     // Carbon Resize ignores a failed Create: the provider/mirror survive it.
-    if (this.#buffer) this.#buffer.SetName(this.name);
+    if (this._buffer) this._buffer.SetName(this.name);
   }
 }

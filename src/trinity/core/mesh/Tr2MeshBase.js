@@ -216,7 +216,7 @@ export class Tr2MeshBase extends CjsModel
   GetAreas(areaType)
   {
     if (!Number.isInteger(areaType)) return null;
-    const property = Tr2MeshBase.#areaProperties[areaType];
+    const property = Tr2MeshBase._areaProperties[areaType];
     return property ? this[property] : null;
   }
 
@@ -234,7 +234,7 @@ export class Tr2MeshBase extends CjsModel
     // Which list, not merely whether it is one: a mesh has other array fields,
     // and Carbon reaches this only from the ten it installed itself on
     // (cpp:31-40).
-    if (!this.#IsAreaList(list)) return;
+    if (!this._IsAreaList(list)) return;
 
     // Carbon's arms are guarded by BlueCastPtr to Tr2MeshAreaPtr - a real cast,
     // so a non-area entry is skipped rather than assumed to answer.
@@ -258,10 +258,10 @@ export class Tr2MeshBase extends CjsModel
   }
 
   /** Whether a list is one of the ten area lists this mesh observes. */
-  #IsAreaList(list)
+  _IsAreaList(list)
   {
     if (!Array.isArray(list)) return false;
-    return Tr2MeshBase.#areaProperties.some(property => this[property] === list);
+    return Tr2MeshBase._areaProperties.some(property => this[property] === list);
   }
 
   /**
@@ -273,7 +273,7 @@ export class Tr2MeshBase extends CjsModel
   @impl.reason("A JavaScript array has no notify slot, so the owner drives the notification through CjsModel.addChild rather than the list driving it.")
   AddArea(areaType, area)
   {
-    const property = Number.isInteger(areaType) ? Tr2MeshBase.#areaProperties[areaType] : null;
+    const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
     if (!property) return false;
     CjsModel.addChild(this, property, area);
     return true;
@@ -288,7 +288,7 @@ export class Tr2MeshBase extends CjsModel
   @impl.reason("Carbon removes through the Blue list, which notifies; here the owner drives the same notification through CjsModel.removeChild.")
   RemoveArea(areaType, area)
   {
-    const property = Number.isInteger(areaType) ? Tr2MeshBase.#areaProperties[areaType] : null;
+    const property = Number.isInteger(areaType) ? Tr2MeshBase._areaProperties[areaType] : null;
     if (!property) return false;
     return CjsModel.removeChild(this, property, area);
   }
@@ -301,7 +301,7 @@ export class Tr2MeshBase extends CjsModel
   @impl.implemented
   GetAllAreas()
   {
-    return Tr2MeshBase.#areaProperties.flatMap(property => this[property]);
+    return Tr2MeshBase._areaProperties.flatMap(property => this[property]);
   }
 
   /**
@@ -569,7 +569,7 @@ export class Tr2MeshBase extends CjsModel
     return collectors;
   }
 
-  static #areaProperties = Object.freeze([
+  static _areaProperties = Object.freeze([
     "opaqueAreas",
     "decalAreas",
     "transparentAreas",

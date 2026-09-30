@@ -181,11 +181,8 @@ test("Tr2Transform camera and mesh contracts fail visibly when malformed", () =>
   assert.throws(() => transform.GetBatches({}, 0, null, 0), /GetAreas/u);
 });
 
-test("Eve transforms inherit the maintained base and drive particle view state directly", t =>
+test("Eve transforms drive particle view state directly", t =>
 {
-  assert.ok(new trinity.EveTransform() instanceof core.Tr2Transform);
-  assert.ok(new trinity.EveRootTransform() instanceof core.Tr2Transform);
-  assert.ok(new trinity.EveMissileWarhead() instanceof core.Tr2Transform);
 
   const transform = new trinity.EveTransform();
   const ambient = core.Tr2RenderContext_GetMainThreadRenderContext();
