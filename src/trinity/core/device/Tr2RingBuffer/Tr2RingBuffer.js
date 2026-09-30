@@ -25,25 +25,26 @@
 // clamps "completed" to two frames behind "recording" no matter what it is
 // told.
 //
-// THREE DIFFERENCES FROM CARBON, EACH FORCED:
+// Carbon's device-resource base registers the logical arena before a device
+// exists. Allocation failure leaves its CPU mirror/provider alive; preparation
+// realizes the buffer later. These base obligations live on this original
+// class because JavaScript has one prototype parent.
 //
-// - Carbon reaches a process-wide render context through a macro; we have none,
-//   so the context is supplied to `GetInstance` and kept. Same reason
-//   `TriDevice`'s capability methods are still unimplemented.
-// - Carbon drives the fence from EveSpaceScene::Update, which reaches the
-//   process-wide render context (`EveSpaceScene.cpp:441-445`). We have no
-//   process-wide context, so nothing ticks a ring per frame yet and a caller
-//   must drive `SetFrameNumbers` itself. The seeding at creation IS Carbon's.
-// - Carbon's `SetFrameNumbers` erases consumed locked regions only when it finds
-//   an incomplete one, so a ring whose regions all complete erases none and the
-//   list grows for the life of the process. That is survivable in a game
-//   session and is not in a browser tab, so the consumed prefix is erased in
-//   both cases. The tail it computes is identical either way.
+// The supplied context selects the backend; unlike Carbon's compile-time AL,
+// it can change at runtime. Preparation recreates storage from the mirror when
+// that backend changes, retaining the provider, offsets and frame fence.
+//
+// SetFrameNumbers erases the completed prefix even when all regions finish;
+// Carbon only erases it when an incomplete region follows. The tail is the
+// same, but the JS list stays bounded (documented native quirk).
 
 import { carbon, impl, edit, type } from "#schema";
 import { CjsModel } from "#model";
 import { Tr2BufferDescriptionAL } from "../../../../trinityal/index.js";
 import { Tr2CpuUsage, Tr2GpuUsage } from "#consts/render-context";
+import { TriDevice } from "../TriDevice.js";
+import { Tr2Renderer } from "../../Tr2Renderer.js";
+import { Tr2RenderContext_GetMainThreadRenderContext } from "../../context/Tr2RenderContext.js";
 
 
 function failRing(message)
@@ -110,21 +111,35 @@ export class Tr2RingBuffer extends CjsModel
   /** m_lockedRegions - uploads the GPU may still be reading, by frame. */
   #lockedRegions = [];
 
-  /** The render context this ring creates and updates its buffer through. */
+  /** Explicit context for isolated callers; null reacquires Carbon's current main-thread context. */
   #renderContext = null;
+
+  /** Backend that owns the current storage; JS permits runtime AL replacement. */
+  #bufferBackend = null;
+
+  /** Registers the arena as Carbon's Tr2DeviceResource constructor does. */
+  constructor()
+  {
+    super();
+    TriDevice.RegisterResource(this);
+  }
 
   /**
    * The arena for one data type, created on first ask.
    *
    * Carbon keys this on the C++ type (`GetInstance<T>`); a key and a stride say
    * the same thing here, and the stride is checked on every ask so two callers
-   * cannot disagree about what a row is.
+   * cannot disagree about what a row is. Ambient callers are recognized once
+   * so preparation reacquires the current main-thread context; explicit
+   * isolated contexts retain the existing JS argument adaptation.
    *
    * @param {string} key Names the data type, e.g. "ChildBoosterInstance".
    * @param {number} stride Bytes per row.
    * @param {object} renderContext The context to create the buffer through.
    * @returns {Tr2RingBuffer} The arena.
    */
+  @carbon.method
+  @impl.adapted
   static GetInstance(key, stride, renderContext)
   {
     if (typeof key !== "string" || !key) failRing("an instance needs a data-type key");
@@ -146,7 +161,7 @@ export class Tr2RingBuffer extends CjsModel
 
     created.stride = stride;
     created.SetName(key);
-    created.#renderContext = renderContext;
+    created.#renderContext = renderContext === Tr2RenderContext_GetMainThreadRenderContext() ? null : renderContext;
 
     // Carbon seeds the fence from the context before the first sizing
     // (`Tr2RingBuffer.cpp:121`), so a ring created mid-session does not think
@@ -159,9 +174,15 @@ export class Tr2RingBuffer extends CjsModel
     return created;
   }
 
-  /** Forgets every arena. Test and teardown only; Carbon's are process-lived. */
+  /** Destroys storage and unregisters arenas at test/teardown; Carbon's are process-lived. */
+  @impl.custom
   static ResetInstances()
   {
+    for (const ring of Tr2RingBuffer.#instances.values())
+    {
+      ring.#buffer?.Destroy();
+      TriDevice.UnregisterResource(ring);
+    }
     Tr2RingBuffer.#instances.clear();
   }
 
@@ -170,9 +191,8 @@ export class Tr2RingBuffer extends CjsModel
    *
    * Carbon prepares each of its three typed instances at the top of
    * `RenderBatchesInOrder` (Tr2RenderContext.cpp:360-362). Those exist from
-   * process start; here an arena is created on first ask, once a context can
-   * make its buffer, so "each instance" is each one asked for so far - and a
-   * context with no device never creates one by preparing it.
+   * process start; here an arena is created on first ask, even before its
+   * context has a device. Preparation walks only arenas already requested.
    *
    * @param {object} renderContext The context to update through.
    * @returns {void}
@@ -213,7 +233,7 @@ export class Tr2RingBuffer extends CjsModel
   /**
    * The backend buffer these rows live in.
    *
-   * @returns {object|null} The buffer, or null before the first size.
+   * @returns {object|null} The buffer, or null until backend creation succeeds.
    */
   @carbon.method
   @impl.implemented
@@ -274,18 +294,22 @@ export class Tr2RingBuffer extends CjsModel
   /**
    * Pushes what changed to the backend and locks it for this frame.
    *
+   * Adapted: a failed JS buffer factory leaves null rather than an invalid
+   * inline buffer. Skip that failed update but retain Carbon's region/fence
+   * bookkeeping; later preparation restores all bytes from the CPU mirror.
+   *
    * @param {object} renderContext The context to update through.
    * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   PrepareBuffer(renderContext)
   {
     for (const region of this.#dirtyRegions)
     {
       if (!region.size) continue;
 
-      this.#buffer.UpdateBuffer(
+      if (this.#buffer) this.#buffer.UpdateBuffer(
         region.offset * this.stride,
         region.size * this.stride,
         this.#mirror.subarray(region.offset * this.stride, (region.offset + region.size) * this.stride),
@@ -340,11 +364,16 @@ export class Tr2RingBuffer extends CjsModel
    * with the tail at the new one, so the next upload lands in the fresh space
    * and everything already written is re-uploaded once.
    *
+   * Adapted: a failed JS factory returns null instead of leaving Carbon's
+   * inline buffer invalid. An unavailable context is deferred without asking
+   * the factory to create an unreachable invalid resource. Both retain the
+   * mirror for OnPrepareResources.
+   *
    * @param {number} size The new capacity, in elements.
    * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   Resize(size)
   {
     if (!Number.isInteger(size) || size <= 0) failRing("a ring needs a positive size");
@@ -366,16 +395,54 @@ export class Tr2RingBuffer extends CjsModel
   }
 
   /**
-   * Recreates the backend buffer from the mirror after a device loss.
+   * Prepares the arena when resource creation is allowed (Tr2DeviceResource.cpp:21-32).
    *
-   * @returns {boolean} True.
+   * @returns {boolean} Whether preparation succeeded or was deferred.
    */
   @carbon.method
   @impl.implemented
+  PrepareResources()
+  {
+    if (Tr2Renderer.IsResourceCreationAllowed()) return this.OnPrepareResources();
+    return true;
+  }
+
+  /**
+   * Retains the mirror/provider; Carbon's ring release is empty (cpp:143-145).
+   * The AL resource lifecycle invalidates the backing storage separately.
+   *
+   * @param {number} _storage Storage mask.
+   * @returns {void}
+   */
+  @carbon.method
+  @impl.implemented
+  ReleaseResources(_storage)
+  {
+  }
+
+  /**
+   * Recreates invalid backend storage from the retained CPU mirror (cpp:147-158).
+   *
+   * Adapted: the JS context may replace its AL at runtime, so an otherwise
+   * valid buffer from the previous backend must also be recreated. Ambient
+   * rings reacquire the current main-thread context, as Carbon does, including
+   * after context destruction/recreation. Explicit isolated contexts remain
+   * supported by the existing GetInstance argument. The ring
+   * and its offsets remain unchanged. Failed allocation retains the mirror,
+   * just as Carbon keeps its invalid inline buffer for another preparation.
+   *
+   * @returns {boolean} True, matching Carbon even if allocation fails.
+   */
+  @carbon.method
+  @impl.adapted
   OnPrepareResources()
   {
-    if (this.#mirror.length && !(this.#buffer && this.#buffer.IsValid())) this.#CreateBuffer(this.#mirror);
-
+    const renderContext = this.#renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
+    if (this.#mirror.length && (!this.#buffer || !this.#buffer.IsValid()
+      || this.#bufferBackend !== renderContext.GetRenderContextAL()))
+    {
+      this.#CreateBuffer(this.#mirror);
+    }
     return true;
   }
 
@@ -388,9 +455,11 @@ export class Tr2RingBuffer extends CjsModel
    */
   #CreateBuffer(initialData)
   {
-    if (!this.#renderContext) failRing(`${this.name} has no render context to create its buffer through`);
+    const renderContext = this.#renderContext ?? Tr2RenderContext_GetMainThreadRenderContext();
 
     if (this.#buffer) this.#buffer.Destroy();
+    this.#buffer = null;
+    if (!renderContext.IsValid()) return;
 
     const description = Tr2BufferDescriptionAL.FromStride(
       this.stride,
@@ -401,8 +470,9 @@ export class Tr2RingBuffer extends CjsModel
 
     // The context creates the running backend's buffer, as Carbon's
     // compile-time Tr2BufferAL is whichever backend was built.
-    this.#buffer = this.#renderContext.CreateBuffer(description, initialData);
-    if (!this.#buffer) failRing(`${this.name}: the backend refused its buffer`);
-    this.#buffer.SetName(this.name);
+    this.#bufferBackend = renderContext.GetRenderContextAL();
+    this.#buffer = renderContext.CreateBuffer(description, initialData);
+    // Carbon Resize ignores a failed Create: the provider/mirror survive it.
+    if (this.#buffer) this.#buffer.SetName(this.name);
   }
 }

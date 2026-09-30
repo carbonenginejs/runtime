@@ -3194,8 +3194,8 @@ export async function RunDemo(canvas)
 
   // THE REAL SCENE: a SOF-built ship in an EveSpaceScene, which owns its
   // per-frame data, its global textures and its lens flares. Built before the
-  // render context exists; its BoneTransforms ring is registered and its
-  // materials rebuilt once the context does (scene.Initialize below).
+  // device exists; construction registers its logical BoneTransforms ring.
+  // Device preparation realizes the ring storage after AL attachment.
   //
   // The universe scene's values - its background effect, environment maps,
   // nebula intensity, ambient colour and fog - go onto the scene as values.
@@ -3715,16 +3715,10 @@ export async function RunDemo(canvas)
 
   renderContext.SetRenderContextAL(al);
 
-  // WHAT EveSpaceScene's CONSTRUCTOR DOES (EveSpaceScene.cpp:257-258), which
-  // this stand-in scene must do itself: the Float4x3 ring is the global
-  // `BoneTransforms` variable. The materials were mapped before this existed,
-  // and a register maps to a variable only if it is registered at mapping, so
-  // they are rebuilt. Uploaded once: a rest pose never changes, and nothing
-  // here drives the ring's per-frame fence.
   if (realScene)
   {
-    // The real scene registers its BoneTransforms ring and loads its nebula
-    // (Initialize), then the ship's materials map the globals that now exist.
+    // Initialize loads the nebula and registers initial objects. The bone
+    // provider was already available to materials at scene construction.
     realScene.Initialize(renderContext);
     ship.RebuildCachedData();
 

@@ -1242,6 +1242,15 @@ export class EveSpaceScene extends CjsModel
     Tr2OcclusionBuffer.getInstance().ProcessBuffer(renderContext);
   }
 
+  /** Registers the bone provider before effect hydration (EveSpaceScene.cpp:257-258). */
+  constructor()
+  {
+    super();
+    const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, Tr2RenderContext_GetMainThreadRenderContext());
+    bones.SetName("BoneTransformsBuffer");
+    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
+  }
+
   // THE SCENE'S GLOBAL TEXTURES (EveSpaceScene.cpp:252-261). Carbon registers
   // each with a TYPED null - `(ITr2TextureProvider*)nullptr` - so the name is a
   // texture variable before anything fills it; a JS null has no type, so an
@@ -1356,17 +1365,11 @@ export class EveSpaceScene extends CjsModel
   #staticEnvMapTextureRes = null;
 
   /**
-   * Carbon Initialize (cpp:3207-3226), with the constructor's ring-buffer
-   * registrations (cpp:257-258) moved here. The nebula loads from
-   * envMapResPath; the reflection is the probe's cube when the scene has a
-   * valid probe, else the nebula.
+   * Loads the nebula/reflection and registers initial scene objects (cpp:3207-3263).
    *
-   * The render context is an ADDED argument: Carbon's constructor reaches the
-   * BoneTransforms ring through the process-wide context, and a JS scene is
-   * constructed before any context exists, so the ring is registered here.
-   * It defaults to the main-thread context, which is what Carbon reaches, so a
-   * reader that initializes the scene after loading it (BlackReader.cpp:394-403)
-   * calls it with no argument, as Carbon's Initialize() is called.
+   * Adapted: the optional render context supports the probe validity query;
+   * Carbon obtains its main-thread context internally. BoneTransforms is
+   * already registered at construction, before any object effect can map it.
    *
    * @param {Tr2RenderContext} [renderContext] The frame's context.
    * @returns {boolean} True.
@@ -1375,10 +1378,6 @@ export class EveSpaceScene extends CjsModel
   @impl.adapted
   Initialize(renderContext = Tr2RenderContext_GetMainThreadRenderContext())
   {
-    const bones = Tr2RingBuffer.GetInstance("Float4x3", 48, renderContext);
-    bones.SetName("BoneTransformsBuffer");
-    Tr2VariableStore.GlobalStore().RegisterVariable("BoneTransforms", bones);
-
     this.#staticEnvMapTextureRes = this.envMapResPath
       ? blue.resMan.GetResource(this.envMapResPath, { requirement: ResourceRequirement.TEXTURE })
       : null;
