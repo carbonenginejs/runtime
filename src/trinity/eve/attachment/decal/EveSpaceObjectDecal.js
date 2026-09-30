@@ -8,6 +8,7 @@ import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
 import { CjsModel } from "#model";
 import { carbon, edit, impl, type } from "#schema";
+import { MatrixCopyFrom3x4 } from "../../lights/lightConversion.js";
 import { IEveSpaceObject2ParentData } from "../../spaceObject/IEveSpaceObject2ParentData.js";
 import { TriBatchType } from "#consts/graphics";
 import { ITr2Renderable } from "../../../core/ITr2Renderable.js";
@@ -426,38 +427,21 @@ export class EveSpaceObjectDecal extends CjsModel
     return true;
   }
 
-  /** Carbon EveSpaceObjectDecal::SetBoneMatrix (cpp:475-491): expands the
-   * parent's Float4x3 mesh bone at m_parentBoneIndex into the 4x4 bone matrix.
-   * A -1 index or an out-of-range index leaves the identity in place. */
+  /**
+   * Expands the parent's flat Float4x3 mesh-binding palette at parentBoneIndex.
+   * Carbon EveSpaceObjectDecal.cpp:475-491 leaves the previous matrix unchanged
+   * for -1 or an index at or beyond the bone count.
+   */
   @carbon.method
   @impl.implemented
   SetBoneMatrix(boneMatrices, boneMatrixCount)
   {
-    if (this.parentBoneIndex === -1 || this.parentBoneIndex >= boneMatrixCount)
+    if (this.parentBoneIndex >= boneMatrixCount || this.parentBoneIndex === -1)
     {
       return false;
     }
 
-    const bone = boneMatrices?.[this.parentBoneIndex];
-    if (!bone) return false;
-
-    // Float4x3 is COLUMN-stride on the shared byte layout: each packed row is
-    // (v0, v4, v8, v12) of the logical matrix (math skill gotcha 7), so the
-    // expansion writes the transpose of the three packed rows back into the
-    // 4x4 basis and leaves the last column as identity.
-    const out = this._parentBoneMatrix;
-    for (let row = 0; row < 3; row++)
-    {
-      out[row] = bone[row * 4 + 0];
-      out[4 + row] = bone[row * 4 + 1];
-      out[8 + row] = bone[row * 4 + 2];
-      out[12 + row] = bone[row * 4 + 3];
-    }
-    out[3] = 0;
-    out[7] = 0;
-    out[11] = 0;
-    out[15] = 1;
-
+    MatrixCopyFrom3x4(this._parentBoneMatrix, boneMatrices, this.parentBoneIndex);
     return true;
   }
 

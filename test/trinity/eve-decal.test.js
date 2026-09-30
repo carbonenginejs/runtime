@@ -87,13 +87,13 @@ test("EveSpaceObjectDecal expands the parent bone and reports its Carbon render 
   assert.equal(decal.GetID(7), decal, "inline GetID returns the object (h:113-116)");
 
   // parentBoneIndex -1 keeps the identity bone (cpp:484-487).
-  assert.equal(decal.SetBoneMatrix([new Float32Array(12)], 1), false);
+  assert.equal(decal.SetBoneMatrix(new Float32Array(12), 1), false);
 
   // Float4x3 is column-stride: packed rows are (v0,v4,v8,v12) of the logical
   // matrix, so a translation lands in the packed w lanes.
   decal.parentBoneIndex = 0;
   const packed = new Float32Array([1, 0, 0, 5, 0, 1, 0, 6, 0, 0, 1, 7]);
-  assert.equal(decal.SetBoneMatrix([packed], 1), true);
+  assert.equal(decal.SetBoneMatrix(packed, 1), true);
 
   const store = makePerObjectStore();
   decal.decalEffect = {};
@@ -104,7 +104,37 @@ test("EveSpaceObjectDecal expands the parent bone and reports its Carbon render 
 
   // Out-of-range index is refused (cpp:478-481).
   decal.parentBoneIndex = 5;
-  assert.equal(decal.SetBoneMatrix([packed], 1), false);
+  assert.equal(decal.SetBoneMatrix(packed, 1), false);
+});
+
+test("decal mesh-binding indices address flat palette strides and preserve the previous matrix on native guards", () =>
+{
+  const decal = new EveSpaceObjectDecal();
+  const count = 9;
+  const palette = new Float32Array(count * 12);
+  // Non-identity rotation, scale and translation distinguish all packed lanes.
+  // Binding 8 is unrelated to skeleton joint 8: the producer already maps it.
+  palette.set([0, -3, 0, 5, 2, 0, 0, 6, 0, 0, 4, 7], 8 * 12);
+  decal.parentBoneIndex = 8;
+  assert.equal(palette[8], 0, "a scalar-at-index read would silently skip this bone");
+  assert.equal(decal.SetBoneMatrix(palette, count), true);
+  const expected = [0, 2, 0, 0, -3, 0, 0, 0, 0, 0, 4, 0, 5, 6, 7, 1];
+  assert.deepEqual(Array.from(decal._parentBoneMatrix), expected,
+    "EveSpaceObjectDecal.cpp:490 and MatrixUtils.cpp:81-96 expand boneIndex * 12");
+  for (const index of [-1, count, count + 1])
+  {
+    decal.parentBoneIndex = index;
+    assert.equal(decal.SetBoneMatrix(null, count), false, "native guards precede dereference");
+    assert.deepEqual(Array.from(decal._parentBoneMatrix), expected, "guards retain the previous transform");
+  }
+  const store = makePerObjectStore();
+  const data = decal.GetPerObjectData({ Alloc: name => store.Allocate(name) });
+  const inverse = mat4.invert(mat4.create(), expected);
+  const transpose = matrix => Array.from(mat4.transpose(mat4.create(), matrix));
+  assert.deepEqual(Array.from(data.vs.GetTransposed("parentBoneMatrix")), transpose(expected),
+    "EveSpaceObjectDecal.cpp:370 encodes one transpose");
+  assert.deepEqual(Array.from(data.vs.GetTransposed("invParentBoneMatrix")), transpose(inverse),
+    "EveSpaceObjectDecal.cpp:372 preserves inverse-bone constants");
 });
 
 // A frustum looking down -Z from the origin, wide enough that pixel size is
