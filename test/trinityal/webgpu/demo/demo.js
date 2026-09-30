@@ -116,6 +116,7 @@ import "../../../../npm/dist/audio/index.js";
 import { EveSOF } from "../../../../npm/dist/sof/index.js";
 import { RegisterGeometryResources } from "../../../../npm/dist/resource/index.js";
 import { RegisterObjectResources } from "../../../../npm/dist/resource/object/index.js";
+import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
 import { CjsModel } from "../../../../npm/dist/global/model/index.js";
 import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
 import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
@@ -1033,7 +1034,7 @@ function FormatShipDna(parts)
  *
  * @param {object} options
  * @param {string} options.initialDna The DNA the page started with.
- * @param {(dna: string) => Promise<unknown>} options.apply Loads a DNA.
+ * @param {(dna: string, typeID: string|null) => Promise<unknown>} options.apply Loads explicit DNA and its known type.
  * @param {number} [options.materialCount=4] Generic material prefixes.
  */
 async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
@@ -1232,12 +1233,12 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
     catch (error) { clearType(); note.textContent = error.message; }
   };
 
-  const loadDna = async dna =>
+  const loadDna = async (dna, typeID = null) =>
   {
     note.textContent = `loading ${dna}`;
     try
     {
-      await apply(dna);
+      await apply(dna, typeID);
       const url = new URL(globalThis.location.href);
       url.searchParams.set("dna", dna);
       globalThis.history.replaceState(null, "", url);
@@ -1257,7 +1258,7 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
     {
       const { dna } = await getJson(`${sde}/dna/resolve?typeID=${selectedTypeID()}${skin}`);
       await writeFields(ParseShipDna(dna));
-      await loadDna(dna);
+      await loadDna(dna, selectedTypeID());
     }
     catch (error) { note.textContent = `no DNA: ${error.message}`; }
   };
@@ -1321,10 +1322,37 @@ async function BuildShipPanel({ initialDna, apply, materialCount = 4 })
     await writeFields(ParseShipDna(dnaText.value.trim()));
     await findType(dnaText.value.trim());
   });
-  load.addEventListener("click", () => loadDna(dnaText.value.trim()));
+  load.addEventListener("click", () => loadDna(dnaText.value.trim(), selectedTypeID() || null));
 
   await writeFields(parts);
   await findType(initialDna);
+}
+
+/**
+ * Resolves the selected hull's unskinned appearance through the page's pinned SDE.
+ * This is client UI behavior; SOF has no hull.defaultFaction field.
+ *
+ * @param {string} dna Current skin DNA.
+ * @param {number|string|null} typeID Explicit type selection, when known.
+ * @returns {Promise<string>} Same-hull default DNA.
+ */
+async function ResolveDefaultSkinDna(dna, typeID)
+{
+  const page = await (await fetch("/build")).json();
+  const origin = new URLSearchParams(globalThis.location?.search ?? "").get("tools") || page.tools;
+  const getJson = async path =>
+  {
+    const response = await fetch(origin + path);
+    const body = await response.json();
+    if (!response.ok || body.error) throw new Error(body.error ?? `${path}: ${response.status}`);
+    return body;
+  };
+  const { builds } = await getJson(`/eve/${page.resources}/build`);
+  const sde = `/eve/${builds.sde}`;
+  return resolveDemoDefaultDna(dna, typeID, {
+    search: query => getJson(`${sde}/dna/search?q=${encodeURIComponent(query)}&limit=500`),
+    resolve: id => getJson(`${sde}/dna/resolve?typeID=${encodeURIComponent(id)}`)
+  });
 }
 
 /**
@@ -1723,8 +1751,6 @@ const DEFAULT_HULL = "dx9/model/ship/amarr/frigate/af1/af1_t1.gr2";
 // effects and the post process leave in alpha shows through.
 const ALPHA = new URLSearchParams(globalThis.location?.search ?? "").get("alpha") === "1";
 
-// The other skin demo.skin() swaps to: the same hull in Angel base colours.
-const SKIN_ALTERNATE = "angb1_t1:angelbase:angel";
 const DNA = new URLSearchParams(globalThis.location?.search ?? "").get("dna") || "angb1_t1:capsuleerday_25_angel:angel:pattern?capsuleerday_25_angel;green_carapace_darker_polished;green_carapace_mirror";
 
 /**
@@ -3185,7 +3211,6 @@ export async function RunDemo(canvas)
   let bounds = null;
   let geometry = null;
   let ship = null;
-  let currentDna = DNA;
   const textures = { loaded: 0, failed: [] };
 
   // EACH AREA GETS ITS OWN SHADER. The report and the console read areas as
@@ -3501,61 +3526,64 @@ export async function RunDemo(canvas)
     // (clipSphereFactor, activationStrength) while new_* bring in the new one
     // (clipSphereFactor2, activationStrength); then the old ship goes. Each
     // ship gets its own copy of the overlay, so each curve set is updated once
-    // a frame. With no DNA it toggles between the start DNA and SKIN_ALTERNATE.
-    skin: (dna = null) => SerializeSkinChange(async () =>
-    {
-      if (!realScene) return null;
-      const old = ship;
-      const next = await BuildSofShip(dna ?? (currentDna === DNA ? SKIN_ALTERNATE : DNA));
-      currentDna = dna ?? (currentDna === DNA ? SKIN_ALTERNATE : DNA);
-      next.displayKillCounterValue = old.displayKillCounterValue;
-      ApplyDemoBanners(next);
-      next.speed = old.speed;
-      next.translationCurve = old.translationCurve;
-      next.maxSpeed = old.maxSpeed;
-      mat4.copy(next.worldTransform, old.worldTransform);
-
-      // Wait for the new hull's geometry, so the swap does not start on an
-      // invisible ship.
-      for (let wait = 0; wait < 100 && !next.mesh?.GetGeometryResource()?.IsGood(); wait++)
+    // a frame. With no DNA, switch the current hull between its selected skin
+    // and the SDE-resolved default. Explicit DNA loads may change the hull.
+    skin: realScene ? createDemoSkinChange({
+      initialDna: DNA,
+      serialize: SerializeSkinChange,
+      resolveDefault: ResolveDefaultSkinDna,
+      replace: async nextDna =>
       {
-        await new Promise(resolve => setTimeout(resolve, 100));
-      }
+        const old = ship;
+        const next = await BuildSofShip(nextDna);
+        next.displayKillCounterValue = old.displayKillCounterValue;
+        ApplyDemoBanners(next);
+        next.speed = old.speed;
+        next.translationCurve = old.translationCurve;
+        next.maxSpeed = old.maxSpeed;
+        mat4.copy(next.worldTransform, old.worldTransform);
 
-      const skinned = (old.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
-      const bytes = await ResourceBytes(`fisfx/skinchange/${skinned ? "skin_change_skinned" : "skin_change"}.black`);
-      const overlays = [ old, next ].map(owner =>
-      {
-        const overlay = CjsBlackFormat.read(bytes, { emit: "runtime" }).root;
-        for (const binding of overlay.curveSet?.bindings ?? [])
+        // Wait for the new hull's geometry, so the swap does not start on an
+        // invisible ship.
+        for (let wait = 0; wait < 100 && !next.mesh?.GetGeometryResource()?.IsGood(); wait++)
         {
-          binding.destinationObject = binding.name.startsWith("old_") ? old : next;
-          binding.Initialize();
+          await new Promise(resolve => setTimeout(resolve, 100));
         }
-        owner.overlayEffects.push(overlay);
-        overlay.curveSet.ApplyTime(0);
-        overlay.PlayCurveSet(overlay.curveSet.name);
-        return overlay;
-      });
 
-      // The notified list: adding raises EveSpaceScene.OnListModified, which
-      // registers the new ship as Carbon's BlueList insert does (cpp:3414-3491).
-      CjsModel.addChild(realScene, "objects", next);
-      const duration = overlays[0].curveSet.GetMaxCurveDuration();
-      await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
+        const skinned = (old.mesh?.opaqueAreas ?? []).some(area => /skinned/iu.test(area.effect?.effectFilePath ?? ""));
+        const bytes = await ResourceBytes(`fisfx/skinchange/${skinned ? "skin_change_skinned" : "skin_change"}.black`);
+        const overlays = [ old, next ].map(owner =>
+        {
+          const overlay = CjsBlackFormat.read(bytes, { emit: "runtime" }).root;
+          for (const binding of overlay.curveSet?.bindings ?? [])
+          {
+            binding.destinationObject = binding.name.startsWith("old_") ? old : next;
+            binding.Initialize();
+          }
+          owner.overlayEffects.push(overlay);
+          overlay.curveSet.ApplyTime(0);
+          overlay.PlayCurveSet(overlay.curveSet.name);
+          return overlay;
+        });
 
-      // Removing through the notified list unregisters the replaced ship.
-      if (!CjsModel.removeChild(realScene, "objects", old)) throw new Error("skin change: the old ship is no longer in the scene");
-      next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
-      next.clipSphereFactor = 0;
-      next.clipSphereFactor2 = 0;
-      next.activationStrength = 1;
-      // Direct writes skip the notify, which switches SPACE_OBJECT_CLIPPING off.
-      next.OnModified("clipSphereFactor2");
-      ship = next;
-      globalThis.demo.ship = next;
-      return currentDna;
-    }),
+        // The notified list: adding raises EveSpaceScene.OnListModified, which
+        // registers the new ship as Carbon's BlueList insert does (cpp:3414-3491).
+        CjsModel.addChild(realScene, "objects", next);
+        const duration = overlays[0].curveSet.GetMaxCurveDuration();
+        await new Promise(resolve => setTimeout(resolve, duration * 1000 + 100));
+
+        // Removing through the notified list unregisters the replaced ship.
+        if (!CjsModel.removeChild(realScene, "objects", old)) throw new Error("skin change: the old ship is no longer in the scene");
+        next.overlayEffects.splice(next.overlayEffects.indexOf(overlays[1]), 1);
+        next.clipSphereFactor = 0;
+        next.clipSphereFactor2 = 0;
+        next.activationStrength = 1;
+        // Direct writes skip the notify, which switches SPACE_OBJECT_CLIPPING off.
+        next.OnModified("clipSphereFactor2");
+        ship = next;
+        globalThis.demo.ship = next;
+      }
+    }) : async () => null,
     ship,
     scene: realScene
   };
@@ -4499,7 +4527,7 @@ export async function RunDemo(canvas)
   // The ship panel loads through the skin swap, so the new ship dissolves in.
   if (realScene)
   {
-    BuildShipPanel({ initialDna: DNA, apply: dna => globalThis.demo.skin(dna) })
+    BuildShipPanel({ initialDna: DNA, apply: (dna, typeID) => globalThis.demo.skin(dna, typeID) })
       .catch(error => console.warn(`ship panel: ${error.message}`));
   }
 
