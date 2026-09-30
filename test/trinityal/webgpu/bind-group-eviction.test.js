@@ -39,6 +39,7 @@ test("destroying a buffer drops the cached groups that bind its GPU buffers", ()
   const gpuBuffer = { kind: "buffer", destroy() {} };
   const buffer = new CjsWebgpuBufferAL();
   buffer._webgpu = { GetDeviceBuffer: handle => handle.gpuBuffer };
+  buffer._al = { ReleaseLater(release) { release(); } };
   buffer._handles = [ { gpuBuffer, Destroy() {} } ];
   RegisterBindingUse(gpuBuffer, cache, "uses-buffer");
   RegisterBindingUse({ kind: "other buffer" }, cache, "unrelated");

@@ -1,3 +1,5 @@
+import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
+import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h:44-127
 // Source: trinity/trinityal/src/Tr2ResourceSetAL.cpp:152-543
 import { impl } from "#schema";
@@ -46,7 +48,9 @@ export class Tr2ResourceSetDescriptionAL
       if (count === 0) continue;
       // Backend references already represent implementation identities here.
       // Copies share those identities, never mutable description records.
-      this[field] = copy ? copy[field].map(record => ({ ...record }))
+      this[field] = copy ? copy[field].map(record => field === "m_samplers" ? { ...record } : ({ ...record,
+        buffer: record.buffer ? new Tr2BufferAL({ copy: record.buffer }) : null,
+        texture: record.texture ? new Tr2TextureAL({ copy: record.texture }) : null }))
         : Array.from({ length: count }, () => field === "m_samplers"
           ? { type: 0, sampler: null }
           : { type: 0, texture: null, buffer: null, colorSpace: 0 });
@@ -63,15 +67,19 @@ export class Tr2ResourceSetDescriptionAL
     const current = this.m_srv[index];
     if (resourceType === 1)
     {
-      if (current.type === 1 && current.buffer === resource) return false;
+      if (current.type === 1 && sameValue(current.buffer, resource)) return false;
       current.type = 1;
-      current.buffer = resource;
+      const next = resource ? new Tr2BufferAL({ copy: resource }) : null;
+      if (current.buffer) current.buffer.Destroy();
+      current.buffer = next;
     }
     else
     {
-      if (current.type === 2 && current.texture === resource && current.colorSpace === colorSpace) return false;
+      if (current.type === 2 && sameValue(current.texture, resource) && current.colorSpace === colorSpace) return false;
       current.type = 2;
-      current.texture = resource;
+      const next = resource ? new Tr2TextureAL({ copy: resource }) : null;
+      if (current.texture) current.texture.Destroy();
+      current.texture = next;
       current.colorSpace = colorSpace;
     }
     return true;
@@ -87,15 +95,19 @@ export class Tr2ResourceSetDescriptionAL
     const current = this.m_uav[index];
     if (resourceType === 1)
     {
-      if (current.type === 1 && current.buffer === resource) return false;
+      if (current.type === 1 && sameValue(current.buffer, resource)) return false;
       current.type = 1;
-      current.buffer = resource;
+      const next = resource ? new Tr2BufferAL({ copy: resource }) : null;
+      if (current.buffer) current.buffer.Destroy();
+      current.buffer = next;
     }
     else
     {
-      if (current.type === 2 && current.texture === resource && current.colorSpace === mip) return false;
+      if (current.type === 2 && sameValue(current.texture, resource) && current.colorSpace === mip) return false;
       current.type = 2;
-      current.texture = resource;
+      const next = resource ? new Tr2TextureAL({ copy: resource }) : null;
+      if (current.texture) current.texture.Destroy();
+      current.texture = next;
       current.colorSpace = mip;
     }
     return true;
@@ -175,6 +187,8 @@ export class Tr2ResourceSetDescriptionAL
     {
       for (const record of records ?? [])
       {
+        if (record.texture) record.texture.Destroy();
+        if (record.buffer) record.buffer.Destroy();
         record.type = 0;
         record.texture = null;
         record.buffer = null;
@@ -198,7 +212,7 @@ export class Tr2ResourceSetDescriptionAL
         if (record.type === 0) continue;
         const heap = record.type === (sampler ? 2 : 3);
         const object = sampler ? record.sampler ?? nullSampler
-          : record.type === 1 ? record.buffer ?? nullBuffer : record.texture ?? nullTexture;
+          : record.type === 1 ? record.buffer?.TrinityALImpl_GetObject() ?? nullBuffer : record.texture?.TrinityALImpl_GetObject() ?? nullTexture;
         let identity = heap ? record.type : 0;
         if (!heap)
         {
@@ -215,4 +229,10 @@ export class Tr2ResourceSetDescriptionAL
     }
     return hash >>> 0;
   }
+}
+
+/** Native AL equality compares implementation identity, not value-object identity. */
+function sameValue(left, right)
+{
+  return (left ? left.TrinityALImpl_GetObject() : null) === (right ? right.TrinityALImpl_GetObject() : null);
 }

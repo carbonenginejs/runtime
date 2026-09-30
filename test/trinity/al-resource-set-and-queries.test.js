@@ -2,8 +2,8 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { Tr2GpuTimerALStub, Tr2OcclusionQueryALStub, Tr2PipelineStatsQueryALStub, Tr2RegisterMapAL, Tr2ResourceSetAL, Tr2ResourceSetALStub, Tr2VideoAdapterInfoStub } from "../../npm/dist/trinityal/index.js";
-import { Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, ALResult } from "../../npm/dist/trinityal/index.js";
-import { ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2FenceALStub, Tr2RenderContextALStub, Tr2ResourceSetDescriptionAL, ALResult } from "../../npm/dist/trinityal/index.js";
+import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage, ShaderType } from "../../npm/dist/global/consts/renderContext/index.js";
 
 const device = () =>
 {
@@ -13,6 +13,15 @@ const device = () =>
 
   return context;
 };
+
+function resources(t)
+{
+  const al = device();
+  const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+  const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 4, Tr2GpuUsage.VERTEX_BUFFER, Tr2CpuUsage.WRITE));
+  t.after(() => { texture.Destroy(); buffer.Destroy(); al.Destroy(); });
+  return { texture, buffer };
+}
 
 const signature = (...registers) => ({ registers: registers.map(([ registerType, registerIndex ]) => ({ registerType, registerIndex })) });
 const mapFor = () => new Tr2RegisterMapAL({
@@ -42,10 +51,10 @@ test("register maps retain input traversal, counts and 255 sentinels", () =>
   assert.equal(duplicate.srvs[1][7], 1, "duplicates increment and overwrite; constants are ignored");
 });
 
-test("descriptions allocate from maps and retain inactive fields and qualifiers", () =>
+test("descriptions allocate from maps and retain inactive fields and qualifiers", t =>
 {
   const desc = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
-  const texture = {}, buffer = {}, sampler = {};
+  const { texture, buffer } = resources(t), sampler = {};
   assert.equal(new Tr2ResourceSetDescriptionAL().SetSrv(1, 3, texture), false);
   assert.equal(desc.SetSrv(1, 31, texture), false);
   assert.equal(desc.SetSrv(99, 3, texture), false);
@@ -57,7 +66,8 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
   assert.equal(desc.SetSrv(1, 3, texture, 0), true);
   assert.equal(desc.ComputeHash(), hash, "Carbon quirk: qualifiers are absent from the hash");
   assert.equal(desc.SetSrv(1, 3, buffer, 0, 1), true);
-  assert.equal(desc.m_srv[0].texture, texture, "inactive texture is retained");
+  assert.notEqual(desc.m_srv[0].texture, texture);
+  assert.equal(desc.m_srv[0].texture.Equals(texture), true, "inactive texture is retained");
   assert.equal(desc.SetUav(1, 4, texture, 7), true);
   assert.equal(desc.SetUav(1, 4, buffer, 0, 1), true);
   assert.equal(desc.m_uav[0].colorSpace, 7, "union qualifier survives the buffer overload");
@@ -70,21 +80,23 @@ test("descriptions allocate from maps and retain inactive fields and qualifiers"
   assert.equal(desc.m_registerMap.srvCount, 2);
 });
 
-test("copy and move preserve Carbon's array-identity equality quirk", () =>
+test("copy and move preserve Carbon's array-identity equality quirk", t =>
 {
   const first = new Tr2ResourceSetDescriptionAL({ registers: mapFor() });
-  const resource = {};
+  const { texture: resource } = resources(t);
   first.SetSrv(1, 3, resource);
   const copy = new Tr2ResourceSetDescriptionAL({ copy: first });
   assert.equal(copy.Equals(first), false);
-  assert.equal(copy.m_srv[0].texture, resource);
+  assert.notEqual(copy.m_srv[0].texture, resource);
+  assert.equal(copy.m_srv[0].texture.Equals(resource), true);
   assert.notEqual(copy.m_srv[0], first.m_srv[0]);
   assert.equal(copy.ComputeHash(), first.ComputeHash());
   copy.ClearResources();
-  assert.equal(first.m_srv[0].texture, resource);
+  assert.equal(first.m_srv[0].texture.Equals(resource), true);
   const allocation = first.m_srv;
   const moved = new Tr2ResourceSetDescriptionAL({ move: first });
   assert.equal(moved.m_srv, allocation);
+  t.after(() => moved.ClearResources());
   assert.equal(first.m_srv, null);
   assert.equal(first.m_registerMap.srvCount, 2, "native moved-from map is not reset");
   assert.equal(new Tr2ResourceSetDescriptionAL().Equals(new Tr2ResourceSetDescriptionAL()), true);
@@ -109,7 +121,9 @@ test("the stub Create succeeds even without a context, as the donor does", () =>
   const program = {};
   assert.equal(set.Create(description, program, null), ALResult.S_OK);
   assert.equal(set.IsValid(), true);
-  assert.equal(set.GetDescription(), description);
+  assert.notEqual(set.GetDescription(), description);
+  assert.equal(set.GetDescription().ComputeHash(), description.ComputeHash());
+  assert.equal(set.GetDescription().m_registerMap.equals(description.m_registerMap), true);
   set.Destroy();
   assert.equal(set.IsValid(), false);
 });
@@ -130,7 +144,8 @@ test("public resource-set copies retain implementations across recreate and rese
   assert.equal(copy.IsValid(), true);
   assert.equal(copy.Create(description, {}, context, true), ALResult.E_FAIL);
   assert.equal(copy.IsValid(), false);
-  old.Destroy();
+  assert.equal(old.IsValid(), false, "failed recreation released the final owner");
+  context.Destroy();
 });
 
 test("a fence marks one point, and a second is an error", () =>
@@ -222,7 +237,7 @@ test("the adapter's available mode is not its current mode", () =>
 });
 
 
-test("stub program maps remain empty while signature-built descriptions have resources", () =>
+test("stub program maps remain empty while signature-built descriptions have resources", t =>
 {
   const context = device();
   const input = signature([36, 3]);
@@ -232,7 +247,8 @@ test("stub program maps remain empty while signature-built descriptions have res
   assert.equal(program.GetRegisterMap().srvCount, 0, "Carbon stub quirk");
   const desc = new Tr2ResourceSetDescriptionAL({ registers: new Tr2RegisterMapAL({ shaders: [shader] }) });
   assert.equal(desc.m_registerMap.srvCount, 1);
-  assert.equal(desc.SetSrv(ShaderType.PIXEL_SHADER, 3, {}), true);
+  assert.equal(desc.SetSrv(ShaderType.PIXEL_SHADER, 3, resources(t).texture), true);
+  desc.ClearResources();
   shader.Destroy();
   program.Destroy();
 });

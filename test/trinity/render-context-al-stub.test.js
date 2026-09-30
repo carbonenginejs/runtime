@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../npm/dist/trinityal/index.js";
-import { Tr2BitmapDimensions, Tr2RenderContextALStub, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2BitmapDimensions, Tr2RenderContextALStub, Tr2TextureAL } from "../../npm/dist/trinityal/index.js";
 import {
   PixelFormat,
   ShaderType,
@@ -40,51 +40,51 @@ test("state survives, which is the whole point of the backend", () =>
   // A no-op backend would run headless and hold nothing. The requirement is a
   // headless Trinity carrying CORRECT DATA, so what is bound must read back.
   const al = ready();
-  const target = { id: "colour" };
-  const depth = { id: "depth" };
+  const target = StubTarget();
+  const depth = StubTarget();
 
   al.SetRenderTarget(0, target);
   al.SetDepthStencil(depth);
   al.SetViewport({ x: 0, y: 0, width: 512, height: 512 });
 
-  assert.equal(al.GetRenderTarget(0), target);
-  assert.equal(al.GetDepthStencil(), depth);
+  assert.equal(al.GetRenderTarget(0).Equals(target), true);
+  assert.equal(al.GetDepthStencil().Equals(depth), true);
   assert.deepEqual(al.GetViewport(), { x: 0, y: 0, width: 512, height: 512 });
 });
 
 test("the render target stack restores what it replaced", () =>
 {
   const al = ready();
-  const first = { id: "first" };
-  const second = { id: "second" };
+  const first = StubTarget();
+  const second = StubTarget();
 
   al.SetRenderTarget(0, first);
   al.PushRenderTarget(0);
   al.SetRenderTarget(0, second);
 
-  assert.equal(al.GetRenderTarget(0), second);
+  assert.equal(al.GetRenderTarget(0).Equals(second), true);
   assert.equal(al.GetStackSizeRT(), 1);
 
   al.PopRenderTarget(0);
 
-  assert.equal(al.GetRenderTarget(0), first);
+  assert.equal(al.GetRenderTarget(0).Equals(first), true);
   assert.equal(al.GetStackSizeRT(), 0);
 });
 
 test("the depth stencil stack behaves the same way", () =>
 {
   const al = ready();
-  const first = { id: "first" };
+  const first = StubTarget();
 
   al.SetDepthStencil(first);
   al.PushDepthStencil();
-  al.SetDepthStencil({ id: "second" });
+  al.SetDepthStencil(StubTarget());
 
   assert.equal(al.GetStackSizeDS(), 1);
 
   al.PopDepthStencil();
 
-  assert.equal(al.GetDepthStencil(), first);
+  assert.equal(al.GetDepthStencil().Equals(first), true);
   assert.equal(al.GetStackSizeDS(), 0);
 });
 
@@ -142,7 +142,7 @@ test("Destroy clears the bindings and drops validity", () =>
 {
   const al = ready();
 
-  al.SetRenderTarget(0, { id: "colour" });
+  al.SetRenderTarget(0, StubTarget());
   al.PushRenderTarget(0);
   al.Destroy();
 
@@ -172,11 +172,11 @@ test("a context driven by the stub keeps real state and records no intents", () 
 
   context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
 
-  assert.equal(al.GetRenderTarget(0), offscreen, "a pushed target is BOUND, not just saved");
+  assert.equal(al.GetRenderTarget(0).Equals(offscreen), true, "a pushed target is BOUND, not just saved");
 
   context.GetEffectStateManager().PopRenderTarget(0);
 
-  assert.equal(al.GetRenderTarget(0), target, "the backend holds the state");
+  assert.equal(al.GetRenderTarget(0).Equals(target), true, "the backend holds the state");
   assert.equal(al.GetViewport().width, 128, "and the restored target's viewport with it");
 });
 
@@ -212,15 +212,15 @@ test("with a backend installed the context's getters report the backend", () =>
   al.CreateDevice({ mode: { width: 800, height: 600 } });
   context.SetRenderContextAL(al);
 
-  const target = { id: "colour" };
-  const depth = { id: "depth" };
+  const target = StubTarget();
+  const depth = StubTarget();
 
   context.GetEffectStateManager().SetRenderTarget(1, target);
   context.GetEffectStateManager().SetDepthStencilBuffer(depth);
   context.SetViewport({ x: 0, y: 0, width: 32, height: 32 });
 
-  assert.equal(context.GetRenderTarget(1), target);
-  assert.equal(context.GetDepthStencil(), depth);
+  assert.equal(context.GetRenderTarget(1).Equals(target), true);
+  assert.equal(context.GetDepthStencil().Equals(depth), true);
   assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 32, height: 32 });
 });
 
@@ -321,11 +321,11 @@ test("pushing a target BINDS it, and popping restores the one beneath", () =>
   context.GetEffectStateManager().SetRenderTarget(0, main);
   context.GetEffectStateManager().PushRenderTarget(offscreen, 0);
 
-  assert.equal(context.GetRenderTarget(0), offscreen);
+  assert.equal(context.GetRenderTarget(0).Equals(offscreen), true);
   assert.equal(context.GetStackSizeRT(), 1);
 
   assert.equal(context.GetEffectStateManager().PopRenderTarget(0), true);
-  assert.equal(context.GetRenderTarget(0), main, "the target beneath is bound again");
+  assert.equal(context.GetRenderTarget(0).Equals(main), true, "the target beneath is bound again");
   assert.equal(context.GetStackSizeRT(), 0);
   assert.equal(context.GetEffectStateManager().PopRenderTarget(0), false, "an empty stack says so");
 });
@@ -342,12 +342,12 @@ test("pushing with no target saves the bound one and changes nothing", () =>
   context.GetEffectStateManager().SetRenderTarget(0, main);
   context.GetEffectStateManager().PushRenderTarget(undefined, 0);
 
-  assert.equal(context.GetRenderTarget(0), main);
+  assert.equal(context.GetRenderTarget(0).Equals(main), true);
   assert.equal(context.GetStackSizeRT(), 1);
 
   context.GetEffectStateManager().PopRenderTarget(0);
 
-  assert.equal(context.GetRenderTarget(0), main);
+  assert.equal(context.GetRenderTarget(0).Equals(main), true);
 });
 
 test("the depth stencil pushes and pops the same way", () =>
@@ -359,10 +359,10 @@ test("the depth stencil pushes and pops the same way", () =>
   context.GetEffectStateManager().SetDepthStencilBuffer(main);
   context.GetEffectStateManager().PushDepthStencilBuffer(shadow);
 
-  assert.equal(context.GetDepthStencil(), shadow);
+  assert.equal(context.GetDepthStencil().Equals(shadow), true);
 
   assert.equal(context.GetEffectStateManager().PopDepthStencilBuffer(), true);
-  assert.equal(context.GetDepthStencil(), main);
+  assert.equal(context.GetDepthStencil().Equals(main), true);
   assert.equal(context.GetEffectStateManager().PopDepthStencilBuffer(), false);
 });
 
@@ -372,8 +372,8 @@ test("each slot has its own stack, so interleaved pushes unwind correctly", () =
   // most recent push whatever slot it names, so pushing slot 0 then slot 1 and
   // popping slot 0 restores the wrong surface into the wrong slot.
   const al = ready();
-  const zero = { id: "zero" };
-  const one = { id: "one" };
+  const zero = StubTarget();
+  const one = StubTarget();
 
   al.SetRenderTarget(0, zero);
   al.SetRenderTarget(1, one);
@@ -381,22 +381,23 @@ test("each slot has its own stack, so interleaved pushes unwind correctly", () =
   al.PushRenderTarget(0);
   al.PushRenderTarget(1);
 
-  al.SetRenderTarget(0, { id: "zero-offscreen" });
-  al.SetRenderTarget(1, { id: "one-offscreen" });
+  al.SetRenderTarget(0, StubTarget());
+  const offscreenOne = StubTarget();
+  al.SetRenderTarget(1, offscreenOne);
 
   assert.equal(al.GetStackSizeRT(0), 1);
   assert.equal(al.GetStackSizeRT(1), 1);
 
   al.PopRenderTarget(0);
 
-  assert.equal(al.GetRenderTarget(0), zero, "slot 0 restored its own target");
-  assert.equal(al.GetRenderTarget(1).id, "one-offscreen", "slot 1 is untouched");
+  assert.equal(al.GetRenderTarget(0).Equals(zero), true, "slot 0 restored its own target");
+  assert.equal(al.GetRenderTarget(1).Equals(offscreenOne), true, "slot 1 is untouched");
   assert.equal(al.GetStackSizeRT(0), 0);
   assert.equal(al.GetStackSizeRT(1), 1);
 
   al.PopRenderTarget(1);
 
-  assert.equal(al.GetRenderTarget(1), one);
+  assert.equal(al.GetRenderTarget(1).Equals(one), true);
 });
 
 test("stack depth is reported by the backend when one is installed", () =>
@@ -426,7 +427,7 @@ test("stack depth is reported by the backend when one is installed", () =>
 /** A render target of a given size, valid enough to report its extent. */
 function renderTarget(width, height)
 {
-  const texture = new Tr2TextureALStub();
+  const texture = new Tr2TextureAL();
   const al = new Tr2RenderContextALStub();
 
   al.CreateDevice();
@@ -658,5 +659,5 @@ test("an explicitly empty render target clears the slot, which is what a shadow 
   // And the saved target comes back, so the pass is still bracketed.
   context.GetEffectStateManager().PopRenderTarget(0);
 
-  assert.equal(context.GetRenderTarget(0), main);
+  assert.equal(context.GetRenderTarget(0).Equals(main), true);
 });

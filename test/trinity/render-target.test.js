@@ -58,7 +58,8 @@ test("Destroy releases the texture and raises the change event; Attach reference
   other.Create(32, 32, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 0, ExFlag.EX_NONE, TextureType.TEX_TYPE_2D, context);
   target.Attach(other.GetRenderTarget(), other);
   assert.equal(target.IsAttached(), true);
-  assert.equal(target.GetRenderTarget(), other.GetRenderTarget());
+  assert.notEqual(target.GetRenderTarget(), other.GetRenderTarget());
+  assert.equal(target.GetRenderTarget().Equals(other.GetRenderTarget()), true);
   assert.equal(target.GetWidth(), 32);
   assert.equal(target.Create(8, 8, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM, 1, 0, ExFlag.EX_NONE, TextureType.TEX_TYPE_2D, context),
     ALResult.E_INVALIDARG, "an attached target refuses Create");

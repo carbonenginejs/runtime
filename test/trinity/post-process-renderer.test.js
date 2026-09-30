@@ -83,7 +83,7 @@ test("Execute runs copy, sharpening and tonemapping for a scene without a post p
   assert.equal(effect.GetResourceByName("Exposure").GetGpuBuffer().GetGpuBuffer(0), null, "Exposure reset");
 
   // The render-target stack is balanced.
-  assert.equal(context.GetRenderTarget(0), destination.Get());
+  assert.equal(context.GetRenderTarget(0).Equals(destination.Get()), true);
 });
 
 /** Runs Execute over a scene whose post process holds `effects`, and returns what it touched. */
@@ -126,7 +126,7 @@ test("god rays run Carbon's three steps and leave nothing bound or borrowed", ()
   // TEMP_PARAM: the down-sampled depth is unbound again, on both effects.
   assert.equal(effect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture(), null);
   assert.equal(postProcess._downsampleDepthEffect.GetResourceByName("DepthMap").GetTextureProvider().GetTexture(), null);
-  assert.equal(context.GetRenderTarget(0), destination.Get(), "render-target stack balanced");
+  assert.equal(context.GetRenderTarget(0).Equals(destination.Get()), true, "render-target stack balanced");
 });
 
 test("depth of field without foreground blur runs the bokeh blend and fill without Blur", () =>
@@ -293,7 +293,7 @@ test("new bloom downsamples through six steps, upsamples back, and leaves nothin
   // The bloom texture was handed to tonemapping and freed with the rest.
   assert.equal(heldAfter, held - 1, "no pool handle leaked");
   assert.equal(postProcess._upsamplerVertical.GetResourceByName("LastMip").GetTextureProvider().GetTexture(), null);
-  assert.equal(context.GetRenderTarget(0), destination.Get(), "render-target stack balanced");
+  assert.equal(context.GetRenderTarget(0).Equals(destination.Get()), true, "render-target stack balanced");
 });
 
 test("old bloom is a half-size high pass through Carbon's default Blur", () =>

@@ -40,10 +40,24 @@ const SHARED_BUFFER_USAGE = Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER
 
 
 /**
+ * Releases an existing backend allocator at final context shutdown without creating one.
+ * Adapted: explicit context lifetime replaces Carbon's process-global buffer destruction.
+ * @param {object} renderContext The context whose backend is shutting down.
+ * @returns {void}
+ */
+export function ReleaseSharedGeometryBuffer(renderContext)
+{
+  const key = renderContext.GetRenderContextAL();
+  const buffer = sharedBuffers.get(key);
+  if (!buffer) return;
+  buffer.ReleaseResources();
+  sharedBuffers.delete(key);
+}
+
+/**
  * The shared geometry buffer for the context's backend.
- *
- * @param {object} renderContext A `Tr2RenderContext`.
- * @returns {Tr2SuballocatedBuffer} The buffer.
+ * @param {object} renderContext The submitting context.
+ * @returns {Tr2SuballocatedBuffer} Its shared allocator.
  */
 export function SharedGeometryBuffer(renderContext)
 {

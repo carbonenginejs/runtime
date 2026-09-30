@@ -5,10 +5,9 @@ import {
     Tr2RenderContextALWebgl2,
     Tr2ShaderALWebgl2,
     Tr2ShaderProgramALWebgl2,
-    Tr2TextureALWebgl2,
     Tr2VertexLayoutALWebgl2
 } from "../../../npm/dist/trinityal/webgl2/index.js";
-import { ALResult, Failed, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
+import { Tr2TextureAL, ALResult, Failed, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ConstantUsageAL } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, RenderState, ShaderType, Topology, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeGlslBackendBlock } from "../../../npm/dist/resource/formats/webgl/core/glslBackendBlock.js";
 import { FakeWebgl2 } from "./fakeWebgl2.js";
@@ -24,7 +23,7 @@ function device()
 
 function texture(context, width, height, gpuUsage, format = PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM)
 {
-    const created = new Tr2TextureALWebgl2();
+    const created = new Tr2TextureAL();
     assert.equal(created.Create(Tr2BitmapDimensions.texture2D(width, height, 1, format), { gpuUsage }, context), ALResult.S_OK);
     return created;
 }
@@ -38,7 +37,8 @@ test("CreateDevice makes the back buffer, sizes the canvas and binds slot zero",
     assert.equal(result, ALResult.S_OK);
     assert.equal(context.IsValid(), true);
     assert.deepEqual([ gl.canvas.width, gl.canvas.height ], [ 64, 32 ]);
-    assert.equal(context.GetRenderTarget(0), context.GetDefaultBackBuffer());
+    assert.notEqual(context.GetRenderTarget(0), context.GetDefaultBackBuffer());
+    assert.equal(context.GetRenderTarget(0).Equals(context.GetDefaultBackBuffer()), true);
     assert.equal(context.GetBackBufferFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
     assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 64, height: 32, minZ: 0, maxZ: 1 });
     assert.deepEqual(context.GetRenderTargetSize(0), { result: ALResult.S_OK, width: 64, height: 32 });
@@ -57,7 +57,7 @@ test("render targets need render-target usage and a slot in range, as dx11's", (
     assert.equal(context.SetRenderTarget(0, sampled), ALResult.E_INVALIDARG);
     assert.equal(context.SetRenderTarget(8, target), ALResult.E_INVALIDARG);
     assert.equal(context.SetRenderTarget(1, target), ALResult.S_OK);
-    assert.equal(context.GetRenderTarget(1), target);
+    assert.equal(context.GetRenderTarget(1).Equals(target), true);
     assert.equal(context.SetDepthStencil(target), ALResult.E_INVALIDARG, "no depth-stencil usage");
 });
 
@@ -70,7 +70,7 @@ test("binding slot zero resets the viewport and attaches the target", () =>
     context.SetRenderTarget(0, target);
 
     assert.deepEqual(context.GetViewport(), { x: 0, y: 0, width: 16, height: 8, minZ: 0, maxZ: 1 });
-    assert.ok(calledWith(calls, "framebufferTexture2D").some(([ , point, , native ]) => point === gl.COLOR_ATTACHMENT0 && native === target.GetGpuResource()));
+    assert.ok(calledWith(calls, "framebufferTexture2D").some(([ , point, , native ]) => point === gl.COLOR_ATTACHMENT0 && native === target.TrinityALImpl_GetObject().GetGpuResource()));
     assert.deepEqual(calledWith(calls, "drawBuffers").at(-1), [ [ gl.COLOR_ATTACHMENT0 ] ]);
 });
 
@@ -96,7 +96,7 @@ test("render-target and depth stacks restore per slot, and an empty pop fails", 
     assert.equal(context.PushRenderTarget(0), ALResult.S_OK);
     context.SetRenderTarget(0, target);
     assert.equal(context.PopRenderTarget(0), ALResult.S_OK);
-    assert.equal(context.GetRenderTarget(0), backBuffer);
+    assert.equal(context.GetRenderTarget(0).Equals(backBuffer), true);
     assert.ok(Failed(context.PopRenderTarget(0)));
     assert.ok(Failed(context.PopDepthStencil()));
     assert.equal(context.PushRenderTarget(8), ALResult.E_INVALIDARG);
@@ -198,9 +198,9 @@ test("an indexed draw binds the program, points the attribute and draws elements
     assert.equal(context.DrawIndexedPrimitive(4, 3, 1), ALResult.S_OK);
 
     assert.deepEqual(calledWith(calls, "useProgram"), [ [ program.GetGpuResource() ] ]);
-    assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ARRAY_BUFFER && buffer === vertices.GetGpuResource()));
+    assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ARRAY_BUFFER && buffer === vertices.TrinityALImpl_GetObject().GetGpuResource()));
     assert.deepEqual(calledWith(calls, "vertexAttribPointer"), [ [ 0, 3, gl.FLOAT, false, 12, 0 ] ]);
-    assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ELEMENT_ARRAY_BUFFER && buffer === indices.GetGpuResource()));
+    assert.ok(calledWith(calls, "bindBuffer").some(([ target, buffer ]) => target === gl.ELEMENT_ARRAY_BUFFER && buffer === indices.TrinityALImpl_GetObject().GetGpuResource()));
     assert.deepEqual(calledWith(calls, "drawElementsInstanced"), [ [ gl.TRIANGLES, 3, gl.UNSIGNED_SHORT, 6, 1 ] ], "one triangle from index 3");
     assert.equal(context.GetDrawCount(), 1);
 });

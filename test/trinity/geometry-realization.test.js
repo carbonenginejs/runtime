@@ -5,7 +5,7 @@ import { Tr2RenderBatch, Tr2RenderContext } from "../../npm/dist/trinity/core/in
 import { Tr2SuballocatedBuffer } from "../../npm/dist/trinity/core/device/Tr2SuballocatedBuffer/Tr2SuballocatedBuffer.js";
 import { CreateLodAllocations, RealizeBatchGeometry, SharedGeometryBuffer } from "../../npm/dist/trinity/core/mesh/TriGeometryResAllocations.js";
 import { TriGeometryRes } from "../../npm/dist/resource/geometry/index.js";
-import { Tr2BufferALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2BufferAL, Tr2BufferALStub } from "../../npm/dist/trinityal/index.js";
 import { Tr2GpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 import { ALResult } from "../../npm/dist/trinityal/index.js";
 
@@ -53,7 +53,7 @@ test("the suballocated buffer hands out element-aligned regions of one block, an
   const first = buffer.Allocate(20, 4, new Uint8Array(80), renderContext);
 
   assert.ok(first.IsValid());
-  assert.ok(first.GetBuffer() instanceof Tr2BufferALStub, "the context's kind of buffer");
+  assert.ok(first.GetBuffer().constructor === Tr2BufferAL && first.GetBuffer().TrinityALImpl_GetObject().constructor === Tr2BufferALStub, "the context's kind of buffer");
   assert.deepEqual([ first.GetOffset(), first.GetSize(), first.GetStride(), first.GetStartIndex() ], [ 0, 80, 20, 0 ]);
 
   // Carbon's non-power-of-two alignment reserves 80 + 19 bytes for stride 20.
@@ -156,7 +156,7 @@ test("SubmitGeometry realizes a descriptor batch through the submitting context 
 
   al.BeginScene();
   assert.equal(renderContext.SubmitGeometry(batch), true);
-  assert.ok(batch.vertexStreams[0] instanceof Tr2BufferALStub, "the descriptor became the shared buffer at submit");
+  assert.ok(batch.vertexStreams[0].constructor === Tr2BufferAL && batch.vertexStreams[0].TrinityALImpl_GetObject().constructor === Tr2BufferALStub, "the descriptor became the shared buffer at submit");
   assert.equal(batch.indexCountPerInstance, 6);
 
   // A second submit finds the buffers already there.

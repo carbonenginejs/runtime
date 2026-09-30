@@ -1,3 +1,6 @@
+import { Tr2OcclusionBuffer } from "../../eve/effect/lensflare/Tr2OcclusionBuffer.js";
+import { DestroyGlobalGpuResourcePool } from "../Tr2GpuResourcePool/Tr2GpuResourcePool.js";
+import { EveSpaceScene } from "../../eve/scene/EveSpaceScene.js";
 // Source: trinity/trinity/TriDevice.h
 // Hand-maintained from Carbon source. Unimplemented backend methods here are
 // unported Carbon behaviour, not a boundary: Carbon holds its handles on this
@@ -408,8 +411,11 @@ export class TriDevice extends CjsModel
   @impl.implemented
   InvalidateAndUnregisterForTicks()
   {
-    this.DestroyRenderContext();
     blue.os.UnregisterForTicks(this, TriDevice.TICK_COOKIE);
+    EveSpaceScene.ReleaseStaticResources();
+    Tr2OcclusionBuffer.ReleaseStaticResources();
+    DestroyGlobalGpuResourcePool();
+    this.DestroyRenderContext();
     this.#hwnd = null;
     this.width = 0;
     this.height = 0;

@@ -196,6 +196,18 @@ export class Tr2PostProcessRenderer extends CjsModel
   /** m_bloomConstantBuffer (h:166): created empty on first use, sized by FillAndSetConstants. */
   _bloomConstantBuffer = null;
 
+  /** Final owner teardown releases effect member values and the bloom constants. */
+  @impl.custom
+  Destroy()
+  {
+    const effects = new Set([ this.tonemappingEffect, this._reactiveMaskEffect, this._transparencyMaskEffect, this.bloomHighPassFilter, this._downSamplerLuminancePreserve, this._downSampler, this._upsamplerHorizontal, this._upsamplerVertical, this.dynamicExposureToTextureShader, this.dynamicExposureCreateHistogramShader, this.dynamicExposureMergeHistogramShader, this.dynamicExposureMeasureExposureShader, this._fidelityFxCasShader, this._downsampleDepthEffect, this.fogColorEffect, this.fogCompositeEffect, this.depthOfFieldBokehBlurShader, this.depthOfFieldBokehFillShader, this._depthOfFieldBokehTAAShader, this.depthOfFieldCoCShader, this.godrayEffect, this.signalLossEffect, this.taaEffect, this._taaCopyEffect, this._grainShader, this.bloomDebugShader, this._dynamicExposureDebugShader ]);
+    for (const pair of this._blurEffects.values()) for (const effect of pair) effects.add(effect);
+    for (const effect of effects) if (effect) effect.Destroy();
+    this._blurEffects.clear();
+    if (this._bloomConstantBuffer) this._bloomConstantBuffer.Destroy();
+    this._bloomConstantBuffer = null;
+  }
+
   _taaFrameCounter = 0;
 
   _bokehFrameCounter = 0;
@@ -631,6 +643,7 @@ export class Tr2PostProcessRenderer extends CjsModel
       throw new Error("Tr2PostProcessRenderer.RenderDynamicExposureDebug is not ported yet.");
     }
 
+    if (this._dynamicExposureDebugShader) this._dynamicExposureDebugShader.Destroy();
     this._dynamicExposureDebugShader = null;
   }
 

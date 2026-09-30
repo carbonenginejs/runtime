@@ -144,8 +144,6 @@ export class Tr2DataTextureManager extends CjsModel
     const width = this.textureWidth;
     const height = this.textureHeight;
     const zeros = new Float32Array(width * height * 4);
-    const previous = this._dataTexture.GetTexture();
-    if (previous) previous.Destroy();
     const texture = renderContext.CreateTexture(
       Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R32G32B32A32_FLOAT),
       {
@@ -154,7 +152,14 @@ export class Tr2DataTextureManager extends CjsModel
         initialData: [ new Tr2SubresourceData(new Uint8Array(zeros.buffer), width * VEC4_BYTES, width * height * VEC4_BYTES) ]
       }
     );
-    this._dataTexture.SetTexture(texture);
+    try
+    {
+      this._dataTexture.SetTexture(texture);
+    }
+    finally
+    {
+      if (texture) texture.Destroy();
+    }
     return texture !== null;
   }
 
@@ -168,8 +173,6 @@ export class Tr2DataTextureManager extends CjsModel
   @impl.adapted
   ReleaseResources(_storage)
   {
-    const previous = this._dataTexture.GetTexture();
-    if (previous) previous.Destroy();
     this._dataTexture.SetTexture(null);
   }
 

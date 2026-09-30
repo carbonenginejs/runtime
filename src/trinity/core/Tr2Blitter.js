@@ -232,9 +232,20 @@ export class Tr2Blitter
     return true;
   }
 
+  /** Final owner release includes both effects and their retained pass values. */
+  Destroy()
+  {
+    this.ReleaseResources();
+    if (this.#blitEffect) this.#blitEffect.Destroy();
+    if (this.#blitFilteredEffect) this.#blitFilteredEffect.Destroy();
+    this.#blitEffect = null;
+    this.#blitFilteredEffect = null;
+  }
+
   /** Drops the declaration handle and the buffer, as `ReleaseResources` does. */
   ReleaseResources()
   {
+    this.#textureReference.SetTexture(null);
     if (this.#vertexBuffer) this.#vertexBuffer.Destroy();
 
     this.#vertexBuffer = null;
@@ -307,23 +318,28 @@ export class Tr2Blitter
       blitSource.SetValue(this.#textureReference);
     }
 
-    const passCount = shader.GetPassCount(0);
-
-    for (let passIndex = 0; passIndex < passCount; passIndex++)
+    try
     {
-      shader.ApplyAllStateForPass(0, passIndex, renderContext);
-      material.ApplyMaterialDataForPass(0, passIndex, renderContext);
+      const passCount = shader.GetPassCount(0);
 
-      // Two triangles as a strip, which is what the four vertices describe and
-      // why the interior-edge flip in SetupScreenQuad matters.
-      renderContext.SetTopology(Topology.TOP_TRIANGLE_STRIP);
-      renderContext.DrawPrimitive(0, 2);
+      for (let passIndex = 0; passIndex < passCount; passIndex++)
+      {
+        shader.ApplyAllStateForPass(0, passIndex, renderContext);
+        material.ApplyMaterialDataForPass(0, passIndex, renderContext);
+
+        // Two triangles as a strip, which is what the four vertices describe and
+        // why the interior-edge flip in SetupScreenQuad matters.
+        renderContext.SetTopology(Topology.TOP_TRIANGLE_STRIP);
+        renderContext.DrawPrimitive(0, 2);
+      }
     }
-
-    if (blitSource)
+    finally
     {
-      this.#textureReference.SetTexture(null);
-      blitSource.Clear();
+      if (blitSource)
+      {
+        this.#textureReference.SetTexture(null);
+        blitSource.Clear();
+      }
     }
 
     return true;

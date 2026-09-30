@@ -36,7 +36,7 @@ import { Tr2Shader } from "#resource/shader";
 import { Tr2EffectStateManager } from "../../shader/Tr2EffectStateManager.js";
 import { Tr2RenderContextALStub } from "../../../trinityal/stub/Tr2RenderContextALStub/index.js";
 import { Tr2Blitter } from "../Tr2Blitter.js";
-import { RealizeBatchGeometry } from "../mesh/TriGeometryResAllocations.js";
+import { RealizeBatchGeometry, ReleaseSharedGeometryBuffer } from "../mesh/TriGeometryResAllocations.js";
 import { Tr2RingBuffer } from "../device/Tr2RingBuffer/Tr2RingBuffer.js";
 
 const DIRECT_STEP_EXECUTOR = Object.freeze(new CjsDirectTrinityStepExecutor());
@@ -199,8 +199,23 @@ export class Tr2RenderContext extends CjsModel
     for (const buffer of this.#perObjectConstantBuffers) buffer?.Destroy();
     this.#perObjectConstantBuffers.fill(null);
     this.#esm.ReleaseRealizedObjects();
+    this.#esm.Destroy();
 
     return this.#al;
+  }
+
+  /** Explicit context teardown releases owned state values before its backend. */
+  @impl.custom
+  Destroy()
+  {
+    this.#esm.Destroy();
+    this.#esm.ReleaseRealizedObjects();
+    for (const buffer of this.#perObjectConstantBuffers) if (buffer) buffer.Destroy();
+    this.#perObjectConstantBuffers.fill(null);
+    if (this.#blitter) this.#blitter.Destroy();
+    this.#blitter = null;
+    ReleaseSharedGeometryBuffer(this);
+    this.#al.Destroy();
   }
 
   /** The installed backend; never null. */
@@ -1912,6 +1927,7 @@ export class Tr2RenderContext extends CjsModel
   @impl.implemented
   static DestroyMainThreadRenderContext()
   {
+    if (s_mainThreadRenderContext) s_mainThreadRenderContext.Destroy();
     s_mainThreadRenderContext = null;
   }
 

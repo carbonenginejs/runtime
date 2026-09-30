@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { Tr2Effect } from "../../npm/dist/trinity/shader/Tr2Effect.js";
 import { Tr2RuntimeGpuBuffer } from "../../npm/dist/trinity/core/device/Tr2RuntimeGpuBuffer.js";
-import { Tr2BufferALStub, Tr2TextureALStub } from "../../npm/dist/trinityal/stub/index.js";
+import { StubBuffer, StubTarget } from "../support/stubContext.js";
 
 // Tr2Effect::SetParameter( name, const Tr2BufferAL& ) (Tr2Effect.cpp:2228-2255):
 // a buffer lands in a geometry buffer parameter holding a runtime GPU buffer,
@@ -11,8 +11,8 @@ import { Tr2BufferALStub, Tr2TextureALStub } from "../../npm/dist/trinityal/stub
 test("SetParameter binds an AL buffer through a geometry buffer parameter", () =>
 {
   const effect = new Tr2Effect();
-  const first = new Tr2BufferALStub();
-  const second = new Tr2BufferALStub();
+  const first = StubBuffer();
+  const second = StubBuffer();
 
   effect.SetParameter("Exposure", first);
 
@@ -20,12 +20,14 @@ test("SetParameter binds an AL buffer through a geometry buffer parameter", () =
   assert.equal(parameter.constructor.name, "Tr2GeometryBufferParameter");
   const held = parameter.GetGpuBuffer();
   assert.ok(held instanceof Tr2RuntimeGpuBuffer);
-  assert.equal(held.GetGpuBuffer(0), first);
+  assert.notEqual(held.GetGpuBuffer(0), first);
+  assert.equal(held.GetGpuBuffer(0).Equals(first), true);
 
   effect.SetParameter("Exposure", second);
   assert.equal(effect.GetResourceByName("Exposure"), parameter, "the slot is reused");
   assert.equal(parameter.GetGpuBuffer(), held, "and so is its runtime buffer");
-  assert.equal(held.GetGpuBuffer(0), second);
+  assert.notEqual(held.GetGpuBuffer(0), second);
+  assert.equal(held.GetGpuBuffer(0).Equals(second), true);
 
   // TEMP_PARAM's reset (Tr2PostProcessRenderer.cpp:132-150) is a
   // default-constructed buffer; null is that value and clears the SAME slot.
@@ -41,19 +43,21 @@ test("SetParameter binds an AL buffer through a geometry buffer parameter", () =
 test("SetParameter wraps an AL texture in a reused texture reference", () =>
 {
   const effect = new Tr2Effect();
-  const first = new Tr2TextureALStub();
-  const second = new Tr2TextureALStub();
+  const first = StubTarget();
+  const second = StubTarget();
 
   effect.SetParameter("InputTexture", first);
 
   const parameter = effect.GetResourceByName("InputTexture");
   const reference = parameter.GetTextureProvider();
   assert.equal(reference.constructor.name, "Tr2TextureReference");
-  assert.equal(reference.GetTexture(), first);
+  assert.notEqual(reference.GetTexture(), first);
+  assert.equal(reference.GetTexture().Equals(first), true);
 
   effect.SetParameter("InputTexture", second);
   assert.equal(parameter.GetTextureProvider(), reference, "the reference is reused");
-  assert.equal(reference.GetTexture(), second);
+  assert.notEqual(reference.GetTexture(), second);
+  assert.equal(reference.GetTexture().Equals(second), true);
 
   effect.SetParameter("InputTexture", null);
   assert.equal(parameter.GetTextureProvider(), reference, "TEMP_PARAM's reset empties it");

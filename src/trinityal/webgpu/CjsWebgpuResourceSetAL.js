@@ -1,3 +1,4 @@
+import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 //   trinity/trinityal/metal/Tr2ResourceSetALMetal.mm
 //   trinity/trinityal/dx12/Tr2ResourceSetALDx12.cpp
@@ -118,7 +119,7 @@ export class CjsWebgpuResourceSetAL
     }
 
     this.m_entries = entries;
-    this.m_description = description;
+    this.m_description = new Tr2ResourceSetDescriptionAL({ copy: description });
     this.m_program = program;
     this.m_id = nextResourceSetId;
     nextResourceSetId += 1;
@@ -145,8 +146,8 @@ export class CjsWebgpuResourceSetAL
       const slot = SlotFor(description, "srv", binding);
       const texture = slot?.type === 2 ? slot.texture : null;
       const dimension = binding.texture.viewDimension ?? "2d";
-      const view = texture && typeof texture.GetDeviceTextureView === "function"
-        ? texture.GetDeviceTextureView(dimension, slot.colorSpace)
+      const view = texture && texture.IsValid()
+        ? texture.TrinityALImpl_GetObject().GetDeviceTextureView(dimension, slot.colorSpace)
         : null;
 
       return view ?? renderContext.GetDummyTexture(dimension);
@@ -167,8 +168,8 @@ export class CjsWebgpuResourceSetAL
       const slot = SlotFor(description, "uav", binding);
       const texture = slot?.type === 2 ? slot.texture : null;
       const { format, viewDimension, access } = binding.storageTexture;
-      const view = texture && typeof texture.GetDeviceStorageView === "function"
-        ? texture.GetDeviceStorageView(viewDimension, slot.colorSpace)
+      const view = texture && texture.IsValid()
+        ? texture.TrinityALImpl_GetObject().GetDeviceStorageView(viewDimension, slot.colorSpace)
         : null;
       const writable = access !== "read-only";
 
@@ -185,7 +186,7 @@ export class CjsWebgpuResourceSetAL
     const kind = binding.buffer && binding.buffer.type === "storage" ? "uav" : "srv";
     const slot = SlotFor(description, kind, binding);
     const resource = slot?.type === 1 ? slot.buffer : null;
-    const buffer = resource && typeof resource.GetDeviceBuffer === "function" ? resource.GetDeviceBuffer() : null;
+    const buffer = resource && resource.IsValid() ? resource.TrinityALImpl_GetObject().GetDeviceBuffer() : null;
 
     return { buffer: buffer ?? renderContext.GetNullBuffer(binding.buffer?.minBindingSize ?? 16, "STORAGE") };
   }
@@ -242,6 +243,7 @@ export class CjsWebgpuResourceSetAL
   Destroy()
   {
     this.m_entries = new Map();
+    if (this.m_description) this.m_description.ClearResources();
     this.m_description = null;
     this.m_program = null;
     this.m_id = 0;

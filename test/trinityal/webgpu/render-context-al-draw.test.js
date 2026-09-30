@@ -4,9 +4,9 @@ import test from "node:test";
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { Tr2RenderStateSetup } from "../../../npm/dist/resource/shader/index.js";
-import { ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage, ShaderType, Topology } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { writeBackendBlock } from "../../../npm/dist/resource/format/index.js";
-import { Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
+import { Tr2BufferAL, Tr2BitmapDimensions, Tr2BufferDescriptionAL, Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
 import { ALResult, Failed } from "../../../npm/dist/trinityal/index.js";
 
 // A draw verb resolves its pipeline from BOUND STATE, inside the verb, the way
@@ -16,7 +16,7 @@ import { ALResult, Failed } from "../../../npm/dist/trinityal/index.js";
 
 const SHADER_STAGE = Object.freeze({ VERTEX: 1, FRAGMENT: 2, COMPUTE: 4 });
 const BUFFER_USAGE = Object.freeze({ UNIFORM: 16, COPY_DST: 32, VERTEX: 64, INDEX: 128, STORAGE: 256 });
-const TEXTURE_USAGE = Object.freeze({ TEXTURE_BINDING: 4, COPY_DST: 2 });
+const TEXTURE_USAGE = Object.freeze({ TEXTURE_BINDING: 4, COPY_DST: 2, RENDER_ATTACHMENT: 16 });
 const VERTEX_WGSL = "@vertex fn main() -> @builtin(position) vec4f { return vec4f(0); }";
 const FRAGMENT_WGSL = "@fragment fn main() -> @location(0) vec4f { return vec4f(1); }";
 
@@ -43,7 +43,7 @@ function composed()
   const device = {
     createShaderModule: descriptor => ({ kind: "module", label: descriptor.label }),
     // WebGPU's default per-stage limits (the spec's supported-limits table).
-    limits: { maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
+    limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048, maxSampledTexturesPerShaderStage: 16, maxSamplersPerShaderStage: 16, maxStorageTexturesPerShaderStage: 4, maxStorageBuffersPerShaderStage: 8, maxUniformBuffersPerShaderStage: 12 },
     createBindGroupLayout: descriptor => ({ kind: "bind-group-layout", descriptor }),
     createPipelineLayout: descriptor => ({ kind: "pipeline-layout", descriptor }),
     createBindGroup(descriptor)
@@ -66,7 +66,7 @@ function composed()
     {
       created.textures.push(descriptor);
 
-      return { kind: "texture", descriptor, createView: view => ({ kind: "view", dimension: view.dimension }) };
+      return { kind: "texture", descriptor, destroy() {}, createView: view => ({ kind: "view", dimension: view.dimension }) };
     },
     createSampler(descriptor)
     {
@@ -124,7 +124,23 @@ function programFor(al, { block = null, fragment = true } = {})
   return al.CreateShaderProgram(stages);
 }
 
-const deviceBuffer = name => ({ GetDeviceBuffer: () => name });
+function deviceBuffer(name, al)
+{
+  const value = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64,
+    Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
+  assert.ok(value && value.IsValid());
+  value.TrinityALImpl_GetObject().GetDeviceBuffer = () => name;
+  return value;
+}
+
+function deviceTexture(id, al)
+{
+  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+    { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
+  assert.ok(value && value.IsValid());
+  value.TrinityALImpl_GetObject().GetDeviceTextureView = dimension => ({ kind: "view", dimension, id });
+  return value;
+}
 
 /** Carbon's SubmitGeometry sequence against a complete state. */
 function bindGeometry(al, program)
@@ -133,8 +149,8 @@ function bindGeometry(al, program)
   al.SetVertexLayout(al.CreateVertexLayout([
     { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 }
   ]));
-  al.SetStreamSource(0, deviceBuffer("vb"), 0, 12);
-  al.SetIndices(deviceBuffer("ib"), 2);
+  al.SetStreamSource(0, deviceBuffer("vb", al), 0, 12);
+  al.SetIndices(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 }
@@ -354,9 +370,9 @@ test("a hit binds the streams of the pipeline it found, not of the last miss", (
   };
 
   al.SetTopology(Topology.TOP_TRIANGLES);
-  al.SetStreamSource(0, deviceBuffer("vb0"), 0, 20);
-  al.SetStreamSource(1, deviceBuffer("vb1"), 0, 8);
-  al.SetIndices(deviceBuffer("ib"), 2);
+  al.SetStreamSource(0, deviceBuffer("vb0", al), 0, 20);
+  al.SetStreamSource(1, deviceBuffer("vb1", al), 0, 8);
+  al.SetIndices(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
@@ -373,7 +389,7 @@ test("the indirect draws resolve state like a draw and read their arguments from
   // (Tr2RenderContextMetal.mm:487-521): the same resource check as a draw,
   // then the work queue's indirect DrawPrimitives / DrawIndexedPrimitives.
   const { al, log, pipelines } = composed();
-  const args = { IsValid: () => true, GetDeviceBuffer: () => "args" };
+  const args = deviceBuffer("args", al);
 
   bindGeometry(al, programFor(al));
 
@@ -387,7 +403,7 @@ test("the indirect draws resolve state like a draw and read their arguments from
 
   // Negative control: an invalid argument buffer draws nothing.
   const before = log.length;
-  assert.equal(al.DrawInstancedIndirect({ IsValid: () => false }, 0), ALResult.E_INVALIDARG);
+  assert.equal(al.DrawInstancedIndirect(new Tr2BufferAL(), 0), ALResult.E_INVALIDARG);
   assert.equal(log.length, before);
 });
 
@@ -439,7 +455,7 @@ test("a program that declares bind groups draws with the bound constant buffer a
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, sampler);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 3, { GetDeviceTextureView: dimension => ({ kind: "view", dimension, id: "diffuse" }) });
+  description.SetSrv(ShaderType.PIXEL_SHADER, 3, deviceTexture("diffuse", al));
 
   const set = al.CreateResourceSet(description, program);
 
@@ -453,8 +469,8 @@ test("a program that declares bind groups draws with the bound constant buffer a
   assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
   assert.equal(pipelines.length, 1);
   assert.equal(bindGroups.length, 1, "one bind group for two draws of the same state");
-  assert.equal(created.buffers.length, 1, "the arena's one page; no null buffer was needed");
-  assert.equal(created.buffers[0].label, "Constant buffer page 0");
+  assert.equal(created.buffers.filter(buffer => buffer.usage & BUFFER_USAGE.UNIFORM).length, 1, "the arena's one page; no null buffer was needed");
+  assert.equal(created.buffers.find(buffer => buffer.usage & BUFFER_USAGE.UNIFORM).label, "Constant buffer page 0");
 
   // Metal's arena: the bind is the PAGE, the region is a dynamic offset.
   const entries = bindGroups[0].descriptor.entries;
@@ -516,8 +532,8 @@ test("slots nothing filled take dummies, as Metal's Create fills them", () =>
 
   const entries = bindGroups[0].descriptor.entries;
 
-  assert.equal(created.buffers.length, 1, "a null uniform buffer, and no arena page was needed");
-  assert.equal(created.buffers[0].size, 64, "sized to the layout's minBindingSize");
+  assert.equal(created.buffers.filter(buffer => buffer.usage & BUFFER_USAGE.UNIFORM).length, 1, "a null uniform buffer, and no arena page was needed");
+  assert.equal(created.buffers.find(buffer => buffer.usage & BUFFER_USAGE.UNIFORM).size, 64, "sized to the layout's minBindingSize");
   assert.equal(entries[0].resource.buffer.kind, "buffer");
   assert.deepEqual([ entries[0].resource.offset, entries[0].resource.size ], [ 0, 64 ]);
   assert.equal(created.textures.length, 1, "a 1x1 dummy texture");
@@ -542,29 +558,28 @@ test("what the vertex half cannot say refuses the draw and names the gap", () =>
   // No stream bound: the layout's stream has no stride.
   al.SetTopology(Topology.TOP_TRIANGLES);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0 } ]));
-  al.SetIndices(deviceBuffer("ib"), 2);
+  al.SetIndices(deviceBuffer("ib", al), 2);
   al.SetShaderProgram(program);
   al.SetRenderStates(Tr2RenderStateSetup.fromKeyValues([]));
 
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /stride for vertex stream 0/);
 
-  // A stream that is a geometry descriptor rather than a device buffer, which
-  // is what a mesh batch carries today.
-  al.SetStreamSource(0, { geometry: "descriptor" }, 0, 12);
+  // A valid AL value whose implementation has no device buffer must refuse.
+  al.SetStreamSource(0, deviceBuffer(null, al), 0, 12);
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /device buffer on vertex stream 0/);
 
   // An index stride WebGPU has no format for.
-  al.SetStreamSource(0, deviceBuffer("vb"), 0, 12);
-  al.SetIndices(deviceBuffer("ib"), 3);
+  al.SetStreamSource(0, deviceBuffer("vb", al), 0, 12);
+  al.SetIndices(deviceBuffer("ib", al), 3);
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /index format for a 3-byte stride/);
 
   // A declaration whose element type this backend cannot name: WebGPU has no
   // three-component 8-bit format. (FLOAT32_3 is Carbon's own DataType name and
   // IS nameable - float32x3.)
-  al.SetIndices(deviceBuffer("ib"), 2);
+  al.SetIndices(deviceBuffer("ib", al), 2);
   al.SetVertexLayout(al.CreateVertexLayout([ { usage: 0, usageIndex: 0, type: "UBYTE_3", offset: 0 } ]));
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)));
   assert.match(al.m_pipelineFailure, /vertex format for stream 0/);
@@ -687,7 +702,7 @@ test("a draw fills the emulated-addressing modes buffer from the bound sampler s
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 3, decal);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 3, { GetDeviceTextureView: dimension => ({ kind: "view", dimension, id: "decal" }) });
+  description.SetSrv(ShaderType.PIXEL_SHADER, 3, deviceTexture("decal", al));
 
   const set = al.CreateResourceSet(description, program);
 
@@ -719,12 +734,12 @@ test("an invalid instance extent refuses pipeline creation and a repaired next d
     { usage: 0, usageIndex: 0, type: "Float32", elementCount: 3, offset: 0, stream: 0 },
     { usage: 5, usageIndex: 8, type: "Float32", elementCount: 2, offset: 32, stream: 1, instanceStepRate: 1 }
   ]));
-  al.SetStreamSource(1, deviceBuffer("instances"), 0, 32);
+  al.SetStreamSource(1, deviceBuffer("instances", al), 0, 32);
   assert.ok(Failed(al.DrawIndexedInstanced(6, 2)));
   assert.match(al.m_pipelineFailure, /stream 1.*offset \(32\).*arrayStride \(32\)/);
   assert.equal(pipelines.length, 0, "invalid descriptor never reaches createRenderPipeline");
   assert.equal(log.some(entry => entry.startsWith("setPipeline:")), false);
-  al.SetStreamSource(1, deviceBuffer("instances"), 0, 40);
+  al.SetStreamSource(1, deviceBuffer("instances", al), 0, 40);
   assert.equal(al.DrawIndexedInstanced(6, 2), ALResult.S_OK);
   assert.equal(pipelines.length, 1);
   assert.equal(pipelines[0].descriptor.vertex.buffers[1].arrayStride, 40);

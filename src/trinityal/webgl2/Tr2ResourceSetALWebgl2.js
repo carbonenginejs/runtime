@@ -1,3 +1,4 @@
+import { Tr2ResourceSetDescriptionAL } from "../Tr2ResourceSetAL/Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/dx11/Tr2ResourceSetALDx11.h
 // Source: trinity/trinityal/dx11/Tr2ResourceSetALDx11.cpp
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
@@ -97,6 +98,9 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /** The program's texture units, each with what fills it; see `GetUnits`. */
   _units = [];
 
+  /** Stable owned binding values emulate independently retained API views. */
+  _description = null;
+
   /**
    * Resolves the description against the program's register map
    * (`Tr2ResourceSetALDx11.cpp:26-172`), then places the result on the
@@ -117,6 +121,8 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
 
     if (!program.GetRegisterMap().equals(description.m_registerMap)) return ALResult.E_INVALIDARG;
 
+    this._description = new Tr2ResourceSetDescriptionAL({ copy: description });
+    description = this._description;
     const map = description.m_registerMap;
     const stages = Array.from({ length: ShaderType.SHADER_TYPE_COUNT }, StageInput);
     const uavs = new Array(MAX_RESOURCES).fill(null);
@@ -289,6 +295,8 @@ export class Tr2ResourceSetALWebgl2 extends Tr2DeviceResourceAL
   /** Carbon's impl `Destroy` (`:179-190`), before the registry is left. */
   _Reset()
   {
+    if (this._description) this._description.ClearResources();
+    this._description = null;
     this._stages = Array.from({ length: ShaderType.SHADER_TYPE_COUNT }, StageInput);
     this._uavs = new Array(MAX_RESOURCES).fill(null);
     this._uavCount = 0;

@@ -1,3 +1,4 @@
+import { StubTarget, StubBuffer } from "../../support/stubContext.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -62,6 +63,13 @@ function programWith(al, bindings)
   ]);
 }
 
+function textureWith(methods)
+{
+  const value = StubTarget();
+  Object.assign(value.TrinityALImpl_GetObject(), methods);
+  return value;
+}
+
 const BINDINGS = [
   { group: 0, binding: 0, resourceKind: "uniform-buffer", registerSpace: 0, registerIndex: 0, visibility: [ "vertex", "fragment" ], type: "array<vec4<f32>, 2>", generatedSymbol: "cb0" },
   { group: 0, binding: 1, resourceKind: "sampled-resource", registerSpace: 0, registerIndex: 2, visibility: [ "fragment" ], type: "texture_cube<f32>", generatedSymbol: "t2" },
@@ -75,10 +83,11 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   const program = programWith(al, BINDINGS);
   const description = new Tr2ResourceSetDescriptionAL({ program });
   const sampler = al.CreateSamplerState({ minFilter: 2, magFilter: 2, mipFilter: 2, addressU: 3, addressV: 3, addressW: 3 });
-  const bones = { GetDeviceBuffer: () => ({ kind: "buffer", id: "bones" }) };
+  const bones = StubBuffer();
+  bones.TrinityALImpl_GetObject().GetDeviceBuffer = () => ({ kind: "buffer", id: "bones" });
 
   description.SetSampler(ShaderType.PIXEL_SHADER, 2, sampler);
-  description.SetSrv(ShaderType.PIXEL_SHADER, 2, { GetDeviceTextureView: (dimension, colorSpace) => ({ kind: "view", dimension, colorSpace }) }, 1);
+  description.SetSrv(ShaderType.PIXEL_SHADER, 2, textureWith({ GetDeviceTextureView: (dimension, colorSpace) => ({ kind: "view", dimension, colorSpace }) }), 1);
   description.SetSrv(ShaderType.VERTEX_SHADER, 5, bones, 0, 1);
 
   const set = new CjsWebgpuResourceSetAL();
@@ -94,7 +103,8 @@ test("Create resolves every non-uniform slot against the program, by the stage t
   assert.equal(entries.get("0:3").buffer.id, "bones");
   assert.equal(created.textures, 0, "nothing needed a dummy");
   assert.equal(set.GetProgram(), program);
-  assert.equal(set.GetDescription(), description);
+  assert.notEqual(set.GetDescription(), description);
+  assert.equal(set.GetDescription().ComputeHash(), description.ComputeHash());
 
   set.Destroy();
   assert.equal(set.IsValid(), false);
@@ -107,8 +117,8 @@ test("what the description leaves empty takes a dummy of the slot's kind, and a 
   const program = programWith(al, BINDINGS);
   const description = new Tr2ResourceSetDescriptionAL({ program });
 
-  // A TriTextureRes, not yet a Tr2TextureAL: Carbon's fallback texture.
-  description.SetSrv(ShaderType.PIXEL_SHADER, 2, { id: "still-loading" });
+  // An empty AL binding selects the backend fallback while a resource loads.
+  description.SetSrv(ShaderType.PIXEL_SHADER, 2, null);
 
   const set = al.CreateResourceSet(description, program);
   const entries = set.m_resourceSet.implementation.GetEntries();
@@ -181,13 +191,13 @@ test("a writable storage view bound twice takes a dummy the second time, and eve
   const program = programWith(al, [ storage(0), storage(1), storage(2) ]);
   const description = new Tr2ResourceSetDescriptionAL({ program });
   const views = new Map();
-  const packed = {
+  const packed = textureWith({
     GetDeviceStorageView(dimension, mip)
     {
       if (!views.has(mip)) views.set(mip, { kind: "view", dimension, mip });
       return views.get(mip);
     }
-  };
+  });
 
   description.SetUav(ShaderType.PIXEL_SHADER, 0, packed, 6);
   description.SetUav(ShaderType.PIXEL_SHADER, 1, packed, 6);

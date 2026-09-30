@@ -4405,6 +4405,7 @@ export async function RunDemo(canvas)
     const particles = realScene?.GetGpuParticleSystem();
     realScene?.SetGpuParticleSystem(null);
     particles?.Destroy();
+    driver.Destroy();
     globalThis.removeEventListener("pagehide", dispose);
   };
   globalThis.addEventListener("pagehide", dispose);
@@ -4610,7 +4611,7 @@ export async function RunDemo(canvas)
     // an uninitialised depth buffer, and every fragment fails the depth test
     // while the draw still reports success.
     al.SetRenderTarget(0, renderTarget);
-    al.SetDepthStencil(renderTarget);
+    al.SetDepthStencil(null); // The canvas pass supplies its own depth attachment.
 
     // Errors on the verb path are otherwise invisible: a pipeline WebGPU rejects
     // is reported to the error scope and nowhere else, and the draw returns true.
@@ -4722,7 +4723,7 @@ export async function RunDemo(canvas)
         blue.os.PumpOS();
         al.BeginScene();
         al.SetRenderTarget(0, renderTarget);
-        al.SetDepthStencil(renderTarget);
+        al.SetDepthStencil(null); // The canvas pass supplies its own depth attachment.
         PlaceSun();
         driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
         al.EndScene();

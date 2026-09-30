@@ -1,3 +1,4 @@
+import { Tr2TextureAL } from "../../../trinityal/Tr2TextureAL/index.js";
 // Source: trinity/trinity/Tr2RenderTarget.h
 // Source: trinity/trinity/Tr2RenderTarget.cpp
 //
@@ -197,6 +198,7 @@ export class Tr2RenderTarget extends CjsModel
       return ALResult.E_FAIL;
     }
 
+    if (this._renderTarget) this._renderTarget.Destroy();
     this._renderTarget = texture;
     this._created = { dimensions, msaa, gpuUsage, cpuUsage };
     texture.SetName(this.name);
@@ -245,8 +247,10 @@ export class Tr2RenderTarget extends CjsModel
   @impl.implemented
   Attach(renderTarget, owner)
   {
+    const next = renderTarget ? new Tr2TextureAL({ copy: renderTarget }) : null;
     this.Destroy();
-    this._attachedRenderTarget = renderTarget;
+    if (this._attachedRenderTarget) this._attachedRenderTarget.Destroy();
+    this._attachedRenderTarget = next;
     this._attachedOwner = owner ?? null;
     this._Refresh();
     this._Changed();
@@ -302,11 +306,28 @@ export class Tr2RenderTarget extends CjsModel
   {
     const wasValid = Boolean(this._renderTarget?.IsValid());
 
+    if (this._renderTarget) this._renderTarget.Destroy();
     this._renderTarget = null;
     this._created = null;
     this._Refresh();
 
     if (wasValid) this._Changed();
+  }
+
+  /**
+   * Final owner teardown, including the attached value retained by native Detach/Destroy.
+   * Adapted: JavaScript requires an explicit counterpart to the C++ member destructors.
+   * Call after the owner has stopped using this render target.
+   */
+  @impl.custom
+  Dispose()
+  {
+    this.Destroy();
+    if (this._attachedRenderTarget) this._attachedRenderTarget.Destroy();
+    this._attachedRenderTarget = null;
+    this._attachedOwner = null;
+    this._Refresh();
+    this._listeners.length = 0;
   }
 
   /** Carbon `IsReadable` (`cpp:354-357`). */
@@ -451,7 +472,8 @@ export class Tr2RenderTarget extends CjsModel
   {
     if (this._renderTarget?.IsValid() && (this._renderTarget.GetMemoryClass() & storage))
     {
-      this._renderTarget = null;
+      if (this._renderTarget) this._renderTarget.Destroy();
+    this._renderTarget = null;
       this._Refresh();
       this._Changed();
     }

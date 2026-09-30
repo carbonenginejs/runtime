@@ -1,3 +1,5 @@
+import { Tr2BufferAL } from "../../Tr2BufferAL/index.js";
+import { Tr2TextureAL } from "../../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.cpp
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
 //
@@ -121,7 +123,7 @@ export class Tr2RenderContextALStub
   _caps = new Tr2CapsALStub();
 
   /** m_defaultBackBuffer - a real texture, so size and format read back. */
-  _defaultBackBuffer = new Tr2TextureALStub();
+  _defaultBackBuffer = new Tr2TextureAL();
 
   /**
    * The shader stages this context binds constants for.
@@ -225,13 +227,17 @@ export class Tr2RenderContextALStub
    * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
    * @returns {object|null} The created buffer, or null when Create refused.
    */
-  CreateBuffer(description, initialData = null)
+  CreateBuffer(description, initialData = null, implementationOnly = false)
   {
-    const buffer = new Tr2BufferALStub();
-
-    if (Failed(buffer.Create(description, initialData, this))) return null;
-
-    return buffer;
+    if (implementationOnly)
+    {
+      const implementation = new Tr2BufferALStub();
+      const result = implementation.Create(description, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2BufferAL();
+    return Failed(value.Create(description, initialData, this)) ? null : value;
   }
 
   /**
@@ -285,13 +291,17 @@ export class Tr2RenderContextALStub
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
    * @returns {object|null} The texture, or null when Create refused.
    */
-  CreateTexture(desc, options)
+  CreateTexture(desc, options, implementationOnly = false)
   {
-    const texture = new Tr2TextureALStub();
-
-    if (Failed(texture.Create(desc, options ?? {}, this))) return null;
-
-    return texture;
+    if (implementationOnly)
+    {
+      const implementation = new Tr2TextureALStub();
+      const result = implementation.Create(desc, options ?? {}, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2TextureAL();
+    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
   }
 
   /**
@@ -501,9 +511,10 @@ export class Tr2RenderContextALStub
    */
   ReleaseDeviceResources()
   {
+    for (const target of this._boundRenderTargets) { if (target) target.Destroy(); }
     this._boundRenderTargets.fill(null);
     this._defaultBackBuffer.Destroy();
-    this._defaultBackBuffer = new Tr2TextureALStub();
+    this._defaultBackBuffer = new Tr2TextureAL();
 
     return true;
   }
@@ -511,9 +522,17 @@ export class Tr2RenderContextALStub
   /** Carbon's Destroy clears the bound targets and drops validity (cpp:62-69). */
   Destroy()
   {
+    this._defaultBackBuffer.Destroy();
+    for (const target of this._boundRenderTargets) { if (target) target.Destroy(); }
     this._boundRenderTargets.fill(null);
+    if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = null;
-    for (const stack of this._renderTargetStacks) stack.length = 0;
+    for (const stack of this._renderTargetStacks)
+    {
+      for (const target of stack) { if (target) target.Destroy(); }
+      stack.length = 0;
+    }
+    for (const texture of this._depthStencilStack) if (texture) texture.Destroy();
     this._depthStencilStack.length = 0;
     this._isValid = false;
 
@@ -543,7 +562,9 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    this._boundRenderTargets[slot] = renderTarget ?? null;
+    const next = (renderTarget ? new Tr2TextureAL({ copy: renderTarget }) : null);
+    if (this._boundRenderTargets[slot]) this._boundRenderTargets[slot].Destroy();
+    this._boundRenderTargets[slot] = next;
 
     return ALResult.S_OK;
   }
@@ -577,7 +598,7 @@ export class Tr2RenderContextALStub
       fail(`render target slot ${slot} is outside 0..${MAX_RENDER_TARGET - 1}`);
     }
 
-    this._renderTargetStacks[slot].push(this._boundRenderTargets[slot] ?? null);
+    this._renderTargetStacks[slot].push((this._boundRenderTargets[slot] ? new Tr2TextureAL({ copy: this._boundRenderTargets[slot] }) : null));
 
     return ALResult.S_OK;
   }
@@ -603,7 +624,9 @@ export class Tr2RenderContextALStub
     // guard at all - it does, on the very next line after the assert.
     if (!stack.length) return ALResult.E_FAIL;
 
-    this._boundRenderTargets[slot] = stack.pop();
+    const previous = stack.pop();
+    this.SetRenderTarget(slot, previous);
+    if (previous) previous.Destroy();
 
     return ALResult.S_OK;
   }
@@ -627,7 +650,9 @@ export class Tr2RenderContextALStub
    */
   SetDepthStencil(depthStencil)
   {
-    this._depthStencil = depthStencil ?? null;
+    const next = depthStencil ? new Tr2TextureAL({ copy: depthStencil }) : null;
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = next;
 
     return ALResult.S_OK;
   }
@@ -645,7 +670,7 @@ export class Tr2RenderContextALStub
    */
   PushDepthStencil()
   {
-    this._depthStencilStack.push(this._depthStencil);
+    this._depthStencilStack.push(this._depthStencil ? new Tr2TextureAL({ copy: this._depthStencil }) : null);
 
     return ALResult.S_OK;
   }
@@ -662,7 +687,9 @@ export class Tr2RenderContextALStub
   {
     if (!this._depthStencilStack.length) return ALResult.E_FAIL;
 
-    this._depthStencil = this._depthStencilStack.pop();
+    const previous = this._depthStencilStack.pop();
+    this.SetDepthStencil(previous);
+    if (previous) previous.Destroy();
 
     return ALResult.S_OK;
   }

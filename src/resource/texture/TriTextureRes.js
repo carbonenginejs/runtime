@@ -113,6 +113,9 @@ export class TriTextureRes extends CjsResource
    */
   texture = null;
 
+  /** m_ownTexture: the value produced by deferred realization; SetTexture only borrows. */
+  _ownTexture = null;
+
   /** m_loadedBitmap: the decoded image the texture is made from, or null. */
   loadedBitmap = null;
 
@@ -128,13 +131,12 @@ export class TriTextureRes extends CjsResource
   }
 
   /**
-   * Adopts a texture as this resource's (`TriTextureRes.cpp:1159-1195`).
+   * Borrows a texture (`TriTextureRes.cpp:1159-1195`); its owner retains its lifetime.
    *
    * @param {object|null} texture A `Tr2TextureAL`, or null to drop it.
    * @returns {TriTextureRes} This resource.
    */
   SetTexture(texture) {
-    if (this.texture && this.texture !== texture) this.texture.Destroy();
     this.texture = texture ?? null;
     return this;
   }
@@ -275,7 +277,7 @@ export class TriTextureRes extends CjsResource
    * @returns {boolean} Whether the bitmap was adopted.
    */
   CreateFromHostBitmap(bitmap) {
-    this.SetTexture(null);
+    this.ReleaseResources();
 
     if (!bitmap || !bitmap.IsValid()) {
       this.loadedBitmap = null;
@@ -305,7 +307,7 @@ export class TriTextureRes extends CjsResource
   SetPayload(payload = null, options = null) {
     if (payload === null) {
       // The bytes are gone; so is the texture made from them.
-      this.SetTexture(null);
+      this.ReleaseResources();
       this.loadedBitmap = null;
       super.SetPayload(null);
       return this;
@@ -619,17 +621,19 @@ export class TriTextureRes extends CjsResource
    */
   ReleaseResources(storage = TriStorageFlags.TRISTORAGE_ALL)
   {
+    const owned = this._ownTexture;
+    if (owned && owned.IsValid() && (owned.GetMemoryClass() & storage) !== 0) owned.Destroy();
     const texture = this.texture;
     if (!texture) return this;
 
     const memoryClass = texture.GetMemoryClass();
     const release = Boolean(storage & TriStorageFlags.TRISTORAGE_MANAGEDMEMORY)
       || Boolean((storage & TriStorageFlags.TRISTORAGE_VIDEOMEMORY) && memoryClass === Tr2ALMemoryType.AL_MEMORY_VIDEO);
-    // Carbon resets m_ownTexture again in the pointer-clearing branch (:381).
-    if (texture.IsValid() && ((memoryClass & storage) !== 0 || release)) texture.Destroy();
 
     if (release)
     {
+      if (owned) owned.Destroy();
+      this._ownTexture = null;
       this.texture = null;
       this.wrappedRenderTarget = null;
       this.originalMemoryUsage = 0;

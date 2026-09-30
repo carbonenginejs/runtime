@@ -35,7 +35,8 @@ test("getEmptySSAO is one persistent white 1x1 texture (cpp:40-46)", () =>
   const second = EveSpaceSceneRenderDriver.getEmptySSAO(pool);
 
   assert.equal(first.IsValid(), true);
-  assert.equal(first.Get(), second.Get());
+  assert.notEqual(first.Get(), second.Get());
+  assert.equal(first.Get().Equals(second.Get()), true);
   assert.equal(first.Get().GetWidth(), 1);
   assert.equal(first.Get().GetHeight(), 1);
 });
@@ -59,5 +60,9 @@ test("registerWithVariableStore publishes a real shadow map in place of the fall
 
   EveSpaceScene.registerWithVariableStore(shadows, pool);
 
-  assert.equal(Global("EveSpaceSceneShadowMap"), shadows.shadowMap.Get());
+  assert.notEqual(Global("EveSpaceSceneShadowMap"), shadows.shadowMap.Get());
+  assert.equal(Global("EveSpaceSceneShadowMap").Equals(shadows.shadowMap.Get()), true);
+  pool.Free(shadows.shadowMap);
+  pool.Destroy();
+  assert.equal(Global("EveSpaceSceneShadowMap").IsValid(), true);
 });

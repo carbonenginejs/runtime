@@ -1,3 +1,4 @@
+import { Tr2TextureAL } from "../../trinityal/Tr2TextureAL/index.js";
 // Source: trinity/trinity/Tr2TextureReference.h
 // Source: trinity/trinity/Tr2TextureReference.cpp
 // Source: trinity/trinity/Tr2TextureReference_Blue.cpp
@@ -69,10 +70,9 @@ export class Tr2TextureReference extends CjsModel
 
   /**
    * Installs the owner's texture (null releases it) and broadcasts the change,
-   * the JS form of an owner creating or resetting Carbon's by-value member and
-   * then calling OnTextureChange().Broadcast(). Named after Carbon's
-   * Tr2TransientTextureReference::SetTexture (cpp:122-126), which does exactly
-   * this for a borrowed texture.
+   * the JS form of copying or resetting Carbon's by-value member and then
+   * calling OnTextureChange().Broadcast(). The caller keeps its own value;
+   * this owner explicitly retains a separate shared value.
    *
    * Carbon owners mutate the by-value Tr2TextureAL in place; JS AL textures are
    * factory-made, so the owner installs the new one here.
@@ -82,7 +82,10 @@ export class Tr2TextureReference extends CjsModel
   @impl.custom
   SetTexture(texture)
   {
-    this.texture = texture ?? null;
+    // Copy before reset also makes assigning GetTexture() to this owner safe.
+    const next = texture ? new Tr2TextureAL({ copy: texture }) : null;
+    if (this.texture) this.texture.Destroy();
+    this.texture = next;
     for (const listener of this._listeners.slice()) listener(this);
   }
 

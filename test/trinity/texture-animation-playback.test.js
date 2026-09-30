@@ -1,3 +1,4 @@
+import { Tr2RenderContextALStub, Tr2TextureAL } from "../../npm/dist/trinityal/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildVta } from "../support/vtaFixture.js";
@@ -28,19 +29,26 @@ function setup(t)
   t.mock.method(blue.resMan, "ReadResource", async () => fixture());
   t.mock.method(Tr2RenderContext_GetMainThreadRenderContext(), "CreateTexture", (desc, options) =>
   {
-    const texture = {
-      desc, uploads: [Array.from(options.initialData[0].m_sysMem)], destroyed: false,
-      UpdateSubresource(region, bytes, pitch, slicePitch)
-      {
-        assert.equal(pitch, 2);
-        assert.equal(slicePitch, 2);
-        this.uploads.push(Array.from(bytes));
-      },
-      Destroy()
-      {
-        this.destroyed = true;
-      }
+    const al = new Tr2RenderContextALStub();
+    al.CreateDevice();
+    assert.equal(options.cpuUsage, Tr2CpuUsage.WRITE);
+    // Stub refuses CPU-writable volumes. This playback fixture records updates;
+    // the separate WebGPU volume test below validates actual mapping/uploads.
+    const texture = al.CreateTexture(desc, { ...options, cpuUsage: Tr2CpuUsage.NONE });
+    assert.ok(texture && texture.IsValid());
+    texture.desc = desc;
+    texture.uploads = [Array.from(options.initialData[0].m_sysMem)];
+    const implementation = texture.TrinityALImpl_GetObject();
+    const destroy = implementation.Destroy.bind(implementation);
+    let destroyed = false;
+    implementation.Destroy = () => { destroyed = true; destroy(); };
+    Object.defineProperty(texture, "destroyed", { get: () => destroyed });
+    texture.UpdateSubresource = (...args) => {
+      assert.equal(args[2], 2); assert.equal(args[3], 2);
+      texture.uploads.push(Array.from(args[1]));
+      return 0;
     };
+    al.Destroy();
     textures.push(texture);
     return texture;
   });
@@ -95,9 +103,12 @@ test("texture animation advances one frame after the strict threshold and keeps 
   animation.AdvanceTime(1);
   assert.equal(animation.frame, 0);
   assert.deepEqual(texture.uploads.at(-1), [1, 2, 3, 4]);
+  const retained = textures.map(value => new Tr2TextureAL({ copy: value }));
   animation.Destroy();
-  // Carbon's destructor only cancels (Tr2TextureAnimation.cpp:103-109); holders keep the textures.
+  // Explicit copies represent the native shared values retained by bindings.
   assert.ok(textures.every(item => !item.destroyed));
+  retained.forEach(value => value.Destroy());
+  assert.ok(textures.every(item => item.destroyed));
   assert.equal(animation.GetTexture("density"), null);
 });
 
@@ -108,14 +119,19 @@ test("reload drops grid textures without destroying ones a resource set may stil
   animation.AdvanceTime(0);
   const old = animation.GetTexture("density");
   assert.equal(old, textures[0]);
+  const retained = new Tr2TextureAL({ copy: old });
   await animation.ReadData();
   assert.equal(old.destroyed, false);
   assert.deepEqual(animation.GetChannelNames(), []);
   animation.AdvanceTime(0);
   assert.notEqual(animation.GetTexture("density"), old);
   assert.equal(textures.length, 4);
-  assert.ok(textures.every(item => !item.destroyed));
+  assert.equal(textures[1].destroyed, true, "unretained old heat texture was released");
+  assert.ok(textures.slice(2).every(item => !item.destroyed));
   animation.Destroy();
+  assert.equal(retained.IsValid(), true);
+  retained.Destroy();
+  assert.ok(textures.every(item => item.destroyed));
 });
 
 test("grid textures take the grid's pixel format", async t =>

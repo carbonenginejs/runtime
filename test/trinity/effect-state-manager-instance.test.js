@@ -1,3 +1,4 @@
+import { StubBuffer } from "../support/stubContext.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -156,7 +157,7 @@ test("a stream bind is filtered only inside a managed span", () =>
   context.SetRenderContextAL(al);
 
   const states = context.GetEffectStateManager();
-  const buffer = { id: "vertices" };
+  const buffer = StubBuffer();
 
   assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), true, "unmanaged: always binds");
   assert.equal(states.ApplyStreamSource(0, buffer, 0, 32), true, "unmanaged: still binds");
@@ -181,7 +182,7 @@ test("an index bind is filtered the same way, and a one-byte stride fails", () =
   context.SetRenderContextAL(al);
 
   const states = context.GetEffectStateManager();
-  const indices = { id: "indices" };
+  const indices = StubBuffer();
 
   states.BeginManagedRendering();
 

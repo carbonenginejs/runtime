@@ -260,6 +260,27 @@ export class EveSpaceSceneRenderDriver extends CjsModel
 
   #preparedContext = null;
 
+  /** Explicit final retirement; Execute cannot restart an owner after teardown. */
+  _destroyed = false;
+
+  /** Releases this driver's values after its render job has stopped. */
+  @impl.custom
+  Destroy()
+  {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    this.enableRendering = false;
+    this.#depthMapReference.SetTexture(null);
+    this.#ssaoMapReference.SetTexture(null);
+    this.#normalMapReference.SetTexture(null);
+    this._opaqueMapReference.SetTexture(null);
+    this.#distortionEffect.Destroy();
+    this.postProcess.Destroy();
+    this.#renderer.Destroy();
+    this.#gpuResourcePool.Destroy();
+    this.#preparedContext = null;
+  }
+
   /** The provider "DepthMap" is registered with; it holds this frame's scene depth. */
   #depthMapReference = new Tr2TextureReference();
 
@@ -361,7 +382,7 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    */
   Execute(destinations = null, _outputs = null, realTime = 0, simTime = 0, _rootTimer = null, renderContext = null)
   {
-    if (!renderContext || !this.Validate()) return false;
+    if (this._destroyed || !renderContext || !this.Validate()) return false;
 
     const target = Array.isArray(destinations) ? destinations[0] ?? null : destinations;
 
@@ -534,8 +555,14 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    */
   #RegisterSSAOMap(handle)
   {
-    this.#ssaoMapReference.SetTexture(handle ? handle.Get() : null);
-    if (handle) this.#gpuResourcePool.Free(handle);
+    try
+    {
+      this.#ssaoMapReference.SetTexture(handle ? handle.Get() : null);
+    }
+    finally
+    {
+      if (handle) this.#gpuResourcePool.Free(handle);
+    }
     Tr2VariableStore.GlobalStore().RegisterVariable("SSAOMap", this.#ssaoMapReference);
   }
 

@@ -4,9 +4,11 @@ import { test } from "node:test";
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuTextureAL, CjsWebgpuUtils } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { CjsResMan, RegisterTextureResources, TriTextureRes, CjsMotherLode } from "../../../npm/dist/resource/index.js";
-import { DescribeBitmap } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
-import { ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
+import { DescribeBitmap, RealizeTexture } from "../../../npm/dist/trinity/core/Tr2ImageIOHelpers.js";
+import { Tr2TextureAL, ALResult, Tr2BitmapDimensions, Tr2SubresourceData } from "../../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2CpuUsage, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
+
+import { HostBitmap } from "../../../npm/dist/global/imageio/index.js";
 
 // Carbon creates a texture with one Tr2SubresourceData per (mip, layer),
 // indexed mip + layer * mipCount (Tr2ImageIOHelpers.cpp:104-128), and Metal
@@ -212,7 +214,9 @@ test("the context creates the backend's texture, and Create accepts Trinity's co
   const desc = Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
   const data = [ new Tr2SubresourceData(new Uint8Array(64), 16, 64) ];
 
-  assert.ok(al.CreateTexture(desc, { initialData: data }) instanceof CjsWebgpuTextureAL);
+  const value = al.CreateTexture(desc, { initialData: data });
+  assert.equal(value.constructor, Tr2TextureAL);
+  assert.equal(value.TrinityALImpl_GetObject().constructor, CjsWebgpuTextureAL);
   assert.equal(al.CreateTexture(desc, {}), null, "a refused create is null");
 
   const texture = new CjsWebgpuTextureAL();
@@ -459,11 +463,12 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
 
   for (let cycle = 0; cycle < 8; cycle += 1)
   {
-    const texture = new CjsWebgpuTextureAL();
-    const desc = Tr2BitmapDimensions.texture2D(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM);
-    assert.equal(texture.Create(desc, { gpuUsage: Tr2GpuUsage.RENDER_TARGET }, al), ALResult.S_OK);
-    resource.SetTexture(texture);
+    const bitmap = new HostBitmap();
+    assert.equal(bitmap.Create(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), true);
+    assert.equal(resource.CreateFromHostBitmap(bitmap), true);
     resource.MarkPrepared();
+    const texture = RealizeTexture(resource, al);
+    assert.equal(texture.IsValid(), true);
     calls.destroyed = false;
     motherLode.Insert(resource.GetPath(), resource, { time: 0 });
     const purged = motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });
@@ -472,4 +477,19 @@ test("cache eviction reaches WebGPU AL Destroy on every texture reload without a
     assert.equal(texture.IsValid(), false);
     assert.equal(resource.texture, null);
   }
+});
+
+test("TriTextureRes.SetTexture borrows caller storage across eviction", () =>
+{
+  const { al, calls } = composed();
+  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(2, 2, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
+  const resource = new TriTextureRes();
+  resource.SetTexture(value);
+  calls.destroyed = false;
+  resource.ReleaseResources();
+  assert.equal(calls.destroyed, false);
+  assert.equal(value.IsValid(), true);
+  assert.equal(resource.GetTexture(), null);
+  value.Destroy();
+  assert.equal(calls.destroyed, true);
 });

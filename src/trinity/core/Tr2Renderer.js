@@ -218,6 +218,14 @@ export class Tr2Renderer
    */
   #blitter = null;
 
+  /** Explicit final release of this renderer's instance-owned blitter. */
+  @impl.custom
+  Destroy()
+  {
+    if (this.#blitter) this.#blitter.Destroy();
+    this.#blitter = null;
+  }
+
   /**
    * Creates the device-dependent resources, the blitter among them.
    *
@@ -613,8 +621,7 @@ export class Tr2Renderer
   /**
    * Carbon's file-static `CreateIndexBuffer<T>` (`Tr2Renderer.cpp:293-323`):
    * two triangles per quad, (0,2,1) and (0,3,2), into the shared geometry
-   * buffer. Carbon frees the previous allocation first; `Tr2SuballocatedBuffer`
-   * has no Free, so a regrow abandons it.
+   * buffer. The previous allocation is returned to its recorded owner before regrowth.
    */
   static #CreateIndexBuffer(Typed, count)
   {
@@ -632,6 +639,8 @@ export class Tr2Renderer
       indices[at + 5] = base + 2;
     }
 
+    const previous = Tr2Renderer.#quadListIndexBuffer;
+    if (previous.m_parent) previous.m_parent.Free(previous);
     const allocation = SharedGeometryBuffer(renderContext).Allocate(Typed.BYTES_PER_ELEMENT, count * 6, indices, renderContext);
 
     if (!allocation)

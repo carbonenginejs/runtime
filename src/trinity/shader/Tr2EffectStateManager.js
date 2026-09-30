@@ -1,3 +1,4 @@
+import { Tr2BufferAL } from "../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Shader/Tr2EffectStateManager.h
 // Maintained CarbonEngineJS implementation; generated schema is reference-only.
 //
@@ -16,7 +17,7 @@
 // This class declares no @carbon.method, so the parity audit cannot see it:
 // an entirely unimplemented class reports clean. Do not read a green audit as
 // evidence that this file is finished.
-import { type } from "#schema";
+import { type, impl } from "#schema";
 import { CjsModel } from "#model";
 import { RenderingMode } from "#consts/graphics";
 import {
@@ -1119,8 +1120,29 @@ export class Tr2EffectStateManager extends CjsModel
    * @param {number} [cullMode] A `CullMode` member.
    * @returns {void}
    */
+  _ReleaseBufferBindings()
+  {
+    for (const stream of this.#currentValues.streams)
+    {
+      if (stream.vertexBuffer) stream.vertexBuffer.Destroy();
+      stream.vertexBuffer = null;
+    }
+    if (this.#currentValues.indexBuffer) this.#currentValues.indexBuffer.Destroy();
+    this.#currentValues.indexBuffer = null;
+  }
+
+  /** Explicitly releases values that Carbon releases with its state cache. */
+  @impl.custom
+  Destroy()
+  {
+    this._ReleaseBufferBindings();
+    this.#isManagedRendering = false;
+  }
+
+  /** Starts a fresh managed state span, releasing the preceding cache's values. */
   BeginManagedRendering(cullMode = CullMode.CULLMODE_NONE)
   {
+    this._ReleaseBufferBindings();
     this.#currentValues = NewCurrentValues();
     this.#isManagedRendering = true;
 
@@ -1601,12 +1623,14 @@ export class Tr2EffectStateManager extends CjsModel
 
     if (this.#isManagedRendering)
     {
-      if (buffer === current.vertexBuffer && offset === current.offset && stride === current.stride)
+      if ((buffer === current.vertexBuffer || (buffer && current.vertexBuffer && buffer.Equals(current.vertexBuffer))) && offset === current.offset && stride === current.stride)
       {
         return false;
       }
 
-      current.vertexBuffer = buffer;
+      const next = buffer ? new Tr2BufferAL({ copy: buffer }) : null;
+      if (current.vertexBuffer) current.vertexBuffer.Destroy();
+      current.vertexBuffer = next;
       current.offset = offset;
       current.stride = stride;
     }
@@ -1635,12 +1659,14 @@ export class Tr2EffectStateManager extends CjsModel
 
     if (this.#isManagedRendering)
     {
-      if (indices === this.#currentValues.indexBuffer && stride === this.#currentValues.indexStride)
+      if ((indices === this.#currentValues.indexBuffer || (indices && this.#currentValues.indexBuffer && indices.Equals(this.#currentValues.indexBuffer))) && stride === this.#currentValues.indexStride)
       {
         return false;
       }
 
-      this.#currentValues.indexBuffer = indices;
+      const next = indices ? new Tr2BufferAL({ copy: indices }) : null;
+      if (this.#currentValues.indexBuffer) this.#currentValues.indexBuffer.Destroy();
+      this.#currentValues.indexBuffer = next;
       this.#currentValues.indexStride = stride;
     }
 

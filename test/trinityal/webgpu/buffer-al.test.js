@@ -40,7 +40,7 @@ function fakeDevice()
  */
 function contextFor(webgpu, valid = true)
 {
-  return { IsValid: () => valid, GetWebgpu: () => webgpu, frame: 1, GetRecordingFrameNumber() { return this.frame; } };
+  return { IsValid: () => valid, GetWebgpu: () => webgpu, frame: 1, GetRecordingFrameNumber() { return this.frame; }, ReleaseLater(release) { release(); } };
 }
 
 function deviceAndContext()
@@ -232,7 +232,7 @@ test("a CPU-readable typed UAV buffer is created as storage, as Carbon's exposur
   assert.equal(descriptor.size, 32);
   assert.equal(descriptor.usage & BUFFER_USAGE.STORAGE, BUFFER_USAGE.STORAGE);
   // No MAP_READ in this device's usage table, so no read-back can start.
-  assert.equal(buffer.MapForReading().result, ALResult.E_FAIL);
+  assert.equal(buffer.MapForReading(context).result, ALResult.E_FAIL);
 });
 
 test("MapForReading answers one frame late from a completed staging copy", async () =>
@@ -269,19 +269,20 @@ test("MapForReading answers one frame late from a completed staging copy", async
     PixelFormat.PIXEL_FORMAT_R32_FLOAT, 8,
     Tr2GpuUsage.SHADER_RESOURCE | Tr2GpuUsage.UNORDERED_ACCESS, Tr2CpuUsage.READ);
 
-  assert.equal(buffer.Create(description, new Float32Array(8), contextFor(webgpu)), ALResult.S_OK);
+  const context = contextFor(webgpu);
+  assert.equal(buffer.Create(description, new Float32Array(8), context), ALResult.S_OK);
   assert.equal(calls.find(call => call[0] === "createBuffer")[1].usage & usage.COPY_SRC, usage.COPY_SRC, "a CPU-readable buffer is a copy source");
 
   // First call: the copy is only started.
-  assert.equal(buffer.MapForReading().result, ALResult.E_FAIL);
+  assert.equal(buffer.MapForReading(context).result, ALResult.E_FAIL);
   assert.ok(calls.some(call => call[0] === "copy" && call[1] === 32));
   await new Promise(resolve => setTimeout(resolve, 0));
 
   // Next call: the completed copy, sliced to the span asked for.
-  const read = buffer.MapForReading(1, 2);
+  const read = buffer.MapForReading(context, 1, 2);
   assert.equal(read.result, ALResult.S_OK);
   assert.deepEqual(Array.from(read.data), [ 2, 3 ]);
-  assert.equal(buffer.MapForReading(4, 64).result, ALResult.E_INVALIDARG);
+  assert.equal(buffer.MapForReading(context, 4, 64).result, ALResult.E_INVALIDARG);
 });
 
 test("UpdateBuffer writes a WRITE_OFTEN buffer and a plain WRITE one", () =>
@@ -339,8 +340,8 @@ test("reading back is refused by name rather than returning empty bytes", () =>
   const buffer = new CjsWebgpuBufferAL();
   buffer.Create(quadDescription(), null, context);
 
-  assert.equal(buffer.MapForReading().result, ALResult.E_INVALIDCALL);
-  assert.equal(buffer.MapForReading().data, null);
+  assert.equal(buffer.MapForReading(context).result, ALResult.E_INVALIDCALL);
+  assert.equal(buffer.MapForReading(context).data, null);
 });
 
 test("the device-resource surface Carbon's backends share is answered", () =>

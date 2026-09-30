@@ -370,7 +370,8 @@ test("promoted shader graph containers track dirty resources", () =>
   // old assertion was the engine-means-`trinityal/webgpu` misreading written down
   // as a guarantee. See /docs/research/graphics-path-review-2026-09-05.md.
   let cleared = 0;
-  pass.resourceSet = {};
+  let released = 0;
+  pass.resourceSet = { Destroy() { released += 1; } };
   pass.resourceSetDesc = {
     ClearResources()
     {
@@ -385,6 +386,7 @@ test("promoted shader graph containers track dirty resources", () =>
   material.InvalidateResourceSets();
   assertEquals(pass.resourceSet, null, "the realized set is dropped, as Carbon drops it");
   assertEquals(cleared, 1, "and the description it was built from is cleared");
+  assertEquals(released, 1, "the realized resource set is explicitly released");
 
   // ResourceChanged is the WEAKER of the pair on purpose: the bound resources
   // changed, the set layout did not, so it invalidates without clearing.
@@ -1107,8 +1109,8 @@ test("ApplyMaterialDataForPass binds only the stages the technique declares", ()
   assertEquals(locked.join(","), "0,1", "and only those had their mirror copied into the buffer");
 
   const srv = pass.resourceSetDesc.m_srv[0];
-  // Unprepared, so Carbon's fallback route binds the RESOURCE in the texture's place.
-  assertEquals(srv?.texture, diffuse, "the parameter bound itself into the description");
+  // Unprepared: an empty AL value selects the backend fallback.
+  assertEquals(srv?.texture, null, "the parameter selected the fallback without passing a resource as an AL value");
   assertEquals(srv?.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB, "registerCount carried the sRGB flag");
 
   assert(boundSets[0], "a resource set was realized and bound");

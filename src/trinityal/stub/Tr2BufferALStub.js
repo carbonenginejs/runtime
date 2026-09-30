@@ -70,7 +70,7 @@ export class Tr2BufferALStub extends Tr2DeviceResourceAL
 
     if (!renderContext.IsValid()) return ALResult.E_INVALIDCALL;
 
-    this._desc = desc;
+    this._desc = Object.assign(new Tr2BufferDescriptionAL(), desc);
     this._buffer = new Uint8Array(desc.GetSizeInBytes());
 
     return ALResult.S_OK;

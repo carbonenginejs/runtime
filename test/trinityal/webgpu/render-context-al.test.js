@@ -3,9 +3,19 @@ import test from "node:test";
 
 import { CjsWebgpuRenderContextAL } from "../../../npm/dist/trinityal/webgpu/internal.js";
 import { Tr2ColorAttachment, Tr2DepthAttachment } from "../../../npm/dist/trinityal/index.js";
-import { ALResult } from "../../../npm/dist/trinityal/index.js";
-import { Topology, Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
+import { Tr2RenderContextALStub, Tr2BufferAL, Tr2BufferDescriptionAL, Tr2BitmapDimensions, ALResult } from "../../../npm/dist/trinityal/index.js";
+import { PixelFormat, Tr2CpuUsage, Tr2GpuUsage, Topology, Tr2LoadAction, Tr2StoreAction } from "../../../npm/dist/global/consts/renderContext/index.js";
 import { Failed } from "../../../npm/dist/trinityal/index.js";
+
+const fixtureAL = new Tr2RenderContextALStub();
+fixtureAL.CreateDevice();
+
+function deviceBuffer(handle)
+{
+  const value = fixtureAL.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64, Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
+  value.TrinityALImpl_GetObject().GetDeviceBuffer = () => handle;
+  return value;
+}
 
 const ready = () =>
 {
@@ -22,8 +32,8 @@ const geometry = al =>
 {
   al.SetShaderProgram({ id: "program" });
   al.SetVertexLayout({ id: "layout" });
-  al.SetStreamSource(0, { id: "vertices" }, 0, 32);
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetStreamSource(0, deviceBuffer("vertices"), 0, 32);
+  al.SetIndices(deviceBuffer("indices"), 2);
 };
 
 test("the batch-to-draw sequence records one pass and one draw", () =>
@@ -54,7 +64,7 @@ test("an indexed draw with nothing to index is refused", () =>
   assert.ok(Failed(al.DrawIndexedInstanced(36, 1)), "no index buffer");
   assert.deepEqual(al.DrainTransitions(), [], "and nothing was recorded");
 
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
 
   assert.equal(al.DrawIndexedInstanced(36, 1), ALResult.S_OK);
 });
@@ -160,7 +170,7 @@ test("a scene cannot open before a device exists", () =>
   assert.throws(() => new CjsWebgpuRenderContextAL().BeginScene(), /before CreateDevice/);
 });
 
-const target = (width, height) => ({ GetWidth: () => width, GetHeight: () => height });
+const target = (width, height) => fixtureAL.CreateTexture(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM), { gpuUsage: Tr2GpuUsage.RENDER_TARGET });
 
 test("binding a target resets the viewport to it", () =>
 {
@@ -224,8 +234,8 @@ test("render-target stacks are per slot", () =>
   al.SetRenderTarget(0, target(300, 300));
   al.PopRenderTarget(0);
 
-  assert.equal(al.GetRenderTarget(0), first, "slot zero restored its own");
-  assert.equal(al.GetRenderTarget(1), second, "slot one untouched");
+  assert.equal(al.GetRenderTarget(0).Equals(first), true, "slot zero restored its own");
+  assert.equal(al.GetRenderTarget(1).Equals(second), true, "slot one untouched");
   assert.ok(Failed(al.PopRenderTarget(0)), "nothing left");
 });
 
@@ -241,7 +251,7 @@ test("the depth-stencil target stacks too", () =>
   assert.equal(al.GetDepthStencil(), null);
   assert.equal(al.GetStackSizeDS(), 1);
   assert.equal(al.PopDepthStencil(), ALResult.S_OK);
-  assert.equal(al.GetDepthStencil(), depth);
+  assert.equal(al.GetDepthStencil().Equals(depth), true);
   assert.ok(Failed(al.PopDepthStencil()));
 });
 
@@ -365,7 +375,7 @@ test("the frame ends synchronously: end the pass, finish, submit", () =>
   al.CreateDevice();
   al.BeginScene();
   al.SetShaderProgram({ id: "program" });
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
 
   // A stand-in program cannot resolve a pipeline, so the draw is refused with
   // a reason - but Metal opens the encoder BEFORE it asks whether it can draw
@@ -483,7 +493,7 @@ test("the verbs this backend cannot encode refuse rather than report success", (
   // backend does (Tr2RenderContextDx11.cpp:1162-1165), and a valid one with no
   // compute program bound.
   assert.equal(al.RunComputeShaderIndirect({ IsValid: () => false }, 0), ALResult.E_FAIL);
-  assert.equal(al.RunComputeShaderIndirect({ IsValid: () => true, GetDeviceBuffer: () => ({}) }, 0), ALResult.E_FAIL);
+  assert.equal(al.RunComputeShaderIndirect(deviceBuffer("args"), 0), ALResult.E_FAIL);
 });
 
 // The rest of Carbon's render-context surface, added 2026-09-09. Trinity does
@@ -507,7 +517,7 @@ test("debug markers pop on the encoder that pushed them", () =>
   assert.equal(frameEncoder.GetRenderPass(), null);
 
   al.SetShaderProgram({ id: "program" });
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Now a pass is open, so markers reach it.
@@ -576,7 +586,7 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
     webgpu: { GetDevice: () => ({ createCommandEncoder: () => commandEncoder }), Submit() {} },
     renderTarget: { GetFormat: () => "bgra8unorm", Configure: () => {}, GetWidth: () => 8, GetHeight: () => 8 }
   });
-  const buffer = handle => ({ IsValid: () => true, GetDeviceBuffer: () => handle });
+  const buffer = deviceBuffer;
 
   // copyBufferToBuffer is a command-encoder verb, so it needs the encoder
   // BeginScene creates and nothing else.
@@ -589,7 +599,7 @@ test("CopySubBuffer encodes a real copy, and refuses outside a frame", () =>
   assert.deepEqual(copies, [ [ "src", 4, "dst", 16, 64 ] ]);
 
   // An invalid buffer or an empty range is a caller error a backend catches.
-  assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, { IsValid: () => false }, 0, 64)));
+  assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, new Tr2BufferAL(), 0, 64)));
   assert.ok(Failed(al.CopySubBuffer(buffer("dst"), 0, buffer("src"), 0, 0)));
   assert.equal(copies.length, 1);
 });
@@ -676,7 +686,7 @@ test("BeginScene resets the render targets, as Carbon's does", () =>
   const { al } = composed();
 
   al.CreateDevice();
-  al.SetRenderTarget(3, { GetWidth: () => 64, GetHeight: () => 64 });
+  al.SetRenderTarget(3, target(64, 64));
   assert.notEqual(al.GetRenderTarget(3), null);
 
   // Carbon's BeginScene is BeginFrame + ResetRenderTargets
@@ -764,16 +774,14 @@ test("an incomplete description says what is missing rather than building on a g
 // and a view per slice, as CjsWebgpuTextureAL answers.
 function boundTexture(name, format, unormSubstitute = false)
 {
-  return {
-    name,
-    GetWidth: () => 64,
-    GetHeight: () => 64,
-    GetFormat: () => 10,
+  const value = target(64, 64);
+  Object.assign(value.TrinityALImpl_GetObject(), {
     GetDeviceFormat: () => format,
     GetDeviceRenderTargetView: slice => `${name}:${slice}`,
     EncodeDepthShadowCopy: () => false,
     IsUnormSubstitute: () => unormSubstitute
-  };
+  });
+  return value;
 }
 
 function composedWithPasses()
@@ -823,7 +831,7 @@ test("a texture target's pass attaches the texture and the bound depth stencil",
   al.SetRenderTarget(0, colour);
   al.SetDepthStencil(depth);
   al.Clear({ color: [ 0, 0, 0, 1 ], depth: 1 });
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Until 2026-09-26 every pass was the canvas's, whatever was bound, so the
@@ -870,7 +878,7 @@ test("an unbound slot between bound ones is a null attachment and a null target"
 
   assert.deepEqual(al.GetPsoDescription().colorFormats, [ "rgba8unorm", null, "r32float" ]);
 
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Unhinted: every attachment loads and stores.
@@ -884,7 +892,7 @@ test("the canvas pass is unchanged, and rebinding it after a texture pass return
   const { al, passes } = composedWithPasses();
 
   al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // The post chain's final blit: the canvas, no depth stencil.
@@ -906,7 +914,7 @@ test("a packed clear colour is Carbon's ARGB word", () =>
 
   al.SetRenderTarget(0, boundTexture("target", "rgba8unorm"));
   al.RenderPassHint(new Tr2ColorAttachment(Tr2LoadAction.CLEAR, Tr2StoreAction.STORE, 0x80ff0000), null);
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   const clear = passes[0].colorAttachments[0].clearValue;
@@ -944,12 +952,12 @@ test("ClearUav zeroes a buffer with clearBuffer, outside any pass, and refuses w
       GetSampleCount: () => 1
     }
   });
-  const histogram = { GetDeviceBuffer: () => "histogram" };
+  const histogram = deviceBuffer("histogram");
 
   al.CreateDevice();
   al.BeginScene();
   al.SetShaderProgram({ id: "program" });
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   // Tr2PostProcessRenderer's histogram clears (cpp:1210-1215): uint zeros.
@@ -970,20 +978,20 @@ test("unbinding a sampled depth stencil refreshes its float shadow after its pas
 {
   const { al, passes } = composedWithPasses();
   const log = [];
-  const depth = {
-    ...boundTexture("depthBuffer", "depth32float"),
+  const depth = boundTexture("depthBuffer", "depth32float");
+  Object.assign(depth.TrinityALImpl_GetObject(), {
     EncodeDepthShadowCopy: encoder =>
     {
       log.push(`copy after ${passes.length} pass(es)`);
       return encoder !== null;
     }
-  };
+  });
 
   // EveSpaceSceneRenderDriver: the scene draws with depth, then the post
   // process pushes a null depth stencil (Tr2PostProcessRenderer.cpp:676).
   al.SetRenderTarget(0, boundTexture("customBackBuffer", "rgba16float"));
   al.SetDepthStencil(depth);
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
   al.SetDepthStencil(null);
 
@@ -1000,20 +1008,20 @@ test("turning read-only depth on refreshes the bound depth's float shadow", () =
 {
   const { al, passes } = composedWithPasses();
   const log = [];
-  const depth = {
-    ...boundTexture("depthBuffer", "depth32float"),
+  const depth = boundTexture("depthBuffer", "depth32float");
+  Object.assign(depth.TrinityALImpl_GetObject(), {
     EncodeDepthShadowCopy: encoder =>
     {
       log.push(`copy after ${passes.length} pass(es)`);
       return encoder !== null;
     }
-  };
+  });
 
   // EveSpaceSceneRenderDriver.RenderSSAO (cpp:365-372): the depth pass has
   // drawn, and SSAO reads the depth with it still bound, read-only.
   al.SetRenderTarget(0, boundTexture("normalMap", "rgb10a2unorm"));
   al.SetDepthStencil(depth);
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
   al.SetReadOnlyDepth(true);
 
@@ -1043,7 +1051,7 @@ test("Clear honours Carbon's flags and clears one colour slot", () =>
 
   // CLEARFLAGS_TARGET at slot 1 only (EveSpaceScene.cpp:2057 clears velocity to 0).
   assert.equal(al.Clear({ clearColor: true, color: 0, slot: 1 }), ALResult.S_OK);
-  al.SetIndices({ id: "indices" }, 2);
+  al.SetIndices(deviceBuffer("indices"), 2);
   al.DrawIndexedInstanced(3, 1, 0, 0, 0);
 
   const [ colour, velocity ] = passes[0].colorAttachments;

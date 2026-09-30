@@ -1,3 +1,5 @@
+import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
+import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.h
 // Source: trinity/trinityal/dx11/Tr2RenderContextDx11.cpp
 // Source: trinity/trinityal/dx11/Tr2PrimaryRenderContextDx11.h
@@ -201,7 +203,7 @@ export class Tr2RenderContextALWebgl2
   _caps = null;
 
   /** m_defaultBackBuffer; see the head comment. */
-  _defaultBackBuffer = new Tr2TextureALWebgl2();
+  _defaultBackBuffer = new Tr2TextureAL();
 
   /** m_presentParameters, kept under Carbon's misspelt accessor. */
   _presentParameters = null;
@@ -419,10 +421,17 @@ export class Tr2RenderContextALWebgl2
    * @param {ArrayBufferView|null} [initialData] Initial contents.
    * @returns {Tr2BufferALWebgl2|null} The buffer, or null when Create refused.
    */
-  CreateBuffer(description, initialData = null)
+  CreateBuffer(description, initialData = null, implementationOnly = false)
   {
-    const buffer = new Tr2BufferALWebgl2();
-    return Failed(buffer.Create(description, initialData, this)) ? null : buffer;
+    if (implementationOnly)
+    {
+      const implementation = new Tr2BufferALWebgl2();
+      const result = implementation.Create(description, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2BufferAL();
+    return Failed(value.Create(description, initialData, this)) ? null : value;
   }
 
   /**
@@ -458,10 +467,17 @@ export class Tr2RenderContextALWebgl2
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
    * @returns {Tr2TextureALWebgl2|null} The texture, or null when Create refused.
    */
-  CreateTexture(desc, options)
+  CreateTexture(desc, options, implementationOnly = false)
   {
-    const texture = new Tr2TextureALWebgl2();
-    return Failed(texture.Create(desc, options ?? {}, this)) ? null : texture;
+    if (implementationOnly)
+    {
+      const implementation = new Tr2TextureALWebgl2();
+      const result = implementation.Create(desc, options ?? {}, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2TextureAL();
+    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
   }
 
   /**
@@ -576,7 +592,7 @@ export class Tr2RenderContextALWebgl2
     }
 
     this._defaultBackBuffer.Destroy();
-    this._defaultBackBuffer = new Tr2TextureALWebgl2();
+    this._defaultBackBuffer = new Tr2TextureAL();
 
     const result = this._defaultBackBuffer.Create(
       Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
@@ -587,6 +603,7 @@ export class Tr2RenderContextALWebgl2
 
     this._presentParameters = presentParameters;
     this.SetViewport({ x: 0, y: 0, width, height, minZ: 0, maxZ: 1 });
+    if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = null;
     this.SetRenderTarget(0, this._defaultBackBuffer);
 
@@ -631,7 +648,7 @@ export class Tr2RenderContextALWebgl2
    */
   IsBackBuffer(renderTarget)
   {
-    return renderTarget === this._defaultBackBuffer;
+    return Boolean(renderTarget && renderTarget.Equals(this._defaultBackBuffer));
   }
 
   /**
@@ -660,7 +677,7 @@ export class Tr2RenderContextALWebgl2
       const height = backBuffer.GetHeight();
 
       gl.bindFramebuffer(gl.READ_FRAMEBUFFER, this._presentFramebuffer);
-      backBuffer.AttachToFramebuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, 0, 0);
+      backBuffer.TrinityALImpl_GetObject().AttachToFramebuffer(gl.READ_FRAMEBUFFER, gl.COLOR_ATTACHMENT0, 0, 0);
       gl.bindFramebuffer(gl.DRAW_FRAMEBUFFER, null);
       gl.disable(gl.SCISSOR_TEST);
       gl.blitFramebuffer(0, 0, width, height, 0, gl.drawingBufferHeight, gl.drawingBufferWidth, 0, gl.COLOR_BUFFER_BIT, gl.NEAREST);
@@ -736,6 +753,7 @@ export class Tr2RenderContextALWebgl2
   BeginScene()
   {
     this._shaderProgram = null;
+    if (this._resourceSet) this._resourceSet.Destroy();
     this._resourceSet = null;
     return ALResult.S_OK;
   }
@@ -765,15 +783,14 @@ export class Tr2RenderContextALWebgl2
   {
     if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
+    let next = null;
     if (renderTarget && renderTarget.IsValid())
     {
       if (!HasFlag(renderTarget.GetGpuUsage(), Tr2GpuUsage.RENDER_TARGET)) return ALResult.E_INVALIDARG;
-      this._boundRenderTargets[slot] = { texture: renderTarget, slice };
+      next = new Tr2TextureAL({ copy: renderTarget });
     }
-    else
-    {
-      this._boundRenderTargets[slot] = { texture: null, slice: 0 };
-    }
+    if (this._boundRenderTargets[slot].texture) this._boundRenderTargets[slot].texture.Destroy();
+    this._boundRenderTargets[slot] = { texture: next, slice: next ? slice : 0 };
 
     this._renderTargetHighWaterMark = Math.max(this._renderTargetHighWaterMark, slot + 1);
     this._SetRtDsToDevice(slot);
@@ -801,7 +818,7 @@ export class Tr2RenderContextALWebgl2
   {
     if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
-    this._renderTargetStacks[slot].push({ ...this._boundRenderTargets[slot] });
+    this._renderTargetStacks[slot].push({ ...this._boundRenderTargets[slot], texture: this._boundRenderTargets[slot].texture ? new Tr2TextureAL({ copy: this._boundRenderTargets[slot].texture }) : null });
     return ALResult.S_OK;
   }
 
@@ -818,6 +835,7 @@ export class Tr2RenderContextALWebgl2
     const stack = this._renderTargetStacks[slot];
     if (!stack.length) return ALResult.E_FAIL;
 
+    if (this._boundRenderTargets[slot].texture) this._boundRenderTargets[slot].texture.Destroy();
     this._boundRenderTargets[slot] = stack.pop();
     this._SetRtDsToDevice(slot);
     return ALResult.S_OK;
@@ -843,15 +861,14 @@ export class Tr2RenderContextALWebgl2
    */
   SetDepthStencil(depthStencil)
   {
+    let next = null;
     if (depthStencil && depthStencil.IsValid())
     {
       if (!HasFlag(depthStencil.GetGpuUsage(), Tr2GpuUsage.DEPTH_STENCIL)) return ALResult.E_INVALIDARG;
-      this._depthStencil = depthStencil;
+      next = new Tr2TextureAL({ copy: depthStencil });
     }
-    else
-    {
-      this._depthStencil = null;
-    }
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = next;
 
     this._SetRtDsToDevice(MAX_RENDER_TARGET);
     return ALResult.S_OK;
@@ -874,7 +891,7 @@ export class Tr2RenderContextALWebgl2
    */
   PushDepthStencil()
   {
-    this._depthStencilStack.push(this._depthStencil);
+    this._depthStencilStack.push(this._depthStencil ? new Tr2TextureAL({ copy: this._depthStencil }) : null);
     return ALResult.S_OK;
   }
 
@@ -887,6 +904,7 @@ export class Tr2RenderContextALWebgl2
   {
     if (!this._depthStencilStack.length) return ALResult.E_FAIL;
 
+    if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = this._depthStencilStack.pop();
     this._SetRtDsToDevice(MAX_RENDER_TARGET);
     return ALResult.S_OK;
@@ -963,6 +981,7 @@ export class Tr2RenderContextALWebgl2
     const gl = this._gl;
     if (!this._isValid) return;
 
+    if (this._resourceSet) this._resourceSet.Destroy();
     this._resourceSet = null;
 
     const primary = this._boundRenderTargets[0].texture;
@@ -994,7 +1013,7 @@ export class Tr2RenderContextALWebgl2
         }
       }
 
-      if (depth && !this._isDepthReadOnly) wanted.set(depth.GetDepthAttachmentPoint(), { texture: depth, slice: 0 });
+      if (depth && !this._isDepthReadOnly) wanted.set(depth.TrinityALImpl_GetObject().GetDepthAttachmentPoint(), { texture: depth, slice: 0 });
 
       this._Attach(gl, wanted);
       gl.drawBuffers(drawBuffers.length ? drawBuffers : [ gl.NONE ]);
@@ -1027,7 +1046,7 @@ export class Tr2RenderContextALWebgl2
       const previous = this._attached.get(point);
       if (previous && previous.texture === texture && previous.slice === slice) continue;
 
-      texture.AttachToFramebuffer(gl.FRAMEBUFFER, point, 0, slice);
+      texture.TrinityALImpl_GetObject().AttachToFramebuffer(gl.FRAMEBUFFER, point, 0, slice);
     }
 
     this._attached = wanted;
@@ -1127,7 +1146,7 @@ export class Tr2RenderContextALWebgl2
     {
       const value = Number(options.depth ?? 1);
       const stencil = Number(options.stencil ?? 0);
-      const hasStencil = depth.GetDepthAttachmentPoint() === gl.DEPTH_STENCIL_ATTACHMENT;
+      const hasStencil = depth.TrinityALImpl_GetObject().GetDepthAttachmentPoint() === gl.DEPTH_STENCIL_ATTACHMENT;
 
       gl.depthMask(true);
       gl.stencilMask(0xff);
@@ -1213,7 +1232,7 @@ export class Tr2RenderContextALWebgl2
    */
   SetStreamSource(stream, buffer, offset, stride)
   {
-    this._streams[stream] = { buffer, offset, stride };
+    this._streams[stream] = { buffer: buffer ? buffer.TrinityALImpl_GetObject() : null, offset, stride };
     return ALResult.S_OK;
   }
 
@@ -1226,7 +1245,7 @@ export class Tr2RenderContextALWebgl2
    */
   SetIndices(buffer, stride = 0)
   {
-    this._indexBuffer = buffer;
+    this._indexBuffer = buffer ? buffer.TrinityALImpl_GetObject() : null;
     this._indexStride = stride || (buffer ? buffer.GetDesc().stride : 0);
     return ALResult.S_OK;
   }
@@ -1252,7 +1271,9 @@ export class Tr2RenderContextALWebgl2
    */
   SetResourceSet(resourceSet)
   {
-    this._resourceSet = resourceSet;
+    const next = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
+    if (this._resourceSet) this._resourceSet.Destroy();
+    this._resourceSet = next;
     return ALResult.S_OK;
   }
 
@@ -1388,8 +1409,8 @@ export class Tr2RenderContextALWebgl2
       gl.activeTexture(gl.TEXTURE0 + unit.unit);
 
       const resource = unit.resource;
-      const texture = resource && resource.IsValid() ? resource.GetShaderResourceTexture(unit.colorSpace) : null;
-      gl.bindTexture(unit.isBuffer || !resource ? gl.TEXTURE_2D : resource.GetTarget(), texture);
+      const texture = resource && resource.IsValid() ? resource.TrinityALImpl_GetObject().GetShaderResourceTexture(unit.colorSpace) : null;
+      gl.bindTexture(unit.isBuffer || !resource || !resource.IsValid() ? gl.TEXTURE_2D : resource.TrinityALImpl_GetObject().GetTarget(), texture);
       gl.bindSampler(unit.unit, unit.sampler ? unit.sampler.GetGpuResource() : null);
     }
   }
@@ -2026,8 +2047,8 @@ export class Tr2RenderContextALWebgl2
     if (!this.IsValid() || !destination || !source || !destination.IsValid() || !source.IsValid()) return ALResult.E_FAIL;
 
     const gl = this._gl;
-    gl.bindBuffer(gl.COPY_READ_BUFFER, source.GetGpuResource());
-    gl.bindBuffer(gl.COPY_WRITE_BUFFER, destination.GetGpuResource());
+    gl.bindBuffer(gl.COPY_READ_BUFFER, source.TrinityALImpl_GetObject().GetGpuResource());
+    gl.bindBuffer(gl.COPY_WRITE_BUFFER, destination.TrinityALImpl_GetObject().GetGpuResource());
     gl.copyBufferSubData(gl.COPY_READ_BUFFER, gl.COPY_WRITE_BUFFER, sourceOffset, destinationOffset, length);
     return ALResult.S_OK;
   }
@@ -2176,6 +2197,7 @@ export class Tr2RenderContextALWebgl2
   {
     for (const bound of this._boundRenderTargets)
     {
+      if (bound.texture) bound.texture.Destroy();
       bound.texture = null;
       bound.slice = 0;
     }
@@ -2191,6 +2213,14 @@ export class Tr2RenderContextALWebgl2
    */
   Destroy()
   {
+    this.ReleaseDeviceResources();
+    for (const stack of this._renderTargetStacks)
+    {
+      for (const entry of stack) if (entry.texture) entry.texture.Destroy();
+      stack.length = 0;
+    }
+    for (const texture of this._depthStencilStack) if (texture) texture.Destroy();
+    this._depthStencilStack.length = 0;
     const gl = this._gl;
 
     if (gl && this._isValid)
@@ -2214,10 +2244,12 @@ export class Tr2RenderContextALWebgl2
     this._boundRenderTargets = Array.from({ length: MAX_RENDER_TARGET }, () => ({ texture: null, slice: 0 }));
     this._renderTargetHighWaterMark = 0;
     this._renderTargetStacks = Array.from({ length: MAX_RENDER_TARGET }, () => []);
+    if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = null;
     this._depthStencilStack = [];
     this._samplerStates.clear();
     this._shaderProgram = null;
+    if (this._resourceSet) this._resourceSet.Destroy();
     this._resourceSet = null;
     this._vertexLayout = null;
     this._streams = [];

@@ -134,6 +134,7 @@ export class Tr2GpuResourcePool
 
     const texture = this.#CreateTexture(description);
 
+    if (!texture) return new GpuResourceHandle();
     if (initialize) initialize(texture);
 
     return new GpuResourceHandle(this.#Add(this.#persistentTextures, name, description, texture));
@@ -173,6 +174,7 @@ export class Tr2GpuResourcePool
     const initialData = ArrayBuffer.isView(initializer) ? initializer : null;
     const buffer = this.#CreateBuffer(description, initialData);
 
+    if (!buffer) return new GpuResourceHandle();
     if (typeof initializer === "function") initializer(buffer);
 
     return new GpuResourceHandle(this.#Add(this.#persistentBuffers, name, description, buffer));
@@ -210,6 +212,7 @@ export class Tr2GpuResourcePool
         if (record.lockCount > 0) continue;
         if (this.#frame - record.lastAccessFrame < frameThreshold) continue;
 
+        record.poolOwned = false;
         record.resource.Destroy();
         list.splice(index, 1);
         dropped += 1;
@@ -217,6 +220,26 @@ export class Tr2GpuResourcePool
     }
 
     return dropped;
+  }
+
+  /**
+   * Explicit final-owner teardown replaces the native pool destructor.
+   * Outstanding handles retain their record and their own resource value;
+   * this drops only the pool's membership, without enabling frame retirement.
+   */
+  Destroy()
+  {
+    for (const list of [ this.#tempTextures, this.#persistentTextures, this.#tempBuffers, this.#persistentBuffers ])
+    {
+      for (const record of list)
+      {
+        record.poolOwned = false;
+        if (record.lockCount === 0) record.resource.Destroy();
+      }
+      list.length = 0;
+    }
+    this.#renderContext = null;
+    this.#outer = null;
   }
 
   /** @param {boolean} enable Whether to keep debug detail. */
@@ -325,7 +348,8 @@ export class Tr2GpuResourcePool
   /** Adds an unlocked resource record stamped with the current frame. */
   #Add(list, name, description, resource)
   {
-    const record = { resource, name, description, lockCount: 0, lastAccessFrame: this.#frame };
+    if (!resource) return null;
+    const record = { resource, name, description, lockCount: 0, lastAccessFrame: this.#frame, poolOwned: true };
 
     list.push(record);
 
@@ -365,4 +389,11 @@ export function GetGlobalGpuResourcePool()
   globalPool ??= new Tr2GpuResourcePool();
 
   return globalPool;
+}
+
+/** Device final shutdown releases the global pool; individual drivers never call this. */
+export function DestroyGlobalGpuResourcePool()
+{
+  if (globalPool) globalPool.Destroy();
+  globalPool = null;
 }

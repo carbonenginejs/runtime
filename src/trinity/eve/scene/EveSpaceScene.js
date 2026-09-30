@@ -1325,7 +1325,7 @@ export class EveSpaceScene extends CjsModel
       store.RegisterVariable(name, references[name]);
     };
 
-    const emptyShadow = (name, format) =>
+    const emptyShadow = (name, format, publication) =>
     {
       const handle = gpuResourcePool.GetPersistentTexture(name, {
         type: TextureType.TEX_TYPE_2D,
@@ -1337,19 +1337,29 @@ export class EveSpaceScene extends CjsModel
         gpuUsage: Tr2GpuUsage.SHADER_RESOURCE,
         initialData: [ new Tr2SubresourceData(new Uint8Array([ 255 ]), 1, 1) ]
       });
-      const texture = handle.Get();
-      gpuResourcePool.Free(handle);
-      return texture;
+      try
+      {
+        publish(publication, handle.Get());
+      }
+      finally
+      {
+        gpuResourcePool.Free(handle);
+      }
     };
 
-    publish("EveSpaceSceneShadowMap", shadowResources.shadowMap.IsValid()
-      ? shadowResources.shadowMap.Get()
-      : emptyShadow("EmptyShadow", PixelFormat.PIXEL_FORMAT_R8_UNORM));
+    if (shadowResources.shadowMap.IsValid()) publish("EveSpaceSceneShadowMap", shadowResources.shadowMap.Get());
+    else emptyShadow("EmptyShadow", PixelFormat.PIXEL_FORMAT_R8_UNORM, "EveSpaceSceneShadowMap");
     publish("EveSpaceSceneCascadedShadowMap", shadowResources.cascadedShadowDepth.Get());
-    publish("EveSpaceSceneDynamicShadowMap", shadowResources.pointLightShadowMap.IsValid()
-      ? shadowResources.pointLightShadowMap.Get()
-      : emptyShadow("EmptyShadowUint", PixelFormat.PIXEL_FORMAT_R8_UINT));
+    if (shadowResources.pointLightShadowMap.IsValid()) publish("EveSpaceSceneDynamicShadowMap", shadowResources.pointLightShadowMap.Get());
+    else emptyShadow("EmptyShadowUint", PixelFormat.PIXEL_FORMAT_R8_UINT, "EveSpaceSceneDynamicShadowMap");
     publish("ShadowMapAtlas", shadowResources.pointLightShadowDepth.Get());
+  }
+
+  /** Device-owned final release of the static shadow publications. */
+  @impl.custom
+  static ReleaseStaticResources()
+  {
+    for (const reference of Object.values(EveSpaceScene._shadowReferences)) reference.SetTexture(null);
   }
 
   /** The providers registerWithVariableStore publishes through, one per name. */

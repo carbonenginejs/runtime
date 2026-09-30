@@ -1,3 +1,4 @@
+import { StubTarget } from "../support/stubContext.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
@@ -68,9 +69,9 @@ function renderTarget(context, width = 64, height = 64)
   return target;
 }
 
-function stubTarget(width = 64, height = 64)
+function stubTarget()
 {
-  return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height };
+  return StubTarget();
 }
 
 function assertEquals(actual, expected, message)
@@ -544,14 +545,14 @@ test("P0 render steps preserve Carbon null rules and emit backend-neutral intent
   assertEquals(binds, 0, "null render target is a no-op");
   setRT.__init__(target);
   setRT.Execute(0, 0, context);
-  assertEquals(context.GetRenderTarget(0), target);
+  assertEquals(context.GetRenderTarget(0).Equals(target), true);
 
   const setDS = new TriStepSetDepthStencil();
   setDS.Execute(0, 0, context);
   assertEquals(context.GetDepthStencil(), null, "no depth stencil clears the binding");
   setDS.__init__(depth);
   setDS.Execute(0, 0, context);
-  assertEquals(context.GetDepthStencil(), depth);
+  assertEquals(context.GetDepthStencil().Equals(depth), true);
 
   const setViewport = new TriStepSetViewport();
   setViewport.Execute(0, 0, context);

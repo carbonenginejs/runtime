@@ -79,6 +79,7 @@ export class Tr2GpuStructuredBuffer extends CjsModel
   CreateBuffer(renderContext)
   {
     if (!this.count || !this.stride) return ALResult.E_INVALIDARG;
+    if (this._buffer) this._buffer.Destroy();
     this._buffer = null;
 
     const { CPU_WRITABLE, GPU_WRITABLE } = Tr2GpuStructuredBuffer.CreationFlag;
@@ -101,6 +102,17 @@ export class Tr2GpuStructuredBuffer extends CjsModel
   {
     this._name = String(name ?? "");
     if (this._buffer) this._buffer.SetName(this._name);
+  }
+
+  /**
+   * Explicit final-owner teardown replaces destruction of Carbon's AL value member.
+   * Operational device-resource release remains separate.
+   */
+  @impl.adapted
+  Destroy()
+  {
+    if (this._buffer) this._buffer.Destroy();
+    this._buffer = null;
   }
 
   /**

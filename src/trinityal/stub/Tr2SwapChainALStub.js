@@ -18,7 +18,7 @@ import { Tr2ALMemoryType } from "#consts/graphics";
 import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 import { ALResult } from "../ALResult.js";
 import { BitmapDimensions as Tr2BitmapDimensions } from "#imageio";
-import { Tr2TextureALStub } from "./Tr2TextureALStub.js";
+import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 import { PixelFormat, Tr2GpuUsage } from "../../global/consts/renderContext/index.js";
 
 
@@ -32,7 +32,7 @@ const STUB_BACK_BUFFER_SIZE = 4;
 export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
 {
   /** m_backBuffer */
-  _backBuffer = new Tr2TextureALStub();
+  _backBuffer = new Tr2TextureAL();
 
   /**
    * Creates the swap chain and its back buffer.
@@ -46,7 +46,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
     if (!renderContext.IsValid()) return ALResult.E_INVALIDARG;
 
     this._backBuffer.Destroy();
-    this._backBuffer = new Tr2TextureALStub();
+    this._backBuffer = new Tr2TextureAL();
 
     return this._backBuffer.Create(
       Tr2BitmapDimensions.texture2D(
@@ -64,7 +64,7 @@ export class Tr2SwapChainALStub extends Tr2DeviceResourceAL
   Destroy()
   {
     this._backBuffer.Destroy();
-    this._backBuffer = new Tr2TextureALStub();
+    this._backBuffer = new Tr2TextureAL();
     super.Destroy();
   }
 

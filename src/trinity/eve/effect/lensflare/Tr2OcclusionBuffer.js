@@ -1,3 +1,4 @@
+import { Tr2BufferAL } from "../../../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Eve/EveOccluder.h:20-49 (Tr2OcclusionBuffer)
 // Source: trinity/trinity/Eve/EveOccluder.cpp:15-122
 //
@@ -170,16 +171,41 @@ export class Tr2OcclusionBuffer extends CjsModel
     const oldSize = this.size;
     this.size = this.size ? this.size * 2 : INITIAL_SIZE * ELEMENT_SIZE;
 
-    const old = this.buffer.GetGpuBuffer(0);
+    const previous = this.buffer.GetGpuBuffer(0);
+    const old = previous ? new Tr2BufferAL({ copy: previous }) : null;
 
-    this.buffer.Create(this.size, PixelFormat.PIXEL_FORMAT_R32_UINT, Tr2GpuBuffer.CreationFlags.GPU_WRITABLE, renderContext);
-
-    if (old)
+    try
     {
-      renderContext.GetRenderContextAL().CopySubBuffer(this.buffer.GetGpuBuffer(0), 0, old, 0, old.GetDesc().GetSizeInBytes());
+      this.buffer.Create(this.size, PixelFormat.PIXEL_FORMAT_R32_UINT, Tr2GpuBuffer.CreationFlags.GPU_WRITABLE, renderContext);
+      if (old) renderContext.GetRenderContextAL().CopySubBuffer(this.buffer.GetGpuBuffer(0), 0, old, 0, old.GetDesc().GetSizeInBytes());
+    }
+    finally
+    {
+      if (old) old.Destroy();
     }
 
     for (let i = oldSize; i < this.size; i += ELEMENT_SIZE) this.free.push(i);
+  }
+
+  /**
+   * Releases the function-static owner's GPU value and effect at final device shutdown.
+   * Adapted: explicit teardown replaces the C++ static shared_ptr destructor.
+   * Individual scene drivers never release this device-wide owner.
+   */
+  @impl.custom
+  static ReleaseStaticResources()
+  {
+    const instance = Tr2OcclusionBuffer._instance;
+    if (!instance) return;
+    Tr2OcclusionBuffer._instance = null;
+    const store = Tr2VariableStore.GlobalStore();
+    const published = store.FindVariable("FlareOcclusionBuffer");
+    if (published && published.GetValue() === instance.buffer) store.UnregisterVariable("FlareOcclusionBuffer");
+    instance.management.Destroy();
+    instance.buffer.Destroy();
+    instance.clear.length = 0;
+    instance.free.length = 0;
+    instance.size = 0;
   }
 
   /** Carbon GetInstance (cpp:59-63). */

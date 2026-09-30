@@ -1,3 +1,4 @@
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
 // Source: trinity/trinityal/include/Tr2TextureAL.h
 //   trinity/trinityal/metal/Tr2TextureALMetal.mm
 //   trinity/trinityal/stub/Tr2TextureALStub.cpp
@@ -67,7 +68,7 @@ function StorageFormatFor(format)
 /**
  * A `Tr2TextureAL` backed by a WebGPU `GPUTexture`, created with all of its data.
  */
-export class CjsWebgpuTextureAL
+export class CjsWebgpuTextureAL extends Tr2DeviceResourceAL
 {
   /** m_desc, a `Tr2BitmapDimensions`. */
   m_desc = null;
@@ -105,6 +106,9 @@ export class CjsWebgpuTextureAL
 
   m_webgpu = null;
 
+  /** Context owning command submission for this platform storage. */
+  _al = null;
+
   m_name = "";
 
   /**
@@ -119,7 +123,7 @@ export class CjsWebgpuTextureAL
    */
   Create(desc, options, renderContext)
   {
-    this.Destroy();
+    this._Reset();
 
     const { gpuUsage = Tr2GpuUsage.NONE, cpuUsage = Tr2CpuUsage.NONE, msaa = new Tr2MsaaDesc(), initialData = null } = options ?? {};
     const al = RenderContextALOf(renderContext);
@@ -223,6 +227,7 @@ export class CjsWebgpuTextureAL
     this.m_gpuUsage = gpuUsage;
     this.m_cpuUsage = cpuUsage;
     this.m_webgpu = webgpu;
+    this._al = al;
 
     if (depthShadow) this._CreateDepthShadow(device, usageFlags);
     // A substitute format's data is converted as it uploads (16-bit unorm to
@@ -762,15 +767,27 @@ export class CjsWebgpuTextureAL
     return NO_HEAP_INDEX;
   }
 
-  /** Releases the `GPUTexture` and its views, leaving the AL invalid. */
+  /** Releases this implementation and unregisters its final owner. */
   Destroy()
+  {
+    this._Reset();
+    super.Destroy();
+  }
+
+  /** Retires platform storage after queued commands have been submitted. */
+  _Reset()
   {
     // Cached bind groups that bind any of this texture's views go with it.
     for (const view of this.m_views.values()) ForgetBindingResource(view);
-    this.m_texture?.destroy?.();
+    const texture = this.m_texture;
+    const shadow = this._depthShadow;
+    if (texture) this._al.ReleaseLater(() => texture.destroy());
+    if (shadow) this._al.ReleaseLater(() =>
+    {
+      shadow.texture.destroy();
+      shadow.buffer.destroy();
+    });
     this.m_texture = null;
-    this._depthShadow?.texture.destroy?.();
-    this._depthShadow?.buffer.destroy?.();
     this._depthShadow = null;
     this.m_views = new Map();
     this._mappedData = null;
@@ -779,6 +796,7 @@ export class CjsWebgpuTextureAL
     this.m_format = null;
     this.m_srgbFormat = null;
     this.m_webgpu = null;
+    this._al = null;
     this.m_gpuUsage = Tr2GpuUsage.NONE;
     this.m_cpuUsage = Tr2CpuUsage.NONE;
   }

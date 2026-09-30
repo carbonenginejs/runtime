@@ -1,3 +1,4 @@
+import { StubTarget, StubBuffer } from "../../support/stubContext.js";
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
@@ -76,8 +77,8 @@ test("each texture unit gets its register's resource and its paired sampler", ()
 {
     const { gl } = FakeWebgl2();
     const linked = program(gl);
-    const texture = { kind: "texture" };
-    const buffer = { kind: "buffer" };
+    const texture = StubTarget();
+    const buffer = StubBuffer();
     const first = { kind: "sampler s3" };
     const second = { kind: "sampler s0" };
 
@@ -90,9 +91,11 @@ test("each texture unit gets its register's resource and its paired sampler", ()
     const { set, result } = create(linked, description);
     assert.equal(result, ALResult.S_OK);
     assert.equal(set.IsValid(), true);
-    assert.deepEqual(set.GetUnits(), [
-        { unit: 0, resource: texture, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, isBuffer: false, sampler: first, samplerConflict: false },
-        { unit: 1, resource: buffer, colorSpace: 0, isBuffer: true, sampler: second, samplerConflict: true }
+    assert.equal(set.GetUnits()[0].resource.Equals(texture), true);
+    assert.equal(set.GetUnits()[1].resource.Equals(buffer), true);
+    assert.deepEqual(set.GetUnits().map(({ resource, ...unit }) => unit), [
+        { unit: 0, colorSpace: Tr2ColorSpace.COLOR_SPACE_SRGB, isBuffer: false, sampler: first, samplerConflict: false },
+        { unit: 1, colorSpace: 0, isBuffer: true, sampler: second, samplerConflict: true }
     ]);
 });
 

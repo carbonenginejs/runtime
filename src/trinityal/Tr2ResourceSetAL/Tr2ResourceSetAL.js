@@ -4,11 +4,9 @@ import { impl } from "#schema";
 import { ALResult, Failed } from "../ALResult.js";
 import { Tr2ALMemoryType } from "#consts/graphics";
 
-// A shared ownership record substitutes for shared_ptr's control block.
-// Finalization follows GC, not C++ scope exit. Device-resource teardown can
-// still destroy registered stubs immediately; their later Destroy is harmless.
-const release = new FinalizationRegistry(implementation => implementation.Destroy());
+// Explicit shares replace shared_ptr scope destruction; no GC-owned release.
 const nullRS = {
+  owners: Infinity,
   implementation: {
     IsValid: () => false,
     GetMemoryClass: () => Tr2ALMemoryType.AL_MEMORY_MANAGED
@@ -23,7 +21,11 @@ export class Tr2ResourceSetAL
   /** JS copy construction retains the shared ownership record. */
   constructor({ copy = null } = {})
   {
-    if (copy) this.m_resourceSet = copy.m_resourceSet;
+    if (copy)
+    {
+      this.m_resourceSet = copy.m_resourceSet;
+      this.m_resourceSet.owners += 1;
+    }
   }
 
   /**
@@ -31,15 +33,14 @@ export class Tr2ResourceSetAL
    * ownership record.
    */
   @impl.adapted
-  @impl.reason("Context allocation replaces the compile-time platform include. The final raytracing selector replaces the C++ pipeline overload; neither JS backend supports it. Shared ownership is GC-finalized.")
+  @impl.reason("Context allocation replaces the compile-time platform include. The final raytracing selector replaces the C++ pipeline overload; neither JS backend supports it. Shared ownership is explicitly released.")
   Create(description, program, renderContext, raytracing = false)
   {
-    this.m_resourceSet = nullRS;
+    this.Destroy();
     if (raytracing) return ALResult.E_FAIL;
     const { result, implementation } = renderContext.CreateResourceSet(description, program, true);
     if (Failed(result)) return result;
-    this.m_resourceSet = { implementation };
-    release.register(this.m_resourceSet, implementation);
+    this.m_resourceSet = { implementation, owners: 1 };
     return result;
   }
 
@@ -65,9 +66,11 @@ export class Tr2ResourceSetAL
 
   /** Resets this handle while allowing other owners to retain its implementation. */
   @impl.adapted
-  @impl.reason("JavaScript has no scope destructor. Existing effect teardown resets this handle explicitly; shared copies retain the backend until their last ownership record is collected.")
+  @impl.reason("JavaScript has no scope destructor. Existing effect teardown resets this handle explicitly; shared copies retain the backend until their final explicit reset.")
   Destroy()
   {
+    const owned = this.m_resourceSet;
     this.m_resourceSet = nullRS;
+    if (--owned.owners === 0) owned.implementation.Destroy();
   }
 }

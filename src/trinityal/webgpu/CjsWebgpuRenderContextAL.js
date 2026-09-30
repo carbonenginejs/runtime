@@ -1,3 +1,5 @@
+import { Tr2BufferAL } from "../Tr2BufferAL/index.js";
+import { Tr2TextureAL } from "../Tr2TextureAL/index.js";
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.h
 // Source: trinity/trinityal/metal/Tr2RenderContextMetal.mm
 // Source: trinity/trinityal/stub/Tr2RenderContextStub.h
@@ -117,7 +119,7 @@ const BIND_GROUP_SWEEP_FRAMES = 60;
  */
 function DeviceBufferOf(bound)
 {
-  return bound && typeof bound.GetDeviceBuffer === "function" ? bound.GetDeviceBuffer() : null;
+  return bound && bound.IsValid() ? bound.TrinityALImpl_GetObject().GetDeviceBuffer() : null;
 }
 
 
@@ -402,13 +404,17 @@ export class CjsWebgpuRenderContextAL
    * @param {ArrayBufferView|null} [initialData] Initial contents, if any.
    * @returns {object|null} The created buffer, or null when Create refused.
    */
-  CreateBuffer(description, initialData = null)
+  CreateBuffer(description, initialData = null, implementationOnly = false)
   {
-    const buffer = new CjsWebgpuBufferAL();
-
-    if (Failed(buffer.Create(description, initialData, this))) return null;
-
-    return buffer;
+    if (implementationOnly)
+    {
+      const implementation = new CjsWebgpuBufferAL();
+      const result = implementation.Create(description, initialData, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2BufferAL();
+    return Failed(value.Create(description, initialData, this)) ? null : value;
   }
 
   /**
@@ -780,6 +786,30 @@ export class CjsWebgpuRenderContextAL
    *
    * @returns {number} An `ALResult`: whether the scene ended cleanly.
    */
+  /** Releases platform storage after queued commands have been submitted. */
+  _pendingResourceReleases = [];
+
+  /**
+   * Metal's ReleaseLater retains API storage until its frame completes.
+   * WebGPU destroy is safe after submit; a callback captures either a texture
+   * or an engine buffer handle without retaining a cleared AL value.
+   */
+  @impl.adapted
+  ReleaseLater(release)
+  {
+    if (this._commandEncoder) this._pendingResourceReleases.push(release);
+    else release();
+  }
+
+  /** Drains storage releases after submission or after abandoning the encoder. */
+  _ReleaseSubmittedResources()
+  {
+    const pending = this._pendingResourceReleases;
+    this._pendingResourceReleases = [];
+    for (const release of pending) release();
+  }
+
+  /** Closes and submits the current frame before releasing retired API storage. */
   EndScene()
   {
     this._Record(this._workQueue.EndFrame());
@@ -800,6 +830,7 @@ export class CjsWebgpuRenderContextAL
     // `m_needsDrawResourceCheck` - nothing is assumed resolved across frames.
     this._vertexLayout = null;
     this._psoDescription.vertexLayout = null;
+    if (this._resourceSet) this._resourceSet.Destroy();
     this._resourceSet = null;
     this._shaderProgram = null;
     this._psoDescription.shaderProgram = null;
@@ -812,6 +843,7 @@ export class CjsWebgpuRenderContextAL
     {
       // EndFrame has already closed the last pass, so finishing here is safe.
       this._webgpu.Submit([ this._commandEncoder.finish() ]);
+      this._ReleaseSubmittedResources();
       this._workQueue.SetCommandEncoder(null);
       this._commandEncoder = null;
       this._frame = null;
@@ -857,17 +889,40 @@ export class CjsWebgpuRenderContextAL
    * @param {number} [slice] The array slice or cube face.
    * @returns {number} `S_OK`.
    */
+  _CopyTarget(target)
+  {
+    return target === this._renderTarget ? target : (target ? new Tr2TextureAL({ copy: target }) : null);
+  }
+
+  /** Drops an owned AL attachment; the canvas adapter belongs to the context. */
+  _ReleaseTarget(target)
+  {
+    if (target && target !== this._renderTarget) target.Destroy();
+  }
+
+  /** Compares attachment implementation identity, including the canvas adapter. */
+  _SameTarget(a, b)
+  {
+    if (a === b || (!a && !b)) return true;
+    if (!a || !b || a === this._renderTarget || b === this._renderTarget) return false;
+    return a.Equals(b);
+  }
+
+  /** Binds a retained texture value at one color slot. */
   SetRenderTarget(slot, renderTarget, slice = 0)
   {
+    if (renderTarget && renderTarget !== this._renderTarget && !renderTarget.IsValid()) renderTarget = null;
     if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
-    this._Record(this._workQueue.SetRenderAttachments(renderTarget ?? null, slot, slice));
+    this._Record(this._workQueue.SetRenderAttachments(renderTarget === this._renderTarget ? renderTarget : (renderTarget ? renderTarget.TrinityALImpl_GetObject() : null), slot, slice));
 
     // The attachment formats are part of the pipeline; DX12 dirties its PSO
     // here too (`Tr2RenderContextDx12.cpp:456`).
-    if (this._boundRenderTargets[slot] !== (renderTarget ?? null)) this._pipelineDirty = true;
+    if (!this._SameTarget(this._boundRenderTargets[slot], renderTarget)) this._pipelineDirty = true;
 
-    this._boundRenderTargets[slot] = renderTarget ?? null;
+    const next = this._CopyTarget(renderTarget);
+    this._ReleaseTarget(this._boundRenderTargets[slot]);
+    this._boundRenderTargets[slot] = next;
 
     const primary = this._boundRenderTargets[0];
 
@@ -904,7 +959,7 @@ export class CjsWebgpuRenderContextAL
   {
     if (slot >= MAX_RENDER_TARGET) return ALResult.E_INVALIDARG;
 
-    this._renderTargetStacks[slot].push(this._boundRenderTargets[slot] ?? null);
+    this._renderTargetStacks[slot].push(this._CopyTarget(this._boundRenderTargets[slot]));
 
     return ALResult.S_OK;
   }
@@ -921,7 +976,9 @@ export class CjsWebgpuRenderContextAL
 
     if (!stack?.length) return ALResult.E_FAIL;
 
-    this.SetRenderTarget(slot, stack.pop());
+    const previous = stack.pop();
+    this.SetRenderTarget(slot, previous);
+    this._ReleaseTarget(previous);
 
     return ALResult.S_OK;
   }
@@ -945,17 +1002,20 @@ export class CjsWebgpuRenderContextAL
    */
   SetDepthStencil(depthStencil)
   {
+    if (depthStencil && !depthStencil.IsValid()) depthStencil = null;
     const previous = this._depthStencil;
 
-    this._Record(this._workQueue.SetDepthAttachment(depthStencil ?? null));
+    this._Record(this._workQueue.SetDepthAttachment(depthStencil ? depthStencil.TrinityALImpl_GetObject() : null));
 
     // Unbinding ends the pass that wrote the depth, so a sampled depth
     // texture's float shadow is refreshed here (CjsWebgpuTextureAL._depthShadow).
-    if (previous && previous !== (depthStencil ?? null)) this._Record(this._workQueue.CopyDepthShadow(previous));
+    if (previous && !this._SameTarget(previous, depthStencil)) this._Record(this._workQueue.CopyDepthShadow(previous.TrinityALImpl_GetObject()));
 
-    if (this._depthStencil !== (depthStencil ?? null)) this._pipelineDirty = true;
+    if (!this._SameTarget(this._depthStencil, depthStencil)) this._pipelineDirty = true;
 
-    this._depthStencil = depthStencil ?? null;
+    const next = depthStencil ? new Tr2TextureAL({ copy: depthStencil }) : null;
+    if (this._depthStencil) this._depthStencil.Destroy();
+    this._depthStencil = next;
 
     return ALResult.S_OK;
   }
@@ -969,7 +1029,7 @@ export class CjsWebgpuRenderContextAL
   /** Saves the bound depth-stencil target. @returns {number} `S_OK`. */
   PushDepthStencil()
   {
-    this._depthStencilStack.push(this._depthStencil);
+    this._depthStencilStack.push(this._depthStencil ? new Tr2TextureAL({ copy: this._depthStencil }) : null);
 
     return ALResult.S_OK;
   }
@@ -979,7 +1039,9 @@ export class CjsWebgpuRenderContextAL
   {
     if (!this._depthStencilStack.length) return ALResult.E_FAIL;
 
-    this.SetDepthStencil(this._depthStencilStack.pop());
+    const previous = this._depthStencilStack.pop();
+    this.SetDepthStencil(previous);
+    if (previous) previous.Destroy();
 
     return ALResult.S_OK;
   }
@@ -1210,6 +1272,7 @@ export class CjsWebgpuRenderContextAL
    */
   ClearUav(resource, value, _clearWithFloat = false)
   {
+    if (!CjsSchema.cast(resource, Tr2BufferAL)) return ALResult.E_FAIL;
     const buffer = DeviceBufferOf(resource);
 
     if (!buffer) return ALResult.E_FAIL;
@@ -1304,7 +1367,7 @@ export class CjsWebgpuRenderContextAL
     if (this._streams[stream]?.stride !== stride) this._pipelineDirty = true;
     if (stream < MAX_VERTEX_STREAMS) this._psoDescription.streamStrides[stream] = stride;
 
-    this._streams[stream] = { buffer, offset, stride };
+    this._streams[stream] = { buffer: buffer ? buffer.TrinityALImpl_GetObject() : null, offset, stride };
 
     return ALResult.S_OK;
   }
@@ -1318,7 +1381,7 @@ export class CjsWebgpuRenderContextAL
    */
   SetIndices(buffer, stride = 0)
   {
-    this._indexBuffer = buffer;
+    this._indexBuffer = buffer ? buffer.TrinityALImpl_GetObject() : null;
     this._indexStride = stride;
 
     return ALResult.S_OK;
@@ -1657,7 +1720,7 @@ export class CjsWebgpuRenderContextAL
       }
 
       const stream = this._streams[slot];
-      const buffer = DeviceBufferOf(stream?.buffer);
+      const buffer = stream && stream.buffer ? stream.buffer.GetDeviceBuffer() : null;
 
       if (!buffer) return this._RefusePipeline(`a device buffer on vertex stream ${slot}`);
 
@@ -1667,7 +1730,7 @@ export class CjsWebgpuRenderContextAL
     if (indexed)
     {
       const format = INDEX_FORMAT[this._indexStride] ?? null;
-      const buffer = DeviceBufferOf(this._indexBuffer);
+      const buffer = this._indexBuffer ? this._indexBuffer.GetDeviceBuffer() : null;
 
       if (!format) return this._RefusePipeline(`an index format for a ${this._indexStride}-byte stride`);
       if (!buffer) return this._RefusePipeline("a device buffer for the indices");
@@ -2225,13 +2288,17 @@ export class CjsWebgpuRenderContextAL
    * @param {object} options `{ gpuUsage, cpuUsage, msaa, initialData }`.
    * @returns {object|null} The texture, or null when Create refused.
    */
-  CreateTexture(desc, options)
+  CreateTexture(desc, options, implementationOnly = false)
   {
-    const texture = new CjsWebgpuTextureAL();
-
-    if (Failed(texture.Create(desc, options ?? {}, this))) return null;
-
-    return texture;
+    if (implementationOnly)
+    {
+      const implementation = new CjsWebgpuTextureAL();
+      const result = implementation.Create(desc, options ?? {}, this);
+      if (Failed(result)) implementation.Destroy();
+      return { result, implementation };
+    }
+    const value = new Tr2TextureAL();
+    return Failed(value.Create(desc, options ?? {}, this)) ? null : value;
   }
 
   /**
@@ -2348,13 +2415,13 @@ export class CjsWebgpuRenderContextAL
 
     for (const target of this._boundRenderTargets)
     {
-      formats.push(target ? target.GetDeviceFormat() : null);
-      unorm.push(Boolean(target && target.IsUnormSubstitute()));
+      formats.push(target ? target.TrinityALImpl_GetObject().GetDeviceFormat() : null);
+      unorm.push(Boolean(target && target.TrinityALImpl_GetObject().IsUnormSubstitute()));
     }
 
     while (formats.length && !formats[formats.length - 1]) formats.pop();
 
-    description.depthFormat = this._depthStencil ? this._depthStencil.GetDeviceFormat() : null;
+    description.depthFormat = this._depthStencil ? this._depthStencil.TrinityALImpl_GetObject().GetDeviceFormat() : null;
     description.sampleCount = 1;
   }
 
@@ -2382,7 +2449,9 @@ export class CjsWebgpuRenderContextAL
   @impl.reason("A copied public wrapper retains the shared ownership record while this context binds the WebGPU implementation.")
   SetResourceSet(resourceSet)
   {
-    this._resourceSet = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
+    const next = resourceSet ? new Tr2ResourceSetAL({ copy: resourceSet }) : null;
+    if (this._resourceSet) this._resourceSet.Destroy();
+    this._resourceSet = next;
 
     return ALResult.S_OK;
   }
@@ -2511,14 +2580,23 @@ export class CjsWebgpuRenderContextAL
    */
   Destroy()
   {
+    for (const target of this._boundRenderTargets) { this._ReleaseTarget(target); }
     this._boundRenderTargets.fill(null);
+    if (this._depthStencil) this._depthStencil.Destroy();
     this._depthStencil = null;
-    for (const stack of this._renderTargetStacks) stack.length = 0;
+    for (const stack of this._renderTargetStacks)
+    {
+      for (const target of stack) { this._ReleaseTarget(target); }
+      stack.length = 0;
+    }
+    for (const texture of this._depthStencilStack) if (texture) texture.Destroy();
     this._depthStencilStack.length = 0;
     this._constantBuffers.clear();
     this._renderStates.clear();
     this._markerStack.length = 0;
     this._commandEncoder = null;
+    this._workQueue.SetCommandEncoder(null);
+    this._ReleaseSubmittedResources();
     this._frame = null;
     this._ReleasePipelines();
     this._samplerStates.clear();
@@ -2535,6 +2613,7 @@ export class CjsWebgpuRenderContextAL
     this._psoDescription.streamStrides.fill(0);
     this._shaderProgram = null;
     this._psoDescription.shaderProgram = null;
+    if (this._resourceSet) this._resourceSet.Destroy();
     this._resourceSet = null;
     this._indexBuffer = null;
     this._indexStride = 0;
@@ -2604,6 +2683,8 @@ export class CjsWebgpuRenderContextAL
    */
   ReleaseDeviceResources()
   {
+    this.SetDepthStencil(null);
+    for (const target of this._boundRenderTargets) { this._ReleaseTarget(target); }
     this._boundRenderTargets.fill(null);
     this._frame = null;
     this._ReleasePipelines();
@@ -2745,7 +2826,7 @@ export class CjsWebgpuRenderContextAL
    */
   SetReadOnlyDepth(enable)
   {
-    if (enable && !this._readOnlyDepth && this._depthStencil) this._Record(this._workQueue.CopyDepthShadow(this._depthStencil));
+    if (enable && !this._readOnlyDepth && this._depthStencil) this._Record(this._workQueue.CopyDepthShadow(this._depthStencil.TrinityALImpl_GetObject()));
 
     this._readOnlyDepth = !!enable;
   }
@@ -2770,9 +2851,9 @@ export class CjsWebgpuRenderContextAL
     if (size <= 0) return ALResult.E_FAIL;
 
     this._commandEncoder.copyBufferToBuffer(
-      source.GetDeviceBuffer(),
+      source.TrinityALImpl_GetObject().GetDeviceBuffer(),
       sourceOffset,
-      destination.GetDeviceBuffer(),
+      destination.TrinityALImpl_GetObject().GetDeviceBuffer(),
       destinationOffset,
       size
     );

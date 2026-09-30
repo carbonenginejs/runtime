@@ -1,3 +1,4 @@
+import { Tr2ResourceSetDescriptionAL } from "./Tr2ResourceSetDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2ResourceSetAL.h
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.cpp
 // Source: trinity/trinityal/stub/Tr2ResourceSetALStub.h
@@ -35,7 +36,8 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
   @impl.reason("The native stub unconditionally succeeds; JS additionally retains description and program for headless inspection.")
   Create(description, program, _renderContext)
   {
-    this._description = description ?? null;
+    if (this._description) this._description.ClearResources();
+    this._description = description ? new Tr2ResourceSetDescriptionAL({ copy: description }) : null;
     this._program = program ?? null;
     this._isValid = true;
 
@@ -52,6 +54,7 @@ export class Tr2ResourceSetALStub extends Tr2DeviceResourceAL
   Destroy()
   {
     this._isValid = false;
+    if (this._description) this._description.ClearResources();
     this._description = null;
     this._program = null;
     super.Destroy();

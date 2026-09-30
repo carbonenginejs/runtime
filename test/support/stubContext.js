@@ -1,5 +1,7 @@
 import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
-import { Tr2RenderContextALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2RenderContextALStub, Tr2BitmapDimensions, Tr2BufferDescriptionAL } from "../../npm/dist/trinityal/index.js";
+
+import { PixelFormat, Tr2GpuUsage, Tr2CpuUsage } from "../../npm/dist/global/consts/renderContext/index.js";
 
 // WHY THIS EXISTS. `Tr2RenderContext` used to record every abstraction-layer
 // verb into an intent list when no backend was installed, so a bare
@@ -43,10 +45,25 @@ export function StubContext({ width = 64, height = 64 } = {})
  *
  * @param {number} [width] Target width.
  * @param {number} [height] Target height.
- * @returns {object} A minimal target.
+ * @returns {Tr2TextureAL} A public texture value; the test owns its release.
  */
 export function StubTarget(width = 64, height = 64)
 {
-  // GetFormat is what a destination answers for the post process's final target.
-  return { IsValid: () => true, GetWidth: () => width, GetHeight: () => height, GetFormat: () => 87 };
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice();
+  const texture = al.CreateTexture(Tr2BitmapDimensions.texture2D(width, height, 1, PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM),
+    { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
+  al.Destroy();
+  return texture;
+}
+
+/** Creates a caller-owned public vertex/index buffer for binding tests. */
+export function StubBuffer()
+{
+  const al = new Tr2RenderContextALStub();
+  al.CreateDevice();
+  const buffer = al.CreateBuffer(Tr2BufferDescriptionAL.FromStride(4, 64,
+    Tr2GpuUsage.VERTEX_BUFFER | Tr2GpuUsage.INDEX_BUFFER, Tr2CpuUsage.WRITE));
+  al.Destroy();
+  return buffer;
 }

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 
+import { ALResult, Tr2BitmapDimensions, Tr2RegisterMapAL, Tr2ResourceSetDescriptionAL } from "../../../npm/dist/trinityal/index.js";
+import { PixelFormat, Tr2GpuUsage } from "../../../npm/dist/global/consts/renderContext/index.js";
+
 import { CjsWebgpuDevice } from "../../../npm/dist/trinityal/webgpu/index.js";
 import { CjsWebgpuRenderContextAL, CjsWebgpuRenderTarget } from "../../../npm/dist/trinityal/webgpu/internal.js";
 
@@ -12,7 +15,7 @@ class TestWebgpuDevice extends CjsWebgpuDevice
 {
   constructor(device)
   {
-    super({ device, shaderStage: SHADER_STAGE });
+    super({ device, shaderStage: SHADER_STAGE, textureUsage: TEXTURE_USAGE });
     this.testGeneration = 1;
   }
 
@@ -43,6 +46,7 @@ function fakeSetup(options = {})
 {
   const created = [];
   const device = {
+    limits: { maxTextureDimension2D: 8192, maxTextureDimension3D: 2048 },
     createShaderModule() {},
     createTexture(descriptor)
     {
@@ -243,23 +247,69 @@ test("CjsWebgpuRenderTarget releases what it created and leaves the canvas alone
   assert.equal(canvas.width, 64, "the canvas belongs to the caller and is left as it was");
 });
 
-test("the canvas target bound as the depth stencil can be unbound: it has no depth shadow to copy", () =>
+test("the canvas pass supplies depth and restores it after an offscreen depth binding", () =>
 {
   const { device, target } = fakeSetup({ depthFormat: "depth24plus" });
-
   target.Configure({ width: 64, height: 64 });
   device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish: () => "command-buffer" });
-
   const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
-  const offscreenDepth = { GetDeviceFormat: () => "depth32float", EncodeDepthShadowCopy: () => false };
-
-  // The demo's frame: the canvas is bound as its own depth stencil, then the
-  // driver binds the off-screen depth. Unbinding the canvas asked it for a
-  // depth-shadow copy it did not answer: "EncodeDepthShadowCopy is not a function".
   al.CreateDevice();
+  const depth = al.CreateTexture(Tr2BitmapDimensions.texture2D(64, 64, 1, PixelFormat.PIXEL_FORMAT_D32_FLOAT), { gpuUsage: Tr2GpuUsage.DEPTH_STENCIL });
+  assert.ok(depth && depth.IsValid());
   al.BeginScene();
   al.SetRenderTarget(0, target);
-  al.SetDepthStencil(target);
-  assert.doesNotThrow(() => al.SetDepthStencil(offscreenDepth));
-  assert.equal(target.EncodeDepthShadowCopy(), false);
+  assert.equal(al.SetDepthStencil(null), ALResult.S_OK);
+  assert.equal(al.GetDepthStencil(), null);
+  const canvasDepth = al._Descriptor(null).depthStencilAttachment.view;
+  assert.ok(canvasDepth, "canvas depth exists without an AL depth binding");
+  al.PushDepthStencil();
+  assert.equal(al.SetDepthStencil(depth), ALResult.S_OK);
+  assert.equal(al.GetDepthStencil().Equals(depth), true);
+  assert.equal(al.PopDepthStencil(), ALResult.S_OK);
+  assert.equal(al.GetDepthStencil(), null);
+  assert.equal(al._Descriptor(null).depthStencilAttachment.view, canvasDepth);
+  depth.Destroy();
+  al.Destroy();
+  target.Destroy();
+});
+
+for (const submit of [true, false]) test(submit
+  ? "the final bound resource-set share releases texture storage only after submission"
+  : "abandoning a frame releases the final bound texture once without submission", () =>
+{
+  const { device, target } = fakeSetup();
+  target.Configure({ width: 4, height: 4 });
+  const events = [];
+  device.queue = { submit() { events.push("submit"); } };
+  device.createCommandEncoder = () => ({ beginRenderPass: () => ({ end() {} }), finish() { events.push("finish"); return {}; } });
+  const al = new CjsWebgpuRenderContextAL({ webgpu: target._webgpu, renderTarget: target });
+  al.CreateDevice();
+  const value = al.CreateTexture(Tr2BitmapDimensions.texture2D(4, 4, 1, PixelFormat.PIXEL_FORMAT_R8G8B8A8_UNORM),
+    { gpuUsage: Tr2GpuUsage.RENDER_TARGET | Tr2GpuUsage.SHADER_RESOURCE });
+  const implementation = value.TrinityALImpl_GetObject();
+  const storage = implementation.GetDeviceTexture();
+  const destroy = storage.destroy.bind(storage);
+  storage.destroy = () => { events.push("destroy"); destroy(); };
+  const map = new Tr2RegisterMapAL({ stage: 1, signature: { registers: [{ registerType: 36, registerIndex: 0 }] } });
+  const description = new Tr2ResourceSetDescriptionAL({ registers: map });
+  description.SetSrv(1, 0, value);
+  const program = { IsValid: () => true, GetRegisterMap: () => map,
+    GetBindings: () => [{ group: 0, binding: 0, registerIndex: 0, visibility: 2, texture: { viewDimension: "2d" } }] };
+  const set = al.CreateResourceSet(description, program);
+  assert.ok(set && set.IsValid());
+  al.BeginScene();
+  al.SetResourceSet(set);
+  description.ClearResources();
+  value.Destroy();
+  set.Destroy();
+  assert.equal(implementation.IsValid(), true, "context owns the remaining resource-set share");
+  assert.deepEqual(events, []);
+  if (submit) al.EndScene();
+  else al.Destroy();
+  assert.deepEqual(events, submit ? ["finish", "submit", "destroy"] : ["destroy"]);
+  assert.equal(implementation.IsRegistered(), false);
+  assert.equal(storage.destroyed, 1);
+  al.Destroy();
+  assert.equal(storage.destroyed, 1);
+  target.Destroy();
 });

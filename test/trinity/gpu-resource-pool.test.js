@@ -40,14 +40,16 @@ test("two passes in flight get different surfaces; one after the other reuses", 
   const first = pool.GetTempTexture("shadow", square());
   const second = pool.GetTempTexture("shadow", square());
 
-  assert.notEqual(first.Get(), second.Get(), "both held, so both are distinct");
+  const firstImplementation = first.Get().TrinityALImpl_GetObject();
+  assert.notEqual(firstImplementation, second.Get().TrinityALImpl_GetObject(), "both held, so implementations are distinct");
   assert.equal(pool.GetHeldCount(), 2);
 
   pool.Free(first);
 
   const third = pool.GetTempTexture("shadow", square());
 
-  assert.equal(third.Get(), first.Get() ?? third.Get(), "sanity: the released handle is empty");
+  assert.equal(first.Get(), null);
+  assert.equal(third.Get().TrinityALImpl_GetObject(), firstImplementation, "the released implementation is reused");
   assert.equal(pool.DebugGetAllTempTextures().length, 2, "reused rather than created a third");
 });
 
@@ -73,7 +75,8 @@ test("a persistent resource is initialized once and kept", () =>
   const second = pool.GetPersistentTexture("lut", square(64), () => { initialized += 1; });
 
   assert.equal(initialized, 1, "initialized once");
-  assert.equal(first.Get(), second.Get(), "and shared even while held");
+  assert.notEqual(first.Get(), second.Get());
+  assert.equal(first.Get().Equals(second.Get()), true, "shared even while held");
 });
 
 test("a handle released twice is a caller error", () =>
@@ -168,7 +171,8 @@ test("a persistent buffer is initialized once and kept", () =>
   const second = pool.GetPersistentBuffer("shared", description, () => initialized++);
 
   assert.equal(initialized, 1);
-  assert.equal(first.Get(), second.Get());
+  assert.notEqual(first.Get(), second.Get());
+  assert.equal(first.Get().Equals(second.Get()), true);
 });
 
 test("initial bytes reach Create, which a buffer the CPU cannot write needs", () =>
@@ -190,14 +194,20 @@ test("the pool creates through the bound backend rather than a named class", () 
   // would have been given surfaces that reach no device, silently. Tr2Blitter
   // carries a head comment about this exact trap.
   const made = [];
-  const backend = {
-    IsValid: () => true,
-    CreateTexture: (desc, options) => { made.push([ desc, options ]); return { tag: "backend-texture", IsValid: () => true, Destroy() {} }; },
-    CreateBuffer: () => ({ tag: "backend-buffer", Destroy() {} })
+  const backend = new Tr2RenderContextALStub();
+  backend.CreateDevice();
+  const create = backend.CreateTexture.bind(backend);
+  let implementation;
+  backend.CreateTexture = (desc, options, implementationOnly = false) => {
+    if (implementationOnly) return create(desc, options, true);
+    made.push([ desc, options ]);
+    const value = create(desc, options);
+    implementation = value.TrinityALImpl_GetObject();
+    return value;
   };
   const pool = new Tr2GpuResourcePool().SetRenderContext(backend);
-
-  assert.equal(pool.GetTempTexture("t", square()).Get().tag, "backend-texture");
+  const handle = pool.GetTempTexture("t", square());
+  assert.equal(handle.Get().TrinityALImpl_GetObject(), implementation);
   assert.equal(made.length, 1);
   // The usage half travels as options, not folded into the dimensions.
   assert.equal(made[0][1].gpuUsage, Tr2GpuUsage.RENDER_TARGET);

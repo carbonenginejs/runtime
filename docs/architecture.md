@@ -163,3 +163,36 @@ source refresh observes the current radius after animation or scale changes;
 registration order does not freeze the initial value. A missing manager and a
 hidden scene perform no SH refresh. This wiring does not create a manager for
 scenes that have none.
+
+
+## Abstraction-layer resource ownership
+
+Texture and buffer factories return public Tr2TextureAL and Tr2BufferAL values.
+Each value owns a share of one backend implementation. Plain JavaScript
+assignment aliases the same value; explicit copy construction retains another
+share. Destroy resets only that value. The final share destroys the backend
+and unregisters it. There are no GC finalizers governing this lifetime.
+
+Pool-handle Get and provider getters borrow their stored value. Retain a value
+past handle Free or provider replacement with new Tr2TextureAL({ copy: value })
+or new Tr2BufferAL({ copy: value }), and call Destroy when that copy is no longer
+needed. Resource-set descriptions, bound resource sets, target stacks and managed
+geometry bindings retain their own values. Backend-only operations use the
+borrowed TrinityALImpl_GetObject implementation.
+
+TriTextureRes.SetTexture borrows its caller's value; deferred realization owns
+its separate value. Tr2TextureReference.SetTexture and
+Tr2RuntimeGpuBuffer.SetGpuBuffer retain copies. Effects release adapters they
+create internally while preserving providers supplied by the caller.
+
+After rendering stops, scene-driver Destroy releases its local pool and values.
+Device final shutdown releases global pools and static publishers. Context
+shutdown releases only its backend's shared geometry allocator. WebGPU defers
+platform storage destruction until the open command encoder has been submitted,
+or until it has been abandoned during final teardown.
+
+Tr2RenderTarget.Destroy and Detach retain their native operational semantics,
+including the attached texture value. Its final owner calls Dispose to release
+both owned and attached values. GPU buffer owners and effects expose explicit
+Destroy methods for final release. Automatic pool retirement remains separate
+from these value and owner lifetimes.

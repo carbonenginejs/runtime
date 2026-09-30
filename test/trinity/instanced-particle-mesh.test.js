@@ -38,7 +38,7 @@ function setup(t)
   al.SetStreamSource=(stream,buffer,offset,stride)=>{layoutState._streams[stream]={buffer,offset,stride};return setStream(stream,buffer,offset,stride);};
   const uploads=[];
   const create=al.CreateBuffer.bind(al);
-  al.CreateBuffer=(...args)=>{const buffer=create(...args);const update=buffer.UpdateBuffer.bind(buffer);buffer.UpdateBuffer=(...data)=>{uploads.push({buffer,args:data.map(value=>ArrayBuffer.isView(value)?value.slice():value)});return update(...data);};return buffer;};
+  al.CreateBuffer=(...args)=>{const buffer=create(...args);if(args[2]===true||!buffer)return buffer;const update=buffer.UpdateBuffer.bind(buffer);buffer.UpdateBuffer=(...data)=>{uploads.push({buffer,args:data.map(value=>ArrayBuffer.isView(value)?value.slice():value)});return update(...data);};return buffer;};
   const draws=[],draw=al.DrawIndexedInstanced.bind(al);al.DrawIndexedInstanced=(...args)=>{
     const layouts=CjsWebgpuRenderContextAL.prototype.BuildVertexBufferLayouts.call(layoutState);
     assert.notEqual(typeof layouts,"string",layouts);

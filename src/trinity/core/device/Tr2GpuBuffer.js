@@ -101,6 +101,7 @@ export class Tr2GpuBuffer extends CjsModel
   @impl.adapted
   CreateBuffer(renderContext)
   {
+    if (this.#buffer) this.#buffer.Destroy();
     this.#buffer = null;
     this.isValid = false;
 
@@ -122,6 +123,18 @@ export class Tr2GpuBuffer extends CjsModel
     this.#buffer = buffer;
     this.isValid = true;
     return ALResult.S_OK;
+  }
+
+  /**
+   * Explicit final-owner teardown replaces destruction of Carbon's AL value member.
+   * Operational device-resource release remains separate.
+   */
+  @impl.adapted
+  Destroy()
+  {
+    if (this.#buffer) this.#buffer.Destroy();
+    this.#buffer = null;
+    this.isValid = false;
   }
 
   /**

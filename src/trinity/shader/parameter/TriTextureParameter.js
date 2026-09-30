@@ -208,10 +208,9 @@ export class TriTextureParameter extends CjsParameter
     // THE CONTEXT IS AN ADDED ARGUMENT. Carbon's resource makes its texture in
     // `DoPrepare` through a process-wide context; ours is made here, at first
     // bind, through the binding context (see `Tr2ImageIOHelpers`). Until the
-    // resource is prepared the RESOURCE is bound in the texture's place: a
-    // backend treats a bound object that is not its texture as Carbon's
-    // fallback, and this parameter re-dirties its materials when the resource
-    // completes, so the real texture replaces it on the next apply.
+    // resource is prepared an empty AL binding selects the backend fallback.
+    // Completion re-dirties the material so the realized texture replaces it
+    // on the next apply; a resource provider is never an AL texture value.
     const resource = this.GetResource();
 
     // NO RESOURCE AT ALL - an empty path, as Tonemapping::ApplyLuts gives its
@@ -225,7 +224,7 @@ export class TriTextureParameter extends CjsParameter
 
     if (!texture) this.#ArmCompletion(resource);
 
-    return resourceDesc.SetSrv(stage, registerIndex, texture ?? resource, colorSpace);
+    return resourceDesc.SetSrv(stage, registerIndex, texture, colorSpace);
   }
 
   /** Resources whose completion already re-dirties this parameter's materials. */

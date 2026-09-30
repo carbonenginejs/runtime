@@ -19,8 +19,10 @@ function loadedTexture(memoryClass = Tr2ALMemoryType.AL_MEMORY_VIDEO)
   const texture = {
     IsValid: () => destroyed === 0,
     GetMemoryClass: () => memoryClass,
-    Destroy() { destroyed += 1; }
+    Destroy() { if (!destroyed) destroyed += 1; }
   };
+  // Model the value owned by RealizeTexture; SetTexture itself only borrows.
+  resource._ownTexture = texture;
   resource.SetTexture(texture);
   resource.MarkPrepared();
   return { resource, bitmap, texture, destroyed: () => destroyed };
@@ -58,11 +60,15 @@ test("each full texture cache eviction destroys its AL and releases its bitmap b
   for (let cycle = 0; cycle < 12; cycle += 1)
   {
     if (cycle !== 0) resource.SetPayload(loadedTexture().bitmap);
-    resource.SetTexture({
-      IsValid: () => true,
+    resource.ReleaseResources();
+    let alive = true;
+    const owned = {
+      IsValid: () => alive,
       GetMemoryClass: () => Tr2ALMemoryType.AL_MEMORY_VIDEO,
-      Destroy() { destroys += 1; }
-    });
+      Destroy() { if (alive) { destroys += 1; alive = false; } }
+    };
+    resource._ownTexture = owned;
+    resource.SetTexture(owned);
     resource.MarkPrepared();
     motherLode.Insert(resource.GetPath(), resource, { time: 0 });
     const result = motherLode.PurgeInactive({ time: 10, maxIdleMilliseconds: 5 });

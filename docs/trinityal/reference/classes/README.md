@@ -174,6 +174,16 @@ Adapter and display-mode enumeration.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:Tr2BufferAL -->
+## `Tr2BufferAL`
+
+An explicitly owned buffer value sharing one backend implementation.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2BufferAL/Tr2BufferAL.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:Tr2BufferDescriptionAL -->
 ## `Tr2BufferDescriptionAL`
 
@@ -331,5 +341,15 @@ A program's mapped resources.
 
 - Export: `@carbonenginejs/runtime/trinityal`
 - Source: `src/trinityal/Tr2ResourceSetAL/Tr2ResourceSetDescriptionAL.js`
+- Visibility: Public
+- Kind: Carbon
+
+<!-- class:Tr2TextureAL -->
+## `Tr2TextureAL`
+
+An explicitly owned texture value sharing one backend implementation.
+
+- Export: `@carbonenginejs/runtime/trinityal`
+- Source: `src/trinityal/Tr2TextureAL/Tr2TextureAL.js`
 - Visibility: Public
 - Kind: Carbon

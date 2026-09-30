@@ -328,6 +328,7 @@ export class Tr2ReflectionProbe extends CjsModel
     for (let face = 0; face < 6; face += 1)
     {
       this._renderTargets[face].Destroy();
+      if (this._stencilMaps[face]) this._stencilMaps[face].Destroy();
       this._stencilMaps[face] = null;
     }
 

@@ -353,11 +353,12 @@ export class Tr2TextureAnimation extends CjsModel
     this._clear();
   }
 
-  /** Cancels the load and drops grid and channel references; destroys nothing. */
+  /** Cancels the load, releases owned frame values and drops borrowed channels. */
   _clear()
   {
     if (this._asyncState) this._asyncState.cancel = true;
     this._asyncState = null;
+    for (const grid of this._grids) if (grid.frame) grid.frame.Destroy();
     this._grids = [];
     this._channels.clear();
   }

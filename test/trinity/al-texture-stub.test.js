@@ -451,7 +451,7 @@ test("the context creates a real back buffer and reports its size", () =>
 
   assert.equal(al.GetBackBufferFormat(), PixelFormat.PIXEL_FORMAT_B8G8R8A8_UNORM);
   assert.equal(al.GetDefaultBackBuffer().IsValid(), true);
-  assert.equal(al.GetRenderTarget(0), al.GetDefaultBackBuffer(), "the back buffer is bound to slot zero");
+  assert.equal(al.GetRenderTarget(0).Equals(al.GetDefaultBackBuffer()), true, "the back buffer is bound to slot zero");
 
   const size = al.GetRenderTargetSize(0);
 

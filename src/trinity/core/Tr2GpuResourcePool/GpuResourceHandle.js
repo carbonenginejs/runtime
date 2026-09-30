@@ -68,6 +68,9 @@ export class GpuResourceHandle
 {
   #record = null;
 
+  /** Explicit copy of the native template value; Get borrows this handle’s value. */
+  _resource = null;
+
   /**
    * @param {object} [record] The pool record this handle locks.
    */
@@ -75,7 +78,11 @@ export class GpuResourceHandle
   {
     this.#record = record;
 
-    if (record) record.lockCount += 1;
+    if (record)
+    {
+      record.lockCount += 1;
+      this._resource = new record.resource.constructor({ copy: record.resource });
+    }
   }
 
   /**
@@ -85,7 +92,7 @@ export class GpuResourceHandle
    */
   Get()
   {
-    return this.#record?.resource ?? null;
+    return this._resource;
   }
 
   /** @returns {boolean} Whether this handle still holds a resource. */
@@ -112,8 +119,12 @@ export class GpuResourceHandle
   {
     if (!this.#record) fail("a handle freed twice");
 
-    this.#record.lockCount -= 1;
+    const record = this.#record;
+    record.lockCount -= 1;
+    this._resource.Destroy();
+    this._resource = null;
     this.#record = null;
+    if (!record.poolOwned && record.lockCount === 0) record.resource.Destroy();
 
     return true;
   }

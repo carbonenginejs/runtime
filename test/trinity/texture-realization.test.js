@@ -7,7 +7,7 @@ import { Tr2RenderContext } from "../../npm/dist/trinity/core/index.js";
 import { TriTextureParameter } from "../../npm/dist/trinity/index.js";
 import { ResourceFlags } from "../../npm/dist/trinity/shader/index.js";
 import { TriTextureRes } from "../../npm/dist/resource/texture/TriTextureRes.js";
-import { Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
+import { Tr2ResourceSetDescriptionAL, Tr2RegisterMapAL, Tr2TextureAL, Tr2TextureALStub } from "../../npm/dist/trinityal/index.js";
 import { PixelFormat, TextureType, Tr2ColorSpace } from "../../npm/dist/global/consts/renderContext/index.js";
 
 // Carbon's TriTextureRes creates its Tr2TextureAL in DoPrepare from the decoded
@@ -101,7 +101,7 @@ test("RealizeTexture makes the resource's texture once it is prepared, and store
 
   const texture = RealizeTexture(resource, context);
 
-  assert.ok(texture instanceof Tr2TextureALStub, "the applying context's kind of texture");
+  assert.ok(texture.constructor === Tr2TextureAL && texture.TrinityALImpl_GetObject().constructor === Tr2TextureALStub, "the applying context's kind of texture");
   assert.equal(resource.GetTexture(), texture, "Carbon's m_texture");
   assert.equal(RealizeTexture(resource, context), texture, "made once");
   assert.equal(texture.GetFormat(), PixelFormat.PIXEL_FORMAT_BC1_UNORM_SRGB);
@@ -127,18 +127,18 @@ test("a texture parameter binds the realized texture, or the resource until it i
   parameter.resource = resource;
   parameter.OnAddedToMaterial({ ResourceChanged: () => dirtied.push("changed"), MarkConstantBuffersDirty() {} });
 
-  // Not ready: the RESOURCE stands in, which a backend reads as the fallback.
+  // Not ready: an empty AL texture selects the backend fallback.
   assert.equal(parameter.CopyToResourceSet(description, 1, 3, 0, context), true);
-  assert.equal(description.m_srv[0].texture, resource);
+  assert.equal(description.m_srv[0].texture, null);
 
   resource.SetPayload(bc1Bitmap());
   resource.SetState(TriTextureRes.State.PREPARED);
 
   assert.ok(dirtied.length >= 1, "completion re-dirtied the material, as Carbon's m_onTextureChange does");
-  assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces resource");
+  assert.equal(parameter.CopyToResourceSet(description, 1, 3, ResourceFlags.RESOURCE_FLAG_SRGB, context), true, "the slot changed: texture replaces the fallback");
 
   const bound = description.m_srv[0];
 
-  assert.ok(bound.texture instanceof Tr2TextureALStub);
+  assert.ok(bound.texture.constructor === Tr2TextureAL && bound.texture.TrinityALImpl_GetObject().constructor === Tr2TextureALStub);
   assert.equal(bound.colorSpace, Tr2ColorSpace.COLOR_SPACE_SRGB);
 });

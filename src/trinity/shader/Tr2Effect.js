@@ -175,6 +175,62 @@ export class Tr2Effect extends Tr2Material
    */
   variableStore = null;
 
+  /** Only adapters minted by this effect are final-owned here. Caller providers remain borrowed. */
+  _ownedProviders = new Map();
+
+  /** Whether the explicit final owner has retired this effect. */
+  _destroyed = false;
+
+  /** Releases a provider minted for one parameter, preserving caller-owned providers. */
+  _ReleaseOwnedProvider(parameter)
+  {
+    const owned = this._ownedProviders.get(parameter);
+    if (!owned) return;
+    this._ownedProviders.delete(parameter);
+    if (owned.kind === "texture") owned.provider.SetTexture(null);
+    else owned.provider.SetGpuBuffer(null);
+  }
+
+  /** Reconciles adapters after resource-list or provider replacement. */
+  _PruneOwnedProviders()
+  {
+    for (const [ parameter, owned ] of this._ownedProviders)
+    {
+      const provider = owned.kind === "texture" ? parameter.GetTextureProvider() : parameter.GetGpuBuffer();
+      if (!this.resources.includes(parameter) || provider !== owned.provider) this._ReleaseOwnedProvider(parameter);
+    }
+  }
+
+  /** Explicitly releases pass value members as Carbon's vector clear/destructor does. */
+  _ClearPassBindings()
+  {
+    for (const technique of this.parametersForPasses)
+    {
+      for (const pass of technique.passes)
+      {
+        for (const input of pass.stageInput) if (input.constantBuffer) input.constantBuffer.Destroy();
+        if (pass.resourceSet) pass.resourceSet.Destroy();
+        if (pass.resourceSetDesc) pass.resourceSetDesc.ClearResources();
+      }
+    }
+    this.parametersForPasses = [];
+  }
+
+  /** Deterministic adaptation of the effect destructor and its owned value members. */
+  @impl.custom
+  Destroy()
+  {
+    if (this._destroyed) return;
+    this._destroyed = true;
+    if (this.effectResource) this.effectResource.OffEvent("*", null, this);
+    for (const resource of this.resources) resource.OnRemovedFromMaterial(this);
+    for (const parameter of this._ownedProviders.keys()) this._ReleaseOwnedProvider(parameter);
+    this._ClearPassBindings();
+    this.resources = [];
+    this.ReleaseCachedData();
+    this.effectResource = null;
+  }
+
   insideStartUpdate = false;
 
   /** Carbon method RebuildCachedData -> RebuildCachedDataInternal (MAP_METHOD_AND_WRAP). */
@@ -360,6 +416,7 @@ export class Tr2Effect extends Tr2Material
     this.parameters = this.parameters.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter)));
     this.constParameters = this.constParameters.filter(parameter => this.#isShaderParameterVisible(parameter?.name));
     this.resources = this.resources.filter(parameter => this.#isShaderParameterVisible(CjsParameter.getNamedValue(parameter)));
+    this._PruneOwnedProviders();
     return true;
   }
 
@@ -446,21 +503,7 @@ export class Tr2Effect extends Tr2Material
   @impl.reason("Device-free JS reflection supplies stage signatures in authored order; pass descriptions allocate their map here and sampler states are seeded by the applying context.")
   #BuildParametersForPasses()
   {
-    // Carbon's `m_parametersForPasses.clear()` (Tr2Effect.cpp:693) tears down
-    // value members: each stage's constant buffer and each pass's resource
-    // set die with it. Ours are device objects behind handles, so they are
-    // destroyed by name before the array is dropped - otherwise every rebuild
-    // leaked one GPUBuffer per stage.
-    for (const technique of this.parametersForPasses ?? [])
-    {
-      for (const pass of technique?.passes ?? [])
-      {
-        for (const stageInput of pass?.stageInput ?? []) stageInput?.constantBuffer?.Destroy();
-        pass?.resourceSet?.Destroy();
-      }
-    }
-
-    this.parametersForPasses = [];
+    this._ClearPassBindings();
 
     const techniques = this.shader?.GetEffect?.()?.techniques ?? [];
 
@@ -815,6 +858,8 @@ export class Tr2Effect extends Tr2Material
    */
   RebuildCachedDataInternal()
   {
+    if (this._destroyed) return;
+    this._PruneOwnedProviders();
     if (this.insideStartUpdate)
     {
       return;
@@ -1188,7 +1233,9 @@ export class Tr2Effect extends Tr2Material
 
     if (parameter)
     {
+      this._ReleaseOwnedProvider(parameter);
       parameter.SetGpuBuffer(runtimeBuffer);
+      this._ownedProviders.set(parameter, { provider: runtimeBuffer, kind: "buffer" });
       return;
     }
 
@@ -1197,6 +1244,7 @@ export class Tr2Effect extends Tr2Material
     created.name = parameterName;
     created.SetGpuBuffer(runtimeBuffer);
     this.AddResource(created);
+    this._ownedProviders.set(created, { provider: runtimeBuffer, kind: "buffer" });
   }
 
   /** The Tr2TextureReference a runtime texture slot holds, or null. */
@@ -1220,7 +1268,8 @@ export class Tr2Effect extends Tr2Material
 
       if (held)
       {
-        if (held.GetTexture() === texture) return;
+        const current = held.GetTexture();
+        if (current === texture || (current && texture && current.Equals(texture))) return;
         held.SetTexture(texture);
         return;
       }
@@ -1232,7 +1281,9 @@ export class Tr2Effect extends Tr2Material
 
     if (parameter)
     {
+      this._ReleaseOwnedProvider(parameter);
       parameter.SetTextureProvider(reference);
+      this._ownedProviders.set(parameter, { provider: reference, kind: "texture" });
     }
     else
     {
@@ -1240,6 +1291,7 @@ export class Tr2Effect extends Tr2Material
 
       created.Create(parameterName, reference, uavMipLevel);
       this.AddResource(created);
+      this._ownedProviders.set(created, { provider: reference, kind: "texture" });
     }
     this.RebuildCachedDataInternal();
   }
@@ -1448,6 +1500,7 @@ export class Tr2Effect extends Tr2Material
       existing.OnRemovedFromMaterial(this);
     }
     list.splice(list.indexOf(existing), 1);
+    this._PruneOwnedProviders();
     return true;
   }
 
@@ -1487,6 +1540,7 @@ export class Tr2Effect extends Tr2Material
         this.resources.push(created);
       }
       created.OnAddedToMaterial(this);
+      this._PruneOwnedProviders();
       return true;
     }
     if (existing)

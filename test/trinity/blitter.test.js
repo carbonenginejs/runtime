@@ -1,3 +1,4 @@
+import { StubTarget } from "../support/stubContext.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 
@@ -118,7 +119,7 @@ test("BlitSource is published for a textured blit and cleared afterwards", () =>
 {
   const context = stubContext();
   const blitter = new Tr2Blitter();
-  const texture = { id: "source" };
+  const texture = StubTarget();
 
   blitter.Draw(context, material(), texture);
 
@@ -134,7 +135,7 @@ test("BlitSource is a texture variable, and the draw sees the texture through a 
 {
   const context = stubContext();
   const blitter = new Tr2Blitter();
-  const texture = { id: "source" };
+  const texture = StubTarget();
   const blitSource = Tr2VariableStore.GlobalStore().GetVariable("BlitSource");
   const seen = [];
   const drawing = material();
@@ -143,13 +144,13 @@ test("BlitSource is a texture variable, and the draw sees the texture through a 
   // was INVALID, its SRV binding was skipped, and every blit sampled nothing:
   // the post chain's final copy to the canvas came out black.
   const textureType = blitSource.contentType;
-  drawing.ApplyMaterialDataForPass = () => seen.push(blitSource.GetValue()?.GetTexture());
+  drawing.ApplyMaterialDataForPass = () => seen.push(blitSource.GetValue().GetTexture().TrinityALImpl_GetObject());
 
   blitter.Draw(context, drawing, texture);
 
   assert.equal(textureType, blitSource.contentType, "the draw does not change the variable's type");
   assert.equal(textureType, 2, "TRIVARIABLE_TEXTURE_RES");
-  assert.deepEqual(seen, [ texture ], "published as a reference whose GetTexture is the blitted texture");
+  assert.deepEqual(seen, [ texture.TrinityALImpl_GetObject() ], "published as a reference whose GetTexture is the blitted texture");
 });
 
 test("resources are prepared once and released together", () =>

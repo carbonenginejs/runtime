@@ -172,6 +172,7 @@ export class Tr2Material extends CjsModel
 
       if (!resourceSet) return false;
 
+      if (pass.resourceSet) pass.resourceSet.Destroy();
       pass.resourceSet = resourceSet;
       pass.resourceSetHash = pass.resourceSetDesc.ComputeHash();
       pass.resourceSetDirty = false;
@@ -447,6 +448,7 @@ export class Tr2Material extends CjsModel
         // resource sets" - which was the engine-means-`trinityal/webgpu`
         // misreading written down as a guarantee. Trinity owns the
         // description; the abstraction layer owns the set built from it.
+        if (pass.resourceSet) pass.resourceSet.Destroy();
         pass.resourceSet = null;
         pass.resourceSetDesc?.ClearResources();
         pass.resourceSetHash = 0;

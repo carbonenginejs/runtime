@@ -1,3 +1,5 @@
+import { Tr2DeviceResourceAL } from "../Tr2DeviceResourceAL/index.js";
+import { Tr2BufferDescriptionAL } from "../Tr2BufferAL/Tr2BufferDescriptionAL.js";
 // Source: trinity/trinityal/include/Tr2BufferAL.h
 //   trinity/trinityal/dx11/Tr2BufferALDx11.cpp
 //   trinity/trinityal/metal/Tr2BufferALMetal.mm
@@ -100,7 +102,7 @@ function cpuReadUsage(cpuUsage, usage)
  * Trinity and registers into a Trinity-side resource list, and the engine does
  * not import Trinity classes for identity. It implements the same surface.
  */
-export class CjsWebgpuBufferAL
+export class CjsWebgpuBufferAL extends Tr2DeviceResourceAL
 {
   /** m_desc */
   _desc = null;
@@ -148,7 +150,7 @@ export class CjsWebgpuBufferAL
    */
   Create(desc, initialData, renderContext)
   {
-    this.Destroy();
+    this._Reset();
 
     if (!desc || desc.count === 0) return ALResult.E_INVALIDARG;
 
@@ -192,7 +194,7 @@ export class CjsWebgpuBufferAL
     this._al = al;
     this._mappedFrame = -1;
     this._webgpu = webgpu;
-    this._desc = desc;
+    this._desc = Object.assign(new Tr2BufferDescriptionAL(), desc);
     this._shadow = new Uint8Array(this._handle.size);
 
     if (initialData)
@@ -347,15 +349,22 @@ export class CjsWebgpuBufferAL
     return ALResult.S_OK;
   }
 
-  /** Releases the GPU buffer and the shadow. */
+  /** Releases this implementation and unregisters its final owner. */
   Destroy()
+  {
+    this._Reset();
+    super.Destroy();
+  }
+
+  /** Retires storage while retaining the implementation registry entry. */
+  _Reset()
   {
     // Cached bind groups that bind any of this buffer's GPUBuffers go with it.
     if (this._webgpu)
     {
       for (const handle of this._handles) ForgetBindingResource(this._webgpu.GetDeviceBuffer(handle));
     }
-    for (const handle of this._handles) handle.Destroy();
+    for (const handle of this._handles) this._al.ReleaseLater(() => handle.Destroy());
 
     this._handle = null;
     this._handles = [];
@@ -386,12 +395,12 @@ export class CjsWebgpuBufferAL
    * @param {number} [size] Byte count; the rest of the buffer when omitted.
    * @returns {{result: number, data: Uint8Array|null}} The bytes, or null.
    */
-  MapForReading(offset = 0, size = undefined)
+  MapForReading(_renderContext, offset = 0, size = 0)
   {
     if (!this._handle || !this._desc) return { result: ALResult.E_INVALIDCALL, data: null };
 
     const total = this._desc.GetSizeInBytes();
-    const span = size ?? (total - offset);
+    const span = size || (total - offset);
     if (span <= 0 || offset < 0 || offset + span > total) return { result: ALResult.E_INVALIDARG, data: null };
     if (!HasFlag(this._desc.cpuUsage, Tr2CpuUsage.READ)) return { result: ALResult.E_INVALIDCALL, data: null };
 

@@ -250,7 +250,12 @@ export function RealizeTexture(resource, renderContext)
 
   const texture = CreateTexture(resource, renderContext);
 
-  if (texture) resource.SetTexture(texture);
+  if (texture)
+  {
+    if (resource._ownTexture) resource._ownTexture.Destroy();
+    resource._ownTexture = texture;
+    resource.SetTexture(texture);
+  }
 
   return texture;
 }

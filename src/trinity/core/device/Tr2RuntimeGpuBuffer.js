@@ -1,3 +1,4 @@
+import { Tr2BufferAL } from "../../../trinityal/Tr2BufferAL/index.js";
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.h
 // Source: trinity/trinity/Tr2RuntimeGpuBuffer.cpp
 // Hand-maintained from Carbon source; the AL buffer is backend-private state.
@@ -28,15 +29,17 @@ export class Tr2RuntimeGpuBuffer extends CjsModel
   }
 
   /**
-   * Replaces the held buffer (cpp:11-14).
+   * Copies the held value (cpp:11-14); explicit reset replaces its C++ destructor.
    *
    * @param {object|null} buffer The AL buffer.
    * @returns {void}
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetGpuBuffer(buffer)
   {
-    this._buffer = buffer ?? null;
+    const next = buffer ? new Tr2BufferAL({ copy: buffer }) : null;
+    if (this._buffer) this._buffer.Destroy();
+    this._buffer = next;
   }
 }

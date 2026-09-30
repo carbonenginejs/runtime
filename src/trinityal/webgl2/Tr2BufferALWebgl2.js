@@ -219,7 +219,7 @@ export class Tr2BufferALWebgl2 extends Tr2DeviceResourceAL
       this._srvDirty = true;
     }
 
-    this._desc = desc;
+    this._desc = Object.assign(new Tr2BufferDescriptionAL(), desc);
     this._desc.stride = stride;
 
     return ALResult.S_OK;

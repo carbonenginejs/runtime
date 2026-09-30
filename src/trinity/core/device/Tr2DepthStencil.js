@@ -125,6 +125,7 @@ export class Tr2DepthStencil extends CjsModel
       return false;
     }
 
+    if (this.#depthStencil) this.#depthStencil.Destroy();
     this.#depthStencil = texture;
     this.#msaa = msaa;
     this.#flags = flags;
@@ -221,6 +222,7 @@ export class Tr2DepthStencil extends CjsModel
   @impl.implemented
   Destroy()
   {
+    if (this.#depthStencil) this.#depthStencil.Destroy();
     this.#depthStencil = null;
     this.#msaa = null;
     this.#flags = ExFlag.EX_NONE;

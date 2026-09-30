@@ -322,7 +322,7 @@ test("with a destination, the scene renders off-screen and the post process draw
   const context = StubContext();
   const target = StubTarget();
   const driver = driverOver([]);
-  const before = context.GetRenderTarget(0);
+  const before = context.GetRenderTarget(0).TrinityALImpl_GetObject();
 
   driver.Execute([ target ], null, 0, 0, null, context);
 
@@ -332,7 +332,7 @@ test("with a destination, the scene renders off-screen and the post process draw
   // Carbon pushes RT0, RT1 and the depth stencil for the frame and pops them
   // on every exit (cpp:450-457): the caller's binding comes back, not the
   // destination the post process drew into.
-  assert.equal(context.GetRenderTarget(0), before, "the caller's target is restored when the frame ends");
+  assert.equal(context.GetRenderTarget(0).TrinityALImpl_GetObject(), before, "the caller's target is restored when the frame ends");
 });
 
 test("the frame is reverse-Z: depth clears to 0 under an inverted depth test, restored after", () =>
@@ -590,7 +590,7 @@ test("RenderDepthPass draws opaque, decal and depth with the depth technique (Ev
   // With a normal map: it is slot 0 for the pass, drawn RM_OPAQUE.
   let boundDuringPass = null;
   const render = context.RenderBatches;
-  context.RenderBatches = (...args) => { boundDuringPass ??= context.GetRenderTarget(0); return render(...args); };
+  context.RenderBatches = (...args) => { boundDuringPass ??= context.GetRenderTarget(0).TrinityALImpl_GetObject(); return render(...args); };
 
   scene.RenderDepthPass(depth, normal, null, context, "Depth", batchMap);
 
@@ -600,8 +600,8 @@ test("RenderDepthPass draws opaque, decal and depth with the depth technique (Ev
     `states:${opaque}`, `render:${TriBatchType.TRIBATCHTYPE_DECAL}:Depth`,
     `states:${opaque}`, `render:${TriBatchType.TRIBATCHTYPE_DEPTH}:Depth`
   ]);
-  assert.equal(boundDuringPass, normal);
-  assert.equal(context.GetRenderTarget(0), color, "the scene colour is back in slot 0");
+  assert.equal(boundDuringPass, normal.TrinityALImpl_GetObject());
+  assert.equal(context.GetRenderTarget(0).Equals(color), true, "the scene colour is back in slot 0");
 
   // Without one: depth only.
   calls.length = 0;
@@ -639,4 +639,25 @@ test("SH directional/source refresh precedes textures, and receivers follow batc
     assert.ok(names.indexOf("SHReceivers")<names.indexOf("UpdateVariableStore"));
     assert.deepEqual(calls.find(([name])=>name==="SHReceivers")[1],[object,cameraParent]);
   }
+});
+
+test("retiring one driver preserves the other driver's published SSAO value", async () =>
+{
+  const {Tr2VariableStore}=await import('../../npm/dist/trinity/index.js');
+  const context=StubContext(),target=StubTarget();
+  const first=driverOver([]),second=driverOver([]);
+  assert.equal(first.Execute([target],null,0,0,null,context),true);
+  const firstValue=Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue().GetTexture();
+  const firstBackend=firstValue.TrinityALImpl_GetObject();
+  assert.equal(second.Execute([target],null,0,0,null,context),true);
+  const published=Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue();
+  const secondBackend=published.GetTexture().TrinityALImpl_GetObject();
+  assert.notEqual(firstBackend,secondBackend);
+  first.Destroy();first.Destroy();
+  assert.equal(firstBackend.IsRegistered(),false);
+  assert.equal(Tr2VariableStore.GlobalStore().FindVariable('SSAOMap').GetValue(),published);
+  assert.equal(published.GetTexture().IsValid(),true);
+  assert.equal(second.Execute([target],null,0,0,null,context),true);
+  second.Destroy();assert.equal(secondBackend.IsRegistered(),false);
+  target.Destroy();context.Destroy();
 });
