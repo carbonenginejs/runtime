@@ -2518,6 +2518,10 @@ export class CjsResMan
     return task.promise;
   }
 
+  /**
+   * Builds a new object from the resource payload through its registered factory
+   * or target hydrator.
+   */
   _BuildObject(resource)
   {
     const builder = this._objectBuilders.get(resource);

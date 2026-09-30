@@ -217,6 +217,7 @@ export class CjsSchema
         return isExportableField(field, options);
     }
 
+    /** Returns the shared schema settings object without copying it. */
     static getSettings()
     {
         return SETTINGS;

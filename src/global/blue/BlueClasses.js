@@ -155,10 +155,13 @@ export class BlueClasses extends IBlueClasses
     }
   }
 
+  /** Throws because querying an object's native interface is not implemented. */
   QueryThisInterface() { throw new Error("BlueClasses.QueryThisInterface is not implemented"); }
 
+  /** Throws because native variable lookup is not implemented. */
   FindVariable() { throw new Error("BlueClasses.FindVariable is not implemented"); }
 
+  /** Throws because native object-count accounting is not implemented. */
   UpdateObjectCount() { throw new Error("BlueClasses.UpdateObjectCount is not implemented"); }
 
   /**
@@ -198,16 +201,31 @@ export class BlueClasses extends IBlueClasses
     return new Copier().CloneTo(source, dest);
   }
 
+  /**
+   * Throws because processing the native pending-deletion queue is not
+   * implemented.
+   */
   ProcessPendingDeletes() { throw new Error("BlueClasses.ProcessPendingDeletes is not implemented"); }
 
+  /** Throws because draining all native pending deletions is not implemented. */
   ProcessAllPendingDeletes() { throw new Error("BlueClasses.ProcessAllPendingDeletes is not implemented"); }
 
+  /**
+   * Throws because changing native deferred-deletion enablement is not
+   * implemented.
+   */
   SetPendingDeletesEnabled() { throw new Error("BlueClasses.SetPendingDeletesEnabled is not implemented"); }
 
+  /**
+   * Throws because querying native deferred-deletion enablement is not
+   * implemented.
+   */
   IsPendingDeletesEnabled() { throw new Error("BlueClasses.IsPendingDeletesEnabled is not implemented"); }
 
+  /** Throws because registering a native thunk is not implemented. */
   RegisterThunker() { throw new Error("BlueClasses.RegisterThunker is not implemented"); }
 
+  /** Throws because native runtime type-information lookup is not implemented. */
   GetRtti() { throw new Error("BlueClasses.GetRtti is not implemented"); }
 
 }

@@ -283,6 +283,10 @@ export class Copier extends ICopier
     return false;
   }
 
+  /**
+   * Treats nullish values as empty and otherwise checks length, then size,
+   * defaulting to zero.
+   */
   static _IsEmpty(value)
   {
     if (value == null) return true;

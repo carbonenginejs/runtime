@@ -17,12 +17,6 @@ import { ColorPrefix } from "./solidColorTexture.js";
 export class SolidColorTextureConstructor extends IBlueDynamicResourceConstructor
 {
   /**
-   * `IBlueDynamicResourceConstructor::GetResource` (SolidColorTexture.cpp:23-29).
-   *
-   * @param {string} query Text after `dynamic:/color/`.
-   * @returns {TriTextureRes} The texture resource.
-   */
-  /**
    * A solid colour is four numbers in its own path; kept for good once built
    * (operator, 2026-09-24).
    *
@@ -33,6 +27,12 @@ export class SolidColorTextureConstructor extends IBlueDynamicResourceConstructo
     return true;
   }
 
+  /**
+   * `IBlueDynamicResourceConstructor::GetResource` (SolidColorTexture.cpp:23-29).
+   *
+   * @param {string} query Text after `dynamic:/color/`.
+   * @returns {TriTextureRes} The texture resource.
+   */
   GetResource(query)
   {
     const texture = new TriTextureRes();

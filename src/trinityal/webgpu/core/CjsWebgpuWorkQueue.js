@@ -1077,6 +1077,10 @@ export function MergeHintOverClear(hint, clear)
   return { colors, depth: merge(hint.depth, clear.depth) };
 }
 
+/**
+ * Converts color and optional depth attachment hints to WebGPU load/store
+ * descriptions, or returns null for no hint.
+ */
 export function ApplyRenderPassHint(hint)
 {
   if (!hint) return null;

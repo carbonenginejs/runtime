@@ -247,6 +247,10 @@ export class EveSpaceSceneRenderDriver extends CjsModel
    */
   #distortionEffect = EveSpaceSceneRenderDriver.#CreateDistortionEffect();
 
+  /**
+   * Creates the scene distortion effect and assigns its authored postprocess
+   * effect path.
+   */
   static #CreateDistortionEffect()
   {
     const effect = new Tr2Effect();

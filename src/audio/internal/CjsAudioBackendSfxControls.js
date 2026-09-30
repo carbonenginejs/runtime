@@ -40,6 +40,10 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
         return at ?? (Number(this._backend._context?.currentTime) || 0);
     }
 
+    /**
+     * Installs a program against this post's playing identifier and backend
+     * record.
+     */
     installSfxProgram(program)
     {
         return this._backend._InstallSfxProgram(
@@ -49,21 +53,31 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
         );
     }
 
+    /** Reads the backend switch value for this posting game object. */
     getSwitch(group)
     {
         return this._backend.GetSwitchValue(group, this.gameObjID);
     }
 
+    /** Reads the backend's global state for the requested group. */
     getState(group)
     {
         return this._backend.GetGlobalState(group);
     }
 
+    /**
+     * Evaluates backend state-property weights at the supplied or current audio
+     * time.
+     */
     getStatePropertyWeights(group, at = undefined)
     {
         return this._backend._ReadStatePropertyWeights(group, this._Now(at));
     }
 
+    /**
+     * Reads an object RTPC using the post record and game-object identifier at
+     * audio time.
+     */
     getRTPC(name, at = undefined)
     {
         return this._backend._ReadSfxObjectRtpc(
@@ -74,6 +88,7 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
         );
     }
 
+    /** Reads a named global RTPC at the supplied or current audio time. */
     getGlobalRTPC(name, at = undefined)
     {
         return this._backend._ReadRtpcValue(
@@ -84,36 +99,52 @@ export class CjsAudioBackendSfxControls extends ICjsSfxControls
         );
     }
 
+    /** Evaluates the post's matching volume targets at current audio time. */
     getVoiceVolumeDb(matchIds)
     {
         return this._backend._EvaluateSfxVoiceTargets("volume", this._record, matchIds, this._Now());
     }
 
+    /** Evaluates the post's matching pitch targets at current audio time. */
     getVoicePitchCents(matchIds)
     {
         return this._backend._EvaluateSfxVoiceTargets("pitch", this._record, matchIds, this._Now());
     }
 
+    /**
+     * Evaluates the post's matching low-pass targets at the supplied or current
+     * audio time.
+     */
     getVoiceLowPass(matchIds, at = undefined)
     {
         return this._backend._EvaluateSfxVoiceTargets("lowPass", this._record, matchIds, this._Now(at));
     }
 
+    /**
+     * Evaluates the post's matching high-pass targets at the supplied or current
+     * audio time.
+     */
     getVoiceHighPass(matchIds, at = undefined)
     {
         return this._backend._EvaluateSfxVoiceTargets("highPass", this._record, matchIds, this._Now(at));
     }
 
+    /** Assigns a backend switch value for this posting game object. */
     setSwitch(group, value)
     {
         return this._backend.SetSwitch(group, value, this.gameObjID);
     }
 
+    /** Assigns the backend's global state for the requested group. */
     setState(group, value)
     {
         return this._backend.SetGlobalState(group, value);
     }
 
+    /**
+     * Reads a program signal using this post's record, cancellation signal and
+     * program identifiers.
+     */
     getSfxProgramSignal(programSlotId, actionIndex, leafIndex, programBatchId)
     {
         return this._backend._ReadSfxProgramSignal(
