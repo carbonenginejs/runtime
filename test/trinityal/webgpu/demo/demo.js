@@ -127,6 +127,7 @@ import { CjsGr2Format } from "../../../../npm/dist/resource/formats/gr2/index.js
 import { CjsBlackFormat } from "../../../../npm/dist/resource/formats/black/index.js";
 import { POST_TEMPLATES } from "./postTemplates.js";
 import { createDemoActions } from "./demoActions.js";
+import { createEffectFields, createPostProcessPanel } from "./postProcessPanel.js";
 import { createCameraControls, readShipBounds } from "./cameraControls.js";
 import { createDemoInput } from "./input.js";
 import { createViewportCapture } from "./screenshot.js";
@@ -533,6 +534,8 @@ function BuildSettingsPanel({ actions, driver, postState, initialTemplate, selec
 
   const postToggle = row("post", Object.assign(document.createElement("input"), { type: "checkbox", checked: !postState.off }));
   postToggle.addEventListener("change", () => actions.invoke("post", postToggle.checked));
+  const exposureWhenPostDisabled = row("auto exposure when post is disabled", Object.assign(document.createElement("input"), { type: "checkbox", checked: postState.autoExposureWhenPostDisabled }));
+  exposureWhenPostDisabled.addEventListener("change", () => actions.invoke("autoExposureWhenPostDisabled", exposureWhenPostDisabled.checked));
 
   const templateNames = Object.keys(POST_TEMPLATES);
   const templates = choose([ [ "(none)", "" ], ...templateNames.filter(IsSunTemplate).map(name => [ name, name ]) ], initialTemplate);
@@ -751,6 +754,7 @@ function BuildSettingsPanel({ actions, driver, postState, initialTemplate, selec
   target.append(actionStatus);
   const unsubscribe = actions.subscribe(state => {
     postToggle.checked=state.post;cloakToggle.checked=state.cloaked;
+    exposureWhenPostDisabled.checked = state.autoExposureWhenPostDisabled;
     cloakToggle.disabled=!actions.enabled("cloak");skinButton.disabled=!actions.enabled("skin");
     shipSpeed.value=String(state.speed);shipMaxSpeed.value=String(state.maxSpeed);
     shipSpeed.max=String(2*state.maxSpeed);shipSpeed.step=String(state.maxSpeed/100);showSpeed();
@@ -889,53 +893,8 @@ function BuildSettingsPanel({ actions, driver, postState, initialTemplate, selec
     }
   };
 
-  /**
-   * An editable view of one post-process effect's plain fields: numbers,
-   * booleans, and numeric vectors of up to four components.
-   *
-   * @param {object} effect A Tr2PP*Effect.
-   * @returns {HTMLElement} The fields, collapsed.
-   */
-  const EffectFields = effect =>
-  {
-    const details = document.createElement("details");
-    details.className = "fields";
-    details.append(Object.assign(document.createElement("summary"), { textContent: "settings" }));
-
-    for (const key of Object.keys(effect))
-    {
-      if (key.startsWith("_") || key === "display") continue;
-      const value = effect[key];
-      const isVector = value && typeof value.length === "number" && value.length >= 2 && value.length <= 4 && typeof value[0] === "number";
-      if (typeof value !== "number" && typeof value !== "boolean" && !isVector) continue;
-
-      const input = document.createElement("input");
-      if (typeof value === "boolean")
-      {
-        Object.assign(input, { type: "checkbox", checked: value });
-        input.addEventListener("change", () => { effect[key] = input.checked; });
-      }
-      else if (typeof value === "number")
-      {
-        Object.assign(input, { type: "number", step: "any", value: String(Math.round(value * 1e4) / 1e4) });
-        input.addEventListener("change", () => { const v = Number(input.value); if (Number.isFinite(v)) effect[key] = v; });
-      }
-      else
-      {
-        Object.assign(input, { type: "text", value: Array.from(value, v => Math.round(v * 1e4) / 1e4).join(", ") });
-        input.addEventListener("change", () =>
-        {
-          const parts = input.value.split(",").map(Number);
-          if (parts.length === value.length && parts.every(Number.isFinite)) for (let i = 0; i < parts.length; i++) value[i] = parts[i];
-        });
-      }
-
-      const label = document.createElement("label");
-      label.append(key, input);
-      details.append(label);
-    }
-    return details;
-  };
+  // The same controls serve the persistent live post-process panel.
+  const EffectFields = effect => createEffectFields(effect, { document }).element;
 
   templates.addEventListener("change", async () =>
   {
@@ -3980,10 +3939,24 @@ export async function RunDemo(canvas)
   globalThis.demo.exposure = async () =>
   {
     const device = al.GetWebgpu().GetDevice();
-    const first = await ReadPoolBuffer(device, "Exposure Buffer");
+    const sample = async () =>
+    {
+      const quality = driver.postProcess.GetPostProcessingQuality();
+      const effect = driver.scene.GetPostProcess()?.GetDynamicExposureIfAvailable(quality) ?? null;
+      // Snapshot the effective settings before submitting this readback. The
+      // scene, quality or effect can change while its GPU copy is awaited.
+      const settings = effect ? Object.fromEntries([
+        "display", "debug", "adjustment", "influence", "minBrightness",
+        "maxBrightness", "minLuminance", "maxLuminance", "minExposure",
+        "maxExposure", "middleValue", "decreaseSpeed", "increaseSpeed"
+      ].map(name => [name, effect[name]])) : null;
+      const values = await ReadPoolBuffer(device, "Exposure Buffer");
+      return { values, quality, settings };
+    };
+    const first = await sample();
     await new Promise(resolve => setTimeout(resolve, 1000));
-    const second = await ReadPoolBuffer(device, "Exposure Buffer");
-    return { first, second, settings: globalThis.demo.postProcess?.dynamicExposure ?? null };
+    const second = await sample();
+    return { first, second };
   };
 
   // demo.taa(): whether TAA runs and converges. Two samples 500 ms apart of
@@ -4258,7 +4231,7 @@ export async function RunDemo(canvas)
   // is copy, sharpen and tonemap. The scene depth is therefore always
   // published as DepthMap, which the high-tier light, sprite and flare shaders
   // sample to hide behind the hull.
-  const postState = { off: POST_OFF, apply: () => {} };
+  const postState = { off: POST_OFF, autoExposureWhenPostDisabled: true, apply: () => {} };
   postState.apply = () =>
   {
     // "replaces scene default" puts the location template where the sun's
@@ -4275,12 +4248,14 @@ export async function RunDemo(canvas)
   const operations = Object.fromEntries(commandNames.map(name => [name, globalThis.demo[name]]));
   if (liveInput) operations.capture = () => capture.request();
   operations.post = enabled => { postState.off = !enabled; postState.apply(); ApplyClientDefaults(); };
+  operations.autoExposureWhenPostDisabled = enabled => { postState.autoExposureWhenPostDisabled = enabled; ApplyClientDefaults(); };
   const actions = createDemoActions({
     getShip: () => ship,
     getShipStates: current => realScene && current ? ShipStates(current) : [],
     operations,
     readState: () => ({
       post: !postState.off,
+      autoExposureWhenPostDisabled: postState.autoExposureWhenPostDisabled,
       speed: ship?.translationCurve?.velocity?.[2] ?? 0,
       maxSpeed: demoSpeed.maxSpeed,
       kills: ship?.displayKillCounterValue ?? 0,
@@ -4332,7 +4307,10 @@ export async function RunDemo(canvas)
    * the template authors is never touched. EVE's composite has its curve
    * built in (no TONE_MAPPING_METHOD axis), so the injected tonemapping
    * effect contributes its curve parameters only. The exposure is the part
-   * that dims the frame. Switching off restores what the template authored.
+   * that dims the frame. Switching client defaults off restores what the
+   * template authored. The separate exposure checkbox lets the operator choose
+   * its behavior while post is disabled; the client policy is unknown, so the
+   * checkbox preserves this demo's previous behavior by default.
    */
   function ApplyClientDefaults()
   {
@@ -4345,7 +4323,9 @@ export async function RunDemo(canvas)
     const authored = authoredSlots.get(postProcess);
 
     postProcess.SetTonemapping(authored.tonemapping ?? (clientState.enabled ? new Tr2PPTonemappingEffect() : null));
-    postProcess.SetDynamicExposure(authored.dynamicExposure ?? (clientState.enabled ? new Tr2PPDynamicExposureEffect() : null));
+    postProcess.SetDynamicExposure(postState.off && !postState.autoExposureWhenPostDisabled
+      ? null
+      : authored.dynamicExposure ?? (clientState.enabled ? new Tr2PPDynamicExposureEffect() : null));
   }
 
   async function SelectPostTemplate(name)
@@ -4457,7 +4437,7 @@ export async function RunDemo(canvas)
   let disposed = false;
   const dispose = () => {
     if (disposed) return;
-    disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); input.dispose(); controls.dispose(); actions.dispose();
+    disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); postPanel.dispose(); input.dispose(); controls.dispose(); actions.dispose();
     // This demo loaded its own system.black instance. Rendering has stopped;
     // the scene/update context is its final owner. Ordinary hull swaps keep it.
     const particles = realScene?.GetGpuParticleSystem();
@@ -4605,6 +4585,10 @@ export async function RunDemo(canvas)
   };
 
   driver.scene = realScene ?? standIn;
+  const postPanel = createPostProcessPanel({
+    document, driver, postState,
+    getDefaultPostProcess: () => realScene ? realScene.postprocess : driver.scene.GetPostProcess()
+  });
 
   /**
    * THE SUN, FOR A REAL SCENE: its sunDirection, and each lens flare kept at
