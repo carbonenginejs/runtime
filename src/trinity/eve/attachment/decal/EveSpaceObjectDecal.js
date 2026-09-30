@@ -431,9 +431,11 @@ export class EveSpaceObjectDecal extends CjsModel
    * Expands the parent's flat Float4x3 mesh-binding palette at parentBoneIndex.
    * Carbon EveSpaceObjectDecal.cpp:475-491 leaves the previous matrix unchanged
    * for -1 or an index at or beyond the bone count.
+   * Adapted: returns whether a matrix was copied for existing JS callers;
+   * the native method returns void.
    */
   @carbon.method
-  @impl.implemented
+  @impl.adapted
   SetBoneMatrix(boneMatrices, boneMatrixCount)
   {
     if (this.parentBoneIndex >= boneMatrixCount || this.parentBoneIndex === -1)
