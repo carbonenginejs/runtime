@@ -119,7 +119,7 @@ import { RegisterObjectResources } from "../../../../npm/dist/resource/object/in
 import { hydrateDemoShip, retireDemoShips, replaceDemoShip } from "./demoShipLifetime.js";
 import { createDemoSkinChange, resolveDemoDefaultDna } from "./demoSkinSelection.js";
 import { CjsModel } from "../../../../npm/dist/global/model/index.js";
-import { TriDevice } from "../../../../npm/dist/trinity/core/device/TriDevice.js";
+import { createDemoFramePump } from "./demoFramePump.js";
 import { gTriDev } from "../../../../npm/dist/trinity/core/device/gTriDev.js";
 import { Tr2Effect, Tr2EffectStateManager, TriTextureParameter } from "../../../../npm/dist/trinity/shader/index.js";
 import { RegisterShaderResources } from "../../../../npm/dist/resource/shader/index.js";
@@ -3170,6 +3170,7 @@ export async function RunDemo(canvas)
   let geometry = null;
   let ship = null;
   let disposed = false;
+  let framePump = null;
   const pendingShips = new Set();
   const textures = { loaded: 0, failed: [] };
 
@@ -4393,7 +4394,9 @@ export async function RunDemo(canvas)
   globalThis.demo.input = input;
   const dispose = () => {
     if (disposed) return;
-    disposed = true; capture.dispose(); disposeCameraPanel(); disposeSettings(); postPanel.dispose(); input.dispose(); controls.dispose(); actions.dispose();
+    disposed = true;
+    if (framePump) framePump.dispose();
+    capture.dispose(); disposeCameraPanel(); disposeSettings(); postPanel.dispose(); input.dispose(); controls.dispose(); actions.dispose();
     if (realScene)
     {
       const retired = new Set([ship, ...pendingShips]);
@@ -4574,8 +4577,13 @@ export async function RunDemo(canvas)
   // the animation time and frame counter the scene's per-frame fills read
   // (Tr2Renderer.GetAnimationTime / GetCurrentFrameCounter). The demo pumps
   // blue.os once per animation frame, as Carbon's main loop pumps the OS.
-  blue.os.RegisterForTicks(gTriDev.device, TriDevice.TICK_COOKIE);
   const clock = () => performance.now() / 1000;
+  framePump = createDemoFramePump(gTriDev.device, () => {
+    al.SetRenderTarget(0, renderTarget);
+    al.SetDepthStencil(null); // Canvas owns its depth attachment.
+    PlaceSun();
+    driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
+  });
 
   // A non-black clear, so a hull drawn in black is still a lit pixel. Keeping
   // the clear black made "drew nothing" and "drew black" the same reading.
@@ -4597,30 +4605,9 @@ export async function RunDemo(canvas)
    */
   async function Frame()
   {
-    // BETWEEN FRAMES, AS CARBON'S MAIN LOOP PUMPS IT. The tick runs the
-    // device's own HandleRenderTick - Present, then Render, which begins and
-    // ends a scene on the main-thread context. That context is this backend,
-    // so pumping inside the demo's frame closed it underneath the driver.
-    blue.os.PumpOS();
-
-    al.BeginScene();
-
-    // BIND THE TARGETS SO `Clear` HAS SOMETHING TO CLEAR. The driver clears
-    // during the frame, and a clear builds its load actions from the attachments
-    // bound on the work queue - with none bound it names nothing, the pass loads
-    // an uninitialised depth buffer, and every fragment fails the depth test
-    // while the draw still reports success.
-    al.SetRenderTarget(0, renderTarget);
-    al.SetDepthStencil(null); // The canvas pass supplies its own depth attachment.
-
-    // Errors on the verb path are otherwise invisible: a pipeline WebGPU rejects
-    // is reported to the error scope and nowhere else, and the draw returns true.
     device.pushErrorScope("validation");
-
-    PlaceSun();
-    driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
-
-    al.EndScene();
+    try { framePump.render(); }
+    catch (error) { await device.popErrorScope(); throw error; }
 
     // THE READBACK IS SUBMITTED BEFORE ANYTHING AWAITS. A real await ends the
     // task, the canvas presents, and the swap-chain texture is destroyed, so a
@@ -4720,13 +4707,7 @@ export async function RunDemo(canvas)
 
         // Synchronous: the pixel readback in `Frame` is the only asynchronous
         // part and a live loop does not need it.
-        blue.os.PumpOS();
-        al.BeginScene();
-        al.SetRenderTarget(0, renderTarget);
-        al.SetDepthStencil(null); // The canvas pass supplies its own depth attachment.
-        PlaceSun();
-        driver.Execute([ renderTarget ], null, clock(), clock(), null, renderContext);
-        al.EndScene();
+        framePump.render();
         capture.afterFrame(presented, canvas.width, canvas.height, format);
         al.DrainTransitions();
 
@@ -4741,22 +4722,12 @@ export async function RunDemo(canvas)
         capture.fail(error);
         loop.error = `${error.message}\n${error.stack ?? ""}`;
 
-        // THE FIRST ERROR IS THE CAUSE. A throw between BeginScene and EndScene
-        // leaves the work queue mid-frame, and every later tick then fails with
-        // "BeginFrame without EndFrame", which overwrote the real error. Keep the
-        // first, and close the failed frame so the next one can start.
+        // Keep the first error; the frame pump closes the device frame before
+        // reporting a scene-draw failure here.
         if (!loop.firstError)
         {
           loop.firstError = loop.error;
           console.error(`demo loop: first failed frame: ${loop.error}`);
-        }
-        try
-        {
-          al.EndScene();
-        }
-        catch
-        {
-          // Closing is best effort; the error above is the one that matters.
         }
       }
 
