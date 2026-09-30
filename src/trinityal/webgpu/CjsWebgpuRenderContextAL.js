@@ -2191,7 +2191,7 @@ export class CjsWebgpuRenderContextAL
   {
     const existing = this._dummies.textures.get(viewDimension);
 
-    if (existing) return existing;
+    if (existing) return existing.view;
 
     const usage = this._webgpu.GetTextureUsage();
     const layers = viewDimension === "cube" ? 6 : 1;
@@ -2204,7 +2204,7 @@ export class CjsWebgpuRenderContextAL
     });
     const view = texture.createView({ dimension: viewDimension });
 
-    this._dummies.textures.set(viewDimension, view);
+    this._dummies.textures.set(viewDimension, { texture, view });
 
     return view;
   }
@@ -2228,7 +2228,7 @@ export class CjsWebgpuRenderContextAL
     const key = `${format}:${viewDimension}:${index}`;
     const existing = this._dummies.storageTextures.get(key);
 
-    if (existing) return existing;
+    if (existing) return existing.view;
 
     const usage = this._webgpu.GetTextureUsage();
     const texture = this._webgpu.GetDevice().createTexture({
@@ -2240,7 +2240,7 @@ export class CjsWebgpuRenderContextAL
     });
     const view = texture.createView({ dimension: viewDimension });
 
-    this._dummies.storageTextures.set(key, view);
+    this._dummies.storageTextures.set(key, { texture, view });
     return view;
   }
 
@@ -2699,7 +2699,14 @@ export class CjsWebgpuRenderContextAL
     this._pipeline = null;
     this._pipelineDirty = true;
     this._bindGroups.clear();
-    this._dummies = { textures: new Map(), sampler: null, buffers: new Map() };
+    // Native MetalContext destroys the owned dummy textures and buffers.
+    // Keep their raw storage until any commands using their views are submitted.
+    for (const { texture } of this._dummies.textures.values()) this.ReleaseLater(() => texture.destroy());
+    for (const { texture } of this._dummies.storageTextures.values()) this.ReleaseLater(() => texture.destroy());
+    for (const buffer of this._dummies.buffers.values()) this.ReleaseLater(() => buffer.destroy());
+    const vertexBuffer = this._dummies.vertexBuffer;
+    if (vertexBuffer) this.ReleaseLater(() => vertexBuffer.destroy());
+    this._dummies = { textures: new Map(), storageTextures: new Map(), sampler: null, buffers: new Map(), vertexBuffer: null };
     // The sampler factory is NOT cleared here: Carbon's lives for the primary
     // context's lifetime, and every seeded pass description still holds the
     // states it handed out - clearing it made an equal description create a

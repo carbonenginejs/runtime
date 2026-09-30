@@ -1078,3 +1078,45 @@ test("Present does not end the frame: it resets the targets, as Metal's does (Tr
   al.EndScene();
   assert.equal(al.GetWorkQueue()._inFrame, false);
 });
+
+
+for (const inFlight of [false, true])
+{
+  test("dummy reset releases owned storage and recreates every kind (in flight: " + inFlight + ")", () =>
+  {
+    const resources = [];
+    const events = [];
+    const make = () => {
+      const resource = { destroyed: 0, destroy() { this.destroyed++; events.push("destroy"); }, createView() { return { resource: this }; } };
+      resources.push(resource);
+      return resource;
+    };
+    const device = {
+      createTexture: make, createBuffer: make, createSampler: () => ({}),
+      createCommandEncoder: () => ({ finish: () => ({}), beginRenderPass: () => ({ end() {} }) })
+    };
+    const al = new CjsWebgpuRenderContextAL({ webgpu: {
+      GetDevice: () => device, GetTextureUsage: () => ({ TEXTURE_BINDING: 1, COPY_DST: 2, STORAGE_BINDING: 4 }),
+      GetBufferUsage: () => ({ VERTEX: 1, COPY_DST: 2, STORAGE: 4 }), Submit() { events.push("submit"); }
+    }, renderTarget: { GetFormat: () => "bgra8unorm", GetWidth: () => 1, GetHeight: () => 1 } });
+    al.CreateDevice();
+    if (inFlight) al.BeginScene();
+    const allocate = () => [al.GetDummyTexture("2d"), al.GetDummyStorageTexture("rgba8unorm", "2d", 0),
+      al.GetDummyStorageTexture("rgba8unorm", "2d", 1), al.GetNullBuffer(16, "STORAGE"), al._DummyVertexBuffer()];
+    const old = allocate();
+    assert.deepEqual(allocate(), old, "cached values are stable");
+    assert.equal(resources.length, 5);
+    al.ReleaseDeviceResources();
+    assert.deepEqual(resources.map(r => r.destroyed), Array(5).fill(inFlight ? 0 : 1));
+    const fresh = allocate();
+    fresh.forEach((value, index) => assert.notEqual(value, old[index]));
+    if (inFlight) {
+      al.EndScene();
+      assert.equal(events[0], "submit");
+      assert.deepEqual(resources.slice(0, 5).map(r => r.destroyed), Array(5).fill(1));
+    }
+    al.Destroy();
+    al.Destroy();
+    assert.deepEqual(resources.map(r => r.destroyed), Array(10).fill(1));
+  });
+}
