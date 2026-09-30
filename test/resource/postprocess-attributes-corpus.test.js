@@ -5,7 +5,13 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 import { CjsBlackFormat } from "../../npm/dist/resource/formats/black/index.js";
 import { definitions } from "../../npm/dist/resource/formats/black/core/blackDefinitions.js";
-import previous from "../../src/resource/formats/black/core/black-schema-v1-2026-09-25.json" with { type: "json" };
+// Only the old class is needed to reproduce the macro-expansion defect.
+const previousAttributes = {
+  "priority": {
+    "type": "enum",
+    "enum": "Priority"
+  }
+};
 
 test("the dated postprocess snapshot contains Carbon's 56 persisted attribute pairs", () =>
 {
@@ -27,7 +33,7 @@ test("real Amarr home environment volume decodes its authored color correction p
   const bytes = await readFile(process.env.POSTPROCESS_BLACK_CORPUS_FILE);
   assert.equal(bytes.length, 471);
   assert.equal(createHash("sha256").update(bytes).digest("hex"), "ca85b3205a72c8335705821de7cc9e2c772dd1cc7fef412cabd916e5b53abe11");
-  assert.throws(() => CjsBlackFormat.readPayload(bytes, { schema: previous }), /Unknown Black property whiteTemperatureEnabled/, "the previous snapshot reproduces the failure on the same bytes");
+  assert.throws(() => CjsBlackFormat.readPayload(bytes, { schema: { ...definitions, classes: { ...definitions.classes, Tr2PostProcessAttributes: previousAttributes } } }), /Unknown Black property whiteTemperatureEnabled/, "the previous snapshot reproduces the failure on the same bytes");
   const root = CjsBlackFormat.readPayload(bytes).object;
   assert.equal(root._type, "EveEffectRoot2");
   assert.equal(root.name, "EnvVol_Amarr_Home_01a");
