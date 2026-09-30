@@ -142,6 +142,13 @@ other live or pending ships. Transition overlays are detached before this walk
 because their bindings reference both ships. This policy belongs to the demo;
 the runtime provides no generic graph-destruction policy.
 
+The optional `ELECTRICITY_CORPUS_DIR` regression in
+`test/trinity/instanced-particle-mesh.test.js` separates warp, kill-counter and
+baseline scenarios for the authored angde1 and angbc2 Crisis child graphs. All
+six electricity owners on each hull emit and submit instanced stub draws across
+15 repeated warp cycles; kill-counter lightning uses a separate controller state.
+This tests CPU simulation and submission, not rendered pixel visibility.
+
 ## Secondary lighting frame updates
 
 When a displayed scene has an SH lighting manager, the frame driver refreshes

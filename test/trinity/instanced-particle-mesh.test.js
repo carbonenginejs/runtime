@@ -277,3 +277,88 @@ test("real Mabebu traffic geometry hydrates and submits nonzero instances from w
     t.diagnostic(JSON.stringify({warm,draw:draws.at(-1),stride:provider.GetInstanceData().stride}));
   }
 });
+
+const electricityCorpus=process.env.ELECTRICITY_CORPUS_DIR;
+test("real angde1 and angbc2 warp electricity draws repeatedly while kill lightning stays separate", {
+  skip:!electricityCorpus&&"set ELECTRICITY_CORPUS_DIR for both Crisis graphs and unit_sphere/unit_plane.gr2"
+}, async t => {
+  const {context,draws,material}=setup(t);
+  const geometries=new Map();
+  for(const [file,hash] of [["unit_sphere.gr2","761a864d18bf591bb5f92308464eb42e"],["unit_plane.gr2","238fdf7d1f76dfc7812f22e5aea40135"]]) {
+    const bytes=await readFile(join(electricityCorpus,file));
+    assert.equal(createHash("md5").update(bytes).digest("hex"),hash);
+    const resource=new TriGeometryRes();resource.SetPayload(resource.ReadGrannyFile(bytes));resource.MarkPrepared();geometries.set(file,resource);
+  }
+  let ticks=100*1e7;
+  const actual=blue.os.GetActualTime,frame=blue.os.GetCurrentFrameTime,random=Math.random;
+  blue.os.GetActualTime=()=>ticks;blue.os.GetCurrentFrameTime=()=>ticks;
+  t.after(()=>{blue.os.GetActualTime=actual;blue.os.GetCurrentFrameTime=frame;Math.random=random;});
+  for(const [file,hash] of [["angde1_t1_crisis_fx.black","007204e6136609a2969ddb38e7a57a8d"],["angbc2_t1_crisis_fx.black","b9faa9e2ec82b3226a77fab72ba94bcf"]]) {
+    const bytes=await readFile(join(electricityCorpus,file));
+    assert.equal(createHash("md5").update(bytes).digest("hex"),hash);
+    for(const scenario of ["baseline","kills","warp"]) {
+      ticks=100*1e7;let seed=123456789;
+      Math.random=()=>{seed=(Math.imul(seed,1664525)+1013904223)>>>0;return seed/4294967296;};
+      const registered=new Set(TriDevice.GetResourcesRegistered());
+      const root=EveChildContainer.from(CjsBlackFormat.readPayload(bytes).object),ship=new EveShip2();
+      CjsModel.addChild(ship,"effectChildren",root);
+      const electric=root.objects.find(child=>child.name==="Electric"),owners=[];
+      electric.Traverse(child=>{if(child.particleEmitters?.length)owners.push(child);});
+      assert.equal(owners.length,6,file);
+      const curveSet=root.curveSets.find(curves=>curves.name==="Electricity");
+      const stats=owners.map(owner=>{
+        const family=/Emit_(\d+)/.exec(owner.name)[1];
+        const curve=curveSet.curves.find(item=>item.name==="electricRate_"+family);
+        const row={owner,curve,spawns:new Map(),draws:new Set()};
+        for(const emitter of owner.particleEmitters) {
+          assert.equal(emitter.maxParticles,-1,"Tr2DynamicEmitter.cpp:109-123: no lifetime emission budget");
+          const spawn=emitter.SpawnParticles.bind(emitter);
+          emitter.SpawnParticles=(...args)=>{
+            const count=spawn(...args),cycle=Math.floor(curve.GetScaledTime(curveSet.scaledTime)/7);
+            if(count>0)row.spawns.set(cycle,(row.spawns.get(cycle)??0)+count);
+            return count;
+          };
+        }
+        const mesh=owner.mesh,resource=geometries.get(mesh.geometryResPath.split("/").at(-1));
+        assert.ok(resource,mesh.geometryResPath);mesh.SetGeometryRes(resource);
+        for(const area of mesh.additiveAreas)area.SetMaterial(material);
+        return row;
+      });
+      ship.lodLevel=3;ship.isVisible=true;ship.displayKillCounterValue=0;
+      ship.SetControllerVariable("IsWarping",0);ship.SetControllerVariable("KillCount",0);
+      ship.StartControllers();ExecuteMainThreadActions();
+      const update=new EveUpdateContext();let wasKill=false,killEntries=0;
+      for(let step=0;step<=7200;step++) {
+        ticks=(100+step/60)*1e7;update.SetTime(100+step/60);
+        if(step===60){if(scenario==="warp")ship.SetControllerVariable("IsWarping",1);if(scenario==="kills")ship.displayKillCounterValue=999;}
+        ship.UpdateSyncronous(update);ship.UpdateAsyncronous(update);ExecuteMainThreadActions();
+        const isKill=root.controllers.some(controller=>controller.stateMachines.some(machine=>machine.currentState?.name==="Kill"));
+        if(isKill&&!wasKill)killEntries++;wasKill=isKill;
+        for(const row of stats) {
+          const cycle=Math.floor(row.curve.GetScaledTime(curveSet.scaledTime)/7),owner=row.owner,system=owner.particleSystems[0];
+          if(system.aliveCount===0||row.draws.has(cycle))continue;
+          system.UpdateViewDependentData(null,mat4.create());owner._isVisible=true;owner.GetRenderables([]);
+          const batches=[];owner.GetBatches({Commit(batch){batches.push(batch);return true;}},TriBatchType.TRIBATCHTYPE_ADDITIVE,null);
+          assert.ok(batches.length>0,file+":"+owner.name);
+          const before=draws.length;context.RenderBatches({GetBatches:()=>batches});assert.ok(draws.length>before);
+          assert.ok(draws.at(-1)[0]>0);assert.equal(draws.at(-1)[1],system.aliveCount);
+          row.draws.add(cycle);
+        }
+      }
+      for(const row of stats) {
+        if(scenario==="warp") {
+          // Tr2CurveScalar.cpp:360-408 cycles authored time; require recurring
+          // production emission and submission, not an exact stochastic count.
+          for(let cycle=0;cycle<15;cycle++) {
+            assert.ok(row.spawns.get(cycle)>0,`${file}:${row.owner.name}: emission cycle ${cycle}`);
+            assert.ok(row.draws.has(cycle),`${file}:${row.owner.name}: draw cycle ${cycle}`);
+          }
+        } else {assert.equal(row.spawns.size,0,scenario);assert.equal(row.draws.size,0,scenario);}
+      }
+      if(scenario==="kills")assert.ok(killEntries>1,"kill control independently repeats its authored lightning state");
+      else assert.equal(killEntries,0,scenario);
+      t.diagnostic(JSON.stringify({file,scenario,killEntries,cycles:stats.map(row=>row.draws.size)}));
+      for(const resource of TriDevice.GetResourcesRegistered())if(!registered.has(resource)&&(resource.constructor===Tr2ParticleSystem||resource.constructor===Tr2InstancedMesh))resource.Destroy();
+    }
+  }
+});
