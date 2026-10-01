@@ -1,3 +1,4 @@
+import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { blue } from "../../npm/dist/global/blue/index.js";
@@ -69,7 +70,7 @@ test("rigid orientation participates in curve-set updates", () =>
   const curve = new TriRigidOrientation();
   curve.states = [key];
   const set = new TriCurveSet();
-  set.curves = [curve];
+  set.curves.push(curve);
   set.ApplyTime(1);
   assert.ok(Math.abs(curve.value[2] - Math.sin(1 - Math.exp(-1))) < 1e-6);
 });
@@ -106,7 +107,7 @@ test("transition activation requires linking and name edits refresh the destinat
   controller.stateMachines = [machine];
   controller.Link({});
   assert.equal(transition.GetDestination(), first);
-  transition.SetValues({ name: "second" });
+  new DictReader({ declarations: true }).ReadInto(transition, { name: "second" }, transition);
   assert.equal(transition.GetDestination(), second);
   transition.Unlink();
   assert.equal(transition.CanActivate(), false);

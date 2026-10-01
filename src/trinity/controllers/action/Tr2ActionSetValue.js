@@ -1,9 +1,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
-import { CjsModel } from "#model";
-import { INotify } from "#blue";
-import { carbon, impl, edit, type } from "#schema";
+import { INotify } from "#blue/INotify";
+import { meta, types } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { CjsControllerExpressionEvaluateError } from "../expression/CjsControllerExpressionEvaluateError.js";
@@ -16,42 +15,72 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
  * Controller action that evaluates a value expression once on start and writes
  * the result into a bound destination property.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionSetValue",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction, INotify)
-export class Tr2ActionSetValue extends CjsModel
+@meta.carbon.inherit(INotify)
+export class Tr2ActionSetValue extends ITr2ControllerAction
 {
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  value = "";
+  /** Flattened adapter storage for m_destination.m_path. */
+  @meta.member("path")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  path = "";
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  attribute = "";
-
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.objectRef("IRoot")
+  /** Flattened adapter storage for m_destination.m_object. */
+  @meta.member("destination")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.objectRef("IRoot")
   destination = null;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  /** Flattened adapter storage for m_destination.m_attribute. */
+  @meta.member("attribute")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  attribute = "";
+
+  /** m_value: expression compiled when linked or notified. */
+  @meta.member("value")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
+  value = "";
+
+  /** m_delayBinding: delays a nonempty path binding until Start. */
+  @meta.member("delayBinding")
+  @meta.edit.notify
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   delayBinding = false;
 
-  @edit.notify
-  @edit.readwrite
-  @edit.persist
-  @type.string
-  path = "";
+  /** Live native READ property; does not compile the expression. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.implemented
+  get isExpressionValid()
+  {
+    return this.IsExpressionValid();
+  }
+
+  /** Live native READ property; does not resolve a destination. */
+  @meta.property()
+  @meta.edit.read
+  @types.boolean
+  @meta.impl.implemented
+  get isBindingValid()
+  {
+    return this.IsBindingValid();
+  }
 
   _bindingPoint = null;
 
@@ -68,8 +97,8 @@ export class Tr2ActionSetValue extends CjsModel
    * program replaces native bytecode and is retained until a value notification,
    * relink or unlink.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Link(controller)
   {
     this._controller = controller;
@@ -83,8 +112,8 @@ export class Tr2ActionSetValue extends CjsModel
   /**
    * Unlinks the destination binding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Unlink()
   {
     this._bindingPoint?.Unlink();
@@ -101,9 +130,11 @@ export class Tr2ActionSetValue extends CjsModel
    * Adapted: Uses the AST compiled for the linked controller; Start's controller
    * is used only for destination binding. Evaluation failures skip the write,
    * while successful NaN and infinity results are preserved as in native code.
+   * The existing no-argument/unlinked JavaScript convenience remains; Carbon
+   * requires an invocation controller reference.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start(controller = this._controller)
   {
     if (!controller)
@@ -131,8 +162,8 @@ export class Tr2ActionSetValue extends CjsModel
    *
    * Adapted: Selects native member notifications by exposed property name.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   OnModified(propertyName)
   {
     if (!this._controller) return true;
@@ -151,8 +182,8 @@ export class Tr2ActionSetValue extends CjsModel
   /**
    * Checks whether the binding currently resolves.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsBindingValid()
   {
     return !!this._bindingPoint?.IsValid();
@@ -161,8 +192,8 @@ export class Tr2ActionSetValue extends CjsModel
   /**
    * Reports retained compilation validity without compiling or rebinding.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsExpressionValid()
   {
     return !!this._expression.program?.IsValid();
@@ -173,8 +204,8 @@ export class Tr2ActionSetValue extends CjsModel
    * forward all four action classes carry): takes and discards the
    * attribute name. Same forward here for nominal parity.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   IsAttrExpressionValid(_attributeName)
   {
     return this.IsExpressionValid();
@@ -182,9 +213,11 @@ export class Tr2ActionSetValue extends CjsModel
 
   /**
    * Gets the bound destination object.
+   * Adapted: retains the JavaScript binding adapter's optional roots/owner and
+   * lazy resolution; native GetDestination only reads m_destination.GetBoundObject.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.adapted
   GetDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().GetBoundObject(controller, owner);
@@ -192,14 +225,16 @@ export class Tr2ActionSetValue extends CjsModel
 
   /**
    * Gets expression term metadata from the linked controller.
+   * Adapted: shared AST term records replace native evaluator term metadata;
+   * a linked controller supplies its required GetExpressionTermInfo operation.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   GetExpressionTermInfo()
   {
     const result = [];
     CjsControllerExpressionProgram.addControllerTermInfo(result);
-    this._controller?.GetExpressionTermInfo?.(result);
+    this._controller?.GetExpressionTermInfo(result);
     return result;
   }
 
@@ -215,8 +250,8 @@ export class Tr2ActionSetValue extends CjsModel
    * @throws {CjsControllerExpressionCompileError} If parsing fails.
    * @throws {CjsControllerExpressionEvaluateError} If unlinked or evaluation fails.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   EvaluateExpression(expression)
   {
     if (!this._controller)
@@ -246,7 +281,7 @@ export class Tr2ActionSetValue extends CjsModel
    * Custom: Extracts native SetExpr calls used by Link and value notification;
    * blank source is invalid. Other expression consumers keep their own policy.
    */
-  @impl.custom
+  @meta.impl.custom
   CompileExpression()
   {
     this._expression = {
@@ -260,13 +295,17 @@ export class Tr2ActionSetValue extends CjsModel
    * Evaluates the retained program, returning zero on unavailable evaluation.
    * Custom: Retains the existing numeric convenience accessor on this action.
    */
-  @impl.custom
+  @meta.impl.custom
   GetValue()
   {
     return this._evaluateValue() ?? 0;
   }
 
-  /** Evaluates retained state, returning null on failure so Start skips its write. */
+  /**
+   * Evaluates retained state, returning null on failure so Start skips its write.
+   * Custom: adapts the retained AST result to native evaluator success/value.
+   */
+  @meta.impl.custom
   _evaluateValue()
   {
     const program = this._expression.program;
@@ -284,7 +323,13 @@ export class Tr2ActionSetValue extends CjsModel
     }
   }
 
-  /** Builds the existing JS expression context using the compilation controller. */
+  /**
+   * Builds the existing JS expression context using the compilation controller.
+   * Custom: preserves the AST adapter's optional GetExpressionContext extension;
+   * timeline controllers use its plain context fallback. Native bytecode uses
+   * bound variables and a temporary evaluation arena instead.
+   */
+  @meta.impl.custom
   _getExpressionContext()
   {
     const controller = this._controller;
@@ -295,7 +340,10 @@ export class Tr2ActionSetValue extends CjsModel
   /**
    * Gets the lazily created binding point, refreshing it from the currently
    * authored path, destination object and attribute on every call.
+   * Custom: preserves flattened JavaScript declarations; Carbon embeds the
+   * Tr2BindingPoint and exposes its nested members directly.
    */
+  @meta.impl.custom
   GetBindingPoint()
   {
     if (!this._bindingPoint)
@@ -311,7 +359,11 @@ export class Tr2ActionSetValue extends CjsModel
   /**
    * Resolves the binding point against the controller's binding roots and its
    * owner.
+   * Adapted: the retained binding adapter accepts controller/owner inputs;
+   * Carbon passes controller.GetBindingPathRoots() directly.
    */
+  @meta.carbon.method
+  @meta.impl.adapted
   LinkDestination(controller = this._controller, owner = ITr2ControllerAction.getOwner(controller))
   {
     return this.GetBindingPoint().Link(controller, owner);
@@ -321,6 +373,8 @@ export class Tr2ActionSetValue extends CjsModel
    * Checks whether binding is deferred to Start, which requires both the
    * delayBinding flag and an authored path.
    */
+  @meta.carbon.method
+  @meta.impl.implemented
   HasDelayedBinding()
   {
     return this.delayBinding && !!this.path;
@@ -328,7 +382,7 @@ export class Tr2ActionSetValue extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionSetValue_Blue.cpp:13-15,49).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionSetValue, ITr2ControllerAction, INotify],
   chainTo: null
 })(Tr2ActionSetValue);

@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachine.h
 // Source: trinity/trinity/Controllers/Tr2StateMachine.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
 import { blue, BlueList, TimeAsFloat, IListNotify, ISimTimeRebaseNotify, INotify } from "#blue";
@@ -14,15 +13,14 @@ import { Tr2StateMachineState } from "./Tr2StateMachineState.js";
  * Runs one state at a time from an authored state list, entering at the
  * configured start state and following transitions as controller variables
  * change. Its typed BlueList reports explicit list operations to this owner;
- * raw array operations bypass admission and notification. Retained CjsModel
- * child helpers notify explicitly.
+ * raw array operations bypass admission and notification.
  */
 @type.define({
   className: "Tr2StateMachine",
   family: "controllers"
 })
 @carbon.inherit(IListNotify, ISimTimeRebaseNotify, INotify)
-export class Tr2StateMachine extends CjsModel
+export class Tr2StateMachine
 {
   @edit.read
   @edit.persist
@@ -57,7 +55,6 @@ export class Tr2StateMachine extends CjsModel
    */
   constructor()
   {
-    super();
     this.states.SetNotify(this);
   }
 
@@ -137,7 +134,7 @@ export class Tr2StateMachine extends CjsModel
     this._stateStartTime += diff;
     for (const state of this.states)
     {
-      state.RebaseSimTime?.(diff);
+      state.RebaseSimTime(diff);
     }
   }
 

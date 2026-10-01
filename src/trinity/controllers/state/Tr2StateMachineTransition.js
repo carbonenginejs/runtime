@@ -2,7 +2,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineTransition_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
-import { CjsModel } from "#model";
 import { INotify } from "#blue";
 import { carbon, impl, edit, meta, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
@@ -17,7 +16,7 @@ import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpre
   family: "controllers"
 })
 @carbon.inherit(INotify)
-export class Tr2StateMachineTransition extends CjsModel
+export class Tr2StateMachineTransition
 {
   @edit.notify
   @edit.readwrite

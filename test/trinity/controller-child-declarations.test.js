@@ -37,7 +37,7 @@ for (const { Type, mapped, nominal } of cases)
   {
     const item = new Type();
     assert.deepEqual([...mappedInterfaces(Type)], mapped);
-    assert.equal(CjsSchema.cast(item, CjsModel), item, "the retained model base remains nominally available");
+    assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2StateMachine ? null : item);
     for (const Interface of nominal) assert.equal(CjsSchema.cast(item, Interface), item);
     assert.equal(mappedInterfaces(Type).has(ISimTimeRebaseNotify), false);
     if (Type !== Tr2ControllerFloatVariable) assert.equal(mappedInterfaces(Type).has(IInitialize), false);
@@ -154,7 +154,8 @@ test("concrete child tables do not inherit a temporary CjsModel query interface"
       {
         assert.deepEqual([...mappedInterfaces(Type)], expected);
         assert.equal(mappedInterfaces(Type).has(ParentOnlyInterface), false);
-        assert.equal(CjsSchema.cast(new Type(), CjsModel).constructor, Type);
+        const item = new Type();
+        assert.equal(CjsSchema.cast(item, CjsModel), Type === Tr2StateMachine ? null : item);
       }
     `
   ], { encoding: "utf8", timeout: 30000, windowsHide: true });

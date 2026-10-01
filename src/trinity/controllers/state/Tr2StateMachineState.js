@@ -1,7 +1,6 @@
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.h
 // Source: trinity/trinity/Controllers/Tr2StateMachineState.cpp
 // Source: trinity/trinity/Controllers/Tr2StateMachineState_Blue.cpp
-import { CjsModel } from "#model";
 import { BlueList, IListNotify, INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { UnlinkReason } from "../enums.js";
@@ -16,15 +15,14 @@ import { Tr2StateMachineTransition } from "./Tr2StateMachineTransition.js";
  * One state of a Tr2StateMachine: starts and stops its action list on entry and
  * exit, and evaluates its outgoing transitions each update to decide the next
  * state. Its typed BlueLists report explicit list operations to this owner; raw
- * array operations bypass admission and notification. Retained CjsModel child
- * helpers notify explicitly.
+ * array operations bypass admission and notification.
  */
 @type.define({
   className: "Tr2StateMachineState",
   family: "controllers"
 })
 @carbon.inherit(IListNotify, INotify)
-export class Tr2StateMachineState extends CjsModel
+export class Tr2StateMachineState
 {
   @edit.read
   @edit.persist
@@ -64,7 +62,6 @@ export class Tr2StateMachineState extends CjsModel
    */
   constructor()
   {
-    super();
     this.actions.SetNotify(this);
     this.transitions.SetNotify(this);
   }

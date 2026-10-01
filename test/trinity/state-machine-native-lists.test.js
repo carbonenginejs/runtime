@@ -14,6 +14,7 @@ import { CjsBlackReader } from "../../npm/dist/resource/formats/black/core/CjsBl
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
 import { Tr2StateMachineState } from "../../npm/dist/trinity/controllers/state/Tr2StateMachineState.js";
+import { Tr2ActionPlayCurveSet } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlayCurveSet.js";
 
 const {
   BELIST_INSERTED, BELIST_REMOVED, BELIST_UNLOADSTART, BELIST_LOADFINISHED,
@@ -93,10 +94,15 @@ test("a machine owns an independent subscribed BlueList admitting the real state
   const machine = new Tr2StateMachine(), other = new Tr2StateMachine(), state = State("idle");
   AssertOwned(machine);
   AssertOwned(other);
+  assert.equal(CjsSchema.cast(machine, CjsModel), null);
+  assert.equal(Object.getPrototypeOf(Tr2StateMachine.prototype), Object.prototype);
+  assert.equal(machine.GetValues, undefined);
+  assert.equal(machine.SetValues, undefined);
+  assert.equal(Tr2StateMachine.from, undefined);
   assert.notEqual(machine.states, other.states);
   assert.equal(Array.isArray(machine.states), true);
   assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
-  assert.equal(CjsSchema.cast(state, CjsModel), state);
+  assert.equal(CjsSchema.cast(state, CjsModel), null);
   assert.equal(CjsSchema.cast(state, IListNotify), state);
   assert.equal(CjsSchema.cast(state, INotify), state);
   assert.equal(machine.states.Append(state), true);
@@ -111,6 +117,28 @@ test("a machine owns an independent subscribed BlueList admitting the real state
   assert.equal(member.type.itemType, "Tr2StateMachineState");
   assert.equal(member.edit.read, true);
   assert.equal(member.edit.persist, true);
+});
+
+test("simulation rebasing reaches real owned states and actions and rejects a missing required state method", () =>
+{
+  const machine = new Tr2StateMachine(), state = State("rebase"), action = new Tr2ActionPlayCurveSet();
+  assert.equal(state.actions.Append(action), true);
+  assert.equal(machine.states.Append(state), true);
+  machine._machineStartTime = 30;
+  machine._stateStartTime = 40;
+  action._startTime = 50;
+  action._prevTime = 60;
+  const calls = [], original = state.RebaseSimTime;
+  state.RebaseSimTime = function(diff) { calls.push(diff); return original.call(this, diff); };
+  machine.OnSimClockRebase(100, 125);
+  assert.deepEqual(calls, [25]);
+  assert.equal(machine._machineStartTime, 55);
+  assert.equal(machine._stateStartTime, 65);
+  assert.equal(action._startTime, 75);
+  assert.equal(action._prevTime, 85);
+  state.RebaseSimTime = undefined;
+  assert.throws(() => machine.OnSimClockRebase(125, 130), TypeError,
+    "an admitted concrete state cannot silently omit the required rebase call");
 });
 
 test("unlinked insertion waits for Link and linked insertion links without starting the state", t =>
@@ -300,6 +328,35 @@ test("OnModified links a nonmember start state only when the machine is linked a
   assert.deepEqual(calls, []);
 });
 
+test("declared forward startState assignment precedes its linked notification", t =>
+{
+  const machine = new Tr2StateMachine(), oldState = State("old");
+  machine.states.Append(oldState);
+  machine.startState = oldState;
+  Linked(t, machine);
+  const list = machine.states, calls = [], original = machine.OnModified;
+  machine.OnModified = function(name)
+  {
+    calls.push({ name, state: this.startState });
+    return original.call(this, name);
+  };
+  const changed = new DictReader({ declarations: true }).ReadInto(machine, {
+    startState: { _ref: "next" },
+    states: [{ _type: "Tr2StateMachineState", _id: "next", name: "next" }]
+  }, machine);
+  AssertOwned(machine, list);
+  assert.equal(machine.startState, list[0]);
+  assert.notEqual(machine.startState, oldState);
+  assert.equal(machine.startState.GetName(), "next");
+  assert.equal(machine.startState.GetStateMachine(), machine);
+  assert.equal(machine.startState._isActive, false, "relinking does not auto-start the incoming state");
+  assert.equal(machine.currentState, null);
+  assert.equal(calls.length, 1);
+  assert.equal(calls[0].name, "startState");
+  assert.equal(calls[0].state, machine.startState);
+  assert.equal(changed.has("startState"), true);
+});
+
 test("DictReader preserves owned storage, shared live states and the read-only current reference", t =>
 {
   const machine = new Tr2StateMachine(), old = State("old"), incoming = State("incoming");
@@ -308,7 +365,7 @@ test("DictReader preserves owned storage, shared live states and the read-only c
   machine.currentState = old;
   const events = Observe(machine);
   // READ-only currentState is selected by the dictionary view but skipped by its writable-member filter.
-  new DictReader().ReadInto(machine, { states: [incoming, incoming], startState: incoming, currentState: incoming });
+  new DictReader({ declarations: true }).ReadInto(machine, { states: [incoming, incoming], startState: incoming, currentState: incoming });
   AssertOwned(machine, list);
   assert.deepEqual(Array.from(list), [incoming, incoming]);
   assert.equal(machine.startState, incoming);
@@ -328,12 +385,12 @@ test("DictReader preserves owned storage, shared live states and the read-only c
   assert.equal(machine.currentState, incoming);
 });
 
-test("legacy from and SetValues retain configured list ownership and shared authored start references", t =>
+test("Blue dictionary construction and population retain configured list ownership and shared authored start references", t =>
 {
-  const machine = Tr2StateMachine.from({
+  const machine = new DictReader({ declarations: true }).CreateObject({
     states: [{ _type: "Tr2StateMachineState", _id: "state", name: "initial" }, { _ref: "state" }],
     startState: { _ref: "state" }
-  });
+  }, Tr2StateMachine);
   const list = machine.states;
   AssertOwned(machine, list);
   assert.equal(list.length, 2);
@@ -341,10 +398,10 @@ test("legacy from and SetValues retain configured list ownership and shared auth
   assert.equal(machine.startState, list[0]);
   assert.equal(machine.currentState, null);
   const events = Observe(machine);
-  machine.SetValues({
+  new DictReader({ declarations: true }).ReadInto(machine, {
     states: [{ _type: "Tr2StateMachineState", _id: "replacement", name: "replacement" }, { _ref: "replacement" }],
     startState: { _ref: "replacement" }
-  });
+  }, machine);
   AssertOwned(machine, list);
   assert.equal(list.length, 2);
   assert.equal(list[0].GetName(), "replacement");
@@ -432,20 +489,21 @@ test("Copier retains existing and fresh list ownership and shares copied states 
   assert.equal(fresh.currentState, fresh.states[0]);
 });
 
-test("legacy addChild and removeChild notify once while retaining the machine's subscribed list", t =>
+test("native Append and Remove notify once while retaining the machine's subscribed list", t =>
 {
   const machine = new Tr2StateMachine(), child = State("child"), list = machine.states;
   Linked(t, machine, [child]);
   const calls = TraceStates([[child, "child"]]), events = Observe(machine);
-  assert.equal(CjsModel.addChild(machine, "states", child), child);
+  assert.equal(machine.states.Append(child), true);
   assert.equal(child.GetStateMachine(), machine);
   assert.equal(list.GetAt(0), child);
-  assert.equal(CjsModel.removeChild(machine, "states", child), true);
+  assert.equal(machine.states.Remove(0), true);
   assert.equal(child.GetStateMachine(), null);
   assert.equal(list.length, 0);
   AssertOwned(machine, list);
   assert.deepEqual(events.map(entry => entry.event), [BELIST_INSERTED, BELIST_REMOVED]);
-  assert.deepEqual(events.map(entry => entry.key), [0, 0]);
+  // Append reports post-insert size, unlike the retired model helper.
+  assert.deepEqual(events.map(entry => entry.key), [1, 0]);
   assert.deepEqual(events.map(entry => entry.value), [child, child]);
   assert.deepEqual(calls, [
     ["child.Link", null], ["child.Unlink", "child.Link"],

@@ -14,6 +14,7 @@ import { ExecuteMainThreadActions } from "../../npm/dist/trinity/core/continueOn
 import { Tr2Controller } from "../../npm/dist/trinity/controllers/Tr2Controller.js";
 import { ITr2ControllerAction } from "../../npm/dist/trinity/controllers/action/ITr2ControllerAction.js";
 import { Tr2ActionCallback } from "../../npm/dist/trinity/controllers/action/Tr2ActionCallback.js";
+import { Tr2ActionPlaySound } from "../../npm/dist/trinity/controllers/action/Tr2ActionPlaySound.js";
 import { Tr2ControllerFloatVariable } from "../../npm/dist/trinity/controllers/expression/Tr2ControllerFloatVariable.js";
 import { ITr2StateMachineStateFinalizer } from "../../npm/dist/trinity/controllers/state/ITr2StateMachineStateFinalizer.js";
 import { Tr2StateMachine } from "../../npm/dist/trinity/controllers/state/Tr2StateMachine.js";
@@ -134,7 +135,10 @@ test("State owns independently subscribed native lists with READ/PERSIST declara
   assert.notEqual(state.transitions, other.transitions);
   assert.notEqual(state.actions, state.transitions);
   assert.deepEqual([...mappedInterfaces(Tr2StateMachineState)], [Tr2StateMachineState, IListNotify, INotify]);
-  assert.equal(CjsSchema.cast(state, CjsModel), state);
+  assert.equal(CjsSchema.cast(state, CjsModel), null);
+  assert.equal(state.GetValues, undefined);
+  assert.equal(state.SetValues, undefined);
+  assert.equal(Tr2StateMachineState.from, undefined);
   assert.deepEqual([...mappedInterfaces(Tr2StateMachineTransition)], [Tr2StateMachineTransition, INotify]);
   const action = new Tr2ActionCallback(), transition = new Tr2StateMachineTransition();
   assert.equal(CjsSchema.cast(transition, INotify), transition);
@@ -304,16 +308,16 @@ test("event flags are masked before action and transition insert/remove dispatch
   assert.deepEqual(transition.calls, [["Link", state], ["Unlink"]]);
 });
 
-test("legacy addChild/removeChild each notify exactly once on both subscribed lists", t =>
+test("native Append/Remove each notify exactly once on both subscribed lists", t =>
 {
   const state = State(), action = new StateListObservedAction(), transition = new StateListObservedTransition();
   const { controller } = Linked(t, state), events = Observe(state);
   const actions = state.actions, transitions = state.transitions;
   for (const [field, child] of [["actions", action], ["transitions", transition]])
   {
-    assert.equal(CjsModel.addChild(state, field, child), child);
+    assert.equal(state[field].Append(child), true);
     assert.equal(state[field][0], child);
-    assert.equal(CjsModel.removeChild(state, field, child), true);
+    assert.equal(state[field].Remove(0), true);
     assert.equal(state[field].length, 0);
   }
   assert.deepEqual(events.map(entry => entry.event), [BELIST_INSERTED, BELIST_REMOVED, BELIST_INSERTED, BELIST_REMOVED]);
@@ -599,7 +603,7 @@ test("DictReader populates owned READ containers with shared live children and r
   action.callbackName = "live-action";
   transition.name = "live-transition";
   const events = Observe(state);
-  const changed = new DictReader().ReadInto(state, {
+  const changed = new DictReader({ declarations: true }).ReadInto(state, {
     actions: [action, action], transitions: [transition, transition], name: "live"
   });
   AssertOwned(state, actions, transitions);
@@ -614,39 +618,54 @@ test("DictReader populates owned READ containers with shared live children and r
   for (const event of events) assert.equal(event.notify, state);
 });
 
-test("from and SetValues preserve configured storage and duplicate authored references in each list", () =>
+test("Blue dictionary construction and population preserve configured storage and duplicate authored references in each list", () =>
 {
   function Values(label)
   {
     return {
       name: label,
-      actions: [{ _type: "Tr2ActionCallback", _id: "action", callbackName: label }, { _ref: "action" }],
-      transitions: [{ _type: "Tr2StateMachineTransition", _id: "transition", name: label, condition: "1" }, { _ref: "transition" }]
+      actions: [{ _ref: "action" }, { _type: "Tr2ActionPlaySound", _id: "action", event: label }],
+      transitions: [{ _ref: "transition" }, { _type: "Tr2StateMachineTransition", _id: "transition", name: label, condition: "1" }]
     };
   }
-  const state = Tr2StateMachineState.from(Values("first"));
+  const state = new DictReader({ declarations: true }).CreateObject(Values("first"), Tr2StateMachineState);
   const actions = state.actions, transitions = state.transitions;
   AssertOwned(state, actions, transitions);
   assert.equal(actions.length, 2);
   assert.equal(transitions.length, 2);
   assert.equal(actions[0], actions[1]);
   assert.equal(transitions[0], transitions[1]);
-  assert.ok(actions[0] instanceof Tr2ActionCallback);
+  assert.ok(actions[0] instanceof Tr2ActionPlaySound);
+  assert.equal(CjsSchema.cast(actions[0], CjsModel), actions[0], "this mixed graph retains an actual legacy action");
   assert.ok(transitions[0] instanceof Tr2StateMachineTransition);
   const oldAction = actions[0], oldTransition = transitions[0], events = Observe(state);
-  state.SetValues(Values("second"));
+  const ready = [], notify = state.OnListModified;
+  state.OnListModified = function(event, key, key2, value, list)
+  {
+    if (event === BELIST_LOADFINISHED) ready.push({ list, values: Array.from(list,
+      item => list === actions ? item.event : [item.name, item.condition]) });
+    return notify.call(this, event, key, key2, value, list);
+  };
+  new DictReader({ declarations: true }).ReadInto(state, Values("second"), state);
   AssertOwned(state, actions, transitions);
   assert.equal(actions[0], actions[1]);
   assert.equal(transitions[0], transitions[1]);
   assert.notEqual(actions[0], oldAction);
   assert.notEqual(transitions[0], oldTransition);
-  assert.equal(actions[0].callbackName, "second");
+  assert.equal(actions[0].event, "second");
+  assert.equal(ready.length, 2);
+  assert.equal(ready[0].list, actions);
+  assert.equal(ready[1].list, transitions);
+  assert.deepEqual(ready[0].values, ["second", "second"]);
+  assert.deepEqual(ready[1].values, [["second", "1"], ["second", "1"]]);
   assert.equal(transitions[0].name, "second");
   assert.equal(state.GetName(), "second");
   assert.equal(transitions[0].GetSource(), null);
+  // Forward aliases delay both completions until the owning read resolves them.
   assert.deepEqual(events.map(entry => entry.event), [
-    BELIST_UNLOADSTART, BELIST_LOADFINISHED, BELIST_UNLOADSTART, BELIST_LOADFINISHED
+    BELIST_UNLOADSTART, BELIST_UNLOADSTART, BELIST_LOADFINISHED, BELIST_LOADFINISHED
   ]);
+  assert.deepEqual(events.map(entry => entry.list), [actions, transitions, actions, transitions]);
   for (const event of events) assert.equal(event.notify, state);
 });
 
@@ -789,7 +808,7 @@ test("DictReader retains explicit Transition notifications with real linked reco
   Spy(transition, "OnModified", calls);
   // The existing ReadInto API takes its notify target explicitly; this does not
   // claim automatic root lifecycle selection or new reader dispatch.
-  const changed = new DictReader().ReadInto(transition, { condition: "beta > 0", name: "second" }, transition);
+  const changed = new DictReader({ declarations: true }).ReadInto(transition, { condition: "beta > 0", name: "second" }, transition);
   assert.deepEqual([...changed], ["condition", "name"]);
   assert.deepEqual(calls, [["OnModified", "condition"], ["OnModified", "name"]]);
   assert.notEqual(transition._program, oldProgram);
@@ -799,7 +818,7 @@ test("DictReader retains explicit Transition notifications with real linked reco
   assert.equal(transition.CanActivate(2n), true);
 });
 
-test("State labels native GetNextState and retained custom helpers without changing its model base", () =>
+test("model-free State labels native GetNextState and retained custom helpers", () =>
 {
   const method = CjsSchema.getMethod(Tr2StateMachineState, "_getNextState");
   assert.equal(method.carbon.method, true);
@@ -808,8 +827,8 @@ test("State labels native GetNextState and retained custom helpers without chang
   const convenience = CjsSchema.getMethod(Tr2StateMachineState, "CanTransition");
   assert.equal(convenience.impl.status, "custom");
   assert.equal(convenience.carbon?.method, undefined);
-  assert.equal(Object.getPrototypeOf(Tr2StateMachineState.prototype), CjsModel.prototype);
-  assert.equal(Object.getPrototypeOf(Tr2StateMachineTransition.prototype), CjsModel.prototype);
+  assert.equal(Object.getPrototypeOf(Tr2StateMachineState.prototype), Object.prototype);
+  assert.equal(Object.getPrototypeOf(Tr2StateMachineTransition.prototype), Object.prototype);
   assert.equal(Object.hasOwn(Tr2StateMachineTransition.prototype, "OnModified"), true);
   assert.notEqual(Tr2StateMachineTransition.prototype.OnModified, INotify.prototype.OnModified);
 });

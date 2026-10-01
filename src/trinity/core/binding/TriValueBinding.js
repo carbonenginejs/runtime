@@ -1,8 +1,10 @@
 // Source: trinity/trinity/TriValueBinding.h
 // Source: trinity/trinity/TriValueBinding.cpp
 // Source: trinity/trinity/TriValueBinding_Blue.cpp
-import { carbon, CjsSchema, impl, edit, type } from "#schema";
+import { carbon, CjsSchema, impl, edit, type, meta } from "#schema";
 import { CjsModel } from "#model";
+import { INotify } from "#blue/INotify";
+import { ITr2ValueBinding } from "../../curves/ITr2ValueBinding.js";
 import { vec4 } from "#math/vec4";
 
 /**
@@ -11,12 +13,9 @@ import { vec4 } from "#math/vec4";
  * plan built when the endpoints resolve.
  */
 @type.define({
-  className: "TriValueBinding", family: "trinityCore",
-  fields: {
-    sourceObject: [type.model("IRoot"), edit.persistOnly],
-    destinationObject: [type.model("IRoot"), edit.persistOnly]
-  }
+  className: "TriValueBinding", family: "trinityCore"
 })
+@carbon.inherit(INotify, ITr2ValueBinding)
 export class TriValueBinding extends CjsModel
 {
 
@@ -56,21 +55,29 @@ export class TriValueBinding extends CjsModel
   @type.string
   sourceAttribute = "";
 
-  #destinationObject = null;
+  /** Native persisted endpoint storage; readers bypass the live setter. */
+  @meta.member("destinationObject")
+  @edit.persistOnly
+  @type.objectRef("IRoot")
+  _destinationObject = null;
 
-  // Carbon exposes persisted storage and a script MAP_PROPERTY under this
-  // name. JS uses one accessor for both, so hydration also invokes the setter.
+  // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
 
   /**
    * Reads the current destination endpoint, resolving a weak reference when
    * used.
    */
+  @meta.property()
+  @edit.readwrite
+  @type.objectRef("IRoot")
+  @impl.implemented
   get destinationObject()
   {
     return this.GetCurrentDestinationObject();
   }
 
   /** Replaces the destination endpoint through its binding setter. */
+  @impl.implemented
   set destinationObject(value)
   {
     this.SetDestinationObject(value);
@@ -87,18 +94,26 @@ export class TriValueBinding extends CjsModel
   @type.string
   name = "";
 
-  #sourceObject = null;
+  /** Native persisted endpoint storage; readers bypass the live setter. */
+  @meta.member("sourceObject")
+  @edit.persistOnly
+  @type.objectRef("IRoot")
+  _sourceObject = null;
 
-  // Carbon exposes persisted storage and a script MAP_PROPERTY under this
-  // name. JS uses one accessor for both, so hydration also invokes the setter.
+  // Native MAP_ATTRIBUTE storage and MAP_PROPERTY access remain separate.
 
   /** Reads the current source endpoint, resolving a weak reference when used. */
+  @meta.property()
+  @edit.readwrite
+  @type.objectRef("IRoot")
+  @impl.implemented
   get sourceObject()
   {
     return this.GetCurrentSourceObject();
   }
 
   /** Replaces the source endpoint through its binding setter. */
+  @impl.implemented
   set sourceObject(value)
   {
     this.SetSourceObject(value);
@@ -291,7 +306,7 @@ export class TriValueBinding extends CjsModel
     this.isWeak = false;
     this.#sourceObjectWeak = null;
     this.sourceAttribute = String(sourceAttribute ?? "");
-    this.#sourceObject = sourceObject ?? null;
+    this._sourceObject = sourceObject ?? null;
     this.isValid = false;
   }
 
@@ -309,7 +324,7 @@ export class TriValueBinding extends CjsModel
     this.isWeak = false;
     this.#destinationObjectWeak = null;
     this.destinationAttribute = String(destinationAttribute ?? "");
-    this.#destinationObject = destinationObject ?? null;
+    this._destinationObject = destinationObject ?? null;
     this.isValid = false;
   }
 
@@ -342,8 +357,8 @@ export class TriValueBinding extends CjsModel
       return false;
     }
     this.isWeak = true;
-    this.#sourceObject = null;
-    this.#destinationObject = null;
+    this._sourceObject = null;
+    this._destinationObject = null;
     this.#sourceObjectWeak = source && typeof WeakRef === "function" ? new WeakRef(source) : { deref: () => source };
     this.#destinationObjectWeak = destination && typeof WeakRef === "function" ? new WeakRef(destination) : { deref: () => destination };
     this.sourceAttribute = String(sourceAttribute ?? "");
@@ -370,7 +385,7 @@ export class TriValueBinding extends CjsModel
   @impl.implemented
   GetCurrentSourceObject()
   {
-    return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this.#sourceObject;
+    return this.isWeak ? this.#sourceObjectWeak?.deref?.() ?? null : this._sourceObject;
   }
 
   /**
@@ -381,7 +396,7 @@ export class TriValueBinding extends CjsModel
   @impl.implemented
   GetCurrentDestinationObject()
   {
-    return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this.#destinationObject;
+    return this.isWeak ? this.#destinationObjectWeak?.deref?.() ?? null : this._destinationObject;
   }
 
   /** Carbon's second name for GetCurrentSourceObject. */
@@ -408,7 +423,7 @@ export class TriValueBinding extends CjsModel
     }
     else
     {
-      this.#sourceObject = sourceObject ?? null;
+      this._sourceObject = sourceObject ?? null;
     }
     this.Initialize();
   }
@@ -439,7 +454,7 @@ export class TriValueBinding extends CjsModel
     }
     else
     {
-      this.#destinationObject = destinationObject ?? null;
+      this._destinationObject = destinationObject ?? null;
     }
     this.Initialize();
   }
@@ -828,3 +843,6 @@ export class TriValueBinding extends CjsModel
   }
 
 }
+
+// TriValueBinding_Blue.cpp: concrete self, binding, notify; EXPOSURE_END.
+carbon.interfaceTable({ interfaces: [TriValueBinding, ITr2ValueBinding, INotify], chainTo: null })(TriValueBinding, { kind: "class" });

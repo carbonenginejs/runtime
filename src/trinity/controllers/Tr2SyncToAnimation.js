@@ -1,6 +1,6 @@
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.h
 // Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation.cpp
-import { CjsModel } from "#model";
+// Source: trinity/trinity/Controllers/Finalizers/Tr2SyncToAnimation_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./action/ITr2ControllerAction.js";
 import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFinalizer.js";
@@ -15,7 +15,7 @@ import { ITr2StateMachineStateFinalizer } from "./state/ITr2StateMachineStateFin
   family: "controllers"
 })
 @carbon.inherit(ITr2StateMachineStateFinalizer)
-export class Tr2SyncToAnimation extends CjsModel
+export class Tr2SyncToAnimation
 {
   @edit.readwrite
   @edit.persist
@@ -29,7 +29,7 @@ export class Tr2SyncToAnimation extends CjsModel
    * Adapted: Resolves the animation controller through the runtime owner adapter
    * instead of Carbon's EveSpaceObject2 cast.
    *
-   * @param {object} controller Controller owning the animated object.
+   * @param {Tr2Controller} controller Controller owning the animated object.
    * @returns {boolean} Whether the layer is absent or complete.
    */
   @carbon.method
@@ -51,3 +51,9 @@ export class Tr2SyncToAnimation extends CjsModel
     return remaining <= 0;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2SyncToAnimation_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2SyncToAnimation, ITr2StateMachineStateFinalizer],
+  chainTo: null
+})(Tr2SyncToAnimation);

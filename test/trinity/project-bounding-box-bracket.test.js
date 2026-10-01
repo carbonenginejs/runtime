@@ -71,13 +71,13 @@ test("TriCurveSet threads the exact active render context to its functions", () 
   const curveSet = new TriCurveSet();
   let received = null;
   let time = null;
-  curveSet.curves = [{
+  curveSet.curves.push({
     UpdateValue(value, renderContext)
     {
       time = value;
       received = renderContext;
     }
-  }];
+  });
   curveSet.scaledTime = 7;
   curveSet.Apply(expectedContext);
   assert.equal(time, 7);

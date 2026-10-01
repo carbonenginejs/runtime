@@ -1,8 +1,7 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
-import { CjsModel } from "#model";
-import { carbon, impl, edit, type } from "#schema";
+import { meta, types } from "#schema";
 import { blue, TimeAsFloat } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { ITr2Updateable } from "../../core/ITr2Updateable.js";
@@ -13,29 +12,27 @@ import { ITr2Updateable } from "../../core/ITr2Updateable.js";
  * its owner for the duration of the action, and can hold off state transitions
  * until a synced range iteration has completed.
  */
-@type.define({
+@meta.define({
   className: "Tr2ActionPlayCurveSet",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction, ITr2Updateable)
-export class Tr2ActionPlayCurveSet extends CjsModel
+@meta.carbon.inherit(ITr2Updateable)
+export class Tr2ActionPlayCurveSet extends ITr2ControllerAction
 {
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   curveSetName = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.string
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.string
   rangeName = "";
 
-  @edit.readwrite
-  @edit.persist
-  @type.boolean
+  @meta.edit.readwrite
+  @meta.edit.persist
+  @types.boolean
   syncToRange = false;
-
-  _controller = null;
 
   _startTime = 0;
 
@@ -46,16 +43,17 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   /**
    * Plays the configured curve set and optionally tracks its range iterations.
    *
-   * Adapted: Uses the runtime owner adapter instead of Carbon's owner cast. The
+   * Adapted: Retains the owner adapter because real JS owners such as
+   * EveEffectRoot2 have not yet declared ITr2CurveSetOwner. Native uses that
+   * nominal dynamic_cast; repairing those owners is a separate domain pass. The
    * start time is Blue's per-frame time in ticks, as Carbon's BeOS clock is
    * (`Tr2ActionPlayCurveSet.cpp:21-36`).
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Start(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
-    this._controller = controller;
     this._duration = 0;
     if (!this._play(owner))
     {
@@ -75,16 +73,12 @@ export class Tr2ActionPlayCurveSet extends CjsModel
    *
    * Adapted: Uses the runtime owner adapter instead of Carbon's owner cast.
    */
-  @carbon.method
-  @impl.adapted
+  @meta.carbon.method
+  @meta.impl.adapted
   Stop(controller)
   {
     const owner = ITr2ControllerAction.getOwner(controller);
     controller.UnRegisterUpdateable(this);
-    if (this._controller === controller)
-    {
-      this._controller = null;
-    }
     if (ITr2ControllerAction.hasFunction(owner, "StopCurveSet"))
     {
       owner.StopCurveSet(this.curveSetName);
@@ -94,8 +88,8 @@ export class Tr2ActionPlayCurveSet extends CjsModel
   /**
    * Rebases the sync-to-range time cursor.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RebaseSimTime(diff)
   {
     this._startTime += diff;
@@ -108,8 +102,8 @@ export class Tr2ActionPlayCurveSet extends CjsModel
    * (`Tr2ActionPlayCurveSet.cpp:53-67`). Blue's frame time is held for the whole
    * frame, so a probe in the frame the action started returns true.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   CanTransition()
   {
     if (!this.syncToRange || this._duration <= 0)
@@ -130,8 +124,8 @@ export class Tr2ActionPlayCurveSet extends CjsModel
    * Records the frame clock for synced transitions, ignoring the update arguments
    * (`Tr2ActionPlayCurveSet.cpp:69-72`).
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Update(_realTime, _simTime)
   {
     this._prevTime = blue.os.GetCurrentFrameTime();
@@ -167,7 +161,7 @@ export class Tr2ActionPlayCurveSet extends CjsModel
 }
 
 // Native exposure ends at this concrete table (Tr2ActionPlayCurveSet_Blue.cpp:12-13,18).
-carbon.interfaceTable({
+meta.carbon.interfaceTable({
   interfaces: [Tr2ActionPlayCurveSet, ITr2ControllerAction],
   chainTo: null
 })(Tr2ActionPlayCurveSet);

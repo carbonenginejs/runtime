@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { Copier } from "../../npm/dist/global/blue/Copier.js";
 import { DictReader } from "../../npm/dist/global/blue/DictReader.js";
+import { DictWriter } from "../../npm/dist/global/blue/DictWriter.js";
 import { INotify } from "../../npm/dist/global/blue/INotify.js";
 import { mappedInterfaces } from "../../npm/dist/global/compose/interface.js";
 import { CjsModel } from "../../npm/dist/global/model/CjsModel.js";
@@ -64,13 +65,15 @@ function ObserveNotifications(transition, source)
   return calls;
 }
 
-test("Transition retains its exact query/model contract and native stored-member/property declarations", () =>
+test("model-free Transition retains its exact query contract and native stored-member/property declarations", () =>
 {
   const transition = new Type(), schema = CjsSchema.getSchema(Type);
   assert.deepEqual([...mappedInterfaces(Type)], [Type, INotify]);
   assert.equal(CjsSchema.cast(transition, INotify), transition);
-  assert.equal(CjsSchema.cast(transition, CjsModel), transition);
-  assert.equal(Object.getPrototypeOf(Type.prototype), CjsModel.prototype);
+  assert.equal(CjsSchema.cast(transition, CjsModel), null);
+  assert.equal(Object.getPrototypeOf(Type.prototype), Object.prototype);
+  for (const name of ["GetValues", "SetValues", "UpdateValues"]) assert.equal(transition[name], undefined);
+  assert.equal(Type.from, undefined);
   const members = schema.members.filter(field => field.declaringClass === Type);
   const properties = schema.properties.filter(field => field.declaringClass === Type);
   assert.deepEqual(members.map(field => field.name), ["name", "condition"]);
@@ -153,14 +156,13 @@ test("the READ-only property has no assignment route and dictionary input skips 
     get() { destinationReads++; throw new Error("READ-only destination getter must not run during input"); }
   });
   transition.OnModified = () => { notifications++; throw new Error("READ-only input must not notify"); };
-  const changed = new DictReader().ReadInto(transition, { isConditionValid: false }, transition);
+  const changed = new DictReader({ declarations: true }).ReadInto(transition, { isConditionValid: false }, transition);
   assert.deepEqual([...changed], []);
-  assert.equal(transition.SetValues({ isConditionValid: false }), false);
   assert.equal(destinationReads, 0);
   assert.equal(notifications, 0);
   assert.equal(transition.condition, "1");
   assert.equal(transition._program, null);
-  const created = Type.from({ name: "from", condition: "1", isConditionValid: false });
+  const created = new DictReader({ declarations: true }).CreateObject({ name: "from", condition: "1", isConditionValid: false }, Type);
   assert.equal(created.name, "from");
   assert.equal(created.isConditionValid, true, "the input cannot override the computed result");
   assert.equal(Object.hasOwn(created, "isConditionValid"), false);
@@ -172,7 +174,7 @@ test("unrestricted values include the current readable computed bool after the s
   transition.name = "values";
   transition.condition = "1";
   assert.equal(transition._program, null);
-  const values = transition.GetValues();
+  const values = new DictWriter().WriteObject(transition);
   assert.equal(Object.hasOwn(values, "isConditionValid"), true);
   assert.equal(values.name, "values");
   assert.equal(values.condition, "1");
@@ -181,7 +183,7 @@ test("unrestricted values include the current readable computed bool after the s
     ["name", "condition", "isConditionValid"]);
   assert.notEqual(transition._program, null, "unrestricted output invokes the current lazy getter");
   transition.condition = "(";
-  assert.equal(transition.GetValues().isConditionValid, false);
+  assert.equal(new DictWriter().WriteObject(transition).isConditionValid, false);
 });
 
 test("persistOnly and roundTrip values omit the computed property before reading its getter", () =>
@@ -195,7 +197,7 @@ test("persistOnly and roundTrip values omit the computed property before reading
   });
   for (const options of [{ persistOnly: true }, { roundTrip: true }])
   {
-    const values = transition.GetValues(options);
+    const values = new DictWriter().WriteObject(transition, {}, options);
     assert.equal(values.name, "persisted");
     assert.equal(values.condition, "1");
     assert.equal(Object.hasOwn(values, "isConditionValid"), false);
@@ -264,7 +266,7 @@ test("explicit DictReader notifications preserve input order independently of de
   const { source, first, second, transition } = LinkedTransition(t);
   const calls = ObserveNotifications(transition, source);
   // ReadInto receives its notification target explicitly and walks input keys.
-  const changed = new DictReader().ReadInto(transition, { condition: "beta > 0", name: "second" }, transition);
+  const changed = new DictReader({ declarations: true }).ReadInto(transition, { condition: "beta > 0", name: "second" }, transition);
   assert.deepEqual([...changed], ["condition", "name"]);
   assert.deepEqual(calls.map(call => call.name), ["condition", "name"]);
   for (const call of calls)

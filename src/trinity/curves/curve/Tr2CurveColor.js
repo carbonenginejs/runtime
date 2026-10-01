@@ -2,7 +2,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveColor.cpp
 import { color } from "#math/color";
 import { vec4 } from "#math/vec4";
-import { CjsModel } from "#model";
+import { ITriColorFunction, ITriFunction, ITriCurveLength } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
@@ -14,12 +14,14 @@ const CLAMP_MIN = vec4.create();
  * Color curve composed of four independent scalar curves for r, g, b and a,
  * sampled at time minus timeOffset; an empty alpha curve yields 1, and the
  * result is converted to gamma space when srgbOutput is set.
+ * JavaScript combines native time overloads as seconds-first calls with output last.
  */
 @type.define({
   className: "Tr2CurveColor",
   family: "curves"
 })
-export class Tr2CurveColor extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2CurveColor extends ITriColorFunction
 {
   @edit.readwrite
   @edit.persist
@@ -33,22 +35,22 @@ export class Tr2CurveColor extends CjsModel
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   r = new Tr2CurveScalar();
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   g = new Tr2CurveScalar();
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   b = new Tr2CurveScalar();
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   a = new Tr2CurveScalar();
 
   @edit.readwrite
@@ -62,6 +64,9 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Updates the cached color value by updating each scalar component curve.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -71,7 +76,8 @@ export class Tr2CurveColor extends CjsModel
     this.currentValue[0] = this.r.Update(t);
     this.currentValue[1] = this.g.Update(t);
     this.currentValue[2] = this.b.Update(t);
-    this.currentValue[3] = this.a.IsEmpty() ? 1 : this.a.Update(t);
+    this.currentValue[3] = this.a.Update(t);
+    if (this.a.IsEmpty()) this.currentValue[3] = 1;
     if (this.srgbOutput)
     {
       color.linearToGamma(this.currentValue, this.currentValue);
@@ -80,6 +86,10 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Updates the cached value and copies it into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -91,6 +101,10 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Gets the color value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -112,6 +126,8 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Gets the longest scalar component curve length.
+   *
+   * @returns {number} Longest scalar component length.
    */
   @carbon.method
   @impl.implemented
@@ -122,6 +138,10 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Gets the color value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -132,6 +152,16 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Adds one color key by adding matching scalar keys to each component curve.
+   * Native right-tangent selection is gated by left-tangent presence. JavaScript
+   * also treats a missing right array as zero; right-only input remains ignored.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} value Authored component values.
+   * @param {number} [interpolation = Tr2CurveInterpolation.HERMITE] Interpolation for the following segment.
+   * @param {Float32Array|number[]} [leftTangent] Optional arriving component tangents.
+   * @param {Float32Array|number[]} [rightTangent] Optional departing component tangents.
+   * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -146,6 +176,9 @@ export class Tr2CurveColor extends CjsModel
 
   /**
    * Sets extrapolation on all scalar component curves.
+   *
+   * @param {number} extrapolation Before and after extrapolation mode.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -157,3 +190,9 @@ export class Tr2CurveColor extends CjsModel
     this.a.SetExtrapolation(extrapolation);
   }
 }
+
+// Native exposure ends at this concrete table (Tr2CurveColor_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2CurveColor, ITriColorFunction, ITriFunction, ITriCurveLength],
+  chainTo: null
+})(Tr2CurveColor);

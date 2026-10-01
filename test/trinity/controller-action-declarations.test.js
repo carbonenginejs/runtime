@@ -63,7 +63,7 @@ const cases = [
     own: ["Start", "Stop"]
   },
   {
-    Type: Tr2ActionPlayCurveSet, nominal: [A, U], query: [Tr2ActionPlayCurveSet, A],
+    Type: Tr2ActionPlayCurveSet, modelFree: true, nominal: [A, U], query: [Tr2ActionPlayCurveSet, A],
     own: ["Start", "Stop", "RebaseSimTime", "CanTransition", "Update"]
   },
   {
@@ -104,7 +104,7 @@ const cases = [
     own: ["Start"]
   },
   {
-    Type: Tr2ActionSetValue, nominal: [A, N], query: [Tr2ActionSetValue, A, N],
+    Type: Tr2ActionSetValue, modelFree: true, nominal: [A, N], query: [Tr2ActionSetValue, A, N],
     own: ["Link", "Unlink", "Start", "OnModified"]
   },
   {

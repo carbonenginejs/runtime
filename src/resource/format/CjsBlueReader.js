@@ -1,4 +1,5 @@
 import { CjsSchema } from "#schema/CjsSchema";
+import { DictReader } from "../../global/blue/DictReader.js";
 import { resolveHydrationAdapter } from "#schema/hydration";
 import {
     CARBON_TYPE,
@@ -113,7 +114,27 @@ export class CjsBlueReader extends CjsReader
         // adapter to inspect the object. A fallback carrier (no class) and a
         // caller-supplied plain class both answer no, and keep raw assignment.
         context.declared = CjsSchema.getClassName(this.ResolveClass(kind)) !== null;
-        this.adapter.applyValues(target, values, context);
+        if (context.declared && typeof target.SetValues !== "function"
+            && typeof this.options.adapter?.applyValues !== "function")
+        {
+            // Registered classes without the legacy values method populate
+            // canonical storage: embedded objects and mapped lists keep their
+            // identities, and mapped NOTIFY follows each declared write.
+            // Black and Red have already constructed their object references;
+            // the existing whole-graph finalizer still owns initialization.
+            const reader = new DictReader({ declarations: true, initialize: false });
+            const declaredValues = {};
+            for (const name of Object.keys(values))
+            {
+                const field = reader.FindEntry(name, target.constructor);
+                // Preserve legacy unknown-field leniency and never transport
+                // runtime resources, including through selected aliases.
+                if (!field || field.type?.runtimeOnly === true) continue;
+                declaredValues[name] = values[name];
+            }
+            reader.ReadInto(target, declaredValues);
+        }
+        else this.adapter.applyValues(target, values, context);
         this.runtimeInstances.push({ instance: target, kind, shape });
     }
 

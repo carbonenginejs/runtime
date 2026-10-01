@@ -431,12 +431,18 @@ test("dynamic graph classes live only in maintained human-readable trees", () =>
   }
   assert.equal(CjsSchema.getMethod(Tr2DynamicBinding, "Link")?.impl?.status, "adapted");
   assert.equal(CjsSchema.getMethod(EveMultiEffect, "UpdateAsyncronous")?.impl?.status, "noop");
-  assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.edit?.persistOnly, true);
-  assert.equal(CjsSchema.getField(TriValueBinding, "sourceObject")?.type?.kind, "model");
+  const sourceProperty = CjsSchema.getSchema(TriValueBinding).properties.find(field => field.name === "sourceObject");
+  const sourceMember = CjsSchema.getSchema(TriValueBinding).members.find(field => field.name === "sourceObject");
+  assert.notEqual(sourceProperty.edit.persist, true);
+  assert.equal(sourceProperty.edit.read, true);
+  assert.equal(sourceProperty.edit.write, true);
+  assert.equal(sourceMember.edit.persistOnly, true);
+  assert.equal(sourceMember.type.kind, "objectRef");
+  assert.equal(sourceMember.key, "_sourceObject");
 });
 
 
-test("TriValueBinding endpoint-only values edits rebuild and detach reroutes", () =>
+test("TriValueBinding live endpoint edits rebuild and detach reroutes", () =>
 {
   const source = new Tr2FloatParameter();
   source.SetValue(7);
@@ -449,7 +455,7 @@ test("TriValueBinding endpoint-only values edits rebuild and detach reroutes", (
   binding.SetDestination("value", oldTarget);
   binding.CopyValue();
   assert.equal(oldTarget.GetValue(), 7);
-  binding.SetValues({ destinationObject: nextTarget });
+  binding.SetDestinationObject(nextTarget);
   const storage = new Float32Array(1);
   nextTarget.SetDestination(storage, 4);
   source.SetValue(9);

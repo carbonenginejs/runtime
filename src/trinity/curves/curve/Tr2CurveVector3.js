@@ -1,7 +1,7 @@
 // Source: trinity/trinity/Curves/Tr2CurveVector3.h
 // Source: trinity/trinity/Curves/Tr2CurveVector3.cpp
 import { vec3 } from "#math/vec3";
-import { CjsModel } from "#model";
+import { ITriFunction, ITriVectorFunction, ITriCurveLength } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { Tr2CurveInterpolation, Tr2CurveTangentType } from "../enums.js";
 import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
@@ -10,12 +10,14 @@ import { Tr2CurveScalar } from "./Tr2CurveScalar.js";
 /**
  * Three-component vector curve composed of independent scalar curves for x, y
  * and z; its length is the longest of the three.
+ * JavaScript combines native time overloads as seconds-first calls with output last.
  */
 @type.define({
   className: "Tr2CurveVector3",
   family: "curves"
 })
-export class Tr2CurveVector3 extends CjsModel
+@carbon.inherit(ITriCurveLength)
+export class Tr2CurveVector3 extends ITriVectorFunction
 {
   @edit.readwrite
   @edit.persist
@@ -24,17 +26,17 @@ export class Tr2CurveVector3 extends CjsModel
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   x = new Tr2CurveScalar();
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   y = new Tr2CurveScalar();
 
   @edit.read
   @edit.persist
-  @type.objectRef("Tr2CurveScalar")
+  @type.struct("Tr2CurveScalar")
   z = new Tr2CurveScalar();
 
   @edit.read
@@ -43,6 +45,9 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Updates the cached vector value by updating each scalar component curve.
+   *
+   * @param {number} time Time in seconds.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -55,6 +60,8 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Gets the longest scalar component curve length.
+   *
+   * @returns {number} Longest scalar component length.
    */
   @carbon.method
   @impl.implemented
@@ -65,6 +72,10 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Gets the vector value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -75,6 +86,16 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Adds one vector key by adding matching scalar keys to each component curve.
+   * Native right-tangent selection is gated by left-tangent presence. JavaScript
+   * also treats a missing right array as zero; right-only input remains ignored.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} value Authored component values.
+   * @param {number} [interpolation = Tr2CurveInterpolation.HERMITE] Interpolation for the following segment.
+   * @param {Float32Array|number[]} [leftTangent] Optional arriving component tangents.
+   * @param {Float32Array|number[]} [rightTangent] Optional departing component tangents.
+   * @param {number} [tangentType = Tr2CurveTangentType.AUTO_CLAMP] Scalar tangent-maintenance rule.
+   * @returns {void}
    */
   @carbon.method
   @impl.adapted
@@ -88,6 +109,9 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Sets extrapolation on all scalar component curves.
+   *
+   * @param {number} extrapolation Before and after extrapolation mode.
+   * @returns {void}
    */
   @carbon.method
   @impl.implemented
@@ -100,6 +124,10 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Updates the cached value and copies it into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -111,6 +139,10 @@ export class Tr2CurveVector3 extends CjsModel
 
   /**
    * Gets the vector value at `time` into `out`.
+   *
+   * @param {number} time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.adapted
@@ -123,7 +155,11 @@ export class Tr2CurveVector3 extends CjsModel
   }
 
   /**
-   * Derivative stub retained for Carbon interface compatibility.
+   * Native derivative operation leaves the supplied output unchanged.
+   *
+   * @param {number} _time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.noop
@@ -133,7 +169,11 @@ export class Tr2CurveVector3 extends CjsModel
   }
 
   /**
-   * Second-derivative stub retained for Carbon interface compatibility.
+   * Native second derivative leaves the supplied output unchanged.
+   *
+   * @param {number} _time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.noop
@@ -143,7 +183,11 @@ export class Tr2CurveVector3 extends CjsModel
   }
 
   /**
-   * Position interpolation stub retained for Carbon interface compatibility.
+   * Native position interpolation leaves the supplied output unchanged.
+   *
+   * @param {number} _time Time in seconds.
+   * @param {Float32Array|number[]} out Caller-owned output.
+   * @returns {Float32Array|number[]} The caller-owned output.
    */
   @carbon.method
   @impl.noop
@@ -152,3 +196,9 @@ export class Tr2CurveVector3 extends CjsModel
     return out;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2CurveVector3_Blue.cpp).
+carbon.interfaceTable({
+  interfaces: [Tr2CurveVector3, ITriFunction, ITriVectorFunction, ITriCurveLength],
+  chainTo: null
+})(Tr2CurveVector3);
