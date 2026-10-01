@@ -3,6 +3,7 @@ export * from "./AudEmitter.js";
 export * from "./AudEventCurve.js";
 export * from "../../generated/audio/index.js";
 export * from "./AudGameObjResource.js";
+export * from "./IPrioritizedObject.js";
 export * from "./AudGeometry.js";
 export * from "./AudListener.js";
 export * from "./AudManager.js";

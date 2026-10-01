@@ -262,6 +262,16 @@ Provides the fixed Carbon UI emitter with dialogue position and completion callb
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:IPrioritizedObject -->
+## `IPrioritizedObject`
+
+Supplies the position, weight, and culling operations used by audio prioritization.
+
+- Export: `@carbonenginejs/runtime/audio/trinity`
+- Source: `src/audio/trinity/audio/IPrioritizedObject.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:SoundPrioritization -->
 ## `SoundPrioritization`
 
