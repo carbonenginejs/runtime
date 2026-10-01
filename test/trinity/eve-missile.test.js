@@ -33,7 +33,7 @@ test("missile, transform, and mobile classes are maintained Carbon graph owners"
   {
     assert.equal(CjsSchema.GetConstructor(constructor.name), constructor);
   }
-  assert.equal(new EveMissileWarhead() instanceof EveTransform, true);
+  assert.ok(CjsSchema.cast(new EveMissileWarhead(), EveTransform));
   for (const name of ["EveTransform", "EveMissileWarhead", "EveMissile", "EveMobile"])
   {
     assert.equal(existsSync(new URL(`../../src/trinity/generated/eve/spaceObject/${name}.js`, import.meta.url)), false, name);
@@ -90,14 +90,17 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   assert.equal(warhead.GetState(), EveMissileWarhead.State.STATE_LAUNCH);
   warhead.UpdateState(0, 2, null);
   assert.equal(warhead.GetState(), EveMissileWarhead.State.STATE_EJECTING);
-  assert.deepEqual(events, [true]);
+  assert.deepEqual(events, [], "native shared-emitter cast rejects a generic emitter");
   warhead.UpdateState(0, 2, null);
   assert.equal(warhead.GetState(), EveMissileWarhead.State.STATE_START_TRACKING);
   warhead.UpdateState(0, 2, null);
   assert.equal(warhead.GetState(), EveMissileWarhead.State.STATE_TRACKING_FINAL);
 
   warhead.UpdateWarhead(0.1, 2, vec3.create(), vec3.create(), mat4.create(), mat4.create(), vec3.create());
-  warhead.Update({ currentTime: 0.1, deltaTime: 0.1, originShift: vec3.create() });
+  const context = new EveUpdateContext();
+  context.SetTime(0);
+  context.SetTime(0.1);
+  warhead.Update(context);
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_EXPLODE);
   assert.deepEqual(Array.from(warhead.explosionPosition), Array.from(warhead.GetWorldPosition()));
   assert.equal(warhead.CheckImpact(0.1, 2, null), EveMissileWarhead.StateChangeEvent.EVT_NONE);
@@ -112,7 +115,7 @@ test("EveMissileWarhead follows Carbon launch, state, particle, impact, and POD 
   assert.equal(sphere[3], 0.5);
 });
 
-test("EveMissile drives MIRV state and invokes each explosion callback once", () =>
+test("constructed single-warhead missile invokes its explosion callback once", () =>
 {
   const missile = new EveMissile();
   const warhead = new EveMissileWarhead();
@@ -124,10 +127,11 @@ test("EveMissile drives MIRV state and invokes each explosion callback once", ()
   missile.explosionCallback = id => exploded.push(id);
   missile.Initialize();
   missile.Start(vec3.create(), 2);
-  const context = { currentTime: 0, deltaTime: 0.1, originShift: vec3.create() };
+  const context = new EveUpdateContext();
+  context.SetTime(0);
   for (let frame = 0; frame < 6; frame++)
   {
-    context.currentTime += context.deltaTime;
+    context.SetTime((frame + 1) * 0.1);
     missile.UpdateSyncronous(context);
   }
   assert.deepEqual(exploded, [7]);

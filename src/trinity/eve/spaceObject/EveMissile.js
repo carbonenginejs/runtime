@@ -5,26 +5,33 @@ import { quat } from "#math/quat";
 import { sph3 } from "#math/sph3";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
-import { carbon, impl, edit, type } from "#schema";
-import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
+import { meta, types } from "#schema";
+import { CjsScriptCallback } from "#blue/CjsScriptCallback";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { ITr2Renderable } from "../../core/ITr2Renderable.js";
+import { EveLODHelper } from "../EveLODHelper.js";
 import { EveSpaceObject2 } from "./EveSpaceObject2.js";
 import { EveMissileWarhead } from "./EveMissileWarhead.js";
 
 
 /**
  * A missile in flight: the curve-driven ball path plus the warheads that ride
- * it, own the targeting state and supply all of its renderables and bounds.
+ * it, own the targeting state and supply the missile bounds.
  */
-@type.define({ className: "EveMissile", family: "eve/spaceObject" })
+@types.define({ className: "EveMissile", family: "eve/spaceObject" })
 export class EveMissile extends EveSpaceObject2
 {
-  @edit.read
-  @edit.persist
- @type.list("EveMissileWarhead") warheads = [];
-  @edit.readwrite @type.boolean updateWarheads = true;
-  @edit.readwrite @type.objectRef("ITriTargetable") target = null;
-  @edit.readwrite @type.float32 targetRadius = 0;
-  @edit.readwrite @type.rawStruct("BlueScriptCallback") explosionCallback = null;
+  @meta.edit.read
+  @meta.edit.persist
+  @types.list("EveMissileWarhead") warheads = [];
+  @meta.edit.readwrite
+  @types.boolean updateWarheads = true;
+  @meta.edit.readwrite
+  @types.objectRef("ITriTargetable") target = null;
+  @meta.edit.readwrite
+  @types.float32 targetRadius = 0;
+  @meta.edit.readwrite
+  @types.rawStruct("BlueScriptCallback") explosionCallback = null;
 
   _inheritedStartVelocity = vec3.create();
   _inheritedVelocity = vec3.create();
@@ -32,16 +39,32 @@ export class EveMissile extends EveSpaceObject2
   _estimatedTotalAliveTime = 1;
   _lastValidSpeed = 0;
 
+  /** Registers each warhead's sprites; Carbon does not register the missile base. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    for (const warhead of this.warheads) warhead.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /** Forwards quad submission to each warhead with the caller's frustum and renderer. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    for (const warhead of this.warheads) warhead.AddQuadsToQuadRenderer(frustum, quadRenderer);
+  }
+
   /**
    * Runs the base initialization and silences all warhead particle emitting
    * until launch.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Initialize()
   {
     super.Initialize();
-    for (const warhead of this.warheads) warhead?.EnableParticleEmitting?.(false);
+    for (const warhead of this.warheads) warhead.EnableParticleEmitting(false);
     return true;
   }
 
@@ -50,13 +73,13 @@ export class EveMissile extends EveSpaceObject2
    * the estimated flying time, resets the flight clock, and silences warhead
    * emitting.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   Start(shipVelocity, estimatedFlyingTime)
   {
-    vec3.copy(this._inheritedVelocity, shipVelocity ?? EveMissile._zero);
+    vec3.copy(this._inheritedVelocity, shipVelocity);
     this._estimatedTotalAliveTime = Number(estimatedFlyingTime) || 0;
-    for (const warhead of this.warheads) warhead?.EnableParticleEmitting?.(false);
+    for (const warhead of this.warheads) warhead.EnableParticleEmitting(false);
     this._time = 0;
     vec3.copy(this._inheritedStartVelocity, this._inheritedVelocity);
     this._lastValidSpeed = 0;
@@ -68,19 +91,21 @@ export class EveMissile extends EveSpaceObject2
    * machine, hands it the target locator offset in missile space, integrates its
    * flight and fires the explosion callback on detonation, and finally rebuilds
    * the missile bounding sphere from the warheads.
+   *
+   * Adapted: Target and curve output parameters are out-last; the optional script callback uses the existing JavaScript callback adapter at invocation.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("Targetable output parameters and curve samples use the org-standard out-last convention; CPU flight behavior remains source-faithful.")
+  @meta.carbon.method
+  @meta.impl.adapted
   UpdateSyncronous(context)
   {
     super.UpdateSyncronous(context);
-    const time = Number(context?.GetTime?.() ?? context?.currentTime ?? context?.time ?? 0);
-    const deltaTime = Number(context?.GetDeltaT?.() ?? context?.deltaTime ?? context?.deltaT ?? 0);
+    const time = context.GetTime();
+    const deltaTime = context.GetDeltaT();
     mat4.identity(EveMissile._inverseBallRotation);
     if (this.rotationCurve)
     {
-      sampleCurve(this.rotationCurve, time, EveMissile._ballRotation, EveMissile._identityRotation);
+      quat.identity(EveMissile._ballRotation);
+      this.rotationCurve.Update(time, EveMissile._ballRotation);
       quat.invert(EveMissile._ballRotation, EveMissile._ballRotation);
       mat4.fromQuat(EveMissile._inverseBallRotation, EveMissile._ballRotation);
     }
@@ -89,9 +114,9 @@ export class EveMissile extends EveSpaceObject2
     vec3.set(EveMissile._missileVelocity, 0, 0, 0);
     if (this.translationCurve && this.target)
     {
-      sampleCurve(this.translationCurve, time, EveMissile._missilePosition, EveMissile._zero);
-      sampleDerivative(this.translationCurve, time, EveMissile._missileVelocity);
-      this.target.GetDamageLocatorPosition?.(-1, true, EveMissile._targetPosition);
+      this.translationCurve.GetValueAt(time, EveMissile._missilePosition);
+      this.translationCurve.GetValueDotAt(time, EveMissile._missileVelocity);
+      this.target.GetDamageLocatorPosition(-1, true, EveMissile._targetPosition);
       const speed = vec3.length(EveMissile._missileVelocity);
       if (speed > 0)
       {
@@ -107,15 +132,14 @@ export class EveMissile extends EveSpaceObject2
     }
 
     vec3.copy(EveMissile._worldPosition, this.GetWorldPosition());
-    const originShift = context?.GetOriginShift?.() ?? context?.originShift ?? EveMissile._zero;
+    const originShift = context.GetOriginShift();
     for (const warhead of this.warheads)
     {
-      if (!warhead) continue;
       const event = warhead.UpdateState(deltaTime, this._estimatedTotalAliveTime, this.target);
       if (warhead.GetState() !== EveMissileWarhead.State.STATE_DEAD)
       {
         vec3.copy(EveMissile._locatorPosition, EveMissile._worldPosition);
-        if (this.target) this.target.GetDamageLocatorPosition?.(warhead.GetTargetLocator(), true, EveMissile._locatorPosition);
+        if (this.target) this.target.GetDamageLocatorPosition(warhead.GetTargetLocator(), true, EveMissile._locatorPosition);
         vec3.subtract(EveMissile._locatorOffset, EveMissile._locatorPosition, EveMissile._worldPosition);
         vec3.transformMat4(EveMissile._locatorOffset, EveMissile._locatorOffset, EveMissile._inverseBallRotation);
         mat4.fromTranslation(EveMissile._locatorTransform, EveMissile._locatorOffset);
@@ -127,37 +151,43 @@ export class EveMissile extends EveSpaceObject2
         warhead.Update(context);
       }
       const impactEvent = warhead.CheckImpact(deltaTime, this._estimatedTotalAliveTime, this.target);
-      if (impactEvent === EveMissileWarhead.StateChangeEvent.EVT_EXPLODE) callExplosionCallback(this.explosionCallback, warhead.GetWarheadID());
+      if (impactEvent === EveMissileWarhead.StateChangeEvent.EVT_EXPLODE && this.explosionCallback)
+      {
+        CjsScriptCallback.from(this.explosionCallback).CallVoid(warhead.GetWarheadID());
+      }
     }
     this.RebuildMissileBoundingSphere();
     return true;
   }
 
   /**
-   * Runs each warhead's visibility pass against the missile world transform
+   * Runs inherited visibility first, then each warhead's visibility pass against the missile world transform
    * composed with that warhead's offset, and merges the warheads' LOD levels
    * into the missile's.
    */
-  @carbon.method
-  @impl.implemented
-  UpdateVisibility(context, _parentTransform = EveMissile._identity)
+  @meta.carbon.method
+  @meta.impl.implemented
+  UpdateVisibility(context, parentTransform = EveMissile._identity)
   {
+    super.UpdateVisibility(context, parentTransform);
     for (const warhead of this.warheads)
     {
-      if (!warhead) continue;
       mat4.multiply(EveMissile._warheadTransform, this.worldTransform, warhead.GetCurrentOffsetTransform());
       warhead.UpdateVisibility(context, EveMissile._warheadTransform);
-      this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, warhead.GetLODLevel?.() ?? Tr2Lod.TR2_LOD_UNSPECIFIED);
+      this.lodLevel = EveLODHelper.MergeLOD(this.lodLevel, warhead.GetLODLevel());
     }
     return true;
   }
 
-  /** Collects only the warheads' renderables - the missile itself owns no mesh. */
-  @carbon.method
-  @impl.implemented
+  /**
+   * Collects warhead renderables. Missing: Carbon also gathers inherited visual
+   * branches first; that separate non-update algorithm remains unported.
+   */
+  @meta.carbon.method
+  @meta.impl.adapted
   GetRenderables(out = [])
   {
-    for (const warhead of this.warheads) warhead?.GetRenderables(out);
+    for (const warhead of this.warheads) warhead.GetRenderables(out);
     return out;
   }
 
@@ -165,8 +195,8 @@ export class EveMissile extends EveSpaceObject2
    * Writes the missile's world-space bounding sphere, built from the
    * warhead-derived local sphere and the missile world transform.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   GetBoundingSphere(out = vec4.create())
   {
     vec4.set(EveMissile._localSphere, this.boundingSphereCenter[0], this.boundingSphereCenter[1], this.boundingSphereCenter[2], this.boundingSphereRadius);
@@ -178,14 +208,14 @@ export class EveMissile extends EveSpaceObject2
    * Recomputes the missile's local bounding sphere as the union of its warheads'
    * local spheres.
    */
-  @carbon.method
-  @impl.implemented
+  @meta.carbon.method
+  @meta.impl.implemented
   RebuildMissileBoundingSphere()
   {
     vec4.set(EveMissile._mergedSphere, 0, 0, 0, 0);
     for (const warhead of this.warheads)
     {
-      if (!warhead?.GetLocalBoundingSphere?.(EveMissile._warheadSphere)) continue;
+      if (!warhead.GetLocalBoundingSphere(EveMissile._warheadSphere)) continue;
       sph3.union(EveMissile._mergedSphere, EveMissile._mergedSphere, EveMissile._warheadSphere);
     }
     vec3.set(this.boundingSphereCenter, EveMissile._mergedSphere[0], EveMissile._mergedSphere[1], EveMissile._mergedSphere[2]);
@@ -196,10 +226,11 @@ export class EveMissile extends EveSpaceObject2
   /**
    * Returns null: the missile owns no renderable, so each warhead publishes its
    * own per-object record.
+   *
+   * Adapted: The missile owns no renderable; its warheads publish their own backend-neutral records.
    */
-  @carbon.method
-  @impl.adapted
-  @impl.reason("The missile owns no renderable; its warheads publish their own backend-neutral records.")
+  @meta.carbon.method
+  @meta.impl.adapted
   GetPerObjectData()
   {
     return null;
@@ -223,24 +254,8 @@ export class EveMissile extends EveSpaceObject2
   static _mergedSphere = vec4.create();
 }
 
-function sampleCurve(curve, time, out, fallback)
-{
-  const value = curve?.GetValueAt?.(time, out) ?? curve?.Update?.(time, out);
-  if (value?.length >= out.length && value !== out) out.set(value);
-  else if (value === undefined && !curve?.GetValueAt && !curve?.Update) out.set(fallback);
-  return out;
-}
-
-function sampleDerivative(curve, time, out)
-{
-  const value = curve?.GetValueDotAt?.(time, out);
-  if (value?.length >= 3 && value !== out) vec3.copy(out, value);
-  else if (!curve?.GetValueDotAt) vec3.set(out, 0, 0, 0);
-  return out;
-}
-
-function callExplosionCallback(callback, id)
-{
-  if (typeof callback === "function") callback(id);
-  else callback?.CallVoid?.(id);
-}
+// Native concrete exposure chains EveSpaceObject2.
+meta.carbon.interfaceTable({
+  interfaces: [ EveMissile, IEveSpaceObject2, ITr2Renderable ],
+  chainTo: EveSpaceObject2
+})(EveMissile, { kind: "class" });

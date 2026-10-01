@@ -679,6 +679,24 @@ export class EveStretch3 extends IEveFiringEffectElement
   static _moveDirection = vec3.create();
   static _moveRotation = quat.create();
 
+  /** Registers every displayed stretch component with Carbon's quad renderer. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  RegisterWithQuadRenderer(quadRenderer)
+  {
+    if (!this.display) return;
+    for (const component of this._components()) component.RegisterWithQuadRenderer(quadRenderer);
+  }
+
+  /** Submits displayed components in source, destination, stretch, then move order. */
+  @meta.carbon.method
+  @meta.impl.implemented
+  AddQuadsToQuadRenderer(frustum, quadRenderer)
+  {
+    if (!this.display) return;
+    for (const component of this._components()) component.AddQuadsToQuadRenderer(frustum, quadRenderer);
+  }
+
   /**
    * Carbon GetRenderables (cpp:601-609): every child's renderables while
    * displayed. EveStretch3 has no batches of its own; its children draw.

@@ -12,6 +12,8 @@ import { CjsModel } from "../../npm/dist/global/model/index.js";
 import { EveChildTurret, EveTurretSet, EveTurretFiringFX, EveStretch3, EveLocalPositionCurve, EveUpdateContext, EveComponentRegistry, EveComponentType, TriFrustum, Tr2ControllerEventHandler, Tr2ActionSetValue, Tr2DynamicBinding } from "../../npm/dist/trinity/index.js";
 import "../../npm/dist/audio/index.js"; // The published FX owns AudEventCurve/AudEmitter objects.
 import { StubResMan } from "../support/stubResMan.js";
+import { Tr2QuadRenderer } from "../../npm/dist/trinity/core/Tr2QuadRenderer/Tr2QuadRenderer.js";
+import { mat4 } from "../../npm/dist/global/math/mat4.js";
 const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
 const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for the real pulse turret proof";
 const fxPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_fx.red";
@@ -88,6 +90,96 @@ async function realBreacher(t)
   useFixtureResources(t);
   return EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
 }
+
+function quadView()
+{
+  const frustum=new TriFrustum();
+  frustum.DeriveFrustum(mat4.lookAt(mat4.create(),[0,0,0],[0,0,-1],[0,1,0]),[0,0,0],
+    mat4.perspective(mat4.create(),Math.PI/2,1,0.1,100000),{width:1024,height:1024});
+  const context=new EveUpdateContext();context.SetFrustum(frustum);context.SetTime(10);
+  context.lodFactor=1;context.invLodFactor=1;
+  return {context,frustum};
+}
+
+test("real Breacher quad reaches the CPU renderer through displayed Stretch3", {
+  skip:!process.env.TURRET_CONTROLLER_FX_FILE && "set TURRET_CONTROLLER_FX_FILE for the real Breacher quad"
+}, async t=>
+{
+  const stretch=(await realBreacher(t)).stretch[0], quad=stretch.sourceObject.objects[1];
+  assert.equal(CjsSchema.getClassName(quad.constructor),"EveChildQuad");
+  assert.equal(quad.name,"FlareQuad_01");
+  assert.equal(quad.brightness,0,"authored zero brightness is not a submission gate");
+  const renderer=new Tr2QuadRenderer(),{context,frustum}=quadView();
+  stretch.RegisterWithQuadRenderer(renderer);
+  const records=[...renderer.GetEffectRecords().values()];
+  assert.equal(records.length,1);
+  const record=records[0];
+  assert.equal(record.effect,quad.effect);assert.equal(record.instanceSize,108);assert.equal(record.quadCount,1);
+  stretch.AddQuadsToQuadRenderer(frustum,renderer);
+  assert.equal(record.addedSize,0,"registration does not bypass child readiness");
+  stretch.SetFiringTransform([0,0,-50],[0,0,-60]);
+  stretch.UpdateAsynchronous(context);
+  stretch.UpdateVisibility(context,mat4.create());
+  stretch.update=false;
+  const paused=new Tr2QuadRenderer();
+  stretch.RegisterWithQuadRenderer(paused);
+  assert.equal([...paused.GetEffectRecords().values()][0].effect,quad.effect,"update=false does not gate registration");
+  stretch.AddQuadsToQuadRenderer(frustum,renderer);
+  assert.equal(record.pending.length,1);assert.equal(record.addedSize,108);
+  stretch.display=false;
+  const hidden=new Tr2QuadRenderer();
+  stretch.RegisterWithQuadRenderer(hidden);
+  stretch.AddQuadsToQuadRenderer(frustum,renderer);
+  assert.equal(hidden.GetEffectRecords().size,0);assert.equal(record.addedSize,108);
+  stretch.display=true;
+  quad.display=false;
+  stretch.UpdateVisibility(context,mat4.create());
+  stretch.AddQuadsToQuadRenderer(frustum,renderer);
+  assert.equal(record.addedSize,108,"real child applies its own visibility gate");
+});
+
+test("labelled four-role Breacher composition forwards quad owners in native component order", {
+  skip:!process.env.TURRET_CONTROLLER_FX_FILE && "set TURRET_CONTROLLER_FX_FILE for the real Breacher quad"
+}, async t=>
+{
+  const stretch=(await realBreacher(t)).stretch[0], roles=["source","dest","stretch","move"];
+  // Only source is authored. Other roles reuse independently hydrated real containers.
+  for(const role of roles.slice(1)) stretch[`${role}Object`]=(await realBreacher(t)).stretch[0].sourceObject;
+  const calls=[],renderer=new Tr2QuadRenderer(),{frustum}=quadView();
+  for(const role of roles)
+  {
+    const component=stretch[`${role}Object`];
+    for(const method of ["RegisterWithQuadRenderer","AddQuadsToQuadRenderer"])
+    {
+      const original=component[method];
+      t.mock.method(component,method,function(...args)
+      {
+        calls.push({role,method,receiver:this,args});
+        return original.apply(this,args);
+      });
+    }
+  }
+  function forward(expected)
+  {
+    calls.length=0;
+    stretch.RegisterWithQuadRenderer(renderer);stretch.AddQuadsToQuadRenderer(frustum,renderer);
+    assert.deepEqual(calls.map(call=>[call.method,call.role]),[
+      ...expected.map(role=>["RegisterWithQuadRenderer",role]),...expected.map(role=>["AddQuadsToQuadRenderer",role])
+    ]);
+    for(const call of calls)
+    {
+      assert.equal(call.receiver,stretch[`${call.role}Object`]);
+      const expectedArguments=call.method==="RegisterWithQuadRenderer"?[renderer]:[frustum,renderer];
+      assert.equal(call.args.length,expectedArguments.length);
+      expectedArguments.forEach((argument,index)=>assert.equal(call.args[index],argument));
+    }
+  }
+  forward(roles);
+  stretch.destObject=null;stretch.moveObject=null;
+  forward(["source","stretch"]);
+  stretch.sourceObject=null;stretch.stretchObject=null;
+  forward([]);
+});
 
 test("real pulse FX registers lights on firing transitions and live list edits", {skip}, async t =>
 {

@@ -2298,7 +2298,7 @@ A standalone effect root: curve-driven placement plus the effect children, light
 <!-- class:EveMissile -->
 ## `EveMissile`
 
-A missile in flight: the curve-driven ball path plus the warheads that ride it, own the targeting state and supply all of its renderables and bounds.
+A missile in flight: the curve-driven ball path plus the warheads that ride it, own the targeting state and supply the missile bounds.
 
 - Export: `@carbonenginejs/runtime/trinity/eve`
 - Source: `src/trinity/eve/spaceObject/EveMissile.js`
