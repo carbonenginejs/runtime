@@ -3,6 +3,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
+import { isCarbonDecorator } from "./carbon-decorators.js";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
@@ -270,7 +271,7 @@ function LintClassMethods(file, source)
 const CONTEXT_FIRST_NAME = /^_?(context|updateContext)$/u;
 
 /**
- * Returns true when a decorator node is a `@carbon.contextual([...])` call.
+ * Recognizes contextual calls through carbon or the canonical meta.carbon alias.
  *
  * @param {object} decorator
  * @returns {boolean}
@@ -278,10 +279,7 @@ const CONTEXT_FIRST_NAME = /^_?(context|updateContext)$/u;
 function IsContextualDecorator(decorator)
 {
     const expression = decorator?.expression;
-    return expression?.type === "CallExpression" &&
-        expression.callee?.type === "MemberExpression" &&
-        expression.callee.object?.name === "carbon" &&
-        expression.callee.property?.name === "contextual";
+    return expression?.type === "CallExpression" && isCarbonDecorator(expression, "contextual");
 }
 
 /**

@@ -32,6 +32,7 @@ import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
 import { parse } from "@babel/parser";
+import { isCarbonDecorator } from "./carbon-decorators.js";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
 const sourceRoot = path.join(root, "src");
@@ -348,18 +349,16 @@ function DefineTimeRenamed(body)
   return byClass;
 }
 
-/** The string literal passed to `carbon.renamed(...)`, or null. */
+/** The string literal passed to legacy or canonical Carbon renamed, or null. */
 function RenamedCallOriginal(expression)
 {
   if (expression?.type !== "CallExpression") return null;
-  const callee = expression.callee;
-  if (callee?.type !== "MemberExpression" || callee.property?.name !== "renamed") return null;
-  if (callee.object?.name !== "carbon") return null;
+  if (!isCarbonDecorator(expression, "renamed")) return null;
   const argument = expression.arguments?.[0];
   return argument?.type === "StringLiteral" ? argument.value : null;
 }
 
-/** Additional base names declared by `@carbon.inherit(A, B)`. */
+/** Additional base names declared by legacy or canonical Carbon inherit. */
 function InheritedBases(declaration)
 {
   const names = [];
@@ -367,9 +366,7 @@ function InheritedBases(declaration)
   {
     const call = decorator.expression;
     if (call?.type !== "CallExpression") continue;
-    const callee = call.callee;
-    if (callee?.type !== "MemberExpression") continue;
-    if (callee.object?.name !== "carbon" || callee.property?.name !== "inherit") continue;
+    if (!isCarbonDecorator(call, "inherit")) continue;
     for (const argument of call.arguments)
     {
       if (argument?.type === "Identifier") names.push(argument.name);

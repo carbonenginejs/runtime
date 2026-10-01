@@ -255,7 +255,7 @@ function declaredDonors(code)
 {
     const declared = new Map();
     const blocks = [
-        ...code.matchAll(/@type\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
+        ...code.matchAll(/@(?:type|types|meta)\.define\(\s*\{([\s\S]*?)\}\s*\)/g),
         ...code.matchAll(/CjsSchema\.define\(\s*[A-Za-z0-9_]+\s*,\s*\{([\s\S]*?)\}\s*\)/g)
     ];
 

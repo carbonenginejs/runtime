@@ -122,7 +122,7 @@ async function GetJavaScriptFiles(directory)
 }
 
 /**
- * Checks for an exact namespace/member decorator.
+ * Checks legacy implementation/type decorators and their exact meta/types aliases.
  *
  * @param {object} member
  * @param {string} namespace
@@ -135,12 +135,22 @@ function HasDecorator(member, namespace, name)
   {
     let expression = decorator.expression;
     if (expression?.type === "CallExpression") expression = expression.callee;
-    return expression?.type === "MemberExpression"
-      && expression.computed === false
-      && expression.object?.type === "Identifier"
-      && expression.object.name === namespace
-      && expression.property?.type === "Identifier"
-      && expression.property.name === name;
+    if (expression?.type !== "MemberExpression"
+      || expression.computed
+      || expression.property?.type !== "Identifier"
+      || expression.property.name !== name) return false;
+    const owner = expression.object;
+    if (owner?.type === "Identifier")
+    {
+      return owner.name === namespace || (namespace === "type" && owner.name === "types");
+    }
+    return namespace === "impl"
+      && owner?.type === "MemberExpression"
+      && owner.computed === false
+      && owner.object?.type === "Identifier"
+      && owner.object.name === "meta"
+      && owner.property?.type === "Identifier"
+      && owner.property.name === "impl";
   });
 }
 
