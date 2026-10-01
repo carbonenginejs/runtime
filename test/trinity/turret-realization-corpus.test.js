@@ -21,9 +21,39 @@ import { makePerObjectStore } from "./helpers/perObjectStore.js";
 import { mat4 } from "../../npm/dist/global/math/mat4.js";
 import "../../npm/dist/audio/index.js";
 import { StubResMan } from "../support/stubResMan.js";
+import { CjsSchema } from "../../npm/dist/global/schema/index.js";
+import { Copier } from "../../npm/dist/global/blue/Copier.js";
+import { GetResources } from "../../npm/dist/global/blue/getResources.js";
 const corpus=process.env.TURRET_BLACK_CORPUS_DIR;
 const skip=!corpus && "set TURRET_BLACK_CORPUS_DIR for Apocalypse/type462 turret realization";
 const geometryPath="res:/dx9/model/turret/energy/pulse/l/pulse_mega_t1.gr2";
+
+test("real turret geometry remains READ-accessible and collected but is excluded from Values and copy input",{skip},async t=>
+{
+  const {set,resource}=await assets(t);
+  set.Initialize();
+  const declaration=CjsSchema.getSchema(EveTurretSet).members.find(member=>member.name==="geometryResource");
+  assert.equal(declaration.edit.read,true,"native READ accessibility is retained");
+  assert.ok(set.geometryResource===resource,"initialized turret owns the requested real geometry");
+  assert.ok(GetResources(set).includes(resource),"the held resource remains a dependency edge");
+  const values=set.GetValues();
+  assert.equal(Object.hasOwn(values,"geometryResource"),false,"unfiltered Values must not serialize the loaded handle");
+  assert.equal(values.geometryResPath,geometryPath,"the authored resource path remains serializable");
+  assert.ok(Object.hasOwn(values,"turretEffect"),"ordinary owned graph references remain Values data");
+  const incoming=Object.defineProperty({},"geometryResource",{enumerable:true,get(){throw new Error("runtime resource input must not be read");}});
+  set.SetValues(incoming);assert.ok(set.geometryResource===resource);
+  const descriptor=Object.getOwnPropertyDescriptor(set,"geometryResource");
+  Object.defineProperty(set,"geometryResource",{configurable:true,get(){throw new Error("Copier must not read the source runtime handle");}});
+  let clone;
+  try { clone=new Copier().CloneTo(set); }
+  finally { Object.defineProperty(set,"geometryResource",descriptor); }
+  assert.ok(clone);t.after(()=>clone.Destroy());
+  assert.equal(clone.geometryResPath,geometryPath);
+  assert.equal(clone.geometryResource,null,"READ-only LOD is not copied, so the constructor's initial LOD has no loaded handle");
+  clone.lodLevel=EveTurretSet.LOD.LOD_HIGHEST;clone.Initialize();
+  assert.ok(clone.geometryResource===resource,"destination Initialize independently reacquires the resource by its authored path");
+  assert.equal(declaration.type.runtimeOnly,true);
+});
 
 function updateContext({deltaTime=0,currentTime=10,...fields}={})
 {
@@ -274,9 +304,17 @@ test("real turret aiming samples before yaw/pitch/height through a rotated scale
 for(const geometryFirst of [false,true])test(`real muzzle binding handles ${geometryFirst?"geometry":"effect"} first and copies the current full joint`,{skip},async t=>
 {
   const {set,ship}=await assets(t);ship.RebuildTurretPositions();
+  set.geometryResPath="";set.InitializeGeometryResource();assert.equal(set.geometryResource,null);
   const bytes=await readFile(join(corpus,"pulse_mega_fx.black"));assert.equal(createHash("sha256").update(bytes).digest("hex"),"ec84e9ee2b9d9af295dff3ad7ad79551e8785027fd30a5121d4d92eaa31a1eb2");
   const effect=EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
-  if(geometryFirst)set.Initialize();set.SetFiringEffect(effect);if(!geometryFirst)set.Initialize();
+  const duration=effect.firingDuration,initialize=t.mock.method(effect,"Initialize");
+  const loadGeometry=()=>{set.geometryResPath=geometryPath;set.Initialize();};
+  if(geometryFirst)loadGeometry();set.firingEffect=effect;if(!geometryFirst)loadGeometry();
+  assert.equal(effect.GetPerMuzzleEffectCount(),1);assert.equal(effect.GetPerMuzzleBoneID(0),10,"cpp:320 binding must resolve at the arrival boundary, before any later geometry reload");
+  set.Initialize();
+  assert.equal(initialize.mock.callCount(),0,"native parent initialization and live setter do not reinitialize the already-hydrated FX");
+  assert.equal(effect.firingDuration,duration,"resolved authored duration survives both arrival orders");
+  assert.ok(duration>0);
   assert.equal(effect.GetPerMuzzleEffectCount(),1);assert.equal(effect.GetPerMuzzleBoneID(0),10,"cpp:320 prefix + 01 resolves full skeleton joint, not mesh binding");
   const parent=mat4.create();mat4.translate(parent,parent,[35,-18,22]);mat4.rotateY(parent,parent,.45);mat4.rotateX(parent,parent,-.3);mat4.scale(parent,parent,[1.2,.9,1.5]);
   set._activeTurret=1;set.trackingInfluence=.8;set.target.position.set([700,500,300]);set.PlayAnimation(1,"Deploy","Active");
@@ -299,7 +337,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const bytes=await readFile(join(corpus,"pulse_mega_fx.black")),makeEffect=()=>EveTurretFiringFX.from(CjsBlackFormat.readPayload(bytes).object);
   const registry=new EveComponentRegistry();set.Register(registry);
-  const old=makeEffect(),effect=makeEffect();set.SetFiringEffect(old);set.SetFiringEffect(effect);
+  const old=makeEffect(),effect=makeEffect();set.firingEffect=old;set.firingEffect=effect;
   assert.equal(old.GetComponentRegistry(),null);assert.ok(effect.GetComponentRegistry()===registry);
   const parent=mat4.create();mat4.translate(parent,parent,[60,20,10]);mat4.rotateZ(parent,parent,.3);set.UpdateAsyncronous(updateContext({deltaTime:0}),parent);set._activeTurret=0;
   const turret=set.GetTurrets()[0];effect.boneName="Absent";set.InitializeFiringEffect();assert.equal(effect.GetPerMuzzleBoneID(0),0xffffffff);
@@ -315,7 +353,7 @@ test("native missing-joint and unloaded-pose muzzle fallbacks preserve transform
   assertScalars(direct.slice(12,15),turret.worldMatrix.slice(12,15),"direct fallback preserves position");
   set.sysBonePitchMin=60;const launcher=mat4.fromXRotation(mat4.create(),-Math.PI/2);
   assertScalars(set.GetFiringBoneWorldTransform(0),carbonProduct(launcher,turret.worldMatrix),"narrow launcher rotates local +Y to effect +Z");
-  set.SetFiringEffect(null);assert.equal(effect.GetComponentRegistry(),null);assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"no effect returns turret matrix");
+  set.firingEffect=null;assert.equal(effect.GetComponentRegistry(),null);assertScalars(set.GetFiringBoneWorldTransform(0),turret.worldMatrix,"no effect returns turret matrix");
   set._activeTurret=EveTurretSet.INVALID_INDEX;set.GetTurrets().length=0;assertScalars(set.GetFiringBoneWorldTransform(0),parent,"no mount returns parent matrix");
   set.UnRegister(registry);
 });
@@ -518,8 +556,11 @@ test("native ambient instances copy controlled source, isolate controller state 
 {
   const {set,ship,resource}=await assets(t);ship.RebuildTurretPositions();set.Initialize();
   const source=new EveChildContainer();source.name="controlled ambient fixture";source.AddToEffectChildrenList(new EveChildContainer());
-  const registry=new EveComponentRegistry();set.Register(registry);set.SetAmbientEffect(source);
+  const registry=new EveComponentRegistry();set.Register(registry);set.ambientEffect=source;
+  const initializeSource=t.mock.method(source,"Initialize");
+  set.Initialize();assert.equal(initializeSource.mock.callCount(),0);
   const generated=set.GetAmbientEffectOrGeneratedEffect(),[a,b]=generated.instances;
+  assert.equal(generated.Initialize,undefined,"the generated container has no Initialize contract");
   assert.equal(generated.instances.length,2);assert.ok(a.objects[0]!==source && a.objects[0]!==b.objects[0]);assert.ok(a.objects[0].objects[0]!==b.objects[0].objects[0]);
   assert.ok(a.GetParent()===generated && a.objects[0].GetParent()===a);assert.ok(a.IsInRegistry() && b.IsInRegistry());
   assertScalars(a.translation,set.GetTurrets()[0].localPosition.slice(0,3),"cpp:393 ambient mount placement");
@@ -530,6 +571,7 @@ test("native ambient instances copy controlled source, isolate controller state 
   set.SetLocalTransform(2,transform);assert.equal(generated.instances.length,2,"cpp:1790 late locator updates existing instances only");
   set.InitializeAmbientEffect();assert.equal(set.generatedDistributedAmbientEffect.instances.length,3);assert.equal(generated.IsInRegistry(),false);assert.equal(a.IsInRegistry(),false);
   set.ambientEffectEditingMode=true;set.OnModified("ambientEffectEditingMode");assert.ok(set.GetAmbientEffectOrGeneratedEffect()===source);
+  set.Initialize();assert.equal(initializeSource.mock.callCount(),0,"editing mode also preserves child lifecycle ownership");
   const parent=mat4.create();mat4.rotateY(parent,parent,.7);mat4.translate(parent,parent,[2,5,9]);set.SetParentTransform(parent);
   let observed;source.UpdateSyncronous=(_context,params)=>{observed={visible:params.isVisible,matrix:Array.from(params.localToWorldTransform)};};
   set._parentData.clipRadiusSq=1;set.UpdateSyncronous(updateContext({deltaTime:0}));assert.equal(observed.visible,false);
