@@ -5,6 +5,16 @@ Scope: `@carbonenginejs/runtime/global` classes under `src/global/blue` and `src
 Audience: Users, maintainers, and automated readers  
 Summary: Describes shared Blue interfaces and object services, together with native classes deliberately omitted from the runtime.
 
+<!-- class:BlueList -->
+## `BlueList`
+
+A typed object list with Carbon's explicit single-observer mutation methods.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/BlueList.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:BlueObjectMetadata -->
 ## `BlueObjectMetadata`
 
@@ -85,6 +95,16 @@ Supplies a curve set's driven time.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:IList -->
+## `IList`
+
+Native IRoot-derived typed object-list contract, represented as a plain JS interface.
+
+- Export: `@carbonenginejs/runtime/global`
+- Source: `src/global/blue/IList.js`
+- Visibility: Public
+- Kind: Carbon
+
 <!-- class:InvalidAttributeException -->
 ## `InvalidAttributeException`
 
@@ -145,6 +165,33 @@ Supplies a curve set's driven time.
 - Visibility: Public
 - Kind: Carbon
 
+<!-- class:BlueList_Impl -->
+## `BlueList_Impl`
+
+Records the shared typed-list implementation absorbed by BlueList, excluding Python wrapper support.
+
+- Source: `src/global/dropped/BlueList_Impl.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:BlueListBase -->
+## `BlueListBase`
+
+Records the list bounds helper absorbed by BlueList, without its native Python diagnostics.
+
+- Source: `src/global/dropped/BlueListBase.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:BlueListT -->
+## `BlueListT`
+
+Records the unsupported native class-offset list template; ordinary BlueList does not port it.
+
+- Source: `src/global/dropped/BlueListT.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
 <!-- class:BlueResManRegistrar -->
 ## `BlueResManRegistrar`
 
@@ -178,6 +225,33 @@ Records the enum template registration responsibilities absorbed by CjsBlueEnumR
 Records the static enum registrar absorbed by CjsBlueEnumRegistry.RegisterEnum.
 
 - Source: `src/global/dropped/EnumTypeRegistration.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:ListSorter -->
+## `ListSorter`
+
+Records the zero-offset pointer-list comparator absorbed by BlueList.Sort.
+
+- Source: `src/global/dropped/ListSorter.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:ListSorterC -->
+## `ListSorterC`
+
+Records the unsupported GetRawRoot value-reference comparator, with no current JS replacement.
+
+- Source: `src/global/dropped/ListSorterC.js`
+- Visibility: Internal
+- Kind: Carbon dropped
+
+<!-- class:ListSorterT -->
+## `ListSorterT`
+
+Records the unsupported GetRawRoot pointer-wrapper comparator used by native BlueListT.
+
+- Source: `src/global/dropped/ListSorterT.js`
 - Visibility: Internal
 - Kind: Carbon dropped
 

@@ -99,7 +99,11 @@ export class Copier extends ICopier
    *
    * Adapted: Carbon returns bool and writes the destination through an
    * IRoot**; JavaScript returns the destination or null, as the Python CopyTo
-   * returns the copy.
+   * returns the copy. Generic lists require an existing, equally configured
+   * destination: JavaScript template arguments are instance data, not a
+   * registered native class that can be constructed without arguments. The
+   * outer operation releases its memo on failure or exception as well as
+   * success, so a later call cannot reuse a partially copied graph.
    *
    * @param {object} source The object to copy.
    * @param {object|null} [dest=null] An existing object of the same class, or null.
@@ -113,6 +117,9 @@ export class Copier extends ICopier
       if (outcome?.result === OverrideResult.SUCCESS) return outcome.dest ?? dest;
       if (outcome?.result === OverrideResult.FAILURE) return null;
     }
+
+    const sourceIsList = Copier._isList(source);
+    if ((sourceIsList || Copier._isList(dest)) && !Copier._sameListType(source, dest)) return null;
 
     const className = CjsSchema.getClassName(source.constructor);
     let target = dest;
@@ -129,7 +136,7 @@ export class Copier extends ICopier
       // Recorded before recursing, so shared children and cycles resolve here.
       (this._pointers ??= new Map()).set(source, target);
     }
-    else if (CjsSchema.getClassName(target.constructor) !== className)
+    else if (!sourceIsList && CjsSchema.getClassName(target.constructor) !== className)
     {
       CcpLog.CCP_LOGERR_CH(CcpLog.GetModuleChannel("blue"), "%s", `In CopyTo, 'source' and 'dest' must be of same type. Source is ${className}, dest is ${CjsSchema.getClassName(target.constructor)}`);
       return null;
@@ -144,10 +151,9 @@ export class Copier extends ICopier
     finally
     {
       this._level--;
+      if (this._level === 0) this._pointers?.clear();
     }
     if (!result) return null;
-
-    if (this._level === 0) this._pointers?.clear();
 
     this._postCopy?.(source, target, this);
     return target;
@@ -203,6 +209,12 @@ export class Copier extends ICopier
       const storage = Copier._memberStorage(dest, field);
       const to = storage.value;
 
+      // Template configuration is type identity even when both lists are empty.
+      // An explicit list must never fall back to replacing its owned storage.
+      if ((kind === "list" || kind === "array")
+        && (Copier._isList(from) || Copier._isList(to))
+        && !Copier._sameListType(from, to)) return false;
+
       // Buffers: SetValues' in-place writers copy AND report a change, or
       // answer null when the member is not a buffer of the declared shape.
       const written = coerceCarbonMathInto(to, from, field.type)
@@ -226,6 +238,13 @@ export class Copier extends ICopier
   /** One member, by kind - the BlueVariable.cpp `Copy<VarType>` arms. */
   _CopyMember(field, kind, from, to, storage)
   {
+    // Nominal IList dispatch precedes the content heuristic, including an
+    // empty source whose element interface has no registered constructor.
+    if ((kind === "list" || kind === "array") && Copier._isList(from))
+    {
+      return this._AssignList(storage, from);
+    }
+
     if (OBJECT_KINDS.has(kind))
     {
       // Copy<IROOTPTR> (BlueVariable.cpp:417-434): the old object is released
@@ -264,9 +283,14 @@ export class Copier extends ICopier
     return true;
   }
 
-  /** BlueList AssignTo (BlueListUtil.h:506-540): cleared, then every item copied. */
+  /**
+   * Dispatches configured IList storage through native custom assignment.
+   * Adapted: unmigrated plain arrays retain their existing replacement path.
+   */
   _AssignList(storage, from)
   {
+    if (Copier._isList(from)) return this.CopyTo(from, storage.value) === storage.value;
+
     const items = [];
     storage.target[storage.key] = items;
     for (const item of from ?? [])
@@ -301,6 +325,31 @@ export class Copier extends ICopier
       if (identity === name) return true;
     }
     return false;
+  }
+
+  /** Queries the declared native list contract without accepting array-shaped objects. */
+  static _isList(value)
+  {
+    return value !== null && typeof value === "object" && Copier._mapsInterface(value.constructor, "IList");
+  }
+
+  /**
+   * Adapts native template-class equality for an explicitly configured list.
+   * Constructor and ItemType/IID identity, optional CLSID and list-operation
+   * flags must agree; observer ownership is deliberately not copied.
+   * Only the source's mapped custom-assignment contract supplies the operation.
+   */
+  static _sameListType(source, dest)
+  {
+    if (!Copier._isList(source) || !Copier._isList(dest)
+      || source.constructor !== dest.constructor
+      || !Copier._mapsInterface(source.constructor, "ICopierCustomAssignment")) return false;
+    const sourceInfo = {};
+    const destInfo = {};
+    source.GetInfo(sourceInfo);
+    dest.GetInfo(destInfo);
+    return sourceInfo.iid === destInfo.iid && sourceInfo.clsid === destInfo.clsid
+      && sourceInfo.listOps === destInfo.listOps;
   }
 
   /** Resolves a stored member's JavaScript equivalent of its native offset. */
