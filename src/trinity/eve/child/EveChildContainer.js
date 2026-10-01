@@ -2,6 +2,7 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer.cpp
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildContainer_Blue.cpp
 import { EveEntity } from "../EveEntity.js";
+import { IInitialize } from "#blue/IInitialize";
 import { BLUELISTEVENT } from "#consts/blue";
 import { CjsModel } from "#model";
 import { mat4 } from "#math/mat4";
@@ -45,8 +46,8 @@ const ZERO_VEC3 = vec3.create();
  * modifiers, and gating them on a display-quality filter.
  */
 @type.define({ className: "EveChildContainer", family: "eve/child" })
-@carbon.inherit(ITr2Renderable, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
-@carbon.mapInterface(EveEntity, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
+@carbon.inherit(ITr2Renderable, ITr2CurveSetOwner, IInitialize, ITr2SoundEmitterOwner, ITr2ControllerOwner, IEveInheritPropertiesOwner)
+@carbon.mapInterface(EveEntity, IInitialize, ITr2CurveSetOwner, ITr2SoundEmitterOwner, ITr2ControllerOwner)
 export class EveChildContainer extends EveChildTransform
 {
   @edit.notify

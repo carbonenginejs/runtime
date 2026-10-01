@@ -306,15 +306,114 @@ const MAPPED = Symbol.for("carbonenginejs.carbon.mappedInterfaces");
 
 
 /**
- * Every interface Carbon's exposure layer maps onto a class, inherited ones
- * included.
+ * Every interface the class exposes. Legacy mappings include their copied JS
+ * inheritance. An explicit interfaceTable follows only its declared chainTo;
+ * listing a concrete class as an interface never traverses that class's table.
  *
  * @param {Function} Constructor The class to ask about.
  * @returns {Set<Function>} Empty when nothing is mapped. Do not mutate.
  */
 export function mappedInterfaces(Constructor)
 {
-    return (typeof Constructor === "function" && Constructor[MAPPED]) || new Set();
+    return ResolveInterfaceTable(Constructor);
+}
+
+
+/** Resolves an exposure table, optionally validating an unpublished replacement. */
+function ResolveInterfaceTable(Constructor, visiting = null, replacement = null)
+{
+    if (typeof Constructor !== "function") return new Set();
+    let table;
+    if (replacement)
+    {
+        // A child with no own record would inherit the replacement too. Walking
+        // the lookup here detects a chain back through such a child before the
+        // new record is published.
+        for (let current = Constructor; current; current = Object.getPrototypeOf(current))
+        {
+            if (current === replacement.Constructor)
+            {
+                table = replacement.table;
+                break;
+            }
+            if (Object.hasOwn(current, MAPPED))
+            {
+                table = current[MAPPED];
+                break;
+            }
+        }
+    }
+    else table = Constructor[MAPPED];
+
+    // Preserve the original Set and its inheritance semantics for legacy users.
+    if (!table || table instanceof Set) return table || new Set();
+    visiting ??= new Set();
+    if (visiting.has(table)) throw new TypeError("carbon.interfaceTable exposure chain contains a cycle.");
+    visiting.add(table);
+    const result = new Set(table.interfaces);
+    if (table.chainTo)
+    {
+        for (const Interface of ResolveInterfaceTable(table.chainTo, visiting, replacement)) result.add(Interface);
+    }
+    visiting.delete(table);
+    return result;
+}
+
+
+/**
+ * Declares a complete Blue interface table and its explicit exposure parent.
+ * `chainTo: null` represents EXPOSURE_END; a constructor represents
+ * EXPOSURE_CHAINTO (BlueExposureMacros.h:132-138). QueryInterface visits that
+ * parent table, not the tables of classes listed in MAP_INTERFACE
+ * (BlueClasses.cpp:388-400). Own entries precede the parent's entries.
+ *
+ * This atomic declaration replaces earlier mappings on the same class. Later
+ * mapInterface additions extend only its own entries, preserving the boundary.
+ * Classes without an explicit table retain legacy JS-inherited mappings. No
+ * prototype methods, composed bases, stored members or method metadata change.
+ * Implicit native IRoot/self entries are not added; list supported identities
+ * explicitly, using imperative application when the list includes the class.
+ *
+ * Usage: `meta.carbon.interfaceTable({ interfaces: [INotify], chainTo: null })`
+ * decorates a class, or the returned decorator can be called with its constructor.
+ *
+ * @param {{interfaces: Function[], chainTo: Function|null}} definition Complete interface mapping.
+ * @returns {Function} A Stage-3 or imperative class decorator.
+ */
+export function carbonInterfaceTableDecorator(definition)
+{
+    if (!definition || typeof definition !== "object" || Array.isArray(definition)
+        || (Object.getPrototypeOf(definition) !== Object.prototype && Object.getPrototypeOf(definition) !== null))
+    {
+        throw new TypeError("carbon.interfaceTable requires a plain descriptor.");
+    }
+    if (!Object.hasOwn(definition, "interfaces") || !Array.isArray(definition.interfaces)
+        || !Object.hasOwn(definition, "chainTo")
+        || Object.keys(definition).some(key => key !== "interfaces" && key !== "chainTo"))
+    {
+        throw new TypeError("carbon.interfaceTable requires only interfaces and chainTo.");
+    }
+    const interfaces = new Set(definition.interfaces);
+    for (const Interface of interfaces)
+    {
+        if (typeof Interface !== "function" || !Interface.prototype)
+            throw new TypeError("carbon.interfaceTable interfaces must be class constructors.");
+    }
+    const { chainTo } = definition;
+    if (chainTo !== null && (typeof chainTo !== "function" || !chainTo.prototype))
+        throw new TypeError("carbon.interfaceTable chainTo must be null or a class constructor.");
+
+    return function (value, context)
+    {
+        if (context && typeof context === "object" && context.kind !== "class")
+            throw new TypeError("carbon.interfaceTable only supports classes.");
+        if (typeof value !== "function" || !value.prototype)
+            throw new TypeError("carbon.interfaceTable requires a class constructor.");
+
+        const table = { interfaces: new Set(interfaces), chainTo };
+        ResolveInterfaceTable(value, new Set(), { Constructor: value, table });
+        Object.defineProperty(value, MAPPED, { value: table, configurable: true });
+    };
 }
 
 
@@ -344,6 +443,9 @@ export function mappedInterfaces(Constructor)
  * answers to the base list. A consumer wanting Carbon's exposure semantics
  * asks `mappedInterfaces` explicitly, so the two casts can never be confused
  * for one another.
+ *
+ * After an explicit interfaceTable declaration, additions stay in that class's
+ * own table. Otherwise this retains its legacy copy-of-inherited-mappings rule.
  *
  * @param {...Function} Interfaces The mapped interfaces, as `_Blue.cpp` lists
  *   them.
@@ -376,7 +478,13 @@ export function carbonMapInterfaceDecorator(Interfaces)
         // Copied before adding, for the reason the composed record is: a
         // subclass declaring its own mapping must never reach back into its
         // parent's.
-        const inherited = value[MAPPED];
+        const current = value[MAPPED];
+        if (Object.hasOwn(value, MAPPED) && current && !(current instanceof Set))
+        {
+            for (const Interface of mapped) current.interfaces.add(Interface);
+            return;
+        }
+        const inherited = mappedInterfaces(value);
         const own = new Set(inherited ?? []);
         for (const Interface of mapped) own.add(Interface);
 

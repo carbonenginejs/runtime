@@ -69,6 +69,25 @@ composition today (`CjsLibrary` is empty on purpose; its head comment says
 why). It carries the browser platform and adapter snapshots, also at
 `/core/platform`; importing it probes no browser globals.
 
+## Native interface exposure
+
+Native base composition and Blue interface exposure are separate declarations.
+`meta.carbon.inherit` supplies the base relationships used by dynamic casts.
+`meta.carbon.interfaceTable({ interfaces, chainTo })` describes a concrete
+class's complete interface table: `chainTo: null` ends exposure, while a class
+constructor chains only that class's table. Listing a concrete class in
+`interfaces` adds its identity; it does not traverse that class's table.
+
+The declaration can be a class decorator or be applied to the constructor after
+its definition. It replaces earlier interface mappings on that class. Later
+`meta.carbon.mapInterface` calls add local entries without changing the explicit
+chain. The legacy `carbon` namespace exposes the same operations. Classes not
+migrated to an explicit table retain the legacy mapping behavior.
+
+Copier and declared readers use the resolved table to select initialization or
+member notifications. Declaring a table does not initialize objects, change
+JavaScript inheritance, or change stored-member and property inheritance.
+
 ## Trinity to WebGPU draw path
 
 Trinity renders through an abstraction-layer (AL) context installed with

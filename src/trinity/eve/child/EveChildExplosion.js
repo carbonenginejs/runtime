@@ -4,6 +4,9 @@
 import { CjsSchema, carbon, impl, edit, type } from "#schema";
 import { blue, ICopier } from "#blue";
 import { EveChildContainer } from "./EveChildContainer.js";
+import { EveEntity } from "../EveEntity.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
 import { mat4 } from "#math/mat4";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
@@ -424,3 +427,9 @@ export class EveChildExplosion extends EveChildContainer
   }
 
 }
+
+// EveChildExplosion_Blue.cpp ends this concrete interface table without chaining its base.
+carbon.interfaceTable({
+  interfaces: [ EveChildExplosion, EveChildContainer, EveEntity, EveSpaceObjectChild, IEveSpaceObjectChild ],
+  chainTo: null
+})(EveChildExplosion, { kind: "class" });

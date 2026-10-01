@@ -3,6 +3,10 @@
 // Source: trinity/trinity/Eve/SpaceObject/Children/EveChildEffectPropagator_Blue.cpp
 import { carbon, impl, edit, type } from "#schema";
 import { EveChildContainer } from "./EveChildContainer.js";
+import { EveEntity } from "../EveEntity.js";
+import { EveSpaceObjectChild } from "./EveSpaceObjectChild.js";
+import { IEveSpaceObjectChild } from "./IEveSpaceObjectChild.js";
+import { INotify } from "#blue/INotify";
 import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { vec4 } from "#math/vec4";
@@ -924,3 +928,9 @@ blue.enums.RegisterEnum("trinity.EveChildEffectPropagator.TriggerType", EveChild
     { name: "instantPermanent", value: EveChildEffectPropagator.TriggerType.INSTANT_PERMANENT, description: "propagate instantly over set and no clean-up" }
   ]
 });
+
+// EveChildEffectPropagator_Blue.cpp ends this concrete interface table without chaining its base.
+carbon.interfaceTable({
+  interfaces: [ EveChildEffectPropagator, EveChildContainer, EveSpaceObjectChild, IEveSpaceObjectChild, INotify, EveEntity ],
+  chainTo: null
+})(EveChildEffectPropagator, { kind: "class" });
