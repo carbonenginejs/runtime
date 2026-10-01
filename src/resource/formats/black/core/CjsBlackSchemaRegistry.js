@@ -4,6 +4,145 @@
  */
 export class CjsBlackSchemaRegistry
 {
+    /**
+     * Derives Black decoder records from Blue's stored declarations.
+     * Native IRootReader::FindEntry selects the first inherited PERSIST member;
+     * live properties and their flags do not participate in this lookup.
+     * The declaration is retained for the shared reader's storage operation.
+     *
+     * @param {object} info Canonical class info from CjsSchema.getSchema.
+     * @returns {object} A reader-local shape, never a second declaration registry.
+     * @impl adapted JavaScript derives decoder records instead of native member offsets.
+     */
+    static fromClassInfo(info)
+    {
+        const fields = [];
+        const names = new Set();
+        for (const declaration of info.members)
+        {
+            if (!declaration.edit?.persist || names.has(declaration.name)) continue;
+            names.add(declaration.name);
+            let descriptor;
+            try
+            {
+                descriptor = CjsBlackSchemaRegistry.fromDeclaredType(declaration.type);
+            }
+            catch (error)
+            {
+                error.message = `${info.className}.${declaration.name}: ${error.message}`;
+                throw error;
+            }
+            fields.push({
+                name: declaration.name,
+                key: declaration.key,
+                declaration,
+                jsType: descriptor.jsType,
+                black: { name: declaration.name, ...descriptor.black }
+            });
+        }
+        return { className: info.className, canonical: true, fields };
+    }
+
+    /**
+     * Selects existing Black codecs from precise canonical type facts.
+     * A missing or unsupported fact fails rather than borrowing a generated
+     * snapshot or inferring the wire encoding from the current JS value.
+     *
+     * @param {object|string|Function} type Canonical member or collection item type.
+     * @returns {object} Black codec and normalized value descriptor.
+     * @impl adapted Codec dispatch is local to the JavaScript Black transport.
+     */
+    static fromDeclaredType(type)
+    {
+        if (typeof type === "function") type = { kind: "objectRef", className: type };
+        if (typeof type === "string") type = { kind: type };
+        const kind = type?.kind;
+        const scalarTypes = {
+            boolean: "bool", string: "string", wstring: "wstring", path: "path",
+            expression: "expression", enum: "enum", float32: "float", float64: "double",
+            int8: "byte", uint8: "ubyte", int16: "short", uint16: "ushort",
+            int32: "int", uint32: "uint", int64: "int64", uint64: "uint64",
+            vec2: "vector2", vector2: "vector2", vec3: "vector3", vector3: "vector3",
+            vec4: "vector4", vector4: "vector4", color: "color", quat: "quaternion",
+            quaternion: "quaternion", mat3: "matrix3", matrix3: "matrix3",
+            mat4: "matrix4", matrix4: "matrix4"
+        };
+        if (Object.hasOwn(scalarTypes, kind))
+        {
+            return CjsBlackSchemaRegistry.compactTypeDescriptor(scalarTypes[kind], type);
+        }
+        if (kind === "model" || kind === "objectRef" || kind === "weakRef")
+        {
+            return CjsBlackSchemaRegistry.compactBlackType(
+                kind === "weakRef" ? "IROOTWEAKREF" : "IROOTPTR", { ...type, kind: "objectRef" });
+        }
+        if (kind === "struct")
+        {
+            return CjsBlackSchemaRegistry.compactBlackType("IROOT", type);
+        }
+        if (kind === "list" || kind === "array" || kind === "set" || kind === "map")
+        {
+            let itemType = kind === "map" ? type.valueType : type.itemType;
+            // Legacy list("Class") is a reference collection. Raw structure
+            // lists must instead declare rawStruct plus their native ABI layout.
+            if (typeof itemType === "string") itemType = { kind: "objectRef", className: itemType };
+            if (typeof itemType === "function") itemType = { kind: "objectRef", className: itemType };
+            if (itemType?.kind === "rawStruct" && kind !== "map")
+            {
+                if (!type.structure)
+                {
+                    throw new TypeError("Canonical Black structure list requires a native structure layout");
+                }
+                CjsBlackSchemaRegistry.validateDeclaredStructure(type.structure);
+                return CjsBlackSchemaRegistry.compactBlackType("IROOT", { kind: "array" }, {
+                    container: "list", cppType: "StructureList", structure: type.structure
+                });
+            }
+            if (![ "model", "objectRef", "weakRef" ].includes(itemType?.kind))
+            {
+                throw new TypeError(`Unsupported canonical Black ${kind} item type: ${itemType?.kind || "missing"}`);
+            }
+            return CjsBlackSchemaRegistry.compactBlackType("IROOT", {
+                kind: kind === "map" ? "map" : "array",
+                elementType: { ...itemType, kind: "objectRef" }
+            }, { container: kind === "map" ? "dict" : kind === "set" ? "set" : "list" });
+        }
+        throw new TypeError(`Unsupported canonical Black type: ${kind || "missing"}`);
+    }
+
+    /**
+     * Checks explicit native record offsets before using the existing codec.
+     * String slots are 8-byte BlueSharedString storage in the supported 64-bit
+     * Black ABI; their wire table reference occupies the first two bytes.
+     *
+     * @param {object} structure Verified native structure layout.
+     * @returns {void}
+     * @impl adapted JavaScript cannot derive C++ sizeof or member offsets.
+     */
+    static validateDeclaredStructure(structure)
+    {
+        const sizes = {
+            string: 8, float32: 4, float64: 8, int8: 1, uint8: 1,
+            int16: 2, uint16: 2, int32: 4, uint32: 4, int64: 8, uint64: 8,
+            vector2: 8, vector3: 12, vector4: 16, color: 16,
+            quaternion: 16, matrix3: 36, matrix4: 64
+        };
+        if (!structure.name || !Number.isInteger(structure.size) || structure.size <= 0
+            || !Array.isArray(structure.members) || !structure.members.length)
+        {
+            throw new TypeError("Canonical Black structure requires name, positive native size and members");
+        }
+        for (const member of structure.members)
+        {
+            const size = sizes[member.type];
+            if (!member.name || !size || !Number.isInteger(member.offset) || member.offset < 0
+                || member.offset + size > structure.size)
+            {
+                throw new TypeError(`Invalid canonical Black structure member ${structure.name}.${member.name}`);
+            }
+        }
+    }
+
     /** Creates a CjsBlackSchemaRegistry with caller-provided initial state. */
     constructor(schema = null)
     {

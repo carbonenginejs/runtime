@@ -239,13 +239,12 @@ export class CjsSchema
     }
 
     /**
-     * Excludes named inherited fields from the decorated class's schema surface.
-     *
-     * Hidden fields leave schema introspection, GetValues, dehydration and
-     * every export option; SetValues and hydration ignore them as unknown
-     * fields. The JS properties and inheritance are unchanged. Hides pass to
-     * descendants and may be extended there; there is no unhide, and naming a
-     * field the parent schema does not expose throws TypeError at registration.
+     * Omits inherited declarations without changing ordinary JS properties.
+     * Names match JS keys first. If no key matches, an exposed name selects all
+     * inherited keys with that name. The resolved keys stay omitted in descendants;
+     * there is no unhide. Both canonical roles and the legacy fields view agree.
+     * Unknown-input handling belongs to the consumer: the current DictReader
+     * rejects omitted keys, while the optional values transport skips them.
      */
     static hideInherited(fieldNames)
     {
@@ -608,10 +607,11 @@ export class CjsSchema
     /**
      * Return the exported schema for a class.
      *
-     * The schema is the precomputed answer - collapsing the inheritance
-     * lineage and merging metadata - so building it per call would defeat its
-     * purpose. Callers traverse model graphs and ask once per node, so this is
-     * memoized per class and rebuilt only when class metadata is defined.
+     * `members` and `properties` retain every declaration in derived-to-base
+     * class order, preserving name, JS key, optional index, and declaring class.
+     * Core readers and traversal use these tables. The compatibility `fields`
+     * view instead merges by JS key in base-first order. Tables are fixed at
+     * registration; exports are memoized until the metadata generation changes.
      *
      * Namespace-filtered exports are not memoized: they are a projection of the
      * full schema requested by tooling, not the hot read path.
@@ -712,11 +712,13 @@ export class CjsSchema
         map: valueType => fieldDecorator("type", { kind: "map", valueType }),
         model: className => fieldDecorator("type", { kind: "model", className }),
         objectRef: className => fieldDecorator("type", { kind: "objectRef", className }),
+        weakRef: className => fieldDecorator("type", { kind: "weakRef", className }),
         path: fieldDecorator("type", { kind: "path" }),
         quat: fieldDecorator("type", { kind: "quat" }),
         rawStruct: className => fieldDecorator("type", { kind: "rawStruct", className }),
         set: itemType => fieldDecorator("type", { kind: "set", itemType }),
         string: fieldDecorator("type", { kind: "string" }),
+        wstring: fieldDecorator("type", { kind: "wstring" }),
         struct: className => fieldDecorator("type", { kind: "struct", className }),
         typedArray: arrayType => fieldDecorator("type", { kind: "typedArray", arrayType }),
         uint8: fieldDecorator("type", { kind: "uint8" }),
@@ -965,6 +967,27 @@ export class CjsSchema
                 return base(targetOrValue, contextOrMethodName);
             }, described.namespace, described.value);
         }
+    };
+
+    /**
+     * Public grouping; these aliases share the existing implementations.
+     * `member(name?, { index? })` declares stored data and `property(...)` a
+     * live property, with an exposed name independent of the decorated JS key.
+     * Explicit `members`/`properties` arrays use { name, key, index?, ...metadata }
+     * and retain multiple indexed routes on one key. Legacy `fields` inputs and
+     * decorator arrays remain JS-keyed and also populate the compatibility view.
+     */
+    static meta = {
+        edit: this.edit,
+        impl: this.impl,
+        carbon: this.carbon,
+        lifecycle: this.lifecycle,
+        jessica: this.jessica,
+        compose: this.compose,
+        member: (name, options) => declarationDecorator("member", name, options),
+        property: (name, options) => declarationDecorator("property", name, options),
+        define: this.type.define,
+        hideInherited: this.hideInherited
     };
 
     static components = createComponentsNamespace();
@@ -1443,8 +1466,7 @@ function fieldDecorator(namespace, value)
         {
             const context = contextOrFieldName;
 
-            // A getter, setter or accessor declares a field as a class field
-            // does: a Blue member backed by an accessor pair. Its metadata is
+            // A getter, setter or accessor declares a live property. Its metadata is
             // recorded at definition like a field's, and it has no initial value
             // to capture.
             if (context.kind === "getter" || context.kind === "setter" || context.kind === "accessor")
@@ -1462,12 +1484,12 @@ function fieldDecorator(namespace, value)
             // they would only restate what registration already consumed.
             context.addInitializer(function initializeSchemaField()
             {
-                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value);
+                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value, { kind: context.kind });
             });
 
             return function initializeSchemaFieldValue(initialValue)
             {
-                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value);
+                if (!isRegisteredClass(this.constructor)) defineFieldMetadata(this.constructor, context.name, namespace, value, { kind: context.kind });
                 captureFieldInitialDefault(
                     this.constructor,
                     context.name,
@@ -1622,22 +1644,195 @@ function memberDecorator(namespace, value)
     {
         if (contextOrMemberName && typeof contextOrMemberName === "object")
         {
-            return contextOrMemberName.kind === "field"
+            return [ "field", "getter", "setter", "accessor" ].includes(contextOrMemberName.kind)
                 ? forFields(targetOrValue, contextOrMemberName)
                 : forMethods(targetOrValue, contextOrMemberName);
         }
 
         // Legacy (non-2023-11) path: a method target resolves to a function
         // on the prototype; anything else is treated as a field.
-        return targetOrValue && contextOrMemberName && typeof targetOrValue[contextOrMemberName] === "function"
+        return targetOrValue && contextOrMemberName && typeof findPropertyDescriptor(targetOrValue, contextOrMemberName)?.value === "function"
             ? forMethods(targetOrValue, contextOrMemberName)
             : forFields(targetOrValue, contextOrMemberName);
     }, namespace, value);
 }
 
-function defineFieldMetadata(Constructor, fieldName, namespace, value)
+/** Finds an accessor without evaluating it. */
+function findPropertyDescriptor(target, key)
 {
-    defineMemberMetadata(Constructor, "fields", "fieldsByName", fieldName, namespace, value);
+    for (let current = target; current; current = Object.getPrototypeOf(current))
+    {
+        const descriptor = Object.getOwnPropertyDescriptor(current, key);
+        if (descriptor) return descriptor;
+    }
+    return null;
+}
+
+function declarationDecorator(role, name, options = {})
+{
+    const declaration = { role };
+    if (name !== undefined) declaration.name = name;
+    if (Object.hasOwn(options, "index")) declaration.index = options.index;
+    validateDeclaration({ name: name === undefined ? "<field>" : name, key: "<field>", ...declaration });
+    return fieldDecorator("declaration", declaration);
+}
+
+function validateDeclaration(entry)
+{
+    for (const key of [ "name", "key" ])
+    {
+        if (typeof entry[key] !== "string" || !entry[key].trim())
+        {
+            throw new TypeError(`CjsSchema declaration ${key} must be a non-empty string.`);
+        }
+    }
+    if (entry.role !== "member" && entry.role !== "property")
+    {
+        throw new TypeError('CjsSchema declaration role must be "member" or "property".');
+    }
+    if (Object.hasOwn(entry, "index") && (!Number.isSafeInteger(entry.index) || entry.index < 0))
+    {
+        throw new TypeError("CjsSchema declaration index must be a nonnegative safe integer.");
+    }
+    return entry;
+}
+
+function inferredDeclarationRole(Constructor, key, kind)
+{
+    if (kind) return [ "getter", "setter", "accessor" ].includes(kind) ? "property" : "member";
+    // A class field may shadow an inherited accessor. Only an accessor owned
+    // by this class establishes its role without an explicit declaration.
+    const descriptor = Object.getOwnPropertyDescriptor(Constructor.prototype, key);
+    return descriptor && (descriptor.get || descriptor.set) ? "property" : "member";
+}
+
+function declarationIdentity(entry)
+{
+    return JSON.stringify([ entry.key, entry.name, Object.hasOwn(entry, "index") ? entry.index : null ]);
+}
+
+function declarationMap(schema, role)
+{
+    return role === "member" ? schema.membersByIdentity : schema.propertiesByIdentity;
+}
+
+function applyDeclarationNamespace(entry, namespace, value)
+{
+    if (namespace === "declaration")
+    {
+        for (const key of [ "name", "role", "index" ])
+        {
+            if (Object.hasOwn(value, key)) entry[key] = value[key];
+        }
+    }
+    else
+    {
+        entry[namespace] = mergeNamespace(entry[namespace], value);
+    }
+    return validateDeclaration(entry);
+}
+
+/** The compatibility view retains JS-key lookup and never serves native readers. */
+function refreshLegacyFields(schema)
+{
+    schema.fields = schema.declarations.filter(record => record.legacy).map(({ entry }) =>
+    {
+        const field = { name: entry.key };
+        for (const [ namespace, value ] of Object.entries(entry))
+        {
+            if ([ "name", "key", "role", "index", "declaringClass" ].includes(namespace)) continue;
+            field[namespace] = value;
+        }
+        return field;
+    });
+    schema.fieldsByName = new Map(schema.fields.map(field => [ field.name, field ]));
+}
+
+function defineFieldMetadata(Constructor, fieldName, namespace, value, options = {})
+{
+    RejectAfterRegistration(Constructor, `field "${String(fieldName)}"`);
+    const schema = getOrCreateClassSchema(Constructor);
+    let record = schema.legacyDeclarationsByKey.get(fieldName);
+    const before = record?.entry;
+    const entry = before ? { ...before } : {
+        name: fieldName,
+        key: fieldName,
+        role: inferredDeclarationRole(Constructor, fieldName, options.kind),
+        declaringClass: Constructor
+    };
+    applyDeclarationNamespace(entry, namespace, value);
+    const identity = declarationIdentity(entry);
+    const targetMap = declarationMap(schema, entry.role);
+    const collision = targetMap.get(identity);
+    if (collision && collision !== record)
+    {
+        throw new TypeError(`CjsSchema has duplicate ${entry.role} declaration "${entry.name}" for ${entry.key}.`);
+    }
+    if (record)
+    {
+        declarationMap(schema, before.role).delete(declarationIdentity(before));
+        record.entry = entry;
+    }
+    else
+    {
+        record = { entry, legacy: true };
+        schema.declarations.push(record);
+        schema.legacyDeclarationsByKey.set(fieldName, record);
+    }
+    targetMap.set(identity, record);
+    refreshLegacyFields(schema);
+    SCHEMA_GENERATION += 1;
+}
+
+/** Complete native declarations do not invent a lossy JS-keyed legacy field. */
+function defineCanonicalDeclaration(Constructor, definition, role)
+{
+    RejectAfterRegistration(Constructor, `${role} "${definition.name}"`);
+    const schema = getOrCreateClassSchema(Constructor);
+    const entry = {
+        name: definition.name,
+        key: definition.key,
+        role,
+        declaringClass: Constructor,
+        ...(Object.hasOwn(definition, "index") ? { index: definition.index } : {})
+    };
+    for (const [ namespace, value ] of Object.entries(definition.metadata))
+    {
+        if ([ "name", "key", "role", "index", "declaringClass" ].includes(namespace))
+        {
+            throw new TypeError(`CjsSchema ${namespace} is reserved declaration identity, not a metadata namespace.`);
+        }
+        applyDeclarationNamespace(entry, namespace, value);
+    }
+    validateDeclaration(entry);
+    if (entry.role !== role) throw new TypeError(`CjsSchema ${role} input cannot declare a ${entry.role}.`);
+    const map = declarationMap(schema, role);
+    const identity = declarationIdentity(entry);
+    if (map.has(identity))
+    {
+        throw new TypeError(`CjsSchema has duplicate ${role} declaration "${entry.name}" for ${entry.key}.`);
+    }
+    const record = { entry, legacy: false };
+    schema.declarations.push(record);
+    map.set(identity, record);
+    SCHEMA_GENERATION += 1;
+}
+
+/** All native occurrences, derived class first; no cross-owner/name merging. */
+function getCanonicalDeclarations(Constructor, role)
+{
+    const schema = CLASS_SCHEMA.get(Constructor);
+    if (schema?.registered) return role === "member" ? schema.effectiveMembers : schema.effectiveProperties;
+    const hidden = computeHiddenInheritedFieldNames(Constructor);
+    const declarations = [];
+    for (const current of getSchemaLineage(Constructor).reverse())
+    {
+        for (const { entry } of CLASS_SCHEMA.get(current).declarations)
+        {
+            if (entry.role === role && !hidden.has(entry.key)) declarations.push(entry);
+        }
+    }
+    return declarations;
 }
 
 function defineClassMetadata(Constructor, definition)
@@ -1675,6 +1870,9 @@ function defineClassMetadata(Constructor, definition)
         defineManualMemberMetadata(Constructor, "fields", field);
     }
 
+    for (const member of definition.members || []) defineCanonicalDeclaration(Constructor, member, "member");
+    for (const property of definition.properties || []) defineCanonicalDeclaration(Constructor, property, "property");
+
     for (const method of definition.methods || [])
     {
         defineManualMemberMetadata(Constructor, "methods", method);
@@ -1695,6 +1893,8 @@ function sealClassSchema(Constructor, schema)
 {
     const fields = computeEffectiveFields(Constructor);
 
+    schema.effectiveMembers = getCanonicalDeclarations(Constructor, "member");
+    schema.effectiveProperties = getCanonicalDeclarations(Constructor, "property");
     schema.effectiveFields = fields;
     schema.effectiveFieldsByName = new Map(fields.map(field => [ field.name, field ]));
     schema.effectiveMethodsByName = computeEffectiveMethods(Constructor);
@@ -1785,27 +1985,33 @@ function defineHiddenInheritedFields(Constructor, fieldNames)
     SCHEMA_GENERATION += 1;
 
     const Parent = Object.getPrototypeOf(Constructor);
+    const inherited = [ ...getCanonicalDeclarations(Parent, "member"), ...getCanonicalDeclarations(Parent, "property") ];
     const inheritedFields = new Set(getEffectiveFields(Parent).map(field => field.name));
+    for (const entry of inherited) inheritedFields.add(entry.key);
+    const resolvedKeys = new Set();
     // Declared name only: Constructor.name does not survive minification, and a
     // mangled name in an error reads as a real one and sends you chasing it.
     const className = CLASS_SCHEMA.get(Constructor)?.className || "<undeclared>";
 
     for (const fieldName of fieldNames)
     {
-        if (!inheritedFields.has(fieldName))
+        // Existing callers name JS keys. An exposed name is an alias only when
+        // it is not itself a JS key, and then selects every matching key.
+        const keys = inheritedFields.has(fieldName)
+            ? [ fieldName ]
+            : inherited.filter(entry => entry.name === fieldName).map(entry => entry.key);
+        if (!keys.length)
         {
             throw new TypeError(
                 `CjsSchema.hideInherited cannot hide "${fieldName}" on ${className}: ` +
                 "the parent schema does not expose that field."
             );
         }
+        for (const key of keys) resolvedKeys.add(key);
     }
 
     const schema = getOrCreateClassSchema(Constructor);
-    for (const fieldName of fieldNames)
-    {
-        schema.hiddenInherited.add(fieldName);
-    }
+    for (const key of resolvedKeys) schema.hiddenInherited.add(key);
 }
 
 // The state-free transport's import. A declared REFERENCE field - model or
@@ -1957,7 +2163,9 @@ function mergeMemberMetadata(target, source)
  *
  * @typedef {object} CjsClassInfo
  * @property {string|null} className Registered serialized class name.
- * @property {Array<object>} fields Resolved field metadata, declaration order.
+ * @property {Array<object>} fields Compatibility metadata merged by JS key, base class first.
+ * @property {Array<object>} members Stored declarations, derived class first, without name merging.
+ * @property {Array<object>} properties Live declarations, derived class first, without name merging.
  * @property {Array<object>} [methods] Method provenance metadata.
  * @property {string} [family] Registered schema family.
  */
@@ -1990,7 +2198,11 @@ function buildClassInfo(Constructor, namespaces)
 
     const result = {
         className: CjsSchema.getClassName(Constructor),
-        fields
+        fields,
+        members: getCanonicalDeclarations(Constructor, "member").map(entry =>
+            enrichEnumField(exportCanonicalDeclaration(entry, namespaces), entry.declaringClass)),
+        properties: getCanonicalDeclarations(Constructor, "property").map(entry =>
+            enrichEnumField(exportCanonicalDeclaration(entry, namespaces), entry.declaringClass))
     };
 
     const family = schema?.family || CjsSchema.getClassFamily(Constructor);
@@ -2138,6 +2350,10 @@ function getOrCreateClassSchema(Constructor)
             aliases: null,
             fields: [],
             fieldsByName: new Map(),
+            declarations: [],
+            legacyDeclarationsByKey: new Map(),
+            membersByIdentity: new Map(),
+            propertiesByIdentity: new Map(),
             hiddenInherited: new Set(),
             methods: [],
             methodsByName: new Map(),
@@ -2190,6 +2406,7 @@ function recordStage3FieldMetadata(context, namespace, value)
 
     fields.push({
         name: context.name,
+        kind: context.kind,
         namespace,
         value
     });
@@ -2278,7 +2495,7 @@ function registerStage3FieldMetadata(Constructor, metadata)
     for (const field of metadata[STAGE3_FIELD_METADATA])
     {
         declarations.set(field.name, metadata);
-        defineFieldMetadata(Constructor, field.name, field.namespace, field.value);
+        defineFieldMetadata(Constructor, field.name, field.namespace, field.value, { kind: field.kind });
     }
 }
 
@@ -2351,6 +2568,8 @@ function normalizeClassDefinition(Constructor, definition)
         .filter(alias => alias !== result.className);
     result.aliases = aliases.length ? [...new Set(aliases)] : null;
     result.fields = normalizeManualMembers(result.fields, "fields");
+    result.members = normalizeCanonicalDeclarations(result.members, "member");
+    result.properties = normalizeCanonicalDeclarations(result.properties, "property");
     result.methods = normalizeManualMembers(result.methods, "methods");
     delete result.alias;
     return result;
@@ -2400,6 +2619,30 @@ function normalizeManualMembers(members, memberType)
             throw new TypeError(`CjsSchema.define ${memberType} requires a non-empty name.`);
         }
         return normalizeManualMember(name.trim(), definition, memberType);
+    });
+}
+
+/** Canonical arrays retain exposed names independently of JS keys and indexes. */
+function normalizeCanonicalDeclarations(definitions, role)
+{
+    if (definitions === undefined || definitions === null) return [];
+    const entries = Array.isArray(definitions)
+        ? definitions.map(definition => {
+            if (!isPlainObject(definition)) throw new TypeError(`CjsSchema ${role} declarations must be objects.`);
+            const { name, key = name, index, role: declaredRole, ...metadata } = definition;
+            if (declaredRole !== undefined && declaredRole !== role)
+                throw new TypeError(`CjsSchema ${role} input cannot declare a ${declaredRole}.`);
+            return { name, key, ...(Object.hasOwn(definition, "index") ? { index } : {}), metadata };
+        })
+        : isPlainObject(definitions)
+            ? Object.entries(definitions).map(([ key, metadata ]) => ({ name: key, key, metadata }))
+            : null;
+    if (!entries) throw new TypeError(`CjsSchema ${role} declarations require an array or a JS-keyed object.`);
+    return entries.map(entry => {
+        validateDeclaration({ ...entry, role });
+        const metadata = normalizeManualMember(entry.key, entry.metadata, "fields");
+        delete metadata.name;
+        return { ...entry, metadata };
     });
 }
 
@@ -2661,6 +2904,21 @@ function enrichEnumField(exported, Constructor)
             members
         }
     };
+}
+
+/** Structural identity is never removed by a namespace projection. */
+function exportCanonicalDeclaration(entry, namespaces)
+{
+    const result = { name: entry.name, key: entry.key, role: entry.role, declaringClass: entry.declaringClass };
+    if (Object.hasOwn(entry, "index")) result.index = entry.index;
+    for (const [ namespace, value ] of Object.entries(entry))
+    {
+        if ([ "name", "key", "role", "index", "declaringClass" ].includes(namespace)) continue;
+        if (namespaces && !namespaces.has(namespace)) continue;
+        result[namespace] = value;
+    }
+    if (entry.enum && (!namespaces || namespaces.has("edit"))) result.edit = { ...result.edit, enum: true };
+    return result;
 }
 
 function exportField(field, namespaces)

@@ -12,6 +12,7 @@
   "blueexposure/include/BlueRegistration.h#FunctionRegistrar": "No exact live class declaration for class FunctionRegistrar (blueexposure/include/BlueRegistration.h:198); review missing port or explicit JS equivalent.",
   "blueexposure/include/BlueRegistration.h#ModuleObjectRegistrar": "No exact live class declaration for class ModuleObjectRegistrar (blueexposure/include/BlueRegistration.h:309); review missing port or explicit JS equivalent.",
   "blueexposure/include/BlueRegistration.h#ThunkerRegistrar": "No exact live class declaration for class ThunkerRegistrar (blueexposure/include/BlueRegistration.h:183); review missing port or explicit JS equivalent.",
+  "blueexposure/include/Find.h#RouteStep": "No exact live class declaration for class RouteStep (blueexposure/include/Find.h:18); retained unported route/replay result used by FindFirstRoute, not required by EnumerateChildren or the current JavaScript visitor.",
   "blueexposure/include/IBlueClasses.h#BlueLockData": "No exact live class declaration for struct BlueLockData (blueexposure/include/IBlueClasses.h:111); review missing port or explicit JS equivalent.",
   "blueexposure/include/IBlueClasses.h#BlueObjectHasGetRawRoot": "No exact live class declaration for class BlueObjectHasGetRawRoot (blueexposure/include/IBlueClasses.h:132); review missing port or explicit JS equivalent.",
   "blueexposure/include/IList.h#ListInfo": "No exact live class declaration for struct ListInfo (blueexposure/include/IList.h:29); review missing port or explicit JS equivalent.",

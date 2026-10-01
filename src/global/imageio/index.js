@@ -1,4 +1,4 @@
-// Ports of Carbon's imageio library (E:/carbonengine/imageio): CPU image
+// Ports of Carbon's imageio library: CPU image
 // containers shared by the resource layer and the abstraction layer. The
 // handlers that read and write files through our format classes live in
 // resource/imageio, which re-exports these.

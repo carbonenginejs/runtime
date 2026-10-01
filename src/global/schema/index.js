@@ -2,7 +2,8 @@ import { CJS_CLASS_NAME, CJS_ENUM_NAME, CJS_MODEL_BRAND, CjsSchema } from "./Cjs
 
 // Namespace decorators re-exported as named bindings so consumers can write
 // `import { type, edit } from ".../schema"` and `@type.string` instead of `@CjsSchema.type.string`.
-const { type, edit, lifecycle, jessica, impl, carbon, components, compose } = CjsSchema;
+const { type, meta, edit, lifecycle, jessica, impl, carbon, components, compose } = CjsSchema;
+const types = type;
 
 export {
     carbon,
@@ -17,7 +18,9 @@ export {
     edit,
     jessica,
     lifecycle,
-    type
+    meta,
+    type,
+    types
 };
 
 export * from "./types/carbonTypes.js";

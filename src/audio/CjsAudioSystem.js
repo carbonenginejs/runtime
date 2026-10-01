@@ -6,6 +6,8 @@
 // Headless-first: constructing the system does NOT require an AudioContext -
 // pass one (or a factory) only when sound should actually be realized. Without
 // it, the graph runs in Carbon's null-manager/headless mode untouched.
+import { CjsSchema } from "../global/schema/CjsSchema.js";
+import { Traverse } from "../global/blue/find.js";
 import { AudGameObjResource } from "./trinity/audio/AudGameObjResource.js";
 import { AudEmitter } from "./trinity/audio/AudEmitter.js";
 import { AudManager } from "./trinity/audio/AudManager.js";
@@ -552,32 +554,28 @@ export class CjsAudioSystem
         return driver;
     }
 
-    /** Adopts every audio game object and curve driver reachable from a schema graph. */
+    /**
+     * Adopts every audio game object and curve driver in a declared graph.
+     *
+     * @param {object|null} root Root, including plain classes with Blue definitions.
+     * @returns {object[]} Adopted objects in depth-first canonical member order.
+     * @impl custom Audio composition applies its existing adoption operations to
+     * Blue's shared visitor; no model base or instance Traverse method is required.
+     */
     AdoptGraph(root)
     {
         const adopted = [];
-        if (root instanceof AudGameObjResource)
+        Traverse(root, value =>
         {
-            adopted.push(this.AdoptEmitter(root));
-        }
-        else if (root instanceof AudioCurveSetDriver)
-        {
-            adopted.push(this.AdoptCurveSetDriver(root));
-        }
-        else
-        {
-            root?.Traverse?.(model =>
+            if (CjsSchema.cast(value, AudGameObjResource))
             {
-                if (model instanceof AudGameObjResource)
-                {
-                    adopted.push(this.AdoptEmitter(model));
-                }
-                else if (model instanceof AudioCurveSetDriver)
-                {
-                    adopted.push(this.AdoptCurveSetDriver(model));
-                }
-            });
-        }
+                adopted.push(this.AdoptEmitter(value));
+            }
+            else if (CjsSchema.cast(value, AudioCurveSetDriver))
+            {
+                adopted.push(this.AdoptCurveSetDriver(value));
+            }
+        });
         return adopted;
     }
 
@@ -613,33 +611,28 @@ export class CjsAudioSystem
         return true;
     }
 
-    /** Releases every adopted audio game object and curve driver in a schema graph. */
+    /**
+     * Releases every adopted audio game object and curve driver in a declared graph.
+     *
+     * @param {object|null} root Root whose reachable audio objects are released.
+     * @returns {object[]} Objects actually released, once each in traversal order.
+     * @impl custom Shared traversal supplies reachability; the audio system keeps
+     * its existing deterministic release operations and adoption ownership checks.
+     */
     ReleaseGraph(root)
     {
         const released = [];
-        if (root instanceof AudGameObjResource)
+        Traverse(root, value =>
         {
-            if (this.ReleaseEmitter(root)) released.push(root);
-        }
-        else if (root instanceof AudioCurveSetDriver)
-        {
-            if (this.ReleaseCurveSetDriver(root)) released.push(root);
-        }
-        else
-        {
-            root?.Traverse?.(model =>
+            if (CjsSchema.cast(value, AudGameObjResource) && this.ReleaseEmitter(value))
             {
-                if (model instanceof AudGameObjResource && this.ReleaseEmitter(model))
-                {
-                    released.push(model);
-                }
-                else if (model instanceof AudioCurveSetDriver
-                    && this.ReleaseCurveSetDriver(model))
-                {
-                    released.push(model);
-                }
-            });
-        }
+                released.push(value);
+            }
+            else if (CjsSchema.cast(value, AudioCurveSetDriver) && this.ReleaseCurveSetDriver(value))
+            {
+                released.push(value);
+            }
+        });
         return released;
     }
 

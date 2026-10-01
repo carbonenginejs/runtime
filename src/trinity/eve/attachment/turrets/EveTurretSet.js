@@ -698,8 +698,7 @@ export class EveTurretSet extends EveEntity
       // LEAF CLASS because the family has no declared contract to ask for:
       // Carbon derives it from ITriEffectParameter and ITriReroutable
       // (Tr2Vector4Parameter.h:13-16) and our port put the shared behaviour on
-      // an invented CjsParameter instead. See
-      // .agents/parameter-family-missing-contracts.md.
+      // an invented CjsParameter instead.
       if (!CjsSchema.cast(parameter, Tr2Vector4Parameter))
       {
         continue;

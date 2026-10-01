@@ -1,5 +1,6 @@
 import { CjsCarbonDocument } from "#model/document";
 import { CjsSchema } from "#schema";
+import { applyReaderMember, finalizeReaderObject, getReaderMemberValue } from "#schema/hydration";
 
 import { CjsBlueReader } from "../../../format/CjsBlueReader.js";
 
@@ -224,12 +225,17 @@ export class CjsBlackReader extends CjsBlueReader
         });
     }
 
-    /** Reads embedded object from the current Black object-graph reader. */
-    ReadEmbeddedObject(reader)
+    /**
+     * Reads an inline object into existing canonical runtime storage when supplied.
+     * @impl adapted Payload/document modes allocate their neutral representation;
+     * canonical runtime mode preserves Carbon's existing embedded destination.
+     */
+    ReadEmbeddedObject(reader, destination = undefined)
     {
         if (this.readMode === "runtime") return this.ReadRuntimeObjectPayload(reader, {
             blackReference: null,
-            embedded: true
+            embedded: true,
+            destination
         });
 
         if (this.readMode === "payload") return this.ReadPayloadObjectPayload(reader, {
@@ -319,39 +325,63 @@ export class CjsBlackReader extends CjsBlueReader
         });
     }
 
-    /** Reads runtime object payload from the current Black object-graph reader. */
+    /**
+     * Reads one runtime object, completing canonical stored writes before returning.
+     * @impl adapted Early reference registration preserves JS cycles; shared Blue
+     * helpers own member writes and completion, while custom adapters retain their
+     * existing whole-graph finalization contract.
+     */
     ReadRuntimeObjectPayload(reader, options)
     {
         const payloadSize = reader.ReadU32();
         const objectReader = reader.ReadBinaryReader(payloadSize);
         const kind = objectReader.ReadStringRef();
-        const shape = this.ResolveSourceShape(kind);
-        const target = this.CreateRuntimeTarget(kind, shape);
+        // Native ReadIRoot consumes but ignores the embedded wire class name:
+        // its destination already determines the member table and identity.
+        const shape = options.destination !== undefined && options.destination !== null
+            ? CjsBlackSchemaRegistry.fromClassInfo(CjsSchema.getSchema(options.destination.constructor))
+            : this.ResolveSourceShape(kind);
+        const canonical = shape?.canonical && !this.options.adapter;
+        if (canonical && options.embedded && (options.destination === undefined || options.destination === null))
+        {
+            throw new TypeError(`Canonical Black embedded ${kind} requires existing declared storage`);
+        }
+        const target = canonical && options.embedded
+            ? options.destination
+            : this.CreateRuntimeTarget(kind, shape);
 
         if (options.blackReference !== null)
         {
             this.references.set(options.blackReference, target);
         }
 
-        // Accumulate this object's fields into a plain values map, then hand
-        // the whole map to the hydration adapter. The adapter (default:
-        // Object.assign) decides how the caller's class receives its values -
-        // direct assignment, SetValues, etc. The target instance is already
-        // registered above, so back-references resolve to it while its values
-        // are still being collected (the adapter must mutate in place).
-        const values = {};
+        // Early reference registration preserves the established JS cycle
+        // contract. Native BlackReader registers only after completion.
+        // Legacy/custom adapters receive their exposed-name values bag. The
+        // canonical path writes each stored member immediately, without values
+        // composition, and never adds itself to the adapter finalization queue.
+        const values = canonical ? null : {};
         let previousBlackName = null;
         while (!objectReader.AtEnd())
         {
             const blackName = objectReader.ReadStringRef();
             const fieldTarget = this.ResolveFieldTargetWithContext(kind, shape, blackName, previousBlackName);
-            const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget);
-            this.AssignRuntimeFieldValue(values, fieldTarget, value);
+            const declaration = fieldTarget.field.declaration;
+            const destination = canonical && declaration?.type?.kind === "struct"
+                ? getReaderMemberValue(target, declaration)
+                : undefined;
+            const value = this.ReadFieldValueWithContext(objectReader, kind, blackName, fieldTarget, destination);
+            if (canonical)
+            {
+                if (!fieldTarget.discard) applyReaderMember(target, declaration, value);
+            }
+            else this.AssignRuntimeFieldValue(values, fieldTarget, value);
             previousBlackName = blackName;
         }
 
         objectReader.ExpectEnd(`${kind} did not read to end`);
-        this.ApplyRuntimeValues(target, values, kind, shape);
+        if (canonical) finalizeReaderObject(target, { initialize: this.options.initialize !== false });
+        else this.ApplyRuntimeValues(target, values, kind, shape);
         return target;
     }
 
@@ -567,13 +597,13 @@ export class CjsBlackReader extends CjsBlueReader
     }
 
     /** Reads field value with context from the current Black object-graph reader. */
-    ReadFieldValueWithContext(reader, kind, blackName, target)
+    ReadFieldValueWithContext(reader, kind, blackName, target, destination = undefined)
     {
         try
         {
             return target.unknown
                 ? this.ReadUnknownFieldValue(reader, kind, blackName)
-                : CjsBlackPropertyReaders.readValue(reader, WithClassStructure(target.field, kind, blackName));
+                : CjsBlackPropertyReaders.readValue(reader, WithClassStructure(target.field, kind, blackName), destination);
         }
         catch (error)
         {
@@ -643,6 +673,27 @@ export class CjsBlackReader extends CjsBlueReader
         }
 
         const fields = shape.fields || [];
+        if (shape.canonical)
+        {
+            const field = fields.find(item => item.name === blackName);
+            if (field)
+            {
+                return {
+                    blackName,
+                    wireName: blackName,
+                    field,
+                    member: blackName,
+                    indexed: false,
+                    indexToken: null,
+                    index: null,
+                    key: null
+                };
+            }
+            if (blackName !== BLUE_OBJECT_METADATA_KEY)
+            {
+                throw new TypeError(`No persisted member declared for Black field ${kind}.${blackName}`);
+            }
+        }
         const blackField = (shape.black?.fields || []).find(item => CjsBlackSchemaRegistry.matchesBlackFieldName(item, blackName));
         if (blackField)
         {
@@ -879,6 +930,31 @@ export class CjsBlackReader extends CjsBlueReader
         return classes[kind] || Schema.GetConstructor(kind);
     }
 
+    /**
+     * Uses canonical stored declarations when the caller selects schema:null.
+     * Explicit source-shape providers retain their existing precedence. The
+     * default generated schema remains supported until its classes migrate.
+     *
+     * @param {string} kind Serialized class name.
+     * @returns {object|null} Reader-local decoder shape.
+     * @impl adapted Blue declarations are converted to existing Black codecs.
+     */
+    ResolveSourceShape(kind)
+    {
+        const supplied = super.ResolveSourceShape(kind);
+        if (supplied || this.options.schema !== null) return supplied;
+        const Constructor = this.ResolveClass(kind);
+        if (!Constructor)
+        {
+            if (this.readMode === "runtime")
+            {
+                throw new TypeError(`No constructor registered for canonical Black type ${kind}`);
+            }
+            return null;
+        }
+        return CjsBlackSchemaRegistry.fromClassInfo(CjsSchema.getSchema(Constructor));
+    }
+
     /** Clears read state before reusing the current Black object-graph reader. */
     ResetReadState()
     {
@@ -979,6 +1055,9 @@ const CJS_BLACK_INDEX_TOKEN_NAMES = Object.freeze({
  */
 function WithClassStructure(field, className, fieldName)
 {
+    // Canonical fields already carry explicit ABI facts. Do not replace them
+    // with the legacy field view or inferred packing.
+    if (field.declaration) return field;
     const black = field?.black;
     if (!black || black.container !== "list" || !/StructureList/u.test(String(black.cppType ?? ""))) return field;
     const layout = classStructureLayout(className, fieldName);

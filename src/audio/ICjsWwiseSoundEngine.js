@@ -1,9 +1,9 @@
 // CarbonEngineJS extension (no Carbon counterpart): the Wwise stand-in's
 // interface. Carbon Audio calls Wwise through free `AK::` functions
-// (e:/carbonengine/audio/src), not a Blue interface, so this layer has no
+// (audio/src), not a Blue interface, so this layer has no
 // Carbon class to port; each method is the `AK::` function it stands for.
 // The Trinity -> Carbon Audio layer is a different one: trinityaudioapi.
-// Name held for the operator (docs research/audio-backend-interface.md).
+
 import { CjsSchema, impl } from "#schema";
 
 /**

@@ -1,3 +1,4 @@
+import { CjsSchema } from "../../../npm/dist/global/schema/index.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -2759,13 +2760,12 @@ test("graph adoption owns AudioCurveSetDriver monitored watchers", () =>
   const second = AudioCurveSetDriver.from({
     audioParameterName: "boost",
   });
-  const graph = {
-    Traverse(visitor)
-    {
-      visitor(first);
-      visitor(second);
-    },
-  };
+  class WatcherGraph { drivers = [first, second]; }
+  CjsSchema.define(WatcherGraph, {
+    className: "AudioSystemWatcherGraph",
+    members: [{ name: "drivers", key: "drivers", type: { kind: "list", itemType: AudioCurveSetDriver } }],
+  });
+  const graph = new WatcherGraph();
 
   system.Attach();
   try

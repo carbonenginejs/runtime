@@ -10,13 +10,17 @@ import {
  */
 export class CjsBlackPropertyReaders
 {
-    /** Reads value from the current Black object-graph reader. */
-    static readValue(reader, field)
+    /**
+     * Decodes a field, carrying existing embedded storage through the transport.
+     * @impl adapted JavaScript dispatches canonical descriptors to wire codecs;
+     * the shared reader service owns storage writes and notifications.
+     */
+    static readValue(reader, field, destination = undefined)
     {
         const descriptor = normalizeCarbonTypeDescriptor(field);
         if (field?.black?.beType)
         {
-            return CjsBlackPropertyReaders.readBlackValue(reader, field.black, descriptor);
+            return CjsBlackPropertyReaders.readBlackValue(reader, field.black, descriptor, destination);
         }
 
         switch (descriptor.kind)
@@ -89,7 +93,7 @@ export class CjsBlackPropertyReaders
 
             case CARBON_TYPE.STRUCT:
             case CARBON_TYPE.RAW_STRUCT:
-                return reader.context.ReadEmbeddedObject(reader);
+                return reader.context.ReadEmbeddedObject(reader, destination);
 
             case CARBON_TYPE.OBJECT_REF:
             case CARBON_TYPE.UNKNOWN:
@@ -98,8 +102,11 @@ export class CjsBlackPropertyReaders
         }
     }
 
-    /** Reads black value from the current Black object-graph reader. */
-    static readBlackValue(reader, black, descriptor)
+    /**
+     * Decodes one native Black wire type, preserving an embedded destination.
+     * @impl adapted Native pointer offsets are replaced by a supplied JS object.
+     */
+    static readBlackValue(reader, black, descriptor, destination = undefined)
     {
         switch (black.beType)
         {
@@ -108,7 +115,7 @@ export class CjsBlackPropertyReaders
                 {
                     return CjsBlackPropertyReaders.readBlackStructureList(reader, black);
                 }
-                return CjsBlackPropertyReaders.readBlackIRoot(reader, black, descriptor);
+                return CjsBlackPropertyReaders.readBlackIRoot(reader, black, descriptor, destination);
 
             case "BOOL":
                 return reader.ReadU8() !== 0;
@@ -321,12 +328,13 @@ export class CjsBlackPropertyReaders
     /**
      * Reads a nested Black root-interface value for the Black object-graph
      * reader.
+     * @impl adapted The transport receives the existing JS embedded destination.
      */
-    static readBlackIRoot(reader, black, descriptor)
+    static readBlackIRoot(reader, black, descriptor, destination = undefined)
     {
         if (black.container === "dict") return CjsBlackPropertyReaders.readDict(reader);
         if (black.container === "list" || black.container === "set") return CjsBlackPropertyReaders.readArray(reader, descriptor);
-        return reader.context.ReadEmbeddedObject(reader);
+        return reader.context.ReadEmbeddedObject(reader, destination);
     }
 
     /**
@@ -348,14 +356,21 @@ export class CjsBlackPropertyReaders
         reader.context.SkipEmbeddedObject(reader);
     }
 
-    /** Reads dict from the current Black object-graph reader. */
+    /**
+     * Reads dictionary entries as own data properties for the shared writer.
+     * @impl adapted JS keys never invoke Object.prototype setters; the shared
+     * member writer retains existing dictionary entries and skips null values.
+     */
     static readDict(reader)
     {
         const count = reader.ReadU32();
         const result = {};
         for (let i = 0; i < count; i++)
         {
-            result[reader.ReadStringRef()] = reader.context.ReadObject(reader);
+            const key = reader.ReadStringRef();
+            const value = reader.context.ReadObject(reader);
+            // Serialized dictionary keys are data, including "__proto__".
+            Object.defineProperty(result, key, { value, writable: true, enumerable: true, configurable: true });
         }
         return result;
     }

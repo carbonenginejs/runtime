@@ -8,6 +8,7 @@
   "blueexposure/include/BlueTypes.h#EDITFLAGS": "no JavaScript vocabulary for enum EDITFLAGS (blueexposure/include/BlueTypes.h:283); port it to its owning class, its family module, or global/consts.",
   "blueexposure/include/BlueTypes.h#LOADOBJECT_INIT_FLAG": "no JavaScript vocabulary for enum LOADOBJECT_INIT_FLAG (blueexposure/include/BlueTypes.h:421); port it to its owning class, its family module, or global/consts.",
   "blueexposure/include/BlueTypes.h#VARTYPE": "no JavaScript vocabulary for enum VARTYPE (blueexposure/include/BlueTypes.h:216); port it to its owning class, its family module, or global/consts.",
+  "blueexposure/include/Find.h#RouteStep::StepType": "No JavaScript vocabulary for RouteStep::StepType (blueexposure/include/Find.h:21); belongs to the unported RouteStep route/replay result, not the EnumerateChildren visitor contract.",
   "blueexposure/include/IList.h#LISTOPS": "no JavaScript vocabulary for enum LISTOPS (blueexposure/include/IList.h:16); port it to its owning class, its family module, or global/consts.",
   "trinity/shadercompiler/EffectData.h#AnnotationType": "no JavaScript vocabulary for enum AnnotationType (trinity/shadercompiler/EffectData.h:35); port it to its owning class, its family module, or global/consts.",
   "trinity/shadercompiler/EffectData.h#ConstantType": "no JavaScript vocabulary for enum ConstantType (trinity/shadercompiler/EffectData.h:24); port it to its owning class, its family module, or global/consts.",

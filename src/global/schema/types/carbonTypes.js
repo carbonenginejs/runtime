@@ -7,6 +7,7 @@ export const CARBON_TYPE = Object.freeze({
     UNKNOWN: "unknown",
     BOOLEAN: "boolean",
     STRING: "string",
+    WSTRING: "wstring",
     PATH: "path",
     EXPRESSION: "expression",
     ENUM: "enum",
@@ -32,6 +33,7 @@ export const CARBON_TYPE = Object.freeze({
     SET: "set",
     MODEL: "model",
     OBJECT_REF: "objectRef",
+    WEAK_REF: "weakRef",
     STRUCT: "struct",
     RAW_STRUCT: "rawStruct",
     TYPED_ARRAY: "typedArray"
@@ -51,6 +53,8 @@ const TYPE_DEFINITIONS = {
     [CARBON_TYPE.UNKNOWN]: { kind: CARBON_TYPE.UNKNOWN, js: "*" },
     [CARBON_TYPE.BOOLEAN]: { kind: CARBON_TYPE.BOOLEAN, js: "boolean" },
     [CARBON_TYPE.STRING]: { kind: CARBON_TYPE.STRING, js: "string" },
+    // BlueTypes.h distinguishes STDSTRING/STDWSTRING; both use JS strings.
+    [CARBON_TYPE.WSTRING]: { kind: CARBON_TYPE.WSTRING, js: "string" },
     [CARBON_TYPE.PATH]: { kind: CARBON_TYPE.PATH, js: "string" },
     [CARBON_TYPE.EXPRESSION]: { kind: CARBON_TYPE.EXPRESSION, js: "string", semantic: CARBON_TYPE.EXPRESSION },
     [CARBON_TYPE.ENUM]: { kind: CARBON_TYPE.ENUM, js: "number|string|null" },
@@ -69,6 +73,8 @@ const TYPE_DEFINITIONS = {
     [CARBON_TYPE.SET]: { kind: CARBON_TYPE.SET, js: "Set" },
     [CARBON_TYPE.MODEL]: { kind: CARBON_TYPE.MODEL, js: "object|null" },
     [CARBON_TYPE.OBJECT_REF]: { kind: CARBON_TYPE.OBJECT_REF, js: "object|null" },
+    // BlueTypes.h IROOTWEAKREF describes the reference; it installs no JS lifetime policy.
+    [CARBON_TYPE.WEAK_REF]: { kind: CARBON_TYPE.WEAK_REF, js: "object|null" },
     [CARBON_TYPE.STRUCT]: { kind: CARBON_TYPE.STRUCT, js: "object" },
     [CARBON_TYPE.RAW_STRUCT]: { kind: CARBON_TYPE.RAW_STRUCT, js: "object" },
     [CARBON_TYPE.TYPED_ARRAY]: { kind: CARBON_TYPE.TYPED_ARRAY, js: "TypedArray" },
@@ -312,9 +318,13 @@ export function inferCarbonTypeFromCpp(cppType, propertyName = "")
         case "double":
             return TYPE_DEFINITIONS[CARBON_TYPE.FLOAT64];
         case "std::string":
-        case "std::wstring":
         case "BlueSharedString":
             return isExpressionLike(propertyName) ? TYPE_DEFINITIONS[CARBON_TYPE.EXPRESSION] : TYPE_DEFINITIONS[CARBON_TYPE.STRING];
+        case "std::wstring":
+        case "BlueSharedStringW":
+            return isExpressionLike(propertyName)
+                ? { ...TYPE_DEFINITIONS[CARBON_TYPE.WSTRING], semantic: CARBON_TYPE.EXPRESSION }
+                : TYPE_DEFINITIONS[CARBON_TYPE.WSTRING];
         case "Vector2":
             return TYPE_DEFINITIONS[CARBON_TYPE.VECTOR2];
         case "Vector3":
@@ -379,6 +389,7 @@ export function defaultCarbonValue(type)
         case CARBON_TYPE.BOOLEAN:
             return false;
         case CARBON_TYPE.STRING:
+        case CARBON_TYPE.WSTRING:
         case CARBON_TYPE.PATH:
         case CARBON_TYPE.EXPRESSION:
             return "";
@@ -430,6 +441,7 @@ export function defaultCarbonValue(type)
         }
         case CARBON_TYPE.MODEL:
         case CARBON_TYPE.OBJECT_REF:
+        case CARBON_TYPE.WEAK_REF:
         case CARBON_TYPE.STRUCT:
         case CARBON_TYPE.RAW_STRUCT:
         case CARBON_TYPE.UNKNOWN:
@@ -450,6 +462,7 @@ export function normalizeCarbonValue(value, type)
         case CARBON_TYPE.BOOLEAN:
             return Boolean(value);
         case CARBON_TYPE.STRING:
+        case CARBON_TYPE.WSTRING:
         case CARBON_TYPE.PATH:
         case CARBON_TYPE.EXPRESSION:
             return String(value);
@@ -801,10 +814,14 @@ function normalizeCppType(cppType)
 
 function normalizeCppTypeName(cppType)
 {
-    return normalizeCppType(cppType)
+    const type = normalizeCppType(cppType)
         .replace(/\s*\*+$/, "")
-        .replace(/\bstd::basic_string\s*<[^>]+>/g, "std::string")
         .trim();
+    // Match the whole string specialization, including nested traits/allocator
+    // arguments. Narrow and wide declarations select different Black tables.
+    const stringType = type.match(/^std::basic_string\s*<\s*(char|wchar_t)\s*(?:,.*)?>$/);
+    if (stringType) return stringType[1] === "wchar_t" ? "std::wstring" : "std::string";
+    return type;
 }
 
 function isRotationLike(name)
