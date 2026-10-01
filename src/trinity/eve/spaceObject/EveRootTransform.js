@@ -6,6 +6,9 @@ import { quat } from "#math/quat";
 import { vec3 } from "#math/vec3";
 import { carbon, impl, edit, type } from "#schema";
 import { EveTransform } from "./EveTransform.js";
+import { Tr2Transform } from "../../core/Tr2Transform.js";
+import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
+import { ITr2BoundingBox } from "#interfaces";
 
 
 /**
@@ -270,3 +273,10 @@ export class EveRootTransform extends EveTransform
   static _modelRotation = quat.create();
 
 }
+
+// Supported native interfaces; ITriTargetable, ITr2Pickable and IWorldPosition are not declared yet.
+// EveRootTransform_Blue.cpp:11-16,60 bypasses the EveTransform exposure table.
+carbon.interfaceTable({
+  interfaces: [ EveRootTransform, IEveSpaceObject2, ITr2BoundingBox ],
+  chainTo: Tr2Transform
+})(EveRootTransform, { kind: "class" });

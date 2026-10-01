@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Eve/EveTransform.h
 // Source: trinity/trinity/Eve/EveTransform.cpp
+// Source: trinity/trinity/Eve/EveTransform_Blue.cpp
 import "#blue/registerTrinityEnums";
 import { mat4 } from "#math/mat4";
 import { IEveSpaceObject2 } from "../IEveSpaceObject2.js";
@@ -15,6 +16,7 @@ import { Tr2Transform } from "../../core/Tr2Transform.js";
 import { EveLODHelper, Tr2Lod } from "../EveLODHelper.js";
 import { TR2_PICK_TYPE_DEFAULT, Tr2PickType } from "../../core/view/Tr2PickType.js";
 import { ITr2BoundingBox } from "#interfaces";
+import { IInitialize } from "#blue/IInitialize";
 
 // Static scratch for the singular-world patch fixup (allocation rules: hot
 // per-object path, copy-into, never allocate per call).
@@ -522,3 +524,10 @@ export class EveTransform extends Tr2Transform
   static _boundsMax = vec3.create();
   static _worldBounds = box3.create();
 }
+
+// Supported native interfaces; ITr2Pickable and IWorldPosition have no runtime declarations yet.
+// EveTransform_Blue.cpp:13-19,88 chains Tr2Transform explicitly.
+carbon.interfaceTable({
+  interfaces: [ EveTransform, IEveTransform, IEveSpaceObject2, IInitialize, ITr2BoundingBox ],
+  chainTo: Tr2Transform
+})(EveTransform, { kind: "class" });
