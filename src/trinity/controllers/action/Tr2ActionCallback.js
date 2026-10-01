@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionCallback_Blue.cpp
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, edit, type } from "#schema";
@@ -34,3 +35,9 @@ export class Tr2ActionCallback extends CjsModel
     }
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionCallback_Blue.cpp:12-13,20).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionCallback, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionCallback);

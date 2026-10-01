@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAttenuationScaling_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -92,3 +93,9 @@ export class Tr2ActionSetAttenuationScaling extends CjsModel
     return controllerVariableValue !== 0 ? this.scalingFactor * controllerVariableValue : this.scalingFactor;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSetAttenuationScaling_Blue.cpp:13-14,45).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSetAttenuationScaling, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionSetAttenuationScaling);

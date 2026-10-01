@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSpawnParticles_Blue.cpp
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 import { carbon, impl, edit, type } from "#schema";
@@ -52,3 +53,9 @@ export class Tr2ActionSpawnParticles extends CjsModel
     return args;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSpawnParticles_Blue.cpp:12-13,17).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSpawnParticles, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionSpawnParticles);

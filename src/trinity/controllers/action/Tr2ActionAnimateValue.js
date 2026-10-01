@@ -1,10 +1,12 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionAnimateValue_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { blue } from "#blue";
+import { blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
 
 
@@ -17,7 +19,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   className: "Tr2ActionAnimateValue",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, ITr2Updateable, INotify)
 export class Tr2ActionAnimateValue extends CjsModel
 {
   @edit.readwrite
@@ -314,3 +316,9 @@ export class Tr2ActionAnimateValue extends CjsModel
     return this.delayBinding && !!this.path;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionAnimateValue_Blue.cpp:13-16,51).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionAnimateValue, ITr2ControllerAction, ITr2Updateable, INotify],
+  chainTo: null
+})(Tr2ActionAnimateValue);

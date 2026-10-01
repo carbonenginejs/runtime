@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionResetClipSphereCenter_Blue.cpp
 import { CjsModel } from "#model";
 import { isArrayLike } from "#utils/is";
 import { carbon, impl, edit, type } from "#schema";
@@ -120,3 +121,9 @@ export class Tr2ActionResetClipSphereCenter extends CjsModel
   static ResetBehavior = ResetBehavior;
 
 }
+
+// Native exposure ends at this concrete table (Tr2ActionResetClipSphereCenter_Blue.cpp:21-22,26).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionResetClipSphereCenter, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionResetClipSphereCenter);

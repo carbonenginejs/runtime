@@ -1,9 +1,11 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPython.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionPython_Blue.cpp
 import { CjsModel } from "#model";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 import { carbon, impl, edit, type } from "#schema";
-import { blue, TimeAsFloat } from "#blue";
+import { blue, TimeAsFloat, INotify, IInitialize, ICustomPersist } from "#blue";
 import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
 
 
@@ -16,7 +18,7 @@ import { ContinueOnMainThread } from "../../core/continueOnMainThread.js";
   className: "Tr2ActionPython",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist)
 export class Tr2ActionPython extends CjsModel
 {
   static #factory = null;
@@ -326,3 +328,9 @@ export class Tr2ActionPython extends CjsModel
     return this.#instance;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionPython_Blue.cpp:12-17,24).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionPython, ITr2ControllerAction, ITr2Updateable, INotify, IInitialize, ICustomPersist],
+  chainTo: null
+})(Tr2ActionPython);

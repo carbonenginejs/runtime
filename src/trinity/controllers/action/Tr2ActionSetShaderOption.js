@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSetShaderOption_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -41,3 +42,9 @@ export class Tr2ActionSetShaderOption extends CjsModel
     owner.SetShaderOption(this.key, this.value);
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSetShaderOption_Blue.cpp:14-15,18).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSetShaderOption, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionSetShaderOption);

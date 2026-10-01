@@ -1,10 +1,12 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionBindRTPC_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
-import { blue } from "#blue";
+import { blue, INotify } from "#blue";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 
 
 /**
@@ -16,7 +18,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionBindRTPC",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, ITr2Updateable, INotify)
 export class Tr2ActionBindRTPC extends CjsModel
 {
   @edit.notify
@@ -239,3 +241,9 @@ export class Tr2ActionBindRTPC extends CjsModel
     });
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionBindRTPC_Blue.cpp:14-17,52).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionBindRTPC, ITr2ControllerAction, ITr2Updateable, INotify],
+  chainTo: null
+})(Tr2ActionBindRTPC);

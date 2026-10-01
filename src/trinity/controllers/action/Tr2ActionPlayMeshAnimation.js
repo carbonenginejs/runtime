@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayMeshAnimation_Blue.cpp
 import { CjsModel } from "#model";
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { DestinationType, PlayAction, StopAction } from "../enums.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -16,7 +18,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   className: "Tr2ActionPlayMeshAnimation",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, INotify)
 export class Tr2ActionPlayMeshAnimation extends CjsModel
 {
   @edit.notify
@@ -294,3 +296,9 @@ export class Tr2ActionPlayMeshAnimation extends CjsModel
   static StopAction = StopAction;
 
 }
+
+// Native exposure ends at this concrete table (Tr2ActionPlayMeshAnimation_Blue.cpp:33-35,80).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionPlayMeshAnimation, ITr2ControllerAction, INotify],
+  chainTo: null
+})(Tr2ActionPlayMeshAnimation);

@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSetValue_Blue.cpp
 import { CjsModel } from "#model";
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { CjsControllerExpressionProgram } from "../expression/CjsControllerExpressionProgram.js";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -18,7 +20,7 @@ import { Tr2BindingPoint } from "../expression/Tr2BindingPoint.js";
   className: "Tr2ActionSetValue",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, INotify)
 export class Tr2ActionSetValue extends CjsModel
 {
   @edit.notify
@@ -324,3 +326,9 @@ export class Tr2ActionSetValue extends CjsModel
     return this.delayBinding && !!this.path;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSetValue_Blue.cpp:13-15,49).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSetValue, ITr2ControllerAction, INotify],
+  chainTo: null
+})(Tr2ActionSetValue);

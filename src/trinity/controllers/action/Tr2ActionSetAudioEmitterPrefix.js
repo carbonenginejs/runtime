@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSetAudioEmitterPrefix_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -51,3 +52,9 @@ export class Tr2ActionSetAudioEmitterPrefix extends CjsModel
     this.Start(ITr2ControllerAction.requireController(controller, "StartWithController"));
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSetAudioEmitterPrefix_Blue.cpp:14-15,23).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSetAudioEmitterPrefix, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionSetAudioEmitterPrefix);

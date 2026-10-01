@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionOverlay_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
@@ -308,3 +309,9 @@ export class Tr2ActionOverlay extends CjsModel
     target.name = name;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionOverlay_Blue.cpp:12-13,37).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionOverlay, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionOverlay);

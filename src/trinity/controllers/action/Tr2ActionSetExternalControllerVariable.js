@@ -1,6 +1,8 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionSetExternalControllerVariable_Blue.cpp
 import { CjsModel } from "#model";
+import { INotify } from "#blue";
 import { carbon, impl, edit, type } from "#schema";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
 
@@ -14,7 +16,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionSetExternalControllerVariable",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, INotify)
 export class Tr2ActionSetExternalControllerVariable extends CjsModel
 {
   @edit.read
@@ -207,3 +209,9 @@ export class Tr2ActionSetExternalControllerVariable extends CjsModel
     return [];
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionSetExternalControllerVariable_Blue.cpp:13-15,27).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionSetExternalControllerVariable, ITr2ControllerAction, INotify],
+  chainTo: null
+})(Tr2ActionSetExternalControllerVariable);

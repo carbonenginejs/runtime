@@ -1,9 +1,11 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionPlayCurveSet_Blue.cpp
 import { CjsModel } from "#model";
 import { carbon, impl, edit, type } from "#schema";
 import { blue, TimeAsFloat } from "#blue";
 import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
+import { ITr2Updateable } from "../../core/ITr2Updateable.js";
 
 
 /**
@@ -15,7 +17,7 @@ import { ITr2ControllerAction } from "./ITr2ControllerAction.js";
   className: "Tr2ActionPlayCurveSet",
   family: "controllers"
 })
-@carbon.inherit(ITr2ControllerAction)
+@carbon.inherit(ITr2ControllerAction, ITr2Updateable)
 export class Tr2ActionPlayCurveSet extends CjsModel
 {
   @edit.readwrite
@@ -163,3 +165,9 @@ export class Tr2ActionPlayCurveSet extends CjsModel
     return 0;
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionPlayCurveSet_Blue.cpp:12-13,18).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionPlayCurveSet, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionPlayCurveSet);

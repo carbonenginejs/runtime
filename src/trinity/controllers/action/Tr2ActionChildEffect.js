@@ -1,5 +1,6 @@
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.h
 // Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect.cpp
+// Source: trinity/trinity/Controllers/Actions/Tr2ActionChildEffect_Blue.cpp
 import * as CcpLog from "../../../global/logging/ccpLog.js";
 import { CjsModel } from "#model";
 import { blue } from "#blue";
@@ -330,3 +331,9 @@ export class Tr2ActionChildEffect extends CjsModel
     }
   }
 }
+
+// Native exposure ends at this concrete table (Tr2ActionChildEffect_Blue.cpp:12-13,26).
+carbon.interfaceTable({
+  interfaces: [Tr2ActionChildEffect, ITr2ControllerAction],
+  chainTo: null
+})(Tr2ActionChildEffect);
